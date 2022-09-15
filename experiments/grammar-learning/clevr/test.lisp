@@ -55,12 +55,12 @@
   (defparameter *experiment*
     (eval `(make-instance 'grammar-learning-experiment
                    :entries '((:repairs . (add-categorial-links
-                                           item-based->item-based--substitution
-                                           item-based->holistic
-                                           ;holistic->item-based--substitution
-                                           holistic->item-based--addition
-                                           holistic->item-based--deletion
-                                           holistic->item-based
+                                           ;item-based->item-based--substitution
+                                           ;item-based->holistic
+                                           holistic->item-based--substitution
+                                           ;holistic->item-based--addition
+                                           ;holistic->item-based--deletion
+                                           ;holistic->item-based
                                            nothing->holistic))
                          (:observation-sample-mode . :train) ;:train
                          (:categorial-network-export-interval . 1000)
@@ -95,7 +95,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 100)   ;  
+;(run-series *experiment* 80)   ;  
 
 ;(run-series *experiment* 5000) ;
 
