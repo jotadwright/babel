@@ -1,11 +1,10 @@
 
 (progn
-(setf *automatically-start-web-interface* nil)
 (ql:quickload :mwm-evaluation)
 (in-package :mwm-evaluation)
 )
 
-(progn
+#|(progn
   (defparameter *extracted-concepts-path*
   (babel-pathname :directory '("experiments""multidimensional-word-meanings"
                                "store" "baseline-extracted-default-lexicon")))
@@ -19,27 +18,23 @@
     (:nr-of-questions . nil)
     (:data-split . "val")
     (:world-type . :extracted)))
-  (evaluate-mwm-serie 10 *config-entries*))
+  (evaluate-mwm-serie 10 *config-entries*))|#
 
 
-(activate-monitor trace-fcg)
-(activate-monitor trace-irl)
-(deactivate-all-monitors)
+;(activate-monitor trace-fcg)
+;(activate-monitor trace-irl)
+;(deactivate-all-monitors)
 
 ;;------------;;
 ;; Evaluation ;;
 ;;------------;;
-
-(defparameter *extracted-concepts-path*
-  (babel-pathname :directory '("experiments""multidimensional-word-meanings"
-                               "store" "baseline-extracted-default-lexicon")))
 
 (defparameter *config-entries*
   '((:dot-interval . 100)
     (:nr-of-scenes . nil)
     (:nr-of-questions . nil)
     (:data-split . "val")
-    (:world-type . :extracted)))
+    (:world-type . :simulated)))
 
 ;; Evaluate one particular serie
 ;(evaluate-mwm-serie 1 *config-entries*)
@@ -63,12 +58,8 @@
 ;;---------;;
 
 ;; Test sentences (see "Babel/grammars/clevr-grammar/start.lisp" for more examples):
-(let ((ontology
-       (make-mwm-ontology
-        (merge-pathnames (make-pathname :directory '(:relative "serie-1"))
-                         *extracted-concepts-path*) :extracted)))
-  (test-utterance-in-scene "there is a small gray block; are there any spheres to the left of it?"
-                                 ontology *clevr-scene-0*))
+ (test-utterance-in-scene "What color is the sphere?"
+                           "CLEVR_val_000000" :simulated "serie-1")
 
 
 
