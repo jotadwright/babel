@@ -69,7 +69,8 @@
                for values in bind-values
                do 
                  (bind (target-category
-                        (getf scores 'target)
+                        ;(getf scores 'target)
+                        1.0
                         (if (not (equal (getf values 'target) "NONE"))
                           (find-entity-by-id
                            ontology

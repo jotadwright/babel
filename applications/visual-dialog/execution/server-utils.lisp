@@ -149,7 +149,7 @@
         (setf (img-path attention) filepath)
         filepath))))
 
-(defmethod irl::handle-evaluate-irl-program-finished-event
+#|(defmethod irl::handle-evaluate-irl-program-finished-event
            :before ((monitor monitors::monitor)
                     (monitor-id (eql 'irl::trace-irl))
                     (event-id (eql 'irl::evaluate-irl-program-finished))
@@ -165,6 +165,6 @@
                              (null (img-path (value binding))))
                    do (request-attn (get-data (ontology pip) 'visual-dialog::server-address)
                                     (get-data (ontology pip) 'visual-dialog::cookie-jar)
-                                    (value binding))))))
+                                    (value binding))))))|#
 
 
