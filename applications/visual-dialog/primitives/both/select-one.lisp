@@ -20,10 +20,11 @@
                                                                                                                     :objects (list (first (collect-objects-from-world-model source-set))))))))))
            (t
             (loop for object in object-list
-                  for score = (average (scores (attention object)))
+                  ;for score = (average (scores (attention object)))
                   do (progn
-                       (print score)
-                       (bind (target-world-model score (make-instance 'world-model
+                       (bind (target-world-model ;score
+                              1.0
+                                                 (make-instance 'world-model
                                                                       :id (id source-set)
                                                                       :set-items
                                                                       (list (make-instance 'turn

@@ -123,7 +123,8 @@
                   (add-conversation-memory memory))
                 (id target-value))
               (if (eq (get-configuration (get-data ontology 'world) :evaluation-mode) :guess)
-                (guess-answer irl-program (get-configuration (get-data ontology 'world) :dataset))))))))
+                (guess-answer irl-program (get-configuration (get-data ontology 'world) :dataset))
+                "IRL-FAILED"))))))
 
 
 

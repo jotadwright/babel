@@ -23,8 +23,9 @@
                   :best-first)
                 objects)
            (loop for object in objects
-                 for score = (average (scores (attention object)))
-                 do (bind (target-set score (make-instance 'world-model
+                ; for score = (average (scores (attention object)))
+                 do (bind (target-set ;score
+                                      1.0 (make-instance 'world-model
                                                            :set-items
                                                            (list (make-instance 'turn
                                                                                 :object-set

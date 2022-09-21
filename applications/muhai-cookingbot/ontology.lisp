@@ -762,19 +762,19 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Abstract class for all flour."))
 
-(defclass fresh-basil (ingredient cuttable pluckable)
+(defclass fresh-basil (spice cuttable pluckable)
   ()
   (:documentation "Fresh basil."))
 
-(defclass fresh-cilantro (ingredient cuttable pluckable)
+(defclass fresh-cilantro (spice cuttable pluckable)
   ()
   (:documentation "Fresh cilantro (coriander)."))
 
-(defclass fresh-parsley (ingredient cuttable pluckable)
+(defclass fresh-parsley (spice cuttable pluckable)
   ()
   (:documentation "Fresh parsley"))
 
-(defclass fresh-rosemary (ingredient cuttable pluckable)
+(defclass fresh-rosemary (spice cuttable pluckable)
   ()
   (:documentation "Fresh rosemary"))
 
@@ -791,31 +791,36 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Garlic"))
 
-(defclass ground-allspice (ingredient)
+(defclass ground-allspice (ground-spice)
   ()
   (:documentation "Ground-allspice."))
 
-(defclass ground-black-pepper (ingredient) 
+(defclass ground-spice (spice siftable)
+  ()
+  (:documentation "Abstract class for ground spices"))
+
+
+(defclass ground-black-pepper (ground-spice) 
   ()
   (:documentation "Ground black pepper."))
 
-(defclass ground-cinnamon (ingredient)
+(defclass ground-cinnamon (ground-spice)
   ()
   (:documentation "Ground cinnamon."))
 
-(defclass ground-cloves (ingredient)
+(defclass ground-cloves (ground-spice)
   ()
   (:documentation "Ground-cloves."))
 
-(defclass ground-cumin (ingredient)
+(defclass ground-cumin (ground-spice)
   ()
   (:documentation "Ground Cumin."))
 
-(defclass ground-ginger (ingredient)
+(defclass ground-ginger (ground-spice)
   ()
   (:documentation "Ground-ginger."))
 
-(defclass ground-nutmeg (ingredient)
+(defclass ground-nutmeg (ground-spice)
   ()
   (:documentation "Nutmeg."))
 
@@ -911,11 +916,11 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Red Onion."))
 
-(defclass red-pepper-flakes (ingredient)
+(defclass red-pepper-flakes (spice)
   ()
   (:documentation "Red pepper flakes."))
 
-(defclass salt (ingredient)
+(defclass salt (spice)
   ()
   (:documentation "Salt."))
 
@@ -930,6 +935,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass shallot (ingredient cuttable peelable)
   ()
   (:documentation "Shallot."))
+
+(defclass spice (ingredient)
+  ()
+  (:documentation "Abstract class for spices"))
 
 (defclass sugar (ingredient beatable mixable)
   ()

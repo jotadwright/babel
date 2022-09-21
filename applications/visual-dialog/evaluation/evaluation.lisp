@@ -30,20 +30,57 @@
                      (add-element  `((h3) ,(format nil "SUCCESS")))
                      (add-element  `((h3) ,(format nil "FAILURE"))))))))
     ;; return success of whole dialog and detailed success of questions 
-    (values (loop for a in correct-answers always (= a 1)) correct-answers)))
+    (values (loop for a in correct-answers always (= a 1)) correct-answers computed-answers gold-answers)))
 
 (defun evaluate-dialogs (start-scene end-scene world)
   "evaluate all dialogs from start-scene to end-scene, returns question-level-accuracy"
   
   (ensure-directories-exist
    (babel-pathname :directory `("applications" "visual-dialog" "evaluation" "results"
-                                ,(format nil "~a-~a-~a-~a" (get-configuration world :dataset) (get-configuration world :mode) (get-configuration world :datasplit) (get-configuration world :evaluation-mode)))))
-                 (with-open-file (str (make-file-name-with-time 
-                                       (babel-pathname
-                                        :directory `("applications" "visual-dialog" "evaluation" "results" ,(format nil "~a-~a-~a-~a" (get-configuration world :dataset) (get-configuration world :mode) (get-configuration world :datasplit) (get-configuration world :evaluation-mode)))
-                                        :name (format nil "evaluation-~a-~a-~a-~a-~a" (get-configuration world :dataset) (get-configuration world :mode) (get-configuration world :datasplit) start-scene end-scene)
-                                        :type "txt"))
-                      
+                                ,(format nil "~a-~a-~a-~a"
+                                         (get-configuration world :dataset)
+                                         (get-configuration world :mode)
+                                         (get-configuration world :datasplit)
+                                         (get-configuration world :evaluation-mode)))))
+  (ensure-directories-exist
+   (babel-pathname :directory `("applications" "visual-dialog" "evaluation" "answer-results"
+                                ,(format nil "~a-~a-~a-~a"
+                                         (get-configuration world :dataset)
+                                         (get-configuration world :mode)
+                                         (get-configuration world :datasplit)
+                                         (get-configuration world :evaluation-mode)))))
+  (with-open-file (str (make-file-name-with-time 
+                        (babel-pathname
+                         :directory `("applications" "visual-dialog" "evaluation" "results"
+                                      ,(format nil "~a-~a-~a-~a" (get-configuration world :dataset)
+                                               (get-configuration world :mode)
+                                               (get-configuration world :datasplit)
+                                               (get-configuration world :evaluation-mode)))
+                         :name (format nil "evaluation-~a-~a-~a-~a-~a"
+                                       (get-configuration world :dataset)
+                                       (get-configuration world :mode)
+                                       (get-configuration world :datasplit)
+                                       start-scene end-scene)
+                         :type "txt"))
+                       
+                       :direction :output
+                       :if-exists :supersede
+                       :if-does-not-exist :create)
+    (with-open-file (answer-str (make-file-name-with-time 
+                                 (babel-pathname
+                                  :directory `("applications" "visual-dialog" "evaluation" "answer-results"
+                                               ,(format nil "~a-~a-~a-~a"
+                                                        (get-configuration world :dataset)
+                                                        (get-configuration world :mode)
+                                                        (get-configuration world :datasplit)
+                                                        (get-configuration world :evaluation-mode)))
+                                  :name (format nil "evaluation-~a-~a-~a-~a-~a"
+                                                (get-configuration world :dataset)
+                                                (get-configuration world :mode)
+                                                (get-configuration world :datasplit)
+                                                start-scene end-scene)
+                                  :type "txt"))
+                       
                        :direction :output
                        :if-exists :supersede
                        :if-does-not-exist :create)
@@ -57,13 +94,14 @@
                        append (progn
                                 (format t "evaluation of scene ~a~%" scene)
                                 (loop for dialog from 0 to number-of-dialogs
-                                      for (result-whole-dialog result-one-dialog) = (multiple-value-list
+                                      for (result-whole-dialog result-one-dialog computed-answers gold-answers) = (multiple-value-list
                                                                                      (evaluate-dialog :scene-index scene
                                                                                                       :dialog-index dialog
                                                                                                       :world world
                                                                                                       :ontology ontology))
                                       do (progn
-                                           (format str "~a, ~a : ~a~%" scene dialog result-one-dialog) (force-output str))
+                                           (format str "~a, ~a : ~a~%" scene dialog result-one-dialog) (force-output str)
+                                           (format answer-str "~a, ~a : computed-answers : ~a : gold-answers : ~a~%" scene dialog computed-answers gold-answers) (force-output answer-str))
                                       collect (list result-whole-dialog result-one-dialog)))))
                (dialog-level-accuracy
                 (average (loop for result in results
@@ -75,7 +113,7 @@
                                append (second result)))))
           (format str "dialog-level-accuracy : ~a~%" dialog-level-accuracy) (force-output str)
           (format str "question-level-accuracy : ~a~%" question-level-accuracy) (force-output str)
-          question-level-accuracy))))
+          question-level-accuracy)))))
 
 
 
