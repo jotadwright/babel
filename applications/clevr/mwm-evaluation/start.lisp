@@ -58,11 +58,23 @@
 ;;---------;;
 
 ;; Test sentences (see "Babel/grammars/clevr-grammar/start.lisp" for more examples):
- (test-utterance-in-scene "What color is the sphere?"
-                           "CLEVR_val_000000" :simulated "serie-1")
+ (test-utterance-in-scene "What color is the small sphere?"
+                           "CLEVR_val_000003" :simulated "serie-1")
 
 
+(draw-irl-program '((get-context ?context)(bind shape-category ?shape-1 sphere)(filter ?sphere-set ?context ?shape-1)(bind size-category ?size-1 small)(filter ?small-sphere-set ?sphere-set ?size-1)(unique ?small-sphere ?small-sphere-set)(bind attribute-category ?attribute-1 color)(query ?target ?small-sphere ?attribute-1)) :format "pdf")
 
+;; Step 5
+(draw-irl-program '((bind shape-category ?shape-1 sphere)(filter ?sphere-set ?context ?shape-1)(bind size-category ?size-1 small)(bind attribute-category ?attribute-1 color)) :format "pdf")
+
+;; Step 6
+(draw-irl-program '((bind shape-category ?shape-1 sphere)(filter ?sphere-set ?context ?shape-1)(bind size-category ?size-1 small)(filter ?small-sphere-set ?sphere-set ?size-1)(bind attribute-category ?attribute-1 color)) :format "pdf")
+
+;; Step 7
+(draw-irl-program '((bind shape-category ?shape-1 sphere)(filter ?sphere-set ?context ?shape-1)(bind size-category ?size-1 small)(filter ?small-sphere-set ?sphere-set ?size-1)(unique ?small-sphere ?small-sphere-set)(bind attribute-category ?attribute-1 color)) :format "pdf")
+
+;; Step 8
+(draw-irl-program '((bind shape-category ?shape-1 sphere)(filter ?sphere-set ?context ?shape-1)(bind size-category ?size-1 small)(filter ?small-sphere-set ?sphere-set ?size-1)(unique ?small-sphere ?small-sphere-set)(bind attribute-category ?attribute-1 color)(query ?target ?small-sphere ?attribute-1)) :format "pdf")
 
 ;;---------;;
 ;; Testing ;;
@@ -87,6 +99,17 @@
           (evaluate-irl-program *program* *ontology*
                                 :n 1 :primitive-inventory *mwm-primitives*)|#
 
+(defparameter *scene-pathname*
+  (make-instance 'pathname-entity
+                 :pathname (parse-namestring "/Users/liesbetdevos/Projects/Corpora/CLEVR-v1.0/scenes/val/CLEVR_val_000012.json")))
+
+(defparameter *scene-12*
+  (mwm::clevr->extracted (load-clevr-scene (pathname *scene-pathname*))
+                         :directory *extracted-scenes-path*))
 
 
-
+(add-element
+   `((table)
+     ((tr) ((th) "CLEVR context"))
+     ((tr) ((td) ,(make-html *scene-12*
+                             :expand-initially t)))))
