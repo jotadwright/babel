@@ -7,6 +7,7 @@
 ;; default of cookie jar is make-instance, so a new session is started
 (define-configuration-default-value :cookie-jar (make-instance 'drakma:cookie-jar))
 (define-configuration-default-value :evaluation-mode :normal)
+(define-configuration-default-value :search-mode :best-first)
 
 (defun evaluate-clevr-dialogs-symbolic (start-scene end-scene)
   (let ((world (make-instance 'world 
