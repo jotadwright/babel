@@ -29,6 +29,7 @@
                                          (:datasplit . :val)
                                          (:mode . :hybrid)
                                          ))))
+    (set-configuration *subsymbolic-primitives* :search-mode :best-first)
     (if server-address
       (set-configuration world :server-address server-address))
     (evaluate-dialogs start-scene end-scene world)))
