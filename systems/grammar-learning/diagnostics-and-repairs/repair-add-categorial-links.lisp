@@ -56,27 +56,36 @@
    (meaning-predicates-with-variables
     (random-elt (get-data problem :meanings))
     (get-configuration (construction-inventory node) :meaning-representation-formalism))
+   nil
    (construction-inventory node)))
 
-(defun do-create-categorial-links (form-constraints meaning cxn-inventory)
+(defun do-create-categorial-links (form-constraints meaning parent-meaning cxn-inventory)
   "Return the categorial links and applied cxns from a comprehend with :category-linking-mode :path-exists instead of :neighbours"
   (disable-meta-layer-configuration cxn-inventory) 
   (with-disabled-monitor-notifications
     (multiple-value-bind (parsed-meanings cipns)
         (comprehend-all form-constraints :cxn-inventory (original-cxn-set cxn-inventory) :gold-standard-meaning meaning)
       (enable-meta-layer-configuration cxn-inventory)
-      (let ((cip-node (first (rank-cipns cipns))))
+      (let ((cip-node (first (rank-cipns cipns)))
+            (required-top-lvl-args (extract-args-from-meaning-networks meaning parent-meaning (get-configuration cxn-inventory :meaning-representation-formalism))))
         (when (member 'succeeded (statuses cip-node) :test #'string=)
-                      (let* ((cxns-to-apply (mapcar #'original-cxn (reverse (applied-constructions cip-node))))
-                             (top-level-category (extract-contributing-lex-class (last-elt cxns-to-apply))))
-                        (list
-                         cxns-to-apply
-                         (extract-used-categorial-links cip-node)
-                         nil
-                         nil
-                         top-level-category
-                         (gold-standard-consulted-p cip-node)
-                         )))))))
+          (let* ((cxns-to-apply (mapcar #'original-cxn (reverse (applied-constructions cip-node))))
+                 (top-level-category (extract-contributing-lex-class (last-elt cxns-to-apply)))
+                 (variable-bindings (equivalent-meaning-networks (first parsed-meanings) meaning (get-configuration cxn-inventory :meaning-representation-formalism)))
+                 (ts-top-level-args (second (find 'ARGS (rest (first (left-pole-structure (car-resulting-cfs (cipn-car cip-node))))) :key #'first)))
+                 (renamed-ts-args (fcg::rename-variables ts-top-level-args variable-bindings)))
+            (when (equal renamed-ts-args required-top-lvl-args)
+              (list
+               cxns-to-apply
+               (extract-used-categorial-links cip-node)
+               nil
+               nil
+               top-level-category
+               (gold-standard-consulted-p cip-node)
+               )
+              ;; not equal!
+              ;(format t "args mismatch")
+              )))))))
 
 
 (defun extract-used-categorial-links (solution-cipn)

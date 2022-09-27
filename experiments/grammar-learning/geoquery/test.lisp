@@ -66,6 +66,9 @@
                                                   nothing->holistic))
                                      (:observation-sample-mode . :debug)
                                      (:meaning-representation . :geo)
+                                     (:cxn-decf-score . 0.2)
+                                     (:cxn-incf-score . 0.1)
+                                     (:alignment-strategy . :lateral-inhibition)
                                      (:de-render-mode . :de-render-string-meets-no-punct)
                                      (:corpus-files-root . ,(merge-pathnames
                                                              (make-pathname :directory '(:relative "geoquery"))
@@ -94,9 +97,9 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 225)   ;  226 crashes
+;(run-series *experiment* 227)   ;  226 crashes
 
-;(run-series *experiment* 880) ;
+;(run-series *experiment* 850) ;
 
 
 #|

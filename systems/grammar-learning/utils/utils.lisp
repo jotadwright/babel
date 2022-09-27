@@ -876,14 +876,13 @@
              (let* ((non-overlapping-meanings (multiple-value-list (diff-meaning-networks meaning (extract-meaning-predicates cxn) meaning-representation-formalism)))
                     (non-overlapping-meaning-observation (first non-overlapping-meanings))
                     (non-overlapping-meaning-cxn (second non-overlapping-meanings))
-                    (overlapping-meaning-observation (set-difference meaning non-overlapping-meaning-observation :test #'equal))
-                    (overlapping-meaning-cxn (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning-cxn :test #'equal))
+                    (overlapping-meaning-observation (sort-subnetwork-according-to-parent
+                                                      (set-difference meaning non-overlapping-meaning-observation :test #'equal)
+                                                      meaning))
+                    (overlapping-meaning-cxn (sort-subnetwork-according-to-parent
+                                              (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning-cxn :test #'equal)
+                                              (extract-meaning-predicates cxn)))
                     (nof-obs-and-cxn (multiple-value-list (diff-form-constraints utterance-form-constraints (extract-form-predicates cxn))))
-                    ;(args-holistic-cxn-1
-                    ; (extract-args-from-meaning-networks non-overlapping-meaning-cxn overlapping-meaning-cxn meaning-representation-formalism))
-                    ;(args-holistic-cxn-2
-                    ; (extract-args-from-meaning-networks non-overlapping-meaning-observation overlapping-meaning-observation meaning-representation-formalism))
-
                     (non-overlapping-form-observation (first nof-obs-and-cxn))
                     (non-overlapping-form-cxn (second nof-obs-and-cxn))
                     (overlapping-form-cxn (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal))
@@ -902,6 +901,7 @@
                       cxn
                       (check-meets-continuity non-overlapping-form-cxn)
                       (check-meets-continuity non-overlapping-form-observation)
+                      ;; the non-overlapping (item-based) forms of the cxn and observation should be equivalent
                       (equivalent-meaning-networks
                        (substitute-slot-meets-constraints non-overlapping-form-observation overlapping-form-observation)
                        (substitute-slot-meets-constraints non-overlapping-form-cxn overlapping-form-cxn)
@@ -1084,7 +1084,21 @@
 
 (defmethod diff-meaning-networks (network-1 network-2 (mode (eql :geo)))
   (multiple-value-bind (n1-diff n2-diff) (amr::diff-amr-networks network-1 network-2)
-    (values n1-diff n2-diff)))
+    (values (extract-continuous-diff n1-diff network-1) (extract-continuous-diff n2-diff network-2))))
+
+(defun extract-continuous-diff (diff network)
+  (when (and diff
+             network)
+    (let* ((diff-start (position (first diff) network :test #'equal))
+           (diff-end (+ 1 (position (last-elt diff) network :test #'equal)))
+           (continuous-diff (subseq network diff-start diff-end)))
+      continuous-diff)))
+    
+(defun sort-subnetwork-according-to-parent (sub parent)
+  (sort sub #'< :key #'(lambda (predicate) (let ((pos (position predicate parent :test #'equal)))
+                                             (if pos
+                                               pos
+                                               0)))))
 
 (defun substitute-predicate-bindings (predicate bindings)
   (loop with frame-bindings = (irl::map-frame-bindings bindings)

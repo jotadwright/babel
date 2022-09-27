@@ -14,11 +14,6 @@
                     (not (eql (name cxn) (name original-cxn))))
           do (return cxn))))
 
-
-
-
-
-
 (defmethod run-alignment ((agent clevr-learning-learner)
                           solution-cipn competing-solution-cipns (strategy (eql :lateral-inhibition)))
   (notify alignment-started)
