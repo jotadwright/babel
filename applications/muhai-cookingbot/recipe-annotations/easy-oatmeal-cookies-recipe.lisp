@@ -130,7 +130,7 @@
                                    (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
                                    (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
                                    (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
-                                     (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
                                    (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
 
 
@@ -138,7 +138,7 @@
                                    (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
                                    (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
                                    (make-instance 'fork) (make-instance 'whisk) (make-instance 'whisk)
-                                   (make-instance 'spatula) (make-instance 'knife)
+                                   (make-instance 'spatula) (make-instance 'knife) (make-instance 'sift)
 
 5                                   ;; baking equipment
                                    (make-instance 'baking-tray)
@@ -149,7 +149,7 @@
 (setf *easy-oatmeal-cookies-recipe* 
   `((get-kitchen ?kitchen)
 
-    ;; "1 cup raisins"
+    ;;"1 cup raisins"
     (fetch-and-proportion ?proportioned-raisins ?kitchen-state-with-raisins ?kitchen ?target-container-1 raisin 150 g)
 
     ;; "1/2 cups of hot water"
@@ -188,6 +188,44 @@
 
     ;; "1 teaspoon vanilla extract"
     (fetch-and-proportion ?proportioned-vanilla ?kitchen-state-with-vanilla ?kitchen-state-with-oil ?target-container-13 vanilla-extract 5 ml)
+
+
+       ;; "Preheat oven to 350 degrees F (175 degrees C)."
+    (preheat-oven ?preheated-oven ?kitchen-state-with-preheating-oven ?kitchen-state-with-vanilla 175 degrees-celsius)
+
+    ;; "Soak raisins in hot water and set aside."
+    (transfer-contents ?container-with-soaked-raisins ?empty-raisin-bowl ?kitchen-state-with-soaking-raisins ?kitchen-state-with-preheating-oven
+                       ?hot-water ?proportioned-raisins ?quantity ?unit)
+    
+    ;; "In a large bowl, sift flour with soda, salt and spices."
+    (transfer-contents ?flour-with-soda ?empty-soda-bowl ?kitchen-state-with-flour-and-soda ?kitchen-state-with-soaking-raisins
+                       ?proportioned-flour ?proportioned-baking-soda ?quantity-1 ?unit-1)
+    (transfer-contents ?flour-with-soda-and-salt ?empty-salt-bowl ?kitchen-state-with-flour-soda-and-salt ?kitchen-state-with-flour-and-soda
+                       ?flour-with-soda ?proportioned-salt ?quantity-2 ?unit-2)
+    (transfer-contents ?flour-soda-salt-cinnamon ?empty-cinnamon-bowl ?kitchen-state-with-flour-soda-salt-cinnamon ?kitchen-state-with-flour-soda-and-salt
+                       ?flour-with-soda-and-salt ?proportioned-cinnamon ?quantity-3 ?unit-3)
+    (transfer-contents ?flour-soda-salt-cinnamon-nutmeg ?empty-nutmeg-bowl ?kitchen-state-with-flour-soda-salt-cinnamon-nutmeg ?kitchen-state-with-flour-soda-salt-cinnamon
+                       ?flour-soda-salt-cinnamon ?proportioned-nutmeg ?quantity-4 ?unit-4)
+    (fetch ?large-bowl ?kitchen-state-with-fetched-bowl-for-sifting ?kitchen-state-with-flour-soda-salt-cinnamon-nutmeg large-bowl 1)
+    (sift ?bowl-with-sifted-ingredients ?kitchen-state-after-sifting ?kitchen-state-with-fetched-bowl-for-sifting ?large-bowl ?flour-soda-salt-cinnamon-nutmeg ?sifting-tool)
+    
+    ;; "Blend in rolled oats, sugar and nuts"
+    (transfer-contents ?output-container-x ?rest-x ?output-kitchen-state-x ?kitchen-state-after-sifting ?bowl-with-sifted-ingredients ?proportioned-oats ?quantity-x ?unit-x)
+    (transfer-contents ?output-container-y ?rest-y ?output-kitchen-state-y ?output-kitchen-state-x ?output-container-x ?proportioned-sugar ?quantity-y ?unit-y)
+    (transfer-contents ?output-container-z ?rest-z ?output-kitchen-state-z ?output-kitchen-state-y ?output-container-y ?proportioned-walnuts ?quantity-z ?unit-z)
+    (mix ?blended-in-oats-mixture ?kitchen-state-with-blended-oats-in-mixture ?output-kitchen-state-z ?output-container-z ?mixing-tool)
+    
+    ;; "In a separate bowl, beat eggs with fork and add oil, vanilla and raisins and water mixture."
+    (fetch ?bowl-for-eggs ?kitchen-state-with-fetched-bowl-for-eggs ?kitchen-state-with-blended-oats-in-mixture medium-bowl 1)
+    (crack ?container-w-cracked-eggs ?kitchen-state-with-cracked-eggs ?kitchen-state-with-fetched-bowl-for-eggs ?proportioned-eggs ?bowl-for-eggs)
+    (fetch ?fetched-fork ?kitchen-state-with-fetched-fork ?kitchen-state-with-cracked-eggs fork 1)
+    (beat ?container-w-beaten-eggs ?kitchen-state-w-beaten-eggs ?kitchen-state-with-fetched-fork ?container-w-cracked-eggs ?fetched-fork)
+
+    (transfer-contents ?output-container-a ?rest-a ?output-kitchen-state-a ?kitchen-state-w-beaten-eggs ?container-w-beaten-eggs ?proportioned-oil ?quantity-a ?unit-a)
+    (transfer-contents ?output-container-b ?rest-b ?output-kitchen-state-b ?output-kitchen-state-a ?output-container-a ?proportioned-vanilla ?quantity-b ?unit-b)
+    (transfer-contents ?container-w-eggs-oil-vanilla-raisins ?rest-c ?output-kitchen-state-c ?output-kitchen-state-b ?output-container-b ?container-with-soaked-raisins ?quantity-c ?unit-c)
+    
+    
     
     ))
 
@@ -219,50 +257,13 @@
 
     ;; -------------------------------------------------------------------------------------------------------------
 
-    ;; "Preheat oven to 350 degrees F (175 degrees C)."
-    (preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-vanilla 175 degrees-celsius)
+ 
 
-    ;; "Soak raisins in hot water and set aside."
-    (bind-and-fetch ?medium-bowl ?kitchen-state-with-medium-bowl ?kitchen-state-with-preheated-oven medium-bowl)
-    (transfer-all-contents ?bowl-with-hot-water-with-raisins 
-                           ?kitchen-state-with-hot-water-in-bowl ?kitchen-state-with-medium-bowl
-                           ?medium-bowl
-                           ?hot-water
-                           ?proportioned-raisins)
+  
 
-    ;; "In a large bowl, sift flour with soda, salt and spices."  
-    (bind-and-fetch ?large-bowl ?kitchen-state-with-large-bowl ?kitchen-state-with-hot-water-in-bowl large-bowl)
-    (combine-homogeneous ?flour-soda-salt-spices-mixture
-             ?kitchen-state-with-flour-soda-salt-spices-mixture ?kitchen-state-with-large-bowl
-             ?large-bowl
-             ?proportioned-baking-soda ?proportioned-flour
-             ?proportioned-salt ?proportioned-nutmeg ?proportioned-cinnamon)
+  
 
-    (bind-and-fetch ?sift ?kitchen-state-with-sift ?kitchen-state-with-flour-soda-salt-spices-mixture sift)
-    (to-sift ?sifted-flour-mix
-             ?kitchen-state-with-sifted-flour-mix ?kitchen-state-with-sift
-             ?flour-soda-salt-spices-mixture ?sift)
-
-    ;; "Blend in rolled oats, sugar and nuts"
-    (combine-homogeneous ?blended-in-oats-mixture
-             ?kitchen-state-with-blended-oats-in-mixture ?kitchen-state-with-sifted-flour-mix
-             ?sifted-flour-mix
-             ?proportioned-oats ?proportioned-sugar ?proportioned-walnuts)
-
-    ;; "In a separate bowl, beat eggs with fork and add oil, vailla and raisins and water mixture."
-    (bind-and-fetch ?medium-bowl-2 ?kitchen-state-with-bowl ?kitchen-state-with-blended-oats-in-mixture medium-bowl)
-    (bind-and-fetch ?fork ?kitchen-state-with-fork ?kitchen-state-with-bowl fork)
-    (to-crack ?bowl-with-cracked-eggs
-           ?kitchen-state-with-cracked-eggs ?kitchen-state-with-fork ?proportioned-eggs ?medium-bowl-2)
-    (to-beat ?beaten-eggs
-             ?kitchen-state-with-beaten-eggs-in-bowl ?kitchen-state-with-cracked-eggs 
-             ?bowl-with-cracked-eggs ?fork)
-
-    (combine-homogeneous ?eggs-oil-vanilla-raisins-mixture
-             ?kitchen-state-with-eggs-oil-vanilla-raisins-mixture ?kitchen-state-with-beaten-eggs-in-bowl
-             ?beaten-eggs
-             ?proportioned-oil ?proportioned-vanilla
-             ?bowl-with-hot-water-with-raisins)
+   
 
     ;; "Pour into dry ingredients, stirring until well mixed."
     (combine-homogeneous ?complete-mixture 

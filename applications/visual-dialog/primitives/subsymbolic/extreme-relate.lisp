@@ -25,7 +25,9 @@
              for values in bind-values
              do (let ((objects-with-attn
                        (loop for attn in (getf values 'target)
-                             for score in (getf scores 'target)
+                            ; for score in (getf scores 'target)
+                             for score = 1.0
+                               
                              for attn-id = (intern attn :visual-dialog)
                              for object = (copy-object (find attn-id source-object-list :key #'id))
                              do (setf (scores (attention object)) score)

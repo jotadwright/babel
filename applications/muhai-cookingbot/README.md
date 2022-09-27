@@ -125,8 +125,6 @@ The primitive operations that the cookingbot can actually handle, are listed her
   - thing-to-sprinkle
   - container-with-topping
 
-*(end of recipe 1)*
-
 #### **preheat-oven** (5)
   - preheated-oven
   - ks-out
@@ -156,8 +154,6 @@ The primitive operations that the cookingbot can actually handle, are listed her
   - thing-to-be-spread
   - spread
   - tool
-
-*(end of recipe 2)*
 
 #### **melt** (4)
   - ingredient-melted
@@ -194,13 +190,9 @@ The primitive operations that the cookingbot can actually handle, are listed her
   - pattern
   - tool
 
-*(end of recipe 3)*
-
 #### **mash** (5)
   - container-w-mashed-ingredient
   - ks-out
   - ks-in
   - container-w-ingredient-to-mash
   - tool
-
-*(end of recipe 4)*

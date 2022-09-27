@@ -59,7 +59,7 @@
 
 (defclass pathname-entity (entity)
   ((pathname :type (or null pathname) :initarg :pathname
-             :reader pathname :initform nil))
+             :reader get-pathname :initform nil))
   (:documentation "Using pathnames as irl entities"))
 
 ;; ################################
