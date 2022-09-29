@@ -1092,7 +1092,8 @@
     (let* ((diff-start (position (first diff) network :test #'equal))
            (diff-end (+ 1 (position (last-elt diff) network :test #'equal)))
            (continuous-diff (subseq network diff-start diff-end)))
-      continuous-diff)))
+      (when (connected-semantic-network continuous-diff)
+        continuous-diff))))
     
 (defun sort-subnetwork-according-to-parent (sub parent)
   (sort sub #'< :key #'(lambda (predicate) (let ((pos (position predicate parent :test #'equal)))

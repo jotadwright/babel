@@ -72,9 +72,9 @@
           (let* ((cxns-to-apply (mapcar #'original-cxn (reverse (applied-constructions cip-node))))
                  (top-level-category (extract-contributing-lex-class (last-elt cxns-to-apply)))
                  (variable-bindings (equivalent-meaning-networks (first parsed-meanings) meaning (get-configuration cxn-inventory :meaning-representation-formalism)))
-                 (ts-top-level-args (second (find 'ARGS (rest (first (left-pole-structure (car-resulting-cfs (cipn-car cip-node))))) :key #'first)))
+                 (ts-top-level-args (second (find 'ARGS (rest (first (remove-child-units (left-pole-structure (car-resulting-cfs (cipn-car cip-node)))))) :key #'first)))
                  (renamed-ts-args (fcg::rename-variables ts-top-level-args variable-bindings)))
-            (when (equal renamed-ts-args required-top-lvl-args)
+            (if (equal renamed-ts-args required-top-lvl-args)
               (list
                cxns-to-apply
                (extract-used-categorial-links cip-node)
@@ -84,7 +84,7 @@
                (gold-standard-consulted-p cip-node)
                )
               ;; not equal!
-              ;(format t "args mismatch")
+              (format t "!")
               )))))))
 
 
