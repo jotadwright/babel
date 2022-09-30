@@ -1216,21 +1216,27 @@
   (set-configuration cxn-inventory :use-meta-layer t)
   (set-configuration cxn-inventory :consolidate-repairs t))
 
-(defmethod get-best-partial-analysis-cipn ((form-constraints list) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage)))
+(defmethod get-best-partial-analysis-cipn ((form-constraints list) (gold-standard-meaning list) (required-top-lvl-args list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage)))
   (disable-meta-layer-configuration original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
   (set-configuration original-cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
-    (with-disabled-monitor-notifications
-      (let* ((comprehension-result (multiple-value-list (comprehend-all form-constraints :cxn-inventory original-cxn-inventory)))
-             (cip-nodes (discard-cipns-with-incompatible-meanings-and-args (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
-        (enable-meta-layer-configuration original-cxn-inventory)
-        (first (sort cip-nodes #'sort-cipns-by-coverage-and-nr-of-applied-cxns)))))
+  (with-disabled-monitor-notifications
+    (let* ((comprehension-result (multiple-value-list (comprehend-all form-constraints :cxn-inventory original-cxn-inventory)))
+           (cip-nodes (reject-solutions-with-incompatible-args
+                       (discard-cipns-with-incompatible-meanings (second comprehension-result) (first comprehension-result) gold-standard-meaning)
+                       gold-standard-meaning
+                       required-top-lvl-args)))
+      (enable-meta-layer-configuration original-cxn-inventory)
+      (first (sort cip-nodes #'sort-cipns-by-coverage-and-nr-of-applied-cxns)))))
 
-(defmethod get-best-partial-analysis-cipn ((form-constraints list) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage-item-based-first)))
+(defmethod get-best-partial-analysis-cipn ((form-constraints list) (gold-standard-meaning list) (required-top-lvl-args list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage-item-based-first)))
   (disable-meta-layer-configuration-item-based-first original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
   
     (with-disabled-monitor-notifications
       (let* ((comprehension-result (multiple-value-list (comprehend-all form-constraints :cxn-inventory original-cxn-inventory)))
-             (cip-nodes (discard-cipns-with-incompatible-meanings-and-args (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
+             (cip-nodes (reject-solutions-with-incompatible-args
+                       (discard-cipns-with-incompatible-meanings (second comprehension-result) (first comprehension-result) gold-standard-meaning)
+                       gold-standard-meaning
+                       required-top-lvl-args)))
         (enable-meta-layer-configuration-item-based-first original-cxn-inventory)
         (first (sort cip-nodes #'sort-cipns-by-coverage-and-nr-of-applied-cxns)))))
 
@@ -1271,17 +1277,11 @@
       for tgt-bindings = (mapcar #'cdr bindings)
       always (equal tgt-bindings (remove-duplicates tgt-bindings))))
 
-(defun discard-cipns-with-incompatible-meanings-and-args (candidate-cip-nodes candidate-meanings gold-standard-meaning)
+(defun discard-cipns-with-incompatible-meanings (candidate-cip-nodes candidate-meanings gold-standard-meaning)
   (loop for cipn in candidate-cip-nodes
         for candidate-meaning in candidate-meanings
-        for resulting-left-pole-structure = (left-pole-structure (car-resulting-cfs (cipn-car cipn)))
-        for resulting-root = (get-root resulting-left-pole-structure)
-        for units = (remove-child-units (remove resulting-root resulting-left-pole-structure))
         for bindings = (irl::embedding candidate-meaning gold-standard-meaning)
-        when (and bindings
-                  ;(no-duplicate-bindings-p bindings)
-                  (loop for unit in units
-                        always (extract-args-from-resulting-unit unit)))
+        when bindings
         collect cipn))
 
 (defun remove-nodes-containing-applied-cxns-with-type (type nodes)
@@ -1487,7 +1487,7 @@
                                     (car-resulting-cfs (cipn-car cip-node))))
         for ts-top-level-args = (get-top-level-ts-args cip-node)
         for embedding = (irl::embedding parsed-meaning gold-standard-meaning)
-        for renamed-ts-args = (substitute-predicate-bindings ts-top-level-args (first embedding));(fcg::rename-variables ts-top-level-args variable-bindings)
+        for renamed-ts-args = (when embedding (substitute-predicate-bindings ts-top-level-args (first embedding)));(fcg::rename-variables ts-top-level-args variable-bindings)
         when (or (not required-args) ;; if there aren't any required args but you still have some, succeed
                  (equal renamed-ts-args required-args))
         collect cip-node))
