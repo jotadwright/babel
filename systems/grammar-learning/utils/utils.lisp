@@ -1485,10 +1485,9 @@
         for parsed-meaning = (extract-meanings
                                    (left-pole-structure
                                     (car-resulting-cfs (cipn-car cip-node))))
-        for embedding = (irl::embedding parsed-meaning gold-standard-meaning)
-        for variable-bindings = (equivalent-meaning-networks parsed-meaning gold-standard-meaning :irl)
         for ts-top-level-args = (get-top-level-ts-args cip-node)
+        for embedding = (irl::embedding parsed-meaning gold-standard-meaning)
         for renamed-ts-args = (substitute-predicate-bindings ts-top-level-args (first embedding));(fcg::rename-variables ts-top-level-args variable-bindings)
-        when (or (not required-args)
+        when (or (not required-args) ;; if there aren't any required args but you still have some, succeed
                  (equal renamed-ts-args required-args))
         collect cip-node))
