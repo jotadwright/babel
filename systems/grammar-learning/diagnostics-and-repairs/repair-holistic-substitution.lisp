@@ -53,7 +53,7 @@ based on existing construction with sufficient overlap."
         
         (let* (;; cxns and links from iterating over all repairs
                (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn non-overlapping-form-observation non-overlapping-meaning-observation (append parent-meaning overlapping-meaning-observation) cxn-inventory))
-               (cxns-and-links-holistic-part-cxn (handle-potential-holistic-cxn non-overlapping-form-cxn non-overlapping-meaning-cxn (append parent-meaning overlapping-meaning-cxn) cxn-inventory))
+               (cxns-and-links-holistic-part-cxn (handle-potential-holistic-cxn non-overlapping-form-cxn non-overlapping-meaning-cxn overlapping-meaning-cxn cxn-inventory))
                ;; surrounding item-based cxn
                (item-based-cxn-variants (multiple-value-list (create-item-based-cxn cxn-inventory
                                                                                     overlapping-form-observation

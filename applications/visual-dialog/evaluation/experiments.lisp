@@ -7,6 +7,7 @@
 ;; default of cookie jar is make-instance, so a new session is started
 (define-configuration-default-value :cookie-jar (make-instance 'drakma:cookie-jar))
 (define-configuration-default-value :evaluation-mode :normal)
+(define-configuration-default-value :search-mode :best-first)
 
 (defun evaluate-clevr-dialogs-symbolic (start-scene end-scene)
   (let ((world (make-instance 'world 
@@ -28,6 +29,7 @@
                                          (:datasplit . :val)
                                          (:mode . :hybrid)
                                          ))))
+    (set-configuration *subsymbolic-primitives* :search-mode :best-first)
     (if server-address
       (set-configuration world :server-address server-address))
     (evaluate-dialogs start-scene end-scene world)))

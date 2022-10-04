@@ -43,7 +43,7 @@
                                          (get-configuration world :datasplit)
                                          (get-configuration world :evaluation-mode)))))
   (ensure-directories-exist
-   (babel-pathname :directory `("applications" "visual-dialog" "evaluation" "answer-results"
+   (babel-pathname :directory `("applications" "visual-dialog" "evaluation" "results" "answers"
                                 ,(format nil "~a-~a-~a-~a"
                                          (get-configuration world :dataset)
                                          (get-configuration world :mode)
@@ -68,7 +68,7 @@
                        :if-does-not-exist :create)
     (with-open-file (answer-str (make-file-name-with-time 
                                  (babel-pathname
-                                  :directory `("applications" "visual-dialog" "evaluation" "answer-results"
+                                  :directory `("applications" "visual-dialog" "evaluation" "results" "answers"
                                                ,(format nil "~a-~a-~a-~a"
                                                         (get-configuration world :dataset)
                                                         (get-configuration world :mode)

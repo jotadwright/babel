@@ -876,14 +876,13 @@
              (let* ((non-overlapping-meanings (multiple-value-list (diff-meaning-networks meaning (extract-meaning-predicates cxn) meaning-representation-formalism)))
                     (non-overlapping-meaning-observation (first non-overlapping-meanings))
                     (non-overlapping-meaning-cxn (second non-overlapping-meanings))
-                    (overlapping-meaning-observation (set-difference meaning non-overlapping-meaning-observation :test #'equal))
-                    (overlapping-meaning-cxn (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning-cxn :test #'equal))
+                    (overlapping-meaning-observation (sort-subnetwork-according-to-parent
+                                                      (set-difference meaning non-overlapping-meaning-observation :test #'equal)
+                                                      meaning))
+                    (overlapping-meaning-cxn (sort-subnetwork-according-to-parent
+                                              (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning-cxn :test #'equal)
+                                              (extract-meaning-predicates cxn)))
                     (nof-obs-and-cxn (multiple-value-list (diff-form-constraints utterance-form-constraints (extract-form-predicates cxn))))
-                    ;(args-holistic-cxn-1
-                    ; (extract-args-from-meaning-networks non-overlapping-meaning-cxn overlapping-meaning-cxn meaning-representation-formalism))
-                    ;(args-holistic-cxn-2
-                    ; (extract-args-from-meaning-networks non-overlapping-meaning-observation overlapping-meaning-observation meaning-representation-formalism))
-
                     (non-overlapping-form-observation (first nof-obs-and-cxn))
                     (non-overlapping-form-cxn (second nof-obs-and-cxn))
                     (overlapping-form-cxn (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal))
@@ -902,6 +901,7 @@
                       cxn
                       (check-meets-continuity non-overlapping-form-cxn)
                       (check-meets-continuity non-overlapping-form-observation)
+                      ;; the non-overlapping (item-based) forms of the cxn and observation should be equivalent
                       (equivalent-meaning-networks
                        (substitute-slot-meets-constraints non-overlapping-form-observation overlapping-form-observation)
                        (substitute-slot-meets-constraints non-overlapping-form-cxn overlapping-form-cxn)
@@ -1084,7 +1084,22 @@
 
 (defmethod diff-meaning-networks (network-1 network-2 (mode (eql :geo)))
   (multiple-value-bind (n1-diff n2-diff) (amr::diff-amr-networks network-1 network-2)
-    (values n1-diff n2-diff)))
+    (values (extract-continuous-diff n1-diff network-1) (extract-continuous-diff n2-diff network-2))))
+
+(defun extract-continuous-diff (diff network)
+  (when (and diff
+             network)
+    (let* ((diff-start (position (first diff) network :test #'equal))
+           (diff-end (+ 1 (position (last-elt diff) network :test #'equal)))
+           (continuous-diff (subseq network diff-start diff-end)))
+      (when (connected-semantic-network continuous-diff)
+        continuous-diff))))
+    
+(defun sort-subnetwork-according-to-parent (sub parent)
+  (sort sub #'< :key #'(lambda (predicate) (let ((pos (position predicate parent :test #'equal)))
+                                             (if pos
+                                               pos
+                                               0)))))
 
 (defun substitute-predicate-bindings (predicate bindings)
   (loop with frame-bindings = (irl::map-frame-bindings bindings)
@@ -1201,21 +1216,27 @@
   (set-configuration cxn-inventory :use-meta-layer t)
   (set-configuration cxn-inventory :consolidate-repairs t))
 
-(defmethod get-best-partial-analysis-cipn ((form-constraints list) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage)))
+(defmethod get-best-partial-analysis-cipn ((form-constraints list) (gold-standard-meaning list) (required-top-lvl-args list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage)))
   (disable-meta-layer-configuration original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
   (set-configuration original-cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
-    (with-disabled-monitor-notifications
-      (let* ((comprehension-result (multiple-value-list (comprehend-all form-constraints :cxn-inventory original-cxn-inventory)))
-             (cip-nodes (discard-cipns-with-incompatible-meanings-and-args (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
-        (enable-meta-layer-configuration original-cxn-inventory)
-        (first (sort cip-nodes #'sort-cipns-by-coverage-and-nr-of-applied-cxns)))))
+  (with-disabled-monitor-notifications
+    (let* ((comprehension-result (multiple-value-list (comprehend-all form-constraints :cxn-inventory original-cxn-inventory)))
+           (cip-nodes (reject-solutions-with-incompatible-args
+                       (discard-cipns-with-incompatible-meanings (second comprehension-result) (first comprehension-result) gold-standard-meaning)
+                       gold-standard-meaning
+                       required-top-lvl-args)))
+      (enable-meta-layer-configuration original-cxn-inventory)
+      (first (sort cip-nodes #'sort-cipns-by-coverage-and-nr-of-applied-cxns)))))
 
-(defmethod get-best-partial-analysis-cipn ((form-constraints list) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage-item-based-first)))
+(defmethod get-best-partial-analysis-cipn ((form-constraints list) (gold-standard-meaning list) (required-top-lvl-args list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage-item-based-first)))
   (disable-meta-layer-configuration-item-based-first original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
   
     (with-disabled-monitor-notifications
       (let* ((comprehension-result (multiple-value-list (comprehend-all form-constraints :cxn-inventory original-cxn-inventory)))
-             (cip-nodes (discard-cipns-with-incompatible-meanings-and-args (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
+             (cip-nodes (reject-solutions-with-incompatible-args
+                       (discard-cipns-with-incompatible-meanings (second comprehension-result) (first comprehension-result) gold-standard-meaning)
+                       gold-standard-meaning
+                       required-top-lvl-args)))
         (enable-meta-layer-configuration-item-based-first original-cxn-inventory)
         (first (sort cip-nodes #'sort-cipns-by-coverage-and-nr-of-applied-cxns)))))
 
@@ -1256,17 +1277,11 @@
       for tgt-bindings = (mapcar #'cdr bindings)
       always (equal tgt-bindings (remove-duplicates tgt-bindings))))
 
-(defun discard-cipns-with-incompatible-meanings-and-args (candidate-cip-nodes candidate-meanings gold-standard-meaning)
+(defun discard-cipns-with-incompatible-meanings (candidate-cip-nodes candidate-meanings gold-standard-meaning)
   (loop for cipn in candidate-cip-nodes
         for candidate-meaning in candidate-meanings
-        for resulting-left-pole-structure = (left-pole-structure (car-resulting-cfs (cipn-car cipn)))
-        for resulting-root = (get-root resulting-left-pole-structure)
-        for units = (remove-child-units (remove resulting-root resulting-left-pole-structure))
         for bindings = (irl::embedding candidate-meaning gold-standard-meaning)
-        when (and bindings
-                  ;(no-duplicate-bindings-p bindings)
-                  (loop for unit in units
-                        always (extract-args-from-resulting-unit unit)))
+        when bindings
         collect cipn))
 
 (defun remove-nodes-containing-applied-cxns-with-type (type nodes)
@@ -1459,3 +1474,20 @@
         (when (= 0 (mod interaction 100))
           (format t " (~a | ~a% overall avg.)~%" interaction (* 100 (float (/ success-count interaction)))))
         finally (return (* 100 (float (/ success-count (length data)))))))
+
+
+(defun get-top-level-ts-args (cip-node)
+  (second (find 'ARGS (rest (first (remove-child-units (left-pole-structure (car-resulting-cfs (cipn-car cip-node)))))) :key #'first)))
+
+
+(defun reject-solutions-with-incompatible-args (cip-nodes gold-standard-meaning required-args)
+  (loop for cip-node in cip-nodes
+        for parsed-meaning = (extract-meanings
+                                   (left-pole-structure
+                                    (car-resulting-cfs (cipn-car cip-node))))
+        for ts-top-level-args = (get-top-level-ts-args cip-node)
+        for embedding = (irl::embedding parsed-meaning gold-standard-meaning)
+        for renamed-ts-args = (when embedding (substitute-predicate-bindings ts-top-level-args (first embedding)));(fcg::rename-variables ts-top-level-args variable-bindings)
+        when (or (not required-args) ;; if there aren't any required args but you still have some, succeed
+                 (equal renamed-ts-args required-args))
+        collect cip-node))

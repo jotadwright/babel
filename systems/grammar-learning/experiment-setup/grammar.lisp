@@ -86,7 +86,7 @@
 
 (defun handle-potential-holistic-cxn (form meaning parent-meaning cxn-inventory)
   (cond ((when (member 'add-categorial-links (repairs cxn-inventory) :key #'type-of)
-         (do-create-categorial-links form meaning (processing-cxn-inventory cxn-inventory))))
+         (do-create-categorial-links form meaning parent-meaning (processing-cxn-inventory cxn-inventory))))
         ((when (member 'item-based->item-based--substitution (repairs cxn-inventory) :key #'type-of)
          (do-create-item-based-cxn-from-partial-holistic-analysis+similar-item-based-cxn--substitution form meaning parent-meaning (processing-cxn-inventory cxn-inventory))))
         ((when (member 'item-based->holistic (repairs cxn-inventory) :key #'type-of)
