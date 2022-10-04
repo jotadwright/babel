@@ -5,7 +5,7 @@
 
 (ql:quickload :mwm-evaluation)
 (in-package :mwm-evaluation)
-
+(ql:quickload :clevr-evaluation)
 
 ;; Larger font for text in <p> tags
 (define-css 'main
@@ -17,18 +17,20 @@
   (activate-monitor trace-fcg)
   (activate-monitor trace-irl)
   (activate-monitor mwm::trace-interaction-in-web-interface)
-  (activate-monitor mwm::display-communicative-success)
   (add-element '((hr)))
   (add-element
    '((h1) "Human-Interpretable Grounded Language Processing"))
   (add-element '((p) "This web demonstration accompanies the paper:"))
-  (add-element '((p)"***Add reference here***"))
+  (add-element '((p)"Human-Interpretable Grounded Concept Learning. De Vos, L, Nevens, J, Van Eecke, P, and Beuls, K. In preparation"))
   (add-element '((p) "Explanations on how to use this demo can be found " ((a :href "https://www.fcg-net.org/projects/web-demonstration-guide/" :target "_blank") "here.")))
+  (add-element '((h2) "Abstract"))
+  (add-element '((p) "Grounded language processing is a central component in many artificial intelligence systems as it allows agents to communicate about their physical surroundings. Given its importance, tasks involving this issue are researched extensively, typically using deep learning techniques that perform end-to- end mappings between natural language expressions and representations grounded in the environment. Although these techniques achieve high levels of accuracy, they are often criticised for their reliance on large amounts of training data, their closed nature, and their lack of interpretability. As an alternative, we propose a fully explainable, data efficient architecture for open-ended grounded language processing. The architecture is based on two main components. The first component comprises an inventory of human-interpretable concepts learned through task-based communicative in- teractions. These concepts connect the continuous sensorimotor experiences of an agent to meaningful symbols that can be used for reasoning operations. The second component concerns a computational construction grammar that maps between natural language expressions and procedural semantic representations. These representations are grounded in the environment through their integration with the learned inventory of human-interpretable concepts. We validate the architecture using a variation on the CLEVR visual question answering benchmark and achieve an accuracy of 96%. Our architecture and experiments demonstrate that the integration of a compu- tational construction grammar with an inventory of explainable grounded concepts can effectively achieve fully human-interpretable grounded language processing."))
+
   (add-element '((hr)))
   (add-element '((p) "This demonstration has the following parts:"))
-  (add-element '((h3)  ((a :href "#section-1") "I. Tutor-learner interactions for grounded concept learning")))
-  (add-element '((h3)  ((a :href "#section-2") "II. Semantic analysis of questions into procedural semantic representations")))
-  (add-element '((h3)  ((a :href "#section-3") "III. Executing IRL network using grounded concepts")))
+  (add-element '((h3)  ((a :href "#section-1") "I. Discrimination-based grounded concept learning")))
+  (add-element '((h3)  ((a :href "#section-2") "II. A computational construction grammar for VQA")))
+  (add-element '((h3)  ((a :href "#section-3") "III. Executing IRL networks using grounded concepts")))
   (add-element '((h3)  ((a :href "#section-4") "IV. An integrated system for human-interpretable grounded language processing")))
   (add-element '((p :style "color:darkred") "NOTE: It is recommended to use Firefox to optimally explore the contents of this page."))
   (add-element '((hr))))
@@ -95,7 +97,8 @@
   ))
 
 (defun section-1 ()
-  (add-element '((h2 :id "section-1") "I. Tutor-learner interactions for grounded concept learning"))
+  (add-element '((h2 :id "section-1") "I. Discrimination-based concept learning"))
+  (add-element '((p) "To perform grounded language processing, an inventory of concepts in necessary that bridges the gap between the continuous and symbolic domain. Our architecture employs a mechanism for grounded concept learning that was introduced by Nevens et al. (2020) and uses the language game methodology (Steels, 2001). In this framework, a population of agents engages in task-oriented communicative interactions until they converge on a shared communication system through selection and self-organisation (Steels, 2001). In the context of concept learning for grounded language processing, Nevens et al. (2020) propose a scenario with only two agents: a tutor and a learner. While the tutor already has an inventory of concepts in place, the learner does not and begins the learning process with an empty inventory. The goal of the learner is to fill this inventory with concepts through interaction with the tutor."))
   (make-baseline-simulated-experiments)
   (make-baseline-extracted-experiments)
   )
@@ -108,8 +111,10 @@
 
 (defun section-2 ()
   (add-element '((h2 :id "section-2") "II. Semantic analysis of questions into procedural semantic representations"))
+  (add-element '((p) "Before being able to ground concepts into the physical environment and achieve grounded language processing, autonomous agents must analyse the natural language input presented to them in terms of its semantic structure. Given its human-interpretable nature, linguistically motivated processing, and ability to output procedural semantic representations immediately, we integrate the computational construction grammar from (Nevens et al., 2019) into our grounded language processing architecture."))
   (add-element '((h3) "In this section, we demonstrate the comprehension process for the question 'what color is the small sphere' from the CLEVR dataset. The FCG web interface contains the following parts: the initial transient structure, the construction application process, a list of applied constructions, the resulting transient structure and finally the semantic representation. Note that many of the boxes will reveil more information when you click on them."))
   (comprehend "What color is the small sphere?")
+   (add-element '((hr)))
   )
 
 
@@ -120,11 +125,11 @@
 
 (defun section-3 ()
   (add-element '((h2 :id "section-3") "III. Executing IRL network using grounded concepts"))
+  (add-element '((p) "The final goal of grounded language processing is to retrieve the grounded meaning of a natural language expression. This is achieved when all variables of that expression's semantic network are bound, including the target variable. To perform this process, we use the framework of Incremental Recruitment Language (IRL)(Spranger et al. 2010)"))
   (add-element '((h3) "This section shows an example of how a meaning-network can be executed using IRL and an inventory of human-interpretable grounded concepts."))
   (deactivate-all-monitors)
   (activate-monitor trace-irl)
   (test-utterance-in-scene "What color is the small sphere?" "CLEVR_val_000003" :simulated "serie-1")
-  (test-utterance-in-scene "What color is the small sphere?" "CLEVR_val_000003" :extracted "serie-1")
   )
 
 
@@ -135,12 +140,19 @@
 (defun section-4 ()
   (activate-monitor trace-fcg)
   (activate-monitor mwm::trace-interaction-in-web-interface)
-  (activate-monitor mwm::display-communicative-success)
   (activate-monitor trace-irl)
   (add-element '((h2 :id "section-3") "III. An integrated system for human-interpretable grounded language processing"))
-  (add-element '((h3) "This section demonstrates how the integrated system answers one question about an image in the CLEVR-dataset ."))
+  (add-element '((h3) "This section demonstrates how the integrated system answers a couple of questions about images in the CLEVR-dataset."))
+  (add-element '((p) "First, we ask the question 'what is the size of the red object?' about the following scene:"))
+  (add-element '((img :src "/Users/liesbetdevos/Projects/Corpora/CLEVR-v1.0/images/val/CLEVR_val_000017.png" :width "40%")))
   (test-utterance-in-scene "What is the size of the red object?" "CLEVR_val_000017" :simulated "serie-1")
-    (test-utterance-in-scene "What is the size of the red object?" "CLEVR_val_000017" :extracted "serie-1")
+  (add-element '((p) "Then, we ask the question 'How many yellow objects are there?' about the following scene:"))
+  (add-element '((img :src "/Users/liesbetdevos/Projects/Corpora/CLEVR-v1.0/images/val/CLEVR_val_000008.png" :width "40%")))
+  (test-utterance-in-scene "How many yellow objects are there?" "CLEVR_val_000008" :extracted "serie-1")
+  (add-element '((p) "Lastly, we ask the question 'What is the color of the cylinder?' about the following scene:"))
+  (add-element '((img :src "/Users/liesbetdevos/Projects/Corpora/CLEVR-v1.0/images/val/CLEVR_val_000095.png" :width "40%")))
+  (add-element '((p) "Note that this is a trick question that does not have an unambiguous answer (there are two cylinders in the image). An advantage of our architecture is that it can pick up on this problem and choose to not give a solution. This contrasts with deep-learning techniques, that will always try to come up with an answer."))
+  (test-utterance-in-scene "What is the color of the cylinder?" "CLEVR_val_000095" :extracted "serie-1")
   )
 
 
