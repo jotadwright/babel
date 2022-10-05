@@ -1,5 +1,4 @@
 (ql:quickload :cooking-bot-new)
-
 (in-package :cooking-bot-new)
 
 (progn 
@@ -69,8 +68,6 @@
         *total-number-of-answers-discourse*)
 
 
-(setf *mon* (slot-value (monitors::get-monitor 'questions-introduced-by-ontology) 'values))
-
 (defun total-questions-grammar ()
   (loop for el in  (slot-value (monitors::get-monitor 'questions-introduced-by-grammar) 'values)
         for vals = (sum (flatten (first el)))
@@ -108,22 +105,10 @@
 (total-questions-simulation) ;4
 (total-answers-simulation) ;26
 
-(- (- 41 14) 26)
-
-(slot-value (monitors::get-monitor 'questions-introduced-by-grammar) 'values)
 
 
 
 
-(add-element (irl-program->svg '((get-context ?context) (filter ?out ?context ?iets))))
-
-
-(setf *bowl* (make-instance 'medium-bowl))
-
-
-
-
- (append (list 2) (list (list 3 4)))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;  Demo
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

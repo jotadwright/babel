@@ -39,8 +39,6 @@
 (define-event-handler (questions-solved-by-ontology irl::evaluate-irl-program-finished)
   (multiple-value-bind (answers vars)
       (find-solved-slots (calculate-set-slots irl::solution-nodes *persistent-id-table-defaults*))
-    (print "these are the defaults")
-      (print answers)
     (record-value monitor answers)
     (setf (slot-value monitor 'values) (cons (list answers vars) (slot-value monitor 'values)))))
 
