@@ -1,0 +1,288 @@
+------- Measuring understanding -------
+
+--------------------
+Overview measures
+--------------------
+
+Instruction: 226 grams butter , room temperature
+Steps in grammar application: (initial BUTTER-CXN QUANTITY-CXN GRAMS-MORPH-CXN GRAM-CXN QUANTITY-UNIT-INGREDIENT-CXN X-ROOM-TEMPERATURE-CXN)
+Questions introduced by language (0 0 0 0 0 7 6)
+Answers by language (0 0 0 0 0 3 4)
+Answers by discourse (0 0 0 0 0 1 0)
+Steps in mental simulation: (initial FETCH-AND-PROPORTION BRING-UP-TO-TEMPERATURE)
+Answers by mental simulation: (0 3 2)
+Questions introduced by ontology: (15 25 3)
+Answers by ontology: (13 24 3)
+Questions introduced by discourse (0 0 2)
+
+--------------------
+Detailed information
+--------------------
+
+Instruction: 226 grams butter , room temperature
+Step in grammar application: initial
+      Questions (0):
+         Q-Grammar: 0 NIL
+      Answers (0):
+         A-Grammar: 0 NIL;
+         A-Discourse: 0 NIL
+Step in grammar application: BUTTER-CXN
+      Questions (0):
+         Q-Grammar: 0 NIL
+      Answers (0):
+         A-Grammar: 0 NIL;
+         A-Discourse: 0 (NIL)
+Step in grammar application: QUANTITY-CXN
+      Questions (0):
+         Q-Grammar: 0 NIL
+      Answers (0):
+         A-Grammar: 0 NIL;
+         A-Discourse: 0 (NIL)
+Step in grammar application: GRAMS-MORPH-CXN
+      Questions (0):
+         Q-Grammar: 0 NIL
+      Answers (0):
+         A-Grammar: 0 NIL;
+         A-Discourse: 0 (NIL)
+Step in grammar application: GRAM-CXN
+      Questions (0):
+         Q-Grammar: 0 NIL
+      Answers (0):
+         A-Grammar: 0 NIL;
+         A-Discourse: 0 (NIL)
+Step in grammar application: QUANTITY-UNIT-INGREDIENT-CXN
+      Questions (7):
+         Q-Grammar: 7 (?INGREDIENT-OUT-6 ?KITCHEN-STATE-OUT-36 ?KITCHEN-STATE-4 ?TARGET-CONTAINER-6 BUTTER 226 G)
+      Answers (4):
+         A-Grammar: 3 (BUTTER 226 G);
+         A-Discourse: 1 (?KITCHEN-STATE-IN NIL NIL NIL NIL)
+Step in grammar application: X-ROOM-TEMPERATURE-CXN
+      Questions (6):
+         Q-Grammar: 6 (?INGREDIENT-AT-ROOM-TEMPERATURE-7 ?OUTPUT-KITCHEN-STATE-46 ?KITCHEN-STATE-OUT-36 ?INGREDIENT-OUT-6 18 DEGREES-CELSIUS)
+      Answers (4):
+         A-Grammar: 4 (?INGREDIENT-OUT-6 ?KITCHEN-STATE-OUT-36 18 DEGREES-CELSIUS);
+         A-Discourse: 0 (NIL NIL NIL NIL NIL)
+Step in mental simulation: initial
+      Questions (15):
+         Q-Ontology: 15 ((IS-CONCEPT) (VALUE) (HAS-ON-TOP SPREAD IS-BRUSHED-WITH TEMPERATURE MELTED BEATEN MIXED KEEP-REFRIGERATED KEEP-FROZEN IS-CONCEPT AMOUNT) (IS-CONCEPT) (VALUE));
+         Q-Discourse: 0 NIL;
+      Answers (13):
+         A-Simulation: 0 NIL
+         A-Ontology: 13 (((IS-CONCEPT . T)) ((VALUE . 226)) ((HAS-ON-TOP . NONE) (SPREAD . NONE) (IS-BRUSHED-WITH . NONE) (TEMPERATURE) (MELTED . NONE) (BEATEN . NONE) (MIXED . NONE) (KEEP-REFRIGERATED . T) (KEEP-FROZEN . NONE) (IS-CONCEPT . T) (AMOUNT)) ((IS-CONCEPT . T)) ((VALUE . 18))) 
+Step in mental simulation: FETCH-AND-PROPORTION
+      Questions (25):
+         Q-Ontology: 25 ((USED IS-CONCEPT ARRANGEMENT CONTENTS COVER) (USED CONTENTS (HAS-ON-TOP SPREAD IS-BRUSHED-WITH TEMPERATURE (UNIT (IS-CONCEPT) QUANTITY (VALUE)) MELTED BEATEN MIXED KEEP-REFRIGERATED KEEP-FROZEN IS-CONCEPT AMOUNT (UNIT (IS-CONCEPT) QUANTITY (VALUE)))));
+         Q-Discourse: 0 NIL;
+      Answers (27):
+         A-Simulation: 3 (<binding: ?TARGET-CONTAINER-6 0.0 (<medium-bowl medium-bowl-16-1>)> <binding: ?KITCHEN-STATE-OUT-36 1.0 (<kitchen-state kitchen-state-2-2>) [30]> <binding: ?INGREDIENT-OUT-6 1.0 (<medium-bowl medium-bowl-16-2>) [30]>)
+         A-Ontology: 24 (((USED . NONE) (IS-CONCEPT . NONE) (ARRANGEMENT) (CONTENTS) (COVER . NONE)) ((USED . T) (CONTENTS . BUTTER-2) ((HAS-ON-TOP . NONE) (SPREAD . NONE) (IS-BRUSHED-WITH . NONE) (TEMPERATURE . <amount amount-2-3>) ((UNIT . <degrees-celsius degrees-celsius-2-3>) ((IS-CONCEPT . T)) (QUANTITY . <quantity quantity-7-3>) ((VALUE . 5))) (MELTED . NONE) (BEATEN . NONE) (MIXED . NONE) (KEEP-REFRIGERATED . T) (KEEP-FROZEN . NONE) (IS-CONCEPT . NONE) (AMOUNT . <amount amount-4-3>) ((UNIT . <g g-3-3>) ((IS-CONCEPT . T)) (QUANTITY . <quantity quantity-9-3>) ((VALUE . 226)))))) 
+Step in mental simulation: BRING-UP-TO-TEMPERATURE
+      Questions (5):
+         Q-Ontology: 3 (((TEMPERATURE (UNIT QUANTITY))));
+         Q-Discourse: 2 <binding: ?OUTPUT-KITCHEN-STATE-46 1.0 (<kitchen-state kitchen-state-2-3>) [30]>;
+      Answers (5):
+         A-Simulation: 2 (<binding: ?INGREDIENT-AT-ROOM-TEMPERATURE-7 1.0 (<medium-bowl medium-bowl-16-3>) [830]> <binding: ?OUTPUT-KITCHEN-STATE-46 1.0 (<kitchen-state kitchen-state-2-3>) [30]>)
+         A-Ontology: 3 ((((TEMPERATURE . AMOUNT-40) ((UNIT . <degrees-celsius degrees-celsius-4-1>) (QUANTITY . <quantity quantity-25-1>))))) 
+Questions introduced during instruction 58
+Answers during instruction 53
+
+--------------------
+Overview measures
+--------------------
+
+Instruction: 116 grams sugar
+Steps in grammar application: (initial SUGAR-CXN QUANTITY-CXN GRAMS-MORPH-CXN GRAM-CXN QUANTITY-UNIT-INGREDIENT-CXN)
+Questions introduced by language (0 0 0 0 0 7)
+Answers by language (0 0 0 0 0 3)
+Answers by discourse (0 0 0 0 0 1)
+Steps in mental simulation: (initial FETCH-AND-PROPORTION)
+Answers by mental simulation: (0 3)
+Questions introduced by ontology: (8 16)
+Answers by ontology: (7 15)
+Questions introduced by discourse (0 2)
+
+--------------------
+Detailed information
+--------------------
+
+Instruction: 116 grams sugar
+Step in grammar application: initial
+      Questions (0):
+         Q-Grammar: 0 NIL
+      Answers (0):
+         A-Grammar: 0 NIL;
+         A-Discourse: 0 NIL
+Step in grammar application: SUGAR-CXN
+      Questions (0):
+         Q-Grammar: 0 NIL
+      Answers (0):
+         A-Grammar: 0 NIL;
+         A-Discourse: 0 (NIL)
+Step in grammar application: QUANTITY-CXN
+      Questions (0):
+         Q-Grammar: 0 NIL
+      Answers (0):
+         A-Grammar: 0 NIL;
+         A-Discourse: 0 (NIL)
+Step in grammar application: GRAMS-MORPH-CXN
+      Questions (0):
+         Q-Grammar: 0 NIL
+      Answers (0):
+         A-Grammar: 0 NIL;
+         A-Discourse: 0 (NIL)
+Step in grammar application: GRAM-CXN
+      Questions (0):
+         Q-Grammar: 0 NIL
+      Answers (0):
+         A-Grammar: 0 NIL;
+         A-Discourse: 0 (NIL)
+Step in grammar application: QUANTITY-UNIT-INGREDIENT-CXN
+      Questions (7):
+         Q-Grammar: 7 (?INGREDIENT-OUT-13 ?KITCHEN-STATE-OUT-77 ?OUTPUT-KITCHEN-STATE-46 ?TARGET-CONTAINER-13 WHITE-SUGAR 116 G)
+      Answers (4):
+         A-Grammar: 3 (WHITE-SUGAR 116 G);
+         A-Discourse: 1 (?KITCHEN-STATE-IN NIL NIL NIL NIL)
+Step in mental simulation: initial
+      Questions (8):
+         Q-Ontology: 8 ((IS-CONCEPT) (VALUE) (MIXED BEATEN KEEP-REFRIGERATED KEEP-FROZEN IS-CONCEPT AMOUNT));
+         Q-Discourse: 0 NIL;
+      Answers (7):
+         A-Simulation: 0 NIL
+         A-Ontology: 7 (((IS-CONCEPT . T)) ((VALUE . 116)) ((MIXED . NONE) (BEATEN . NONE) (KEEP-REFRIGERATED . NONE) (KEEP-FROZEN . NONE) (IS-CONCEPT . T) (AMOUNT))) 
+Step in mental simulation: FETCH-AND-PROPORTION
+      Questions (18):
+         Q-Ontology: 16 ((USED IS-CONCEPT ARRANGEMENT CONTENTS (MIXED BEATEN KEEP-REFRIGERATED KEEP-FROZEN IS-CONCEPT AMOUNT (UNIT (IS-CONCEPT) QUANTITY (VALUE))) COVER) (USED));
+         Q-Discourse: 2 <binding: ?KITCHEN-STATE-OUT-77 1.0 (<kitchen-state kitchen-state-2-4>) [60]>;
+      Answers (18):
+         A-Simulation: 3 (<binding: ?INGREDIENT-OUT-13 1.0 (<medium-bowl medium-bowl-18-4>) [60]> <binding: ?KITCHEN-STATE-OUT-77 1.0 (<kitchen-state kitchen-state-2-4>) [60]> <binding: ?TARGET-CONTAINER-13 0.0 (<medium-bowl medium-bowl-18-3>)>)
+         A-Ontology: 15 (((USED . T) (IS-CONCEPT . NONE) (ARRANGEMENT) (CONTENTS <white-sugar white-sugar-2-5>) ((MIXED . NONE) (BEATEN . NONE) (KEEP-REFRIGERATED . NONE) (KEEP-FROZEN . NONE) (IS-CONCEPT . NONE) (AMOUNT . <amount amount-6-5>) ((UNIT . <g g-5-5>) ((IS-CONCEPT . T)) (QUANTITY . <quantity quantity-11-5>) ((VALUE . 116)))) (COVER . NONE)) ((USED . NONE))) 
+Questions introduced during instruction 33
+Answers during instruction 29
+
+--------------------
+Overview measures
+--------------------
+
+Instruction: beat the butter and the sugar together until light and fluffy
+Steps in grammar application: (initial UNTIL-LIGHT-AND-FLUFFY-CXN BUTTER-CXN THE-X-CXN SUGAR-CXN THE-X-CXN BEAT-CXN VERB-X-AND-Y-TOGETHER-IMPERATIVE-TRANSITIVE-CXN RESULTATIVE-CXN)
+Questions introduced by language (0 0 0 0 0 0 5 16 0)
+Answers by language (0 0 0 0 0 0 0 4 0)
+Answers by discourse (0 0 0 1 0 1 0 1 0)
+Steps in mental simulation: (initial TRANSFER-CONTENTS TRANSFER-CONTENTS BEAT)
+Answers by mental simulation: (0 6 5 3)
+Questions introduced by ontology: (1 7 2 25)
+Answers by ontology: (2 6 2 24)
+Questions introduced by discourse (0 0 0 3)
+
+--------------------
+Detailed information
+--------------------
+
+Instruction: beat the butter and the sugar together until light and fluffy
+Step in grammar application: initial
+      Questions (0):
+         Q-Grammar: 0 NIL
+      Answers (0):
+         A-Grammar: 0 NIL;
+         A-Discourse: 0 NIL
+Step in grammar application: UNTIL-LIGHT-AND-FLUFFY-CXN
+      Questions (0):
+         Q-Grammar: 0 NIL
+      Answers (0):
+         A-Grammar: 0 NIL;
+         A-Discourse: 0 (NIL NIL NIL NIL NIL)
+Step in grammar application: BUTTER-CXN
+      Questions (0):
+         Q-Grammar: 0 NIL
+      Answers (0):
+         A-Grammar: 0 NIL;
+         A-Discourse: 0 (NIL)
+Step in grammar application: THE-X-CXN
+      Questions (0):
+         Q-Grammar: 0 NIL
+      Answers (1):
+         A-Grammar: 0 NIL;
+         A-Discourse: 1 (NIL NIL NIL ?CONTAINER-WITH-X)
+Step in grammar application: SUGAR-CXN
+      Questions (0):
+         Q-Grammar: 0 NIL
+      Answers (0):
+         A-Grammar: 0 NIL;
+         A-Discourse: 0 (NIL)
+Step in grammar application: THE-X-CXN
+      Questions (0):
+         Q-Grammar: 0 NIL
+      Answers (1):
+         A-Grammar: 0 NIL;
+         A-Discourse: 1 (NIL NIL NIL ?CONTAINER-WITH-X)
+Step in grammar application: BEAT-CXN
+      Questions (5):
+         Q-Grammar: 5 (?OUTPUT-CONTAINER-118 ?OUTPUT-KITCHEN-STATE-138 ?INPUT-KITCHEN-STATE-119 ?INPUT-CONTAINER-99 ?TOOL-60)
+      Answers (0):
+         A-Grammar: 0 NIL;
+         A-Discourse: 0 (NIL)
+Step in grammar application: VERB-X-AND-Y-TOGETHER-IMPERATIVE-TRANSITIVE-CXN
+      Questions (16):
+         Q-Grammar: 16 (?INPUT-CONTAINER-99 ?REST-Y-41 ?INPUT-KITCHEN-STATE-119 ?OUTPUT-KITCHEN-STATE-X-21 ?OUTPUT-CONTAINER-?X-21 ?INGREDIENT-OUT-13 ?QUANTITY-Y-41 ?UNIT-Y-41 ?OUTPUT-CONTAINER-?X-21 ?REST-X-41 ?OUTPUT-KITCHEN-STATE-X-21 ?KITCHEN-STATE-OUT-77 ?EMPTY-CONTAINER-21 ?INGREDIENT-AT-ROOM-TEMPERATURE-7 ?QUANTITY-X-41 ?UNIT-X-41)
+      Answers (5):
+         A-Grammar: 4 (?INPUT-KITCHEN-STATE-119 ?INPUT-CONTAINER-99 ?OUTPUT-CONTAINER-?X-21 ?OUTPUT-KITCHEN-STATE-X-21);
+         A-Discourse: 1 (NIL NIL NIL NIL NIL ?INPUT-KITCHEN-STATE-X NIL)
+Step in grammar application: RESULTATIVE-CXN
+      Questions (0):
+         Q-Grammar: 0 NIL
+      Answers (0):
+         A-Grammar: 0 NIL;
+         A-Discourse: 0 (NIL NIL NIL)
+Step in mental simulation: initial
+      Questions (1):
+         Q-Ontology: 1 ((USED CONTENTS));
+         Q-Discourse: 0 NIL;
+      Answers (2):
+         A-Simulation: 0 NIL
+         A-Ontology: 2 (((USED . T) (CONTENTS . WHITE-SUGAR-2))) 
+Step in mental simulation: TRANSFER-CONTENTS
+      Questions (7):
+         Q-Ontology: 7 ((USED IS-CONCEPT ARRANGEMENT CONTENTS COVER) (VALUE) (USED CONTENTS));
+         Q-Discourse: 0 NIL;
+      Answers (12):
+         A-Simulation: 6 (<binding: ?REST-X-41 0.0 (<medium-bowl medium-bowl-16-5>)> <binding: ?EMPTY-CONTAINER-21 0.0 (<large-bowl large-bowl-2-4>)> <binding: ?QUANTITY-X-41 0.0 (<quantity quantity-197-1>)> <binding: ?UNIT-X-41 0.0 (<g g-3-8>)> <binding: ?OUTPUT-KITCHEN-STATE-X-21 1.0 (<kitchen-state kitchen-state-2-5>) [850]> <binding: ?OUTPUT-CONTAINER-?X-21 1.0 (<large-bowl large-bowl-2-5>) [850]>)
+         A-Ontology: 6 (((USED . NONE) (IS-CONCEPT . NONE) (ARRANGEMENT) (CONTENTS) (COVER . NONE)) ((VALUE . 227)) ((USED . T) (CONTENTS . BUTTER-2))) 
+Step in mental simulation: TRANSFER-CONTENTS
+      Questions (2):
+         Q-Ontology: 2 ((VALUE) (CONTENTS));
+         Q-Discourse: 0 NIL;
+      Answers (7):
+         A-Simulation: 5 (<binding: ?REST-Y-41 1.0 (<medium-bowl medium-bowl-18-6>) [870]> <binding: ?QUANTITY-Y-41 0.0 (<quantity quantity-243-1>)> <binding: ?UNIT-Y-41 0.0 (<g g-5-8>)> <binding: ?INPUT-KITCHEN-STATE-119 1.0 (<kitchen-state kitchen-state-2-6>) [870]> <binding: ?INPUT-CONTAINER-99 1.0 (<large-bowl large-bowl-2-6>) [870]>)
+         A-Ontology: 2 (((VALUE . 117)) ((CONTENTS . WHITE-SUGAR-2))) 
+Step in mental simulation: BEAT
+      Questions (28):
+         Q-Ontology: 25 ((CONTENTS (SHAKEN TEMPERATURE SPREAD-WITH SPRINKLED-WITH SPREAD DIPPED-IN CURRENT-SHAPE BAKED SIFTED MIXED MELTED MASHED IS-CUT BEATEN KEEP-REFRIGERATED KEEP-FROZEN IS-CONCEPT AMOUNT (UNIT (IS-CONCEPT) QUANTITY (VALUE)))) (USED IS-CONCEPT));
+         Q-Discourse: 3 <binding: ?OUTPUT-KITCHEN-STATE-138 1.0 (<kitchen-state kitchen-state-2-7>) [930]>;
+      Answers (27):
+         A-Simulation: 3 (<binding: ?OUTPUT-CONTAINER-118 1.0 (<large-bowl large-bowl-2-7>) [930]> <binding: ?OUTPUT-KITCHEN-STATE-138 1.0 (<kitchen-state kitchen-state-2-7>) [930]> <binding: ?TOOL-60 0.0 (<whisk whisk-2-6>)>)
+         A-Ontology: 24 (((CONTENTS . HOMOGENEOUS-MIXTURE-2) ((SHAKEN . NONE) (TEMPERATURE) (SPREAD-WITH . NONE) (SPRINKLED-WITH . NONE) (SPREAD . NONE) (DIPPED-IN . NONE) (CURRENT-SHAPE . NONE) (BAKED . NONE) (SIFTED . NONE) (MIXED . T) (MELTED . NONE) (MASHED . NONE) (IS-CUT . NONE) (BEATEN . T) (KEEP-REFRIGERATED . NONE) (KEEP-FROZEN . NONE) (IS-CONCEPT . NONE) (AMOUNT . <amount amount-162-1>) ((UNIT . <g g-129-1>) ((IS-CONCEPT . T)) (QUANTITY . <quantity quantity-301-1>) ((VALUE . 342))))) ((USED . NONE) (IS-CONCEPT . NONE))) 
+Questions introduced during instruction 59
+Answers during instruction 55
+
+--------------------
+Overview measures
+--------------------
+
+Instruction: end
+Steps in grammar application: NIL
+Questions introduced by language NIL
+Answers by language NIL
+Answers by discourse NIL
+Steps in mental simulation: NIL
+Answers by mental simulation: NIL
+Questions introduced by ontology: (1 7 2 25)
+Answers by ontology: (2 6 2 24)
+Questions introduced by discourse (0)
+
+--------------------
+Detailed information
+--------------------
+
+Instruction: end
+Questions introduced during instruction 35
+Answers during instruction 34
