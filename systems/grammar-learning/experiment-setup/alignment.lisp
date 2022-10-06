@@ -39,9 +39,9 @@
           (loop for current-node in (traverse-depth-first (top-node (cip solution-cipn)) :collect-fn #'identity)
                 ;when (and (field? (goal-test-data current-node) :result-goal-test-non-gold-standard-meaning)
                 ;          (not (get-data (goal-test-data current-node) :result-goal-test-non-gold-standard-meaning)))
-                append (loop for bad-node in (set-difference (remove (top-node (cip solution-cipn))
-                                                                     (cons current-node (all-parents current-node)))
-                                                             (remove (top-node (cip solution-cipn))
+                append (loop for bad-node in (set-difference (ignore-initial-nodes
+                                                              (cons current-node (all-parents current-node)))
+                                                             (ignore-initial-nodes 
                                                                      (cons solution-cipn (all-parents solution-cipn)))
                                                              :key #'(lambda (node) (name (car-applied-cxn (cipn-car node)))))
                              collect (original-cxn (car-applied-cxn (cipn-car bad-node))))))

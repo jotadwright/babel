@@ -10,6 +10,7 @@
           extract-form-predicates
           ordered-fcg-apply
           comprehend-in-sandbox
+          apply-in-sandbox
           initial-node
           create-temp-cxn-inventory))
 
@@ -99,6 +100,7 @@
                                                           (:hash-mode . :hash-string-meaning-lex-id))))))
     (add-categories categories-to-add (categorial-network temp-cxn-inventory) :recompute-transitive-closure nil)
     (dolist (categorial-link categorial-links-to-add)
+      (add-categories (list (car categorial-link) (cdr categorial-link)) (categorial-network temp-cxn-inventory) :recompute-transitive-closure nil)
       (add-link (car categorial-link) (cdr categorial-link) (categorial-network temp-cxn-inventory) :recompute-transitive-closure nil))
     (dolist (cxn cxns-to-add)
       (add-cxn cxn temp-cxn-inventory))
@@ -176,7 +178,18 @@
       ;; non-sequential normal comprehend
       (multiple-value-list (comprehend utterance :gold-standard-meaning gold-standard-meaning :cxn-inventory temp-cxn-inventory :silent t)))
       ))
-  
+
+(defun apply-in-sandbox (initial-node
+                         original-cxn-inventory
+                         &key (cxns-to-add nil)
+                         (categories-to-add nil)
+                         (categorial-links-to-add nil))
+  (let ((temp-cxn-inventory (create-temp-cxn-inventory original-cxn-inventory :cxns-to-add cxns-to-add :categories-to-add categories-to-add :categorial-links-to-add categorial-links-to-add)))
+    (multiple-value-bind
+        (solution cip)
+        (fcg-apply (processing-cxn-inventory temp-cxn-inventory) (car-source-cfs (cipn-car initial-node)) '<- :notify nil)
+      (declare (ignore cip))
+      solution)))
 
 (defun ordered-fcg-apply (processing-cxns-to-apply initial-node direction cxn-inventory)
   "Apply a list of processing cxns in the order they appear in the list. Returns the solution cipn."

@@ -89,7 +89,7 @@
 
 (defun extract-used-categorial-links (solution-cipn)
   "For a given solution-cipn, extracts categorial links that were used (based on lex-class)."
-  (loop for cipn in (rest (reverse (cons solution-cipn (all-parents solution-cipn))))
+  (loop for cipn in (ignore-initial-nodes (reverse (cons solution-cipn (all-parents solution-cipn))))
           append (let* (
                         (processing-cxn (car-applied-cxn (cipn-car cipn)))
                         (processing-cxn (if (equal (attr-val processing-cxn :label) 'fcg::routine)
