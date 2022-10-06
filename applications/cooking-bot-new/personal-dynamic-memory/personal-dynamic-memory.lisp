@@ -51,20 +51,23 @@
 ;; PDM utility functions / methods ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun process-utterance (utterance personal-dynamic-memory &key silent)
+  (let ((current-world-state (first (world-states personal-dynamic-memory)))
+        (cxn-inventory (grammar personal-dynamic-memory)))
+    (loop for bindings-list in (understand-and-execute utterance cxn-inventory current-world-state 
+                                                       :silent silent)
+          do (push (make-instance 'world-state
+                                  :accessible-entities bindings-list
+                                  :personal-dynamic-memory personal-dynamic-memory)
+                   (world-states personal-dynamic-memory))
+          finally (return bindings-list))))
+
 (defun process-uterances (list-of-utterances personal-dynamic-memory &key silent)
   
   (loop with cxn-inventory = (grammar personal-dynamic-memory)
         for utterance in list-of-utterances
-        for current-world-state = (first (world-states personal-dynamic-memory))
-        do
-        (loop for bindings-list in (understand-and-execute utterance cxn-inventory current-world-state :silent silent)
-              when bindings-list
-              do (push (make-instance 'world-state
-                                      :accessible-entities bindings-list
-                                      :personal-dynamic-memory personal-dynamic-memory)
-                       (world-states personal-dynamic-memory))
-              finally (return bindings-list))))
-
+        for bindings-list = (process-utterance utterance personal-dynamic-memory :silent silent)
+        finally (return bindings-list)))
         
 (defun understand-and-execute (utterance
                                cxn-inventory
