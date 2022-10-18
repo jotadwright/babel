@@ -1,4 +1,3 @@
-
 <!-- PROJECT SHIELDS -->
 
 [![Contributors][contributors-shield]][contributors-url]
@@ -7,8 +6,6 @@
 [![Issues][issues-shield]][issues-url]
 [![MS-PL License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
-
-
 
 <!-- PROJECT LOGO -->
 <br />
@@ -33,37 +30,45 @@
   </p>
 </p>
 
-
-
 <!-- TABLE OF CONTENTS -->
 <details open="open">
   <summary><h2 style="display: inline-block">Table of Contents</h2></summary>
   <ol>
-    <li>
-      <a href="#about-the-project">About The Project</a>
-      <ul>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
+  <li><a href="#warning">Installation Warning</a></li>
+  <li>
+    <a href="#about-the-project">About The Project</a>
+    <ul>
+      <li><a href="#built-with">Built With</a></li>
+    </ul>
+  </li>
+  <li>
+    <a href="#getting-started">Getting Started</a>
+    <ul>
+      <li><a href="#prerequisites">Prerequisites</a></li>
+      <li><a href="#installation">Installation</a></li>
+    </ul>
+  </li>
+  <li><a href="#usage">Usage</a></li>
+  <li><a href="#roadmap">Roadmap</a></li>
 	<li><a href="#resources">Resources</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
+  <li><a href="#contributing">Contributing</a></li>
+  <li><a href="#license">License</a></li>
+  <li><a href="#contact">Contact</a></li>
   </ol>
 </details>
 
+<!-- WARNING -->
 
+## Installation Warning
+
+At the time of writing (18/10/2022), the `special-functions` package from LispStat is difficult to install.
+
+#### Problem 2
+
+The `special-functions` package serves a dependency to a number of other math packages such as `distributions`. The `special-functions` package is available on the `quicklisp` servers. At the time of writing (18/10/2022), the current version available (when quickloading for the first time) is completely out-of-date compared to the `github` repository. Therefore, we have added both `special-functions` to the `babel/libraries`.
 
 <!-- ABOUT THE PROJECT -->
+
 ## About the Project
 
 [Wikipedia](https://en.wikipedia.org/wiki/Special_functions) describes
@@ -76,11 +81,11 @@ statistical distributions.
 
 ### Built With
 
-* [float-features](https://github.com/Shinmera/float-features)
-* [numerical-utilities](https://github.com/lisp-stat/numerical-utilities)
-
+- [float-features](https://github.com/Shinmera/float-features)
+- [numerical-utilities](https://github.com/lisp-stat/numerical-utilities)
 
 <!-- GETTING STARTED -->
+
 ## Getting Started
 
 To get a local copy up and running follow these steps:
@@ -101,17 +106,19 @@ you can load `special-functions` and all of its dependencies with:
 (ql:quickload :special-functions)
 ```
 
-
 #### Manual Installation
-To make the system accessible to [ASDF](https://common-lisp.net/project/asdf/) (a build facility, similar to `make` in the C world), clone the repository in a directory ASDF knows about.  By default the `common-lisp` directory in your home directory is known. Create this if it doesn't already exist and then:
+
+To make the system accessible to [ASDF](https://common-lisp.net/project/asdf/) (a build facility, similar to `make` in the C world), clone the repository in a directory ASDF knows about. By default the `common-lisp` directory in your home directory is known. Create this if it doesn't already exist and then:
 
 1. Clone the repositories
+
 ```sh
 cd ~/common-lisp && \
 git clone https://github.com/Lisp-Stat/special-functions.git && \
 git clone https://github.com/Lisp-Stat/numerical-utilities.git && \
 git clone https://github.com/Shinmera/float-features.git
 ```
+
 2. Reset the ASDF source-registry to find the new system (from the REPL)
    ```lisp
    (asdf:clear-source-registry)
@@ -140,8 +147,8 @@ You need do this only once. After obtaining the dependencies, you can
 load the system with `ASDF` as described above without first syncing
 sources.
 
-
 <!-- USAGE EXAMPLES -->
+
 ## Usage
 
 Obtain a log-gamma value
@@ -153,8 +160,8 @@ Obtain a log-gamma value
 For more examples, please refer to the
 [Documentation](https://lisp-stat.dev/docs/resources/special-functions).
 
-
 <!-- ROADMAP -->
+
 ## Roadmap
 
 See the [open issues](https://github.com/lisp-stat/special-functions/issues) for a list of proposed features (and known issues).
@@ -167,26 +174,26 @@ project; that should be your first stop for information. Also see the
 information.
 
 <!-- CONTRIBUTING -->
+
 ## Contributing
 
-Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are greatly appreciated.  Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on the code of conduct, and the process for submitting pull requests.
+Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are greatly appreciated. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on the code of conduct, and the process for submitting pull requests.
 
 <!-- LICENSE -->
+
 ## License
 
 Distributed under the MS-PL License. See [LICENSE](LICENSE) for more information.
 
-
-
 <!-- CONTACT -->
+
 ## Contact
 
 Project Link: [https://github.com/lisp-stat/special-functions](https://github.com/lisp-stat/special-functions)
 
-
-
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+
 [contributors-shield]: https://img.shields.io/github/contributors/lisp-stat/special-functions.svg?style=for-the-badge
 [contributors-url]: https://github.com/lisp-stat/special-functions/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/lisp-stat/special-functions.svg?style=for-the-badge
