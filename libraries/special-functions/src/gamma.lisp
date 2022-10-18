@@ -163,7 +163,7 @@
 	  (t (stirling x)))))
 
 
-
+
 ;;;
 ;;; Incomplete Gamma
 ;;;

@@ -42,7 +42,6 @@ and c using the utility function above. "
            (return-from draw-standard-gamma1 (* d v))
            (go top)))))
 
-
 ;;;
 ;;; CDF
 ;;;
@@ -69,7 +68,6 @@ and c using the utility function above. "
   (nth-value 0
     (specfun:incomplete-gamma shape (/ x scale))))
 
-
 ;;;
 ;;; PDF
 ;;;
@@ -115,8 +113,6 @@ Returns: x^(a-1)*exp(-x/b)/gamma(a)/b^a, x>0"
 (defun pdf-gamma% (x shape scale)
   (pdf-gamma x shape scale))
 
-
-
 (define-rv r-gamma (alpha beta)
   (:documentation "Gamma(alpha,beta) distribution, with density proportional to x^(alpha-1) exp(-x*beta).  Alpha and beta are known as shape and inverse scale (or rate) parameters, respectively."
    :include r-univariate)

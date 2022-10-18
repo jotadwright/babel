@@ -1,7 +1,7 @@
 ;;; -*- Mode: LISP; Base: 10; Syntax: ANSI-Common-Lisp; Package: DISTRIBUTIONS.INTERNALS -*-
 ;;; Copyright (c) 2019-2020 Symbolics Pte. Ltd. All rights reserved.
 (cl:in-package #:distributions.internals)
-
+
 ;;; internal representation of floats
 
 (deftype internal-float (&optional lower-limit upper-limit)
@@ -43,7 +43,7 @@
            (assert (<= 0 x) (x) "Element is not positive.")
            (as-float (/ x sum)))
          vector)))
-
+
 ;;;; Miscellaneous macros
 
 (defmacro try ((&rest bindings) condition value)

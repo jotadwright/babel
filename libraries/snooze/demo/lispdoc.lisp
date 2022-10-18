@@ -18,7 +18,7 @@
                           #:post-parameter))
 (in-package #:snooze-demo)
 
-
+
 ;;; Micro framework start
 ;;; 
 (defmacro deftemplate (name (stream-var &rest lambda-list-args) &body who-args)
@@ -71,7 +71,7 @@
       (format *debug-io* "Ok got ~a for ~a~%" ok name))))
 
 
-
+
 ;;; Lispdoc start
 ;;;
 (defresource lispdoc (verb ct symbol) (:genpath lispdoc-path))
@@ -301,7 +301,7 @@
                   :type nil
                   :defaults #.(or *compile-file-truename* *load-truename*))))
 
-
+
 ;;; Hook it to Hunchentoot
 ;;;
 (defclass snooze-acceptor (hunchentoot:easy-acceptor) ())
