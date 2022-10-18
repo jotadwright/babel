@@ -61,9 +61,10 @@
                                                  for boundaries = (unit-feature-value unit 'boundaries)
                                                  for string-var = (variablify (second (first boundaries)))
                                                  for subtracted-meaning-list = (multiple-value-list (commutative-irl-subset-diff meaning (extract-meaning-from-tree (first unit) (car-resulting-cfs (cipn-car best-partial-analysis-node)))))
-                                                 for non-overlapping-meaning = (first subtracted-meaning-list) ;necessary for AMR arg calculation
-                                                 for subtracted-meaning = (second subtracted-meaning-list)
-                                                 for args = (extract-args-from-meaning-networks subtracted-meaning (append parent-meaning non-overlapping-meaning) meaning-representation-formalism)
+                                                 for non-overlapping-meaning = (sort-subnetwork-according-to-parent
+                                                                                (first subtracted-meaning-list)
+                                                                                meaning)                                                  for subtracted-meaning = (sort-subnetwork-according-to-parent                                                                                   (second subtracted-meaning-list)                                                                                      meaning)
+                                                 for args = (extract-args-from-meaning-networks subtracted-meaning non-overlapping-meaning meaning-representation-formalism)
                                                  for boundary-list = (list (variablify (second (first boundaries))) (variablify (second (second boundaries))))
                                                  for holistic-slot-lex-class = (create-item-based-lex-class-with-var placeholder-var-string-predicates cxn-name-item-based-cxn string-var) ;; look up the X and Y in bindings
                                                  for placeholder-var = (third (find string-var placeholder-var-string-predicates :key #'second))
