@@ -4,7 +4,7 @@
 
 ;;; Rayleigh distribution.
 
-(declaim (inline drawy-rayleigh))
+(declaim (inline draw-rayleigh))
 (defun draw-rayleigh (scale &key (rng *random-state*))
   "Return a random variable from the Rayleigh(scale) distribution, where scale > 0 and
 density x * exp(-x^2 / (2 scale^2)) / scale^2 for x>=0 and 0 for x<0."
