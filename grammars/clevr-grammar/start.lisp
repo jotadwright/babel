@@ -34,57 +34,58 @@
                       (:seq2seq-model-formulation . "clevr_formulation_model"))
                     :replace t)
 
-(set-configuration *fcg-constructions* :create-initial-structure-mode :clevr-initial-structure)
+(comprehend-and-formulate "Do the big rubber object on the left side of the big gray thing and the large sphere that is in front of the large blue rubber thing have the same color?")
+;; nr of nodes for solution: 2200, 775, 772, 5230, 2971, 2073
 
-(understand "How many things are left of the gray sphere that is behind the yellow cube in front of the red cylinder?")
-(understand "How many things are left of the gray sphere that is behind the yellow cube?")
-(understand "How many things are left of the gray sphere?")
+(comprehend-and-formulate "Is the material of the big gray thing that is in front of the tiny green metallic object the same as the green object that is behind the gray matte ball?")
+;; nr of nodes for solution: 1608, 2600, 71, 2598, 3372
 
 
 
-(understand "Do the big rubber object on the left side of the big gray thing and the large sphere that is in front of the large blue rubber thing have the same color?")
-(understand "Is the material of the big gray thing that is in front of the tiny green metallic object the same as the green object that is behind the gray matte ball?")
-(understand "Is the color of the metal block that is right of the yellow rubber object the same as the large metal cylinder?")
-(understand "Does the large yellow sphere have the same material as the sphere in front of the tiny blue object?")
-(understand "Does the matte object behind the gray metallic ball have the same color as the big rubber sphere?")
-(understand "Is the shape of the small gray matte thing the same as the object behind the big green rubber object?")
-(understand "There is a thing that is behind the small gray object; is its size the same as the matte block in front of the small brown block?")
-(understand "Do the big rubber cube that is behind the small rubber cube and the large matte cylinder have the same color?")
-(understand "Are the big brown ball that is on the right side of the big metal cylinder and the sphere on the left side of the small metallic ball made of the same material?")
-(understand "There is a tiny matte object right of the tiny gray matte thing; is its shape the same as the yellow object that is to the left of the small yellow matte cube?")
-(understand "There is a large metal cube left of the red thing; does it have the same color as the small cylinder?")
-(understand "What size is the blue metal thing left of the green ball behind the red thing?")
-(understand "How many blue metal things are left of the green ball and behind the red thing?")
-(understand "Do the large metal cube left of the red thing and the small cylinder have the same color?")
-(understand "What size is the blue metal thing left of the green ball behind the red thing?")
-(understand "How many blue metal things are left of the green ball and behind the red thing?")
-(understand "There is a large metal cube left of the red thing; does it have the same color as the small cylinder?")
-(understand "Do the large metal cube left of the red thing and the small cylinder have the same color?")
+
+
+(comprehend "What color is the cube?")
+(comprehend-and-formulate "What color is the cube?")
+
+(comprehend-and-formulate "Is the color of the metal block that is right of the yellow rubber object the same as the large metal cylinder?")
+(comprehend-and-formulate "Does the large yellow sphere have the same material as the sphere in front of the tiny blue object?")
+(comprehend-and-formulate "Does the matte object behind the gray metallic ball have the same color as the big rubber sphere?")
+(comprehend-and-formulate "Is the shape of the small gray matte thing the same as the object behind the big green rubber object?")
+(comprehend-and-formulate "There is a thing that is behind the small gray object; is its size the same as the matte block in front of the small brown block?")
+(comprehend-and-formulate "Do the big rubber cube that is behind the small rubber cube and the large matte cylinder have the same color?")
+(comprehend-and-formulate "Are the big brown ball that is on the right side of the big metal cylinder and the sphere on the left side of the small metallic ball made of the same material?")
+(comprehend-and-formulate "There is a tiny matte object right of the tiny gray matte thing; is its shape the same as the yellow object that is to the left of the small yellow matte cube?")
+
+(comprehend "There is a large metal cube left of the red thing; does it have the same color as the small cylinder?")
+(comprehend "What size is the blue metal thing left of the green ball behind the red thing?")
+(comprehend "How many blue metal things are left of the green ball and behind the red thing?")
+(comprehend "Do the large metal cube left of the red thing and the small cylinder have the same color?")
+
+(comprehend-and-formulate "What size is the blue metal thing left of the green ball behind the red thing?")
+(comprehend-and-formulate "How many blue metal things are left of the green ball and behind the red thing?")
+(comprehend-and-formulate "There is a large metal cube left of the red thing; does it have the same color as the small cylinder?")
+(comprehend-and-formulate "Do the large metal cube left of the red thing and the small cylinder have the same color?")
 
 ;; zero hop
 (formulate
- '((segment-scene segs scene)
-   (filter set-1 segs scene shape-1)
-   (filter set-2 set-1 scene color-1)
+ '((get-context context)
+   (filter set-1 context shape-1)
+   (filter set-2 set-1 color-1)
    (count! target set-2)
    (bind shape-category shape-1 thing)
    (bind color-category color-1 blue)))
 
-(understand-and-formulate "How many large blue metal things are left of the green sphere?"
-                          *fcg-constructions* '?scene)
-
-
 ;; one hop
 (formulate
- '((segment-scene ss scene)
-   (filter set-1 ss scene shape-1)
-   (filter set-2 set-1 scene color-1)
+ '((get-context context)
+   (filter set-1 context shape-1)
+   (filter set-2 set-1 color-1)
    (unique obj-1 set-2)
-   (relate set-3 obj-1 scene rel-1)
-   (filter set-4 set-3 scene shape-2)
-   (filter set-5 set-4 scene mat-1)
-   (filter set-6 set-5 scene color-2)
-   (filter set-7 set-6 scene size-1)
+   (relate set-3 obj-1 rel-1)
+   (filter set-4 set-3 shape-2)
+   (filter set-5 set-4 mat-1)
+   (filter set-6 set-5 color-2)
+   (filter set-7 set-6 size-1)
    (count! target set-7)
    
    (bind shape-category shape-1 sphere)

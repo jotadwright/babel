@@ -9,7 +9,7 @@
 
 (def-fcg-cxn the-same-T-as-relate-cxn
              ((?same-type-unit
-               (args ((sources ?source ?segmented-scene)
+               (args ((sources ?source)
                       (target ?target)))
                (sem-cat (sem-function equal-property))
                (syn-cat (syn-class comparative-conjunction))
@@ -18,11 +18,8 @@
                (leftmost-unit ?the-same)
                (rightmost-unit ?as))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?same-type-unit
-               (HASH meaning ((same ?target ?source ?segmented-scene ?scene ?attribute)))
+               (HASH meaning ((same ?target ?source ?attribute)))
                --
                )
               (?the-same
@@ -48,15 +45,12 @@
 ;; same-relate-exist <- exist-unit + same-type-unit + det-np-unit
 (def-fcg-cxn same-relate-exist-cxn
              ((?same-exist-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?exist-unit ?same-type-unit ?determined-noun-phrase-unit)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?same-exist-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
+               (HASH meaning ((get-context ?context)))
                --
                )
               (?exist-unit
@@ -74,7 +68,7 @@
                (rightmost-unit ?rightmost-exist-unit)
                (HASH form ((meets ?rightmost-exist-unit ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object ?segmented-scene)
+               (args ((sources ?object)
                       (target ?exist-set)))
                (sem-cat (sem-function equal-property))
                (property-type ?type)
@@ -86,7 +80,7 @@
                (rightmost-unit ?rightmost-type-unit)
                (HASH form ((meets ?rightmost-type-unit ?leftmost-np-unit))))
               (?determined-noun-phrase-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -103,15 +97,12 @@
 ;; same-relate-exist-material <- exist-unit + "made of" + same-type-unit + det-np-unit
 (def-fcg-cxn same-relate-exist-material-cxn
              ((?same-exist-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?exist-unit ?made-of ?same-type-unit ?determined-noun-phrase-unit)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?same-exist-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
+               (HASH meaning ((get-context ?context)))
                --
                )
               (?exist-unit
@@ -134,7 +125,7 @@
                            (meets ?rightmost-exist-unit ?made-of)
                            (meets ?made-of ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object ?segmented-scene)
+               (args ((sources ?object)
                       (target ?exist-set)))
                (sem-cat (sem-function equal-property))
                (property-type material)
@@ -146,7 +137,7 @@
                (rightmost-unit ?rightmost-type-unit)
                (HASH form ((meets ?rightmost-type-unit ?leftmost-np-unit))))
               (?determined-noun-phrase-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -163,15 +154,12 @@
 ;; same-relate-count <- count-unit + same-type-unit + det-np-unit
 (def-fcg-cxn same-relate-count-cxn
              ((?same-count-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?count-unit ?same-type-unit ?determined-noun-phrase-unit)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?same-count-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
+               (HASH meaning ((get-context ?context)))
                --
                )
               (?count-unit
@@ -190,7 +178,7 @@
                (rightmost-unit ?rightmost-count-unit)
                (HASH form ((meets ?rightmost-count-unit ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object ?segmented-scene)
+               (args ((sources ?object)
                       (target ?count-set)))
                (sem-cat (sem-function equal-property))
                (property-type ?type)
@@ -202,7 +190,7 @@
                (rightmost-unit ?rightmost-type-unit)
                (HASH form ((meets ?rightmost-type-unit ?leftmost-np-unit))))
               (?determined-noun-phrase-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -219,15 +207,12 @@
 ;; EXCEPTIONS
 (def-fcg-cxn same-relate-count-material-cxn
              ((?same-count-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?count-unit ?made-of ?same-type-unit ?determined-noun-phrase-unit)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?same-count-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
+               (HASH meaning ((get-context ?context)))
                --
                )
               (?count-unit
@@ -252,7 +237,7 @@
                            (meets ?rightmost-count-unit ?made-of)
                            (meets ?made-of ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object ?segmented-scene)
+               (args ((sources ?object)
                       (target ?count-set)))
                (sem-cat (sem-function equal-property))
                (property-type material)
@@ -264,7 +249,7 @@
                (rightmost-unit ?rightmost-type-unit)
                (HASH form ((meets ?rightmost-type-unit ?leftmost-np-unit))))
               (?determined-noun-phrase-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -281,7 +266,7 @@
 ;; same-relate-query <- query-unit + det-np + "that is" + same-type-unit + det-np
 (def-fcg-cxn same-relate-query-cxn
              ((?same-query-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?query-type-unit ?determined-np-unit-1 ?that-is ?same-type-unit ?determined-np-unit-2)))
               (?determined-np-unit-1
@@ -289,11 +274,8 @@
               (?determined-np-unit-2
                (footprints (query)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
-              (?same-query-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
+             (?same-query-unit
+               (HASH meaning ((get-context ?context)))
                --
                )
              (?query-type-unit
@@ -330,7 +312,7 @@
                            (meets ?rightmost-np-unit-1 ?that-is)
                            (meets ?that-is ?leftmost-type-unit))))
              (?same-type-unit
-               (args ((sources ?object ?segmented-scene)
+               (args ((sources ?object)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type ?compare-type)
@@ -341,7 +323,7 @@
                (rightmost-unit ?rightmost-type-unit)
                (HASH form ((meets ?rightmost-type-unit ?leftmost-np-unit-2))))
              (?determined-np-unit-2
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -362,7 +344,7 @@
 ;; same-relate-query-other <- query-unit + "the" + "other" + singular nominal + "that is" + same-type-unit + det-np
 (def-fcg-cxn same-relate-query-other-cxn
              ((?same-query-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?query-type-unit ?determined-other-np-unit ?that-is ?same-type-unit ?determined-noun-phrase-unit)))
               (?determined-other-np-unit
@@ -379,11 +361,8 @@
               (?determined-noun-phrase-unit
                (footprints (query)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?same-query-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
+               (HASH meaning ((get-context ?context)))
                --
                )
               (?query-type-unit
@@ -428,7 +407,7 @@
                            (meets ?rightmost-nom-unit ?that-is)
                            (meets ?that-is ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object ?segmented-scene)
+               (args ((sources ?object)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type ?compare-type)
@@ -439,7 +418,7 @@
                (rightmost-unit ?rightmost-type-unit)
                (HASH form ((meets ?rightmost-type-unit ?leftmost-np-unit))))
               (?determined-noun-phrase-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -460,7 +439,7 @@
 ;; same-relate-query-reverse <- det-np + "that is" + same-type-unit + det-np + query-unit
 (def-fcg-cxn same-relate-query-reverse-cxn
              ((?same-query-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?determined-np-unit-1 ?that-is ?same-type-unit ?determined-np-unit-2 ?query-type-unit)))
               (?determined-np-unit-1
@@ -468,11 +447,8 @@
               (?determined-np-unit-2
                (footprints (query)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?same-query-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
+               (HASH meaning ((get-context ?context)))
                --
                )
               (?determined-np-unit-1
@@ -496,7 +472,7 @@
                            (meets ?rightmost-np-unit-1 ?that-is)
                            (meets ?that-is ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object ?segmented-scene)
+               (args ((sources ?object)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type ?compare-type)
@@ -507,7 +483,7 @@
                (rightmost-unit ?rightmost-type-unit)
                (HASH form ((meets ?rightmost-type-unit ?leftmost-np-unit-2))))
               (?determined-np-unit-2
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -541,7 +517,7 @@
 ;; same-relate-query-reverse-other <- "the" + "other" + singular nominal + "that is" + same-type-unit + det-np + query-unit
 (def-fcg-cxn same-relate-query-reverse-other-cxn
              ((?same-query-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?determined-other-np-unit ?that-is ?same-type-unit ?determined-noun-phrase-unit ?query-type-unit)))
               (?determined-other-np-unit
@@ -558,11 +534,8 @@
               (?determined-noun-phrase-unit
                (footprints (query)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?same-query-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
+               (HASH meaning ((get-context ?context)))
                --
                )
               (?the
@@ -594,7 +567,7 @@
                            (meets ?rightmost-nom-unit ?that-is)
                            (meets ?that-is ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object ?segmented-scene)
+               (args ((sources ?object)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type ?compare-type)
@@ -605,7 +578,7 @@
                (rightmost-unit ?rightmost-type-unit)
                (HASH form ((meets ?rightmost-type-unit ?leftmost-np-unit))))
               (?determined-noun-phrase-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -639,7 +612,7 @@
 ;; same-relate-query-anaphoric <- declared-np + "that is" + same-type-unit + det-np + ";" + query-unit
 (def-fcg-cxn same-relate-query-anaphoric-cxn
              ((?same-query-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?declared-noun-phrase-unit ?that-is ?same-type-unit ?determined-noun-phrase-unit ?semicolon ?query-type-unit)))
               (?declared-noun-phrase-unit
@@ -647,11 +620,8 @@
               (?determined-noun-phrase-unit
                (footprints (query)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?same-query-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
+               (HASH meaning ((get-context ?context)))
                --
                )
               (?declared-noun-phrase-unit
@@ -675,7 +645,7 @@
                            (meets ?rightmost-np-unit-1 ?that-is)
                            (meets ?that-is ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object ?segmented-scene)
+               (args ((sources ?object)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type ?compare-type)
@@ -687,7 +657,7 @@
                (rightmost-unit ?rightmost-type-unit)
                (HASH form ((meets ?rightmost-type-unit ?leftmost-np-unit))))
               (?determined-noun-phrase-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -724,7 +694,7 @@
 ;; same-relate-query-anaphoric <- "there is another" + singular nominal + "that is" + same-type-unit + det-np + ";" + query-unit
 (def-fcg-cxn same-relate-query-anaphoric-another-cxn
              ((?same-query-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?declared-other-np-unit ?that-is ?same-type-unit ?determined-noun-phrase-unit ?semicolon ?query-type-unit)))
               (?declared-other-np-unit
@@ -741,11 +711,8 @@
               (?determined-noun-phrase-unit
                (footprints (query)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?same-query-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
+               (HASH meaning ((get-context ?context)))
                --
                )
               (?there-is-unit
@@ -773,7 +740,7 @@
                            (meets ?rightmost-nom-unit ?that-is)
                            (meets ?that-is ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object ?segmented-scene)
+               (args ((sources ?object)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type ?compare-type)
@@ -784,7 +751,7 @@
                (rightmost-unit ?rightmost-type-unit)
                (HASH form ((meets ?rightmost-type-unit ?leftmost-np-unit))))
               (?determined-noun-phrase-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -822,7 +789,7 @@
 ;; declared-np + "that is" + same-type-unit + det-np + ";" + "what is it made of"
 (def-fcg-cxn same-relate-query-anaphoric-made-of-cxn
              ((?same-query-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?declared-noun-phrase-unit ?that-is ?same-type-unit ?determined-noun-phrase-unit ?semicolon ?made-of-unit)))
               (?declared-noun-phrase-unit
@@ -830,11 +797,8 @@
               (?determined-noun-phrase-unit
                (footprints (query)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?same-query-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
+               (HASH meaning ((get-context ?context)))
                --
                )
               (?declared-noun-phrase-unit
@@ -858,7 +822,7 @@
                            (meets ?rightmost-np-unit-1 ?that-is)
                            (meets ?that-is ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object ?segmented-scene)
+               (args ((sources ?object)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type ?compare-type)
@@ -870,7 +834,7 @@
                (rightmost-unit ?rightmost-type-unit)
                (HASH form ((meets ?rightmost-type-unit ?leftmost-np-unit))))
               (?determined-noun-phrase-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -890,7 +854,7 @@
                            (meets ?rightmost-np-unit ?semicolon)
                            (meets ?semicolon ?made-of-unit))))
               (?made-of-unit
-               (HASH meaning ((query ?target ?target-object ?scene ?attribute)
+               (HASH meaning ((query ?target ?target-object ?attribute)
                               (bind attribute-category ?attribute material)))
                --
                (HASH form ((string ?made-of-unit "what is it made of")))))
@@ -901,7 +865,7 @@
 ;; same-relate-query-anaphoric-anpther-made-of <- "there is another" + singular nominal + "that is" + same-type-unit + det-np + ";" + "what is it made of"
 (def-fcg-cxn same-relate-query-anaphoric-another-made-of-cxn
              ((?same-query-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?declared-other-np-unit ?that-is ?same-type-unit ?determined-noun-phrase-unit ?semicolon ?made-of-unit)))
               (?declared-other-np-unit
@@ -918,11 +882,8 @@
               (?determined-noun-phrase-unit
                (footprints (query)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?same-query-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
+               (HASH meaning ((get-context ?context)))
                --
                )
               (?there-is-unit
@@ -950,7 +911,7 @@
                            (meets ?rightmost-nom-unit ?that-is)
                            (meets ?that-is ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object ?segmented-scene)
+               (args ((sources ?object)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type ?compare-type)
@@ -962,7 +923,7 @@
                (rightmost-unit ?rightmost-type-unit)
                (HASH form ((meets ?rightmost-type-unit ?leftmost-np-unit))))
               (?determined-noun-phrase-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -982,7 +943,7 @@
                            (meets ?rightmost-np-unit ?semicolon)
                            (meets ?semicolon ?made-of-unit))))
               (?made-of-unit
-               (HASH meaning ((query ?target ?target-object ?scene ?attribute)
+               (HASH meaning ((query ?target ?target-object ?attribute)
                               (bind attribute-category ?attribute material)))
                --
                (HASH form ((string ?made-of-unit "what is it made of")))))
@@ -993,7 +954,7 @@
 ;; query-unit + det-np + "that is" + "made of" + same-type-unit + det-np
 (def-fcg-cxn same-relate-query-material-cxn
              ((?same-query-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?query-type-unit ?determined-np-unit-1 ?that-is ?made-of ?same-type-unit ?determined-np-unit-2)))
               (?determined-np-unit-1
@@ -1001,11 +962,8 @@
               (?determined-np-unit-2
                (footprints (query)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?same-query-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
+               (HASH meaning ((get-context ?context)))
                --
                )
               (?query-type-unit
@@ -1046,7 +1004,7 @@
                (HASH form ((string ?made-of "made of")
                            (meets ?made-of ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object ?segmented-scene)
+               (args ((sources ?object)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type material)
@@ -1057,7 +1015,7 @@
                (rightmost-unit ?rightmost-type-unit)
                (HASH form ((meets ?rightmost-type-unit ?leftmost-np-unit-2))))
               (?determined-np-unit-2
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -1078,7 +1036,7 @@
 ;; query-unit + "the" + "other" + singular-nominal + "that is" + "made of" + same-type-unit + det-np
 (def-fcg-cxn same-relate-query-other-material-cxn
              ((?same-query-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?query-type-unit ?determined-other-np-unit ?that-is ?made-of ?same-type-unit ?determined-noun-phrase-unit)))
               (?determined-other-np-unit
@@ -1095,11 +1053,8 @@
               (?determined-noun-phrase-unit
                (footprints (query)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?same-query-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
+               (HASH meaning ((get-context ?context)))
                --
                )
               (?query-type-unit
@@ -1148,7 +1103,7 @@
                (HASH form ((string ?made-of "made of")
                            (meets ?made-of ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object ?segmented-scene)
+               (args ((sources ?object)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type material)
@@ -1159,7 +1114,7 @@
                (rightmost-unit ?rightmost-type-unit)
                (HASH form ((meets ?rightmost-type-unit ?leftmost-np-unit))))
               (?determined-noun-phrase-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -1180,7 +1135,7 @@
 ;; det-np + "that is" + "made of" + same-type-unit + det-np + query-unit
 (def-fcg-cxn same-relate-query-reverse-material-cxn
              ((?same-query-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?determined-np-unit-1 ?that-is ?made-of ?same-type-unit ?determined-np-unit-2 ?query-type-unit)))
               (?determined-np-unit-1
@@ -1188,11 +1143,8 @@
               (?determined-np-unit-2
                (footprints (query)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?same-query-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
+               (HASH meaning ((get-context ?context)))
                --
                )
               (?determined-np-unit-1
@@ -1220,7 +1172,7 @@
                (HASH form ((string ?made-of "made of")
                            (meets ?made-of ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object ?segmented-scene)
+               (args ((sources ?object)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type material)
@@ -1231,7 +1183,7 @@
                (rightmost-unit ?rightmost-type-unit)
                (HASH form ((meets ?rightmost-type-unit ?leftmost-np-unit-2))))
               (?determined-np-unit-2
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -1265,7 +1217,7 @@
 ;; "the" + "other" + singular-nominal + "that is" + "made of" + same-type-unit + det-np + query-unit
 (def-fcg-cxn same-relate-query-reverse-other-material-cxn
              ((?same-query-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?determined-other-np-unit ?that-is ?made-of ?same-type-unit ?determined-noun-phrase-unit ?query-type-unit)))
               (?determined-other-np-unit
@@ -1282,11 +1234,8 @@
               (?determined-noun-phrase-unit
                (footprints (query)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?same-query-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
+               (HASH meaning ((get-context ?context)))
                --
                )
               (?the
@@ -1322,7 +1271,7 @@
                (HASH form ((string ?made-of "made of")
                            (meets ?made-of ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object ?segmented-scene)
+               (args ((sources ?object)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type material)
@@ -1333,7 +1282,7 @@
                (rightmost-unit ?rightmost-type-unit)
                (HASH form ((meets ?rightmost-type-unit ?leftmost-np-unit))))
               (?determined-noun-phrase-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -1367,7 +1316,7 @@
 ;; declared-np + "that is" + "made of" + same-type-unit + det-np + ";" + query-unit
 (def-fcg-cxn same-relate-query-anaphoric-material-cxn
              ((?same-query-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?declared-np-unit ?that-is ?made-of ?same-type-unit ?determined-np-unit ?semicolon ?query-type-unit)))
               (?declared-np-unit
@@ -1375,11 +1324,8 @@
               (?determined-np-unit
                (footprints (query)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?same-query-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
+               (HASH meaning ((get-context ?context)))
                --
                )
               (?declared-np-unit
@@ -1407,7 +1353,7 @@
                (HASH form ((string ?made-of "made of")
                            (meets ?made-of ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object ?segmented-scene)
+               (args ((sources ?object)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type material)
@@ -1418,7 +1364,7 @@
                (rightmost-unit ?rightmost-type-unit)
                (HASH form ((meets ?rightmost-type-unit ?leftmost-np-unit-2))))
               (?determined-np-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -1456,7 +1402,7 @@
 ;; "there is another" + singular nominal + "that is" + "made of" + same-type-unit + det-np + ";" + query-unit
 (def-fcg-cxn same-relate-query-anaphoric-another-material-cxn
              ((?same-query-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?declared-other-np-unit ?that-is ?made-of ?same-type-unit ?determined-noun-phrase-unit ?semicolon ?query-type-unit)))
               (?declared-other-np-unit
@@ -1473,11 +1419,8 @@
               (?determined-noun-phrase-unit
                (footprints (query)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?same-query-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
+               (HASH meaning ((get-context ?context)))
                --
                )
               (?there-is-unit
@@ -1509,7 +1452,7 @@
                (HASH form ((string ?made-of "made of")
                            (meets ?made-of ?leftmost-type-unit))))
               (?same-type-unit
-               (args ((sources ?object ?segmented-scene)
+               (args ((sources ?object)
                       (target ?same-set)))
                (sem-cat (sem-function equal-property))
                (property-type material)
@@ -1520,7 +1463,7 @@
                (rightmost-unit ?rightmost-type-unit)
                (HASH form ((meets ?rightmost-type-unit ?leftmost-np-unit))))
               (?determined-noun-phrase-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))

@@ -27,11 +27,8 @@
                (superunits (?nominal-unit))
                (footprints (nominal)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?nominal-unit
-               (HASH meaning ((filter ?target ?source ?scene ?shape)))
+               (HASH meaning ((filter ?target ?source ?shape)))
                --
                )
               (?noun-unit
@@ -43,7 +40,6 @@
                (syn-cat (lex-class noun)
                         (syn-function nominal)
                         (number ?number))))
-             :disable-automatic-footprints t
              :cxn-set (nom cxn)
              :cxn-inventory *CLEVR*)
 
@@ -71,11 +67,8 @@
                (superunits (?super-nominal-unit))
                (footprints (nominal)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?super-nominal-unit
-               (HASH meaning ((filter ?target ?between ?scene ?category)))
+               (HASH meaning ((filter ?target ?between ?category)))
                --
                )
               (?adjective-unit
@@ -89,9 +82,10 @@
               (?nominal-unit
                (args ((sources ?source)
                       (target ?between)))
-               (syn-cat (lex-class np)
-                        (syn-function nominal)
-                        (number ?number))
+               ;(syn-cat (lex-class np)
+               ;         (syn-function nominal)
+               ;         (number ?number))
+               (sem-cat (sem-class object))
                (footprints (NOT nominal))
                (superunits nil)
                --
@@ -103,7 +97,6 @@
                (leftmost-unit ?leftmost-nom-unit)
                (rightmost-unit ?rightmost-nom-unit)
                (HASH form ((meets ?adjective-unit ?leftmost-nom-unit)))))
-             :disable-automatic-footprints t
              :cxn-set (nom cxn)
              :cxn-inventory *CLEVR*)
 
@@ -132,9 +125,10 @@
               (?nominal-unit
                (args ((sources ?source)
                       (target ?target-set)))
-               (syn-cat (syn-function nominal)
-                        (lex-class np)
-                        (number singular))
+               ;(syn-cat (syn-function nominal)
+               ;         (lex-class np)
+               ;         (number singular))
+               (sem-cat (sem-class object))
                (superunits nil)
                --
                (superunits nil)

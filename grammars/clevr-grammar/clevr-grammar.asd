@@ -17,7 +17,7 @@
                :seq2seq-heuristics)
   :serial t
   :components ((:file "package")
-               (:module "fcg-utils"
+               (:module fcg-utils
                 :serial t
                 :components ((:file "cxn-supplier")
                              (:file "de-render")
@@ -36,5 +36,4 @@
                (:file "compare-integer")
                (:file "same-relate")
                (:file "comparison")
-               (:file "preprocess-utterance")
-               (:file "understand")))
+               (:file "preprocess-utterance")))

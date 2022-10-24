@@ -44,11 +44,8 @@
                (footprints (NOT mutually-exclusive))
                --
                (footprints (NOT mutually-exclusive)))
-              (scene-unit
-               --
-               (scene ?scene))
               (?query-type-unit
-               (HASH meaning ((query ?target ?source ?scene ?attribute)))
+               (HASH meaning ((query ?target ?source ?attribute)))
                --
                )
               (?what
@@ -91,11 +88,8 @@
                (footprints (NOT mutually-exclusive))
                --
                (footprints (NOT mutually-exclusive)))
-              (scene-unit
-               --
-               (scene ?scene))
               (?query-type-unit
-               (HASH meaning ((query ?target ?source ?scene ?attribute)))
+               (HASH meaning ((query ?target ?source ?attribute)))
                --
                )
               (?what-is
@@ -140,11 +134,8 @@
                (footprints (NOT mutually-exclusive))
                --
                (footprints (NOT mutually-exclusive)))
-              (scene-unit
-               --
-               (scene ?scene))
               (?query-type-unit
-               (HASH meaning ((query ?target ?source ?scene ?attribute)))
+               (HASH meaning ((query ?target ?source ?attribute)))
                --
                )
               (?what
@@ -185,11 +176,8 @@
                (footprints (NOT mutually-exclusive))
                --
                (footprints (NOT mutually-exclusive)))
-              (scene-unit
-               --
-               (scene ?scene))
               (?query-type-unit
-               (HASH meaning ((query ?target ?source ?scene ?attribute)))
+               (HASH meaning ((query ?target ?source ?attribute)))
                --
                )
               (?what-is-its
@@ -230,11 +218,8 @@
                (footprints (NOT mutually-exclusive))
                --
                (footprints (NOT mutually-exclusive)))
-              (scene-unit
-               --
-               (scene ?scene))
               (?query-type-unit
-               (HASH meaning ((query ?target ?source ?scene ?attribute)))
+               (HASH meaning ((query ?target ?source ?attribute)))
                --
                )
               (?has-what
@@ -272,11 +257,8 @@
                (footprints (NOT mutually-exclusive))
                --
                (footprints (NOT mutually-exclusive)))
-              (scene-unit
-               --
-               (scene ?scene))
               (?query-type-unit
-               (HASH meaning ((query ?target ?source ?scene ?attribute)))
+               (HASH meaning ((query ?target ?source ?attribute)))
                --
                )
               (?is-what

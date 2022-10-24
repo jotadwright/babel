@@ -12,21 +12,18 @@
 ;; what number of Xs are there (zero hop only)
 (def-fcg-cxn count-zero-hop-cxn
              ((?count-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?counting-unit ?there)))
               (?counting-unit
                (footprints (hop)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?count-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
+               (HASH meaning ((get-context ?context)))
                --
                )
               (?counting-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (sem-cat (sem-function count-referent))
                (qtype hop)
@@ -50,18 +47,15 @@
 ;; what number of Xs are R Y (R Z)
 (def-fcg-cxn hop-count-cxn
              ((?count-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?counting-unit ?spatial-relation-unit ?relational-unit)))
               (?counting-unit
                (footprints (hop)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?count-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)
-                              (relate ?count-set ?object ?segmented-scene ?scene ?spatial-relation)))
+               (HASH meaning ((get-context ?context)
+                              (relate ?count-set ?object ?spatial-relation)))
                --
                )
               (?counting-unit
@@ -84,12 +78,10 @@
                --
                (footprints (NOT relate))
                (syn-cat (lex-class preposition))
-               (leftmost-unit ?leftmost-spatial-unit)
-               (rightmost-unit ?rightmost-spatial-unit)
-               (HASH form ((meets ?rightmost-counting-unit ?leftmost-spatial-unit)
-                           (meets ?rightmost-spatial-unit ?leftmost-np-unit))))
+               (HASH form ((meets ?rightmost-counting-unit ?spatial-relation-unit)
+                           (meets ?spatial-relation-unit ?leftmost-np-unit))))
               (?relational-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -109,22 +101,19 @@
 ;; there is a X (R Y (R Z)), what number of Xs are R it?
 (def-fcg-cxn hop-count-anaphoric-cxn
              ((?count-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?relational-unit ?semicolon ?counting-unit ?spatial-relation-unit ?it)))
               (?counting-unit
                (footprints (hop)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?count-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)
-                              (relate ?count-set ?object ?segmented-scene ?scene ?spatial-relation)))
+               (HASH meaning ((get-context ?context)
+                              (relate ?count-set ?object ?spatial-relation)))
                --
                )
               (?relational-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite -))
@@ -161,10 +150,8 @@
                --
                (footprints (NOT relate))
                (syn-cat (lex-class preposition))
-               (leftmost-unit ?leftmost-spatial-unit)
-               (rightmost-unit ?rightmost-spatial-unit)
-               (HASH form ((meets ?rightmost-counting-unit ?leftmost-spatial-unit)
-                           (meets ?rightmost-spatial-unit ?it))))
+               (HASH form ((meets ?rightmost-counting-unit ?spatial-relation-unit)
+                           (meets ?spatial-relation-unit ?it))))
               (?it
                --
                (HASH form ((string ?it "it")))))
@@ -176,15 +163,12 @@
 ;; are any Xs visible (zero hop only)
 (def-fcg-cxn exist-zero-hop-visible-cxn
              ((?exist-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?are-any ?plural-nominal-unit ?visible)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?exist-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)
+               (HASH meaning ((get-context ?context)
                               (exist ?target ?exist-set)))
                --
                )
@@ -193,7 +177,7 @@
                (HASH form ((string ?are-any "are any")
                            (meets ?are-any ?leftmost-nom-unit))))
               (?plural-nominal-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?exist-set)))
                (syn-cat (syn-function nominal)
                         (lex-class np)
@@ -218,21 +202,18 @@
 
 (def-fcg-cxn exist-zero-hop-cxn
              ((?exist-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?existing-unit)))
               (?existing-unit
                (footprints (exist hop)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?exist-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
+               (HASH meaning ((get-context ?context)))
                --
                )
               (?existing-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (suffix-type none)
                (qtype hop)
@@ -254,18 +235,15 @@
 ;; is there a X [that it] (R Y (R Z))
 (def-fcg-cxn hop-exist-cxn
              ((?exist-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?existing-unit ?spatial-relation-unit ?relational-unit)))
               (?existing-unit
                (footprints (exist hop)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?exist-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)
-                              (relate ?exist-set ?object ?segmented-scene ?scene ?spatial-relation)))
+               (HASH meaning ((get-context ?context)
+                              (relate ?exist-set ?object ?spatial-relation)))
                --
                )
               (?existing-unit
@@ -289,12 +267,10 @@
                --
                (footprints (NOT relate))
                (syn-cat (lex-class preposition))
-               (leftmost-unit ?leftmost-spatial-unit)
-               (rightmost-unit ?rightmost-spatial-unit)
-               (HASH form ((meets ?rightmost-exist-unit ?leftmost-spatial-unit)
-                           (meets ?rightmost-spatial-unit ?leftmost-np-unit))))
+               (HASH form ((meets ?rightmost-exist-unit ?spatial-relation-unit)
+                           (meets ?spatial-relation-unit ?leftmost-np-unit))))
               (?relational-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -314,22 +290,19 @@
 ;; there is a X (R Y (R Z)) ; is there a X [that is] R it? (multi hop only)
 (def-fcg-cxn hop-exist-anaphoric-cxn
              ((?exist-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?relational-unit ?semicolon ?existing-unit ?spatial-relation-unit ?it)))
               (?existing-unit
                (footprints (exist hop)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?exist-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)
-                              (relate ?exist-set ?object ?segmented-scene ?scene ?spatial-relation)))
+               (HASH meaning ((get-context ?context)
+                              (relate ?exist-set ?object ?spatial-relation)))
                --
                )
               (?relational-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite -))
@@ -367,10 +340,8 @@
                --
                (footprints (NOT relate))
                (syn-cat (lex-class preposition))
-               (leftmost-unit ?leftmost-spatial-unit)
-               (rightmost-unit ?rightmost-spatial-unit)
-               (HASH form ((meets ?rightmost-exist-unit ?leftmost-spatial-unit)
-                           (meets ?rightmost-spatial-unit ?it))))
+               (HASH form ((meets ?rightmost-exist-unit ?spatial-relation-unit)
+                           (meets ?spatial-relation-unit ?it))))
               (?it
                --
                (HASH form ((string ?it "it")))))
@@ -382,17 +353,14 @@
 ;; QUERY PROPERTY PATTERN
 (def-fcg-cxn hop-query-property-cxn
              ((?query-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?query-type-unit ?determined-noun-phrase-unit)))
               (?determined-noun-phrase-unit
                (footprints (query)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?query-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
+               (HASH meaning ((get-context ?context)))
                --
                )
               (?query-type-unit
@@ -409,7 +377,7 @@
                (rightmost-unit ?rightmost-qt-unit)
                (HASH form ((meets ?rightmost-qt-unit ?leftmost-np-unit))))
               (?determined-noun-phrase-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -429,21 +397,18 @@
 
 (def-fcg-cxn hop-query-property-reverse-cxn
              ((?query-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?query-type-unit ?determined-noun-phrase-unit)))
               (?determined-noun-phrase-unit
                (footprints (query)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?query-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
+               (HASH meaning ((get-context ?context)))
                --
                )
               (?determined-noun-phrase-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -477,21 +442,18 @@
 
 (def-fcg-cxn hop-query-property-anaphoric-cxn
              ((?query-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?query-type-unit ?semicolon ?declared-noun-phrase-unit)))
               (?declared-noun-phrase-unit
                (footprints (query)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?query-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
+               (HASH meaning ((get-context ?context)))
                --
                )
               (?declared-noun-phrase-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite -))
@@ -529,18 +491,15 @@
 ;; what [material] is the ... made of
 (def-fcg-cxn hop-what-is-X-made-of-cxn
              ((?query-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?value)))
                (subunits (?what-is ?determined-noun-phrase-unit ?made-of)))
               (?determined-noun-phrase-unit
                (footprints (query)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?query-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)
-                              (query ?target ?object ?scene ?attribute)
+               (HASH meaning ((get-context ?context)
+                              (query ?target ?object ?attribute)
                               (bind attribute-category ?attribute material)))
                --
                )
@@ -549,7 +508,7 @@
                (HASH form ((string ?what-is "what is")
                            (meets ?what-is ?leftmost-np-unit))))
               (?determined-noun-phrase-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -571,17 +530,14 @@
 
 (def-fcg-cxn hop-what-material-is-X-made-of-cxn
              ((?query-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?query-type-unit ?determined-noun-phrase-unit ?made-of)))
               (?determined-noun-phrase-unit
                (footprints (query)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?query-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
+               (HASH meaning ((get-context ?context)))
                --
                )
               (?query-type-unit
@@ -599,7 +555,7 @@
                (rightmost-unit ?rightmost-qt-unit)
                (HASH form ((meets ?rightmost-qt-unit ?leftmost-np-unit))))
               (?determined-noun-phrase-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -622,23 +578,20 @@
 ;; there is a ... ; what is it made of
 (def-fcg-cxn hop-what-is-it-made-of-cxn
              ((?query-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?declared-noun-phrase-unit ?semicolon ?what-is-it-made-of)))
               (?declared-noun-phrase-unit
                (footprints (query)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?query-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)
-                              (query ?target ?object ?scene ?attribute)
+               (HASH meaning ((get-context ?context)
+                              (query ?target ?object ?attribute)
                               (bind attribute-category ?attribute material)))
                --
                )
               (?declared-noun-phrase-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite -))
@@ -665,22 +618,19 @@
 ;; the ... is made of what material
 (def-fcg-cxn hop-X-is-made-of-what-cxn
              ((?query-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?determined-noun-phrase-unit ?is-made-of-what ?type-unit)))
               (?determined-noun-phrase-unit
                (footprints (query)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?query-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)
-                              (query ?target ?object ?scene ?attribute)))
+               (HASH meaning ((get-context ?context)
+                              (query ?target ?object ?attribute)))
                --
                )
               (?determined-noun-phrase-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -713,18 +663,15 @@
 ;; how big is the ...
 (def-fcg-cxn hop-how-big-is-X-cxn
              ((?query-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?how-big-is ?determined-noun-phrase-unit)))
               (?determined-noun-phrase-unit
                (footprints (query)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?query-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)
-                              (query ?target ?object ?scene ?attribute)
+               (HASH meaning ((get-context ?context)
+                              (query ?target ?object ?attribute)
                               (bind attribute-category ?attribute size)))
                --
                )
@@ -733,7 +680,7 @@
                (HASH form ((string ?how-big-is "how big is")
                            (meets ?how-big-is ?leftmost-np-unit))))
               (?determined-noun-phrase-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -752,23 +699,20 @@
 ;; there is a ... ; how big is it
 (def-fcg-cxn hop-how-big-is-it-cxn
              ((?query-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?declared-noun-phrase-unit ?semicolon ?how-big-is-it)))
               (?declared-noun-phrase-unit
                (footprints (query)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?query-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)
-                              (query ?target ?object ?scene ?attribute)
+               (HASH meaning ((get-context ?context)
+                              (query ?target ?object ?attribute)
                               (bind attribute-category ?attribute size)))
                --
                )
               (?declared-noun-phrase-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?object)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite -))
