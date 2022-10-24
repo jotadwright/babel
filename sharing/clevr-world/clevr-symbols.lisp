@@ -9,5 +9,5 @@
           ;; primitives
           count! equal-integer less-than greater-than
           equal? exist filter get-context intersect
-          union! query relate same unique segment-scene
+          union! query relate same unique
           clevr-context))
