@@ -50,21 +50,18 @@
       (when filtered-objects
         (make-instance 'clevr-object-set :objects filtered-objects))))
 
-
-
 (defprimitive filter ((target-set clevr-object-set)
                       (source-set clevr-object-set)
-                      (scene pathname-entity)
                       (category attribute))
   ;; first case: if given source-set and category, compute target-set
-  ((scene source-set category => target-set)
+  ((source-set category => target-set)
    (let ((computed-set (filter-by-category source-set category)))
      (if computed-set
        (bind (target-set 1.0 computed-set))
        (bind (target-set 1.0 (make-instance 'clevr-object-set :id (make-id 'empty-set)))))))
   
   ;; second case: if given source-set and target-set, compute category
-  ((scene source-set target-set => category)
+  ((source-set target-set => category)
    (let ((computed-category
           (find-if #'(lambda (cat) (equal-entity
                                     target-set
@@ -78,7 +75,7 @@
        (bind (category 1.0 computed-category)))))
 
   ;; third case: if given source-set, compute pairs of target-set and category
-  ((scene source-set => target-set category)
+  ((source-set => target-set category)
    (let ((categories (append
                       (get-data ontology 'shapes)
                       (get-data ontology 'sizes)
@@ -95,7 +92,7 @@
                                                    :id (make-id 'empty-set)))))))
 
   ;; fourth case: if given source-set, target-set and category, check for consistency
-  ((scene source-set target-set category =>)
+  ((source-set target-set category =>)
    (equal-entity target-set (filter-by-category source-set category)))
   :primitive-inventory *clevr-primitives*)
 

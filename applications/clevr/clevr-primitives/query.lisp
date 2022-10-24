@@ -25,14 +25,13 @@
 
 (defprimitive query ((target-category attribute)
                      (source-object clevr-object)
-                     (scene pathname-entity)
                      (attribute attribute-category))
   ;; first case; given attribute and source-object, compute the target category
-  ((scene source-object attribute => target-category)
+  ((source-object attribute => target-category)
    (bind (target-category 1.0 (query-object-attribute source-object attribute ontology))))
 
   ;; second case; given source-object and target-category, compute the attribute
-  ((scene source-object target-category => attribute)
+  ((source-object target-category => attribute)
    (let ((computed-attribute
           (find-if #'(lambda (attr)
                        (equal-entity
@@ -43,7 +42,7 @@
        (bind (attribute 1.0 computed-attribute)))))
 
   ;; third case; given source-object, compute pairs of attribute and target-category
-  ((scene source-object => target-category attribute)
+  ((source-object => target-category attribute)
    (loop for attr in (get-data ontology 'attributes)
          for target-cat = (query-object-attribute source-object attr ontology)
          when target-cat
@@ -52,7 +51,7 @@
 
   ;; fourth case; if given source-object, attribute and target-category, check
   ;; for consistency
-  ((scene source-object attribute target-category =>)
+  ((source-object attribute target-category =>)
    (equal-entity target-category (query-object-attribute source-object attribute ontology)))
   :primitive-inventory *clevr-primitives*)
 
