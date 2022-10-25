@@ -519,7 +519,7 @@
               (new-butter (first (contents new-butter-container)))
               (butter-for-greasing (first (contents butter-container-for-greasing)))
               (amount-for-greasing (make-instance 'amount :quantity (make-instance 'quantity :value 10)
-                                                           :unit 'g)))
+                                                           :unit (make-instance 'g))))
        
          (change-kitchen-entity-location new-butter-container ;;bring the butter to the countertop
                                          (funcall (type-of butter-original-location) new-kitchen-state)
@@ -576,7 +576,7 @@
               (new-flour (first (contents new-flour-container)))
               (flour-for-flouring (first (contents flour-container-for-flouring)))
               (amount-for-flouring (make-instance 'amount :quantity (make-instance 'quantity :value 10)
-                                                           :unit 'g)))
+                                                           :unit (make-instance 'g))))
        
          (change-kitchen-entity-location new-flour-container ;;bring the flour to the countertop
                                          (funcall (type-of flour-original-location) new-kitchen-state)
@@ -1321,7 +1321,7 @@
                                                      :quantity (make-instance 'quantity
                                                                               :value (/ (value (quantity (amount total-topping-weight-in-grams)))
                                                                                         (length (contents new-input-container))))
-                                                     :unit 'g))
+                                                     :unit (make-instance 'g)))
           (sprinkled-object-available-at (+ (max (kitchen-time kitchen-state-in)
                                                  (available-at (find (id object) binding-objects
                                                                   :key #'(lambda (binding-object)
