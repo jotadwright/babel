@@ -5,26 +5,39 @@
 ;;  ITEM-BASED -> LEXICAL
 ;; -----------------------
 
-;; This repair is applied when
-;; a) the number of slots in the item-based cxn is equal
-;;    to the number of applied lex cxns + 1!
-;; In this case, an additional lex cxn is required to parse the utterance.
-;; In order to find out the meaning for that lex cxn, we
-;; need to run the composer with the meaning of the applied
-;; item-based cxn (and possibly lex cxns) as partial program.
+(define-event item-based->lexical-repair-started)
+(define-event item-based->lexical-new-cxn-and-th-links
+  (cxn construction) (th type-hierarchy) (new-links list))
 
-(defmethod run-repair ((agent clevr-learning-learner)
-                       (applied-cxns list) (node cip-node)
-                       (utterance string)
-                       (repair-mode (eql :item-based->lexical))
-                       &key &allow-other-keys)
-  (let ((cxn-inventory (grammar agent))
-        (applied-lex-cxns
-         (find-all 'lexical applied-cxns :key #'get-cxn-type))
-        (applied-item-based-cxn
-         (find 'item-based applied-cxns :key #'get-cxn-type))
-        (remaining-strings-in-root
-         (get-strings-from-root node)))
+(defclass item-based->lexical (clevr-learning-repair)
+  ((trigger :initform 'fcg::new-node)))
+
+;; This repair is applied when a partial utterance was diagnosed.
+
+(defmethod repair ((repair item-based->lexical)
+                   (problem partial-utterance-problem)
+                   (node cip-node) &key
+                   &allow-other-keys)
+  (let ((lex-cxn-and-th-link
+         (create-lexical-cxn problem node)))
+    (when lex-cxn-and-th-link
+      (make-instance 'fcg::cxn-fix
+                     :repair repair
+                     :problem problem
+                     :restart-data lex-cxn-and-th-link))))
+
+(defun create-lexical-cxn (problem node)
+  ;(notify item-based->lexical-repair-started)
+  (let* ((agent (find-data problem :owner))
+         (cxn-inventory (original-cxn-set (construction-inventory node)))
+         (utterance (cipn-utterance node))
+         (applied-cxns (original-applied-constructions node))
+         (applied-lex-cxns
+          (find-all 'lexical applied-cxns :key #'get-cxn-type))
+         (applied-item-based-cxn
+          (find 'item-based applied-cxns :key #'get-cxn-type))
+         (remaining-strings-in-root
+          (get-strings-from-root node)))
     (when (and (not (null applied-item-based-cxn))
                (= (length remaining-strings-in-root) 1)
                (= (item-based-number-of-slots applied-item-based-cxn)
@@ -50,10 +63,8 @@
               (let* ((form-predicates-lex-cxn
                       remaining-strings-in-root)
                      (existing-lex-cxn
-                      (find-cxn-by-type-form-and-meaning 'lexical
-                                                         form-predicates-lex-cxn
-                                                         meaning-predicates-lex-cxn
-                                                         cxn-inventory))
+                      (find-cxn-by-type-form-and-meaning 'lexical form-predicates-lex-cxn
+                                                         meaning-predicates-lex-cxn cxn-inventory))
                      (cxn-name
                       (make-const
                        (gl::make-cxn-name
@@ -68,6 +79,10 @@
                       (mapcar #'third meaning-predicates-lex-cxn))
                      (initial-cxn-score
                       (get-configuration agent :initial-cxn-score))
+                     (interaction
+                      (current-interaction (experiment agent)))
+                     (interaction-nr
+                      (interaction-number interaction))
                      (new-lex-cxn
                       (or existing-lex-cxn
                           (second
@@ -88,7 +103,8 @@
                                             :cxn-type lexical
                                             :repair item->lex
                                             :string ,(form-predicates->hash-string form-predicates-lex-cxn)
-                                            :meaning ,(meaning-predicates->hash-meaning meaning-predicates-lex-cxn))
+                                            :meaning ,(meaning-predicates->hash-meaning meaning-predicates-lex-cxn)
+                                            :added-at ,interaction-nr)
                                :cxn-inventory ,(copy-object cxn-inventory)
                                :cxn-set non-holophrase))))))
                      ;; make a list of all cxns, sort them
@@ -111,17 +127,19 @@
                                                  lex-classes-item-based-units
                                                  type-hierarchy))))
                 ;; return
-                (when th-links
-                  (add-composer-chunk agent (irl-program (chunk composer-solution)))
-                  (values (list new-lex-cxn)
-                          th-links)))
-              ;; punish
-              (loop with delta = (get-configuration agent :cxn-decf-score)
-                    for cxn in applied-cxns
-                    do (dec-cxn-score agent cxn :delta delta)
-                    finally (notify cxns-punished applied-cxns))))
-          ;; punish
-          (loop with delta = (get-configuration agent :cxn-decf-score)
-                for cxn in applied-cxns
-                do (dec-cxn-score agent cxn :delta delta)
-                finally (notify cxns-punished applied-cxns)))))))
+                (if th-links
+                  (progn
+                    ;(add-composer-chunk agent (irl-program (chunk composer-solution)))
+                    ;(notify item-based->lexical-new-cxn-and-th-links new-lex-cxn
+                    ;        (get-type-hierarchy cxn-inventory) th-links)
+                    (set-data interaction :applied-repair 'item-based->lexical)
+                    ;; returns 1. existing cxns to apply
+                    ;; 2. new cxns to apply
+                    ;; 3. other new cxns
+                    ;; 4. th links
+                    (if existing-lex-cxn
+                      (list (cons new-lex-cxn applied-cxns) nil nil th-links)
+                      (list applied-cxns (list new-lex-cxn) nil th-links)))
+                  (progn (push 'fcg::repair-failed (statuses node)) nil)))
+              (progn (push 'fcg::repair-failed (statuses node)) nil)))
+          (progn (push 'fcg::repair-failed (statuses node)) nil))))))

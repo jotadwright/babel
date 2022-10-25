@@ -4,7 +4,7 @@
 
 ;;;; Communicative success             
 (define-monitor record-communicative-success
-                :class 'data-recorder :average-window 100)
+                :class 'data-recorder :average-window 1000)
 
 (define-monitor export-communicative-success
                 :class 'lisp-data-file-writer
@@ -29,24 +29,11 @@
                 :add-time-and-experiment-to-file-name nil)
 
 (define-event-handler (record-lexicon-size interaction-finished)
-  (record-value monitor (length (get-cxns-of-type (learner experiment) 'all))))
-
-;;;; Gnuplot Display monitor
-(define-monitor display-metrics
-                :class 'gnuplot-display
-                :data-sources '((average record-communicative-success)
-                                (average record-lexicon-size))
-                :update-interval 100
-                :caption '("communicative success"
-                           "lexicon size")
-                :x-label "# Games"
-                :use-y-axis '(1 2)
-                :y1-label "Communicative Success" 
-                :y1-max 1.0 :y1-min 0
-                :y2-label "Lexicon Size"
-                :y2-min 0
-                :draw-y1-grid t
-                :error-bars nil)
+  (record-value
+   monitor
+   (length
+    (constructions
+     (grammar (learner experiment))))))
 
 ;;;; # meanings per form for lexical cxns
 (define-monitor record-lexical-meanings-per-form
@@ -108,7 +95,7 @@
 
 ;;;; Avg cxn score
 (define-monitor record-avg-cxn-score
-                :class 'data-recorder :average-window 100)
+                :class 'data-recorder :average-window 1000)
 
 (define-monitor export-avg-cxn-score
                 :class 'lisp-data-file-writer
@@ -134,7 +121,7 @@
 (define-event-handler (record-number-of-holophrase-cxns interaction-finished)
   (record-value
    monitor
-   (count 'holophrase (constructions-list (grammar (learner experiment)))
+   (count 'holophrase (constructions (grammar (learner experiment)))
           :key #'get-cxn-type)))
 
 (define-monitor record-number-of-item-based-cxns
@@ -150,7 +137,7 @@
 (define-event-handler (record-number-of-item-based-cxns interaction-finished)
   (record-value
    monitor
-   (count 'item-based (constructions-list (grammar (learner experiment)))
+   (count 'item-based (constructions (grammar (learner experiment)))
           :key #'get-cxn-type)))
 
 (define-monitor record-number-of-lexical-cxns
@@ -166,38 +153,12 @@
 (define-event-handler (record-number-of-lexical-cxns interaction-finished)
   (record-value
    monitor
-   (count 'lexical (constructions-list (grammar (learner experiment)))
+   (count 'lexical (constructions (grammar (learner experiment)))
           :key #'get-cxn-type)))
-
-#|
-(define-monitor record-lexicon-size-per-type
-                :class 'alist-recorder
-                :average-window 1)
-
-(define-event-handler (record-lexicon-size-per-type interaction-finished)
-  (let ((all-constructions
-         (constructions-list (grammar (learner experiment)))))
-    (loop for cxn-type in '(holophrase lexical item-based)
-          for all-cxns-of-type = (find-all cxn-type all-constructions
-                                           :key #'get-cxn-type)
-          when all-cxns-of-type
-          do (set-value-for-symbol monitor cxn-type (length all-cxns-of-type)))))
-
-(define-monitor plot-lexicon-size-per-type
-    :class 'alist-gnuplot-graphic-generator
-    :recorder 'record-lexicon-size-per-type
-    :draw-y-grid t :y-min 0
-    :y-label "Number of constructions"
-    :x-label "Total number of interactions"
-    :file-name (babel-pathname :name "num-cxns-per-type" :type "pdf"
-                               :directory '("experiments" "clevr-learning" "graphs"))
-    :graphic-type "pdf" :error-bars '(:percentile 5 95)
-    :add-time-and-experiment-to-file-name nil)
-|#
 
 ;;;; avg cxn score per cxn type (alist monitor)
 (define-monitor record-avg-holophrase-cxn-score
-                :class 'data-recorder :average-window 100)
+                :class 'data-recorder :average-window 1000)
 
 (define-monitor export-avg-holophrase-cxn-score
                 :class 'lisp-data-file-writer
@@ -215,7 +176,7 @@
                       :key #'get-cxn-type)))))
 
 (define-monitor record-avg-item-based-cxn-score
-                :class 'data-recorder :average-window 100)
+                :class 'data-recorder :average-window 1000)
 
 (define-monitor export-avg-item-based-cxn-score
                 :class 'lisp-data-file-writer
@@ -233,7 +194,7 @@
                       :key #'get-cxn-type)))))
 
 (define-monitor record-avg-lexical-cxn-score
-                :class 'data-recorder :average-window 100)
+                :class 'data-recorder :average-window 1000)
 
 (define-monitor export-avg-lexical-cxn-score
                 :class 'lisp-data-file-writer
@@ -249,34 +210,6 @@
     (mapcar #'cxn-score
             (find-all 'lexical (constructions-list (grammar (learner experiment)))
                       :key #'get-cxn-type)))))
-
-#|
-(define-monitor record-cxn-score-per-type
-                :class 'alist-recorder
-                :average-window 100)
-
-(define-event-handler (record-cxn-score-per-type interaction-finished)
-  (let ((all-constructions
-         (constructions-list (grammar (learner experiment)))))
-    (loop for cxn-type in '(holophrase lexical item-based)
-          for all-cxns-of-type = (find-all cxn-type all-constructions
-                                           :key #'get-cxn-type)
-          for cxn-scores = (mapcar #'cxn-score all-cxns-of-type)
-          when all-cxns-of-type
-          do (set-value-for-symbol monitor cxn-type (average cxn-scores)))))
-
-(define-monitor plot-cxn-score-per-type
-    :class 'alist-gnuplot-graphic-generator
-    :recorder 'record-cxn-score-per-type
-    :draw-y-grid t
-    :y-min 0 :y-max 1
-    :y-label "Construction Score"
-    :x-label "Total number of interactions"
-    :file-name (babel-pathname :name "avg-cxn-score-per-type" :type "pdf"
-                               :directory '("experiments" "clevr-learning" "graphs"))
-    :graphic-type "pdf" :error-bars '(:percentile 5 95)
-    :add-time-and-experiment-to-file-name nil)
-|#
 
 ;; nr of item-based cxns with slots (alist monitor)
 (define-monitor record-num-item-based-1
@@ -364,59 +297,9 @@
                       :key #'get-cxn-type)
           :key #'item-based-number-of-slots :test #'=)))
 
-(define-monitor record-num-item-based-6
-                :class 'data-recorder)
-
-(define-monitor export-num-item-based-6
-                :class 'lisp-data-file-writer
-                :data-sources '(record-num-item-based-6)
-                :file-name (babel-pathname :name "num-item-based-6" :type "lisp"
-                                           :directory '("experiments" "clevr-learning" "raw-data"))
-                :add-time-and-experiment-to-file-name nil)
-
-(define-event-handler (record-num-item-based-6 interaction-finished)
-  (record-value
-   monitor
-   (count 6 (find-all 'item-based (constructions-list (grammar (learner experiment)))
-                      :key #'get-cxn-type)
-          :key #'item-based-number-of-slots :test #'=)))
-
-#|
-(define-monitor record-nr-of-slots
-                :class 'alist-recorder
-                :average-window 1)
-
-(define-event-handler (record-nr-of-slots interaction-finished)
-  (let* ((all-constructions
-          (constructions-list (grammar (learner experiment))))
-         (item-based-cxns
-          (find-all 'item-based all-constructions :key #'get-cxn-type)))
-    (loop with counts = nil
-          for cxn in item-based-cxns
-          for nr-of-slots = (item-based-number-of-slots cxn)
-          if (assoc nr-of-slots counts :test #'=)
-          do (incf (cdr (assoc nr-of-slots counts)))
-          else do (push (cons nr-of-slots 1) counts)
-          finally (loop for (nr . count) in counts
-                        for sym = (internal-symb (upcase (format nil "~r" nr)))
-                        do (set-value-for-symbol monitor sym count)))))
-
-(define-monitor plot-nr-of-slots
-        :class 'alist-gnuplot-graphic-generator
-        :recorder 'record-nr-of-slots
-        :draw-y-grid t :y-min 0
-        :y-label "Number of constructions"
-        :x-label "Total number of interactions"
-        :file-name (babel-pathname :name "nr-of-item-based-cxns-with-slots" :type "pdf"
-                                   :directory '("experiments" "clevr-learning" "graphs"))
-        :graphic-type "pdf" :error-bars '(:percentile 5 95)
-        :add-time-and-experiment-to-file-name nil)
-|#
-
 ;;;; number of unseen questions       
 (define-monitor record-unseen-questions
-                :class 'data-recorder
-                :average-window 1) 
+                :class 'data-recorder) 
 
 (define-monitor export-unseen-questions
                 :class 'lisp-data-file-writer
@@ -448,7 +331,6 @@
 ;;;; Composer search space size
 (define-monitor record-composer-search-space-size
                 :class 'data-recorder
-                :average-window 1
                 :documentation "records the size of the composer search space")
 
 (define-monitor export-composer-search-space-size
@@ -461,14 +343,13 @@
 
 (define-event-handler (record-composer-search-space-size composer-solution-found)
   (record-value monitor (float
-                         (/ (irl::node-counter composer)
-                            (irl::node-depth (irl::node solution))))))
+                         (/ (1+ (irl::node-counter composer))
+                            (1+ (irl::depth (irl::node solution)))))))
 
 
 ;;;; Number of nodes in the type hierarchy
 (define-monitor record-number-of-nodes-in-th
                 :class 'data-recorder
-                :average-window 1
                 :documentation "records the number of nodes in the type hierarchy")
 
 (define-monitor export-number-of-nodes-in-th
@@ -491,7 +372,6 @@
 ;;;; Number of edges in the type hierarchy
 (define-monitor record-number-of-edges-in-th
                 :class 'data-recorder
-                :average-window 1
                 :documentation "records the number of edgesd in the type hierarchy")
 
 (define-monitor export-number-of-edges-in-th
@@ -512,7 +392,7 @@
 
 ;; Track the applied repairs
 (define-monitor record-repair-add-holophrase
-                :class 'data-recorder :average-window 1
+                :class 'data-recorder
                 :documentation "records if the add-holophrase repair was used")
 
 (define-monitor export-repair-add-holophrase
@@ -532,7 +412,7 @@
 
 
 (define-monitor record-repair-holophrase-to-item-based
-                :class 'data-recorder :average-window 1
+                :class 'data-recorder
                 :documentation "records if the add-holophrase repair was used")
 
 (define-monitor export-repair-holophrase-to-item-based
@@ -553,7 +433,7 @@
 
 
 (define-monitor record-repair-add-th-links
-                :class 'data-recorder :average-window 1
+                :class 'data-recorder
                 :documentation "records if the add-holophrase repair was used")
 
 (define-monitor export-repair-add-th-links
@@ -574,7 +454,7 @@
 
 
 (define-monitor record-repair-lexical-to-item-based
-                :class 'data-recorder :average-window 1
+                :class 'data-recorder
                 :documentation "records if the add-holophrase repair was used")
 
 (define-monitor export-repair-lexical-to-item-based
@@ -595,7 +475,7 @@
 
 
 (define-monitor record-repair-item-based-to-lexical
-                :class 'data-recorder :average-window 1
+                :class 'data-recorder
                 :documentation "records if the add-holophrase repair was used")
 
 (define-monitor export-repair-item-based-to-lexical
@@ -613,45 +493,64 @@
                   1 0)))
 
 
+;;;; Successful Formulation th-link
+(define-monitor record-successful-formulation-th-link
+                :class 'data-recorder
+                :documentation "record when a th-link was added in formulation and it works!")
 
-(define-monitor record-repair-hypotheses
-                :class 'data-recorder :average-window 1
-                :documentation "records if the add-holophrase repair was used")
-
-(define-monitor export-repair-hypotheses
+(define-monitor export-successful-formulation-th-link
                 :class 'lisp-data-file-writer
-                :documentation "exports if the add-holophrase repair was used"
-                :data-sources '(record-repair-hypotheses)
-                :file-name (babel-pathname :name "repair-hypotheses" :type "lisp"
+                :documentation "export record-successful-formulation-th-link"
+                :data-sources '(record-successful-formulation-th-link)
+                :file-name (babel-pathname :name "successful-formulation-th-link" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
-(define-event-handler (record-repair-hypotheses interaction-finished)
-  (record-value monitor
-                (if (and (find-data interaction :applied-repair)
-                         (eql (find-data interaction :applied-repair) 'item-based->hypotheses))
-                  1 0)))
+(define-event-handler (record-successful-formulation-th-link interaction-finished)
+  (if (and (find-data interaction :formulation-th-link)
+           (eql (find-data interaction :formulation-th-link) :success))
+    (incf-value monitor 1)
+    (record-value monitor (slot-value monitor 'current-value))))
 
+;;;; Failed formulation th-link
+(define-monitor record-failed-formulation-th-link
+                :class 'data-recorder
+                :documentation "record when a th-link was added in formulation and it did not work!")
 
-
-
-(define-monitor record-repair-item-based-to-item-based
-                :class 'data-recorder :average-window 1
-                :documentation "records if the add-holophrase repair was used")
-
-(define-monitor export-repair-item-based-to-item-based
+(define-monitor export-failed-formulation-th-link
                 :class 'lisp-data-file-writer
-                :documentation "exports if the add-holophrase repair was used"
-                :data-sources '(record-repair-item-based-to-item-based)
-                :file-name (babel-pathname :name "repair-item-based-to-item-based" :type "lisp"
+                :documentation "export record-failed-formulation-th-link"
+                :data-sources '(record-failed-formulation-th-link)
+                :file-name (babel-pathname :name "failed-formulation-th-link" :type "lisp"
                                            :directory '("experiments" "clevr-learning" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
-(define-event-handler (record-repair-item-based-to-item-based interaction-finished)
-  (record-value monitor
-                (if (and (find-data interaction :applied-repair)
-                         (eql (find-data interaction :applied-repair) 'item-based+lexical->item-based))
-                  1 0)))
+(define-event-handler (record-failed-formulation-th-link interaction-finished)
+  (if (and (find-data interaction :formulation-th-link)
+           (eql (find-data interaction :formulation-th-link) :failed))
+    (incf-value monitor 1)
+    (record-value monitor (slot-value monitor 'current-value))))
+
+;;;; Gnuplot Display monitor
+(define-monitor display-metrics
+                :class 'gnuplot-display
+                :data-sources '((average record-communicative-success)
+                                (average record-number-of-holophrase-cxns)
+                                (average record-number-of-lexical-cxns)
+                                (average record-number-of-item-based-cxns))
+                :update-interval 100
+                :caption '("communicative success"
+                           "# holophrase cxns"
+                           "# lexical cxns"
+                           "# item-based cxns")
+                :x-label "# Games"
+                :use-y-axis '(1 2 2 2)
+                :y1-label "Communicative Success" 
+                :y1-max 1.0 :y1-min 0
+                :y2-label "Grammar Size"
+                :y2-min 0
+                :draw-y1-grid t
+                :error-bars nil)
                            
 
 ;; utilty function to get all of them
@@ -663,26 +562,25 @@
     ;"export-avg-cxn-score"
     ;"export-unseen-questions"
     ;"export-number-of-chunks"
-    ;"export-composer-search-space-size"
+    "export-composer-search-space-size"
     "export-number-of-nodes-in-th"
     "export-number-of-edges-in-th"
     "export-number-of-holophrase-cxns"
     "export-number-of-item-based-cxns"
     "export-number-of-lexical-cxns"
-    ;"export-avg-holophrase-cxn-score"
-    ;"export-avg-item-based-cxn-score"
-    ;"export-avg-lexical-cxn-score"
+    "export-avg-holophrase-cxn-score"
+    "export-avg-item-based-cxn-score"
+    "export-avg-lexical-cxn-score"
     "export-num-item-based-1"
     "export-num-item-based-2"
     "export-num-item-based-3"
     "export-num-item-based-4"
     "export-num-item-based-5"
-    "export-num-item-based-6"
     "export-repair-add-holophrase"
     "export-repair-holophrase-to-item-based"
     "export-repair-add-th-links"
     "export-repair-lexical-to-item-based"
     "export-repair-item-based-to-lexical"
-    "export-repair-hypotheses"
-    "export-repair-item-based-to-item-based"
+    "export-successful-formulation-th-link"
+    "export-failed-formulation-th-link"
     ))

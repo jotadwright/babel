@@ -31,17 +31,21 @@
 (define-configuration-default-value :initial-th-link-weight 0.1)
 
 (define-configuration-default-value :cxn-incf-score 0.1)
-(define-configuration-default-value :cxn-decf-score 0.2)
+(define-configuration-default-value :cxn-decf-score 0.4)
+(define-configuration-default-value :cxn-inhibit-score 0.1)
 (define-configuration-default-value :chunk-incf-score 0.1)
 (define-configuration-default-value :chunk-decf-score 0.1)
-;(define-configuration-default-value :th-link-incf-score 0.1)
 
-(define-configuration-default-value :alignment-strategy :minimal-holophrases+lateral-inhibition)
-(define-configuration-default-value :determine-interacting-agents-mode :tutor-learner)
+(define-configuration-default-value :alignment-strategy :lateral-inhibition)
+(define-configuration-default-value :determine-interacting-agents-mode :default)
 (define-configuration-default-value :tutor-sample-mode :smart) ; :random or :smart
-(define-configuration-default-value :learner-cxn-supplier :ordered-by-label-and-score)
+(define-configuration-default-value :learner-cxn-supplier :hashed-and-scored)
 (define-configuration-default-value :composer-strategy :store-past-scenes)
-(define-configuration-default-value :composer-past-scenes-window 10)
+(define-configuration-default-value :composer-past-scenes-window 100)
+(define-configuration-default-value :remove-cxn-on-lower-bound t)
+(define-configuration-default-value :composer-force-shape-category nil)
+(define-configuration-default-value :th-link-repair-mode-comprehension :no-path-required)
+(define-configuration-default-value :th-link-repair-mode-formulation :path-required)
 
 ;; Autotelic principle
 (define-configuration-default-value :current-challenge-level 1)
@@ -88,7 +92,11 @@
   ;; fill the confidence buffer with zeros
   (setf (confidence-buffer experiment)
         (make-list (get-configuration experiment :evaluation-window-size)
-                   :initial-element 0)))
+                   :initial-element 0))
+  ;; set the log file
+  (set-configuration experiment :log-filename
+                     (format nil "failed-games-~(~a~)-~a"
+                             (id experiment) (make-random-string 5))))
 
 (define-event challenge-level-questions-loaded (level number))
 

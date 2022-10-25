@@ -19,14 +19,14 @@
                              (s-dot::rankdir "LR")))
          (all-node-names
           (remove-duplicates
-           (loop for (from . to) in new-links
+           (loop for (from to nil) in new-links
                  append (list from to))))
          (all-node-ids
           (loop for node-name in all-node-names
                 for id = (gethash node-name (graph-utils::nodes g))
                 collect id))
          (all-edges
-          (loop for (from . to) in new-links
+          (loop for (from to nil) in new-links
                 collect (cons (gethash from (graph-utils::nodes g))
                               (gethash to (graph-utils::nodes g)))))
          (s-dot-nodes
@@ -47,8 +47,6 @@
 
 
 
-
-
 (define-monitor trace-interactions-in-wi)
 
 (define-event-handler (trace-interactions-in-wi challenge-level-questions-loaded)
@@ -58,18 +56,19 @@
 (define-event-handler (trace-interactions-in-wi challenge-level-primitives-set)
   (add-element `((h1) ,(format nil "Level ~a primitives set"
                                level))))
-
-(define-event-handler (trace-interactions-in-wi interacting-agents-determined)
-  (let ((speaker (speaker interaction))
-        (hearer (hearer interaction)))
-    (add-element `((h3) ,(format nil "The ~a is the speaker."
-                                 (downcase (mkstr (role speaker))))))
-    (add-element `((h3) ,(format nil "The ~a is the hearer."
-                                 (downcase (mkstr (role hearer))))))))
+    
 
 (define-event-handler (trace-interactions-in-wi interaction-started)
-  (add-element `((h1) ,(format nil "Interaction ~a"
-                               (interaction-number interaction)))))
+  (let ((speaker (speaker interaction))
+        (hearer (hearer interaction)))
+    (add-element `((h1) ,(format nil "Interaction ~a"
+                                 (interaction-number interaction))))
+    (add-element `((h3) ,(format nil "The ~a is the speaker."
+                                 (downcase (mkstr (role speaker))))))
+    (add-element `((h3) ,(format nil "The ~a is the listener."
+                                 (downcase (mkstr (role hearer))))))))
+    
+    
 
 (define-event-handler (trace-interactions-in-wi interaction-before-finished)
   (let* ((img-src-path (image scene))
@@ -81,11 +80,11 @@
     (add-element `((img :src ,(mkstr cl-user::*localhost-user-dir*
                                      (pathname-name img-src-path)
                                      "." (pathname-type img-src-path)))))
-    (add-element `((h2) ,(format nil "Current Question: \"~a\"" question)))
-    (add-element '((h2) "Expected Answer:"))
+    (add-element '((h2) "Topic:"))
     (if (subtypep (type-of answer) 'entity)
       (add-element (make-html answer))
-      (add-element `((p) ,(format nil "\"~a\"" answer))))))
+      (add-element `((p) ,(format nil "\"~a\"" answer))))
+    (add-element `((h2) ,(format nil "Question: \"~a\"" question)))))
 
 (define-event-handler (trace-interactions-in-wi production-finished)
   (add-element `((h2)
@@ -97,15 +96,18 @@
          (succeeded (when cipn
                       (find 'fcg::succeeded (fcg:statuses cipn)))))
     (add-element `((h2)
-                   ,(format nil "Parsing ~a"
+                   ,(format nil "Comprehension ~a"
                             (if succeeded "succeeded" "failed"))))))
 
 (define-event-handler (trace-interactions-in-wi interpretation-finished)
-  (add-element '((h2) "Interpretation finished"))
-  (add-element '((h3) "Computed answer:"))
-  (if (subtypep (type-of answer) 'entity)
-    (add-element (make-html answer))
-    (add-element `((p) ,(format nil "\"~a\"" answer)))))
+  (let ((computed-topic (get-data process-result 'computed-topic)))
+  (if computed-topic
+    (progn (add-element '((h2) "Interpretation finished"))
+      (add-element '((h3) "Computed answer:"))
+      (if (subtypep (type-of computed-topic) 'entity)
+        (add-element (make-html computed-topic))
+        (add-element `((p) ,(format nil "\"~a\"" computed-topic)))))
+    (add-element '((h2) "Interpretation failed")))))
 
 (define-event-handler (trace-interactions-in-wi alignment-started)
   (add-element '((h2) "Alignment started")))
@@ -124,8 +126,10 @@
             cxns)))
 
 (define-event-handler (trace-interactions-in-wi agent-confidence-level)
-  (add-element `((h2) ,(format nil "The agent is ~,2f% confident"
-                               (* 100.0 level)))))
+  ;(add-element `((h2) ,(format nil "The agent is ~,2f% confident"
+  ;                             (* 100.0 level))))
+  nil
+  )
 
 (define-event-handler (trace-interactions-in-wi interaction-finished)
   (add-element `((h1) "Interaction "
@@ -135,14 +139,14 @@
   (add-element '((hr))))
 
 (define-event-handler (trace-interactions-in-wi add-holophrase-repair-started)
-  (add-element '((h2) "Creating a new holophrase construction...")))
+  (add-element '((h2) "Trying to create a new holophrase construction...")))
 
 (define-event-handler (trace-interactions-in-wi add-holophrase-new-cxn)
   (add-element '((h3) "New holophrase construction:"))
   (add-element (make-html cxn)))
 
 (define-event-handler (trace-interactions-in-wi item-based->lexical-repair-started)
-  (add-element '((h2) "Creating a new lexical construction...")))
+  (add-element '((h2) "Trying to create a new lexical construction...")))
 
 (define-event-handler (trace-interactions-in-wi item-based->lexical-new-cxn-and-th-links)
   (add-element '((h3) "New lexical construction:"))
@@ -153,7 +157,7 @@
              (new-th-links->s-dot th new-links)))))
 
 (define-event-handler (trace-interactions-in-wi lexical->item-based-repair-started)
-  (add-element '((h2) "Creating a new item-based construction...")))
+  (add-element '((h2) "Trying to create a new item-based construction...")))
 
 (define-event-handler (trace-interactions-in-wi lexical->item-based-new-cxn-and-links)
   (add-element '((h3) "New item-based construction:"))
@@ -164,7 +168,7 @@
              (new-th-links->s-dot th new-links)))))
 
 (define-event-handler (trace-interactions-in-wi add-th-links-repair-started)
-  (add-element '((h2) "Adding type hierarchy links...")))
+  (add-element '((h2) "Trying to add type hierarchy links...")))
 
 (define-event-handler (trace-interactions-in-wi add-th-links-new-th-links)
   (add-element '((h3) "New links are added to the type hierarchy:"))
@@ -173,7 +177,7 @@
              (new-th-links->s-dot th new-links)))))
 
 (define-event-handler (trace-interactions-in-wi holophrase->item-based-substitution-repair-started)
-  (add-element '((h2) "Creating new item-based and lexical constructions...")))
+  (add-element '((h2) "Trying to create new item-based and lexical constructions...")))
 
 (define-event-handler (trace-interactions-in-wi holophrase->item-based-subsititution-new-cxn-and-th-links)
   (add-element '((h3) "New constructions are created:"))
@@ -185,7 +189,7 @@
              (new-th-links->s-dot th new-links)))))
 
 (define-event-handler (trace-interactions-in-wi holophrase->item-based-addition-repair-started)
-  (add-element '((h2) "Creating new item-based and lexical constructions...")))
+  (add-element '((h2) "Trying to create new item-based and lexical constructions...")))
 
 (define-event-handler (trace-interactions-in-wi holophrase->item-based-addition-new-cxn-and-th-links)
   (add-element '((h3) "New constructions are created:"))
@@ -197,7 +201,7 @@
              (new-th-links->s-dot th new-links)))))
 
 (define-event-handler (trace-interactions-in-wi holophrase->item-based-deletion-repair-started)
-  (add-element '((h2) "Creating new item-based and lexical constructions...")))
+  (add-element '((h2) "Trying to create new item-based and lexical constructions...")))
 
 (define-event-handler (trace-interactions-in-wi holophrase->item-based-deletion-new-cxn-and-th-links)
   (add-element '((h3) "New constructions are created:"))
@@ -208,6 +212,7 @@
    `((div) ,(s-dot->svg
              (new-th-links->s-dot th new-links)))))
 
+#|
 (define-event-handler (trace-interactions-in-wi item-based->hypotheses-repair-started)
   (add-element '((h2) "Creating new item-based constructions...")))
 
@@ -231,7 +236,20 @@
   (add-element
    `((div) ,(s-dot->svg
              (new-th-links->s-dot th new-links)))))
+|#
+
+(define-event-handler (trace-interactions-in-wi new-cxns-learned)
+  (add-element '((h3) "The following construction(s) were learned:"))
+  (loop for cxn in cxns do (add-element (make-html cxn))))
+
+(define-event-handler (trace-interactions-in-wi new-th-links-learned)
+  (add-element '((h3) "The following link(s) were added to the categorial network:"))
+  (add-element `((div) ,(s-dot->svg (new-th-links->s-dot th links)))))
 
 (define-event-handler (trace-interactions-in-wi check-samples-started)
   (add-element `((h3) ,(format nil "Checking solution ~a against ~a past scenes"
+                               solution-index (length list-of-samples)))))
+
+(define-event-handler (trace-interactions-in-wi check-programs-started)
+  (add-element `((h3) ,(format nil "Checking solution ~a against ~a past programs"
                                solution-index (length list-of-samples)))))

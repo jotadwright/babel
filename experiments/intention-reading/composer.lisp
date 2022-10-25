@@ -9,6 +9,7 @@
 (defparameter *max-irl-program-length-per-challenge-level*
   '((1 . 8) (2 . 25) (3 . 25)))
 
+
 (defun make-default-composer (agent target-category
                               &key partial-program
                               max-program-length)
@@ -21,92 +22,58 @@
          (target-category-type
           #+lispworks (type-of target-category)
           #-lispworks (if (numberp target-category)
-                          'integer (type-of target-category))
-          )
-         ;; extract bind statements and other primitives
-         ;; from the partial program
-         (partial-program-bindings
-          (find-all 'bind partial-program :key #'first))
-         (partial-program-primitives
-          (set-difference partial-program partial-program-bindings))
-         ;; make a list of open vars
-         (open-vars
-          (append `((?answer . ,target-category-type))
-                  (when partial-program-primitives
-                    (loop for var in (get-open-vars partial-program-primitives)
-                          for binding? = (find var partial-program-bindings :key #'third)
-                          if binding? collect (cons var (second binding?))
-                          else collect (cons var 'category)))))
+                          'integer (type-of target-category)))
          ;; initial chunk
          (initial-chunk
-          (make-instance 'chunk :id 'initial
+          (make-instance 'chunk :id 'initial :score 0.5
                          :target-var `(?answer . ,target-category-type)
-                         :open-vars open-vars
-                         :irl-program (when partial-program-primitives
-                                        partial-program-primitives)))
+                         :open-vars `((?answer . ,target-category-type))))
          ;; when partial bindings available, add
          ;; :check-bindings to the check chunk
          ;; evaluation result modes
          (check-chunk-evaluation-result-modes
-          (when partial-program-bindings
-            '(:check-bindings)))
+          (when (get-configuration agent :composer-force-shape-category)
+            '(:at-least-one-shape-category)))
+         (composer-primitive-inventory
+          (let ((copy (copy-object (available-primitives agent))))
+            ;; some extreme optimisations that are CLEVR specific
+            ;; also, they will not work for level 3 questions!
+            (set-configuration copy :node-tests
+                               (append (get-configuration copy :node-tests)
+                                       '(:remove-clevr-incoherent-filter-groups
+                                         :remove-clevr-filter-permutations)))
+            copy))
          ;; make the chunk composer
          (composer
           (make-chunk-composer
            :topic target-category
-           :meaning partial-program-primitives
+           :meaning partial-program
            :initial-chunk initial-chunk
            :chunks (composer-chunks agent)
            :ontology (ontology agent)
-           :primitive-inventory (available-primitives agent)
+           :primitive-inventory composer-primitive-inventory
            :configurations `((:max-irl-program-length . ,max-irl-program-length)
-                             (:check-node-modes ;; limit the length of the irl program
-                                                :limit-irl-program-length
-                                                
+                             (:chunk-node-tests ;; limit the length of the irl program
+                                                :restrict-irl-program-length
                                                 ;; no duplicates
                                                 :check-duplicate
-                                                
-                                                ;; no predicates with multiple times
-                                                ;; the same variable
-                                                :no-circular-primitives
-                                                
-                                                ;; meaning has to be fully connected
-                                                :fully-connected-meaning
-                                                
-                                                ;; limit on the nr of times each primitive
-                                                ;; can occur (clevr specific)
-                                                :clevr-primitive-occurrence-count
-                                                
-                                                ;; limit to which primitives get-context
-                                                ;; can connect (clevr specific)
-                                                :clevr-context-links
-                                                
-                                                ;; the last variable of certain predicates
-                                                ;; has to be an open variable (clevr specific)
-                                                :clevr-open-vars
-                                                
-                                                ;; a filter group can be maximally 4 long
-                                                ;; (clevr specific)
-                                                :clevr-filter-group-length)
+                                                ;; unused node tests:
+                                                ;:no-circular-primitives
+                                                ;:fully-connected-meaning
+                                                ;:one-target-var
+                                                ;:clevr-primitive-occurrence-count
+                                                ;:clevr-context-links
+                                                ;:clevr-filter-group-length
+                                                ;:clevr-open-vars
+                                                )
                              ;; default expand mode
-                             (:expand-chunk-modes :combine-program)
-                             ;; prefer less depth, less open vars
-                             ;; less duplicate primitives and prefer
-                             ;; chain-type over tree-type programs
-                             (:node-rating-mode . :clevr-node-rating)
+                             (:chunk-expansion-modes :combine-program)
+                             ;; default node cost
+                             (:node-cost-mode . :short-programs-with-few-primitives-and-open-vars)
+                             ;(:node-cost-mode . :clevr-node-cost)
                              ;; remove unwanted chunk eval results
-                             (:check-chunk-evaluation-result-modes
-                              ,@check-chunk-evaluation-result-modes))
-           ;; some extreme optimisations that are CLEVR specific
-           ;; also, they will not work for level 3 questions!
-           :primitive-inventory-configurations '((:node-tests :remove-clevr-incoherent-filter-groups
-                                                  :remove-clevr-filter-permutations))
-           )))
-    ;; when partial bindings, add them to the composer's
-    ;; blackboard because we cannot access them otherwise
-    ;; in the check chunk evaluation result mode
-    (when partial-program-bindings
-      (set-data composer 'irl::partial-bindings partial-program-bindings))
+                             (:chunk-evaluation-goal-tests
+                              ,@check-chunk-evaluation-result-modes)))))
     composer))
 
 ;; + compose-until +
@@ -221,9 +188,28 @@
     (set-data (ontology agent) 'clevr-context original-clevr-context)
     (load-image server-address cookie-jar original-image-filename)
     failed-past-scenes))
+
+;; + store past programs +
+(define-event check-programs-started
+  (list-of-samples list)
+  (solution-index number))
+
+(defun check-past-programs (solution solution-index list-of-samples)
+  "A sample is a previous irl program. The irl-program
+  of the evaluation result has to be different from
+  all previous irl programs."
+  (when solution
+    (let ((irl-program
+           (append (irl-program (chunk solution))
+                   (bind-statements solution))))
+      (notify check-programs-started list-of-samples solution-index)
+      ;; return t if there is never an equivalent program
+      (loop for previous-program in list-of-samples
+            never (equivalent-irl-programs? irl-program previous-program)))))
   
 
-(define-event composer-solution-found (composer irl::chunk-composer)
+(define-event composer-solution-found
+  (composer irl::chunk-composer)
   (solution chunk-evaluation-result))
 
 (defmethod compose-program ((agent clevr-learning-learner)
@@ -252,6 +238,28 @@
                            solution idx
                            past-scenes-with-same-utterance
                            agent))))
+            (first (get-next-solutions composer)))))
+    (when composer-solution
+      (notify composer-solution-found composer composer-solution))
+    composer-solution))
+
+(defmethod compose-program ((agent clevr-learning-learner)
+                             target-category utterance
+                             (strategy (eql :store-past-programs))
+                             &key partial-program)
+  (let* ((composer
+          (make-default-composer agent target-category
+                                 :partial-program partial-program))
+         (utterance-hash-key
+          (sxhash utterance))
+         (past-programs-with-same-utterance
+          (gethash utterance-hash-key (memory agent)))
+         (composer-solution
+          (if past-programs-with-same-utterance
+            (compose-until
+             composer (lambda (solution idx)
+                        (check-past-programs
+                         solution idx past-programs-with-same-utterance)))
             (first (get-next-solutions composer)))))
     (when composer-solution
       (notify composer-solution-found composer composer-solution))

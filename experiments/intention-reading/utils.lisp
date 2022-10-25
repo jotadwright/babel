@@ -26,7 +26,7 @@
 
 (defun create-graph-for-single-strategy (&key experiment-name measure-names (average-windows 100)
                                               y-axis (y1-min 0) y1-max y2-max xlabel y1-label y2-label
-                                              captions open points series-numbers)
+                                              captions open points series-numbers end key-location)
   ;; This function allows you to plot one or more measures for a single experiment
   ;; e.g. communicative success and lexicon size
   (format t "~%Creating graph for experiment ~a with measures ~a" experiment-name measure-names)
@@ -36,8 +36,8 @@
           collect `("experiments" "clevr-learning" "raw-data" ,experiment-name ,measure-name))
     :average-windows average-windows
     :plot-directory `("experiments" "clevr-learning" "graphs" ,experiment-name)
-    :error-bars '(:stdev)
-    :error-bar-modes '(:lines)
+    :error-bars '(:percentile 5 95)
+    :error-bar-modes '(:filled)
     :captions captions
     :use-y-axis y-axis
     :y1-min y1-min
@@ -49,12 +49,14 @@
     :y2-label (when y2-label y2-label)
     :points points
     :series-numbers series-numbers
-    :open open)
+    :end end
+    :open open
+    :key-location key-location)
   (format t "~%Graphs have been created"))
 
-(defun create-graph-comparing-strategies (&key experiment-names measure-name
+(defun create-graph-comparing-strategies (&key experiment-names measure-name (average-windows 100)
                                                (y-min 0) (y-max 1) xlabel y1-label y2-label
-                                               captions title open end)
+                                               captions title open start end)
   ;; This function allows you to compare a given measure accross different
   ;; experiments, e.g. comparing lexicon size
   (format t "~%Creating graph for experiments ~a with measure ~a" experiment-names measure-name)
@@ -62,18 +64,19 @@
     :raw-file-paths
     (loop for experiment-name in experiment-names
           collect `("experiments" "clevr-learning" "raw-data" ,experiment-name ,measure-name))
-    :average-windows 500
+    :average-windows average-windows
     :captions (if captions captions experiment-names)
     :title (if title title "")
     :plot-directory '("experiments" "clevr-learning" "graphs")
-    :error-bars '(:stdev)
-    :error-bar-modes '(:lines)
+    :error-bars '(:percentile 5 95)
+    :error-bar-modes '(:filled)
     :y1-min y-min
     :y1-max y-max
     :x-label (if xlabel xlabel "Number of Games")
     :y1-label (when y1-label y1-label)
     :y2-label (when y2-label y2-label)
-    :open open :end end)
+    :open open
+    :start start :end end)
   (format t "~%Graphs have been created"))
 
 

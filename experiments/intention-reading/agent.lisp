@@ -69,8 +69,12 @@
                         :grammar (empty-cxn-set (get-configuration experiment :hide-type-hierarchy)
                                                 (get-configuration experiment :learner-cxn-supplier))
                         :ontology (copy-object *clevr-ontology*))))
+    ;; set the agent as the owner of the grammar
+    (set-data (blackboard (grammar learner)) :owner learner)
+    ;; initialise the primitives
     (set-primitives-for-current-challenge-level
      learner (get-configuration experiment :primitives))
+    ;; update the composer chunks
     (update-composer-chunks-w-primitive-inventory learner)
     ;; when running the experiment in :hybrid mode
     ;; store the server address and the cookie jar in the ontology
@@ -93,4 +97,7 @@
 (defmethod clear-memory ((agent clevr-learning-learner))
   (setf (memory agent)
         (make-hash-table :test #'eq)))
+
+(defmethod copy-object ((learner clevr-learning-learner))
+  (make-instance 'clevr-learning-learner))
 

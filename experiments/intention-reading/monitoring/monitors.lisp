@@ -6,11 +6,10 @@
 (defparameter *repair-to-id-map*
   '((add-holophrase . "0")
     (holophrase->item-based . "1")
-    (add-th-links . "2")
-    (lexical->item-based . "3")
-    (item-based->lexical . "4")
-    (item-based->hypotheses . "5")
-    (item-based+lexical->item-based . "6")))
+    (lexical->item-based . "2")
+    (item-based->lexical . "3")
+    (add-th-links . "4")
+    (add-th-links-formulation . "5")))
     
 (define-monitor print-a-dot-for-each-interaction
                 :documentation "Prints a '.' for each interaction
@@ -160,7 +159,7 @@
 
 (defun export-type-hierarchy-to-image (type-hierarchy path)
   (type-hierarchy->image
-   type-hierarchy :render-program "circo" :weights? t
+   type-hierarchy :render-program "fdp" :weights? t
    :path (make-pathname :directory (pathname-directory path))
    :file-name (pathname-name path)
    :format "pdf"))
@@ -311,11 +310,17 @@
 
 
 (defun get-all-export-monitors ()
-  '(;"export-type-hierarchy-to-image"
-    "export-type-hierarchy-to-json"
+  '("export-type-hierarchy-to-image"
+    ;"export-type-hierarchy-to-json"
     ;"export-learner-grammar"
     ;"export-weighted-lexical-coherence"
     ))
+
+
+
+
+
+
 
 
 ;; download attentions from server when using hybrid primitives
@@ -324,19 +329,18 @@
            :before ((monitor monitor)
                     (monitor-id (eql 'irl::trace-irl))
                     (event-id (eql 'irl::evaluate-irl-program-finished))
-                    solutions solution-nodes
-                    processor primitive-inventory)
+                    succeeded-nodes pip)
   ;; when the monitor is active
   ;; download all attention images
   ;; also check if the slot is bound
   ;; such that the same attention is not downloaded twice
   (when (monitors::active monitor)
-    (loop for solution in solutions
-          do (loop for binding in solution
+    (loop for pip-node in succeeded-nodes
+          do (loop for binding in (irl::bindings pip-node)
                    when (and (subtypep (type-of (value binding)) 'attention)
                              (null (img-path (value binding))))
-                   do (request-attn (get-data (ontology processor) 'hybrid-primitives::server-address)
-                                    (get-data (ontology processor) 'hybrid-primitives::cookie-jar)
+                   do (request-attn (get-data (ontology pip) 'hybrid-primitives::server-address)
+                                    (get-data (ontology pip) 'hybrid-primitives::cookie-jar)
                                     (value binding))))))
 
 (defmethod irl::handle-chunk-composer-finished-event

@@ -2,6 +2,24 @@
 
 (in-package :clevr-learning)
 
+(defun all-cip-nodes (cip)
+  (remove nil
+          (traverse-depth-first
+           (top-node cip)
+           :collect-fn #'(lambda (node)
+                           (unless (or (find 'fcg::duplicate (fcg::statuses node))
+                                       (find 'fcg::second-merge-failed (fcg::statuses node)))
+                             node)))))
+
+(defun all-cipn-statuses (cipn)
+  (flatten
+   (traverse-depth-first
+    (gl::initial-node cipn)
+    :collect-fn #'statuses)))
+
+(defun initial-node-p (node)
+  (find 'fcg::initial (fcg::statuses node)))
+
 (defun toggle-th-connected-mode (cxn-inventory mode)
   (set-configuration cxn-inventory :th-connected-mode mode :replace t))
 
@@ -17,6 +35,40 @@
     (car-resulting-cfs
      (cipn-car cipn)))))
 
+(defun handle-clevr-punctuation (utterance)
+  ;; The utterance should start with an uppercase
+  ;; letter and have a question mark at the end.
+  ;; The semicolon (if present) should be attached
+  ;; to the word in front, otherwise it cannot be
+  ;; processed by the CLEVR grammar.
+  (format nil "~@(~a~)?"
+          (if (search ";" utterance)
+            (loop with words = nil
+                  for word in (split utterance #\space)
+                  if (string= word ";")
+                  do (push (mkstr (pop words) word) words)
+                  else do (push word words)
+                  finally (return
+                           (list-of-strings->string
+                            (reverse words))))
+            utterance)))
+
+(defun cipn-utterance (cipn)
+  (handle-clevr-punctuation
+   (list-of-strings->string
+    (render
+     (extract-forms
+      (left-pole-structure
+       (initial-cfs (cip cipn))))
+     (get-configuration
+      (construction-inventory cipn)
+      :render-mode)))))
+
+(defun cipn-meaning (cipn)
+  (extract-meanings 
+   (left-pole-structure
+    (initial-cfs (cip cipn)))))
+
 (defun get-cxn-type (cxn)
   (attr-val cxn :cxn-type))
 
@@ -26,6 +78,9 @@
 (defun cxn-score (cxn)
   (attr-val cxn :score))
 
+(defun cxn-added-at (cxn)
+  (attr-val cxn :added-at))
+
 (defun item-based-number-of-slots (cxn)
   (when (eql (get-cxn-type cxn) 'item-based)
     (1- (length (contributing-part cxn)))))
@@ -34,11 +89,17 @@
   (gl::form-predicates-with-variables
    (extract-string
     (get-root
-     (if (find 'fcg::second-merge-failed (fcg::statuses node))
-       (car-first-merge-structure (cipn-car node))
-       (left-pole-structure
-        (car-resulting-cfs
-         (cipn-car node))))))))
+     (left-pole-structure
+      (car-resulting-cfs
+       (cipn-car node)))))))
+
+(defun get-meaning-from-root (node)
+  (gl::meaning-predicates-with-variables
+   (extract-meaning
+    (get-root
+     (left-pole-structure
+      (car-resulting-cfs
+       (cipn-car node)))))))
 
 (defun set-cxn-last-used (agent cxn)
   (let ((current-interaction-nr
@@ -132,3 +193,18 @@
                (setf remaining-meaning
                      (remove unified-meaning-elem remaining-meaning :test #'equal)))
           and collect cxn)))
+
+(defmethod cip-leafs ((cip construction-inventory-processor))
+  "Get all leafs from the cipn"
+  (labels ((leafs-rec (node acc)
+             (if (null (children node))
+               (cons node acc)
+               (loop for child in (children node)
+                     append (leafs-rec child acc)))))
+    (leafs-rec (top-node cip) nil)))
+
+(defun same-th-link-p (link-1 link-2)
+  (or (and (eq (car link-1) (car link-2))
+           (eq (cdr link-1) (cdr link-2)))
+      (and (eq (car link-1) (cdr link-2))
+           (eq (cdr link-1) (car link-2)))))

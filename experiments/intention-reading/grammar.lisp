@@ -30,6 +30,9 @@
                       &key &allow-other-keys)
   (de-render utterance :de-render-string-meets))
 
+
+
+
 (in-package :clevr-learning)
 
 (defun default-clevr-grammar ()
@@ -68,20 +71,32 @@
                                    (subunits set)
                                    (footprints set))
                    :fcg-configurations ((:cxn-supplier-mode . ,cxn-supplier)
-                                        (:parse-order non-holophrase holophrase)
                                         (:parse-goal-tests :no-applicable-cxns
                                                            :connected-semantic-network
-                                                           :no-strings-in-root)
-                                        (:production-order non-holophrase holophrase)
+                                                           :no-strings-in-root
+                                                           :correct-interpretation)
                                         (:production-goal-tests :no-applicable-cxns
                                                                 :connected-structure
                                                                 :no-meaning-in-root)
-                                        (:max-nr-of-nodes . 1000) ;; !
+                                        (:consolidate-repairs . t)
+                                        (:max-nr-of-nodes . 1000)
                                         (:shuffle-cxns-before-application . t)
                                         (:de-render-mode . :de-render-string-meets-no-punct)
                                         (:th-connected-mode . :neighbours)
                                         (:update-th-links . t)
                                         (:hash-mode . :hash-string-meaning-lex-id))
+                   :diagnostics (diagnose-failed-interpretation
+                                 diagnose-partial-utterance
+                                 diagnose-unknown-utterance
+                                 diagnose-partial-meaning)
+                   :repairs (add-th-links-formulation
+                             add-th-links
+                             item-based->lexical
+                             holophrase->item-based--substitution
+                             holophrase->item-based--addition
+                             holophrase->item-based--deletion
+                             lexical->item-based
+                             add-holophrase)
                    :visualization-configurations ((:show-constructional-dependencies . nil)
                                                   (:show-categorial-network . ,(not hide-type-hierarchy))
                                                   (:hide-attributes . t))))))
@@ -96,8 +111,10 @@
     (setf (attr-val cxn :score) upper-bound))
   cxn)
 
-(defun dec-cxn-score (agent cxn &key (delta 0.1) (lower-bound 0.0)
-                            (remove-on-lower-bound t))
+(defun dec-cxn-score (agent cxn
+                      &key (delta 0.1)
+                      (lower-bound 0.0)
+                      (remove-on-lower-bound t))
   "decrease the score of the cxn.
    remove it when it reaches 0"
   (decf (attr-val cxn :score) delta)
@@ -110,24 +127,18 @@
   (grammar agent))
 
 (defun delete-cxn-and-th-node (cxn agent)
-  (let ((lex-class
+  "Delete the cxn from the cxn inventory
+   and remove ALL associated categories
+   from the categorial network."
+  (let ((lex-classes
          (loop for unit in (contributing-part cxn)
                for lex-class = (gl::lex-class-item-based unit)
-               when lex-class return lex-class))
+               when lex-class collect lex-class))
         (type-hierarchy (get-type-hierarchy (grammar agent))))
-    ;(let ((pre-cis (length (constructions (grammar agent))))
-    ;      (pre-pcis (length (constructions-list (processing-cxn-inventory (grammar agent))))))
-    ;  (unless (= pre-cis pre-pcis)
-    ;    (format t "~%Construction sets are not of the same size!! (pre-delete)"))
-    ;(format t "~%    Deleting ~a of type ~a" (name cxn) (type-of cxn))
-    (delete-cxn cxn (grammar agent))
-     ;(let ((post-cis (length (constructions (grammar agent))))
-     ;      (post-pcis (length (constructions-list (processing-cxn-inventory (grammar agent))))))
-     ;  (unless (= post-cis post-pcis)
-     ;    (format t "~%Construction sets are not of the same size!! (post-delete)"))))
-    (notify lexicon-changed)
-    (when lex-class
-      (delete-category lex-class type-hierarchy))))
+    (when lex-classes
+      (delete-categories lex-classes type-hierarchy))
+    (delete-cxn cxn (grammar agent))    
+    (notify lexicon-changed)))
 
 ;;;;  COMPETITORS
 ;;;; -------------
@@ -172,6 +183,8 @@
 (defun competitorp (cxn-name-with-placeholders
                     other-name-with-placeholders
                     de-rendered-utterance)
+  ;; also need to check links in the categorial network
+  ;; for more abstract item-based cxns??
   (loop for cxn-elem in cxn-name-with-placeholders
         for other-elem in other-name-with-placeholders
         for i from 0
@@ -235,3 +248,19 @@
                            cxn (grammar agent) cxn-type
                            agent utterance)
         append competitors))
+
+(defun get-form-competitors (agent applied-cxns irl-program)
+  "Get cxns that can process the same irl-program"
+  (multiple-value-bind (utterances cipns)
+      (formulate-all irl-program :cxn-inventory (grammar agent))
+    (declare (ignorable utterances))
+    (when (> (length cipns) 1)
+      (loop for cipn in cipns
+            append (original-applied-constructions cipn)
+            into other-applied-cxns
+            finally
+            (return
+             (remove-duplicates
+              (set-difference other-applied-cxns applied-cxns)))))))
+
+

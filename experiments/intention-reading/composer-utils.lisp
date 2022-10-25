@@ -2,31 +2,35 @@
 
 (in-package :irl)
 
-;; + Check-chunk functions +
+;; + chunk-node-tests +
+(defparameter *allowed-primitive-counts*
+  '((clevr-world:count! . 2)
+    (clevr-world:equal-integer . 1)
+    (clevr-world:less-than . 1)
+    (clevr-world:greater-than . 1)
+    (clevr-world:equal? . 1)
+    (clevr-world:exist . 1)
+    (clevr-world:filter . 50)
+    (clevr-world:get-context . 2)
+    (clevr-world:intersect . 1)
+    (clevr-world:query . 2)
+    (clevr-world:relate . 3)
+    (clevr-world:same . 1)
+    (clevr-world:union! . 1)
+    (clevr-world:unique . 4)))
+
 (defun counts-allowed-p (primitive-counts)
   (let ((allowed t))
     (loop for (primitive . count) in primitive-counts
-          when allowed
-          do (case primitive
-               (clevr-world:count! (when (> count 2) (setf allowed nil)))
-               (clevr-world:equal-integer (when (> count 1) (setf allowed nil)))
-               (clevr-world:less-than (when (> count 1) (setf allowed nil)))
-               (clevr-world:greater-than (when (> count 1) (setf allowed nil)))
-               (clevr-world:equal? (when (> count 1) (setf allowed nil)))
-               (clevr-world:exist (when (> count 1) (setf allowed nil)))
-               (clevr-world:filter ())
-               (clevr-world:get-context (when (> count 2) (setf allowed nil)))
-               (clevr-world:intersect (when (> count 1) (setf allowed nil)))
-               (clevr-world:query (when (> count 2) (setf allowed nil)))
-               (clevr-world:relate (when (> count 3) (setf allowed nil)))
-               (clevr-world:same (when (> count 1) (setf allowed nil)))
-               (clevr-world:union! (when (> count 1) (setf allowed nil)))
-               (clevr-world:unique (when (> count 4) (setf allowed nil)))))
+          for allowed-count = (rest (assoc primitive *allowed-primitive-counts*))
+          for count-exceeded = (> count allowed-count)
+          when count-exceeded
+          do (setf allowed nil) (return allowed))
     allowed))
 
-(defmethod check-node ((node chunk-composer-node)
-                       (composer chunk-composer)
-                       (mode (eql :clevr-primitive-occurrence-count)))
+(defmethod chunk-node-test ((node chunk-composer-node)
+                            (composer chunk-composer)
+                            (mode (eql :clevr-primitive-occurrence-count)))
   ;; each clevr primitive can only occur a maximum number of times
   ;; in a program. Check these amounts.
   (let* ((chunk (chunk node))
@@ -38,9 +42,10 @@
                                                       :key #'first)))))
     (counts-allowed-p primitive-counts)))
 
-(defmethod check-node ((node chunk-composer-node)
-                       (composer chunk-composer)
-                       (mode (eql :clevr-context-links)))
+
+(defmethod chunk-node-test ((node chunk-composer-node)
+                            (composer chunk-composer)
+                            (mode (eql :clevr-context-links)))
   ;; inputs from count!, exist, intersect, union!
   ;; and unique cannot be the output of get-context
   (let* ((irl-program (irl-program (chunk node)))
@@ -57,9 +62,9 @@
       t)))
 
 
-(defmethod check-node ((node chunk-composer-node)
-                       (composer chunk-composer)
-                       (mode (eql :clevr-open-vars)))
+(defmethod chunk-node-test ((node chunk-composer-node)
+                            (composer chunk-composer)
+                            (mode (eql :clevr-open-vars)))
   ;; the last element from filter, query, equal?,
   ;; relate and same must always be an open variable
   (let ((irl-program (irl-program (chunk node))))
@@ -71,9 +76,10 @@
                                       (open-vars (chunk node))
                                       :key #'car)))))
 
-(defmethod check-node ((node chunk-composer-node)
-                       (composer chunk-composer)
-                       (mode (eql :clevr-filter-group-length)))
+
+(defmethod chunk-node-test ((node chunk-composer-node)
+                            (composer chunk-composer)
+                            (mode (eql :clevr-filter-group-length)))
   ;; filter predicates chained together can be maximally 4 long
   (let ((irl-program (irl-program (chunk node))))
     (if (> (count 'clevr-world:filter irl-program :key #'first) 1)
@@ -82,9 +88,10 @@
               never (length> group 4)))
       t)))
 
-(defmethod check-node ((node chunk-composer-node)
-                       (composer chunk-composer)
-                       (mode (eql :no-circular-primitives)))
+
+(defmethod chunk-node-test ((node chunk-composer-node)
+                            (composer chunk-composer)
+                            (mode (eql :no-circular-primitives)))
   ;; Primitives with duplicate variables, e.g. (filter ?set ?set ?bind)
   ;; are not allowed
   (let ((irl-program (irl-program (chunk node))))
@@ -92,12 +99,25 @@
           for arguments = (cdr predicate)
           always (length= arguments (remove-duplicates arguments)))))
 
-(defmethod check-node ((node chunk-composer-node)
-                       (composer chunk-composer)
-                       (mode (eql :fully-connected-meaning)))
+
+(defmethod chunk-node-test ((node chunk-composer-node)
+                            (composer chunk-composer)
+                            (mode (eql :fully-connected-meaning)))
   ;; The meaning has to be fully connected
   (let ((irl-program (irl-program (chunk node))))
     (fcg:connected-semantic-network irl-program)))
+
+(defmethod chunk-node-test ((node chunk-composer-node)
+                            (composer chunk-composer)
+                            (mode (eql :one-target-var)))
+  ;; there has to be one and only one target var in the irl program
+  (let* ((chunk-target-var (car (target-var (chunk node))))
+         (program-target-var (get-target-var (irl-program (chunk node))))
+         (test-pass
+          (and chunk-target-var program-target-var
+               (equal chunk-target-var program-target-var))))
+    (if test-pass test-pass
+      (progn (format nil "hello!") nil))))
 
 
 ; + Check chunk evaluation result +
@@ -141,56 +161,9 @@
                        (setf prev-was-filter nil)))))
     filter-groups))
 
-#|
-(defun all-different-bind-types (chunk-evaluation-result filter-group)
-  ;; collect all bind-statements that belong with the filter-group
-  ;; check if the types are all different
-  (let ((bind-types
-         (loop for filter in filter-group
-               collect (type-of
-                        (value
-                         (find (last-elt filter)
-                               (bindings chunk-evaluation-result)
-                               :key #'var))))))
-    (= (length bind-types)
-       (length (remove-duplicates bind-types)))))
-    
-
-(defmethod check-chunk-evaluation-result ((result chunk-evaluation-result)
-                                          (composer chunk-composer)
-                                          (mode (eql :clevr-coherent-filter-groups)))
-  ;; find filter groups
-  (if (> (count 'clevr-world:filter (irl-program (chunk result)) :key #'first) 1)
-    (let ((filter-groups (collect-filter-groups (irl-program (chunk result)))))
-      (if filter-groups
-        (loop for group in filter-groups
-              ;; check if the bindings make sense
-              ;; if not, refuse the node
-              always (all-different-bind-types result group))
-        t))
-    t))
-|#
-
-#|
-(defmethod check-chunk-evaluation-result ((result chunk-evaluation-result)
-                                          (composer chunk-composer)
-                                          (mode (eql :check-open-var-types)))
-  ;; checks if the bindings in the chunk evaluation result
-  ;; match with the types specified in the open variables
-  ;; of the chunk (this is a special case due to the general
-  ;; filter primitive)
-  (let ((open-vars (open-vars (chunk result))))
-    (loop for (var . open-var-type) in open-vars
-          for binding = (find var (bindings result) :key #'var)
-          for type-of-value = (type-of (value binding))
-          always (or (eql open-var-type type-of-value)
-                     (subtypep type-of-value open-var-type)))))
-|#
-
-
-(defmethod check-chunk-evaluation-result ((result chunk-evaluation-result)
-                                          (composer chunk-composer)
-                                          (mode (eql :check-bindings)))
+(defmethod chunk-evaluation-goal-test ((result chunk-evaluation-result)
+                                       (composer chunk-composer)
+                                       (mode (eql :check-bindings)))
   ;; Check if the bindings in this solution match the partial
   ;; bindings that were passed along, if not, refuse this solution
   (when (find-data composer 'partial-bindings)
@@ -206,6 +179,22 @@
           (loop for (b . count) in occurrence-counts
                 for found? = (find-all b found-bindings :key #'fourth)
                 always (= count (length found?))))))))
+
+(defmethod chunk-evaluation-goal-test ((result chunk-evaluation-result)
+                                       (composer chunk-composer)
+                                       (mode (eql :at-least-one-shape-category)))
+  ;; Check the bindings and make sure there is at least one shape category
+  ;; that is not the target variable!
+  ;; This goal test is for debugging purposes and should not make it into
+  ;; the final experiment...
+  (let* ((complete-program
+          (append (irl-program (chunk result))
+                  (bind-statements result)))
+         (target-var (get-target-var complete-program)))
+    (loop with solution-bindings = (remove target-var (bindings result) :key #'var)
+          for binding in solution-bindings
+          thereis (eql (type-of (value binding))
+                       'clevr-world:shape-category))))
 
 
 ; + Expand-chunk functions +
@@ -244,9 +233,10 @@
                          (mode (eql :clevr-expand-chunk)))
   (if (loop for predicate in (irl-program chunk)
             thereis (member (first predicate)
-                            '(clevr-world:union! clevr-world:intersect clevr-world:equal?
-                                                 clevr-world:equal-integer clevr-world:less-than
-                                                 clevr-world:greater-than)))
+                            '(clevr-world:union!
+                              clevr-world:intersect clevr-world:equal?
+                              clevr-world:equal-integer clevr-world:less-than
+                              clevr-world:greater-than)))
     (append (expand-chunk chunk composer :combine-program)
             (check-duplicate-variables
              (expand-chunk
@@ -258,13 +248,13 @@
 ;; + node rating mode +
 ;; maybe add a preference for chain-type programs
 ;; over tree-type programs?
-(defmethod rate-node ((node chunk-composer-node)
+(defmethod node-cost ((node chunk-composer-node)
                       (composer chunk-composer)
-                      (mode (eql :clevr-node-rating)))
+                      (mode (eql :clevr-node-cost)))
   "Prefer short programs with few open vars and few
    duplicate primitives."
   (let ((chunk (chunk node)))
-    (/ (+ (node-depth node)            ;; the less depth the better
+    (/ (+ (depth node)                 ;; the less depth the better
           (length (open-vars chunk))   ;; less open vars are better
           (length (irl-program chunk)) ;; less primitives are better
           ;; less duplicate primitives are better
@@ -286,47 +276,73 @@
 ;; ---------------------------------------------------------
 ;; clevr filter permutation detection
 
-(defmethod node-test ((node irl-program-processor-node)
-                      (mode (eql :remove-clevr-filter-permutations)))
+(defparameter *allowed-type-map*
+  '((clevr-world:shape-category clevr-world:material-category
+                                clevr-world:color-category
+                                clevr-world:size-category)
+    (clevr-world:material-category clevr-world:color-category
+                                   clevr-world:size-category)
+    (clevr-world:color-category clevr-world:size-category)
+    (clevr-world:size-category . nil)))
+
+(defun valid-permutation-p (permutation)
+  ;; the permutation is ordered such that the node that was
+  ;; evaluated first is also first in the list.
+  ;; the ordering is as follows:
+  ;; shape > material > color > size
+  ;; Thus, when looking at the type of the first binding
+  ;; (e.g. a material), only color and size are allowed
+  ;; to appear in the following bindings.
+  (loop with allowed-next-types = '(clevr-world:shape-category
+                                    clevr-world:material-category
+                                    clevr-world:color-category
+                                    clevr-world:size-category)
+        for binding-value in permutation
+        for binding-type = (type-of binding-value)
+        if (member binding-type allowed-next-types)
+        do (setf allowed-next-types
+                 (rest (assoc binding-type *allowed-type-map*)))
+        else do (return nil)
+        finally (return t)))
+
+(defun duplicate-permutation-p (permutation node)
+  (loop with processed-permutations
+        = (find-data (blackboard (pip node))
+                     'processed-permutations)
+        for permut in processed-permutations
+        thereis (and (length= permut permutation)
+                     (permutation-of? permut permutation
+                                      :test #'equal-entity))))
+
+(defmethod pip-node-test ((node pip-node) (mode (eql :remove-clevr-filter-permutations)))
   ;; Detect and remove permutations in bindings of filter predicates
-  ;; as soon as possible
+  ;; as soon as possible. Also make sure that only the correct permutations
+  ;; are kept.
   (if (eql (first (primitive-under-evaluation node)) 'clevr-world:filter)
     (let ((filter-group
            (loop with group = nil
                  with current-node = node
-                 while (eql (first (primitive-under-evaluation current-node)) 'clevr-world:filter)
+                 while (eql (first (primitive-under-evaluation current-node))
+                            'clevr-world:filter)
                  do (push current-node group)
                  do (setf current-node (parent current-node))
                  finally (return group))))
       (if (length> filter-group 1)
-        (let* ((filter-bindings
-                (loop for node in filter-group
-                      for pue = (primitive-under-evaluation node)
-                      for bind-var = (last-elt pue)
-                      for binding = (find bind-var (bindings node) :key #'var)
-                      for bind-val = (value binding)
-                      collect bind-val))
-               (processed-permutations
-                (find-data (blackboard (processor node))
-                          'processed-permutations))
-               (new-permutation-p
-                (loop for permut in processed-permutations
-                      never (and (length= permut filter-bindings)
-                                 (permutation-of? permut filter-bindings
-                                                  :test #'equal-entity)))))
-          (if new-permutation-p
-            (progn (push-data (blackboard (processor node))
-                              'processed-permutations filter-bindings)
-              t)
-            nil))
+        (let ((filter-bindings
+               (loop for node in filter-group
+                     for pue = (primitive-under-evaluation node)
+                     for bind-var = (last-elt pue)
+                     for binding = (find bind-var (bindings node) :key #'var)
+                     for bind-val = (value binding)
+                     collect bind-val)))
+          (valid-permutation-p filter-bindings))
         t))
     t))
 
 ;; ---------------------------------------------------------
 ;; clevr coherent filter groups
 
-(defmethod node-test ((node irl-program-processor-node)
-                      (mode (eql :remove-clevr-incoherent-filter-groups)))
+(defmethod pip-node-test ((node pip-node) (mode (eql :remove-clevr-incoherent-filter-groups)))
   ;; Detect and remove incoherent filter groups as soon as possible
   (if (eql (first (primitive-under-evaluation node)) 'clevr-world:filter)
     (let ((filter-group
