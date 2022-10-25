@@ -211,7 +211,7 @@ Useful for re-using the &REST arg after removing some options."
 
 (defun program-installed-p (program)
   "uses 'which' to check if a given program is installed and in the PATH"
-  (let* ((command #+linux "which" #+Darwin "which" #+mswindows "where")
+  (let* ((command #+linux "which" #+Darwin "which" #+windows "where")
          (answer (first (exec-and-return command (mkstr program)))))
     (when (and answer (not (search "INFO: Could not find" answer)))
       answer)))
