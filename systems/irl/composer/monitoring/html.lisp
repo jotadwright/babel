@@ -75,7 +75,8 @@ div.cer-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
           ((tr)
            ((td :class "cer-details") "evaluation process")
            ((td :class "cer-details")
-            ,(make-html (processor (evaluation-node result)))))
+            ,(make-html (pip (pip-node result))
+                        :target-node (pip-node result))))
           ;; target entity
           ((tr)
            ((td :class "cer-details")
@@ -124,11 +125,11 @@ div.cer-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
 ;; ---------------------------------------------------------
 
 (defparameter *chunk-composer-node-status-colors*
-  '((initial . "#444")
-    (duplicate . "#520")
-    (solution . "#050")
+  '((initial . "#444") (nil . "#444")
+    (duplicate . "#520") (solution . "#050")
     (bad-evaluation-results . "#822")
     (match-chunk-failed . "#822")
+    (chunk-wrapper-failed . "#822")
     (no-evaluation-results . "#337")
     (expanded . "#480")
     (max-depth-reached . "#888")
@@ -159,15 +160,16 @@ div.ccn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
 ")
 
 (defun ccn->title-text (node)
-  (if (= (node-number node) 1)
-    "initial (1)"
+  (if (find 'initial (statuses node))
+    (format nil "initial (~a, ~,2f)"
+            (created-at node) (cost node))
     (format nil "~{~a~^ ~} (~a, ~,2f)"
             (mapcar (compose #'mkstr #'downcase)
                     (remove 'initial
                             (mapcar #'id
                                     (source-chunks node))))
-            (node-number node)
-            (node-rating node))))
+            (created-at node)
+            (cost node))))
 
 (defun ccn-title-html (node element-id node-color &key expand)
   `((div :class "ccn-title"
@@ -220,6 +222,23 @@ div.ccn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
         ((td :class "ccn-details") "chunk")
         ((td :class "ccn-details")
          ,(make-html (chunk node))))
+       ;; meaning to match
+       ,@(when (meaning (composer node))
+           `(((tr :style "border-bottom:1px solid")
+              ((td :class "ccn-details") "meaning to match")
+              ((td :class "ccn-details")
+               ,(irl-program->svg (meaning (composer node)))))))
+       ;; matched chunks
+       ,@(when (find-data node 'matched-chunks)
+           (loop with matched-chunks = (find-data node 'matched-chunks)
+                 with new-chunks = (remove (chunk node) matched-chunks)
+                 for chunk in new-chunks
+                 for i from 1
+                 collect `((tr :style "border-bottom:1px solid")
+                           ((td :class "ccn-details")
+                            ,(format nil "matched chunk ~a" i))
+                           ((td :class "ccn-details")
+                            ,(make-html chunk)))))
        ;; chunk evaluation results
        ,@(when (cers node)
            `(((tr :style "border-bottom:1px solid")
@@ -254,7 +273,7 @@ div.ccn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
                       (expand/collapse-all-id (make-id 'ccn)))
   (let* ((element-id (make-id 'ccn))
          (node-color
-          (or (when (= (node-number node) 1) "#444")
+          (or (when (= (created-at node) 0) "#444")
               (assqv (first (statuses node)) *chunk-composer-node-status-colors*)
               (error "no status color defined for status ~a" (first (statuses node)))))
          (node-div

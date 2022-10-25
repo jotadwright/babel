@@ -13,9 +13,7 @@
                     of irl in the web browser")
 
 (define-monitor trace-irl-verbose
-    :documentation "As trace-irl-in-web-browser, but with
-                    intermediate steps of the composer search
-                    process")
+    :documentation "Same as trace-irl-in-web-browser, but more verbose")
 
 ;; ============================================================================
 ;; evaluate-irl-program
@@ -38,30 +36,85 @@
 (define-event-handler ((trace-irl trace-irl-verbose)
                        evaluate-irl-program-finished)
   (add-element
-   (make-html-for-irl-evaluation-process processor))
+   (make-html-for-pip pip))
   (add-element '((h3) "Solutions:"))
-  (let ((sorted-solutions (collect-solutions solution-nodes)))
+  (let ((sorted-solutions (collect-solutions succeeded-nodes)))
     (solutions->html sorted-solutions)))
 
-;; ============================================================================
-;; irl-node-finished
-;; ----------------------------------------------------------------------------
 
-(define-event-handler (trace-irl-verbose irl-node-finished)
+;; ============================================================================
+;; pip-started
+;; ----------------------------------------------------------------------------
+(define-event-handler (trace-irl-verbose pip-started)
+  (add-element '((hr)))
+  (add-element
+   `((h3) ,(if (children (top pip))
+             "Computing next solution for evaluation of "
+             "Applying ")
+     ,(make-html (primitive-inventory pip)))))
+
+;; ============================================================================
+;; pip-next-node
+;; ----------------------------------------------------------------------------
+(define-event-handler (trace-irl-verbose pip-next-node)
   (add-element '((hr)))
   (add-element
    `((table :class "two-col")
      ((tbody)
       ((tr)
+       ((td) "next node: ")
+       ((td) ,(make-html pipn)))))))
+
+;; ============================================================================
+;; pip-node-expanded
+;; ----------------------------------------------------------------------------
+(define-event-handler (trace-irl-verbose pip-node-expanded)
+  (add-element
+   `((table :class "two-col")
+     ((tbody)
+      ((tr)
+       ((td) "expansion: ")
+       ((td) ,(make-html pipn)))
+      ((tr)
        ((td) "new tree: ")
-       ((td) ,(make-html (top (processor node)))))
+       ((td) ,(make-html (top (pip pipn)))))
       ((tr)
        ((td) "new queue: ")
        ((td) ,@(html-hide-rest-of-long-list
-                (queue (processor node)) 5
-                #'(lambda (node)
-                    (make-html node :draw-children nil)))))))))
-  
+                (queue (pip pipn)) 5
+                #'(lambda (pip-node)
+                    (make-html pip-node :draw-children nil)))))))))
+
+;; ============================================================================
+;; pip-finished
+;; ----------------------------------------------------------------------------
+(define-event-handler (trace-irl-verbose pip-finished)
+  (add-element '((hr)))
+  (if solution
+    (add-element
+     `((table :class "two-col")
+       ((tbody)
+        ((tr)
+         ((td) "next solution: ")
+         ((td) ,(make-html pip :target-node solution))))))
+    (add-element
+     '((b) "No next solution found.")))
+  (add-element '((hr))))
+
+;; ============================================================================
+;; primitive-apply-with-n-solutions-started/finished
+;; ----------------------------------------------------------------------------
+(define-event-handler (trace-irl-verbose primitive-apply-with-n-solutions-started)
+  (add-element '((hr)))
+  (add-element 
+   `((h3) ,(if (numberp n)
+             (format nil "Computing max ~a solutions for application of " n)
+             "Computing all solutions for application of ")
+     ,(make-html primitive-inventory))))
+
+(define-event-handler (trace-irl-verbose primitive-apply-with-n-solutions-finished)
+  (add-element '((hr)))
+  (add-element (make-html pip)))
 
 #|
 ;; ============================================================================

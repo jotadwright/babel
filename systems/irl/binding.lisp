@@ -32,17 +32,19 @@
   (declare (ignorable class ontology))
   (assert (typep value class))
   (make-instance 'binding :var var
-                 :score 1.0 :value value :available-at available-at))
+                 :score 1.0 :value value
+                 :available-at available-at))
 
-(defmethod evaluate-bind-statement (class var value available-at ontology
-                                     &key (assert-exists t))
+(defmethod evaluate-bind-statement (class var value available-at
+                                    ontology &key (assert-exists t))
   "Evaluates a bind statement by searching for values in the
    ontology or by binding the value in the bind statement."
   (declare (ignore class))
   (let ((entity (find-entity-by-id ontology value)))
     (cond (entity (progn (assert (typep entity class))
                     (make-instance 'binding :var var
-                                   :score 1.0 :value entity :available-at available-at)))
+                                   :score 1.0 :value entity
+                                   :available-at available-at)))
           (assert-exists (error "Could not find ~a in ontology." 
                                 value))
           (t nil))))

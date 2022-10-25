@@ -174,13 +174,13 @@ div.binding td.score { padding-left:4px; }
                         :expand/collapse-all-id expand/collapse-all-id)
              '((div :class "unbound-value") "unbound"))))
       ,@(when (score binding)
-              `(((tr)
-                 ((td :class "score")
-                  ,(format nil "score: ~,3f" (score binding))))))
+          `(((tr)
+             ((td :class "score")
+              ,(format nil "score: ~,3f" (score binding))))))
       ,@(when (available-at binding)
-              `(((tr)
-                 ((td :class "score")
-                  ,(format nil "available-at: ~a" (available-at binding))))))))))
+          `(((tr)
+             ((td :class "score")
+              ,(format nil "available-at: ~a" (available-at binding))))))))))
 
 ;; #########################################################
 ;; primitive-inventory - make-html
@@ -384,29 +384,29 @@ table.ontology td.ontology-details div.ontology-detail:first-child { border-top:
         :expand-initially expand-initially))))
 
 ;; #########################################################
-;; irl-program-processor-node - make-html
+;; pip-node - make-html
 ;; ---------------------------------------------------------
 
-(define-css 'ippn "
-div.ippn { display:inline-block;margin-right:0px;margin-top:10px;
+(define-css 'pipn "
+div.pipn { display:inline-block;margin-right:0px;margin-top:10px;
            margin-bottom:10px;padding:0px; }
-div.ippn-box { border:1px solid #562; display:inline-block;}
-div.ippn div.ippn-title  { 
+div.pipn-box { border:1px solid #562; display:inline-block;}
+div.pipn div.pipn-title  { 
   padding:0px;padding-left:3px;padding-right:3px;
   white-space:nowrap; background-color:#562; }
-div.ippn div.ippn-title > a {color:#fff;}
-div.ippn div.ippn-title > span {color:#fff;}
-table.ippn {
+div.pipn div.pipn-title > a {color:#fff;}
+div.pipn div.pipn-title > span {color:#fff;}
+table.pipn {
   border-collapse:collapse; }
-table.ippn td.ippn-type { font-style:italic;padding:0px;padding-left:4px;}
-table.ippn td.ippn-details { vertical-align:top;padding-top:3px;padding-bottom:3px;
+table.pipn td.pipn-type { font-style:italic;padding:0px;padding-left:4px;}
+table.pipn td.pipn-details { vertical-align:top;padding-top:3px;padding-bottom:3px;
   padding-left:5px;padding-right:5px; }
-table.ippn td.ippn-details div.ippn-detail { 
+table.pipn td.pipn-details div.pipn-detail { 
   padding-left:4px; padding-right:4px;padding-bottom:1px;padding-top:1px;
   border-top:1px dashed #563;text-align:left; }
-table.ippn td.ippn-details > div { overflow:hidden; }
-table.ippn td.ippn-details div.ippn-detail:first-child { border-top:none; }
-div.ippn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
+table.pipn td.pipn-details > div { overflow:hidden; }
+table.pipn td.pipn-details div.pipn-detail:first-child { border-top:none; }
+div.pipn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; }
 ")
 
 (defun new-binding-p (child-binding parent-node)
@@ -419,39 +419,38 @@ div.ippn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; 
 
 (defparameter *irl-program-processor-node-status-colors*
   '((initial . "#444")
+    (succeeded . "#050")
     (evaluated . "#480")
-    (solution . "#050")
     (inconsistent . "#822")
-    (bad-node . "#822")
-    (evaluated-w/o-result . "#337")
+    (goal-test-failed . "#822")
+    (evaluated-w/o-results . "#337")
     (duplicate . "#520")
-    (max-depth-reached . "#888")
-    (max-nr-of-nodes . "#888")
-    (not-evaluated . "#990")))
+    (max-search-depth-reached . "#888")
+    (max-nr-of-nodes-reached . "#888")))
 
-(defun ippn->title-text (node)
-  (if (eq (status node) 'initial)
-    "initial"
-    (format nil "~a"
-            (downcase
-             (mkstr
-              (car (primitive-under-evaluation node)))))))
+(defun pipn->title-text (node)
+  (format nil "~a, ~,2f: ~a"
+          (created-at node)
+          (priority node)
+          (if (find 'initial (statuses node))
+            "initial"
+            (downcase (mkstr (car (primitive-under-evaluation node)))))))
 
-(defun ippn-title-html (node element-id node-color &key expand)
-  `((div :class "ippn-title"
+(defun pipn-title-html (node element-id node-color &key expand)
+  `((div :class "pipn-title"
          :style ,(mkstr "background-color:" node-color ";"
-                        (if (eql (status node) 'solution)
+                        (if (find 'succeeded (statuses node))
                           "font-weight:bold" "")))
     ((a ,@(make-expand/collapse-link-parameters element-id expand))
-     ((span) ,(ippn->title-text node)))))
+     ((span) ,(pipn->title-text node)))))
 
-(defmethod collapsed-ippn-html ((node irl-program-processor-node) element-id node-color)
-  `((div :class "ippn-box")
-    ,(ippn-title-html node element-id node-color :expand t)))
+(defmethod collapsed-pipn-html ((node pip-node) element-id node-color)
+  `((div :class "pipn-box")
+    ,(pipn-title-html node element-id node-color :expand t)))
 
-(defmethod expanded-ippn-html ((node irl-program-processor-node) element-id node-color
+(defmethod expanded-pipn-html ((node pip-node) element-id node-color
                                &key (expand-initially nil)
-                               (expand/collapse-all-id (make-id 'ippn)))
+                               (expand/collapse-all-id (make-id 'pipn)))
   (lambda ()
       (multiple-value-bind (new-bindings existing-bindings unbound)
           (loop for b in (bindings node)
@@ -459,26 +458,28 @@ div.ippn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; 
                 else if (new-binding-p b (parent node)) collect b into new
                 else collect b into existing
                 finally (return (values new existing unbound)))
-        `((div :class "ippn-box")
-          ,(ippn-title-html node element-id node-color :expand nil)
-          ((table :class "ippn")
+        `((div :class "pipn-box")
+          ,(pipn-title-html node element-id node-color :expand nil)
+          ((table :class "pipn")
            ;; status
            ((tr :style ,(format nil "border-bottom:1px solid ~a" node-color))
-            ((td :class "ippn-details") "status")
-            ((td :class "ippn-details")
+            ((td :class "pipn-details") "statuses")
+            ((td :class "pipn-details")
              ((span :style ,(mkstr "color:" node-color ";"))
-              ,(downcase (mkstr (status node))))))
+              ,(format nil "~{~a~^, ~}"
+                       (mapcar (compose #'downcase #'mkstr)
+                               (statuses node))))))
            ;; new bindings
            ((tr)
-            ((td :class "ippn-details") "new bindings")
-            ((td :class "ippn-details")
-             ((table :class "ippn")
+            ((td :class "pipn-details") "new bindings")
+            ((td :class "pipn-details")
+             ((table :class "pipn")
               ,@(if new-bindings
                   (loop for b in new-bindings
                         collect `((tr)
-                                  ((td :class "ippn-details")
+                                  ((td :class "pipn-details")
                                    ((div :class "binding") ,(html-pprint (var b))))
-                                  ((td :class "ippn-details")
+                                  ((td :class "pipn-details")
                                    ((div :class "binding")
                                     ,(if (value b)
                                        (make-html (value b) :expand-initially expand-initially
@@ -487,17 +488,17 @@ div.ippn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; 
                   `(((span) "&#8709;"))))))
            ;; existing bindings
            ((tr)
-            ((td :class "ippn-details") "existing bindings")
-            ((td :class "ippn-details")
-             ((table :class "ippn")
+            ((td :class "pipn-details") "existing bindings")
+            ((td :class "pipn-details")
+             ((table :class "pipn")
               ,@(if existing-bindings
                   (html-hide-rest-of-long-list
                    existing-bindings 3
                    (lambda (b)
                      `((tr)
-                       ((td :class "ippn-details")
+                       ((td :class "pipn-details")
                         ((div :class "binding") ,(html-pprint (var b))))
-                       ((td :class "ippn-details")
+                       ((td :class "pipn-details")
                         ((div :class "binding")
                          ,(if (value b)
                             (make-html (value b))
@@ -505,17 +506,17 @@ div.ippn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; 
                   `(((span) "&#8709;"))))))
            ;; unbound
            ((tr)
-            ((td :class "ippn-details") "unbound")
-            ((td :class "ippn-details")
-             ((table :class "ippn")
+            ((td :class "pipn-details") "unbound")
+            ((td :class "pipn-details")
+             ((table :class "pipn")
               ,@(if unbound
                   (html-hide-rest-of-long-list
                    unbound 3
                    (lambda (b)
                      `((tr)
-                       ((td :class "ippn-details")
+                       ((td :class "pipn-details")
                         ((div :class "binding") ,(html-pprint (var b))))
-                       ((td :class "ippn-details")
+                       ((td :class "pipn-details")
                         ((div :class "binding")
                          ,(if (value b)
                             (make-html (value b))
@@ -523,17 +524,17 @@ div.ippn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; 
                   `(((span) "&#8709;")))))))))))
   
 (defun collapsed-hidden-subtree-html (element-id)
-  `((div :class "ippn-hidden-subtree")
+  `((div :class "pipn-hidden-subtree")
     ((a ,@(make-expand/collapse-link-parameters element-id t "expand subtree"))
      "+")))
 
 (defun expanded-hidden-subtree-html (hidden-children element-id
                                      &key (expand/collapse-all-id (make-id 'subtree)))
   (draw-node-with-children
-   `((div :class "ippn-hidden-subtree")
+   `((div :class "pipn-hidden-subtree")
      ((a ,@(make-expand/collapse-link-parameters element-id nil "collapse subtree"))
       "-"))
-   (loop for child in hidden-children
+   (loop for child in (sort hidden-children #'< :key #'created-at)
          collect (make-html child :expand/collapse-all-id expand/collapse-all-id))))
                                                   
 (defun on-path-to-target-p (node targets)
@@ -543,75 +544,82 @@ div.ippn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; 
                    (member node (parents target)))
           return t)))
 
-(defmethod make-html ((node irl-program-processor-node)
-                      &key (expand-initially nil)
-                      (expand/collapse-all-id (make-id 'ippn))
-                      targets (draw-children t))
-  (let* ((element-id (make-id 'ippn))
+(defmethod make-html ((node pip-node)
+                      &key targets (expand-initially nil)
+                      (draw-children t) (expand/collapse-all-id (make-id 'ippn)))
+  (let* ((element-id (make-id 'pipn))
          (node-color
-          (or (assqv (status node) *irl-program-processor-node-status-colors*)
-              (error "no status color defined for status ~a" (status node)))))
+          (or (assqv (first (statuses node)) *irl-program-processor-node-status-colors*)
+              (error "no status color defined for status ~a" (first (statuses node))))))
     (if draw-children
       (draw-node-with-children
-       `((div :class "ippn")
+       `((div :class "pipn")
          ,(make-expandable/collapsable-element
            element-id (make-id)
            ;; collapsed element
-           (collapsed-ippn-html node element-id node-color)
+           (collapsed-pipn-html node element-id node-color)
            ;; expanded element
-           (expanded-ippn-html node element-id node-color
+           (expanded-pipn-html node element-id node-color
                                :expand/collapse-all-id expand/collapse-all-id)))
        (let ((subtree-id (make-id 'subtree))
              nodes-to-show nodes-to-hide)
          (if targets
            (loop for child in (children node)
                  if (on-path-to-target-p child targets)
-                   do (push child nodes-to-show)
+                 do (push child nodes-to-show)
                  else do (push child nodes-to-hide))
            (setf nodes-to-show (children node)))
-         (shuffle (append
-                   (loop for child in nodes-to-show
-                         collect (make-html child :targets targets
-                                            :expand-initially expand-initially
-                                            :expand/collapse-all-id expand/collapse-all-id))
-                   (if nodes-to-hide
-                     (list 
-                      (make-expandable/collapsable-element
-                       subtree-id expand/collapse-all-id
-                       ;; collapsed element
-                       (collapsed-hidden-subtree-html subtree-id)
-                       ;; expanded element
-                       (expanded-hidden-subtree-html nodes-to-hide subtree-id
-                                                     :expand/collapse-all-id expand/collapse-all-id)
-                       :expand-initially expand-initially))
-                     nil))))
+         (append
+          (loop for child in (sort nodes-to-show #'< :key #'created-at)
+                collect (make-html child :targets targets
+                                   :expand-initially expand-initially
+                                   :expand/collapse-all-id expand/collapse-all-id))
+          (if nodes-to-hide
+            (list 
+             (make-expandable/collapsable-element
+              subtree-id expand/collapse-all-id
+              ;; collapsed element
+              (collapsed-hidden-subtree-html subtree-id)
+              ;; expanded element
+              (expanded-hidden-subtree-html nodes-to-hide subtree-id
+                                            :expand/collapse-all-id
+                                            expand/collapse-all-id)
+              :expand-initially expand-initially))
+            nil)))
        :color "#aaa")
-      `((div :class "ippn")
+      `((div :class "pipn" :style "margin-right:5px;margin-left:5px")
         ,(make-expandable/collapsable-element
           element-id (make-id)
           ;; collapsed element
-          (collapsed-ippn-html node element-id node-color)
+          (collapsed-pipn-html node element-id node-color)
           ;; expanded element
-          (expanded-ippn-html node element-id node-color
+          (expanded-pipn-html node element-id node-color
                               :expand/collapse-all-id expand/collapse-all-id))))))
 
-(defmethod make-html ((processor irl-program-processor)
-                      &key (expand/collapse-all-id (make-id 'ipp))
-                      (expand-initially nil))
+(defmethod make-html ((pip primitive-inventory-processor)
+                      &key (expand/collapse-all-id (make-id 'pip))
+                      expand-initially target-node)
   (let ((solution-nodes
-         (find-all 'solution (nodes processor) :key #'status))
+         (remove-if #'(lambda (node)
+                        (find 'goal-test-failed (statuses node)))
+                    (succeeded-nodes pip)))
         (deepest-inconsistent-node
-         (the-biggest #'node-depth (find-all 'inconsistent (nodes processor) :key #'status))))
+         (the-biggest #'depth
+                      (find-all 'inconsistent (nodes pip)
+                                :key #'statuses :test #'member))))
     ;; when drawing the search tree, only show the path to the solution
     ;; or the deepest inconsistent node when there is no solution
-    (make-html (top processor)
-               :targets (or solution-nodes
-                            (when deepest-inconsistent-node
-                              (list deepest-inconsistent-node)))
+    ;; or a single target node that was specified in the call to
+    ;; make-html (this one is used for showing chunk-evaluation-results)
+    (make-html (top pip)
+               :targets (if target-node (list target-node)
+                          (or solution-nodes
+                              (when deepest-inconsistent-node
+                                (list deepest-inconsistent-node))))
                :expand/collapse-all-id expand/collapse-all-id
                :expand-initially expand-initially)))
 
-(defun make-collapsed-html-for-irl-evaluation-process (processor element-id)
+(defun make-collapsed-html-for-pip (pip element-id)
   `((table :class "two-col")
     ((tbody)
      ((tr)
@@ -620,9 +628,9 @@ div.ippn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; 
         "evaluation process"))
       ((td)
        ((div :style "margin-top:-7px")
-        ,(make-html processor :expand-initially nil)))))))
+        ,(make-html pip :expand-initially nil)))))))
 
-(defun make-expanded-html-for-irl-evaluation-process (processor element-id)
+(defun make-expanded-html-for-pip (pip element-id)
   `((table :class "two-col")
     ((tbody)
      ((tr)
@@ -631,15 +639,15 @@ div.ippn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; 
         "evaluation process"))
       ((td)
        ((div :style "margin-top:-7px")
-        ,(make-html processor :expand-initially t)))))))
+        ,(make-html pip :expand-initially t)))))))
        
 
-(defmethod make-html-for-irl-evaluation-process ((processor irl-program-processor))
+(defmethod make-html-for-pip ((pip primitive-inventory-processor))
   (let ((element-id (make-id 'evaluation-process)))
     (make-expandable/collapsable-element
      element-id (make-id)
-     (make-collapsed-html-for-irl-evaluation-process processor element-id)
-     (make-expanded-html-for-irl-evaluation-process processor element-id))))
+     (make-collapsed-html-for-pip pip element-id)
+     (make-expanded-html-for-pip pip element-id))))
 
 
 ;; #########################################################

@@ -104,26 +104,27 @@
 (defun irl-program->id (irl-program)
   "creates a symbol representing the primitives used"
   (let* ((bind-statements (all-bind-statements irl-program))
-         (bind-id-parts
-          (mapcar #'fourth bind-statements))
          (predicates (set-difference irl-program bind-statements))
-         (primitives-id-parts
-          (loop with primitive-ids = (mapcar #'car predicates)
-                with unique-primitive-ids =
-                (stable-sort
-                 (copy-list
-                  (remove-duplicates primitive-ids)) #'string<)
-                for id in unique-primitive-ids
-                for id-count = (count id primitive-ids)
+         (id-list
+          (loop for predicate in predicates
+                for predicate-id = (car predicate)
+                for predicate-vars = (find-all-if #'variable-p (rest predicate))
+                for bind-value = (loop for v in predicate-vars
+                                       for found = (find v bind-statements :test #'member)
+                                       when found return (fourth found))
+                if bind-value
+                collect (format nil "~a[~a]" predicate-id bind-value)
+                else collect (mkstr predicate-id)))
+         (id-list-with-counts
+          (loop with unique-ids = (remove-duplicates id-list :test #'string=)
+                for id in unique-ids
+                for id-count = (count id id-list :test #'string=)
                 if (> id-count 1)
                 collect (mkstr id-count "x-" id)
-                else
-                collect id)))
+                else collect id)))
     (symb
-     (string-append
-      (format nil "~{~a~^--~}" bind-id-parts)
-      (if (and (length> bind-statements 1)
-               (length> predicates 1))
-        "/" "")
-      (format nil "~{~a~^--~}" primitives-id-parts)))))
+     (upcase
+      (format nil "~{~a~^+~}"
+              (reverse id-list-with-counts))))))
+         
 

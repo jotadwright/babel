@@ -14,11 +14,12 @@
    (:file "primitive")
    (:file "primitive-inventory")
    (:file "binding")
+   (:file "evaluate-primitive")
    (:file "check-irl-program")
    (:file "irl-program-processor")
    (:file "node-tests")
    (:file "goal-tests")
-   (:file "evaluate-primitive")
+   (:file "primitive-suppliers") 
    (:file "evaluate-irl-program")
    (:file "irl-utils")
    (:file "chunk")
@@ -45,14 +46,13 @@
                   :components ((:file "html")
                                (:file "web-monitors")))))
    (:module tests
-            :serial t
-            :components 
-            ((:file "apple-counting-example")
-             (:file "test-evaluate-primitive")
-             (:file "test-evaluate-irl-program")
-             (:file "test-equivalent-irl-programs")
-             (:file "test-irl-program-connected")
-             (:file "test-expand-chunk")
-             (:file "test-match-chunk")
-             (:file "test-binding-helpers")))))
+    :serial t
+    :components ((:file "apple-counting-example")
+                 (:file "test-binding-helpers")
+                 (:file "test-equivalent-irl-programs")
+                 (:file "test-evaluate-irl-program")
+                 (:file "test-evaluate-primitive")
+                 (:file "test-expand-chunk")
+                 (:file "test-irl-program-connected")
+                 (:file "test-match-chunk")))))
 

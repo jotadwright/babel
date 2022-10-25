@@ -8,17 +8,22 @@
 (export '(bind ontology binding-objects))
 
 (defclass evaluation-spec ()
-  ((pattern :type list :initform nil :initarg :pattern :accessor pattern
-            :documentation "The original pattern as defined in the primitive")
-   (bound-slot-names :type list :initform nil :initarg :bound-slot-names :accessor bound-slot-names
-                     :documentation "A list of slot names for bound slots")
-   (unbound-slot-names :type list :initform nil :initarg :unbound-slot-names :accessor unbound-slot-names
-                       :documentation "A list of slot names for unbound slots")
-   (function :type function :initform nil :initarg :function :accessor evaluation-spec-function
-             :documentation "The body of the evaluation spec")
-   (bound-slots-pattern :type list :initform nil :initarg :bound-slots-pattern :accessor bound-slots-pattern
-                        :documentation "List of booleans, one for each slot. When set to t,
-                                        the corresponding slot is bound"))
+  ((pattern
+    :type list :initform nil :initarg :pattern :accessor pattern
+    :documentation "The original pattern as defined in the primitive")
+   (bound-slot-names
+    :type list :initform nil :initarg :bound-slot-names :accessor bound-slot-names
+    :documentation "A list of slot names for bound slots")
+   (unbound-slot-names
+    :type list :initform nil :initarg :unbound-slot-names :accessor unbound-slot-names
+    :documentation "A list of slot names for unbound slots")
+   (function
+    :type function :initform nil :initarg :function :accessor evaluation-spec-function
+    :documentation "The body of the evaluation spec")
+   (bound-slots-pattern
+    :type list :initform nil :initarg :bound-slots-pattern :accessor bound-slots-pattern
+    :documentation "List of booleans, one for each slot. When set to t,
+                    the corresponding slot is bound"))
   (:documentation "The primitive's evaluation spec (i.e. the primitive body)"))
 
 (defmethod copy-object-content ((source evaluation-spec)
@@ -87,6 +92,7 @@
             primitive pattern bindings
             unbound-slot-names)))
 
+
 (defun expand-evaluation-spec (primitive evaluation-spec-def slot-spec-defs)
   (destructuring-bind (pattern &body body) evaluation-spec-def
     (let ((slot-names (mapcar #'first slot-spec-defs))
@@ -121,7 +127,8 @@
                                          `(push
                                            (list . ,(loop for slot-name in ',slot-names
                                                           for binding = (assq slot-name bindings)
-                                                          collect `(list ,(second binding) ,(third binding) ,(fourth binding))))
+                                                          collect `(list ,(second binding) ,(third binding)
+                                                                         ,(fourth binding))))
                                            ,',weighted-value-sets)))
                               ;; Here also all slot-names are given as formal parameters.
                               ;; The concrete parameters for bound slots are the bindings

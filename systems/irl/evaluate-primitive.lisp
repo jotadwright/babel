@@ -1,9 +1,20 @@
 (in-package :irl)
 
+(defstruct (primitive-evaluation-result (:conc-name per-))
+  (status 'initial)
+  ;; status can be initial, inconsistent, evaluated-w/o-result or evaluated
+  (source-bindings nil)
+  (evaluated-primitive nil)
+  (resulting-bindings nil))
+
+(defmethod copy-object ((per primitive-evaluation-result))
+  (copy-structure per))
+
+
 (defun evaluate-primitive (primitive bindings-list &optional (ontology (make-blackboard)))
   "primitive -- primitive-object
    bindings -- list of bindings in the right order of the slots of the primitives
-   Returns either a list of list of new bindings, nil or 'inconsistent "
+   Returns either a list of list of new bindings, nil or 'inconsistent"
   ;; sanity check: as many bindings as slots
   (assert (= (length bindings-list)
              (length (slot-specs primitive))))
@@ -48,7 +59,7 @@
                               if (value binding) collect binding
                               else collect (make-instance 'binding :var (var binding)
                                                           :score (first res) :value (second res)
-                                                          :available-at (third res))))
+                                                          :available-at (fourth res))))
           ;; only checked the bindings -> return the bindings
           (list bindings)))
       nil)))
@@ -71,21 +82,44 @@
 
     (let* ((primitive-type (first primitive-in-program))
            (primitive (find-primitive primitive-type primitive-inventory))
-           (eval-primitive-result (evaluate-primitive primitive
-                                                      primitive-bindings
-                                                      ontology))
-           (new-bindings-list 
-            (when (and (listp eval-primitive-result)
-                       eval-primitive-result)
-              (loop for new-primitive-bindings in eval-primitive-result               
-                    do (assert (= (length new-primitive-bindings)
-                                  (length primitive-bindings-indices)))
-                    collect (loop with new-bindings = (copy-list bindings)
-                                  for new-primitive-binding in new-primitive-bindings
-                                  for index in primitive-bindings-indices
-                                  do (setf (nth index new-bindings)
-                                           new-primitive-binding)
-                                  finally (return new-bindings))))))
-      (if new-bindings-list
-        new-bindings-list
-        eval-primitive-result))))
+           ;; returns a list of lists, nil or 'inconsistent
+           (eval-primitive-result
+            (evaluate-primitive primitive primitive-bindings ontology))
+           (succeeded-pers nil)
+           (failed-pers nil))
+      (cond
+       ;; evaluated without results
+       ((null eval-primitive-result)
+        (push (make-primitive-evaluation-result
+               :status 'evaluated-w/o-results
+               :source-bindings bindings
+               :evaluated-primitive primitive-in-program
+               :resulting-bindings bindings)
+              failed-pers))
+       ;; bindings are inconsistent
+       ((eql eval-primitive-result 'inconsistent)
+        (push (make-primitive-evaluation-result
+               :status 'inconsistent
+               :source-bindings bindings
+               :evaluated-primitive primitive-in-program
+               :resulting-bindings bindings)
+              failed-pers))
+       ;; new bindings were found
+       (t
+        (loop for new-primitive-bindings in eval-primitive-result
+              do (assert (= (length new-primitive-bindings)
+                            (length primitive-bindings-indices)))
+              (let ((new-bindings-list
+                     (loop with new-bindings = (copy-list bindings)
+                           for new-primitive-binding in new-primitive-bindings
+                           for index in primitive-bindings-indices
+                           do (setf (nth index new-bindings)
+                                    new-primitive-binding)
+                           finally (return new-bindings))))
+                  (push (make-primitive-evaluation-result
+                         :status 'evaluated
+                         :source-bindings bindings
+                         :evaluated-primitive primitive-in-program
+                         :resulting-bindings new-bindings-list)
+                        succeeded-pers)))))
+      (values succeeded-pers failed-pers))))

@@ -30,8 +30,11 @@
   (add-element '((hr)))
   (add-element '((h2) "Computing next composer solution"))
   (add-element `((p) ,(make-html composer)))
-  (add-element '((h3) "in the following ontology:"))
-  (add-element (make-html (ontology composer))))
+  (add-element '((h3) "using ontology:"))
+  (add-element (make-html (ontology composer)))
+  (when (meaning composer)
+    (add-element '((h3) "and partial meaning:"))
+    (add-element `((div) ,(irl-program->svg (meaning composer))))))
 
 
 (define-event-handler ((trace-irl trace-irl-verbose)
@@ -40,8 +43,11 @@
   (add-element '((hr)))
   (add-element '((h2) "Computing all composer solutions"))
   (add-element `((p) ,(make-html composer)))
-  (add-element '((h3) "in the following ontology:"))
-  (add-element (make-html (ontology composer))))
+  (add-element '((h3) "using ontology:"))
+  (add-element (make-html (ontology composer)))
+  (when (meaning composer)
+    (add-element '((h3) "and partial meaning:"))
+    (add-element `((div) ,(irl-program->svg (meaning composer))))))
 
 (define-event-handler ((trace-irl trace-irl-verbose)
                        chunk-composer-get-solutions-until-started)
@@ -49,8 +55,11 @@
   (add-element '((hr)))
   (add-element '((h2) "Computing all composer solutions until stop criterion"))
   (add-element `((p) ,(make-html composer)))
-  (add-element '((h3) "in the following ontology:"))
-  (add-element (make-html (ontology composer))))
+  (add-element '((h3) "using ontology:"))
+  (add-element (make-html (ontology composer)))
+  (when (meaning composer)
+    (add-element '((h3) "and partial meaning:"))
+    (add-element `((div) ,(irl-program->svg (meaning composer))))))
 
 (define-event-handler (trace-irl-verbose
                        chunk-composer-node-handled)

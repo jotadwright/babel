@@ -6,12 +6,16 @@
 
 (defun check-irl-program (irl-program ontology primitive-inventory)
   "Checks irl-program for mistakes"
-  (let* ((variables (remove-duplicates
-                     (find-all-anywhere-if #'variable-p irl-program)))
-         (bindings (loop for var in variables
-                         collect (make-instance 'binding :var var)))
-         (bind-statements (find-all 'bind irl-program :key #'first))
-         (primitives-in-program (set-difference irl-program bind-statements)))
+  (let* ((variables
+          (remove-duplicates
+           (find-all-anywhere-if #'variable-p irl-program)))
+         (bindings
+          (loop for var in variables
+                collect (make-instance 'binding :var var)))
+         (bind-statements
+          (find-all 'bind irl-program :key #'first))
+         (primitives-in-program
+          (set-difference irl-program bind-statements)))
     
     ;; first check, everything should be a non-empty list
     (loop for expr in irl-program

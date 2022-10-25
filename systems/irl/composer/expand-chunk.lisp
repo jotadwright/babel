@@ -1,11 +1,11 @@
 (in-package :irl)
 
 ;; ##########################################
-;; run expand chunk fns
+;; run-expand-chunk
 ;; ------------------------------------------
 
-(defun run-expand-chunk-fns (chunk composer)
-  (loop for mode in (get-configuration composer :expand-chunk-modes)
+(defun run-expand-chunk (chunk composer)
+  (loop for mode in (get-configuration composer :chunk-expansion-modes)
         append (expand-chunk chunk composer mode)))
 
 
@@ -30,15 +30,14 @@
                                     collect (cons var (make-id var)))))
                        (other-chunk-2 (substitute-variables other-chunk substitutions)))
                   (make-instance 'chunk
+                                  ; score of new chunk will be set later
                                  :target-var (if (irl-program chunk)
                                                (target-var chunk)
                                                (target-var other-chunk-2))
                                  :open-vars (append (remove open-var (open-vars chunk))
                                                     (open-vars other-chunk-2))
                                  :irl-program (append (irl-program chunk)
-                                                      (irl-program other-chunk-2))
-                                 :score -1.0 ; score of new chunk will be set later
-                                 ))))
+                                                      (irl-program other-chunk-2))))))
 
 (defmethod expand-chunk ((chunk chunk) (composer chunk-composer)
                          (mode (eql :combine-program)))
@@ -74,8 +73,7 @@
                                  :open-vars (append (remove open-var-id (open-vars chunk) :key #'car)
                                                     (substitute-variables
                                                      (open-vars other-chunk)
-                                                     substitutions))
-                                 :score -1.0))))
+                                                     substitutions))))))
 
 (defmethod expand-chunk ((chunk chunk) (composer chunk-composer)
                          (mode (eql :combine-call-pattern)))
@@ -143,3 +141,13 @@
   (declare (ignore composer))
   (loop for new-chunk in (link-open-variables chunk)
         collect (cons new-chunk nil)))
+
+
+(defmethod expand-chunk ((chunk chunk) (composer chunk-composer)
+                         (mode (eql :remove-primitive)))
+  "Operator that removes a primitive from the composed program,
+   but only allowed remove primitives from the provided initial meaning (if any)
+   and only allowed to remove when it is at the fringe of the program"
+  (declare (ignore composer))
+  ;; TO DO
+  nil)

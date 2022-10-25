@@ -32,36 +32,36 @@
         return node))
 
 ;; ##########################################
-;; run check node fns
+;; run-chunk-node-tests
 ;; ------------------------------------------
 
-(defun run-check-node-fns (node composer)
-  (loop for mode in (get-configuration composer :check-node-modes)
-        always (check-node node composer mode)))
+(defun run-chunk-node-tests (node composer)
+  (loop for mode in (get-configuration composer :chunk-node-tests)
+        always (chunk-node-test node composer mode)))
 
-(defgeneric check-node (node composer mode)
+(defgeneric chunk-node-test (node composer mode)
   (:documentation "check if the new node is good. Return t or false.
    Allowed to alter the status of the node"))
 
-(defmethod check-node ((node chunk-composer-node)
-                       (composer chunk-composer)
-                       (mode (eql :limit-depth)))
+(defmethod chunk-node-test ((node chunk-composer-node)
+                            (composer chunk-composer)
+                            (mode (eql :restrict-search-depth)))
   (let ((max-depth (get-configuration composer :max-search-depth)))
-    (when (> (node-depth node) max-depth)
-      (push 'max-depth-reached (statuses node)))
-    (<= (node-depth node) max-depth)))
+    (if (> (depth node) max-depth)
+      (progn (push 'max-depth-reached (statuses node)) nil)
+      t)))
 
-(defmethod check-node ((node chunk-composer-node)
-                       (composer chunk-composer)
-                       (mode (eql :limit-irl-program-length)))
+(defmethod chunk-node-test ((node chunk-composer-node)
+                            (composer chunk-composer)
+                            (mode (eql :restrict-irl-program-length)))
   (let ((max-program-length (get-configuration composer :max-irl-program-length)))
-    (when (> (length (irl-program (chunk node))) max-program-length)
-      (push 'max-irl-program-length-reached (statuses node)))
-    (<= (length (irl-program (chunk node))) max-program-length)))
+    (if (> (length (irl-program (chunk node))) max-program-length)
+      (progn (push 'max-irl-program-length-reached (statuses node)) nil)
+      t)))
 
-(defmethod check-node ((node chunk-composer-node)
-                       (composer chunk-composer)
-                       (mode (eql :check-duplicate)))
+(defmethod chunk-node-test ((node chunk-composer-node)
+                            (composer chunk-composer)
+                            (mode (eql :check-duplicate)))
   (let ((duplicate (find-node-with-equivalent-chunk (chunk node) composer)))
     (if duplicate
       (progn (push 'duplicate (statuses node))
@@ -69,8 +69,8 @@
         nil)
       t)))
 
-(defmethod check-node ((node chunk-composer-node)
-                       (composer chunk-composer)
-                       (mode (eql :no-primitive-occurs-more-than-once)))
+(defmethod chunk-node-test ((node chunk-composer-node)
+                            (composer chunk-composer)
+                            (mode (eql :no-primitive-occurs-more-than-once)))
   (not (duplicates? (irl-program (chunk node)) :key #'first)))
     

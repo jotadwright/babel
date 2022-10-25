@@ -8,12 +8,14 @@
 (export '(slot-spec slot-spec-type))
 
 (defclass slot-spec ()
-  ((name :type symbol :reader slot-spec-name :initform nil :initarg :name
-         :documentation "The name of the slot, which should be unique
-                         in the scope of the primitive to which the
-                         slot belongs")
-   (type :type t :accessor slot-spec-type :initform nil :initarg :type
-         :documentation "The type of the slot, a Lisp typespec"))
+  ((name
+    :type symbol :reader slot-spec-name :initform nil :initarg :name
+    :documentation "The name of the slot, which should be unique
+                    in the scope of the primitive to which the
+                    slot belongs")
+   (type
+    :type t :accessor slot-spec-type :initform nil :initarg :type
+    :documentation "The type of the slot, a Lisp typespec"))
   (:documentation "The primitive's slot spec (i.e. the arguments of the primitive)"))
 
 

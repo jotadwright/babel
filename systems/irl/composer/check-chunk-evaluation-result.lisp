@@ -1,25 +1,26 @@
 (in-package :irl)
 
 ;; #########################################
-;; run check chunk evaluation result fn
+;; run-chunk-evaluation-goal-tests
 ;; -----------------------------------------
 
-(defun run-check-chunk-evaluation-result-fns (result composer)
-  (loop for mode in (get-configuration composer :check-chunk-evaluation-result-modes)
-        always (check-chunk-evaluation-result result composer mode)))
+(defun run-chunk-evaluation-goal-tests (evaluation-result composer)
+  (loop for mode in (get-configuration composer :chunk-evaluation-goal-tests)
+        always (chunk-evaluation-goal-test evaluation-result composer mode)))
 
-(defgeneric check-chunk-evaluation-result (result composer mode)
+(defgeneric chunk-evaluation-goal-test (evaluation-result composer mode)
   (:documentation "A function that is called after chunk
    evaluation. Returns t when the result is a good result"))
 
-(defmethod check-chunk-evaluation-result ((result chunk-evaluation-result)
-                                          (composer chunk-composer)
-                                          (mode (eql :identity)))
+(defmethod chunk-evaluation-goal-test ((result chunk-evaluation-result)
+                                       (composer chunk-composer)
+                                       (mode (eql :identity)))
   (declare (ignorable composer))
   result)
 
-(defmethod check-chunk-evaluation-result ((result chunk-evaluation-result)
-                                          (composer chunk-composer)
-                                          (mode (eql :no-open-vars)))
+(defmethod chunk-evaluation-goal-test ((result chunk-evaluation-result)
+                                       (composer chunk-composer)
+                                       (mode (eql :no-open-vars)))
   (declare (ignorable composer))
   (not (open-vars (chunk result))))
+

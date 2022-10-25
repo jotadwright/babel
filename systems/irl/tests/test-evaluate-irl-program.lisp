@@ -9,35 +9,42 @@
 
 (deftest test-evaluate-primitive-in-program ()
          ;; both given consistent
-         (test-assert (= 1 (length (evaluate-primitive-in-program 
-                                    '(pick-apples ?var-1 ?var-2)
-                                    (list (make-instance 'binding
-                                                         :var '?var-1
-                                                         :score 0.5
-                                                         :value (make-apples-set 20))
-                                          (make-instance
-                                           'binding
-                                           :var '?var-2
-                                           :score 0.5
-                                           :value (make-instance 'quantity :n 20)))
-                                    *test-ontology*
-                                    *apple-counting-inventory*))))
+         (multiple-value-bind (succeeded-results failed-results)
+             (evaluate-primitive-in-program 
+              '(pick-apples ?var-1 ?var-2)
+              (list (make-instance 'binding
+                                   :var '?var-1
+                                   :score 0.5
+                                   :value (make-apples-set 20))
+                    (make-instance
+                     'binding
+                     :var '?var-2
+                     :score 0.5
+                     :value (make-instance 'quantity :n 20)))
+              *test-ontology*
+              *apple-counting-inventory*)
+         (test-assert (= 1 (length succeeded-results))))
 
          ;; both given inconsistent
-         (test-assert (eq 'inconsistent
-                          (evaluate-primitive-in-program
-                           '(pick-apples ?var-1 ?var-2)
-                           (list (make-instance 'binding
-                                                :var '?var-1
-                                                :score 0.5
-                                                :value (make-apples-set 20))
-                                 (make-instance
-                                  'binding
-                                  :var '?var-2
-                                  :score 0.5
-                                  :value (make-instance 'quantity :n 19)))
-                           *test-ontology*
-                           *apple-counting-inventory*))))
+         ;; TO DO; evaluate-primitive-in-program now returns 
+         ;; succeeded-results and failed-results, no longer
+         ;; the symbol inconsistent
+         (multiple-value-bind (succeeded-results failed-results)
+             (evaluate-primitive-in-program
+              '(pick-apples ?var-1 ?var-2)
+              (list (make-instance 'binding
+                                   :var '?var-1
+                                   :score 0.5
+                                   :value (make-apples-set 20))
+                    (make-instance
+                     'binding
+                     :var '?var-2
+                     :score 0.5
+                     :value (make-instance 'quantity :n 19)))
+              *test-ontology*
+              *apple-counting-inventory*)
+           (test-assert (= 1 (length failed-results)))
+           (test-assert (eql 'inconsistent (per-status (first failed-results))))))
 ;; (test-evaluate-primitive-in-program)
 
 

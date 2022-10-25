@@ -8,8 +8,9 @@
 (export '(entity id equal-entity))
 
 (defclass entity ()
-  ((id :type symbol :initarg :id :accessor id
-       :documentation "A symbol that should be unique within an ontology."))
+  ((id
+    :type symbol :initarg :id :accessor id
+    :documentation "A symbol that should be unique within an ontology."))
   (:documentation "Everything that can be bound to a slot of a
                    primitive is an (semantic) entity."))
 
@@ -21,11 +22,10 @@
   (format stream "<~(~a~) ~(~a~)>" (type-of entity) (id entity)))
 
 (defmethod copy-object-content ((entity entity) (copy entity))
-  )
+  (setf (id copy) (id entity)))
 
 (defun irl-equal (a b)
-  (or (eq a b)
-      (eql a b)
+  (or (eq a b) (eql a b)
       (eql (internal-symb a) (internal-symb b))))
 
 (defun make-entity (id)

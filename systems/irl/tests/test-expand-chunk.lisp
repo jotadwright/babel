@@ -1,9 +1,15 @@
 
 (in-package :irl)
 
-(defprimitive foo ((a string) (b number) (c string)))
-(defprimitive bar ((a number) (b string)))
-(defprimitive baz ((a string) (b string)))
+(def-irl-primitives expand-chunk-inventory
+  :primitive-inventory *expand-chunk-inventory*)
+
+(defprimitive foo ((a string) (b number) (c string))
+              :primitive-inventory *expand-chunk-inventory*)
+(defprimitive bar ((a number) (b string))
+              :primitive-inventory *expand-chunk-inventory*)
+(defprimitive baz ((a string) (b string))
+              :primitive-inventory *expand-chunk-inventory*)
 
 (deftest test-expand-chunk (&key (show-results nil))
   
@@ -22,7 +28,8 @@
                                          :id 'chunk-2
                                          :irl-program '((baz ?s1 ?s2) (baz ?s2 ?s3))
                                          :target-var '(?s1 . string)
-                                         :open-vars '((?s3 . string))))))
+                                         :open-vars '((?s3 . string))))
+                         :primitive-inventory *expand-chunk-inventory*))
          (chunks-and-source-chunks
           (loop for mode in (list :combine-program
                                   :combine-call-pattern
