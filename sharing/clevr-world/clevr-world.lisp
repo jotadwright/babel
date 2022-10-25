@@ -200,9 +200,9 @@
 (defmethod copy-object ((scene clevr-scene))
   (make-instance 'clevr-scene :id (id scene)
                  :index (copy-object (index scene))
-                 :source-path (parse-namestring (copy-object (namestring (source-path scene))))
+                 :source-path (copy-object (source-path scene))
                  :data-set (copy-object (data-set scene))
-                 :image (parse-namestring (copy-object (namestring (image scene))))
+                 :image (copy-object (image scene))
                  :objects (copy-object (objects scene))))
 
 (defmethod print-object ((scene clevr-scene) stream)
@@ -610,6 +610,7 @@
 (defun complete-digits (index)
   "Given an index (as string), prepend zeros
    until it is 6 digits long"
+  ;; this can be done using a format statement
   (format nil "~6,'0d" index))
 
 (defun load-clevr-scene (filename)

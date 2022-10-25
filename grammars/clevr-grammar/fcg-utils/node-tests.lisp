@@ -1,6 +1,7 @@
-;;;; node-test.lisp
-
 (in-package :fcg)
+
+;;;; custom node test for clevr grammar
+;;;; ----------------------------------
 
 (defmethod cip-node-test ((node cip-node) (mode (eql :connected-structure-for-morph)))
   "If a hashed-morph cxn applied in formulation,

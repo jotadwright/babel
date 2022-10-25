@@ -1,5 +1,3 @@
-;;;; cxn-supplier.lisp
-
 (in-package :fcg)
 
 ;;;; custom cxn-supplier for clevr-grammar
@@ -8,6 +6,7 @@
 ;;;; cxn-supplier-with-hash+ordered-labels in that
 ;;;; the hash-compatible cxns are recomputed at
 ;;;; every node, even within the same label.
+
 
 (defclass cxn-supplier-with-ordered-labels-hashed
           (cxn-supplier-with-ordered-labels)
@@ -20,7 +19,7 @@
   (let ((parent (car (all-parents node))))
     (if parent
       ;; copy most of the stuff from the the pool of the parent
-      ;; recompute the hash-compatible cxns (with label) every time!
+      ;; !! recompute the hash-compatible cxns (with label) every time !!
       (make-instance 
        'cxn-supplier-with-ordered-labels-hashed
        :current-label (current-label (cxn-supplier parent))

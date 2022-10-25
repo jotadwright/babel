@@ -21,10 +21,13 @@
                (split -)
                (anaphoric -))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?the-same
                (HASH meaning ((equal? ?target ?src-1 ?src-2 ?attribute)
-                              (query ?src-1 ?object-1 ?attribute)
-                              (query ?src-2 ?object-2 ?attribute)))
+                              (query ?src-1 ?object-1 ?scene ?attribute)
+                              (query ?src-2 ?object-2 ?scene ?attribute)))
                --
                (HASH form ((string ?the-same "the same")
                            (meets ?the-same ?type-unit))))
@@ -56,6 +59,9 @@
               (?the-same-as
                (HASH form ((precedes ?of ?the-same-as))))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?the
                (HASH meaning ((equal? ?target ?src-1 ?src-2 ?attribute)))
                --
@@ -71,12 +77,12 @@
                (syn-cat (lex-class noun))
                (sem-cat (sem-class attribute)))
               (?of
-               (HASH meaning ((query ?src-1 ?object-1 ?attribute)))
+               (HASH meaning ((query ?src-1 ?object-1 ?scene ?attribute)))
                --
                (HASH form ((string ?of "of")
                            (meets ?type-unit ?of))))
               (?the-same-as
-               (HASH meaning ((query ?src-2 ?object-2 ?attribute)))
+               (HASH meaning ((query ?src-2 ?object-2 ?scene ?attribute)))
                --
                (HASH form ((string ?the-same-as "the same as")
                            ;(precedes ?of ?the-same-as)
@@ -98,6 +104,9 @@
                (split -)
                (anaphoric +))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?the-same
                (HASH meaning ((equal? ?target ?src-1 ?src-2 ?attribute)))
                --
@@ -114,8 +123,8 @@
                (HASH form ((meets ?the-same ?type-unit)
                            (meets ?type-unit ?as))))
               (?as
-               (HASH meaning ((query ?src-1 ?object-1 ?attribute)
-                              (query ?src-2 ?object-2 ?attribute)))
+               (HASH meaning ((query ?src-1 ?object-1 ?scene ?attribute)
+                              (query ?src-2 ?object-2 ?scene ?attribute)))
                --
                (HASH form ((string ?as "as")))))
              :cxn-set cxn
@@ -135,6 +144,9 @@
                (split +)
                (anaphoric +))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?type-unit
                (args ((target ?attribute)))
                (syn-cat (lex-class noun))
@@ -146,8 +158,8 @@
                (sem-cat (sem-class attribute)))
               (?the-same-as
                (HASH meaning ((equal? ?target ?src-1 ?src-2 ?attribute)
-                              (query ?src-1 ?object-1 ?attribute)
-                              (query ?src-2 ?object-2 ?attribute)))
+                              (query ?src-1 ?object-1 ?scene ?attribute)
+                              (query ?src-2 ?object-2 ?scene ?attribute)))
                --
                (HASH form ((string ?the-same-as "the same as")
                            (meets ?type-unit ?the-same-as)))))
@@ -157,17 +169,20 @@
 ;; compare-do <- "do" + np1 + "and" + np2 + "have" + compare-type
 (def-fcg-cxn compare-do-cxn
              ((?compare-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?target)))
                (subunits (?rel-unit-1 ?and ?rel-unit-2 ?have ?compare-type-unit)))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?compare-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
                --
                (HASH form ((string ?compare-unit "do")
                            (meets ?compare-unit ?leftmost-np-unit-1))))
               (?rel-unit-1
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?object-1)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -185,7 +200,7 @@
                            (meets ?rightmost-np-unit-1 ?and)
                            (meets ?and ?leftmost-np-unit-2))))
               (?rel-unit-2
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?object-2)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -221,12 +236,15 @@
 ;; compare-is-split <- "is" + compare-type + np1 + np2
 (def-fcg-cxn compare-is-split-cxn
              ((?compare-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?target)))
                (subunits (?compare-type-unit ?rel-unit-1 ?rel-unit-2)))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?compare-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
                --
                (HASH form ((string ?compare-unit "is")
                            (meets ?compare-unit ?leftmost-compare-unit))))
@@ -245,7 +263,7 @@
                (HASH form ((meets ?rightmost-np-unit-1 ?rightmost-compare-unit)
                            (meets ?rightmost-compare-unit ?leftmost-np-unit-2))))
               (?rel-unit-1
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?object-1)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -258,7 +276,7 @@
                (leftmost-unit ?leftmost-np-unit-1)
                (rightmost-unit ?rightmost-np-unit-1))
               (?rel-unit-2
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?object-2)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -277,17 +295,20 @@
 ;; compare-is <- "is" + np1 + compare-unit + np2
 (def-fcg-cxn compare-is-cxn
              ((?compare-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?target)))
                (subunits (?rel-unit-1 ?compare-type-unit ?rel-unit-2)))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?compare-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
                --
                (HASH form ((string ?compare-unit "is")
                            (meets ?compare-unit ?leftmost-np-unit-1))))
               (?rel-unit-1
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?object-1)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -314,7 +335,7 @@
                (HASH form ((meets ?rightmost-np-unit-1 ?leftmost-compare-unit)
                            (meets ?rightmost-compare-unit ?leftmost-np-unit-2))))
               (?rel-unit-2
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?object-2)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -334,17 +355,20 @@
 ;; compare-does <- "does" + np1 + "have" + compare-unit + np2
 (def-fcg-cxn compare-does-cxn
              ((?compare-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?target)))
                (subunits (?rel-unit-1 ?have ?compare-type-unit ?rel-unit-2)))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?compare-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
                --
                (HASH form ((string ?compare-unit "does")
                            (meets ?compare-unit ?leftmost-np-unit-1))))
               (?rel-unit-1
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?object-1)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -375,7 +399,7 @@
                (rightmost-unit ?rightmost-compare-unit)
                (HASH form ((meets ?rightmost-compare-unit ?leftmost-np-unit-2))))
               (?rel-unit-2
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?object-2)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -394,12 +418,12 @@
 ;; compare-anaphoric-does <- np1 + ";" + "does it have" + compare-unit + np2
 (def-fcg-cxn compare-anaphoric-does-cxn
              ((?compare-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?target)))
                (subunits (?rel-unit-1 ?semicolon ?compare-type-unit ?rel-unit-2)))
               <-
               (?rel-unit-1
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?object-1)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite -))
@@ -416,8 +440,11 @@
                (HASH form ((string ?semicolon ";")
                            (meets ?rightmost-np-unit-1 ?semicolon)
                            (meets ?semicolon ?compare-unit))))
+              (scene-unit
+               --
+               (scene ?scene))
               (?compare-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
                --
                (HASH form ((string ?compare-unit "does it have")
                            (meets ?compare-unit ?leftmost-compare-unit))))
@@ -435,7 +462,7 @@
                (rightmost-unit ?rightmost-compare-unit)
                (HASH form ((meets ?rightmost-compare-unit ?leftmost-np-unit-2))))
               (?rel-unit-2
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?object-2)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -455,12 +482,12 @@
 ;; compare-anaphoric-is <- np1 + ";" + "is it" + compare-unit + np2
 (def-fcg-cxn compare-anaphoric-is-cxn
              ((?compare-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?target)))
                (subunits (?rel-unit-1 ?semicolon ?compare-type-unit ?rel-unit-2)))
               <-
               (?rel-unit-1
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?object-1)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite -))
@@ -477,8 +504,11 @@
                (HASH form ((string ?semicolon ";")
                            (meets ?rightmost-np-unit-1 ?semicolon)
                            (meets ?semicolon ?compare-unit))))
+              (scene-unit
+               --
+               (scene ?scene))
               (?compare-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
                --
                (HASH form ((string ?compare-unit "is it")
                            (meets ?compare-unit ?leftmost-compare-unit))))
@@ -496,7 +526,7 @@
                (rightmost-unit ?rightmost-compare-unit)
                (HASH form ((meets ?rightmost-compare-unit ?leftmost-np-unit-2))))
               (?rel-unit-2
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?object-2)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -515,12 +545,12 @@
 ;; compare-anaphoric-is-split <- np1 + ";" + "is its" + compare-unit + np2
 (def-fcg-cxn compare-anaphoric-is-split-cxn
              ((?compare-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?target)))
                (subunits (?rel-unit-1 ?semicolon ?compare-type-unit ?rel-unit-2)))
               <-
               (?rel-unit-1
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?object-1)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite -))
@@ -537,8 +567,11 @@
                (HASH form ((string ?semicolon ";")
                            (meets ?rightmost-np-unit-1 ?semicolon)
                            (meets ?semicolon ?compare-unit))))
+              (scene-unit
+               --
+               (scene ?scene))
               (?compare-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
                --
                (HASH form ((string ?compare-unit "is its")
                            (meets ?compare-unit ?leftmost-compare-unit))))
@@ -556,7 +589,7 @@
                (rightmost-unit ?rightmost-compare-unit)
                (HASH form ((meets ?rightmost-compare-unit ?leftmost-np-unit-2))))
               (?rel-unit-2
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?object-2)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -575,17 +608,20 @@
 ;; EXCEPTIONS
 (def-fcg-cxn compare-are-material-cxn
              ((?compare-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?target)))
                (subunits (?rel-unit-1 ?and ?rel-unit-2 ?made-of ?compare-type-unit)))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?compare-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
                --
                (HASH form ((string ?compare-unit "are")
                            (meets ?compare-unit ?leftmost-np-unit-1))))
               (?rel-unit-1
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?object-1)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -603,7 +639,7 @@
                            (meets ?rightmost-np-unit-1 ?and)
                            (meets ?and ?leftmost-np-unit-2))))
               (?rel-unit-2
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?object-2)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -638,17 +674,20 @@
               
 (def-fcg-cxn compare-is-material-cxn
              ((?compare-unit
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?target)))
                (subunits (?rel-unit-1 ?made-of ?compare-type-unit ?rel-unit-2)))
               <-
+              (scene-unit
+               --
+               (scene ?scene))
               (?compare-unit
-               (HASH meaning ((get-context ?context)))
+               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
                --
                (HASH form ((string ?compare-unit "is")
                            (meets ?compare-unit ?leftmost-np-unit-1))))
               (?rel-unit-1
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?object-1)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
@@ -679,7 +718,7 @@
                (rightmost-unit ?rightmost-compare-unit)
                (HASH form ((meets ?rightmost-compare-unit ?leftmost-np-unit-2))))
               (?rel-unit-2
-               (args ((sources ?context)
+               (args ((sources ?segmented-scene)
                       (target ?object-2)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (definite +))
