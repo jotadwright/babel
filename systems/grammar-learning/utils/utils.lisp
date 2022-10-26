@@ -1146,14 +1146,31 @@
 
 
 (defmethod extract-args-from-meaning-networks (child-meaning parent-meaning (mode (eql :geo)))
-  (extract-args-from-meaning-networks child-meaning parent-meaning :amr))
+  (sort (extract-args-from-meaning-networks child-meaning parent-meaning :amr) #'string< :key #'symbol-name))
 
 (defmethod extract-args-from-meaning-networks (child-meaning parent-meaning (mode (eql :amr)))
   "look up the vars from the child network in the parent network, if found, it's an arg that connects"
-  (loop for el in (remove-duplicates (apply 'concatenate 'list child-meaning))
-        when (and (variable-p el)
-                  (find el (apply 'concatenate 'list parent-meaning)))
-                 collect el))
+  (remove-duplicates
+   (append
+    (loop for el in (remove-duplicates (apply 'concatenate 'list child-meaning))
+                                   when (and (variable-p el)
+                                             (find el (apply 'concatenate 'list parent-meaning)))
+                                   collect el)
+    (extract-unbound-vars child-meaning))))
+
+(defun extract-open-vars (meaning-network)
+  "Get all variables which are used only once in the same network. Loop through all unique vars (?a ?b ?c), subtract them once from the list of all vars (?a ?a ?b ?c), the remaining vars are the reused ones (?a). Then take the set-diff of the unique vars and the reused ones to find the open vars (?b ?c)."
+  (let* ((all-vars (remove-if-not #'variable-p (apply 'concatenate 'list meaning-network)))
+         (unique-vars (remove-duplicates all-vars))
+         (reused-vars (remove-duplicates (loop with vars-to-check = (copy-object all-vars)
+                                              for var in unique-vars
+                                              when (member var vars-to-check)
+                                              do (setf vars-to-check (delete var vars-to-check :count 1))
+                                              finally (return vars-to-check))))
+         (open-vars (set-difference unique-vars reused-vars)))
+    open-vars))
+         
+
 
 (defun extract-args-from-resulting-unit (unit)
   (second (find 'args (rest unit) :key #'first)))
