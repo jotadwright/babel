@@ -1,6 +1,6 @@
 (in-package #:snooze-common)
 
-
+
 ;;; Verbs
 ;;;
 ;;; "Sending" and "Receiving" are always from the server's
@@ -26,7 +26,7 @@
 (defun destructive-p (verb) (or (typep verb 'snooze-verbs:receiving-verb)
                                 (typep verb 'snooze-verbs:delete)))
 
-
+
 ;;; Content-types
 ;;;
 ;;; For PUT and POST requests we match routes based on what the client
@@ -116,7 +116,7 @@
   (get (class-name (find-content-class designator)) 'name))
 
 
-
+
 ;;; Resources
 ;;;
 (defun resource-p (thing)
@@ -320,7 +320,7 @@ As a second value, return what RFC2388:PARSE-HEADER"
       (nth ct-arg-pos (closer-mop:method-specializers (first applicable))))))
 
 
-
+
 ;;; Internal symbols of :SNOOZE
 ;;;
 (in-package :snooze)
@@ -520,7 +520,7 @@ As a second value, return what RFC2388:PARSE-HEADER"
          ,@defgeneric-args))))
 
 
-
+
 ;;; Some external stuff but hidden away from the main file
 ;;;
 (defmethod explain-condition-failsafe (condition resource &optional verbose-p)
@@ -659,7 +659,7 @@ key-value-pair \"~a\" and \"~a\" when it caught ~a"
       (format s "~&~%I don't have a backtrace for the ~a:~%~%"
               (original-condition c))))
 
-
+
 ;;; More internal stuff
 ;;;
 
@@ -911,7 +911,7 @@ EXPLAIN-CONDITION.")
                                              payload
                                              (content-class-name
                                               payload-ct)))))))))))))
-
+
 ;;; Default values for options
 ;;;
 (defun default-resource-name (uri)
@@ -945,7 +945,7 @@ EXPLAIN-CONDITION.")
   snooze-common:*all-resources*)
 
 
-
+
 ;;; Reading and writing URI's
 ;;;
 (defun resource-package (resource)

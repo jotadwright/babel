@@ -41,7 +41,7 @@
 
 (defvar fuzzy-regexp-some-char (format "\\w\\{0,%s\\}" fuzzy-accept-length-difference))
 
-
+
 
 ;;; Functions
 
@@ -127,7 +127,7 @@
         if (fuzzy-match string s)
         collect str))
 
-
+
 
 ;;; Search and Incremental Search
 

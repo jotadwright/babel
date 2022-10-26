@@ -13,3 +13,5 @@ lw-doc-0.3.6						FreeBSD License
 s-dot-1_2						Modified BSD License
 slime-extensions					Created by the group, no license on it, present in the previous release
 snooze							LLGPL License
+special-functions					MS-PL
+distributions						MS-PL

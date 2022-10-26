@@ -139,7 +139,7 @@
     (is (eq resource #'yo))
     (is (not content-type))))
 
-
+
 ;;; Some tests from the README.md
 ;;;
 (in-package :snooze-tests-demo)
@@ -295,7 +295,7 @@
                    :content-type "text/irrelevant") (code)
       (is (= 404 code)))))
 
-
+
 ;;; Genpath section
 ;;; 
 (defresource book-resource (verb content-type file user &optional
@@ -349,7 +349,7 @@
                      (arguments-to-uri resource plain-args keyword-args)))
                  uri))))
 
-
+
 ;;; SAFE-SIMPLE-READ tests
 ;;;
 (deftest safe-simple-read-back ()

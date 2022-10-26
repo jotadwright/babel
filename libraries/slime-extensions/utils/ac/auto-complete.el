@@ -41,7 +41,6 @@
 
 ;;; Code:
 
-
 
 (eval-when-compile
   (require 'cl))
@@ -57,7 +56,6 @@
     (auto-complete-mode -1)
     var))
 
-
 
 ;;;; Customization
 
@@ -264,7 +262,7 @@ a prefix doen't contain any upper case letters."
 (defvar auto-complete-mode-hook nil
   "Hook for `auto-complete-mode'.")
 
-
+
 
 ;;;; Internal variables
 
@@ -425,7 +423,7 @@ If there is no common part, this will be nil.")
 
 (defvar ac-ignoring-prefix-def nil)
 
-
+
 
 ;;;; Intelligent completion history
 
@@ -545,7 +543,7 @@ If there is no common part, this will be nil.")
       (pp (ac-comphist-serialize ac-comphist) (current-buffer))
       (write-region (point-min) (point-max) ac-comphist-file))))
 
-
+
 
 ;;;; Auto completion internals
 
@@ -1226,7 +1224,7 @@ that have been made before in this function."
   (when ac-quick-help
     (popup-scroll-up ac-quick-help)))
 
-
+
 
 ;;;; Auto completion isearch
 
@@ -1241,7 +1239,7 @@ that have been made before in this function."
     (ac-show-menu)
     (popup-isearch ac-menu :callback 'ac-isearch-callback)))
 
-
+
 
 ;;;; Auto completion commands
 
@@ -1404,7 +1402,7 @@ that have been made before in this function."
       (auto-complete)
     (ac-fallback-command 'ac-trigger-key-command)))
 
-
+
 
 ;;;; Basic cache facility
 
@@ -1437,7 +1435,7 @@ that have been made before in this function."
     (if (eq (% ac-minutes-counter (cdr pair)) 0)
         (set (car pair) nil))))
 
-
+
 
 ;;;; Auto complete mode
 
@@ -1534,7 +1532,7 @@ that have been made before in this function."
   auto-complete-mode auto-complete-mode-maybe
   :group 'auto-complete)
 
-
+
 
 ;;;; Compatibilities with other extensions
 
@@ -1547,7 +1545,7 @@ This workaround avoid flyspell processes when auto completion is being started."
     (unless ac-triggered
       ad-do-it)))
 
-
+
 
 ;;;; Standard sources
 
