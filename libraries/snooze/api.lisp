@@ -266,7 +266,7 @@ BACKEND defaults to *BACKEND*"
   (backend-payload backend (make-instance 'snooze-types:text)))
 
 
-
+
 ;;; Clack integration
 ;;;
 (defvar *clack-request-env*)
@@ -309,7 +309,7 @@ of special variables that affect Snooze, like *HOME-RESOURCE*,
     str))
 
 
-
+
 ;;; Direct hunchentoot integration
 ;;;
 (defun make-hunchentoot-app (&optional bindings)

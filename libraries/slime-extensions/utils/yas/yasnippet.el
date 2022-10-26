@@ -141,7 +141,7 @@
 (require 'assoc)
 (require 'easymenu)
 
-
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User customizable variables
 
@@ -401,7 +401,7 @@ This cafn only work when snippets are loaded from files."
   "The face used for debugging some overlays normally hidden"
   :group 'yasnippet)
 
-
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User can also customize the next defvars
 (defun yas/define-some-keys (keys keymap definition)
@@ -511,7 +511,7 @@ snippet itself contains a condition that returns the symbol
 `force-in-comment'.")
 (make-variable-buffer-local 'yas/buffer-local-condition)
 
-
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Internal variables
 
@@ -559,7 +559,7 @@ snippet itself contains a condition that returns the symbol
     (incf yas/snippet-id-seed)
     id))
 
-
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Minor mode stuff
 
@@ -917,7 +917,7 @@ Has the following fields:
                   namehash)
          alist)))))
 
-
+
 ;; Filtering/condition logic
 
 (defun yas/eval-condition (condition)
@@ -1032,7 +1032,7 @@ the template of a snippet in the current snippet-table."
                (yas/snippet-table-hash table))
       acc)))
 
-
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Internal functions
 
@@ -1880,7 +1880,7 @@ defined in `yas/fallback-behavior'"
              ;; also return nil if all the other fallbacks have failed
              nil)))))
 
-
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Snippet development
 
@@ -2192,7 +2192,7 @@ With optional prefix argument KILL quit the window and buffer."
           (t
            (message "[yas] Cannot test snippet for unknown major mode")))))
 
-
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; User convenience functions, for using in snippet definitions
 
@@ -2258,7 +2258,7 @@ Otherwise throw exception."
 (defun yas/inside-string ()
   (equal 'font-lock-string-face (get-char-property (1- (point)) 'face)))
 
-
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Snippet expansion and field management
 
@@ -2485,7 +2485,7 @@ Also create some protection overlays"
             (yas/check-commit-snippet))
         (yas/snippets-at-point)))
 
-
+
 ;;; Apropos markers-to-points:
 ;;;
 ;;; This was found useful for performance reasons, so that an
@@ -2724,7 +2724,7 @@ progress."
                                       (yas/field-start field))))
                (yas/skip-and-clear field))
              (setf (yas/field-modified-p field) t))))))
-
+
 ;;; Apropos protection overlays:
 ;;;
 ;;; These exist for nasty users who will try to delete parts of the
@@ -2794,7 +2794,7 @@ The error should be ignored in `debug-ignored-errors'"
 
 (add-to-list 'debug-ignored-errors "^Exit the snippet first!$")
 
-
+
 ;;; Apropos stacked expansion:
 ;;;
 ;;; the parent snippet does not run its fields modification hooks
@@ -2969,7 +2969,7 @@ Returns the newly created snippet."
 
     snippet))
 
-
+
 ;;; Apropos adjacencies: Once the $-constructs bits like "$n" and
 ;;; "${:n" are deleted in the recently expanded snippet, we might
 ;;; actually have many fields, mirrors (and the snippet exit) in the
@@ -3438,7 +3438,7 @@ When multiple expressions are found, only the last one counts."
           (yas/advance-start-maybe (yas/field-next field) (point)))
         t))))
 
-
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Pre- and post-command hooks
 ;;

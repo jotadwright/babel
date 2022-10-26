@@ -28,7 +28,6 @@
 (eval-when-compile
   (require 'cl))
 
-
 
 ;; Utilities
 
@@ -171,8 +170,6 @@ SQUEEZE nil means leave whitespaces other than line breaks untouched."
           (popup-aif (get event 'event-symbol-element-mask)
               (funcall function (vector (logior (or (get (car it) 'ascii-character) 0)
                                                 (cadr it))))))))
-
-
 
 ;; Popup common
 
@@ -674,8 +671,6 @@ See also `popup-item-propertize'."
           (popup-scroll-top popup) scroll-top)
     (popup-draw popup)))
 
-
-
 ;; Popup isearch
 
 (defface popup-isearch-match
@@ -776,8 +771,6 @@ See also `popup-item-propertize'."
       (if old-cursor-color
           (set-cursor-color old-cursor-color)))))
 
-
-
 ;; Popup tip
 
 (defface popup-tip-face
@@ -844,8 +837,6 @@ See also `popup-item-propertize'."
           t))
     (unless nowait
       (popup-delete tip))))
-
-
 
 ;; Popup menu
 
