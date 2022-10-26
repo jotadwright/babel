@@ -1156,7 +1156,7 @@
                                    when (and (variable-p el)
                                              (find el (apply 'concatenate 'list parent-meaning)))
                                    collect el)
-    (extract-unbound-vars child-meaning))))
+    (extract-open-vars child-meaning))))
 
 (defun extract-open-vars (meaning-network)
   "Get all variables which are used only once in the same network. Loop through all unique vars (?a ?b ?c), subtract them once from the list of all vars (?a ?a ?b ?c), the remaining vars are the reused ones (?a). Then take the set-diff of the unique vars and the reused ones to find the open vars (?b ?c)."
