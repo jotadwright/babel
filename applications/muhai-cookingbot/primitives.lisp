@@ -317,6 +317,9 @@
                (target-container 0.0 target-container-instance-old-ks nil))))))
   )
 
+; TODO RD: 
+; * quantity more than 1?
+; * Should it still be used for something conceptualizable or should it be a cooking-utensil? This can now be called with ingredients still (is this something we want)
 (defprimitive fetch ((thing-fetched kitchen-entity)
                      (kitchen-state-out kitchen-state)
                      (kitchen-state-in kitchen-state)
@@ -358,7 +361,7 @@
                                     (ingredient-concept conceptualizable)
                                     (quantity quantity)
                                     (unit unit))
-  ;; Takes a specified amount of an ingredient from somewhere in the kitchen and places it in
+  ;; Takes a specified amount of an ingredient from somewhere in the kitchen and places it in an empty medium bowl
   ((kitchen-state-in ingredient-concept quantity unit =>  kitchen-state-out container-with-ingredient target-container)
 
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
@@ -609,7 +612,7 @@
                     (baking-tray lineable)
                     (baking-paper can-be-lined-with))
 
-  ;; Case 1
+  ;; Case 1; baking paper to line with is given
   ((kitchen-state-in baking-tray baking-paper => kitchen-state-out lined-baking-tray)
    
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
@@ -779,15 +782,6 @@
          
           (bind (container-with-mixture 1.0 new-container-with-ingredients-to-mix container-available-at)
                 (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
-  
-
-
-
-
-
-
-
-
 
 (defprimitive portion-and-arrange ((portions list-of-kitchen-entities)
                                    (kitchen-state-out kitchen-state)
@@ -899,6 +893,7 @@
      (multiple-value-bind (target-container-in-kitchen-input-state target-container-original-location)
          (find-unused-kitchen-entity 'large-bowl kitchen-state-in)
 
+      ; TODO RD: make find-object-by-persistent-id recursive?
        (let ((target-container-instance
               (find-object-by-persistent-id target-container-in-kitchen-input-state
                                             (funcall (type-of target-container-original-location) new-kitchen-state)))
@@ -1023,15 +1018,6 @@
      
         (bind (transferred 1.0 new-destination container-available-at)
               (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
-
-(defun find-kitchen-entities (list-of-kitchen-entities countertop)
-  (let ((new-list-of-kitchen-entities (copy-object list-of-kitchen-entities)))
-    (setf (items new-list-of-kitchen-entities) nil)
-    (loop for item in (items list-of-kitchen-entities)
-          for thing in (contents countertop)
-          when (eq (persistent-id item) (persistent-id thing))
-          do (push thing (items new-list-of-kitchen-entities))
-          finally (return new-list-of-kitchen-entities))))
 
 (defprimitive shape ((shaped-portions list-of-kitchen-entities)
                      (kitchen-state-out kitchen-state)
@@ -1235,6 +1221,7 @@
                                                               :quantity (make-instance 'quantity
                                                                                        :value quantity-per-item)
                                                               :unit (make-instance spread-unit)))
+              ; TODO RD: shouldn't portioned-spread have spread set to t, not the item?                                                
               (setf (spread item) t)
               (setf (spread-with item) portioned-spread))
 
@@ -1282,6 +1269,7 @@
                                                                   :quantity (make-instance 'quantity
                                                                                            :value quantity-per-item)
                                                                   :unit (make-instance spread-unit)))
+                  ; TODO RD: should portioned-spread have spread set to t?  
                   (setf (spread-with item) portioned-spread))
 
          (setf (contents new-spread-container) nil)
@@ -1291,6 +1279,7 @@
                (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
                (can-spread-kitchen-tool 0.0 spreading-tool container-available-at)))
 
+      ; TODO RD: we spread on the container itself, why is this unsupported in case 1? Should the spread ingredient still be set to spread?
        (progn
          (setf (contents new-container-with-things-spread) (contents container-with-spread))
 
@@ -1300,8 +1289,6 @@
          (bind (container-with-objects-that-have-been-spread 1.0 new-container-with-things-spread container-available-at)
                (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
                (can-spread-kitchen-tool 0.0 spreading-tool container-available-at)))))))
-
-
 
 (defprimitive sprinkle ((sprinkled-object transferable-container)
                         (kitchen-state-out kitchen-state)
@@ -1346,6 +1333,7 @@
 ;; Helper functions
 ;;--------------------------------------------------------------------------
 
+; TODO RD: not consistently used
 (defun retrieve-concept-instance-and-bring-to-countertop (kitchen-concept kitchen-state)
   "Returns an instance of the given concept that has been put on the countertop."
   (multiple-value-bind (target-object-in-kitchen-input-state target-object-original-location)
@@ -1494,34 +1482,48 @@
                          (found-item (if contents-current-item (find-object-by-persistent-id object item))))
                     (when found-item (return found-item)))))))
 
+; TODO RD: Does this method have any use? A kitchen-state is a container so actually the method above will already do the same thing?
 ;; find an object with the same id as the specified object inside the entire kitchen state
-(defmethod find-object-by-persistent-id ((object kitchen-entity) (kitchen-state kitchen-state))
-  (let ((current-fridge (fridge kitchen-state))
-        (current-freezer (freezer kitchen-state))
-        (current-pantry (pantry kitchen-state))
-        (current-kitchen-cabinet (kitchen-cabinet kitchen-state))
-        (current-counter-top (counter-top kitchen-state))
-        (current-oven (oven kitchen-state)))
-    (cond ((eq (persistent-id object) (persistent-id current-fridge))
-           current-fridge)
-          ((eq (persistent-id object) (persistent-id current-freezer))
-           current-freezer)
-          ((eq (persistent-id object) (persistent-id current-pantry))
-           current-pantry)
-          ((eq (persistent-id object) (persistent-id current-kitchen-cabinet))
-           current-kitchen-cabinet)
-          ((eq (persistent-id object) (persistent-id current-counter-top))
-           current-counter-top)
-          ((eq (persistent-id object) (persistent-id current-oven))
-           current-oven)
-          (T
-           (or (find-object-by-persistent-id object (counter-top kitchen-state))
-               (find-object-by-persistent-id object current-fridge)
-               (find-object-by-persistent-id object current-freezer)
-               (find-object-by-persistent-id object current-pantry)
-               (find-object-by-persistent-id object current-kitchen-cabinet)
-               (find-object-by-persistent-id object current-oven))))))
+;(defmethod find-object-by-persistent-id ((object kitchen-entity) (kitchen-state kitchen-state))
+;  (let ((current-fridge (fridge kitchen-state))
+;        (current-freezer (freezer kitchen-state))
+;        (current-pantry (pantry kitchen-state))
+;        (current-kitchen-cabinet (kitchen-cabinet kitchen-state))
+;        (current-counter-top (counter-top kitchen-state))
+;        (current-oven (oven kitchen-state))
+;        (current-stove (stove kitchen-state)))
+;    (cond ((eq (persistent-id object) (persistent-id current-fridge))
+;           current-fridge)
+;          ((eq (persistent-id object) (persistent-id current-freezer))
+;           current-freezer)
+;          ((eq (persistent-id object) (persistent-id current-pantry))
+;           current-pantry)
+;          ((eq (persistent-id object) (persistent-id current-kitchen-cabinet))
+;           current-kitchen-cabinet)
+;          ((eq (persistent-id object) (persistent-id current-counter-top))
+;           current-counter-top)
+;          ((eq (persistent-id object) (persistent-id current-oven))
+;           current-oven)
+;           ((eq (persistent-id object) (persistent-id current-stove))
+;           current-stove)
+;          (T
+;           (or (find-object-by-persistent-id object (counter-top kitchen-state))
+;               (find-object-by-persistent-id object current-fridge)
+;               (find-object-by-persistent-id object current-freezer)
+;               (find-object-by-persistent-id object current-pantry)
+;               (find-object-by-persistent-id object current-kitchen-cabinet)
+;               (find-object-by-persistent-id object current-oven)
+;               (find-object-by-persistent-id object current-stove))))))
 
+;; find all kitchen entities in the list that are on the countertop
+(defun find-kitchen-entities (list-of-kitchen-entities countertop)
+  (let ((new-list-of-kitchen-entities (copy-object list-of-kitchen-entities)))
+    (setf (items new-list-of-kitchen-entities) nil)
+    (loop for item in (items list-of-kitchen-entities)
+          for thing in (contents countertop)
+          when (eq (persistent-id item) (persistent-id thing))
+          do (push thing (items new-list-of-kitchen-entities))
+          finally (return new-list-of-kitchen-entities))))
 
 (defun create-homogeneous-mixture-in-container (container)
   (let* ((total-value (loop for ingredient in (contents container)
@@ -1584,7 +1586,7 @@
       (let ((ingredient-type (type-of copied-ingredient))
             (source-unit-type (type-of (unit (amount copied-ingredient)))))
         (multiple-value-bind (conversion-rates found) (gethash ingredient-type *conversion-table-for-g*)
-          (when (null found)
+          (unless found
             (error "The ingredient ~S has no entry in the conversion table!" ingredient-type))
           (let* ((conversion-rate (assoc source-unit-type conversion-rates))
                  (converted-value (if (null conversion-rate)
