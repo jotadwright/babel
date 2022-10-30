@@ -719,7 +719,7 @@
 (activate-monitor trace-fcg)
 (clear-page)
   
-(process-uterances '(;; Ingredients
+(process-utterances '(;; Ingredients
                      "250 grams butter"
                      "4 eggs"
                      "250 grams sugar"

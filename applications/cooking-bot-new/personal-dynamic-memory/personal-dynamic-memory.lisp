@@ -62,7 +62,7 @@
                    (world-states personal-dynamic-memory))
           finally (return bindings-list))))
 
-(defun process-uterances (list-of-utterances personal-dynamic-memory &key silent)
+(defun process-utterances (list-of-utterances personal-dynamic-memory &key silent)
   
   (loop with cxn-inventory = (grammar personal-dynamic-memory)
         for utterance in list-of-utterances

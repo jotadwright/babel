@@ -150,7 +150,7 @@
 
   (add-element '((p) "The rest of this demonstration includes a trace of the FCG and IRL web monitors when executing the first steps of the recipe (and the ingredient list). FCG takes care of the language processing and maps the instruction into a procedural semantic representation. This meaning representation is then completed and executed by the IRL engine. The resulting bindings are made accessible to FCG by creating units for them in the initial transient structure of the next comprehension step. In this way, the constructions have access to the information present in the current kitchen state."))
   
-  (process-uterances '(;;;; Ingredients 
+  (process-utterances '(;;;; Ingredients 
                        "226 grams butter , room temperature"
                        "116 grams sugar"
                        "4 grams vanilla extract"
