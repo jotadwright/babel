@@ -258,7 +258,7 @@
                                      (* 5 (length (contents eggs)))))
           (kitchen-state-available-at container-available-at))
 
-     (loop for egg for i from 1 to (value (quantity (amount (first (contents new-eggs-with-shell)))))
+     (loop for i from 1 to (value (quantity (amount (first (contents new-eggs-with-shell)))))
            for egg-amount = (make-instance 'amount :quantity (make-instance 'quantity :value 50) :unit (make-instance 'g))
            for whole-egg = (make-instance 'whole-egg :amount egg-amount)
            for egg-shell = (make-instance 'egg-shell :cracked t)
@@ -299,7 +299,7 @@
 
          
          
-         (loop for egg for i from 1 to (value (quantity (amount (first (contents new-eggs-with-shell)))))
+         (loop for i from 1 to (value (quantity (amount (first (contents new-eggs-with-shell)))))
                for egg-amount = (make-instance 'amount :quantity (make-instance 'quantity :value 50) :unit (make-instance 'g))
                for whole-egg = (make-instance 'whole-egg :amount egg-amount)
                for egg-shell = (make-instance 'egg-shell :cracked t)
