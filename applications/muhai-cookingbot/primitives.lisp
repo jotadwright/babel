@@ -1420,11 +1420,11 @@
   (cond ((loop for el in (contents place)
                if (and (eql reusable-type (type-of el))
                        (not (used el)))
-               do (return t))
+               do (return t)) ; first we check if an unused element of that type could be found in general (= condition part of cond)
          (loop for el in (contents place)
                if (and (eql reusable-type (type-of el))
                        (not (used el)))
-               do (return (values el place))))
+               do (return (values el place)))) ; we go over elements again and this time we will actually return the found element and the place in which it is found (= execution part of cond)
         (t
          (loop for el in (contents place)
                if (subtypep (type-of el) 'container)
