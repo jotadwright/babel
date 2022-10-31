@@ -57,8 +57,8 @@ based on existing construction with sufficient overlap."
       (when cxn
         (let* (;; cxns and links from iterating over all repairs
                (dummy-top-args-predicate (list (append (list 'top-args) top-args)))
-               (arg-bindings (equivalent-meaning-networks overlapping-meaning-observation overlapping-meaning-cxn))
-               (renamed-top-args '()) ;; todo, do renamings: take the bindings from (arg-bindings
+               (arg-bindings (first (irl::embedding overlapping-meaning-observation overlapping-meaning-cxn)))
+               (renamed-top-args (list (append (list 'renamed-top-args) (substitute-predicate-bindings top-args arg-bindings))))
                (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn non-overlapping-form-observation 
                                                                                         non-overlapping-meaning-observation
                                                                                         (append overlapping-meaning-observation dummy-top-args-predicate)
