@@ -864,20 +864,20 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass mixture (ingredient beatable cuttable mashable meltable mixable can-be-sprinkled-with siftable
                               sprinkable bakeable shapeable dippable spreadable
                               can-be-sprinkled-on can-be-spread-upon  has-temperature shakeable)
-  ()
+  ((components :type list :initarg :components :accessor components :initform '()))
   (:documentation "An abstract class for a mixture of ingredients."))
+
+(defmethod copy-object-content ((mixture mixture) (copy mixture))
+  "Copying mixtures."
+  (setf (components copy) (copy-object (components mixture))))
 
 (defclass homogeneous-mixture (mixture flattenable)
   ()
   (:documentation "A homogeneous mixture. Components are indistinguishable from the whole."))
 
 (defclass heterogeneous-mixture (mixture)
-  ((components :type list :initarg :components :accessor components :initform '()))
+  ()
   (:documentation "A heterogeneous mixture. Components are still known."))
-
-(defmethod copy-object-content ((heterogeneous-mixture heterogeneous-mixture) (copy heterogeneous-mixture))
-  "Copying heterogeneous-mixtures."
-  (setf (components copy) (copy-object (components heterogeneous-mixture))))
 
 (defclass molasses (ingredient)
   ()

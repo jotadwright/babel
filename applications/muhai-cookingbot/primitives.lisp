@@ -1531,7 +1531,8 @@
                             sum current-value))
          (mixture (make-instance 'homogeneous-mixture :amount (make-instance 'amount
                                                                 :unit (make-instance 'g)
-                                                                :quantity (make-instance 'quantity :value total-value)))))
+                                                                :quantity (make-instance 'quantity :value total-value))
+                                 :components (contents container))))
       (setf (contents container) (list mixture))
       (setf (mixed (first (contents container))) t)
       mixture))
@@ -1544,7 +1545,7 @@
                                                                 :unit (make-instance 'g)
                                                                 :quantity (make-instance 'quantity :value total-value))
                                  :components (contents container))))
-    (setf (contents container) mixture)
+    (setf (contents container) (list mixture))
     mixture))
 
 
