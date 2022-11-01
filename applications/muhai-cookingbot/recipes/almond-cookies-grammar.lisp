@@ -78,7 +78,9 @@
 
                                    ;; baking equipment
                                    (make-instance 'baking-tray)
-                                   (make-instance 'baking-paper))))))
+                                   (make-instance 'baking-paper)))))  
+                                   
+                                   )
 
 
 (def-fcg-constructions almond-cookies-grammar
@@ -158,13 +160,13 @@
                  (lex-id degrees-celsius)))
                :feature-types ((ontology default :lookup-in-ontology)))
 
- (def-fcg-cxn °C-morph-cxn
+ (def-fcg-cxn ï¿½C-morph-cxn
                ((?degrees-celsius-unit
                  (lex-id degrees-celsius))
                 <-
                 (?degrees-celsius-unit
                  --
-                 (HASH form ((string ?degrees-celsius-unit "°C"))))))
+                 (HASH form ((string ?degrees-celsius-unit "ï¿½C"))))))
  
 
   (def-fcg-cxn cup-cxn
@@ -1365,36 +1367,60 @@
 
 ;(clear-output)
 
-
+(defparameter *init-op* `((get-kitchen ,(make-var 'kitchen-state))))
 
 (defparameter *pdm* (initialise-personal-dynamic-memory
                     *fcg-constructions*
-                    `((get-kitchen ,(make-var 'kitchen-state)))))
+                    init-op))
 
-(process-uterances '(;;;; Ingredients
-                     "226 grams butter , room temperature"
-                     "116 grams sugar"    
-                     "4 grams vanilla extract"
-                     "4 grams almond extract"
-                     "340 grams flour"
-                     "112 grams almond flour"
-                     "29 grams powdered sugar"
-                     
-                     ;;;; Instructions
-                     "beat the butter and the sugar together until light and fluffy"
-                     "add the vanilla and almond extracts and mix"
-                     "add the flour and the almond flour"
-                     "mix thoroughly"
-                     "take generous tablespoons of the dough and roll it into a small ball , about an inch in diameter , and then shape it into a crescent shape"
-                     "place onto a parchment paper lined baking sheet"
-                     "bake at 175 °C for 15 - 20 minutes" ; or until a light golden brown
-                     "dust with powdered sugar"
-                     "end"
-                     )
-                  ; *pdm*
-                   (initialise-personal-dynamic-memory
-                    *fcg-constructions*
-                    `((get-kitchen ,(make-var 'kitchen-state))))
-                   )
+(defparameter *output*
+  (multiple-value-bind (final-set-of-bindings meaning-network)
+      (process-utterances '(;;;; Ingredients
+                            "226 grams butter , room temperature"
+                            "116 grams sugar"
+                            "4 grams vanilla extract"
+                            "4 grams almond extract"
+                            "340 grams flour"
+                            "112 grams almond flour"
+                            "29 grams powdered sugar"
+
+                            ;;;; Instructions
+                            "beat the butter and the sugar together until light and fluffy"
+                            "add the vanilla and almond extracts and mix"
+                            "add the flour and the almond flour"
+                            "mix thoroughly"
+                            "take generous tablespoons of the dough and roll it into a small ball , about an inch in diameter , and then shape it into a crescent shape"
+                            "place onto a parchment paper lined baking sheet"
+                            "bake at 175 ï¿½C for 15 - 20 minutes" ; or until a light golden brown
+                            "dust with powdered sugar"
+                            "end"
+                            )
+                            ; *pdm*
+                          (initialise-personal-dynamic-memory
+                           *fcg-constructions*
+                           *init-op*)
+                          )
+    (append *init-op* meaning-network)))
+
+(length *output*)
 
 
+(defparameter *filepath* "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\test.lisp")
+(defparameter *recipe-title* "almond-crescent-cookies")
+
+(defun write-to-file (recipe-title meaning-network filepath)
+  "Write away the given output to a file with the specified filepath."
+  ; create all directories in the specified path if they do not exist yet
+  (ensure-directories-exist filepath)
+  
+  ; write the output to the file at the specified path
+  (let ((output-stream (open filepath
+                             :if-does-not-exist :create
+                             :direction :output
+                             :if-exists :overwrite)))
+    (write-line (concatenate 'string "#" recipe-title) output-stream)
+    (dolist (prim-op meaning-network)
+      (format output-stream "~(~a~)~%" prim-op))
+    (close output-stream)))
+
+(write-to-file *recipe-title* *output* *filepath*)
