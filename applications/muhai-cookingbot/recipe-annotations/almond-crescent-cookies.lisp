@@ -1,3 +1,5 @@
+(ql:quickload :muhai-cookingbot)
+
 (in-package :muhai-cookingbot)
 
 ;; The 'trace-irl' monitor will make sure that
@@ -148,6 +150,11 @@
 ;; ======================
 ;; Evaluate the recipe
 ;; ======================
+
+;(activate-monitor trace-fcg)
+;(activate-monitor trace-irl)
+
+;(clear-output)
 
 ;(evaluate-irl-program *extended-recipe* nil)
 
