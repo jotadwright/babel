@@ -893,7 +893,7 @@
      (multiple-value-bind (target-container-in-kitchen-input-state target-container-original-location)
          (find-unused-kitchen-entity 'large-bowl kitchen-state-in)
 
-      ; TODO RD: make find-object-by-persistent-id recursive?
+      ; TODO RD: find is already recursive?
        (let ((target-container-instance
               (find-object-by-persistent-id target-container-in-kitchen-input-state
                                             (funcall (type-of target-container-original-location) new-kitchen-state)))
