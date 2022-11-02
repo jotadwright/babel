@@ -447,32 +447,6 @@
 ;; Evaluate subgoals ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; find an object with the same id as the specified object inside the container
-(defmethod find-object-by-persistent-id ((object kitchen-entity) (container container))
-  (loop for item in (contents container)
-        do (cond ((eq (persistent-id item) (persistent-id object))
-                  (return item))
-                 ((subtypep (type-of item) 'container)
-                  (let* ((contents-current-item (contents item))
-                         (found-item (if contents-current-item (find-object-by-persistent-id object item))))
-                    (when found-item (return found-item)))))))
-
-(defun find-location (object place mother-path)
-    (cond ((loop for el in (contents place)
-                 if (eql (persistent-id object) (persistent-id el))
-                   do (return t))
-           (loop for el in (contents place)
-                 if (eql (persistent-id object) (persistent-id el))
-                   do (return (list place)))
-          (t
-           (loop for el in (contents place)
-               if (subtypep (type-of el) 'container)
-               do (let ((location (find-location object el place)))
-                    (cond ((location
-                            (return (append mother-path (list place)))))
-                          ((t
-                            return '())))))))))
-
 (defun get-predicate-name (prim-op)
   (first prim-op))
 
@@ -513,21 +487,40 @@
           if (eql (type-of (value binding)) 'kitchen-state)
             do (return (value binding)))))
 
+(defun find-location (object place)
+    (cond ((loop for el in (contents place)
+                 if (eql (persistent-id object) (persistent-id el))
+                   do (return t))
+           (loop for el in (contents place)
+                 if (eql (persistent-id object) (persistent-id el))
+                   do (return (list place))))
+          (t
+           (loop for el in (contents place)
+               if (subtypep (type-of el) 'container)
+               do (let ((location (find-location object el)))
+                    (when location
+                      (return (append (list place) location))))))))
+
+(defun check-location-and-similarity 
+
 (defun evaluate-subgoals (sol-node gold-node)
   (let* ((gold-nodes (get-node-sequence gold-node))
          (filtered-gold-nodes (remove-if #'(lambda (node) (eql (get-predicate-name (irl::primitive-under-evaluation node)) 'get-kitchen)) gold-nodes))
          (gold-outputs (mapcar #'get-output-value filtered-gold-nodes))
          (gold-states (mapcar #'get-output-kitchen-state filtered-gold-nodes))
+         (gold-location (mapcar #'find-location gold-outputs gold-states))
 
          (sol-nodes (get-node-sequence sol-node))
          (filtered-sol-nodes (remove-if #'(lambda (node) (eql (get-predicate-name (irl::primitive-under-evaluation node)) 'get-kitchen)) sol-nodes))
          (sol-outputs (mapcar #'get-output-value filtered-sol-nodes))
          (sol-states (mapcar #'get-output-kitchen-state filtered-sol-nodes))
+         (sol-location (mapcar #'find-location sol-outputs sol-states))
          
          (goals-reached '())
          (goals-failed '()))
     (loop for gold-output in gold-outputs
-          for gold-states in gold-states
+          for gold-state in gold-states
+          for gold-location in gold-locations
           for sol-output = (find-if #'(lambda (sol-output) (similar-entities gold-output sol-output)) sol-outputs)
           if sol-output
              do
@@ -574,8 +567,8 @@
 
 ;test
 
-(defun testos (x) (print (time-ratio x)))
-(testos (first test))
+;(defun testos (x) (print (time-ratio x)))
+;(testos (first test))
 
 ;(print-results test)
   
