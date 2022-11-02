@@ -357,93 +357,6 @@
                      (slot-value object-2  o1-slotname)
                      ignore)))))
 
-;; Approach with ingredient unfolding ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-; same as a regular ingredient, except it also contains a pointer to the mixture it belongs to
-; this pointer is not added to regular ingredients because of infinite loop issues in visualization
-(defclass sim-ingredient ()
-  ((ingredient :type ingredient :initarg :ingredient :accessor ingredient :initform nil)
-   (part-of :initarg :part-of :accessor part-of :initform nil))
-  (:documentation "For ingredients in simulation."))
-
-(defmethod unfold-mixture ((mixture-to-unfold mixture))
-  (let ((comps (components mixture-to-unfold))
-        (unfolded-comps '()))
-    (loop for comp in comps
-          do
-          (cond ((subtypep (type-of comp) 'mixture)
-                 (let ((unfolded-sub-comps (unfold-mixture comp)))
-                   (nconc unfolded-comps unfolded-sub-comps)))
-                ((subtypep (type-of comp) 'ingredient)
-                 (push (make-instance 'sim-ingredient
-                                      :ingredient comp
-                                      :part-of mixture-to-unfold ; kan ook een sim-ingredient zijn?
-                       unfolded-comps))
-                (t (error "unsupported component of class ~a" (type-of comp)))))
-    unfolded-comps)))
-
-(defmethod unfold-dish ((dish container))
-  (let* ((items (contents dish))
-         (ref-item (copy-object (first items))))
-    ; if all items in the container are the same, then just consider it to be one big item (for easier comparison) since portioning is then just one missing step
-    (when (loop for item in items
-                always (similar-entities ref-item item '(id persistent-id amount)))
-       (let ((total-value (loop for item in items
-                                for current-value = (value (quantity (amount (convert-to-g item))))
-                                sum current-value)))
-         (setf (amount ref-item) (make-instance 'amount
-                                                :unit (make-instance 'g)
-                                                :quantity (make-instance 'quantity :value total-value)))))
-    (if (subtypep (type-of ref-item) 'mixture)
-      (unfold-mixture ref-item)
-      (list (make-instance 'sim-ingredient :ingredient comp)))))
-
-(defun compare-final-values2 (sol sol-node sim-env)
-  (let ((gold-node (solution-node sim-env))
-        (gold-target-value (get-final-value (solution-node sim-env)))
-        (sol-final-value (get-final-value sol-node)))
-    (cond ((eq (type-of gold-target-value) (type-of sol-final-value))
-           (unfold-dish  gold-target-value))
-          (t
-           (print "something else")))))
-
-(defun evaluate2 (filepath &optional (sim-envs *simulation-environments*))
-  (let ((solutions (read-from-file filepath))
-        (results '()))
-     ; check if the solutions file contains all the needed solutions
-    (verify-solutions-completeness solutions sim-envs)
-    (loop for current-solution in solutions
-          for current-id = (recipe-id current-solution)
-          for current-sim-env = (find current-id sim-envs :key #'(lambda (sim-env) (recipe-id sim-env)))
-          for gold-mn = (meaning-network current-sim-env)
-          for gold-bindings = (solution-bindings current-sim-env)
-          for gold-node = (solution-node current-sim-env)
-          do
-            (init-kitchen-state current-sim-env)
-            (let ((extended-mn (append-meaning-and-irl-bindings (meaning-network current-solution) nil)))
-              (multiple-value-bind (sol-bindings sol-nodes) (evaluate-irl-program extended-mn nil)
-                (push (compare-final-values2 current-solution (first sol-nodes) current-sim-env) results))))
-    results))
-
-(defun evaluate3 (filepath &optional (sim-envs *simulation-environments*))
-  (let ((solutions (read-from-file filepath))
-        (results '()))
-     ; check if the solutions file contains all the needed solutions
-    (verify-solutions-completeness solutions sim-envs)
-    (loop for current-solution in solutions
-          for current-id = (recipe-id current-solution)
-          for current-sim-env = (find current-id sim-envs :key #'(lambda (sim-env) (recipe-id sim-env)))
-          for gold-mn = (meaning-network current-sim-env)
-          for gold-bindings = (solution-bindings current-sim-env)
-          for gold-node = (solution-node current-sim-env)
-          do
-            (init-kitchen-state current-sim-env)
-            (let ((extended-mn (append-meaning-and-irl-bindings (meaning-network current-solution) nil)))
-              (multiple-value-bind (sol-bindings sol-nodes) (evaluate-irl-program extended-mn nil)
-                (push (evaluate-subgoals (first sol-nodes) gold-node) results))))
-    results))
-
 ;; Evaluate subgoals ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -561,8 +474,92 @@
                ; (push (compute-subgoal-percentage current-solution (first sol-nodes) current-sim-env) results))))
     solutions))
 
-;(defparameter test (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\test.lisp"))
 
+;; Approach with ingredient unfolding ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; same as a regular ingredient, except it also contains a pointer to the mixture it belongs to
+; this pointer is not added to regular ingredients because of infinite loop issues in visualization
+(defclass sim-ingredient ()
+  ((ingredient :type ingredient :initarg :ingredient :accessor ingredient :initform nil)
+   (part-of :initarg :part-of :accessor part-of :initform nil))
+  (:documentation "For ingredients in simulation."))
+
+
+   ;    (if (subtypep (type-of ref-item) 'mixture)
+         
+   ;      (unfold-mixture ref-item)))))
+        ; (list (make-instance 'sim-ingredient :ingredient comp))))
+
+(defun compare-final-values2 (sol sol-node sim-env)
+  (let ((gold-node (solution-node sim-env))
+        (gold-target-value (get-final-value (solution-node sim-env)))
+        (sol-final-value (get-final-value sol-node)))
+    (cond ((eq (type-of gold-target-value) (type-of sol-final-value))
+           (unfold-dish  gold-target-value))
+          (t
+           (print "something else")))))
+
+(defun evaluate2 (filepath &optional (sim-envs *simulation-environments*))
+  (let ((solutions (read-from-file filepath))
+        (results '()))
+     ; check if the solutions file contains all the needed solutions
+    (verify-solutions-completeness solutions sim-envs)
+    (loop for current-solution in solutions
+          for current-id = (recipe-id current-solution)
+          for current-sim-env = (find current-id sim-envs :key #'(lambda (sim-env) (recipe-id sim-env)))
+          for gold-mn = (meaning-network current-sim-env)
+          for gold-bindings = (solution-bindings current-sim-env)
+          for gold-node = (solution-node current-sim-env)
+          do
+            (init-kitchen-state current-sim-env)
+            (let ((extended-mn (append-meaning-and-irl-bindings (meaning-network current-solution) nil)))
+              (multiple-value-bind (sol-bindings sol-nodes) (evaluate-irl-program extended-mn nil)
+                (push (compare-final-values2 current-solution (first sol-nodes) current-sim-env) results))))
+    results))
+
+(defmethod unfold-mixture ((mixture-to-unfold sim-ingredient))
+  (let* ((inner-mixture (ingredient mixture-to-unfold))
+         (comps (components inner-mixture))
+         (unfolded-comps '()))
+    (loop for comp in comps
+          do
+          (cond ((subtypep (type-of comp) 'mixture)
+                 (let ((unfolded-sub-comps (unfold-mixture (make-instance 'sim-ingredient
+                                                                          :ingredient comp
+                                                                          :part-of mixture-to-unfold))))
+                   (nconc unfolded-comps unfolded-sub-comps)))
+                ((subtypep (type-of comp) 'ingredient)
+                 (push (make-instance 'sim-ingredient
+                                      :ingredient comp
+                                      :part-of mixture-to-unfold)
+                       unfolded-comps))
+                (t (error "unsupported component of class ~a" (type-of comp)))))
+    unfolded-comps))
+
+(defmethod unfold-dish ((dish container))
+  (let* ((dish-copy (copy-object dish))
+         (items (contents dish-copy))
+         (ref-item (copy-object (first items)))
+         (unfolded-contents '()))
+    ; if all items in the container are the same, then just consider it to be one big item since portioning is then just one missing step
+    (when (loop for item in items
+                always (similar-entities ref-item item '(id persistent-id amount)))
+       (let ((total-value (loop for item in items
+                                for current-value = (value (quantity (amount (convert-to-g item))))
+                                sum current-value)))
+         (setf (amount ref-item) (make-instance 'amount
+                                                :unit (make-instance 'g)
+                                                :quantity (make-instance 'quantity :value total-value)))
+         (setf (contents dish-copy) (list ref-item))))
+    (loop for item in (contents dish-copy)
+          do (cond ((subtypep (type-of item) 'mixture)
+                    (setf unfolded-contents (nconc unfolded-contents (unfold-mixture (make-instance 'sim-ingredient :ingredient item)))))
+                   ((subtypep (type-of item) 'ingredient)
+                    (setf unfolded-contents (nconc unfolded-contents (make-instace 'sim-ingredient :ingredient item))))))
+    unfolded-contents))
+
+;(defparameter test (evaluate2 "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\test.lisp"))
 
 (defun print-results (solutions)
   (loop for solution in solutions
@@ -573,10 +570,22 @@
            (print "time ratio:")
            (print (time-ratio solution))))
 
+
 ;test
 
 ;(defun testos (x) (print (time-ratio x)))
 ;(testos (first test))
 
 ;(print-results test)
-  
+
+(defun toppie (x)
+  (print "ok"))
+
+(toppie test)
+
+
+
+;; Tests ;;
+;;;;;;;;;;;
+
+;(defparameter test1 (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\test.lisp"))
