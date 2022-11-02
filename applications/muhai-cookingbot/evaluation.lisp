@@ -501,32 +501,40 @@
                     (when location
                       (return (append (list place) location))))))))
 
-(defun check-location-and-similarity 
+(defclass entity-with-location ()
+  ((entity :initarg :entity :accessor entity)
+   (location :initarg :location :accessor location))
+  (:documentation "Class wrapping a kitchen entity with its location")) 
+
+(defun get-output-entity-with-location (irl-node)
+  (let ((output (get-output-value irl-node))
+        (ks (get-output-kitchen-state irl-node)))
+    (make-instance 'entity-with-location :entity output :location (find-location output ks))))
+
+(defun similar-locations (location-1 location-2)
+  (loop for place-1 in location-1
+        for place-2 in location-2
+        always (eql (type-of place-1) (type-of place-2))))
 
 (defun evaluate-subgoals (sol-node gold-node)
   (let* ((gold-nodes (get-node-sequence gold-node))
          (filtered-gold-nodes (remove-if #'(lambda (node) (eql (get-predicate-name (irl::primitive-under-evaluation node)) 'get-kitchen)) gold-nodes))
-         (gold-outputs (mapcar #'get-output-value filtered-gold-nodes))
-         (gold-states (mapcar #'get-output-kitchen-state filtered-gold-nodes))
-         (gold-location (mapcar #'find-location gold-outputs gold-states))
-
          (sol-nodes (get-node-sequence sol-node))
          (filtered-sol-nodes (remove-if #'(lambda (node) (eql (get-predicate-name (irl::primitive-under-evaluation node)) 'get-kitchen)) sol-nodes))
-         (sol-outputs (mapcar #'get-output-value filtered-sol-nodes))
-         (sol-states (mapcar #'get-output-kitchen-state filtered-sol-nodes))
-         (sol-location (mapcar #'find-location sol-outputs sol-states))
-         
+         (gold-entities (mapcar #'get-output-entity-with-location filtered-gold-nodes))
+         (sol-entities  (mapcar #'get-output-entity-with-location filtered-sol-nodes))
          (goals-reached '())
          (goals-failed '()))
-    (loop for gold-output in gold-outputs
-          for gold-state in gold-states
-          for gold-location in gold-locations
-          for sol-output = (find-if #'(lambda (sol-output) (similar-entities gold-output sol-output)) sol-outputs)
-          if sol-output
-             do
-              (setf sol-outputs (remove sol-output sol-outputs))
-                (push gold-output goals-reached)
-          else do (push gold-output goals-failed))
+    (loop for gold-entity in gold-entities
+          for sol-entity = (find-if #'(lambda (sol-entity)
+                                        (and (similar-entities (entity gold-entity) (entity sol-entity))
+                                             (similar-locations (location gold-entity) (location sol-entity))))
+                                        sol-entities)
+          if sol-entity
+            do
+              (setf sol-entities (remove sol-entity sol-entities))
+              (push gold-entity goals-reached)
+          else do (push gold-entity goals-failed))
     (values goals-reached goals-failed)))
 
 (defun evaluate (filepath &optional (sim-envs *simulation-environments*))
