@@ -217,117 +217,17 @@
           (t
            (print "something else")))))
 
-;; Comparing classes ;;
-;;;;;;;;;;;;;;;;;;;;;;;
+ ;; Equal ontology objects ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass similarity ()
-  ((correct :type number :initarg :correct :accessor correct :initform 0)
-   (total :type number :initarg :total :accessor total :initform 0))
-  (:documentation "Class used to compute similarity of objects."))
-
-(defmethod add-correct ((similarity similarity))
-  (setf (correct similarity) (+ (correct similarity) 1))
-  (setf (total similarity) (+ (total similarity) 1)))
-
-(defmethod add-score ((similarity similarity) (score number) (possible-score number))
-  (setf (correct similarity) (+ (correct similarity) score))
-  (setf (total similarity) (+ (total similarity) possible-score)))
-
-(defmethod add-wrong ((similarity similarity))
-  (setf (total similarity) (+ (total similarity) 1)))
+(defun similar-entities (entity-1 entity-2 &optional (ignore '(id persistent-id)))
+  (equal-ontology-objects entity-1 entity-2 ignore))
 
 (defun slot-names-to-compare (item &optional ignore)
   (let* ((classlots  (closer-mop:class-slots (class-of item)))
          (slotnames  (mapcar #'closer-mop:slot-definition-name classlots)))
     (remove-if #'(lambda (slotname) (member slotname ignore))
              slotnames)))
-
-; TODO: replace equal-ontology
-(defmethod compare-dish ((sol-dish container) (gold-dish container))
-  ; if it's a container we are mostly interested in the main ingredient on it, but we will also check the other attributes of this container
-  (let* ((sol-dish-contents (contents sol-dish))
-         (gold-dish-contents (contents gold-dish))
-         (sol-container-slots (remove 'contents (slot-names-to-compare sol-dish)))
-         (gold-container-slots (remove 'contents (slot-names-to-compare gold-dish)))
-         (container-similarity (make-instance 'similarity))
-         (contents-score 0))
-    ; check how similar the container is (less important generally)
-    (if (eq (class-of sol-dish) (class-of gold-dish))
-      (add-correct container-similarity) ; same kind of container
-      (add-wrong container-similarity))
-    (loop for slot in gold-container-slots
-          if (and (member slot sol-container-slots)
-                  (similar-entities (slot-value sol-dish slot) (slot-value gold-dish slot)))
-            do (add-correct container-similarity)
-          else
-            do (add-wrong container-similarity))
-    ; check how similar the ingredients is (most important)
-    (setf contents-score (compare-dish sol-dish-contents gold-dish-contents))
-    (+ (* 0.1 (/ (correct container-similarity) (total container-similarity)))
-       (* 0.9 contents-score))))
-
-(defmethod compare-dish ((sol-dish mixture) (gold-dish mixture))
-  (let* ((sol-dish-components (components sol-dish))
-         (gold-dish-components (components gold-dish))
-         (sol-dish-slots (remove 'components (slot-names-to-compare sol-dish)))
-         (gold-dish-slots (remove 'components (slot-names-to-compare gold-dish)))
-         (dish-similarity (make-instance 'similarity))
-         (components-similarity '()))
-  (if (eq (class-of sol-dish) (class-of gold-dish))
-    (add-score dish-similarity 1 1)
-    (add-score dish-similarity 0 1)) ; wrong kind of mixture
-  (loop for slot in gold-dish-slots
-          if (and (member slot sol-dish-slots)
-                  (similar-entities (slot-value sol-dish slot) (slot-value gold-dish slot)))
-            do (add-score dish-similarity 1 1)
-          else
-            do (add-score dish-similarity 0 1))
-    ; check how similar the ingredients are (most important)
-    (setf components-similarity (compare-dish sol-dish-components gold-dish-components))
-    
-    (+ (* 0.1 (/ (correct dish-similarity) (total dish-similarity)))
-       (* 0.9 components-similarity))))
-
-(defmethod compare-dish ((sol-dish ingredient) (gold-dish ingredient))
-  (let* ((sol-dish-slots (slot-names-to-compare sol-dish))
-         (gold-dish-slots (slot-names-to-compare gold-dish))
-         (dish-similarity (make-instance 'similarity)))
-  (cond ((eq (class-of sol-dish) (class-of gold-dish))
-         (add-score dish-similarity 10 10)) ; same ingredient
-        ; higher score if similar ingredient?
-        (t
-         (add-score dish-similarity 0 10))) ; other ingredient
-  (loop for slot in gold-dish-slots
-          if (and (member slot sol-dish-slots)
-                  (similar-entities (slot-value sol-dish slot) (slot-value gold-dish slot)))
-            do (add-score dish-similarity 1 1) ; each attribute counts as 1
-          else
-            do (add-score dish-similarity 0 1))
-  (/ (correct dish-similarity) (total dish-similarity))))
-
-(defmethod compare-dish ((sol-dish list) (gold-dish list))
-  (let ((sol-copy (copy-list sol-dish))
-        (sol-items-left (length sol-dish))
-        (score 0))
-    (loop for gold-item in gold-dish
-          for gold-class = (class-of gold-item)
-          for sol-item = (find gold-class sol-dish :key #'class-of)
-          when sol-item
-            do (setf sol-items-left (- sol-items-left 1))
-               (setf sol-copy (remove sol-item sol-copy)) ; don't compare the same item twice
-               (setf score (+ score (compare-dish sol-item gold-item))))
-    (setf score (max (- score (/ sol-items-left (length sol-dish))) 0))
-    (/ score (length gold-dish))))
-
-;(defparameter test (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\test.lisp"))
-
-;test
-
- ;; Equal ontology objects ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defun similar-entities (entity-1 entity-2 &optional (ignore '(id persistent-id)))
-  (equal-ontology-objects entity-1 entity-2 ignore))
 
 (defgeneric equal-ontology-objects (object-1 object-2 &optional ignore)
   (:documentation "Returns t if object-1 and object-2 are equal in ontological terms."))
@@ -451,8 +351,7 @@
     (values goals-reached goals-failed)))
 
 (defun evaluate (filepath &optional (sim-envs *simulation-environments*))
-  (let ((solutions (read-from-file filepath))
-        (results '()))
+  (let ((solutions (read-from-file filepath)))
      ; check if the solutions file contains all the needed solutions
     (verify-solutions-completeness solutions sim-envs)
     (loop for current-solution in solutions
@@ -469,9 +368,8 @@
                 (setf (subgoals-percentage current-solution) (compute-subgoal-percentage (first sol-nodes) gold-node))
                 (setf (time-ratio current-solution)
                       (/ (irl::available-at (get-output-binding (first sol-nodes)))
-                         (irl::available-at (get-output-binding gold-node)))))))
-            
-               ; (push (compute-subgoal-percentage current-solution (first sol-nodes) current-sim-env) results))))
+                         (irl::available-at (get-output-binding gold-node))))
+                (setf (dish-score current-solution) (compute-ratio (compare-node-dishes (first sol-nodes) gold-node))))))
     solutions))
 
 
@@ -485,38 +383,21 @@
    (part-of :initarg :part-of :accessor part-of :initform nil))
   (:documentation "For ingredients in simulation."))
 
+(defclass similarity ()
+  ((correct :type number :initarg :correct :accessor correct :initform 0)
+   (total :type number :initarg :total :accessor total :initform 0))
+  (:documentation "Class used to compute similarity of objects."))
 
-   ;    (if (subtypep (type-of ref-item) 'mixture)
-         
-   ;      (unfold-mixture ref-item)))))
-        ; (list (make-instance 'sim-ingredient :ingredient comp))))
+(defmethod add-score ((similarity similarity) (score number) (possible-score number))
+  (setf (correct similarity) (+ (correct similarity) score))
+  (setf (total similarity) (+ (total similarity) possible-score)))
 
-(defun compare-final-values2 (sol sol-node sim-env)
-  (let ((gold-node (solution-node sim-env))
-        (gold-target-value (get-final-value (solution-node sim-env)))
-        (sol-final-value (get-final-value sol-node)))
-    (cond ((eq (type-of gold-target-value) (type-of sol-final-value))
-           (unfold-dish  gold-target-value))
-          (t
-           (print "something else")))))
+(defmethod add-similarity-to ((similarity similarity) (to-similarity similarity))
+  (setf (correct to-similarity) (+ (correct similarity) (correct to-similarity)))
+  (setf (total to-similarity) (+ (total similarity) (total to-similarity))))
 
-(defun evaluate2 (filepath &optional (sim-envs *simulation-environments*))
-  (let ((solutions (read-from-file filepath))
-        (results '()))
-     ; check if the solutions file contains all the needed solutions
-    (verify-solutions-completeness solutions sim-envs)
-    (loop for current-solution in solutions
-          for current-id = (recipe-id current-solution)
-          for current-sim-env = (find current-id sim-envs :key #'(lambda (sim-env) (recipe-id sim-env)))
-          for gold-mn = (meaning-network current-sim-env)
-          for gold-bindings = (solution-bindings current-sim-env)
-          for gold-node = (solution-node current-sim-env)
-          do
-            (init-kitchen-state current-sim-env)
-            (let ((extended-mn (append-meaning-and-irl-bindings (meaning-network current-solution) nil)))
-              (multiple-value-bind (sol-bindings sol-nodes) (evaluate-irl-program extended-mn nil)
-                (push (compare-final-values2 current-solution (first sol-nodes) current-sim-env) results))))
-    results))
+(defmethod compute-ratio ((similarity similarity))
+  (/ (correct similarity) (total similarity)))
 
 (defmethod unfold-mixture ((mixture-to-unfold sim-ingredient))
   (let* ((inner-mixture (ingredient mixture-to-unfold))
@@ -528,12 +409,11 @@
                  (let ((unfolded-sub-comps (unfold-mixture (make-instance 'sim-ingredient
                                                                           :ingredient comp
                                                                           :part-of mixture-to-unfold))))
-                   (nconc unfolded-comps unfolded-sub-comps)))
+                   (setf unfolded-comps (nconc unfolded-comps unfolded-sub-comps))))
                 ((subtypep (type-of comp) 'ingredient)
-                 (push (make-instance 'sim-ingredient
-                                      :ingredient comp
-                                      :part-of mixture-to-unfold)
-                       unfolded-comps))
+                 (setf unfolded-comps (nconc unfolded-comps (list (make-instance 'sim-ingredient
+                                                                                 :ingredient comp
+                                                                                 :part-of mixture-to-unfold)))))
                 (t (error "unsupported component of class ~a" (type-of comp)))))
     unfolded-comps))
 
@@ -559,7 +439,133 @@
                     (setf unfolded-contents (nconc unfolded-contents (make-instace 'sim-ingredient :ingredient item))))))
     unfolded-contents))
 
-;(defparameter test (evaluate2 "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\test.lisp"))
+(defmethod compare-node-dishes ((sol-dish irl::irl-program-processor-node) (gold-dish irl::irl-program-processor-node))
+  (let* ((sol-value (get-output-value sol-dish))
+         (sol-location (find-location sol-value (get-output-kitchen-state sol-dish)))
+         (sol-dish-slots (slot-names-to-compare sol-value '(persistent-id id contents))) ; all slots except contents
+         (gold-value (get-output-value gold-dish))
+         (gold-location (find-location gold-value (get-output-kitchen-state gold-dish)))
+         (gold-dish-slots (slot-names-to-compare gold-value '(persistent-id id contents))) ; all slots except contents
+         (container-score (make-instance 'similarity))
+         (contents-score (make-instance 'similarity)))
+    ;; container specific scoring
+    ; location of dish is worth a score of 1
+    (if (similar-locations sol-location gold-location)
+      (add-score container-score 1 1)
+      (add-score container-score 0 1))
+    ; type of container is worth a score of 1
+    (if (eq (type-of sol-value) (type-of gold-value))
+      (add-score container-score 1 1)
+      (add-score container-score 0 1))
+    ; each slot that is in common is worth a score of 1  
+    (loop for slot in gold-dish-slots
+          if (and (member slot sol-dish-slots)
+                  (similar-entities (slot-value sol-value slot)
+                                    (slot-value gold-value slot)))
+            do (add-score container-score 1 1)
+          else
+            do (add-score container-score 0 1))
+    ;; contents specific scoring
+    ; number of portions in the dish is worth a score of 1
+    ; (only 1 because right now an end dish will always be portions of the same mixture, so just one operation is missing)
+    (if (= (length (contents sol-value)) (length (contents gold-value)))
+      (add-score contents-score 1 1)
+      (add-score contents-score 0 1))
+    ; actual composition of the final contents
+    (let ((unfolded-dish-sol (unfold-dish sol-value))
+          (unfolded-dish-gold (unfold-dish gold-value))
+          (missing-ingredients '()))
+      (loop for unfolded-ing-gold in unfolded-dish-gold
+            for matching-ings-sol = (find-all (type-of unfolded-ing-gold) unfolded-dish-sol :key #'(lambda (sim-ing) (type-of (ingredient sim-ing))))
+            if matching-ings-sol
+              do (let ((sim-scores (loop for matching-ing-sol in matching-ings-sol
+                                         collect (compare-dish-ingredient matching-ing-sol unfolded-ing-gold)))
+                       (match-scores (mapcar #'compute-ratio sim-scores))
+                       (max-score (max match-scores))
+                       (max-position (position max-score match-scores))
+                       (max-ing (nth max-position matching-ings-sol)))
+                   (add-similarity-to (nth max-position sim-scores) contents-score)
+                   (setf unfolded-dish-sol (remove max-ing unfolded-dish-sol)))
+            else
+              do (push unfolded-ing-gold missing-ingredients))
+      (let ((missing-ratio (/ (- (length unfolded-dish-gold) (length missing-ingredients)) (length unfolded-dish-gold)))
+            (extra-ratio (/ (+ (length unfolded-dish-sol) (length unfolded-dish-gold)) (length unfolded-dish-gold))))
+        (setf (correct contents-score) (* (correct contents-score) missing-ratio))
+        (setf (correct contents-score) (/ (correct contents-score) extra-ratio))))
+
+    ; compute the final similarity for this dish
+    (make-instance 'similarity
+                   :correct (+ (* 0.95 (correct contents-score))
+                               (* 0.05 (correct container-score)))
+                   :total (+ (* 0.95 (total contents-score))
+                             (* 0.05 (total container-score))))))
+
+(defun get-mixture-hierarchy (sim-ingredient)
+  (let ((mixture (part-of sim-ingredient))
+        (mixtures '()))    
+    (loop while mixture
+            do
+              (setf mixtures (nconc (list (ingredient mixture)) mixtures))
+              (setf mixture (part-of mixture)))
+    mixtures))
+
+(defmethod compare-mixture ((sol-mixture mixture) (gold-mixture mixture))
+  (let ((sol-dish-slots (slot-names-to-compare sol-mixture '(id persistent-id components)))
+        (gold-dish-slots (slot-names-to-compare gold-mixture '(id persistent-id components)))
+        (mixture-similarity (make-instance 'similarity)))    
+    ; each slot that is in common is worth a score of 1  
+    (loop for slot in gold-dish-slots
+          if (and (member slot sol-dish-slots)
+                  (similar-entities (slot-value sol-mixture slot)
+                                    (slot-value gold-mixture slot)))
+            do (add-score mixture-similarity 1 1)
+          else
+            do (add-score mixture-similarity 0 1))
+    ; check if it is the same type of mixture (heterogeneous or homogeneous),
+    ; this is very important so it has a big effect on the final score
+    (unless (eq (type-of sol-mixture) (type-of gold-mixture))
+      (setf (score mixture-similarity) (/ (score mixture-similarity 5))))
+    mixture-similarity))
+
+(defmethod compare-dish-ingredient ((sol-ingredient sim-ingredient) (gold-ingredient sim-ingredient))
+  (let* ((sol-ing (ingredient sol-ingredient))
+         (sol-dish-slots (slot-names-to-compare sol-ing))
+         (sol-mixtures (get-mixture-hierarchy sol-ingredient))
+         (gold-ing (ingredient gold-ingredient))
+         (gold-dish-slots (slot-names-to-compare gold-ing))
+         (gold-mixtures (get-mixture-hierarchy gold-ingredient))
+         (ingredient-similarity (make-instance 'similarity))
+         (hierarchy-similarity (make-instance 'similarity)))
+    ; each slot that is in common is worth a score of 1  
+    (loop for slot in gold-dish-slots
+          if (and (member slot sol-dish-slots)
+                  (similar-entities (slot-value sol-ing slot)
+                                    (slot-value gold-ing slot)))
+            do (add-score ingredient-similarity 1 1)
+          else
+            do (add-score ingredient-similarity 0 1))
+    ; check mixture hierarchy composition
+    (loop for gold-mixture in gold-mixtures
+          for sol-mixture in sol-mixtures
+          do
+            (let ((mixture-similarity (compare-mixture sol-mixture gold-mixture)))
+              (setf (correct hierarchy-similarity) (+ (correct hierarchy-similarity) (correct mixture-similarity)))
+              (setf (total hierarchy-similarity) (+ (total hierarchy-similarity) (total mixture-similarity)))))
+    (let* ((difference (abs (- (length gold-mixtures) (length sol-mixtures))))
+           (ratio (/ (length gold-mixtures) (+ (length gold-mixtures) difference))))
+      (setf (correct hierarchy-similarity) (* ratio (correct hierarchy-similarity))))
+
+    ; compute the final similarity for this ingredient
+    (make-instance 'similarity
+                   :correct (+ (* 0.6 (correct ingredient-similarity))
+                               (* 0.4 (correct hierarchy-similarity)))
+                   :total (+ (* 0.6 (total ingredient-similarity))
+                             (* 0.4 (total hierarchy-similarity))))))
+                   
+
+
+;(defparameter test (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\test.lisp"))
+;  (evaluate2 "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\test.lisp")
 
 (defun print-results (solutions)
   (loop for solution in solutions
@@ -567,6 +573,8 @@
            (print (recipe-id solution))
            (print "sub percentage:")
            (print (subgoals-percentage solution))
+           (print "dish score:")
+           (print (dish-score solution))
            (print "time ratio:")
            (print (time-ratio solution))))
 
@@ -581,9 +589,7 @@
 (defun toppie (x)
   (print "ok"))
 
-(toppie test)
-
-
+;(toppie test)
 
 ;; Tests ;;
 ;;;;;;;;;;;
