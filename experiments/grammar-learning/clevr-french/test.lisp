@@ -117,9 +117,9 @@
 ;(run-interaction *experiment*)
 
 ;(fcg::configure-grammar *cxn-inventory*)
-;(run-series *experiment* 11)
+;(run-series *experiment* 20)
 ;;; test series of interactions
-(run-series *experiment* (length (question-data *experiment*)))
+;(run-series *experiment* (length (question-data *experiment*)))
 
 
 ;(run-series *experiment* 47040) ;

@@ -24,7 +24,7 @@
                                 "end"))
 
 (measure-and-understand  *small-almond-cookies-recipe*)
-(measure-and-understand  *almond-cookies-recipe*)
+
 
 (setf *almond-cookies-recipe* '(;;;; Ingredients
                                 "226 grams butter , room temperature"
@@ -46,6 +46,10 @@
                                 "dust with powdered sugar"
                                 "end"
                                 ))
+
+(measure-and-understand  *almond-cookies-recipe*)
+
+
 
 (write-measures-to-file 'node-names-fcg 'node-names-irl
                         (list 'questions-introduced-by-grammar
@@ -69,12 +73,12 @@
 
 
 (defun total-questions-grammar ()
-  (loop for el in  (slot-value (monitors::get-monitor 'questions-introduced-by-grammar) 'values)
+  (loop for el in (slot-value (monitors::get-monitor 'questions-introduced-by-grammar) 'values)
         for vals = (sum (flatten (first el)))
         sum vals))
 
 (defun total-answers-grammar ()
-  (loop for el in  (slot-value (monitors::get-monitor 'questions-solved-by-grammar) 'values)
+  (loop for el in (slot-value (monitors::get-monitor 'questions-solved-by-grammar) 'values)
         for vals = (sum (flatten (first el)))
       sum vals))
 
