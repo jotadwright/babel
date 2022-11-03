@@ -26,4 +26,6 @@
                              (:file "understand")
                              (:file "expansions")
                              (:file "utils")
-                             (:file "heuristics")))))
+                             (:file "heuristics")
+                             ;(:file "test-evaluate")
+                             ))))
