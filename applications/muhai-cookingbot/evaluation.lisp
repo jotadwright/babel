@@ -201,21 +201,13 @@
 
 ; TODO RD: get node at maximum depth that was reached if no solution could be found?
 ; TODO RD: final value zou altijd een container met een ingredient in moeten zijn
+; TODO RD: currently unused
 (defun get-final-value (irl-node)
   (let* ((target-var (second (irl::primitive-under-evaluation irl-node)))
          (list-of-bindings (irl::bindings irl-node))
          (target-binding (find target-var list-of-bindings :key #'var)))
     (when target-binding
       (value target-binding))))
-
-(defun compare-final-values (sol sol-node sim-env)
-  (let ((gold-node (solution-node sim-env))
-        (gold-target-value (get-final-value (solution-node sim-env)))
-        (sol-final-value (get-final-value sol-node)))
-    (cond ((eq (type-of gold-target-value) (type-of sol-final-value))
-           (compare-dish sol-final-value gold-target-value))
-          (t
-           (print "something else")))))
 
  ;; Equal ontology objects ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -281,8 +273,7 @@
          (setf node (parent node))
        while node)
     (rest node-seq)))
-
-       
+  
 ;; Condition goal test
 (defun compute-subgoal-percentage (sol-node gold-node)
   (multiple-value-bind (goals-reached goals-failed) (evaluate-subgoals sol-node gold-node)
@@ -476,14 +467,14 @@
           (unfolded-dish-gold (unfold-dish gold-value))
           (missing-ingredients '()))
       (loop for unfolded-ing-gold in unfolded-dish-gold
-            for matching-ings-sol = (find-all (type-of unfolded-ing-gold) unfolded-dish-sol :key #'(lambda (sim-ing) (type-of (ingredient sim-ing))))
+            for matching-ings-sol = (find-all (type-of (ingredient unfolded-ing-gold)) unfolded-dish-sol :key #'(lambda (sim-ing) (type-of (ingredient sim-ing))))
             if matching-ings-sol
-              do (let ((sim-scores (loop for matching-ing-sol in matching-ings-sol
-                                         collect (compare-dish-ingredient matching-ing-sol unfolded-ing-gold)))
-                       (match-scores (mapcar #'compute-ratio sim-scores))
-                       (max-score (max match-scores))
-                       (max-position (position max-score match-scores))
-                       (max-ing (nth max-position matching-ings-sol)))
+              do (let* ((sim-scores (loop for matching-ing-sol in matching-ings-sol
+                                          collect (compare-dish-ingredient matching-ing-sol unfolded-ing-gold)))
+                        (match-scores (mapcar #'compute-ratio sim-scores))
+                        (max-score (apply #'max match-scores))
+                        (max-position (position max-score match-scores))
+                        (max-ing (nth max-position matching-ings-sol)))
                    (add-similarity-to (nth max-position sim-scores) contents-score)
                    (setf unfolded-dish-sol (remove max-ing unfolded-dish-sol)))
             else
@@ -529,10 +520,10 @@
 
 (defmethod compare-dish-ingredient ((sol-ingredient sim-ingredient) (gold-ingredient sim-ingredient))
   (let* ((sol-ing (ingredient sol-ingredient))
-         (sol-dish-slots (slot-names-to-compare sol-ing))
+         (sol-dish-slots (slot-names-to-compare sol-ing '(id persistent-id)))
          (sol-mixtures (get-mixture-hierarchy sol-ingredient))
          (gold-ing (ingredient gold-ingredient))
-         (gold-dish-slots (slot-names-to-compare gold-ing))
+         (gold-dish-slots (slot-names-to-compare gold-ing '(id persistent-id)))
          (gold-mixtures (get-mixture-hierarchy gold-ingredient))
          (ingredient-similarity (make-instance 'similarity))
          (hierarchy-similarity (make-instance 'similarity)))
@@ -565,7 +556,7 @@
 
 
 ;(defparameter test (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\test.lisp"))
-;  (evaluate2 "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\test.lisp")
+;  (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\test.lisp")
 
 (defun print-results (solutions)
   (loop for solution in solutions
