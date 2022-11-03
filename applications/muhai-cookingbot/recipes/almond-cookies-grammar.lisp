@@ -1371,7 +1371,7 @@
 
 (defparameter *pdm* (initialise-personal-dynamic-memory
                     *fcg-constructions*
-                    init-op))
+                    *init-op*))
 
 (defparameter *output*
   (multiple-value-bind (final-set-of-bindings meaning-network)
