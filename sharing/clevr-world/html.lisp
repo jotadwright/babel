@@ -146,7 +146,7 @@
                   (s-dot::label ,(mkdotstr
                                   (format nil "~a(~{~a~^,~})"
                                           (better-function-name (mkstr (function-name function)))
-                                          (args function))))))))
+                                          (arguments function))))))))
 
 (defun edge->s-dot (from to)
   `(s-dot::edge ((s-dot::from ,(mkdotstr (id from)))
