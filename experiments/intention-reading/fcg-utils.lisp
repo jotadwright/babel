@@ -1,6 +1,6 @@
 ;;;; fcg-utils.lisp
 
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 (defun all-cip-nodes (cip)
   (remove nil
@@ -14,7 +14,7 @@
 (defun all-cipn-statuses (cipn)
   (flatten
    (traverse-depth-first
-    (gl::initial-node cipn)
+    (initial-node cipn)
     :collect-fn #'statuses)))
 
 (defun initial-node-p (node)
@@ -86,7 +86,7 @@
     (1- (length (contributing-part cxn)))))
 
 (defun get-strings-from-root (node)
-  (gl::form-predicates-with-variables
+  (form-predicates-with-variables
    (extract-string
     (get-root
      (left-pole-structure
@@ -94,7 +94,7 @@
        (cipn-car node)))))))
 
 (defun get-meaning-from-root (node)
-  (gl::meaning-predicates-with-variables
+  (meaning-predicates-with-variables
    (extract-meaning
     (get-root
      (left-pole-structure
@@ -133,7 +133,7 @@
         for th-link in th-links
         for lex-slot-lex-class = (cdr th-link)
         collect `(,lex-cxn-unit-name
-                  (syn-cat (gl::lex-class ,lex-slot-lex-class)))
+                  (syn-cat (fcg::lex-class ,lex-slot-lex-class)))
         into contributing-units
         collect `(,lex-cxn-unit-name
                   (args (,arg))
@@ -174,7 +174,7 @@
         (remaining-meaning meaning-constraints))
     (loop for cxn in applicable-cxns
           for cxn-form
-          = (gl::form-predicates-with-variables
+          = (form-predicates-with-variables
              (extract-form-predicates cxn))
           for cxn-meaning
           = (extract-meaning-predicates cxn)

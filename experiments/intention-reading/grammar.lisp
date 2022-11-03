@@ -32,8 +32,7 @@
 
 
 
-
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 (defun default-clevr-grammar ()
   (let ((clevr-grammar (copy-object *CLEVR*)))
@@ -61,7 +60,7 @@
                              :hashed-scored-labeled
                              :hashed-simple-queue)))
          (cxn-inventory
-          (eval `(def-fcg-constructions-with-type-hierarchy
+          (eval `(def-fcg-constructions
                      ,grammar-name
                    :cxn-inventory ,grammar-name
                    :hashed ,hashingp
@@ -84,7 +83,8 @@
                                         (:de-render-mode . :de-render-string-meets-no-punct)
                                         (:th-connected-mode . :neighbours)
                                         (:update-th-links . t)
-                                        (:hash-mode . :hash-string-meaning-lex-id))
+                                        (:hash-mode . :hash-string-meaning-lex-id)
+                                        (:initial-categorial-link-weight . 0.1))
                    :diagnostics (diagnose-failed-interpretation
                                  diagnose-partial-utterance
                                  diagnose-unknown-utterance
@@ -132,11 +132,11 @@
    from the categorial network."
   (let ((lex-classes
          (loop for unit in (contributing-part cxn)
-               for lex-class = (gl::lex-class-item-based unit)
+               for lex-class = (lex-class-item-based unit)
                when lex-class collect lex-class))
-        (type-hierarchy (get-type-hierarchy (grammar agent))))
+        (type-hierarchy (categorial-network (grammar agent))))
     (when lex-classes
-      (delete-categories lex-classes type-hierarchy))
+      (remove-categories lex-classes type-hierarchy))
     (delete-cxn cxn (grammar agent))    
     (notify lexicon-changed)))
 
@@ -210,7 +210,7 @@
   ;; that also work for the current utterance
   ;; and holophrase cxns
   (let* ((cxn-name-with-placeholders
-          (gl::make-cxn-placeholder-name
+          (make-cxn-placeholder-name
            (extract-form-predicates cxn)
            cxn-inventory))
          (de-rendered-utterance
@@ -222,7 +222,7 @@
          (item-based-competitors
           (loop for comp in possible-item-based-competitors
                 for comp-name-with-placeholders =
-                (gl::make-cxn-placeholder-name
+                (make-cxn-placeholder-name
                  (extract-form-predicates comp)
                  cxn-inventory)
                 when (and (length= cxn-name-with-placeholders

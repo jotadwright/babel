@@ -1,6 +1,6 @@
 
-(ql:quickload :clevr-learning)
-(in-package :clevr-learning)
+(ql:quickload :intention-reading)
+(in-package :intention-reading)
 
 ;;;; MONITORS
 ;;;; --------
@@ -28,31 +28,9 @@
 ;;;; SINGLE EXPERIMENT
 ;;;; -----------------
 
-;; HYBRID MODE
-;; Problem with make-holophrase repair where agent does not find
-;; a composer solution. This is probably related with the composer
-;; strategy. Noise should be allowed when checking the composer solution
-;; on other scenes.
-;; Added a separate composer strategy for hybrid mode, where the
-;; agent checks all past scenes, but some errors are allowed.
-;; The number of allowed errors can be controlled by
-;; :hybrid-check-past-scenes-errors-allowed (= 1).
-
-;; !!!!
-;; The branch clevr-learning has an important change in the consolidate repairs!
-;; In this change, it is possible to specify the :fix-th-links as either
-;; cons-cells or as lists. When cons-cells, the weight of the edge is set
-;; to 0.0 (as before). When lists, the weight of the edge is recovered
-;; from the 3rd element of the list.
-;; Using a weight of 0 is dangerous. The graph-utils library uses weight 0 
-;; to indicate that there is NO edge. This leads to various issues when 
-;; e.g. deleting a node and all of its edges when one of these edges has weight 0.
-
-
-
 (defparameter *experiment*
    (make-instance 'clevr-learning-experiment
-                  :entries '((:determine-interacting-agents-mode . :default)
+                  :entries '((:determine-interacting-agents-mode . :tutor-learner)
                              (:question-sample-mode . :all)
                              ;(:questions-per-challenge . 1000)
                              (:scenes-per-question . 50)
@@ -63,7 +41,7 @@
                              (:primitives . :symbolic)
                              (:learner-cxn-supplier . :hashed-and-scored)
                              (:alignment-strategy . :lateral-inhibition)
-                             (:hide-type-hierarchy . t)
+                             (:hide-type-hierarchy . nil)
                              (:remove-cxn-on-lower-bound . t)
                              (:composer-strategy . :store-past-scenes)
                              (:th-link-repair-mode-comprehension . :no-path-required)
@@ -72,16 +50,15 @@
 
 (clear-page)
 (run-interaction *experiment*)
-(run-series *experiment* 50000)
+(run-series *experiment* 500)
 
-(set-configuration *experiment* :determine-interacting-agents-mode :default)
 
 ;; disable meta-layer and interpretation goal test
 (let ((grammar (grammar (learner *experiment*))))
   (set-configuration grammar :parse-goal-tests
                      (butlast (get-configuration grammar :parse-goal-tests)))
   (set-configuration grammar :use-meta-layer nil)
-  (comprehend "The small shiny cube is what shape?"
+  (comprehend "What  material is the big blue object?"
               :cxn-inventory grammar)
   (set-configuration grammar :parse-goal-tests
                      (append (get-configuration grammar :parse-goal-tests)
@@ -98,7 +75,7 @@
 
 (add-element
  (make-html
-  (get-type-hierarchy (grammar (learner *experiment*)))
+  (categorial-network (grammar (learner *experiment*)))
   :weights? t))
 
 (let ((lexical-cxns (find-all 'lexical (constructions (grammar (learner *experiment*)))

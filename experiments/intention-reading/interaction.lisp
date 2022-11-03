@@ -1,6 +1,6 @@
 ;;;; interaction.lisp
 
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 ;; --------------------
 ;; + Initialize agent +
@@ -124,56 +124,35 @@
                        (get-configuration experiment :tutor-sample-mode))
     (loop for agent in (interacting-agents experiment)
           do (initialize-agent agent question clevr-scene answer-entity))
-    ;; when the game is in :hybrid mode, also make sure the current
-    ;; scene is loaded on the server side!
-    (when (eql (get-configuration experiment :primitives) :hybrid)
-      (let ((server-address
-             (find-data (ontology (learner experiment)) 'hybrid-primitives::server-address))
-            (cookie-jar
-             (find-data (ontology (learner experiment)) 'hybrid-primitives::cookie-jar))
-            (image-filename
-             (file-namestring
-              (image (find-data (ontology (learner experiment)) 'clevr-context)))))
-        (load-image server-address cookie-jar image-filename)))
     (notify interaction-before-finished clevr-scene question answer-entity)))
 
 (defmethod interact ((experiment clevr-learning-experiment)
                      interaction &key)
-  (unwind-protect
-      (case (role (speaker interaction))
-        (tutor
-         ;; if the tutor is the speaker, only need to run the learner's
-         ;; hearer task
-         (let ((successp (run-learner-hearer-task (learner experiment))))
-           (loop for agent in (population experiment)
-                 do (setf (communicated-successfully agent) successp))))
-        (learner
-         ;; if the learner is the speaker, need to run both the learner's
-         ;; speaker task and the tutor's hearer task
-         (let* ((learner-speaks-task-result
-                 (run-learner-speaker-task (learner experiment)))
-                (utterance (find-data learner-speaks-task-result 'utterance))
-                successp)
-           (when utterance
-             (setf (utterance (learner experiment)) utterance)
-             (setf (utterance (tutor experiment)) utterance)
-             (let ((gold-answer (run-tutor-hearer-task (tutor experiment))))
-               ;; even if gold-answer is nil, need to run alignment
-               (setf successp
-                     (run-learner-alignment-task (learner experiment)
-                                                 learner-speaks-task-result
-                                                 gold-answer))))
-           (loop for agent in (population experiment)
-                 do (setf (communicated-successfully agent) successp)))))
-    ;; if anything goes wrong during the game,
-    ;; or simply at the end of a game,
-    ;; the session is cleared from the server.
-    (when (eql (get-configuration experiment :primitives) :hybrid)
-      (let ((server-address
-             (find-data (ontology (learner experiment)) 'hybrid-primitives::server-address))
-            (cookie-jar
-             (find-data (ontology (learner experiment)) 'hybrid-primitives::cookie-jar)))
-        (clear-session server-address cookie-jar)))))
+  (case (role (speaker interaction))
+    (tutor
+     ;; if the tutor is the speaker, only need to run the learner's
+     ;; hearer task
+     (let ((successp (run-learner-hearer-task (learner experiment))))
+       (loop for agent in (population experiment)
+             do (setf (communicated-successfully agent) successp))))
+    (learner
+     ;; if the learner is the speaker, need to run both the learner's
+     ;; speaker task and the tutor's hearer task
+     (let* ((learner-speaks-task-result
+             (run-learner-speaker-task (learner experiment)))
+            (utterance (find-data learner-speaks-task-result 'utterance))
+            successp)
+       (when utterance
+         (setf (utterance (learner experiment)) utterance)
+         (setf (utterance (tutor experiment)) utterance)
+         (let ((gold-answer (run-tutor-hearer-task (tutor experiment))))
+           ;; even if gold-answer is nil, need to run alignment
+           (setf successp
+                 (run-learner-alignment-task (learner experiment)
+                                             learner-speaks-task-result
+                                             gold-answer))))
+       (loop for agent in (population experiment)
+             do (setf (communicated-successfully agent) successp))))))
 
 (defun write-game-summary-to-log (experiment interaction)
   (let ((log-path

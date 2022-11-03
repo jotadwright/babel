@@ -2,7 +2,7 @@
 
 
 (ql:quickload :clevr-learning)
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 
 (defun common-neighbours (node-1 node-2 graph)
@@ -72,13 +72,13 @@
   (ensure-directories-exist outputfile)
   (let* ((type-hierarchy
           (type-hierarchies::graph
-           (get-type-hierarchy cxn-inventory)))
+           (categorial-network cxn-inventory)))
          (lexical-cxns
           (find-all 'lexical (constructions-list cxn-inventory)
                     :key #'get-cxn-type))
          (lexical-classes
           (loop for cxn in lexical-cxns
-                collect (gl::lex-class-cxn cxn)))
+                collect (lex-class-cxn cxn)))
          (coherence-data
           (loop for lex-class in lexical-classes
                 for similar-nodes

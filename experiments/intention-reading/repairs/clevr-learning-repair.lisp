@@ -1,4 +1,4 @@
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 (defclass clevr-learning-repair (repair)
   ((trigger :initform 'fcg::new-node))
@@ -10,7 +10,7 @@
    cip nodes."
   (let ((working-cipn starting-cipn))
     (loop for cxn in constructions
-          for cfs = (if (eq working-cipn (gl::initial-node working-cipn))
+          for cfs = (if (eq working-cipn (initial-node working-cipn))
                       (car-source-cfs (cipn-car working-cipn))
                       (car-resulting-cfs (cipn-car working-cipn)))
           for car = (first
@@ -35,28 +35,28 @@
   (push fix (fixes problem))
   (with-disabled-monitor-notifications
     (destructuring-bind (existing-cxns-to-apply new-cxns-to-apply other-new-cxns th-links) (restart-data fix)
-      (let* ((orig-type-hierarchy (get-type-hierarchy (construction-inventory node)))
-             (temp-type-hierarchy (copy-object (get-type-hierarchy (construction-inventory node))))
-             (weighted-th-links (loop for th-link in th-links
-                                      collect (list (car th-link) (cdr th-link)
-                                                    (get-configuration node :initial-th-link-weight)))) 
-             (th (loop for th-link in weighted-th-links
-                       do (add-categories (list (first th-link) (second th-link)) temp-type-hierarchy)
-                       (add-link (first th-link) (second th-link) temp-type-hierarchy :weight (third th-link))
-                       finally (set-type-hierarchy (construction-inventory node) temp-type-hierarchy)))
+      (let* ((orig-type-hierarchy (categorial-network (construction-inventory node)))
+             (temp-type-hierarchy (copy-object (categorial-network (construction-inventory node)))) 
+             (th (loop for (from . to) in th-links
+                       do (add-categories (list from to) temp-type-hierarchy)
+                          (add-link from to temp-type-hierarchy
+                                    :weight (get-configuration node :initial-th-link-weight))
+                       finally (set-categorial-network (construction-inventory node) temp-type-hierarchy)))
              (new-nodes
-              (apply-sequentially (gl::initial-node node)
+              (apply-sequentially (initial-node node)
                                   (append existing-cxns-to-apply new-cxns-to-apply)
                                   node)))
         (declare (ignorable th))
-        (set-type-hierarchy (construction-inventory node) orig-type-hierarchy)
+        (set-categorial-network (construction-inventory node) orig-type-hierarchy)
         (set-data (car-resulting-cfs (cipn-car (first new-nodes)))
                   :fix-cxns (append new-cxns-to-apply other-new-cxns))
+        ;(set-data (car-resulting-cfs (cipn-car (first new-nodes)))
+        ;          :fix-categories ...)
         (set-data (car-resulting-cfs (cipn-car (first new-nodes)))
-                  :fix-th-links weighted-th-links)
+                  :fix-categorial-links th-links)
         ;; write some message on the blackboard of the initial node
         ;; for more efficient diagnostics
-        (set-data (gl::initial-node node) :some-repair-applied t)
+        (set-data (initial-node node) :some-repair-applied t)
         (setf (cxn-supplier (first new-nodes)) (cxn-supplier node))
         (loop for node in new-nodes
               unless (or (is-subset (mapcar #'name (applied-constructions node))

@@ -1,6 +1,6 @@
 ;;;; ontology.lisp
 
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 (defparameter *challenge-level-primitive-dict*
   '((1 count! exist filter get-context query unique)
@@ -20,10 +20,7 @@
          (rest (assoc (get-configuration agent :current-challenge-level)
                       *challenge-level-primitive-dict*))))
     ;; add them to the new primitive inventory
-    (loop with source-inventory
-          = (case mode
-              (:symbolic *clevr-primitives*)
-              (:hybrid *hybrid-primitives*))
+    (loop with source-inventory = *clevr-primitives*
           for p in available-primitives
           do (add-primitive
               (find-primitive p source-inventory)

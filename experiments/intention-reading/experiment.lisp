@@ -1,6 +1,6 @@
 ;;;; experiment.lisp
 
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 ;; -----------------------------
 ;; + Experiment Configurations +
@@ -55,9 +55,6 @@
 
 ;; Hybrid or symbolic primitives
 (define-configuration-default-value :primitives :symbolic) ; :symbolic or hybrid
-(define-configuration-default-value :hybrid-server-address "http://localhost")
-(define-configuration-default-value :hybrid-server-port 8888)
-(define-configuration-default-value :hybrid-check-past-scenes-errors-allowed 1)
 
 ;; Misc
 (define-configuration-default-value :dot-interval 100)

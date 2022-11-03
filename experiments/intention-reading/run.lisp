@@ -1,6 +1,6 @@
 
 (ql:quickload :clevr-learning)
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 ;; run an experiment and immediately create the missing plots
 (let ((experiment-name 'learner-speaks-best-strategy))

@@ -1,13 +1,13 @@
 ;;;; add-th-links-formulation.lisp
 
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 ;;  ADD-TH-LINKS-FORMULATION
 ;; -------------------------
 
 (define-event add-th-links-formulation-repair-started)
 (define-event add-th-links-formulation-new-th-links
-  (th type-hierarchy) (new-links list))
+  (th categorial-network) (new-links list))
 
 (defclass add-th-links-formulation (clevr-learning-repair)
   ((trigger :initform 'fcg::new-node)))
@@ -34,36 +34,36 @@
 (defun create-formulation-th-links-with-path (problem node)
   (let* ((agent (find-data problem :owner))
          (cxn-inventory (original-cxn-set (construction-inventory node)))
-         (type-hierarchy (get-type-hierarchy cxn-inventory))
+         (type-hierarchy (categorial-network cxn-inventory))
          (meaning (cipn-meaning node)))
     (with-disabled-monitor-notifications 
-      (gl::disable-meta-layer-configuration cxn-inventory)
+      (disable-meta-layer-configuration cxn-inventory)
       (multiple-value-bind (utterance cipn)
           (formulate meaning :cxn-inventory cxn-inventory :silent t)
-        (gl::enable-meta-layer-configuration cxn-inventory)
+        (enable-meta-layer-configuration cxn-inventory)
         ;; there is a solution with connected links in the TH
         (when (find 'fcg::succeeded (fcg::statuses cipn))
           (let* ((applied-cxns (original-applied-constructions cipn))
                  (applied-lex-cxns
                   (find-all 'lexical applied-cxns :key #'get-cxn-type))
                  (sorted-lex-cxns
-                  (gl::sort-cxns-by-form-string
+                  (sort-cxns-by-form-string
                    applied-lex-cxns
                    (list-of-strings->string utterance)))
                  (lex-classes-lex-cxns
                   (when sorted-lex-cxns
-                    (mapcar #'gl::lex-class-cxn sorted-lex-cxns)))
+                    (mapcar #'lex-class-cxn sorted-lex-cxns)))
                  (applied-item-based-cxn
                   (find 'item-based applied-cxns :key #'get-cxn-type))
                  (lex-classes-item-based-units
                   (when applied-item-based-cxn
-                    (gl::get-all-unit-lex-classes applied-item-based-cxn)))
+                    (get-all-unit-lex-classes applied-item-based-cxn)))
                  (th-links
                   (when (and lex-classes-lex-cxns
                              lex-classes-item-based-units
                              (= (length lex-classes-lex-cxns)
                                 (length lex-classes-item-based-units)))
-                    (gl::create-new-th-links lex-classes-lex-cxns lex-classes-item-based-units type-hierarchy))))
+                    (create-new-th-links lex-classes-lex-cxns lex-classes-item-based-units type-hierarchy))))
             (when th-links
               (set-data (current-interaction (experiment agent))
                         :applied-repair 'add-th-links)
@@ -77,7 +77,7 @@
 ;; ----------------
 
 (defun get-meaning-from-root-first-merge-failed (node)
-  (gl::meaning-predicates-with-variables
+  (meaning-predicates-with-variables
    (extract-meaning
     (get-root
      (left-pole-structure
@@ -114,14 +114,14 @@
             ;; However, if there is already a link between any of the fillers and
             ;; any of the slots, do not provide new links for this filler and this slot
             do (let* ((lex-classes-lex-cxns
-                       (mapcar #'gl::lex-class-cxn applied-lex-cxns))
+                       (mapcar #'lex-class-cxn applied-lex-cxns))
                       (lex-classes-item-based
-                       (gl::get-all-unit-lex-classes applied-item-based-cxn))
-                      (th (get-type-hierarchy cxn-inventory))
+                       (get-all-unit-lex-classes applied-item-based-cxn))
+                      (th (categorial-network cxn-inventory))
                       (exclude-categories
                        (loop for slot in lex-classes-item-based
                              append (loop for filler in lex-classes-lex-cxns
-                                          when (type-hierarchies::neighbours-p slot filler th)
+                                          when (neighbouring-categories-p slot filler th)
                                           append (list slot filler))))
                       (all-th-links
                        (loop for slot in lex-classes-item-based

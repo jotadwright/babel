@@ -1,6 +1,6 @@
 ;;;; composer.lisp
 
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 ;; ------------
 ;; + Composer +
@@ -20,9 +20,8 @@
             (rest (assoc current-challenge-level
                          *max-irl-program-length-per-challenge-level*))))
          (target-category-type
-          #+lispworks (type-of target-category)
-          #-lispworks (if (numberp target-category)
-                          'integer (type-of target-category)))
+          (if (numberp target-category)
+            'integer (type-of target-category)))
          ;; initial chunk
          (initial-chunk
           (make-instance 'chunk :id 'initial :score 0.5
@@ -121,15 +120,8 @@
 (defun check-past-scene (scene-index answer irl-program agent)
   (let* ((world (world (experiment agent)))
          (path (nth scene-index (scenes world)))
-         (scene (load-clevr-scene path))
-         (image-filename (file-namestring (image scene)))
-         (server-address
-          (find-data (ontology agent) 'hybrid-primitives::server-address))
-         (cookie-jar
-          (find-data (ontology agent) 'hybrid-primitives::cookie-jar)))
+         (scene (load-clevr-scene path)))
     (set-data (ontology agent) 'clevr-context scene)
-    (when (eql (get-configuration agent :primitives) :hybrid)
-      (load-image server-address cookie-jar image-filename))
     (let* ((all-solutions
             (evaluate-irl-program irl-program (ontology agent) :silent t
                                   :primitive-inventory (available-primitives agent)))
@@ -157,37 +149,6 @@
     ;; afterwards, restore the data for the current scene
     (set-data (ontology agent) 'clevr-context current-clevr-context)
     success))
-
-(defun hybrid-check-past-scenes (solution solution-index list-of-samples agent)
-  (let* ((original-clevr-context
-          (find-data (ontology agent) 'clevr-context))
-         (original-image-filename
-          (file-namestring (image original-clevr-context)))
-         (irl-program
-          (append (irl-program (chunk solution))
-                  (bind-statements solution)))
-         (server-address
-          (find-data (ontology agent) 'hybrid-primitives::server-address))
-         (cookie-jar
-          (find-data (ontology agent) 'hybrid-primitives::cookie-jar))
-         (max-failed-past-scenes
-          (get-configuration agent :hybrid-check-past-scenes-errors-allowed))
-         (actual-limit
-          (if (> (length list-of-samples) max-failed-past-scenes)
-            max-failed-past-scenes
-            0))
-         (failed-past-scenes 0))
-    (notify check-samples-started list-of-samples solution-index)
-    (loop for (scene-index . stored-answer) in list-of-samples
-          for scene-ok? = (check-past-scene scene-index stored-answer irl-program agent)
-          unless scene-ok?
-          do (incf failed-past-scenes)
-          when (> failed-past-scenes actual-limit)
-          do (setf failed-past-scenes nil) (return nil))
-    ;; afterwards, restore the data for the current scene
-    (set-data (ontology agent) 'clevr-context original-clevr-context)
-    (load-image server-address cookie-jar original-image-filename)
-    failed-past-scenes))
 
 ;; + store past programs +
 (define-event check-programs-started
@@ -225,19 +186,12 @@
           (gethash utterance-hash-key (memory agent)))
          (composer-solution
           (if past-scenes-with-same-utterance
-            (if (eql (get-configuration agent :primitives) :hybrid)    
-              (compose-minimize
-               composer (lambda (solution idx)
-                          (hybrid-check-past-scenes
-                           solution idx
-                           past-scenes-with-same-utterance
-                           agent)))
-              (compose-until
-               composer (lambda (solution idx)
-                          (check-past-scenes
-                           solution idx
-                           past-scenes-with-same-utterance
-                           agent))))
+            (compose-until
+             composer (lambda (solution idx)
+                        (check-past-scenes
+                         solution idx
+                         past-scenes-with-same-utterance
+                         agent)))
             (first (get-next-solutions composer)))))
     (when composer-solution
       (notify composer-solution-found composer composer-solution))

@@ -1,6 +1,6 @@
 ;;;; utils.lisp
 
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 ;;;; UTILS FOR RUNNING GAMES
 ;;;; -----------------------

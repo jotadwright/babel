@@ -1,6 +1,6 @@
 ;;;; web-monitors.lisp
 
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 (define-monitor trace-tasks-and-processes)
 
@@ -12,7 +12,7 @@
 
 
 (defun new-th-links->s-dot (type-hierarchy new-links)
-  (let* ((g (type-hierarchies::graph type-hierarchy))
+  (let* ((g (fcg::graph type-hierarchy))
          (graph-properties '((s-dot::fontcolor "#000000")
                              (s-dot::fontsize "10.0")
                              (s-dot::fontname "Helvetica")
@@ -32,12 +32,12 @@
          (s-dot-nodes
           (loop for node-name in all-node-names
                 for node-id in all-node-ids
-                collect (graph-utils::type-hierarchy-node->s-dot
+                collect (graph-utils::categorial-network-node->s-dot
                          node-name node-id)))
          (s-dot-edges
           (loop for (from-id . to-id) in all-edges
                 for edge-weight = (graph-utils::edge-weight g from-id to-id)
-                collect (graph-utils::type-hierarchy-edge->s-dot
+                collect (graph-utils::categorial-network-edge->s-dot
                          from-id to-id
                          :weight edge-weight :directedp nil
                          :colored-edges-0-1 nil))))

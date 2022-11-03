@@ -1,6 +1,6 @@
 ;;;; tasks.lisp
 
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 ;; -----------------------
 ;; + Learner Hearer Task +

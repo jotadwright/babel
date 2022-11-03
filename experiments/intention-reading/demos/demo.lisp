@@ -3,7 +3,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (ql:quickload :clevr-learning)
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 (activate-monitor trace-fcg)
 (activate-monitor trace-irl)

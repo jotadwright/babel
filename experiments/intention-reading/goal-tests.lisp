@@ -1,6 +1,6 @@
 ;;;; goal-tests.lisp
 
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 (defmethod cip-goal-test ((node cip-node) (mode (eql :correct-interpretation)))
   "Checks whether the extracted meaning can be correctly interpreted.
@@ -36,5 +36,5 @@
     ;; for more efficient diagnostics
     (unless success
       (push 'fcg::goal-test-failed (statuses node))
-      (set-data (gl::initial-node node) :some-interpretation-failed t))
+      (set-data (initial-node node) :some-interpretation-failed t))
     success))

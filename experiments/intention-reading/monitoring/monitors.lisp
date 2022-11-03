@@ -1,6 +1,6 @@
 ;;;; monitors.lisp
 
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 ;;;; Printing dots
 (defparameter *repair-to-id-map*
@@ -103,8 +103,7 @@
                                             :type "json")))
 
 (defun export-th-to-json (cxn-inventory path)
-  (let* ((g (type-hierarchies::graph
-             (get-type-hierarchy cxn-inventory)))
+  (let* ((g (fcg::graph (categorial-network cxn-inventory)))
          ;; get a list of all node names
          (all-nodes
           (mapcar #'mkstr (graph-utils::list-nodes g)))
@@ -135,13 +134,13 @@
          (all-weighted-edges (rest (assoc :edges g-data)))
          (th (make-instance 'type-hierarchy)))
     (loop for node in all-nodes
-          for name = (intern (upcase (mkstr node)) :type-hierarchies)
+          for name = (intern (upcase (mkstr node)) :fcg)
           do (add-category name th))
     (loop for (from to w) in all-weighted-edges
-          for from-name = (intern (upcase (mkstr from)) :type-hierarchies)
-          for to-name = (intern (upcase (mkstr to)) :type-hierarchies)
+          for from-name = (intern (upcase (mkstr from)) :fcg)
+          for to-name = (intern (upcase (mkstr to)) :fcg)
           do (add-link from-name to-name th :weight w))
-    (set-type-hierarchy cxn-inventory th)))
+    (set-categorial-network cxn-inventory th)))
          
    
 (define-event-handler (export-type-hierarchy-to-json run-series-finished)
@@ -158,21 +157,21 @@
                                             :directory '("experiments" "clevr-learning" "raw-data"))))
 
 (defun export-type-hierarchy-to-image (type-hierarchy path)
-  (type-hierarchy->image
+  (categorial-network->image
    type-hierarchy :render-program "fdp" :weights? t
    :path (make-pathname :directory (pathname-directory path))
    :file-name (pathname-name path)
    :format "pdf"))
 
 (defun remove-non-connected-nodes (th)
-  (let ((graph (type-hierarchies::graph th)))
+  (let ((fcg::graph (fcg::graph th)))
     (loop for category being each hash-key of (graph-utils::nodes graph)
           when (= (graph-utils::degree graph category) 0)
           do (graph-utils::delete-node graph category))
     th))
 
 (define-event-handler (export-type-hierarchy-to-image run-series-finished)
-  (let* ((th (get-type-hierarchy (grammar (learner experiment))))
+  (let* ((th (categorial-network (grammar (learner experiment))))
          (th-copy (copy-object th))
          (path (file-name monitor)))
     (export-type-hierarchy-to-image
@@ -190,14 +189,14 @@
   (let ((interaction-nr (interaction-number (current-interaction experiment)))
         (n (get-configuration-or-default experiment :export-interval 100)))
     (when (= (mod interaction-nr n) 0)
-      (let ((th (get-type-hierarchy (grammar (learner experiment))))
+      (let ((th (categorial-network (grammar (learner experiment))))
             (path (make-pathname
                    :directory (pathname-directory (file-name monitor))
                    :name (format nil "~a-~a"
                                  (pathname-name (file-name monitor))
                                  interaction-nr)
                    :type (pathname-type (file-name monitor)))))
-        (type-hierarchy-components->images
+        (categorial-network-components->images
          th :render-program "circo" :weights? t
          :path (pathname-directory path)
          :file-name (pathname-name path) :format "pdf"
@@ -282,10 +281,9 @@
 
 (defun export-lexical-coherence (cxn-inventory path)
   (ensure-directories-exist path)
-  (let* ((g (type-hierarchies::graph
-             (get-type-hierarchy cxn-inventory)))
+  (let* ((g (fcg::graph (categorial-network cxn-inventory)))
          (lexical-classes
-          (mapcar #'gl::lex-class-cxn
+          (mapcar #'lex-class-cxn
                   (find-all 'lexical
                             (constructions-list cxn-inventory)
                             :key #'get-cxn-type)))
@@ -315,46 +313,5 @@
     ;"export-learner-grammar"
     ;"export-weighted-lexical-coherence"
     ))
-
-
-
-
-
-
-
-
-;; download attentions from server when using hybrid primitives
-;; both when evaluating irl programs and when using the composer
-(defmethod irl::handle-evaluate-irl-program-finished-event
-           :before ((monitor monitor)
-                    (monitor-id (eql 'irl::trace-irl))
-                    (event-id (eql 'irl::evaluate-irl-program-finished))
-                    succeeded-nodes pip)
-  ;; when the monitor is active
-  ;; download all attention images
-  ;; also check if the slot is bound
-  ;; such that the same attention is not downloaded twice
-  (when (monitors::active monitor)
-    (loop for pip-node in succeeded-nodes
-          do (loop for binding in (irl::bindings pip-node)
-                   when (and (subtypep (type-of (value binding)) 'attention)
-                             (null (img-path (value binding))))
-                   do (request-attn (get-data (ontology pip) 'hybrid-primitives::server-address)
-                                    (get-data (ontology pip) 'hybrid-primitives::cookie-jar)
-                                    (value binding))))))
-
-(defmethod irl::handle-chunk-composer-finished-event
-           :before ((monitor monitor)
-                    (monitor-id (eql 'irl::trace-irl))
-                    (event-id (eql 'irl::chunk-composer-finished))
-                    solutions composer)
-  (when (monitors::active monitor)
-    (loop for solution in solutions
-          do (loop for binding in (irl::bindings solution)
-                   when (and (subtypep (type-of (value binding)) 'attention)
-                             (null (img-path (value binding))))
-                   do (request-attn (get-data (ontology composer) 'hybrid-primitives::server-address)
-                                    (get-data (ontology composer) 'hybrid-primitives::cookie-jar)
-                                    (value binding))))))
   
     

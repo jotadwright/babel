@@ -1,6 +1,6 @@
 ;;;; processes.lisp
 
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 ;; -------------------
 ;; + Initial process +
@@ -19,7 +19,7 @@
 ;; -------------------  
 
 (define-event new-cxns-learned (cxns list))
-(define-event new-th-links-learned (th type-hierarchy) (links list))
+(define-event new-th-links-learned (th categorial-network) (links list))
 (define-event parsing-finished (process-result process-result))
 (define-event interpretation-finished (process-result process-result))
 
@@ -65,7 +65,7 @@
           (when fix-cxns
             (notify new-cxns-learned fix-cxns))
           (when fix-th-links
-            (notify new-th-links-learned (get-type-hierarchy (construction-inventory cip-node)) fix-th-links))))
+            (notify new-th-links-learned (categorial-network (construction-inventory cip-node)) fix-th-links))))
       ;; notify that parsing has finished
       (notify parsing-finished process-result)
       ;; notify that interpretation has finished

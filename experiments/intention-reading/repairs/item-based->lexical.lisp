@@ -1,13 +1,13 @@
 ;;;; item-based->lexical.lisp
 
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 ;;  ITEM-BASED -> LEXICAL
 ;; -----------------------
 
 (define-event item-based->lexical-repair-started)
 (define-event item-based->lexical-new-cxn-and-th-links
-  (cxn construction) (th type-hierarchy) (new-links list))
+  (cxn construction) (th categorial-network) (new-links list))
 
 (defclass item-based->lexical (clevr-learning-repair)
   ((trigger :initform 'fcg::new-node)))
@@ -67,14 +67,14 @@
                                                          meaning-predicates-lex-cxn cxn-inventory))
                      (cxn-name
                       (make-const
-                       (gl::make-cxn-name
+                       (make-cxn-name
                         (third (first form-predicates-lex-cxn)) cxn-inventory)))
                      (unit-name
                       (second (first form-predicates-lex-cxn)))
                      (lex-class
                       (if existing-lex-cxn
-                        (gl::lex-class-cxn existing-lex-cxn)
-                        (intern (symbol-name (make-const unit-name)) :type-hierarchies)))
+                        (lex-class-cxn existing-lex-cxn)
+                        (intern (symbol-name (make-const unit-name)) :fcg)))
                      (args
                       (mapcar #'third meaning-predicates-lex-cxn))
                      (initial-cxn-score
@@ -91,8 +91,8 @@
                              `(def-fcg-cxn
                                ,cxn-name
                                ((,unit-name
-                                 (syn-cat (gl::phrase-type lexical)
-                                          (gl::lex-class ,lex-class))
+                                 (syn-cat (phrase-type lexical)
+                                          (fcg::lex-class ,lex-class))
                                  (args ,args))
                                 <-
                                 (,unit-name
@@ -109,29 +109,29 @@
                                :cxn-set non-holophrase))))))
                      ;; make a list of all cxns, sort them
                      (lex-cxns
-                      (gl::sort-cxns-by-form-string
+                      (sort-cxns-by-form-string
                        (cons new-lex-cxn applied-lex-cxns)
                        (remove-punctuation utterance)))
                      (lex-classes-lex-cxns
-                      (mapcar #'gl::lex-class-cxn lex-cxns))
+                      (mapcar #'lex-class-cxn lex-cxns))
                      (lex-classes-item-based-units
-                      (gl::get-all-unit-lex-classes applied-item-based-cxn))
+                      (get-all-unit-lex-classes applied-item-based-cxn))
                      ;; assign all th links
                      (type-hierarchy
-                      (get-type-hierarchy cxn-inventory))
+                      (categorial-network cxn-inventory))
                      (th-links
                       (when (and lex-classes-lex-cxns
                                  lex-classes-item-based-units
                                  (length= lex-classes-lex-cxns lex-classes-item-based-units))
-                        (gl::create-new-th-links lex-classes-lex-cxns
-                                                 lex-classes-item-based-units
-                                                 type-hierarchy))))
+                        (create-new-th-links lex-classes-lex-cxns
+                                             lex-classes-item-based-units
+                                             type-hierarchy))))
                 ;; return
                 (if th-links
                   (progn
                     ;(add-composer-chunk agent (irl-program (chunk composer-solution)))
                     ;(notify item-based->lexical-new-cxn-and-th-links new-lex-cxn
-                    ;        (get-type-hierarchy cxn-inventory) th-links)
+                    ;        (categorial-network cxn-inventory) th-links)
                     (set-data interaction :applied-repair 'item-based->lexical)
                     ;; returns 1. existing cxns to apply
                     ;; 2. new cxns to apply

@@ -1,6 +1,6 @@
 ;;;; alignment.lisp
 
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 ;;;; store past scenes (composer strategy)
 ;;;; ==> store all past scenes with the applied utterance and correct answer
@@ -83,7 +83,7 @@
          (remove-duplicates
           (flatten
            (traverse-depth-first
-            (gl::initial-node cipn)
+            (initial-node cipn)
             :collect-fn #'(lambda (node)
                             (when (find 'fcg::repair-failed (statuses node))
                               (original-applied-constructions node))))))))
@@ -95,7 +95,7 @@
          (remove-duplicates
           (flatten
            (traverse-depth-first
-            (gl::initial-node cipn)
+            (initial-node cipn)
             :collect-fn #'(lambda (node)
                             (multiple-value-bind (success foundp)
                                 (find-data (goal-test-data node) :interpretation-success)
@@ -162,20 +162,20 @@
                     (construction-inventory cipn)
                     :render-mode)))))
                (sorted-lex-cxns
-                (gl::sort-cxns-by-form-string
+                (sort-cxns-by-form-string
                  applied-lex-cxns
                  (remove-punctuation utterance)))
                (lex-classes-lex-cxns
-                (mapcar #'gl::lex-class-cxn sorted-lex-cxns))
+                (mapcar #'lex-class-cxn sorted-lex-cxns))
                (lex-classes-item-based
-                (gl::get-all-unit-lex-classes applied-item-based-cxn))
-               (th (get-type-hierarchy (construction-inventory cipn)))
+                (get-all-unit-lex-classes applied-item-based-cxn))
+               (th (categorial-network (construction-inventory cipn)))
                (th-links
                 (when (and lex-classes-lex-cxns lex-classes-item-based
                            (length= lex-classes-lex-cxns lex-classes-item-based))
                   (loop for lex-cxn-lex-class in lex-classes-lex-cxns
                         for item-slot-lex-class in lex-classes-item-based
-                        when (neighbours-p lex-cxn-lex-class item-slot-lex-class th)
+                        when (neighbouring-categories-p lex-cxn-lex-class item-slot-lex-class th)
                         collect (cons item-slot-lex-class lex-cxn-lex-class)))))
           th-links)))))
              
@@ -193,7 +193,7 @@
                 (set-difference added-th-links applied-th-links
                                 :test #'same-th-link-p))))
         (loop for (slot . filler) in th-links-to-remove
-              do (delete-link slot filler (get-type-hierarchy (grammar agent)))
+              do (remove-link slot filler (categorial-network (grammar agent)))
               when (not success)
               do (push-data agent :th-link-trash (cons slot filler))))
       (set-data

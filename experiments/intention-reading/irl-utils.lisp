@@ -1,6 +1,6 @@
 ;;;; irl-utils.lisp
 
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 (defun replace-anywhere-if (new-fn predicate-fn tree)
   "Replace all items in 'tree' that return t

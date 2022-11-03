@@ -1,13 +1,13 @@
 ;;;; add-th-links.lisp
 
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 ;;  ADD-TH-LINKS
 ;; --------------
 
 (define-event add-th-links-repair-started)
 (define-event add-th-links-new-th-links
-  (th type-hierarchy) (new-links list))
+  (th categorial-network) (new-links list))
 
 (defclass add-th-links (clevr-learning-repair)
   ((trigger :initform 'fcg::new-node)))
@@ -34,29 +34,29 @@
 (defun create-th-links-with-path (problem node)
   (let* ((agent (find-data problem :owner))
          (cxn-inventory (original-cxn-set (construction-inventory node)))
-         (type-hierarchy (get-type-hierarchy cxn-inventory))
+         (type-hierarchy (categorial-network cxn-inventory))
          (utterance (cipn-utterance node)))
     (with-disabled-monitor-notifications
-      (gl::disable-meta-layer-configuration cxn-inventory)
+      (disable-meta-layer-configuration cxn-inventory)
       (multiple-value-bind (meaning cipn)
           (comprehend utterance :cxn-inventory cxn-inventory :silent t)
         (declare (ignorable meaning))
-        (gl::enable-meta-layer-configuration cxn-inventory)
+        (enable-meta-layer-configuration cxn-inventory)
         (when (find 'fcg::succeeded (fcg::statuses cipn))
           (let* ((applied-cxns (original-applied-constructions cipn))
                  (lex-cxns (find-all 'lexical applied-cxns :key #'get-cxn-type))
                  (sorted-lex-cxns
-                  (gl::sort-cxns-by-form-string
+                  (sort-cxns-by-form-string
                    lex-cxns (remove-punctuation utterance)))
                  (lex-classes-lex-cxns
-                  (when sorted-lex-cxns (mapcar #'gl::lex-class-cxn sorted-lex-cxns)))
+                  (when sorted-lex-cxns (mapcar #'lex-class-cxn sorted-lex-cxns)))
                  (item-based-cxn (find 'item-based applied-cxns :key #'get-cxn-type))
                  (lex-classes-item-based-units
-                  (when item-based-cxn (gl::get-all-unit-lex-classes item-based-cxn)))
+                  (when item-based-cxn (get-all-unit-lex-classes item-based-cxn)))
                  (th-links
                   (when (and lex-classes-lex-cxns lex-classes-item-based-units
                              (length= lex-classes-lex-cxns lex-classes-item-based-units))
-                    (gl::create-new-th-links
+                    (create-new-th-links
                      lex-classes-lex-cxns
                      lex-classes-item-based-units
                      type-hierarchy))))
@@ -70,7 +70,7 @@
 ;; ----------------
 
 (defun get-strings-from-root-second-merge-failed (node)
-  (gl::form-predicates-with-variables
+  (form-predicates-with-variables
    (extract-string
     (get-root
      (car-first-merge-structure
@@ -99,18 +99,18 @@
             ;; run comprehension with a temp type hierarchy?
             ;; or just go with it?
             do (let* ((sorted-lex-cxns
-                       (gl::sort-cxns-by-form-string
+                       (sort-cxns-by-form-string
                         applied-lex-cxns
                         (remove-punctuation utterance)))
                       (lex-classes-lex-cxns
-                       (mapcar #'gl::lex-class-cxn sorted-lex-cxns))
+                       (mapcar #'lex-class-cxn sorted-lex-cxns))
                       (lex-classes-item-based
-                       (gl::get-all-unit-lex-classes applied-item-based-cxn))
+                       (get-all-unit-lex-classes applied-item-based-cxn))
                       (th-links
                        (when (and lex-classes-lex-cxns lex-classes-item-based
                                   (length= lex-classes-lex-cxns lex-classes-item-based))
-                         (gl::create-new-th-links lex-classes-lex-cxns lex-classes-item-based
-                                                  (get-type-hierarchy cxn-inventory)))))
+                         (create-new-th-links lex-classes-lex-cxns lex-classes-item-based
+                                                  (categorial-network cxn-inventory)))))
                  (when th-links
                    (set-data (current-interaction (experiment agent))
                              :applied-repair 'add-th-links)

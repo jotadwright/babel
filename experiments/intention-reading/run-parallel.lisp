@@ -1,6 +1,6 @@
 
 (ql:quickload :clevr-learning)
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 (let ((experiment-names
        '(th-link-mixed-mode-smart-tutor

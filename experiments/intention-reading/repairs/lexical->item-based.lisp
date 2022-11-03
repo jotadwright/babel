@@ -1,13 +1,13 @@
 ;;;; lexical->item-based.lisp
 
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 ;;  LEXICAL -> ITEM-BASED
 ;; -----------------------
 
 (define-event lexical->item-based-repair-started)
 (define-event lexical->item-based-new-cxn-and-links
-  (cxn construction) (th type-hierarchy) (new-links list))
+  (cxn construction) (th categorial-network) (new-links list))
 
 (defclass lexical->item-based (clevr-learning-repair)
   ((trigger :initform 'fcg::new-node)))
@@ -51,42 +51,42 @@
                   (append (bind-statements composer-solution)
                           (irl-program (chunk composer-solution))))
                  (sorted-lex-cxns
-                  (gl::sort-cxns-by-form-string
+                  (sort-cxns-by-form-string
                    applied-lex-cxns
                    (remove-spurious-spaces
                     (remove-punctuation utterance))))
                  (var-form
-                  (gl::form-constraints-with-variables
+                  (form-constraints-with-variables
                    utterance (get-configuration cxn-inventory :de-render-mode)))
                  (subunit-names-and-non-overlapping-form
                   (multiple-value-list
-                   (gl::diff-non-overlapping-form var-form sorted-lex-cxns)))
+                   (diff-non-overlapping-form var-form sorted-lex-cxns)))
                  (subunit-names
                   (first subunit-names-and-non-overlapping-form))
                  (non-overlapping-form
                   (second subunit-names-and-non-overlapping-form))
                  (args-and-non-overlapping-meaning
                   (multiple-value-list
-                   (gl::diff-non-overlapping-meaning new-irl-program sorted-lex-cxns)))
+                   (diff-non-overlapping-meaning new-irl-program sorted-lex-cxns)))
                  (args
                   (first args-and-non-overlapping-meaning))
                  (non-overlapping-meaning
                   (second args-and-non-overlapping-meaning)))
             (if (length= subunit-names args) ;; !!!
               (let* ((cxn-name-item-based-cxn
-                      (make-const (gl::make-cxn-name non-overlapping-form cxn-inventory)))
+                      (make-const (make-cxn-name non-overlapping-form cxn-inventory)))
                      (rendered-cxn-name-list
-                      (gl::make-cxn-placeholder-name non-overlapping-form cxn-inventory))
+                      (make-cxn-placeholder-name non-overlapping-form cxn-inventory))
                      (placeholder-list
-                      (gl::extract-placeholder-var-list rendered-cxn-name-list))
+                      (extract-placeholder-var-list rendered-cxn-name-list))
                      (existing-item-based-cxn
                       (find-cxn-by-type-form-and-meaning 'item-based  non-overlapping-form
                                                          non-overlapping-meaning cxn-inventory))
                      (th-links
                       (if existing-item-based-cxn
-                        (mapcar #'cons (mapcar #'gl::lex-class-cxn sorted-lex-cxns)
-                                (gl::get-all-unit-lex-classes existing-item-based-cxn))
-                        (gl::create-type-hierarchy-links sorted-lex-cxns
+                        (mapcar #'cons (mapcar #'lex-class-cxn sorted-lex-cxns)
+                                (get-all-unit-lex-classes existing-item-based-cxn))
+                        (create-type-hierarchy-links sorted-lex-cxns
                                                          (format nil "~{~a~^-~}"
                                                                  rendered-cxn-name-list)
                                                          placeholder-list
@@ -112,7 +112,7 @@
                              `(def-fcg-cxn
                                ,cxn-name-item-based-cxn
                                ((?item-based-unit
-                                 (syn-cat (gl::phrase-type item-based))
+                                 (syn-cat (phrase-type item-based))
                                  (subunits ,subunit-names))
                                 ,@lex-cxn-contributing-units
                                 <-

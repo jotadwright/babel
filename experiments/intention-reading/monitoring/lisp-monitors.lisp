@@ -1,6 +1,6 @@
 ;;;; monitors.lisp
 
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 ;;;; Communicative success             
 (define-monitor record-communicative-success
@@ -363,8 +363,8 @@
 (define-event-handler (record-number-of-nodes-in-th interaction-finished)
   (record-value monitor
                 (graph-utils::node-count
-                 (type-hierarchies::graph
-                  (get-type-hierarchy
+                 (graph
+                  (categorial-network
                    (grammar
                     (learner experiment)))))))
 
@@ -385,8 +385,8 @@
 (define-event-handler (record-number-of-edges-in-th interaction-finished)
   (record-value monitor
                 (graph-utils::edge-count
-                 (type-hierarchies::graph
-                  (get-type-hierarchy
+                 (graph
+                  (categorial-network
                    (grammar
                     (learner experiment)))))))
 

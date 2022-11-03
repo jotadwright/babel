@@ -1,6 +1,6 @@
 ;;;; diagnostics-and-repairs.lisp
 
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 ;; ------------
 ;; + Problems +
@@ -47,7 +47,7 @@
   ;; the entire tree...
   (let ((undiagnosed-node-found-p nil))
     (traverse-depth-first
-     (gl::initial-node node)
+     (initial-node node)
      :do-fn #'(lambda (node)
                 (unless (initial-node-p node)
                   (unless (or (find 'fcg::duplicate (fcg::statuses node))
@@ -102,18 +102,18 @@
   ;; on the blackboard of the initial node, so
   ;; we don't have to traverse the entire tree
   (multiple-value-bind (some-repair-applied-p foundp)
-      (find-data (gl::initial-node node) :some-repair-applied)
+      (find-data (initial-node node) :some-repair-applied)
     (when foundp some-repair-applied-p)))
 
 (defun push-candidate (node)
   ;; push this node on the candidate list,
   ;; stored in the initial node
-  (push-data (gl::initial-node node) :candidates node))
+  (push-data (initial-node node) :candidates node))
 
 (defun get-candidates (node)
   ;; get the candidate list from the
   ;; initial node
-  (find-data (gl::initial-node node) :candidates))
+  (find-data (initial-node node) :candidates))
 
 (defun sort-candidates (candidates)
   ;; sort the candidates on number of applied cxns
@@ -199,7 +199,7 @@
   ;; so we don't have to traverse the entire
   ;; tree
   (multiple-value-bind (some-interpretation-failed-p foundp)
-      (find-data (gl::initial-node node) :some-interpretation-failed)
+      (find-data (initial-node node) :some-interpretation-failed)
     (when foundp some-interpretation-failed-p)))
 
 (defun failed-interpretation-p (node)

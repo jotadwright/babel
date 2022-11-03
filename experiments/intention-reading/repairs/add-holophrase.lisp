@@ -1,6 +1,6 @@
 ;;;; add-holophrase.lisp
 
-(in-package :clevr-learning)
+(in-package :intention-reading)
 
 ;;  ADD-HOLOPHRASE
 ;; ----------------
@@ -58,12 +58,12 @@
                              composer-strategy)))
          (holophrase-cxn-name
           (make-const
-           (gl::make-cxn-name
+           (make-cxn-name
             (remove-spurious-spaces
              (remove-punctuation utterance))
             cxn-inventory)))
          (form-constraints
-          (gl::form-constraints-with-variables
+          (form-constraints-with-variables
            utterance (get-configuration cxn-inventory :de-render-mode)))
          (meaning-constraints
           (append (bind-statements composer-solution)
@@ -90,7 +90,7 @@
                 (eval
                  `(def-fcg-cxn ,holophrase-cxn-name
                                ((?holophrase-unit
-                                 (syn-cat (gl::phrase-type gl::holophrase)))
+                                 (syn-cat (phrase-type holophrase)))
                                 <-
                                 (?holophrase-unit
                                  (HASH meaning ,meaning-constraints)
@@ -118,14 +118,14 @@
   (with-disabled-monitor-notifications
     (let* ((holophrase-cxn (restart-data fix))
            (new-nodes
-            (apply-sequentially (gl::initial-node node)
+            (apply-sequentially (initial-node node)
                                 (list holophrase-cxn) node)))
       (set-data (car-resulting-cfs (cipn-car (first new-nodes)))
                 :fix-cxns (list holophrase-cxn))
       (setf (cxn-supplier (first new-nodes)) (cxn-supplier node))
       ;; write some message on the blackboard of the initial node
       ;; for more efficient diagnostics
-      (set-data (gl::initial-node node) :some-repair-applied t)
+      (set-data (initial-node node) :some-repair-applied t)
       (loop for node in new-nodes
             do (push (type-of repair) (statuses node))
             (push 'fcg::added-by-repair (statuses node)))
