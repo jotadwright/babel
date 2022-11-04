@@ -29,10 +29,6 @@
   ;(activate-monitor export-categorial-network-evolution-to-jsonl)
   (activate-monitor export-type-hierarchy-to-json))
 
-  
-
-
-
 ;; sparse logging, no trace-fcg
 (progn
   (deactivate-all-monitors)
@@ -97,19 +93,28 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 227)   ;  226 crashes
+;(run-series *experiment* 113)  ;  
 
-;(run-series *experiment* 850) ;
+;(run-series *experiment* 880) ;
 
 
 #|
 ISSUES:
-observation 34 holistic -> item-based
+observation 485 holistic -> item-based:
+What is the most populated capital in the USA ?
 
  
 TODO:
-- check of onze determine-comm-success fn juist werkt in comprehend-all!
 - meerdere epochs na elkaar, zien of de alignment nog iets verwijdert
-- comprehend-all ipv comprehend en het gemiddelde van het pad doen
+
+form constraints diff:
+
+(diff-form-constraints
+ '((STRING GRAMMAR-LEARNING::?NAME-15 "name") (STRING GRAMMAR-LEARNING::?THE-35 "the") (STRING GRAMMAR-LEARNING::?RIVERS-15 "rivers") (STRING GRAMMAR-LEARNING::?IN-25 "in") (STRING GRAMMAR-LEARNING::?ARKANSAS-10 "arkansas") (FCG:MEETS GRAMMAR-LEARNING::?NAME-15 GRAMMAR-LEARNING::?THE-35) (FCG:MEETS GRAMMAR-LEARNING::?THE-35 GRAMMAR-LEARNING::?RIVERS-15) (FCG:MEETS GRAMMAR-LEARNING::?RIVERS-15 GRAMMAR-LEARNING::?IN-25) (FCG:MEETS GRAMMAR-LEARNING::?IN-25 GRAMMAR-LEARNING::?ARKANSAS-10))
+'((STRING GRAMMAR-LEARNING::?NAME-18 "name") (STRING GRAMMAR-LEARNING::?ALL-8 "all") (STRING GRAMMAR-LEARNING::?THE-38 "the") (STRING GRAMMAR-LEARNING::?RIVERS-18 "rivers") (STRING GRAMMAR-LEARNING::?IN-28 "in") (STRING GRAMMAR-LEARNING::?COLORADO-8 "colorado") (FCG:MEETS GRAMMAR-LEARNING::?NAME-18 GRAMMAR-LEARNING::?ALL-8) (FCG:MEETS GRAMMAR-LEARNING::?ALL-8 GRAMMAR-LEARNING::?THE-38) (FCG:MEETS GRAMMAR-LEARNING::?THE-38 GRAMMAR-LEARNING::?RIVERS-18) (FCG:MEETS GRAMMAR-LEARNING::?RIVERS-18 GRAMMAR-LEARNING::?IN-28) (FCG:MEETS GRAMMAR-LEARNING::?IN-28 GRAMMAR-LEARNING::?COLORADO-8))
+)
+
 
 |#
+
+
