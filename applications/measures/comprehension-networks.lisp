@@ -35,7 +35,7 @@
   (case type
     (open-question "red")
     (answered-question "green")
-    (entity "blue")
+    (entity "cyan")
     (predicate "purple")
     (t
      "grey")))
@@ -70,7 +70,8 @@
     (loop for key being the hash-keys in node-update-spec
           for node = (gethash key node-update-spec)
           for existing-node = (gethash key (integrative-network-nodes integrative-network))
-          for formatted-node = (format-node key 
+          for formatted-node = (format-node key
+                                            :label (integrative-network-node-label node)
                                             :type (integrative-network-node-type node)
                                             :opacity (if (integrative-network-node-under-attention node)
                                                        1.0
@@ -159,6 +160,7 @@
       (unless (eql 'bind (first primitive)) ;; Don't handle bind statements yet, that is done in interpretation
         ;; Add the predicate as a new node with new edges
         (setf (gethash predicate-id (integrative-network-update-nodes network)) (make-integrative-network-node
+                                                                                 :label (mkstr predicate)
                                                                                  :type 'predicate
                                                                                  :connected-nodes arguments
                                                                                  :under-attention t)
@@ -192,6 +194,7 @@
       (if value
         (progn
           (setf (gethash node-id (integrative-network-update-nodes network)) (make-integrative-network-node
+                                                                              :label node-id
                                                                               :type 'answered-question
                                                                               :connected-nodes (list value-id)
                                                                               :under-attention t)
@@ -199,6 +202,7 @@
           ;; Now handle the entity.
           (identify-network-updates value network :under-attention? t :exhaustive? exhaustive?))    
         (setf (gethash node-id (integrative-network-update-nodes network)) (make-integrative-network-node
+                                                                            :label node-id
                                                                             :type 'open-question
                                                                             :under-attention t))))
     ;; Return NIL
@@ -210,7 +214,7 @@
   ;; Most complex object to handle because there may be new edges, and 
   ;; values can be lists of entities.
   (let* ((node-id (get-object-id entity))
-         (node (make-integrative-network-node :type 'entity :under-attention under-attention?)))
+         (node (make-integrative-network-node :label node-id :type 'entity :under-attention under-attention?)))
     ;; If the node does not exist yet, add it to our update-list:
     (unless (gethash node-id (integrative-network-nodes network))
       (setf (gethash node-id (integrative-network-update-nodes network)) node)
@@ -376,6 +380,11 @@
     (vis-add-edge (wi::vis-format-many (collect-new-edges *my-network*)))))
 
 
+(defun my-append-meaning-and-irl-bindings (irl-program irl-bindings)
+  "Macroexpands an irl program and appends bind statements from accessible-entities in PDM."
+  (append (irl-bindings-to-bind-statements irl-bindings)
+          (instantiate-non-variables-in-irl-program irl-program)))
+
 ;; We run the network:
 ;; -------------------
 (defun run-the-network ()
@@ -408,3 +417,5 @@
           (write-data-to-gephi counter "irl" utterance *my-network*)
           (incf counter))))))
 ; (run-the-network)
+
+
