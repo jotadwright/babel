@@ -168,10 +168,10 @@
                      (print "Empty line is skipped"))
                     ((char= (char line 0) #\#)
                      ; first check the previous solution
-                 ;    (when solutions
-                 ;      (handler-case (irl::check-irl-program (meaning-network (first solutions)) nil *irl-primitives*)
-                 ;        (error (e)
-                 ;          (error "Invalid IRL program in solution ~S. Error was thrown: ~S" (recipe-id (first solutions)) e))))
+                     (when solutions
+                       (multiple-value-bind (error-status messages) (check-recipe-program (meaning-network (first solutions)) nil *irl-primitives*)
+                         (unless error-status
+                           (error "Invalid IRL program in solution ~S. Error was thrown: ~a" (recipe-id (first solutions)) (format nil "~{~a~}" messages))))))
                      ; we are starting a new solution
                      (push (make-instance 'solution :recipe-id (read-from-string (subseq line 1))) solutions))
                      ; we are adding a new primitive operation to the current solution's meaning network
@@ -182,15 +182,14 @@
                        (setf (meaning-network current-solution) (nconc (meaning-network current-solution) (list (read-from-string line))))))
                     (t
                      (error "A line should either contain a recipe ID (#recipe-id) or a primitive operation (op ?a ?b), but ~S was found" line))))
-;check-irl-program does not allow nupmbers, etc.
-   ;   (irl::check-irl-program (meaning-network (first solutions)) nil *irl-primitives*)
- ;(when solutions
-    ;   (handler-case (irl::check-irl-program (meaning-network (first solutions)) nil *irl-primitives*)
-     ;     (error (e)
-     ;       (error "Invalid IRL program in solution ~S. Error was thrown: ~a" (recipe-id (first solutions))))))
+      (when solutions
+        (multiple-value-bind (error-status messages) (check-recipe-program (meaning-network (first solutions)) nil *irl-primitives*)
+          (unless error-status
+            (error "Invalid IRL program in solution ~S. Error was thrown: ~a" (recipe-id (first solutions)) (format nil "~{~a~}" messages))))))
+      solutions))
 
-      ;TODO: check if the recipe contains a get-kitchen primitive?
-      solutions)))
+
+;(parse-solutions-file "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\test.lisp")
 
 (defun check-solutions-completeness (solutions &optional (sim-envs *simulation-environments*))
   "Check if the given solutions contain a solution for every recipe in the simulation environment."
@@ -202,6 +201,56 @@
           do (error "Solution contains recipe ~S which is currently unsupported" (recipe-id solution))
         when (> (count (recipe-id solution) solutions :key #'(lambda (sol) (recipe-id sol))) 1)
           do (error "Duplicate entry found for recipe ~S" (recipe-id solution))))
+
+(defun check-recipe-program (irl-program ontology primitive-inventory)
+  "Checks a recipe irl-program for mistakes.
+   This function is based on the check-irl-program function from the IRL package,
+   with unnecessary checks being removed and additional checks being added."
+  (let ((variables (remove-duplicates
+                     (find-all-anywhere-if #'variable-p irl-program)))
+        (messages '()))
+    
+    ;; first check, everything should be a non-empty list
+    (loop for expr in irl-program
+          unless (and (listp expr) expr)
+          do (push (format nil "The expression should be a non-empty list, got: ~a." expr) messages))
+
+    ;; then check, the irl-program should contain exactly one get-kitchen    
+    (let ((get-kitchen-count (count 'get-kitchen (mapcar #'first irl-program))))
+      (unless (= get-kitchen-count 0)
+        (push (format nil "The recipe should contain exactly one get-kitchen operation, but ~d were found" get-kitchen-count) messages)))
+                                                         
+    ;; lastly we check all primitives
+    (loop for expr in irl-program
+          for variables = (cdr expr)
+          unless (= (length variables) (length (remove-duplicates variables)))
+            do (push (format nil "In ~a variables appear at least twice as argument." expr) messages)
+          ;; primitive must be found
+          unless (find-primitive (first expr) primitive-inventory)
+            do (push (format nil "Primitive ~a is not defined " (car expr)) messages)
+          do
+          (let ((primitive (find-primitive (first expr) primitive-inventory)))            
+            ;; check that the number of variables matches the
+            ;; number of slot-specs:
+            (unless (= (length (irl::slot-specs primitive))
+                       (length variables))
+              (push (format nil "Error while reading primitive expression~%  ~a.~
+                             ~%The number of given variables does not match ~
+                             the number of slots."
+                             expr) messages)
+            ;; check that the given parameters are proper variable identifiers:
+            (loop for var in variables
+                  unless (or (variable-p var) ; regular variable
+                             (numberp var) ; quantity
+                             (listp var) ; list-of-kitchen-entities
+                             (find-class var)) ; concepts
+                  do (push (format nil "Error while reading primitive expression ~a.~
+                                    ~%Expected a variable identifier, number, list or an ontology class but got ~a."
+                                    expr var) messages)))))
+    ;; all test succeeded, return t
+    (if messages
+      (values nil messages)
+      (values t messages))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Measuring Solution Correctness ;;
