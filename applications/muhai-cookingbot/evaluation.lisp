@@ -614,18 +614,29 @@
                        (setf unfolded-dish-sol (remove max-ing unfolded-dish-sol)))
               else
                   do (push unfolded-ing-gold missing-ingredients))
-      ; TODO RD: misschien alignen met hoe het gebeurt voor mixture hierarchy?        
+          ; TODO RD: misschien alignen met hoe het gebeurt voor mixture hierarchy?        
           (let ((missing-ratio (/ (- (length unfolded-dish-gold) (length missing-ingredients)) (length unfolded-dish-gold)))
                 (extra-ratio (/ (+ (length unfolded-dish-sol) (length unfolded-dish-gold)) (length unfolded-dish-gold))))
             (setf (points contents-score) (* (points contents-score) missing-ratio))
             (setf (points contents-score) (/ (points contents-score) extra-ratio))))
 
-    ; compute the final similarity-score for this dish, contents are much more important than container characteristics
+         ; compute the final similarity-score for this dish, contents are much more important than container characteristics
         (make-instance 'similarity-score
                        :points (+ (* 0.95 (points contents-score))
                                   (* 0.05 (points container-score)))
                        :max-points (+ (* 0.95 (max-points contents-score))
                                     (* 0.05 (max-points container-score))))))))
+
+(defmethod find-best-dish-score ((sol-final-node irl::irl-program-processor-node) (gold-output-node irl::irl-program-processor-node))
+  "Compute a similarity score for all nodes in the solutions and return the best one."
+  (let ((node sol-final-node)
+        (scores '()))
+    (loop for score = (compute-dish-score (compare-node-dishes node gold-output-node))
+          do
+            (push score scores)
+            (setf node (parent node))
+          while (and node (irl::primitive-under-evaluation node) (< score 1)))
+    (apply #'max scores)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Solution File Evaluation ;;
@@ -647,9 +658,9 @@
                 ; compute subgoal success ratio
                 (setf (subgoals-ratio current-solution) (compute-subgoal-success-ratio (first sol-nodes) final-gold-node))
                 ; compute the dish score (if all subgoals are reached, then the dish score will already be maximal so no reason to compute it then)
-               ; (if (= (subgoals-ratio current-solution) 1)
-               ;   (setf (dish-score current-solution) 1)
-                  (setf (dish-score current-solution) (compute-dish-score (compare-node-dishes (first sol-nodes) gold-output-node)));)
+                (if (= (subgoals-ratio current-solution) 1)
+                  (setf (dish-score current-solution) 1)
+                  (setf (dish-score current-solution) (find-best-dish-score (first sol-nodes) gold-output-node)))
                 ; compute the ratio of needed execution time to the execution time of the golden standard
                 (setf (time-ratio current-solution) (/ (irl::available-at (get-output-binding (first sol-nodes)))
                                                        (irl::available-at (get-output-binding final-gold-node)))))))
@@ -733,12 +744,10 @@
              (= (dish-score solution) 1)
              (> (time-ratio solution) 1))
       (print "test-extra-operations: SUCCESS")
-      (error "test-extra-operations: FAILURE ~a" (dish-score solution)))))
+      (error "test-extra-operations: FAILURE"))))
 
 (defun execute-all-tests ()
   (test-perfect)
   (test-permuted-perfect)
   (test-imperfect)
   (test-extra-operations))
-
-;(test-extra-operations)
