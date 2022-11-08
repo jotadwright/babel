@@ -46,14 +46,13 @@
 ;; Simulation Environments ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; TODO RD: maybe just explicitly mention what the final dish is to compare, since it is not guaranteed that the last step will actually lead to the final dish
 (defclass simulation-environment ()
   ((recipe-id :type symbol :initarg :recipe-id :accessor recipe-id :initform nil)
    (kitchen-state :type kitchen-state :initarg :kitchen-state :accessor kitchen-state)
    (meaning-network :type list :initarg :meaning-network :accessor meaning-network :initform '())
-   (solution-node :type irl-program-processor-node :accessor solution-node)
+   (final-node :type irl-program-processor-node :accessor final-node)
    (primary-output-var :type symbol :initarg :primary-output-var :accessor primary-output-var :initform nil)
-   (primary-output-value :accessor primary-output-value))
+   (output-node :type irl-program-processor-node :accessor output-node))
   (:documentation "Class wrapping all information for setting up and evaluating an environment."))
 
 (defmethod initialize-instance :after ((simulation-environment simulation-environment) &key)
@@ -63,15 +62,15 @@
       (init-kitchen-state simulation-environment)
       (multiple-value-bind (bindings nodes) (evaluate-irl-program extended-mn nil)
          ; we only expect there to be one solution
-        (setf (solution-node simulation-environment) (first nodes)))))
-  (when (and (solution-node simulation-environment) (primary-output-var simulation-environment)) 
-    (let ((node (solution-node simulation-environment))
+        (setf (final-node simulation-environment) (first nodes)))))
+  (when (and (final-node simulation-environment) (primary-output-var simulation-environment)) 
+    (let ((node (final-node simulation-environment))
           (var-to-find (primary-output-var simulation-environment)))
       (loop for output-var = (second (irl::primitive-under-evaluation node))
             when (eql output-var var-to-find)
-              do (setf (primary-output-value simulation-environment) (get-output-value node))
+              do (setf (output-node simulation-environment) node)
             (setf node (parent node))
-            while (and node (not (primary-output-value simulation-environment)))))))
+            while (and node (not (output-node simulation-environment)))))))
 
 (defmethod init-kitchen-state ((simulation-environment simulation-environment))
   "Set initial kitchen state to be used in simulation to the one of the given environment."
@@ -494,7 +493,7 @@
           do (cond ((subtypep (type-of item) 'mixture)
                     (setf unfolded-contents (append unfolded-contents (unfold-mixture (make-instance 'hierarchy-ingredient :ingredient item)))))
                    ((subtypep (type-of item) 'ingredient)
-                    (setf unfolded-contents (append unfolded-contents (make-instance 'hierarchy-ingredient :ingredient item))))))
+                    (setf unfolded-contents (append unfolded-contents (list (make-instance 'hierarchy-ingredient :ingredient item)))))))
     unfolded-contents))
 
 (defmethod compare-hierarchy-ingredient ((sol-ingredient hierarchy-ingredient) (gold-ingredient hierarchy-ingredient))
@@ -560,65 +559,73 @@
   (let* ((sol-value (get-output-value sol-dish))
          (sol-location (find-location sol-value (get-output-kitchen-state sol-dish)))
          (sol-dish-slots (get-slotnames sol-value '(persistent-id id contents))) ; all slots except contents
-         (gold-value (primary-output-value gold-dish))
+         (gold-value (get-output-value gold-dish))
          (gold-location (find-location gold-value (get-output-kitchen-state gold-dish)))
          (gold-dish-slots (get-slotnames gold-value '(persistent-id id contents))) ; all slots except contents
          (container-score (make-instance 'similarity-score))
          (contents-score (make-instance 'similarity-score)))
-    ;; container specific scoring
-    ; location of dish is worth a score of 1
-    (if (similar-locations sol-location gold-location)
-      (add-points container-score 1 1)
-      (add-points container-score 0 1))
-    ; type of container is worth a score of 1
-    (if (eq (type-of sol-value) (type-of gold-value))
-      (add-points container-score 1 1)
-      (add-points container-score 0 1))
-    ; each slot that is in common is worth a score of 1  
-    (loop for slot in gold-dish-slots
-          if (and (member slot sol-dish-slots)
-                  (similar-entities (slot-value sol-value slot)
-                                    (slot-value gold-value slot)))
-            do (add-points container-score 1 1)
-          else
-            do (add-points container-score 0 1))
-    ;; contents specific scoring
-    ; number of portions in the dish is worth a score of 1
-    ; (only 1 because right now an end dish will always be portions of the same mixture, so just one portioning operation might be missing)
-    (if (= (length (contents sol-value)) (length (contents gold-value)))
-      (add-points contents-score 1 1)
-      (add-points contents-score 0 1))
-    ; actual composition of the final contents
-    (let ((unfolded-dish-sol (unfold-dish sol-value))
-          (unfolded-dish-gold (unfold-dish gold-value))
-          (missing-ingredients '()))
-      (loop for unfolded-ing-gold in unfolded-dish-gold
-            for matching-ings-sol = (find-all (type-of (ingredient unfolded-ing-gold)) unfolded-dish-sol :key #'(lambda (sim-ing) (type-of (ingredient sim-ing))))
-            if matching-ings-sol
-              ; same ingredient can occur multiple times in slightly different forms, 
+    ; check if this node actually return 
+    (if (not (and (subtypep (type-of sol-value) 'container)
+                    (contents sol-value)
+                    (loop for item in (contents sol-value) always (subtypep (type-of item) 'ingredient))))
+      (make-instance 'similarity-score
+                     :points 0
+                     :max-points 1)
+      (progn
+        ;; container specific scoring
+        ; location of dish is worth a score of 1
+        (if (similar-locations sol-location gold-location)
+          (add-points container-score 1 1)
+          (add-points container-score 0 1))
+         ; type of container is worth a score of 1
+        (if (eq (type-of sol-value) (type-of gold-value))
+          (add-points container-score 1 1)
+          (add-points container-score 0 1))
+        ; each slot that is in common is worth a score of 1  
+        (loop for slot in gold-dish-slots
+              if (and (member slot sol-dish-slots)
+                      (similar-entities (slot-value sol-value slot)
+                                        (slot-value gold-value slot)))
+                do (add-points container-score 1 1)
+              else
+                do (add-points container-score 0 1))
+        ;; contents specific scoring
+        ; number of portions in the dish is worth a score of 1
+        ; (only 1 because right now an end dish will always be portions of the same mixture, so just one portioning operation might be missing)
+        (if (= (length (contents sol-value)) (length (contents gold-value)))
+          (add-points contents-score 1 1)
+        (add-points contents-score 0 1))
+        ; actual composition of the final contents
+        (let ((unfolded-dish-sol (unfold-dish sol-value))
+              (unfolded-dish-gold (unfold-dish gold-value))
+              (missing-ingredients '()))
+          (loop for unfolded-ing-gold in unfolded-dish-gold
+                for matching-ings-sol = (find-all (type-of (ingredient unfolded-ing-gold)) unfolded-dish-sol :key #'(lambda (sim-ing) (type-of (ingredient sim-ing))))
+                if matching-ings-sol
+                  ; same ingredient can occur multiple times in slightly different forms, 
               ; so check with which ingredient maximum similarity is found and use that one for score computation
-              do (let* ((sim-scores (loop for matching-ing-sol in matching-ings-sol
-                                          collect (compare-hierarchy-ingredient matching-ing-sol unfolded-ing-gold)))
-                        (match-scores (mapcar #'compute-ratio sim-scores))
-                        (max-score (apply #'max match-scores))
-                        (max-position (position max-score match-scores))
-                        (max-ing (nth max-position matching-ings-sol)))
-                   (add-similarity-score-to (nth max-position sim-scores) contents-score)
-                   (setf unfolded-dish-sol (remove max-ing unfolded-dish-sol)))
-            else
-              do (push unfolded-ing-gold missing-ingredients))
+                  do (let* ((sim-scores (loop for matching-ing-sol in matching-ings-sol
+                                              collect (compare-hierarchy-ingredient matching-ing-sol unfolded-ing-gold)))
+                            (match-scores (mapcar #'compute-dish-score sim-scores))
+                            (max-score (apply #'max match-scores))
+                            (max-position (position max-score match-scores))
+                            (max-ing (nth max-position matching-ings-sol)))
+                       (add-similarity-score-to (nth max-position sim-scores) contents-score)
+                       (setf unfolded-dish-sol (remove max-ing unfolded-dish-sol)))
+              else
+                  do (push unfolded-ing-gold missing-ingredients))
       ; TODO RD: misschien alignen met hoe het gebeurt voor mixture hierarchy?        
-      (let ((missing-ratio (/ (- (length unfolded-dish-gold) (length missing-ingredients)) (length unfolded-dish-gold)))
-            (extra-ratio (/ (+ (length unfolded-dish-sol) (length unfolded-dish-gold)) (length unfolded-dish-gold))))
-        (setf (points contents-score) (* (points contents-score) missing-ratio))
-        (setf (points contents-score) (/ (points contents-score) extra-ratio))))
+          (let ((missing-ratio (/ (- (length unfolded-dish-gold) (length missing-ingredients)) (length unfolded-dish-gold)))
+                (extra-ratio (/ (+ (length unfolded-dish-sol) (length unfolded-dish-gold)) (length unfolded-dish-gold))))
+            (setf (points contents-score) (* (points contents-score) missing-ratio))
+            (setf (points contents-score) (/ (points contents-score) extra-ratio))))
 
     ; compute the final similarity-score for this dish, contents are much more important than container characteristics
-    (make-instance 'similarity-score
-                   :points (+ (* 0.95 (points contents-score))
-                               (* 0.05 (points container-score)))
-                   :max-points (+ (* 0.95 (max-points contents-score))
-                             (* 0.05 (max-points container-score))))))    
+        (make-instance 'similarity-score
+                       :points (+ (* 0.95 (points contents-score))
+                                  (* 0.05 (points container-score)))
+                       :max-points (+ (* 0.95 (max-points contents-score))
+                                    (* 0.05 (max-points container-score))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Solution File Evaluation ;;
@@ -631,20 +638,21 @@
           for current-id = (recipe-id current-solution)
           for current-sim-env = (find current-id sim-envs :key #'(lambda (sim-env) (recipe-id sim-env)))
           for gold-mn = (meaning-network current-sim-env)
-          for gold-node = (solution-node current-sim-env)
+          for final-gold-node = (final-node current-sim-env) 
+          for gold-output-node = (output-node current-sim-env)
           do
             (init-kitchen-state current-sim-env)
             (let ((extended-mn (append-meaning-and-irl-bindings (meaning-network current-solution) nil)))
               (multiple-value-bind (sol-bindings sol-nodes) (evaluate-irl-program extended-mn nil)
                 ; compute subgoal success ratio
-                (setf (subgoals-ratio current-solution) (compute-subgoal-success-ratio (first sol-nodes) gold-node))
+                (setf (subgoals-ratio current-solution) (compute-subgoal-success-ratio (first sol-nodes) final-gold-node))
                 ; compute the dish score (if all subgoals are reached, then the dish score will already be maximal so no reason to compute it then)
-                (if (= (subgoals-ratio current-solution) 1)
-                  (setf (dish-score current-solution) 1)
-                  (setf (dish-score current-solution) (compute-ratio (compare-node-dishes (first sol-nodes) gold-node))))
+               ; (if (= (subgoals-ratio current-solution) 1)
+               ;   (setf (dish-score current-solution) 1)
+                  (setf (dish-score current-solution) (compute-dish-score (compare-node-dishes (first sol-nodes) gold-output-node)));)
                 ; compute the ratio of needed execution time to the execution time of the golden standard
                 (setf (time-ratio current-solution) (/ (irl::available-at (get-output-binding (first sol-nodes)))
-                                                       (irl::available-at (get-output-binding gold-node)))))))
+                                                       (irl::available-at (get-output-binding final-gold-node)))))))
     solutions))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -688,7 +696,49 @@
 
 ;(toppie test)
 
+;;;;;;;;;;;
 ;; Tests ;;
 ;;;;;;;;;;;
 
-;(defparameter test1 (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\test.lisp"))
+(defun test-perfect ()
+  "The same network as the simulation environment's solution."
+  (let ((solution (first (evaluate "applications\\muhai-cookingbot\\tests\\test-perfect.lisp"))))
+    (if (and (= (subgoals-ratio solution) 1)
+             (= (dish-score solution) 1)
+             (= (time-ratio solution) 1))
+      (print "test-perfect: SUCCESS")
+      (error "test-perfect: FAILURE"))))
+     
+(defun test-permuted-perfect ()
+  "The same network as the simulation environment's solution, but with some parts executed in a different order."
+  (let ((solution (first (evaluate "applications\\muhai-cookingbot\\tests\\test-permuted-perfect.lisp"))))
+    (if (and (= (subgoals-ratio solution) 1)
+             (= (dish-score solution) 1)
+             (= (time-ratio solution) 1))
+      (print "test-permuted-perfect: SUCCESS")
+      (error "test-permuted-perfect: FAILURE"))))
+
+(defun test-imperfect ()
+  "The same network as the simulation environment's solution, but with some instructions missing at the end."
+  (let ((solution (first (evaluate "applications\\muhai-cookingbot\\tests\\test-imperfect.lisp"))))
+    (if (and (= (subgoals-ratio solution) (/ 23 24))
+             (< (dish-score solution) 1))
+      (print "test-imperfect: SUCCESS")
+      (error "test-imperfect: FAILURE"))))
+
+(defun test-extra-operations ()
+  "The same network as the simulation environment's solution, but with some instructions missing at the end."
+  (let ((solution (first (evaluate "applications\\muhai-cookingbot\\tests\\test-extra-operation.lisp"))))
+    (if (and (= (subgoals-ratio solution) 1)
+             (= (dish-score solution) 1)
+             (> (time-ratio solution) 1))
+      (print "test-extra-operations: SUCCESS")
+      (error "test-extra-operations: FAILURE ~a" (dish-score solution)))))
+
+(defun execute-all-tests ()
+  (test-perfect)
+  (test-permuted-perfect)
+  (test-imperfect)
+  (test-extra-operations))
+
+;(test-extra-operations)
