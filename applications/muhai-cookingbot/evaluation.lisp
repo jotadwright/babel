@@ -184,11 +184,156 @@
                        '(sprinkle ?sprinkled-object-151 ?kitchen-state-out-901 ?kitchen-state-out-887 ?thing-baked-148 ?ingredient-out-45))
                  :primary-output-var
                  '?sprinkled-object-151))
-                 
+
+(defparameter *afghan-biscuits-environment*
+  (make-instance 'simulation-environment
+                 :recipe-id 'afghan-biscuits
+                 :kitchen-state  (make-instance 
+                                  'kitchen-state
+                                  :contents
+                                  (list (make-instance 'fridge
+                                                       :contents (list (make-instance 'medium-bowl
+                                                                                      :contents (list (make-instance 'butter :amount
+                                                                                                                     (make-instance 'amount
+                                                                                                                                    :unit (make-instance 'g)
+                                                                                                                                    :quantity (make-instance 'quantity
+                                                                                                                                                             :value 250)))))))
+                                        (make-instance 'pantry
+                                                       :contents (list (make-instance 'medium-bowl
+                                                                                      :contents (list (make-instance 'caster-sugar :amount
+                                                                                                                     (make-instance 'amount
+                                                                                                                                    :unit (make-instance 'g)
+                                                                                                                                    :quantity (make-instance 'quantity
+                                                                                                                                                             :value 1000)))))
+                                                                       (make-instance 'medium-bowl
+                                                                                      :contents (list (make-instance 'all-purpose-flour :amount
+                                                                                                                     (make-instance 'amount
+                                                                                                                                    :unit (make-instance 'g)
+                                                                                                                                    :quantity (make-instance 'quantity
+                                                                                                                                                             :value 1000)))))
+                                                                       (make-instance 'medium-bowl
+                                                                                      :contents (list (make-instance 'cocoa-powder :amount
+                                                                                                                     (make-instance 'amount
+                                                                                                                                    :unit (make-instance 'g)
+                                                                                                                                    :quantity (make-instance 'quantity
+                                                                                                                                                             :value 500)))))
+                                                                       (make-instance 'medium-bowl
+                                                                                      :contents (list (make-instance 'corn-flakes :amount
+                                                                                                                     (make-instance 'amount
+                                                                                                                                    :unit (make-instance 'g)
+                                                                                                                                    :quantity (make-instance 'quantity
+                                                                                                                                                             :value 500)))))
+                                                                       (make-instance 'medium-bowl
+                                                                                      :contents (list (make-instance 'icing-sugar :amount
+                                                                                                                     (make-instance 'amount
+                                                                                                                                    :unit (make-instance 'g)
+                                                                                                                                    :quantity (make-instance 'quantity
+                                                                                                                                                             :value 500)))))
+                                                                       (make-instance 'medium-bowl
+                                                                                      :contents (list (make-instance 'water :amount
+                                                                                                                     (make-instance 'amount
+                                                                                                                                    :unit (make-instance 'l)
+                                                                                                                                    :quantity (make-instance 'quantity :value 1)))))
+                                                                       (make-instance 'medium-bowl
+                                                                                      :contents (list (make-instance 'almond-flakes :amount
+                                                                                                                     (make-instance 'amount
+                                                                                                                                    :unit (make-instance 'g)
+                                                                                                                                    :quantity (make-instance 'quantity :value 250)))))))
+                                        (make-instance 'kitchen-cabinet
+                                                       :contents (list (make-instance 'baking-tray)
+                                                                       (make-instance 'baking-paper)
+                                                                       (make-instance 'whisk)
+                                                                       (make-instance 'whisk)
+                                                                       (make-instance 'whisk)
+                                                                       (make-instance 'whisk)
+                                                                       (make-instance 'whisk)
+                                                                       (make-instance 'sift)
+                                                                       (make-instance 'wooden-spoon)
+                                                                       (make-instance 'wooden-spoon)
+                                                                       (make-instance 'wooden-spoon)
+                                                                       (make-instance 'table-spoon)
+                                                                       (make-instance 'table-spoon)
+                                                                       (make-instance 'table-spoon)
+                                                                       (make-instance 'rolling-pin)
+                                                                       (make-instance 'wire-rack)
+                                                                       (make-instance 'medium-bowl)
+                                                                       (make-instance 'medium-bowl)
+                                                                       (make-instance 'medium-bowl)
+                                                                       (make-instance 'medium-bowl)
+                                                                       (make-instance 'medium-bowl)
+                                                                       (make-instance 'medium-bowl)
+                                                                       (make-instance 'medium-bowl)
+                                                                       (make-instance 'medium-bowl)
+                                                                       (make-instance 'medium-bowl)
+                                                                       (make-instance 'medium-bowl)
+                                                                       (make-instance 'medium-bowl)
+                                                                       (make-instance 'medium-bowl)
+                                                                       (make-instance 'medium-bowl)
+                                                                       (make-instance 'medium-bowl)
+                                                                       (make-instance 'medium-bowl)
+                                                                       (make-instance 'medium-bowl)
+                                                                       (make-instance 'medium-bowl)
+                                                                       (make-instance 'medium-bowl)
+                                                                       (make-instance 'medium-bowl)
+                                                                       (make-instance 'large-bowl)
+                                                                       (make-instance 'large-bowl)
+                                                                       (make-instance 'large-bowl)
+                                                                       (make-instance 'large-bowl)
+                                                                       (make-instance 'large-bowl)
+                                                                       ))))
+                 :meaning-network
+                 (list '(get-kitchen ?kitchen-state)
+                       '(fetch-and-proportion ?proportioned-butter ?kitchen-state-with-butter ?kitchen-state ?target-container-1 butter 200 g)
+                       '(bring-to-temperature ?butter-at-room-temp ?kitchen-state-with-butter-at-room-temp ?kitchen-state-with-butter ?proportioned-butter 18 degrees-celsius)
+                       '(fetch-and-proportion ?proportioned-caster-sugar ?kitchen-state-with-caster-sugar ?kitchen-state-with-butter ?target-container-2 caster-sugar 100 g)
+                       '(fetch-and-proportion ?proportioned-all-purpose-flour ?kitchen-state-with-all-purpose-flour ?kitchen-state-with-caster-sugar ?target-container-3 all-purpose-flour 301 g)
+                       '(fetch-and-proportion ?proportioned-cocoa-powder ?kitchen-state-with-cocoa-powder ?kitchen-state-with-all-purpose-flour ?target-container-4 cocoa-powder 38 g)
+                       '(fetch-and-proportion ?proportioned-corn-flakes ?kitchen-state-with-corn-flakes ?kitchen-state-with-cocoa-powder ?target-container-5 corn-flakes 301 g)
+                       '(fetch-and-proportion ?proportioned-icing-sugar ?kitchen-state-with-icing-sugar ?kitchen-state-with-corn-flakes ?target-container-6 icing-sugar 201 g)
+                       '(fetch-and-proportion ?proportioned-icing-cocoa-powder ?kitchen-state-with-icing-cocoa-powder ?kitchen-state-with-icing-sugar ?target-container-7 cocoa-powder 26 g)
+                       '(fetch-and-proportion ?proportioned-water ?kitchen-state-with-water ?kitchen-state-with-icing-cocoa-powder ?target-container-8 water 0.04436 l)
+                       '(fetch-and-proportion ?proportioned-almonds ?kitchen-state-with-almonds ?kitchen-state-with-water ?target-container-9 almond-flakes 50 g)
+                       '(preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-almonds 175 degrees-celsius)
+                       '(fetch ?baking-tray ?kitchen-state-with-baking-tray ?kitchen-state-with-preheated-oven baking-tray 1)
+                       '(fetch ?baking-paper ?kitchen-state-with-baking-paper ?kitchen-state-with-baking-tray baking-paper 1)
+                       '(line ?lined-baking-tray ?kitchen-state-with-lined-baking-tray ?kitchen-state-with-baking-paper ?baking-tray ?baking-paper)
+                       '(transfer-contents ?output-container-x ?rest-x ?output-kitchen-state-x ?kitchen-state-with-lined-baking-tray ?target-container-10 ?butter-at-room-temp ?quantity-x ?unit-x)
+                       '(transfer-contents ?output-container-y ?rest-y ?output-kitchen-state-y ?output-kitchen-state-x ?output-container-x ?proportioned-caster-sugar ?quantity-y ?unit-y)
+                       '(beat ?container-with-creamed-butter ?kitchen-state-with-creamed-butter ?output-kitchen-state-y ?output-container-y ?beating-tool)
+                       '(sift ?container-with-sifted-flour ?kitchen-state-with-sifted-flour ?kitchen-state-with-creamed-butter
+          ?target-container-11 ?proportioned-all-purpose-flour ?sifting-tool)
+                       '(sift ?container-with-sifted-ingredients ?kitchen-state-with-sifted-ingredients ?kitchen-state-with-sifted-flour
+          ?container-with-sifted-flour ?proportioned-cocoa-powder ?sifting-tool)
+                       '(transfer-contents ?container-with-flour-cocoa-and-butter ?rest-z ?kitchen-state-with-flour-cocoa-and-butter-in-bowl
+                       ?kitchen-state-with-sifted-ingredients ?container-with-creamed-butter ?container-with-sifted-ingredients ?quantity-z ?unit-z)
+                       '(fetch ?wooden-spoon ?kitchen-state-with-wooden-spoon ?kitchen-state-with-flour-cocoa-and-butter-in-bowl wooden-spoon 1)
+                       '(mix ?flour-cocoa-butter-mixture ?kitchen-state-with-flour-cocoa-butter-mixture ?kitchen-state-with-wooden-spoon ?container-with-flour-cocoa-and-butter ?wooden-spoon)
+                       '(transfer-contents ?container-with-cornflakes-added ?rest-a ?kitchen-state-with-cornflakes-in-bowl ?kitchen-state-with-flour-cocoa-butter-mixture ?flour-cocoa-butter-mixture ?proportioned-corn-flakes ?quantity-a ?unit-a)
+                       '(mix ?flour-cocoa-butter-cornflakes-mixture ?kitchen-state-with-cornflakes-mixture ?kitchen-state-with-cornflakes-in-bowl ?container-with-cornflakes-added ?mixing-tool)
+                       '(portion-and-arrange ?portioned-dough ?kitchen-state-with-portions-on-countertop ?kitchen-state-with-cornflakes-mixture ?flour-cocoa-butter-cornflakes-mixture 30 g ?arrangement-pattern ?countertop)
+                       '(shape ?dough-balls ?kitchen-state-with-doughballs ?kitchen-state-with-portions-on-countertop ?portioned-dough ball-shape)
+                       '(flatten ?flattened-dough-balls ?kitchen-state-with-flattened-doughballs ?kitchen-state-with-doughballs ?dough-balls ?rolling-pin)
+                       '(transfer-items ?cookies-on-tray ?kitchen-state-with-cookies-on-tray ?kitchen-state-with-flattened-doughballs ?flattened-dough-balls ?lined-baking-tray)
+                       '(bake ?baked-cookies ?kitchen-state-with-baking-cookies ?kitchen-state-with-cookies-on-tray ?cookies-on-tray ?preheated-oven 15 minute ?temp-quantity ?temp-unit)
+                       '(fetch ?wire-rack ?kitchen-state-with-wire-rack ?kitchen-state-with-baking-cookies wire-rack 1)
+                       '(transfer-items ?cookies-on-wire-rack ?kitchen-state-with-cookies-on-wire-rack ?kitchen-state-with-wire-rack ?baked-cookies ?wire-rack)
+                       '(bring-to-temperature ?cooled-cookies ?kitchen-state-with-cooling-cookies ?kitchen-state-with-cookies-on-wire-rack ?cookies-on-wire-rack 18 degrees-celsius)
+                       '(fetch ?medium-bowl ?kitchen-state-with-bowl ?kitchen-state-with-cooling-cookies medium-bowl 1)
+                       '(transfer-contents ?container-for-icing-with-sugar ?rest-b ?kitchen-state-with-container-for-icing-with-sugar ?kitchen-state-with-bowl ?medium-bowl ?proportioned-icing-sugar ?quantity-b ?unit-b)
+                       '(transfer-contents ?container-for-icing-with-sugar-and-cocoa ?rest-c ?kitchen-state-with-container-for-icing-with-sugar-and-cocoa ?kitchen-state-with-container-for-icing-with-sugar ?container-for-icing-with-sugar ?proportioned-icing-cocoa-powder ?quantity-c ?unit-c)
+                       '(transfer-contents ?container-for-icing-with-sugar-cocoa-and-water ?rest-d ?kitchen-state-with-container-for-icing-with-sugar-cocoa-and-water ?kitchen-state-with-container-for-icing-with-sugar-and-cocoa ?container-for-icing-with-sugar ?proportioned-water ?quantity-d ?unit-d)
+                       '(mix ?icing ?kitchen-with-icing-ready ?kitchen-state-with-container-for-icing-with-sugar-cocoa-and-water ?container-for-icing-with-sugar-cocoa-and-water ?mixing-tool)
+                       '(fetch ?table-spoon ?kitchen-state-with-table-spoon ?kitchen-with-icing-ready table-spoon 1)
+                       '(spread ?iced-cookies ?kitchen-state-with-iced-cookies ?kitchen-state-with-table-spoon  ?cooled-cookies ?icing ?table-spoon)
+                       '(sprinkle ?sprinkled-cookies ?kitchen-state-with-sprinkled-cookies ?kitchen-state-with-iced-cookies ?iced-cookies ?proportioned-almonds))
+                 :primary-output-var '?sprinkled-cookies))
+
+(defparameter *best-brownies-environment* nil)
 
 ; list of all available simulation environments
 (defparameter *simulation-environments*
-  (list *almond-crescent-cookies-environment*))
+  (list *almond-crescent-cookies-environment*
+        *afghan-biscuits-environment*))
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; Recipe Solutions ;;
@@ -642,6 +787,7 @@
 ;; Solution File Evaluation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+; TODO RD: eventueel kan solutions een hash-table gemaakt worden
 (defun evaluate (filepath &optional (sim-envs *simulation-environments*))
   (let ((solutions (parse-solutions-file filepath))) ; read in the solutions
     (check-solutions-completeness solutions sim-envs) ; check if the solutions file contains all the needed solutions
@@ -753,6 +899,22 @@
              (= (dish-score solution) 0))
       (print "test-empty: SUCCESS")
       (error "test-empty: FAILURE"))))
+
+(defun test-multiple-recipes ()
+  "A file that contains two solutions, an imperfect one and a perfect one."
+  (let* ((solutions (evaluate "applications\\muhai-cookingbot\\tests\\test-multiple-recipes.lisp"))
+         (solution-perfect (first solutions))
+         (solution-imperfect (second solutions)))
+    (if (and (= (subgoals-ratio solution-perfect) 1)
+             (= (dish-score solution-perfect) 1)
+             (= (subgoals-ratio solution-imperfect) (/ 23 24))
+             (< (dish-score solution-imperfect) 1))
+      (print "test-empty: SUCCESS")
+      (error "test-empty: FAILURE"))))
+
+;TODO RD: maak het een hash table die solutions
+
+(test-multiple-recipes)
 
 (defun execute-all-tests ()
   (test-perfect)
