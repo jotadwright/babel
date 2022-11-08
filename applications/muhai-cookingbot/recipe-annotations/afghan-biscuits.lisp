@@ -1,3 +1,4 @@
+(ql:quickload :muhai-cookingbot)
 
 (in-package :muhai-cookingbot)
 
@@ -132,6 +133,7 @@
     ;; "1 cup icing sugar"
     (fetch-and-proportion ?proportioned-icing-sugar ?kitchen-state-with-icing-sugar ?kitchen-state-with-corn-flakes ?target-container-6 icing-sugar 201 g)
 
+    ; TODO RD: what is the supposed problem with finding cocoa powder a second time?
     ;; "2 tablespoons unsweetened cocao powder" ;;PROBLEM WITH FINDING COCOA POWDER A SECOND TIME
     (fetch-and-proportion ?proportioned-icing-cocoa-powder ?kitchen-state-with-icing-cocoa-powder ?kitchen-state-with-icing-sugar ?target-container-7 cocoa-powder 26 g)
 
