@@ -738,7 +738,7 @@
       (error "test-imperfect: FAILURE"))))
 
 (defun test-extra-operations ()
-  "The same network as the simulation environment's solution, but with some instructions missing at the end."
+  "The same network as the simulation environment's solution, but with some extra instructions at the end."
   (let ((solution (first (evaluate "applications\\muhai-cookingbot\\tests\\test-extra-operation.lisp"))))
     (if (and (= (subgoals-ratio solution) 1)
              (= (dish-score solution) 1)
@@ -746,8 +746,17 @@
       (print "test-extra-operations: SUCCESS")
       (error "test-extra-operations: FAILURE"))))
 
+(defun test-empty ()
+  "A solution that only contains get-kitchen."
+  (let ((solution (first (evaluate "applications\\muhai-cookingbot\\tests\\test-empty.lisp"))))
+    (if (and (= (subgoals-ratio solution) 0)
+             (= (dish-score solution) 0))
+      (print "test-empty: SUCCESS")
+      (error "test-empty: FAILURE"))))
+
 (defun execute-all-tests ()
   (test-perfect)
   (test-permuted-perfect)
   (test-imperfect)
-  (test-extra-operations))
+  (test-extra-operations)
+  (test-empty))
