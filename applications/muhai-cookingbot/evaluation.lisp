@@ -2,6 +2,46 @@
 
 (in-package :muhai-cookingbot)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; IRL NODE HELPER FUNCTIONS ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod get-predicate-name ((irl-node irl::irl-program-processor-node))
+  "Get the predicate name belonging to this node's primitive under evaluation."
+  (first (irl::primitive-under-evaluation irl-node)))
+
+(defmethod get-output-binding ((irl-node irl::irl-program-processor-node))
+  "Get the binding belonging to the primary output of this node's primitive under evaluation."
+  (let ((target-var (second (irl::primitive-under-evaluation irl-node)))
+        (list-of-bindings (irl::bindings irl-node)))
+    (find target-var list-of-bindings :key #'var)))  
+
+(defmethod get-output-value ((irl-node irl::irl-program-processor-node))
+  "Get the value belonging to the binding for the primary output of this node's primitive under evaluation."
+  (let ((target-binding (get-output-binding irl-node)))
+    (when target-binding
+      (value target-binding))))
+
+(defmethod get-output-kitchen-state ((irl-node irl::irl-program-processor-node))
+  "Get the output kitchen state belonging to this node's primitive under evaluation."
+  (let ((all-vars (irl::all-variables (list (irl::primitive-under-evaluation irl-node))))
+        (list-of-bindings (irl::bindings irl-node)))
+    (loop for var in all-vars
+          for binding = (find var list-of-bindings :key #'var)
+          if (eql (type-of (value binding)) 'kitchen-state)
+            do (return (value binding)))))
+
+(defmethod get-full-node-sequence ((irl-node irl::irl-program-processor-node))
+  "Get the full sequence of nodes that led to the given IRL node.
+   Sequence goes from the starting node with the first executed primitive up to and including the given IRL node."
+  (let ((node irl-node)
+        (node-seq '()))
+    (loop do
+         (push node node-seq)
+         (setf node (parent node))
+       while node)
+    (rest node-seq)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Simulation Environments ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -11,17 +51,27 @@
   ((recipe-id :type symbol :initarg :recipe-id :accessor recipe-id :initform nil)
    (kitchen-state :type kitchen-state :initarg :kitchen-state :accessor kitchen-state)
    (meaning-network :type list :initarg :meaning-network :accessor meaning-network :initform '())
-   (solution-node :type irl-program-processor-node :accessor solution-node))
+   (solution-node :type irl-program-processor-node :accessor solution-node)
+   (primary-output-var :type symbol :initarg :primary-output-var :accessor primary-output-var :initform nil)
+   (primary-output-value :accessor primary-output-value))
   (:documentation "Class wrapping all information for setting up and evaluating an environment."))
 
 (defmethod initialize-instance :after ((simulation-environment simulation-environment) &key)
   "Execute the simulation environment's network once and already store the solution (to prevent multiple re-executions)."
-  (when (not (null (meaning-network simulation-environment)))
+  (when (meaning-network simulation-environment)
     (let ((extended-mn (append-meaning-and-irl-bindings (meaning-network simulation-environment) nil)))
       (init-kitchen-state simulation-environment)
       (multiple-value-bind (bindings nodes) (evaluate-irl-program extended-mn nil)
          ; we only expect there to be one solution
-        (setf (solution-node simulation-environment) (first nodes))))))
+        (setf (solution-node simulation-environment) (first nodes)))))
+  (when (and (solution-node simulation-environment) (primary-output-var simulation-environment)) 
+    (let ((node (solution-node simulation-environment))
+          (var-to-find (primary-output-var simulation-environment)))
+      (loop for output-var = (second (irl::primitive-under-evaluation node))
+            when (eql output-var var-to-find)
+              do (setf (primary-output-value simulation-environment) (get-output-value node))
+            (setf node (parent node))
+            while (and node (not (primary-output-value simulation-environment)))))))
 
 (defmethod init-kitchen-state ((simulation-environment simulation-environment))
   "Set initial kitchen state to be used in simulation to the one of the given environment."
@@ -132,7 +182,10 @@
                        '(transfer-items ?things-placed-136 ?kitchen-out-136 ?kitchen-state-out-805 ?shaped-bakeables-264 ?lined-baking-tray-269)
                        '(line ?lined-baking-tray-269 ?kitchen-state-out-805 ?kitchen-state-out-792 baking-tray baking-paper)
                        '(bake ?thing-baked-148 ?kitchen-state-out-887 ?kitchen-out-136 ?things-placed-136 ?oven-to-bake-in-148 15 minute 175 degrees-celsius)
-                       '(sprinkle ?sprinkled-object-151 ?kitchen-state-out-901 ?kitchen-state-out-887 ?thing-baked-148 ?ingredient-out-45))))
+                       '(sprinkle ?sprinkled-object-151 ?kitchen-state-out-901 ?kitchen-state-out-887 ?thing-baked-148 ?ingredient-out-45))
+                 :primary-output-var
+                 '?sprinkled-object-151))
+                 
 
 ; list of all available simulation environments
 (defparameter *simulation-environments*
@@ -154,7 +207,6 @@
 ;; Reading in Solutions ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; TODO RD: check-irl-program met een get-kitchen-state check
 (defun parse-solutions-file (filepath)
   "Read all recipe solutions from the file at the given filepath. 
    Solutions are represented by a line containing the ID of a recipe, i.e., #recipe_ID, 
@@ -171,8 +223,8 @@
                      (when solutions
                        (multiple-value-bind (error-status messages) (check-recipe-program (meaning-network (first solutions)) nil *irl-primitives*)
                          (unless error-status
-                           (error "Invalid IRL program in solution ~S. Error was thrown: ~a" (recipe-id (first solutions)) (format nil "~{~a~}" messages))))))
-                     ; we are starting a new solution
+                           (error "Invalid IRL program in solution ~S. Error was thrown: ~a" (recipe-id (first solutions)) (format nil "~{~a~}" messages)))))
+                       ; we are starting a new solution
                      (push (make-instance 'solution :recipe-id (read-from-string (subseq line 1))) solutions))
                      ; we are adding a new primitive operation to the current solution's meaning network
                     ((char= (char line 0) #\()
@@ -182,14 +234,11 @@
                        (setf (meaning-network current-solution) (nconc (meaning-network current-solution) (list (read-from-string line))))))
                     (t
                      (error "A line should either contain a recipe ID (#recipe-id) or a primitive operation (op ?a ?b), but ~S was found" line))))
-      (when solutions
-        (multiple-value-bind (error-status messages) (check-recipe-program (meaning-network (first solutions)) nil *irl-primitives*)
-          (unless error-status
-            (error "Invalid IRL program in solution ~S. Error was thrown: ~a" (recipe-id (first solutions)) (format nil "~{~a~}" messages))))))
-      solutions))
-
-
-;(parse-solutions-file "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\test.lisp")
+              (when solutions
+                (multiple-value-bind (error-status messages) (check-recipe-program (meaning-network (first solutions)) nil *irl-primitives*)
+                  (unless error-status
+                    (error "Invalid IRL program in solution ~S. Error was thrown: ~a" (recipe-id (first solutions)) (format nil "~{~a~}" messages)))))
+              solutions)))
 
 (defun check-solutions-completeness (solutions &optional (sim-envs *simulation-environments*))
   "Check if the given solutions contain a solution for every recipe in the simulation environment."
@@ -217,7 +266,7 @@
 
     ;; then check, the irl-program should contain exactly one get-kitchen    
     (let ((get-kitchen-count (count 'get-kitchen (mapcar #'first irl-program))))
-      (unless (= get-kitchen-count 0)
+      (unless (= get-kitchen-count 1)
         (push (format nil "The recipe should contain exactly one get-kitchen operation, but ~d were found" get-kitchen-count) messages)))
                                                          
     ;; lastly we check all primitives
@@ -255,44 +304,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Measuring Solution Correctness ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Helper Functions Working on IRL Nodes;;
-
-(defmethod get-predicate-name ((irl-node irl::irl-program-processor-node))
-  "Get the predicate name belonging to this node's primitive under evaluation."
-  (first (irl::primitive-under-evaluation irl-node)))
-
-(defmethod get-output-binding ((irl-node irl::irl-program-processor-node))
-  "Get the binding belonging to the primary output of this node's primitive under evaluation."
-  (let ((target-var (second (irl::primitive-under-evaluation irl-node)))
-        (list-of-bindings (irl::bindings irl-node)))
-    (find target-var list-of-bindings :key #'var)))  
-
-(defmethod get-output-value ((irl-node irl::irl-program-processor-node))
-  "Get the value belonging to the binding for the primary output of this node's primitive under evaluation."
-  (let ((target-binding (get-output-binding irl-node)))
-    (when target-binding
-      (value target-binding))))
-
-(defmethod get-output-kitchen-state ((irl-node irl::irl-program-processor-node))
-  "Get the output kitchen state belonging to this node's primitive under evaluation."
-  (let ((all-vars (irl::all-variables (list (irl::primitive-under-evaluation irl-node))))
-        (list-of-bindings (irl::bindings irl-node)))
-    (loop for var in all-vars
-          for binding = (find var list-of-bindings :key #'var)
-          if (eql (type-of (value binding)) 'kitchen-state)
-            do (return (value binding)))))
-
-(defmethod get-full-node-sequence ((irl-node irl::irl-program-processor-node))
-  "Get the full sequence of nodes that led to the given IRL node.
-   Sequence goes from the starting node with the first executed primitive up to and including the given IRL node."
-  (let ((node irl-node)
-        (node-seq '()))
-    (loop do
-         (push node node-seq)
-         (setf node (parent node))
-       while node)
-    (rest node-seq)))
 
 ;; Helper Functions Related to Kitchen Entity Locations ;;
 
@@ -549,7 +560,7 @@
   (let* ((sol-value (get-output-value sol-dish))
          (sol-location (find-location sol-value (get-output-kitchen-state sol-dish)))
          (sol-dish-slots (get-slotnames sol-value '(persistent-id id contents))) ; all slots except contents
-         (gold-value (get-output-value gold-dish))
+         (gold-value (primary-output-value gold-dish))
          (gold-location (find-location gold-value (get-output-kitchen-state gold-dish)))
          (gold-dish-slots (get-slotnames gold-value '(persistent-id id contents))) ; all slots except contents
          (container-score (make-instance 'similarity-score))
