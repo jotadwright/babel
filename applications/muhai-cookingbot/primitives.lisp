@@ -1366,10 +1366,7 @@
   (loop for el in (contents container)
         do (setf (temperature el) temperature)))
 
-
-
 (defun take-n-pieces (source-container target-amount target-container)
-
   (assert (= (length (contents source-container)) 1))
   
   (let* ((source-ingredient (first (contents source-container)))
@@ -1382,7 +1379,7 @@
                                      collect (make-instance (type-of source-ingredient)
                                                             :amount (make-instance 'amount
                                                                                    :unit 'piece
-                                                                                   :quantity 1)))))
+                                                                                   :quantity (make-instance 'quantity :value 1))))))
 
     ;;adjust amounts of source ingredient
     (setf (amount source-ingredient) new-amount-source)
