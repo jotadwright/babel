@@ -258,15 +258,16 @@
                                      (* 5 (length (contents eggs)))))
           (kitchen-state-available-at container-available-at))
 
-     (loop for i from 1 to (value (quantity (amount (first (contents new-eggs-with-shell)))))
-           for egg-amount = (make-instance 'amount :quantity (make-instance 'quantity :value 50) :unit (make-instance 'g))
-           for whole-egg = (make-instance 'whole-egg :amount egg-amount)
-           for egg-shell = (make-instance 'egg-shell :cracked t)
-           do (setf (contents new-target-container) (append (contents new-target-container) (list whole-egg)))
-              
-              (setf (contents new-eggs-with-shell) (append (contents new-eggs-with-shell) (list egg-shell)))
-           finally (setf (contents new-eggs-with-shell)
-                         (remove-if #'(lambda (i) (typep i 'egg)) (contents new-eggs-with-shell))))
+     ; TODO RD: was incompatible with take-n-pieces
+     (loop for egg in (contents new-eggs-with-shell)
+           do (loop for i from 1 to (value (quantity (amount egg)))
+                    for egg-amount = (make-instance 'amount :quantity (make-instance 'quantity :value 50) :unit (make-instance 'g))
+                    for whole-egg = (make-instance 'whole-egg :amount egg-amount)
+                    for egg-shell = (make-instance 'egg-shell :cracked t)
+                    do (setf (contents new-target-container) (append (contents new-target-container) (list whole-egg)))
+                       (setf (contents new-eggs-with-shell) (append (contents new-eggs-with-shell) (list egg-shell)))
+                    finally (setf (contents new-eggs-with-shell)
+                                  (remove-if #'(lambda (i) (typep i 'egg)) (contents new-eggs-with-shell)))))
      
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at) 
                 
@@ -297,17 +298,15 @@
                                          (funcall (type-of target-container-original-location) new-kitchen-state)
                                          (counter-top new-kitchen-state))
 
-         
-         
-         (loop for i from 1 to (value (quantity (amount (first (contents new-eggs-with-shell)))))
-               for egg-amount = (make-instance 'amount :quantity (make-instance 'quantity :value 50) :unit (make-instance 'g))
-               for whole-egg = (make-instance 'whole-egg :amount egg-amount)
-               for egg-shell = (make-instance 'egg-shell :cracked t)
-               do (setf (contents new-target-container) (append (contents new-target-container) (list whole-egg)))
-              
-                  (setf (contents new-eggs-with-shell) (append (contents new-eggs-with-shell) (list egg-shell)))
-               finally (setf (contents new-eggs-with-shell)
-                             (remove-if #'(lambda (i) (typep i 'egg)) (contents new-eggs-with-shell))))
+         (loop for egg in (contents new-eggs-with-shell)
+               do (loop for i from 1 to (value (quantity (amount egg)))
+                        for egg-amount = (make-instance 'amount :quantity (make-instance 'quantity :value 50) :unit (make-instance 'g))
+                        for whole-egg = (make-instance 'whole-egg :amount egg-amount)
+                        for egg-shell = (make-instance 'egg-shell :cracked t)
+                        do (setf (contents new-target-container) (append (contents new-target-container) (list whole-egg)))
+                           (setf (contents new-eggs-with-shell) (append (contents new-eggs-with-shell) (list egg-shell)))
+                        finally (setf (contents new-eggs-with-shell)
+                                      (remove-if #'(lambda (i) (typep i 'egg)) (contents new-eggs-with-shell)))))
      
          (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
          (setf (used new-target-container) t)
