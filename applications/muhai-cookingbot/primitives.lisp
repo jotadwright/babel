@@ -853,7 +853,7 @@
                            left-to-transfer 0)
              finally 
              (setf (contents container-with-dough-instance) nil)
-             (setf (arrangement countertop) default-arrangement-pattern))
+             (setf (arrangement countertop) default-arrangement-pattern)) 
 
        (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
 
@@ -926,7 +926,7 @@
                                          (counter-top new-kitchen-state))
 
          ;; 2) add all contents from source container to target container
-         (loop with container-amount = (make-instance 'amount :quantity (make-instance 'quantity :value 0)) ; TODO RD: default 
+         (loop with container-amount = (make-instance 'amount :quantity (make-instance 'quantity :value 0)) ; TODO RD: default is 1
                for ingredient in (contents source-container-instance)
                do (setf (value (quantity container-amount))
                         (+ (value (quantity container-amount))
@@ -1342,8 +1342,8 @@
 
      (loop for portion in (contents new-input-container)
            for topping = (copy-object (first (contents new-topping-container)))
-           do (setf (amount portion) topping-weight-per-portion)
-           (setf (sprinkled-with portion) topping))
+           do (setf (amount topping) topping-weight-per-portion) ; TODO RD: amount topping should be changed here, not portion?
+              (setf (sprinkled-with portion) topping))
      
      (setf (contents new-topping-container) nil)
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
@@ -1551,10 +1551,16 @@
 
 ;; find all kitchen entities in the list that are on the countertop
 (defun find-kitchen-entities (list-of-kitchen-entities countertop)
-  (let ((new-list-of-kitchen-entities (copy-object list-of-kitchen-entities)))
+  (let ((new-list-of-kitchen-entities (copy-object list-of-kitchen-entities))
+        (first-item (first (items list-of-kitchen-entities)))
+        (countertop-start (contents countertop)))
+    ; there could have been other items added to the countertop in the meantime
+    (while (and countertop-start
+                (not (eq (persistent-id first-item) (persistent-id (first countertop-start)))))
+      (setf countertop-start (rest countertop-start)))
     (setf (items new-list-of-kitchen-entities) nil)
     (loop for item in (items list-of-kitchen-entities)
-          for thing in (contents countertop)
+          for thing in countertop-start
           when (eq (persistent-id item) (persistent-id thing))
           do (push thing (items new-list-of-kitchen-entities))
           finally (return new-list-of-kitchen-entities))))
@@ -1566,7 +1572,8 @@
          (mixture (make-instance 'homogeneous-mixture :amount (make-instance 'amount
                                                                 :unit (make-instance 'g)
                                                                 :quantity (make-instance 'quantity :value total-value))
-                                 :components (contents container))))
+                                 :components (contents container))))   
+  
       (setf (contents container) (list mixture))
       (setf (mixed (first (contents container))) t)
       mixture))
