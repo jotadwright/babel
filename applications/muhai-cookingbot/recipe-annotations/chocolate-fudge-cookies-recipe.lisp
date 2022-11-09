@@ -1,4 +1,5 @@
-;(ql:quickload :muhai-cookingbot)
+(ql:quickload :muhai-cookingbot)
+
 (in-package :muhai-cookingbot)
 
 ;; The 'trace-irl' monitor will make sure that
@@ -13,8 +14,11 @@
 ;; ##################################################################
 
 ;; Defining the initial kitchen state
-(defparameter *initial-kitchen-state* 
-  (list (make-instance 'fridge
+(defparameter *initial-kitchen-state*
+  (make-instance
+   'kitchen-state
+   :contents
+   (list (make-instance 'fridge
                         :contents (list (make-instance 'medium-bowl
                                                        :contents (list (make-instance 'butter
                                                                                       :temperature
@@ -41,41 +45,23 @@
                                                                                                                               :value 12)))))))
          (make-instance 'pantry
                         :contents (list (make-instance 'medium-bowl
-                                                       :contents (list (make-instance 'white-sugar :amount
+                                                       :contents (list (make-instance 'devils-food-cake-mix :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
-                                                                                                                              :value 1000)))))
+                                                                                                                              :value 517)))))
                                         (make-instance 'medium-bowl
-                                                       :contents (list (make-instance 'vanilla-extract :amount
+                                                       :contents (list (make-instance 'vegetable-oil :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
-                                                                                                                              :value 100)))))
+                                                                                                                              :value 200)))))
                                         (make-instance 'medium-bowl
-                                                       :contents (list (make-instance 'chopped-walnut :amount
+                                                       :contents (list (make-instance 'semisweet-chocolate-chips :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
-                                                                                                                              :value 100)))))
-                                        (make-instance 'medium-bowl
-                                                       :contents (list (make-instance 'all-purpose-flour :amount
-                                                                                      (make-instance 'amount
-                                                                                                     :unit (make-instance 'g)
-                                                                                                     :quantity (make-instance 'quantity
-                                                                                                                              :value 1000)))))
-                                        (make-instance 'medium-bowl
-                                                         :contents (list (make-instance 'cocoa-powder :amount
-                                                                                        (make-instance 'amount
-                                                                                                       :unit (make-instance 'g)
-                                                                                                       :quantity (make-instance 'quantity
-                                                                                                                                :value 500)))))
-                                        (make-instance 'medium-bowl
-                                                       :contents (list (make-instance 'salt :amount
-                                                                                      (make-instance 'amount
-                                                                                                     :unit (make-instance 'g)
-                                                                                                     :quantity (make-instance 'quantity
-                                                                                                                              :value 500)))))))
+                                                                                                                              :value 250)))))))
          (make-instance 'kitchen-cabinet
                         :contents (list
                                    ;; bowls
@@ -91,114 +77,87 @@
                                    (make-instance 'spatula) (make-instance 'knife)
 
                                    ;; baking equipment
+                                   (make-instance 'wire-rack)
                                    (make-instance 'baking-tray)
+                                   (make-instance 'cookie-sheet)
                                    (make-instance 'pan)
-                                   (make-instance 'baking-paper)))))
-
-
+                                   (make-instance 'baking-paper))))))
 
 (defparameter *chocolate-fudge-cookies-recipe* 
-  '((get-kitchen ?kitchen)
+  '((get-kitchen ?kitchen-state)
 
     ;; Ingredients
-
     ;; "1 (18.25 ounce) (517 g) package devil's food cake mix"
-    (fetch-and-proportion ?proportioned-devils-food-cake-mix ?kitchen-state-with-devils-food-cake-mix ?kitchen devils-food-cake-mix 517 g)
+    (fetch-and-proportion ?proportioned-devils-food-cake-mix ?kitchen-state-with-devils-food-cake-mix ?kitchen-state ?target-container-1 devils-food-cake-mix 517 g)
 
     ;; "2 eggs"
-    (fetch-and-proportion ?proportioned-eggs ?kitchen-state-with-eggs ?kitchen-state-with-devils-food-cake-mix egg 2 piece)
+    (fetch-and-proportion ?proportioned-eggs ?kitchen-state-with-eggs ?kitchen-state-with-devils-food-cake-mix ?target-container-2 egg 2 piece)
 
-    ;; "1/4 cup (56 g) vegetable oil (for dough) + 1/4 cup (56 g) vegetable oil (to grease the baking tray)"
-    (fetch-and-proportion ?vegetable-oil-dough ?kitchen-state-with-vegetable-oil-1 ?kitchen-state-with-eggs vegetable-oil 56 g)
-    (fetch-and-proportion ?vegetable-oil-baking-tray ?kitchen-state-with-vegetable-oil-2 ?kitchen-state-with-vegetable-oil-1 vegetable-oil 56 g)
+    ;; "1/2 cup (112 g) vegetable oil"
+    (fetch-and-proportion ?proportioned-vegetable-oil ?kitchen-state-with-vegetable-oil ?kitchen-state-with-eggs ?target-container-3 vegetable-oil 112 g)
 
-    ;; "1 cup semi-sweet chocolate chips"
-    (fetch-and-proportion ?proportioned-semisweet-chocolate-chips ?kitchen-state-with-semisweet-chocolate-chips ?kitchen-state-with-vegetable-oil-2 semisweet-chocolate-chips 160 g)
-
+    ;; "1 cup (160 g) semi-sweet chocolate chips"
+    (fetch-and-proportion ?proportioned-semisweet-chocolate-chips ?kitchen-state-with-semisweet-chocolate-chips ?kitchen-state-with-vegetable-oil ?target-container-4 semisweet-chocolate-chips 160 g)
+   
     ;; Steps
+    ;; "Preheat oven to 350 degrees F (175 degrees C)"
+    (preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-semisweet-chocolate-chips 175 degrees-celsius)
     
-    ;; "Grease cookie baking tray"
-    (fetch ?baking-tray ?kitchen-state-with-baking-tray ?kitchen-state-with-semisweet-chocolate-chips baking-tray 1)
-    (grease ?greased-baking-tray ?kitchen-state-with-greased-baking-tray ?kitchen-state-with-baking-tray ?baking-tray ?vegetable-oil-baking-tray)
+    ;; "Grease cookie sheet"
+    (fetch ?cookie-sheet ?kitchen-state-with-cookie-sheet ?kitchen-state-with-preheated-oven cookie-sheet 1) ;; IMPLICIT
+    (grease ?greased-sheet ?kitchen-state-with-greased-sheet ?kitchen-state-with-cookie-sheet ?cookie-sheet ?grease)
 
-    ;; "In a medium bowl, stir together the cake mix, eggs and oil until well blended"
-    (bind-and-fetch ?medium-bowl ?kitchen-state-with-medium-bowl ?kitchen-state-with-greased-baking-tray medium-bowl)
-
-    (combine ?cake-eggs-oil-mixture ?kitchen-state-with-cake-eggs-oil-mixture ?kitchen-state-with-medium-bowl ?medium-bowl 
-             ?proportioned-devils-food-cake-mix ?proportioned-eggs ?proportioned-vegetable-oil)
+    ;; "In a medium bowl, stir together the cake mix, eggs and oil until well blended"    
+    (fetch ?medium-bowl-1 ?kitchen-state-with-medium-bowl ?kitchen-state-with-greased-sheet medium-bowl 1) ;; IMPLICIT
+    (transfer-contents ?output-container-x ?rest-x ?output-kitchen-state-x ?kitchen-state-with-medium-bowl ?medium-bowl-1 ?proportioned-devils-food-cake-mix ?quantity-x ?unit-x)
+    (crack ?output-container-y ?output-kitchen-state-y ?output-kitchen-state-x ?proportioned-eggs ?medium-bowl-1) ;; IMPLICIT
+    (transfer-contents ?output-container-z ?rest-z ?output-kitchen-state-z ?output-kitchen-state-y ?output-container-y ?proportioned-vegetable-oil ?quantity-z ?unit-z)
+    (mix ?stirred-mixture-bowl ?kitchen-state-with-stirred-mixture ?output-kitchen-state-z ?output-container-z ?mixing-tool)
 
     ;; "Fold in the chocolate chips"
-    (combine ?chocolate-chips-mixture ?kitchen-state-with-chocolate-chips-mixture ?kitchen-state-with-cake-eggs-oil-mixture ?medium-bowl 
-             ?proportioned-semisweet-chocolate-chips ?cake-eggs-oil-mixture)
+    (transfer-contents ?output-container-with-chips ?rest-chips ?kitchen-state-with-folded-chips ?kitchen-state-with-stirred-mixture ?stirred-mixture-bowl ?proportioned-semisweet-chocolate-chips ?quantity-chips ?unit-chips)
+    (mix ?chips-mixture-bowl ?kitchen-state-with-chips-mixture ?output-kitchen-state-z ?output-container-with-chips ?mixing-tool) ;; use the same whisk
 
-    ;; "Roll the dough into walnut sized balls. Place the cookies 2 inches apart on the cookie baking tray"
-    (define-amount ?cookie-dough-portion 20 g)
-    (bind two-inch ?pattern ,(make-instance 'two-inch))
-    ;(bind even-spread ?pattern ,(make-instance 'even-spread))
+    ;; "Roll the dough into walnut sized balls."
+    (portion-and-arrange ?portioned-dough ?kitchen-state-with-portions ?kitchen-state-with-chips-mixture ?chips-mixture-bowl 20 g ?pattern ?countertop)
+    (shape ?shaped-bakeables ?ks-with-dough-balls ?kitchen-state-with-portions ?portioned-dough ball-shape)
 
-    (to-portion-and-arrange ?tray-with-arranged-cookie-dough ?kitchen-state-with-arranged-tray ?kitchen-state-with-chocolate-chips-mixture ?chocolate-chips-mixture
-     ?cookie-dough-portion ?pattern ?greased-baking-tray)
-
-    (shape ?tray-with-shaped-cookies ?kitchen-state-with-shaped-cookies-on-tray ?kitchen-state-with-arranged-tray ?tray-with-arranged-cookie-dough walnut-ball-shape)
-
-     ;; "Preheat oven to 350 degrees F (175 degrees C)"
-    (preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-shaped-cookies-on-tray 175 degrees-celsius)
+    ;; "Place the cookies 2 inches apart on the cookie sheet."
+    (transfer-items ?cookies-on-sheet ?ks-with-dough-on-sheet ?ks-with-dough-balls ?shaped-bakeables ?greased-sheet)
 
     ;; "Bake for 8 to 10 minutes in the preheated oven"
-    (to-transfer ?oven-with-tray ?tray-with-shaped-cookies-inside-oven ?kitchen-state-with-tray-in-oven ?kitchen-state-with-preheated-oven 
-     ?tray-with-shaped-cookies ?preheated-oven)
-    (define-amount ?time-to-bake 9 minute)
-    (to-bake ?tray-with-baked-cookies ?kitchen-state-with-baked-cookies-in-oven ?kitchen-state-with-tray-in-oven ?tray-with-shaped-cookies-inside-oven 
-      ?time-to-bake)
+    (bake ?baked-cookies-on-sheet ?kitchen-state-with-cookies ?ks-with-dough-on-sheet ?cookies-on-sheet ?preheated-oven 8 minute ?bake-quantity ?bake-unit)
 
-    ;; "Allow cookies to cool on baking tray for 5 minutes before removing to a wire rack to cool completely"
-    ;;(define-ammount ?time-to-cool 5 min)
-    ;;(cool ?semi-cooled-cookies ?kitchen-state-with-semi-cooled-cookies ?kitchen-state-with-baked-cookies-in-oven ?tray-with-baked-cookies)
-    
-    (define-amount ?semi-cool-temp 60 degrees-celsius)
-    (to-cool ?semi-cooled-cookies ?kitchen-state-with-semi-cooled-cookies ?kitchen-state-with-baked-cookies-in-oven ?tray-with-baked-cookies ?semi-cool-temp)
+    ;; "Allow cookies to cool on baking sheet for 5 minutes before removing to a wire rack to cool completely."
+    (cool-for-time ?cooling-cookies ?kitchen-state-with-cooling-cookies ?kitchen-state-with-cookies ?baked-cookies-on-sheet 5 minute)
 
-    (to-fetch ?fetched-semi-cooled-cookies ?kitchen-state-with-semi-cooled-cookies-on-counter ?kitchen-state-with-semi-cooled-cookies ?semi-cooled-cookies)
-
-    (bind-and-fetch ?wire-racks ?kitchen-state-with-wire-racks-on-counter ?kitchen-state-with-semi-cooled-cookies-on-counter wire-racks)
-    
-    (transfer-all-contents ?wire-racks-with-semi-cooled-cookies ?kitchen-state-with-semi-cooled-cookies-in-racks ?kitchen-state-with-wire-racks-on-counter 
-      ?wire-racks ?semi-cooled-cookies)
-
-    ;(cool ?cooled-cookies ?kitchen-state-with-cooled-cookies ?kitchen-state-with-semi-cooled-cookies-in-racks ?wire-racks-with-semi-cooled-cookies)
-    (define-amount ?cool-temp 18 degrees-celsius)
-    (to-cool ?cooled-cookies  ?kitchen-state-with-cooled-cookies ?kitchen-state-with-semi-cooled-cookies-in-racks ?wire-racks-with-semi-cooled-cookies ?cool-temp)))
-
-(evaluate-irl-program (expand-macros *chocolate-fudge-cookies-recipe*) nil)
-
-
-
-
-;; Inspecting small parts of the recipe:
-;;--------------------------------------
-;; printing to the output buffer
-(pprint `((bind ?kitchen-state *kitchen-state-1*)
-          ,@(fetch-and-proportion ?proportioned-butter ?kitchen-state-with-butter *butter-1* ?kitchen-state 113 g)
-          (melt ?melted-butter ?kitchen-state-with-melted-butter ?proportioned-butter ?kitchen-state-with-butter)))
-
-;; drawing a network
-(draw-recipe '((bind ?kitchen-state *kitchen-state-1*)   
-               ,@(fetch-and-proportion ?proportioned-devils-food-cake-mix ?kitchen-state-with-devils-food-cake-mix *devils-food-cake-mix-1* ?kitchen-state 517 g))
-             :expand nil) ;;t or nil
+    (fetch ?wire-rack ?kitchen-state-with-wire-rack ?kitchen-state-with-cookies wire-rack 1) ;; IMPLICIT
+    (transfer-items ?cookies-on-wire-rack ?kitchen-state-with-cookies-on-wire-rack ?kitchen-state-with-wire-rack ?cooling-cookies ?wire-rack)
+    (bring-to-temperature ?cooled-cookies ?kitchen-state-with-cooled-cookies ?kitchen-state-with-cookies-on-wire-rack ?cookies-on-wire-rack 18 degrees-celsius)))
 
 
 ;; ======================
-;; Macro definitions
+;; Append bindings to the recipe
 ;; ======================
+
+(defparameter *extended-recipe*
+  (append-meaning-and-irl-bindings *chocolate-fudge-cookies-recipe* nil))
+
+;; ======================
+;; Evaluate the recipe
+;; ======================
+
+(activate-monitor trace-fcg)
+(activate-monitor trace-irl)
+
+(clear-output)
+
+(evaluate-irl-program *extended-recipe* nil)
 
 
 ;; ======================
 ;; Visualise the recipe
 ;; ======================
 
-;; High-level recipe notation:
-(draw-recipe *chocolate-fudge-cookies-recipe* :expand nil)
-
-;; All primitives expanded:
-(draw-recipe *chocolate-fudge-cookies-recipe* :expand t)
-
+;(draw-recipe *chocolate-fudge-cookies-recipe*)
+;(draw-recipe *extended-recipe*)
