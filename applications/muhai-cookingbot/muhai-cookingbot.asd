@@ -26,6 +26,9 @@
                              (:file "understand")
                              (:file "expansions")
                              (:file "utils")
-                             (:file "heuristics")
-                             ;(:file "test-evaluate")
-                             ))))
+                             (:file "heuristics")))
+               (:module evaluation
+                :serial t
+                :components ((:file "helpers")
+                             (:file "environments")
+                             (:file "solution-evaluation")))))
