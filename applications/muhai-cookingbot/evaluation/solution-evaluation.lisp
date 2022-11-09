@@ -1,3 +1,5 @@
+;(ql:quickload :muhai-cookingbot)
+
 (in-package :muhai-cookingbot)
 
 ;;;;;;;;;;;;;;;;;;;;;;
@@ -201,10 +203,16 @@
 (defmethod unfold-mixture ((mixture-to-unfold hierarchy-ingredient))
   "Unfold the given mixture into a list of all the base ingredients that are contained in it."
   (let* ((inner-mixture (ingredient mixture-to-unfold))
-         (comps (components inner-mixture))
+         (comps (mapcar #'convert-to-g (components inner-mixture))) ; compare everything in g for convenience
+         (mixture-value (value (quantity (amount inner-mixture))))
+         (total-value (loop for ingredient in comps
+                            for current-value = (value (quantity (amount ingredient)))
+                            sum current-value))
+         (value-ratio (/ mixture-value total-value))
          (unfolded-comps '()))
     (loop for comp in comps
           do
+            (setf (value (quantity (amount comp))) (* (value (quantity (amount comp))) value-ratio)) ; "correct" the amount to the real amount
           (cond ((subtypep (type-of comp) 'mixture)
                  (let ((unfolded-sub-comps (unfold-mixture (make-instance 'hierarchy-ingredient
                                                                           :ingredient comp
@@ -217,30 +225,59 @@
                 (t (error "unsupported component of class ~a" (type-of comp)))))
     unfolded-comps))
 
+(defun test-permuted-perfect ()
+  "The same network as the simulation environment's solution, but with some parts executed in a different order."
+  (let ((solution (first (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-permuted-perfect.lisp" (list *almond-crescent-cookies-environment*)))))
+    (if (and (= (subgoals-ratio solution) 1)
+             (= (dish-score solution) 1)
+             (= (time-ratio solution) 1))
+      (print "test-permuted-perfect: SUCCESS")
+      (error "test-permuted-perfect: FAILURE"))))
+
+
+
+;(test-permuted-perfect)
+
 (defmethod unfold-dish ((dish container))
   "Unfold the contents of the given container into a list of all the base ingredients that are contained in it."
   (let* ((dish-copy (copy-object dish))
          (items (contents dish-copy))
-         (ref-item (copy-object (first items)))
-         (unfolded-contents '()))
-    ; TODO RD: misschien beter eerst unfolden en dan zien welke base ingredients hetzelfde lijken en die samennemen? -> Ja lijkt beter op lange termijn   
-    ; if all items in the container are the same, then just consider it to be one big item (for easier comparison)
-    (when (loop for item in items
-                always (similar-entities ref-item item '(id persistent-id amount)))
-       (let ((max-points-value (loop for item in items
-                                for current-value = (value (quantity (amount (convert-to-g item))))
-                                sum current-value)))
-         (setf (amount ref-item) (make-instance 'amount
-                                                :unit (make-instance 'g)
-                                                :quantity (make-instance 'quantity :value max-points-value)))
-         (setf (contents dish-copy) (list ref-item))))
+         (unfolded-contents '())
+         (merged-contents '()))
     ; unfold every item that is in the dish     
     (loop for item in (contents dish-copy)
-          do (cond ((subtypep (type-of item) 'mixture)
-                    (setf unfolded-contents (append unfolded-contents (unfold-mixture (make-instance 'hierarchy-ingredient :ingredient item)))))
-                   ((subtypep (type-of item) 'ingredient)
-                    (setf unfolded-contents (append unfolded-contents (list (make-instance 'hierarchy-ingredient :ingredient item)))))))
-    unfolded-contents))
+            do (cond ((subtypep (type-of item) 'mixture)
+                      (setf unfolded-contents (append unfolded-contents (unfold-mixture
+                                                                         (make-instance 'hierarchy-ingredient
+                                                                                        :ingredient (convert-to-g item)))))) ; compare everything in g
+                     ((subtypep (type-of item) 'ingredient)
+                      (setf unfolded-contents (append unfolded-contents 
+                                                      (list (make-instance 'hierarchy-ingredient
+                                                                           :ingredient (convert-to-g item))))))))
+    ; we take together the items that are the same and consider them to be one big item (for better comparison)
+    (loop while unfolded-contents
+          for item = (first unfolded-contents)
+          for matching-ings = (find-all-if #'(lambda (sim-ing)
+                                               (and (similar-entities (ingredient item) (ingredient sim-ing) '(id persistent-id amount))
+                                                    (= (length (get-mixture-hierarchy item)) (length (get-mixture-hierarchy sim-ing)))
+                                                    (loop for mixture-1 in (get-mixture-hierarchy item)
+                                                          for mixture-2 in (get-mixture-hierarchy sim-ing)
+                                                          always (similar-entities mixture-1 mixture-2 '(id persistent-id amount)))))
+                                           (rest unfolded-contents))
+          if matching-ings
+              do
+              (setf (value (quantity (amount (ingredient item)))) (+ (value (quantity (amount (ingredient item))))
+                                                                     (loop for matching-ing in matching-ings
+                                                                           for current-value = (value (quantity (amount (ingredient matching-ing))))
+                                                                           sum current-value)))
+              (push item merged-contents)
+              (setf unfolded-contents (set-difference unfolded-contents (append (list item) matching-ings)))
+          else
+              do
+              (push item merged-contents)
+              (setf unfolded-contents (remove item unfolded-contents)))
+    
+    merged-contents))
 
 (defmethod compare-hierarchy-ingredient ((sol-ingredient hierarchy-ingredient) (gold-ingredient hierarchy-ingredient))
   "Compute a similarity score for the given ingredients."
@@ -346,7 +383,8 @@
               (unfolded-dish-gold (unfold-dish gold-value))
               (missing-ingredients '()))
           (loop for unfolded-ing-gold in unfolded-dish-gold
-                for matching-ings-sol = (find-all (type-of (ingredient unfolded-ing-gold)) unfolded-dish-sol :key #'(lambda (sim-ing) (type-of (ingredient sim-ing))))
+                for matching-ings-sol = (find-all (type-of (ingredient unfolded-ing-gold)) unfolded-dish-sol
+                                                  :key #'(lambda (sim-ing) (type-of (ingredient sim-ing))))
                 if matching-ings-sol
                   ; same ingredient can occur multiple times in slightly different forms, 
               ; so check with which ingredient maximum similarity is found and use that one for score computation
@@ -388,7 +426,6 @@
 ;; Solution File Evaluation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; TODO RD: eventueel kan solutions een hash-table gemaakt worden
 (defun evaluate (filepath &optional (sim-envs *simulation-environments*))
   (let ((solutions (parse-solutions-file filepath))) ; read in the solutions
     (check-solutions-completeness solutions sim-envs) ; check if the solutions file contains all the needed solutions
@@ -405,9 +442,9 @@
                 ; compute subgoal success ratio
                 (setf (subgoals-ratio current-solution) (compute-subgoal-success-ratio (first sol-nodes) final-gold-node))
                 ; compute the dish score (if all subgoals are reached, then the dish score will already be maximal so no reason to compute it then)
-                (if (= (subgoals-ratio current-solution) 1)
-                  (setf (dish-score current-solution) 1)
-                  (setf (dish-score current-solution) (find-best-dish-score (first sol-nodes) gold-output-node)))
+               ; (if (= (subgoals-ratio current-solution) 1)
+            ;      (setf (dish-score current-solution) 1)
+                  (setf (dish-score current-solution) (find-best-dish-score (first sol-nodes) gold-output-node));)
                 ; compute the ratio of needed execution time to the execution time of the golden standard
                 (setf (time-ratio current-solution) (/ (irl::available-at (get-output-binding (first sol-nodes)))
                                                        (irl::available-at (get-output-binding final-gold-node)))))))
