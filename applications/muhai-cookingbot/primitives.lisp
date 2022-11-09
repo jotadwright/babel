@@ -905,10 +905,11 @@
                                          (counter-top new-kitchen-state))
 
          ;; 2) add all contents from source container to target container
-         (loop with container-amount = (make-instance 'amount)
+         (loop with container-amount = (make-instance 'amount :quantity (make-instance 'quantity :value 0)) ; TODO RD: default 
                for ingredient in (contents source-container-instance)
                do (setf (value (quantity container-amount))
-                        (+ (value (quantity container-amount)) (value (quantity (amount ingredient)))))
+                        (+ (value (quantity container-amount))
+                           (value (quantity (amount ingredient)))))
                (setf (contents target-container-instance) (cons ingredient (contents target-container-instance)))
                (setf (contents source-container-instance) (remove ingredient (contents source-container-instance) :test #'equalp))
                finally
@@ -942,11 +943,13 @@
           (kitchen-state-available-at container-available-at))
 
      (assert (contents source-container-instance))
+     
      ;; 1) all contents from source container to target container
-     (loop with container-amount = (make-instance 'amount)
+     (loop with container-amount = (make-instance 'amount :quantity (make-instance 'quantity :value 0))
            for ingredient in (contents source-container-instance)
            do (setf (value (quantity container-amount))
-                    (+ (value (quantity container-amount)) (value (quantity (amount ingredient)))))
+                    (+ (value (quantity container-amount))
+                       (value (quantity (amount ingredient)))))
            (setf (contents target-container-instance) (cons ingredient (contents target-container-instance)))
            (setf (contents source-container-instance)
                  (remove ingredient (contents source-container-instance) :test #'equalp))
@@ -1378,7 +1381,7 @@
          (target-ingredients (loop for piece from 1 to (value (quantity target-amount))
                                      collect (make-instance (type-of source-ingredient)
                                                             :amount (make-instance 'amount
-                                                                                   :unit 'piece
+                                                                                   :unit (make-instance 'piece)
                                                                                    :quantity (make-instance 'quantity :value 1))))))
 
     ;;adjust amounts of source ingredient
