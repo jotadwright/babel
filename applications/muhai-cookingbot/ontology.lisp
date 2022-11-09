@@ -1186,7 +1186,12 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Unit: milliliter."))
 
-(defclass minute (unit)
+(defclass time-unit (unit)
+  ()
+  (:documentation "Unit to describe a duration.")
+)
+
+(defclass minute (time-unit)
   ()
   (:documentation "Unit: minute."))
 

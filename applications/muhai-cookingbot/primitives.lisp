@@ -177,7 +177,7 @@
                                     (container-with-ingredients transferable-container)
                                     (temperature-quantity quantity)
                                     (temperature-unit unit))
-  ;;to do add default temperature = room temperature
+  ;;to do: add default temperature = room temperature
   ((kitchen-state-in container-with-ingredients temperature-quantity temperature-unit
                      => kitchen-state-out container-with-ingredients-at-temperature)
    
@@ -194,6 +194,28 @@
      (bind (container-with-ingredients-at-temperature 1.0 new-container container-available-at)
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
 
+(defprimitive cool-for-time ((container-with-ingredients-at-temperature transferable-container)
+                             (kitchen-state-out kitchen-state)
+                             (kitchen-state-in kitchen-state)
+                             (container-with-ingredients transferable-container)
+                             (cooling-quantity quantity)
+                             (cooling-unit time-unit))
+  ((kitchen-state-in container-with-ingredients cooling-quantity cooling-unit
+                     => kitchen-state-out container-with-ingredients-at-temperature)
+   
+   (let* ((cooling-time (make-instance 'amount :quantity cooling-quantity :unit cooling-unit))
+          (new-kitchen-state (copy-object kitchen-state-in))
+          (new-container (find-object-by-persistent-id container-with-ingredients (counter-top new-kitchen-state)))
+          (container-available-at (+ (kitchen-time kitchen-state-in)
+                                     (* (value cooling-quantity) 60))) ; only minute is supported right now, so no explicit unit check needed
+          (kitchen-state-available-at (kitchen-time kitchen-state-in)))
+     
+     (change-temperature new-container cooling-time)
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at) 
+                
+     (bind (container-with-ingredients-at-temperature 1.0 new-container container-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
 
 (defprimitive cut ((cut-object transferable-container)
                    (kitchen-state-out kitchen-state)
@@ -976,34 +998,33 @@
   ;; Case 1 : transfer a number of items to a given destination
   ((kitchen-state-in items-to-transfer destination => kitchen-state-out transferred)
 
-   (case (type-of items-to-transfer)
+   (cond ((subtypep (type-of items-to-transfer) 'list-of-kitchen-entities)
      ;; items are grouped as a list of kitchen entities, lying on the countertop
-     (list-of-kitchen-entities
-      (let* ((new-kitchen-state (copy-object kitchen-state-in))
-             (new-items-to-transfer (find-kitchen-entities items-to-transfer (counter-top new-kitchen-state)))
-             (new-destination (find-object-by-persistent-id destination new-kitchen-state))
-             (container-available-at (+ 120 (max (kitchen-time kitchen-state-in)
-                                                 (available-at (find (id destination) binding-objects
-                                                                     :key #'(lambda (binding-object)
-                                                                              (and (value binding-object)
-                                                                                   (id (value binding-object)))))))))
-             (kitchen-state-available-at container-available-at))
+     (let* ((new-kitchen-state (copy-object kitchen-state-in))
+            (new-items-to-transfer (find-kitchen-entities items-to-transfer (counter-top new-kitchen-state)))
+            (new-destination (find-object-by-persistent-id destination new-kitchen-state))
+            (container-available-at (+ 120 (max (kitchen-time kitchen-state-in)
+                                                (available-at (find (id destination) binding-objects
+                                                                    :key #'(lambda (binding-object)
+                                                                             (and (value binding-object)
+                                                                                  (id (value binding-object)))))))))
+            (kitchen-state-available-at container-available-at))
      
-        (setf (used new-destination) t)
-        (setf (contents new-destination) (items new-items-to-transfer))
-        (setf (arrangement new-destination) 'side-to-side)
-        (setf (contents (counter-top new-kitchen-state)) ;;delete items from countertop!
-              (remove-if #'(lambda (el)
-                             (find (persistent-id el) (items new-items-to-transfer) :test #'eql :key #'persistent-id))
-                         (contents (counter-top new-kitchen-state))))
+       (setf (used new-destination) t)
+       (setf (contents new-destination) (items new-items-to-transfer))
+       (setf (arrangement new-destination) 'side-to-side)
+       (setf (contents (counter-top new-kitchen-state)) ;;delete items from countertop!
+             (remove-if #'(lambda (el)
+                            (find (persistent-id el) (items new-items-to-transfer) :test #'eql :key #'persistent-id))
+                        (contents (counter-top new-kitchen-state))))
      
-        (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+       (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
      
-        (bind (transferred 1.0 new-destination container-available-at)
-              (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+       (bind (transferred 1.0 new-destination container-available-at)
+             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
      
      ;; items are placed on a transferable container, such as a baking tray
-     (baking-tray
+     ((subtypep (type-of items-to-transfer) 'transferable-container) ;baking-tray or cookie sheet
       (let* ((new-kitchen-state (copy-object kitchen-state-in))
              (new-container (find-object-by-persistent-id items-to-transfer new-kitchen-state))
              (new-destination (find-object-by-persistent-id destination new-kitchen-state))
@@ -1363,11 +1384,25 @@
   (setf (contents old-location)
         (remove kitchen-entity (contents old-location) :test #'equal)))
 
+(defun change-temperature (container new-amount)
+  (if (subtypep (type-of (unit new-amount)) 'time-unit)
+    (loop for el in (contents container)
+          do (setf (temperature el) (compute-temperature el new-amount)))
+    (loop for el in (contents container)
+          do (setf (temperature el) new-amount))))
 
-(defun change-temperature (container temperature)
-  (loop for el in (contents container)
-        do (setf (temperature el) temperature)))
-
+(defun compute-temperature (ingredient new-amount)
+  "Compute the temperature for a given ingredient, based on a given time"
+  ; only minutes are supported currently
+  (make-instance 'amount
+                 :quantity (make-instance 'quantity
+                                          ; TODO RD: find better formula
+                                          :value (max (- (value (quantity (temperature ingredient)))
+                                                         (* (/ (value (quantity (temperature ingredient))) 45)
+                                                            (value (quantity new-amount))))
+                                                      18))
+                 :unit (make-instance 'degrees-celsius)))
+                        
 (defun take-n-pieces (source-container target-amount target-container)
   (assert (= (length (contents source-container)) 1))
   
