@@ -36,7 +36,7 @@
 (define-configuration-default-value :initial-cxn-score 0.5)
 
 (define-configuration-default-value :cxn-incf-score 0.1)
-(define-configuration-default-value :cxn-decf-score 0.4)
+(define-configuration-default-value :cxn-decf-score 0)
 
 (define-configuration-default-value :evaluation-grammar nil)
 ;(define-configuration-default-value :alignment-strategy :lateral-inhibition)
