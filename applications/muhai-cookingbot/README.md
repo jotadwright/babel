@@ -34,7 +34,7 @@ The primitive operations that the cookingbot can actually handle, are listed her
   - ks-in
   - container
   - concept
-  - amount
+  - quantity
   - unit
 
 #### **fetch** (5)
@@ -49,7 +49,7 @@ The primitive operations that the cookingbot can actually handle, are listed her
   - ks-out
   - ks-in
   - ingredient-in
-  - amount
+  - quantity
   - unit
 
 #### **transfer-contents** (8)
@@ -59,7 +59,7 @@ The primitive operations that the cookingbot can actually handle, are listed her
   - ks-in
   - empty-container
   - container-in
-  - amount
+  - quantity
   - unit
 
 #### **beat** (5)
