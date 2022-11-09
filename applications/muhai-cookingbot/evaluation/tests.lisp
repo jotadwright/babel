@@ -6,6 +6,8 @@
 ;; Tests ;;
 ;;;;;;;;;;;
 
+; TODO RD: check out deftest?
+
 (defun test-perfect ()
   "The same network as the simulation environment's solution."
   (let* ((solutions (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-perfect.lisp"))
@@ -69,6 +71,8 @@
   (test-imperfect)
   (test-extra-operations)
   (test-empty))
+
+;(execute-all-tests)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Convenience Functions (Removable) ;;
