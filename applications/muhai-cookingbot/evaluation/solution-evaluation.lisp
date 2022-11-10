@@ -28,7 +28,8 @@
             while line
             do
               (cond ((not (find #\space line :test-not #'eql))
-                     (print "Empty line is skipped"))
+                     )
+                    ; (print "Empty line is skipped"))
                     ((char= (char line 0) #\#)
                      ; first check the previous solution
                      (when solutions
@@ -224,19 +225,6 @@
                                                                                   :part-of mixture-to-unfold)))))
                 (t (error "unsupported component of class ~a" (type-of comp)))))
     unfolded-comps))
-
-(defun test-permuted-perfect ()
-  "The same network as the simulation environment's solution, but with some parts executed in a different order."
-  (let ((solution (first (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-permuted-perfect.lisp" (list *almond-crescent-cookies-environment*)))))
-    (if (and (= (subgoals-ratio solution) 1)
-             (= (dish-score solution) 1)
-             (= (time-ratio solution) 1))
-      (print "test-permuted-perfect: SUCCESS")
-      (error "test-permuted-perfect: FAILURE"))))
-
-
-
-;(test-permuted-perfect)
 
 (defmethod unfold-dish ((dish container))
   "Unfold the contents of the given container into a list of all the base ingredients that are contained in it."
