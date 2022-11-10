@@ -93,25 +93,123 @@
            (print "Time Ratio:")
            (print (time-ratio solution))))
 
-; TODO RD: get node at maximum depth that was reached if no solution could be found?
-; TODO RD: final value zou altijd een container met een ingredient in moeten zijn
-; TODO RD: currently unused
-(defun get-final-value (irl-node)
-  (let* ((target-var (second (irl::primitive-under-evaluation irl-node)))
-         (list-of-bindings (irl::bindings irl-node))
-         (target-binding (find target-var list-of-bindings :key #'var)))
-    (when target-binding
-      (value target-binding))))
+;;;;;;;;;;
+;; DEMO ;;
+;;;;;;;;;;
 
-;test
+(defparameter *demo-env*
+  (make-instance 'simulation-environment
+                 :recipe-id 'demo-env
+                 :kitchen-state
+                 (make-instance
+                  'kitchen-state
+                  :contents
+                  (list (make-instance 'fridge
+                                       :contents (list (make-instance 'medium-bowl
+                                                                      :used T
+                                                                      :contents (list (make-instance 'butter
+                                                                                                     :temperature
+                                                                                                     (make-instance 'amount
+                                                                                                                    :unit (make-instance 'degrees-celsius)
+                                                                                                                    :quantity (make-instance 'quantity
+                                                                                                                                             :value 5))
+                                                                                                     :amount
+                                                                                                     (make-instance 'amount
+                                                                                                                    :unit (make-instance 'g)
+                                                                                                                    :quantity (make-instance 'quantity
+                                                                                                                                             :value 500)))))))
+                        (make-instance 'pantry
+                                       :contents (list (make-instance 'medium-bowl
+                                                                      :used T
+                                                                      :contents (list (make-instance 'white-sugar :amount
+                                                                                                     (make-instance 'amount
+                                                                                                                    :unit (make-instance 'g)
+                                                                                                                    :quantity (make-instance 'quantity
+                                                                                                                                             :value 1000)))))
+                                                       (make-instance 'medium-bowl
+                                                                      :used T
+                                                                      :contents (list (make-instance 'vanilla-extract :amount
+                                                                                                     (make-instance 'amount
+                                                                                                                    :unit (make-instance 'g)
+                                                                                                                    :quantity (make-instance 'quantity
+                                                                                                                                             :value 100)))))
+                                                       (make-instance 'medium-bowl
+                                                                      :used T
+                                                                      :contents (list (make-instance 'almond-extract :amount
+                                                                                                     (make-instance 'amount
+                                                                                                                    :unit (make-instance 'g)
+                                                                                                                    :quantity (make-instance 'quantity
+                                                                                                                                             :value 100)))))
+                                                       (make-instance 'medium-bowl
+                                                                      :used T
+                                                                      :contents (list (make-instance 'all-purpose-flour :amount
+                                                                                                     (make-instance 'amount
+                                                                                                                    :unit (make-instance 'g)
+                                                                                                                    :quantity (make-instance 'quantity
+                                                                                                                                             :value 1000)))))
+                                                       (make-instance 'medium-bowl
+                                                                      :used T
+                                                                      :contents (list (make-instance 'almond-flour :amount
+                                                                                                     (make-instance 'amount
+                                                                                                                    :unit (make-instance 'g)
+                                                                                                                    :quantity (make-instance 'quantity
+                                                                                                                                             :value 1000)))))
+                                                       (make-instance 'medium-bowl
+                                                                      :used T
+                                                                      :contents (list (make-instance 'powdered-white-sugar :amount
+                                                                                                     (make-instance 'amount
+                                                                                                                    :unit (make-instance 'g)
+                                                                                                                    :quantity (make-instance 'quantity
+                                                                                                                                             :value 500)))))))
+                        (make-instance 'kitchen-cabinet
+                                       :contents (list
+                                                  ;; bowls
+                                                  (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
+                                                  (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                                  (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                                  (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
 
-;(defun testos (x) (print (time-ratio x)))
-;(testos (first test))
+                                                  ;; tools
+                                                  (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
+                                                  (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
+                                                  (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
 
-;(print-results test)
+                                                  ;; baking equipment
+                                                  (make-instance 'baking-tray)
+                                                  (make-instance 'baking-paper)))))
+                 :meaning-network
+                 (list '(get-kitchen ?ks-1)
+                       '(fetch-and-proportion ?out-1 ?ks-2 ?ks-1 ?target-container-1 butter 226 g)
+                       '(bring-to-temperature ?out-2 ?ks-3 ?ks-2 ?out-1 18 degrees-celsius)
+                       '(fetch-and-proportion ?out-3 ?ks-4 ?ks-3 ?target-container-2 white-sugar 116 g)
+                       '(fetch-and-proportion ?out-4 ?ks-5 ?ks-4 ?target-container-3 all-purpose-flour 340 g)
+                       '(fetch ?medium-bowl ?ks-6 ?ks-5 medium-bowl 1)
+                       '(transfer-contents ?out-x ?rest-x ?ks-out-x ?ks-6 ?medium-bowl ?out-2 ?quantity-x ?unit-x)
+                       '(transfer-contents ?out-y ?rest-y ?ks-out-y ?ks-out-x ?out-x ?out-3 ?quantity-y ?unit-y)
+                       '(transfer-contents ?out-z ?rest-z ?ks-out-z ?ks-out-y ?out-y ?out-4 ?quantity-z ?unit-z)
+                       '(mix ?mixed-bowl ?ks-mixed ?ks-out-z ?out-z ?tool)
+                       '(bake ?thing-baked ?ks-baked ?ks-mixed ?mixed-bowl ?oven-to-bake-in 15 minute 175 degrees-celsius))
+                 :primary-output-var
+                 '?thing-baked))
 
-(defun toppie (x)
-  (print "ok"))
 
-;(toppie test)
+(defparameter test (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo.lisp" (list *demo-env*)))
+(print-results test)
 
+(defparameter test-permuted (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-2.lisp" (list *demo-env*)))
+(print-results test-permuted)
+
+(defparameter test-non-baked (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-3.lisp" (list *demo-env*)))
+(print-results test-non-baked)
+
+(defparameter test-missing-ingredient (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-4.lisp" (list *demo-env*)))
+(print-results test-missing-ingredient)
+
+(defparameter test-extra-fetch (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-5.lisp" (list *demo-env*)))
+(print-results test-extra-fetch)
+
+(defparameter weird-order (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-6.lisp" (list *demo-env*)))
+(print-results weird-order)
+
+(defparameter test-empty (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-7.lisp" (list *demo-env*)))
+(print-results test-empty)
