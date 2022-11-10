@@ -260,7 +260,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   (setf (cracked copy) (copy-object (cracked crackable))))
 
 (defclass cuttable (kitchen-entity)
-  ((is-cut :type boolean :initarg :is-cut :accessor is-cut :initform nil))
+  ((is-cut :type cutting-pattern :initarg :is-cut :accessor is-cut :initform (make-instance 'uncut)))
   (:documentation "For objects that can be cut."))
 
 (defmethod copy-object-content ((cuttable cuttable) (copy cuttable))
@@ -1028,6 +1028,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   () 
   (:documentation "A pattern in which something can be divided."))
 
+(defclass uncut (cutting-pattern)
+  () 
+  (:documentation "An uncut pattern."))
+ 
 (defclass chopped (cutting-pattern)
   ()
   (:documentation "A chopped pattern."))
