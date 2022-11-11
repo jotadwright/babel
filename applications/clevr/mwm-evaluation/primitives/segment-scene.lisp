@@ -2,7 +2,6 @@
 
 (in-package :mwm-evaluation)
 
-
 ;; --------------------------
 ;; SEGMENT-SCENE primitive ;;
 ;; --------------------------
@@ -15,8 +14,8 @@
    (bind (segmented-scene
           1.0
           (case (find-data ontology 'world-type)
-            (:simulated (mwm::clevr->simulated (load-clevr-scene (pathname scene))))
-            (:extracted (mwm::clevr->extracted (load-clevr-scene (pathname scene))
+            (:simulated (mwm::clevr->simulated (load-clevr-scene (get-pathname scene))))
+            (:extracted (mwm::clevr->extracted (load-clevr-scene (get-pathname scene))
                                                :directory (get-data ontology 'extracted-scenes-path)))))))
 
   ;; second case; get the pathname from the segmented-scene
@@ -26,6 +25,6 @@
   ;; third case; consistency check
   ((scene segmented-scene =>)
    (equal (source-path segmented-scene)
-          (pathname scene)))
+          (clevr-world::get-pathname pathname scene)))
   :primitive-inventory *mwm-primitives*)
 

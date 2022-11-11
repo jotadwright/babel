@@ -14,7 +14,9 @@
 ;; Larger font for text in <p> tags
 
 (define-css 'main
-            "")
+            "body {width: 100%
+height: 100%}")
+
 
 
 (defun my-head-menu ()
@@ -37,6 +39,7 @@ can be applied to accurately model language acquisition and learning processes i
   (add-element '((h3)  ((a :href "#case-study") "III. German argument and information structure")))
   (add-element '((h3)  ((a :href "#model-german-grammar") "IV. A computational model for the German grammar")))
   (add-element '((h3)  ((a :href "#errors") "V. Detecting errors and providing feedback")))
+  (add-element '((h3)  ((a :href "#bibliography") "VI. Cited works")))
   (add-element '((p :style "color:darkred") "DISCLAIMER: It is recommended to use Firefox or Safari to optimally explore the contents of this page.")))
 
 ;(my-head-menu)
@@ -45,10 +48,10 @@ can be applied to accurately model language acquisition and learning processes i
 (defun abstract ()
   (add-element '((a :name "abstract")))
   (add-element '((h1) "Abstract"))
-  (add-element '((p) "We present a fully operational computational construction grammar that models the interplay between argument structure and information structure in German. We show how argument structure constructions map between semantic roles and their case realisations (nominative, accusative, genitive, dative), and how they specify the syntactic roles of the different arguments (subject, direct object, indirect object, prepositional object). In turn, information structure constructions map between syntactic roles and word order patterns, potentially topicalising particular arguments. Our model of the German grammar starting from the productions of learners makes two main contributions to the field of computational construction grammars:
+  (add-element '((p) "We present a fully operational computational construction grammar that models the interplay between argument structure and information structure in German. We show how constructions for the argument structure map between semantic roles and their case realisations (nominative, accusative, genitive, dative), and how they can specify the syntactic roles of the different arguments (subject, direct object, indirect object, prepositional object). In turn,constructions for the information structure map between syntactic roles and word order patterns, potentially topicalising particular arguments. Our model of the German grammar starting from the productions of learners makes two main contributions to the field of computational construction grammars:
 
 <li> It extends the feature matrix system proposed by Van Trijp (2011) adding an additional row to collect information from different cases, genders and number at the same time; </li>
-<li>It operationalizes the intuition of Goldberg (2013) according to which argument structure constructions and information structure constructions can be handled independently.</li>
+<li>It operationalizes the intuition of Goldberg (2019) according to which argument structure constructions and information structure constructions can be handled independently.</li>
 
 Our grammar is a proof of concept of the potential of FCG in modelling second language acquisition processes and providing feedback not only on morpho-syntactic errors, but also in providing information about the roles of the participants in an event and whether they are topicalised or not.")))
 
@@ -955,7 +958,7 @@ of the argument structure,</li>
 
 (defun parse-example-die-Polizist (inventory)
   (add-element '((h1) "Parsing an incorrect noun-phrase 'die Polizist'."))
-  (add-element '((p) "Starting from the application process, you can notice twhere errors happen through mal-constructions highlighted in orange. Moreover, from a close observation of the resulting structure yuo can see that the noun-phrase construction constains information about the error type and the reason for it."))
+  (add-element '((p) "Starting from the application process, you can observe where errors happen through mal-constructions highlighted in orange. Moreover, from a close observation of the resulting structure yuo can see that the noun-phrase construction constains information about the error type and the reason for it."))
   (add-element '((p) "In In this case the the mal-constructions applied since a feminine determiner is used with a masculine name- the feminine version of which is 'Polizistin'."))
   (comprehend '("die" "Polizist") :cxn-inventory inventory))
 
@@ -974,6 +977,22 @@ of the argument structure,</li>
    ))
 
 
+(defun bibliography ()
+  (add-element '((a :name "bibliography")))
+  (add-element '((h1) "VI. Cited works"))
+  (add-element '((p) "van Trijp Remi (2011). Feature Matrices and Agreement: A Case Study for German Case. In Luc Steels (Ed.), Design Patterns in Fluid Construction Grammar, 205-235. Amsterdam: John Benjamins."))
+  (add-element '((p) "Goldberg, Adele E. (2019). Explain Me This: Creativity, Competition, and the Partial Productivity of Constructions. Princeton: Princeton University Press."))
+  (add-element '((p) "Tomasello, M. (1992). The social bases of language acquisition. Social development, 1(1), 67-87."))
+  (add-element '((p) "Lieven, E., Behrens, H., Speares, J., and Tomasello, M. (2003). Early syntactic creativity: A usage based approach. Journal of child language, 30(2), 333-370."))
+  (add-element '((p) "Van Eecke, P. and Beuls, K. (2018). Exploring the creative potential of computational construction grammar. Zeitschrift fuer Anglistik und Amerikanistik, 66(3), 341-355."))
+  (add-element '((p) "Baten, K., and Cornillie, F. (2019). Elicited imitation as a window into developmental stages. Journal of the European Second Language Association, 3(1), 23-34"))
+  (add-element '((p) "Sleeman, D. (1982). Inferring (mal) rules from pupils  protocols. In Selected and updated papers from the proceedings of the 1982 European conference on Progress in artificial intelligence, 30-39."))
+  (add-element '((p) "Matthews, C. (1992). Going AI: foundations of ICALL. Computer Assisted Language Learning, 5(1-2), 1331.")))
+
+
+
+
+
 (defun total-demo ()
   (my-head-menu)
   (abstract)
@@ -984,7 +1003,8 @@ of the argument structure,</li>
   (German-grammar)
   (ditransitive-example)
   (errors-feedback)
-  (incorrect-ditransitive-example))
+  (incorrect-ditransitive-example)
+  (bibliography))
 
 ; (total-demo)
 
@@ -992,7 +1012,7 @@ of the argument structure,</li>
 
 (defun create-web-page () 
   (create-static-html-page
-      "Basics of Fluid Construction Grammar"
+      "Fluid Construction Grammar for handling learners' errors and providing feedback"
     (clear-page)
     (total-demo)))
 
