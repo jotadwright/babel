@@ -41,74 +41,76 @@ DEBUG_LOG = sys.stderr
 match_triple_dict = {}
 
 
-# START CUSTOMIZATION: FCG meaning reader
-def get_meaning(input_f, prefix):
+# START CUSTOMIZATION: network meaning predicate reader
+def is_variable(argument):
     """
-    Read an FCG meaning and convert it to an AMR format.
+    Check if an argument is a valid variable, i.e., starts with '?'.
     """
 
-    instances = []
-    attributes = []
-    relations = []
-    counter_instance = 0
-    counter_attribute = 0
-    mappings = {}
-  
-    line = input_f.strip()
+    return len(argument) > 1 and argument[0] == '?'
+
+
+def get_meaning(input_mn, prefix):
+    """
+    Read a network meaning predicate and convert it to a usable AMR format.
+    """
+
+    # keep track of the parsed instances, attributes and relations
+    instances = []  # entries of the form: ('instance', 'prefix3', 'predicate_name')
+    attributes = []  # entries of the form: ('ATTR_NAME', 'prefix3', 'ATTR_VALUE')
+    relations = []  # entries of the form: ('REL_NAME', 'prefix3', 'prefix4')
+
+    # keep track of encountered instances and their respective names in SMATCH computation,
+    # i.e., prefix + instance_counter
+    instance_counter = 0
+    instance_mappings = {}
+
+    # preprocess the meaning network string to obtain a more manageable format
+    line = input_mn.strip()
     line = line.replace("(", "")
-    meanings = line.split(")")
+    meanings = list(filter(None, line.split(')')))  # split and drop empty strings
     meanings = [meaning.strip().split(" ") for meaning in meanings]
-    meanings.sort(key=len)
 
-    # a meaning of length 3 indicate the relation meanings have started
-    if 3 in [len(meanings[i]) for i in range(0, len(meanings))]:
-        # then search for the index of this meaning representation
-        i = [len(meanings[i]) for i in range(0, len(meanings))].index(3)
-        inst_meanings = meanings[1:i]
-        inst_meanings.sort()
-        rel_meanings = meanings[i:len(meanings)]
-    else:
-        inst_meanings = meanings
-        inst_meanings.sort()
-        rel_meanings = []
-
-    for meaning in inst_meanings:
-        # a valid instance meaning consists of at least 2 elements (the variable and then the concept)
+    # create instances, relations and attributes for each predicate in the network
+    for i, meaning in enumerate(meanings):
         if len(meaning) < 2:
+            print("Meaning predicates should have at least one argument.", meaning, file=ERROR_LOG)
             continue
-        var_num = meaning[1]
-        if var_num in mappings:
-            variable = prefix + str(mappings[var_num])
-            attributes += [('attribute' + str(counter_attribute), variable, meaning[0])]
-            counter_instance = counter_instance
-        else:
-            mappings[var_num] = counter_instance
-            variable = prefix + str(counter_instance)
-            instances += [('instance' + str(counter_instance), variable, meaning[0])]
-            counter_instance = counter_instance + 1
 
-    for meaning in rel_meanings:
-        # a valid relational meaning consists of maximum 3 elements
-        if len(meaning) > 3:
+        if is_variable(meaning[0]):
+            print("Predicate names should not start with '?'", predicate_name, file=ERROR_LOG)
             continue
-        if len(meaning) == 3:
-            var_num = meaning[1]
-            if var_num in mappings:
-                variable1 = prefix + str(mappings[var_num])
+
+        for j, predicate_component in enumerate(meaning):
+            # predicate name
+            if j == 0:
+                # create an instance for the predicate name:
+                # the same predicate can occur multiple times, but they should be seen as different instances
+                # so store the mapping as predicate_name + predicate index
+                instance_mappings[predicate_component + str(i)] = instance_counter
+                instances += [('instance', prefix + str(instance_counter), predicate_component)]
+                instance_counter += 1
+                continue
+
+            # variable argument
+            if is_variable(predicate_component):
+                # create a new instance for the argument if it is currently unknown
+                if predicate_component not in instance_mappings:
+                    instance_mappings[predicate_component] = instance_counter
+                    instances += [('instance', prefix + str(instance_counter), "var")]
+                    instance_counter += 1
+
+                # add a relation between the predicate name and this variable argument
+                argument = prefix + str(instance_mappings[predicate_component])
+                relations += [("ARG" + str(j - 1),
+                               prefix + str(instance_mappings[meaning[0] + str(i)]),
+                               argument)]
+            # constant argument
             else:
-                mappings[var_num] = counter_instance
-                variable1 = prefix + str(counter_instance)
-                instances += [('instance' + str(counter_instance), variable1, meaning[0] + '1')]
-                counter_instance = counter_instance + 1
-            var_num = meaning[2]
-            if var_num in mappings:
-                variable2 = prefix + str(mappings[var_num])
-            else:
-                mappings[var_num] = counter_instance
-                variable2 = prefix + str(counter_instance)
-                instances += [('instance' + str(counter_instance), variable2, meaning[0] + '2')]
-                counter_instance = counter_instance + 1
-            relations += [(meaning[0], variable1, variable2)]
+                # specify the constant argument as a fixed attribute value for the predicate
+                attributes += [("ARG" + str(j - 1),
+                                prefix + str(instance_mappings[meaning[0] + str(i)]),
+                                predicate_component)]
 
     return instances, attributes, relations
 
@@ -206,7 +208,7 @@ def compute_pool(instance1, attribute1, relation1,
         relation1: relation triples of AMR 1 (relation name, node 1 name, node 2 name)
         instance2: instance triples of AMR 2
         attribute2: attribute triples of AMR 2 (attribute name, node name, attribute value)
-        relation2: relation triples of AMR 2 (relation name, node 1 name, node 2 name
+        relation2: relation triples of AMR 2 (relation name, node 1 name, node 2 name)
         prefix1: prefix label for AMR 1
         prefix2: prefix label for AMR 2
     Returns:
@@ -273,7 +275,7 @@ def compute_pool(instance1, attribute1, relation1,
                     node_pair2 = (node2_index_amr1, node2_index_amr2)
                     if node_pair2 != node_pair1:
                         # update weight_dict weight. Note that we need to update both entries for future search
-                        # i.e weight_dict[node_pair1][node_pair2]
+                        # i.e. weight_dict[node_pair1][node_pair2]
                         #     weight_dict[node_pair2][node_pair1]
                         if node1_index_amr1 > node2_index_amr1:
                             # swap node_pair1 and node_pair2
@@ -815,7 +817,7 @@ def get_amr_match(cur_amr1, cur_amr2, sent_num=1, justinstance=False, justattrib
 
 def score_amr_pairs(network1, network2, justinstance=False, justattribute=False, justrelation=False):
     """
-    Score one pair of AMR lines at a time from each file handle
+    Score two paired meaning networks
     :param network1: first meaning network to be used in comparison
     :param network2: second meaning network to be used in comparison
     :param justinstance: just pay attention to matching instances
@@ -909,7 +911,7 @@ def main(arguments):
     floatdisplay = "%%.%df" % arguments.significant
 
     # START CUSTOMIZATION: use args.m instead of args.f
-    for (precision, recall, best_f_score) in score_amr_pairs(args.m[0], args.m[1],
+    for (precision, recall, best_f_score) in score_amr_pairs(args.m[0], args.m[1],  # args.f[0], args.f[1]
                                                              justinstance=arguments.justinstance,
                                                              justattribute=arguments.justattribute,
                                                              justrelation=arguments.justrelation):
@@ -918,9 +920,10 @@ def main(arguments):
             print("Precision: " + floatdisplay % precision)
             print("Recall: " + floatdisplay % recall)
         print("F-score: " + floatdisplay % best_f_score)
-    #args.f[0].close()
-    #args.f[1].close()
+    # args.f[0].close()
+    # args.f[1].close()
     # END CUSTOMIZATION
+
 
 if __name__ == "__main__":
     import argparse
@@ -934,7 +937,6 @@ if __name__ == "__main__":
         required=True,
         type=str,
         help='Two meaning networks: parsed and annotated meaning network. This option is required.')
-
 
   #  parser.add_argument(
   #      '-f',
