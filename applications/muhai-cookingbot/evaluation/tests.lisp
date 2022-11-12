@@ -6,8 +6,6 @@
 ;; Tests ;;
 ;;;;;;;;;;;
 
-; TODO RD: check out deftest?
-
 (defun test-perfect ()
   "The same network as the simulation environment's solution."
   (let* ((solutions (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-perfect.lisp"))
@@ -86,7 +84,9 @@
   (loop for solution in solutions
         do (print "SOLUTION:")
            (print (recipe-id solution))
-           (print "Percentage of Reached Subgoals:")
+           (print "Smatch Score:")
+           (print (smatch-score solution))
+           (print "Ratio of Reached Subgoals:")
            (print (subgoals-ratio solution))
            (print "Dish Score:")
            (print (dish-score solution))

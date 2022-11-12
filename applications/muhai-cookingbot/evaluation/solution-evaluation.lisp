@@ -9,6 +9,7 @@
 (defclass solution ()
   ((recipe-id :type symbol :initarg :recipe-id :accessor recipe-id :initform nil)
    (meaning-network :type list :initarg :meaning-network :accessor meaning-network :initform '())
+   (smatch-score :accessor smatch-score :initform '())
    (subgoals-ratio :accessor subgoals-ratio :initform '())
    (dish-score :accessor dish-score :initform '())
    (time-ratio :accessor time-ratio :initform '()))
@@ -116,6 +117,29 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Measuring Solution Correctness ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; SMATCH score ;;
+
+; Command: python smatch.py -m '(BOY ?X)' '(BOY ?X) (UNIQUE ?X)'
+; Example calls:
+; (smatch-score '((boy ?x) (paul ?x)) '((boy ?x) (paul ?x)))
+; (smatch-score '((paul ?x) (boy ?x) ) '((boy ?x) (paul ?x)))
+
+(defun compute-smatch-score (L1 L2)
+  "Calls the python smatch program which calculates the smatch score of a parsed meaning network and a gold standard meaning."
+  (assert (progn (listp L1) (listp L2)))
+  (setf L1 (sort L1 #'string-lessp :key #'first))
+  (setf L2 (sort L2 #'string-lessp :key #'first))
+  (setf L1 (format nil "~{~a ~}" L1))
+  (setf L2 (format nil "~{~a ~}" L2))
+  (let* ((program (babel-pathname :directory '("libraries" "smatch")
+                                  :name "smatch" :type "py"))
+         (stream (pipe-input "python" :args (list program "-m"
+                                                  (format nil "~s" L1) (format nil "~s" L2))))
+         (output (read-from-string
+                  (second (split-sequence:split-sequence ":"  (read-line stream) :test #'string=)))))
+   (close stream)
+   output))
 
 ;; Subgoal Evaluation (Goal Condition Testing) ;;
 
@@ -418,14 +442,19 @@
   (let ((solutions (parse-solutions-file filepath))) ; read in the solutions
     (check-solutions-completeness solutions sim-envs) ; check if the solutions file contains all the needed solutions
     (loop for current-solution in solutions
+          for solution-mn = (meaning-network current-solution)  
           for current-id = (recipe-id current-solution)
           for current-sim-env = (find current-id sim-envs :key #'(lambda (sim-env) (recipe-id sim-env)))
           for gold-mn = (meaning-network current-sim-env)
           for final-gold-node = (final-node current-sim-env) 
           for gold-output-node = (output-node current-sim-env)
           do
+            ; compute the smatch score (no simulation needed for this part)
+            (setf (smatch-score current-solution) (compute-smatch-score solution-mn gold-mn)) 
+
+            ; simulate and score recipe "execution"    
             (init-kitchen-state current-sim-env)
-            (let ((extended-mn (append-meaning-and-irl-bindings (meaning-network current-solution) nil)))
+            (let ((extended-mn (append-meaning-and-irl-bindings solution-mn nil)))
               (multiple-value-bind (sol-bindings sol-nodes) (evaluate-irl-program extended-mn nil)
                 ; compute subgoal success ratio
                 (setf (subgoals-ratio current-solution) (compute-subgoal-success-ratio (first sol-nodes) final-gold-node))
