@@ -122,8 +122,8 @@
 
 ; Command: python smatch.py -m '(BOY ?X)' '(BOY ?X) (UNIQUE ?X)'
 ; Example calls:
-; (smatch-score '((boy ?x) (paul ?x)) '((boy ?x) (paul ?x)))
-; (smatch-score '((paul ?x) (boy ?x) ) '((boy ?x) (paul ?x)))
+; (compute-smatch-score '((boy ?x) (paul ?x)) '((boy ?x) (paul ?x)))
+; (compute-smatch-score '((paul ?x) (boy ?x) ) '((boy ?x) (paul ?x)))
 
 (defun compute-smatch-score (L1 L2)
   "Calls the python smatch program which calculates the smatch score of a parsed meaning network and a gold standard meaning."
