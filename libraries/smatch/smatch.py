@@ -41,6 +41,80 @@ DEBUG_LOG = sys.stderr
 match_triple_dict = {}
 
 
+# START CUSTOMIZATION: FCG meaning reader
+def get_meaning(input_f, prefix):
+    """
+    Read an FCG meaning and convert it to an AMR format.
+    """
+
+    instances = []
+    attributes = []
+    relations = []
+    counter_instance = 0
+    counter_attribute = 0
+    mappings = {}
+  
+    line = input_f.strip()
+    line = line.replace("(", "")
+    meanings = line.split(")")
+    meanings = [meaning.strip().split(" ") for meaning in meanings]
+    meanings.sort(key=len)
+
+    # a meaning of length 3 indicate the relation meanings have started
+    if 3 in [len(meanings[i]) for i in range(0, len(meanings))]:
+        # then search for the index of this meaning representation
+        i = [len(meanings[i]) for i in range(0, len(meanings))].index(3)
+        inst_meanings = meanings[1:i]
+        inst_meanings.sort()
+        rel_meanings = meanings[i:len(meanings)]
+    else:
+        inst_meanings = meanings
+        inst_meanings.sort()
+        rel_meanings = []
+
+    for meaning in inst_meanings:
+        # a valid instance meaning consists of at least 2 elements (the variable and then the concept)
+        if len(meaning) < 2:
+            continue
+        var_num = meaning[1]
+        if var_num in mappings:
+            variable = prefix + str(mappings[var_num])
+            attributes += [('attribute' + str(counter_attribute), variable, meaning[0])]
+            counter_instance = counter_instance
+        else:
+            mappings[var_num] = counter_instance
+            variable = prefix + str(counter_instance)
+            instances += [('instance' + str(counter_instance), variable, meaning[0])]
+            counter_instance = counter_instance + 1
+
+    for meaning in rel_meanings:
+        # a valid relational meaning consists of maximum 3 elements
+        if len(meaning) > 3:
+            continue
+        if len(meaning) == 3:
+            var_num = meaning[1]
+            if var_num in mappings:
+                variable1 = prefix + str(mappings[var_num])
+            else:
+                mappings[var_num] = counter_instance
+                variable1 = prefix + str(counter_instance)
+                instances += [('instance' + str(counter_instance), variable1, meaning[0] + '1')]
+                counter_instance = counter_instance + 1
+            var_num = meaning[2]
+            if var_num in mappings:
+                variable2 = prefix + str(mappings[var_num])
+            else:
+                mappings[var_num] = counter_instance
+                variable2 = prefix + str(counter_instance)
+                instances += [('instance' + str(counter_instance), variable2, meaning[0] + '2')]
+                counter_instance = counter_instance + 1
+            relations += [(meaning[0], variable1, variable2)]
+
+    return instances, attributes, relations
+
+# END CUSTOMIZATION
+
+
 def get_best_match(instance1, attribute1, relation1,
                    instance2, attribute2, relation2,
                    prefix1, prefix2, doinstance=True, doattribute=True, dorelation=True):
@@ -657,23 +731,38 @@ def generate_amr_lines(f1, f2):
 
 
 def get_amr_match(cur_amr1, cur_amr2, sent_num=1, justinstance=False, justattribute=False, justrelation=False):
-    amr_pair = []
-    for i, cur_amr in (1, cur_amr1), (2, cur_amr2):
-        try:
-            amr_pair.append(amr.AMR.parse_AMR_line(cur_amr))
-        except Exception as e:
-            print("Error in parsing amr %d: %s" % (i, cur_amr), file=ERROR_LOG)
-            print("Please check if the AMR is ill-formatted. Ignoring remaining AMRs", file=ERROR_LOG)
-            print("Error message: %s" % e, file=ERROR_LOG)
-    amr1, amr2 = amr_pair
+
+    # START CUSTOMIZATION: use a given meaning network instead of an amr line from a file
+
+    # amr_pair = []
+    # for i, cur_amr in (1, cur_amr1), (2, cur_amr2):
+    #     try:
+    #         amr_pair.append(amr.AMR.parse_AMR_line(cur_amr))
+    #     except Exception as e:
+    #         print("Error in parsing amr %d: %s" % (i, cur_amr), file=ERROR_LOG)
+    #         print("Please check if the AMR is ill-formatted. Ignoring remaining AMRs", file=ERROR_LOG)
+    #         print("Error message: %s" % e, file=ERROR_LOG)
+    # amr1, amr2 = amr_pair
+    # prefix1 = "a"
+    # prefix2 = "b"
+    # # Rename node to "a1", "a2", .etc
+    # amr1.rename_node(prefix1)
+    # # Renaming node to "b1", "b2", .etc
+    # amr2.rename_node(prefix2)
+    #
+    # (instance1, attributes1, relation1) = amr1.get_triples()
+    # (instance2, attributes2, relation2) = amr2.get_triples()
+
     prefix1 = "a"
     prefix2 = "b"
-    # Rename node to "a1", "a2", .etc
-    amr1.rename_node(prefix1)
-    # Renaming node to "b1", "b2", .etc
-    amr2.rename_node(prefix2)
-    (instance1, attributes1, relation1) = amr1.get_triples()
-    (instance2, attributes2, relation2) = amr2.get_triples()
+
+    (instance1, attributes1, relation1) = get_meaning(cur_amr1, prefix1)
+    (instance2, attributes2, relation2) = get_meaning(cur_amr2, prefix2)
+
+    if instance1 == "" and attributes1 == "" and relation1 == "" and instance2 == "" and attributes2 == "" and relation2 == "":
+        print("The meaning networks are missing", ERROR_LOG)
+        return
+
     if verbose:
         print("AMR pair", sent_num, file=DEBUG_LOG)
         print("============================================", file=DEBUG_LOG)
@@ -722,11 +811,13 @@ def get_amr_match(cur_amr1, cur_amr2, sent_num=1, justinstance=False, justattrib
     return best_match_num, test_triple_num, gold_triple_num
 
 
-def score_amr_pairs(f1, f2, justinstance=False, justattribute=False, justrelation=False):
+# START CUSTOMIZATION: amr is not read from files, but a meaning network is given directly instead
+
+def score_amr_pairs(network1, network2, justinstance=False, justattribute=False, justrelation=False):
     """
     Score one pair of AMR lines at a time from each file handle
-    :param f1: file handle (or any iterable of strings) to read AMR 1 lines from
-    :param f2: file handle (or any iterable of strings) to read AMR 2 lines from
+    :param network1: first meaning network to be used in comparison
+    :param network2: second meaning network to be used in comparison
     :param justinstance: just pay attention to matching instances
     :param justattribute: just pay attention to matching attributes
     :param justrelation: just pay attention to matching relations
@@ -734,20 +825,21 @@ def score_amr_pairs(f1, f2, justinstance=False, justattribute=False, justrelatio
     """
     # matching triple number, triple number in test file, triple number in gold file
     total_match_num = total_test_num = total_gold_num = 0
+
     # Read amr pairs from two files
-    for sent_num, (cur_amr1, cur_amr2) in enumerate(generate_amr_lines(f1, f2), start=1):
-        best_match_num, test_triple_num, gold_triple_num = get_amr_match(cur_amr1, cur_amr2,
-                                                                         sent_num=sent_num,  # sentence number
-                                                                         justinstance=justinstance,
-                                                                         justattribute=justattribute,
-                                                                         justrelation=justrelation)
-        total_match_num += best_match_num
-        total_test_num += test_triple_num
-        total_gold_num += gold_triple_num
-        # clear the matching triple dictionary for the next AMR pair
-        match_triple_dict.clear()
-        if not single_score:  # if each AMR pair should have a score, compute and output it here
-            yield compute_f(best_match_num, test_triple_num, gold_triple_num)
+    sent_num = 1
+    best_match_num, test_triple_num, gold_triple_num = get_amr_match(network1, network2,
+                                                                     sent_num=sent_num,  # sentence number
+                                                                     justinstance=justinstance,
+                                                                     justattribute=justattribute,
+                                                                     justrelation=justrelation)
+    total_match_num += best_match_num
+    total_test_num += test_triple_num
+    total_gold_num += gold_triple_num
+    # clear the matching triple dictionary for the next AMR pair
+    match_triple_dict.clear()
+    if not single_score:  # if each AMR pair should have a score, compute and output it here
+        yield compute_f(best_match_num, test_triple_num, gold_triple_num)
     if verbose:
         print("Total match number, total triple number in AMR 1, and total triple number in AMR 2:", file=DEBUG_LOG)
         print(total_match_num, total_test_num, total_gold_num, file=DEBUG_LOG)
@@ -755,6 +847,42 @@ def score_amr_pairs(f1, f2, justinstance=False, justattribute=False, justrelatio
     if single_score:  # output document-level smatch score (a single f-score for all AMR pairs in two files)
         yield compute_f(total_match_num, total_test_num, total_gold_num)
 
+
+# def score_amr_pairs(f1, f2, justinstance=False, justattribute=False, justrelation=False):
+#     """
+#     Score one pair of AMR lines at a time from each file handle
+#     :param f1: file handle (or any iterable of strings) to read AMR 1 lines from
+#     :param f2: file handle (or any iterable of strings) to read AMR 2 lines from
+#     :param justinstance: just pay attention to matching instances
+#     :param justattribute: just pay attention to matching attributes
+#     :param justrelation: just pay attention to matching relations
+#     :return: generator of cur_amr1, cur_amr2 pairs: one-line AMR strings
+#     """
+#     # matching triple number, triple number in test file, triple number in gold file
+#     total_match_num = total_test_num = total_gold_num = 0
+#
+#     # Read amr pairs from two files
+#     for sent_num, (cur_amr1, cur_amr2) in enumerate(generate_amr_lines(f1, f2), start=1):
+#         best_match_num, test_triple_num, gold_triple_num = get_amr_match(cur_amr1, cur_amr2,
+#                                                                          sent_num=sent_num,  # sentence number
+#                                                                          justinstance=justinstance,
+#                                                                          justattribute=justattribute,
+#                                                                          justrelation=justrelation)
+#         total_match_num += best_match_num
+#         total_test_num += test_triple_num
+#         total_gold_num += gold_triple_num
+#         # clear the matching triple dictionary for the next AMR pair
+#         match_triple_dict.clear()
+#         if not single_score:  # if each AMR pair should have a score, compute and output it here
+#             yield compute_f(best_match_num, test_triple_num, gold_triple_num)
+#     if verbose:
+#         print("Total match number, total triple number in AMR 1, and total triple number in AMR 2:", file=DEBUG_LOG)
+#         print(total_match_num, total_test_num, total_gold_num, file=DEBUG_LOG)
+#         print("---------------------------------------------------------------------------------", file=DEBUG_LOG)
+#     if single_score:  # output document-level smatch score (a single f-score for all AMR pairs in two files)
+#         yield compute_f(total_match_num, total_test_num, total_gold_num)
+
+# END CUSTOMIZATION
 
 def main(arguments):
     """
@@ -779,7 +907,9 @@ def main(arguments):
         pr_flag = True
     # significant digits to print out
     floatdisplay = "%%.%df" % arguments.significant
-    for (precision, recall, best_f_score) in score_amr_pairs(args.f[0], args.f[1],
+
+    # START CUSTOMIZATION: use args.m instead of args.f
+    for (precision, recall, best_f_score) in score_amr_pairs(args.m[0], args.m[1],
                                                              justinstance=arguments.justinstance,
                                                              justattribute=arguments.justattribute,
                                                              justrelation=arguments.justrelation):
@@ -788,21 +918,33 @@ def main(arguments):
             print("Precision: " + floatdisplay % precision)
             print("Recall: " + floatdisplay % recall)
         print("F-score: " + floatdisplay % best_f_score)
-    args.f[0].close()
-    args.f[1].close()
-
+    #args.f[0].close()
+    #args.f[1].close()
+    # END CUSTOMIZATION
 
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Smatch calculator")
+
+    # START CUSTOMIZATION: add argument for parsing a meaning network
     parser.add_argument(
-        '-f',
+        '-m',
         nargs=2,
         required=True,
-        type=argparse.FileType('r'),
-        help=('Two files containing AMR pairs. '
-              'AMRs in each file are separated by a single blank line'))
+        type=str,
+        help='Two meaning networks: parsed and annotated meaning network. This option is required.')
+
+
+  #  parser.add_argument(
+  #      '-f',
+  #      nargs=2,
+  #      required=True,
+  #      type=argparse.FileType('r'),
+  #      help=('Two files containing AMR pairs. '
+  #            'AMRs in each file are separated by a single blank line'))
+    # END CUSTOMIZATION
+
     parser.add_argument(
         '-r',
         type=int,
@@ -851,4 +993,16 @@ if __name__ == "__main__":
         help="just pay attention to matching relations")
 
     args = parser.parse_args()
+
+    # START CUSTOMIZATION: make the -m option mandatory
+    if args.m is None:
+        print("smatch.py requires -m option to indicate two meaning networks \
+               containing AMR as input. Please run smatch.py -h to  \
+               see the argument description.", file=ERROR_LOG)
+        exit(1)
+
+    # assert there are 2 network meanings following -m.
+    assert(len(args.m) == 2)
+    # END CUSTOMIZATION
+
     main(args)
