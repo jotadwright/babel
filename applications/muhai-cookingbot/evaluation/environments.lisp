@@ -12,7 +12,8 @@
    (meaning-network :type list :initarg :meaning-network :accessor meaning-network :initform '())
    (final-node :type irl-program-processor-node :accessor final-node)
    (primary-output-var :type symbol :initarg :primary-output-var :accessor primary-output-var :initform nil)
-   (output-node :type irl-program-processor-node :accessor output-node :initform '()))
+   (output-node :type irl-program-processor-node :accessor output-node :initform '())
+   (execution-time :accessor execution-time :initform '()))
   (:documentation "Class wrapping all information for setting up and evaluating an environment."))
 
 (defmethod initialize-instance :after ((simulation-environment simulation-environment) &key)
@@ -21,6 +22,8 @@
     (let ((extended-mn (append-meaning-and-irl-bindings (meaning-network simulation-environment) nil)))
       (init-kitchen-state simulation-environment)
       (multiple-value-bind (bindings nodes) (evaluate-irl-program extended-mn nil)
+        ; store the time it took to execute the whole recipe (i.e., to have all bindings available) 
+        (setf (execution-time simulation-environment) (compute-execution-time (first bindings)))
          ; we only expect there to be one solution
         (setf (final-node simulation-environment) (first nodes)))))
   (when (and (final-node simulation-environment) (primary-output-var simulation-environment)) 
