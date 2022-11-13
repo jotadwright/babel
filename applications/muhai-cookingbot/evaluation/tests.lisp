@@ -10,9 +10,9 @@
   "The same network as the simulation environment's solution."
   (let* ((solutions (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-perfect.lisp"))
          (perfection (loop for solution in solutions
-                             always (and (= (subgoals-ratio solution) 1)
-                                         (= (dish-score solution) 1)
-                                         (= (execution-time solution) 1)))))
+                             always (and (= (smatch-score) 1)
+                                         (= (subgoals-ratio solution) 1)
+                                         (= (dish-score solution) 1)))))
     (if perfection
       (print "test-perfect: SUCCESS")
       (error "test-perfect: FAILURE"))))
@@ -22,7 +22,7 @@
   (let ((solution (first (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-permuted-perfect.lisp" (list *almond-crescent-cookies-environment*)))))
     (if (and (= (subgoals-ratio solution) 1)
              (= (dish-score solution) 1)
-             (= (execution-time solution) 1))
+             (= (execution-time solution) (execution-time *almond-crescent-cookies-environment*)))
       (print "test-permuted-perfect: SUCCESS")
       (error "test-permuted-perfect: FAILURE"))))
 
@@ -30,7 +30,9 @@
   "The same network as the simulation environment's solution, but with some instructions missing at the end."
   (let ((solution (first (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-imperfect.lisp"  (list *almond-crescent-cookies-environment*)))))
     (if (and (= (subgoals-ratio solution) (/ 23 24))
-             (< (dish-score solution) 1))
+             (< (smatch-score solution) 1)
+             (< (dish-score solution) 1)
+             (<= (execution-time solution) (execution-time *almond-crescent-cookies-environment*)))
       (print "test-imperfect: SUCCESS")
       (error "test-imperfect: FAILURE"))))
 
@@ -39,7 +41,8 @@
   (let ((solution (first (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-extra-operation.lisp"  (list *almond-crescent-cookies-environment*)))))
     (if (and (= (subgoals-ratio solution) 1)
              (= (dish-score solution) 1)
-             (> (execution-time solution) 1))
+             (< (smatch-score solution) 1)
+             (>= (execution-time solution) (execution-time *almond-crescent-cookies-environment*)))
       (print "test-extra-operations: SUCCESS")
       (error "test-extra-operations: FAILURE"))))
 
@@ -47,7 +50,9 @@
   "A solution that only contains get-kitchen."
   (let ((solution (first (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-empty.lisp"  (list *almond-crescent-cookies-environment*)))))
     (if (and (= (subgoals-ratio solution) 0)
-             (= (dish-score solution) 0))
+             (= (dish-score solution) 0)
+             (< (smatch-score solution) 1)
+             (< (execution-time solution) (execution-time *almond-crescent-cookies-environment*)))
       (print "test-empty: SUCCESS")
       (error "test-empty: FAILURE"))))
 
@@ -59,7 +64,8 @@
     (if (and (= (subgoals-ratio solution-perfect) 1)
              (= (dish-score solution-perfect) 1)
              (= (subgoals-ratio solution-imperfect) (/ 23 24))
-             (< (dish-score solution-imperfect) 1))
+             (< (dish-score solution-imperfect) 1)
+             (< (smatch-score solution) 1))
       (print "test-multiple-recipes: SUCCESS")
       (error "test-multiple-recipes: FAILURE"))))
 
@@ -68,7 +74,8 @@
   (let ((solution (first (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-list-of-kitchen-entities.lisp"  (list *almond-crescent-cookies-environment*)))))
     (if (and (< (dish-score solution) 1)
              (< (smatch-score solution) 1)
-             (= (subgoals-ratio solution) (/ 19 24)))
+             (= (subgoals-ratio solution) (/ 19 24))
+             (< (execution-time solution) (execution-time *almond-crescent-cookies-environment*)))
       (print "test-list-of-kitchen-entities: SUCCESS")
       (error "test-list-of-kitchen-entities: FAILURE"))))
 
@@ -86,9 +93,6 @@
 ;; Convenience Functions (Removable) ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;(defparameter test (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-list-of-kitchen-entities.lisp" (list *almond-crescent-cookies-environment*)))
-;  (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\test-list-of-kitchen-entities.lisp")
-
 (defun print-results (solutions)
   "Convenience Function that prints the measurement results of the given solutions."
   (loop for solution in solutions
@@ -103,7 +107,10 @@
            (print "Execution Time:")
            (print (execution-time solution))))
 
-(print-results test)
+
+;(defparameter test (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-list-of-kitchen-entities.lisp" (list *almond-crescent-cookies-environment*)))
+;(print-results test)
+
 
 ;;;;;;;;;;
 ;; DEMO ;;
