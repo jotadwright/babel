@@ -52,8 +52,9 @@
 
 (defun find-location (object place)
   "Get the full path to the given object, starting from the given place."
-  (if (subtypep (type-of object) 'list-of-kitchen-entities)
-    (list 'counter-top) ; the items of list-of-entities are always considered to be on the countertop
+  (if (and (subtypep (type-of object) 'list-of-kitchen-entities)
+           (subtypep (type-of place) 'kitchen-state))
+    (list place (counter-top place)) ; the items of list-of-entities are always considered to be on the countertop
     (cond ((loop for el in (contents place)
                  if (eql (persistent-id object) (persistent-id el))
                    do (return t))
@@ -102,8 +103,7 @@
 
 (defmethod equal-ontology-objects (object-1 object-2 &optional ignore)
   (and (equal (class-of object-1) (class-of object-2))
-       (let ((o1-slotnames (get-slotnames object-1 ignore))
-             (o2-slotnames (get-slotnames object-2 ignore)))
+       (let ((o1-slotnames (get-slotnames object-1 ignore)))
        (loop for o1-slotname in o1-slotnames
              always (equal-ontology-objects
                      (slot-value object-1  o1-slotname)
