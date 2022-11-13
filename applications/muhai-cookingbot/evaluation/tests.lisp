@@ -63,12 +63,22 @@
       (print "test-multiple-recipes: SUCCESS")
       (error "test-multiple-recipes: FAILURE"))))
 
+(defun test-list-of-kitchen-entities ()
+  "A file that contains two solutions, an imperfect one and a perfect one."
+  (let ((solution (first (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-list-of-kitchen-entities.lisp"  (list *almond-crescent-cookies-environment*)))))
+    (if (and (< (dish-score solution) 1)
+             (< (smatch-score solution) 1)
+             (= (subgoals-ratio solution) (/ 19 24)))
+      (print "test-list-of-kitchen-entities: SUCCESS")
+      (error "test-list-of-kitchen-entities: FAILURE"))))
+
 (defun execute-all-tests ()
   (test-perfect)
   (test-permuted-perfect)
   (test-imperfect)
   (test-extra-operations)
-  (test-empty))
+  (test-empty)
+  (test-list-of-kitchen-entities))
 
 ;(execute-all-tests)
 
@@ -76,8 +86,8 @@
 ;; Convenience Functions (Removable) ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;(defparameter test (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\test.lisp"))
-;  (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\test.lisp")
+;(defparameter test (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-list-of-kitchen-entities.lisp" (list *almond-crescent-cookies-environment*)))
+;  (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\test-list-of-kitchen-entities.lisp")
 
 (defun print-results (solutions)
   "Convenience Function that prints the measurement results of the given solutions."
@@ -92,6 +102,8 @@
            (print (dish-score solution))
            (print "Execution Time:")
            (print (execution-time solution))))
+
+(print-results test)
 
 ;;;;;;;;;;
 ;; DEMO ;;

@@ -224,6 +224,16 @@
   "Compute the actual dish-score as the ratio of the awarded points to the maximum number of points that could be reached."
   (/ (points similarity-score) (max-points similarity-score)))
 
+; made so comparison code doesn't have to make certain explicit distinctions between a container and a list-of-kitchen-entities object
+(defgeneric contents-or-items (object)
+  (:documentation "Convenience function to get the contents/item from a container of list-of-kitchen-entities."))
+
+(defmethod contents-or-items ((container container))
+  (contents container))
+
+(defmethod contents-or-items ((list-of-kitchen-entities list-of-kitchen-entities))
+  (items list-of-kitchen-entities))
+
 (defmethod unfold-mixture ((mixture-to-unfold hierarchy-ingredient))
   "Unfold the given mixture into a list of all the base ingredients that are contained in it."
   (let* ((inner-mixture (ingredient mixture-to-unfold))
@@ -249,13 +259,15 @@
                 (t (error "unsupported component of class ~a" (type-of comp)))))
     unfolded-comps))
 
-(defmethod unfold-dish ((dish container))
+(defun unfold-dish (dish)
   "Unfold the contents of the given container into a list of all the base ingredients that are contained in it."
+  (unless (or (subtypep (type-of dish) 'container) (subtypep (type-of dish) 'list-of-kitchen-entities))
+    (error "unfold-dish expects either a container or a list-of-kitchen-entities, but got ~a" (type-of dish)))
   (let* ((dish-copy (copy-object dish))
          (unfolded-contents '())
          (merged-contents '()))
     ; unfold every item that is in the dish     
-    (loop for item in (contents dish-copy)
+    (loop for item in (contents-or-items dish-copy)
             do (cond ((subtypep (type-of item) 'mixture)
                       (setf unfolded-contents (append unfolded-contents (unfold-mixture
                                                                          (make-instance 'hierarchy-ingredient
@@ -351,16 +363,16 @@
   "Compute a similarity score for the final dish that was made when reaching this node."
   (let* ((sol-value (get-output-value sol-dish))
          (sol-location (find-location sol-value (get-output-kitchen-state sol-dish)))
-         (sol-dish-slots (get-slotnames sol-value '(persistent-id id contents))) ; all slots except contents
+         (sol-dish-slots (get-slotnames sol-value '(persistent-id id contents items))) ; all slots except contents/items
          (gold-value (get-output-value gold-dish))
          (gold-location (find-location gold-value (get-output-kitchen-state gold-dish)))
-         (gold-dish-slots (get-slotnames gold-value '(persistent-id id contents))) ; all slots except contents
+         (gold-dish-slots (get-slotnames gold-value '(persistent-id id contents items))) ; all slots except contents/items
          (container-score (make-instance 'similarity-score))
          (contents-score (make-instance 'similarity-score)))
-    ; check if this node actually return 
-    (if (not (and (subtypep (type-of sol-value) 'container)
-                    (contents sol-value)
-                    (loop for item in (contents sol-value) always (subtypep (type-of item) 'ingredient))))
+    ; check if this node actually returns a container with ingredients or a list-of-kitchen-entities
+    (if (not (and (or (subtypep (type-of sol-value) 'container) (subtypep (type-of sol-value) 'list-of-kitchen-entities))
+                  (contents-or-items sol-value)
+                  (loop for item in (contents-or-items sol-value) always (subtypep (type-of item) 'ingredient))))
       (make-instance 'similarity-score
                      :points 0
                      :max-points 1)
@@ -385,9 +397,9 @@
         ;; contents specific scoring
         ; number of portions in the dish is worth a score of 1
         ; (only 1 because right now an end dish will always be portions of the same mixture, so just one portioning operation might be missing)
-        (if (= (length (contents sol-value)) (length (contents gold-value)))
+        (if (= (length (contents-or-items sol-value)) (length (contents gold-value)))
           (add-points contents-score 1 1)
-        (add-points contents-score 0 1))
+          (add-points contents-score 0 1))
         ; actual composition of the final contents
         (let ((unfolded-dish-sol (unfold-dish sol-value))
               (unfolded-dish-gold (unfold-dish gold-value))
