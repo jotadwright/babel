@@ -12,7 +12,7 @@
          (perfection (loop for solution in solutions
                              always (and (= (subgoals-ratio solution) 1)
                                          (= (dish-score solution) 1)
-                                         (= (time-ratio solution) 1)))))
+                                         (= (execution-time solution) 1)))))
     (if perfection
       (print "test-perfect: SUCCESS")
       (error "test-perfect: FAILURE"))))
@@ -22,7 +22,7 @@
   (let ((solution (first (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-permuted-perfect.lisp" (list *almond-crescent-cookies-environment*)))))
     (if (and (= (subgoals-ratio solution) 1)
              (= (dish-score solution) 1)
-             (= (time-ratio solution) 1))
+             (= (execution-time solution) 1))
       (print "test-permuted-perfect: SUCCESS")
       (error "test-permuted-perfect: FAILURE"))))
 
@@ -39,7 +39,7 @@
   (let ((solution (first (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-extra-operation.lisp"  (list *almond-crescent-cookies-environment*)))))
     (if (and (= (subgoals-ratio solution) 1)
              (= (dish-score solution) 1)
-             (> (time-ratio solution) 1))
+             (> (execution-time solution) 1))
       (print "test-extra-operations: SUCCESS")
       (error "test-extra-operations: FAILURE"))))
 
