@@ -237,16 +237,16 @@
 (defmethod unfold-mixture ((mixture-to-unfold hierarchy-ingredient))
   "Unfold the given mixture into a list of all the base ingredients that are contained in it."
   (let* ((inner-mixture (ingredient mixture-to-unfold))
-         (comps (mapcar #'convert-to-g (components inner-mixture))) ; compare everything in g for convenience
          (mixture-value (value (quantity (amount inner-mixture))))
-         (total-value (loop for ingredient in comps
-                            for current-value = (value (quantity (amount ingredient)))
-                            sum current-value))
-         (value-ratio (/ mixture-value total-value))
          (unfolded-comps '()))
-    (loop for comp in comps
+    (loop for comp in (components inner-mixture)
           do
-            (setf (value (quantity (amount comp))) (* (value (quantity (amount comp))) value-ratio)) ; "correct" the amount to the real amount
+            ; transform the percentage amount to the real amount in grams
+            (setf (amount comp)
+                  (make-instance 'amount
+                                 :quantity (make-instance 'quantity
+                                                          :value (* (value (quantity (amount comp))) mixture-value))
+                                 :unit (unit (copy-object (amount inner-mixture)))))
           (cond ((subtypep (type-of comp) 'mixture)
                  (let ((unfolded-sub-comps (unfold-mixture (make-instance 'hierarchy-ingredient
                                                                           :ingredient comp
@@ -271,10 +271,12 @@
             do (cond ((subtypep (type-of item) 'mixture)
                       (setf unfolded-contents (append unfolded-contents (unfold-mixture
                                                                          (make-instance 'hierarchy-ingredient
-                                                                                        :ingredient (convert-to-g item)))))) ; compare everything in g
+                                                                                        ; compare everything in g
+                                                                                        :ingredient (convert-to-g item))))))
                      ((subtypep (type-of item) 'ingredient)
                       (setf unfolded-contents (append unfolded-contents 
                                                       (list (make-instance 'hierarchy-ingredient
+                                                                           ; compare everything in g
                                                                            :ingredient (convert-to-g item))))))))
     ; we take together the items that are the same and consider them to be one big item (for better comparison)
     (loop while unfolded-contents

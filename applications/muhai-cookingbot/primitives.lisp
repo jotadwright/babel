@@ -1572,7 +1572,15 @@
          (mixture (make-instance 'homogeneous-mixture :amount (make-instance 'amount
                                                                 :unit (make-instance 'g)
                                                                 :quantity (make-instance 'quantity :value total-value))
-                                 :components (contents container))))   
+                                 :components (contents container))))
+
+    ; modify the contents so they all contain percentages (to prevent recursion errors when portioning nested mixtures)
+    (loop for ingredient in (components mixture)
+          do (setf (amount ingredient)
+                   (make-instance 'amount
+                                  :quantity (make-instance 'quantity
+                                                           :value (/ (value (quantity (amount (convert-to-g ingredient)))) total-value))
+                                  :unit (make-instance 'percent))))
   
       (setf (contents container) (list mixture))
       (setf (mixed (first (contents container))) t)
@@ -1586,6 +1594,14 @@
                                                                 :unit (make-instance 'g)
                                                                 :quantity (make-instance 'quantity :value total-value))
                                  :components (contents container))))
+    ; modify the contents so they all contain percentages (to prevent recursion errors when portioning nested mixtures)
+    (loop for ingredient in (components mixture)
+          do (setf (amount ingredient)
+                   (make-instance 'amount
+                                  :quantity (make-instance 'quantity
+                                                           :value (/ (value (quantity (amount (convert-to-g ingredient)))) total-value))
+                                  :unit (make-instance 'percent))))
+    
     (setf (contents container) (list mixture))
     mixture))
 
