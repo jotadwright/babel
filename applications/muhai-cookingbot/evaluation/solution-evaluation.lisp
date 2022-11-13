@@ -29,8 +29,8 @@
             while line
             do
               (cond ((not (find #\space line :test-not #'eql))
-                     )
-                    ; (print "Empty line is skipped"))
+                     ; (print "Empty line is skipped")
+                     nil)
                     ((char= (char line 0) #\#)
                      ; first check the previous solution
                      (when solutions
@@ -132,7 +132,8 @@
   (setf L2 (format nil "~{~a ~}" L2))
   (let* ((program (babel-pathname :directory '("libraries" "smatch")
                                   :name "smatch" :type "py"))
-         (stream (pipe-input "python" :args (list program "-m"
+         (program-as-string (namestring program)) ;; CCL requires program arguments to all be simple strings
+         (stream (pipe-input "python" :args (list program-as-string "-m"
                                                   (format nil "~s" L1) (format nil "~s" L2))))
          (output (read-from-string
                   (second (split-sequence:split-sequence ":"  (read-line stream) :test #'string=)))))
