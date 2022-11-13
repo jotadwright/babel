@@ -444,12 +444,7 @@
           while (and node (irl::primitive-under-evaluation node) (< score 1)))
     (apply #'max scores)))
 
-;; Execution Time Computation ;;
 
-(defun compute-execution-time (bindings)
-  "Compute the maximum time it takes to execute a recipe, i.e., find the time it takes to make all bindings available."
-  (apply #'max (remove nil (mapcar #'irl::available-at bindings))))
-  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Solution File Evaluation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
