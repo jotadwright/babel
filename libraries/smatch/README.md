@@ -1,7 +1,7 @@
 # SMATCH SCORE
 
 This library is a customized version of the Smatch library available on [PyPi](https://pypi.org/project/smatch/).  
-Modifications have been made in order to support input consisting of two predicate network meaning representations in the form of strings, since the original library only supports files containing one or more AMR networks in Penman notation.
+Modifications have been made in order to support input consisting of two predicate network meaning representations in the form of strings, since the original library only supports input files containing one or more AMR networks in Penman notation.
 
 More information about the original Smatch library can be found in [README_ORIGINAL.md](README_ORIGINAL.md).
 
