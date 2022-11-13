@@ -12,7 +12,7 @@
    (meaning-network :type list :initarg :meaning-network :accessor meaning-network :initform '())
    (final-node :type irl-program-processor-node :accessor final-node)
    (primary-output-var :type symbol :initarg :primary-output-var :accessor primary-output-var :initform nil)
-   (output-node :type irl-program-processor-node :accessor output-node))
+   (output-node :type irl-program-processor-node :accessor output-node :initform '()))
   (:documentation "Class wrapping all information for setting up and evaluating an environment."))
 
 (defmethod initialize-instance :after ((simulation-environment simulation-environment) &key)
@@ -29,7 +29,7 @@
       (loop for output-var = (second (irl::primitive-under-evaluation node))
             when (eql output-var var-to-find)
               do (setf (output-node simulation-environment) node)
-            (setf node (parent node))
+            do (setf node (parent node))
             while (and node (not (output-node simulation-environment)))))))
 
 (defmethod init-kitchen-state ((simulation-environment simulation-environment))
