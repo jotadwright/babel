@@ -12,7 +12,7 @@
    (smatch-score :accessor smatch-score :initform '())
    (subgoals-ratio :accessor subgoals-ratio :initform '())
    (dish-score :accessor dish-score :initform '())
-   (time-ratio :accessor time-ratio :initform '()))
+   (execution-time :accessor execution-time :initform '()))
   (:documentation "Class used for storing a recipe solution and its score.")) 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -34,7 +34,7 @@
                     ((char= (char line 0) #\#)
                      ; first check the previous solution
                      (when solutions
-                       (multiple-value-bind (error-status messages) (check-recipe-program (meaning-network (first solutions)) nil *irl-primitives*)
+                       (multiple-value-bind (error-status messages) (check-recipe-program (meaning-network (first solutions)) *irl-primitives*)
                          (unless error-status
                            (error "Invalid IRL program in solution ~S. Error was thrown: ~a" (recipe-id (first solutions)) (format nil "~{~a~}" messages)))))
                        ; we are starting a new solution
@@ -48,7 +48,7 @@
                     (t
                      (error "A line should either contain a recipe ID (#recipe-id) or a primitive operation (op ?a ?b), but ~S was found" line))))
               (when solutions
-                (multiple-value-bind (error-status messages) (check-recipe-program (meaning-network (first solutions)) nil *irl-primitives*)
+                (multiple-value-bind (error-status messages) (check-recipe-program (meaning-network (first solutions)) *irl-primitives*)
                   (unless error-status
                     (error "Invalid IRL program in solution ~S. Error was thrown: ~a" (recipe-id (first solutions)) (format nil "~{~a~}" messages)))))
               solutions)))
@@ -64,13 +64,11 @@
         when (> (count (recipe-id solution) solutions :key #'(lambda (sol) (recipe-id sol))) 1)
           do (error "Duplicate entry found for recipe ~S" (recipe-id solution))))
 
-(defun check-recipe-program (irl-program ontology primitive-inventory)
+(defun check-recipe-program (irl-program primitive-inventory)
   "Checks a recipe irl-program for mistakes.
    This function is based on the check-irl-program function from the IRL package,
    with unnecessary checks being removed and additional checks being added."
-  (let ((variables (remove-duplicates
-                     (find-all-anywhere-if #'variable-p irl-program)))
-        (messages '()))
+  (let ((messages '()))
     
     ;; first check, everything should be a non-empty list
     (loop for expr in irl-program
@@ -253,7 +251,6 @@
 (defmethod unfold-dish ((dish container))
   "Unfold the contents of the given container into a list of all the base ingredients that are contained in it."
   (let* ((dish-copy (copy-object dish))
-         (items (contents dish-copy))
          (unfolded-contents '())
          (merged-contents '()))
     ; unfold every item that is in the dish     
@@ -434,6 +431,12 @@
           while (and node (irl::primitive-under-evaluation node) (< score 1)))
     (apply #'max scores)))
 
+;; Execution Time Computation ;;
+
+(defun compute-execution-time (bindings)
+  "Compute the maximum time it takes to execute a recipe, i.e., find the time it takes to make all bindings available."
+  (apply #'max (remove nil (mapcar #'irl::available-at bindings))))
+  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Solution File Evaluation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -463,7 +466,5 @@
             ;      (setf (dish-score current-solution) 1)
                   (setf (dish-score current-solution) (find-best-dish-score (first sol-nodes) gold-output-node));)
                 ; compute the ratio of needed execution time to the execution time of the golden standard
-                (setf (time-ratio current-solution) (/ (irl::available-at (get-output-binding (first sol-nodes)))
-                                                       (irl::available-at (get-output-binding final-gold-node)))))))
+                (setf (execution-time current-solution) (compute-execution-time (first sol-bindings))))))
     solutions))
-

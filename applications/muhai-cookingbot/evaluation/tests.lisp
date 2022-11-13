@@ -90,8 +90,8 @@
            (print (subgoals-ratio solution))
            (print "Dish Score:")
            (print (dish-score solution))
-           (print "Time Ratio:")
-           (print (time-ratio solution))))
+           (print "Execution Time:")
+           (print (execution-time solution))))
 
 ;;;;;;;;;;
 ;; DEMO ;;
@@ -192,24 +192,24 @@
                  :primary-output-var
                  '?thing-baked))
 
+(defparameter demo (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo.lisp" (list *demo-env*)))
+(print-results demo)
 
-(defparameter test (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo.lisp" (list *demo-env*)))
-(print-results test)
+(defparameter demo-permuted (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-2.lisp" (list *demo-env*)))
+(print-results demo-permuted)
 
-(defparameter test-permuted (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-2.lisp" (list *demo-env*)))
-(print-results test-permuted)
+(defparameter demo-non-baked (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-3.lisp" (list *demo-env*)))
+(print-results demo-non-baked)
 
-(defparameter test-non-baked (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-3.lisp" (list *demo-env*)))
-(print-results test-non-baked)
+(defparameter demo-missing-ingredient (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-4.lisp" (list *demo-env*)))
+(print-results demo-missing-ingredient)
 
-(defparameter test-missing-ingredient (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-4.lisp" (list *demo-env*)))
-(print-results test-missing-ingredient)
+(defparameter demo-extra-fetch (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-5.lisp" (list *demo-env*)))
+(print-results demo-extra-fetch)
 
-(defparameter test-extra-fetch (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-5.lisp" (list *demo-env*)))
-(print-results test-extra-fetch)
+(defparameter demo-changed-order (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-6.lisp" (list *demo-env*)))
+(print-results demo-changed-order)
 
-(defparameter weird-order (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-6.lisp" (list *demo-env*)))
-(print-results weird-order)
+(defparameter demo-empty (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-7.lisp" (list *demo-env*)))
+(print-results demo-empty)
 
-(defparameter test-empty (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-7.lisp" (list *demo-env*)))
-(print-results test-empty)
