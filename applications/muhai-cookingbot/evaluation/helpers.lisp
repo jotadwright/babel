@@ -52,6 +52,8 @@
 
 (defun find-location (object place)
   "Get the full path to the given object, starting from the given place."
+  (if (subtypep (type-of object) 'list-of-kitchen-entities)
+    (list 'counter-top) ; the items of list-of-entities are always considered to be on the countertop
     (cond ((loop for el in (contents place)
                  if (eql (persistent-id object) (persistent-id el))
                    do (return t))
@@ -63,7 +65,7 @@
                if (subtypep (type-of el) 'container)
                do (let ((location (find-location object el)))
                     (when location
-                      (return (append (list place) location))))))))
+                      (return (append (list place) location)))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helper Functions to Check Kitchen Entity Equality ;;
