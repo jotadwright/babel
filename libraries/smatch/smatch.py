@@ -42,6 +42,25 @@ match_triple_dict = {}
 
 
 # START CUSTOMIZATION: network meaning predicate reader
+def get_file_network(input_f):
+    """
+    Read a meaning network from a file.
+    This can generally be used in case the meaning network is too big to give by command line as a string.
+    """
+    cur_amr = []
+    with open(input_f) as fp:
+        for line in fp.readlines():
+            line = line.strip()
+            if line == "":
+                continue
+            if line.startswith("#"):
+                # ignore the comment line (starting with "#") in the file
+                continue
+            else:
+                cur_amr.append(line)
+    return " ".join(cur_amr)
+
+
 def is_variable(argument):
     """
     Check if an argument is a valid variable, i.e., starts with '?'.
@@ -1005,6 +1024,16 @@ if __name__ == "__main__":
 
     # assert there are 2 network meanings following -m.
     assert(len(args.m) == 2)
+
+    # if the arguments are not valid meaning network strings, try to read in the network from the specified file
+    args.m[0] = args.m[0].strip()
+    args.m[1] = args.m[1].strip()
+    if not (args.m[0][0] == '(' and args.m[0][-1] == ')'):
+        args.m[0] = get_file_network(args.m[0])
+
+    if not (args.m[1][0].strip() == '(' and args.m[1][-1].strip() == ')'):
+        args.m[1] = get_file_network(args.m[1])
+
     # END CUSTOMIZATION
 
     main(args)
