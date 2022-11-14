@@ -1608,6 +1608,8 @@
 
 (defun create-conversion-table-for-g ()
   (let ((conversion-table (make-hash-table)))
+    (setf (gethash 'almond-extract conversion-table)
+	  (acons 'teaspoon 4 '()))
     (setf (gethash 'banana conversion-table)
 	  (acons 'piece 118 '()))
     (setf (gethash 'cucumber conversion-table)
@@ -1625,7 +1627,7 @@
     (setf (gethash 'shallot conversion-table)
           (acons 'piece 50 '()))
     (setf (gethash 'vanilla-extract conversion-table)
-	  (acons 'l 879.16 '()))
+	  (acons 'l 879.16 (acons 'teaspoon 4 '())))
     (setf (gethash 'water conversion-table)
 	  (acons 'l 1000 '()))
     (setf (gethash 'whole-egg conversion-table)
