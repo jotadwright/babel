@@ -837,7 +837,13 @@
             (left-to-transfer (copy-object value-to-transfer))
             (countertop (counter-top new-kitchen-state))
             (portions (make-instance 'list-of-kitchen-entities)))
-           
+
+       ; convert the portion amount to grams
+       (when (not (eq (type-of unit) 'g))
+         (let ((conversion-ingredient (copy-object dough)))
+           (setf (amount conversion-ingredient) portion-amount)
+           (setf portion-amount (amount (convert-to-g conversion-ingredient)))))
+       
        (loop while (> left-to-transfer 0)
              for new-portion = (copy-object dough)
              do (push new-portion (items portions))
@@ -860,6 +866,59 @@
        (bind (portions 1.0 portions portions-available-at)
              (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
              (arrangement-pattern 0.0 default-arrangement-pattern)
+             (destination 0.0 source-destination)))))
+
+  ;; Case 2: Arrangement pattern specified but destination not specified, use countertop
+  ((kitchen-state-in container-with-dough quantity unit arrangement-pattern
+                     => portions kitchen-state-out destination)
+   
+   (let* ((source-destination (counter-top kitchen-state-in))
+          (new-kitchen-state (copy-object kitchen-state-in))
+          (portions-available-at (+ 80 (max (kitchen-time kitchen-state-in)
+                                            (available-at (find (id container-with-dough) binding-objects
+                                                                :key #'(lambda (binding-object)
+                                                                         (and (value binding-object)
+                                                                              (id (value binding-object)))))))))
+          (kitchen-state-available-at portions-available-at))
+
+
+     ;; portion contents from container and put them on the counter top
+     (let* ((container-with-dough-instance
+              (find-object-by-persistent-id container-with-dough (counter-top new-kitchen-state)))
+            (dough (first (contents container-with-dough-instance)))
+            (value-to-transfer (value (quantity (amount dough))))
+            (portion-amount (make-instance 'amount :quantity quantity :unit unit))
+            (left-to-transfer (copy-object value-to-transfer))
+            (countertop (counter-top new-kitchen-state))
+            (portions (make-instance 'list-of-kitchen-entities)))
+
+       ; convert the portion amount to grams
+       (when (not (eq (type-of unit) 'g))
+         (let ((conversion-ingredient (copy-object dough)))
+           (setf (amount conversion-ingredient) portion-amount)
+           (setf portion-amount (amount (convert-to-g conversion-ingredient)))))
+       
+       (loop while (> left-to-transfer 0)
+             for new-portion = (copy-object dough)
+             do (push new-portion (items portions))
+             if (> left-to-transfer (value (quantity portion-amount))) ;; not dealing with rest?
+             do (setf (amount new-portion) portion-amount
+                      (contents countertop) (cons new-portion (contents countertop))
+                      left-to-transfer (- left-to-transfer (value (quantity portion-amount))))
+             else do (setf (amount new-portion) (make-instance 'amount
+                                                               :quantity (make-instance 'quantity
+                                                                                        :value left-to-transfer)
+                                                               :unit unit)
+                           (contents countertop) (cons new-portion (contents countertop))
+                           left-to-transfer 0)
+             finally 
+             (setf (contents container-with-dough-instance) nil)
+             (setf (arrangement countertop) arrangement-pattern)) 
+
+       (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+       (bind (portions 1.0 portions portions-available-at)
+             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
              (destination 0.0 source-destination))))))
 
 (defprimitive preheat-oven ((preheated-oven oven)
@@ -1610,8 +1669,18 @@
   (let ((conversion-table (make-hash-table)))
     (setf (gethash 'almond-extract conversion-table)
 	  (acons 'teaspoon 4 '()))
+    (setf (gethash 'all-purpose-flour conversion-table)
+          (acons 'teaspoon 3 '()))
     (setf (gethash 'banana conversion-table)
 	  (acons 'piece 118 '()))
+    (setf (gethash 'butter conversion-table)
+          (acons 'teaspoon 5 '()))
+    (setf (gethash 'caster-sugar conversion-table)
+	  (acons 'teaspoon 5 '()))
+    (setf (gethash 'cocoa-powder conversion-table)
+          (acons 'tablespoon 13 (acons 'teaspoon 3 '())))
+    (setf (gethash 'corn-flakes conversion-table)
+          (acons 'teaspoon 2 '()))
     (setf (gethash 'cucumber conversion-table)
           (acons 'piece 250 '()))
     (setf (gethash 'egg conversion-table)
@@ -1627,17 +1696,39 @@
     (setf (gethash 'shallot conversion-table)
           (acons 'piece 50 '()))
     (setf (gethash 'vanilla-extract conversion-table)
-	  (acons 'l 879.16 (acons 'teaspoon 4 '())))
+	  (acons 'l 880 (acons 'teaspoon 4 '())))
     (setf (gethash 'water conversion-table)
-	  (acons 'l 1000 '()))
+	  (acons 'l 1000 (acons 'tablespoon 15 '())))
     (setf (gethash 'whole-egg conversion-table)
 	  (acons 'piece 50 '())) 
     (setf (gethash 'vegetable-oil conversion-table)
-    (acons 'l 944 '()))
+          (acons 'l 944 '()))
     conversion-table))
 
 ;; define conversion table as a global parameter
 (defparameter *conversion-table-for-g* (create-conversion-table-for-g))
+
+;; create a copy of the mixture with g as its unit
+(defmethod convert-to-g ((mixture mixture) &key &allow-other-keys)
+  (let ((converted-mixture (copy-object mixture)))
+    (when (not (eq (type-of (unit (amount converted-mixture))) 'g))
+      (let* ((copied-mixture (copy-object mixture))
+             (source-unit-type (type-of (unit (amount copied-mixture))))
+             (mixture-value (value (quantity (amount copied-mixture))))
+             (total-g 0))
+        (loop for comp in (components copied-mixture)
+              do (setf (amount comp) (make-instance 'amount
+                                                    :unit (make-instance source-unit-type)
+                                                    :quantity (make-instance 'quantity
+                                                                             :value (* (value (quantity (amount comp)))
+                                                                                       mixture-value))))
+                 (setf total-g (+ total-g (value (quantity (amount (convert-to-g comp)))))))
+        
+        (setf (amount converted-mixture)
+              (make-instance 'amount
+                             :unit (make-instance 'g)
+                             :quantity (make-instance 'quantity :value total-g)))))
+    converted-mixture))
 
 ;; create a copy of the ingredient with g as its unit
 (defmethod convert-to-g ((ingredient ingredient) &key &allow-other-keys)
