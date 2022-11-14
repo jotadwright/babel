@@ -123,22 +123,41 @@
 ; (compute-smatch-score '((boy ?x) (paul ?x)) '((boy ?x) (paul ?x)))
 ; (compute-smatch-score '((paul ?x) (boy ?x) ) '((boy ?x) (paul ?x)))
 
+(defun write-to-file (meaning-network filepath)
+  "Write away the given output to a file with the specified filepath."
+  ; create all directories in the specified path if they do not exist yet
+  (ensure-directories-exist filepath)
+  
+  ; write the output to the file at the specified path
+  (let ((output-stream (open filepath
+                             :if-does-not-exist :create
+                             :direction :output
+                             :if-exists :overwrite)))
+    (dolist (prim-op meaning-network)
+      (format output-stream "~(~a~)~%" prim-op))
+    (close output-stream)))
+
 (defun compute-smatch-score (L1 L2)
   "Calls the python smatch program which calculates the smatch score of a parsed meaning network and a gold standard meaning."
-  (assert (progn (listp L1) (listp L2)))
-  (setf L1 (sort L1 #'string-lessp :key #'first))
-  (setf L2 (sort L2 #'string-lessp :key #'first))
-  (setf L1 (format nil "~{~a ~}" L1))
-  (setf L2 (format nil "~{~a ~}" L2))
-  (let* ((program (babel-pathname :directory '("libraries" "smatch")
-                                  :name "smatch" :type "py"))
-         (program-as-string (namestring program)) ;; CCL requires program arguments to all be simple strings
-         (stream (pipe-input "python" :args (list program-as-string "-m"
-                                                  (format nil "~s" L1) (format nil "~s" L2))))
-         (output (read-from-string
-                  (second (split-sequence:split-sequence ":"  (read-line stream) :test #'string=)))))
-   (close stream)
-   output))
+  (let* ((temp-file-path (babel-pathname :directory '(".tmp") :name "temp-mn" :type "lisp"))
+         (temp-path-as-string (namestring temp-file-path)))
+    (when (listp L1)
+      (setf L1 (sort L1 #'string-lessp :key #'first))
+      (write-to-file L1 temp-path-as-string))
+    (when (listp L2)
+      (setf L2 (sort L2 #'string-lessp :key #'first))
+      (setf L2 (format nil "~{~a ~}" L2)))
+    
+    (let* ((program (babel-pathname :directory '("libraries" "smatch")
+                                    :name "smatch" :type "py"))
+           (program-as-string (namestring program)) ;; CCL requires program arguments to all be simple strings
+
+           (stream (pipe-input "python" :args (list program-as-string "-m" temp-path-as-string (format nil "~s" L2))))
+           (output (read-from-string
+                    (second (split-sequence:split-sequence ":"  (read-line stream) :test #'string=)))))
+      (close stream)
+      (delete-file temp-file-path)
+      output)))
 
 ;; Subgoal Evaluation (Goal Condition Testing) ;;
 
