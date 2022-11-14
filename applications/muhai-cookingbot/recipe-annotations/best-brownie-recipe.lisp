@@ -8,6 +8,11 @@
 ;; We need to activate it:
 (activate-monitor trace-irl)
 
+;; ##################################################################
+;; Best brownie recipe
+;; https://www.allrecipes.com/recipe/25010/absolutely-best-brownies/
+;; ##################################################################
+
 ;; Defining the initial kitchen state
 (defparameter *initial-kitchen-state* 
   (make-instance 
@@ -98,13 +103,6 @@
 ;; and 'add-element' transfers that to the web interface
 (add-element (make-html *initial-kitchen-state* :expand-initially t))
 
-
-
-
-;; ##################################################################
-;; Best brownie recipe
-;; https://www.allrecipes.com/recipe/25010/absolutely-best-brownies/
-;; ##################################################################
 
 (defparameter *brownie-recipe* 
   '((get-kitchen ?kitchen-state)
