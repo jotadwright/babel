@@ -815,7 +815,27 @@
    ;; it doesn't generalise if this doesn't match! the item-based cxn should cover both the observation and the cxn.
    (equivalent-networks-and-args? overlapping-meaning-observation overlapping-meaning-cxn obs-args cxn-args)))
 
-
+(defun check-addition-conditions (non-overlapping-meaning-observation
+                                      non-overlapping-meaning-cxn
+                                      non-overlapping-form-observation
+                                      non-overlapping-form-cxn
+                                      overlapping-form-cxn
+                                      overlapping-meaning-observation
+                                      overlapping-meaning-cxn
+                                      overlapping-form-observation
+                                      obs-args
+                                      cxn-args
+                                      meaning-representation-formalism)
+  (and
+   (> (length overlapping-meaning-observation) 0)
+   (> (length non-overlapping-meaning-observation) 0)
+   (not non-overlapping-meaning-cxn)
+   (> (length non-overlapping-form-observation) 0)
+   (not non-overlapping-form-cxn)
+   (extract-form-predicate-by-type overlapping-form-observation 'string)
+   (connected-semantic-network non-overlapping-meaning-observation)
+   (check-meets-continuity non-overlapping-form-observation)
+   (equivalent-networks-and-args? overlapping-meaning-observation overlapping-meaning-cxn obs-args cxn-args)))
 
 (defun find-subset-holistic-cxn (cxn-inventory utterance-form-constraints meaning meaning-representation-formalism)
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
