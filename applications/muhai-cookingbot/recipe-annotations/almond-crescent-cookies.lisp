@@ -90,10 +90,10 @@
   '((get-kitchen ?kitchen-state-1785)
     
     ;; "1 cup butter, room temperature"
-    (fetch-and-proportion ?ingredient-out-891 ?kitchen-state-out-5343 ?kitchen-state-1785 ?target-container-891 butter 226 g)
+    (fetch-and-proportion ?ingredient-out-891 ?kitchen-state-out-5343 ?kitchen-state-1785 ?target-container-891 butter 230 g)
     (bring-to-temperature ?ingredient-at-room-temperature-892 ?output-kitchen-state-6240 ?kitchen-state-out-5343 ?ingredient-out-891 18 degrees-celsius)
      ;; "2/3 cup sugar"
-    (fetch-and-proportion ?ingredient-out-898 ?kitchen-state-out-5385 ?output-kitchen-state-6240 ?target-container-898 white-sugar 116 g)
+    (fetch-and-proportion ?ingredient-out-898 ?kitchen-state-out-5385 ?output-kitchen-state-6240 ?target-container-898 white-sugar 120 g)
     ;; "1 teaspoon vanilla extract"
     (fetch-and-proportion ?ingredient-out-907 ?kitchen-state-out-5442 ?kitchen-state-out-5385 ?target-container-907 vanilla-extract 4 g)
     ;; "1 teaspoon almond extract"
@@ -101,9 +101,9 @@
     ;; "2 1/2 cups flour"
     (fetch-and-proportion ?ingredient-out-920 ?kitchen-state-out-5518 ?kitchen-state-out-5483 ?target-container-920 all-purpose-flour 340 g)
     ;; "1 cup almond flour"
-    (fetch-and-proportion ?ingredient-out-926 ?kitchen-state-out-5554 ?kitchen-state-out-5518 ?target-container-926 almond-flour 112 g)
+    (fetch-and-proportion ?ingredient-out-926 ?kitchen-state-out-5554 ?kitchen-state-out-5518 ?target-container-926 almond-flour 120 g)
     ;; "1/4 cup powdered sugar"
-    (fetch-and-proportion ?ingredient-out-932 ?kitchen-state-out-5590 ?kitchen-state-out-5554 ?target-container-932 powdered-white-sugar 29 g)
+    (fetch-and-proportion ?ingredient-out-932 ?kitchen-state-out-5590 ?kitchen-state-out-5554 ?target-container-932 powdered-white-sugar 30 g)
 
     
     ;; "Beat the butter and the sugar together until light and fluffy"
@@ -134,7 +134,7 @@
     (line ?lined-baking-tray-2005 ?kitchen-state-out-6014 ?kitchen-state-with-baking-paper ?baking-tray ?baking-paper)
     (transfer-items ?things-placed-1004 ?kitchen-out-1004 ?kitchen-state-out-6014 ?shaped-bakeables-1999 ?lined-baking-tray-2005)
 
-    ;; "Bake at 175 °C for 15 - 20 minutes"
+    ;; "Bake at 175 ï¿½C for 15 - 20 minutes"
     (bake ?thing-baked-1016 ?kitchen-state-out-6096 ?kitchen-out-1004 ?things-placed-1004 ?oven 15 minute 175 degrees-celsius)
 
     ;; "Dust with powdered sugar"

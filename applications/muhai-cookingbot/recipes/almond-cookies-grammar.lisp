@@ -1376,13 +1376,13 @@
 (defparameter *output*
   (multiple-value-bind (final-set-of-bindings meaning-network)
       (process-utterances '(;;;; Ingredients
-                            "226 grams butter , room temperature"
-                            "116 grams sugar"
+                            "230 grams butter , room temperature"
+                            "120 grams sugar"
                             "4 grams vanilla extract"
                             "4 grams almond extract"
                             "340 grams flour"
-                            "112 grams almond flour"
-                            "29 grams powdered sugar"
+                            "120 grams almond flour"
+                            "30 grams powdered sugar"
 
                             ;;;; Instructions
                             "beat the butter and the sugar together until light and fluffy"
