@@ -2,12 +2,6 @@
 
 (in-package :muhai-cookingbot)
 
-;; The 'trace-irl' monitor will make sure that
-;; the IRL evaluation process is shown on the web
-;; interface (which can be found at localhost:8000).
-;; We need to activate it:
-(activate-monitor trace-irl)
-
 ;; ##################################################################
 ;; Almond Crescent Cookies recipe
 ;; https://www.simplyrecipes.com/recipes/almond_crescent_cookies/
@@ -150,7 +144,10 @@
 ;; Evaluate the recipe
 ;; ======================
 
-;(activate-monitor trace-fcg)
+;; The 'trace-irl' monitor will make sure that
+;; the IRL evaluation process is shown on the web
+;; interface (which can be found at localhost:8000).
+;; We need to activate it:
 ;(activate-monitor trace-irl)
 
 ;(clear-output)
