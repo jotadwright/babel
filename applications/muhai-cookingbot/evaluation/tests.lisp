@@ -10,7 +10,7 @@
   "The same network as the simulation environment's solution."
   (let* ((solutions (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-perfect.lisp"))
          (perfection (loop for solution in solutions
-                             always (and (= (smatch-score) 1)
+                             always (and (= (smatch-score solution) 1)
                                          (= (subgoals-ratio solution) 1)
                                          (= (dish-score solution) 1)))))
     (if perfection
@@ -64,9 +64,12 @@
          (solution-imperfect (second solutions)))
     (if (and (= (subgoals-ratio solution-perfect) 1)
              (= (dish-score solution-perfect) 1)
-             (= (subgoals-ratio solution-imperfect) (/ 23 24))
+             (= (smatch-score solution-perfect) 1)
+             (= (execution-time solution-perfect) (execution-time *afghan-biscuits-environment*))
+             (= (subgoals-ratio solution-imperfect) (/ 25 26))
+             (< (smatch-score solution-imperfect) 1)
              (< (dish-score solution-imperfect) 1)
-             (< (smatch-score solution) 1))
+             (<= (execution-time solution-imperfect) (execution-time *almond-crescent-cookies-environment*)))
       (print "test-multiple-recipes: SUCCESS")
       (error "test-multiple-recipes: FAILURE"))))
 
@@ -85,6 +88,7 @@
   (test-permuted-perfect)
   (test-imperfect)
   (test-extra-operations)
+  (test-multiple-recipes)
   (test-empty)
   (test-list-of-kitchen-entities))
 

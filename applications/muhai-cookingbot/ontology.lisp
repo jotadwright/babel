@@ -1072,9 +1072,9 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A pattern for cutting objects into peasized cubes "))
 
-(defclass two-inch-apart (arrangement-pattern)
+(defclass 5-cm-apart (arrangement-pattern)
   ()
-  (:documentation "A pattern in which objects are arranged with a distance of 2 inch."))
+  (:documentation "A pattern in which objects are arranged with a distance of 5 cm."))
 
 (defclass cover-pattern (pattern)
   () 
