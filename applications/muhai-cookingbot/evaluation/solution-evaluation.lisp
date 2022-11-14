@@ -137,27 +137,53 @@
       (format output-stream "~(~a~)~%" prim-op))
     (close output-stream)))
 
-(defun compute-smatch-score (L1 L2)
-  "Calls the python smatch program which calculates the smatch score of a parsed meaning network and a gold standard meaning."
-  (let* ((temp-file-path (babel-pathname :directory '(".tmp") :name "temp-mn" :type "lisp"))
-         (temp-path-as-string (namestring temp-file-path)))
-    (when (listp L1)
-      (setf L1 (sort L1 #'string-lessp :key #'first))
-      (write-to-file L1 temp-path-as-string))
-    (when (listp L2)
-      (setf L2 (sort L2 #'string-lessp :key #'first))
-      (setf L2 (format nil "~{~a ~}" L2)))
-    
-    (let* ((program (babel-pathname :directory '("libraries" "smatch")
-                                    :name "smatch" :type "py"))
-           (program-as-string (namestring program)) ;; CCL requires program arguments to all be simple strings
+(defun compute-smatch-score (mn1 mn2 &optional use-temp-files)
+  "Calls the python smatch program which calculates the smatch score of a parsed meaning network and a gold standard meaning.
+   Temporary files will be used to store the meaning networks in case they are too big to give via command line."
+  (assert (progn (listp mn1) (listp mn2)))
+  (if (not use-temp-files)
+    (progn
+      (let ((L1 (copy-list mn1))
+            (L2 (copy-list mn2)))
+        (setf L1 (sort L1 #'string-lessp :key #'first))
+        (setf L2 (sort L2 #'string-lessp :key #'first))
+        (setf L1 (format nil "~{~a ~}" L1))
+        (setf L2 (format nil "~{~a ~}" L2))
 
-           (stream (pipe-input "python" :args (list program-as-string "-m" temp-path-as-string (format nil "~s" L2))))
-           (output (read-from-string
-                    (second (split-sequence:split-sequence ":"  (read-line stream) :test #'string=)))))
-      (close stream)
-      (delete-file temp-file-path)
-      output)))
+        (let* ((program (babel-pathname :directory '("libraries" "smatch")
+                                        :name "smatch" :type "py"))
+               (program-as-string (namestring program)) ;; CCL requires program arguments to all be simple strings
+               (stream (pipe-input "python" :args (list program-as-string "-m"
+                                                        (format nil "~s" L1) (format nil "~s" L2))))
+               (python-output (read-line stream))
+               (output (if (search "F-score:" python-output)
+                         (read-from-string (second (split-sequence:split-sequence ":" python-output :test #'string=)))
+                         nil)))
+          (close stream)
+          (if output
+            output
+            (compute-smatch-score mn1 mn2 T))))
+    (progn
+      (let* ((sol-temp-file-path (babel-pathname :directory '(".tmp") :name "temp-sol-mn" :type "lisp"))
+             (sol-temp-path-as-string (namestring sol-temp-file-path))
+             (gold-temp-file-path (babel-pathname :directory '(".tmp") :name "temp-gold-mn" :type "lisp"))
+             (gold-temp-path-as-string (namestring gold-temp-file-path)))
+        
+        (setf mn1 (sort mn1 #'string-lessp :key #'first))
+        (setf mn2 (sort mn2 #'string-lessp :key #'first))
+        (write-to-file mn1 sol-temp-path-as-string)
+        (write-to-file mn2 gold-temp-path-as-string)
+
+        (let* ((program (babel-pathname :directory '("libraries" "smatch")
+                                        :name "smatch" :type "py"))
+               (program-as-string (namestring program)) ;; CCL requires program arguments to all be simple strings
+               (stream (pipe-input "python" :args (list program-as-string "-m" sol-temp-path-as-string gold-temp-path-as-string)))
+               (output (read-from-string
+                        (second (split-sequence:split-sequence ":"  (read-line stream) :test #'string=)))))
+          (close stream)
+          (delete-file sol-temp-file-path)
+          (delete-file gold-temp-file-path)
+          output))))))
 
 ;; Subgoal Evaluation (Goal Condition Testing) ;;
 
