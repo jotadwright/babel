@@ -83,49 +83,52 @@
                                    (make-instance 'pan)
                                    (make-instance 'baking-paper))))))
 
+;; 'make-html' makes an HTML representation of the kitchen state
+;; and 'add-element' transfers that to the web interface
+;(add-element (make-html *initial-kitchen-state* :expand-initially t))
+
+
 (defparameter *chocolate-fudge-cookies-recipe* 
   '((get-kitchen ?kitchen-state)
 
-    ;; Ingredients
-    ;; "1 (18.25 ounce) (517 g) package devil's food cake mix"
-    (fetch-and-proportion ?proportioned-devils-food-cake-mix ?kitchen-state-with-devils-food-cake-mix ?kitchen-state ?target-container-1 devils-food-cake-mix 517 g)
+    ;; "500 grams package devil's food cake mix"
+    (fetch-and-proportion ?proportioned-devils-food-cake-mix ?kitchen-state-with-devils-food-cake-mix ?kitchen-state ?target-container-1 devils-food-cake-mix 500 g)
 
     ;; "2 eggs"
     (fetch-and-proportion ?proportioned-eggs ?kitchen-state-with-eggs ?kitchen-state-with-devils-food-cake-mix ?target-container-2 egg 2 piece)
 
-    ;; "1/2 cup (112 g) vegetable oil"
-    (fetch-and-proportion ?proportioned-vegetable-oil ?kitchen-state-with-vegetable-oil ?kitchen-state-with-eggs ?target-container-3 vegetable-oil 112 g)
+    ;; "125 ml vegetable oil"
+    (fetch-and-proportion ?proportioned-vegetable-oil ?kitchen-state-with-vegetable-oil ?kitchen-state-with-eggs ?target-container-3 vegetable-oil 125 ml)
 
-    ;; "1 cup (160 g) semi-sweet chocolate chips"
+    ;; "160 grams semi-sweet chocolate chips"
     (fetch-and-proportion ?proportioned-semisweet-chocolate-chips ?kitchen-state-with-semisweet-chocolate-chips ?kitchen-state-with-vegetable-oil ?target-container-4 semisweet-chocolate-chips 160 g)
    
-    ;; Steps
-    ;; "Preheat oven to 350 degrees F (175 degrees C)"
+    ;; "Preheat oven to 175 degrees C."
     (preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-semisweet-chocolate-chips 175 degrees-celsius)
     
-    ;; "Grease cookie sheet"
+    ;; "Grease cookie sheet."
     (fetch ?cookie-sheet ?kitchen-state-with-cookie-sheet ?kitchen-state-with-preheated-oven cookie-sheet 1) ;; IMPLICIT
     (grease ?greased-sheet ?kitchen-state-with-greased-sheet ?kitchen-state-with-cookie-sheet ?cookie-sheet ?grease)
 
-    ;; "In a medium bowl, stir together the cake mix, eggs and oil until well blended"    
+    ;; "In a medium bowl, stir together the cake mix, eggs and oil until well blended."    
     (fetch ?medium-bowl-1 ?kitchen-state-with-medium-bowl ?kitchen-state-with-greased-sheet medium-bowl 1) ;; IMPLICIT
     (transfer-contents ?output-container-x ?rest-x ?output-kitchen-state-x ?kitchen-state-with-medium-bowl ?medium-bowl-1 ?proportioned-devils-food-cake-mix ?quantity-x ?unit-x)
     (crack ?output-container-y ?output-kitchen-state-y ?output-kitchen-state-x ?proportioned-eggs ?medium-bowl-1) ;; IMPLICIT
     (transfer-contents ?output-container-z ?rest-z ?output-kitchen-state-z ?output-kitchen-state-y ?output-container-y ?proportioned-vegetable-oil ?quantity-z ?unit-z)
     (mix ?stirred-mixture-bowl ?kitchen-state-with-stirred-mixture ?output-kitchen-state-z ?output-container-z ?mixing-tool)
 
-    ;; "Fold in the chocolate chips"
+    ;; "Fold in the chocolate chips."
     (transfer-contents ?output-container-with-chips ?rest-chips ?kitchen-state-with-folded-chips ?kitchen-state-with-stirred-mixture ?stirred-mixture-bowl ?proportioned-semisweet-chocolate-chips ?quantity-chips ?unit-chips)
     (mix ?chips-mixture-bowl ?kitchen-state-with-chips-mixture ?output-kitchen-state-z ?output-container-with-chips ?mixing-tool) ;; use the same whisk
 
     ;; "Roll the dough into walnut sized balls."
-    (portion-and-arrange ?portioned-dough ?kitchen-state-with-portions ?kitchen-state-with-chips-mixture ?chips-mixture-bowl 20 g ?pattern ?countertop)
+    (portion-and-arrange ?portioned-dough ?kitchen-state-with-portions ?kitchen-state-with-chips-mixture ?chips-mixture-bowl 20 g 5-cm-apart ?countertop)
     (shape ?shaped-bakeables ?ks-with-dough-balls ?kitchen-state-with-portions ?portioned-dough ball-shape)
 
-    ;; "Place the cookies 2 inches apart on the cookie sheet."
+    ;; "Place the cookies 5 cm apart on the cookie sheet."
     (transfer-items ?cookies-on-sheet ?ks-with-dough-on-sheet ?ks-with-dough-balls ?shaped-bakeables ?greased-sheet)
 
-    ;; "Bake for 8 to 10 minutes in the preheated oven"
+    ;; "Bake for 8 to 10 minutes in the preheated oven."
     (bake ?baked-cookies-on-sheet ?kitchen-state-with-cookies ?ks-with-dough-on-sheet ?cookies-on-sheet ?preheated-oven 8 minute ?bake-quantity ?bake-unit)
 
     ;; "Allow cookies to cool on baking sheet for 5 minutes before removing to a wire rack to cool completely."
@@ -147,12 +150,11 @@
 ;; Evaluate the recipe
 ;; ======================
 
-(activate-monitor trace-fcg)
-(activate-monitor trace-irl)
+;(activate-monitor trace-irl)
 
-(clear-output)
+;(clear-output)
 
-(evaluate-irl-program *extended-recipe* nil)
+;(evaluate-irl-program *extended-recipe* nil)
 
 
 ;; ======================
