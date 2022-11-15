@@ -1693,6 +1693,8 @@
           (acons 'piece 100 '()))
     (setf (gethash 'red-onion conversion-table)
           (acons 'piece 50 '()))
+    (setf (gethash 'salt conversion-table)
+          (acons 'teaspoon 50 '()))
     (setf (gethash 'shallot conversion-table)
           (acons 'piece 50 '()))
     (setf (gethash 'vanilla-extract conversion-table)
@@ -1755,40 +1757,6 @@
 #|
 
 ;; CONVERSION TABLE
-;; create a conversion table for converting to g
-;; the table will be hash-table with association lists as entries, e.g. for the value 'egg (('piece . 50)) could be found
-(defun create-conversion-table-for-g ()
-  (let ((conversion-table (make-hash-table)))
-    (setf (gethash 'banana conversion-table)
-	  (acons 'piece 118 '()))
-    (setf (gethash 'cucumber conversion-table)
-          (acons 'piece 250 '()))
-    (setf (gethash 'egg conversion-table)
-          (acons 'piece 50 '()))
-    (setf (gethash 'jalapeno conversion-table)
-          (acons 'piece 20 '()))
-    (setf (gethash 'milk conversion-table)
-	  (acons 'l 1032 '()))
-    (setf (gethash 'onion conversion-table)
-          (acons 'piece 100 '()))
-    (setf (gethash 'red-onion conversion-table)
-          (acons 'piece 50 '()))
-    (setf (gethash 'shallot conversion-table)
-          (acons 'piece 50 '()))
-    (setf (gethash 'vanilla-extract conversion-table)
-	  (acons 'l 879.16 '()))
-    (setf (gethash 'water conversion-table)
-	  (acons 'l 1000 '()))
-    (setf (gethash 'whole-egg conversion-table)
-	  (acons 'piece 50 '())) 
-    (setf (gethash 'vegetable-oil conversion-table)
-    (acons 'l 944 '()))
-    conversion-table))
-
-;; define conversion table as a global parameter
-(defparameter *conversion-table-for-g* (create-conversion-table-for-g))
-
-
 (defprimitive to-get-oven ((available-oven oven) (kitchen kitchen-state))
   ((kitchen => available-oven)
    (bind (available-oven 1.0 (oven kitchen)))))

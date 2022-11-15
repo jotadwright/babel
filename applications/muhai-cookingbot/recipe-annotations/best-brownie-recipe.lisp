@@ -6,7 +6,7 @@
 ;; the IRL evaluation process is shown on the web
 ;; interface (which can be found at localhost:8000).
 ;; We need to activate it:
-(activate-monitor trace-irl)
+;(activate-monitor trace-irl)
 
 ;; ##################################################################
 ;; Best brownie recipe
@@ -101,41 +101,41 @@
 
 ;; 'make-html' makes an HTML representation of the kitchen state
 ;; and 'add-element' transfers that to the web interface
-(add-element (make-html *initial-kitchen-state* :expand-initially t))
+;(add-element (make-html *initial-kitchen-state* :expand-initially t))
 
 
 (defparameter *brownie-recipe* 
   '((get-kitchen ?kitchen-state)
     
-    ;; "1/2 cup butter, melted"
-    (fetch-and-proportion ?proportioned-butter ?kitchen-state-with-butter ?kitchen-state ?new-container-1 butter 113 g)
+    ;; "120 grams butter, melted"
+    (fetch-and-proportion ?proportioned-butter ?kitchen-state-with-butter ?kitchen-state ?new-container-1 butter 120 g)
     (melt ?melted-butter ?kitchen-state-with-melted-butter ?kitchen-state-with-butter ?proportioned-butter)
     
-    ;; "1 cup white sugar"
-    (fetch-and-proportion ?proportioned-sugar ?kitchen-state-with-sugar ?kitchen-state-with-melted-butter ?new-container-2 white-sugar 201 g)
+    ;; "200 grams white sugar"
+    (fetch-and-proportion ?proportioned-sugar ?kitchen-state-with-sugar ?kitchen-state-with-melted-butter ?new-container-2 white-sugar 200 g)
                           
     ;; "2 eggs"
     (fetch-and-proportion ?proportioned-eggs ?kitchen-state-with-eggs ?kitchen-state-with-sugar ?new-container-3 egg 2 piece)
     
-    ;; "1/2 cup all-purpose flour"
-   (fetch-and-proportion ?proportioned-flour ?kitchen-state-with-flour ?kitchen-state-with-eggs ?new-container-4 all-purpose-flour 68 g)
+    ;; "70 grams all-purpose flour"
+   (fetch-and-proportion ?proportioned-flour ?kitchen-state-with-flour ?kitchen-state-with-eggs ?new-container-4 all-purpose-flour 70 g)
     
-    ;; "1/3 cup unsweetened cocoa powder"
+    ;; "45 grams unsweetened cocoa powder"
     (fetch-and-proportion ?proportioned-cocoa ?kitchen-state-with-cocoa ?kitchen-state-with-flour ?new-container-5 cocoa-powder 45 g)
 
     ;; "1/4 teaspoon salt"
-    (fetch-and-proportion ?proportioned-salt ?kitchen-state-with-salt ?kitchen-state-with-cocoa ?new-container-6 salt 1.5 g)
+    (fetch-and-proportion ?proportioned-salt ?kitchen-state-with-salt ?kitchen-state-with-cocoa ?new-container-6 salt 0.25 teaspoon)
 
     ;; "1 teaspoon vanilla extract"
-    (fetch-and-proportion ?proportioned-vanilla ?kitchen-state-with-vanilla ?kitchen-state-with-salt ?new-container-7 vanilla-extract 4 g)
+    (fetch-and-proportion ?proportioned-vanilla ?kitchen-state-with-vanilla ?kitchen-state-with-salt ?new-container-7 vanilla-extract 1 teaspoon)
                           
-    ;;"1/2 cup chopped walnuts (optional)"
+    ;;"50 grams chopped walnuts"
     (fetch-and-proportion ?proportioned-walnuts ?kitchen-state-with-walnuts ?kitchen-state-with-vanilla ?new-container-8 chopped-walnut 50 g)
             
-    ;; "Preheat oven to 350 degrees F (175 degrees C)."
+    ;; "Preheat oven to 175 degrees C."
     (preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-walnuts 175 degrees-celsius)
                           
-    ;; "Grease and flour an 8x8 or 9x9 inch baking pan"
+    ;; "Grease and flour a baking pan."
     (fetch ?pan ?kitchen-state-with-pan ?kitchen-state-with-preheated-oven pan 1) ;; IMPLICIT
     (grease ?greased-pan ?kitchen-state-with-greased-pan ?kitchen-state-with-pan ?pan ?grease)
     (flour ?floured-pan ?kitchen-state-with-floured-pan ?kitchen-state-with-greased-pan ?greased-pan ?all-purpose-flour)
@@ -156,7 +156,7 @@
     (transfer-contents ?output-container-b ?rest-b ?output-kitchen-state-b ?output-kitchen-state-a ?output-container-a ?proportioned-salt ?quantity-b ?unit-b)
     (mix ?flour-sugar-mixture-bowl ?kitchen-state-with-flour-sugar-mixture ?output-kitchen-state-b ?output-container-b ?beating-tool)
     
-    ;; "Mix in the vanilla and stir in the walnuts if desired." ;;difference between mix and stir!
+    ;; "Mix in the vanilla and stir in the walnuts." ;;difference between mix and stir!
     (transfer-contents ?output-container-c ?rest-c ?output-kitchen-state-c ?kitchen-state-with-flour-sugar-mixture ?flour-sugar-mixture-bowl ?proportioned-vanilla ?quantity-c ?unit-c)
     (transfer-contents ?output-container-d ?rest-d ?output-kitchen-state-d ?output-kitchen-state-c ?output-container-c ?proportioned-walnuts ?quantity-d ?unit-d)
     (mix ?dough ?kitchen-state-with-dough ?output-kitchen-state-d ?output-container-d ?beating-tool)
@@ -164,14 +164,12 @@
     ;;  "Spread evenly into the prepared pan."
     (spread ?pan-with-dough ?kitchen-state-with-dough-in-pan ?kitchen-state-with-dough ?floured-pan ?dough ?scraper)
 
-    ;;  "Bake for 25 to 30 minues in the preheated oven, or until edges are firm."
+    ;;  "Bake for 25 to 30 minutes in the preheated oven."
     (bake ?baked-brownie ?kitchen-state-with-baked-brownie ?kitchen-state-with-dough-in-pan ?pan-with-dough ?preheated-oven 25 minute ?temp-quantity ?temp-unit)
                           
-    ;;  "Cool before cutting into squares"
+    ;;  "Cool before cutting into squares."
     (bring-to-temperature ?cooled-brownie ?kitchen-state-with-cooled-brownie ?kitchen-state-with-baked-brownie ?baked-brownie 18 degrees-celsius)
     (cut ?cut-brownie ?kitchen-state-with-cut-brownie ?kitchen-state-with-cooled-brownie ?cooled-brownie squares ?knife)))
-
-
 
 ;; ======================
 ;; Append bindings to the recipe
@@ -185,6 +183,9 @@
 ;; ======================
 
 ;(activate-monitor trace-irl)
+
+;(clear-output)
+
 ;(evaluate-irl-program *extended-recipe* nil)
 
 ;; ======================
