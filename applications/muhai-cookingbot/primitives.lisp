@@ -352,27 +352,14 @@
 
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
           (thing-available-at (+ 30 (kitchen-time kitchen-state-in)))
-          (kitchen-state-available-at thing-available-at))
-     
-     ;; find object and place it on the countertop
-     (multiple-value-bind (target-concept-instance-old-ks target-concept-original-location)
-         (find-unused-kitchen-entity (type-of concept-to-fetch) kitchen-state-in)
+          (kitchen-state-available-at thing-available-at)
+          ;; find object and place it on the countertop
+          (target-concept-instance-new-ks (retrieve-concept-instance-and-bring-to-countertop (type-of concept-to-fetch) new-kitchen-state)))
 
-       (unless target-concept-instance-old-ks
-         (error (format nil "No more ~a found in kitchen state!!!" concept-to-fetch)))
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
 
-       (let ((target-concept-instance-new-ks
-              (find-object-by-persistent-id target-concept-instance-old-ks
-                                            (funcall (type-of target-concept-original-location) new-kitchen-state))))
-         
-         (change-kitchen-entity-location target-concept-instance-new-ks
-                                         (funcall (type-of target-concept-original-location) new-kitchen-state)
-                                         (counter-top new-kitchen-state))
-
-         (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
-
-         (bind (thing-fetched 1.0 target-concept-instance-new-ks thing-available-at)
-               (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+     (bind (thing-fetched 1.0 target-concept-instance-new-ks thing-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
 
 
 (defprimitive fetch-and-proportion ((container-with-ingredient container)
@@ -1695,6 +1682,8 @@
 	  (acons 'teaspoon 4 '()))
     (setf (gethash 'all-purpose-flour conversion-table)
           (acons 'teaspoon 3 '()))
+    (setf (gethash 'baking-soda conversion-table)
+	  (acons 'teaspoon 5 '()))
     (setf (gethash 'banana conversion-table)
 	  (acons 'piece 118 '()))
     (setf (gethash 'butter conversion-table)
@@ -1709,10 +1698,14 @@
           (acons 'piece 250 '()))
     (setf (gethash 'egg conversion-table)
           (acons 'piece 50 '()))
+    (setf (gethash 'ground-cinnamon conversion-table)
+	  (acons 'teaspoon 2.7 '()))
+    (setf (gethash 'ground-nutmeg conversion-table)
+	  (acons 'teaspoon 2.2 '()))
     (setf (gethash 'jalapeno conversion-table)
           (acons 'piece 20 '()))
     (setf (gethash 'milk conversion-table)
-	  (acons 'l 1032 '()))
+	  (acons 'l 1032 '()))   
     (setf (gethash 'onion conversion-table)
           (acons 'piece 100 '()))
     (setf (gethash 'red-onion conversion-table)
