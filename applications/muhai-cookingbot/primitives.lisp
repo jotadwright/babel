@@ -1201,45 +1201,27 @@
           (kitchen-state-available-at container-available-at))
 
      ;; 1) find target container and place it on the countertop
-     (multiple-value-bind (target-container-in-kitchen-input-state target-container-original-location)
-         (find-unused-kitchen-entity 'large-bowl kitchen-state-in)
+     ;; 2) find sift and place it on the countertop
+     (let* ((new-target-container (retrieve-concept-instance-and-bring-to-countertop 'large-bowl new-kitchen-state))
+            (target-container-in-kitchen-input-state (find-object-by-persistent-id new-target-container kitchen-state-in))
+            (new-sift (retrieve-concept-instance-and-bring-to-countertop 'sift new-kitchen-state)))
 
-       (let ((new-target-container
-              (find-object-by-persistent-id target-container-in-kitchen-input-state
-                                            (funcall (type-of target-container-original-location) new-kitchen-state)))) 
+       ;; 3) transfer contents from source-container to empty target-container
+       (setf (contents new-target-container) (contents new-source-container))
+       (setf (used new-target-container) t)
+       (setf (used new-sift) t)
+
+       (loop for item in (contents new-target-container)
+             when (typep item 'siftable)
+               do (setf (sifted item) t))
        
-         (change-kitchen-entity-location new-target-container
-                                         (funcall (type-of target-container-original-location) new-kitchen-state)
-                                         (counter-top new-kitchen-state))
+       (setf (contents new-source-container) nil)
+       (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
 
-          ;; 2) find sift and place it on the countertop
-          (multiple-value-bind (sift-in-kitchen-input-state sift-original-location)
-              (find-unused-kitchen-entity 'sift kitchen-state-in)
-
-            (let ((new-sift (find-object-by-persistent-id sift-in-kitchen-input-state
-                                                          (funcall (type-of sift-original-location) new-kitchen-state))))
-       
-              (change-kitchen-entity-location new-sift
-                                              (funcall (type-of sift-original-location) new-kitchen-state)
-                                              (counter-top new-kitchen-state))
-
-              ;; 3) transfer contents from source-container to empty target-container
-              (setf (contents new-target-container) (contents new-source-container))
-              (setf (used new-target-container) t)
-              (setf (used new-sift) t)
-         
-              (loop for item in (contents new-target-container)
-                    when (typep item 'siftable)
-                      do (setf (sifted item) t))
-         
-              (setf (contents new-source-container) nil)
-
-              (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
-         
-              (bind (container-with-sifted-contents 1.0 new-target-container container-available-at )
-                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-                    (target-container 0.0 target-container-in-kitchen-input-state nil)
-                    (sifting-tool 1.0 new-sift kitchen-state-available-at))))))))
+       (bind (container-with-sifted-contents 1.0 new-target-container container-available-at)
+             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+             (target-container 0.0 target-container-in-kitchen-input-state nil)
+             (sifting-tool 1.0 new-sift kitchen-state-available-at)))))
 
   ;; Case 2: target container given, sift not given
   ((container-with-ingredients-to-be-sifted kitchen-state-in target-container
@@ -1257,34 +1239,23 @@
 
 
      ;; 1) find sift and place it on the countertop
-     (multiple-value-bind (sift-in-kitchen-input-state sift-original-location)
-         (find-unused-kitchen-entity 'sift kitchen-state-in)
+     (let ((new-sift (retrieve-concept-instance-and-bring-to-countertop 'sift new-kitchen-state)))
 
-       (let ((new-sift (find-object-by-persistent-id sift-in-kitchen-input-state
-                                                     (funcall (type-of sift-original-location) new-kitchen-state))))
-       
-         (change-kitchen-entity-location new-sift
-                                         (funcall (type-of sift-original-location) new-kitchen-state)
-                                         (counter-top new-kitchen-state))
+       ;; 2) transfer contents from source-container to empty target-container
+       (setf (contents new-target-container) (contents new-source-container))
+       (setf (used new-target-container) t)
+       (setf (used new-sift) t)
 
-         ;; 2) transfer contents from source-container to empty target-container
-         (setf (contents new-target-container) (contents new-source-container))
-         (setf (used new-target-container) t)
-         (setf (used new-sift) t)
-         
-         (loop for item in (contents new-target-container)
-               when (typep item 'siftable)
+       (loop for item in (contents new-target-container)
+             when (typep item 'siftable)
                do (setf (sifted item) t))
-         
-         (setf (contents new-source-container) nil)
 
-         (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
-         
-         (bind (container-with-sifted-contents 1.0 new-target-container container-available-at )
-               (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-               (sifting-tool 1.0 new-sift kitchen-state-available-at))))))
+       (setf (contents new-source-container) nil)
+       (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
 
-  
+       (bind (container-with-sifted-contents 1.0 new-target-container container-available-at)
+             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+             (sifting-tool 1.0 new-sift kitchen-state-available-at)))))
 
   ;; Case 3: target container is given, sift is given
   ((container-with-ingredients-to-be-sifted target-container kitchen-state-in sifting-tool
@@ -1747,7 +1718,7 @@
     (setf (gethash 'red-onion conversion-table)
           (acons 'piece 50 '()))
     (setf (gethash 'salt conversion-table)
-          (acons 'teaspoon 50 '()))
+          (acons 'teaspoon 6 '()))
     (setf (gethash 'shallot conversion-table)
           (acons 'piece 50 '()))
     (setf (gethash 'vanilla-extract conversion-table)
