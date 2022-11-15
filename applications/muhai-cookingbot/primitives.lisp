@@ -728,9 +728,7 @@
            when (typep ingredient 'meltable)
            do (setf (melted ingredient) t)) ;;also change the temperature
 
-
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
-
      
      (bind (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
            (container-with-melted-ingredients 1.0 new-container container-available-at)))))
@@ -1358,8 +1356,8 @@
                                                               :quantity (make-instance 'quantity
                                                                                        :value quantity-per-item)
                                                               :unit (make-instance spread-unit)))
-              ; TODO RD: shouldn't portioned-spread have spread set to t, not the item?                                                
-              (setf (spread item) t)
+                                               
+              (setf (spread portioned-spread) t)
               (setf (spread-with item) portioned-spread))
 
      (setf (contents new-spread-container) nil)
@@ -1368,8 +1366,6 @@
      
      (bind (container-with-objects-that-have-been-spread 1.0 new-container-with-things-spread container-available-at)
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
-
-
   
   ;;Case 2: spreading tool not given => fall back on default
   ((kitchen-state-in object-to-be-spread container-with-spread 
@@ -1406,17 +1402,19 @@
                                                                   :quantity (make-instance 'quantity
                                                                                            :value quantity-per-item)
                                                                   :unit (make-instance spread-unit)))
-                  ; TODO RD: should portioned-spread have spread set to t?  
+                  (setf (spread portioned-spread) t)
                   (setf (spread-with item) portioned-spread))
 
          (setf (contents new-spread-container) nil)
          (setf (used spreading-tool) t)
+         (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
        
          (bind (container-with-objects-that-have-been-spread 1.0 new-container-with-things-spread container-available-at)
                (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
                (can-spread-kitchen-tool 0.0 spreading-tool container-available-at)))
 
       ; TODO RD: we spread on the container itself, why is this unsupported in case 1? Should the spread ingredient still be set to spread?
+       ; TODO RD: bekijken wanneer het wordt tegengekomen in een recept, misschien sommige container can be spread upon maken?
        (progn
          (setf (contents new-container-with-things-spread) (contents container-with-spread))
 

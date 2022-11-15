@@ -859,8 +859,6 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying milk objects."
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated milk))))
 
-; TODO RD: keep track of things here or better to keep track of things in ingredient or even kitchen-entity?
-; -> actions en ingredients tracken
 (defclass mixture (ingredient beatable cuttable mashable meltable mixable can-be-sprinkled-with siftable
                               sprinkable bakeable shapeable dippable spreadable
                               can-be-sprinkled-on can-be-spread-upon  has-temperature shakeable)

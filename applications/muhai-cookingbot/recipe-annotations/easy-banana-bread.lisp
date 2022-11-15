@@ -1,7 +1,12 @@
-;(ql:quickload :muhai-cookingbot)
+(ql:quickload :muhai-cookingbot)
+
 (in-package :muhai-cookingbot)
 
-(activate-monitor trace-irl)
+;; The 'trace-irl' monitor will make sure that
+;; the IRL evaluation process is shown on the web
+;; interface (which can be found at localhost:8000).
+;; We need to activate it:
+;(activate-monitor trace-irl)
 
 ;; ##################################################################
 ;; Easy Banana Bread
@@ -90,25 +95,23 @@
                                    (make-instance 'spatula) (make-instance 'knife)
 
                                    ;; baking equipment
-                                   (make-instance 'baking-tray)
-                                   (make-instance 'pan)
-                                   (make-instance 'baking-paper))))))
+                                   (make-instance 'pan)))))) ; TODO RD: make sure there is only one choice available, i.e., a pan (for resolving implicit steps while preventing potential ambiguities)
 
-(add-element (make-html *initial-kitchen-state* :expand-initially t))
+;; 'make-html' makes an HTML representation of the kitchen state
+;; and 'add-element' transfers that to the web interface
+;(add-element (make-html *initial-kitchen-state* :expand-initially t))
+
 
 (defparameter *easy-banana-bread-recipe*
   '((get-kitchen ?kitchen-state)
 
-    ;; Ingredients
-
-    ;; 1/4 cup butter
+    ;; "60 grams butter"
     (fetch-and-proportion ?proportioned-butter ?kitchen-state-with-butter ?kitchen-state ?target-container-1 butter 60 g)
-    (melt ?melted-butter ?kitchen-state-with-melted-butter ?kitchen-state-with-butter ?proportioned-butter)
 
-    ;; 2 eggs
-    (fetch-and-proportion ?proportioned-eggs ?kitchen-state-with-eggs ?kitchen-state-with-melted-butter ?target-container-2 egg 2 piece)
+    ;; "2 eggs"
+    (fetch-and-proportion ?proportioned-eggs ?kitchen-state-with-eggs ?kitchen-state-with-butter ?target-container-2 egg 2 piece)
 
-    ;; 1 cup sugar
+    ;; 200 g sugar
     (fetch-and-proportion ?proportioned-sugar ?kitchen-state-with-sugar ?kitchen-state-with-eggs ?target-container-3 sugar 200 g) ;;white sugar?
 
     ;; 3 bananas, mashed
@@ -116,19 +119,18 @@
     (mash ?mashed-bananas ?kitchen-state-with-mashed-bananas ?kitchen-state-with-bananas ?proportioned-bananas ?fork)
 
     ;; 1 tsp. vanilla
-    (fetch-and-proportion ?proportioned-vanilla ?kitchen-state-with-vanilla ?kitchen-state-with-mashed-bananas ?target-container-5 vanilla-extract 4 g)
+    (fetch-and-proportion ?proportioned-vanilla ?kitchen-state-with-vanilla ?kitchen-state-with-mashed-bananas ?target-container-5 vanilla-extract 1 teaspoon)
 
-    ;; 1 1/2 cups self-rising flour
+    ;; 200 grams self-rising flour
     (fetch-and-proportion ?proportioned-self-rising-flour ?kitchen-state-with-self-rising-flour ?kitchen-state-with-vanilla ?target-container-6 self-rising-flour 200 g)
 
-    ;; Directions
-
-    ;; IMPLICIT: "Crack eggs."
-   ;; (crack ?cracked-eggs ?kitchen-state-with-cracked-eggs ?kitchen-state-with-self-rising-flour ?proportioned-eggs ?target-container-7)
-    
     ;; "Cream together butter, eggs and sugar until smooth."
-    (transfer-contents ?output-container-x ?rest-x ?output-kitchen-state-x ?kitchen-state-with-self-rising-flour ?target-container-8 ?melted-butter ?quantity-x ?unit-x)
-    (transfer-contents ?output-container-y ?rest-y ?output-kitchen-state-y ?output-kitchen-state-x ?output-container-x ?proportioned-eggs ?quantity-y ?unit-y)
+    (transfer-contents ?output-container-x ?rest-x ?output-kitchen-state-x ?kitchen-state-with-self-rising-flour ?target-container-7 ?proportioned-butter ?quantity-x ?unit-x)
+
+    ; TODO RD: Or should u crack eggs as a separate step and then do transfer-contents?
+    ;; IMPLICIT: "Crack eggs."
+    (crack ?output-container-y ?output-kitchen-state-y ?output-kitchen-state-x ?proportioned-eggs ?output-container-x)
+    
     (transfer-contents ?output-container-z ?rest-z ?output-kitchen-state-z ?output-kitchen-state-y ?output-container-y ?proportioned-sugar ?quantity-z ?unit-z)
     (beat ?creamed-mixture ?kitchen-state-with-creamed-mixture ?output-kitchen-state-z ?output-container-z ?beating-tool)
     
@@ -142,12 +144,14 @@
     (mix ?banana-bread-batter ?kitchen-state-with-banana-bread-batter ?output-kitchen-state-c ?output-container-c ?beating-tool) ;;reusing the same whisk
  
     ;; IMPLICIT: "Grease a pan."
+    (fetch ?pan ?kitchen-state-with-pan ?kitchen-state-with-banana-bread-batter pan 1) ;; IMPLICIT
+    (grease ?greased-pan ?kitchen-state-with-greased-pan ?kitchen-state-with-pan ?pan ?grease) ;; IMPLICIT
+
     ;; IMPLICIT: "Transfer batter into pan and spread evenly."
-
-    ;; "Bake at 325 degrees Fahrenheit for about 1 hour or until golden brown."
-    (bake ?baked-banana-bread ?kitchen-state-with-baked-banana-bread ?kitchen-state-with-banana-bread-batter ?banana-bread-batter ?oven 60 minute 160 degrees-celsius)
-
-    ))
+    (spread ?pan-with-batter ?kitchen-state-with-batter-in-pan ?kitchen-state-with-greased-pan ?greased-pan ?banana-bread-batter ?scraper)
+    
+    ;; "Bake at 165°C for about 1 hour."
+    (bake ?baked-banana-bread ?kitchen-state-with-baked-banana-bread ?kitchen-state-with-batter-in-pan ?pan-with-batter ?oven 60 minute 165 degrees-celsius)))
 
 ;; ======================
 ;; Append bindings to the recipe
@@ -161,6 +165,9 @@
 ;; ======================
 
 ;(activate-monitor trace-irl)
+
+;(clear-output)
+
 ;(evaluate-irl-program *extended-recipe* nil)
 
 ;; ======================
@@ -168,5 +175,7 @@
 ;; ======================
 
 ;(draw-recipe *brownie-recipe*)
+;(draw-recipe *extended-recipe*)
+
 
 
