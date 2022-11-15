@@ -43,8 +43,7 @@ based on existing construction with sufficient overlap."
                           non-overlapping-meaning-cxn
                           non-overlapping-form-observation
                           non-overlapping-form-cxn
-                          overlapping-meaning-observation
-                          overlapping-meaning-cxn
+                          overlapping-meaning
                           overlapping-form-observation
                           cxn)
         (select-cxn-for-making-item-based-cxn cxn-inventory
@@ -56,26 +55,24 @@ based on existing construction with sufficient overlap."
       
       (when cxn
         (let* (;; cxns and links from iterating over all repairs
-               (dummy-top-args-predicate (list (append (list 'top-args) top-args)))
-               (arg-bindings (first (irl::embedding overlapping-meaning-observation overlapping-meaning-cxn)))
-               (renamed-top-args (list (append (list 'renamed-top-args) (substitute-predicate-bindings top-args arg-bindings))))
                (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn non-overlapping-form-observation 
                                                                                         non-overlapping-meaning-observation
-                                                                                        (append overlapping-meaning-observation dummy-top-args-predicate)
+                                                                                        (append overlapping-meaning parent-meaning)
                                                                                         cxn-inventory))
                (cxns-and-links-holistic-part-cxn (handle-potential-holistic-cxn non-overlapping-form-cxn non-overlapping-meaning-cxn
-                                                                                (append overlapping-meaning-cxn renamed-top-args) cxn-inventory))
+                                                                                (append overlapping-meaning parent-meaning) cxn-inventory))
                ;; surrounding item-based cxn
                (item-based-cxn-variants (multiple-value-list (create-item-based-cxn cxn-inventory
                                                                                     overlapping-form-observation
                                                                                     non-overlapping-form-observation
-                                                                                    overlapping-meaning-observation
+                                                                                    overlapping-meaning
                                                                                     non-overlapping-meaning-observation
                                                                                     meaning
                                                                                     top-args
-                                                                                    (extract-args-from-meaning-networks non-overlapping-meaning-observation (append overlapping-meaning-observation dummy-top-args-predicate) meaning-representation-formalism) ;; slot args
+                                                                                    (extract-args-from-meaning-networks non-overlapping-meaning-observation (append overlapping-meaning parent-meaning) meaning-representation-formalism) ;; slot args
                                                                                     meaning-representation-formalism
                                                                                     'holistic->item-based--substitution)))
+               
                (new-item-based-cxn-apply-first (first item-based-cxn-variants))
                (new-item-based-cxn-apply-last (second item-based-cxn-variants))
                (lex-class-item-based-cxn (third item-based-cxn-variants))

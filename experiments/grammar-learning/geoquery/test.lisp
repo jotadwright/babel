@@ -56,7 +56,7 @@
                                                   ;item-based->item-based--substitution
                                                   ;item-based->holistic
                                                   holistic->item-based--substitution
-                                                  ;holistic->item-based--addition
+                                                  holistic->item-based--addition
                                                   ;holistic->item-based--deletion
                                                   ;holistic->item-based
                                                   nothing->holistic))
@@ -93,9 +93,9 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 113)  ;  
+;(run-series *experiment* 50);  
 
-;(run-series *experiment* 880) ;
+;(run-series *experiment* 830) ;
 
 
 #|
@@ -107,12 +107,8 @@ What is the most populated capital in the USA ?
 TODO:
 - meerdere epochs na elkaar, zien of de alignment nog iets verwijdert
 
-form constraints diff:
 
-(diff-form-constraints
- '((STRING GRAMMAR-LEARNING::?NAME-15 "name") (STRING GRAMMAR-LEARNING::?THE-35 "the") (STRING GRAMMAR-LEARNING::?RIVERS-15 "rivers") (STRING GRAMMAR-LEARNING::?IN-25 "in") (STRING GRAMMAR-LEARNING::?ARKANSAS-10 "arkansas") (FCG:MEETS GRAMMAR-LEARNING::?NAME-15 GRAMMAR-LEARNING::?THE-35) (FCG:MEETS GRAMMAR-LEARNING::?THE-35 GRAMMAR-LEARNING::?RIVERS-15) (FCG:MEETS GRAMMAR-LEARNING::?RIVERS-15 GRAMMAR-LEARNING::?IN-25) (FCG:MEETS GRAMMAR-LEARNING::?IN-25 GRAMMAR-LEARNING::?ARKANSAS-10))
-'((STRING GRAMMAR-LEARNING::?NAME-18 "name") (STRING GRAMMAR-LEARNING::?ALL-8 "all") (STRING GRAMMAR-LEARNING::?THE-38 "the") (STRING GRAMMAR-LEARNING::?RIVERS-18 "rivers") (STRING GRAMMAR-LEARNING::?IN-28 "in") (STRING GRAMMAR-LEARNING::?COLORADO-8 "colorado") (FCG:MEETS GRAMMAR-LEARNING::?NAME-18 GRAMMAR-LEARNING::?ALL-8) (FCG:MEETS GRAMMAR-LEARNING::?ALL-8 GRAMMAR-LEARNING::?THE-38) (FCG:MEETS GRAMMAR-LEARNING::?THE-38 GRAMMAR-LEARNING::?RIVERS-18) (FCG:MEETS GRAMMAR-LEARNING::?RIVERS-18 GRAMMAR-LEARNING::?IN-28) (FCG:MEETS GRAMMAR-LEARNING::?IN-28 GRAMMAR-LEARNING::?COLORADO-8))
-)
+
 
 
 |#
