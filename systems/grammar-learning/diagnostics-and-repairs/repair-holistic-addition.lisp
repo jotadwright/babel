@@ -37,8 +37,10 @@
                           non-overlapping-meaning-cxn
                           non-overlapping-form-observation
                           non-overlapping-form-cxn
-                          overlapping-meaning
+                          overlapping-meaning ; item-based part
+                          overlapping-meaning-cxn 
                           overlapping-form-observation
+                          overlapping-form-cxn
                           cxn)
         (select-cxn-for-making-item-based-cxn cxn-inventory
                                               form-constraints
