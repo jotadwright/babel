@@ -1052,10 +1052,64 @@
                               (kitchen-state-out kitchen-state)
                               (kitchen-state-in kitchen-state)
                               (items-to-transfer t) ;;transferable container or list of kitchen entities
+                              (arrangement-pattern arrangement-pattern)
                               (destination container))
 
-  ;; Case 1 : transfer a number of items to a given destination
-  ((kitchen-state-in items-to-transfer destination => kitchen-state-out transferred)
+  ;; Case 1 : transfer a number of items to a given destination, no arrangement-pattern is given
+  ((kitchen-state-in items-to-transfer destination => kitchen-state-out arrangement-pattern transferred)
+
+   (cond ((subtypep (type-of items-to-transfer) 'list-of-kitchen-entities)
+     ;; items are grouped as a list of kitchen entities, lying on the countertop
+     (let* ((new-kitchen-state (copy-object kitchen-state-in))
+            (new-items-to-transfer (find-kitchen-entities items-to-transfer (counter-top new-kitchen-state)))
+            (default-arrangement (make-instance 'side-to-side))
+            (new-destination (find-object-by-persistent-id destination new-kitchen-state))
+            (container-available-at (+ 120 (max (kitchen-time kitchen-state-in)
+                                                (available-at (find (id destination) binding-objects
+                                                                    :key #'(lambda (binding-object)
+                                                                             (and (value binding-object)
+                                                                                  (id (value binding-object)))))))))
+            (kitchen-state-available-at container-available-at))
+     
+       (setf (used new-destination) t)
+       (setf (contents new-destination) (items new-items-to-transfer))
+       (setf (arrangement new-destination) default-arrangement)
+       (setf (contents (counter-top new-kitchen-state)) ;;delete items from countertop!
+             (remove-if #'(lambda (el)
+                            (find (persistent-id el) (items new-items-to-transfer) :test #'eql :key #'persistent-id))
+                        (contents (counter-top new-kitchen-state))))
+     
+       (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+     
+       (bind
+        (arrangement-pattern 0.0 default-arrangement nil) 
+        (transferred 1.0 new-destination container-available-at)
+        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+     
+     ;; items are placed on a transferable container, such as a baking tray
+     ((subtypep (type-of items-to-transfer) 'transferable-container) ;baking-tray or cookie sheet
+      (let* ((new-kitchen-state (copy-object kitchen-state-in))
+             (new-container (find-object-by-persistent-id items-to-transfer new-kitchen-state))
+             (default-arrangement (make-instance 'side-to-side))
+             (new-destination (find-object-by-persistent-id destination new-kitchen-state))
+             (container-available-at (+ 120 (kitchen-time kitchen-state-in)))
+             (kitchen-state-available-at container-available-at))
+     
+        (setf (used new-destination) t)
+        (setf (contents new-destination) (contents new-container))
+        (setf (contents new-container) nil)
+        (setf (used new-destination) t)
+        (setf (arrangement new-destination) default-arrangement)
+     
+        (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+     
+        (bind
+         (arrangement-pattern 0.0 default-arrangement nil) 
+         (transferred 1.0 new-destination container-available-at)
+         (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))
+
+  ;; Case 2 : transfer a number of items to a given destination and place them in the given pattern
+  ((kitchen-state-in items-to-transfer arrangement-pattern destination => kitchen-state-out transferred)
 
    (cond ((subtypep (type-of items-to-transfer) 'list-of-kitchen-entities)
      ;; items are grouped as a list of kitchen entities, lying on the countertop
@@ -1071,7 +1125,7 @@
      
        (setf (used new-destination) t)
        (setf (contents new-destination) (items new-items-to-transfer))
-       (setf (arrangement new-destination) 'side-to-side)
+       (setf (arrangement new-destination) arrangement-pattern)
        (setf (contents (counter-top new-kitchen-state)) ;;delete items from countertop!
              (remove-if #'(lambda (el)
                             (find (persistent-id el) (items new-items-to-transfer) :test #'eql :key #'persistent-id))
@@ -1094,12 +1148,13 @@
         (setf (contents new-destination) (contents new-container))
         (setf (contents new-container) nil)
         (setf (used new-destination) t)
-        (setf (arrangement new-destination) 'side-to-side)
+        (setf (arrangement new-destination) arrangement-pattern)
      
         (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
      
-        (bind (transferred 1.0 new-destination container-available-at)
-              (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+        (bind
+         (transferred 1.0 new-destination container-available-at)
+         (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
 (defprimitive shape ((shaped-portions list-of-kitchen-entities)
                      (kitchen-state-out kitchen-state)

@@ -1245,7 +1245,7 @@
                (boundaries (left ?place-unit)
                            (right ?x-unit-right))
                (meaning ((transfer-items ?things-placed ?kitchen-out ;;times nr of arg1s
-                                         ?kitchen-in ?things-to-transfer ?where-to-transfer-it))))
+                                         ?kitchen-in ?things-to-transfer ?default-pattern ?where-to-transfer-it))))
               <-
               (?arg1-unit-in-world
                --
