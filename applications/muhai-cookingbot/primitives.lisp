@@ -1738,6 +1738,10 @@
     (when (not (eq (type-of (unit (amount copied-ingredient))) 'g))
       (let ((ingredient-type (type-of copied-ingredient))
             (source-unit-type (type-of (unit (amount copied-ingredient)))))
+        (when (eq source-unit-type 'ml)
+          (setf source-unit-type 'l)
+          (setf (value (quantity (amount copied-ingredient))) (/ (value (quantity (amount copied-ingredient))) 1000))
+          (setf (unit (amount copied-ingredient)) (make-instance 'l)))
         (multiple-value-bind (conversion-rates found) (gethash ingredient-type *conversion-table-for-g*)
           (unless found
             (error "The ingredient ~S has no entry in the conversion table!" ingredient-type))
