@@ -2,6 +2,12 @@
 
 (in-package :muhai-cookingbot)
 
+;; The 'trace-irl' monitor will make sure that
+;; the IRL evaluation process is shown on the web
+;; interface (which can be found at localhost:8000).
+;; We need to activate it:
+;(activate-monitor trace-irl)
+
 ;; ##################################################################
 ;; Almond Crescent Cookies recipe
 ;; https://www.simplyrecipes.com/recipes/almond_crescent_cookies/
@@ -79,6 +85,10 @@
                                    (make-instance 'baking-tray)
                                    (make-instance 'baking-paper))))))
 
+;; 'make-html' makes an HTML representation of the kitchen state
+;; and 'add-element' transfers that to the web interface
+;(add-element (make-html *initial-kitchen-state* :expand-initially t))
+
 (defparameter *almond-cookies-recipe*
 
   '((get-kitchen ?kitchen-state-1785)
@@ -144,20 +154,15 @@
 ;; Evaluate the recipe
 ;; ======================
 
-;; The 'trace-irl' monitor will make sure that
-;; the IRL evaluation process is shown on the web
-;; interface (which can be found at localhost:8000).
-;; We need to activate it:
 ;(activate-monitor trace-irl)
 
 ;(clear-output)
 
 ;(evaluate-irl-program *extended-recipe* nil)
 
-
 ;; ======================
 ;; Visualise the recipe
 ;; ======================
 
-(draw-recipe *almond-cookies-recipe*)
-(draw-recipe *extended-recipe*)
+;(draw-recipe *almond-cookies-recipe*)
+;(draw-recipe *extended-recipe*)

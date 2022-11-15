@@ -2,6 +2,12 @@
 
 (in-package :muhai-cookingbot)
 
+;; The 'trace-irl' monitor will make sure that
+;; the IRL evaluation process is shown on the web
+;; interface (which can be found at localhost:8000).
+;; We need to activate it:
+;(activate-monitor trace-irl)
+
 ;; ##################################################################
 ;; New Zealand Afghan Biscuit/Cookie
 ;; https://www.thespruceeats.com/afghan-biscuit-recipe-256048
@@ -101,6 +107,11 @@
                                                    (make-instance 'large-bowl)
                                                    (make-instance 'large-bowl)
                                                    )))))
+
+;; 'make-html' makes an HTML representation of the kitchen state
+;; and 'add-element' transfers that to the web interface
+;(add-element (make-html *initial-kitchen-state* :expand-initially t))
+
 
 (defparameter *afghan-cookie-recipe* 
   `((get-kitchen ?kitchen-state)
@@ -205,10 +216,6 @@
 ;; Evaluate the recipe
 ;; ======================
 
-;; The 'trace-irl' monitor will make sure that
-;; the IRL evaluation process is shown on the web
-;; interface (which can be found at localhost:8000).
-;; We need to activate it:
 ;(activate-monitor trace-irl)
 
 ;(clear-output)
@@ -219,5 +226,5 @@
 ;; Visualise the recipe
 ;; ======================
 
-(draw-recipe *afghan-cookie-recipe*)
-(draw-recipe *extended-recipe*)
+;(draw-recipe *afghan-cookie-recipe*)
+;(draw-recipe *extended-recipe*)
