@@ -157,7 +157,7 @@
   (append form-constraints
           (list (list 'fcg::meets (second (get-boundary-units form-constraints)) 'gl::dummy))))
 
-(defmethod diff-form-constraints (fc-1 fc-2)
+(defun do-diff-fc (fc-1 fc-2)
   (multiple-value-bind (tmp-fc-1-diff tmp-fc-2-diff)
       (diff-networks (add-dummy-end-meets fc-1)
                  (add-dummy-end-meets fc-2)
@@ -172,6 +172,18 @@
             fc-2-diff
             (set-difference fc-1 fc-1-diff :test #'equal)
             (set-difference fc-2 fc-2-diff :test #'equal)))))
+  
+(defmethod diff-form-constraints (fc-1 fc-2)
+    (if (> (length fc-1) (length fc-2))
+      ;; normal case fc-1 is longer
+      (do-diff-fc fc-1 fc-2)
+      ;; fc-2 is longer, reverse args and result
+      (multiple-value-bind (non-overlapping-form-observation
+                            non-overlapping-form-cxn
+                            overlapping-form-observation
+                            overlapping-form-cxn)           
+                   (do-diff-fc fc-2 fc-1)
+        (values non-overlapping-form-cxn non-overlapping-form-observation overlapping-form-cxn overlapping-form-observation))))
 
 (defun remove-dangling-meets (form-constraints)
   (loop with string-predicates = (extract-form-predicate-by-type form-constraints 'string)
