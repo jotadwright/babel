@@ -47,7 +47,7 @@
     
     (when learned-cxns
       (loop for cxn in learned-cxns
-            do (setf (attr-val cxn :learned-at) (format nil "@~a" (get-data (blackboard (construction-inventory node)) :current-interaction-nr))))
+            do (setf (attr-val cxn :learned-at) (format nil "@~a" (find-data (blackboard (construction-inventory node)) :current-interaction-nr))))
       (notify cxns-learned learned-cxns))
     ;; Reset categorial network
     (set-categorial-network (construction-inventory node) orig-categorial-network)
