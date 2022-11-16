@@ -965,7 +965,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Self-rising flour: mixture of all-purpose flour, baking powder, and salt"))
 
-(defclass semisweet-chocolate-chips (ingredient)
+(defclass semisweet-chocolate-chips (ingredient meltable)
   ()
   (:documentation "Semisweet chcocolate chips"))
 
