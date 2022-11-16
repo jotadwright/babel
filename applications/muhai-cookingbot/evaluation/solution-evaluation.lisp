@@ -483,10 +483,15 @@
 (defmethod find-best-dish-score ((sol-final-node irl::irl-program-processor-node) (gold-output-node irl::irl-program-processor-node))
   "Compute a similarity score for all nodes in the solutions and return the best one."
   (let ((node sol-final-node)
+        (encountered-variables '())
         (scores '()))
-    (loop for score = (compute-ratio (compare-node-dishes node gold-output-node))
+    (loop for sol-output-var = (second (irl::primitive-under-evaluation node))
+          for score = 0
           do
-            (push score scores)
+            (when (not (member sol-output-var encountered-variables))
+              (let ((score (compute-ratio (compare-node-dishes node gold-output-node))))
+                (push score scores)
+                (setf encountered-variables (append (all-variables (irl::primitive-under-evaluation node)) encountered-variables))))
             (setf node (parent node))
           while (and node (irl::primitive-under-evaluation node) (< score 1)))
     (apply #'max scores)))
@@ -497,7 +502,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *metrics*
-  '(smatch-score subgoals-ratio dish-score execution-time)) ; TODO RD: add SMATCH
+  '(subgoals-ratio dish-score execution-time)) ; TODO RD: add SMATCH
 
 (defun evaluate (filepath &optional (metrics *metrics*) (sim-envs *simulation-environments*))
   (let ((solutions (parse-solutions-file filepath))) ; read in the solutions
