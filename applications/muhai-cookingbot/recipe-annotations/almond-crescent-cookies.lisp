@@ -90,7 +90,6 @@
 ;(add-element (make-html *initial-kitchen-state* :expand-initially t))
 
 (defparameter *almond-cookies-recipe*
-
   '((get-kitchen ?kitchen-state-1785)
     
     ;; "230 grams butter, room temperature"
