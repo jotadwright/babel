@@ -178,12 +178,12 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   (setf (sprinkled-with copy) (copy-object (sprinkled-with can-be-sprinkled-on))))
 
 (defclass can-cover(cooking-utensil)
-  ((covered-container :type boolean :initarg :covered-container :accessor covered-container :initform nil))
+  ((is-covering :type boolean :initarg :is-covering :accessor is-covering :initform nil))
   (:documentation "Something that can be used to cover a coverable container"))
 
 (defmethod copy-object-content ((can-cover can-cover) (copy can-cover))
   "Copying coverable objects."
-  (setf (covered-container copy) (copy-object (covered-container can-cover))))
+  (setf (is-covering copy) (copy-object (is-covering can-cover))))
 
 (defclass can-brush (cooking-utensil)
   ()
@@ -205,9 +205,13 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A tool that can be used for mashing."))
 
+(defclass can-mingle (cooking-utensil)
+  ()
+  (:documentation "A tool that can be used for mingling."))
+
 (defclass can-mix (cooking-utensil)
   ()
-  (:documentation "A tool that can be used for beating."))
+  (:documentation "A tool that can be used for mixing or beating."))
 
 (defclass can-peel (cooking-utensil)
   ()
@@ -243,13 +247,12 @@ in the cookingbot ontology should subclass of kitchen-entity."))
                               collect (copy-object item))))
 
 (defclass coverable-container (container)
-  ((cover :initarg :cover :accessor cover :initform nil))
+  ((covered-with :initarg :covered-with :accessor covered-with :initform nil))
   (:documentation "Containers that can also be covered"))
 
 (defmethod copy-object-content ((coverable-container coverable-container) (copy coverable-container))
   "Copying coverable objects."
-  (setf (cover copy) (copy-object (cover coverable-container))))
-
+  (setf (covered-with copy) (copy-object (covered-with coverable-container))))
 
 (defclass crackable (kitchen-entity)
   ((cracked :type boolean :initarg :cracked :accessor cracked :initform nil))
@@ -499,8 +502,11 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying freezers."
   (setf (arrangement copy) (copy-object (arrangement freezer))))
 
-(defclass fridge (container)
-  ((arrangement :initform (make-instance 'shelved)))
+(defclass fridge (container has-temperature)
+  ((arrangement :initform (make-instance 'shelved))
+   (temperature :initarg :temperature :accessor temperature :initform (make-instance 'amount
+                                                                                     :quantity (make-instance 'quantity :value 5)
+                                                                                     :unit (make-instance 'degrees-celsius))))
   (:documentation "The fridge. It's a container."))
 
 (defmethod copy-object-content ((fridge fridge) (copy fridge))
@@ -558,6 +564,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass pantry (container)
   ((arrangement :initform (make-instance 'shelved)))
   (:documentation "The pantry. It's a container."))
+
+(defclass plastic-wrap (can-cover)
+  ()
+  (:documentation "Plastic foil. Can be used to cover most things."))
 
 (defmethod copy-object-content ((pantry pantry) (copy pantry))
   "Copying pantries."
@@ -619,9 +629,9 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A wire rack. It's a transferable container."))
 
-(defclass wooden-spoon (can-mix reusable)
+(defclass wooden-spoon (can-mix can-mingle reusable)
   ()
-  (:documentation "A wooden spoon. It's a tool for mixing."))
+  (:documentation "A wooden spoon. It's a tool for mixing or mingling."))
 
 ;; Ingredients  ;;
 ;;;;;;;;;;;;;;;;;;
@@ -1190,8 +1200,11 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 
 (defclass time-unit (unit)
   ()
-  (:documentation "Unit to describe a duration.")
-)
+  (:documentation "Unit to describe a duration."))
+
+(defclass hour (time-unit)
+  ()
+  (:documentation "Unit: hour."))
 
 (defclass minute (time-unit)
   ()
