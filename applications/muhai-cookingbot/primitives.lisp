@@ -280,7 +280,6 @@
                                      (* 5 (length (contents eggs)))))
           (kitchen-state-available-at container-available-at))
 
-     ; TODO RD: was incompatible with take-n-pieces
      (loop for egg in (contents new-eggs-with-shell)
            do (loop for i from 1 to (value (quantity (amount egg)))
                     for egg-amount = (make-instance 'amount :quantity (make-instance 'quantity :value 50) :unit (make-instance 'g))
@@ -337,6 +336,75 @@
                (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
                (target-container 0.0 target-container-instance-old-ks nil))))))
   )
+
+(defprimitive dip ((dipped-object t) ;;transferable container or list of kitchen entities
+                   (kitchen-state-out kitchen-state)
+                   (kitchen-state-in kitchen-state)
+                   (object t) ;;transferable container or list of kitchen entities
+                   (dip-container transferable-container))
+  
+  ((kitchen-state-in object dip-container
+                        => kitchen-state-out dipped-object)
+
+   (cond ((subtypep (type-of object) 'list-of-kitchen-entities)
+          (let* ((new-kitchen-state (copy-object kitchen-state-in))
+                 (new-items-to-dip (find-kitchen-entities object (counter-top new-kitchen-state)))
+                 (new-dip-container (find-object-by-persistent-id dip-container (counter-top new-kitchen-state)))
+                 (dip (first (contents new-dip-container)))
+                 (total-dip-weight-in-grams (convert-to-g dip))
+                 (dip-weight-per-portion (make-instance 'amount
+                                                        :quantity (make-instance 'quantity
+                                                                                 :value (/ (value (quantity (amount total-dip-weight-in-grams)))
+                                                                                           (length (items new-items-to-dip))))
+                                                        :unit (make-instance 'g)))
+                 (dipped-object-available-at (+ (max (kitchen-time kitchen-state-in)
+                                                     (available-at (find (id object) binding-objects
+                                                                         :key #'(lambda (binding-object)
+                                                                                  (and (value binding-object)
+                                                                                       (id (value binding-object)))))))
+                                                50))
+                 (kitchen-state-available-at dipped-object-available-at))
+
+                 (loop for portion in (items new-items-to-dip)
+                       for dip = (copy-object (first (contents new-dip-container)))
+                       do (setf (amount dip) dip-weight-per-portion)
+                          (setf (dipped-in portion) dip))
+
+                 (setf (contents new-dip-container) nil)
+                 (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+                 (bind (dipped-object 1.0 new-items-to-dip dipped-object-available-at)
+                       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+         ((subtypep (type-of object) 'transferable-container)
+          (let* ((new-kitchen-state (copy-object kitchen-state-in))
+                 (new-input-container (find-object-by-persistent-id object (counter-top new-kitchen-state)))
+                 (new-dip-container (find-object-by-persistent-id dip-container (counter-top new-kitchen-state)))
+                 (dip (first (contents new-dip-container)))
+                 (total-dip-weight-in-grams (convert-to-g dip))
+                 (dip-weight-per-portion (make-instance 'amount
+                                                        :quantity (make-instance 'quantity
+                                                                                 :value (/ (value (quantity (amount total-dip-weight-in-grams)))
+                                                                                           (length (contents new-input-container))))
+                                                        :unit (make-instance 'g)))
+                 (dipped-object-available-at (+ (max (kitchen-time kitchen-state-in)
+                                                     (available-at (find (id object) binding-objects
+                                                                         :key #'(lambda (binding-object)
+                                                                                  (and (value binding-object)
+                                                                                       (id (value binding-object)))))))
+                                                50))
+                 (kitchen-state-available-at dipped-object-available-at))
+
+                 (loop for portion in (contents new-input-container)
+                       for dip = (copy-object (first (contents new-dip-container)))
+                       do (setf (amount dip) dip-weight-per-portion)
+                          (setf (dipped-in portion) dip))
+
+                 (setf (contents new-dip-container) nil)
+                 (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+                 (bind (dipped-object 1.0 new-input-container dipped-object-available-at)
+                       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+
 
 ; TODO RD: 
 ; * quantity more than 1?
@@ -927,10 +995,6 @@
       (bind (preheated-oven 1.0 oven-in-new-kitchen-state oven-available-at)
             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
 
-
-;(sift ?bowl-with-sifted-ingredients ?kitchen-state-after-sifting ?kitchen-state-with-flour-soda-salt-cinnamon-nutmeg ?flour-soda-salt-cinnamon-nutmeg ?sifting-tool large-bowl)
-
-
 (defprimitive transfer-contents ((container-with-all-ingredients transferable-container)
                                  (container-with-rest transferable-container)
                                  (kitchen-state-out kitchen-state)
@@ -939,7 +1003,6 @@
                                  (container-with-input-ingredients transferable-container)
                                  (quantity quantity)
                                  (unit unit))
-
   
   ;; Case in which the target container is not given in the input-kitchen-state and no quantity and unit are given
   ((kitchen-state-in container-with-input-ingredients  
@@ -955,41 +1018,33 @@
           (kitchen-state-available-at container-available-at))
    
      ;; 1) find target container and place it on the countertop
-     (multiple-value-bind (target-container-in-kitchen-input-state target-container-original-location)
-         (find-unused-kitchen-entity 'large-bowl kitchen-state-in)
+     (let* ((target-container-instance
+             (retrieve-concept-instance-and-bring-to-countertop 'large-bowl new-kitchen-state))
+            (target-container-in-kitchen-input-state (find-object-by-persistent-id target-container-instance kitchen-state-in))
+            (source-container-instance
+             (find-object-by-persistent-id container-with-input-ingredients (counter-top new-kitchen-state))))
 
-      ; TODO RD: find is already recursive?
-       (let ((target-container-instance
-              (find-object-by-persistent-id target-container-in-kitchen-input-state
-                                            (funcall (type-of target-container-original-location) new-kitchen-state)))
-             (source-container-instance
-              (find-object-by-persistent-id container-with-input-ingredients (counter-top new-kitchen-state)))) ;;to do: make recursive find function
-       
-         (change-kitchen-entity-location target-container-instance
-                                         (funcall (type-of target-container-original-location) new-kitchen-state)
-                                         (counter-top new-kitchen-state))
-
-         ;; 2) add all contents from source container to target container
-         (loop with container-amount = (make-instance 'amount :quantity (make-instance 'quantity :value 0)) ; TODO RD: default is 1
-               for ingredient in (contents source-container-instance)
-               do (setf (value (quantity container-amount))
-                        (+ (value (quantity container-amount))
-                           (value (quantity (amount ingredient)))))
-               (setf (contents target-container-instance) (cons ingredient (contents target-container-instance)))
-               (setf (contents source-container-instance) (remove ingredient (contents source-container-instance) :test #'equalp))
-               finally
+       ;; 2) add all contents from source container to target container
+       (loop with container-amount = (make-instance 'amount :quantity (make-instance 'quantity :value 0))
+             for ingredient in (contents source-container-instance)
+             do (setf (value (quantity container-amount))
+                      (+ (value (quantity container-amount))
+                         (value (quantity (amount ingredient)))))
+                (setf (contents target-container-instance) (cons ingredient (contents target-container-instance)))
+                (setf (contents source-container-instance) (remove ingredient (contents source-container-instance) :test #'equalp))
+             finally
                (setf (used target-container-instance) t)
                (setf (unit container-amount) (unit (amount ingredient)))
                (setf total-amount container-amount))
 
-         (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
-         
-         (bind (target-container 0.0 target-container-in-kitchen-input-state nil)
-               (container-with-all-ingredients 1.0 target-container-instance container-available-at)
-               (container-with-rest 1.0 source-container-instance container-available-at)
-               (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-               (quantity 0.0 (quantity total-amount) nil)
-               (unit 0.0 (unit total-amount) nil))))))
+       (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+       (bind (target-container 0.0 target-container-in-kitchen-input-state nil)
+             (container-with-all-ingredients 1.0 target-container-instance container-available-at)
+             (container-with-rest 1.0 source-container-instance container-available-at)
+             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+             (quantity 0.0 (quantity total-amount) nil)
+             (unit 0.0 (unit total-amount) nil)))))
 
   ;; Case in which the target container is given in the input-kitchen-state and no quantity and unit are given
   ((kitchen-state-in container-with-input-ingredients target-container
@@ -1412,7 +1467,7 @@
 
      (loop for portion in (contents new-input-container)
            for topping = (copy-object (first (contents new-topping-container)))
-           do (setf (amount topping) topping-weight-per-portion) ; TODO RD: amount topping should be changed here, not portion?
+           do (setf (amount topping) topping-weight-per-portion)
               (setf (sprinkled-with portion) topping))
      
      (setf (contents new-topping-container) nil)
@@ -1684,6 +1739,8 @@
           (acons 'teaspoon 3 '()))
     (setf (gethash 'baking-soda conversion-table)
 	  (acons 'teaspoon 5 '()))
+    (setf (gethash 'baking-powder conversion-table)
+	  (acons 'teaspoon 4 '()))  
     (setf (gethash 'banana conversion-table)
 	  (acons 'piece 118 '()))
     (setf (gethash 'butter conversion-table)
@@ -1691,15 +1748,21 @@
     (setf (gethash 'caster-sugar conversion-table)
 	  (acons 'teaspoon 5 '()))
     (setf (gethash 'cocoa-powder conversion-table)
-          (acons 'tablespoon 13 (acons 'teaspoon 3 '())))
+          (acons 'teaspoon 4 '()))
     (setf (gethash 'corn-flakes conversion-table)
           (acons 'teaspoon 2 '()))
     (setf (gethash 'cucumber conversion-table)
           (acons 'piece 250 '()))
     (setf (gethash 'egg conversion-table)
           (acons 'piece 50 '()))
+    (setf (gethash 'ground-allspice conversion-table)
+	  (acons 'teaspoon 2 '()))
     (setf (gethash 'ground-cinnamon conversion-table)
 	  (acons 'teaspoon 2.7 '()))
+    (setf (gethash 'ground-cloves conversion-table)
+	  (acons 'teaspoon 2.2 '()))
+    (setf (gethash 'ground-ginger conversion-table)
+          (acons 'teaspoon 2 '()))
     (setf (gethash 'ground-nutmeg conversion-table)
 	  (acons 'teaspoon 2.2 '()))
     (setf (gethash 'jalapeno conversion-table)
@@ -1717,7 +1780,7 @@
     (setf (gethash 'vanilla-extract conversion-table)
 	  (acons 'l 880 (acons 'teaspoon 4 '())))
     (setf (gethash 'water conversion-table)
-	  (acons 'l 1000 (acons 'tablespoon 15 '())))
+	  (acons 'l 1000 (acons 'teaspoon 5 '())))
     (setf (gethash 'whole-egg conversion-table)
 	  (acons 'piece 50 '())) 
     (setf (gethash 'vegetable-oil conversion-table)
@@ -1759,6 +1822,10 @@
           (setf source-unit-type 'l)
           (setf (value (quantity (amount copied-ingredient))) (/ (value (quantity (amount copied-ingredient))) 1000))
           (setf (unit (amount copied-ingredient)) (make-instance 'l)))
+        (when (eq source-unit-type 'tablespoon)
+          (setf source-unit-type 'teaspoon)
+          (setf (value (quantity (amount copied-ingredient))) (* (value (quantity (amount copied-ingredient))) 3))
+          (setf (unit (amount copied-ingredient)) (make-instance 'teaspoon)))      
         (multiple-value-bind (conversion-rates found) (gethash ingredient-type *conversion-table-for-g*)
           (unless found
             (error "The ingredient ~S has no entry in the conversion table!" ingredient-type))
