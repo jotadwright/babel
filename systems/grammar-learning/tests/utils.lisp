@@ -27,6 +27,27 @@
                             (:use-meta-layer . t)
                             (:consolidate-repairs . t))))
 
+
+(defun set-up-cxn-inventory-and-repairs-geo ()
+  (wi::reset)
+  (notify reset-monitors)
+  (make-instance 'grammar-learning-experiment
+                          :entries '((:repairs . (add-categorial-links
+                                                  ;item-based->item-based--substitution
+                                                  ;item-based->holistic
+                                                  ;holistic->item-based--substitution
+                                                  holistic->item-based--addition
+                                                  holistic->item-based--deletion
+                                                  ;holistic->item-based
+                                                  nothing->holistic))
+                                     (:observation-sample-mode . :debug)
+                                     (:meaning-representation . :geo)
+                                     (:cxn-decf-score . 0.2)
+                                     (:cxn-incf-score . 0.1)
+                                     (:alignment-strategy . :lateral-inhibition)
+                                     (:de-render-mode . :de-render-string-meets-no-punct)
+                                     )))
+
 (defun test-repair-status (class cipn)
   (test-assert (and
                 (find 'fcg::succeeded (statuses cipn))
