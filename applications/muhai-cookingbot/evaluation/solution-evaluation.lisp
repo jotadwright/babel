@@ -1,5 +1,3 @@
-;(ql:quickload :muhai-cookingbot)
-
 (in-package :muhai-cookingbot)
 
 ;;;;;;;;;;;;;;;;;;;;;;
@@ -496,7 +494,10 @@
 ;; Solution File Evaluation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun evaluate (filepath &optional (sim-envs *simulation-environments*))
+(defparameter *metrics*
+  '(subgoals-ratio dish-score execution-time)) ; TODO RD: add SMATCH
+
+(defun evaluate (filepath &optional (metrics *metrics*) (sim-envs *simulation-environments*))
   (let ((solutions (parse-solutions-file filepath))) ; read in the solutions
     (check-solutions-completeness solutions sim-envs) ; check if the solutions file contains all the needed solutions
     (loop for current-solution in solutions
@@ -507,19 +508,25 @@
           for final-gold-node = (final-node current-sim-env) 
           for gold-output-node = (output-node current-sim-env)
           do
+            (print "solution:")
+            (print (recipe-id current-solution))
             ; compute the smatch score (no simulation needed for this part)
-            (setf (smatch-score current-solution) (compute-smatch-score solution-mn gold-mn)) 
+            (when (member 'smatch-score metrics)
+              (setf (smatch-score current-solution) (compute-smatch-score solution-mn gold-mn))) 
 
             ; simulate and score recipe "execution"    
             (init-kitchen-state current-sim-env)
             (let ((extended-mn (append-meaning-and-irl-bindings solution-mn nil)))
               (multiple-value-bind (sol-bindings sol-nodes) (evaluate-irl-program extended-mn nil)
                 ; compute subgoal success ratio
-                (setf (subgoals-ratio current-solution) (compute-subgoal-success-ratio (first sol-nodes) final-gold-node))
+                (when (member 'subgoals-ratio metrics)
+                  (setf (subgoals-ratio current-solution) (compute-subgoal-success-ratio (first sol-nodes) final-gold-node)))
                 ; compute the dish score (if all subgoals are reached, then the dish score will already be maximal so no reason to compute it then)
+                (when (member 'dish-score metrics)
                ; (if (= (subgoals-ratio current-solution) 1)
             ;      (setf (dish-score current-solution) 1)
-                  (setf (dish-score current-solution) (find-best-dish-score (first sol-nodes) gold-output-node));)
+                  (setf (dish-score current-solution) (find-best-dish-score (first sol-nodes) gold-output-node)))
                 ; compute the ratio of needed execution time to the execution time of the golden standard
-                (setf (execution-time current-solution) (compute-execution-time (first sol-bindings))))))
+                (when (member 'execution-time metrics)
+                  (setf (execution-time current-solution) (compute-execution-time (first sol-bindings)))))))
     solutions))
