@@ -91,6 +91,7 @@
                                                            (args ,args)
                                                            --
                                                            (footprints (NOT used-as-slot-filler))
+                                                           (args ,args)
                                                            (syn-cat (lex-class ,holistic-slot-lex-class))
                                                            (boundaries
                                                             (left ,(first updated-boundaries))
@@ -218,11 +219,12 @@
                                            (list item-based-cxn-apply-last)))
                  (temp-cats-to-add (append (mapcar #'extract-contributing-lex-class temp-cxns-to-apply)
                                            (mappend #'get-all-conditional-unit-lex-classes temp-cxns-to-apply)))
-                 
+                 ;; necessary to get links
                  (solution-cipn (comprehend-in-sandbox form-constraints original-cxn-set
-                                                       :apply-sequentially t
+                                                       :apply-sequentially nil
                                                        :cxns-to-add temp-cxns-to-apply
-                                                       :categories-to-add temp-cats-to-add))
+                                                       :categories-to-add temp-cats-to-add
+                                                       :gold-standard-meaning meaning))
                  ;; build result
                  (cxns-to-apply (reverse (mapcar #'original-cxn (applied-constructions solution-cipn))))
                  (cat-links-to-add (extract-used-categorial-links solution-cipn))

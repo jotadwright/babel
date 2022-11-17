@@ -1414,6 +1414,7 @@
                                                             (args ,slot-args)
                                                             --
                                                             (footprints (NOT used-as-slot-filler))
+                                                            (args ,slot-args)
                                                             (syn-cat (lex-class ,lex-class-item-based-cxn-slot))
                                                             (boundaries
                                                              (left ,(first rewritten-boundaries))
