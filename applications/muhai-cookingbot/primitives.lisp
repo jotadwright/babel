@@ -125,6 +125,7 @@
             (new-mixture (create-homogeneous-mixture-in-container new-container)))
 
        (setf (used target-tool-instance-new-ks) t)
+       (setf (mixed new-mixture) nil) ; TODO RD: maybe remove this automatic setting from create-homogeneous-mixture?
        (setf (beaten new-mixture) t)
        (setf (contents new-container) (list new-mixture))
 
@@ -209,7 +210,33 @@
                            (refrigerator fridge)
                            (cooling-quantity quantity)
                            (cooling-unit time-unit))
+
+  ;; Case 1: refrigerator and cooling time (quantity and unit) are not given, use one hour as cooling time
+  ((kitchen-state-in container-with-ingredients
+                     => cooling-unit cooling-quantity refrigerator kitchen-state-out container-with-ingredients-at-temperature)
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-cooling-quantity (make-instance 'quantity :value 1))
+          (new-cooling-unit (make-instance 'hour)) ; we refrigerate for 1 hour
+          (new-container (find-object-by-persistent-id container-with-ingredients (counter-top new-kitchen-state)))
+          (container-available-at (+ (kitchen-time kitchen-state-in)
+                                     (* (value new-cooling-quantity)
+                                        (if (eq (type-of new-cooling-unit) 'hour)
+                                          (* 3600 (value new-cooling-quantity))
+                                          (* 60 (value new-cooling-quantity))))))
+          (kitchen-state-available-at (kitchen-time kitchen-state-in)))
+
+     (change-temperature new-container (temperature (fridge kitchen-state-in)))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at) 
+                
+     (bind (container-with-ingredients-at-temperature 1.0 new-container container-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           (refrigerator 0.0 (fridge kitchen-state-in) kitchen-state-available-at)
+           (cooling-quantity 0.0 new-cooling-quantity nil)
+           (cooling-unit 0.0 new-cooling-unit nil))))
   
+  ;; Case 2: refrigerator is not given, cooling time (quantity and unit) is given
   ((kitchen-state-in container-with-ingredients cooling-quantity cooling-unit
                      => refrigerator kitchen-state-out container-with-ingredients-at-temperature)
    
@@ -228,7 +255,7 @@
                 
      (bind (container-with-ingredients-at-temperature 1.0 new-container container-available-at)
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-           (refrigerator 0.0 (fridge kitchen-state-in) nil)))))
+           (refrigerator 0.0 (fridge kitchen-state-in) kitchen-state-available-at)))))
 
 (defprimitive cover ((covered-object coverable-container)
                      (kitchen-state-out kitchen-state)
@@ -249,6 +276,7 @@
           (kitchen-state-available-at container-available-at)
           (cover-type (cond ((subtypep (type-of object) 'medium-bowl) 'medium-bowl-lid)
                             ((subtypep (type-of object) 'large-bowl) 'large-bowl-lid)
+                            ((subtypep (type-of object) 'jar) 'jar-lid)
                             (T 'plastic-wrap)))
           (new-cover (retrieve-concept-instance-and-bring-to-countertop cover-type new-kitchen-state)))
 
@@ -260,7 +288,30 @@
        (bind
         (covered-object 1.0 new-container container-available-at)
         (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-        (cover 0.0 new-cover container-available-at)))))
+        (cover 0.0 new-cover container-available-at))))
+
+  ;;Case 2: cover given
+  ((kitchen-state-in object cover => covered-object kitchen-state-out)
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-container (find-object-by-persistent-id object new-kitchen-state))
+          (new-cover (find-object-by-persistent-id cover new-kitchen-state))
+          (container-available-at (+ 20 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id object) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at))
+
+     (setf (covered-with new-container) new-cover)
+     (setf (is-covering new-cover) T)
+     (setf (used new-cover) T)
+     (setf (contents (counter-top new-kitchen-state)) (remove new-cover (contents (counter-top new-kitchen-state))))
+         
+       (bind
+        (covered-object 1.0 new-container container-available-at)
+        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
+
 
 (defprimitive uncover ((uncovered-object coverable-container)
                        (cover can-cover)
@@ -282,6 +333,8 @@
 
      (setf (covered-with new-container) nil)
      (setf (is-covering new-cover) nil)
+
+     ; put the cover on the countertop
      (setf (contents (counter-top new-kitchen-state)) (cons new-cover (contents (counter-top new-kitchen-state))))
 
      (bind
@@ -978,6 +1031,37 @@
          
           (bind (container-with-mixture 1.0 new-container-with-ingredients-to-mix container-available-at)
                 (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
+
+(defprimitive shake ((container-with-mixture transferable-container)
+                     (kitchen-state-out kitchen-state)
+                     (kitchen-state-in kitchen-state)
+                     (container-with-input-ingredients transferable-container))
+  
+  ((kitchen-state-in container-with-input-ingredients => kitchen-state-out container-with-mixture)
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-container-with-input-ingredients (find-object-by-persistent-id container-with-input-ingredients (counter-top new-kitchen-state)))
+          (container-available-at (+ 30 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id container-with-input-ingredients) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                                   (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at))
+
+     ; TODO RD: check affordance: should be covered?
+     (when (and (subtypep (type-of new-container-with-input-ingredients) 'coverable-container)
+                (covered-with new-container-with-input-ingredients))
+
+       ;; "mix" contents in container with ingredients
+       (let ((mixture (create-homogeneous-mixture-in-container new-container-with-input-ingredients)))
+
+         (setf (mixed mixture) nil) ; TODO RD: perhaps remove this automatic setting from create-homogeneous-mixture?
+         (setf (shaken mixture) t)
+         (setf (contents new-container-with-input-ingredients) (list mixture)) ; TODO RD: already happened inside the create mixture call
+         (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+         (bind (container-with-mixture 1.0 new-container-with-input-ingredients container-available-at)
+               (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
 (defprimitive mingle ((container-with-mixture transferable-container)
                       (kitchen-state-out kitchen-state)
@@ -1927,6 +2011,8 @@
           (acons 'piece 50 '()))
     (setf (gethash 'ground-allspice conversion-table)
 	  (acons 'teaspoon 2 '()))
+    (setf (gethash 'ground-black-pepper conversion-table)
+	  (acons 'teaspoon 3 '()))
     (setf (gethash 'ground-cinnamon conversion-table)
 	  (acons 'teaspoon 2.7 '()))
     (setf (gethash 'ground-cloves conversion-table)
@@ -1935,10 +2021,14 @@
           (acons 'teaspoon 2 '()))
     (setf (gethash 'ground-nutmeg conversion-table)
 	  (acons 'teaspoon 2.2 '()))
+    (setf (gethash 'lime-juice conversion-table)
+	  (acons 'teaspoon 5 '()))
     (setf (gethash 'jalapeno conversion-table)
           (acons 'piece 20 '()))
     (setf (gethash 'milk conversion-table)
-	  (acons 'l 1032 '()))   
+	  (acons 'l 1032 '()))
+    (setf (gethash 'olive-oil conversion-table)
+          (acons 'teaspoon 4.5 '()))
     (setf (gethash 'onion conversion-table)
           (acons 'piece 100 '()))
     (setf (gethash 'red-onion conversion-table)
@@ -1950,7 +2040,9 @@
     (setf (gethash 'vanilla-extract conversion-table)
 	  (acons 'l 880 (acons 'teaspoon 4 '())))
     (setf (gethash 'water conversion-table)
-	  (acons 'l 1000 (acons 'teaspoon 5 '())))
+	  (acons 'l 1000 (acons 'teaspoon 5 '()))) 
+    (setf (gethash 'white-sugar conversion-table)
+          (acons 'teaspoon 4.2 '()))
     (setf (gethash 'white-vinegar conversion-table)
 	  (acons 'l 1085 '()))
     (setf (gethash 'whole-egg conversion-table)
