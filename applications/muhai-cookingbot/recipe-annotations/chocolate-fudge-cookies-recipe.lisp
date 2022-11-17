@@ -20,6 +20,7 @@
    :contents
    (list (make-instance 'fridge
                         :contents (list (make-instance 'medium-bowl
+                                                       :used T
                                                        :contents (list (make-instance 'butter
                                                                                       :temperature
                                                                                       (make-instance 'amount
@@ -32,6 +33,7 @@
                                                                                                      :quantity (make-instance 'quantity
                                                                                                                               :value 500)))))
                                         (make-instance 'medium-bowl
+                                                       :used T
                                                        :contents (list (make-instance 'egg
                                                                                       :temperature
                                                                                       (make-instance 'amount
@@ -45,18 +47,21 @@
                                                                                                                               :value 12)))))))
          (make-instance 'pantry
                         :contents (list (make-instance 'medium-bowl
+                                                       :used T
                                                        :contents (list (make-instance 'devils-food-cake-mix :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
                                                                                                                               :value 517)))))
                                         (make-instance 'medium-bowl
+                                                       :used T
                                                        :contents (list (make-instance 'vegetable-oil :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
                                                                                                                               :value 200)))))
                                         (make-instance 'medium-bowl
+                                                       :used T
                                                        :contents (list (make-instance 'semisweet-chocolate-chips :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)

@@ -16,63 +16,71 @@
 (defparameter *initial-kitchen-state* 
   (make-instance 
    'kitchen-state
-    :contents
-    (list (make-instance 'fridge
-                         :contents (list (make-instance 'medium-bowl
-                                                        :contents (list (make-instance 'butter :amount
-                                                                                       (make-instance 'amount
-                                                                                                      :unit (make-instance 'g)
-                                                                                                      :quantity (make-instance 'quantity
-                                                                                                                                :value 250)))))))
-          (make-instance 'pantry
-                          :contents (list (make-instance 'medium-bowl
-                                                         :contents (list (make-instance 'caster-sugar :amount
-                                                                                        (make-instance 'amount
-                                                                                                       :unit (make-instance 'g)
-                                                                                                       :quantity (make-instance 'quantity
-                                                                                                                                :value 1000)))))
-                                          (make-instance 'medium-bowl
-                                                         :contents (list (make-instance 'all-purpose-flour :amount
-                                                                                        (make-instance 'amount
-                                                                                                       :unit (make-instance 'g)
-                                                                                                       :quantity (make-instance 'quantity
-                                                                                                                                :value 1000)))))
-                                          (make-instance 'medium-bowl
-                                                         :contents (list (make-instance 'cocoa-powder :amount
-                                                                                        (make-instance 'amount
-                                                                                                       :unit (make-instance 'g)
-                                                                                                       :quantity (make-instance 'quantity
-                                                                                                                                :value 500)))))
-                                          (make-instance 'medium-bowl
-                                                         :contents (list (make-instance 'corn-flakes :amount
-                                                                                        (make-instance 'amount
-                                                                                                       :unit (make-instance 'g)
-                                                                                                       :quantity (make-instance 'quantity
-                                                                                                                                :value 500)))))
-                                          (make-instance 'medium-bowl
-                                                         :contents (list (make-instance 'icing-sugar :amount
-                                                                                        (make-instance 'amount
-                                                                                                       :unit (make-instance 'g)
-                                                                                                       :quantity (make-instance 'quantity
-                                                                                                                                :value 500)))))
-                                          (make-instance 'medium-bowl
-                                                         :contents (list (make-instance 'water :amount
-                                                                                        (make-instance 'amount
-                                                                                                       :unit (make-instance 'l)
-                                                                                                       :quantity (make-instance 'quantity :value 1)))))
-                                          (make-instance 'medium-bowl
-                                                         :contents (list (make-instance 'almond-flakes :amount
-                                                                                        (make-instance 'amount
-                                                                                                       :unit (make-instance 'g)
-                                                                                                       :quantity (make-instance 'quantity :value 250)))))))
-          (make-instance 'kitchen-cabinet
-				   :contents (list (make-instance 'baking-tray)
-						   (make-instance 'baking-paper)
-                                                   (make-instance 'whisk)
-                                                   (make-instance 'whisk)
-                                                   (make-instance 'whisk)
-                                                   (make-instance 'whisk)
-                                                   (make-instance 'whisk)
+   :contents
+   (list (make-instance 'fridge
+                        :contents (list (make-instance 'medium-bowl
+                                                       :used T
+                                                       :contents (list (make-instance 'butter :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 250)))))))
+         (make-instance 'pantry
+                        :contents (list (make-instance 'medium-bowl
+                                                       :used T
+                                                       :contents (list (make-instance 'caster-sugar :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 1000)))))
+                                        (make-instance 'medium-bowl
+                                                       :used T
+                                                       :contents (list (make-instance 'all-purpose-flour :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 1000)))))
+                                        (make-instance 'medium-bowl
+                                                       :used T
+                                                       :contents (list (make-instance 'cocoa-powder :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 500)))))
+                                        (make-instance 'medium-bowl
+                                                       :used T
+                                                       :contents (list (make-instance 'corn-flakes :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 500)))))
+                                        (make-instance 'medium-bowl
+                                                       :used T
+                                                       :contents (list (make-instance 'icing-sugar :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 500)))))
+                                        (make-instance 'medium-bowl
+                                                       :used T
+                                                       :contents (list (make-instance 'water :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'l)
+                                                                                                     :quantity (make-instance 'quantity :value 1)))))
+                                        (make-instance 'medium-bowl
+                                                       :used T
+                                                       :contents (list (make-instance 'almond-flakes :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity :value 250)))))))
+         (make-instance 'kitchen-cabinet
+                        :contents (list (make-instance 'baking-tray)
+                                        (make-instance 'baking-paper)
+                                        (make-instance 'whisk)
+                                        (make-instance 'whisk)
+                                        (make-instance 'whisk)
+                                        (make-instance 'whisk)
+                                        (make-instance 'whisk)
                                                    (make-instance 'sift)
                                                    (make-instance 'wooden-spoon)
                                                    (make-instance 'wooden-spoon)
