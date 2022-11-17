@@ -24,16 +24,21 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   (setf (persistent-id copy) (persistent-id kitchen-entity))
   (setf (id copy)  (make-id (persistent-id kitchen-entity))))
 
-(defclass kitchen-state (container)
+(defclass kitchen-state (container has-temperature)
   ((kitchen-time :type integer
                  :accessor kitchen-time
                  :initarg :kitchen-time
-                 :initform 0))
-  (:documentation "Representation of the state of the kitchen."))
+                 :initform 0)
+   (temperature :initarg :temperature
+                :accessor temperature
+                :initform (make-instance 'amount
+                                         :unit (make-instance 'degrees-celsius)
+                                         :quantity (make-instance 'quantity
+                                                                  :value 18)))))
 
 (defmethod copy-object-content ((kitchen-state kitchen-state) (copy kitchen-state))
   (setf (kitchen-time copy) (kitchen-time kitchen-state))
-  )
+  (setf (temperature copy) (copy-object (temperature kitchen-state))))
 
 ;(defclass vr-kitchen-state (container)
 ;  ()

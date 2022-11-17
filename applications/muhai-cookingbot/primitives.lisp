@@ -99,8 +99,6 @@
            (target-temperature-quantity 0.0 (quantity oven-temperature) nil)
            (target-temperature-unit 0.0 (unit oven-temperature) nil)))))
 
-
-
 (defprimitive beat ((container-with-ingredients-beaten transferable-container)
                     (kitchen-state-out kitchen-state)
                     (kitchen-state-in kitchen-state)
@@ -161,6 +159,7 @@
                                     (temperature-quantity quantity)
                                     (temperature-unit unit))
   ;;to do: add default temperature = room temperature
+  ; Case 1: temperature is given
   ((kitchen-state-in container-with-ingredients temperature-quantity temperature-unit
                      => kitchen-state-out container-with-ingredients-at-temperature)
    
@@ -175,7 +174,26 @@
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at) 
                 
      (bind (container-with-ingredients-at-temperature 1.0 new-container container-available-at)
-           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+  
+  ; Case 2: temperature is not given, room temperature (i.e. kitchen-state temperature is used)
+  ((kitchen-state-in container-with-ingredients
+                     => kitchen-state-out container-with-ingredients-at-temperature temperature-quantity temperature-unit)
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-container (find-object-by-persistent-id container-with-ingredients (counter-top new-kitchen-state)))
+          (container-available-at (+ 800 (kitchen-time kitchen-state-in)))
+          (kitchen-state-available-at (kitchen-time kitchen-state-in)))
+
+     ; change it to room temperature
+     (change-temperature new-container (temperature new-kitchen-state))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at) 
+                
+     (bind (container-with-ingredients-at-temperature 1.0 new-container container-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           (temperature-quantity 0.0 (quantity (temperature new-kitchen-state)) nil)
+           (temperature-unit 0.0 (unit (temperature new-kitchen-state)) nil)))))
 
 (defprimitive cool-for-time ((container-with-ingredients-at-temperature transferable-container)
                              (kitchen-state-out kitchen-state)
@@ -2046,6 +2064,8 @@
           (acons 'teaspoon 5 '()))
     (setf (gethash 'caster-sugar conversion-table)
 	  (acons 'teaspoon 5 '()))
+    (setf (gethash 'coarse-salt conversion-table)
+          (acons 'teaspoon 5 '()))
     (setf (gethash 'cocoa-powder conversion-table)
           (acons 'teaspoon 4 '()))
     (setf (gethash 'corn-flakes conversion-table)
@@ -2090,6 +2110,8 @@
           (acons 'piece 50 '()))
     (setf (gethash 'vanilla-extract conversion-table)
 	  (acons 'l 880 (acons 'teaspoon 4 '())))
+    (setf (gethash 'vegetable-oil conversion-table)
+          (acons 'l 944 '()))
     (setf (gethash 'water conversion-table)
 	  (acons 'l 1000 (acons 'teaspoon 5 '()))) 
     (setf (gethash 'white-sugar conversion-table)
@@ -2098,8 +2120,6 @@
 	  (acons 'l 1085 '()))
     (setf (gethash 'whole-egg conversion-table)
 	  (acons 'piece 50 '())) 
-    (setf (gethash 'vegetable-oil conversion-table)
-          (acons 'l 944 '()))
     conversion-table))
 
 ;; define conversion table as a global parameter
