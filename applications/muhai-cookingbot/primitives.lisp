@@ -1882,7 +1882,7 @@
                                  (quantity quantity)
                                  (unit unit))
   
-  ;; Case in which the target container is not given in the input-kitchen-state and no quantity and unit are given
+  ;; Case 1: Case in which the target container is not given in the input-kitchen-state and no quantity and unit are given
   ((kitchen-state-in container-with-input-ingredients  
                      => target-container container-with-all-ingredients container-with-rest kitchen-state-out quantity unit)
 
@@ -1924,7 +1924,7 @@
              (quantity 0.0 (quantity total-amount) nil)
              (unit 0.0 (unit total-amount) nil)))))
 
-  ;; Case in which the target container is given in the input-kitchen-state and no quantity and unit are given
+  ;; Case 2: Case in which the target container is given in the input-kitchen-state and no quantity and unit are given
   ((kitchen-state-in container-with-input-ingredients target-container
                      => container-with-all-ingredients container-with-rest kitchen-state-out quantity unit)
 
@@ -1963,6 +1963,8 @@
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
            (quantity 0.0 (quantity total-amount) nil)
            (unit 0.0 (unit total-amount) nil)))))
+
+; TODO RD: case 3 and 4
 
 
 (defprimitive transfer-items ((transferred container)
