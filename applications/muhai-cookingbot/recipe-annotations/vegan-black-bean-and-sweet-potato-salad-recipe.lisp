@@ -19,7 +19,7 @@
    'kitchen-state
    :contents
    (list (make-instance 'fridge
-                        :contents (list  (make-instance 'bowl
+                        :contents (list  (make-instance 'medium-bowl
                                                         :used T
                                                         :contents (list (make-instance 'onion :amount
                                                                                        (make-instance 'amount
@@ -27,70 +27,70 @@
                                                                                                       :quantity (make-instance 'quantity
                                                                                                                                :value 10)))))))
          (make-instance 'pantry
-                        :contents (list  (make-instance 'bowl
+                        :contents (list  (make-instance 'medium-bowl
                                                         :used T
                                                         :contents (list (make-instance 'sweet-potato :amount
                                                                                        (make-instance 'amount
                                                                                                       :unit (make-instance 'g)
                                                                                                       :quantity (make-instance 'quantity
                                                                                                                                :value 500)))))
-                                         (make-instance 'bowl
+                                         (make-instance 'medium-bowl
                                                         :used T
                                                         :contents (list (make-instance 'black-bean :amount
                                                                                        (make-instance 'amount
                                                                                                       :unit (make-instance 'g)
                                                                                                       :quantity (make-instance 'quantity
                                                                                                                                :value 500)))))
-                                         (make-instance 'bowl
+                                         (make-instance 'medium-bowl
                                                         :used T
                                                         :contents (list (make-instance 'red-onion :amount
                                                                                        (make-instance 'amount
                                                                                                       :unit (make-instance 'piece)
                                                                                                       :quantity (make-instance 'quantity
                                                                                                                                :value 5)))))                                          
-                                         (make-instance 'bowl
+                                         (make-instance 'medium-bowl
                                                         :used T
                                                         :contents (list (make-instance 'olive-oil :amount
                                                                                        (make-instance 'amount
                                                                                                       :unit (make-instance 'g)
                                                                                                       :quantity (make-instance 'quantity
                                                                                                                                :value 50)))))                                         
-                                         (make-instance 'bowl
+                                         (make-instance 'medium-bowl
                                                         :used T
                                                         :contents (list (make-instance 'ground-black-pepper :amount
                                                                                        (make-instance 'amount
                                                                                                       :unit (make-instance 'g)
                                                                                                       :quantity (make-instance 'quantity
                                                                                                                                :value 500)))))
-                                         (make-instance 'bowl
+                                         (make-instance 'medium-bowl
                                                         :used T
                                                         :contents (list (make-instance 'ground-cumin :amount
                                                                                        (make-instance 'amount
                                                                                                       :unit (make-instance 'g)
                                                                                                       :quantity (make-instance 'quantity
                                                                                                                                :value 500)))))
-                                         (make-instance 'bowl
+                                         (make-instance 'medium-bowl
                                                         :used T
                                                         :contents (list (make-instance 'lime-juice :amount
                                                                                        (make-instance 'amount
                                                                                                       :unit (make-instance 'g)
                                                                                                       :quantity (make-instance 'quantity
                                                                                                                                :value 500)))))
-                                         (make-instance 'bowl
+                                         (make-instance 'medium-bowl
                                                         :used T
                                                         :contents (list (make-instance 'coarse-salt :amount
                                                                                        (make-instance 'amount
                                                                                                       :unit (make-instance 'g)
                                                                                                       :quantity (make-instance 'quantity
                                                                                                                                :value 500)))))
-                                         (make-instance 'bowl
+                                         (make-instance 'medium-bowl
                                                         :used T
                                                         :contents (list (make-instance 'fresh-cilantro :amount
                                                                                        (make-instance 'amount
                                                                                                       :unit (make-instance 'g)
                                                                                                       :quantity (make-instance 'quantity
                                                                                                                                :value 50)))))
-                                         (make-instance 'bowl
+                                         (make-instance 'medium-bowl
                                                         :used T
                                                         :contents (list (make-instance 'red-pepper-flakes :amount
                                                                                        (make-instance 'amount
