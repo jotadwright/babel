@@ -1079,6 +1079,177 @@
                        '(uncover ?served-salad ?cover ?kitchen-state-with-served-salad ?kitchen-state-with-cooled-mixture ?cooled-mixture))
                  :primary-output-var '?served-salad))
 
+(defparameter *easy-cherry-tomato-corn-salad-environment*
+  (make-instance 'simulation-environment
+                 :recipe-id 'easy-cherry-tomato-corn-salad
+                 :kitchen-state
+                 (make-instance
+                  'kitchen-state
+                  :id 'kitchen-state
+                  :contents
+                  (list (make-instance 'fridge
+                                       :contents (list (make-instance 'bowl
+                                                                      :used T
+                                                                      :contents (list (make-instance 'cherry-tomato :amount
+                                                                                                     (make-instance 'amount
+                                                                                                                    :unit (make-instance 'g)
+                                                                                                                    :quantity (make-instance 'quantity
+                                                                                                                                             :value 500)))))
+
+                                                       (make-instance 'bowl
+                                                                      :used T
+                                                                      :contents (list (make-instance 'cucumber :amount
+                                                                                                     (make-instance 'amount
+                                                                                                                    :unit (make-instance 'g)
+                                                                                                                    :quantity (make-instance 'quantity
+                                                                                                                                             :value 500)))))
+                                                       (make-instance 'bowl
+                                                                      :used T
+                                                                      :contents (list (make-instance 'onion :amount
+                                                                                                     (make-instance 'amount
+                                                                                                                    :unit (make-instance 'piece)
+                                                                                                                    :quantity (make-instance 'quantity
+                                                                                                                                             :value 10)))))))
+                        (make-instance 'freezer
+                                       :contents (list
+                                                  (make-instance 'bowl
+                                                                 :used T
+                                                                 :contents (list (make-instance 'frozen-corn :amount
+                                                                                                (make-instance 'amount
+                                                                                                               :unit (make-instance 'g)
+                                                                                                               :quantity (make-instance 'quantity
+                                                                                                                                        :value 500)))))))
+                        (make-instance 'pantry
+                                       :contents (list
+                                                  (make-instance 'bowl
+                                                                 :used T
+                                                                 :contents (list (make-instance 'fresh-basil :amount
+                                                                                                (make-instance 'amount
+                                                                                                               :unit (make-instance 'g)
+                                                                                                               :quantity (make-instance 'quantity
+                                                                                                                                        :value 500)))))
+                                                  (make-instance 'bowl
+                                                                 :used T
+                                                                 :contents (list (make-instance 'white-sugar :amount
+                                                                                                (make-instance 'amount
+                                                                                                               :unit (make-instance 'g)
+                                                                                                               :quantity (make-instance 'quantity
+                                                                                                                                        :value 500)))))
+                                                  (make-instance 'bowl
+                                                                 :used T
+                                                                 :contents (list (make-instance 'olive-oil :amount
+                                                                                                (make-instance 'amount
+                                                                                                               :unit (make-instance 'g)
+                                                                                                               :quantity (make-instance 'quantity
+                                                                                                                                        :value 500)))))
+                                          
+                                                  (make-instance 'bowl
+                                                                 :used T
+                                                                 :contents (list (make-instance 'ground-black-pepper :amount
+                                                                                                (make-instance 'amount
+                                                                                                               :unit (make-instance 'g)
+                                                                                                               :quantity (make-instance 'quantity
+                                                                                                                                        :value 500)))))
+                                                  (make-instance 'bowl
+                                                                 :used T
+                                                                 :contents (list (make-instance 'shallot :amount
+                                                                                                (make-instance 'amount
+                                                                                                               :unit (make-instance 'piece)
+                                                                                                               :quantity (make-instance 'quantity
+                                                                                                                                        :value 5)))))
+                                                  (make-instance 'bowl
+                                                                 :used T
+                                                                 :contents (list (make-instance 'jalapeno :amount
+                                                                                                (make-instance 'amount
+                                                                                                               :unit (make-instance 'piece)
+                                                                                                               :quantity (make-instance 'quantity
+                                                                                                                                        :value 5)))))
+                                                  (make-instance 'bowl
+                                                                 :used T
+                                                                 :contents (list (make-instance 'lime-juice :amount
+                                                                                                (make-instance 'amount
+                                                                                                               :unit (make-instance 'g)
+                                                                                                               :quantity (make-instance 'quantity
+                                                                                                                                        :value 500)))))
+                                                  (make-instance 'bowl
+                                                                 :used T
+                                                                 :contents (list (make-instance 'salt :amount
+                                                                                                (make-instance 'amount
+                                                                                                               :unit (make-instance 'g)
+                                                                                                               :quantity (make-instance 'quantity
+                                                                                                                                        :value 500)))))))
+                        (make-instance 'kitchen-cabinet
+                                       :contents (list
+
+                                                  ;; bowls
+                                                  (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
+                                                  (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                                  (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                                  (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                                  (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                                  (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+
+                                                  ;; bowl-lids
+                                                  (make-instance 'medium-bowl-lid) (make-instance 'medium-bowl-lid) (make-instance 'medium-bowl-lid)
+                                                  (make-instance 'large-bowl-lid) (make-instance 'large-bowl-lid) (make-instance 'large-bowl-lid)
+
+                                                  ;; jars
+                                                  (make-instance 'jar) (make-instance 'jar) (make-instance 'jar)
+
+                                                  ;; jar-lids
+                                                  (make-instance 'jar-lid) (make-instance 'jar-lid) (make-instance 'jar-lid)
+
+                                                  ;; wrapping
+                                                  (make-instance 'plastic-wrap)
+
+                                                  ;; tools
+                                                  (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
+                                                  (make-instance 'wooden-spoon) (make-instance 'wooden-spoon) (make-instance 'wooden-spoon)
+                                                  (make-instance 'knife) (make-instance 'knife) (make-instance 'knife)))))
+         
+                 :meaning-network
+                 (list '(get-kitchen ?kitchen)
+                       '(fetch-and-proportion ?proportioned-basil ?kitchen-state-with-basil ?kitchen ?target-container-1 fresh-basil 5 g)
+                       '(cut ?minced-basil ?kitchen-state-with-cut-basil ?kitchen-state-with-basil ?proportioned-basil minced ?knife)
+                       '(fetch-and-proportion ?olive-oil ?kitchen-state-with-olive-oil ?kitchen-state-with-cut-basil ?target-container-2 olive-oil 3 tablespoon)
+                       '(fetch-and-proportion ?lime-juice ?kitchen-state-with-lime-juice ?kitchen-state-with-olive-oil ?target-container-3 lime-juice 2 teaspoon)
+                       '(fetch-and-proportion ?white-sugar ?kitchen-state-with-white-sugar ?kitchen-state-with-lime-juice ?target-container-4 white-sugar 1 teaspoon)
+                       '(fetch-and-proportion ?salt ?kitchen-state-with-salt ?kitchen-state-with-white-sugar ?target-container-5 salt 0.5 teaspoon)
+                       '(fetch-and-proportion ?pepper ?kitchen-state-with-pepper ?kitchen-state-with-salt ?target-container-6 ground-black-pepper 0.25 teaspoon)
+                       '(fetch-and-proportion ?frozen-corn ?kitchen-state-with-frozen-corn ?kitchen-state-with-pepper ?target-container-7 frozen-corn 350 g)
+                       '(bring-to-temperature ?thawed-corn ?kitchen-state-with-thawed-corn ?kitchen-state-with-frozen-corn ?frozen-corn 18 degrees-celsius)
+                       '(fetch-and-proportion ?cherry-tomatoes ?kitchen-state-with-cherry-tomatoes ?kitchen-state-with-thawed-corn ?target-container-8 cherry-tomato 300 g)
+                       '(cut ?cut-tomatoes ?kitchen-state-with-cut-tomatoes ?kitchen-state-with-cherry-tomatoes ?cherry-tomatoes halved ?knife)
+                       '(fetch-and-proportion ?cucumber ?kitchen-state-with-cucumber ?kitchen-state-with-cut-tomatoes ?target-container-9 cucumber 160 g)
+                       '(peel ?peeled-cucumber ?kitchen-state-with-peeled-cucumber ?kitchen-state-with-cucumber ?cucumber ?knife)
+                       '(seed ?seeded-cucumber ?kitchen-state-with-seeded-cucumber ?kitchen-state-with-peeled-cucumber ?peeled-cucumber ?knife)
+                       '(cut ?chopped-cucumber ?kitchen-state-with-chopped-cucumber ?kitchen-state-with-seeded-cucumber ?seeded-cucumber slices ?knife)
+                       '(fetch-and-proportion ?jalapeno ?kitchen-state-with-jalapeno  ?kitchen-state-with-chopped-cucumber ?target-container-10 jalapeno 1 piece)
+                       '(seed ?seeded-jalapeno ?kitchen-state-with-seeded-jalapeno ?kitchen-state-with-jalapeno ?jalapeno ?knife)
+                       '(cut ?chopped-jalapeno ?kitchen-state-with-chopped-jalapeno ?kitchen-state-with-seeded-jalapeno ?seeded-jalapeno slices ?knife)
+                       '(fetch-and-proportion ?shallot ?kitchen-state-with-shallot ?kitchen-state-with-chopped-jalapeno ?target-container-11 shallot 2 piece)
+                       '(cut ?cut-shallot ?kitchen-state-with-cut-shallot ?kitchen-state-with-shallot ?shallot minced ?knife)
+                       '(fetch ?jar ?kitchen-state-with-fetched-jar ?kitchen-state-with-cut-shallot jar 1)
+                       '(transfer-contents ?output-container-a ?rest-a ?output-kitchen-state-a ?kitchen-state-with-fetched-jar ?jar ?minced-basil ?quantity-a ?unit-a)
+                       '(transfer-contents ?output-container-b ?rest-b ?output-kitchen-state-b ?output-kitchen-state-a ?output-container-a ?olive-oil ?quantity-b ?unit-b)
+                       '(transfer-contents ?output-container-c ?rest-c ?output-kitchen-state-c ?output-kitchen-state-b ?output-container-b ?lime-juice ?quantity-c ?unit-c)
+                       '(transfer-contents ?output-container-d ?rest-d ?output-kitchen-state-d ?output-kitchen-state-c ?output-container-c ?white-sugar ?quantity-d ?unit-d)
+                       '(transfer-contents ?output-container-e ?rest-e ?output-kitchen-state-e ?output-kitchen-state-d ?output-container-d ?salt ?quantity-e ?unit-e)
+                       '(transfer-contents ?output-container-f ?rest-f ?output-kitchen-state-f ?output-kitchen-state-e ?output-container-e ?pepper ?quantity-f ?unit-f)
+                       '(cover ?covered-jar ?kitchen-state-with-covered-jar ?output-kitchen-state-f ?output-container-f ?jar-lid)
+                       '(shake ?salad-dressing ?kitchen-state-with-dressing ?kitchen-state-with-covered-jar ?covered-jar)
+                       '(fetch ?large-bowl ?kitchen-state-with-fetched-large-bowl ?kitchen-state-with-dressing large-bowl 1)
+                       '(transfer-contents ?output-container-g ?rest-g ?output-kitchen-state-g ?kitchen-state-with-fetched-large-bowl ?large-bowl ?thawed-corn ?quantity-g ?unit-g)
+                       '(transfer-contents ?output-container-h ?rest-h ?output-kitchen-state-h ?output-kitchen-state-g ?output-container-g ?chopped-cucumber ?quantity-h ?unit-h)
+                       '(transfer-contents ?output-container-i ?rest-i ?output-kitchen-state-i ?output-kitchen-state-h ?output-container-h ?chopped-jalapeno ?quantity-i ?unit-i)
+                       '(transfer-contents ?output-container-j ?rest-j ?output-kitchen-state-j ?output-kitchen-state-i ?output-container-i ?cut-shallot ?quantity-j ?unit-j)
+                       '(mingle ?salad-base ?kitchen-state-with-salad-base ?output-kitchen-state-j ?output-container-j ?wooden-spoon)
+                       '(uncover ?uncovered-jar ?used-jar-lid ?kitchen-state-with-uncovered-jar ?kitchen-state-with-salad-base ?covered-jar)
+                       '(sprinkle ?drizzled-salad-base ?kitchen-state-with-drizzled-salad-base ?kitchen-state-with-uncovered-jar ?salad-base ?salad-dressing)
+                       '(mingle ?salad ?kitchen-state-with-salad ?kitchen-state-with-drizzled-salad-base ?drizzled-salad-base ?wooden-spoon)
+                       '(refrigerate ?cooled-salad ?kitchen-state-with-cooled-salad ?kitchen-state-with-salad ?salad ?fridge ?cooling-quantity ?cooling-unit))
+                 :primary-output-var '?cooled-salad))
+
 ; list of all available simulation environments
 (defparameter *simulation-environments*
   (list *almond-crescent-cookies-environment*
@@ -1088,4 +1259,5 @@
         *easy-banana-bread-environment*
         *easy-oatmeal-cookies-environment*
         *whole-wheat-ginger-snaps-environment*
-        *cucumber-slices-with-dill-environment*))
+        *cucumber-slices-with-dill-environment*
+        *easy-cherry-tomato-corn-salad-environment*))

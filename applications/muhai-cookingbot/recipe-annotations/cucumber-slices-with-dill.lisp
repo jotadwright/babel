@@ -94,6 +94,15 @@
                                    (make-instance 'medium-bowl-lid) (make-instance 'medium-bowl-lid) (make-instance 'medium-bowl-lid)
                                    (make-instance 'large-bowl-lid) (make-instance 'large-bowl-lid) (make-instance 'large-bowl-lid)
 
+                                   ;; jars
+                                   (make-instance 'jar) (make-instance 'jar) (make-instance 'jar)
+
+                                   ;; jar-lids
+                                   (make-instance 'jar-lid) (make-instance 'jar-lid) (make-instance 'jar-lid)
+
+                                   ;; wrapping
+                                   (make-instance 'plastic-wrap)
+
                                    ;; tools
                                    (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
                                    (make-instance 'wooden-spoon) (make-instance 'wooden-spoon) (make-instance 'wooden-spoon)
