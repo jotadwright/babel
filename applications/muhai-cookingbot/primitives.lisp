@@ -1559,31 +1559,49 @@
          (bind (container-with-mixture 1.0 new-container-with-input-ingredients container-available-at)
                (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
-(defprimitive shape ((shaped-portions list-of-kitchen-entities)
+(defprimitive shape ((shaped-portions t) ;;transferable container or list of kitchen entities
                      (kitchen-state-out kitchen-state)
                      (kitchen-state-in kitchen-state)
-                     (portions list-of-kitchen-entities)
+                     (portions t) ;;transferable container or list of kitchen entities
                      (shape shape))
   
   ((kitchen-state-in portions shape => shaped-portions kitchen-state-out)
-   
-    (let* ((new-kitchen-state (copy-object kitchen-state-in))
-           (new-portions (find-kitchen-entities portions (counter-top new-kitchen-state)))
-           (portions-available-at (+ 85 (max (kitchen-time kitchen-state-in)
-                                             (available-at (find (id portions) binding-objects
-                                                                :key #'(lambda (binding-object)
-                                                                         (and (value binding-object)
-                                                                              (id (value binding-object)))))))))
-           (kitchen-state-available-at portions-available-at))
 
-      (loop for item in (items new-portions)
-            do (setf (current-shape item) shape))
+   (cond ((subtypep (type-of portions) 'list-of-kitchen-entities)
+          (let* ((new-kitchen-state (copy-object kitchen-state-in))
+                 (new-portions (find-kitchen-entities portions (counter-top new-kitchen-state)))
+                 (portions-available-at (+ 85 (max (kitchen-time kitchen-state-in)
+                                                   (available-at (find (id portions) binding-objects
+                                                                       :key #'(lambda (binding-object)
+                                                                                (and (value binding-object)
+                                                                                     (id (value binding-object)))))))))
+                 (kitchen-state-available-at portions-available-at))
 
-      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+            (loop for item in (items new-portions)
+                  do (setf (current-shape item) shape))
 
-      (bind (shaped-portions 1.0 new-portions portions-available-at)
-            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
+            (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
 
+            (bind (shaped-portions 1.0 new-portions portions-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+         
+         ((subtypep (type-of portions) 'transferable-container)
+          (let* ((new-kitchen-state (copy-object kitchen-state-in))
+                 (new-portions (find-object-by-persistent-id portions (counter-top new-kitchen-state)))
+                 (portions-available-at (+ 85 (max (kitchen-time kitchen-state-in)
+                                                   (available-at (find (id portions) binding-objects
+                                                                       :key #'(lambda (binding-object)
+                                                                                (and (value binding-object)
+                                                                                     (id (value binding-object)))))))))
+                 (kitchen-state-available-at portions-available-at))
+
+            (loop for item in (contents new-portions)
+                  do (setf (current-shape item) shape))
+
+            (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+            (bind (shaped-portions 1.0 new-portions portions-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
 (defprimitive sift ((container-with-sifted-contents transferable-container)
                     (kitchen-state-out kitchen-state)
