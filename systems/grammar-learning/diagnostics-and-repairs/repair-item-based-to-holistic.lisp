@@ -55,7 +55,8 @@
              
         (when (and inverted-cxn-meanings
                    (if (equal meaning-representation-formalism :irl)
-                        (= (length args-holistic-cxn) 2))
+                        (= (length args-holistic-cxn) 2)
+                        t)
                    remaining-meaning
                    (connected-semantic-network remaining-meaning)
                    (check-meets-continuity remaining-form-constraints) ;there is one continuous string in root
@@ -69,13 +70,12 @@
                                            
                  (temp-cats-to-add (append (mapcar #'extract-contributing-lex-class temp-cxns-to-add)
                                            (mappend #'get-all-conditional-unit-lex-classes temp-cxns-to-add)))
-                 (meaning-and-solution-cipn (comprehend-in-sandbox form-constraints original-cxn-inventory
+                 (solution-cipn (comprehend-in-sandbox form-constraints original-cxn-inventory
                                                        :apply-sequentially nil
                                                        :gold-standard-meaning meaning
                                                        :cxns-to-add temp-cxns-to-add
                                                        :categories-to-add temp-cats-to-add))
-                 (resulting-meaning (first meaning-and-solution-cipn))
-                 (solution-cipn (second meaning-and-solution-cipn))
+                 
                    
                  ;; build result
                  (cxns-to-apply (reverse (mapcar #'original-cxn (applied-constructions solution-cipn))))
@@ -85,7 +85,8 @@
                  (cats-to-add (fourth cxns-and-links-holistic-part-observation)))
         
 
-            (when (equivalent-meaning-networks resulting-meaning meaning meaning-representation-formalism) ;; todo: make this fail faster so it takes the next hypothesis!
+            (when (and solution-cipn ;; todo: make this fail faster so it takes the next hypothesis!
+                       (find 'SUCCEEDED (statuses solution-cipn) :test #'string=))
                    (list
                     cxns-to-apply
                     cat-links-to-add
