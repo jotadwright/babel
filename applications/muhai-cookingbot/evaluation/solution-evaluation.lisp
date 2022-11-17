@@ -515,6 +515,7 @@
           for final-gold-node = (final-node current-sim-env) 
           for gold-output-node = (output-node current-sim-env)
           do
+            ; TODO RD: remove print statements
             (print "solution:")
             (print (recipe-id current-solution))
             ; compute the smatch score (no simulation needed for this part)
@@ -525,15 +526,24 @@
             (init-kitchen-state current-sim-env)
             (let ((extended-mn (append-meaning-and-irl-bindings solution-mn nil)))
               (multiple-value-bind (sol-bindings sol-nodes) (evaluate-irl-program extended-mn nil)
+                ; TODO RD: remove error
+                (unless sol-bindings (error "no sol bindings"))
+                (unless sol-nodes (error "no sol nodes"))
                 ; compute subgoal success ratio
                 (when (member 'subgoals-ratio metrics)
-                  (setf (subgoals-ratio current-solution) (compute-subgoal-success-ratio (first sol-nodes) final-gold-node)))
+                  (setf (subgoals-ratio current-solution)
+                        (if sol-nodes (compute-subgoal-success-ratio (first sol-nodes) final-gold-node)
+                          0)))
                 ; compute the dish score (if all subgoals are reached, then the dish score will already be maximal so no reason to compute it then)
                 (when (member 'dish-score metrics)
                ; (if (= (subgoals-ratio current-solution) 1)
             ;      (setf (dish-score current-solution) 1)
-                  (setf (dish-score current-solution) (find-best-dish-score (first sol-nodes) gold-output-node)))
+                  (setf (dish-score current-solution) (if sol-nodes
+                                                        (find-best-dish-score (first sol-nodes) gold-output-node)
+                                                        0)))
                 ; compute the ratio of needed execution time to the execution time of the golden standard
                 (when (member 'execution-time metrics)
-                  (setf (execution-time current-solution) (compute-execution-time (first sol-bindings)))))))
+                  (setf (execution-time current-solution) (if sol-bindings
+                                                            (compute-execution-time (first sol-bindings))
+                                                            0))))))
     solutions))
