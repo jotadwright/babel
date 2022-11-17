@@ -16,7 +16,6 @@
 (defparameter *initial-kitchen-state* 
   (make-instance 
    'kitchen-state
-   :id 'kitchen-state
    :contents
    (list (make-instance 'fridge
                         :contents (list (make-instance 'bowl
@@ -213,7 +212,8 @@
     (transfer-contents ?output-container-j ?rest-j ?output-kitchen-state-j ?output-kitchen-state-i ?output-container-i ?cut-shallot ?quantity-j ?unit-j)
 
     (mingle ?salad-base ?kitchen-state-with-salad-base ?output-kitchen-state-j ?output-container-j ?wooden-spoon)
-    
+
+    ; TODO RD: is drizzle sprinkle or transfer-contents?
     ;; "Drizzle dressing over corn mixture and toss to coat."
     ;; IMPLICIT: the jar is still closed and should be opened first
     (uncover ?uncovered-jar ?used-jar-lid ?kitchen-state-with-uncovered-jar ?kitchen-state-with-salad-base ?covered-jar)

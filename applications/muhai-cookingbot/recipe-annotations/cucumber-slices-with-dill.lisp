@@ -17,7 +17,6 @@
 (defparameter *initial-kitchen-state* 
   (make-instance 
    'kitchen-state
-   :id 'kitchen-state
    :contents
    (list (make-instance 'fridge
                         :contents (list (make-instance 'medium-bowl

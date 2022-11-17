@@ -304,7 +304,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying  objects with temperature."
   (setf (temperature copy) (copy-object (temperature has-temperature))))
 
-(defclass ingredient (fetchable conceptualizable perishable)
+(defclass ingredient (fetchable conceptualizable perishable can-be-sprinkled-on)
   ((amount :type amount :initarg :amount :accessor amount :initform (make-instance 'amount)))
   (:documentation "For objects that are ingredients (they have an amount)."))
 
@@ -725,6 +725,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Walnut."))
 
+(defclass coarse-salt (salt)
+  ()
+  (:documentation "Coarse salt."))
+
 (defclass cocoa-powder (ingredient siftable)
   ()
   (:documentation "Cocoa powder."))
@@ -1040,13 +1044,9 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   () 
   (:documentation "An uncut pattern."))
  
-(defclass chopped (cutting-pattern)
+(defclass fine-slices (cutting-pattern)
   ()
-  (:documentation "A chopped pattern."))
-
-(defclass finely-chopped (cutting-pattern)
-  ()
-  (:documentation "A finely chopped pattern."))
+  (:documentation "A finely sliced pattern."))
 
 (defclass slices (cutting-pattern)
   ()
@@ -1068,9 +1068,9 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A pattern for cutting objects into thin slivers "))
 
-(defclass three-quarter-inch-cubes (cutting-pattern)
+(defclass two-cm-cubes (cutting-pattern)
   ()
-  (:documentation "A pattern for cutting objects into 3/4 inch cubes "))
+  (:documentation "A pattern for cutting objects into 2 cm cubes "))
 
 (defclass on-angle (arrangement-pattern)
   ()
