@@ -112,7 +112,7 @@
 
     ;; "1 onion, thinly sliced"
     (fetch-and-proportion ?proportioned-onions ?kitchen-state-with-onions ?kitchen-state-with-sliced-cucumbers ?target-container-2 onion 1 piece)
-    (cut ?sliced-onions ?kitchen-state-with-sliced-onions ?kitchen-state-with-onions ?proportioned-onions slices ?knife) ;; use the same whisk
+    (cut ?sliced-onions ?kitchen-state-with-sliced-onions ?kitchen-state-with-onions ?proportioned-onions slices ?knife) ;; use the same knife
 
     ;; "1 tablespoon dried dill weed"
     (fetch-and-proportion ?proportioned-dill-weed ?kitchen-state-with-dill-weed ?kitchen-state-with-sliced-onions ?target-container-3 dried-dill-weed 1 tablespoon)

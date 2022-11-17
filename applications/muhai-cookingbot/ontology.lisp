@@ -368,17 +368,17 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying perishable objects."
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated perishable))))
 
-;(defclass pluckable (kitchen-entity)
-;  ((is-plucked :type boolean :initarg :is-plucked :accessor is-plucked :initform nil)
-;   (plucked :type ingredient :initarg :plucked :accessor plucked :initform nil) ;;leaves
-;   (pluckee :type ingredient :initarg :pluckee :accessor pluckee :initform nil)) ;;sprig
-;  (:documentation "For objects that can be plucked such as fresh herbs"))
+(defclass pluckable (kitchen-entity)
+  ((is-plucked :type boolean :initarg :is-plucked :accessor is-plucked :initform nil)
+   (plucked :type ingredient :initarg :plucked :accessor plucked :initform nil) ;;leaves
+   (pluckee :type ingredient :initarg :pluckee :accessor pluckee :initform nil)) ;;sprig
+  (:documentation "For objects that can be plucked such as fresh herbs"))
 
-;(defmethod copy-object-content ((pluckable pluckable) (copy pluckable))
-;  "Copying pluckable objects."
-;  (setf (is-plucked copy) (copy-object (is-plucked pluckable)))
-;  (setf (plucked copy) (copy-object (plucked pluckable)))
-;  (setf (pluckee copy) (copy-object (pluckee pluckable))))
+(defmethod copy-object-content ((pluckable pluckable) (copy pluckable))
+  "Copying pluckable objects."
+  (setf (is-plucked copy) (copy-object (is-plucked pluckable)))
+  (setf (plucked copy) (copy-object (plucked pluckable)))
+  (setf (pluckee copy) (copy-object (pluckee pluckable))))
 
 (defclass reusable (kitchen-entity)
   ((used :type boolean :initarg :used :accessor used :initform nil))

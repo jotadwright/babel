@@ -333,8 +333,8 @@
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
      
-     ;; 1) find cutting tool and place it on the countertop
-     (let ((new-cutting-tool (find-object-by-persistent-id cutting-tool new-kitchen-state)))
+     ;; 1) find cutting tool
+     (let ((new-cutting-tool (find-object-by-persistent-id cutting-tool (counter-top new-kitchen-state))))
 
        ;; 2) cut everything in the container according to the cutting pattern
        (loop for item in (contents new-container)
@@ -343,7 +343,112 @@
 
        (bind (cut-object 1.0 new-container container-available-at)
              (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))
-             
+
+(defprimitive peel ((peeled-ingredient transferable-container)
+                    (kitchen-state-out kitchen-state)
+                    (kitchen-state-in kitchen-state)
+                    (input-ingredient transferable-container)
+                    (peeling-tool can-peel))
+  
+  ;; Case 1: peeling tool not given, use a knife
+  ((kitchen-state-in input-ingredient  => peeled-ingredient kitchen-state-out peeling-tool)
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-ingredient (copy-object input-ingredient))
+          (container-available-at (+ 60 (max (kitchen-time kitchen-state-in) 
+                                             (available-at (find (id input-ingredient) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at)
+          ;; 1) find peeling tool
+          (new-peeling-tool (retrieve-concept-instance-and-bring-to-countertop 'knife new-kitchen-state)))
+
+     ;; 2) peel everything in the container
+     (loop for item in (contents new-ingredient)
+           do (setf (peeled item) t))
+
+     (setf (used new-peeling-tool) t)
+     
+     (bind (peeled-ingredient 1.0 new-ingredient container-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           (peeling-tool 0.0 new-peeling-tool container-available-at))))
+
+  ;; Case 2: peeling tool given
+  ((kitchen-state-in input-ingredient peeling-tool => peeled-ingredient kitchen-state-out)
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-ingredient (copy-object input-ingredient))
+          (container-available-at (+ 60 (max (kitchen-time kitchen-state-in) 
+                                             (available-at (find (id input-ingredient) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at)
+          ;; 1) find peeling tool
+          (new-peeling-tool (find-object-by-persistent-id peeling-tool (counter-top new-kitchen-state))))
+
+     ;; 2) peel everything in the container
+     (loop for item in (contents new-ingredient)
+           do (setf (peeled item) t))
+
+     (setf (used new-peeling-tool) t)
+     
+     (bind (peeled-ingredient 1.0 new-ingredient container-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
+
+(defprimitive seed ((seeded-ingredient transferable-container)
+                    (kitchen-state-out kitchen-state)
+                    (kitchen-state-in kitchen-state)
+                    (input-ingredient transferable-container)
+                    (seeding-tool can-seed))
+  
+  ;; Case 1: seeding tool not given, use a knife
+  ((kitchen-state-in input-ingredient  => seeded-ingredient kitchen-state-out seeding-tool)
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-ingredient (copy-object input-ingredient))
+          (container-available-at (+ 60 (max (kitchen-time kitchen-state-in) 
+                                             (available-at (find (id input-ingredient) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at)
+          ;; 1) find seeding tool
+          (new-seeding-tool (retrieve-concept-instance-and-bring-to-countertop 'knife new-kitchen-state)))
+
+     ;; 2) seed everything in the container
+     (loop for item in (contents new-ingredient)
+           do (setf (seeded item) t))
+
+     (setf (used new-seeding-tool) t)
+     
+     (bind (seeded-ingredient 1.0 new-ingredient container-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           (seeding-tool 0.0 new-seeding-tool container-available-at))))
+
+  ;; Case 2: seeding tool given
+  ((kitchen-state-in input-ingredient seeding-tool => seeded-ingredient kitchen-state-out)
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-ingredient (copy-object input-ingredient))
+          (container-available-at (+ 60 (max (kitchen-time kitchen-state-in) 
+                                             (available-at (find (id input-ingredient) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at)
+          ;; 1) find seeding tool
+          (new-seeding-tool (find-object-by-persistent-id seeding-tool (counter-top new-kitchen-state))))
+
+     ;; 2) seed everything in the container
+     (loop for item in (contents new-ingredient)
+           do (setf (seeded item) t))
+
+     (setf (used new-seeding-tool) t)
+     
+     (bind (seeded-ingredient 1.0 new-ingredient container-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
 
 (defprimitive crack ((container-with-cracked-eggs transferable-container)
                      (kitchen-state-out kitchen-state)
@@ -1375,6 +1480,8 @@
   ((container-with-ingredients-to-be-sifted target-container kitchen-state-in sifting-tool
                                             => kitchen-state-out container-with-sifted-contents)
 
+; TODO RD: sift is used
+   
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
           (new-source-container (find-object-by-persistent-id container-with-ingredients-to-be-sifted new-kitchen-state))
           (new-target-container (find-object-by-persistent-id target-container new-kitchen-state))
