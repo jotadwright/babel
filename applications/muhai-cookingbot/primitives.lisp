@@ -511,6 +511,7 @@
      (multiple-value-bind (ingredient-instance ingredient-original-location)
          (find-ingredient (type-of ingredient-concept) new-kitchen-state )
 
+       ; TODO RD: return custom nil object?
        (unless ingredient-instance
          (error (format nil "No more ~a found in current kitchen state!!!" (type-of ingredient-concept))))
 
@@ -1830,6 +1831,7 @@
   (multiple-value-bind (target-object-in-kitchen-input-state target-object-original-location)
       (find-unused-kitchen-entity kitchen-concept kitchen-state excluded)
 
+    ; TODO RD: return custom nil object?
     (unless target-object-in-kitchen-input-state
       (error (format nil "~a not found in current kitchen state!!" kitchen-concept)))
     
