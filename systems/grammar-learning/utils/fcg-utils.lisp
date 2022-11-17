@@ -97,7 +97,7 @@
                                                           (:consolidate-repairs . nil)
                                                           (:initial-categorial-link-weight . ,(get-configuration original-cxn-inventory :initial-categorial-link-weight))
                                                           (:ignore-transitive-closure . t)
-                                                          (:hash-mode . :hash-string-meaning-lex-id))))))
+                                                          (:hash-mode . :hash-string-meaning))))))
     (add-categories categories-to-add (categorial-network temp-cxn-inventory) :recompute-transitive-closure nil)
     (dolist (categorial-link categorial-links-to-add)
       (add-categories (list (car categorial-link) (cdr categorial-link)) (categorial-network temp-cxn-inventory) :recompute-transitive-closure nil)
