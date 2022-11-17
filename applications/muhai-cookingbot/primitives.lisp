@@ -1797,21 +1797,31 @@
                                           :unit (unit target-amount)
                                           :quantity (make-instance 'quantity
                                                                    :value (- (value (quantity (amount source-ingredient)))
-                                                                             (value (quantity target-amount))))))
-         (target-ingredients (loop for piece from 1 to (value (quantity target-amount))
-                                     collect (make-instance (type-of source-ingredient)
-                                                            :amount (make-instance 'amount
-                                                                                   :unit (make-instance 'piece)
-                                                                                   :quantity (make-instance 'quantity :value 1))))))
+                                                                             (value (quantity target-amount)))))))
 
-    ;;adjust amounts of source ingredient
-    (setf (amount source-ingredient) new-amount-source)
-    
-    ;;add all target ingredients to contents of target-container
-    (setf (contents target-container)
-          (append target-ingredients (contents target-container)))
-    
-  (values target-container source-container)))
+    (multiple-value-bind (wholes parts) (floor (value (quantity target-amount)))
+      (let* ((target-ingredients
+              (loop for piece from 1 to wholes
+                    collect (make-instance (type-of source-ingredient)
+                                           :amount (make-instance 'amount
+                                                                  :unit (make-instance 'piece)
+                                                                  :quantity (make-instance 'quantity :value 1)))))
+             (target-ingredients (if (= parts 0)
+                                   target-ingredients
+                                   (cons (make-instance (type-of source-ingredient)
+                                                        :amount (make-instance 'amount
+                                                                               :unit (make-instance 'piece)
+                                                                               :quantity (make-instance 'quantity :value parts)))
+                                         target-ingredients))))
+
+        ;;adjust amounts of source ingredient
+        (setf (amount source-ingredient) new-amount-source)
+
+        ;;add all target ingredients to contents of target-container
+        (setf (contents target-container)
+              (append target-ingredients (contents target-container)))
+
+        (values target-container source-container)))))
 
 (defun weigh-ingredient (source-container target-amount target-container)
 
@@ -2017,6 +2027,8 @@
 	  (acons 'teaspoon 2.7 '()))
     (setf (gethash 'ground-cloves conversion-table)
 	  (acons 'teaspoon 2.2 '()))
+    (setf (gethash 'ground-cumin conversion-table)
+          (acons 'teaspoon 2 '()))
     (setf (gethash 'ground-ginger conversion-table)
           (acons 'teaspoon 2 '()))
     (setf (gethash 'ground-nutmeg conversion-table)
@@ -2033,6 +2045,8 @@
           (acons 'piece 100 '()))
     (setf (gethash 'red-onion conversion-table)
           (acons 'piece 50 '()))
+    (setf (gethash 'red-pepper-flakes conversion-table)
+          (acons 'teaspoon 0.5 '()))
     (setf (gethash 'salt conversion-table)
           (acons 'teaspoon 6 '()))
     (setf (gethash 'shallot conversion-table)
