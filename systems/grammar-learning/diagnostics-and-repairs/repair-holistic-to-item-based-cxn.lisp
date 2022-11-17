@@ -60,11 +60,14 @@
                                            (loop for unit in resulting-units
                                                  for boundaries = (unit-feature-value unit 'boundaries)
                                                  for string-var = (variablify (second (first boundaries)))
-                                                 for subtracted-meaning-list = (multiple-value-list (commutative-irl-subset-diff meaning (extract-meaning-from-tree (first unit) (car-resulting-cfs (cipn-car best-partial-analysis-node)))))
-                                                 for non-overlapping-meaning = (sort-subnetwork-according-to-parent
-                                                                                (first subtracted-meaning-list)
-                                                                                meaning)                                                  for subtracted-meaning = (sort-subnetwork-according-to-parent                                                                                   (second subtracted-meaning-list)                                                                                      meaning)
-                                                 for args = (extract-args-from-meaning-networks subtracted-meaning non-overlapping-meaning meaning-representation-formalism)
+                                                 for meanings-with-normalised-variables = (multiple-value-list (commutative-irl-subset-diff meaning (extract-meaning-from-tree (first unit) (car-resulting-cfs (cipn-car best-partial-analysis-node)))))
+                                                 for item-based-meaning = (sort-subnetwork-according-to-parent
+                                                                                (first meanings-with-normalised-variables)
+                                                                                meaning)
+                                                 for subtracted-meaning = (sort-subnetwork-according-to-parent
+                                                                           (second meanings-with-normalised-variables)
+                                                                           meaning)
+                                                 for args = (extract-args-from-meaning-networks subtracted-meaning (append item-based-meaning parent-meaning) meaning-representation-formalism)
                                                  for boundary-list = (list (variablify (second (first boundaries))) (variablify (second (second boundaries))))
                                                  for holistic-slot-lex-class = (create-item-based-lex-class-with-var placeholder-var-string-predicates cxn-name-item-based-cxn string-var) ;; look up the X and Y in bindings
                                                  for placeholder-var = (third (find string-var placeholder-var-string-predicates :key #'second))
@@ -111,7 +114,7 @@
              (holistic-subunit-names
               (third holistic-cxn-subunit-blocks))
              (subtracted-meanings (fourth holistic-cxn-subunit-blocks))
-             (item-based-args (extract-args-from-meaning-networks meaning parent-meaning meaning-representation-formalism))
+             (top-args (extract-args-from-meaning-networks meaning parent-meaning meaning-representation-formalism))
              (slot-args-list (fifth holistic-cxn-subunit-blocks))
              (item-based-cxn-meaning (subtract-holistic-from-item-based-meaning meaning subtracted-meanings))
              )
@@ -124,7 +127,7 @@
                                    t)))
                    (or item-based-cxn-meaning
                        ;; avoid that item-based cxns with pass-through args emerge as they have no meaning whatsoever
-                       (not (equal (first slot-args-list) item-based-args))))
+                       (not (equal (first slot-args-list) top-args))))
                          
           (let* ((contributing-footprints (sixth holistic-cxn-subunit-blocks))
                  (dummy-slot-fcs (seventh holistic-cxn-subunit-blocks))
@@ -132,7 +135,7 @@
                                               item-based-cxn-form-constraints
                                               item-based-cxn-meaning
                                               slot-args-list
-                                              item-based-args
+                                              top-args
                                               original-cxn-set
                                               :cxn-type 'item-based
                                               :cxn-set 'fcg::routine))
@@ -161,7 +164,7 @@
                                                                     (boundaries
                                                                      (left ,(first rewritten-item-based-boundaries))
                                                                      (right ,(second rewritten-item-based-boundaries)))
-                                                                    (args ,item-based-args)
+                                                                    (args ,top-args)
                                                                     (subunits ,holistic-subunit-names))
                                                                    ,@contributing-footprints
                                                                    <-
@@ -193,7 +196,7 @@
                                                                     (boundaries
                                                                      (left ,(first rewritten-item-based-boundaries))
                                                                      (right ,(second rewritten-item-based-boundaries)))
-                                                                    (args ,item-based-args)
+                                                                    (args ,top-args)
                                                                     (subunits ,holistic-subunit-names))
                                                                    ,@holistic-cxn-contributing-units
                                                                    <-
