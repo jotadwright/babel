@@ -1128,7 +1128,7 @@
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
            (peel-of-ingredient 0.0 new-peel-container container-available-at)))))
 
-(defprimitive portion-and-arrange ((portions list-of-kitchen-entities)
+(defprimitive portion-and-arrange ((portions t) ; can be a list-of-kitchen-entities or a transferable-container with portions
                                    (kitchen-state-out kitchen-state)
                                    (kitchen-state-in kitchen-state)
                                    (container-with-dough transferable-container)
@@ -1243,7 +1243,112 @@
 
        (bind (portions 1.0 portions portions-available-at)
              (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-             (destination 0.0 source-destination))))))
+             (destination 0.0 source-destination)))))
+
+  ;; Case 3: Destination container specified and arrangement pattern not specified
+  ((kitchen-state-in container-with-dough destination quantity unit
+                     => arrangement-pattern portions kitchen-state-out)
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-destination (find-object-by-persistent-id destination new-kitchen-state))
+          (default-arrangement-pattern (make-instance 'evenly-spread))
+          (portions-available-at (+ 80 (max (kitchen-time kitchen-state-in)
+                                            (available-at (find (id container-with-dough) binding-objects
+                                                                :key #'(lambda (binding-object)
+                                                                         (and (value binding-object)
+                                                                              (id (value binding-object)))))))))
+          (kitchen-state-available-at portions-available-at))
+
+
+     ;; portion contents from container and put them on the counter top
+     (let* ((container-with-dough-instance
+              (find-object-by-persistent-id container-with-dough (counter-top new-kitchen-state)))
+            (dough (first (contents container-with-dough-instance)))
+            (value-to-transfer (value (quantity (amount dough))))
+            (portion-amount (make-instance 'amount :quantity quantity :unit unit))
+            (left-to-transfer (copy-object value-to-transfer))
+            (countertop (counter-top new-kitchen-state))
+            (portions (make-instance 'list-of-kitchen-entities)))
+
+       ; convert the portion amount to grams
+       (when (not (eq (type-of unit) 'g))
+         (let ((conversion-ingredient (copy-object dough)))
+           (setf (amount conversion-ingredient) portion-amount)
+           (setf portion-amount (amount (convert-to-g conversion-ingredient)))))
+       
+       (loop while (> left-to-transfer 0)
+             for new-portion = (copy-object dough)
+             if (> left-to-transfer (value (quantity portion-amount))) ;; not dealing with rest?
+             do (setf (amount new-portion) portion-amount
+                      (contents new-destination) (cons new-portion (contents new-destination))
+                      left-to-transfer (- left-to-transfer (value (quantity portion-amount))))
+             else do (setf (amount new-portion) (make-instance 'amount
+                                                               :quantity (make-instance 'quantity
+                                                                                        :value left-to-transfer)
+                                                               :unit unit)
+                           (contents countertop) (cons new-portion (contents countertop))
+                           left-to-transfer 0)
+             finally 
+             (setf (contents container-with-dough-instance) nil)
+             (setf (arrangement new-destination) default-arrangement-pattern)) 
+
+       (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+       (bind (portions 1.0 new-destination portions-available-at)
+             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+             (arrangement-pattern 0.0 default-arrangement-pattern)))))
+  
+   ;; Case 4: Arrangement pattern specified and destination container specified
+  ((kitchen-state-in container-with-dough destination quantity unit arrangement-pattern
+                     => portions kitchen-state-out)
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-destination (find-object-by-persistent-id destination new-kitchen-state))
+          (portions-available-at (+ 80 (max (kitchen-time kitchen-state-in)
+                                            (available-at (find (id container-with-dough) binding-objects
+                                                                :key #'(lambda (binding-object)
+                                                                         (and (value binding-object)
+                                                                              (id (value binding-object)))))))))
+          (kitchen-state-available-at portions-available-at))
+
+
+     ;; portion contents from container and put them on the counter top
+     (let* ((container-with-dough-instance
+              (find-object-by-persistent-id container-with-dough (counter-top new-kitchen-state)))
+            (dough (first (contents container-with-dough-instance)))
+            (value-to-transfer (value (quantity (amount dough))))
+            (portion-amount (make-instance 'amount :quantity quantity :unit unit))
+            (left-to-transfer (copy-object value-to-transfer))
+            (countertop (counter-top new-kitchen-state))
+            (portions (make-instance 'list-of-kitchen-entities)))
+
+       ; convert the portion amount to grams
+       (when (not (eq (type-of unit) 'g))
+         (let ((conversion-ingredient (copy-object dough)))
+           (setf (amount conversion-ingredient) portion-amount)
+           (setf portion-amount (amount (convert-to-g conversion-ingredient)))))
+       
+       (loop while (> left-to-transfer 0)
+             for new-portion = (copy-object dough)
+             if (> left-to-transfer (value (quantity portion-amount))) ;; not dealing with rest?
+             do (setf (amount new-portion) portion-amount
+                      (contents new-destination) (cons new-portion (contents new-destination))
+                      left-to-transfer (- left-to-transfer (value (quantity portion-amount))))
+             else do (setf (amount new-portion) (make-instance 'amount
+                                                               :quantity (make-instance 'quantity
+                                                                                        :value left-to-transfer)
+                                                               :unit unit)
+                           (contents countertop) (cons new-portion (contents countertop))
+                           left-to-transfer 0)
+             finally 
+             (setf (contents container-with-dough-instance) nil)
+             (setf (arrangement new-destination) arrangement-pattern)) 
+
+       (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+       (bind (portions 1.0 new-destination portions-available-at)
+             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))
+  
 
 (defprimitive preheat-oven ((preheated-oven oven)
                             (kitchen-state-out kitchen-state)
