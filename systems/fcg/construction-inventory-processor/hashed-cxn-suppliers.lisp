@@ -60,6 +60,8 @@
                        (attr-val construction :meaning)
                        (attr-val construction :lex-id))))))
 
+
+
 (defmethod hash ((node cip-node)
                  (mode (eql :hash-string-meaning-lex-id)) ;; For using hashed construction sets in the root.
                  &key &allow-other-keys)
@@ -76,6 +78,36 @@
     (if (eql (car-direction (cipn-car node)) '<-)
       (append strings lex-ids)
       (append meanings lex-ids))))
+
+
+;; hash mode = :hash-string-meaning
+;; ---------------------------------------------------------
+(defmethod hash ((construction construction)
+                 (mode (eql :hash-string-meaning))
+                 &key &allow-other-keys)
+  "Returns the string and meaning from the attributes of the construction"
+  (when (or (attr-val construction :string)
+            (attr-val construction :meaning))
+    (remove-duplicates
+     (list (attr-val construction :string)
+           (attr-val construction :meaning)))))
+          
+
+
+(defmethod hash ((node cip-node)
+                 (mode (eql :hash-string-meaning)) ;; For using hashed construction sets in the root.
+                 &key &allow-other-keys)
+  "Checks the root and returns entities (for IRL meanings) or predicates."
+  (let* ((units (fcg-get-transient-unit-structure node))
+         (strings (mapcar #'third (extract-strings (list (get-root units)))))
+         (meanings (loop for meaning in (extract-meaning (get-root units))
+                         collect (if (and (= 4 (length meaning)) (eql 'bind (first meaning)))
+                                     (fourth meaning)
+                                     (first meaning)))))
+    (if (eql (car-direction (cipn-car node)) '<-)
+      strings
+      meanings)))
+
 
 
 ;; #########################################################

@@ -77,7 +77,7 @@
                                         (:initial-cxn-score . ,(get-configuration experiment :initial-cxn-score))
                                         (:initial-categorial-link-weight . ,(get-configuration experiment :initial-categorial-link-weight))
                                         (:ignore-transitive-closure . t)
-                                        (:hash-mode . :hash-string-meaning-lex-id))
+                                        (:hash-mode . :hash-string-meaning))
                    :diagnostics (gl::diagnose-non-gold-standard-meaning gl::diagnose-non-gold-standard-utterance)
                    :repairs ,(get-configuration experiment :repairs)
                    :visualization-configurations ((:show-constructional-dependencies . nil)
