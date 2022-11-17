@@ -35,7 +35,6 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   (setf (kitchen-time copy) (kitchen-time kitchen-state))
   )
 
-; TODO RD: currently unused
 ;(defclass vr-kitchen-state (container)
 ;  ()
 ;  (:documentation "Representation of the state of the Abe_sim kitchen."))
@@ -88,7 +87,6 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 ;; Abstract classes for properties ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; TODO RD: Currently unused
 ;(defclass aggregate (kitchen-entity)
 ;  ()
 ;  (:documentation "For ingredients that are formed by combining several separate elements in VR, e.g. butter or liquids"))
@@ -370,18 +368,17 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying perishable objects."
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated perishable))))
 
-; TODO RD: currently unused
-(defclass pluckable (kitchen-entity)
-  ((is-plucked :type boolean :initarg :is-plucked :accessor is-plucked :initform nil)
-   (plucked :type ingredient :initarg :plucked :accessor plucked :initform nil) ;;leaves
-   (pluckee :type ingredient :initarg :pluckee :accessor pluckee :initform nil)) ;;sprig
-  (:documentation "For objects that can be plucked such as fresh herbs"))
+;(defclass pluckable (kitchen-entity)
+;  ((is-plucked :type boolean :initarg :is-plucked :accessor is-plucked :initform nil)
+;   (plucked :type ingredient :initarg :plucked :accessor plucked :initform nil) ;;leaves
+;   (pluckee :type ingredient :initarg :pluckee :accessor pluckee :initform nil)) ;;sprig
+;  (:documentation "For objects that can be plucked such as fresh herbs"))
 
-(defmethod copy-object-content ((pluckable pluckable) (copy pluckable))
-  "Copying pluckable objects."
-  (setf (is-plucked copy) (copy-object (is-plucked pluckable)))
-  (setf (plucked copy) (copy-object (plucked pluckable)))
-  (setf (pluckee copy) (copy-object (pluckee pluckable))))
+;(defmethod copy-object-content ((pluckable pluckable) (copy pluckable))
+;  "Copying pluckable objects."
+;  (setf (is-plucked copy) (copy-object (is-plucked pluckable)))
+;  (setf (plucked copy) (copy-object (plucked pluckable)))
+;  (setf (pluckee copy) (copy-object (pluckee pluckable))))
 
 (defclass reusable (kitchen-entity)
   ((used :type boolean :initarg :used :accessor used :initform nil))
@@ -681,7 +678,6 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Plain brown sugar."))
 
-; TODO RD: aggregate useful for now?
 (defclass butter (ingredient mixable beatable meltable has-temperature can-be-brushed-with spreadable can-have-on-top) ; aggregate)
   ((keep-refrigerated :initform t))
   (:documentation "Butter."))
@@ -704,7 +700,6 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Caster sugar, granulated sugar with a very fine consistency."))
 
-; TODO RD: meaning of stalkable?
 (defclass celery (ingredient cuttable) ;;stalkable?
   ((keep-refrigerated :initform T))
   (:documentation "Celery"))
