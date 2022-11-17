@@ -111,7 +111,6 @@
                                                                                                                          :value 500)))))))
          (make-instance 'kitchen-cabinet
                         :contents (list
-
                                    ;; bowls
                                    (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
                                    (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
