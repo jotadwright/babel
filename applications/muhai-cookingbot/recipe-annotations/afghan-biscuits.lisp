@@ -201,7 +201,7 @@
 
     ;; "Spoon a little icing on each cookie, and decorate with flaked almonds."
     (fetch ?table-spoon ?kitchen-state-with-table-spoon ?kitchen-with-icing-ready table-spoon 1)
-    (spread ?iced-cookies ?kitchen-state-with-iced-cookies ?kitchen-state-with-table-spoon  ?cooled-cookies ?icing ?table-spoon)
+    (spread ?iced-cookies ?kitchen-state-with-iced-cookies ?kitchen-state-with-table-spoon ?cooled-cookies ?icing ?table-spoon)
     (sprinkle ?sprinkled-cookies ?kitchen-state-with-sprinkled-cookies ?kitchen-state-with-iced-cookies ?iced-cookies ?proportioned-almonds)))
 
 
