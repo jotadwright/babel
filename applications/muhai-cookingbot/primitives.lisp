@@ -122,11 +122,9 @@
      ;; 2) find container with ingredients on countertop
      (let* ((target-tool-instance-new-ks (retrieve-concept-instance-and-bring-to-countertop 'whisk new-kitchen-state))
             (new-container (find-object-by-persistent-id container-with-ingredients (counter-top new-kitchen-state)))
-            (new-mixture (create-homogeneous-mixture-in-container new-container)))
+            (new-mixture (create-homogeneous-mixture-in-container new-container 'beaten)))
 
        (setf (used target-tool-instance-new-ks) t)
-       (setf (mixed new-mixture) nil) ; TODO RD: maybe remove this automatic setting from create-homogeneous-mixture?
-       (setf (beaten new-mixture) t)
        (setf (contents new-container) (list new-mixture))
 
        (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
@@ -141,7 +139,7 @@
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
           (new-tool (find-object-by-persistent-id tool (counter-top new-kitchen-state)))
           (new-container (find-object-by-persistent-id container-with-ingredients (counter-top new-kitchen-state)))
-          (new-mixture (create-homogeneous-mixture-in-container new-container))
+          (new-mixture (create-homogeneous-mixture-in-container new-container 'beaten))
           (kitchen-state-available-at (+ 60 (max (kitchen-time kitchen-state-in)
                                                 (available-at (find (id container-with-ingredients) binding-objects
                                                                      :key #'(lambda (binding-object)
@@ -149,7 +147,6 @@
                                                                                    (id (value binding-object)))))))))
           (container-available-at kitchen-state-available-at))
 
-     (setf (beaten new-mixture) t)
      (setf (contents new-container) (list new-mixture))
 
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
@@ -1053,10 +1050,8 @@
                 (covered-with new-container-with-input-ingredients))
 
        ;; "mix" contents in container with ingredients
-       (let ((mixture (create-homogeneous-mixture-in-container new-container-with-input-ingredients)))
+       (let ((mixture (create-homogeneous-mixture-in-container new-container-with-input-ingredients 'shaken)))
 
-         (setf (mixed mixture) nil) ; TODO RD: perhaps remove this automatic setting from create-homogeneous-mixture?
-         (setf (shaken mixture) t)
          (setf (contents new-container-with-input-ingredients) (list mixture))
          (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
 
@@ -1919,7 +1914,9 @@
           do (push thing (items new-list-of-kitchen-entities))
           finally (return new-list-of-kitchen-entities))))
 
-(defun create-homogeneous-mixture-in-container (container)
+(defun create-homogeneous-mixture-in-container (container &optional (mixing-operation 'mixed))
+  "Create a homogeneous mixture composed of the ingredients in the given container and mixed according to the given mixing-operation.
+   The mixing-operation should be a valid slotname specifying a boolean slot that will be set to T."
   (let* ((total-value (loop for ingredient in (contents container)
                             for current-value = (value (quantity (amount (convert-to-g ingredient))))
                             sum current-value))
@@ -1937,10 +1934,12 @@
                                   :unit (make-instance 'percent))))
   
       (setf (contents container) (list mixture))
-      (setf (mixed (first (contents container))) t)
+      (setf (slot-value (first (contents container)) mixing-operation) t)
       mixture))
 
 (defun create-heterogeneous-mixture-in-container (container)
+  "Create a homogeneous mixture composed of the ingredients in the given container and mixed according to the given mixing-operation.
+   The mixing-operation should be a valid slotname specifying a boolean slot that will be set to T."
   (let* ((total-value (loop for ingredient in (contents container)
                             for current-value = (value (quantity (amount (convert-to-g ingredient))))
                             sum current-value))
