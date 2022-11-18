@@ -629,30 +629,38 @@
                  (bind (dipped-object 1.0 new-input-container dipped-object-available-at)
                        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
-
-; TODO RD: 
-; * quantity more than 1?
-; * Should it still be used for something conceptualizable or should it be a cooking-utensil? This can now be called with ingredients still (is this something we want)
-(defprimitive fetch ((thing-fetched kitchen-entity)
+; TOVERIFY RD: if a list-of-kitchen-entities is returned, should there be a primitive to take one item of this "stack of items"?
+(defprimitive fetch ((thing-fetched kitchen-entity) ; if quantity > 1, this will be a list-of-kitchen-entities 
                      (kitchen-state-out kitchen-state)
                      (kitchen-state-in kitchen-state)
                      (concept-to-fetch conceptualizable)
                      (quantity quantity)) ;;what if this is more than 1?
   
-  ;; Case 1: Fetch object from somewhere in the kitchen and place it on the countertop
+  ;; Case 1: Fetch object(s) from somewhere in the kitchen and place it on the countertop
   ((kitchen-state-in concept-to-fetch quantity =>  kitchen-state-out thing-fetched)
 
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
-          (thing-available-at (+ 30 (kitchen-time kitchen-state-in)))
-          (kitchen-state-available-at thing-available-at)
-          ;; find object and place it on the countertop
-          (target-concept-instance-new-ks (retrieve-concept-instance-and-bring-to-countertop (type-of concept-to-fetch) new-kitchen-state)))
+          (thing-available-at (+ (* (value quantity) 30)
+                                 (kitchen-time kitchen-state-in)))
+          (kitchen-state-available-at thing-available-at))
 
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+   
+     (if (= (value quantity) 1)
+       
+       ;; find object and place it on the countertop
+       (let ((target-concept-instance-new-ks (retrieve-concept-instance-and-bring-to-countertop (type-of concept-to-fetch) new-kitchen-state)))
+         (bind (thing-fetched 1.0 target-concept-instance-new-ks thing-available-at)
+               (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))
 
-     (bind (thing-fetched 1.0 target-concept-instance-new-ks thing-available-at)
-           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
-
+       ;; find all objects and place them on the countertop (one by one)
+       (let ((things-fetched (make-instance 'list-of-kitchen-entities)))
+         (loop for i from 1 to (value quantity)
+               do
+                 (push (retrieve-concept-instance-and-bring-to-countertop (type-of concept-to-fetch) new-kitchen-state (items things-fetched))
+                       (items things-fetched)))
+         (bind (thing-fetched 1.0 things-fetched thing-available-at)
+               (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
 (defprimitive fetch-and-proportion ((container-with-ingredient container)
                                     (kitchen-state-out kitchen-state)
@@ -1753,10 +1761,11 @@
 ;; Helper functions
 ;;--------------------------------------------------------------------------
 
-(defun retrieve-concept-instance-and-bring-to-countertop (kitchen-concept kitchen-state)
-  "Returns an instance of the given concept that has been put on the countertop."
+(defun retrieve-concept-instance-and-bring-to-countertop (kitchen-concept kitchen-state &optional excluded)
+  "Returns an instance of the given concept that has been put on the countertop.
+   Optionally some entities can be excluded from the search (used when fetching multiple items at once)."
   (multiple-value-bind (target-object-in-kitchen-input-state target-object-original-location)
-      (find-unused-kitchen-entity kitchen-concept kitchen-state)
+      (find-unused-kitchen-entity kitchen-concept kitchen-state excluded)
 
     (unless target-object-in-kitchen-input-state
       (error (format nil "~a not found in current kitchen state!!" kitchen-concept)))
@@ -1855,25 +1864,27 @@
     
   (values target-container source-container)))
 
-
-(defun find-unused-kitchen-entity (reusable-type place)
+(defun find-unused-kitchen-entity (reusable-type place &optional excluded)
+  "Recursively look for an unused kitchen entity of the given type in the given place.
+   Optionally some entities can be excluded from the search (used when fetching multiple items at once)."
   (cond ((loop for el in (contents place)
                if (and (eql reusable-type (type-of el))
-                       (not (used el)))
+                       (not (used el))
+                       (not (find el excluded)))
                do (return t)) ; first we check if an unused element of that type could be found in general (= condition part of cond)
          (loop for el in (contents place)
                if (and (eql reusable-type (type-of el))
-                       (not (used el)))
+                       (not (used el))
+                       (not (find el excluded)))
                do (return (values el place)))) ; we go over elements again and this time we will actually return the found element and the place in which it is found (= execution part of cond)
         (t
          (loop for el in (contents place)
                if (subtypep (type-of el) 'container)
-               do (multiple-value-bind (found-entity found-place)
-                      (find-unused-kitchen-entity reusable-type el)
-                    (if found-entity
+                 do (multiple-value-bind (found-entity found-place)
+                        (find-unused-kitchen-entity reusable-type el excluded)
+                      (if found-entity
                         (return (values found-entity found-place))))))))
-
-
+                    
 (defun find-ingredient (ingredient-type place &optional mother-place) ;;place can be bowl!!
   (cond ((loop for el in (contents place)
                unless (typep el 'counter-top)
