@@ -510,7 +510,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying fridges."
   (setf (arrangement copy) (copy-object (arrangement fridge))))
 
-; TODO RD: should a jar be uncovered first?
+; TOVERIFY RD: should a jar be uncovered first?
 (defclass jar (transferable-container coverable-container reusable shakeable)
   (); ((covered-with :initarg :covered-with :accessor covered-with :initform (make-instance 'jar-lid :is-covering T)))
   (:documentation "A jar. It's a container, coverable and tranferable."))

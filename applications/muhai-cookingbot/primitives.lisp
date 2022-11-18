@@ -1048,7 +1048,7 @@
                                                                                    (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
-     ; TODO RD: check affordance: should be covered?
+     ; TOVERIFY RD: check affordance: should be covered?
      (when (and (subtypep (type-of new-container-with-input-ingredients) 'coverable-container)
                 (covered-with new-container-with-input-ingredients))
 
@@ -1057,7 +1057,7 @@
 
          (setf (mixed mixture) nil) ; TODO RD: perhaps remove this automatic setting from create-homogeneous-mixture?
          (setf (shaken mixture) t)
-         (setf (contents new-container-with-input-ingredients) (list mixture)) ; TODO RD: already happened inside the create mixture call
+         (setf (contents new-container-with-input-ingredients) (list mixture))
          (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
 
          (bind (container-with-mixture 1.0 new-container-with-input-ingredients container-available-at)
@@ -1563,10 +1563,9 @@
   ;; Case 3: target container is given, sift is given
   ((container-with-ingredients-to-be-sifted target-container kitchen-state-in sifting-tool
                                             => kitchen-state-out container-with-sifted-contents)
-
-; TODO RD: sift is used
    
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-sift (find-object-by-persistent-id sifting-tool new-kitchen-state))
           (new-source-container (find-object-by-persistent-id container-with-ingredients-to-be-sifted new-kitchen-state))
           (new-target-container (find-object-by-persistent-id target-container new-kitchen-state))
           (container-available-at (+ 60 (max (kitchen-time kitchen-state-in)
@@ -1583,6 +1582,7 @@
      (setf (contents new-target-container) (append (contents new-target-container)
                                                    (contents new-source-container)))
      (setf (used new-target-container) t)
+     (setf (used new-sift) t)
        
      (loop for item in (contents new-target-container)
            when (typep item 'siftable)
@@ -1782,7 +1782,7 @@
   ; only minutes are supported currently
   (make-instance 'amount
                  :quantity (make-instance 'quantity
-                                          ; TODO RD: find better formula
+                                          ; TOVERIFY RD: location-related formula?
                                           :value (max (- (value (quantity (temperature ingredient)))
                                                          (* (/ (value (quantity (temperature ingredient))) 45)
                                                             (value (quantity new-amount))))
@@ -1902,39 +1902,6 @@
                   (let* ((contents-current-item (contents item))
                          (found-item (if contents-current-item (find-object-by-persistent-id object item))))
                     (when found-item (return found-item)))))))
-
-; TODO RD: Does this method have any use? A kitchen-state is a container so actually the method above will already do the same thing?
-;; find an object with the same id as the specified object inside the entire kitchen state
-;(defmethod find-object-by-persistent-id ((object kitchen-entity) (kitchen-state kitchen-state))
-;  (let ((current-fridge (fridge kitchen-state))
-;        (current-freezer (freezer kitchen-state))
-;        (current-pantry (pantry kitchen-state))
-;        (current-kitchen-cabinet (kitchen-cabinet kitchen-state))
-;        (current-counter-top (counter-top kitchen-state))
-;        (current-oven (oven kitchen-state))
-;        (current-stove (stove kitchen-state)))
-;    (cond ((eq (persistent-id object) (persistent-id current-fridge))
-;           current-fridge)
-;          ((eq (persistent-id object) (persistent-id current-freezer))
-;           current-freezer)
-;          ((eq (persistent-id object) (persistent-id current-pantry))
-;           current-pantry)
-;          ((eq (persistent-id object) (persistent-id current-kitchen-cabinet))
-;           current-kitchen-cabinet)
-;          ((eq (persistent-id object) (persistent-id current-counter-top))
-;           current-counter-top)
-;          ((eq (persistent-id object) (persistent-id current-oven))
-;           current-oven)
-;           ((eq (persistent-id object) (persistent-id current-stove))
-;           current-stove)
-;          (T
-;           (or (find-object-by-persistent-id object (counter-top kitchen-state))
-;               (find-object-by-persistent-id object current-fridge)
-;               (find-object-by-persistent-id object current-freezer)
-;               (find-object-by-persistent-id object current-pantry)
-;               (find-object-by-persistent-id object current-kitchen-cabinet)
-;               (find-object-by-persistent-id object current-oven)
-;               (find-object-by-persistent-id object current-stove))))))
 
 ;; find all kitchen entities in the list that are on the countertop
 (defun find-kitchen-entities (list-of-kitchen-entities countertop)
@@ -2119,6 +2086,38 @@
                                                           :value converted-value)))))))
     copied-ingredient))
 
+; TOVERIFY RD: Does this method have any use? A kitchen-state is a container so actually the method above will already do the same thing?
+;; find an object with the same id as the specified object inside the entire kitchen state
+;(defmethod find-object-by-persistent-id ((object kitchen-entity) (kitchen-state kitchen-state))
+;  (let ((current-fridge (fridge kitchen-state))
+;        (current-freezer (freezer kitchen-state))
+;        (current-pantry (pantry kitchen-state))
+;        (current-kitchen-cabinet (kitchen-cabinet kitchen-state))
+;        (current-counter-top (counter-top kitchen-state))
+;        (current-oven (oven kitchen-state))
+;        (current-stove (stove kitchen-state)))
+;    (cond ((eq (persistent-id object) (persistent-id current-fridge))
+;           current-fridge)
+;          ((eq (persistent-id object) (persistent-id current-freezer))
+;           current-freezer)
+;          ((eq (persistent-id object) (persistent-id current-pantry))
+;           current-pantry)
+;          ((eq (persistent-id object) (persistent-id current-kitchen-cabinet))
+;           current-kitchen-cabinet)
+;          ((eq (persistent-id object) (persistent-id current-counter-top))
+;           current-counter-top)
+;          ((eq (persistent-id object) (persistent-id current-oven))
+;           current-oven)
+;           ((eq (persistent-id object) (persistent-id current-stove))
+;           current-stove)
+;          (T
+;           (or (find-object-by-persistent-id object (counter-top kitchen-state))
+;               (find-object-by-persistent-id object current-fridge)
+;               (find-object-by-persistent-id object current-freezer)
+;               (find-object-by-persistent-id object current-pantry)
+;               (find-object-by-persistent-id object current-kitchen-cabinet)
+;               (find-object-by-persistent-id object current-oven)
+;               (find-object-by-persistent-id object current-stove))))))
 
 #|
 
