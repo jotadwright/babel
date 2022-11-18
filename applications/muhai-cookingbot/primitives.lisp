@@ -1603,13 +1603,6 @@
    
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
           (new-container-with-things-spread (find-object-by-persistent-id object-to-be-spread new-kitchen-state))
-          (number-of-spreadable-items (loop for item in (contents new-container-with-things-spread)
-                                            counting (typep item 'spreadable) into spreadables
-                                            finally (return spreadables)))
-          (actual-spread-in-bowl (first (contents container-with-spread)))
-          (quantity-per-item (float (/ (value (quantity (amount actual-spread-in-bowl)))
-                                       number-of-spreadable-items)))
-          (spread-unit (type-of (unit (amount actual-spread-in-bowl))))
           (new-spread-container (find-object-by-persistent-id container-with-spread new-kitchen-state))
           (new-spreading-tool (find-object-by-persistent-id can-spread-kitchen-tool new-kitchen-state))
           ;; time calculation of the spread object depends
@@ -1619,23 +1612,46 @@
                                                                            (and (value binding-object)
                                                                                 (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
-    
-     (loop for item in (contents new-container-with-things-spread)
-           for portioned-spread = (copy-object actual-spread-in-bowl)
-           do (setf (amount portioned-spread)  (make-instance 'amount
-                                                              :quantity (make-instance 'quantity
-                                                                                       :value quantity-per-item)
-                                                              :unit (make-instance spread-unit)))
-                                               
-              (setf (spread portioned-spread) t)
-              (setf (spread-with item) portioned-spread))
 
-     (setf (contents new-spread-container) nil)
-     (setf (used new-spreading-tool) t)
-     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+     (if (contents new-container-with-things-spread)
+
+       (let* ((number-of-items-to-spread-upon (loop with count = 0
+                                                    for item in (contents new-container-with-things-spread)
+                                                    if  (typep item 'can-be-spread-upon)
+                                                      do (incf count)
+                                                    finally (return count)))
+              (actual-spread-in-bowl (first (contents container-with-spread)))
+              (quantity-per-item (float (/ (value (quantity (amount actual-spread-in-bowl)))
+                                           number-of-items-to-spread-upon)))
+              (spread-unit (type-of (unit (amount actual-spread-in-bowl)))))
+
+         (loop for item in (contents new-container-with-things-spread)
+               for portioned-spread = (copy-object actual-spread-in-bowl)
+               do (setf (amount portioned-spread)  (make-instance 'amount
+                                                                  :quantity (make-instance 'quantity
+                                                                                           :value quantity-per-item)
+                                                                  :unit (make-instance spread-unit)))
+                                               
+                  (setf (spread portioned-spread) t)
+                  (setf (spread-with item) portioned-spread))
+
+         (setf (contents new-spread-container) nil)
+         (setf (used new-spreading-tool) t)
+         (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
      
-     (bind (container-with-objects-that-have-been-spread 1.0 new-container-with-things-spread container-available-at)
-           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+         (bind (container-with-objects-that-have-been-spread 1.0 new-container-with-things-spread container-available-at)
+               (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))
+
+       ; spread directly on the container itself
+
+       (progn
+         (setf (contents new-container-with-things-spread) (contents container-with-spread))
+         
+         (setf (contents new-spread-container) nil)
+         (setf (used new-spreading-tool) t)
+       
+         (bind (container-with-objects-that-have-been-spread 1.0 new-container-with-things-spread container-available-at)
+               (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))
   
   ;;Case 2: spreading tool not given => fall back on default
   ((kitchen-state-in object-to-be-spread container-with-spread 
@@ -1683,11 +1699,10 @@
                (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
                (can-spread-kitchen-tool 0.0 spreading-tool container-available-at)))
 
-      ; TODO RD: we spread on the container itself, why is this unsupported in case 1? Should the spread ingredient still be set to spread?
-       ; TODO RD: bekijken wanneer het wordt tegengekomen in een recept, misschien sommige container can be spread upon maken?
+       ; spread directly on the container itself
        (progn
          (setf (contents new-container-with-things-spread) (contents container-with-spread))
-
+         
          (setf (contents new-spread-container) nil)
          (setf (used spreading-tool) t)
        
