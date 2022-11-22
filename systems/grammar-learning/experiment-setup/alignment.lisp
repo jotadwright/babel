@@ -46,7 +46,7 @@
                                                              :key #'(lambda (node) (name (car-applied-cxn (cipn-car node)))))
                              collect (original-cxn (car-applied-cxn (cipn-car bad-node))))))
          (cxns-to-punish (remove-duplicates (loop for cxn in (append cxns-to-punish-solutions cxns-to-punish-non-solutions)
-                                                  when (equal 'SINGLE-FLOAT (type-of (cdr (first (attributes cxn))))) ;; skip cxns that were only just learned! they don't have an interaction number status yet
+                                                  when (find :learned-at (attributes cxn) :key #'car) ;; skip cxns that were only just learned! 
                                                   collect cxn))))
     (dolist (cxn cxns-to-punish)
       
