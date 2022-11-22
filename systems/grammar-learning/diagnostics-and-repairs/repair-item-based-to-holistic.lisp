@@ -29,9 +29,10 @@
     (random-elt (get-data problem :meanings))
     (get-configuration (construction-inventory node) :meaning-representation-formalism))
    nil
-   (construction-inventory node)))
+   (construction-inventory node)
+   node))
 
-(defun do-create-holistic-cxn-from-partial-analysis (form-constraints meaning parent-meaning cxn-inventory)
+(defun do-create-holistic-cxn-from-partial-analysis (form-constraints meaning parent-meaning cxn-inventory node)
   
   (let* ((original-cxn-inventory (original-cxn-set cxn-inventory))
          
@@ -87,13 +88,14 @@
 
             (when (and solution-cipn ;; todo: make this fail faster so it takes the next hypothesis!
                        (find 'SUCCEEDED (statuses solution-cipn) :test #'string=))
-                   (list
+                   (apply-fix
                     cxns-to-apply
                     cat-links-to-add
                     cxns-to-consolidate
                     cats-to-add
                     (extract-contributing-lex-class (last-elt cxns-to-apply))
                     t
+                    node
                     ))))))))
             
           

@@ -29,9 +29,10 @@
     (random-elt (get-data problem :meanings))
     (get-configuration (construction-inventory node) :meaning-representation-formalism))
    nil
-   (construction-inventory node)))
+   (construction-inventory node)
+   node))
               
-(defun do-create-item-based-cxn-from-partial-holistic-analysis (form-constraints meaning parent-meaning cxn-inventory)
+(defun do-create-item-based-cxn-from-partial-holistic-analysis (form-constraints meaning parent-meaning cxn-inventory node)
   "Creates item-based construction around matching holistic constructions"
   (let* ((original-cxn-set (original-cxn-set cxn-inventory))
          
@@ -234,13 +235,14 @@
                  (cxns-to-consolidate (list item-based-cxn-apply-first))     
                  (cats-to-add (list lex-class-item-based-cxn)))
         
-              (list
+              (apply-fix
                cxns-to-apply
                cat-links-to-add
                cxns-to-consolidate
                cats-to-add
                lex-class-item-based-cxn
                t
+               node
                )))))))
 
 

@@ -29,16 +29,15 @@
     (random-elt (get-data problem :meanings))
     (get-configuration (construction-inventory node) :meaning-representation-formalism))
    nil
-   (construction-inventory node)))
+   (construction-inventory node)
+   node))
 
-(defun do-repair-holophrase->item-based+holistic+holistic--substitution (form-constraints meaning parent-meaning cxn-inventory)
+(defun do-repair-holophrase->item-based+holistic+holistic--substitution (form-constraints meaning parent-meaning cxn-inventory node)
   "Creates item-based construction and holistic constructions
 based on existing construction with sufficient overlap."
   (let* ((cxn-inventory (original-cxn-set cxn-inventory))
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
-         (top-args (extract-args-from-meaning-networks meaning parent-meaning meaning-representation-formalism))
-         ) 
-
+         (top-args (extract-args-from-meaning-networks meaning parent-meaning meaning-representation-formalism)))
     (multiple-value-bind (non-overlapping-meaning-observation
                           non-overlapping-meaning-cxn
                           non-overlapping-form-observation
@@ -54,15 +53,17 @@ based on existing construction with sufficient overlap."
                                               top-args
                                               meaning-representation-formalism
                                               #'check-substitution-conditions)
-      
+      (declare (ignore overlapping-meaning-cxn overlapping-form-cxn))
       (when cxn
         (let* (;; cxns and links from iterating over all repairs
                (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn non-overlapping-form-observation 
                                                                                         non-overlapping-meaning-observation
                                                                                         (append overlapping-meaning parent-meaning)
                                                                                         cxn-inventory))
-               (cxns-and-links-holistic-part-cxn (handle-potential-holistic-cxn non-overlapping-form-cxn non-overlapping-meaning-cxn
-                                                                                (append overlapping-meaning parent-meaning) cxn-inventory))
+               (cxns-and-links-holistic-part-cxn (handle-potential-holistic-cxn non-overlapping-form-cxn
+                                                                                non-overlapping-meaning-cxn
+                                                                                (append overlapping-meaning parent-meaning)
+                                                                                cxn-inventory))
                ;; surrounding item-based cxn
                (item-based-cxn-variants (multiple-value-list (create-item-based-cxn cxn-inventory
                                                                                     overlapping-form-observation
@@ -98,13 +99,14 @@ based on existing construction with sufficient overlap."
                                                 (fourth cxns-and-links-holistic-part-cxn)))))
                 
                                   
-          (list
+          (apply-fix
            cxns-to-apply
            cat-links-to-add
            cxns-to-consolidate
            cats-to-add
            lex-class-item-based-cxn
            t
+           node
            ))))))
 
 

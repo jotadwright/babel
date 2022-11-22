@@ -1252,13 +1252,17 @@
   (set-configuration cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
   (set-configuration cxn-inventory :cxn-supplier-mode :hashed-and-scored-meta-layer-cxn-set-only)
   (set-configuration cxn-inventory :category-linking-mode :categories-exist)
+  (set-configuration cxn-inventory :hash-mode :hash-string-meaning-lex-id) ; excludes nil hashed cxns (e.g. ?x-?y)
+  (set-configuration cxn-inventory :max-nr-of-nodes 100)
   (set-configuration cxn-inventory :update-categorial-links nil)
   (set-configuration cxn-inventory :use-meta-layer nil)
   (set-configuration cxn-inventory :consolidate-repairs nil))
 
 (defun enable-meta-layer-configuration-item-based-first (cxn-inventory)
   (set-configuration cxn-inventory :parse-goal-tests '(:no-strings-in-root :no-applicable-cxns :connected-semantic-network :connected-structure :non-gold-standard-meaning))
+  (set-configuration cxn-inventory :hash-mode :hash-string-meaning)
   (set-configuration cxn-inventory :cxn-supplier-mode :hashed-and-scored-routine-cxn-set-only)
+  (set-configuration cxn-inventory :max-nr-of-nodes 2000)
   (set-configuration cxn-inventory :category-linking-mode :neighbours)
   (set-configuration cxn-inventory :update-categorial-links t)
   (set-configuration cxn-inventory :use-meta-layer t)
@@ -1281,7 +1285,7 @@
   (disable-meta-layer-configuration-item-based-first original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
   
     (with-disabled-monitor-notifications
-      (let* ((comprehension-result (multiple-value-list (comprehend-all form-constraints :cxn-inventory original-cxn-inventory)))
+      (let* ((comprehension-result (multiple-value-list (comprehend-all form-constraints :cxn-inventory original-cxn-inventory :n 1)))
              (cip-nodes (ignore-initial-nodes (discard-cipns-with-incompatible-meanings (second comprehension-result) (first comprehension-result) gold-standard-meaning))))
         (enable-meta-layer-configuration-item-based-first original-cxn-inventory)
         (first (sort cip-nodes #'sort-cipns-by-coverage-and-nr-of-applied-cxns)))))

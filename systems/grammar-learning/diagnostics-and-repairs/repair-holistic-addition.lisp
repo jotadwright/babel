@@ -25,10 +25,11 @@
     (random-elt (get-data problem :meanings))
     (get-configuration (construction-inventory node) :meaning-representation-formalism))
    nil
-   (construction-inventory node)))
+   (construction-inventory node)
+   node))
 
 
-(defun do-repair-holophrase->item-based+holistic--addition (form-constraints meaning parent-meaning cxn-inventory) 
+(defun do-repair-holophrase->item-based+holistic--addition (form-constraints meaning parent-meaning cxn-inventory node) 
   (let* ((cxn-inventory (original-cxn-set cxn-inventory))
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
          (top-args (extract-args-from-meaning-networks meaning parent-meaning meaning-representation-formalism)))
@@ -48,7 +49,7 @@
                                               top-args
                                               meaning-representation-formalism
                                               #'check-addition-conditions)
-      (declare (ignore non-overlapping-meaning-cxn non-overlapping-form-cxn))
+      (declare (ignore non-overlapping-meaning-cxn non-overlapping-form-cxn overlapping-meaning-cxn overlapping-form-cxn))
       (when cxn
         
         (let* (;; cxns and links from iterating over all repairs
@@ -83,12 +84,13 @@
                (cats-to-add (remove nil (append (list lex-class-item-based-cxn)
                                                 (fourth cxns-and-links-holistic-part-observation)))))
         
-          (list
+          (apply-fix
            cxns-to-apply
            cat-links-to-add
            cxns-to-consolidate
            cats-to-add
            lex-class-item-based-cxn
            t
+           node
            ))))))
 
