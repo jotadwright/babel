@@ -118,9 +118,7 @@
                       (- current-score delta))))
          
   (setf (attr-val cxn :score) new-score)
-  (if alter-ego-cxn
-    (setf (attr-val alter-ego-cxn :score) new-score)
-    (format t "no alter ego for: ~a ~%" (cxn-name cxn)))
+  (setf (attr-val alter-ego-cxn :score) new-score)
   (when (and (get-configuration (experiment agent) :remove-cxn-on-lower-bound)
              (<= (attr-val cxn :score) lower-bound))
     (delete-cxn (name cxn) (grammar agent) :key #'name)
