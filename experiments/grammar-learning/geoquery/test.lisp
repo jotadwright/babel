@@ -29,11 +29,7 @@
   ;(activate-monitor export-categorial-network-evolution-to-jsonl)
   (activate-monitor export-type-hierarchy-to-json))
 
-;; sparse logging, no trace-fcg
-(progn
-  (deactivate-all-monitors)
-  (activate-monitor print-a-dot-for-each-interaction)
-  (activate-monitor summarize-results-after-n-interactions))
+
 
 ;; full logging
 (progn
@@ -44,6 +40,12 @@
   (activate-monitor summarize-results-after-n-interactions)
   ;(activate-monitor show-type-hierarchy-after-n-interactions)
   (activate-monitor trace-interactions-in-wi))
+
+;; sparse logging, no trace-fcg
+(progn
+  (deactivate-all-monitors)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor summarize-results-after-n-interactions))
 
 (defun create-experiment ()
   (wi::reset)
@@ -89,7 +91,7 @@
 ;(run-interaction *experiment*)
 
 ;;; test series of interactions
-;(run-series *experiment* (length (question-data *experiment*)))
+(run-series *experiment* (length (question-data *experiment*)))
 
 
 ;(run-series *experiment* 880)
