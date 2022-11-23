@@ -170,7 +170,13 @@
                                      (create-static-file-dispatcher-and-handler 
                                       "/favicon.ico" (babel-pathname 
                                                       :directory '("systems" "web-interface")
-                                                      :name "favicon" :type "ico") "image/png"))))
+                                                      :name "favicon" :type "ico") "image/png")
+                                     (create-static-file-dispatcher-and-handler 
+                                      "/hamnosys.css" (babel-pathname 
+                                                      :directory '("systems" "web-interface")
+                                                      :name "hamnosys" :type "css") "text/css")
+                                     )))
+
 
 ;; #########################################################
 ;; define-css
@@ -236,6 +242,7 @@
 " ,@(loop for definition being the hash-values of *js-definitions*
           collect definition) "
 //]]>"))
+
 
 ;; #########################################################
 ;; client/server communication
@@ -439,6 +446,7 @@ hr { border:0px;color:#777;background-color:#777;height:1px;width:100%;}
              ((script :src "AsyncXMLHttpRequest.js"))
              ,@(get-combined-static-js-libraries)
              ,(get-combined-static-js-definitions)
+             ,@(get-combined-css-link-definitions)
              ,(get-combined-css-definitions))
             ((body)
              ,@(reverse *static-elements*))))
