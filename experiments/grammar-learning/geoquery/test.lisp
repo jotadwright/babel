@@ -62,6 +62,7 @@
                                                   nothing->holistic))
                                      (:observation-sample-mode . :train)
                                      (:number-of-epochs . 2)
+                                     (:comprehend-n . 1)
                                      (:meaning-representation . :geo)
                                      (:cxn-decf-score . 0.2)
                                      (:cxn-incf-score . 0.1)
