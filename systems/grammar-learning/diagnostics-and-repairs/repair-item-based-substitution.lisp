@@ -34,9 +34,10 @@
     (random-elt (get-data problem :meanings))
     (get-configuration (construction-inventory node) :meaning-representation-formalism))
    nil
-   (construction-inventory node)))
+   (construction-inventory node)
+   node))
   
-(defun do-create-item-based-cxn-from-partial-holistic-analysis+similar-item-based-cxn--substitution (form-constraints meaning parent-meaning cxn-inventory)
+(defun do-create-item-based-cxn-from-partial-holistic-analysis+similar-item-based-cxn--substitution (form-constraints meaning parent-meaning cxn-inventory node)
   "Creates item-based construction around matching holistic constructions"
   (let* ((cxn-inventory (original-cxn-set cxn-inventory))
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
@@ -88,13 +89,14 @@
 
               (when item-based-cxn-and-links
                 (setf (attr-val (last-elt cxns-to-apply) :repair) 'item-based->item-based--substitution)
-                (list
+                (apply-fix
                  cxns-to-apply
                  cat-links-to-add
                  cxns-to-consolidate
                  cats-to-add
                  (fifth item-based-cxn-and-links)
                  t
+                 node
                  ))))))))) ;todo, debug the else case!
                    
                    

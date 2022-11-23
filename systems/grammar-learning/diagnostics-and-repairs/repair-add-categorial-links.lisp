@@ -20,19 +20,7 @@
                      :problem problem
                      :restart-data cxns-and-categorial-links)
       nil)))
-#|
-(defmethod repair ((repair add-categorial-links)
-                   (problem non-gold-standard-utterance)
-                   (node cip-node)
-                   &key &allow-other-keys)
-  "Repair by adding new th links for existing nodes that were not previously connected."
-  (let ((cxns-and-categorial-links (create-categorial-links problem node)))
-    (when cxns-and-categorial-links
-      (make-instance 'fcg::cxn-fix
-                     :repair repair
-                     :problem problem
-                     :restart-data cxns-and-categorial-links))))
-|#
+
 (defun filter-by-phrase-type (type cxns)
   "returns all cxns in the list for the given type"
   (loop for cxn in cxns
@@ -57,9 +45,10 @@
     (random-elt (get-data problem :meanings))
     (get-configuration (construction-inventory node) :meaning-representation-formalism))
    nil
-   (construction-inventory node)))
+   (construction-inventory node)
+   node))
 
-(defun do-create-categorial-links (form-constraints meaning parent-meaning cxn-inventory)
+(defun do-create-categorial-links (form-constraints meaning parent-meaning cxn-inventory node)
   "Return the categorial links and applied cxns from a comprehend with :category-linking-mode :path-exists instead of :neighbours"
   (disable-meta-layer-configuration cxn-inventory) 
   (with-disabled-monitor-notifications
@@ -68,24 +57,24 @@
       (declare (ignore parsed-meanings))
       (enable-meta-layer-configuration cxn-inventory)
       (let* ((required-top-lvl-args (extract-args-from-meaning-networks meaning parent-meaning (get-configuration cxn-inventory :meaning-representation-formalism)))
-            (cip-node (first (reject-solutions-with-incompatible-args
-                              (rank-cipns solutions)
-                              meaning
-                              required-top-lvl-args))))
+             (cip-node (first (reject-solutions-with-incompatible-args
+                               (rank-cipns solutions)
+                               meaning
+                               required-top-lvl-args))))
             
         (when (and cip-node
                    (member 'succeeded (statuses cip-node) :test #'string=))
           (let* ((cxns-to-apply (mapcar #'original-cxn (reverse (applied-constructions cip-node))))
                  (top-level-category (extract-contributing-lex-class (last-elt cxns-to-apply))))
-              (list
-               cxns-to-apply
-               (extract-used-categorial-links cip-node)
-               nil
-               nil
-               top-level-category
-               (gold-standard-consulted-p cip-node)
-               )))))))
-
+            (apply-fix
+             cxns-to-apply
+             (extract-used-categorial-links cip-node)
+             nil
+             nil
+             top-level-category
+             (gold-standard-consulted-p cip-node)
+             node
+             )))))))
 
 (defun extract-used-categorial-links (solution-cipn)
   "For a given solution-cipn, extracts categorial links that were used (based on lex-class)."

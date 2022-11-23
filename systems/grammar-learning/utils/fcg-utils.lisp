@@ -69,7 +69,7 @@
     (last-elt (all-parents node))
     node))
 
-(defun create-temp-cxn-inventory (original-cxn-inventory &key (cxns-to-add nil) (categories-to-add nil) (categorial-links-to-add nil))
+(defun create-temp-cxn-inventory (original-cxn-inventory &key (cxns-to-add nil) (categories-to-add nil) (categorial-links-to-add nil) (category-linking-mode :categories-exist))
   (let* ((inventory-name (gensym))
          (temp-cxn-inventory (eval `(def-fcg-constructions
                                        ,inventory-name
@@ -85,13 +85,13 @@
                                                           (:parse-goal-tests :no-strings-in-root :no-applicable-cxns :connected-semantic-network :connected-structure :non-gold-standard-meaning)
                                                           (:de-render-mode . ,(get-configuration original-cxn-inventory :de-render-mode))
                                                           (:parse-order routine)
-                                                          (:max-nr-of-nodes . 250)
+                                                          (:max-nr-of-nodes . 2000)
                                                           (:production-order routine)
                                                           (:meaning-representation-formalism . ,(get-configuration original-cxn-inventory :meaning-representation))
                                                           (:render-mode . :generate-and-test)
-                                                          (:category-linking-mode . :categories-exist)
-                                                          (:update-categorial-links . t)
-                                                          (:consolidate-repairs . t)
+                                                          (:category-linking-mode . ,category-linking-mode)
+                                                          (:update-categorial-links . nil)
+                                                          (:consolidate-repairs . nil)
                                                           (:use-meta-layer . nil)
                                                           (:update-categorial-links . nil)
                                                           (:consolidate-repairs . nil)
@@ -184,7 +184,7 @@
                          &key (cxns-to-add nil)
                          (categories-to-add nil)
                          (categorial-links-to-add nil))
-  (let ((temp-cxn-inventory (create-temp-cxn-inventory original-cxn-inventory :cxns-to-add cxns-to-add :categories-to-add categories-to-add :categorial-links-to-add categorial-links-to-add)))
+  (let ((temp-cxn-inventory (create-temp-cxn-inventory original-cxn-inventory :cxns-to-add cxns-to-add :categories-to-add categories-to-add :categorial-links-to-add categorial-links-to-add :category-linking-mode :neighbours)))
     (multiple-value-bind
         (solution cip)
         (fcg-apply (processing-cxn-inventory temp-cxn-inventory) (car-source-cfs (cipn-car initial-node)) '<- :notify nil)

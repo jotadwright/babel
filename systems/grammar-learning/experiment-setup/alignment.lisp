@@ -30,7 +30,7 @@
           for alter-ego-cxn = (alter-ego-cxn cxn (grammar agent))
           do (inc-cxn-score cxn :delta cxn-delta)
           (inc-cxn-score alter-ego-cxn :delta cxn-delta)
-          finally (notify cxns-rewarded applied-cxns)))        
+          finally (notify cxns-rewarded applied-cxns)))
   ;; punish competitors
   (let* ((cxns-to-punish-solutions (loop for competing-solution-node in competing-solution-cipns
                                          for competitor-cxns = (set-difference (applied-constructions competing-solution-node) (applied-constructions solution-cipn) :key #'name)
@@ -45,8 +45,11 @@
                                                                      (cons solution-cipn (all-parents solution-cipn)))
                                                              :key #'(lambda (node) (name (car-applied-cxn (cipn-car node)))))
                              collect (original-cxn (car-applied-cxn (cipn-car bad-node))))))
-         (cxns-to-punish (remove-duplicates (append cxns-to-punish-solutions cxns-to-punish-non-solutions))))
+         (cxns-to-punish (remove-duplicates (loop for cxn in (append cxns-to-punish-solutions cxns-to-punish-non-solutions)
+                                                  when (find :learned-at (attributes cxn) :key #'car) ;; skip cxns that were only just learned! 
+                                                  collect cxn))))
     (dolist (cxn cxns-to-punish)
+      
       (dec-cxn-score agent cxn :delta (get-configuration (experiment agent) :cxn-decf-score)))
     (notify cxns-punished cxns-to-punish)))
       

@@ -29,11 +29,7 @@
   ;(activate-monitor export-categorial-network-evolution-to-jsonl)
   (activate-monitor export-type-hierarchy-to-json))
 
-;; sparse logging, no trace-fcg
-(progn
-  (deactivate-all-monitors)
-  (activate-monitor print-a-dot-for-each-interaction)
-  (activate-monitor summarize-results-after-n-interactions))
+
 
 ;; full logging
 (progn
@@ -42,10 +38,14 @@
   (activate-monitor trace-fcg)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
-  (activate-monitor show-type-hierarchy-after-n-interactions)
+  ;(activate-monitor show-type-hierarchy-after-n-interactions)
   (activate-monitor trace-interactions-in-wi))
 
-
+;; sparse logging, no trace-fcg
+(progn
+  (deactivate-all-monitors)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor summarize-results-after-n-interactions))
 
 (defun create-experiment ()
   (wi::reset)
@@ -54,16 +54,18 @@
     (eval `(make-instance 'grammar-learning-experiment
                           :entries '((:repairs . (add-categorial-links
                                                   ;item-based->item-based--substitution
-                                                  ;item-based->holistic
+                                                  item-based->holistic
                                                   holistic->item-based--substitution
                                                   holistic->item-based--addition
-                                                  ;holistic->item-based--deletion
-                                                  ;holistic->item-based
+                                                  holistic->item-based--deletion
+                                                  holistic->item-based
                                                   nothing->holistic))
-                                     (:observation-sample-mode . :debug)
+                                     (:observation-sample-mode . :train)
+                                     (:number-of-epochs . 2)
                                      (:meaning-representation . :geo)
                                      (:cxn-decf-score . 0.2)
                                      (:cxn-incf-score . 0.1)
+                                     (:remove-cxn-on-lower-bound . nil)
                                      (:alignment-strategy . :lateral-inhibition)
                                      (:de-render-mode . :de-render-string-meets-no-punct)
                                      (:corpus-files-root . ,(merge-pathnames
@@ -72,8 +74,6 @@
                                      (:corpus-data-file . ,(make-pathname
                                                             :name "geoquery_en" :type "jsonl")))))))
 
-
-                              
 
 ;(cl-store:store (grammar (first (agents *experiment*))) (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-random" :type "store"))
 
@@ -91,11 +91,11 @@
 ;(run-interaction *experiment*)
 
 ;;; test series of interactions
-;(run-series *experiment* (length (question-data *experiment*)))
+(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 50);  
 
-;(run-series *experiment* 830) ;
+;(run-series *experiment* 880)
+;(run-series *experiment* 100)
 
 
 #|
