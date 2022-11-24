@@ -263,7 +263,7 @@
   (setf (points to-similarity-score) (+ (points similarity-score) (points to-similarity-score)))
   (setf (max-points to-similarity-score) (+ (max-points similarity-score) (max-points to-similarity-score))))
 
-(defmethod compute-dish-score ((similarity-score similarity-score))
+(defmethod compute-ratio ((similarity-score similarity-score))
   "Compute the actual dish-score as the ratio of the awarded points to the maximum number of points that could be reached."
   (/ (points similarity-score) (max-points similarity-score)))
 
@@ -368,22 +368,16 @@
     ; check mixture hierarchy composition
     (loop for gold-mixture in gold-mixtures
           for sol-mixture in sol-mixtures
-          do
-            (let ((mixture-similarity-score (compare-mixture sol-mixture gold-mixture)))
-              (setf (points hierarchy-similarity-score) (+ (points hierarchy-similarity-score) (points mixture-similarity-score)))
-              (setf (max-points hierarchy-similarity-score) (+ (max-points hierarchy-similarity-score) (max-points mixture-similarity-score)))))
-    ; check the ratio of the hierarchy that is correct and adjust the points that were awarded until now accordingly
-    ; TODO RD: maybe compute the number of points that were actually mixed and adjust max-points           
-    (let* ((difference (abs (- (length gold-mixtures) (length sol-mixtures))))
-           (ratio (/ (length gold-mixtures) (+ (length gold-mixtures) difference))))
-      (setf (points hierarchy-similarity-score) (* ratio (points hierarchy-similarity-score))))
+          do (add-points hierarchy-similarity-score (compute-ratio (compare-mixture sol-mixture gold-mixture)) 1))
+    ; adjust the average of the similarity score based on the surplus or shortage of mixtures
+    (setf (max-points hierarchy-similarity-score) (+ (max-points hierarchy-similarity-score)
+                                                     (abs (- (length gold-mixtures) (length sol-mixtures)))))
 
     ; compute the final similarity-score for this ingredient, with ingredient composition being a bit more important than mixture hierarchy
     (make-instance 'similarity-score
-                   :points (+ (* 0.6 (points ingredient-similarity-score))
-                               (* 0.4 (points hierarchy-similarity-score)))
-                   :max-points (+ (* 0.6 (max-points ingredient-similarity-score))
-                             (* 0.4 (max-points hierarchy-similarity-score))))))
+                   :points (+ (* 0.6 (compute-ratio ingredient-similarity-score))
+                              (* 0.4 (compute-ratio hierarchy-similarity-score)))
+                   :max-points 1)))
 
 (defmethod compare-mixture ((sol-mixture mixture) (gold-mixture mixture))
   "Compute a similarity score for the given mixtures."
@@ -401,7 +395,7 @@
     ; check if it is the same type of mixture (heterogeneous or homogeneous),
     ; this is very important so it has a big effect on the final score
     (unless (eq (type-of sol-mixture) (type-of gold-mixture))
-      (setf (score mixture-similarity-score) (/ (score mixture-similarity-score 2))))
+      (setf (points mixture-similarity-score) (/ (points mixture-similarity-score) 2)))
     mixture-similarity-score))
 
 (defmethod compare-node-dishes ((sol-dish irl::irl-program-processor-node) (gold-dish irl::irl-program-processor-node))
@@ -439,13 +433,12 @@
                 do (add-points container-score 1 1)
               else
                 do (add-points container-score 0 1))
-        ;; contents specific scoring
         ; number of portions in the dish is worth a score of 1
         ; (only 1 because right now an end dish will always be portions of the same mixture, so just one portioning operation might be missing)
         (if (= (length (contents-or-items sol-value)) (length (contents gold-value)))
-          (add-points contents-score 1 1)
-          (add-points contents-score 0 1))
-        ; actual composition of the final contents
+          (add-points container-score 1 1)
+          (add-points container-score 0 1))
+        ;; contents specific scoring
         (let ((unfolded-dish-sol (unfold-dish sol-value))
               (unfolded-dish-gold (unfold-dish gold-value))
               (missing-ingredients '()))
@@ -457,32 +450,33 @@
               ; so check with which ingredient maximum similarity is found and use that one for score computation
                   do (let* ((sim-scores (loop for matching-ing-sol in matching-ings-sol
                                               collect (compare-hierarchy-ingredient matching-ing-sol unfolded-ing-gold)))
-                            (match-scores (mapcar #'compute-dish-score sim-scores))
+                            (match-scores (mapcar #'compute-ratio sim-scores))
                             (max-score (apply #'max match-scores))
                             (max-position (position max-score match-scores))
                             (max-ing (nth max-position matching-ings-sol)))
-                       (add-similarity-score-to (nth max-position sim-scores) contents-score)
-                       (setf unfolded-dish-sol (remove max-ing unfolded-dish-sol)))
+                       
+                       (add-points contents-score (compute-ratio (nth max-position sim-scores)) 1)
+                       (setf unfolded-dish-sol (remove max-ing unfolded-dish-sol))) 
               else
                   do (push unfolded-ing-gold missing-ingredients))
-          ; TODO RD: misschien alignen met hoe het gebeurt voor mixture hierarchy?        
-          (let ((missing-ratio (/ (- (length unfolded-dish-gold) (length missing-ingredients)) (length unfolded-dish-gold)))
-                (extra-ratio (/ (+ (length unfolded-dish-sol) (length unfolded-dish-gold)) (length unfolded-dish-gold))))
-            (setf (points contents-score) (* (points contents-score) missing-ratio))
-            (setf (points contents-score) (/ (points contents-score) extra-ratio))))
+          ; adjust the average of the similarity score based on the shortage of mixtures
+          (setf (max-points contents-score) (+ (max-points contents-score)
+                                               (length missing-ingredients)))
+          ; adjust the average of the similarity score based on the surplus of mixtures
+          (setf (max-points contents-score) (+ (max-points contents-score)
+                                               (length unfolded-dish-sol))))
 
          ; compute the final similarity-score for this dish, contents are much more important than container characteristics
         (make-instance 'similarity-score
-                       :points (+ (* 0.98 (points contents-score))
-                                  (* 0.02 (points container-score)))
-                       :max-points (+ (* 0.98 (max-points contents-score))
-                                    (* 0.02 (max-points container-score))))))))
+                       :points (+ (* 0.98 (compute-ratio contents-score))
+                                  (* 0.02 (compute-ratio container-score)))
+                       :max-points 1)))))
 
 (defmethod find-best-dish-score ((sol-final-node irl::irl-program-processor-node) (gold-output-node irl::irl-program-processor-node))
   "Compute a similarity score for all nodes in the solutions and return the best one."
   (let ((node sol-final-node)
         (scores '()))
-    (loop for score = (compute-dish-score (compare-node-dishes node gold-output-node))
+    (loop for score = (compute-ratio (compare-node-dishes node gold-output-node))
           do
             (push score scores)
             (setf node (parent node))
