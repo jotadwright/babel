@@ -139,7 +139,7 @@
     
     ;; "450 grams sweet potatoes, peeled and cut into 2 cm cubes"
     (fetch-and-proportion ?proportioned-sweet-potatoes ?kitchen-state-with-sweet-potatoes ?kitchen ?target-container-1 sweet-potato 450 g)
-    (peel ?peeled-sweet-potatoes ?kitchen-state-with-peeled-sweet-potatoes ?kitchen-state-with-sweet-potatoes ?proportioned-sweet-potatoes ?knife)
+    (peel ?peeled-sweet-potatoes ?sweet-potato-peels ?kitchen-state-with-peeled-sweet-potatoes ?kitchen-state-with-sweet-potatoes ?proportioned-sweet-potatoes ?knife)
     (cut ?sweet-potato-cubes ?kitchen-state-with-sweet-potato-cubes ?kitchen-state-with-peeled-sweet-potatoes ?peeled-sweet-potatoes two-cm-cubes ?knife) ;; use the same knife    
     
     ;; "3 tablespoons olive oil, divided"

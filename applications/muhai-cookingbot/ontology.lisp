@@ -388,6 +388,14 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying reusable objects."
   (setf (used copy) (copy-object (used reusable))))
 
+(defclass seed (kitchen-entity)
+  ((seed-of :initarg :seed-of :accessor seed-of :initform nil))
+  (:documentation "For seeds of an object."))
+
+(defmethod copy-object-content ((seed seed) (copy seed))
+  "Copying seed objects."
+  (setf (seed-of copy) (copy-object (seed-of seed))))
+
 (defclass seedable (kitchen-entity)
   ((seeded :type boolean :initarg :seeded :accessor seeded :initform nil))
   (:documentation "For objects that can be seeded."))
@@ -422,6 +430,15 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass siftable (kitchen-entity)
   ((sifted :type boolean :initarg :sifted :accessor sifted :initform nil))
   (:documentation "For objects that can be sifted"))
+
+(defclass peel (kitchen-entity)
+  ((peel-of :initarg :peel-of :accessor peel-of :initform nil))
+  (:documentation "For peels of an object."))
+
+(defmethod copy-object-content ((peel peel) (copy peel))
+  "Copying peel objects."
+  (setf (peel-of copy) (copy-object (peel-of peel))))
+
 
 (defmethod copy-object-content ((siftable siftable) (copy siftable))
   "Copying siftable objects."

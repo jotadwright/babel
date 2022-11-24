@@ -173,13 +173,13 @@
 
     ;; "160 grams peeled, seeded, and chopped cucumber"
     (fetch-and-proportion ?cucumber ?kitchen-state-with-cucumber ?kitchen-state-with-cut-tomatoes ?target-container-9 cucumber 160 g)
-    (peel ?peeled-cucumber ?kitchen-state-with-peeled-cucumber ?kitchen-state-with-cucumber ?cucumber ?knife) ;; use the same knife
-    (seed ?seeded-cucumber ?kitchen-state-with-seeded-cucumber ?kitchen-state-with-peeled-cucumber ?peeled-cucumber ?knife) ;; use the same knife
+    (peel ?peeled-cucumber ?cucumber-peels ?kitchen-state-with-peeled-cucumber ?kitchen-state-with-cucumber ?cucumber ?knife) ;; use the same knife
+    (seed ?seeded-cucumber ?cucumber-seeds ?kitchen-state-with-seeded-cucumber ?kitchen-state-with-peeled-cucumber ?peeled-cucumber ?knife) ;; use the same knife
     (cut ?chopped-cucumber ?kitchen-state-with-chopped-cucumber ?kitchen-state-with-seeded-cucumber ?seeded-cucumber slices ?knife) ;; use the same knife
     
     ;; "1 jalapeno pepper, seeded and chopped"
     (fetch-and-proportion ?jalapeno ?kitchen-state-with-jalapeno  ?kitchen-state-with-chopped-cucumber ?target-container-10 jalapeno 1 piece)
-    (seed ?seeded-jalapeno ?kitchen-state-with-seeded-jalapeno ?kitchen-state-with-jalapeno ?jalapeno ?knife) ;; use the same knife
+    (seed ?seeded-jalapeno ?jalapeno-seeds ?kitchen-state-with-seeded-jalapeno ?kitchen-state-with-jalapeno ?jalapeno ?knife) ;; use the same knife
     (cut ?chopped-jalapeno ?kitchen-state-with-chopped-jalapeno ?kitchen-state-with-seeded-jalapeno ?seeded-jalapeno slices ?knife) ;; use the same knife
 
     ;; "2 shallots, minced"
