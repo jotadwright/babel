@@ -473,10 +473,10 @@
 
          ; compute the final similarity-score for this dish, contents are much more important than container characteristics
         (make-instance 'similarity-score
-                       :points (+ (* 0.95 (points contents-score))
-                                  (* 0.05 (points container-score)))
-                       :max-points (+ (* 0.95 (max-points contents-score))
-                                    (* 0.05 (max-points container-score))))))))
+                       :points (+ (* 0.98 (points contents-score))
+                                  (* 0.02 (points container-score)))
+                       :max-points (+ (* 0.98 (max-points contents-score))
+                                    (* 0.02 (max-points container-score))))))))
 
 (defmethod find-best-dish-score ((sol-final-node irl::irl-program-processor-node) (gold-output-node irl::irl-program-processor-node))
   "Compute a similarity score for all nodes in the solutions and return the best one."
