@@ -61,12 +61,12 @@
                                                   holistic->item-based
                                                   nothing->holistic))
                                      (:observation-sample-mode . :train)
-                                     (:number-of-epochs . 2)
-                                     (:comprehend-n . 1)
+                                     (:number-of-epochs . 3)
+                                     (:comprehend-n . 4)
                                      (:meaning-representation . :geo)
                                      (:cxn-decf-score . 0.2)
                                      (:cxn-incf-score . 0.1)
-                                     (:remove-cxn-on-lower-bound . nil)
+                                     (:remove-cxn-on-lower-bound . t)
                                      (:alignment-strategy . :lateral-inhibition)
                                      (:de-render-mode . :de-render-string-meets-no-punct)
                                      (:corpus-files-root . ,(merge-pathnames
@@ -106,10 +106,7 @@ What is the most populated capital in the USA ?
 
  
 TODO:
-- meerdere epochs na elkaar, zien of de alignment nog iets verwijdert
-
-
-
+;; run 880, remove holophrases, run 880 of series 2
 
 
 |#

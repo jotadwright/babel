@@ -66,7 +66,7 @@
                                         (:parse-goal-tests :no-strings-in-root :no-applicable-cxns :connected-semantic-network :connected-structure :non-gold-standard-meaning)
                                         (:de-render-mode . ,(get-configuration experiment :de-render-mode))
                                         (:parse-order routine)
-                                        (:max-nr-of-nodes . 250000)
+                                        (:max-nr-of-nodes . 250)
                                         (:production-order routine)
                                         (:meaning-representation-formalism . ,(get-configuration experiment :meaning-representation))
                                         (:render-mode . :generate-and-test)
