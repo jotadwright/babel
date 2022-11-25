@@ -22,6 +22,9 @@
                  (notany #'null (mapcar #'fully-expanded? (append (list node) (queue (cip node))))));; everything in the queue has to be fully expanded
              ;; no solution in the tree so far
              (loop for current-node in (traverse-depth-first (top-node (cip node)) :collect-fn #'identity)
+                   when (find 'succeeded (statuses current-node))
+                   do (+ 1)
+                   
                    never (find 'succeeded (statuses current-node)))
              (eql (direction (cip node)) '<-))
     (let* ((resulting-cfs (car-resulting-cfs (cipn-car node)))

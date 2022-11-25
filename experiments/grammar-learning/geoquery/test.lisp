@@ -61,11 +61,11 @@
                                                   holistic->item-based
                                                   nothing->holistic))
                                      (:observation-sample-mode . :train)
-                                     (:number-of-epochs . 6)
+                                     (:number-of-epochs . 10)
                                      (:comprehend-n . 4)
                                      (:meaning-representation . :geo)
-                                     (:cxn-decf-score . 0.2)
-                                     (:cxn-incf-score . 0.1)
+                                     (:cxn-decf-score . 0.1)
+                                     (:cxn-incf-score . 0.3)
                                      (:remove-cxn-on-lower-bound . t)
                                      (:alignment-strategy . :lateral-inhibition)
                                      (:de-render-mode . :de-render-string-meets-no-punct)
@@ -76,7 +76,8 @@
                                                             :name "geoquery_en" :type "jsonl")))))))
 
 
-;(cl-store:store (grammar (first (agents *experiment*))) (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-random" :type "store"))
+;(cl-store:store (grammar (first (agents *experiment*))) (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-geo" :type "store"))
+;(cl-store:store *experiment* (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "experiment-train-geo" :type "store"))
 
 ;(add-element (make-html (categorial-network (grammar (first (agents *experiment*)))) :weights? t :render-program "circo"))
 ;(add-element (make-html (categorial-network (grammar (first (agents *experiment*)))) :weights t :render-program "fdp"))
@@ -93,7 +94,7 @@
 
 ;;; test series of interactions
 (run-series *experiment* (length (question-data *experiment*)))
-;(run-series *experiment* 100)
+;(run-series *experiment* 10)
 
 
 
