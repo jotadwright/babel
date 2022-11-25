@@ -69,7 +69,7 @@
     (last-elt (all-parents node))
     node))
 
-(defun create-temp-cxn-inventory (original-cxn-inventory &key (cxns-to-add nil) (categories-to-add nil) (categorial-links-to-add nil))
+(defun create-temp-cxn-inventory (original-cxn-inventory &key (cxns-to-add nil) (categories-to-add nil) (categorial-links-to-add nil) (category-linking-mode :categories-exist))
   (let* ((inventory-name (gensym))
          (temp-cxn-inventory (eval `(def-fcg-constructions
                                        ,inventory-name
@@ -89,15 +89,13 @@
                                                           (:production-order routine)
                                                           (:meaning-representation-formalism . ,(get-configuration original-cxn-inventory :meaning-representation))
                                                           (:render-mode . :generate-and-test)
-                                                          (:category-linking-mode . :categories-exist)
-                                                          (:update-categorial-links . t)
-                                                          (:consolidate-repairs . t)
-                                                          (:use-meta-layer . nil)
+                                                          (:category-linking-mode . ,category-linking-mode)
                                                           (:update-categorial-links . nil)
                                                           (:consolidate-repairs . nil)
+                                                          (:use-meta-layer . nil)
                                                           (:initial-categorial-link-weight . ,(get-configuration original-cxn-inventory :initial-categorial-link-weight))
                                                           (:ignore-transitive-closure . t)
-                                                          (:hash-mode . :hash-string-meaning-lex-id))))))
+                                                          (:hash-mode . :hash-string-meaning))))))
     (add-categories categories-to-add (categorial-network temp-cxn-inventory) :recompute-transitive-closure nil)
     (dolist (categorial-link categorial-links-to-add)
       (add-categories (list (car categorial-link) (cdr categorial-link)) (categorial-network temp-cxn-inventory) :recompute-transitive-closure nil)
@@ -176,7 +174,7 @@
                                                                                    :direction '<-))))
         (ordered-fcg-apply (mapcar #'get-processing-cxn cxns-to-add) initial-node '<- (processing-cxn-inventory temp-cxn-inventory)))
       ;; non-sequential normal comprehend
-      (multiple-value-list (comprehend utterance :gold-standard-meaning gold-standard-meaning :cxn-inventory temp-cxn-inventory :silent t)))
+      (second (multiple-value-list (comprehend utterance :gold-standard-meaning gold-standard-meaning :cxn-inventory temp-cxn-inventory :silent t))))
       ))
 
 (defun apply-in-sandbox (initial-node
@@ -184,7 +182,7 @@
                          &key (cxns-to-add nil)
                          (categories-to-add nil)
                          (categorial-links-to-add nil))
-  (let ((temp-cxn-inventory (create-temp-cxn-inventory original-cxn-inventory :cxns-to-add cxns-to-add :categories-to-add categories-to-add :categorial-links-to-add categorial-links-to-add)))
+  (let ((temp-cxn-inventory (create-temp-cxn-inventory original-cxn-inventory :cxns-to-add cxns-to-add :categories-to-add categories-to-add :categorial-links-to-add categorial-links-to-add :category-linking-mode :neighbours)))
     (multiple-value-bind
         (solution cip)
         (fcg-apply (processing-cxn-inventory temp-cxn-inventory) (car-source-cfs (cipn-car initial-node)) '<- :notify nil)

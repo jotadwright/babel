@@ -1,7 +1,77 @@
 (in-package :grammar-learning)
 
+(defun predicates-with-equal-constants-p (predicate-1 predicate-2)
+  "Returns t if predicate-1 and predicate-2 are equal in terms of constants."
+  (when (= (length predicate-1) (length predicate-2))
+    (loop for el-1 in predicate-1
+          for el-2 in predicate-2
+          unless (or (equal el-1 el-2)
+                     (and (variable-p el-1)
+                          (variable-p el-2)))
+          do (return nil)
+          finally (return t))))
 
-  
+(defun make-renamings (el-1 el-2 bindings)
+  "Finds renamings to ensure equality between el-1 and el-2 (no unification)"
+  (cond ((eq bindings nil)
+          nil)
+        ((equal el-1 el-2)
+         bindings)
+        ((and (variable-p el-1)
+              (variable-p el-2)
+              (assoc el-1 bindings)
+              (equal el-2 (cdr (assoc el-1 bindings))))
+         bindings)
+        ((and (variable-p el-1)
+              (variable-p el-2)
+              (not (assoc el-1 bindings))
+              (not (find el-2 bindings :key #'cdr)))
+         (extend-bindings el-1 el-2 bindings))
+        ((and (listp el-1) (listp el-2))
+         (let ((new-bindings (make-renamings (first el-1) (first el-2) bindings)))
+           (make-renamings (rest el-1) (rest el-2) new-bindings)))
+        (t
+         nil)))
+
+(defun diff-geo-networks (network-1-orig network-2-orig)
+  "return the diff from network-1, diff from network-2, and the variable bindings for the equal predicates"
+  (multiple-value-bind (network-1 n1-renamings) (fcg::rename-variables network-1-orig)
+    (multiple-value-bind (network-2 n2-renamings) (fcg::rename-variables network-2-orig)
+      (cond
+       ;; If networks are equal, return nil
+       ((equal network-1 network-2) (values nil nil nil))
+       ;; Check the networks in terms of variable bindings
+       ((loop with queue = (list (list network-1 network-2 '((T . T))))
+              with n1-diff = nil
+              until (not queue)
+              for state = (pop queue)
+              for n1-left = (first  state)
+              for n2-left = (second state)
+              for bindings = (third state)
+              ;; a solution is found
+              when (null n1-left)
+              do (return (values (fcg::rename-variables n1-diff (reverse-bindings n1-renamings))
+                                 (fcg::rename-variables (fcg::rename-variables n2-left (reverse-bindings bindings)) (reverse-bindings n1-renamings))                      
+                                 bindings))
+              ;; no solution is found
+              else do
+              (let ((predicates-with-equal-constants (find-all (first n1-left) n2-left :test #'predicates-with-equal-constants-p)))
+                (if predicates-with-equal-constants
+                  (loop for p in predicates-with-equal-constants
+                        for new-bindings = (make-renamings (first n1-left) p bindings)
+                        if new-bindings
+                        do
+                        (push (list (rest n1-left) (remove p n2-left :count 1) new-bindings) queue)
+                        else
+                        do (return-from diff-geo-networks (values (fcg::rename-variables network-1 (reverse-bindings n1-renamings))
+                                                                  (fcg::rename-variables network-2 (reverse-bindings n2-renamings))
+                                                                  bindings))) ;; there is a collision in the renamings - return it all as being different
+                  (progn
+                    (pushend (first n1-left) n1-diff)
+                    (push (list (rest n1-left) n2-left bindings) queue)))) ;; continue with rest of n1
+              finally (return (values (fcg::rename-variables n1-diff (reverse-bindings n1-renamings))
+                                     (fcg::rename-variables (fcg::rename-variables n2-left (reverse-bindings bindings)) (reverse-bindings n1-renamings))
+                                     bindings))))))))
 
 (defmethod diff-networks (network-1 network-2 first-predicate-fn next-predicate-fn compare-networks-fn add-atoms-fn rem-atoms-fn)
   "traverse both networks, return the longest possible sequence of overlapping predicates, assumes the network to be linear, and the variables to have a consistent position for traversal"
@@ -87,8 +157,8 @@
   (append form-constraints
           (list (list 'fcg::meets (second (get-boundary-units form-constraints)) 'gl::dummy))))
 
-(defmethod diff-form-constraints (fc-1 fc-2)
-  (multiple-value-bind (fc-1-diff fc-2-diff)
+(defun do-diff-fc (fc-1 fc-2)
+  (multiple-value-bind (tmp-fc-1-diff tmp-fc-2-diff)
       (diff-networks (add-dummy-end-meets fc-1)
                  (add-dummy-end-meets fc-2)
                  #'get-first-form-constraint
@@ -96,8 +166,24 @@
                  #'compare-form-constraints
                  #'add-string-atoms
                  #'remove-string-atoms)
-    (values (remove-dangling-meets fc-1-diff) (remove-dangling-meets fc-2-diff))
-    ))
+    (let ((fc-1-diff (remove-dangling-meets tmp-fc-1-diff))
+          (fc-2-diff (remove-dangling-meets tmp-fc-2-diff)))
+    (values fc-1-diff
+            fc-2-diff
+            (set-difference fc-1 fc-1-diff :test #'equal)
+            (set-difference fc-2 fc-2-diff :test #'equal)))))
+  
+(defmethod diff-form-constraints (fc-1 fc-2)
+    (if (> (length fc-1) (length fc-2))
+      ;; normal case fc-1 is longer
+      (do-diff-fc fc-1 fc-2)
+      ;; fc-2 is longer, reverse args and result
+      (multiple-value-bind (non-overlapping-form-observation
+                            non-overlapping-form-cxn
+                            overlapping-form-observation
+                            overlapping-form-cxn)           
+                   (do-diff-fc fc-2 fc-1)
+        (values non-overlapping-form-cxn non-overlapping-form-observation overlapping-form-cxn overlapping-form-observation))))
 
 (defun remove-dangling-meets (form-constraints)
   (loop with string-predicates = (extract-form-predicate-by-type form-constraints 'string)

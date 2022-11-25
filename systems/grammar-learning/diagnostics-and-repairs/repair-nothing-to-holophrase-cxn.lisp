@@ -42,10 +42,11 @@
     (random-elt (get-data problem :meanings))
     (get-configuration (construction-inventory node) :meaning-representation-formalism))
    nil
-   (construction-inventory node)))
+   (construction-inventory node)
+   node))
 
 
-(defun do-create-holistic-cxn (form-constraints meaning parent-meaning cxn-inventory)
+(defun do-create-holistic-cxn (form-constraints meaning parent-meaning cxn-inventory node)
   (let* ((cxn-inventory (original-cxn-set cxn-inventory))
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
          (cxn-name (make-cxn-name form-constraints cxn-inventory :add-numeric-tail t))
@@ -78,6 +79,7 @@
                                                                                   (HASH form ,form-constraints)))
                                                                                 :attributes (:label fcg::routine
                                                                                              :cxn-type holistic
+                                                                                             :is-holophrase ,(when node t)
                                                                                              :bare-cxn-name ,cxn-name
                                                                                              :repair nothing->holistic
                                                                                              :meaning ,(fourth (find 'bind meaning :key #'first))
@@ -116,11 +118,12 @@
          (cxns-to-consolidate (list holistic-cxn-apply-last))
          (cats-to-add (list lex-class-holistic-cxn)))
 
-         (list
+         (apply-fix
            cxns-to-apply
            nil
            cxns-to-consolidate
            cats-to-add
            lex-class-holistic-cxn
-           t)
+           t
+           node)
          ))

@@ -29,9 +29,10 @@
     (random-elt (get-data problem :meanings))
     (get-configuration (construction-inventory node) :meaning-representation-formalism))
    nil
-   (construction-inventory node)))
+   (construction-inventory node)
+   node))
 
-(defun do-create-holistic-cxn-from-partial-analysis (form-constraints meaning parent-meaning cxn-inventory)
+(defun do-create-holistic-cxn-from-partial-analysis (form-constraints meaning parent-meaning cxn-inventory node)
   
   (let* ((original-cxn-inventory (original-cxn-set cxn-inventory))
          
@@ -55,7 +56,8 @@
              
         (when (and inverted-cxn-meanings
                    (if (equal meaning-representation-formalism :irl)
-                        (= (length args-holistic-cxn) 2))
+                        (= (length args-holistic-cxn) 2)
+                        t)
                    remaining-meaning
                    (connected-semantic-network remaining-meaning)
                    (check-meets-continuity remaining-form-constraints) ;there is one continuous string in root
@@ -69,13 +71,12 @@
                                            
                  (temp-cats-to-add (append (mapcar #'extract-contributing-lex-class temp-cxns-to-add)
                                            (mappend #'get-all-conditional-unit-lex-classes temp-cxns-to-add)))
-                 (meaning-and-solution-cipn (comprehend-in-sandbox form-constraints original-cxn-inventory
+                 (solution-cipn (comprehend-in-sandbox form-constraints original-cxn-inventory
                                                        :apply-sequentially nil
                                                        :gold-standard-meaning meaning
                                                        :cxns-to-add temp-cxns-to-add
                                                        :categories-to-add temp-cats-to-add))
-                 (resulting-meaning (first meaning-and-solution-cipn))
-                 (solution-cipn (second meaning-and-solution-cipn))
+                 
                    
                  ;; build result
                  (cxns-to-apply (reverse (mapcar #'original-cxn (applied-constructions solution-cipn))))
@@ -85,14 +86,16 @@
                  (cats-to-add (fourth cxns-and-links-holistic-part-observation)))
         
 
-            (when (equivalent-meaning-networks resulting-meaning meaning meaning-representation-formalism) ;; todo: make this fail faster so it takes the next hypothesis!
-                   (list
+            (when (and solution-cipn ;; todo: make this fail faster so it takes the next hypothesis!
+                       (find 'SUCCEEDED (statuses solution-cipn) :test #'string=))
+                   (apply-fix
                     cxns-to-apply
                     cat-links-to-add
                     cxns-to-consolidate
                     cats-to-add
                     (extract-contributing-lex-class (last-elt cxns-to-apply))
                     t
+                    node
                     ))))))))
             
           

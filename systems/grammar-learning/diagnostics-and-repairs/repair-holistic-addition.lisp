@@ -25,35 +25,48 @@
     (random-elt (get-data problem :meanings))
     (get-configuration (construction-inventory node) :meaning-representation-formalism))
    nil
-   (construction-inventory node)))
+   (construction-inventory node)
+   node))
 
 
-(defun do-repair-holophrase->item-based+holistic--addition (form-constraints meaning parent-meaning cxn-inventory) 
+(defun do-repair-holophrase->item-based+holistic--addition (form-constraints meaning parent-meaning cxn-inventory node) 
   (let* ((cxn-inventory (original-cxn-set cxn-inventory))
-         (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism)))
-    (multiple-value-bind (cxn
-                          non-overlapping-form
-                          non-overlapping-meaning
-                          overlapping-form
-                          overlapping-meaning)
-        (find-subset-holistic-cxn cxn-inventory form-constraints meaning meaning-representation-formalism)
-
+         (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
+         (top-args (extract-args-from-meaning-networks meaning parent-meaning meaning-representation-formalism)))
+    
+    (multiple-value-bind (non-overlapping-meaning-observation
+                          non-overlapping-meaning-cxn
+                          non-overlapping-form-observation
+                          non-overlapping-form-cxn
+                          overlapping-meaning ; item-based part
+                          overlapping-meaning-cxn 
+                          overlapping-form-observation
+                          overlapping-form-cxn
+                          cxn)
+        (select-cxn-for-making-item-based-cxn cxn-inventory
+                                              form-constraints
+                                              meaning
+                                              top-args
+                                              meaning-representation-formalism
+                                              #'check-addition-conditions)
+      (declare (ignore non-overlapping-meaning-cxn non-overlapping-form-cxn overlapping-meaning-cxn overlapping-form-cxn))
       (when cxn
         
         (let* (;; cxns and links from iterating over all repairs
-               (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn non-overlapping-form non-overlapping-meaning (append parent-meaning overlapping-meaning) cxn-inventory))
+               (cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn non-overlapping-form-observation non-overlapping-meaning-observation (append parent-meaning overlapping-meaning) cxn-inventory))
                
                ;; surrounding item-based cxn
                (item-based-cxn-variants (multiple-value-list (create-item-based-cxn cxn-inventory
-                                                                                    overlapping-form
-                                                                                    non-overlapping-form
+                                                                                    overlapping-form-observation
+                                                                                    non-overlapping-form-observation
                                                                                     overlapping-meaning
-                                                                                    non-overlapping-meaning
+                                                                                    non-overlapping-meaning-observation
                                                                                     meaning
-                                                                                    parent-meaning
-                                                                                    (extract-args-from-meaning-networks non-overlapping-meaning (append parent-meaning overlapping-meaning) meaning-representation-formalism)
+                                                                                    top-args
+                                                                                    (extract-args-from-meaning-networks non-overlapping-meaning-observation (append overlapping-meaning parent-meaning) meaning-representation-formalism) ;; slot args
                                                                                     meaning-representation-formalism
                                                                                     'holistic->item-based--addition)))
+               
                (new-item-based-cxn-apply-first (first item-based-cxn-variants))
                (new-item-based-cxn-apply-last (second item-based-cxn-variants))
                (lex-class-item-based-cxn (third item-based-cxn-variants))
@@ -71,12 +84,13 @@
                (cats-to-add (remove nil (append (list lex-class-item-based-cxn)
                                                 (fourth cxns-and-links-holistic-part-observation)))))
         
-          (list
+          (apply-fix
            cxns-to-apply
            cat-links-to-add
            cxns-to-consolidate
            cats-to-add
            lex-class-item-based-cxn
            t
+           node
            ))))))
 

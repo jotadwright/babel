@@ -39,7 +39,7 @@
 ;; ################################
 
 (export '(clevr-object shape size color material relationships
-          coordinates rotation x-pos y-pos z-pos feature-values))
+          coordinates 3d-coordinates rotation x-pos y-pos z-pos feature-values))
 
 (defclass clevr-object (entity)
   ((shape         :type symbol :initarg :shape         :accessor shape)
@@ -48,6 +48,7 @@
    (material      :type symbol :initarg :material      :accessor material)
    (relationships :type list   :initarg :relationships :accessor relationships)
    (coordinates   :type list   :initarg :coordinates   :accessor coordinates)
+   (3d-coordinates :type list  :initarg :3d-coordinates :accessor 3d-coordinates)
    (rotation      :type number :initarg :rotation      :accessor rotation))
   (:documentation "An object in the CLEVR world"))
 
@@ -59,6 +60,15 @@
 
 (defmethod z-pos ((object clevr-object))
   (third (coordinates object)))
+
+(defmethod x-pos-3d ((object clevr-object))
+  (first (3d-coordinates object)))
+
+(defmethod y-pos-3d ((object clevr-object))
+  (second (3d-coordinates object)))
+
+(defmethod z-pos-3d ((object clevr-object))
+  (third (3d-coordinates object)))
 
 (defmethod feature-values ((object clevr-object))
   (list (cons :shape (shape object))
@@ -87,6 +97,7 @@
                    :material (key->symbol s-expr :material)
                    :relationships relationships
                    :coordinates (rest (assoc :pixel--coords s-expr))
+                   :3d-coordinates (rest (assoc :3d--coords s-expr))
                    :rotation (rest (assoc :rotation s-expr)))))
 
 (defmethod object->s-expr ((object clevr-object) &key)
@@ -105,6 +116,7 @@
                  :color (color obj) :material (material obj)
                  :relationships (copy-object (relationships obj))
                  :coordinates (copy-object (coordinates obj))
+                 :3d-coordinates (copy-object (3d-coordinates obj))
                  :rotation (copy-object (rotation obj))))
 
 (defmethod print-object ((object clevr-object) stream)
