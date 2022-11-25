@@ -19,7 +19,7 @@
   ;; Node has to be fully expanded and the direction needs to be comprehension
   (when (and (fully-expanded? node)
              (or (null (queue (cip node)))
-                 (notany #'null (mapcar #'fully-expanded? (append (list node) (queue (cip node))))))
+                 (notany #'null (mapcar #'fully-expanded? (append (list node) (queue (cip node))))));; everything in the queue has to be fully expanded
              (eql (direction (cip node)) '<-))
     (let* ((resulting-cfs (car-resulting-cfs (cipn-car node)))
            (meaning (extract-meanings (left-pole-structure resulting-cfs)))

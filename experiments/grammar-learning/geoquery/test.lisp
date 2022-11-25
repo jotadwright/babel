@@ -56,12 +56,12 @@
                                                   ;item-based->item-based--substitution
                                                   item-based->holistic
                                                   holistic->item-based--substitution
-                                                  holistic->item-based--addition
-                                                  holistic->item-based--deletion
+                                                  ;holistic->item-based--addition
+                                                  ;holistic->item-based--deletion
                                                   holistic->item-based
                                                   nothing->holistic))
                                      (:observation-sample-mode . :train)
-                                     (:number-of-epochs . 3)
+                                     (:number-of-epochs . 6)
                                      (:comprehend-n . 4)
                                      (:meaning-representation . :geo)
                                      (:cxn-decf-score . 0.2)
@@ -93,22 +93,17 @@
 
 ;;; test series of interactions
 (run-series *experiment* (length (question-data *experiment*)))
-
-
-;(run-series *experiment* 880)
 ;(run-series *experiment* 100)
 
 
+
 #|
-ISSUES:
-observation 485 holistic -> item-based:
-What is the most populated capital in the USA ?
-
- 
-TODO:
 ;; run 880, remove holophrases, run 880 of series 2
+(run-series *experiment* 880)
+(remove-holophrases
+ (grammar (first (agents *experiment*))))
+(run-series *experiment* 880)
+ |#
 
-
-|#
 
 

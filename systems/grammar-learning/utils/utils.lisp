@@ -1567,3 +1567,9 @@
   (loop for node in cip-nodes
         unless (find 'FCG::INITIAL (statuses node))
         collect node))
+
+
+(defun remove-holophrases (grammar)
+  (loop for cxn in (constructions grammar)
+        when (eql (attr-val cxn :is-holophrase) t)
+        do (delete-cxn cxn grammar)))
