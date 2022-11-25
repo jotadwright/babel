@@ -38,7 +38,13 @@
    node))
   
 (defun do-create-item-based-cxn-from-partial-holistic-analysis+similar-item-based-cxn--substitution (form-constraints meaning parent-meaning cxn-inventory node)
-  "Creates item-based construction around matching holistic constructions"
+  "Creates item-based construction around matching holistic constructions, fills the item with a dummy and looks for similar cxns, then again generalises to a more abstract item-based cxn.
+   example: 
+            (inventory): big-cxn, how-x-is-washington-cxn
+            (utterance): How big is Alaska => how-x-is-alaska-cxn > holistic->item-based
+            look for candidates with minimal diff for how-x-is-alaska-cxn, subst x with a dummy, and run normal substitution check
+            finds: how-x-is-washington-cxn, learns washington and alaska
+            applies holistic to item-based repair with inventory alaska-cxn + big-cxn, learns how-x-is-y-cxn"
   (let* ((cxn-inventory (original-cxn-set cxn-inventory))
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
          ;; temp item-based cxn to diff with an existing one
@@ -54,7 +60,11 @@
                               non-overlapping-form-observation
                               non-overlapping-form-cxn
                               cxn)
-            (select-item-based-cxn-for-making-item-based-cxn cxn-inventory intermediary-item-based-cxn meaning-representation-formalism) ;;todo: review args
+            (select-item-based-cxn-for-making-item-based-cxn
+             cxn-inventory
+             intermediary-item-based-cxn
+             meaning-representation-formalism
+             #'check-substitution-conditions)
           (when cxn
             ;; new holistic cxns based on substitution
             (let* ((cxns-and-links-holistic-part-observation (handle-potential-holistic-cxn non-overlapping-form-observation non-overlapping-meaning-observation overlapping-meaning-observation cxn-inventory))
