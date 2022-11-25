@@ -18,8 +18,11 @@
   "Diagnose that the meaning or form in a fully expanded node does not match the gold standard."
   ;; Node has to be fully expanded and the direction needs to be comprehension
   (when (and (fully-expanded? node)
-             (or (null (queue (cip node)))
+             (or (null (queue (cip node))) ;the queue is empty or
                  (notany #'null (mapcar #'fully-expanded? (append (list node) (queue (cip node))))));; everything in the queue has to be fully expanded
+             ;; no solution in the tree so far
+             (loop for current-node in (traverse-depth-first (top-node (cip node)) :collect-fn #'identity)
+                   never (find 'succeeded (statuses current-node)))
              (eql (direction (cip node)) '<-))
     (let* ((resulting-cfs (car-resulting-cfs (cipn-car node)))
            (meaning (extract-meanings (left-pole-structure resulting-cfs)))
