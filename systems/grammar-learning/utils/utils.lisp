@@ -1534,7 +1534,7 @@
 
 
 (defun discard-partial-solutions-with-incompatible-args (cip-nodes gold-standard-meaning meaning-representation-formalism)
-   "embed the unit-meaning with the gold standard, rename it, take the set diff, then get the args of the set diff vs gold std. the unit args should match these renamed gold std args"
+  "embed the unit-meaning with the gold standard, rename it, take the set diff, then get the args of the set diff vs gold std. the unit args should match these renamed gold std args"
   (loop for cip-node in (ignore-initial-nodes cip-nodes)
         when (loop with root = (get-root (left-pole-structure (car-resulting-cfs (cipn-car cip-node))))
                    with top-level-units = (remove root (remove-child-units (left-pole-structure (car-resulting-cfs (cipn-car cip-node)))))
@@ -1548,8 +1548,9 @@
                    for non-overlapping-predicates = (set-difference gold-standard-meaning overlapping-predicates :test #'equal)            
                    for diff-args = (extract-args-from-meaning-networks overlapping-predicates non-overlapping-predicates meaning-representation-formalism)
                    for renamed-unit-args = (when embedding (substitute-predicate-bindings unit-args (first embedding)))
-                   always (and non-overlapping-predicates ;; if there are no non-overlapping predicates, then it's a full solution, not a partial one.
-                               (equal renamed-unit-args diff-args)))
+                   ;always (and non-overlapping-predicates ;; if there are no non-overlapping predicates, then it's a full solution, not a partial one.
+                    ;           (equal renamed-unit-args diff-args)))
+                   always (equal renamed-unit-args diff-args))
         collect cip-node))
 
 (defun ignore-initial-nodes (cip-nodes)
