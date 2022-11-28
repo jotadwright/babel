@@ -61,11 +61,11 @@
                                                   holistic->item-based
                                                   nothing->holistic))
                                      (:observation-sample-mode . :train)
-                                     (:number-of-epochs . 10)
+                                     (:number-of-epochs . 20)
                                      (:comprehend-n . 20)
                                      (:meaning-representation . :geo)
-                                     (:cxn-decf-score . 0.1)
-                                     (:cxn-incf-score . 0.3)
+                                     (:cxn-decf-score . 0.3)
+                                     (:cxn-incf-score . 0.1)
                                      (:remove-cxn-on-lower-bound . t)
                                      (:alignment-strategy . :lateral-inhibition)
                                      (:de-render-mode . :de-render-string-meets-no-punct)
@@ -74,7 +74,6 @@
                                                              cl-user:*babel-corpora*))
                                      (:corpus-data-file . ,(make-pathname
                                                             :name "geoquery_en" :type "jsonl")))))))
-
 
 ;(cl-store:store (grammar (first (agents *experiment*))) (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-geo" :type "store"))
 ;(cl-store:store *experiment* (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "experiment-train-geo" :type "store"))
@@ -93,7 +92,7 @@
 ;(run-interaction *experiment*)
 
 ;;; test series of interactions
-(run-series *experiment* (length (question-data *experiment*)))
+;(run-series *experiment* (length (question-data *experiment*)))
 ;(run-series *experiment* 38)
 
 
