@@ -10,10 +10,12 @@
                  and prints the number after :dot-interval")
 
 (define-event-handler (print-a-dot-for-each-interaction interaction-finished)
-  (let ((symbol-to-print (last-elt (repair-buffer experiment)))
+  (let* ((symbol-to-print (last-elt (repair-buffer experiment)))
         (windowed-success (* 100 (float (average (subseq (success-buffer experiment)
                                                          (if (> (- (length (success-buffer experiment)) 100) -1) (- (length (success-buffer experiment)) 100) 0)
-                                                         (length (success-buffer experiment))))))))
+                                                         (length (success-buffer experiment)))))))
+        (grammar (grammar (first (interacting-agents experiment))))
+        (grammar-size (count-if #'non-zero-cxn-p (constructions grammar))))
     (cond ((= (interaction-number interaction) 1)
            (setf *start-time* (get-universal-time))
            (format t "~%~a" symbol-to-print))
@@ -25,7 +27,7 @@
                (= (mod (interaction-number interaction)
                        (get-configuration experiment :dot-interval)) 0))
            (multiple-value-bind (h m s) (seconds-to-hours-minutes-seconds (- (get-universal-time) *start-time*))
-             (format t "~a (~a / ~a% / ~ah ~am ~as)~%" symbol-to-print (interaction-number interaction) windowed-success h m s))
+             (format t "~a (~a / ~a% / ~a cxns /~ah ~am ~as)~%" symbol-to-print (interaction-number interaction) windowed-success grammar-size h m s))
            (setf *start-time* (get-universal-time)))
            
          ;(wi:clear-page))
