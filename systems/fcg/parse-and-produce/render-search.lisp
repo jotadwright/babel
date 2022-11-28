@@ -17,7 +17,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Generate-and-test renderer                                                                                                 ;;                  
 ;;                                                                                                                            ;;
-;; The render-mode :generate-and test  implements rendering as a search process, in which                                     ;;
+;; The render-mode :generate-and-test implements rendering as a search process, in which                                      ;;
 ;; the nodes are render states. Each render state has three slots: used-string-constraints,                                   ;;
 ;; containing an ordered list of string constraints (e.g. (string ?x "y")) being build up and representing the utterance,     ;;
 ;; remaining-string-constraints, containing string constraints that still need to be added to the                             ;;
