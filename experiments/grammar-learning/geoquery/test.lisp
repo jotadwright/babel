@@ -60,7 +60,7 @@
                                                   holistic->item-based--deletion
                                                   holistic->item-based
                                                   nothing->holistic))
-                                     (:observation-sample-mode . :debug)
+                                     (:observation-sample-mode . :train)
                                      (:number-of-epochs . 10)
                                      (:comprehend-n . 20)
                                      (:meaning-representation . :geo)
