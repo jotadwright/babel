@@ -60,9 +60,9 @@
                                                   holistic->item-based--deletion
                                                   holistic->item-based
                                                   nothing->holistic))
-                                     (:observation-sample-mode . :train)
+                                     (:observation-sample-mode . :debug)
                                      (:number-of-epochs . 10)
-                                     (:comprehend-n . 4)
+                                     (:comprehend-n . 20)
                                      (:meaning-representation . :geo)
                                      (:cxn-decf-score . 0.1)
                                      (:cxn-incf-score . 0.3)
@@ -94,7 +94,7 @@
 
 ;;; test series of interactions
 (run-series *experiment* (length (question-data *experiment*)))
-;(run-series *experiment* 100)
+;(run-series *experiment* 38)
 
 
 
@@ -105,6 +105,3 @@
  (grammar (first (agents *experiment*))))
 (run-series *experiment* 880)
  |#
-
-
-
