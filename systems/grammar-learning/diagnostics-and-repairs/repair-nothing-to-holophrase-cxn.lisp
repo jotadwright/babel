@@ -79,6 +79,7 @@
                                                                                   (HASH form ,form-constraints)))
                                                                                 :attributes (:label fcg::routine
                                                                                              :cxn-type holistic
+                                                                                             :is-holophrase ,(when node t)
                                                                                              :bare-cxn-name ,cxn-name
                                                                                              :repair nothing->holistic
                                                                                              :meaning ,(fourth (find 'bind meaning :key #'first))
