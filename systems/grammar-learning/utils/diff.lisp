@@ -112,32 +112,36 @@
         finally (let* ((non-overlapping-predicates-1 (sort-meaning-predicates
                                                       (set-difference (funcall rem-atoms-fn network-1) overlapping-predicates-1)
                                                       sorted-network-1))
-                      (non-overlapping-predicates-2 (sort-meaning-predicates
-                                                     (set-difference (funcall rem-atoms-fn network-2) overlapping-predicates-2)
-                                                     sorted-network-2))
-                      (start-pos-1 (cond ((position (first non-overlapping-predicates-1) sorted-network-1))
-                                         (t 0)))
-                      (end-pos-1 (position (last-elt non-overlapping-predicates-1) sorted-network-1))
-                      (non-overlapping-continuous-predicates-1
-                       (if (and non-overlapping-predicates-1
-                                end-pos-1)
-                         (funcall add-atoms-fn
-                                (subseq sorted-network-1 start-pos-1 (+ 1 end-pos-1))
-                                network-1)
-                         network-1))
-                      (start-pos-2 (position (first non-overlapping-predicates-2) sorted-network-2))
-                      (end-pos-2 (position (last-elt non-overlapping-predicates-2) sorted-network-2))
-                      (non-overlapping-continuous-predicates-2
-                       (when non-overlapping-predicates-2
-                         (funcall add-atoms-fn
-                                (subseq sorted-network-2 start-pos-2 (+ 1 end-pos-2))
-                                network-2))))
+                       (non-overlapping-predicates-2 (sort-meaning-predicates
+                                                      (set-difference (funcall rem-atoms-fn network-2) overlapping-predicates-2)
+                                                      sorted-network-2))
+                       (start-pos-1 (cond ((position (first non-overlapping-predicates-1) sorted-network-1))
+                                          (t 0)))
+                       (end-pos-1 (position (last-elt non-overlapping-predicates-1) sorted-network-1))
+                       (non-overlapping-continuous-predicates-1
+                        (if (and non-overlapping-predicates-1
+                                 start-pos-1
+                                 end-pos-1)
+                          (funcall add-atoms-fn
+                                   (subseq sorted-network-1 start-pos-1 (+ 1 end-pos-1))
+                                   network-1)
+                          network-1))
+                       (start-pos-2 (position (first non-overlapping-predicates-2) sorted-network-2))
+                       (end-pos-2 (position (last-elt non-overlapping-predicates-2) sorted-network-2))
+                       (non-overlapping-continuous-predicates-2
+                        (if (and non-overlapping-predicates-2
+                                 start-pos-2
+                                 end-pos-2)
+                          (funcall add-atoms-fn
+                                   (subseq sorted-network-2 start-pos-2 (+ 1 end-pos-2))
+                                   network-2)
+                          network-2)))
                       
-                       (return (values non-overlapping-continuous-predicates-1
-                                       non-overlapping-continuous-predicates-2
+                  (return (values non-overlapping-continuous-predicates-1
+                                  non-overlapping-continuous-predicates-2
                                        ;sorted-network-1
                                        ;sorted-network-2
-                                       )))))
+                                  )))))
 
 (defun sort-meaning-predicates (network-to-sort sorted-source-network)
   (sort network-to-sort #'< :key #'(lambda (x) (cond ((position x sorted-source-network))
