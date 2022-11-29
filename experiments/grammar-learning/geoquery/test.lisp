@@ -61,7 +61,7 @@
                                                   holistic->item-based
                                                   nothing->holistic))
                                      (:observation-sample-mode . :debug)
-                                     (:number-of-epochs . 1)
+                                     (:number-of-epochs . 30)
                                      (:comprehend-n . 20)
                                      (:meaning-representation . :geo)
                                      (:cxn-decf-score . 0.1)
