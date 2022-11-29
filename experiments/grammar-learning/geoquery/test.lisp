@@ -60,8 +60,8 @@
                                                   holistic->item-based--deletion
                                                   holistic->item-based
                                                   nothing->holistic))
-                                     (:observation-sample-mode . :train)
-                                     (:number-of-epochs . 20)
+                                     (:observation-sample-mode . :debug)
+                                     (:number-of-epochs . 1)
                                      (:comprehend-n . 20)
                                      (:meaning-representation . :geo)
                                      (:cxn-decf-score . 0.1)
@@ -120,8 +120,8 @@
 
 ;(defparameter *th* (categorial-network (grammar (first (interacting-agents *experiment*)))))
 
-(initialize-experiment-with-lexicon)
-
+;(initialize-experiment-with-lexicon)
+(create-experiment)
 ;;; test single interaction
 ;(run-interaction *experiment*)
 
