@@ -48,6 +48,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
         (fridge-instance (find-in-kitchen-state-contents kitchen-state 'fridge))
         (freezer-instance (find-in-kitchen-state-contents kitchen-state 'freezer))
         (oven-instance (find-in-kitchen-state-contents kitchen-state 'oven))
+        (microwave-instance (find-in-kitchen-state-contents kitchen-state 'microwave))
         (stove-instance (find-in-kitchen-state-contents kitchen-state 'stove)))
     (when (null counter-top-instance) (setf (contents kitchen-state) (cons (make-instance 'counter-top) (contents kitchen-state))))
     (when (null kitchen-cabinet-instance) (setf (contents kitchen-state) (cons (make-instance 'kitchen-cabinet) (contents kitchen-state))))
@@ -55,6 +56,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
     (when (null fridge-instance) (setf (contents kitchen-state) (cons (make-instance 'fridge) (contents kitchen-state))))
     (when (null freezer-instance) (setf (contents kitchen-state) (cons (make-instance 'freezer) (contents kitchen-state))))
     (when (null oven-instance) (setf (contents kitchen-state) (cons (make-instance 'oven) (contents kitchen-state))))
+    (when (null microwave-instance) (setf (contents kitchen-state) (cons (make-instance 'microwave) (contents kitchen-state))))
     (when (null stove-instance) (setf (contents kitchen-state) (cons (make-instance 'stove) (contents kitchen-state))))))
 
 ;; Readers for kitchen-state contents
@@ -77,6 +79,9 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 
 (defmethod oven ((kitchen-state kitchen-state))
   (find-in-kitchen-state-contents kitchen-state 'oven))
+
+(defmethod microwave ((kitchen-state kitchen-state))
+  (find-in-kitchen-state-contents kitchen-state 'microwave))
 
 (defmethod kitchen-cabinet ((kitchen-state kitchen-state))
   (find-in-kitchen-state-contents kitchen-state 'kitchen-cabinet))
@@ -567,6 +572,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass medium-bowl-lid (bowl-lid)
   ()
   (:documentation "A medium bowl lid. Used to cover a medium bowl"))
+
+(defclass microwave (container has-temperature) 
+  ()
+  (:documentation "The microwave. It's a container."))
 
 (defclass oven (container has-temperature) 
   ((arrangement :initform (make-instance 'shelved)))
