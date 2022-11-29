@@ -95,16 +95,15 @@
 (defmethod equal-ontology-objects ((object-1 string) (object-2 string) &optional ignore)
   (equalp object-1 object-2))
 
+; order doesn't matter for lists in any of our current ontology objects
 (defmethod equal-ontology-objects ((object-1 list) (object-2 list) &optional ignore)
-  (and (= (length object-1) (length object-2))
-       (loop for el-1 in object-1
-             for el-2 in object-2
-             always (equal-ontology-objects el-1 el-2 ignore))))
+  (set-difference object-1 object-2
+                  :test #'(lambda (el1 el2) (equal-ontology-objects el1 el2))))
 
 (defmethod equal-ontology-objects (object-1 object-2 &optional ignore)
   (and (equal (class-of object-1) (class-of object-2))
-       (let ((o1-slotnames (get-slotnames object-1 ignore)))
-       (loop for o1-slotname in o1-slotnames
+       (let* ((o1-slotnames (get-slotnames object-1 ignore)))
+         (loop for o1-slotname in o1-slotnames
              always (equal-ontology-objects
                      (slot-value object-1  o1-slotname)
                      (slot-value object-2  o1-slotname)
