@@ -109,7 +109,7 @@
     
     ;; "120 grams butter, melted"
     (fetch-and-proportion ?proportioned-butter ?kitchen-state-with-butter ?kitchen-state ?new-container-1 butter 120 g)
-    (melt ?melted-butter ?kitchen-state-with-melted-butter ?kitchen-state-with-butter ?proportioned-butter)
+    (melt ?melted-butter ?kitchen-state-with-melted-butter ?kitchen-state-with-butter ?proportioned-butter ?microwave)
     
     ;; "200 grams white sugar"
     (fetch-and-proportion ?proportioned-sugar ?kitchen-state-with-sugar ?kitchen-state-with-melted-butter ?new-container-2 white-sugar 200 g)
@@ -133,7 +133,7 @@
     (fetch-and-proportion ?proportioned-walnuts ?kitchen-state-with-walnuts ?kitchen-state-with-vanilla ?new-container-8 chopped-walnut 50 g)
             
     ;; "Preheat oven to 175 degrees C."
-    (preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-walnuts 175 degrees-celsius)
+    (preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-walnuts ?oven 175 degrees-celsius)
                           
     ;; "Grease and flour a baking pan."
     (fetch ?pan ?kitchen-state-with-pan ?kitchen-state-with-preheated-oven pan 1) ;; IMPLICIT

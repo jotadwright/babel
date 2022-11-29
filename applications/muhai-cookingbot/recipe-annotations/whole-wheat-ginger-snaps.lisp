@@ -183,7 +183,7 @@
          (fetch-and-proportion ?proportioned-decoration-sugar ?kitchen-state-with-sugar-for-decoration ?kitchen-state-with-ground-allspice ?target-container-13  white-sugar 300 g)
 
          ;; "Preheat the oven to 175 degrees C."
-         (preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-sugar-for-decoration 175 degrees-celsius)
+         (preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-sugar-for-decoration ?oven 175 degrees-celsius)
     
          ;; "Grease cookie sheets."
          (fetch ?cookie-sheet ?kitchen-state-with-cookie-sheet ?kitchen-state-with-preheated-oven cookie-sheet 1) ;; IMPLICIT

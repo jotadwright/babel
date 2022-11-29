@@ -146,7 +146,7 @@
     (fetch-and-proportion ?proportioned-almonds ?kitchen-state-with-almonds ?kitchen-state-with-water ?target-container-9 almond-flakes 50 g)
 
     ;; "Preheat oven to 180 C)"
-    (preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-almonds 180 degrees-celsius) 
+    (preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-almonds ?oven 180 degrees-celsius) 
 
     ;; "Line a baking sheet with baking paper."
     (fetch ?baking-tray ?kitchen-state-with-baking-tray ?kitchen-state-with-preheated-oven baking-tray 1)

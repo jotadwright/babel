@@ -105,6 +105,7 @@ The primitive operations that the cookingbot can actually handle, are listed her
   - ks-out
   - ks-in
   - items-at-source
+  - arrangement-pattern
   - destination
 
 #### **bake** (9)

@@ -174,7 +174,7 @@
     (cut ?chopped-fresh-cilantro ?kitchen-state-with-fresh-chopped-cilantro ?kitchen-state-with-fresh-cilantro ?proportioned-fresh-cilantro slices ?knife) ;; use the same knife
     
     ;; "Preheat oven to 230 degrees C."
-    (preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-fresh-chopped-cilantro 230 degrees-celsius)
+    (preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-fresh-chopped-cilantro ?oven 230 degrees-celsius)
 
     ; TODO RD: spread primitive? Not really I think.
     ;; "Spread sweet potatoes onto a rimmed baking sheet."

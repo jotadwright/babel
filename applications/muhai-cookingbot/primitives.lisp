@@ -765,9 +765,11 @@
 (defprimitive melt ((container-with-melted-ingredients transferable-container)
                     (kitchen-state-out kitchen-state)
                     (kitchen-state-in kitchen-state)
-                    (container-with-input-ingredients transferable-container))
+                    (container-with-input-ingredients transferable-container)
+                    (melting-tool has-temperature)) ; could be an oven, a pan on a stove or something else but it should be able to control its temperature
 
-  ((kitchen-state-in container-with-input-ingredients => kitchen-state-out container-with-melted-ingredients)
+  ;; Case 1: melting tool not given, a microwave is used
+  ((kitchen-state-in container-with-input-ingredients => kitchen-state-out container-with-melted-ingredients melting-tool)
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
           (new-container (find-object-by-persistent-id container-with-input-ingredients (counter-top new-kitchen-state)))
           (container-available-at (+ 60 (max (kitchen-time kitchen-state-in) ;;duration of melting depends on manner
@@ -779,7 +781,28 @@
 
      (loop for ingredient in (contents new-container)
            when (typep ingredient 'meltable)
-           do (setf (melted ingredient) t)) ;;also change the temperature
+           do (setf (melted ingredient) t)) ;;also change the temperature    
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+     
+     (bind (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           (melting-tool 1.0 (microwave new-kitchen-state) container-available-at)
+           (container-with-melted-ingredients 1.0 new-container container-available-at))))
+
+    ;; Case 2: melting tool given
+  ((kitchen-state-in container-with-input-ingredients melting-tool => kitchen-state-out container-with-melted-ingredients)
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-container (find-object-by-persistent-id container-with-input-ingredients (counter-top new-kitchen-state)))
+          (container-available-at (+ 60 (max (kitchen-time kitchen-state-in) ;;duration of melting depends on manner
+                                             (available-at (find (id container-with-input-ingredients) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at))
+
+     (loop for ingredient in (contents new-container)
+           when (typep ingredient 'meltable)
+           do (setf (melted ingredient) t)) ;;also change the temperature    
 
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
      
@@ -1087,10 +1110,11 @@
 (defprimitive preheat-oven ((preheated-oven oven)
                             (kitchen-state-out kitchen-state)
                             (kitchen-state-in kitchen-state)
+                            (oven oven)
                             (quantity quantity)
                             (unit unit))
-  
-  ((kitchen-state-in quantity unit => preheated-oven kitchen-state-out)
+  ; Case 1: oven not given
+  ((kitchen-state-in quantity unit => preheated-oven kitchen-state-out oven)
    
     (let* ((new-kitchen-state (copy-object kitchen-state-in))
            (kitchen-state-available-at (+ 15  (kitchen-time kitchen-state-in)))
@@ -1103,7 +1127,8 @@
       (setf (temperature oven-in-new-kitchen-state) target-temperature)
 
       (bind (preheated-oven 1.0 oven-in-new-kitchen-state oven-available-at)
-            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))   
+            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+            (oven 0.0 (oven kitchen-state-in) (kitchen-time kitchen-state-in))))))
 
 (defprimitive refrigerate ((container-with-ingredients-at-temperature transferable-container)
                            (kitchen-state-out kitchen-state)
