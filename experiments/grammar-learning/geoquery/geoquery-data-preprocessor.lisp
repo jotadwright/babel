@@ -60,22 +60,23 @@
           do (loop for lang-entry in nl
                    for lang = (second (first (second lang-entry)))
                    for value = (cl-json:encode-json-to-string (list (cons "utterance" (third lang-entry))
-                                                                             (cons "meaning" (format nil "~S" pred-mr))
-                                                                             (cons "geo-prolog" mr)
-                                                                             (cons "pred-to-pl" (format nil "~S" (predicates-to-geo-prolog pred-mr)))
-                                                                             (cons "geo-to-polish" (format nil "~S" (geo-prolog-to-polish-notation mr)))
-                                                                             (cons "id" id)
-                                                                             (cons "lang" lang)))
+                                                                    (cons "meaning" (format nil "~S" pred-mr))
+                                                                    (cons "geo-prolog" mr)
+                                                                    (cons "pred-to-pl" (format nil "~S" (predicates-to-geo-prolog pred-mr)))
+                                                                    (cons "geo-to-polish" (format nil "~S" (geo-prolog-to-polish-notation mr)))
+                                                                    (cons "id" id)
+                                                                    (cons "lang" lang)))
                    do (push value (gethash lang lang-hash nil)))
-          finally do (loop for lang being the hash-keys in lang-hash using (hash-value data)
-                        for data-file = (eval `(babel-corpora-pathname '("geoquery")
-                                                                       :file-name ,(string-append "test_geoquery_" lang) 
-                          :file-extension "jsonl"))
-                        do (with-open-file (f data-file :direction :output
-                                              :if-exists :supersede
-                                              :if-does-not-exist :create)
-                             (dolist (entry (reverse data))
-                               (write-line entry f)))))))
+          finally do (loop with data-file = (eval `(babel-corpora-pathname '("geoquery")
+                                                                           :file-name ,(string-append "test_geoquery_" lang) 
+                                                                           :file-extension "jsonl"))
+                           for lang being the hash-keys in lang-hash using (hash-value data)
+                        
+                           do (with-open-file (f data-file :direction :output
+                                                 :if-exists :supersede
+                                                 :if-does-not-exist :create)
+                                (dolist (entry (reverse data))
+                                  (write-line entry f)))))))
 
 
 (defun get-all-vars (geo-prolog-string)
