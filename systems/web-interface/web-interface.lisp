@@ -171,10 +171,6 @@
                                       "/favicon.ico" (babel-pathname 
                                                       :directory '("systems" "web-interface")
                                                       :name "favicon" :type "ico") "image/png")
-                                     (create-static-file-dispatcher-and-handler 
-                                      "/hamnosys.css" (babel-pathname 
-                                                      :directory '("systems" "web-interface")
-                                                      :name "hamnosys" :type "css") "text/css")
                                      )))
 
 
