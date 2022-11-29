@@ -68,6 +68,7 @@
                                         (:parse-order routine)
                                         (:max-nr-of-nodes . 250)
                                         (:production-order routine)
+                                        (:mark-holophrases . ,(get-configuration experiment :mark-holophrases))
                                         (:meaning-representation-formalism . ,(get-configuration experiment :meaning-representation))
                                         (:render-mode . :generate-and-test)
                                         (:category-linking-mode . ,(get-configuration experiment :category-linking-mode))

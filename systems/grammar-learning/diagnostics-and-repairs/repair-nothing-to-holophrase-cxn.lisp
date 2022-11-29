@@ -63,6 +63,7 @@
                             collect (third fc) into hash-strings
                             finally (return (last-elt hash-strings))))
          (cxn-inventory-copy (copy-object cxn-inventory))
+         (bla (get-configuration cxn-inventory :mark-holophrases))
          (holistic-cxn-apply-first (second (multiple-value-list  (eval
                                                                   `(def-fcg-cxn ,cxn-name-holistic-cxn-apply-first
                                                                                 ((?holistic-unit
@@ -79,7 +80,9 @@
                                                                                   (HASH form ,form-constraints)))
                                                                                 :attributes (:label fcg::routine
                                                                                              :cxn-type holistic
-                                                                                             :is-holophrase ,(when node t)
+                                                                                             :is-holophrase ,(when (and node
+                                                                                                                        (get-configuration cxn-inventory :mark-holophrases))
+                                                                                                               t)
                                                                                              :bare-cxn-name ,cxn-name
                                                                                              :repair nothing->holistic
                                                                                              :meaning ,(fourth (find 'bind meaning :key #'first))
@@ -108,6 +111,9 @@
                                                                    (right ,rightmost-unit-holistic-cxn))))
                                                                 :attributes (:label fcg::meta-only
                                                                              :cxn-type holistic
+                                                                             :is-holophrase ,(when (and node
+                                                                                                        (get-configuration cxn-inventory :mark-holophrases))
+                                                                                               t)
                                                                              :bare-cxn-name ,cxn-name
                                                                              :repair nothing->holistic
                                                                              :meaning ,(fourth (find 'bind meaning :key #'first))
