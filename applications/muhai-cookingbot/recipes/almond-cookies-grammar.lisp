@@ -1362,10 +1362,10 @@
                            (meets ?with-unit ?x-unit-left)))))))
 
 
-;(activate-monitor trace-fcg)
-;(activate-monitor trace-irl)
+(activate-monitor trace-fcg)
+(activate-monitor trace-irl)
 
-;(clear-output)
+(clear-output)
 
 (defparameter *init-op* `((get-kitchen ,(make-var 'kitchen-state))))
 
@@ -1403,6 +1403,8 @@
     (append *init-op* meaning-network)))
 
 (length *output*)
+
+
 
 
 (defparameter *filepath* "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\test.lisp")
