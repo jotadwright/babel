@@ -265,7 +265,9 @@
 
 (defmethod compute-ratio ((similarity-score similarity-score))
   "Compute the actual dish-score as the ratio of the awarded points to the maximum number of points that could be reached."
-  (/ (points similarity-score) (max-points similarity-score)))
+  (if (= (max-points similarity-score) 0)
+    1
+    (/ (points similarity-score) (max-points similarity-score))))
 
 ; made so comparison code doesn't have to make certain explicit distinctions between a container and a list-of-kitchen-entities object
 (defgeneric contents-or-items (object)
