@@ -2,21 +2,34 @@
 
 (in-package :grammar-learning)
 
+(defvar *start-time* nil)
+
 ;;;; Printing dots
 (define-monitor print-a-dot-for-each-interaction
                 :documentation "Prints a '.' for each interaction
                  and prints the number after :dot-interval")
 
 (define-event-handler (print-a-dot-for-each-interaction interaction-finished)
-  (let ((symbol-to-print (last-elt (repair-buffer experiment)))
+  (let* ((symbol-to-print (last-elt (repair-buffer experiment)))
         (windowed-success (* 100 (float (average (subseq (success-buffer experiment)
-                                                            (if (> (- (length (success-buffer experiment)) 100) -1) (- (length (success-buffer experiment)) 100) 0)
-                                                            (length (success-buffer experiment))))))))
+                                                         (if (> (- (length (success-buffer experiment)) 100) -1) (- (length (success-buffer experiment)) 100) 0)
+                                                         (length (success-buffer experiment)))))))
+        (grammar (grammar (first (interacting-agents experiment))))
+        (grammar-size (count-if #'non-zero-cxn-p (constructions grammar))))
     (cond ((= (interaction-number interaction) 1)
+           (setf *start-time* (get-universal-time))
            (format t "~%~a" symbol-to-print))
-          ((= (mod (interaction-number interaction)
-                   (get-configuration experiment :dot-interval)) 0)
-           (format t "~a (~a / ~a%)~%" symbol-to-print (interaction-number interaction) windowed-success))
+
+          ((or (= (mod (interaction-number interaction)
+                       (/ (length (question-data experiment))
+                          (get-configuration experiment :number-of-epochs)))
+                  0)
+               (= (mod (interaction-number interaction)
+                       (get-configuration experiment :dot-interval)) 0))
+           (multiple-value-bind (h m s) (seconds-to-hours-minutes-seconds (- (get-universal-time) *start-time*))
+             (format t "~a (~a / ~a% / ~a cxns /~ah ~am ~as)~%" symbol-to-print (interaction-number interaction) windowed-success grammar-size h m s))
+           (setf *start-time* (get-universal-time)))
+           
          ;(wi:clear-page))
           (t (format t "~a" symbol-to-print)))))
 
