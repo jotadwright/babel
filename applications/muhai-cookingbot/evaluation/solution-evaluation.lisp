@@ -29,6 +29,9 @@
               (cond ((not (find #\space line :test-not #'eql))
                      ; (print "Empty line is skipped")
                      nil)
+                    ((char= (char line 0) #\;)
+                     ; (print "Comment line is skipped")
+                     nil)
                     ((char= (char line 0) #\#)
                      ; first check the previous solution
                      (when solutions
@@ -494,7 +497,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *metrics*
-  '(subgoals-ratio dish-score execution-time)) ; TODO RD: add SMATCH
+  '(smatch-score subgoals-ratio dish-score execution-time)) ; TODO RD: add SMATCH
 
 (defun evaluate (filepath &optional (metrics *metrics*) (sim-envs *simulation-environments*))
   (let ((solutions (parse-solutions-file filepath))) ; read in the solutions

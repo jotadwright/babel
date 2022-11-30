@@ -53,7 +53,7 @@ def get_file_network(input_f):
             line = line.strip()
             if line == "":
                 continue
-            if line.startswith("#"):
+            if line.startswith(";") or line.startswith("#"):
                 # ignore the comment line (starting with "#") in the file
                 continue
             else:
