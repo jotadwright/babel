@@ -97,8 +97,8 @@
 
 ; order doesn't matter for lists in any of our current ontology objects
 (defmethod equal-ontology-objects ((object-1 list) (object-2 list) &optional ignore)
-  (set-difference object-1 object-2
-                  :test #'(lambda (el1 el2) (equal-ontology-objects el1 el2))))
+  (not (set-difference object-1 object-2
+                       :test #'(lambda (el1 el2) (equal-ontology-objects el1 el2 ignore)))))
 
 (defmethod equal-ontology-objects (object-1 object-2 &optional ignore)
   (and (equal (class-of object-1) (class-of object-2))
