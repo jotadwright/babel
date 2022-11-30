@@ -339,6 +339,8 @@
                                                                      (loop for matching-ing in matching-ings
                                                                            for current-value = (value (quantity (amount (ingredient matching-ing))))
                                                                            sum current-value)))
+              ; amount of the mixtures in the hierarchy are currently not directly checked anywhere,
+              ; so they don't have to be summed together (to save computing time)
               (push item merged-contents)
               (setf unfolded-contents (set-difference unfolded-contents (append (list item) matching-ings)))
           else
@@ -383,8 +385,9 @@
 
 (defmethod compare-mixture ((sol-mixture mixture) (gold-mixture mixture))
   "Compute a similarity score for the given mixtures."
-  (let ((sol-dish-slots (get-slotnames sol-mixture '(id persistent-id components)))
-        (gold-dish-slots (get-slotnames gold-mixture '(id persistent-id components)))
+   ; amount will only differ if components are different, which is already checked and rewarded/punished through other routes
+  (let ((sol-dish-slots (get-slotnames sol-mixture '(id persistent-id components amount)))
+        (gold-dish-slots (get-slotnames gold-mixture '(id persistent-id components amount)))
         (mixture-similarity-score (make-instance 'similarity-score)))    
     ; each slot that is in common is worth a score of 1  
     (loop for slot in gold-dish-slots
