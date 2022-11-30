@@ -237,3 +237,6 @@
 (defparameter demo-empty (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-7.solution" *metrics* (list *demo-env*)))
 (print-results demo-empty)
 
+
+(defparameter test-grammar (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test.lisp" *metrics* (list *almond-crescent-cookies-environment*)))
+(print-results test-grammar)
