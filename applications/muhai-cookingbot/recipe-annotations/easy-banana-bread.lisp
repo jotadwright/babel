@@ -174,7 +174,7 @@
 ;; Visualise the recipe
 ;; ======================
 
-;(draw-recipe *brownie-recipe*)
+;(draw-recipe *easy-banana-bread-recipe*)
 ;(draw-recipe *extended-recipe*)
 
 

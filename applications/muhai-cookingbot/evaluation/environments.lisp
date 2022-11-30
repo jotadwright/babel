@@ -129,7 +129,7 @@
                        '(fetch-and-proportion ?proportioned-flour ?ks-with-flour ?ks-with-almond ?target-container-5 all-purpose-flour 340 g)
                        '(fetch-and-proportion ?proportioned-almond-flour ?ks-with-almond-flour ?ks-with-flour ?target-container-6 almond-flour 120 g)
                        '(fetch-and-proportion ?proportioned-powdered-sugar ?ks-with-powdered-sugar ?ks-with-almond-flour ?target-container-7 powdered-white-sugar 30 g)
-                       '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-powdered-sugar ?empty-container-a ?warm-butter ?quantity-x ?unit-x)
+                       '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-powdered-sugar ?empty-container-a ?warm-butter ?quantity-a ?unit-a)
                        '(transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?proportioned-sugar ?quantity-b ?unit-b)
                        '(beat ?beaten-mixture ?ks-with-beaten-mixture ?output-ks-b ?output-container-b ?mixing-tool)
                        '(transfer-contents ?output-container-c ?rest-c ?output-ks-c ?ks-with-beaten-mixture ?beaten-mixture ?proportioned-vanilla ?quantity-c ?unit-c)
