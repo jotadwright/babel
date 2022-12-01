@@ -798,7 +798,10 @@
   (and
    (> (length overlapping-meaning-observation) 0)
    (> (length overlapping-meaning-cxn) 0)
-   (equal overlapping-meaning-observation overlapping-meaning-cxn)
+   (if (equal meaning-representation-formalism :geo)
+     (equal overlapping-meaning-observation overlapping-meaning-cxn)
+     t
+     )
    (> (length non-overlapping-meaning-observation) 0)
    (> (length non-overlapping-meaning-cxn) 0)
    (> (length non-overlapping-form-observation) 0)
@@ -834,15 +837,19 @@
   ;; non-overlapping obs = the holistic part
   ;; overlapping-obs = item-based part
   (and
-   (not non-overlapping-meaning-cxn)
-   (not non-overlapping-form-cxn)
+   (if (equal meaning-representation-formalism :geo)
+     (and (not non-overlapping-meaning-cxn) ;; to do figure out why this is different
+          (not non-overlapping-form-cxn)
+          (equivalent-networks-and-args? overlapping-meaning-observation overlapping-meaning-cxn obs-args cxn-args))
+     (and (not overlapping-meaning-cxn)
+          (not overlapping-form-cxn)))
    (> (length overlapping-meaning-observation) 0)
    (> (length non-overlapping-meaning-observation) 0)
    (> (length non-overlapping-form-observation) 0)
    (extract-form-predicate-by-type overlapping-form-observation 'string)
    (connected-semantic-network non-overlapping-meaning-observation)
    (check-meets-continuity non-overlapping-form-observation)
-   (equivalent-networks-and-args? overlapping-meaning-observation overlapping-meaning-cxn obs-args cxn-args)))
+   ))
 
 
 
@@ -863,19 +870,26 @@
   ;; overlapping observation = the entire observation
   ;; non-overlapping-meaning/form of obs is nil
   (and
-   (not non-overlapping-meaning-observation)
-   (not non-overlapping-form-observation)
+   (if (equal meaning-representation-formalism :geo)
+     (and (not non-overlapping-meaning-observation)
+          (not non-overlapping-form-observation)
+          (> (length overlapping-meaning-observation) 0)
+          (> (length overlapping-form-observation) 0)
+          (equivalent-networks-and-args? overlapping-meaning-observation overlapping-meaning-cxn obs-args cxn-args))
+     (and (not overlapping-meaning-observation)
+          (not overlapping-form-observation)
+          (> (length non-overlapping-meaning-observation) 0)
+          (> (length non-overlapping-form-observation) 0)))
    (> (length non-overlapping-meaning-cxn) 0)
    (> (length non-overlapping-form-cxn) 0)
    (> (length overlapping-meaning-cxn) 0)
    (> (length overlapping-form-cxn) 0)
-   (> (length overlapping-meaning-observation) 0)
-   (> (length overlapping-form-observation) 0)
+   
 
    (extract-form-predicate-by-type overlapping-form-cxn 'string)
    (connected-semantic-network non-overlapping-meaning-cxn)
    (check-meets-continuity non-overlapping-form-cxn)
-   (equivalent-networks-and-args? overlapping-meaning-observation overlapping-meaning-cxn obs-args cxn-args)))
+   ))
 
 (defun find-superset-holistic-cxn (cxn-inventory utterance-form-constraints meaning meaning-representation-formalism)
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
@@ -1151,8 +1165,8 @@
 (defgeneric extract-args-from-meaning-networks (child-meaning parent-meaning mode))
 
 (defmethod extract-args-from-meaning-networks (child-meaning parent-meaning (mode (eql :irl)))
-  ;(extract-args-from-irl-network child-meaning))
-  (extract-args-from-meaning-networks child-meaning parent-meaning :amr))
+  (extract-args-from-irl-network child-meaning))
+  ;(extract-args-from-meaning-networks child-meaning parent-meaning :amr))
 
 #|
   (remove nil (append (loop for predicate in child-meaning

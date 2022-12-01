@@ -147,15 +147,21 @@
   (sort network-to-sort #'< :key #'(lambda (x) (cond ((position x sorted-source-network))
                                                      (t 0)))))
 
-#|(defmethod diff-meaning-networks (network-1 network-2 (mode (eql :irl)))
+(defmethod diff-meaning-networks (network-1 network-2 (mode (eql :irl)))
+  (multiple-value-bind (non-overlapping-continuous-predicates-1 non-overlapping-continuous-predicates-2)
   (diff-networks network-1
                  network-2
                  #'get-predicate-with-target-var
                  #'get-next-irl-predicate
                  #'compare-irl-predicates
                  #'add-bind-statements
-                 #'remove-bind-statements))
-|#
+                 #'remove-bind-statements)
+    (values non-overlapping-continuous-predicates-1
+            non-overlapping-continuous-predicates-2
+            (set-difference network-1 non-overlapping-continuous-predicates-1 :test #'equal)
+            (set-difference network-2 non-overlapping-continuous-predicates-2 :test #'equal)
+            )))
+
 
 (defun add-dummy-end-meets (form-constraints)
   (append form-constraints
@@ -372,7 +378,7 @@
       (subseq sorted-network start end))))
                                          
                       
-
+#|
 (defmethod diff-meaning-networks (network-1 network-2 (mode (eql :irl)))
   "traverse both networks, return the longest possible sequence of non-overlapping predicates, assumes the network to be linear, and the variables to have a consistent position for traversal"
   (loop with sorted-network-1 = (sort-clevr-stage-1-network network-1)
@@ -401,8 +407,11 @@
                
         finally (return (values (extract-continuous-subnetwork (set-difference sorted-network-1 overlapping-predicates-1 :test #'equal) sorted-network-1)
                                 
-                                (extract-continuous-subnetwork (set-difference sorted-network-2 overlapping-predicates-2 :test #'equal) sorted-network-2)))))
-
+                                (extract-continuous-subnetwork (set-difference sorted-network-2 overlapping-predicates-2 :test #'equal) sorted-network-2)
+                                overlapping-predicates-1
+                                overlapping-predicates-2
+                                ))))
+|#
 #|
 (diff-meaning-networks '((CLEVR-WORLD:QUERY GRAMMAR-LEARNING::?VAR-3220 GRAMMAR-LEARNING::?VAR-3218 GRAMMAR-LEARNING::?VAR-3219)
                          (UTILS:BIND CLEVR-WORLD:ATTRIBUTE-CATEGORY GRAMMAR-LEARNING::?VAR-3219 FCG:SIZE)
