@@ -43,6 +43,7 @@
 (define-configuration-default-value :remove-cxn-on-lower-bound t)
 (define-configuration-default-value :mark-holophrases t)
 (define-configuration-default-value :categorial-network-export-interval 1000)
+(define-configuration-default-value :max-nr-of-nodes 1000)
 (define-configuration-default-value :initial-categorial-link-weight 0.0)
 (define-configuration-default-value :comprehend-n 2)
 

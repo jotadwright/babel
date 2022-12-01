@@ -66,7 +66,8 @@
                                         (:parse-goal-tests :no-strings-in-root :no-applicable-cxns :connected-semantic-network :connected-structure :non-gold-standard-meaning)
                                         (:de-render-mode . ,(get-configuration experiment :de-render-mode))
                                         (:parse-order routine)
-                                        (:max-nr-of-nodes . 250)
+                                        (:max-nr-of-nodes . ,(get-configuration experiment :max-nr-of-nodes))
+                                        (:original-max-nr-of-nodes . ,(get-configuration experiment :max-nr-of-nodes))
                                         (:production-order routine)
                                         (:mark-holophrases . ,(get-configuration experiment :mark-holophrases))
                                         (:meaning-representation-formalism . ,(get-configuration experiment :meaning-representation))
@@ -117,7 +118,8 @@
          (new-score (if (> current-score 1.0)
                       (- current-score (* current-score delta))
                       (- current-score delta))))
-         
+  (unless alter-ego-cxn
+    (+ 1))
   (setf (attr-val cxn :score) new-score)
   (setf (attr-val alter-ego-cxn :score) new-score)
   (when (and (get-configuration (experiment agent) :remove-cxn-on-lower-bound)
