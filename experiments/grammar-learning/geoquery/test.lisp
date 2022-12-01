@@ -64,6 +64,7 @@
                                      (:number-of-epochs . 30)
                                      (:comprehend-n . 20)
                                      (:meaning-representation . :geo)
+                                     (:max-nr-of-nodes . 2000)
                                      (:cxn-decf-score . 0.05)
                                      (:cxn-incf-score . 0.1)
                                      (:mark-holophrases . t)
@@ -110,7 +111,7 @@
   ;(activate-monitor trace-interactions-in-wi))
 
 ;(cl-store:store (grammar (first (agents *experiment*))) (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-geo" :type "store"))
-;(cl-store:store *experiment* (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "experiment-train-geo" :type "store"))
+;(cl-store:store *experiment* (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "experiment-train-geo-30e" :type "store"))
 
 ;(add-element (make-html (categorial-network (grammar (first (agents *experiment*)))) :weights? t :render-program "circo"))
 ;(add-element (make-html (categorial-network (grammar (first (agents *experiment*)))) :weights t :render-program "fdp"))
