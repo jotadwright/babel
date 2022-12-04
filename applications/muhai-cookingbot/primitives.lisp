@@ -808,10 +808,12 @@
   ((kitchen-state-in baking-tray => baking-paper kitchen-state-out lined-baking-tray)
    
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
-          (target-tray (find-object-by-persistent-id baking-tray new-kitchen-state))
+          (target-tray (if (is-concept baking-tray)
+                         (retrieve-concept-instance-and-bring-to-countertop (type-of baking-tray) new-kitchen-state)
+                         (find-object-by-persistent-id baking-tray (counter-top new-kitchen-state))))
           (tray-available-at (+ 150 (kitchen-time kitchen-state-in)))
           (kitchen-state-available-at tray-available-at))
-
+     
      ;; find baking paper and bring it to the countertop
      (let ((target-paper-instance (retrieve-concept-instance-and-bring-to-countertop 'baking-paper new-kitchen-state)))
 
@@ -831,13 +833,14 @@
   ((kitchen-state-in baking-tray baking-paper => kitchen-state-out lined-baking-tray)
    
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
-          (target-tray (find-object-by-persistent-id baking-tray new-kitchen-state))
-          (target-paper-instance (find-object-by-persistent-id baking-paper new-kitchen-state))
+          (target-tray (if (is-concept baking-tray)
+                         (retrieve-concept-instance-and-bring-to-countertop (type-of baking-tray) new-kitchen-state)
+                         (find-object-by-persistent-id baking-tray (counter-top new-kitchen-state))))
+          (target-paper-instance (if (is-concept baking-paper)
+                                   (retrieve-concept-instance-and-bring-to-countertop (type-of baking-paper) new-kitchen-state)
+                                   (find-object-by-persistent-id baking-paper new-kitchen-state)))
           (tray-available-at (+ 150 (kitchen-time kitchen-state-in)))
           (kitchen-state-available-at tray-available-at))
-
-     ;; find baking paper and bring it to the countertop
-     (let ((target-paper-instance (retrieve-concept-instance-and-bring-to-countertop 'baking-paper new-kitchen-state)))
 
        (setf (lined-with target-tray) target-paper-instance) ;;do the lining
        (setf (is-lining target-paper-instance) t)
@@ -848,7 +851,7 @@
        (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
 
        (bind (lined-baking-tray 1.0 target-tray tray-available-at)
-             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))
+             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
 
 
 (defprimitive mash ((mashed-ingredient transferable-container)
