@@ -15,7 +15,8 @@
                                                          (if (> (- (length (success-buffer experiment)) 100) -1) (- (length (success-buffer experiment)) 100) 0)
                                                          (length (success-buffer experiment)))))))
         (grammar (grammar (first (interacting-agents experiment))))
-        (grammar-size (count-if #'non-zero-cxn-p (constructions grammar))))
+        (grammar-size (count-if #'non-zero-cxn-p (constructions grammar)))
+        (num-hol (count-holophrases grammar)))
     (cond ((= (interaction-number interaction) 1)
            (setf *start-time* (get-universal-time))
            (format t "~%~a" symbol-to-print))
@@ -27,7 +28,7 @@
                (= (mod (interaction-number interaction)
                        (get-configuration experiment :dot-interval)) 0))
            (multiple-value-bind (h m s) (seconds-to-hours-minutes-seconds (- (get-universal-time) *start-time*))
-             (format t "~a (~a / ~a% / ~a cxns /~ah ~am ~as)~%" symbol-to-print (interaction-number interaction) windowed-success grammar-size h m s))
+             (format t "~a (~a / ~,vf% / ~a cxns w. ~a hol. /~ah ~am ~as)~%" symbol-to-print (interaction-number interaction) 1 windowed-success grammar-size num-hol h m s))
            (setf *start-time* (get-universal-time)))
            
          ;(wi:clear-page))

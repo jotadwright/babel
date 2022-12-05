@@ -60,12 +60,13 @@
                                                   holistic->item-based--deletion
                                                   holistic->item-based
                                                   nothing->holistic))
-                                     (:observation-sample-mode . :debug)
-                                     (:number-of-epochs . 1)
+                                     (:observation-sample-mode . :train)
+                                     (:number-of-epochs . 30)
                                      (:comprehend-n . 20)
                                      (:meaning-representation . :geo)
-                                     (:cxn-decf-score . 0.1)
-                                     (:cxn-incf-score . 0.3)
+                                     (:max-nr-of-nodes . 2000)
+                                     (:cxn-decf-score . 0.05)
+                                     (:cxn-incf-score . 0.1)
                                      (:mark-holophrases . t)
                                      (:remove-cxn-on-lower-bound . t)
                                      (:alignment-strategy . :lateral-inhibition)
@@ -110,7 +111,7 @@
   ;(activate-monitor trace-interactions-in-wi))
 
 ;(cl-store:store (grammar (first (agents *experiment*))) (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "cxn-inventory-train-geo" :type "store"))
-;(cl-store:store *experiment* (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "experiment-train-geo" :type "store"))
+;(cl-store:store *experiment* (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data") :name "experiment-train-geo-30e" :type "store"))
 
 ;(add-element (make-html (categorial-network (grammar (first (agents *experiment*)))) :weights? t :render-program "circo"))
 ;(add-element (make-html (categorial-network (grammar (first (agents *experiment*)))) :weights t :render-program "fdp"))
@@ -127,8 +128,7 @@
 
 ;;; test series of interactions
 (run-series *experiment* (length (question-data *experiment*)))
-;(run-series *experiment* 38)
-
+;(run-series *experiment* 200)
 
 
 #|
