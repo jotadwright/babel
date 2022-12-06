@@ -839,7 +839,7 @@
   (and
    (if (equal meaning-representation-formalism :geo)
      (and (not non-overlapping-meaning-cxn) ;; to do figure out why this is different
-          (not non-overlapping-form-cxn)
+          (not overlapping-form-cxn)
           (equivalent-networks-and-args? overlapping-meaning-observation overlapping-meaning-cxn obs-args cxn-args))
      (and (not overlapping-meaning-cxn)
           (not overlapping-form-cxn)))
@@ -1283,6 +1283,30 @@
                        )))
       (enable-meta-layer-configuration original-cxn-inventory)
       (first (sort cip-nodes #'sort-cipns-by-coverage-and-nr-of-applied-cxns)))))
+
+(defun discard-cipns-with-incompatible-meanings-and-args (candidate-cip-nodes candidate-meanings gold-standard-meaning)
+  (loop for cipn in candidate-cip-nodes
+        for candidate-meaning in candidate-meanings
+        for resulting-left-pole-structure = (left-pole-structure (car-resulting-cfs (cipn-car cipn)))
+        for resulting-root = (get-root resulting-left-pole-structure)
+        for units = (remove-child-units (remove resulting-root resulting-left-pole-structure))
+        for bindings = (irl::embedding candidate-meaning gold-standard-meaning)
+        when (and bindings
+                  ;(no-duplicate-bindings-p bindings)
+                  (loop for unit in units
+                        always (extract-args-from-resulting-unit unit)))
+        collect cipn))
+
+
+(defmethod get-best-partial-analysis-cipn ((form-constraints list) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage-irl)))
+  (disable-meta-layer-configuration original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
+  (set-configuration original-cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
+    (with-disabled-monitor-notifications
+      (let* ((comprehension-result (multiple-value-list (comprehend-all form-constraints :cxn-inventory original-cxn-inventory)))
+             (cip-nodes (discard-cipns-with-incompatible-meanings-and-args (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
+        (enable-meta-layer-configuration original-cxn-inventory)
+        (first (sort cip-nodes #'sort-cipns-by-coverage-and-nr-of-applied-cxns)))))
+
 
 (defmethod get-best-partial-analysis-cipn ((form-constraints list) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage-item-based-first)))
   (disable-meta-layer-configuration-item-based-first original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
