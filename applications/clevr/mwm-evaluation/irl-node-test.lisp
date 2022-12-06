@@ -3,6 +3,11 @@
 ;; ---------------------------------------------------------
 ;; single path test
 
+;; TO DO Jens 6/12/22
+;; This node test no longer works due to changes in IRL.
+;; Needs to be fixed at some point...
+;; Sorry, Liesbet
+
 (defmethod node-test ((node irl-program-processor-node)
                       (mode (eql :single-path)))
   ;; is there another node that has already evaluated

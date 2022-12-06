@@ -2,7 +2,7 @@
 ;; Loading the package and setup ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(ql:quickload :clevr-learning)
+(ql:quickload :intention-reading)
 (in-package :intention-reading)
 
 (activate-monitor trace-fcg)
@@ -123,25 +123,6 @@
   (run-interaction *experiment*))
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ;; question_146153_len_005.lisp => ""What material is the gray cube?""
 ;; Learn gray-cxn
 (progn
@@ -154,7 +135,6 @@
   (run-interactions-until-cxn-with-meaning
    *experiment* '((bind color-category ?color gray)))
   (run-interaction *experiment*))
-
 
 
 
