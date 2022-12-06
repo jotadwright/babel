@@ -61,7 +61,7 @@
       ;; notify the repair
       (when repair-applied-p
         (let ((fix-cxns (find-data (car-resulting-cfs (cipn-car cip-node)) :fix-cxns))
-              (fix-th-links (find-data (car-resulting-cfs (cipn-car cip-node)) :fix-th-links)))
+              (fix-th-links (find-data (car-resulting-cfs (cipn-car cip-node)) :fix-categorial-links)))
           (when fix-cxns
             (notify new-cxns-learned fix-cxns))
           (when fix-th-links

@@ -19,14 +19,14 @@
                              (s-dot::rankdir "LR")))
          (all-node-names
           (remove-duplicates
-           (loop for (from to nil) in new-links
+           (loop for (from . to) in new-links
                  append (list from to))))
          (all-node-ids
           (loop for node-name in all-node-names
                 for id = (gethash node-name (graph-utils::nodes g))
                 collect id))
          (all-edges
-          (loop for (from to nil) in new-links
+          (loop for (from . to) in new-links
                 collect (cons (gethash from (graph-utils::nodes g))
                               (gethash to (graph-utils::nodes g)))))
          (s-dot-nodes
