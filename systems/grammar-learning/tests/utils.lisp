@@ -48,6 +48,30 @@
                                      (:de-render-mode . :de-render-string-meets-no-punct)
                                      )))
 
+
+(defun set-up-cxn-inventory-and-repairs-german ()
+  (wi::reset)
+  (notify reset-monitors)
+  (eval `(make-instance 'grammar-learning-experiment
+                          :entries '((:repairs . (add-categorial-links
+                                                  item-based->item-based--substitution
+                                                  item-based->holistic
+                                                  holistic->item-based--substitution
+                                                  holistic->item-based--addition
+                                                  holistic->item-based--deletion
+                                                  holistic->item-based
+                                                  nothing->holistic))
+                                     (:observation-sample-mode . :debug)    ;:train shuffled 
+                                     (:meaning-representation . :geo)
+                                     (:max-nr-of-nodes . 300)
+                                     (:alignment-strategy . :lateral-inhibition)
+                                     (:de-render-mode . :de-render-string-meets-no-punct)
+                                     (:corpus-files-root . ,(merge-pathnames
+                                                             (make-pathname :directory '(:relative "German-cases"))
+                                                             cl-user:*babel-corpora*))
+                                     (:corpus-data-file . ,(make-pathname
+                                                            :name "German-cases-mod-1000" :type "json"))))))
+
 (defun test-repair-status (class cipn)
   (test-assert (and
                 (find 'fcg::succeeded (statuses cipn))
