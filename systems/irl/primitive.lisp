@@ -50,6 +50,14 @@
 
 
 (defmacro defprimitive (id slot-spec-defs &body body)
+  "Macro for defining a primitive. Specify the name (id) of the primitive,
+   the slot spec definitions (i.e. arguments and data types)
+   and the body of the primtive, specifying the evaluation
+   spec definitions. After the evaluation spec defs, the keyword
+   primitive-inventory may be used to specify in which inventory
+   this primitive should be added. Primitives can also be added
+   to multiple primitive inventories at once by specifying a
+   list of inventories."
   (let* ((inventory
           (if (find :primitive-inventory body)
             (nth (1+ (position :primitive-inventory body)) body)
@@ -64,5 +72,11 @@
                              :evaluation-specs ,(expand-evaluation-specs
                                                  id evaluation-spec-defs
                                                  slot-spec-defs))))
-       (add-primitive ,p ,inventory))))
+       ;; if multiple inventories are specified,
+       ;; generate a 'progn' that calls 'add-primitive'
+       ;; for every inventory in the list
+       ,(if (listp inventory)
+          `(progn ,@(loop for i in inventory
+                          collect `(add-primitive ,p ,i)))
+          `(add-primitive ,p ,inventory)))))
 

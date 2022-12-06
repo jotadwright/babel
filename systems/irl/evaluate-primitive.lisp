@@ -59,7 +59,7 @@
                               if (value binding) collect binding
                               else collect (make-instance 'binding :var (var binding)
                                                           :score (first res) :value (second res)
-                                                          :available-at (fourth res))))
+                                                          :available-at (third res))))
           ;; only checked the bindings -> return the bindings
           (list bindings)))
       nil)))
