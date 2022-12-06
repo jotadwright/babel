@@ -26,6 +26,10 @@
                 :serial t
                 :components ((:file "cxn-name")
                              (:file "learn-propbank-constructions")))
+               (:module grammar-metrics
+                :serial t
+                :components ((:file "categorial-network-metrics")
+                             (:file "grammar-analysis")))
                (:module cleaning-and-evaluation
                 :serial t
                 :components ((:file "clean")))

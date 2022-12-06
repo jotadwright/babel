@@ -23,11 +23,11 @@
 ;; Learning Operators
 (define-configuration-default-value :repairs 
                                     '(add-categorial-links
-                                     item-based->item-based--substitution
+                                     ;item-based->item-based--substitution
                                      item-based->holistic
                                      holistic->item-based--substitution
-                                     ;holistic->item-based--addition
-                                     ;holistic->item-based--deletion
+                                     holistic->item-based--addition
+                                     holistic->item-based--deletion
                                      holistic->item-based
                                      nothing->holistic))
 
@@ -39,10 +39,11 @@
 (define-configuration-default-value :cxn-decf-score 0)
 
 (define-configuration-default-value :evaluation-grammar nil)
-;(define-configuration-default-value :alignment-strategy :lateral-inhibition)
-(define-configuration-default-value :alignment-strategy :lateral-inhibition-comprehend-all)
+(define-configuration-default-value :alignment-strategy :lateral-inhibition)
 (define-configuration-default-value :remove-cxn-on-lower-bound t)
+(define-configuration-default-value :mark-holophrases t)
 (define-configuration-default-value :categorial-network-export-interval 1000)
+(define-configuration-default-value :max-nr-of-nodes 1000)
 (define-configuration-default-value :initial-categorial-link-weight 0.0)
 (define-configuration-default-value :comprehend-n 2)
 
