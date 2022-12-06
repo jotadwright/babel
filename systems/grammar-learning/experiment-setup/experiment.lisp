@@ -101,6 +101,7 @@
 (defgeneric pre-process-meaning-data (meaning mode))
 
 (defmethod pre-process-meaning-data (meaning (mode (eql :geo)))
+  ;(format t "~a" meaning)
   (read-from-string meaning))
 
 (defun inc-var-id (var)

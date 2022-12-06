@@ -38,11 +38,17 @@
          
          (meaning-representation-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
          
-         (best-partial-analysis-node (get-best-partial-analysis-cipn
+         (best-partial-analysis-node (if (equal meaning-representation-formalism :irl)
+                                   (get-best-partial-analysis-cipn
                                       form-constraints
                                       meaning
                                       original-cxn-set
-                                      :optimal-form-coverage))
+                                      :optimal-form-coverage-irl)
+                                   (get-best-partial-analysis-cipn
+                                      form-constraints
+                                      meaning
+                                      original-cxn-set
+                                      :optimal-form-coverage)))
          (applied-cxns (when best-partial-analysis-node
                          (applied-constructions best-partial-analysis-node))))
     (when (and applied-cxns

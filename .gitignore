@@ -26,4 +26,5 @@
 **/.tmp
 init-babel-user.lisp
 /grammars/English/lexicon
+experiments/clevr-grammar-learning/raw-data
 *.fcg~ 
