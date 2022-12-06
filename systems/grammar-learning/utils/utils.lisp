@@ -798,7 +798,10 @@
   (and
    (> (length overlapping-meaning-observation) 0)
    (> (length overlapping-meaning-cxn) 0)
-   (equal overlapping-meaning-observation overlapping-meaning-cxn)
+   (if (equal meaning-representation-formalism :geo)
+     (equal overlapping-meaning-observation overlapping-meaning-cxn)
+     t
+     )
    (> (length non-overlapping-meaning-observation) 0)
    (> (length non-overlapping-meaning-cxn) 0)
    (> (length non-overlapping-form-observation) 0)
@@ -834,15 +837,19 @@
   ;; non-overlapping obs = the holistic part
   ;; overlapping-obs = item-based part
   (and
-   (not non-overlapping-meaning-cxn)
-   (not non-overlapping-form-cxn)
+   (if (equal meaning-representation-formalism :geo)
+     (and (not non-overlapping-meaning-cxn) ;; to do figure out why this is different
+          (not overlapping-form-cxn)
+          (equivalent-networks-and-args? overlapping-meaning-observation overlapping-meaning-cxn obs-args cxn-args))
+     (and (not overlapping-meaning-cxn)
+          (not overlapping-form-cxn)))
    (> (length overlapping-meaning-observation) 0)
    (> (length non-overlapping-meaning-observation) 0)
    (> (length non-overlapping-form-observation) 0)
    (extract-form-predicate-by-type overlapping-form-observation 'string)
    (connected-semantic-network non-overlapping-meaning-observation)
    (check-meets-continuity non-overlapping-form-observation)
-   (equivalent-networks-and-args? overlapping-meaning-observation overlapping-meaning-cxn obs-args cxn-args)))
+   ))
 
 
 
@@ -863,19 +870,26 @@
   ;; overlapping observation = the entire observation
   ;; non-overlapping-meaning/form of obs is nil
   (and
-   (not non-overlapping-meaning-observation)
-   (not non-overlapping-form-observation)
+   (if (equal meaning-representation-formalism :geo)
+     (and (not non-overlapping-meaning-observation)
+          (not non-overlapping-form-observation)
+          (> (length overlapping-meaning-observation) 0)
+          (> (length overlapping-form-observation) 0)
+          (equivalent-networks-and-args? overlapping-meaning-observation overlapping-meaning-cxn obs-args cxn-args))
+     (and (not overlapping-meaning-observation)
+          (not overlapping-form-observation)
+          (> (length non-overlapping-meaning-observation) 0)
+          (> (length non-overlapping-form-observation) 0)))
    (> (length non-overlapping-meaning-cxn) 0)
    (> (length non-overlapping-form-cxn) 0)
    (> (length overlapping-meaning-cxn) 0)
    (> (length overlapping-form-cxn) 0)
-   (> (length overlapping-meaning-observation) 0)
-   (> (length overlapping-form-observation) 0)
+   
 
    (extract-form-predicate-by-type overlapping-form-cxn 'string)
    (connected-semantic-network non-overlapping-meaning-cxn)
    (check-meets-continuity non-overlapping-form-cxn)
-   (equivalent-networks-and-args? overlapping-meaning-observation overlapping-meaning-cxn obs-args cxn-args)))
+   ))
 
 (defun find-superset-holistic-cxn (cxn-inventory utterance-form-constraints meaning meaning-representation-formalism)
   (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
@@ -1151,8 +1165,8 @@
 (defgeneric extract-args-from-meaning-networks (child-meaning parent-meaning mode))
 
 (defmethod extract-args-from-meaning-networks (child-meaning parent-meaning (mode (eql :irl)))
-  ;(extract-args-from-irl-network child-meaning))
-  (extract-args-from-meaning-networks child-meaning parent-meaning :amr))
+  (extract-args-from-irl-network child-meaning))
+  ;(extract-args-from-meaning-networks child-meaning parent-meaning :amr))
 
 #|
   (remove nil (append (loop for predicate in child-meaning
@@ -1269,6 +1283,30 @@
                        )))
       (enable-meta-layer-configuration original-cxn-inventory)
       (first (sort cip-nodes #'sort-cipns-by-coverage-and-nr-of-applied-cxns)))))
+
+(defun discard-cipns-with-incompatible-meanings-and-args (candidate-cip-nodes candidate-meanings gold-standard-meaning)
+  (loop for cipn in candidate-cip-nodes
+        for candidate-meaning in candidate-meanings
+        for resulting-left-pole-structure = (left-pole-structure (car-resulting-cfs (cipn-car cipn)))
+        for resulting-root = (get-root resulting-left-pole-structure)
+        for units = (remove-child-units (remove resulting-root resulting-left-pole-structure))
+        for bindings = (irl::embedding candidate-meaning gold-standard-meaning)
+        when (and bindings
+                  ;(no-duplicate-bindings-p bindings)
+                  (loop for unit in units
+                        always (extract-args-from-resulting-unit unit)))
+        collect cipn))
+
+
+(defmethod get-best-partial-analysis-cipn ((form-constraints list) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage-irl)))
+  (disable-meta-layer-configuration original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
+  (set-configuration original-cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
+    (with-disabled-monitor-notifications
+      (let* ((comprehension-result (multiple-value-list (comprehend-all form-constraints :cxn-inventory original-cxn-inventory)))
+             (cip-nodes (discard-cipns-with-incompatible-meanings-and-args (second comprehension-result) (first comprehension-result) gold-standard-meaning)))
+        (enable-meta-layer-configuration original-cxn-inventory)
+        (first (sort cip-nodes #'sort-cipns-by-coverage-and-nr-of-applied-cxns)))))
+
 
 (defmethod get-best-partial-analysis-cipn ((form-constraints list) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage-item-based-first)))
   (disable-meta-layer-configuration-item-based-first original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!

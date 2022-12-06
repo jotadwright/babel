@@ -29,8 +29,6 @@
   (activate-monitor export-categorial-network-evolution-to-jsonl)
   (activate-monitor export-type-hierarchy-to-json))
 
-  
-
 ;; full logging
 (progn
   (deactivate-all-monitors)
@@ -58,14 +56,15 @@
                                            ;item-based->item-based--substitution
                                            ;item-based->holistic
                                            holistic->item-based--substitution
-                                           ;holistic->item-based--addition
-                                           ;holistic->item-based--deletion
+                                           holistic->item-based--addition
+                                           holistic->item-based--deletion
                                            ;holistic->item-based
                                            nothing->holistic))
-                         (:observation-sample-mode . :train) ;:train
+                         (:observation-sample-mode . :debug) ;:train
                          (:categorial-network-export-interval . 1000)
                          (:meaning-representation . :irl)
                          (:comprehend-n . 33000)
+                         (:max-nr-of-nodes . 2000)
                          (:cxn-decf-score . 0.3)
                          (:de-render-mode . :de-render-string-meets-no-punct)
                          (:alignment-strategy . :lateral-inhibition)
@@ -95,7 +94,7 @@
 ;;; test series of interactions
 ;(run-series *experiment* (length (question-data *experiment*)))
 
-;(run-series *experiment* 80)   ;  
+;(run-series *experiment* 100)   ;  
 
 ;(run-series *experiment* 5000) ;
 
