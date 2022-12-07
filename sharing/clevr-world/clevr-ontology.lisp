@@ -8,7 +8,7 @@
           color-category material-category spatial-relation-category
           spatial-relation boolean-category bool
           attribute-category attribute attention attention-set
-          attention-object img-path pathname-entity
+          attention-object img-path pathname-entity get-pathname
           shapes sizes colors materials spatial-relations attributes
           category-value))
 
@@ -197,7 +197,10 @@
 (defmethod print-object ((pe pathname-entity) stream)
   (if *print-pretty*
       (pprint-logical-block (stream nil)
-        (format stream "<pathname .../~a.~a>"
-                (pathname-name (pathname pe))
-                (pathname-type (pathname pe))))
+        (if (pathname-name (get-pathname pe))
+          (format stream "<pathname .../~a.~a>"
+                  (pathname-name (get-pathname pe))
+                  (pathname-type (get-pathname pe)))
+          (format stream "<pathname .../~a/>"
+                  (last-elt (pathname-directory (get-pathname pe))))))
       (call-next-method)))
