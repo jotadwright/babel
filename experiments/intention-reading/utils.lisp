@@ -24,6 +24,27 @@
 ;;;; UTILS FOR PLOTTING
 ;;;; ------------------
 
+(defun create-graph-for-single-strategy (experiment-name measure-names
+                                         &rest evo-plot-keyword-args)
+  ;; take some arguments, but pass along the rest to raw-files->evo-plot
+  (format t "~%Creating graph for experiment ~a with measures ~a" experiment-name measure-names)
+  (let* ((raw-file-paths
+          (loop for measure-name in measure-names
+                collect `("experiments" "intention-reading" "raw-data" ,experiment-name ,measure-name)))
+         (default-plot-file-name
+          (reduce #'(lambda (str1 str2) (string-append str1 "+" str2)) 
+                  raw-file-paths :key #'(lambda (path) (first (last path)))))
+         (plot-file-name
+          (when (find :plot-file-name evo-plot-keyword-args)
+            (nth (1+ (position :plot-file-name evo-plot-keyword-args)) evo-plot-keyword-args))))
+    (apply #'raw-files->evo-plot
+           (append `(:raw-file-paths ,raw-file-paths
+                     :plot-directory ("experiments" "intention-reading" "graphs" ,experiment-name)
+                     :plot-file-name ,(if plot-file-name plot-file-name default-plot-file-name))
+                   evo-plot-keyword-args)))
+  (format t "~%Graphs have been created."))
+
+#|
 (defun create-graph-for-single-strategy (&key experiment-name measure-names (average-windows 100)
                                               y-axis (y1-min 0) y1-max y2-max xlabel y1-label y2-label
                                               captions open points series-numbers end key-location)
@@ -53,6 +74,7 @@
     :open open
     :key-location key-location)
   (format t "~%Graphs have been created"))
+|#
 
 (defun create-graph-comparing-strategies (&key experiment-names measure-name (average-windows 100)
                                                (y-min 0) (y-max 1) xlabel y1-label y2-label

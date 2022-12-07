@@ -64,3 +64,9 @@
 (run-interaction *experiment*)
 (set-interaction-data *experiment* 4 "Hoeveel cylinders zijn er?" 3)
 (run-interaction *experiment*)
+
+(set-interaction-data *experiment* 0 "Welke kleur heeft de bal?" 'purple)
+(run-interaction *experiment*)
+
+(set-interaction-data *experiment* 0 "Zijn er cylinders?" 'yes)
+(run-interaction *experiment*)
