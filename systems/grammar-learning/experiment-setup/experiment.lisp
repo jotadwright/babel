@@ -9,11 +9,11 @@
 
 (define-configuration-default-value :corpus-files-root
                                     (merge-pathnames
-                                     (make-pathname :directory '(:relative "amr-corpora" "little-prince-amr"))
+                                     (make-pathname :directory '(:relative "clevr-grammar-learning"))
                                      cl-user:*babel-corpora*))
 (define-configuration-default-value :corpus-data-file
-                                    (make-pathname :directory '(:relative "pre-processed")
-                                                   :name "little-prince-amr" :type "json"))
+                                    (make-pathname :directory '(:relative "train")
+                                                   :name "stage-1" :type "jsonl"))
 
 
 (define-configuration-default-value :observation-sample-mode :train) ; train, debug, development or evaluation

@@ -6,6 +6,7 @@
   (make-instance 'grammar-learning-experiment
                  :entries '((:observation-sample-mode . :debug) ;; random or sequential
                             (:determine-interacting-agents-mode . :corpus-learner)
+                            (:max-nr-of-nodes . 300)
                             (:de-render-mode . :de-render-string-meets-no-punct)
                             (:remove-cxn-on-lower-bound . nil)
                             (:learner-th-connected-mode . :neighbours)
@@ -21,6 +22,7 @@
                             (:determine-interacting-agents-mode . :corpus-learner)
                             (:de-render-mode . :de-render-string-meets-ignore-quotes+full-stops)
                             (:meaning-representation . :amr)
+                            (:max-nr-of-nodes . 300)
                             (:remove-cxn-on-lower-bound . nil)
                             (:learner-th-connected-mode . :neighbours)
                             (:update-categorial-links . t)
@@ -42,6 +44,7 @@
                                                   nothing->holistic))
                                      (:observation-sample-mode . :debug)
                                      (:meaning-representation . :geo)
+                                     (:max-nr-of-nodes . 300)
                                      (:cxn-decf-score . 0.2)
                                      (:cxn-incf-score . 0.1)
                                      (:alignment-strategy . :lateral-inhibition)
