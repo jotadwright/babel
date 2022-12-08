@@ -20,12 +20,12 @@
 ;;;;; initialization file so that Babel2 is automatically initialized
 ;;;;; when your lisp starts.
 
-;; (load "/Users/ajouglar/babel/libraries/asdf")
-;; (load "/Users/ajouglar/babel/init-babel")
+;; (load "/directory-to-babel/libraries/asdf")
+;; (load "/directory-to-babel/babel/init-babel")
 
 ;;;;; replace directory-to-Babel by the correct path to where the
 ;;;;; file init-babel.lisp resides.
-;;;;; e.g. (load "/Users/ajouglar/babel/init-babel")
+;;;;; e.g. (load "/directory-to-babel/babel/init-babel")
 
 
 (in-package :cl-user)
