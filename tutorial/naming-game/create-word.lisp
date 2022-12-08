@@ -8,7 +8,6 @@
     (loop for i from 1 to 3
           do (setq word (concatenate 'string word (nth (random (length consonants)) consonants)))
           do (setq word (concatenate 'string word (nth (random (length vowels)) vowels))))
-    (push word (all-words experiment))
     word))
 
 ; 'voc-item' class for each lexical item in an agent's vocabulary:

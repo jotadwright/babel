@@ -1,9 +1,5 @@
 (in-package :naming-game)
 
-(defclass naming-game-interaction (interaction)
-  ((utterance :accessor utterance :initarg :utterance :type string :initform nil)
-   (pointed-object :accessor pointed-object :initarg :pointed-object  :type symbol :initform nil)))
-
 (defun get-random-elem (list)
   "Gets an element from a list."
   (let* ((size (length list))
@@ -12,22 +8,20 @@
 
 (defmethod align ((agent naming-game-agent)(interaction interaction))
   "agent adapts lexicon scores based on communicative success interaction"
-  (let ((inc-delta (cdr (assoc :li-incf (configurations agent))))
-        (dec-delta (cdr (assoc :li-decf (configurations agent))))
-        (communicative-success (communicative-success interaction))
-        (alignment (case (cdr (assoc :alignment-strategy (configurations (experiment agent))))
+  (let ((inc-delta (get-configuration agent :li-incf))
+        (dec-delta (get-configuration agent :li-decf) )
+        (communicative-success (communicated-successfully agent))
+        (alignment (case (get-configuration agent :alignment-strategy)
                      (:no-aligment nil)
                      (:lateral-inhibition t))))
     (when alignment
       (cond (communicative-success
-             (when (>= (score (applied-voc agent)) 0.5) (print "what does it do?"))
              (increase-score (applied-voc agent) inc-delta 1.0)
-             (when (>= (score (applied-voc agent)) 0.5) (print "what does it do?"))
              (loop for form-competitor in (get-form-competitors (applied-voc agent) (lexicon agent))
                    do (decrease-score form-competitor dec-delta 0.0)
-                      (if (<= (score form-competitor) 0.0)
-                        (setf (lexicon agent)(remove form-competitor (lexicon agent) :test #'is-equal))
-                        )))
+                   (if (<= (score form-competitor) 0.0)
+                       (setf (lexicon agent)(remove form-competitor (lexicon agent) :test #'is-equal))
+                       )))
             ((NOT communicative-success)
              (decrease-score (applied-voc agent) dec-delta 0.0)
              (if (<= (score (applied-voc agent)) 0.0)
@@ -35,10 +29,10 @@
 
 (defun perform-alignment (interaction)
   "decides which agents should perform alignment using configurations of interaction"
-  (let ((configuration (cdr (assoc :who-aligns (configurations (experiment interaction)))))
-        (speaker (first (interacting-agents interaction)))
-        (hearer (second (interacting-agents interaction))))
-  (case configuration
+  (let* ((speaker (first (interacting-agents interaction)))
+         (configuration (get-configuration speaker :who-aligns))
+         (hearer (second (interacting-agents interaction))))
+    (case configuration
       (:both (progn (align hearer interaction) (align speaker interaction)))
       (:hearer (align hearer interaction))
       (:speaker (align speaker interaction)))))
@@ -60,7 +54,7 @@
 (defmethod invent ((agent agent))
   "agent invents a new word and adds it to its lexicon"
   (let ((new-voc (make-instance 'voc-item
-                                :score (cdr (assoc :initial-score (configurations (experiment agent))))
+                                :score 0.5
                                 :meaning (topic agent)
                                 :form (make-word (experiment agent)))))
   (add-voc agent new-voc)
@@ -70,7 +64,7 @@
   "agent tries to parse an utterance and searches its lexicon for voc-items that have the utterance as its form"
   (loop with parsed-voc = nil
         for voc-item in (lexicon agent)
-        do (if (string= (form voc-item) (utterance interaction))
+        do (if (string= (form voc-item) (utterance agent))
              (setf parsed-voc voc-item))
         when parsed-voc
           return parsed-voc))
@@ -78,9 +72,9 @@
 (defmethod adopt ((agent agent)(interaction interaction))
   "agent adopts a new word and adds it to its own vocabulary"
   (let ((new-voc (make-instance 'voc-item
-                                :score (cdr (assoc :initial-score (configurations (experiment agent))))
+                                :score 0.5
                                 :meaning (topic agent)
-                                :form (utterance interaction))))
+                                :form (utterance agent))))
     (add-voc agent new-voc)
     new-voc))
 
@@ -92,7 +86,7 @@
    ((eql pointed-object (topic speaker))
     t)))
 
-(defmethod interact ((experiment experiment) (interaction naming-game-interaction) &key)
+(defmethod interact ((experiment experiment) (interaction interaction) &key)
   (let* ((interacting-agents (interacting-agents interaction))
          (speaker (first interacting-agents))
          (hearer (second interacting-agents)))
@@ -100,14 +94,16 @@
     (setf (applied-voc speaker) (produce speaker))
     (unless (applied-voc speaker)
       (setf (applied-voc speaker) (invent speaker)))
-    (setf (utterance interaction) (form (applied-voc speaker)))
+    (setf (utterance speaker) (form (applied-voc speaker)))
+    (setf (utterance hearer) (utterance speaker))
     (setf (applied-voc hearer) (parse hearer interaction))
     (when (applied-voc hearer)
-      (setf (pointed-object interaction) (meaning (applied-voc hearer))))
-    (setf (communicative-success speaker) (determine-success speaker (pointed-object interaction)))
-    (setf (communicative-success hearer) (communicative-success speaker))
+      (setf (pointed-object hearer) (meaning (applied-voc hearer)))
+      (setf (pointed-object speaker) (pointed-object hearer)))
+    (setf (communicated-successfully speaker) (determine-success speaker (pointed-object speaker)))
+    (setf (communicated-successfully hearer) (communicated-successfully speaker))
     (setf (topic hearer) (topic speaker))
-    (when (and (NOT (communicative-success speaker)) (NOT (applied-voc hearer)))
+    (when (and (NOT (communicated-successfully speaker)) (NOT (applied-voc hearer)))
       (setf (applied-voc hearer) (adopt hearer interaction)))
     (perform-alignment interaction)
     ))

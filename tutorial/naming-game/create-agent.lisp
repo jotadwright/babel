@@ -17,16 +17,20 @@
     :documentation "The form used to describe the topic"
     :initarg :applied-voc
     :initform nil
-    :accessor applied-voc)))
+    :accessor applied-voc)
+   (pointed-object
+    :accessor pointed-object
+    :initarg :pointed-object
+    :type symbol
+    :initform nil)))
 
 (defmethod make-agents ((experiment experiment))
   "Creates the different agents in the population of experiment"
   (let ((agents (loop for i from 1 to 10
                       for agent-id = (read-from-string (format nil "agent-~d" i))
-                      collect (make-instance 'agent
+                      collect (make-instance 'naming-game-agent
                                              :id agent-id
-                                             :experiment experiment
-                                             :configurations (configurations experiment)))))
+                                             :experiment experiment))))
     (setf (agents experiment) agents)))
 
 (defmethod produce ((agent naming-game-agent))
