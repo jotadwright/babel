@@ -160,12 +160,14 @@
  "th-link-mixed-mode-random-tutor"
  '("communicative-success" "lexicon-size")
  :average-windows '(100 1)
- :use-y-axis '(1 2) :y1-min 0 :y1-max 1 :y2-max nil
+ :use-y-axis '(1 2)
+ :y1-min 0 :y1-max 1
+ :y2-min 0 :y2-max nil
  :x-label "Number of Communicative Interactions"
  :y1-label "Communicative Success"
  :y2-label "Construction Inventory Size"
  :captions '("communicative success" "construction inventory size")
- :open t :logscale "x 2")
+ :open t :logscale "x")
 
 (create-graph-for-single-strategy
  :experiment-name "th-link-mixed-mode-random-tutor"
