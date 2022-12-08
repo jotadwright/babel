@@ -1,4 +1,4 @@
-(in-package :cl-user)
+(in-package :naming-game)
 
 (defun make-word (experiment)
   "Creates a word of nr-of-syllables where a syllable is a consonant plus a vowel"

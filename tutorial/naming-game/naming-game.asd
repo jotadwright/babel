@@ -11,5 +11,8 @@
   :serial t 
   :components 
   ((:file "package")
-   (:file "naming-game-babel")
+   (:file "create-word")
+   (:file "create-world")
+   (:file "create-agent")
+   (:file "create-interaction")
 ))
