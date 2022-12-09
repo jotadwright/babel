@@ -156,17 +156,18 @@
                                         '("baseline tutor"
                                           "probabilistic tutor"))
 
-(create-graph-for-single-strategy
- :experiment-name "th-link-mixed-mode-random-tutor"
- :measure-names '("communicative-success"
-                  "lexicon-size")
+(create-graph-for-single-strategy 
+ "th-link-mixed-mode-random-tutor"
+ '("communicative-success" "lexicon-size")
  :average-windows '(100 1)
- :y-axis '(1 2) :y1-min 0 :y1-max 1 :y2-max nil
- :xlabel "Number of Communicative Interactions"
+ :use-y-axis '(1 2)
+ :y1-min 0 :y1-max 1
+ :y2-min 0 :y2-max nil
+ :x-label "Number of Communicative Interactions"
  :y1-label "Communicative Success"
  :y2-label "Construction Inventory Size"
  :captions '("communicative success" "construction inventory size")
- :end 25000 :open t)
+ :open t :logscale "x")
 
 (create-graph-for-single-strategy
  :experiment-name "th-link-mixed-mode-random-tutor"
