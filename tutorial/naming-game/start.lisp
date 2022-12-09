@@ -1,11 +1,13 @@
 (ql:quickload :naming-game)
 (in-package :naming-game)
 
-(activate-monitor trace-interaction)
-(activate-monitor trace-interaction-in-repl)
-(activate-monitor trace-experiment-in-repl)
-(activate-monitor print-a-dot-for-each-interaction)
-(activate-monitor default-record-communicative-success)
+(progn 
+  (activate-monitor trace-interaction)
+  (activate-monitor trace-experiment)
+  (activate-monitor trace-interaction-in-repl)
+  (activate-monitor trace-experiment-in-repl)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor default-record-communicative-success))
 
 
 (defparameter *all-words* '())
