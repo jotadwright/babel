@@ -167,6 +167,7 @@
 
 (export '(downcase
           upcase
+          capitalise
           string-replace
           replace-char
           read-file-as-string
@@ -198,6 +199,9 @@
 
 (defun upcase (str)
   (format nil "~:@(~a~)" str))
+
+(defun capitalise (str)
+  (format nil "~@(~a~)" str))
 
 (defun stringify (symbol-or-string)
   "Make a string from a symbol, number of string, similar to listify"

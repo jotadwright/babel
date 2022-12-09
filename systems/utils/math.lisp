@@ -263,9 +263,29 @@ coefficient equal to r**2."
   (float (/ (- x min-x)
             (- max-x min-x))))
 
-;;;
-;;; stuff not used
+(defun linspace (start stop &key (num-points 50) (include-endpoint-p t))
+  "Return 'num-points' evenly spaced points over the interval [start, stop].
+   Use 'include-enpoint-p' to include or exclude the endpoint."
+  (declare (fixnum num-points))
+  (declare (number start stop))
+  (let* ((step (/ (- stop start) (1- num-points)))
+         (lst (do ((n 1 (1+ n))
+		   (x (list start) (push (+ step (car x)) x)))
+		  ((>= n (1- num-points)) (reverse x)))))
+    (if include-endpoint-p
+      (append lst (list stop))
+      lst)))
 
-;; (defun iota (n &optional (start-at 0))
-;;   "Return a list of n consecutive integers, by default starting at 0."
-;;   (if (<= n 0) nil (cons start-at (iota (- n 1) (+ start-at 1)))))
+(defun logspace (start stop &key (base 10) (num-points 50) (include-endpoint-p t))
+  "Returns 'num-points' evenly spaced over a log scale with 'base'.
+   In linear space, the points are spaced over the interval
+   [base**start, base**stop]."
+  (declare (fixnum num-points))
+  (declare (number start stop))
+  (let ((ln (linspace start stop
+                      :num-points num-points
+                      :include-endpoint-p include-endpoint-p)))
+    (mapcar #'(lambda (x) (expt base x)) ln)))
+         
+;(mapcar #'round (linspace 0 250000 :num-points 1000))
+;(remove-duplicates (mapcar #'round (logspace 0 (log 250000 10) :num-points 1000)))
