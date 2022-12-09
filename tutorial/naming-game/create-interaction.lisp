@@ -15,6 +15,7 @@
                      (:no-aligment nil)
                      (:lateral-inhibition t))))
     (when alignment
+      (if (null (applied-voc agent)) (print agent))
       (cond (communicative-success
              (increase-score (applied-voc agent) inc-delta 1.0)
              (loop for form-competitor in (get-form-competitors (applied-voc agent) (lexicon agent))
@@ -96,16 +97,21 @@
       (setf (applied-voc speaker) (invent speaker)))
     (setf (utterance speaker) (form (applied-voc speaker)))
     (setf (utterance hearer) (utterance speaker))
+    (notify conceptualisation-finished speaker)
     (setf (applied-voc hearer) (parse hearer interaction))
+    (notify parsing-finished hearer)
     (when (applied-voc hearer)
       (setf (pointed-object hearer) (meaning (applied-voc hearer)))
       (setf (pointed-object speaker) (pointed-object hearer)))
+    (notify interpretation-finished hearer)
     (setf (communicated-successfully speaker) (determine-success speaker (pointed-object speaker)))
     (setf (communicated-successfully hearer) (communicated-successfully speaker))
     (setf (topic hearer) (topic speaker))
-    (when (and (NOT (communicated-successfully speaker)) (NOT (applied-voc hearer)))
-      (setf (applied-voc hearer) (adopt hearer interaction)))
+    (when (NOT (applied-voc hearer))
+      (setf (applied-voc hearer) (adopt hearer interaction))
+      (notify adoptation-finished hearer))
     (perform-alignment interaction)
+    (notify align-finished)
     ))
    
   

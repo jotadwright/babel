@@ -11,6 +11,7 @@
   :serial t 
   :components 
   ((:file "package")
+   (:file "web-monitors")
    (:file "create-word")
    (:file "create-world")
    (:file "create-agent")
