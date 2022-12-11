@@ -55,13 +55,17 @@
   (add-element
    `((table)
      ((tr)
+      ((td) ((b) "MSG")))
+     ((tr)
+      ((td) ,(html-pprint msg :max-width 100)
+       ,(predicate-network->svg msg)))))
+  (add-element
+   `((table)
+     ((tr)
       ((td) ((b) "Bindings 1"))
-      ((td) ((b) "MSG"))
       ((td) ((b) "Bindings 2")))
      ((tr)
       ((td) ,(html-pprint bindings-1 :max-width 100))
-      ((td :rowspan "3") ,(html-pprint msg :max-width 100)
-       ,(predicate-network->svg msg))
       ((td) ,(html-pprint bindings-2 :max-width 100)))
      ((tr)
       ((td) ((b) "Delta 1"))
@@ -71,4 +75,6 @@
        ,(predicate-network->svg delta-1))
       ((td) ,(html-pprint delta-2 :max-width 100)
        ,(predicate-network->svg delta-2))))))
+
+
         
