@@ -107,7 +107,7 @@
 (define-event agent-confidence-level (level float))
 
 (defmethod interact :after ((experiment grammar-learning-experiment)
-                            interaction &key)
+                            interaction &key) 
   "the tutor gives the answer, the learner learns from the gold standard"
   (let ((successp
          (loop for agent in (population experiment)
