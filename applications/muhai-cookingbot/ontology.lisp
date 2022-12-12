@@ -1252,26 +1252,25 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 ;; Failed Output  ;;
 ;;;;;;;;;;;;;;;;;;;;
 
-(defclass failed-object (transferable-container
-                         kitchen-state
-                         coverable-container
-                         oven
-                         fridge
+(defclass failed-object (arrangement-pattern
                          can-cover
-                         list-of-kitchen-entities
-                         arrangement-pattern
-                         shape
                          can-cut
                          can-mash
                          can-mingle
                          can-mix
-                         can-spread
                          can-peel
-                         has-temperature
                          can-seed
-                         sift
+                         can-spread
+                         coverable-container
+                         fridge
+                         kitchen-state
                          lineable
+                         list-of-kitchen-entities
+                         oven
                          quantity
-                         time-unit)
+                         shape
+                         sift 
+                         time-unit
+                         transferable-container)
   ()
   (:documentation "Object that represents a failed output of a primitive. It can be seen as a custom NIL value."))
