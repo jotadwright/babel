@@ -160,14 +160,20 @@
             (new-container (find-object-by-persistent-id container-with-ingredients (counter-top new-kitchen-state)))
             (new-mixture (create-homogeneous-mixture-in-container new-container 'beaten)))
 
-       (setf (used target-tool-instance-new-ks) t)
-       (setf (contents new-container) (list new-mixture))
-
        (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+       
+       (cond (target-tool-instance-new-ks
 
-       (bind (container-with-ingredients-beaten 1.0 new-container container-available-at)
-             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-             (tool 0.0 target-tool-instance-new-ks nil)))))
+              (setf (used target-tool-instance-new-ks) t)
+              (setf (contents new-container) (list new-mixture))
+
+              (bind (container-with-ingredients-beaten 1.0 new-container container-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                    (tool 0.0 target-tool-instance-new-ks nil)))
+             (t
+              (bind (container-with-ingredients-beaten 1.0 (make-instance 'failed-object) container-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                    (tool 0.0 (make-instance 'failed-object) nil)))))))
 
   ;; Case 2: Reuse existing whisk for beating
   ((kitchen-state-in container-with-ingredients tool => kitchen-state-out container-with-ingredients-beaten )
@@ -281,15 +287,23 @@
                             (T 'plastic-wrap)))
           (new-cover (retrieve-concept-instance-and-bring-to-countertop cover-type new-kitchen-state)))
 
-     (setf (covered-with new-container) new-cover)
-     (setf (is-covering new-cover) T)
-     (setf (used new-cover) T)
-     (setf (contents (counter-top new-kitchen-state)) (remove new-cover (contents (counter-top new-kitchen-state))))
-         
-       (bind
-        (covered-object 1.0 new-container container-available-at)
-        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-        (cover 0.0 new-cover container-available-at))))
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at) 
+     
+     (cond (new-cover
+            (setf (covered-with new-container) new-cover)
+            (setf (is-covering new-cover) T)
+            (setf (used new-cover) T)
+            (setf (contents (counter-top new-kitchen-state)) (remove new-cover (contents (counter-top new-kitchen-state))))
+
+            (bind
+             (covered-object 1.0 new-container container-available-at)
+             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+             (cover 0.0 new-cover container-available-at)))
+           (t
+            (bind
+             (covered-object 1.0 (make-instance 'failed-object) container-available-at)
+             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+             (cover 0.0 (make-instance 'failed-object) container-available-at))))))        
 
   ;;Case 2: cover given
   ((kitchen-state-in object cover => covered-object kitchen-state-out)
@@ -304,6 +318,8 @@
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at) 
+     
      (setf (covered-with new-container) new-cover)
      (setf (is-covering new-cover) T)
      (setf (used new-cover) T)
@@ -331,18 +347,26 @@
                                                                           (and (value binding-object)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at) 
      
      ;; 1) find knife and place it on the countertop
      (let ((new-knife (retrieve-concept-instance-and-bring-to-countertop 'knife new-kitchen-state)))
 
-       ;; 2) cut everything in the container according to the cutting pattern
-       (loop for item in (contents new-container)
-             do (setf (is-cut item) cut-pattern))
-       (setf (used new-knife) t)
+        (cond ((not new-knife)
+               (bind (cut-object 1.0 (make-instance 'failed-object) container-available-at)
+                     (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                     (cutting-tool 0.0 (make-instance 'failed-object) container-available-at)))
+              (t
+               ;; 2) cut everything in the container according to the cutting pattern
+               (loop for item in (contents new-container)
+                     do (setf (is-cut item) cut-pattern))
+               
+               (setf (used new-knife) t)
 
-       (bind (cut-object 1.0 new-container container-available-at)
-             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-             (cutting-tool 0.0 new-knife container-available-at)))))
+               (bind (cut-object 1.0 new-container container-available-at)
+                     (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                     (cutting-tool 0.0 new-knife container-available-at)))))))
 
   ;;Case 2: cutting tool given, cut-pattern given
   ((kitchen-state-in object cut-pattern cutting-tool => cut-object kitchen-state-out)
@@ -355,7 +379,9 @@
                                                                           (and (value binding-object)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
-     
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at) 
+
      ;; 1) find cutting tool
      (let ((new-cutting-tool (find-object-by-persistent-id cutting-tool (counter-top new-kitchen-state))))
 
@@ -408,24 +434,32 @@
           (kitchen-state-available-at container-available-at)
           ;; 1) find target container and place it on the countertop
           (new-target-container (retrieve-concept-instance-and-bring-to-countertop 'medium-bowl new-kitchen-state))
-          (target-container-instance-old-ks (find-object-by-persistent-id new-target-container kitchen-state-in)))
-
-     (loop for egg in (contents new-eggs-with-shell)
-           do (loop for i from 1 to (value (quantity (amount egg)))
-                    for egg-amount = (make-instance 'amount :quantity (make-instance 'quantity :value 50) :unit (make-instance 'g))
-                    for whole-egg = (make-instance 'whole-egg :amount egg-amount)
-                    for egg-shell = (make-instance 'egg-shell :cracked t)
-                    do (setf (contents new-target-container) (append (contents new-target-container) (list whole-egg)))
-                       (setf (contents new-eggs-with-shell) (append (contents new-eggs-with-shell) (list egg-shell)))
-                    finally (setf (contents new-eggs-with-shell)
-                                  (remove-if #'(lambda (i) (typep i 'egg)) (contents new-eggs-with-shell)))))
+          (target-container-instance-old-ks (if new-target-container
+                                              (find-object-by-persistent-id new-target-container kitchen-state-in)
+                                              nil)))
 
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
-     (setf (used new-target-container) t)
 
-     (bind (container-with-cracked-eggs 1.0 new-target-container container-available-at)
-           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-           (target-container 0.0 target-container-instance-old-ks nil)))))
+     (cond (new-target-container
+            (loop for egg in (contents new-eggs-with-shell)
+                  do (loop for i from 1 to (value (quantity (amount egg)))
+                           for egg-amount = (make-instance 'amount :quantity (make-instance 'quantity :value 50) :unit (make-instance 'g))
+                           for whole-egg = (make-instance 'whole-egg :amount egg-amount)
+                           for egg-shell = (make-instance 'egg-shell :cracked t)
+                           do (setf (contents new-target-container) (append (contents new-target-container) (list whole-egg)))
+                              (setf (contents new-eggs-with-shell) (append (contents new-eggs-with-shell) (list egg-shell)))
+                           finally (setf (contents new-eggs-with-shell)
+                                         (remove-if #'(lambda (i) (typep i 'egg)) (contents new-eggs-with-shell)))))
+
+            (setf (used new-target-container) t)
+
+            (bind (container-with-cracked-eggs 1.0 new-target-container container-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (target-container 0.0 target-container-instance-old-ks nil)))
+           (t
+            (bind (container-with-cracked-eggs 1.0 (make-instance 'failed-object) container-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (target-container 0.0 (make-instance 'failed-object) nil)))))))
 
 
 (defprimitive dip ((dipped-object t) ;;transferable container or list of kitchen entities
@@ -496,7 +530,6 @@
                  (bind (dipped-object 1.0 new-input-container dipped-object-available-at)
                        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
-; TOVERIFY RD: if a list-of-kitchen-entities is returned, should there be a primitive to take one item of this "stack of items"?
 (defprimitive fetch ((thing-fetched kitchen-entity) ; if quantity > 1, this will be a list-of-kitchen-entities 
                      (kitchen-state-out kitchen-state)
                      (kitchen-state-in kitchen-state)
@@ -514,20 +547,29 @@
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
    
      (if (= (value quantity) 1)
-       
        ;; find object and place it on the countertop
        (let ((target-concept-instance-new-ks (retrieve-concept-instance-and-bring-to-countertop (type-of concept-to-fetch) new-kitchen-state)))
-         (bind (thing-fetched 1.0 target-concept-instance-new-ks thing-available-at)
-               (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))
+         (if target-concept-instance-new-ks
+           (bind (thing-fetched 1.0 target-concept-instance-new-ks thing-available-at)
+                 (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))
+           (bind (thing-fetched 1.0 (make-instance 'failed-object) thing-available-at)
+                 (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
 
        ;; find all objects and place them on the countertop (one by one)
-       (let ((things-fetched (make-instance 'list-of-kitchen-entities)))
+       (let ((things-fetched (make-instance 'list-of-kitchen-entities))
+             (has-failed nil))
          (loop for i from 1 to (value quantity)
                do
-                 (push (retrieve-concept-instance-and-bring-to-countertop (type-of concept-to-fetch) new-kitchen-state (items things-fetched))
-                       (items things-fetched)))
-         (bind (thing-fetched 1.0 things-fetched thing-available-at)
-               (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+                 (let ((retrieved-object (retrieve-concept-instance-and-bring-to-countertop (type-of concept-to-fetch) new-kitchen-state (items things-fetched))))
+                   (if (not retrieved-object)
+                     (setf has-failed t)
+                     (push retrieved-object (items things-fetched)))))
+
+         (if has-failed
+           (bind (thing-fetched 1.0 (make-instance 'failed-object) thing-available-at)
+                 (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))
+           (bind (thing-fetched 1.0 things-fetched thing-available-at)
+                 (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))))
 
 (defprimitive fetch-and-proportion ((container-with-ingredient container)
                                     (kitchen-state-out kitchen-state)
@@ -546,41 +588,47 @@
           (kitchen-state-available-at container-available-at)
           ;; 1) find target container and place it on the countertop
           (target-container-instance-new-ks (retrieve-concept-instance-and-bring-to-countertop 'medium-bowl new-kitchen-state))
-          (target-container-instance-old-ks (find-object-by-persistent-id target-container-instance-new-ks kitchen-state-in)))
+          (target-container-instance-old-ks (if target-container-instance-new-ks
+                                              (find-object-by-persistent-id target-container-instance-new-ks kitchen-state-in)
+                                              nil)))
 
+     ;;  set kitchen time
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+     
      ;; 2) find ingredient and place it on the countertop
      (multiple-value-bind (ingredient-instance ingredient-original-location)
          (find-ingredient (type-of ingredient-concept) new-kitchen-state )
 
-       ; TODO RD: return custom nil object?
-       (unless ingredient-instance
-         (error (format nil "No more ~a found in current kitchen state!!!" (type-of ingredient-concept))))
+       (cond ((and ingredient-instance
+                   target-container-instance-new-ks)
+              (change-kitchen-entity-location ingredient-instance
+                                              (funcall (type-of ingredient-original-location) new-kitchen-state)
+                                              (counter-top new-kitchen-state))
 
-       (change-kitchen-entity-location ingredient-instance
-                                       (funcall (type-of ingredient-original-location) new-kitchen-state)
-                                       (counter-top new-kitchen-state))
+              ;;3) weigh ingredient
+              (multiple-value-bind (weighed-ingredient-container rest-ingredient-container)
+                  (if (eq (type-of (unit (amount (first (contents ingredient-instance))))) 'piece)
+                    (take-n-pieces ingredient-instance amount target-container-instance-new-ks)
+                    (weigh-ingredient ingredient-instance amount target-container-instance-new-ks))
 
-       ;;3) weigh ingredient
-       (multiple-value-bind (weighed-ingredient-container rest-ingredient-container)
-           (if (eq (type-of (unit (amount (first (contents ingredient-instance))))) 'piece)
-             (take-n-pieces ingredient-instance amount target-container-instance-new-ks)
-             (weigh-ingredient ingredient-instance amount target-container-instance-new-ks))
+                (setf (used weighed-ingredient-container) t)
 
-         (setf (used weighed-ingredient-container) t)
+                ;;put the rest back
+                (when (and (contents rest-ingredient-container)
+                           (not (typep ingredient-original-location 'counter-top)))
+                  (change-kitchen-entity-location rest-ingredient-container
+                                                  (counter-top new-kitchen-state)
+                                                  (funcall (type-of ingredient-original-location) new-kitchen-state)))
 
-         ;;put the rest back
-         (when (and (contents rest-ingredient-container)
-                    (not (typep ingredient-original-location 'counter-top)))
-           (change-kitchen-entity-location rest-ingredient-container
-                                           (counter-top new-kitchen-state)
-                                           (funcall (type-of ingredient-original-location) new-kitchen-state)))
-
-         ;;4) set kitchen time
-         (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
-
-         (bind (target-container 0.0 target-container-instance-old-ks nil)
-               (container-with-ingredient 1.0 weighed-ingredient-container container-available-at)
-               (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+                (bind (target-container 0.0 target-container-instance-old-ks nil)
+                      (container-with-ingredient 1.0 weighed-ingredient-container container-available-at)
+                      (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+             (t
+              (unless ingredient-instance
+                (print (format nil "No more ~a found in current kitchen state!!!" (type-of ingredient-concept))))
+              (bind (target-container 0.0 (make-instance 'failed-object) nil)
+                    (container-with-ingredient 1.0 (make-instance 'failed-object) container-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))))
 
 (defprimitive flatten ((container-with-flattened-items list-of-kitchen-entities)
                        (kitchen-state-out kitchen-state)
@@ -602,15 +650,22 @@
           ;; 1) find rolling pin and place it on the countertop
           (new-flatten-tool (retrieve-concept-instance-and-bring-to-countertop 'rolling-pin new-kitchen-state)))
 
-     (loop for item in (items new-portions)
-           do (setf (flattened item) t))
-
-     (setf (used new-flatten-tool) t)
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+     
+     (cond (new-flatten-tool
+            (loop for item in (items new-portions)
+                  do (setf (flattened item) t))
 
-     (bind (container-with-flattened-items 1.0 new-portions portions-available-at)
-           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-           (can-flatten-tool 0.0 new-flatten-tool nil))))
+            (setf (used new-flatten-tool) t)
+            
+            (bind (container-with-flattened-items 1.0 new-portions portions-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (can-flatten-tool 0.0 new-flatten-tool nil)))
+           (t
+            (bind (container-with-flattened-items 1.0 (make-instance 'failed-object) portions-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (can-flatten-tool 0.0 (make-instance 'failed-object) nil))))))
+            
    
   ;; Case 2: tool to flatten given
   ((portions kitchen-state-in can-flatten-tool
@@ -768,7 +823,6 @@
 
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
 
-     
      (bind (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
            (floured-container 1.0 new-container container-available-at)
            (ingredient-to-flour-with 0.0 flour-container-for-flouring nil))))))
@@ -792,7 +846,6 @@
          (setf (used new-container) t)
 
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
-
      
      (bind (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
            (floured-container 1.0 new-container container-available-at)))))
@@ -813,21 +866,29 @@
                          (find-object-by-persistent-id baking-tray (counter-top new-kitchen-state))))
           (tray-available-at (+ 150 (kitchen-time kitchen-state-in)))
           (kitchen-state-available-at tray-available-at))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
      
      ;; find baking paper and bring it to the countertop
      (let ((target-paper-instance (retrieve-concept-instance-and-bring-to-countertop 'baking-paper new-kitchen-state)))
+       (cond ((and
+               target-tray
+               target-paper-instance)
 
-       (setf (lined-with target-tray) target-paper-instance) ;;do the lining
-       (setf (is-lining target-paper-instance) t)
+              (setf (lined-with target-tray) target-paper-instance) ;;do the lining
+              (setf (is-lining target-paper-instance) t)
 
-       (setf (contents (counter-top new-kitchen-state)) ;;remove the paper from the countertop
-             (remove target-paper-instance (contents (counter-top new-kitchen-state))))
+              (setf (contents (counter-top new-kitchen-state)) ;;remove the paper from the countertop
+                    (remove target-paper-instance (contents (counter-top new-kitchen-state))))              
 
-       (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
-
-       (bind (lined-baking-tray 1.0 target-tray tray-available-at)
-             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-             (baking-paper 0.0 target-paper-instance nil)))))
+              (bind (lined-baking-tray 1.0 target-tray tray-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                    (baking-paper 0.0 target-paper-instance nil)))
+             (t
+              (bind (lined-baking-tray 1.0 (make-instance 'failed-object) tray-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                    (baking-paper 0.0 (make-instance 'failed-object) nil)))))))
+              
 
   ;; Case 2; baking paper to line with is given
   ((kitchen-state-in baking-tray baking-paper => kitchen-state-out lined-baking-tray)
@@ -842,16 +903,23 @@
           (tray-available-at (+ 150 (kitchen-time kitchen-state-in)))
           (kitchen-state-available-at tray-available-at))
 
-       (setf (lined-with target-tray) target-paper-instance) ;;do the lining
-       (setf (is-lining target-paper-instance) t)
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+  
+     (cond ((and
+             target-tray
+             target-paper-instance)
+                   
+            (setf (lined-with target-tray) target-paper-instance) ;;do the lining
+            (setf (is-lining target-paper-instance) t)
 
-       (setf (contents (counter-top new-kitchen-state)) ;;remove the paper from the countertop
-             (remove target-paper-instance (contents (counter-top new-kitchen-state))))
+            (setf (contents (counter-top new-kitchen-state)) ;;remove the paper from the countertop
+                  (remove target-paper-instance (contents (counter-top new-kitchen-state))))
 
-       (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
-
-       (bind (lined-baking-tray 1.0 target-tray tray-available-at)
-             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
+            (bind (lined-baking-tray 1.0 target-tray tray-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))
+           (t
+            (bind (lined-baking-tray 1.0 (make-instance 'failed-object) tray-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
 
 (defprimitive mash ((mashed-ingredient transferable-container)
@@ -873,14 +941,23 @@
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
-     (loop for item in (contents new-ingredient)
-           do (setf (mashed item) t))
-
-     (setf (used mashing-tool) t)
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
      
-     (bind (mashed-ingredient 1.0 new-ingredient container-available-at)
-           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-           (mashing-tool 0.0 mashing-tool container-available-at))))
+     (cond (mashing-tool
+
+            (loop for item in (contents new-ingredient)
+                  do (setf (mashed item) t))
+
+            (setf (used mashing-tool) t)
+     
+            (bind (mashed-ingredient 1.0 new-ingredient container-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (mashing-tool 0.0 mashing-tool container-available-at)))
+           (t
+            (bind (mashed-ingredient 1.0 (make-instance 'failed-object) container-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (mashing-tool 0.0 (make-instance 'failed-object) container-available-at))))))
+     
             
    ;; Case 2: mashing tool given
    ((kitchen-state-in input-ingredient mashing-tool => mashed-ingredient kitchen-state-out)
@@ -894,11 +971,13 @@
                                                                            (and (value binding-object)
                                                                                 (id (value binding-object)))))))))
            (kitchen-state-available-at container-available-at))
-
+      
       (loop for item in (contents new-ingredient)
             do (setf (mashed item) t))
 
       (setf (used new-mashing-tool) t)
+
+      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
      
       (bind (mashed-ingredient 1.0 new-ingredient container-available-at)
             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
@@ -922,7 +1001,7 @@
 
      (loop for ingredient in (contents new-container)
            when (typep ingredient 'meltable)
-           do (setf (melted ingredient) t)) ;;also change the temperature    
+           do (setf (melted ingredient) t))
 
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
      
@@ -943,7 +1022,7 @@
 
      (loop for ingredient in (contents new-container)
            when (typep ingredient 'meltable)
-           do (setf (melted ingredient) t)) ;;also change the temperature    
+           do (setf (melted ingredient) t))
 
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
      
@@ -967,21 +1046,27 @@
                                                                                    (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+     
      ;; 1) find wooden spoon and bring it to the countertop
        (let ((target-spoon-instance (retrieve-concept-instance-and-bring-to-countertop 'wooden-spoon new-kitchen-state))
              (container-with-input-ingredients-instance
               (find-object-by-persistent-id container-with-input-ingredients (counter-top new-kitchen-state))))
 
-         ;; 2) mingle contents in container with ingredients
-         (let ((mixture (create-heterogeneous-mixture-in-container container-with-input-ingredients-instance)))
+         (cond (target-spoon-instance
+                ;; 2) mingle contents in container with ingredients
+                (let ((mixture (create-heterogeneous-mixture-in-container container-with-input-ingredients-instance)))
 
-           (setf (used target-spoon-instance) t)
-           (setf (contents container-with-input-ingredients-instance) (list mixture))
-           (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+                  (setf (used target-spoon-instance) t)
+                  (setf (contents container-with-input-ingredients-instance) (list mixture))
 
-           (bind (mingling-tool 0.0 target-spoon-instance)
-                 (container-with-mixture 1.0 container-with-input-ingredients-instance container-available-at)
-                 (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))
+                  (bind (mingling-tool 0.0 target-spoon-instance)
+                        (container-with-mixture 1.0 container-with-input-ingredients-instance container-available-at)
+                        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+               (t
+                (bind (mingling-tool 0.0 (make-instance 'failed-object))
+                      (container-with-mixture 1.0 (make-instance 'failed-object) container-available-at)
+                      (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
   ;;Case 2: Mingling tool specified
   ((kitchen-state-in container-with-input-ingredients mingling-tool => kitchen-state-out container-with-mixture )
@@ -1020,26 +1105,31 @@
                                              (available-at (find (id container-with-input-ingredients) binding-objects
                                                                  :key #'(lambda (binding-object)
                                                                           (and (value binding-object)
-                                                                                   (id (value binding-object)))))))))
+                                                                               (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
 
      ;; 1) find whisk and bring it to the countertop
        (let ((target-whisk-instance (retrieve-concept-instance-and-bring-to-countertop 'whisk new-kitchen-state))
              (container-with-input-ingredients-instance
               (find-object-by-persistent-id container-with-input-ingredients (counter-top new-kitchen-state))))
 
-         ;; 2) mix contents in container with ingredients
-         (let ((mixture (create-homogeneous-mixture-in-container container-with-input-ingredients-instance)))
+         (cond (target-whisk-instance
 
-           (setf (used target-whisk-instance) t)
-           (setf (mixed mixture) t)
-           (setf (contents container-with-input-ingredients-instance) (list mixture))
+                ;; 2) mix contents in container with ingredients
+                (let ((mixture (create-homogeneous-mixture-in-container container-with-input-ingredients-instance)))
+                  (setf (used target-whisk-instance) t)
+                  (setf (mixed mixture) t)
+                  (setf (contents container-with-input-ingredients-instance) (list mixture))
 
-          (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
-         
-          (bind (mixing-tool 0.0 target-whisk-instance)
-                (container-with-mixture 1.0 container-with-input-ingredients-instance container-available-at)
-                (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))
+                  (bind (mixing-tool 0.0 target-whisk-instance)
+                        (container-with-mixture 1.0 container-with-input-ingredients-instance container-available-at)
+                        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+               (t
+                (bind (mixing-tool 0.0 (make-instance 'failed-object))
+                      (container-with-mixture 1.0 (make-instance 'failed-object) container-available-at)
+                      (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
   ;;Case 2: Mixing tool specified
   ((kitchen-state-in container-with-input-ingredients mixing-tool => kitchen-state-out container-with-mixture )
@@ -1090,18 +1180,29 @@
           ;; 2) find container for peels
           (new-peel-container (retrieve-concept-instance-and-bring-to-countertop 'medium-bowl new-kitchen-state)))
 
-     ;; 3) peel everything in the container
-     (loop for item in (contents new-ingredient)
-           do (setf (peeled item) t)
-              (push (make-instance 'peel :peel-of item) (contents new-peel-container)))
-
-     (setf (used new-peeling-tool) t)
-     (setf (used new-peel-container) t)
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
      
-     (bind (peeled-ingredient 1.0 new-ingredient container-available-at)
-           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-           (peel-of-ingredient 0.0 new-peel-container container-available-at)
-           (peeling-tool 0.0 new-peeling-tool container-available-at))))
+     (cond ((and
+             new-peeling-tool
+             new-peel-container)
+            
+            ;; 3) peel everything in the container
+            (loop for item in (contents new-ingredient)
+                  do (setf (peeled item) t)
+                     (push (make-instance 'peel :peel-of item) (contents new-peel-container)))
+
+            (setf (used new-peeling-tool) t)
+            (setf (used new-peel-container) t)
+     
+            (bind (peeled-ingredient 1.0 new-ingredient container-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (peel-of-ingredient 0.0 new-peel-container container-available-at)
+                  (peeling-tool 0.0 new-peeling-tool container-available-at)))
+           (t
+            (bind (peeled-ingredient 1.0 (make-instance 'failed-object) container-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (peel-of-ingredient 0.0 (make-instance 'failed-object) container-available-at)
+                  (peeling-tool 0.0 (make-instance 'failed-object) container-available-at))))))
 
   ;; Case 2: peeling tool given
   ((kitchen-state-in input-ingredient peeling-tool => peeled-ingredient peel-of-ingredient kitchen-state-out)
@@ -1126,6 +1227,8 @@
      
      (setf (used new-peeling-tool) t)
      (setf (used new-peel-container) t)
+     
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
      
      (bind (peeled-ingredient 1.0 new-ingredient container-available-at)
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
@@ -1153,7 +1256,6 @@
                                                                          (and (value binding-object)
                                                                               (id (value binding-object)))))))))
           (kitchen-state-available-at portions-available-at))
-
 
      ;; portion contents from container and put them on the counter top
      (let* ((container-with-dough-instance
@@ -1270,8 +1372,7 @@
             (value-to-transfer (value (quantity (amount dough))))
             (portion-amount (make-instance 'amount :quantity quantity :unit unit))
             (left-to-transfer (copy-object value-to-transfer))
-            (countertop (counter-top new-kitchen-state))
-            (portions (make-instance 'list-of-kitchen-entities)))
+            (countertop (counter-top new-kitchen-state)))
 
        ; convert the portion amount to grams
        (when (not (eq (type-of unit) 'g))
@@ -1322,8 +1423,7 @@
             (value-to-transfer (value (quantity (amount dough))))
             (portion-amount (make-instance 'amount :quantity quantity :unit unit))
             (left-to-transfer (copy-object value-to-transfer))
-            (countertop (counter-top new-kitchen-state))
-            (portions (make-instance 'list-of-kitchen-entities)))
+            (countertop (counter-top new-kitchen-state)))
 
        ; convert the portion amount to grams
        (when (not (eq (type-of unit) 'g))
@@ -1492,18 +1592,28 @@
           ;; 2) find container for seeds
           (new-seed-container (retrieve-concept-instance-and-bring-to-countertop 'medium-bowl new-kitchen-state)))
 
-     ;; 3) seed everything in the container
-     (loop for item in (contents new-ingredient)
-           do (setf (seeded item) t)
-              (push (make-instance 'seed :seed-of item) (contents new-seed-container)))
-
-     (setf (used new-seeding-tool) t)
-     (setf (used new-seed-container) t)
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
      
-     (bind (seeded-ingredient 1.0 new-ingredient container-available-at)
-           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-           (seed-of-ingredient 0.0 new-seed-container container-available-at)
-           (seeding-tool 0.0 new-seeding-tool container-available-at))))
+     (cond ((and
+             new-seeding-tool
+             new-seed-container)
+            ;; 3) seed everything in the container
+            (loop for item in (contents new-ingredient)
+                  do (setf (seeded item) t)
+                     (push (make-instance 'seed :seed-of item) (contents new-seed-container)))
+
+            (setf (used new-seeding-tool) t)
+            (setf (used new-seed-container) t)
+     
+            (bind (seeded-ingredient 1.0 new-ingredient container-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (seed-of-ingredient 0.0 new-seed-container container-available-at)
+                  (seeding-tool 0.0 new-seeding-tool container-available-at)))
+           (t
+            (bind (seeded-ingredient 1.0 (make-instance 'failed-object) container-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (seed-of-ingredient 0.0 (make-instance 'failed-object) container-available-at)
+                  (seeding-tool 0.0 (make-instance 'failed-object) container-available-at))))))
 
   ;; Case 2: seeding tool given
   ((kitchen-state-in input-ingredient seeding-tool => seeded-ingredient seed-of-ingredient kitchen-state-out)
@@ -1521,6 +1631,8 @@
           ;; 2) find container for seeds
           (new-seed-container (retrieve-concept-instance-and-bring-to-countertop 'medium-bowl new-kitchen-state)))
 
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+     
      ;; 3) seed everything in the container
      (loop for item in (contents new-ingredient)
            do (setf (seeded item) t)
@@ -1549,18 +1661,21 @@
                                                                                    (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
-     ; TOVERIFY RD: check affordance: should be covered?
-     (when (and (subtypep (type-of new-container-with-input-ingredients) 'coverable-container)
-                (covered-with new-container-with-input-ingredients))
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+     
+     (cond ((and (subtypep (type-of new-container-with-input-ingredients) 'coverable-container)
+                 (covered-with new-container-with-input-ingredients))
 
-       ;; "mix" contents in container with ingredients
-       (let ((mixture (create-homogeneous-mixture-in-container new-container-with-input-ingredients 'shaken)))
+            ;; "mix" contents in container with ingredients
+            (let ((mixture (create-homogeneous-mixture-in-container new-container-with-input-ingredients 'shaken)))
 
-         (setf (contents new-container-with-input-ingredients) (list mixture))
-         (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+              (setf (contents new-container-with-input-ingredients) (list mixture))
 
-         (bind (container-with-mixture 1.0 new-container-with-input-ingredients container-available-at)
-               (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+              (bind (container-with-mixture 1.0 new-container-with-input-ingredients container-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+           (t
+            (bind (container-with-mixture 1.0 (make-instance 'failed-object) container-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
 (defprimitive shape ((shaped-portions t) ;;transferable container or list of kitchen entities
                      (kitchen-state-out kitchen-state)
@@ -1626,28 +1741,36 @@
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
      ;; 1) find target container and place it on the countertop
      ;; 2) find sift and place it on the countertop
      (let* ((new-target-container (retrieve-concept-instance-and-bring-to-countertop 'large-bowl new-kitchen-state))
             (target-container-in-kitchen-input-state (find-object-by-persistent-id new-target-container kitchen-state-in))
             (new-sift (retrieve-concept-instance-and-bring-to-countertop 'sift new-kitchen-state)))
 
-       ;; 3) transfer contents from source-container to empty target-container
-       (setf (contents new-target-container) (contents new-source-container))
-       (setf (used new-target-container) t)
-       (setf (used new-sift) t)
+       (cond ((and new-target-container new-sift)
+              ;; 3) transfer contents from source-container to empty target-container
+              (setf (contents new-target-container) (contents new-source-container))
+              (setf (used new-target-container) t)
+              (setf (used new-sift) t)
 
-       (loop for item in (contents new-target-container)
-             when (typep item 'siftable)
-               do (setf (sifted item) t))
+              (loop for item in (contents new-target-container)
+                    when (typep item 'siftable)
+                      do (setf (sifted item) t))
        
-       (setf (contents new-source-container) nil)
-       (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+              (setf (contents new-source-container) nil)
+              (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
 
-       (bind (container-with-sifted-contents 1.0 new-target-container container-available-at)
-             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-             (target-container 0.0 target-container-in-kitchen-input-state nil)
-             (sifting-tool 1.0 new-sift kitchen-state-available-at)))))
+              (bind (container-with-sifted-contents 1.0 new-target-container container-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                    (target-container 0.0 target-container-in-kitchen-input-state nil)
+                    (sifting-tool 1.0 new-sift kitchen-state-available-at)))
+             (t
+              (bind (container-with-sifted-contents 1.0 (make-instance 'failed-object) container-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                    (target-container 0.0 target-container-in-kitchen-input-state nil)
+                    (sifting-tool 1.0 (make-instance 'failed-object) kitchen-state-available-at)))))))
 
   ;; Case 2: target container given, sift not given
   ((container-with-ingredients-to-be-sifted kitchen-state-in target-container
@@ -1663,25 +1786,30 @@
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
 
      ;; 1) find sift and place it on the countertop
      (let ((new-sift (retrieve-concept-instance-and-bring-to-countertop 'sift new-kitchen-state)))
 
-       ;; 2) transfer contents from source-container to empty target-container
-       (setf (contents new-target-container) (contents new-source-container))
-       (setf (used new-target-container) t)
-       (setf (used new-sift) t)
+       (cond (new-sift
+              ;; 2) transfer contents from source-container to empty target-container
+              (setf (contents new-target-container) (contents new-source-container))
+              (setf (used new-target-container) t)
+              (setf (used new-sift) t)
 
-       (loop for item in (contents new-target-container)
-             when (typep item 'siftable)
-               do (setf (sifted item) t))
+              (loop for item in (contents new-target-container)
+                    when (typep item 'siftable)
+                      do (setf (sifted item) t))
 
-       (setf (contents new-source-container) nil)
-       (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+              (setf (contents new-source-container) nil)
 
-       (bind (container-with-sifted-contents 1.0 new-target-container container-available-at)
-             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-             (sifting-tool 1.0 new-sift kitchen-state-available-at)))))
+              (bind (container-with-sifted-contents 1.0 new-target-container container-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                    (sifting-tool 1.0 new-sift kitchen-state-available-at)))
+             (t
+              (bind (container-with-sifted-contents 1.0 (make-instance 'failed-object) container-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                    (sifting-tool 1.0 (make-instance 'failed-object) kitchen-state-available-at)))))))
 
   ;; Case 3: target container is given, sift is given
   ((container-with-ingredients-to-be-sifted target-container kitchen-state-in sifting-tool
@@ -1698,8 +1826,7 @@
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
-     (assert new-source-container)
-     (assert new-target-container)
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
 
      ;; transfer contents from source-container to target-container
      (setf (contents new-target-container) (append (contents new-target-container)
@@ -1712,8 +1839,6 @@
              do (setf (sifted item) t))
        
      (setf (contents new-source-container) nil)
-       
-     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
        
      (bind (container-with-sifted-contents 1.0 new-target-container container-available-at )
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
@@ -1741,6 +1866,8 @@
                                                                                 (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+     
      (if (contents new-container-with-things-spread)
 
        (let* ((number-of-items-to-spread-upon (loop with count = 0
@@ -1765,7 +1892,6 @@
 
          (setf (contents new-spread-container) nil)
          (setf (used new-spreading-tool) t)
-         (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
      
          (bind (container-with-objects-that-have-been-spread 1.0 new-container-with-things-spread container-available-at)
                (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))
@@ -1797,46 +1923,51 @@
           (kitchen-state-available-at container-available-at))
 
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
-     
-     (if (contents new-container-with-things-spread)
-     
-       (let* ((number-of-items-to-spread-upon (loop with count = 0
-                                                    for item in (contents new-container-with-things-spread)
-                                                    if  (typep item 'can-be-spread-upon)
-                                                      do (incf count)
-                                                    finally (return count)))
-              (actual-spread-in-bowl (first (contents container-with-spread)))
-              (quantity-per-item (float (/ (value (quantity (amount actual-spread-in-bowl)))
-                                           number-of-items-to-spread-upon)))
-              (spread-unit (type-of (unit (amount actual-spread-in-bowl)))))
-     
-         (loop for item in (contents new-container-with-things-spread)
-               for portioned-spread = (copy-object actual-spread-in-bowl)
-               do (setf (amount portioned-spread)  (make-instance 'amount
-                                                                  :quantity (make-instance 'quantity
-                                                                                           :value quantity-per-item)
-                                                                  :unit (make-instance spread-unit)))
-                  (setf (spread portioned-spread) t)
-                  (setf (spread-with item) portioned-spread))
 
-         (setf (contents new-spread-container) nil)
-         (setf (used spreading-tool) t)
-         (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+     (cond (spreading-tool
+            (if (contents new-container-with-things-spread)
+     
+              (let* ((number-of-items-to-spread-upon (loop with count = 0
+                                                           for item in (contents new-container-with-things-spread)
+                                                           if  (typep item 'can-be-spread-upon)
+                                                             do (incf count)
+                                                           finally (return count)))
+                     (actual-spread-in-bowl (first (contents container-with-spread)))
+                     (quantity-per-item (float (/ (value (quantity (amount actual-spread-in-bowl)))
+                                                  number-of-items-to-spread-upon)))
+                     (spread-unit (type-of (unit (amount actual-spread-in-bowl)))))
+     
+                (loop for item in (contents new-container-with-things-spread)
+                      for portioned-spread = (copy-object actual-spread-in-bowl)
+                      do (setf (amount portioned-spread)  (make-instance 'amount
+                                                                         :quantity (make-instance 'quantity
+                                                                                                  :value quantity-per-item)
+                                                                         :unit (make-instance spread-unit)))
+                         (setf (spread portioned-spread) t)
+                         (setf (spread-with item) portioned-spread))
+
+                (setf (contents new-spread-container) nil)
+                (setf (used spreading-tool) t)
+                (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
        
-         (bind (container-with-objects-that-have-been-spread 1.0 new-container-with-things-spread container-available-at)
-               (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-               (can-spread-kitchen-tool 0.0 spreading-tool container-available-at)))
+                (bind (container-with-objects-that-have-been-spread 1.0 new-container-with-things-spread container-available-at)
+                      (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                      (can-spread-kitchen-tool 0.0 spreading-tool container-available-at)))
 
        ; spread directly on the container itself
-       (progn
-         (setf (contents new-container-with-things-spread) (contents container-with-spread))
+              (progn
+                (setf (contents new-container-with-things-spread) (contents container-with-spread))
          
-         (setf (contents new-spread-container) nil)
-         (setf (used spreading-tool) t)
+                (setf (contents new-spread-container) nil)
+                (setf (used spreading-tool) t)
        
-         (bind (container-with-objects-that-have-been-spread 1.0 new-container-with-things-spread container-available-at)
-               (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-               (can-spread-kitchen-tool 0.0 spreading-tool container-available-at)))))))
+                (bind (container-with-objects-that-have-been-spread 1.0 new-container-with-things-spread container-available-at)
+                      (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                      (can-spread-kitchen-tool 0.0 spreading-tool container-available-at)))))
+           (t
+            (bind (container-with-objects-that-have-been-spread 1.0 (make-instance 'failed-object) container-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (can-spread-kitchen-tool 0.0 (make-instance 'failed-object) container-available-at)))))))
 
 (defprimitive sprinkle ((sprinkled-object transferable-container)
                         (kitchen-state-out kitchen-state)
@@ -1897,35 +2028,45 @@
                                                                          (and (value binding-object)
                                                                               (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
-   
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+     
      ;; 1) find target container and place it on the countertop
      (let* ((target-container-instance
              (retrieve-concept-instance-and-bring-to-countertop 'large-bowl new-kitchen-state))
-            (target-container-in-kitchen-input-state (find-object-by-persistent-id target-container-instance kitchen-state-in))
+            (target-container-in-kitchen-input-state (if target-container-instance
+                                                       (find-object-by-persistent-id target-container-instance kitchen-state-in)
+                                                       nil))
             (source-container-instance
              (find-object-by-persistent-id container-with-input-ingredients (counter-top new-kitchen-state))))
 
-       ;; 2) add all contents from source container to target container
-       (loop with container-amount = (make-instance 'amount :quantity (make-instance 'quantity :value 0))
-             for ingredient in (contents source-container-instance)
-             do (setf (value (quantity container-amount))
-                      (+ (value (quantity container-amount))
-                         (value (quantity (amount ingredient)))))
-                (setf (contents target-container-instance) (cons ingredient (contents target-container-instance)))
-                (setf (contents source-container-instance) (remove ingredient (contents source-container-instance) :test #'equalp))
-             finally
-               (setf (used target-container-instance) t)
-               (setf (unit container-amount) (unit (amount ingredient)))
-               (setf total-amount container-amount))
+       (cond ((and target-container-instance (contents source-container-instance))
+              ;; 2) add all contents from source container to target container
+              (loop with container-amount = (make-instance 'amount :quantity (make-instance 'quantity :value 0))
+                    for ingredient in (contents source-container-instance)
+                    do (setf (value (quantity container-amount))
+                             (+ (value (quantity container-amount))
+                                (value (quantity (amount ingredient)))))
+                       (setf (contents target-container-instance) (cons ingredient (contents target-container-instance)))
+                       (setf (contents source-container-instance) (remove ingredient (contents source-container-instance) :test #'equalp))
+                    finally
+                      (setf (used target-container-instance) t)
+                      (setf (unit container-amount) (unit (amount ingredient)))
+                      (setf total-amount container-amount))  
 
-       (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
-
-       (bind (target-container 0.0 target-container-in-kitchen-input-state nil)
-             (container-with-all-ingredients 1.0 target-container-instance container-available-at)
-             (container-with-rest 1.0 source-container-instance container-available-at)
-             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-             (quantity 0.0 (quantity total-amount) nil)
-             (unit 0.0 (unit total-amount) nil)))))
+              (bind (target-container 0.0 target-container-in-kitchen-input-state nil)
+                    (container-with-all-ingredients 1.0 target-container-instance container-available-at)
+                    (container-with-rest 1.0 source-container-instance container-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                    (quantity 0.0 (quantity total-amount) nil)
+                    (unit 0.0 (unit total-amount) nil)))
+             (t
+              (bind (target-container 0.0 (make-instance 'failed-object) nil)
+                    (container-with-all-ingredients 1.0 (make-instance 'failed-object) container-available-at)
+                    (container-with-rest 1.0 (make-instance 'failed-object) container-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                    (quantity 0.0 (quantity total-amount) nil)
+                    (unit 0.0 (unit total-amount) nil)))))))
 
   ;; Case 2: Case in which the target container is given in the input-kitchen-state and no quantity and unit are given
   ((kitchen-state-in container-with-input-ingredients target-container
@@ -1943,32 +2084,35 @@
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
-     (assert (contents source-container-instance))
-     
-     ;; 1) all contents from source container to target container
-     (loop with container-amount = (make-instance 'amount :quantity (make-instance 'quantity :value 0))
-           for ingredient in (contents source-container-instance)
-           do (setf (value (quantity container-amount))
-                    (+ (value (quantity container-amount))
-                       (value (quantity (amount ingredient)))))
-           (setf (contents target-container-instance) (cons ingredient (contents target-container-instance)))
-           (setf (contents source-container-instance)
-                 (remove ingredient (contents source-container-instance) :test #'equalp))
-           finally
-           (setf (used target-container-instance) t)
-           (setf (unit container-amount) (unit (amount ingredient)))
-           (setf total-amount container-amount))
-
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+     (cond ((contents source-container-instance)
+     
+            ;; 1) all contents from source container to target container
+            (loop with container-amount = (make-instance 'amount :quantity (make-instance 'quantity :value 0))
+                  for ingredient in (contents source-container-instance)
+                  do (setf (value (quantity container-amount))
+                           (+ (value (quantity container-amount))
+                              (value (quantity (amount ingredient)))))
+                     (setf (contents target-container-instance) (cons ingredient (contents target-container-instance)))
+                     (setf (contents source-container-instance)
+                           (remove ingredient (contents source-container-instance) :test #'equalp))
+                  finally
+                    (setf (used target-container-instance) t)
+                    (setf (unit container-amount) (unit (amount ingredient)))
+                    (setf total-amount container-amount))
                   
-     (bind (container-with-all-ingredients 1.0 target-container-instance container-available-at)
-           (container-with-rest 1.0 source-container-instance container-available-at)
-           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-           (quantity 0.0 (quantity total-amount) nil)
-           (unit 0.0 (unit total-amount) nil)))))
-
-; TODO RD: case 3 and 4
-
+            (bind (container-with-all-ingredients 1.0 target-container-instance container-available-at)
+                  (container-with-rest 1.0 source-container-instance container-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (quantity 0.0 (quantity total-amount) nil)
+                  (unit 0.0 (unit total-amount) nil)))
+           (t
+            (bind (container-with-all-ingredients 1.0 (make-instance 'failed-object) container-available-at)
+                  (container-with-rest 1.0 (make-instance 'failed-object) container-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (quantity 0.0 (quantity total-amount) nil)
+                  (unit 0.0 (unit total-amount) nil)))))))
 
 (defprimitive transfer-items ((transferred container)
                               (kitchen-state-out kitchen-state)
@@ -2102,6 +2246,8 @@
      ; put the cover on the countertop
      (setf (contents (counter-top new-kitchen-state)) (cons new-cover (contents (counter-top new-kitchen-state))))
 
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
      (bind
       (uncovered-object 1.0 new-container container-available-at)
       (cover 1.0 new-cover container-available-at)
@@ -2117,19 +2263,18 @@
   (multiple-value-bind (target-object-in-kitchen-input-state target-object-original-location)
       (find-unused-kitchen-entity kitchen-concept kitchen-state excluded)
 
-    ; TODO RD: return custom nil object?
-    (unless target-object-in-kitchen-input-state
-      (error (format nil "~a not found in current kitchen state!!" kitchen-concept)))
-    
-    (let ((concept-instance
-           (find-object-by-persistent-id target-object-in-kitchen-input-state
-                                         (funcall (type-of target-object-original-location) kitchen-state))))
+    (cond (target-object-in-kitchen-input-state
+           (let ((concept-instance
+                  (find-object-by-persistent-id target-object-in-kitchen-input-state
+                                                (funcall (type-of target-object-original-location) kitchen-state))))
 
-      (change-kitchen-entity-location concept-instance ;;bring the retrieved instance to the countertop
-                                      (funcall (type-of target-object-original-location) kitchen-state)
-                                      (counter-top kitchen-state))
-
-      concept-instance)))
+             (change-kitchen-entity-location concept-instance ;;bring the retrieved instance to the countertop
+                                             (funcall (type-of target-object-original-location) kitchen-state)
+                                             (counter-top kitchen-state))
+             concept-instance))
+          (t
+           (print (format nil "~a not found in current kitchen state!!" kitchen-concept))
+           nil))))
 
 (defun change-kitchen-entity-location (kitchen-entity old-location new-location)
   "Adds the kitchen entity to the contents of the new-location and removes it from the contents of the old location "

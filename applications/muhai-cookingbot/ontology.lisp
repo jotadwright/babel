@@ -1248,3 +1248,30 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass degrees-celsius (unit)  
   ()
   (:documentation "Unit: Celsius."))
+
+;; Failed Output  ;;
+;;;;;;;;;;;;;;;;;;;;
+
+(defclass failed-object (transferable-container
+                         kitchen-state
+                         coverable-container
+                         oven
+                         fridge
+                         can-cover
+                         list-of-kitchen-entities
+                         arrangement-pattern
+                         shape
+                         can-cut
+                         can-mash
+                         can-mingle
+                         can-mix
+                         can-spread
+                         can-peel
+                         has-temperature
+                         can-seed
+                         sift
+                         lineable
+                         quantity
+                         time-unit)
+  ()
+  (:documentation "Object that represents a failed output of a primitive. It can be seen as a custom NIL value."))
