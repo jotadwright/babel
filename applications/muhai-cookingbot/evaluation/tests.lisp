@@ -74,7 +74,7 @@
       (error "test-multiple-recipes: FAILURE"))))
 
 (defun test-list-of-kitchen-entities ()
-  "A file that contains two solutions, an imperfect one and a perfect one."
+  "A file that contains a list of kitchen entities as the solution that is closest to the gold standard container solution."
   (let ((solution (first (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-list-of-kitchen-entities.solution" *metrics* (list *almond-crescent-cookies-environment*)))))
     (if (and (< (dish-score solution) 1)
            ;  (< (smatch-score solution) 1)
@@ -83,6 +83,15 @@
       (print "test-list-of-kitchen-entities: SUCCESS")
       (error "test-list-of-kitchen-entities: FAILURE"))))
 
+(defun test-failed-object ()
+  "A file that contains a solution with failed objects."
+  (let ((solution (first (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-failed-object.solution" *metrics* (list *almond-crescent-cookies-environment*)))))
+    (if (and (= (dish-score solution) 0)
+           ;  (< (smatch-score solution) 1)
+             (= (subgoals-ratio solution) (/ 1 26)))
+      (print "test-failed-object: SUCCESS")
+      (error "test-failed-object: FAILURE"))))
+
 (defun execute-all-tests ()
   (test-perfect)
   (test-permuted-perfect)
@@ -90,7 +99,8 @@
   (test-extra-operations)
   (test-multiple-recipes)
   (test-empty)
-  (test-list-of-kitchen-entities))
+  (test-list-of-kitchen-entities)
+  (test-failed-object))
 
 ;(execute-all-tests)
 

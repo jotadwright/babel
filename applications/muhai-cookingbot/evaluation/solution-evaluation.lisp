@@ -211,9 +211,12 @@
    A subgoal is defined as the primary output of the golden standard node and is reached if a similar primary output is present in a solution node."
   (let* ((gold-nodes (get-full-node-sequence gold-node))
          ; no need to check the initial kitchen-states as these will always be correct
-         (filtered-gold-nodes (remove-if #'(lambda (node) (eql (get-predicate-name node) 'get-kitchen)) gold-nodes))
+         (filtered-gold-nodes (remove-if #'(lambda (node) (eql (get-predicate-name node) 'get-kitchen))
+                                                           gold-nodes))
          (sol-nodes (get-full-node-sequence sol-node))
-         (filtered-sol-nodes (remove-if #'(lambda (node) (eql (get-predicate-name node) 'get-kitchen)) sol-nodes))
+         (filtered-sol-nodes (remove-if #'(lambda (node) (or
+                                                           (eql (get-predicate-name node) 'get-kitchen)
+                                                           (subtypep (type-of (get-output-value node)) 'failed-object))) sol-nodes))
          (gold-entities (mapcar #'get-located-output-entity filtered-gold-nodes))
          (sol-entities  (mapcar #'get-located-output-entity filtered-sol-nodes))
          (goals-reached '())
@@ -408,77 +411,82 @@
 
 (defmethod compare-node-dishes ((sol-dish irl::irl-program-processor-node) (gold-dish irl::irl-program-processor-node))
   "Compute a similarity score for the final dish that was made when reaching this node."
-  (let* ((sol-value (get-output-value sol-dish))
-         (sol-location (find-location sol-value (get-output-kitchen-state sol-dish)))
-         (sol-dish-slots (get-slotnames sol-value '(persistent-id id contents items))) ; all slots except contents/items
-         (gold-value (get-output-value gold-dish))
-         (gold-location (find-location gold-value (get-output-kitchen-state gold-dish)))
-         (gold-dish-slots (get-slotnames gold-value '(persistent-id id contents items))) ; all slots except contents/items
-         (container-score (make-instance 'similarity-score))
-         (contents-score (make-instance 'similarity-score)))
+  ; skip comparison with failed output objects
+  (if (has-failed-objects (get-output-value sol-dish))
+    (make-instance 'similarity-score
+                   :points 0
+                   :max-points 1)
+    (let* ((sol-value (get-output-value sol-dish))
+           (sol-location (find-location sol-value (get-output-kitchen-state sol-dish)))
+           (sol-dish-slots (get-slotnames sol-value '(persistent-id id contents items))) ; all slots except contents/items
+           (gold-value (get-output-value gold-dish))
+           (gold-location (find-location gold-value (get-output-kitchen-state gold-dish)))
+           (gold-dish-slots (get-slotnames gold-value '(persistent-id id contents items))) ; all slots except contents/items
+           (container-score (make-instance 'similarity-score))
+           (contents-score (make-instance 'similarity-score)))
     ; check if this node actually returns a container with ingredients or a list-of-kitchen-entities
-    (if (not (and (or (subtypep (type-of sol-value) 'container) (subtypep (type-of sol-value) 'list-of-kitchen-entities))
-                  (contents-or-items sol-value)
-                  (loop for item in (contents-or-items sol-value) always (subtypep (type-of item) 'ingredient))))
-      (make-instance 'similarity-score
-                     :points 0
-                     :max-points 1)
-      (progn
-        ;; container specific scoring
+      (if (not (and (or (subtypep (type-of sol-value) 'container) (subtypep (type-of sol-value) 'list-of-kitchen-entities))
+                    (contents-or-items sol-value)
+                    (loop for item in (contents-or-items sol-value) always (subtypep (type-of item) 'ingredient))))
+        (make-instance 'similarity-score
+                       :points 0
+                       :max-points 1)
+        (progn
+          ;; container specific scoring
         ; location of dish is worth a score of 1
-        (if (similar-locations sol-location gold-location)
-          (add-points container-score 1 1)
-          (add-points container-score 0 1))
+          (if (similar-locations sol-location gold-location)
+            (add-points container-score 1 1)
+            (add-points container-score 0 1))
          ; type of container is worth a score of 1
-        (if (eq (type-of sol-value) (type-of gold-value))
-          (add-points container-score 1 1)
-          (add-points container-score 0 1))
+          (if (eq (type-of sol-value) (type-of gold-value))
+            (add-points container-score 1 1)
+            (add-points container-score 0 1))
         ; each slot that is in common is worth a score of 1  
-        (loop for slot in gold-dish-slots
-              if (and (member slot sol-dish-slots)
-                      (similar-entities (slot-value sol-value slot)
-                                        (slot-value gold-value slot)))
-                do (add-points container-score 1 1)
-              else
-                do (add-points container-score 0 1))
+          (loop for slot in gold-dish-slots
+                if (and (member slot sol-dish-slots)
+                        (similar-entities (slot-value sol-value slot)
+                                          (slot-value gold-value slot)))
+                  do (add-points container-score 1 1)
+                else
+                  do (add-points container-score 0 1))
         ; number of portions in the dish is worth a score of 1
         ; (only 1 because right now an end dish will always be portions of the same mixture, so just one portioning operation might be missing)
-        (if (= (length (contents-or-items sol-value)) (length (contents gold-value)))
-          (add-points container-score 1 1)
-          (add-points container-score 0 1))
-        ;; contents specific scoring
-        (let ((unfolded-dish-sol (unfold-dish sol-value))
-              (unfolded-dish-gold (unfold-dish gold-value))
-              (missing-ingredients '()))
-          (loop for unfolded-ing-gold in unfolded-dish-gold
-                for matching-ings-sol = (find-all (type-of (ingredient unfolded-ing-gold)) unfolded-dish-sol
-                                                  :key #'(lambda (sim-ing) (type-of (ingredient sim-ing))))
-                if matching-ings-sol
+          (if (= (length (contents-or-items sol-value)) (length (contents gold-value)))
+            (add-points container-score 1 1)
+            (add-points container-score 0 1))
+          ;; contents specific scoring
+          (let ((unfolded-dish-sol (unfold-dish sol-value))
+                (unfolded-dish-gold (unfold-dish gold-value))
+                (missing-ingredients '()))
+            (loop for unfolded-ing-gold in unfolded-dish-gold
+                  for matching-ings-sol = (find-all (type-of (ingredient unfolded-ing-gold)) unfolded-dish-sol
+                                                    :key #'(lambda (sim-ing) (type-of (ingredient sim-ing))))
+                  if matching-ings-sol
                   ; same ingredient can occur multiple times in slightly different forms, 
               ; so check with which ingredient maximum similarity is found and use that one for score computation
-                  do (let* ((sim-scores (loop for matching-ing-sol in matching-ings-sol
-                                              collect (compare-hierarchy-ingredient matching-ing-sol unfolded-ing-gold)))
-                            (match-scores (mapcar #'compute-ratio sim-scores))
-                            (max-score (apply #'max match-scores))
-                            (max-position (position max-score match-scores))
-                            (max-ing (nth max-position matching-ings-sol)))
+                    do (let* ((sim-scores (loop for matching-ing-sol in matching-ings-sol
+                                                collect (compare-hierarchy-ingredient matching-ing-sol unfolded-ing-gold)))
+                              (match-scores (mapcar #'compute-ratio sim-scores))
+                              (max-score (apply #'max match-scores))
+                              (max-position (position max-score match-scores))
+                              (max-ing (nth max-position matching-ings-sol)))
                        
-                       (add-points contents-score (compute-ratio (nth max-position sim-scores)) 1)
-                       (setf unfolded-dish-sol (remove max-ing unfolded-dish-sol))) 
-              else
-                  do (push unfolded-ing-gold missing-ingredients))
+                         (add-points contents-score (compute-ratio (nth max-position sim-scores)) 1)
+                         (setf unfolded-dish-sol (remove max-ing unfolded-dish-sol))) 
+                  else
+                    do (push unfolded-ing-gold missing-ingredients))
           ; adjust the average of the similarity score based on the shortage of mixtures
-          (setf (max-points contents-score) (+ (max-points contents-score)
-                                               (length missing-ingredients)))
+            (setf (max-points contents-score) (+ (max-points contents-score)
+                                                 (length missing-ingredients)))
           ; adjust the average of the similarity score based on the surplus of mixtures
-          (setf (max-points contents-score) (+ (max-points contents-score)
-                                               (length unfolded-dish-sol))))
+            (setf (max-points contents-score) (+ (max-points contents-score)
+                                                 (length unfolded-dish-sol))))
 
          ; compute the final similarity-score for this dish, contents are much more important than container characteristics
-        (make-instance 'similarity-score
-                       :points (+ (* 0.98 (compute-ratio contents-score))
-                                  (* 0.02 (compute-ratio container-score)))
-                       :max-points 1)))))
+          (make-instance 'similarity-score
+                         :points (+ (* 0.98 (compute-ratio contents-score))
+                                    (* 0.02 (compute-ratio container-score)))
+                         :max-points 1))))))
 
 (defmethod find-best-dish-score ((sol-final-node irl::irl-program-processor-node) (gold-output-node irl::irl-program-processor-node))
   "Compute a similarity score for all nodes in the solutions and return the best one."
