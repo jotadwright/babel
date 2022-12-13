@@ -28,6 +28,8 @@
         `((b :style "color:green") "succeeded")
         `((b :style "color:red") "failed")))))
 
+(define-event conceptualisation-finished (speaker naming-game-agent))
+  
 (define-event-handler (trace-interaction conceptualisation-finished)
   (add-element
    `((h2)
@@ -38,27 +40,35 @@
      ,(format t "The speaker produces utterance '~a' to refer to the topic." (utterance speaker)))
   ))
 
+(define-event parsing-finished (hearer naming-game-agent))
+
 (define-event-handler (trace-interaction parsing-finished)
   (if (applied-voc hearer)
     (add-element '((h2) "The learner parsed the utterance."))
     (add-element
        '((h2) "The learner could not parse the utterance."))))
 
+(define-event interpretation-finished (hearer naming-game-agent))
+
 (define-event-handler (trace-interaction interpretation-finished)
-  (if (pointed-object speaker)
+  (if (pointed-object hearer)
     (add-element
        `((h2) ,(format nil "The hearer interpreted the utterance and points to: ~a"
-                       (downcase (mkstr (topic agent))))))
+                       (downcase (mkstr (topic hearer))))))
     (add-element
      `((h2) ,(format nil "The hearer could not interpret the utterance.")))))
+
+(define-event adoptation-finished (hearer naming-game-agent))
 
 (define-event-handler (trace-interaction adoptation-finished)
   (add-element
    `((h2) ,(format nil "The hearer adopted the word ~a for ~a" (form (applied-voc hearer)) (meaning (applied-voc hearer))))))
 
+(define-event align-finished)
+
 (define-event-handler (trace-interaction align-finished)
   (add-element
-   `((h2) ,(format nil "The agents performed alignment" word))))
+   `((h2) ,(format nil "The agents performed alignment"))))
 
 (defmethod print-vocabulary ((agent agent))
   "prints the lexicon of agent in a nice and readable way"
