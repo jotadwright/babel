@@ -40,11 +40,12 @@
                                              (:file "lisp-monitors")
                                              (:file "csv-monitors")
                                              ))))
-               #|(:module tests
+               (:module tests
                 :serial t
                 :components ((:file "utils")
-                             (:file "test-utils")
-                             (:file "test-item-based-substitution-repair")
+                             (:file "test-utils")))
+               
+                             #|(:file "test-item-based-substitution-repair")
                              (:file "test-substitution-repair")
                              (:file "test-addition-repair")
                              (:file "test-deletion-repair")

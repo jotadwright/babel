@@ -125,7 +125,7 @@
    (statuses
     :documentation "Status of the node."
     :accessor statuses :initarg :statuses
-    :initform nil :type symbol)
+    :initform nil :type list)
    (primitive-supplier
     :documentation "an object that can be asked to return the next primitive"
     :type t :initform nil :accessor primitive-supplier)

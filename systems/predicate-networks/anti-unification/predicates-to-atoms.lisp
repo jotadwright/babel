@@ -11,22 +11,25 @@
     (read-from-string (funcall fn atom-string))))
 
 (defun set-of-predicates->atom-string (set-of-predicates)
-  (flet ((lisp-var->prolog-var (var)
-           (mkdotstr (capitalise (get-base-name var :remove-numeric-tail nil)))))
-    (let* ((predicates-lists
-            (loop for predicate in set-of-predicates
-                  collect (cons (downcase (mkdotstr (car predicate)))
-                                (loop for arg in (rest predicate)
-                                      if (variable-p arg)
-                                        collect (lisp-var->prolog-var arg)
-                                      else
-                                        collect (downcase (mkdotstr arg))))))
-           (predicates-strings
-            (loop for predicate in predicates-lists
-                  collect (format nil "~a(~{~a~^,~})"
-                                  (first predicate)
-                                  (rest predicate)))))
-      (list-of-strings->string predicates-strings :separator ","))))
+  (let* ((all-variables (find-all-anywhere-if #'variable-p set-of-predicates))
+         (unique-variables (remove-duplicates all-variables))
+         (mapping
+          (loop for var in unique-variables
+                for i from 1
+                collect (cons var (format nil "'$VAR'(~a)" i))))
+         (predicates-lists
+          (loop for predicate in set-of-predicates
+                collect (cons (downcase (mkdotstr (car predicate)))
+                              (loop for arg in (rest predicate)
+                                    if (variable-p arg)
+                                    collect (rest (assoc arg mapping))
+                                    else collect (downcase (mkdotstr arg))))))
+         (predicates-strings
+          (loop for predicate in predicates-lists
+                collect (format nil "~a(~{~a~^,~})"
+                                (first predicate)
+                                (rest predicate)))))
+    (list-of-strings->string predicates-strings :separator ",")))
 
 ;; #############################################
 
@@ -41,17 +44,17 @@
  '((get-context ?context)
    (filter ?set-1 ?context ?cube)
    (bind shape-category ?cube cube)
-   (filter ?set-2 ?set-1 ?color-1)
-   (bind color-category ?color-1 red)
    (exist ?target ?set-2)))
+
+get_context(Context),filter(Set_1,Context,Cube),bind(shape_category,Cube,cube),exist(Target,Set_2)
 
 (set-of-predicates->atom-string
  '((get-context ?c)
    (filter ?s1 ?c ?b1)
    (bind shape-category ?b1 sphere)
-   (filter ?s2 ?s1 ?b2)
-   (bind color-category ?b2 red)
    (exist ?t ?s2)))
+
+get_context(C),filter(S1,C,B1),bind(shape_category,B1,sphere),exist(T,S2)
 
 (atom-string->set-of-predicates
  (set-of-predicates->atom-string
