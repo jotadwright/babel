@@ -3,7 +3,10 @@
 
 (progn 
   (activate-monitor trace-interaction)
-  (activate-monitor trace-experiment))
+  (activate-monitor trace-experiment)
+  (activate-monitor record-communicative-success)
+  (activate-monitor record-lexicon-size)
+  )
 
 
 (defparameter *all-words* '())

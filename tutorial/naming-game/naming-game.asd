@@ -16,4 +16,5 @@
    (:file "create-word")
    (:file "create-world")
    (:file "create-interaction")
+   (:file "plot-monitors")
 ))

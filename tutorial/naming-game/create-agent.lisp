@@ -44,6 +44,7 @@
                  (push voc-item considered-voc)))
       (cond ((= (length considered-voc) 1) (setf chosen-voc (first considered-voc)))
             ((> (length considered-voc) 1) (setf chosen-voc (highest-score-voc considered-voc)))))
-    chosen-voc))
+    chosen-voc
+    ))
 
 
