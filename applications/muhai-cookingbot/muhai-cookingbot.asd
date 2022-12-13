@@ -30,5 +30,6 @@
                (:module evaluation
                 :serial t
                 :components ((:file "helpers")
-                             (:file "solution-evaluation")
-                             (:file "environments")))))
+                             (:file "solutions")
+                             (:file "environments")
+                             (:file "evaluate")))))

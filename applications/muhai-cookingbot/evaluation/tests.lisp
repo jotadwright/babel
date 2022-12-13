@@ -247,6 +247,14 @@
 (defparameter demo-empty (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-7.solution" *metrics* (list *demo-env*)))
 (print-results demo-empty)
 
-
 (defparameter test-grammar (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test.lisp" *metrics* (list *almond-crescent-cookies-environment*)))
 (print-results test-grammar)
+
+;;;;;;;;;;;;;;
+;; EVALUATE ;;
+;;;;;;;;;;;;;;
+
+(evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-multiple-recipes.solution"
+          "applications\\muhai-cookingbot\\evaluation\\tests\\test-results.csv"
+          t
+          'subgoals-ratio 'dish-score 'execution-time)
