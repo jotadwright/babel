@@ -87,31 +87,69 @@
    ((eql pointed-object (topic speaker))
     t)))
 
+(defmethod run-interaction ((experiment experiment)
+                            &key &allow-other-keys)
+  "runs an interaction by increasing the interaction number"
+  (let* ((interaction (make-instance
+                      'interaction
+                      :experiment experiment
+                      :interaction-number (if (interactions experiment)
+                                            (+ 1 (interaction-number
+                                                  (car (interactions experiment))))
+                                            1)))
+        (monitor
+         (if (get-configuration experiment :record-every-x-interactions)
+           (when 
+               (or 
+                (= (mod (interaction-number interaction) (get-configuration experiment :record-every-x-interactions)) 0) 
+                (= (interaction-number interaction) 1))
+             t)
+           t)))
+    (push interaction (interactions experiment))
+    (determine-interacting-agents experiment interaction
+                                  (get-configuration experiment
+                                                     :determine-interacting-agents-mode))
+    (when monitor (notify interaction-started experiment interaction (interaction-number interaction)))
+    (interact experiment interaction)
+    (setf (communicated-successfully interaction)
+          (loop for agent in (interacting-agents interaction)
+                always (communicated-successfully agent)))
+    (when monitor (notify interaction-finished experiment interaction (interaction-number interaction)))
+    (values interaction experiment)))
+
 (defmethod interact ((experiment experiment) (interaction interaction) &key)
   (let* ((interacting-agents (interacting-agents interaction))
          (speaker (first interacting-agents))
-         (hearer (second interacting-agents)))
+         (hearer (second interacting-agents))
+         (monitor
+         (if (get-configuration experiment :record-every-x-interactions)
+           (when 
+               (or 
+                (= (mod (interaction-number interaction) (get-configuration experiment :record-every-x-interactions)) 0) 
+                (= (interaction-number interaction) 1))
+             t)
+           t)))
     (setf (topic speaker) (get-random-elem (world experiment)))
     (setf (applied-voc speaker) (produce speaker))
     (unless (applied-voc speaker)
       (setf (applied-voc speaker) (invent speaker)))
     (setf (utterance speaker) (form (applied-voc speaker)))
     (setf (utterance hearer) (utterance speaker))
-    (notify conceptualisation-finished speaker)
+    (when monitor (notify conceptualisation-finished speaker))
     (setf (applied-voc hearer) (parse hearer interaction))
-    (notify parsing-finished hearer)
+    (when monitor (notify parsing-finished hearer))
     (when (applied-voc hearer)
       (setf (pointed-object hearer) (meaning (applied-voc hearer)))
       (setf (pointed-object speaker) (pointed-object hearer)))
-    (notify interpretation-finished hearer)
+    (when monitor (notify interpretation-finished hearer))
     (setf (communicated-successfully speaker) (determine-success speaker (pointed-object speaker)))
     (setf (communicated-successfully hearer) (communicated-successfully speaker))
     (setf (topic hearer) (topic speaker))
-    (when (NOT (applied-voc hearer))
+    (unless (applied-voc hearer)
       (setf (applied-voc hearer) (adopt hearer interaction))
-      (notify adoptation-finished hearer))
+      (when monitor (notify adoptation-finished hearer)))
     (perform-alignment interaction)
-    (notify align-finished)
+    (when monitor (notify align-finished))
     ))
    
   

@@ -3,11 +3,7 @@
 
 (progn 
   (activate-monitor trace-interaction)
-  (activate-monitor trace-experiment)
-  (activate-monitor trace-interaction-in-repl)
-  (activate-monitor trace-experiment-in-repl)
-  (activate-monitor print-a-dot-for-each-interaction)
-  (activate-monitor default-record-communicative-success))
+  (activate-monitor trace-experiment))
 
 
 (defparameter *all-words* '())
@@ -15,6 +11,7 @@
 (defparameter *experiment-configurations*
   '((:alignment-strategy . :lateral-inhibition)
     (:who-aligns . :both)
+    (:record-every-x-interactions . 100)
     (:initial-score . 0.5)
     (:li-incf . 0.1)
     (:li-decf . 0.1)
@@ -25,6 +22,6 @@
   (make-agents *experiment*)
   (make-world *experiment*))
 
-(run-series *experiment* 1000)
+(run-series *experiment* 3000)
 
 

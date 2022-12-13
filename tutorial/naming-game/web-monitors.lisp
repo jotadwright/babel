@@ -3,12 +3,10 @@
 (define-monitor trace-experiment
                 :documentation "Traces some important information about the experiment in the web-interface")
 
-
 (define-event-handler (trace-interaction interaction-started)
   (let* ((interacting-agents (interacting-agents interaction))
          (speaker (first interacting-agents))
          (hearer (second interacting-agents)))
-    (add-element '((hr)))
     (add-element
      `((h1) ,(format nil "Interaction ~a"
                      (interaction-number interaction))))
@@ -18,15 +16,15 @@
     (add-element
      `((h2) ,(format nil "~a is the hearer"
                      (downcase (mkstr (id hearer))))))
-    (add-element '((hr)))))
+    ))
 
 (define-event-handler (trace-interaction interaction-finished)
-  (add-element '((hr)))
   (add-element
    `((h2) "Interaction "
      ,(if (communicated-successfully interaction)
         `((b :style "color:green") "succeeded")
-        `((b :style "color:red") "failed")))))
+        `((b :style "color:red") "failed"))))
+  (add-element '((hr))))
 
 (define-event conceptualisation-finished (speaker naming-game-agent))
   
@@ -37,7 +35,7 @@
               (topic speaker))))
   (add-element
    `((h2)
-     ,(format t "The speaker produces utterance '~a' to refer to the topic." (utterance speaker)))
+     ,(format nil "The speaker produces utterance '~a' to refer to the topic." (utterance speaker)))
   ))
 
 (define-event parsing-finished (hearer naming-game-agent))
@@ -79,7 +77,7 @@
 
 (define-event-handler (trace-experiment run-series-finished)
   (add-element
-   `((h3) ,(format nil "The words used by all the agents at the end of the experiment are:")))
+   `((h3) ,(format nil "The vocabulary of one agent (agent-1) at the end of the experiment is:")))
   (print-vocabulary (first (agents experiment))))
 
 
