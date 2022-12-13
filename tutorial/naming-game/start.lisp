@@ -1,11 +1,15 @@
 (ql:quickload :naming-game)
 (in-package :naming-game)
 
-(progn 
+(progn
+  (deactivate-all-monitors)
   (activate-monitor trace-interaction)
   (activate-monitor trace-experiment)
   (activate-monitor record-communicative-success)
   (activate-monitor record-lexicon-size)
+  (activate-monitor display-communicative-success)
+  (activate-monitor record-lexicon-size)
+  (activate-monitor export-communicative-success)
   )
 
 
@@ -25,6 +29,6 @@
   (make-agents *experiment*)
   (make-world *experiment*))
 
-(run-series *experiment* 3000)
+(run-series *experiment* 1000)
 
 

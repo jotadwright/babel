@@ -22,7 +22,7 @@
                 :documentation "Exports communicative success"
                 :data-sources '((average record-communicative-success))
                 :file-name (babel-pathname :name "communicative-success" :type "lisp"
-                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                                           :directory '("tutorial" "raw-data" "naming-game"))
                 :add-time-and-experiment-to-file-name nil
                 :column-separator " "
                 :comment-string "#")
@@ -32,8 +32,9 @@
     (let ((speaker (first (interacting-agents interaction))))
       (record-value monitor (if (communicated-successfully speaker) 1 0))))
 
-(define-event-handler (display-communicative-success interaction-finished)
-  (
+(define-event-handler (display-communicative-success interaction-finished))
+
+(define-event-handler (export-communicative-success interaction-finished))
 
 
 (define-monitor record-lexicon-size
@@ -46,7 +47,7 @@
                 :documentation "Exports lexicon size"
                 :data-sources '(record-lexicon-size)
                 :file-name (babel-pathname :name "lexicon-size" :type "lisp"
-                                           :directory '("experiments" "multidimensional-word-meanings" "raw-data"))
+                                           :directory '("tutorial" "raw-data" "naming-game"))
                 :add-time-and-experiment-to-file-name nil
                 :column-separator " "
                 :comment-string "#")
@@ -57,3 +58,5 @@
 (define-event-handler (record-lexicon-size interaction-finished)
     (let ((agent-1 (first (agents experiment))))
       (record-value monitor (get-lexicon-size agent-1))))
+
+(define-event-handler (export-lexicon-size interaction-finished))
