@@ -13,9 +13,9 @@
    (execution-time :accessor execution-time :initform '()))
   (:documentation "Class used for storing a recipe solution and its score.")) 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Reading in Solutions ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Reading/Writing Solutions ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun parse-solutions-file (filepath)
   "Read all recipe solutions from the file at the given filepath. 
@@ -54,11 +54,8 @@
                     (error "Invalid IRL program in solution ~S. Error was thrown: ~a" (recipe-id (first solutions)) (format nil "~{~a~}" messages)))))
               solutions)))
 
-(defun check-solutions-completeness (solutions &optional (sim-envs *simulation-environments*))
-  "Check if the given solutions contain a solution for every recipe in the simulation environment."
-  (loop for sim-env in sim-envs
-        when (not (find (recipe-id sim-env) solutions :key #'(lambda (sol) (recipe-id sol))))
-          do (error "Recipe ~S is missing in the solutions" (recipe-id sim-env)))
+(defun check-solutions (solutions &optional (sim-envs *simulation-environments*))
+  "Check if the given solutions don't contain duplicate solutions or solutions that are unavailable in the simulation environment."
   (loop for solution in solutions
         when (not (find (recipe-id solution) sim-envs :key #'(lambda (sim-env) (recipe-id sim-env))))
           do (error "Solution contains recipe ~S which is currently unsupported" (recipe-id solution))
@@ -113,6 +110,69 @@
       (values nil messages)
       (values t messages))))
 
+(defun write-solutions-to-csv (solutions filepath metrics)
+    "Write away the given solutions to a csv file with the specified filepath."
+
+     ; check if it is a csv filepath
+    (unless (uiop:string-suffix-p filepath ".csv")
+      (print "Warning: Specified file is not a CSV file"))
+
+    ; remove unsupported metrics
+    (setf metrics (intersection *metrics*  metrics))
+    
+    ; create all directories in the specified path if they do not exist yet
+    (ensure-directories-exist filepath)
+
+    (let* ((output-stream (open filepath
+                               :if-does-not-exist :create
+                               :direction :output
+                               :if-exists :supersede)))
+
+      ; add header row
+      (format output-stream "recipe-id")
+      (when (find 'smatch-score metrics)
+        (format output-stream ",smatch-score"))
+      (when (find 'subgoals-ratio metrics)
+        (format output-stream ",subgoals-ratio"))
+      (when (find 'dish-score metrics)
+        (format output-stream ",dish-score"))
+      (when (find 'execution-time metrics)
+        (format output-stream ",execution-time"))
+      (format output-stream "~%")
+
+      (dolist (solution solutions)
+        (let ((metrics-left metrics)) ; in case there are duplicate entries
+          (format output-stream "~(~a~)," (recipe-id solution))
+          (when (find 'smatch-score metrics-left)
+            (setf metrics-left (remove 'smatch-score metrics-left))
+            (format output-stream (concatenate 'string "~$" (if metrics-left "," "~%")) (smatch-score solution)))
+          (when (find 'subgoals-ratio metrics-left)
+            (setf metrics-left (remove 'subgoals-ratio metrics-left))
+            (format output-stream (concatenate 'string "~$" (if metrics-left "," "~%")) (subgoals-ratio solution)))
+          (when (find 'dish-score metrics-left)
+            (setf metrics-left (remove 'dish-score metrics-left))
+            (format output-stream (concatenate 'string "~$" (if metrics-left "," "~%")) (dish-score solution)))      
+          (when (find 'execution-time metrics-left)
+            (setf metrics-left (remove 'execution-time metrics-left))
+            (format output-stream (concatenate 'string "~d" (if metrics-left "," "~%")) (execution-time solution)))))
+      
+      (close output-stream)))
+
+(defun print-solutions (solutions metrics)
+  "Print out the solutions' scores."
+  
+  (dolist (solution solutions)
+    (format t "RECIPE: ~(~a~)~%" (recipe-id solution))
+    (when (find 'smatch-score metrics)
+      (format t "Smatch Score: ~$~%" (smatch-score solution)))
+    (when (find 'subgoals-ratio metrics)
+      (format t "Goal-Condition Success: ~$~%" (subgoals-ratio solution)))
+    (when (find 'dish-score metrics)
+      (format t "Dish Approximation Score: ~$~%" (dish-score solution)))
+    (when (find 'execution-time metrics)
+      (format t "Recipe Execution Time: ~d~%" (execution-time solution)))
+    (format t "~%")))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Measuring Solution Correctness ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -124,8 +184,8 @@
 ; (compute-smatch-score '((boy ?x) (paul ?x)) '((boy ?x) (paul ?x)))
 ; (compute-smatch-score '((paul ?x) (boy ?x) ) '((boy ?x) (paul ?x)))
 
-(defun write-to-file (meaning-network filepath)
-  "Write away the given output to a file with the specified filepath."
+(defun write-network-to-file (meaning-network filepath)
+  "Write away the given meaning network to a file with the specified filepath."
   ; create all directories in the specified path if they do not exist yet
   (ensure-directories-exist filepath)
   
@@ -133,7 +193,7 @@
   (let ((output-stream (open filepath
                              :if-does-not-exist :create
                              :direction :output
-                             :if-exists :overwrite)))
+                             :if-exists :supersede)))
     (dolist (prim-op meaning-network)
       (format output-stream "~(~a~)~%" prim-op))
     (close output-stream)))
@@ -172,8 +232,8 @@
         
         (setf mn1 (sort mn1 #'string-lessp :key #'first))
         (setf mn2 (sort mn2 #'string-lessp :key #'first))
-        (write-to-file mn1 sol-temp-path-as-string)
-        (write-to-file mn2 gold-temp-path-as-string)
+        (write-network-to-file mn1 sol-temp-path-as-string)
+        (write-network-to-file mn2 gold-temp-path-as-string)
 
         (let* ((program (babel-pathname :directory '("libraries" "smatch")
                                         :name "smatch" :type "py"))
@@ -512,9 +572,9 @@
 (defparameter *metrics*
   '(subgoals-ratio dish-score execution-time)) ; TODO RD: add SMATCH
 
-(defun evaluate (filepath &optional (metrics *metrics*) (sim-envs *simulation-environments*))
+(defun evaluate-solutions (filepath &optional (metrics *metrics*) (sim-envs *simulation-environments*))
   (let ((solutions (parse-solutions-file filepath))) ; read in the solutions
-    (check-solutions-completeness solutions sim-envs) ; check if the solutions file contains all the needed solutions
+    (check-solutions solutions sim-envs) ; check if the solutions file contains all the needed solutions
     (loop for current-solution in solutions
           for solution-mn = (meaning-network current-solution)  
           for current-id = (recipe-id current-solution)
@@ -534,24 +594,25 @@
             (init-kitchen-state current-sim-env)
             (let ((extended-mn (append-meaning-and-irl-bindings solution-mn nil)))
               (multiple-value-bind (sol-bindings sol-nodes) (evaluate-irl-program extended-mn nil)
-                ; TODO RD: remove error
-                (unless sol-bindings (error "no sol bindings"))
-                (unless sol-nodes (error "no sol nodes"))
-                ; compute subgoal success ratio
-                (when (member 'subgoals-ratio metrics)
-                  (setf (subgoals-ratio current-solution)
-                        (if sol-nodes (compute-subgoal-success-ratio (first sol-nodes) final-gold-node)
-                          0)))
-                ; compute the dish score (if all subgoals are reached, then the dish score will already be maximal so no reason to compute it then)
-                (when (member 'dish-score metrics)
-               ; (if (= (subgoals-ratio current-solution) 1)
-            ;      (setf (dish-score current-solution) 1)
-                  (setf (dish-score current-solution) (if sol-nodes
-                                                        (find-best-dish-score (first sol-nodes) gold-output-node)
-                                                        0)))
-                ; compute the ratio of needed execution time to the execution time of the golden standard
-                (when (member 'execution-time metrics)
-                  (setf (execution-time current-solution) (if sol-bindings
-                                                            (compute-execution-time (first sol-bindings))
-                                                            0))))))
+                (cond ((and sol-bindings sol-nodes)
+                        ; compute subgoal success ratio
+                       (when (member 'subgoals-ratio metrics)
+                         (setf (subgoals-ratio current-solution)
+                               (if sol-nodes (compute-subgoal-success-ratio (first sol-nodes) final-gold-node)
+                                 0)))
+                        ; compute the dish score
+                       ; if all subgoals are reached, then the dish score is not necessarily maximal,
+                       ; since we could have altered the final dish further after reaching all subgoals
+                       (when (member 'dish-score metrics)
+                         (setf (dish-score current-solution) (if sol-nodes
+                                                               (find-best-dish-score (first sol-nodes) gold-output-node)
+                                                               0)))
+                       ; compute the ratio of needed execution time to the execution time of the golden standard
+                       (when (member 'execution-time metrics)
+                         (setf (execution-time current-solution) (if sol-bindings
+                                                                   (compute-execution-time (first sol-bindings))
+                                                                   0))))
+                      (t
+                       (unless sol-bindings (print "no sol bindings"))
+                       (unless sol-nodes (print "no sol nodes")))))))
     solutions))
