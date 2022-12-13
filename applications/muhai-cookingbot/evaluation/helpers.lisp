@@ -117,3 +117,19 @@
 (defun compute-execution-time (bindings)
   "Compute the maximum time it takes to execute a recipe, i.e., find the time it takes to make all bindings available."
   (apply #'max (remove nil (mapcar #'irl::available-at bindings))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Helper Functions for Opening a Browser ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter +format-string+
+  #+(or win32 mswindows windows)
+  "explorer ~S"
+  #+(or macos darwin)
+  "open ~S"
+  #-(or win32 mswindows macos darwin windows)
+  "xdg-open ~S")
+
+(defun open-browser (url)
+  "Run a shell command to open `url`."
+  (uiop:run-program (format nil +format-string+ url) :ignore-error-status t))
