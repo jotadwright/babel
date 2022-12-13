@@ -8,7 +8,7 @@
 
 (defun test-perfect ()
   "The same network as the simulation environment's solution."
-  (let* ((solutions (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-perfect.solution" '(subgoals-ratio dish-score execution-time)))
+  (let* ((solutions (evaluate-solutions "applications\\muhai-cookingbot\\evaluation\\tests\\test-perfect.solution" '(subgoals-ratio dish-score execution-time)))
          (perfection (loop for solution in solutions
                              always (and ; (= (smatch-score solution) 1)
                                          (= (subgoals-ratio solution) 1)
@@ -19,7 +19,7 @@
      
 (defun test-permuted-perfect ()
   "The same network as the simulation environment's solution, but with some parts executed in a different order."
-  (let ((solution (first (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-permuted-perfect.solution" *metrics* (list *almond-crescent-cookies-environment*)))))
+  (let ((solution (first (evaluate-solutions "applications\\muhai-cookingbot\\evaluation\\tests\\test-permuted-perfect.solution" *metrics* (list *almond-crescent-cookies-environment*)))))
     (if (and (= (subgoals-ratio solution) 1)
              (= (dish-score solution) 1)
            ;  (< (smatch-score solution) 1)
@@ -29,7 +29,7 @@
 
 (defun test-imperfect ()
   "The same network as the simulation environment's solution, but with some instructions missing at the end."
-  (let ((solution (first (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-imperfect.solution" *metrics* (list *almond-crescent-cookies-environment*)))))
+  (let ((solution (first (evaluate-solutions "applications\\muhai-cookingbot\\evaluation\\tests\\test-imperfect.solution" *metrics* (list *almond-crescent-cookies-environment*)))))
     (if (and (= (subgoals-ratio solution) (/ 25 26))
           ;   (< (smatch-score solution) 1)
              (< (dish-score solution) 1)
@@ -39,7 +39,7 @@
 
 (defun test-extra-operations ()
   "The same network as the simulation environment's solution, but with some extra instructions at the end."
-  (let ((solution (first (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-extra-operation.solution" *metrics* (list *almond-crescent-cookies-environment*)))))
+  (let ((solution (first (evaluate-solutions "applications\\muhai-cookingbot\\evaluation\\tests\\test-extra-operation.solution" *metrics* (list *almond-crescent-cookies-environment*)))))
     (if (and (= (subgoals-ratio solution) 1)
              (= (dish-score solution) 1)
         ;     (< (smatch-score solution) 1)
@@ -49,7 +49,7 @@
 
 (defun test-empty ()
   "A solution that only contains get-kitchen."
-  (let ((solution (first (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-empty.solution" *metrics* (list *almond-crescent-cookies-environment*)))))
+  (let ((solution (first (evaluate-solutions "applications\\muhai-cookingbot\\evaluation\\tests\\test-empty.solution" *metrics* (list *almond-crescent-cookies-environment*)))))
     (if (and (= (subgoals-ratio solution) 0)
              (= (dish-score solution) 0)
          ;    (< (smatch-score solution) 1)
@@ -59,7 +59,7 @@
 
 (defun test-multiple-recipes ()
   "A file that contains two solutions, an imperfect one and a perfect one."
-  (let* ((solutions (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-multiple-recipes.solution" *metrics* (list *almond-crescent-cookies-environment* *afghan-biscuits-environment*)))
+  (let* ((solutions (evaluate-solutions "applications\\muhai-cookingbot\\evaluation\\tests\\test-multiple-recipes.solution" *metrics* (list *almond-crescent-cookies-environment* *afghan-biscuits-environment*)))
          (solution-perfect (first solutions))
          (solution-imperfect (second solutions)))
     (if (and (= (subgoals-ratio solution-perfect) 1)
@@ -75,7 +75,7 @@
 
 (defun test-list-of-kitchen-entities ()
   "A file that contains a list of kitchen entities as the solution that is closest to the gold standard container solution."
-  (let ((solution (first (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-list-of-kitchen-entities.solution" *metrics* (list *almond-crescent-cookies-environment*)))))
+  (let ((solution (first (evaluate-solutions "applications\\muhai-cookingbot\\evaluation\\tests\\test-list-of-kitchen-entities.solution" *metrics* (list *almond-crescent-cookies-environment*)))))
     (if (and (< (dish-score solution) 1)
            ;  (< (smatch-score solution) 1)
              (= (subgoals-ratio solution) (/ 18 26))
@@ -85,7 +85,7 @@
 
 (defun test-failed-object ()
   "A file that contains a solution with failed objects."
-  (let ((solution (first (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-failed-object.solution" *metrics* (list *almond-crescent-cookies-environment*)))))
+  (let ((solution (first (evaluate-solutions "applications\\muhai-cookingbot\\evaluation\\tests\\test-failed-object.solution" *metrics* (list *almond-crescent-cookies-environment*)))))
     (if (and (= (dish-score solution) 0)
            ;  (< (smatch-score solution) 1)
              (= (subgoals-ratio solution) (/ 1 26)))
@@ -123,7 +123,7 @@
            (print (execution-time solution))))
 
 
-;(defparameter test (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-list-of-kitchen-entities.solution" (list *almond-crescent-cookies-environment*)))
+;(defparameter test (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-list-of-kitchen-entities.solution" (list *almond-crescent-cookies-environment*)))
 ;(print-results test)
 
 
@@ -226,27 +226,27 @@
                  :primary-output-var
                  '?thing-baked))
 
-(defparameter demo (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo.solution" *metrics* (list *demo-env*)))
+(defparameter demo (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo.solution" *metrics* (list *demo-env*)))
 (print-results demo)
 
-(defparameter demo-permuted (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-2.solution" *metrics* (list *demo-env*)))
+(defparameter demo-permuted (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-2.solution" *metrics* (list *demo-env*)))
 (print-results demo-permuted)
 
-(defparameter demo-non-baked (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-3.solution" *metrics* (list *demo-env*)))
+(defparameter demo-non-baked (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-3.solution" *metrics* (list *demo-env*)))
 (print-results demo-non-baked)
 
-(defparameter demo-missing-ingredient (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-4.solution" *metrics* (list *demo-env*)))
+(defparameter demo-missing-ingredient (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-4.solution" *metrics* (list *demo-env*)))
 (print-results demo-missing-ingredient)
 
-(defparameter demo-extra-fetch (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-5.solution" *metrics* (list *demo-env*)))
+(defparameter demo-extra-fetch (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-5.solution" *metrics* (list *demo-env*)))
 (print-results demo-extra-fetch)
 
-(defparameter demo-changed-order (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-6.solution" *metrics* (list *demo-env*)))
+(defparameter demo-changed-order (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-6.solution" *metrics* (list *demo-env*)))
 (print-results demo-changed-order)
 
-(defparameter demo-empty (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-7.solution" *metrics* (list *demo-env*)))
+(defparameter demo-empty (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-7.solution" *metrics* (list *demo-env*)))
 (print-results demo-empty)
 
 
-(defparameter test-grammar (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test.lisp" *metrics* (list *almond-crescent-cookies-environment*)))
+(defparameter test-grammar (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test.lisp" *metrics* (list *almond-crescent-cookies-environment*)))
 (print-results test-grammar)

@@ -22,7 +22,7 @@
            (print (execution-time *almond-crescent-cookies-environment*))))
 
 
-;(defparameter test (evaluate "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-list-of-kitchen-entities.solution" (list *almond-crescent-cookies-environment*)))
+;(defparameter test (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-list-of-kitchen-entities.solution" (list *almond-crescent-cookies-environment*)))
 ;(print-results test)
 
 
@@ -30,33 +30,33 @@
 ;; DEMO ;;
 ;;;;;;;;;;
 
-(defparameter perfect-solution (evaluate "applications\\muhai-cookingbot\\benchmark\\documentation\\metrics\\examples\\perfect.solution" *metrics* (list *almond-crescent-cookies-environment*)))
+(defparameter perfect-solution (evaluate-solutions "applications\\muhai-cookingbot\\benchmark\\documentation\\metrics\\examples\\perfect.solution" *metrics* (list *almond-crescent-cookies-environment*)))
 (print-results perfect-solution)
 
-(defparameter perfect-permuted-sequence (evaluate "applications\\muhai-cookingbot\\benchmark\\documentation\\metrics\\examples\\perfect-permuted-sequence.solution" *metrics* (list *almond-crescent-cookies-environment*)))
+(defparameter perfect-permuted-sequence (evaluate-solutions "applications\\muhai-cookingbot\\benchmark\\documentation\\metrics\\examples\\perfect-permuted-sequence.solution" *metrics* (list *almond-crescent-cookies-environment*)))
 (print-results perfect-permuted-sequence)
 
-(defparameter perfect-switched-operations (evaluate "applications\\muhai-cookingbot\\benchmark\\documentation\\metrics\\examples\\perfect-switched-operations.solution" *metrics* (list *almond-crescent-cookies-environment*)))
+(defparameter perfect-switched-operations (evaluate-solutions "applications\\muhai-cookingbot\\benchmark\\documentation\\metrics\\examples\\perfect-switched-operations.solution" *metrics* (list *almond-crescent-cookies-environment*)))
 (print-results perfect-switched-operations)
 
-(defparameter missing-tool-reuse (evaluate "applications\\muhai-cookingbot\\benchmark\\documentation\\metrics\\examples\\missing-tool-reuse.solution" *metrics* (list *almond-crescent-cookies-environment*)))
+(defparameter missing-tool-reuse (evaluate-solutions "applications\\muhai-cookingbot\\benchmark\\documentation\\metrics\\examples\\missing-tool-reuse.solution" *metrics* (list *almond-crescent-cookies-environment*)))
 (print-results missing-tool-reuse)
 
-(defparameter missing-minor-implicit (evaluate "applications\\muhai-cookingbot\\benchmark\\documentation\\metrics\\examples\\missing-minor-implicit.solution" *metrics* (list *almond-crescent-cookies-environment*)))
+(defparameter missing-minor-implicit (evaluate-solutions "applications\\muhai-cookingbot\\benchmark\\documentation\\metrics\\examples\\missing-minor-implicit.solution" *metrics* (list *almond-crescent-cookies-environment*)))
 (print-results missing-minor-implicit)
 
-(defparameter partial-failure (evaluate "applications\\muhai-cookingbot\\benchmark\\documentation\\metrics\\examples\\partial-failure.solution" *metrics* (list *almond-crescent-cookies-environment*)))
+(defparameter partial-failure (evaluate-solutions "applications\\muhai-cookingbot\\benchmark\\documentation\\metrics\\examples\\partial-failure.solution" *metrics* (list *almond-crescent-cookies-environment*)))
 (print-results partial-failure)
 
-(defparameter wrong-ingredient (evaluate "applications\\muhai-cookingbot\\benchmark\\documentation\\metrics\\examples\\wrong-ingredient.solution" *metrics* (list *almond-crescent-cookies-environment*)))
+(defparameter wrong-ingredient (evaluate-solutions "applications\\muhai-cookingbot\\benchmark\\documentation\\metrics\\examples\\wrong-ingredient.solution" *metrics* (list *almond-crescent-cookies-environment*)))
 (print-results wrong-ingredient)
 
-(defparameter additional-side-dish (evaluate "applications\\muhai-cookingbot\\benchmark\\documentation\\metrics\\examples\\additional-side-dish.solution" *metrics* (list *almond-crescent-cookies-environment*)))
+(defparameter additional-side-dish (evaluate-solutions "applications\\muhai-cookingbot\\benchmark\\documentation\\metrics\\examples\\additional-side-dish.solution" *metrics* (list *almond-crescent-cookies-environment*)))
 (print-results additional-side-dish)
 
-(defparameter extended-main-dish (evaluate "applications\\muhai-cookingbot\\benchmark\\documentation\\metrics\\examples\\extended-main-dish.solution" *metrics* (list *almond-crescent-cookies-environment*)))
+(defparameter extended-main-dish (evaluate-solutions "applications\\muhai-cookingbot\\benchmark\\documentation\\metrics\\examples\\extended-main-dish.solution" *metrics* (list *almond-crescent-cookies-environment*)))
 (print-results extended-main-dish)
 
-(defparameter no-cooking (evaluate "applications\\muhai-cookingbot\\benchmark\\documentation\\metrics\\examples\\no-cooking.solution" *metrics* (list *almond-crescent-cookies-environment*)))
+(defparameter no-cooking (evaluate-solutions "applications\\muhai-cookingbot\\benchmark\\documentation\\metrics\\examples\\no-cooking.solution" *metrics* (list *almond-crescent-cookies-environment*)))
 (print-results no-cooking)
 
