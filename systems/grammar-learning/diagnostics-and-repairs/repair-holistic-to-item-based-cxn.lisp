@@ -242,6 +242,7 @@
                  (cats-to-add (list lex-class-item-based-cxn)))
         
               (apply-fix
+               form-constraints
                cxns-to-apply
                cat-links-to-add
                cxns-to-consolidate
@@ -249,6 +250,7 @@
                lex-class-item-based-cxn
                t
                node
+               'holistic->item-based
                )))))))
 
 

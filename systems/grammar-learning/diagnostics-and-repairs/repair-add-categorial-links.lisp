@@ -66,7 +66,9 @@
                    (member 'succeeded (statuses cip-node) :test #'string=))
           (let* ((cxns-to-apply (mapcar #'original-cxn (reverse (applied-constructions cip-node))))
                  (top-level-category (extract-contributing-lex-class (last-elt cxns-to-apply))))
+            
             (apply-fix
+             form-constraints
              cxns-to-apply
              (extract-used-categorial-links cip-node)
              nil
@@ -74,7 +76,9 @@
              top-level-category
              (gold-standard-consulted-p cip-node)
              node
-             )))))))
+             'add-categorial-links
+             )
+            ))))))
 
 (defun extract-used-categorial-links (solution-cipn)
   "For a given solution-cipn, extracts categorial links that were used (based on lex-class)."

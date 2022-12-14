@@ -89,6 +89,7 @@
             (when (and solution-cipn ;; todo: make this fail faster so it takes the next hypothesis!
                        (find 'SUCCEEDED (statuses solution-cipn) :test #'string=))
                    (apply-fix
+                    form-constraints
                     cxns-to-apply
                     cat-links-to-add
                     cxns-to-consolidate
@@ -96,6 +97,7 @@
                     (extract-contributing-lex-class (last-elt cxns-to-apply))
                     t
                     node
+                    'item-based->holistic
                     ))))))))
             
           

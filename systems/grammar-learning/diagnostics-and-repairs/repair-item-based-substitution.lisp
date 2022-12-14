@@ -100,6 +100,7 @@
               (when item-based-cxn-and-links
                 (setf (attr-val (last-elt cxns-to-apply) :repair) 'item-based->item-based--substitution)
                 (apply-fix
+                 form-constraints
                  cxns-to-apply
                  cat-links-to-add
                  cxns-to-consolidate
@@ -107,6 +108,7 @@
                  (fifth item-based-cxn-and-links)
                  t
                  node
+                 'item-based->item-based--substitution
                  ))))))))) ;todo, debug the else case!
                    
                    

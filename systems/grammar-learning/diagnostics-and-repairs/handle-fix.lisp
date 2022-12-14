@@ -5,15 +5,21 @@
   ())
 (define-event cxns-learned (cxns list))
 
+(define-event fix-applied (repair-name symbol) (form list) (learned-cxns list))
 
-(defun apply-fix (cxns-to-apply
+(defun apply-fix (form
+                  cxns-to-apply
                   categorial-links
                   original-cxns-to-consolidate
                   categories-to-add
                   top-level-category
                   gold-standard-consulted-p
-                  node)
+                  node
+                  repair-name)
   "Apply the learned cxns and links, return the solution node."
+  (let ((learned-cxns (remove-if-not #'(lambda (cxn) (and (eql (attr-val cxn :label) 'fcg::routine)
+                                                            (not (attr-val cxn :learned-at))))
+                                           (append cxns-to-apply original-cxns-to-consolidate))))
   (if node
     (let* ((processing-cxns-to-apply (mapcar #'get-processing-cxn cxns-to-apply))
            (orig-categorial-network (categorial-network (construction-inventory node)))
@@ -39,6 +45,7 @@
       (set-categorial-network (construction-inventory node) orig-categorial-network)
     
       (when (find 'SUCCEEDED (statuses sandbox-solution) :test #'string=)
+        (notify fix-applied repair-name form learned-cxns)
         (list
          cxns-to-apply
          categorial-links
@@ -51,7 +58,9 @@
          )))
     ;; node is nil (we are in a deeper level of the recursion) just pass through the list of cxns and cats
     ;; todo: apply cxns to form instead
-    (list
+    (progn
+      (notify fix-applied repair-name form learned-cxns)
+      (list
      cxns-to-apply
      categorial-links
      original-cxns-to-consolidate
@@ -59,7 +68,7 @@
      top-level-category
      gold-standard-consulted-p
      node
-     nil)))
+     nil)))))
        
     
 
@@ -80,8 +89,8 @@
       (restart-data fix)
     (declare (ignore top-cat original-node))
     (let ((learned-cxns (remove-if-not #'(lambda (cxn) (and (eql (attr-val cxn :label) 'fcg::routine)
-                                                            (equal 'SINGLE-FLOAT (type-of (cdr (first (attributes cxn)))))))
-                                       (append cxns-to-apply original-cxns-to-consolidate))))
+                                                            (not (attr-val cxn :learned-at))))
+                                           (append cxns-to-apply original-cxns-to-consolidate))))
       (when learned-cxns
         (loop for cxn in learned-cxns
               do (setf (attr-val cxn :learned-at) (format nil "@~a" (find-data (blackboard (construction-inventory node)) :current-interaction-nr))))

@@ -11,9 +11,21 @@
   (process-result-data list))
 
 (define-monitor trace-interactions-in-wi)
+(define-monitor trace-grammar-learning-repairs-in-wi)
 (define-monitor summarize-results-after-n-interactions)
 (define-monitor evaluation-after-n-interactions)
 (define-monitor show-type-hierarchy-after-n-interactions)
+
+
+
+(define-event-handler (trace-grammar-learning-repairs-in-wi fix-applied)
+  (add-element `((h4) ,(format nil "Applied repair: ~a with form: \"~{~a~^ ~}\" and learned: ~{~a~^; ~}"
+                               repair-name
+                               (render form :render-string-meets)
+  (mapcar #'(lambda (cxn)
+              (attr-val cxn :bare-cxn-name))
+          learned-cxns)))))
+  
 
 (define-event-handler (trace-interactions-in-wi corpus-utterances-loaded)
   (add-element `((h1) ,(format nil "Corpus utterances loaded"))))

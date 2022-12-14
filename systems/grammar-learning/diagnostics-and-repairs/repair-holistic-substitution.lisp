@@ -100,6 +100,7 @@ based on existing construction with sufficient overlap."
                 
                                   
           (apply-fix
+           form-constraints
            cxns-to-apply
            cat-links-to-add
            cxns-to-consolidate
@@ -107,6 +108,7 @@ based on existing construction with sufficient overlap."
            lex-class-item-based-cxn
            t
            node
+           'holistic->item-based--substitution
            ))))))
 
 

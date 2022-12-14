@@ -129,8 +129,10 @@ expensive. Use this for visualization."
 
 (defun attr (cxn name)
   (assoc name (attributes cxn)))
+
 (defun attr-val (cxn name)
   (cdr (attr cxn name)))
+
 (defsetf attr-val (cxn name) (new-val)
   `(let ((prev (attr ,cxn ,name)))
      (if prev 
