@@ -6,7 +6,7 @@
 
 (defsystem :naming-game
   :description "Basic functions to implement a simple naming game"
-  :depends-on (:experiment-framework :utils :monitors
+  :depends-on (:experiment-framework :utils :monitors :fcg
                #+:hunchentoot-available-on-this-platform :web-interface)
   :serial t 
   :components 

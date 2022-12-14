@@ -13,16 +13,27 @@
     :accessor topic
     :initform nil
     :type symbol)
-   (applied-voc
+   (applied-cxn
     :documentation "The form used to describe the topic"
-    :initarg :applied-voc
+    :initarg :applied-cxn
     :initform nil
-    :accessor applied-voc)
+    :accessor applied-cxn)
    (pointed-object
     :accessor pointed-object
     :initarg :pointed-object
     :type symbol
     :initform nil)))
+
+(defun make-agent-cxn-set ()
+  (let ((grammar-name (make-const "agent-grammar")))
+    (eval
+     `(def-fcg-constructions ,grammar-name
+                             :cxn-inventory ,grammar-name
+                             :feature-types ((args sequence)
+                                             (form set-of-predicates)
+                                             (meaning set-of-predicates)
+                                             (subunits set)
+                                             (footprints set))))))
 
 (defmethod make-agents ((experiment experiment))
   "Creates the different agents in the population of experiment"
@@ -31,21 +42,11 @@
                       collect (make-instance 'naming-game-agent
                                              :id agent-id
                                              :experiment experiment
-                                             :lexicon (make-instance 'construction-inventory)))))
+                                             :lexicon (make-agent-cxn-set)))))
     (setf (agents experiment) agents)))
 
-(defmethod produce ((agent naming-game-agent))
+(defmethod naming-game-produce ((agent naming-game-agent))
   "agent tries to produce a word that refers to the topic object"
-  (let ((considered-voc '()) ;list of voc-items (form, meaning, score) that have meaning as the topic
-        (chosen-voc nil)
-        (lexicon (lexicon agent)))
-    (when lexicon
-      (loop for voc-item in lexicon
-            do (if (eql (meaning voc-item) (topic agent))
-                 (push voc-item considered-voc)))
-      (cond ((= (length considered-voc) 1) (setf chosen-voc (first considered-voc)))
-            ((> (length considered-voc) 1) (setf chosen-voc (highest-score-voc considered-voc)))))
-    chosen-voc
-    ))
-
-
+  (multiple-value-bind (utterance solution cip)
+      (produce (list (topic agent)) (lexicon agent))
+    (values utterance (cxn-applied (top-node cip)))))

@@ -23,22 +23,21 @@
   "Checks if item-1 is equal to item-2"
   (and (eql (form item-1) (form item-2))(eql (meaning item-1) (meaning item-2))))
 
-(defmethod increase-score ((voc-item voc-item) (delta float) (upper-bound float))
+(defun increase-score (applied-cxn delta upper-bound)
   "Increases score of voc-item with delta and cuts it off at upper-bound"
-  (incf (score voc-item) delta)
-  (if (> (score voc-item) upper-bound)
-      (setf (score voc-item) upper-bound)))
+  (incf (:score (attributes applied-cxn)) delta)
+  (if (> (:score (attributes applied-cxn)) upper-bound)
+    (setf (:score (attributes applied-cxn)) upper-bound)))
 
-(defmethod decrease-score ((voc-item voc-item) (delta float) (lower-bound float))
+(defun decrease-score (applied-cxn delta lower-bound)
   "Decreases score of voc-item with delta and cuts it off at lower-bound"
-  (decf (score voc-item) delta)
-  (if (<= (score voc-item) lower-bound)
-      (setf (score voc-item) lower-bound)))
+  (decf (:score (attributes applied-cxn)) delta)
+  (if (<= (:score (attributes applied-cxn)) lower-bound)
+    (setf (:score (attributes applied-cxn)) lower-bound)))
 
-(defmethod get-form-competitors ((voc-item voc-item) (lexicon list))
+(defun get-form-competitors (agent)
   "pick different forms from of lexicon that have the same meaning as voc-item"
-  (let ((form-competitors '()))
-    (loop for item in lexicon
-          do (if (and (eql (meaning item) (meaning voc-item)) (NOT (eql item voc-item)))
-                 (push item form-competitors)))
+  (let* ((lexicon (lexicon agent))
+        (topic (topic agent))
+        (form-competitors (third (produce-all topic lexicon))))
     form-competitors))

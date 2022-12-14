@@ -5,6 +5,7 @@
    :experiment-framework
    :utils
    :monitors
+   :fcg
    #+:hunchentoot-available-on-this-platform :web-interface)
   (:documentation "functions to create a naming game"))
 

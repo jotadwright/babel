@@ -1,6 +1,7 @@
 (ql:quickload :naming-game)
 (in-package :naming-game)
 
+#|
 (progn
   (deactivate-all-monitors)
   (activate-monitor trace-interaction)
@@ -11,8 +12,11 @@
   (activate-monitor record-lexicon-size)
   (activate-monitor export-communicative-success)
   )
+|#
 
 (defparameter *all-words* '())
+
+;'construction-inventory-processor
 
 (defparameter *experiment-configurations*
   '((:alignment-strategy . :lateral-inhibition)

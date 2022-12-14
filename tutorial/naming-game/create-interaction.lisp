@@ -24,18 +24,16 @@
                      (:no-aligment nil)
                      (:lateral-inhibition t))))
     (when alignment
-      (if (null (applied-voc agent)) (print agent))
       (cond (communicative-success
-             (increase-score (applied-voc agent) inc-delta 1.0)
-             (loop for form-competitor in (get-form-competitors (applied-voc agent) (lexicon agent))
+             (increase-score (applied-cxn agent) inc-delta 1.0)
+             (loop for form-competitor in (get-form-competitors agent)
                    do (decrease-score form-competitor dec-delta 0.0)
-                   (if (<= (score form-competitor) 0.0)
-                       (setf (lexicon agent)(remove form-competitor (lexicon agent) :test #'is-equal))
-                       )))
+                   (if (<= (:score (attributes form-competitor)) 0.0)
+                     (delete-cxn form-competitor (lexicon agent)))))
             ((NOT communicative-success)
-             (decrease-score (applied-voc agent) dec-delta 0.0)
-             (if (<= (score (applied-voc agent)) 0.0)
-                 (delete (applied-voc agent) (lexicon agent) :test #'is-equal)))))))
+             (decrease-score (applied-cxn agent) dec-delta 0.0)
+             (if (<= (:score (attributes form-competitor)) 0.0)
+               (delete-cxn form-competitor (lexicon agent))))))))
 
 (defun perform-alignment (interaction)
   "decides which agents should perform alignment using configurations of interaction"
@@ -57,38 +55,43 @@
                 (setf highest-voc voc-item)))
           finally (return highest-voc)))
 
+(defmethod add-naming-game-cxn (agent (form string) (meaning list) &key (score 0.5))
+  (let ((cxn-name (make-symbol (string-append form "-cxn")))
+        (unit-name (make-var (string-append form "-unit"))))
+    (multiple-value-bind (cxn-set cxn)
+        (eval `(def-fcg-cxn ,cxn-name
+                            (
+                             <-
+                             (,unit-name
+                              (HASH meaning ,meaning)
+                              --
+                              (HASH form ((string ,unit-name ,new-form)))))
+                            :cxn-inventory ',(lexicon agent)
+                            :attributes (:score ,score
+                                         :form ,form)))
+      (declare (ignorable cxn-set))
+      cxn)))
+
 (defmethod invent ((agent agent))
   "agent invents a new construction and adds it to its lexicon"
   (let* ((new-form (make-word))
-         (cxn-name (concatenate 'string new-form "-cxn"))
-         (unit-name (format nil "?~-word" new-form))
-         (fs (
-              <-
-              (,unit-name
-               (HASH meaning (,(topic agent)))
-               --
-               (HASH form ((string ,unit-name ,new-form)))))))
-  (def-fcg-cxn cxn-name fs :cxn-inventory (lexicon agent))
-  new-form))
-
-(defmethod adopt ((agent agent)(interaction interaction))
+         (new-cxn (add-naming-game-cxn agent new-form (list (topic agent)))))
+    (multiple-value-bind (utterance applied-cxn)
+        (naming-game-produce agent)
+      (values utterance applied-cxn))))
+  
+(defmethod naming-game-adopt ((agent naming-game-agent))
   "agent adopts a new word and adds it to its own vocabulary"
-  (let ((cxn-name (concatenate 'string (utterance agent) "-cxn"))
-        (unit-name (format nil "?~-word" (utterance agent)))
-        (fs `(
-              <-
-              (,unit-name
-               (HASH meaning (,(topic agent)))
-               --
-               (HASH form ((string ,unit-name ,(utterance agent))))))))
-    (def-fcg-cxn cxn-name fs :cxn-inventory (lexicon agent))))
+  (let ((adopted-cxn (add-naming-game-cxn agent (utterance agent) (list (topic agent)))))
+    adopted-cxn))
+
 
 (defun determine-success (speaker pointed-object)
   "speaker determines whether hearer pointed to right object"
   (cond
    ((null pointed-object)
     nil)
-   ((eql pointed-object (topic speaker))
+   ((eql (first pointed-object) (topic speaker))
     t)))
 
 (defmethod run-interaction ((experiment experiment)
@@ -134,23 +137,27 @@
              t)
            t)))
     (setf (topic speaker) (get-random-elem (world experiment)))
-    (setf (applied-voc speaker) (produce speaker))
-    (unless (applied-voc speaker)
-      (setf (applied-voc speaker) (invent speaker)))
-    (setf (utterance speaker) (form (applied-voc speaker)))
+    (multiple-value-bind (utterance applied-cxn)
+        (naming-game-produce speaker)
+      (setf (applied-cxn speaker) applied-cxn)
+      (setf (utterance speaker) utterance))
+    (unless (applied-cxn speaker)
+      (multiple-value-bind (utterance applied-cxn)
+          (invent speaker)
+        (setf (utterance speaker) utterance)
+        (setf (applied-cxn speaker) applied-cxn)))
     (setf (utterance hearer) (utterance speaker))
     (when monitor (notify conceptualisation-finished speaker))
-    (setf (applied-voc hearer) (parse (utterance hearer) (lexicon hearer)))
+    (setf (pointed-object hearer) (parse (utterance hearer) (lexicon hearer)))
     (when monitor (notify parsing-finished hearer))
-    (when (applied-voc hearer)
-      (setf (pointed-object hearer) (meaning (applied-voc hearer)))
+    (when (pointed-object hearer)
       (setf (pointed-object speaker) (pointed-object hearer)))
     (when monitor (notify interpretation-finished hearer))
     (setf (communicated-successfully speaker) (determine-success speaker (pointed-object speaker)))
     (setf (communicated-successfully hearer) (communicated-successfully speaker))
     (setf (topic hearer) (topic speaker))
-    (unless (applied-voc hearer)
-      (setf (applied-voc hearer) (adopt hearer interaction))
+    (unless (pointed-object hearer)
+      (setf (applied-cxn hearer)(naming-game-adopt (hearer interaction)))
       (when monitor (notify adoptation-finished hearer)))
     (perform-alignment interaction)
     (when monitor (notify align-finished))
