@@ -9,7 +9,7 @@
 (define-monitor display-communicative-success
                 :class 'gnuplot-display
                 :documentation "Plots the communicative success."
-                :data-sources '(record-communicative-success)
+                :data-sources '((average record-communicative-success))
                 :update-interval 100
                 :caption '("communicative success")
                 :x-label "# Games" 

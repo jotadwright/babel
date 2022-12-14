@@ -1,5 +1,14 @@
 (in-package :naming-game)
 
+
+(defclass naming-game-experiment (experiment)
+  ())
+
+(defmethod initialize-instance :after ((experiment naming-game-experiment) &key)
+  (setf (agents experiment) (make-agents experiment)
+        (world experiment) (make-world experiment)))
+
+
 (defun get-random-elem (list)
   "Gets an element from a list."
   (let* ((size (length list))
