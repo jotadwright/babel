@@ -490,6 +490,13 @@ branching node."
   "Renders a coupled-feature-structure using string and meets constraints."
   (render-in-root-mode (left-pole-structure cfs)))
 
+(defmethod render ((form-constraints list) (mode (eql :render-string-meets)) &key &allow-other-keys)
+  "Renders a list of form constraints using string and meets constraints."
+  (render-in-root-mode `((root (meaning ())
+                               (sem-cat ())
+                               (form ,form-constraints)
+                               (syn-cat ())))))
+
 ;;; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;;;                                    :render-with-scope
 ;;; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

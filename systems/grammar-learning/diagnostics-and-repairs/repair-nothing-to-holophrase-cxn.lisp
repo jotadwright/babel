@@ -63,7 +63,6 @@
                             collect (third fc) into hash-strings
                             finally (return (last-elt hash-strings))))
          (cxn-inventory-copy (copy-object cxn-inventory))
-         (bla (get-configuration cxn-inventory :mark-holophrases))
          (holistic-cxn-apply-first (second (multiple-value-list  (eval
                                                                   `(def-fcg-cxn ,cxn-name-holistic-cxn-apply-first
                                                                                 ((?holistic-unit
@@ -90,46 +89,48 @@
                                                                                 :score ,(get-configuration cxn-inventory :initial-cxn-score)
                                                                                 :cxn-inventory ,cxn-inventory-copy)))))
          (holistic-cxn-apply-last (second (multiple-value-list  (eval
-                                                                  `(def-fcg-cxn ,cxn-name-holistic-cxn-apply-last
-                                                                (
-                                                                 <-
-                                                                 (?holistic-unit
-                                                                  (HASH meaning ,meaning)
-                                                                  (args ,args-holistic-cxn)
-                                                                  (syn-cat (phrase-type holistic)
-                                                                           (lex-class ,lex-class-holistic-cxn))
-                                                                  (boundaries
-                                                                   (left ,leftmost-unit-holistic-cxn)
-                                                                   (right ,rightmost-unit-holistic-cxn))
-                                                                  --
-                                                                  (HASH form ,form-constraints)
-                                                                  (args ,args-holistic-cxn)
-                                                                  (syn-cat (phrase-type holistic)
-                                                                           (lex-class ,lex-class-holistic-cxn))
-                                                                  (boundaries
-                                                                   (left ,leftmost-unit-holistic-cxn)
-                                                                   (right ,rightmost-unit-holistic-cxn))))
-                                                                :attributes (:label fcg::meta-only
-                                                                             :cxn-type holistic
-                                                                             :is-holophrase ,(when (and node
-                                                                                                        (get-configuration cxn-inventory :mark-holophrases))
-                                                                                               t)
-                                                                             :bare-cxn-name ,cxn-name
-                                                                             :repair nothing->holistic
-                                                                             :meaning ,(fourth (find 'bind meaning :key #'first))
-                                                                             :string ,hash-string)
-                                                                :score ,(get-configuration cxn-inventory :initial-cxn-score)
-                                                                :cxn-inventory ,cxn-inventory-copy)))))
+                                                                 `(def-fcg-cxn ,cxn-name-holistic-cxn-apply-last
+                                                                               (
+                                                                                <-
+                                                                                (?holistic-unit
+                                                                                 (HASH meaning ,meaning)
+                                                                                 (args ,args-holistic-cxn)
+                                                                                 (syn-cat (phrase-type holistic)
+                                                                                          (lex-class ,lex-class-holistic-cxn))
+                                                                                 (boundaries
+                                                                                  (left ,leftmost-unit-holistic-cxn)
+                                                                                  (right ,rightmost-unit-holistic-cxn))
+                                                                                 --
+                                                                                 (HASH form ,form-constraints)
+                                                                                 (args ,args-holistic-cxn)
+                                                                                 (syn-cat (phrase-type holistic)
+                                                                                          (lex-class ,lex-class-holistic-cxn))
+                                                                                 (boundaries
+                                                                                  (left ,leftmost-unit-holistic-cxn)
+                                                                                  (right ,rightmost-unit-holistic-cxn))))
+                                                                               :attributes (:label fcg::meta-only
+                                                                                            :cxn-type holistic
+                                                                                            :is-holophrase ,(when (and node
+                                                                                                                       (get-configuration cxn-inventory :mark-holophrases))
+                                                                                                              t)
+                                                                                            :bare-cxn-name ,cxn-name
+                                                                                            :repair nothing->holistic
+                                                                                            :meaning ,(fourth (find 'bind meaning :key #'first))
+                                                                                            :string ,hash-string)
+                                                                               :score ,(get-configuration cxn-inventory :initial-cxn-score)
+                                                                               :cxn-inventory ,cxn-inventory-copy)))))
          (cxns-to-apply (list holistic-cxn-apply-first))
          (cxns-to-consolidate (list holistic-cxn-apply-last))
          (cats-to-add (list lex-class-holistic-cxn)))
 
-         (apply-fix
-           cxns-to-apply
-           nil
-           cxns-to-consolidate
-           cats-to-add
-           lex-class-holistic-cxn
-           t
-           node)
-         ))
+    (apply-fix
+     form-constraints
+     cxns-to-apply
+     nil
+     cxns-to-consolidate
+     cats-to-add
+     lex-class-holistic-cxn
+     t
+     node
+     'nothing->holistic)
+    ))
