@@ -125,8 +125,15 @@
   (inc-var-ids (remove-duplicates (read-from-string meaning) :test #'equal)))
 
 (defmethod pre-process-meaning-data (meaning (mode (eql :amr)))
-  (let ((*package* (find-package "GL-DATA")))
-    (amr:penman->predicates (read-from-string meaning))))
+  (let ((*package* (find-package "GL-DATA"))
+        (parsed-meaning (read-from-string meaning)))
+    
+    (if (listp (first parsed-meaning))
+      parsed-meaning
+      (amr:penman->predicates parsed-meaning))))
+
+
+
 
 (defun load-question-data (experiment challenge-file num-epochs &key sort-p shuffle-data-p)
   (unless (find-package "GL-DATA")

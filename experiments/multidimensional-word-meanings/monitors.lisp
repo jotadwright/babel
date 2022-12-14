@@ -5,7 +5,7 @@
 ;; ------------
 
 ;;;; Communicative success
-(define-monitor record-communicative-success
+(Define-monitor record-communicative-success
                 :class 'data-recorder
                 :average-window 100
                 :documentation "records the game outcome of each game (1 or 0).")
@@ -31,7 +31,7 @@
                 :column-separator " "
                 :comment-string "#")
 
-(define-event-handler (record-communicative-success interaction-finished)
+(Define-event-handler (record-communicative-success interaction-finished)
   (record-value monitor (if (communicated-successfully interaction) 1 0)))
 
 ;;;; Communicative Success given Conceptualisation
