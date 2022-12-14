@@ -13,7 +13,7 @@ To run the smatch library for obtaining the f-score:
 python smatch.py -m 'parsed meaning network' 'expected meaning network'
 ```
 
-e.g. ```python smatch.py -m '(BOY ?X)' '(BOY ?X) (UNIQUE ?X)'```
+e.g. ```python smatch.py -m '(BOY ?X)' '(BOY ?X) (UNIQUE ?X)'```  
 or ```python smatch.py -m 'path_to_file/file_parsed_network.txt' 'path_to_file/file_expected_network.txt'```
 
 If you also want to have the precision and recall, then run:
@@ -22,5 +22,5 @@ If you also want to have the precision and recall, then run:
 python smatch.py -m 'parsed meaning network' 'expected meaning network' --pr
 ```
 
-e.g. ```python smatch.py -m '(BOY ?X)' '(BOY ?X) (UNIQUE ?X)' --pr```
+e.g. ```python smatch.py -m '(BOY ?X)' '(BOY ?X) (UNIQUE ?X)' --pr```  
 or ```python smatch.py -m 'path_to_file/file_parsed_network.txt' 'path_to_file/file_expected_network.txt' --pr```
