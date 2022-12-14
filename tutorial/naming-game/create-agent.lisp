@@ -6,7 +6,7 @@
     :initarg :lexicon
     :accessor lexicon
     :initform nil
-    :type list)
+    :type construction-inventory)
    (topic
     :documentation "The object the agent interacts about"
     :initarg :topic
@@ -30,7 +30,8 @@
                       for agent-id = (read-from-string (format nil "agent-~d" i))
                       collect (make-instance 'naming-game-agent
                                              :id agent-id
-                                             :experiment experiment))))
+                                             :experiment experiment
+                                             :lexicon (make-instance 'construction-inventory)))))
     (setf (agents experiment) agents)))
 
 (defmethod produce ((agent naming-game-agent))

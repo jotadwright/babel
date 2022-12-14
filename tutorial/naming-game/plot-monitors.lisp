@@ -6,7 +6,7 @@
                 :average-window 100
                 :documentation "records the game outcome of each game (1 or 0).")
 
-(define-monitor display-communicative-success
+(define-monitor display-communicative-success ;needs to be activated
                 :class 'gnuplot-display
                 :documentation "Plots the communicative success."
                 :data-sources '(record-communicative-success)
@@ -17,7 +17,7 @@
                 :y1-max 1.0 :y1-min 0 
                 :draw-y1-grid t)
 
-(define-monitor export-communicative-success
+(define-monitor export-communicative-success ;idem
                 :class 'lisp-data-file-writer
                 :documentation "Exports communicative success"
                 :data-sources '((average record-communicative-success))
@@ -32,9 +32,6 @@
     (let ((speaker (first (interacting-agents interaction))))
       (record-value monitor (if (communicated-successfully speaker) 1 0))))
 
-(define-event-handler (display-communicative-success interaction-finished))
-
-(define-event-handler (export-communicative-success interaction-finished))
 
 
 (define-monitor record-lexicon-size

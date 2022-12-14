@@ -48,36 +48,31 @@
                 (setf highest-voc voc-item)))
           finally (return highest-voc)))
 
-(defmethod add-voc ((agent agent) (voc-item voc-item))
-  "adds voc-item to the lexicon of agent"
-  (push voc-item (lexicon agent)))
-
 (defmethod invent ((agent agent))
-  "agent invents a new word and adds it to its lexicon"
-  (let ((new-voc (make-instance 'voc-item
-                                :score 0.5
-                                :meaning (topic agent)
-                                :form (make-word (experiment agent)))))
-  (add-voc agent new-voc)
-  new-voc))
-
-(defmethod parse ((agent agent)(interaction interaction))
-  "agent tries to parse an utterance and searches its lexicon for voc-items that have the utterance as its form"
-  (loop with parsed-voc = nil
-        for voc-item in (lexicon agent)
-        do (if (string= (form voc-item) (utterance agent))
-             (setf parsed-voc voc-item))
-        when parsed-voc
-          return parsed-voc))
+  "agent invents a new construction and adds it to its lexicon"
+  (let* ((new-form (make-word))
+         (cxn-name (concatenate 'string new-form "-cxn"))
+         (unit-name (format nil "?~-word" new-form))
+         (fs (
+              <-
+              (,unit-name
+               (HASH meaning (,(topic agent)))
+               --
+               (HASH form ((string ,unit-name ,new-form)))))))
+  (def-fcg-cxn cxn-name fs :cxn-inventory (lexicon agent))
+  new-form))
 
 (defmethod adopt ((agent agent)(interaction interaction))
   "agent adopts a new word and adds it to its own vocabulary"
-  (let ((new-voc (make-instance 'voc-item
-                                :score 0.5
-                                :meaning (topic agent)
-                                :form (utterance agent))))
-    (add-voc agent new-voc)
-    new-voc))
+  (let ((cxn-name (concatenate 'string (utterance agent) "-cxn"))
+        (unit-name (format nil "?~-word" (utterance agent)))
+        (fs `(
+              <-
+              (,unit-name
+               (HASH meaning (,(topic agent)))
+               --
+               (HASH form ((string ,unit-name ,(utterance agent))))))))
+    (def-fcg-cxn cxn-name fs :cxn-inventory (lexicon agent))))
 
 (defun determine-success (speaker pointed-object)
   "speaker determines whether hearer pointed to right object"
@@ -136,7 +131,7 @@
     (setf (utterance speaker) (form (applied-voc speaker)))
     (setf (utterance hearer) (utterance speaker))
     (when monitor (notify conceptualisation-finished speaker))
-    (setf (applied-voc hearer) (parse hearer interaction))
+    (setf (applied-voc hearer) (parse (utterance hearer) (lexicon hearer)))
     (when monitor (notify parsing-finished hearer))
     (when (applied-voc hearer)
       (setf (pointed-object hearer) (meaning (applied-voc hearer)))
