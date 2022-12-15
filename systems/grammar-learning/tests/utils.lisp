@@ -65,7 +65,7 @@
                                                   holistic->item-based
                                                   nothing->holistic))
                                      (:observation-sample-mode . :debug)    ;:train shuffled 
-                                     (:meaning-representation . :amr)
+                                     (:meaning-representation . :geo)
                                      (:max-nr-of-nodes . 300)
                                      (:alignment-strategy . :lateral-inhibition)
                                      (:de-render-mode . :de-render-string-meets-no-punct)

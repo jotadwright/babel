@@ -1,7 +1,7 @@
 (ql:quickload :grammar-learning)
 (in-package :grammar-learning)
 
-(defparameter *learned-cxn-inventory* (cl-store::restore (babel-pathname :directory '("experiments" "grammar-learning" "German-cases") :name "german-grammar-train-500" :type "store")))
+(defparameter *learned-cxn-inventory* (cl-store::restore (babel-pathname :directory '("experiments" "grammar-learning" "German-cases") :name "german-grammar-train-mod-1200" :type "store")))
 
 
 (set-configuration *learned-cxn-inventory* :update-categorial-links nil)
@@ -23,7 +23,7 @@
 
 
 (defparameter *data* (load-data (merge-pathnames
-                                 (make-pathname :name "German-cases-500" :type "json")     ;137 sentences
+                                 (make-pathname :name "German-cases-mod-1000" :type "json")     ;137 sentences
                                  (merge-pathnames
                                   (make-pathname :directory '(:relative "German-cases"))
                                   cl-user:*babel-corpora*))))
@@ -37,9 +37,8 @@
 (evaluate-formulation *data*)
   
 
-                        
-
-
+                       
 (activate-monitor trace-fcg)
 
-(formulate '((suchen-01 ?s) (policeman ?w) (clown ?b) (arg0 ?s ?w) (arg1 ?s ?b) (topicalized ?p)) :cxn-inventory gl::*learned-cxn-inventory*)
+(comprehend '("Der Sohn zeigt dem Vater den neuen Brillen" () :cxn-inventory gl::*learned-cxn-inventory*)
+(formulate '((geben-01 ?g) (queen ?q) (man ?m)  (mod ?a ?g) (arg0 ?g ?q) (arg1 ?g ?a) (arg2 ?g ?m) (topicalized ?q)) :cxn-inventory gl::*learned-cxn-inventory*)

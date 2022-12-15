@@ -1,0 +1,202 @@
+(ql:quickload :grammar-learning) 
+(in-package :grammar-learning)
+
+;; full logging
+(progn
+  (deactivate-all-monitors)
+  (activate-monitor display-metrics)
+  (activate-monitor trace-fcg)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor summarize-results-after-n-interactions)
+  (activate-monitor show-type-hierarchy-after-n-interactions)
+  (activate-monitor trace-interactions-in-wi))
+
+
+
+
+
+;;;POSTER EXAMPLE SUBSTITUTION
+(defun test-substitution-repair-comprehension-german-2 ()
+  (let* ((experiment (set-up-cxn-inventory-and-repairs-german))
+         (cxn-inventory (grammar (first (agents experiment)))))
+    (comprehend "Der Doktor verkauft dem Clown das Buch"
+                    :cxn-inventory cxn-inventory
+                    :gold-standard-meaning '((verkaufen-01 ?v)
+                                             (doctor ?d)
+                                             (clown ?c)
+                                             (book ?b)
+                                             (arg0 ?v ?d)
+                                             (arg1 ?v ?b)
+                                             (arg2 ?v ?c)
+                                             (topicalized ?d)))
+    (test-repair-status 'holistic->item-based--substitution
+                        (second (multiple-value-list
+                                 (comprehend "Der Doktor verkauft der Frau das Buch"
+                    :cxn-inventory cxn-inventory
+                    :gold-standard-meaning '((verkaufen-01 ?v)
+                                             (doctor ?d)
+                                             (woman ?w)
+                                             (book ?b)
+                                             (arg0 ?v ?d)
+                                             (arg1 ?v ?b)
+                                             (arg2 ?v ?w)
+                                             (topicalized ?d))))))
+    (formulate '((verkaufen-01 ?v)
+                                             (doctor ?d)
+                                             (woman ?w)
+                                             (book ?b)
+                                             (arg0 ?v ?d)
+                                             (arg1 ?v ?b)
+                                             (arg2 ?v ?w)
+                                             (topicalized ?d)) :cxn-inventory cxn-inventory)))
+
+(test-substitution-repair-comprehension-german-2)
+
+
+
+;;;ADDITION REPAIR TEST
+(defun test-addition-repair-comprehension-german ()
+  (let* ((experiment (set-up-cxn-inventory-and-repairs-german))
+         (cxn-inventory (grammar (first (agents experiment)))))
+    (comprehend "Die junge Frau gibt dem Mann den Apfel"
+                    :cxn-inventory cxn-inventory
+                    :gold-standard-meaning '((geben-01 ?g)
+                                             (young ?y)
+                                             (woman ?w)
+                                             (mod ?w ?y)
+                                             (man ?m)
+                                             (apple ?a)
+                                             (arg0 ?g ?w)
+                                             (arg1 ?g ?a)
+                                             (arg2 ?g ?m)
+                                             (topicalized ?w)))
+    (test-repair-status 'holistic->item-based--addition
+                        (second (multiple-value-list
+                                 (comprehend "Die junge Frau gibt dem Mann den gruenen Apfel"
+                    :cxn-inventory cxn-inventory
+                    :gold-standard-meaning '((geben-01 ?g)
+                                             (young ?y)
+                                             (woman ?w)
+                                             (mod ?w ?y)
+                                             (man ?m)
+                                             (apple ?a)
+                                             (green ?gr)
+                                             (mod ?a ?gr)
+                                             (arg0 ?g ?w)
+                                             (arg1 ?g ?a)
+                                             (arg2 ?g ?m)
+                                             (topicalized ?w))))))))
+
+;;;TESTING SUBSTITUTION
+
+(defun test-substitution-repair-comprehension-german ()
+  (let* ((experiment (set-up-cxn-inventory-and-repairs-german))
+         (cxn-inventory (grammar (first (agents experiment)))))
+    (comprehend "Die junge Frau gibt dem Mann den Apfel"
+                    :cxn-inventory cxn-inventory
+                    :gold-standard-meaning '((geben-01 ?g)
+                                             (young ?y)
+                                             (woman ?w)
+                                             (mod ?w ?y)
+                                             (man ?m)
+                                             (apple ?a)
+                                             (arg0 ?g ?w)
+                                             (arg1 ?g ?a)
+                                             (arg2 ?g ?m)
+                                             (topicalized ?w)))
+    (test-repair-status 'holistic->item-based--substitution
+                        (second (multiple-value-list
+                                 (comprehend "Die junge Frau gibt dem Mann den Hund"
+                    :cxn-inventory cxn-inventory
+                    :gold-standard-meaning '((geben-01 ?g)
+                                             (young ?y)
+                                             (woman ?w)
+                                             (mod ?w ?y)
+                                             (man ?m)
+                                             (dog ?d)
+                                             (arg0 ?g ?w)
+                                             (arg1 ?g ?d)
+                                             (arg2 ?g ?m)
+                                             (topicalized ?w))))))))
+
+;;;POSTER EXAMPLE SUBSTITUTION
+(defun test-substitution-repair-comprehension-german-2 ()
+  (let* ((experiment (set-up-cxn-inventory-and-repairs-german))
+         (cxn-inventory (grammar (first (agents experiment)))))
+    (comprehend "Der Doktor verkauft dem Clown das Buch"
+                    :cxn-inventory cxn-inventory
+                    :gold-standard-meaning '((verkaufen-01 ?v)
+                                             (doctor ?d)
+                                             (clown ?c)
+                                             (book ?b)
+                                             (arg0 ?v ?d)
+                                             (arg1 ?v ?b)
+                                             (arg2 ?v ?c)
+                                             (topicalized ?d)))
+    (test-repair-status 'holistic->item-based--substitution
+                        (second (multiple-value-list
+                                 (comprehend "Der Doktor verkauft der Frau das Buch"
+                    :cxn-inventory cxn-inventory
+                    :gold-standard-meaning '((verkaufen-01 ?v)
+                                             (doctor ?d)
+                                             (woman ?w)
+                                             (book ?b)
+                                             (arg0 ?v ?d)
+                                             (arg1 ?v ?b)
+                                             (arg2 ?v ?w)
+                                             (topicalized ?d))))))
+    (formulate '((verkaufen-01 ?v)
+                                             (doctor ?d)
+                                             (woman ?w)
+                                             (book ?b)
+                                             (arg0 ?v ?d)
+                                             (arg1 ?v ?b)
+                                             (arg2 ?v ?w)
+                                             (topicalized ?d)) :cxn-inventory cxn-inventory)))
+
+
+
+(defun test-deletion-repair-comprehension-german ()
+  (let* ((experiment (set-up-cxn-inventory-and-repairs-german))
+         (cxn-inventory (grammar (first (agents experiment)))))
+    (comprehend "Die junge Frau gibt dem Mann den gruenen Apfel"
+                    :cxn-inventory cxn-inventory
+                    :gold-standard-meaning '((geben-01 ?g)
+                                             (young ?y)
+                                             (woman ?w)
+                                             (mod ?w ?y)
+                                             (man ?m)
+                                             (apple ?a)
+                                             (green ?gr)
+                                             (mod ?a ?gr)
+                                             (arg0 ?g ?w)
+                                             (arg1 ?g ?a)
+                                             (arg2 ?g ?m)
+                                             (topicalized ?w)))
+    
+    (test-repair-status 'holistic->item-based--deletion
+                        (second (multiple-value-list
+                                 (comprehend "Die junge Frau gibt dem Mann den Apfel"
+                    :cxn-inventory cxn-inventory
+                    :gold-standard-meaning '((geben-01 ?g)
+                                             (young ?y)
+                                             (woman ?w)
+                                             (mod ?w ?y)
+                                             (man ?m)
+                                             (apple ?a)
+                                             (arg0 ?g ?w)
+                                             (arg1 ?g ?a)
+                                             (arg2 ?g ?m)
+                                             (topicalized ?w))))))))
+
+
+
+
+
+(defun run-test-corpora()
+
+  
+  (test-addition-repair-comprehension-german)
+  (test-deletion-repair-comprehension-german)
+  (test-substitution-repair-comprehension-german)
+  (test-substitution-repair-comprehension-german-2))
