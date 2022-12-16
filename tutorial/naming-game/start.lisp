@@ -31,9 +31,9 @@
   ;; agents and world are now set in the initialize-instance :after method
   (make-instance 'naming-game-experiment :entries *experiment-configurations*))
 
-;(run-series *experiment* 1)
+(run-series *experiment* 1000)
 
-(run-batch-for-different-configurations
+(Run-Batch-for-different-configurations
  :experiment-class 'naming-game-experiment
  :number-of-interactions 3000
  :number-of-series 1
@@ -48,4 +48,4 @@
              "export-communicative-success")
  :output-dir (babel-pathname :directory '("tutorial" "naming-game" "raw-data")))
 
-
+(print

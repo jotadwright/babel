@@ -31,10 +31,9 @@
                    (if (<= (cdr (second (attributes form-competitor))) 0.0)
                        (delete-cxn form-competitor (lexicon agent)))))
             ((NOT communicative-success)
-             ;(print (applied-cxn agent))
-             (decrease-score (applied-cxn agent) dec-delta 0.0) ;the problem is here the (applied-cxn agent) sends back the cxn + a boolean
+             (decrease-score (applied-cxn agent) dec-delta 0.0)
              (if (<= (cdr (second (attributes (applied-cxn agent)))) 0.0)
-             (delete-cxn form-competitor (lexicon agent))))))))
+             (delete-cxn (applied-cxn agent) (lexicon agent))))))))
 
 (defun perform-alignment (interaction)
   "decides which agents should perform alignment using configurations of interaction"
@@ -83,9 +82,9 @@
         (naming-game-produce agent)
       (values utterance applied-cxn))))
   
-(defmethod naming-game-adopt ((agent naming-game-agent))
+(defmethod naming-game-adopt ((agent naming-game-agent)(cxn-form string)) ;we pass cxn-form as an argument because it is not supposed to be the cxn-form of the same agent (I guess?)
   "agent adopts a new word and adds it to its own vocabulary"
-  (let ((adopted-cxn (add-naming-game-cxn agent "wabadu" (list (topic agent))))) ;we change (utterance agent) by wabadu for the moment just to avoid an error tht we'll resolve later
+  (let ((adopted-cxn (add-naming-game-cxn agent cxn-form (list (topic agent)))))
     adopted-cxn))
 
 
@@ -144,8 +143,6 @@
         (naming-game-produce speaker)
       (setf (applied-cxn speaker) applied-cxn)
       (setf (utterance speaker) utterance))
-    ;(print (applied-cxn speaker))
-    ;(print (utterance speaker))
     (unless (applied-cxn speaker)
       (multiple-value-bind (utterance applied-cxn)
           (invent speaker)
@@ -162,10 +159,8 @@
     (setf (communicated-successfully hearer) (communicated-successfully speaker))
     (setf (topic hearer) (topic speaker))
     (unless (pointed-object hearer)
-      ;(print "ok")
-      (setf (applied-cxn hearer)(naming-game-adopt (hearer interaction))) ;here, problem with add-naming-game-cxn
+      (setf (applied-cxn hearer)(naming-game-adopt (hearer interaction) (cdr (third (attributes (applied-cxn speaker)))))) 
       (when monitor (notify adoptation-finished hearer)))
-    (print (applied-cxn speaker)) ; this sends back well the utterance without boolean value. Why doesn't it work with speaker?
     (perform-alignment interaction)
     (when monitor (notify align-finished))
     ))
