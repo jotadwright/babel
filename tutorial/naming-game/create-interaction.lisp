@@ -28,12 +28,13 @@
              (increase-score (applied-cxn agent) inc-delta 1.0)
              (loop for form-competitor in (get-form-competitors agent)
                    do (decrease-score form-competitor dec-delta 0.0)
-                   (if (<= (:score (attributes form-competitor)) 0.0)
-                     (delete-cxn form-competitor (lexicon agent)))))
+                   (if (<= (cdr (second (attributes form-competitor))) 0.0)
+                       (delete-cxn form-competitor (lexicon agent)))))
             ((NOT communicative-success)
-             (decrease-score (applied-cxn agent) dec-delta 0.0)
-             (if (<= (:score (attributes form-competitor)) 0.0)
-               (delete-cxn form-competitor (lexicon agent))))))))
+             ;(print (applied-cxn agent))
+             (decrease-score (applied-cxn agent) dec-delta 0.0) ;the problem is here the (applied-cxn agent) sends back the cxn + a boolean
+             (if (<= (cdr (second (attributes (applied-cxn agent)))) 0.0)
+             (delete-cxn form-competitor (lexicon agent))))))))
 
 (defun perform-alignment (interaction)
   "decides which agents should perform alignment using configurations of interaction"
@@ -56,8 +57,10 @@
           finally (return highest-voc)))
 
 (defmethod add-naming-game-cxn (agent (form string) (meaning list) &key (score 0.5))
+  "agent adds a construction to its construction inventory ; sends back the construction"
   (let ((cxn-name (make-symbol (string-append form "-cxn")))
-        (unit-name (make-var (string-append form "-unit"))))
+        (unit-name (make-var (string-append form "-unit")))
+        )
     (multiple-value-bind (cxn-set cxn)
         (eval `(def-fcg-cxn ,cxn-name
                             (
@@ -65,7 +68,7 @@
                              (,unit-name
                               (HASH meaning ,meaning)
                               --
-                              (HASH form ((string ,unit-name ,new-form)))))
+                              (HASH form ((string ,unit-name ,form)))))
                             :cxn-inventory ',(lexicon agent)
                             :attributes (:score ,score
                                          :form ,form)))
@@ -82,7 +85,7 @@
   
 (defmethod naming-game-adopt ((agent naming-game-agent))
   "agent adopts a new word and adds it to its own vocabulary"
-  (let ((adopted-cxn (add-naming-game-cxn agent (utterance agent) (list (topic agent)))))
+  (let ((adopted-cxn (add-naming-game-cxn agent "wabadu" (list (topic agent))))) ;we change (utterance agent) by wabadu for the moment just to avoid an error tht we'll resolve later
     adopted-cxn))
 
 
@@ -141,6 +144,8 @@
         (naming-game-produce speaker)
       (setf (applied-cxn speaker) applied-cxn)
       (setf (utterance speaker) utterance))
+    ;(print (applied-cxn speaker))
+    ;(print (utterance speaker))
     (unless (applied-cxn speaker)
       (multiple-value-bind (utterance applied-cxn)
           (invent speaker)
@@ -157,8 +162,10 @@
     (setf (communicated-successfully hearer) (communicated-successfully speaker))
     (setf (topic hearer) (topic speaker))
     (unless (pointed-object hearer)
-      (setf (applied-cxn hearer)(naming-game-adopt (hearer interaction)))
+      ;(print "ok")
+      (setf (applied-cxn hearer)(naming-game-adopt (hearer interaction))) ;here, problem with add-naming-game-cxn
       (when monitor (notify adoptation-finished hearer)))
+    (print (applied-cxn speaker)) ; this sends back well the utterance without boolean value. Why doesn't it work with speaker?
     (perform-alignment interaction)
     (when monitor (notify align-finished))
     ))
