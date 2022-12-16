@@ -31,7 +31,7 @@
   ;; agents and world are now set in the initialize-instance :after method
   (make-instance 'naming-game-experiment :entries *experiment-configurations*))
 
-(run-series *experiment* 1000)
+;(run-series *experiment* 1)
 
 (run-batch-for-different-configurations
  :experiment-class 'naming-game-experiment

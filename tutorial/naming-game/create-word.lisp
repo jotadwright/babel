@@ -1,6 +1,6 @@
 (in-package :naming-game)
 
-(defun make-word (experiment)
+(defun make-word ()
   "Creates a word of nr-of-syllables where a syllable is a consonant plus a vowel"
   (let ((vowels '("a" "e" "i" "o" "u"))
         (consonants '("b" "c" "d" "f" "g" "h" "j" "k" "l" "m" "n" "p" "q" "r" "s" "t" "v" "w" "x" "y" "z"))
