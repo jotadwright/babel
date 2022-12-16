@@ -211,7 +211,7 @@
     :initarg :constructions)
    (disable-automatic-footprints
     :type (or t nil)
-    :initformapp nil
+    :initform nil
     :initarg :disable-automatic-footprints
     :accessor disable-automatic-footprints)
    (feature-types 
