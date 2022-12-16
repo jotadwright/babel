@@ -25,15 +25,15 @@
 
 (defun increase-score (applied-cxn delta upper-bound)
   "Increases score of voc-item with delta and cuts it off at upper-bound"
-  (incf (:score (attributes applied-cxn)) delta)
-  (if (> (:score (attributes applied-cxn)) upper-bound)
-    (setf (:score (attributes applied-cxn)) upper-bound)))
+  (incf (cdr (second (attributes applied-cxn))) delta)
+  (if (> (cdr (second (attributes applied-cxn))) upper-bound)
+    (setf (cdr (second (attributes applied-cxn))) upper-bound)))
 
 (defun decrease-score (applied-cxn delta lower-bound)
   "Decreases score of voc-item with delta and cuts it off at lower-bound"
-  (decf (:score (attributes applied-cxn)) delta)
-  (if (<= (:score (attributes applied-cxn)) lower-bound)
-    (setf (:score (attributes applied-cxn)) lower-bound)))
+  (decf (cdr (second (attributes applied-cxn))) delta)
+  (if (<= (cdr (second (attributes applied-cxn))) lower-bound)
+    (setf (cdr (second (attributes applied-cxn))) lower-bound)))
 
 (defun get-form-competitors (agent)
   "pick different forms from of lexicon that have the same meaning as voc-item"
