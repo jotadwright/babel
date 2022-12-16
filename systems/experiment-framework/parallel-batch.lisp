@@ -36,7 +36,8 @@
           create-graphs-for-different-population-sizes
           create-bar-plot-for-different-experimental-conditions
           create-bar-plots-for-different-experimental-conditions
-          create-configuration-a-vs-configuration-b-bar-plot))
+          create-configuration-a-vs-configuration-b-bar-plot
+          run-parallel-batch-for-grid-search))
 
 ;; if *max-nr-parallel-processes* is set to a number,
 ;; then a maximum of parallel processes is started
@@ -891,6 +892,74 @@ name."
    :draw-y-grid draw-y-grid :grid-color grid-color :grid-line-width grid-line-width
    :colors colors :graphic-type graphic-type :file-name file-name))
 
+;; WIP
+(defun get-current-date ()
+  (multiple-value-bind
+      (second minute hour day month year day-of-week dst-p tz)
+      (get-decoded-time)
+    (format nil "~d-~2,'0d-~d_~dh~dm~ds" year month day hour minute second)))
 
+(defun generate-experiment-configurations (parameters output-dir)
+  "Generate a set of experiments. Specify which parameters are variable
+   and what their possible values can be. Optionally specify an a-list
+   of shared configurations."
+  (let* ((pairs (loop for (key . values) in parameters
+                      collect (loop for value in values
+                                    collect (cons key value))))
+         (configurations (apply #'combinations pairs))
+         (current-date (get-current-date)))
+    
+    (loop for config in configurations and index from 0 to (length configurations)
+          for config-name = (internal-symb (upcase (list-of-strings->string
+                                                    (list current-date "exp" (mkstr index))
+                                                    :separator "-")))
+          for experiment = (list config-name (append config (list (cons :experiment-name (mkstr config-name))
+                                                                  (cons :output-dir (last-elt (pathname-directory output-dir))))))
+          collect experiment)))
 
-
+(defun run-parallel-batch-for-grid-search
+       (&key asdf-system package experiment-class number-of-interactions number-of-series 
+             (max-nr-parallel-processes *max-nr-parallel-processes*)
+             monitors shared-configuration configurations (heap-size 1024) (skip-to nil)
+             (output-dir (error "Please supply an :output-dir for monitoring")))
+  "Runs multiple batches of parallel series. Every batch takes a
+    different (named) configuration. Each configuration in configurations
+    should be a pair like (name . configuration-list). You can use
+    shared-configuration to set configuration values that are shared among
+    all batches. Values in configurations have precedence over values in
+    shared-configration, should there be a conflict. output-dir can be set
+    to the directory of (or subdir in) your experiment. If it is set then
+    all data-outputting monitors will be overridden to output there. For
+    each named configuration a subdir will be made there with the given name."
+  (loop with experiment-configs = (generate-experiment-configurations configurations output-dir)
+        for configuration in experiment-configs and idx from 0 to (length experiment-configs)
+        do 
+          ;; merge shared-configuration and current configuration
+          (setf (second configuration)
+                (loop with local-config = (make-configuration :entries (second configuration)) 
+                      for (key . value) in shared-configuration
+                      do (set-configuration local-config key value :replace nil)
+                      finally (return (entries local-config))))
+       
+          ;; adapt file-writing monitors so they output in the correct output-dir
+          (monitors::deactivate-all-monitors)
+          (loop for monitor-string in monitors
+                for monitor = (monitors::get-monitor (read-from-string monitor-string))
+                do (monitors::activate-monitor-method (read-from-string monitor-string))
+                when (slot-exists-p monitor 'file-name)
+                  do (setf (slot-value monitor 'file-name)
+                           (ensure-directories-exist
+                            (merge-pathnames (make-pathname :directory `(:relative ,(string-downcase (symbol-name (first configuration))))
+                                                            :name (pathname-name (file-name monitor)) 
+                                                            :type (pathname-type (file-name monitor)))
+                                             output-dir))))
+          ;; run the actual batch for the current configuration
+          (run-parallel-batch :asdf-system asdf-system 
+                              :package package
+                              :experiment-class experiment-class
+                              :number-of-interactions number-of-interactions 
+                              :number-of-series number-of-series
+                              :max-nr-parallel-processes max-nr-parallel-processes
+                              :monitors monitors 
+                              :configurations (second configuration)
+                              :heap-size heap-size)))
