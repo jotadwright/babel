@@ -49,4 +49,5 @@
   "agent tries to produce a word that refers to the topic object"
   (multiple-value-bind (utterance solution cip)
       (produce (list (topic agent)) (lexicon agent))
-    (values utterance (first (applied-constructions (first (succeeded-nodes cip)))))))
+    (values utterance (first (applied-constructions (first (succeeded-nodes cip)))))
+  (print (first (applied-constructions (first (succeeded-nodes cip)))))))

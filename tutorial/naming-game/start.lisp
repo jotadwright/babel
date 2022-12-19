@@ -47,5 +47,3 @@
  :monitors '("display-communicative-success"
              "export-communicative-success")
  :output-dir (babel-pathname :directory '("tutorial" "naming-game" "raw-data")))
-
-(print
