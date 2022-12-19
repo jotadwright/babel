@@ -98,11 +98,6 @@
 
 
 
-
-
-
-
-
 (defun run-tests-corpora()
   (test-addition-repair-comprehension-german)
   (test-substitution-repair-comprehension-german))
