@@ -1,5 +1,12 @@
 (in-package :naming-game)
 
+
+;--------------------------;
+;monitors for visualization;
+;using gnuplot             ;
+;--------------------------;
+
+
 ;;see if interaction is successful
 (Define-monitor record-communicative-success
                 :class 'data-recorder
@@ -61,14 +68,12 @@
                 :comment-string "#")
 
 (defun get-lexicon-size (agent)
+  "gives the size of a agent's lexicon"
   (let ((cxn-list
          (loop for cxn in (constructions (lexicon agent))
                for cxn-score = (cdr (assoc :score (attributes cxn)))
                when (> cxn-score 0.0)
-               collect cxn)))
-    (print cxn-list)
-    (format t "~%length of the full lexicon is ~a"(length (constructions (lexicon agent))))
-    (format t "~%length of cxn-list is ~a" (length cxn-list))
+               collect cxn)))   
     (length cxn-list)))
 
 (define-event-handler (record-lexicon-size interaction-finished)

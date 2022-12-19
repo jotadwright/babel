@@ -1,5 +1,11 @@
 (in-package :naming-game)
 
+;-----------------------;
+;creating agents for the;
+;experiment             ;
+;-----------------------;
+
+
 (defclass naming-game-agent (agent)
   ((lexicon
     :documentation "The lexicon of the agent"
@@ -25,6 +31,7 @@
     :initform nil)))
 
 (defun make-agent-cxn-set ()
+  "allows to create construction sets for an agent"
   (let ((grammar-name (make-const "agent-grammar")))
     (eval
      `(def-fcg-constructions ,grammar-name
@@ -47,16 +54,6 @@
                                              :experiment experiment
                                              :lexicon (make-agent-cxn-set)))))
     (setf (agents experiment) agents)))
-
-
-
-
-;(add-naming-game-cxn *test-agent* "hello" '(o-1))
-
-;(add-element (make-html (first (constructions (lexicon *test-agent*)))))
-;(formulate '(o-1) :cxn-inventory *fcg-constructions*)
-
-;(naming-game-produce *test-agent*)
 
 (defmethod naming-game-produce ((agent naming-game-agent))
   "agent tries to produce a word that refers to the topic object"

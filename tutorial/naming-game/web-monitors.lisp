@@ -1,5 +1,10 @@
 (in-package :naming-game)
 
+;--------------------------;
+;monitors for visualization;
+;in the web interface      ;
+;--------------------------;
+
 (define-monitor trace-experiment-wi
                 :documentation "Traces some important information about the experiment in the web-interface")
 
