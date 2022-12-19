@@ -43,7 +43,7 @@
                 :class 'gnuplot-display
                 :documentation "Plots the communicative success."
                 :data-sources '((average record-lexicon-size))
-                :update-interval 100
+                :update-interval 50
                 :caption '("lexicon size")
                 :x-label "# Games" 
                 :y1-label "lexicon size" 
@@ -63,10 +63,12 @@
 (defun get-lexicon-size (agent)
   (let ((cxn-list
          (loop for cxn in (constructions (lexicon agent))
-               for cxn-score = (cdr (assoc :score (attributes (applied-cxn agent))))
-               when (> cxn-score 0)
+               for cxn-score = (cdr (assoc :score (attributes cxn)))
+               when (> cxn-score 0.0)
                collect cxn)))
-    (print (length cxn-list))
+    (print cxn-list)
+    (format t "~%length of the full lexicon is ~a"(length (constructions (lexicon agent))))
+    (format t "~%length of cxn-list is ~a" (length cxn-list))
     (length cxn-list)))
 
 (define-event-handler (record-lexicon-size interaction-finished)

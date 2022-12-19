@@ -6,11 +6,6 @@
   (deactivate-all-monitors)
   (activate-monitor trace-interaction)
   (activate-monitor trace-experiment)
-  (activate-monitor record-communicative-success)
-  (activate-monitor record-lexicon-size)
-  (activate-monitor display-communicative-success)
-  (activate-monitor record-lexicon-size)
-  (activate-monitor export-communicative-success)
   )
 |#
 
@@ -33,7 +28,8 @@
   ;; agents and world are now set in the initialize-instance :after method
   (make-instance 'naming-game-experiment :entries *experiment-configurations*))
 
-(run-series *experiment* 1)
+(run-series *experiment* 5000)
+(inspect *experiment*)
 
 (Run-Batch-for-different-configurations
  :experiment-class 'naming-game-experiment
@@ -41,7 +37,7 @@
  :number-of-series 1
  :named-configurations '((test ((:alignment-strategy . :lateral-inhibition)
                                 (:who-aligns . :both)
-                                ;(:record-every-x-interactions . 100)
+                                (:trace-every-x-interactions . 100)
                                 (:initial-score . 0.5)
                                 (:li-incf . 0.1)
                                 (:li-decf . 0.1)
@@ -51,3 +47,9 @@
              "display-lexicon-size"
              "export-lexicon-size")
  :output-dir (babel-pathname :directory '("tutorial" "naming-game" "raw-data")))
+
+(defparameter *test-agent* (make-instance 'naming-game-agent
+                                             :id 'agent-1
+                                             :lexicon (make-agent-cxn-set)))
+
+(defparameter *test-cxn* (add-naming-game-cxn *test-agent* "hello" '(OBJ-1)))

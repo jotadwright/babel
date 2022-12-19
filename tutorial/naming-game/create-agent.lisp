@@ -49,9 +49,7 @@
     (setf (agents experiment) agents)))
 
 
-(defparameter *test-agent* (make-instance 'naming-game-agent
-                                             :id 'agent-1
-                                             :lexicon (make-agent-cxn-set)))
+
 
 ;(add-naming-game-cxn *test-agent* "hello" '(o-1))
 

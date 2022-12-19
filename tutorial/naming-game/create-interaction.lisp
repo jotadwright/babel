@@ -27,15 +27,9 @@
       (cond (communicative-success
              (when (applied-cxn agent)(increase-score (applied-cxn agent) inc-delta 1.0))
              (loop for form-competitor in (get-form-competitors agent)
-                   do (decrease-score form-competitor dec-delta 0.0)
-                   (if (<= (cdr (second (attributes form-competitor))) 0.0)
-                       (setf (constructions (lexicon agent))
-                             (delete form-competitor (constructions (lexicon agent)))))))
+                   do (decrease-score form-competitor dec-delta 0.0)))
             ((NOT communicative-success)
-             (when (applied-cxn agent)(decrease-score (applied-cxn agent) dec-delta 0.0))
-             (if (<= (cdr (second (attributes (applied-cxn agent)))) 0.0)
-               (setf (constructions (lexicon agent))
-                     (delete (applied-cxn agent) (constructions (lexicon agent))))))))))
+             (when (applied-cxn agent)(decrease-score (applied-cxn agent) dec-delta 0.0)))))))
 
 (defun perform-alignment (interaction)
   "decides which agents should perform alignment using configurations of interaction"
@@ -72,9 +66,11 @@
                               (HASH form ((string ,unit-name ,form)))))
                             :cxn-inventory ',(lexicon agent)
                             :attributes (:score ,score
-                                         :form ,form)))
+                                         :form ,form
+                                         :meaning ,meaning)))
       (declare (ignorable cxn-set))
       cxn)))
+
 
 (defmethod invent ((agent agent))
   "agent invents a new construction and adds it to its lexicon"
@@ -103,50 +99,26 @@
   (setf (applied-cxn agent) nil)
   (setf (pointed-object agent) nil))
 
-(defmethod run-interaction ((experiment experiment)
-                            &key &allow-other-keys)
-  "runs an interaction by increasing the interaction number"
-  (let* ((interaction (make-instance
-                      'interaction
-                      :experiment experiment
-                      :interaction-number (if (interactions experiment)
-                                            (+ 1 (interaction-number
-                                                  (car (interactions experiment))))
-                                            1)))
-        (monitor
-         (if (get-configuration experiment :record-every-x-interactions)
-           (when 
-               (or 
-                (= (mod (interaction-number interaction) (get-configuration experiment :record-every-x-interactions)) 0) 
-                (= (interaction-number interaction) 1))
-             t)
-           t)))
-    (push interaction (interactions experiment))
-    (determine-interacting-agents experiment interaction
-                                  (get-configuration experiment
-                                                     :determine-interacting-agents-mode))
-    (clear (first (interacting-agents experiment)))
-    (clear (second (interacting-agents experiment)))
-    (when monitor (notify interaction-started experiment interaction (interaction-number interaction)))
-    (interact experiment interaction)
-    (setf (communicated-successfully interaction)
-          (loop for agent in (interacting-agents interaction)
-                always (communicated-successfully agent)))
-    (when monitor (notify interaction-finished experiment interaction (interaction-number interaction)))
-    (values interaction experiment)))
+
+(defun activate-monitors (experiment interaction)
+  (deactivate-monitor trace-interaction-wi)
+  (deactivate-monitor trace-experiment-wi)
+  (if (get-configuration experiment :trace-every-x-interactions)
+    (when 
+        (or 
+         (= (mod (interaction-number interaction) (get-configuration experiment :trace-every-x-interactions)) 0) 
+         (= (interaction-number interaction) 1))
+      (activate-monitor trace-interaction-wi)
+      (activate-monitor trace-experiment-wi))
+    (activate-monitor trace-interaction-wi))
+    (activate-monitor trace-experiment-wi))
+
 
 (defmethod interact ((experiment experiment) (interaction interaction) &key)
   (let* ((interacting-agents (interacting-agents interaction))
          (speaker (first interacting-agents))
-         (hearer (second interacting-agents))
-         (monitor
-         (if (get-configuration experiment :record-every-x-interactions)
-           (when 
-               (or 
-                (= (mod (interaction-number interaction) (get-configuration experiment :record-every-x-interactions)) 0) 
-                (= (interaction-number interaction) 1))
-             t)
-           t)))
+         (hearer (second interacting-agents)))
+    (activate-monitors experiment interaction)
     (setf (topic speaker) (get-random-elem (world experiment)))
     (multiple-value-bind (utterance applied-cxn)
         (naming-game-produce speaker)
@@ -158,23 +130,23 @@
         (setf (utterance speaker) utterance)
         (setf (applied-cxn speaker) applied-cxn)))
     (setf (utterance hearer) (utterance speaker))
-    (when monitor (notify conceptualisation-finished speaker))
+    (notify conceptualisation-finished speaker)
     (multiple-value-bind (meaning solution cip)
         (comprehend (utterance hearer) :cxn-inventory (lexicon hearer))
       (setf (pointed-object hearer) (first meaning))
       (setf (applied-cxn hearer) (first (applied-constructions solution))))
-    (when monitor (notify parsing-finished hearer))
+    (notify parsing-finished hearer)
     (when (pointed-object hearer)
       (setf (pointed-object speaker) (pointed-object hearer)))
-    (when monitor (notify interpretation-finished hearer))
+    (notify interpretation-finished hearer)
     (setf (communicated-successfully speaker) (determine-success speaker (pointed-object speaker)))
     (setf (communicated-successfully hearer) (communicated-successfully speaker))
     (setf (topic hearer) (topic speaker))
     (unless (pointed-object hearer)
-      (setf (applied-cxn hearer)(naming-game-adopt (hearer interaction) (cdr (third (attributes (applied-cxn speaker)))))) 
-      (when monitor (notify adoptation-finished hearer)))
+      (setf (applied-cxn hearer)(naming-game-adopt (hearer interaction) (utterance hearer))) 
+      (notify adoptation-finished hearer))
     (perform-alignment interaction)
-    (when monitor (notify align-finished))
+    (notify align-finished)
     ))
    
   
