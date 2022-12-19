@@ -39,6 +39,17 @@
                 :average-window 1
                 :documentation "records the avg lexicon size.")
 
+(define-monitor display-lexicon-size ;needs to be activated
+                :class 'gnuplot-display
+                :documentation "Plots the communicative success."
+                :data-sources '((average record-lexicon-size))
+                :update-interval 100
+                :caption '("lexicon size")
+                :x-label "# Games" 
+                :y1-label "lexicon size" 
+                :y1-max 1.0 :y1-min 0 
+                :draw-y1-grid t)
+
 (define-monitor export-lexicon-size
                 :class 'lisp-data-file-writer
                 :documentation "Exports lexicon size"
@@ -50,10 +61,9 @@
                 :comment-string "#")
 
 (defun get-lexicon-size (agent)
-  (length (lexicon agent)))
+  (length (constructions (lexicon agent))))
 
 (define-event-handler (record-lexicon-size interaction-finished)
     (let ((agent-1 (first (agents experiment))))
       (record-value monitor (get-lexicon-size agent-1))))
 
-(define-event-handler (export-lexicon-size interaction-finished))

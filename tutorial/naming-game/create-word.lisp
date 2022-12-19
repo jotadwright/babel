@@ -39,5 +39,9 @@
   "pick different forms from of lexicon that have the same meaning as voc-item"
   (let* ((lexicon (lexicon agent))
         (topic (topic agent))
-        (form-competitors (third (produce-all topic lexicon))))
-    form-competitors))
+        (all-solutions nil))
+    (multiple-value-bind (utterances solutions cip)
+        (formulate-all (list topic)  :cxn-inventory lexicon)
+      (setf all-solutions (loop for solution in solutions
+                                collect (first (applied-constructions solution))))
+      (delete (applied-cxn agent) all-solutions))))

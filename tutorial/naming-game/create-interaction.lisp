@@ -25,15 +25,17 @@
                      (:lateral-inhibition t))))
     (when alignment
       (cond (communicative-success
-             (increase-score (applied-cxn agent) inc-delta 1.0)
+             (when (applied-cxn agent)(increase-score (applied-cxn agent) inc-delta 1.0))
              (loop for form-competitor in (get-form-competitors agent)
                    do (decrease-score form-competitor dec-delta 0.0)
                    (if (<= (cdr (second (attributes form-competitor))) 0.0)
-                       (delete-cxn form-competitor (lexicon agent)))))
+                       (setf (constructions (lexicon agent))
+                             (delete form-competitor (constructions (lexicon agent)))))))
             ((NOT communicative-success)
-             (decrease-score (applied-cxn agent) dec-delta 0.0)
+             (when (applied-cxn agent)(decrease-score (applied-cxn agent) dec-delta 0.0))
              (if (<= (cdr (second (attributes (applied-cxn agent)))) 0.0)
-             (delete-cxn (applied-cxn agent) (lexicon agent))))))))
+               (setf (constructions (lexicon agent))
+                     (delete (applied-cxn agent) (constructions (lexicon agent))))))))))
 
 (defun perform-alignment (interaction)
   "decides which agents should perform alignment using configurations of interaction"
@@ -93,8 +95,13 @@
   (cond
    ((null pointed-object)
     nil)
-   ((eql (first pointed-object) (topic speaker))
+   ((eql pointed-object (topic speaker))
     t)))
+
+(defun clear (agent)
+  (setf (pointed-object agent) nil)
+  (setf (applied-cxn agent) nil)
+  (setf (pointed-object agent) nil))
 
 (defmethod run-interaction ((experiment experiment)
                             &key &allow-other-keys)
@@ -118,6 +125,8 @@
     (determine-interacting-agents experiment interaction
                                   (get-configuration experiment
                                                      :determine-interacting-agents-mode))
+    (clear (first (interacting-agents experiment)))
+    (clear (second (interacting-agents experiment)))
     (when monitor (notify interaction-started experiment interaction (interaction-number interaction)))
     (interact experiment interaction)
     (setf (communicated-successfully interaction)
@@ -150,7 +159,10 @@
         (setf (applied-cxn speaker) applied-cxn)))
     (setf (utterance hearer) (utterance speaker))
     (when monitor (notify conceptualisation-finished speaker))
-    (setf (pointed-object hearer) (parse (utterance hearer) (lexicon hearer)))
+    (multiple-value-bind (meaning solution cip)
+        (comprehend (utterance hearer) :cxn-inventory (lexicon hearer))
+      (setf (pointed-object hearer) (first meaning))
+      (setf (applied-cxn hearer) (first (applied-constructions solution))))
     (when monitor (notify parsing-finished hearer))
     (when (pointed-object hearer)
       (setf (pointed-object speaker) (pointed-object hearer)))

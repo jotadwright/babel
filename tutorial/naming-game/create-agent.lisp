@@ -33,7 +33,10 @@
                                              (form set-of-predicates)
                                              (meaning set-of-predicates)
                                              (subunits set)
-                                             (footprints set))))))
+                                             (footprints set))
+                             :fcg-configurations ((:production-goal-tests :no-meaning-in-root)
+                                                  (:parse-goal-tests :no-strings-in-root)
+                                                  (:draw-meaning-as-network . nil))))))
 
 (defmethod make-agents ((experiment experiment))
   "Creates the different agents in the population of experiment"
@@ -45,8 +48,20 @@
                                              :lexicon (make-agent-cxn-set)))))
     (setf (agents experiment) agents)))
 
+
+(defparameter *test-agent* (make-instance 'naming-game-agent
+                                             :id 'agent-1
+                                             :lexicon (make-agent-cxn-set)))
+
+;(add-naming-game-cxn *test-agent* "hello" '(o-1))
+
+;(add-element (make-html (first (constructions (lexicon *test-agent*)))))
+;(formulate '(o-1) :cxn-inventory *fcg-constructions*)
+
+;(naming-game-produce *test-agent*)
+
 (defmethod naming-game-produce ((agent naming-game-agent))
   "agent tries to produce a word that refers to the topic object"
-  (multiple-value-bind (utterance solution cip)
-      (produce (list (topic agent)) (lexicon agent))
-    (values utterance (first (applied-constructions (first (succeeded-nodes cip)))))))
+  (multiple-value-bind (utterance solution)
+      (formulate (list (topic agent)) :cxn-inventory (lexicon agent))
+    (values (first utterance) (first (applied-constructions solution)))))

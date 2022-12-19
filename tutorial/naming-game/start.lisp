@@ -14,6 +14,8 @@
   )
 |#
 
+(deactivate-all-monitors)
+
 (defparameter *all-words* '())
 
 ;'construction-inventory-processor
@@ -31,11 +33,11 @@
   ;; agents and world are now set in the initialize-instance :after method
   (make-instance 'naming-game-experiment :entries *experiment-configurations*))
 
-(run-series *experiment* 1000)
+(run-series *experiment* 1)
 
 (Run-Batch-for-different-configurations
  :experiment-class 'naming-game-experiment
- :number-of-interactions 3000
+ :number-of-interactions 5000
  :number-of-series 1
  :named-configurations '((test ((:alignment-strategy . :lateral-inhibition)
                                 (:who-aligns . :both)
@@ -45,7 +47,8 @@
                                 (:li-decf . 0.1)
                                 (:determine-interacting-agents-mode . :default))))
  :monitors '("display-communicative-success"
-             "export-communicative-success")
+             "export-communicative-success"
+             "display-lexicon-size"
+             "export-lexicon-size")
  :output-dir (babel-pathname :directory '("tutorial" "naming-game" "raw-data")))
 
-(print
