@@ -18,7 +18,7 @@
 
 (defparameter *all-words* '())
 
-;'construction-inventory-processor
+;;'construction-inventory-processor
 
 (defparameter *experiment-configurations*
   '((:alignment-strategy . :lateral-inhibition)
