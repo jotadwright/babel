@@ -35,7 +35,7 @@
   :y1-min 0
   :y1-max 1
   :y2-min 0
-  :y2-max 50
+  :y2-max 30
   :x-label "# Games"
   :y1-label "communicative sucess"
   :y2-label "lexicon size"
