@@ -518,13 +518,17 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A fork. It's a tool for mixing, beating and mashing."))
 
-(defclass freezer (container)
-  ((arrangement :initform (make-instance 'shelved)))
+(defclass freezer (container has-temperature)
+  ((arrangement :initform (make-instance 'shelved))
+   (temperature :initarg :temperature :accessor temperature :initform (make-instance 'amount
+                                                                                     :quantity (make-instance 'quantity :value -18)
+                                                                                     :unit (make-instance 'degrees-celsius))))
   (:documentation "The freezer. It's a container."))
 
 (defmethod copy-object-content ((freezer freezer) (copy freezer))
   "Copying freezers."
-  (setf (arrangement copy) (copy-object (arrangement freezer))))
+  (setf (arrangement copy) (copy-object (arrangement freezer)))
+  (setf (temperature copy) (copy-object (temperature freezer))))
 
 (defclass fridge (container has-temperature)
   ((arrangement :initform (make-instance 'shelved))
@@ -535,7 +539,8 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 
 (defmethod copy-object-content ((fridge fridge) (copy fridge))
   "Copying fridges."
-  (setf (arrangement copy) (copy-object (arrangement fridge))))
+  (setf (arrangement copy) (copy-object (arrangement fridge)))
+  (setf (temperature copy) (copy-object (temperature fridge))))
 
 ; TOVERIFY RD: should a jar be uncovered first?
 (defclass jar (transferable-container coverable-container reusable shakeable)

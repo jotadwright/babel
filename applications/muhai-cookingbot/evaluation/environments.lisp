@@ -176,7 +176,7 @@
                                                                                  (make-instance 'amount
                                                                                                 :unit (make-instance 'g)
                                                                                                 :quantity (make-instance 'quantity
-                                                                                                                         :value 517)))))
+                                                                                                                         :value 600)))))
                                    (make-instance 'medium-bowl
                                                   :used T
                                                   :contents (list (make-instance 'dried-dill-weed :amount
@@ -388,80 +388,81 @@
                                                                                                 :unit (make-instance 'g)
                                                                                                 :quantity (make-instance 'quantity
                                                                                                                          :value 1000)))))
-                                                                  (make-instance 'medium-bowl
-                                                                                 :used T
-                                                                                 :contents (list (make-instance 'white-vinegar :amount
-                                                                                                                (make-instance 'amount
-                                                                                                                               :unit (make-instance 'g)
-                                                                                                                               :quantity (make-instance 'quantity
-                                                                                                                                                        :value 500)))))
-                                                                  (make-instance 'medium-bowl
-                                                                                 :used T
-                                                                                 :contents (list (make-instance 'whole-wheat-flour :amount
-                                                                                                                (make-instance 'amount
-                                                                                                                               :unit (make-instance 'g)
-                                                                                                                               :quantity (make-instance 'quantity
-                                                                                                                                                        :value 1000)))))))
-                                                       (make-instance 'kitchen-cabinet
-                                                                      :contents (list
-                                                                                 ;; bowls
-                                                                                 (make-instance 'small-bowl) (make-instance 'small-bowl) (make-instance 'small-bowl)
-                                                                                 (make-instance 'small-bowl) (make-instance 'small-bowl) (make-instance 'small-bowl)
-                                                                                 (make-instance 'small-bowl) (make-instance 'small-bowl) (make-instance 'small-bowl)
+                                   (make-instance 'medium-bowl
+                                                  :used T
+                                                  :contents (list (make-instance 'white-vinegar :amount
+                                                                                 (make-instance 'amount
+                                                                                                :unit (make-instance 'g)
+                                                                                                :quantity (make-instance 'quantity
+                                                                                                                         :value 500)))))
+                                   (make-instance 'medium-bowl
+                                                  :used T
+                                                  :contents (list (make-instance 'whole-wheat-flour :amount
+                                                                                 (make-instance 'amount
+                                                                                                :unit (make-instance 'g)
+                                                                                                :quantity (make-instance 'quantity
+                                                                                                                         :value 1000)))))))
+         (make-instance 'kitchen-cabinet
+                        :contents (list
+                                   ;; bowls
+                                   (make-instance 'small-bowl) (make-instance 'small-bowl) (make-instance 'small-bowl)
+                                   (make-instance 'small-bowl) (make-instance 'small-bowl) (make-instance 'small-bowl)
+                                   (make-instance 'small-bowl) (make-instance 'small-bowl) (make-instance 'small-bowl)
                                      
-                                                                                 (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
-                                                                                 (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
-                                                                                 (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
-                                                                                 (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
-                                                                                 (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
-                                                                                 (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
 
-                                                                                 (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
-                                                                                 (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
-                                                                                 (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
+                                   (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
+                                   (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
+                                   (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
 
-                                                                                 (make-instance 'jar) (make-instance 'jar) (make-instance 'jar)
+                                   (make-instance 'jar) (make-instance 'jar) (make-instance 'jar)
 
-                                                                                 ;; lids & wrapping
-                                                                                 (make-instance 'small-bowl-lid) (make-instance 'small-bowl-lid) (make-instance 'small-bowl-lid)
-                                                                                 (make-instance 'medium-bowl-lid) (make-instance 'medium-bowl-lid) (make-instance 'medium-bowl-lid)
-                                                                                 (make-instance 'large-bowl-lid) (make-instance 'large-bowl-lid) (make-instance 'large-bowl-lid)
-                                                                                 (make-instance 'jar-lid) (make-instance 'jar-lid) (make-instance 'jar-lid)
-                                                                                 (make-instance 'plastic-wrap)
+                                   ;; lids & wrapping
+                                   (make-instance 'small-bowl-lid) (make-instance 'small-bowl-lid) (make-instance 'small-bowl-lid)
+                                   (make-instance 'medium-bowl-lid) (make-instance 'medium-bowl-lid) (make-instance 'medium-bowl-lid)
+                                   (make-instance 'large-bowl-lid) (make-instance 'large-bowl-lid) (make-instance 'large-bowl-lid)
+                                   (make-instance 'jar-lid) (make-instance 'jar-lid) (make-instance 'jar-lid)
+                                   (make-instance 'plastic-wrap)
 
-                                                                                 ;; tools
-                                                                                 (make-instance 'fork) (make-instance 'fork) (make-instance 'fork)
-                                                                                 (make-instance 'fork) (make-instance 'fork) (make-instance 'fork)
-                                                                                 (make-instance 'fork) (make-instance 'fork) (make-instance 'fork)
+                                   ;; tools
+                                   (make-instance 'fork) (make-instance 'fork) (make-instance 'fork)
+                                   (make-instance 'fork) (make-instance 'fork) (make-instance 'fork)
+                                   (make-instance 'fork) (make-instance 'fork) (make-instance 'fork)
 
-                                                                                 (make-instance 'table-spoon) (make-instance 'table-spoon) (make-instance 'table-spoon)
-                                                                                 (make-instance 'table-spoon) (make-instance 'table-spoon) (make-instance 'table-spoon)
-                                                                                 (make-instance 'table-spoon) (make-instance 'table-spoon) (make-instance 'table-spoon)
+                                   (make-instance 'table-spoon) (make-instance 'table-spoon) (make-instance 'table-spoon)
+                                   (make-instance 'table-spoon) (make-instance 'table-spoon) (make-instance 'table-spoon)
+                                   (make-instance 'table-spoon) (make-instance 'table-spoon) (make-instance 'table-spoon)
 
-                                                                                 (make-instance 'knife) (make-instance 'knife) (make-instance 'knife)
-                                                                                 (make-instance 'knife) (make-instance 'knife) (make-instance 'knife)
-                                                                                 (make-instance 'knife) (make-instance 'knife) (make-instance 'knife)
+                                   (make-instance 'knife) (make-instance 'knife) (make-instance 'knife)
+                                   (make-instance 'knife) (make-instance 'knife) (make-instance 'knife)
+                                   (make-instance 'knife) (make-instance 'knife) (make-instance 'knife)
 
-                                                                                 (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
-                                                                                 (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
-                                                                                 (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
+                                   (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
+                                   (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
+                                   (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
 
-                                                                                 (make-instance 'wooden-spoon) (make-instance 'wooden-spoon) (make-instance 'wooden-spoon)
-                                                                                 (make-instance 'wooden-spoon) (make-instance 'wooden-spoon) (make-instance 'wooden-spoon)
-                                                                                 (make-instance 'wooden-spoon) (make-instance 'wooden-spoon) (make-instance 'wooden-spoon)
+                                   (make-instance 'wooden-spoon) (make-instance 'wooden-spoon) (make-instance 'wooden-spoon)
+                                   (make-instance 'wooden-spoon) (make-instance 'wooden-spoon) (make-instance 'wooden-spoon)
+                                   (make-instance 'wooden-spoon) (make-instance 'wooden-spoon) (make-instance 'wooden-spoon)
 
-                                                                                 (make-instance 'spatula) (make-instance 'spatula) (make-instance 'spatula)
+                                   (make-instance 'spatula) (make-instance 'spatula) (make-instance 'spatula)
                                                                                  
-                                                                                 (make-instance 'sift) (make-instance 'sift) (make-instance 'sift)
+                                   (make-instance 'sift) (make-instance 'sift) (make-instance 'sift)
 
-                                                                                 ;; baking equipment
-                                                                                 (make-instance 'rolling-pin) (make-instance 'rolling-pin) (make-instance 'rolling-pin)
-                                                                                 (make-instance 'baking-paper) (make-instance 'baking-paper) (make-instance 'baking-paper)
+                                   ;; baking equipment
+                                   (make-instance 'rolling-pin) (make-instance 'rolling-pin) (make-instance 'rolling-pin)
+                                   (make-instance 'baking-paper) (make-instance 'baking-paper) (make-instance 'baking-paper)
                                                                                  
-                                                                                 (make-instance 'wire-rack)
-                                                                                 (make-instance 'pan)
-                                                                                 (make-instance 'cookie-sheet)
-                                                                                 (make-instance 'baking-tray))))))
+                                   (make-instance 'wire-rack)
+                                   (make-instance 'pan)
+                                   (make-instance 'cookie-sheet)
+                                   (make-instance 'baking-tray))))))
+(add-element (make-html *full-kitchen* :expand-initially nil))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Simulation Environments ;;
