@@ -13,12 +13,13 @@
       (clear-output))
 
     ; evaluate the input
-    (let ((solutions (evaluate-solutions input metrics)))
+    (unless (find 'none metrics)
+      (let ((solutions (evaluate-solutions input metrics)))
       ; write away the solutions to a csv file
-      (write-solutions-to-csv solutions output metrics)
-      (print-solutions solutions metrics))
+        (write-solutions-to-csv solutions output metrics)
+        (print-solutions solutions metrics)))
 
     (when show-output
     ; open the browser to show the output
       (print "The simulation process can be investigated by opening http://localhost:8000 in your browser. We recommend using Chrome.")
-      (open-browser "http://localhost:8000")))) ; TODO RD: if we use lispworks executable we can simply use: (sys:open-url "http://localhost:8000")
+      (open-browser "http://localhost:8000")))) ; TODO RD: if we use a lispworks executable we can simply use: (sys:open-url "http://localhost:8000")

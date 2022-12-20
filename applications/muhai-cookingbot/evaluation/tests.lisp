@@ -8,7 +8,7 @@
 
 (defun test-perfect ()
   "The same network as the simulation environment's solution."
-  (let* ((solutions (evaluate-solutions "applications\\muhai-cookingbot\\evaluation\\tests\\test-perfect.solution" '(subgoals-ratio dish-score execution-time)))
+  (let* ((solutions (evaluate-solutions "applications\\muhai-cookingbot\\evaluation\\tests\\test-perfect.solution" '(goal-condition-success dish-approximation-score execution-time)))
          (perfection (loop for solution in solutions
                              always (and ; (= (smatch-score solution) 1)
                                          (= (subgoals-ratio solution) 1)
@@ -257,4 +257,4 @@
 (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-multiple-recipes.solution"
           "applications\\muhai-cookingbot\\evaluation\\tests\\test-results.csv"
           t
-          'subgoals-ratio 'dish-score 'execution-time)
+          'goal-condition-success 'dish-approximation-score 'execution-time)

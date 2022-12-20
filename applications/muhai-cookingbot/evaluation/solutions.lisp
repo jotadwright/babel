@@ -118,7 +118,7 @@
       (print "Warning: Specified file is not a CSV file"))
 
     ; remove unsupported metrics
-    (setf metrics (intersection *metrics*  metrics))
+    (setf metrics (intersection (append (list 'none) *metrics*) metrics))
     
     ; create all directories in the specified path if they do not exist yet
     (ensure-directories-exist filepath)
@@ -132,10 +132,10 @@
       (format output-stream "recipe-id")
       (when (find 'smatch-score metrics)
         (format output-stream ",smatch-score"))
-      (when (find 'subgoals-ratio metrics)
-        (format output-stream ",subgoals-ratio"))
-      (when (find 'dish-score metrics)
-        (format output-stream ",dish-score"))
+      (when (find 'goal-condition-success metrics)
+        (format output-stream ",goal-condition-success"))
+      (when (find 'dish-approximation-score metrics)
+        (format output-stream ",dish-approximation-score"))
       (when (find 'execution-time metrics)
         (format output-stream ",execution-time"))
       (format output-stream "~%")
@@ -146,11 +146,11 @@
           (when (find 'smatch-score metrics-left)
             (setf metrics-left (remove 'smatch-score metrics-left))
             (format output-stream (concatenate 'string "~$" (if metrics-left "," "~%")) (smatch-score solution)))
-          (when (find 'subgoals-ratio metrics-left)
-            (setf metrics-left (remove 'subgoals-ratio metrics-left))
+          (when (find 'goal-condition-success metrics-left)
+            (setf metrics-left (remove 'goal-condition-success metrics-left))
             (format output-stream (concatenate 'string "~$" (if metrics-left "," "~%")) (subgoals-ratio solution)))
-          (when (find 'dish-score metrics-left)
-            (setf metrics-left (remove 'dish-score metrics-left))
+          (when (find 'dish-approximation-score metrics-left)
+            (setf metrics-left (remove 'dish-approximation-score metrics-left))
             (format output-stream (concatenate 'string "~$" (if metrics-left "," "~%")) (dish-score solution)))      
           (when (find 'execution-time metrics-left)
             (setf metrics-left (remove 'execution-time metrics-left))
@@ -165,9 +165,9 @@
     (format t "RECIPE: ~(~a~)~%" (recipe-id solution))
     (when (find 'smatch-score metrics)
       (format t "Smatch Score: ~$~%" (smatch-score solution)))
-    (when (find 'subgoals-ratio metrics)
+    (when (find 'goal-condition-success metrics)
       (format t "Goal-Condition Success: ~$~%" (subgoals-ratio solution)))
-    (when (find 'dish-score metrics)
+    (when (find 'dish-approximation-score metrics)
       (format t "Dish Approximation Score: ~$~%" (dish-score solution)))
     (when (find 'execution-time metrics)
       (format t "Recipe Execution Time: ~d~%" (execution-time solution)))
@@ -570,7 +570,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *metrics*
-  '(subgoals-ratio dish-score execution-time)) ; TODO RD: add SMATCH
+  '(smatch-score goal-condition-success dish-approximation-score execution-time)) ; TODO RD: add SMATCH
 
 (defun evaluate-solutions (filepath &optional (metrics *metrics*) (sim-envs *simulation-environments*))
   (let ((solutions (parse-solutions-file filepath))) ; read in the solutions
@@ -596,14 +596,14 @@
               (multiple-value-bind (sol-bindings sol-nodes) (evaluate-irl-program extended-mn nil)
                 (cond ((and sol-bindings sol-nodes)
                         ; compute subgoal success ratio
-                       (when (member 'subgoals-ratio metrics)
+                       (when (member 'goal-condition-success metrics)
                          (setf (subgoals-ratio current-solution)
                                (if sol-nodes (compute-subgoal-success-ratio (first sol-nodes) final-gold-node)
                                  0)))
                         ; compute the dish score
                        ; if all subgoals are reached, then the dish score is not necessarily maximal,
                        ; since we could have altered the final dish further after reaching all subgoals
-                       (when (member 'dish-score metrics)
+                       (when (member 'dish-approximation-score metrics)
                          (setf (dish-score current-solution) (if sol-nodes
                                                                (find-best-dish-score (first sol-nodes) gold-output-node)
                                                                0)))
