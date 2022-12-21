@@ -1,5 +1,11 @@
 (in-package :naming-game)
 
+;------------------------;
+;creating objects for the;
+;experiment              ;
+;------------------------;
+
+
 (defmethod make-world ((experiment experiment))
   "Creates the different objects in the world of experiment"
   (let ((objects (loop for i from 1 to 10

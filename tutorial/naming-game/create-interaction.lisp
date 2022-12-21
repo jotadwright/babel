@@ -1,10 +1,14 @@
 (in-package :naming-game)
 
+;-----------------;
+;general functions;
+;-----------------;
 
 (defclass naming-game-experiment (experiment)
   ())
 
 (defmethod initialize-instance :after ((experiment naming-game-experiment) &key)
+  "creates new instances"
   (setf (agents experiment) (make-agents experiment)
         (world experiment) (make-world experiment)))
 
@@ -15,6 +19,50 @@
          (index (random size)))
     (nth index list)))
 
+(defun clear (agent)
+  "sets a variable to nil"
+  (setf (pointed-object agent) nil)
+  (setf (applied-cxn agent) nil)
+  (setf (pointed-object agent) nil))
+
+(defmethod add-naming-game-cxn (agent (form string) (meaning list) &key (score 0.5))
+  "agent adds a construction to its construction inventory ; sends back the construction"
+  (let ((cxn-name (make-symbol (string-append form "-cxn")))
+        (unit-name (make-var (string-append form "-unit")))
+        )
+    (multiple-value-bind (cxn-set cxn)
+        (eval `(def-fcg-cxn ,cxn-name
+                            (
+                             <-
+                             (,unit-name
+                              (HASH meaning ,meaning)
+                              --
+                              (HASH form ((string ,unit-name ,form)))))
+                            :cxn-inventory ',(lexicon agent)
+                            :attributes (:score ,score
+                                         :form ,form
+                                         :meaning ,meaning)))
+      (declare (ignorable cxn-set))
+      cxn)))
+
+(defun activate-monitors (experiment interaction)
+  "activates the monitors needed to do the tracing"
+  (deactivate-monitor trace-interaction-wi)
+  (deactivate-monitor trace-experiment-wi)
+  (if (get-configuration experiment :trace-every-x-interactions)
+    (when 
+        (or 
+         (= (mod (interaction-number interaction) (get-configuration experiment :trace-every-x-interactions)) 0) 
+         (= (interaction-number interaction) 1))
+      (activate-monitor trace-interaction-wi)
+      (activate-monitor trace-experiment-wi))
+    (activate-monitor trace-interaction-wi))
+    (activate-monitor trace-experiment-wi))
+
+;-------------------;
+;alignment functions;
+;-------------------;
+
 (defmethod align ((agent naming-game-agent)(interaction interaction))
   "agent adapts lexicon scores based on communicative success interaction"
   (let ((inc-delta (get-configuration agent :li-incf))
@@ -24,18 +72,12 @@
                      (:no-aligment nil)
                      (:lateral-inhibition t))))
     (when alignment
-      (if (null (applied-voc agent)) (print agent))
       (cond (communicative-success
-             (increase-score (applied-voc agent) inc-delta 1.0)
-             (loop for form-competitor in (get-form-competitors (applied-voc agent) (lexicon agent))
-                   do (decrease-score form-competitor dec-delta 0.0)
-                   (if (<= (score form-competitor) 0.0)
-                       (setf (lexicon agent)(remove form-competitor (lexicon agent) :test #'is-equal))
-                       )))
+             (when (applied-cxn agent)(increase-score (applied-cxn agent) inc-delta 1.0))
+             (loop for form-competitor in (get-form-competitors agent)
+                   do (decrease-score form-competitor dec-delta 0.0)))
             ((NOT communicative-success)
-             (decrease-score (applied-voc agent) dec-delta 0.0)
-             (if (<= (score (applied-voc agent)) 0.0)
-                 (delete (applied-voc agent) (lexicon agent) :test #'is-equal)))))))
+             (when (applied-cxn agent)(decrease-score (applied-cxn agent) dec-delta 0.0)))))))
 
 (defun perform-alignment (interaction)
   "decides which agents should perform alignment using configurations of interaction"
@@ -47,6 +89,28 @@
       (:hearer (align hearer interaction))
       (:speaker (align speaker interaction)))))
 
+
+;----------------------;
+;word related functions;
+;----------------------;
+
+(defmethod invent ((agent agent))
+  "agent invents a new construction and adds it to its lexicon"
+  (let* ((new-form (make-word))
+         (new-cxn (add-naming-game-cxn agent new-form (list (topic agent)))))
+    (multiple-value-bind (utterance applied-cxn)
+        (naming-game-produce agent)
+      (values utterance applied-cxn))))
+  
+(defmethod naming-game-adopt ((agent naming-game-agent)(cxn-form string)) ;we pass cxn-form as an argument because it is not supposed to be the cxn-form of the same agent (I guess?)
+  "agent adopts a new word and adds it to its own vocabulary"
+  (let ((adopted-cxn (add-naming-game-cxn agent cxn-form (list (topic agent)))))
+    adopted-cxn))
+
+;-------------------------;
+;success related functions;
+;-------------------------;
+
 (defmethod highest-score-voc (considered-voc)
   "chooses voc-item in considered-voc with the highest score"
     (loop with highest-voc = nil
@@ -57,32 +121,6 @@
                 (setf highest-voc voc-item)))
           finally (return highest-voc)))
 
-(defmethod invent ((agent agent))
-  "agent invents a new construction and adds it to its lexicon"
-  (let* ((new-form (make-word))
-         (cxn-name (concatenate 'string new-form "-cxn"))
-         (unit-name (format nil "?~-word" new-form))
-         (fs (
-              <-
-              (,unit-name
-               (HASH meaning (,(topic agent)))
-               --
-               (HASH form ((string ,unit-name ,new-form)))))))
-  (def-fcg-cxn cxn-name fs :cxn-inventory (lexicon agent))
-  new-form))
-
-(defmethod adopt ((agent agent)(interaction interaction))
-  "agent adopts a new word and adds it to its own vocabulary"
-  (let ((cxn-name (concatenate 'string (utterance agent) "-cxn"))
-        (unit-name (format nil "?~-word" (utterance agent)))
-        (fs `(
-              <-
-              (,unit-name
-               (HASH meaning (,(topic agent)))
-               --
-               (HASH form ((string ,unit-name ,(utterance agent))))))))
-    (def-fcg-cxn cxn-name fs :cxn-inventory (lexicon agent))))
-
 (defun determine-success (speaker pointed-object)
   "speaker determines whether hearer pointed to right object"
   (cond
@@ -91,69 +129,55 @@
    ((eql pointed-object (topic speaker))
     t)))
 
-(defmethod run-interaction ((experiment experiment)
-                            &key &allow-other-keys)
-  "runs an interaction by increasing the interaction number"
-  (let* ((interaction (make-instance
-                      'interaction
-                      :experiment experiment
-                      :interaction-number (if (interactions experiment)
-                                            (+ 1 (interaction-number
-                                                  (car (interactions experiment))))
-                                            1)))
-        (monitor
-         (if (get-configuration experiment :record-every-x-interactions)
-           (when 
-               (or 
-                (= (mod (interaction-number interaction) (get-configuration experiment :record-every-x-interactions)) 0) 
-                (= (interaction-number interaction) 1))
-             t)
-           t)))
-    (push interaction (interactions experiment))
-    (determine-interacting-agents experiment interaction
-                                  (get-configuration experiment
-                                                     :determine-interacting-agents-mode))
-    (when monitor (notify interaction-started experiment interaction (interaction-number interaction)))
-    (interact experiment interaction)
-    (setf (communicated-successfully interaction)
-          (loop for agent in (interacting-agents interaction)
-                always (communicated-successfully agent)))
-    (when monitor (notify interaction-finished experiment interaction (interaction-number interaction)))
-    (values interaction experiment)))
+
+;-----------------------;
+;running one interaction;
+;-----------------------;
+
 
 (defmethod interact ((experiment experiment) (interaction interaction) &key)
+  "the different steps of an interaction between the given agents"
+  ;1) initializes instances
   (let* ((interacting-agents (interacting-agents interaction))
          (speaker (first interacting-agents))
-         (hearer (second interacting-agents))
-         (monitor
-         (if (get-configuration experiment :record-every-x-interactions)
-           (when 
-               (or 
-                (= (mod (interaction-number interaction) (get-configuration experiment :record-every-x-interactions)) 0) 
-                (= (interaction-number interaction) 1))
-             t)
-           t)))
+         (hearer (second interacting-agents)))
+    (activate-monitors experiment interaction)
+  ;2) we choose a topic for the experiment (a random object from our world)
     (setf (topic speaker) (get-random-elem (world experiment)))
-    (setf (applied-voc speaker) (produce speaker))
-    (unless (applied-voc speaker)
-      (setf (applied-voc speaker) (invent speaker)))
-    (setf (utterance speaker) (form (applied-voc speaker)))
+  ;3) the speaker tries to produce a word for this topic
+    (multiple-value-bind (utterance applied-cxn)
+        (naming-game-produce speaker)
+      (setf (applied-cxn speaker) applied-cxn)
+      (setf (utterance speaker) utterance))
+  ;4) if he doesn't know any word for it it creates one
+    (unless (applied-cxn speaker)
+      (multiple-value-bind (utterance applied-cxn)
+          (invent speaker)
+        (setf (utterance speaker) utterance)
+        (setf (applied-cxn speaker) applied-cxn)))
+  ;5) in any case, the hearer hears a word a tries to make sense out of it
     (setf (utterance hearer) (utterance speaker))
-    (when monitor (notify conceptualisation-finished speaker))
-    (setf (applied-voc hearer) (parse (utterance hearer) (lexicon hearer)))
-    (when monitor (notify parsing-finished hearer))
-    (when (applied-voc hearer)
-      (setf (pointed-object hearer) (meaning (applied-voc hearer)))
+    (notify conceptualisation-finished speaker)
+    (multiple-value-bind (meaning solution cip)
+        (comprehend (utterance hearer) :cxn-inventory (lexicon hearer))
+      (setf (pointed-object hearer) (first meaning))
+      (setf (applied-cxn hearer) (first (applied-constructions solution))))
+    (notify parsing-finished hearer)
+  ;6) the hearer tells the speaker what he understood
+    (when (pointed-object hearer)
       (setf (pointed-object speaker) (pointed-object hearer)))
-    (when monitor (notify interpretation-finished hearer))
+    (notify interpretation-finished hearer)
+ ;7) if the speaker and the hearer referred to the same object, there is communicative success
+ ; if not, there is not communicative success
     (setf (communicated-successfully speaker) (determine-success speaker (pointed-object speaker)))
     (setf (communicated-successfully hearer) (communicated-successfully speaker))
     (setf (topic hearer) (topic speaker))
-    (unless (applied-voc hearer)
-      (setf (applied-voc hearer) (adopt hearer interaction))
-      (when monitor (notify adoptation-finished hearer)))
+    (unless (pointed-object hearer)
+      (setf (applied-cxn hearer)(naming-game-adopt (hearer interaction) (utterance hearer))) 
+      (notify adoptation-finished hearer))
+ ;8 the agents perform the alignment according to the above function
     (perform-alignment interaction)
-    (when monitor (notify align-finished))
+    (notify align-finished)
     ))
    
   

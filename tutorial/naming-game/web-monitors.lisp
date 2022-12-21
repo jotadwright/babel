@@ -1,9 +1,16 @@
 (in-package :naming-game)
 
-(define-monitor trace-experiment
+;--------------------------;
+;monitors for visualization;
+;in the web interface      ;
+;--------------------------;
+
+(define-monitor trace-experiment-wi
                 :documentation "Traces some important information about the experiment in the web-interface")
 
-(define-event-handler (trace-interaction interaction-started)
+(define-monitor trace-interaction-wi)
+
+(define-event-handler (trace-interaction-wi interaction-started)
   (let* ((interacting-agents (interacting-agents interaction))
          (speaker (first interacting-agents))
          (hearer (second interacting-agents)))
@@ -18,7 +25,7 @@
                      (downcase (mkstr (id hearer))))))
     ))
 
-(define-event-handler (trace-interaction interaction-finished)
+(define-event-handler (trace-interaction-wi interaction-finished)
   (add-element
    `((h2) "Interaction "
      ,(if (communicated-successfully interaction)
@@ -28,7 +35,7 @@
 
 (define-event conceptualisation-finished (speaker naming-game-agent))
   
-(define-event-handler (trace-interaction conceptualisation-finished)
+(define-event-handler (trace-interaction-wi conceptualisation-finished)
   (add-element
    `((h2)
      ,(format nil "Speaker chooses the topic ~a"
@@ -40,15 +47,15 @@
 
 (define-event parsing-finished (hearer naming-game-agent))
 
-(define-event-handler (trace-interaction parsing-finished)
-  (if (applied-voc hearer)
+(define-event-handler (trace-interaction-wi parsing-finished)
+  (if (applied-cxn hearer)
     (add-element '((h2) "The learner parsed the utterance."))
     (add-element
        '((h2) "The learner could not parse the utterance."))))
 
 (define-event interpretation-finished (hearer naming-game-agent))
 
-(define-event-handler (trace-interaction interpretation-finished)
+(define-event-handler (trace-interaction-wi interpretation-finished)
   (if (pointed-object hearer)
     (add-element
        `((h2) ,(format nil "The hearer interpreted the utterance and points to: ~a"
@@ -58,24 +65,27 @@
 
 (define-event adoptation-finished (hearer naming-game-agent))
 
-(define-event-handler (trace-interaction adoptation-finished)
+(define-event-handler (trace-interaction-wi adoptation-finished)
   (add-element
-   `((h2) ,(format nil "The hearer adopted the word ~a for ~a" (form (applied-voc hearer)) (meaning (applied-voc hearer))))))
+   `((h2) ,(format nil "The hearer adopted the word ~a for ~a" (cdr (assoc :form (attributes (applied-cxn hearer)))) (cdr (assoc :meaning (attributes (applied-cxn hearer))))))))
 
 (define-event align-finished)
 
-(define-event-handler (trace-interaction align-finished)
+(define-event-handler (trace-interaction-wi align-finished)
   (add-element
    `((h2) ,(format nil "The agents performed alignment"))))
 
 (defmethod print-vocabulary ((agent agent))
   "prints the lexicon of agent in a nice and readable way"
-  (loop with counter = 0
-        for voc-item in (lexicon agent)
-        do (incf counter)
-           (add-element `((h3) ,(format nil "form = ~a, meaning = ~a, score = ~a~%" (form voc-item)(meaning voc-item)(score voc-item))))))
+  (loop for voc-item in (constructions (lexicon agent))
+        for voc-attributes = (attributes voc-item)
+        for score = (cdr (assoc :score voc-attributes))
+        for meaning = (cdr (assoc :meaning voc-attributes))
+        for form = (cdr (assoc :form voc-attributes))
+        do (when (> score 0)
+             (add-element `((h3) ,(format nil "form = ~a, meaning = ~a, score = ~a~%" form meaning score))))))
 
-(define-event-handler (trace-experiment run-series-finished)
+(define-event-handler (trace-experiment-wi run-series-finished)
   (add-element
    `((h3) ,(format nil "The vocabulary of one agent (agent-1) at the end of the experiment is:")))
   (print-vocabulary (first (agents experiment))))

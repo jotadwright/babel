@@ -1,5 +1,12 @@
 (in-package :naming-game)
 
+
+;--------------------------;
+;monitors for visualization;
+;using gnuplot             ;
+;--------------------------;
+
+
 ;;see if interaction is successful
 (Define-monitor record-communicative-success
                 :class 'data-recorder
@@ -39,6 +46,17 @@
                 :average-window 1
                 :documentation "records the avg lexicon size.")
 
+(define-monitor display-lexicon-size
+                :class 'gnuplot-display
+                :documentation "Plots the communicative success."
+                :data-sources '((average record-lexicon-size))
+                :update-interval 50
+                :caption '("lexicon size")
+                :x-label "# Games" 
+                :y1-label "lexicon size" 
+                :y1-max 100.0 :y1-min 0 
+                :draw-y1-grid t)
+
 (define-monitor export-lexicon-size
                 :class 'lisp-data-file-writer
                 :documentation "Exports lexicon size"
@@ -50,10 +68,15 @@
                 :comment-string "#")
 
 (defun get-lexicon-size (agent)
-  (length (lexicon agent)))
+  "gives the size of a agent's lexicon"
+  (let ((cxn-list
+         (loop for cxn in (constructions (lexicon agent))
+               for cxn-score = (cdr (assoc :score (attributes cxn)))
+               when (> cxn-score 0.0)
+               collect cxn)))   
+    (length cxn-list)))
 
 (define-event-handler (record-lexicon-size interaction-finished)
-    (let ((agent-1 (first (agents experiment))))
-      (record-value monitor (get-lexicon-size agent-1))))
+    (let ((agent-5 (first (agents experiment))))
+      (record-value monitor (get-lexicon-size agent-5))))
 
-(define-event-handler (export-lexicon-size interaction-finished))
