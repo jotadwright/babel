@@ -6,6 +6,7 @@
    :utils
    :monitors
    :fcg
+   :plot-raw-data
    #+:hunchentoot-available-on-this-platform :web-interface)
   (:documentation "functions to create a naming game"))
 

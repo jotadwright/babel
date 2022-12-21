@@ -93,7 +93,9 @@
                                            (append cxns-to-apply original-cxns-to-consolidate))))
       (when learned-cxns
         (loop for cxn in learned-cxns
-              do (setf (attr-val cxn :learned-at) (format nil "@~a" (find-data (blackboard (construction-inventory node)) :current-interaction-nr))))
+              for interaction-nr = (find-data (blackboard (construction-inventory node)) :current-interaction-nr)
+              ;;when interaction-nr
+              do (setf (attr-val cxn :learned-at) (format nil "@~a" interaction-nr)))
         (notify cxns-learned learned-cxns))
    
       ;; Add cxns to blackboard of second new node

@@ -23,7 +23,7 @@
 ;; Learning Operators
 (define-configuration-default-value :repairs 
                                     '(add-categorial-links
-                                     ;item-based->item-based--substitution
+                                     item-based->item-based--substitution
                                      item-based->holistic
                                      holistic->item-based--substitution
                                      holistic->item-based--addition
