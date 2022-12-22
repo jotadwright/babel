@@ -9,27 +9,17 @@
  (ql:quickload :fcg)
  
  (print-anti-unification-results
-  (anti-unify-predicate-network '((get-context ?a) (bind animal-cat ?b dog) (filter ?c ?a ?b) (count ?c))
-                                '((get-context ?l) (bind animal-cat ?m dog) (filter ?n ?l ?m)
-                                  (bind character-cat ?o mean) (filter ?p ?n ?o) (count ?p))
+  (anti-unify-predicate-network '((get-context ?context)
+                                  (filter ?set-1 ?context ?shape-1)
+                                  (bind shape-category ?shape-1 cube)
+                                  (filter ?set-2 ?set-1 ?X)
+                                  (count ?target ?set-2))
+                                '((get-context ?c)
+                                  (filter ?s1 ?c ?b1)
+                                  (bind shape-category ?b1 sphere)
+                                  (filter ?s2 ?s1 ?Y)
+                                  (count ?t ?s2))
                                 :allow-generalisation-over-constants nil))
-
- (print-anti-unification-results
-  (anti-unify-predicate-network '((get-context ?a) (bind animal-cat ?b dog) (filter ?c ?a ?b) (count ?c))
-                                '((get-context ?l) (bind animal-cat ?m dog) (filter ?n ?l ?m)(count ?n))
-                                :allow-generalisation-over-constants nil))
-
- (print-anti-unification-results
-  (anti-unify-predicate-network '( (bind animal-cat ?b dog))
-                                '( (bind animal-cat ?m cat))
-                                :allow-generalisation-over-constants nil))
-
- (print-anti-unification-results
-  (anti-unify-predicate-network '((get-context ?a) (bind animal-cat ?b dog) (filter ?c ?a ?b) (count ?c))
-                                '((get-context ?l) (bind animal-cat ?m dog) (filter ?n ?l ?m)
-                                  (bind character-cat ?o mean) (filter ?p ?n ?o) (count ?p))
-                                :allow-generalisation-over-constants nil))
-
  |#
 
 (defun anti-unify-predicate-network (pattern source &key allow-generalisation-over-constants)
@@ -57,8 +47,8 @@
                                                      resulting-source-bindings
                                                      resulting-pattern-delta
                                                      resulting-source-delta))))
-        into results
-          ;; Sort results based on increasing cost.
+          into results
+        ;; Sort results based on increasing cost.
         finally (return (sort results #'< :key #'(lambda (result) (cdr (assoc :cost result)))))))
   
 (defun anti-unify-predicate (pattern
@@ -311,7 +301,7 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
         (nr-of-bindings-to-multiple-vars-in-pattern (loop for (binding . rest) on  pattern-bindings
                                                           count (find (car binding) rest :key #'car :test #'equalp)))
         (nr-of-bindings-to-multiple-vars-in-source (loop for (binding . rest) on  source-bindings
-                                                          count (find (car binding) rest :key #'car :test #'equalp))))
+                                                         count (find (car binding) rest :key #'car :test #'equalp))))
     (+ nr-of-predicates-in-pattern-delta
        nr-of-predicates-in-source-delta
        nr-of-bindings-to-multiple-vars-in-pattern
