@@ -86,3 +86,6 @@
                                              (arg1 ?g ?a)
                                              (arg2 ?g ?m)
                                              (topicalized ?w))))))))
+
+
+(test-deletion-repair-comprehension-german)
