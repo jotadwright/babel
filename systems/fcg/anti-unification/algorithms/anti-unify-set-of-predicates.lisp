@@ -257,7 +257,14 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
 (defun print-anti-unification-results (list-of-anti-unification-results &optional (stream t))
   "Prints a list of anti-unification results."
 
-
+  ;; Double check
+  (assert (loop with ori-pattern = (compute-network-from-anti-unification-result (first list-of-anti-unification-results) 'pattern)
+                with ori-source = (compute-network-from-anti-unification-result (first list-of-anti-unification-results) 'source)
+                for a-u-result in (rest list-of-anti-unification-results)
+                for this-ori-pattern = (compute-network-from-anti-unification-result a-u-result 'pattern)
+                for this-ori-source = (compute-network-from-anti-unification-result a-u-result 'source)
+                always (and (equivalent-predicate-networks this-ori-pattern ori-pattern)
+                            (equivalent-predicate-networks this-ori-source ori-source))))
   
   (format t "~%~%~%### Anti-unifying ###~%~%")
   (format stream "------------------------------------------------------------~%")
