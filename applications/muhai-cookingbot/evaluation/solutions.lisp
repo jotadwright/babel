@@ -463,10 +463,10 @@
             do (add-points mixture-similarity-score 1 1)
           else
             do (add-points mixture-similarity-score 0 1))
-    ; check if it is the same type of mixture (heterogeneous or homogeneous),
-    ; this is very important so it has a big effect on the final score
-    (unless (eq (type-of sol-mixture) (type-of gold-mixture))
-      (setf (points mixture-similarity-score) (/ (points mixture-similarity-score) 2)))
+    ; check if it is the same type of mixture (heterogeneous or homogeneous)
+    (if (eq (type-of sol-mixture) (type-of gold-mixture))
+      (add-points mixture-similarity-score 1 1)
+      (add-points mixture-similarity-score 0 1))
     mixture-similarity-score))
 
 (defmethod compare-node-dishes ((sol-dish irl::irl-program-processor-node) (gold-dish irl::irl-program-processor-node))
