@@ -92,6 +92,19 @@
       (print "test-failed-object: SUCCESS")
       (error "test-failed-object: FAILURE"))))
 
+(defun test-perfect-complete ()
+  "The same network as the simulation environment's solution."
+  (let* ((solutions (evaluate-solutions "applications\\muhai-cookingbot\\evaluation\\tests\\test-perfect-complete.solution" '(goal-condition-success dish-approximation-score execution-time)))
+         (perfection (loop for solution in solutions
+                             always (and ; (= (smatch-score solution) 1)
+                                         (= (subgoals-ratio solution) 1)
+                                         (= (dish-score solution) 1)))))
+    (if perfection
+      (print "test-perfect-complete: SUCCESS")
+      (error "test-perfect-complete: FAILURE"))))
+
+;(test-perfect-complete)
+
 (defun execute-all-tests ()
   (test-perfect)
   (test-permuted-perfect)
@@ -100,7 +113,8 @@
   (test-multiple-recipes)
   (test-empty)
   (test-list-of-kitchen-entities)
-  (test-failed-object))
+  (test-failed-object)
+  (test-perfect-complete))
 
 ;(execute-all-tests)
 

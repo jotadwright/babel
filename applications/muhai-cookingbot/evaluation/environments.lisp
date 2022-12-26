@@ -454,6 +454,8 @@
                                                                                  
                                    (make-instance 'sift) (make-instance 'sift) (make-instance 'sift)
 
+                                   (make-instance 'mixer) (make-instance 'mixer) (make-instance 'mixer)
+
                                    ;; baking equipment
                                    (make-instance 'rolling-pin) (make-instance 'rolling-pin) (make-instance 'rolling-pin)
                                    (make-instance 'baking-paper) (make-instance 'baking-paper) (make-instance 'baking-paper)
@@ -462,7 +464,6 @@
                                    (make-instance 'pan)
                                    (make-instance 'cookie-sheet)
                                    (make-instance 'baking-tray))))))
-(add-element (make-html *full-kitchen* :expand-initially nil))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Simulation Environments ;;
@@ -914,6 +915,49 @@
                        '(mingle ?salad ?kitchen-state-with-salad ?output-kitchen-state-k ?output-container-k ?wooden-spoon))
                  :primary-output-var '?salad))
 
+; Extra Almond Crescent Cookies
+(defparameter *almond-crescent-cookies-2-environment*
+  (make-instance 'simulation-environment
+                 :recipe-id 'almond-crescent-cookies-2
+                 :kitchen-state
+                 *full-kitchen*
+                 :meaning-network
+                 (list '(get-kitchen ?kitchen)
+                        '(fetch-and-proportion ?proportioned-butter ?ks-with-butter ?kitchen ?target-container-1 butter 230 g)
+                        '(bring-to-temperature ?warm-butter ?ks-with-warm-butter ?ks-with-butter ?proportioned-butter ?room-temp-quantity ?room-temp-unit)
+                        '(fetch-and-proportion ?proportioned-sugar ?ks-with-sugar ?ks-with-warm-butter ?target-container-2 white-sugar 200 g)
+                        '(fetch-and-proportion ?proportioned-vanilla ?ks-with-vanilla ?ks-with-sugar ?target-container-3 vanilla-extract 1 teaspoon)
+                        '(fetch-and-proportion ?proportioned-almond ?ks-with-almond ?ks-with-vanilla ?target-container-4 almond-extract 2 teaspoon)
+                        '(fetch-and-proportion ?proportioned-flour ?ks-with-flour ?ks-with-almond ?target-container-5 all-purpose-flour 280 g)
+                        '(fetch-and-proportion ?proportioned-almond-flour ?ks-with-almond-flour ?ks-with-flour ?target-container-6 almond-flour 120 g)
+                        '(fetch-and-proportion ?proportioned-powdered-sugar ?ks-with-powdered-sugar ?ks-with-almond-flour ?target-container-7 powdered-white-sugar 120 g)
+                        '(preheat-oven ?preheated-oven ?ks-with-preheated-oven ?ks-with-powdered-sugar ?oven 175 degrees-celsius)
+                        '(fetch ?cookie-sheet ?ks-with-cookie-sheet ?ks-with-preheated-oven cookie-sheet 1)
+                        '(grease ?greased-sheet ?ks-with-greased-sheet ?ks-with-cookie-sheet ?cookie-sheet ?grease)
+                        '(fetch ?mixer ?ks-with-mixer ?ks-with-greased-sheet mixer 1)
+                        '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-mixer ?empty-container-a ?warm-butter ?quantity-a ?unit-a)
+                        '(transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?proportioned-sugar ?quantity-b ?unit-b)
+                        '(beat ?beaten-mixture ?ks-with-beaten-mixture ?output-ks-b ?output-container-b ?mixer)
+                        '(transfer-contents ?output-container-c ?rest-c ?output-ks-c ?ks-with-beaten-mixture ?beaten-mixture ?proportioned-vanilla ?quantity-c ?unit-c)
+                        '(transfer-contents ?output-container-d ?rest-d ?output-ks-d ?output-ks-c ?output-container-c ?proportioned-almond ?quantity-d ?unit-d)
+                        '(mix ?intermediate-mixture ?ks-with-intermediate-mixture ?output-ks-d ?output-container-d ?mixer)
+                        '(transfer-contents ?output-container-e ?rest-e ?output-ks-e ?ks-with-intermediate-mixture ?intermediate-mixture ?proportioned-flour ?quantity-e ?unit-e)
+                        '(transfer-contents ?output-container-f ?rest-f ?output-ks-f ?output-ks-e ?intermediate-mixture ?proportioned-almond-flour ?quantity-f ?unit-f)
+                        '(mix ?dough ?ks-with-dough ?output-ks-f ?output-container-f ?mixing-tool)
+                        '(portion-and-arrange ?portioned-dough ?ks-with-dough-portions ?ks-with-dough ?dough 25 g ?pattern ?countertop)
+                        '(shape ?bakeable-balls ?ks-with-balls ?ks-with-dough-portions ?portioned-dough ball-shape)
+                        '(shape ?bakeable-crescents ?ks-with-crescents ?ks-with-balls ?bakeable-balls crescent-shape)
+                        '(transfer-items ?tray-with-crescents ?ks-with-crescents-tray ?ks-with-crescents ?bakeable-crescents ?default-pattern ?greased-sheet)
+                        '(bake ?baked-crescents ?ks-with-baked-crescents ?ks-with-crescents-tray ?tray-with-crescents ?oven 12 minute ?temp-qty ?temp-unit)
+                        '(fetch ?small-bowl ?ks-with-small-bowl ?ks-with-baked-crescents small-bowl 1)
+                        '(sift ?sifted-powdered-sugar ?ks-after-sifting ?ks-with-small-bowl ?small-bowl ?proportioned-powdered-sugar ?sifting-tool)
+                        '(dip ?dipped-cookies ?ks-with-dipped-cookies ?ks-after-sifting ?baked-crescents ?sifted-powdered-sugar)
+                        '(fetch ?wire-rack ?ks-with-wire-rack ?ks-with-dipped-cookies wire-rack 1)
+                        '(transfer-items ?cookies-on-wire-rack ?ks-with-cookies-on-wire-rack ?ks-with-wire-rack ?dipped-cookies ?default-pattern ?wire-rack)
+                        '(bring-to-temperature ?cooled-cookies ?ks-with-cooled-cookies ?ks-with-cookies-on-wire-rack ?cookies-on-wire-rack ?room-temp-quantity ?room-temp-unit))
+                 :primary-output-var
+                 '?cooled-cookies))
+
 ; list of all available simulation environments
 (defparameter *simulation-environments*
   (list *almond-crescent-cookies-environment*
@@ -925,4 +969,7 @@
         *whole-wheat-ginger-snaps-environment*
         *cucumber-slices-with-dill-environment*
         *easy-cherry-tomato-corn-salad-environment*
-        *vegan-black-bean-and-sweet-potato-salad-environment*))
+        *vegan-black-bean-and-sweet-potato-salad-environment*
+        ; extra almond crescent cookies
+        *almond-crescent-cookies-2-environment*
+        ))
