@@ -173,19 +173,19 @@
      ;; 1) find tool and place it on the countertop
      ;; 2) find container with ingredients on countertop
      (let* ((target-tool-instance-new-ks (retrieve-concept-instance-and-bring-to-countertop 'whisk new-kitchen-state))
-            (new-container (find-object-by-persistent-id container-with-ingredients (counter-top new-kitchen-state)))
-            (new-mixture (create-homogeneous-mixture-in-container new-container 'beaten)))
+            (new-container (find-object-by-persistent-id container-with-ingredients (counter-top new-kitchen-state))))
 
        (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
        
-       (cond ((and target-tool-instance-new-ks (not (has-failed-objects container-with-ingredients)))
+       (cond ((and target-tool-instance-new-ks new-container)
 
-              (setf (used target-tool-instance-new-ks) t)
-              (setf (contents new-container) (list new-mixture))
+              (let ((new-mixture (create-homogeneous-mixture-in-container new-container 'beaten)))
+                (setf (used target-tool-instance-new-ks) t)
+                (setf (contents new-container) (list new-mixture))
 
-              (bind (container-with-ingredients-beaten 1.0 new-container container-available-at)
-                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-                    (tool 0.0 target-tool-instance-new-ks nil)))
+                (bind (container-with-ingredients-beaten 1.0 new-container container-available-at)
+                      (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                      (tool 0.0 target-tool-instance-new-ks nil))))
              (t
               (bind (container-with-ingredients-beaten 1.0 (make-instance 'failed-object) container-available-at)
                     (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
@@ -197,7 +197,6 @@
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
           (new-tool (find-object-by-persistent-id tool (counter-top new-kitchen-state)))
           (new-container (find-object-by-persistent-id container-with-ingredients (counter-top new-kitchen-state)))
-          (new-mixture (create-homogeneous-mixture-in-container new-container 'beaten))
           (kitchen-state-available-at (+ 60 (max (kitchen-time kitchen-state-in)
                                                 (available-at (find (id container-with-ingredients) binding-objects
                                                                      :key #'(lambda (binding-object)
@@ -207,13 +206,13 @@
 
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
 
-     (cond ((not (has-failed-objects container-with-ingredients))
-
-            (setf (used new-tool) t)
-            (setf (contents new-container) (list new-mixture))   
+     (cond ((and new-tool new-container)
+            (let ((new-mixture (create-homogeneous-mixture-in-container new-container 'beaten)))
+              (setf (used new-tool) t)
+              (setf (contents new-container) (list new-mixture))   
      
-            (bind (container-with-ingredients-beaten 1.0 new-container container-available-at)
-                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))
+              (bind (container-with-ingredients-beaten 1.0 new-container container-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
            (t
             (bind (container-with-ingredients-beaten 1.0 (make-instance 'failed-object) container-available-at)
                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
@@ -237,7 +236,7 @@
 
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
 
-     (cond ((not (has-failed-objects container-with-ingredients))
+     (cond (new-container
      
             (change-temperature new-container temperature)
          
@@ -258,7 +257,7 @@
 
       (setf (kitchen-time new-kitchen-state) kitchen-state-available-at) 
 
-      (cond ((not (has-failed-objects container-with-ingredients))           
+      (cond (new-container       
              ; change it to room temperature
              (change-temperature new-container (temperature new-kitchen-state))
                 
@@ -2364,8 +2363,8 @@
                     (container-with-all-ingredients 1.0 (make-instance 'failed-object) container-available-at)
                     (container-with-rest 1.0 (make-instance 'failed-object) container-available-at)
                     (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-                    (quantity 0.0 (quantity total-amount) nil)
-                    (unit 0.0 (unit total-amount) nil)))))))
+                    (quantity 0.0 (make-instance 'failed-object) nil)
+                    (unit 0.0 (make-instance 'failed-object) nil)))))))
 
   ;; Case 2: Case in which the target container is given in the input-kitchen-state and no quantity and unit are given
   ((kitchen-state-in container-with-input-ingredients target-container
@@ -2410,8 +2409,8 @@
             (bind (container-with-all-ingredients 1.0 (make-instance 'failed-object) container-available-at)
                   (container-with-rest 1.0 (make-instance 'failed-object) container-available-at)
                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-                  (quantity 0.0 (quantity total-amount) nil)
-                  (unit 0.0 (unit total-amount) nil)))))))
+                  (quantity 0.0 (make-instance 'failed-object) nil)
+                  (unit 0.0 (make-instance 'failed-object) nil)))))))
 
 (defprimitive transfer-items ((transferred container)
                               (kitchen-state-out kitchen-state)
