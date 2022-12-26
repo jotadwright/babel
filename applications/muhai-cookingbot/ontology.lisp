@@ -682,7 +682,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "All-purpose flour."))
 
-(defclass almond (ingredient)
+(defclass almond (ingredient cuttable)
   ()
   (:documentation "Almond."))
 

@@ -24,6 +24,19 @@
                                                                                                                               :value 500)))))
                                         (make-instance 'medium-bowl
                                                        :used T
+                                                       :contents (list (make-instance 'salted-butter
+                                                                                      :temperature
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'degrees-celsius)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 5))
+                                                                                      :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 500)))))
+                                        (make-instance 'medium-bowl
+                                                       :used T
                                                        :contents (list (make-instance 'cherry-tomato :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
