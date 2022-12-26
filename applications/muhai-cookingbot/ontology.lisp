@@ -587,6 +587,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "The microwave. It's a container."))
 
+(defclass mixer (can-mix can-beat reusable)
+  ()
+  (:documentation "A mixer. It's an electric tool for mixing or beating."))
+
 (defclass oven (container has-temperature) 
   ((arrangement :initform (make-instance 'shelved)))
   (:documentation "The oven. It's a container."))
