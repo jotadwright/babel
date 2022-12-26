@@ -10,7 +10,7 @@
 
 ;; ##################################################################
 ;; Almond Crescent Cookies recipe
-;; https://www.food.com/recipe/almond-crescent-cookies-424789
+;; https://www.allrecipes.com/recipe/245336/almond-crescent-cookies/
 ;; ##################################################################
 
 ;; Defining the initial kitchen state
@@ -21,7 +21,7 @@
    (list (make-instance 'fridge
                         :contents (list (make-instance 'medium-bowl
                                                        :used T
-                                                       :contents (list (make-instance 'butter
+                                                       :contents (list (make-instance 'salted-butter
                                                                                       :temperature
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'degrees-celsius)
@@ -31,11 +31,11 @@
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
-                                                                                                                              :value 500)))))))
+                                                                                                                              :value 5000)))))))
          (make-instance 'pantry
                         :contents (list (make-instance 'medium-bowl
                                                        :used T
-                                                       :contents (list (make-instance 'white-sugar :amount
+                                                       :contents (list (make-instance 'salt :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
@@ -46,14 +46,14 @@
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
-                                                                                                                              :value 100)))))
+                                                                                                                              :value 1000)))))
                                         (make-instance 'medium-bowl
                                                        :used T
                                                        :contents (list (make-instance 'almond-extract :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
-                                                                                                                              :value 100)))))
+                                                                                                                              :value 1000)))))
                                         (make-instance 'medium-bowl
                                                        :used T
                                                        :contents (list (make-instance 'all-purpose-flour :amount
@@ -74,25 +74,32 @@
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
-                                                                                                                              :value 500)))))))
+                                                                                                                              :value 1000)))))))
          (make-instance 'kitchen-cabinet
                         :contents (list
                                    ;; bowls
                                    (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
+                                   (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
+                                   (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
+                                   (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
+                                   (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
+                                   (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
+                                   (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
+                                   (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
+                                   
                                    (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
                                    (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
                                    (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
-                                   (make-instance 'small-bowl) (make-instance 'small-bowl) (make-instance 'small-bowl)
 
                                    ;; tools
                                    (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
-                                   (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
-                                   (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
-
-                                   (make-instance 'mixer)
-
+                                   (make-instance 'mixer) (make-instance 'mixer) (make-instance 'mixer)
+                                   (make-instance 'sift) (make-instance 'sift) (make-instance 'sift)
+                                   (make-instance 'sift) (make-instance 'sift) (make-instance 'sift)
+                                   (make-instance 'knife) (make-instance 'knife)   (make-instance 'knife)
+                                   (make-instance 'wire-rack)
+                                   
                                    ;; baking equipment
-                                   (make-instance 'cookie-sheet)
                                    (make-instance 'baking-tray)
                                    (make-instance 'baking-paper))))))
 
@@ -103,74 +110,77 @@
 (defparameter *almond-cookies-recipe*
   '((get-kitchen ?kitchen)
     
-    ;; "230 grams unsalted butter, room temperature"
-    (fetch-and-proportion ?proportioned-butter ?ks-with-butter ?kitchen ?target-container-1 butter 230 g)
+    ;; "120 grams salted butter, at room temperature"
+    (fetch-and-proportion ?proportioned-butter ?ks-with-butter ?kitchen ?target-container-1 salted-butter 120 g)
     (bring-to-temperature ?warm-butter ?ks-with-warm-butter ?ks-with-butter ?proportioned-butter ?room-temp-qty ?room-temp-unit)
     
-     ;; "200 grams granulated sugar"
-    (fetch-and-proportion ?proportioned-sugar ?ks-with-sugar ?ks-with-warm-butter ?target-container-2 white-sugar 200 g)
+     ;; "40 grams confectioners' sugar, plus 30 grams extra for dusting"
+    (fetch-and-proportion ?proportioned-sugar ?ks-with-sugar ?ks-with-warm-butter ?target-container-2 powdered-white-sugar 40 g)
+    (fetch-and-proportion ?proportioned-dusting-sugar ?ks-with-dusting-sugar ?ks-with-sugar ?target-container-3 powdered-white-sugar 30 g)
     
     ;; "1 teaspoon vanilla extract"
-    (fetch-and-proportion ?proportioned-vanilla ?ks-with-vanilla ?ks-with-sugar ?target-container-3 vanilla-extract 1 teaspoon)
+    (fetch-and-proportion ?proportioned-vanilla ?ks-with-vanilla ?ks-with-dusting-sugar ?target-container-4 vanilla-extract 1 teaspoon)
     
-    ;; "2 teaspoons almond extract"
-    (fetch-and-proportion ?proportioned-almond ?ks-with-almond ?ks-with-vanilla ?target-container-4 almond-extract 2 teaspoon)
+    ;; "1 teaspoon almond extract"
+    (fetch-and-proportion ?proportioned-almond-extract ?ks-with-almond ?ks-with-vanilla ?target-container-5 almond-extract 1 teaspoon)
+
+    ;; "1/8 teaspoon salt"
+    (fetch-and-proportion ?proportioned-salt ?ks-with-salt ?ks-with-almond ?target-container-6 salt 0.125 teaspoon)
+        
+    ;; "90 grams all-purpose flour, sifted"
+    (fetch-and-proportion ?proportioned-flour ?ks-with-flour ?ks-with-salt ?target-container-7 all-purpose-flour 90 g)
+    (sift ?sifted-flour ?ks-with-sifted-flour ?ks-with-flour ?large-bowl ?proportioned-flour ?sifting-tool)
+
+    ;; "2 tablespoons all-purpose flour, sifted"
+    (fetch-and-proportion ?proportioned-tbsp-flour ?ks-with-tbsp-flour ?ks-with-sifted-flour ?target-container-8 all-purpose-flour 2 tablespoon)
+    (sift ?sifted-tbsp-flour ?ks-with-sifted-tbsp-flour ?ks-with-tbsp-flour ?large-bowl-2 ?proportioned-tbsp-flour ?sifting-tool) ;; reuse sifting tool
     
-    ;; "280 grams all-purpose flour"
-    (fetch-and-proportion ?proportioned-flour ?ks-with-flour ?ks-with-almond ?target-container-5 all-purpose-flour 280 g)
+    ;; "70 grams almonds, finely chopped"
+    (fetch-and-proportion ?proportioned-almonds ?ks-with-almonds ?ks-with-sifted-tbsp-flour ?target-container-9 almond 70 g)
+    (cut ?finely-chopped-almonds ?ks-with-finely-chopped-almonds ?ks-with-almonds ?proportioned-almonds fine-slices ?knife)
     
-    ;; "120 grams almond flour"
-    (fetch-and-proportion ?proportioned-almond-flour ?ks-with-almond-flour ?ks-with-flour ?target-container-6 almond-flour 120 g)
-    
-    ;; "120 grams powdered sugar"
-    (fetch-and-proportion ?proportioned-powdered-sugar ?ks-with-powdered-sugar ?ks-with-almond-flour ?target-container-7 powdered-white-sugar 120 g)
+    ;; "Preheat oven to 165 degrees C."
+    (preheat-oven ?preheated-oven ?ks-with-preheated-oven ?ks-with-finely-chopped-almonds ?oven 165 degrees-celsius) 
 
-
-    ;; "Preheat oven to 175 degrees C."
-    (preheat-oven ?preheated-oven ?ks-with-preheated-oven ?ks-with-powdered-sugar ?oven 175 degrees-celsius) 
-
-    ;; "Grease cookie sheet."
-    (fetch ?cookie-sheet ?ks-with-cookie-sheet ?ks-with-preheated-oven cookie-sheet 1) ;; IMPLICIT
-    (grease ?greased-sheet ?ks-with-greased-sheet ?ks-with-cookie-sheet ?cookie-sheet ?grease)
-
-    ;; "With a mixer, beat the butter with sugar until light and fluffy."
-    (fetch ?mixer ?ks-with-mixer ?ks-with-greased-sheet mixer 1) ;; IMPLICIT
-    (transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-mixer ?empty-container-a ?warm-butter ?quantity-a ?unit-a)
+    ;; "Beat butter and confectioners' sugar in a bowl using an electric mixer until smooth and creamy."
+    (transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-preheated-oven ?empty-container-a ?warm-butter ?quantity-a ?unit-a)
     (transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?proportioned-sugar ?quantity-b ?unit-b)
-    (beat ?beaten-mixture ?ks-with-beaten-mixture ?output-ks-b ?output-container-b ?mixer)
-    
-    ;; "Add vanilla extract and almond extract, beat until incorporated."
-    (transfer-contents ?output-container-c ?rest-c ?output-ks-c ?ks-with-beaten-mixture ?beaten-mixture ?proportioned-vanilla ?quantity-c ?unit-c) 
-    (transfer-contents ?output-container-d ?rest-d ?output-ks-d ?output-ks-c ?output-container-c ?proportioned-almond ?quantity-d ?unit-d)
-    (mix ?intermediate-mixture ?ks-with-intermediate-mixture ?output-ks-d ?output-container-d ?mixer) ; reuse the mixing tool
 
-    ;; "Stir in the flour and almonds. Work flour mixture into a firm dough."
-    (transfer-contents ?output-container-e ?rest-e ?output-ks-e ?ks-with-intermediate-mixture ?intermediate-mixture ?proportioned-flour ?quantity-e ?unit-e)
-    (transfer-contents ?output-container-f ?rest-f ?output-ks-f ?output-ks-e ?intermediate-mixture ?proportioned-almond-flour ?quantity-f ?unit-f)
-    (mix ?dough ?ks-with-dough ?output-ks-f ?output-container-f ?mixing-tool) ; use a regular mixing tool
+    (fetch ?mixer ?ks-with-mixer ?output-ks-b mixer 1) ;; IMPLICIT
+    (beat ?beaten-mixture ?ks-with-beaten-mixture ?ks-with-mixer ?output-container-b ?mixer)
 
-    ;; "Working with 1 tablespoon of dough at a time, lightly roll and then shape it so the middle is thicker than both ends. Bend dough log into a crescent shape."
+    ;; "Add vanilla extract, almond extract, and salt; mix briefly to incorporate."
+    (transfer-contents ?output-container-c ?rest-c ?output-ks-c ?ks-with-beaten-mixture ?beaten-mixture ?proportioned-vanilla ?quantity-c ?unit-c)
+    (transfer-contents ?output-container-d ?rest-d ?output-ks-d ?output-ks-c ?output-container-c ?proportioned-almond-extract ?quantity-d ?unit-d)
+    (transfer-contents ?output-container-e ?rest-e ?output-ks-e ?output-ks-d ?output-container-d ?proportioned-salt ?quantity-e ?unit-e)
+    (mix ?intermediate-mixture ?ks-with-intermediate-mixture ?output-ks-e ?output-container-e ?mixing-tool)
+
+    ;; "Gradually stir 90 grams plus 2 tablespoons flour into the creamed butter, add almonds, and mix until dough is just combined."
+    (transfer-contents ?output-container-f ?rest-f ?output-ks-f ?ks-with-intermediate-mixture ?intermediate-mixture ?sifted-flour ?quantity-f ?unit-f)
+    (transfer-contents ?output-container-g ?rest-g ?output-ks-g ?output-ks-f ?output-container-f ?sifted-tbsp-flour ?quantity-g ?unit-g)
+    (transfer-contents ?output-container-h ?rest-h ?output-ks-h ?output-ks-g ?output-container-g ?finely-chopped-almonds ?quantity-h ?unit-h)
+    (mix ?dough ?ks-with-dough ?output-ks-h ?output-container-h ?mixing-tool) ; reuse the same mixing tool
+
+    ;; "Shape dough into tiny crescents of 25 grams; place on an ungreased baking sheet about 5 cm apart."
     (portion-and-arrange ?portioned-dough ?ks-with-dough-portions ?ks-with-dough ?dough 25 g ?pattern ?countertop)
-    (shape ?bakeable-balls ?ks-with-balls ?ks-with-dough-portions ?portioned-dough ball-shape)
-    (shape ?bakeable-crescents ?ks-with-crescents ?ks-with-balls ?bakeable-balls crescent-shape)
+    (shape ?bakeable-crescents ?ks-with-crescents ?ks-with-dough-portions ?portioned-dough crescent-shape)
+    
+    (fetch ?baking-tray ?ks-with-baking-tray ?ks-with-crescents baking-tray 1)
+    (transfer-items ?tray-with-crescents ?ks-with-crescents-tray ?ks-with-baking-tray ?bakeable-crescents 5-cm-apart ?baking-tray)
 
-    ;; "Place on greased cookie sheets and repeat until all dough is used."
-    (transfer-items ?tray-with-crescents ?ks-with-crescents-tray ?ks-with-crescents ?bakeable-crescents ?default-pattern ?greased-sheet)
+    ;; "Bake cookies in preheated oven for about 15 minutes."
+    (bake ?baked-crescents ?ks-with-baked-crescents ?ks-with-crescents-tray ?tray-with-crescents ?preheated-oven 15 minute ?bake-temp-qty ?bake-temp-unit)
 
-    ;; "Bake 12 minutes."
-    (bake ?baked-crescents ?ks-with-baked-crescents ?ks-with-crescents-tray ?tray-with-crescents ?oven 12 minute ?temp-qty ?temp-unit)
-
-    ;; "Sift powdered sugar into a small bowl."
-    (fetch ?small-bowl ?ks-with-small-bowl ?ks-with-baked-crescents small-bowl 1) ;; IMPLICIT
-    (sift ?sifted-powdered-sugar ?ks-after-sifting ?ks-with-small-bowl ?small-bowl ?proportioned-powdered-sugar ?sifting-tool)
-
-    ;; "While the cookies are still warm , dip the crescents in the powdered sugar."
-    (dip ?dipped-cookies ?ks-with-dipped-cookies ?ks-after-sifting ?baked-crescents ?sifted-powdered-sugar)
-
-    ;; "Cool on racks."
-    (fetch ?wire-rack ?ks-with-wire-rack ?ks-with-dipped-cookies wire-rack 1) ;; IMPLICIT
-    (transfer-items ?cookies-on-wire-rack ?ks-with-cookies-on-wire-rack ?ks-with-wire-rack ?dipped-cookies ?default-pattern ?wire-rack)
-    (bring-to-temperature ?cooled-cookies ?ks-with-cooled-cookies ?ks-with-cookies-on-wire-rack ?cookies-on-wire-rack ?room-temp-qty ?room-temp-unit)))
+    ;; "Cool on the baking sheet for 5 minutes before transferring to a wire rack to cool completely."
+    (cool-for-time ?cooling-cookies ?ks-with-cooling-cookies ?ks-with-baked-crescents ?baked-crescents 5 minute)
+    
+    (fetch ?wire-rack ?ks-with-wire-rack ?ks-with-cooling-cookies wire-rack 1) ;; IMPLICIT
+    (transfer-items ?cookies-on-wire-rack ?ks-with-cookies-on-wire-rack ?ks-with-wire-rack ?cooling-cookies ?default-pattern ?wire-rack)
+    (bring-to-temperature ?cooled-cookies ?ks-with-cooled-cookies ?ks-with-cookies-on-wire-rack ?cookies-on-wire-rack ?room-temp-qty ?room-temp-unit)
+    
+    ;; "Sprinkle cookies with sifted confectioners' sugar when cooled."
+    (sift ?sifted-sugar ?ks-with-sifted-sugar ?ks-with-cooled-cookies ?large-bowl ?proportioned-dusting-sugar ?sifting-tool) ;; IMPLICIT
+    (sprinkle ?almond-crescent-cookies ?ks-with-almond-crescent-cookies ?ks-with-sifted-sugar ?cooled-cookies ?sifted-sugar)))
 
 ;; ======================
 ;; Append bindings to the recipe

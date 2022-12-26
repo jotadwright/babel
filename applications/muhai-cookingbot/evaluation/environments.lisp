@@ -967,9 +967,56 @@
                         '(dip ?dipped-cookies ?ks-with-dipped-cookies ?ks-after-sifting ?baked-crescents ?sifted-powdered-sugar)
                         '(fetch ?wire-rack ?ks-with-wire-rack ?ks-with-dipped-cookies wire-rack 1)
                         '(transfer-items ?cookies-on-wire-rack ?ks-with-cookies-on-wire-rack ?ks-with-wire-rack ?dipped-cookies ?default-pattern ?wire-rack)
-                        '(bring-to-temperature ?cooled-cookies ?ks-with-cooled-cookies ?ks-with-cookies-on-wire-rack ?cookies-on-wire-rack ?room-temp-quantity ?room-temp-unit))
+                        '(bring-to-temperature ?cooled-cookies ?ks-with-cooled-cookies ?ks-with-cookies-on-wire-rack ?cookies-on-wire-rack ?room-temp-quantity-2 ?room-temp-unit-2))
                  :primary-output-var
                  '?cooled-cookies))
+
+(defparameter *almond-crescent-cookies-3-environment*
+  (make-instance 'simulation-environment
+                 :recipe-id 'almond-crescent-cookies-3
+                 :kitchen-state
+                 *full-kitchen*
+                 :meaning-network
+                 (list '(get-kitchen ?kitchen)
+                       '(fetch-and-proportion ?proportioned-butter ?ks-with-butter ?kitchen ?target-container-1 salted-butter 120 g)
+                       '(bring-to-temperature ?warm-butter ?ks-with-warm-butter ?ks-with-butter ?proportioned-butter ?room-temp-qty ?room-temp-unit)
+                       '(fetch-and-proportion ?proportioned-sugar ?ks-with-sugar ?ks-with-warm-butter ?target-container-2 powdered-white-sugar 40 g)
+                       '(fetch-and-proportion ?proportioned-dusting-sugar ?ks-with-dusting-sugar ?ks-with-sugar ?target-container-3 powdered-white-sugar 30 g)
+                       '(fetch-and-proportion ?proportioned-vanilla ?ks-with-vanilla ?ks-with-dusting-sugar ?target-container-4 vanilla-extract 1 teaspoon)
+                       '(fetch-and-proportion ?proportioned-almond-extract ?ks-with-almond ?ks-with-vanilla ?target-container-5 almond-extract 1 teaspoon)
+                       '(fetch-and-proportion ?proportioned-salt ?ks-with-salt ?ks-with-almond ?target-container-6 salt 0.125 teaspoon)
+                       '(fetch-and-proportion ?proportioned-flour ?ks-with-flour ?ks-with-salt ?target-container-7 all-purpose-flour 90 g)
+                       '(sift ?sifted-flour ?ks-with-sifted-flour ?ks-with-flour ?large-bowl ?proportioned-flour ?sifting-tool)
+                       '(fetch-and-proportion ?proportioned-tbsp-flour ?ks-with-tbsp-flour ?ks-with-sifted-flour ?target-container-8 all-purpose-flour 2 tablespoon)
+                       '(sift ?sifted-tbsp-flour ?ks-with-sifted-tbsp-flour ?ks-with-tbsp-flour ?large-bowl-2 ?proportioned-tbsp-flour ?sifting-tool)
+                       '(fetch-and-proportion ?proportioned-almonds ?ks-with-almonds ?ks-with-sifted-tbsp-flour ?target-container-9 almond 70 g)
+                       '(cut ?finely-chopped-almonds ?ks-with-finely-chopped-almonds ?ks-with-almonds ?proportioned-almonds fine-slices ?knife)
+                       '(preheat-oven ?preheated-oven ?ks-with-preheated-oven ?ks-with-finely-chopped-almonds ?oven 165 degrees-celsius)
+                       '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-preheated-oven ?empty-container-a ?warm-butter ?quantity-a ?unit-a)
+                       '(transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?proportioned-sugar ?quantity-b ?unit-b)
+                       '(fetch ?mixer ?ks-with-mixer ?output-ks-b mixer 1)
+                       '(beat ?beaten-mixture ?ks-with-beaten-mixture ?ks-with-mixer ?output-container-b ?mixer)
+                       '(transfer-contents ?output-container-c ?rest-c ?output-ks-c ?ks-with-beaten-mixture ?beaten-mixture ?proportioned-vanilla ?quantity-c ?unit-c)
+                       '(transfer-contents ?output-container-d ?rest-d ?output-ks-d ?output-ks-c ?output-container-c ?proportioned-almond-extract ?quantity-d ?unit-d)
+                       '(transfer-contents ?output-container-e ?rest-e ?output-ks-e ?output-ks-d ?output-container-d ?proportioned-salt ?quantity-e ?unit-e)
+                       '(mix ?intermediate-mixture ?ks-with-intermediate-mixture ?output-ks-e ?output-container-e ?mixing-tool)
+                       '(transfer-contents ?output-container-f ?rest-f ?output-ks-f ?ks-with-intermediate-mixture ?intermediate-mixture ?sifted-flour ?quantity-f ?unit-f)
+                       '(transfer-contents ?output-container-g ?rest-g ?output-ks-g ?output-ks-f ?output-container-f ?sifted-tbsp-flour ?quantity-g ?unit-g)
+                       '(transfer-contents ?output-container-h ?rest-h ?output-ks-h ?output-ks-g ?output-container-g ?finely-chopped-almonds ?quantity-h ?unit-h)
+                       '(mix ?dough ?ks-with-dough ?output-ks-h ?output-container-h ?mixing-tool)
+                       '(portion-and-arrange ?portioned-dough ?ks-with-dough-portions ?ks-with-dough ?dough 25 g ?pattern ?countertop)
+                       '(shape ?bakeable-crescents ?ks-with-crescents ?ks-with-dough-portions ?portioned-dough crescent-shape)
+                       '(fetch ?baking-tray ?ks-with-baking-tray ?ks-with-crescents baking-tray 1)
+                       '(transfer-items ?tray-with-crescents ?ks-with-crescents-tray ?ks-with-baking-tray ?bakeable-crescents 5-cm-apart ?baking-tray)
+                       '(bake ?baked-crescents ?ks-with-baked-crescents ?ks-with-crescents-tray ?tray-with-crescents ?preheated-oven 15 minute ?bake-temp-qty ?bake-temp-unit)
+                       '(cool-for-time ?cooling-cookies ?ks-with-cooling-cookies ?ks-with-baked-crescents ?baked-crescents 5 minute)
+                       '(fetch ?wire-rack ?ks-with-wire-rack ?ks-with-cooling-cookies wire-rack 1)
+                       '(transfer-items ?cookies-on-wire-rack ?ks-with-cookies-on-wire-rack ?ks-with-wire-rack ?cooling-cookies ?default-pattern ?wire-rack)
+                       '(bring-to-temperature ?cooled-cookies ?ks-with-cooled-cookies ?ks-with-cookies-on-wire-rack ?cookies-on-wire-rack ?room-temp-qty-2 ?room-temp-unit-2)
+                       '(sift ?sifted-sugar ?ks-with-sifted-sugar ?ks-with-cooled-cookies ?large-bowl ?proportioned-dusting-sugar ?sifting-tool)
+                       '(sprinkle ?almond-crescent-cookies ?ks-with-almond-crescent-cookies ?ks-with-sifted-sugar ?cooled-cookies ?sifted-sugar))
+                 :primary-output-var
+                 '?almond-crescent-cookies))
 
 ; list of all available simulation environments
 (defparameter *simulation-environments*
@@ -985,4 +1032,5 @@
         *vegan-black-bean-and-sweet-potato-salad-environment*
         ; extra almond crescent cookies
         *almond-crescent-cookies-2-environment*
+        *almond-crescent-cookies-3-environment*
         ))
