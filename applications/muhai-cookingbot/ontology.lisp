@@ -975,6 +975,14 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Salt."))
 
+(defclass salted-butter (ingredient mixable beatable meltable has-temperature can-be-brushed-with spreadable can-have-on-top)
+  ((keep-refrigerated :initform t))
+  (:documentation "Salted butter."))
+
+(defmethod copy-object-content ((salted-butter salted-butter) (copy salted-butter))
+  "Copying salted-butter objects."
+  (setf (keep-refrigerated copy) (copy-object (keep-refrigerated salted-butter))))
+
 (defclass self-rising-flour (flour)
   ()
   (:documentation "Self-rising flour: mixture of all-purpose flour, baking powder, and salt"))
