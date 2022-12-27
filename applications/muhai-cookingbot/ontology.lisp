@@ -686,7 +686,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Almond."))
 
-(defclass almond-extract (flavoring-extract almond)
+(defclass almond-extract (flavoring-extract)
   ()
   (:documentation "Almond extract."))
 
@@ -1015,7 +1015,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Vanilla."))
 
-(defclass vanilla-extract (flavoring-extract vanilla)
+(defclass vanilla-extract (flavoring-extract)
   ()
   (:documentation "Vanilla extract."))
 
@@ -1099,6 +1099,14 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass slices (cutting-pattern)
   ()
   (:documentation "A sliced pattern."))
+
+(defclass finely-chopped (cutting-pattern)
+  ()
+  (:documentation "A chopped pattern."))
+
+(defclass chopped (cutting-pattern)
+  ()
+  (:documentation "A chopped pattern."))
 
 (defclass squares (cutting-pattern)
   ()

@@ -88,6 +88,13 @@
                         :contents (list
                                    (make-instance 'medium-bowl
                                                   :used T
+                                                  :contents (list (make-instance 'almond :amount
+                                                                                 (make-instance 'amount
+                                                                                                :unit (make-instance 'g)
+                                                                                                :quantity (make-instance 'quantity
+                                                                                                                         :value 500)))))
+                                   (make-instance 'medium-bowl
+                                                  :used T
                                                   :contents (list (make-instance 'almond-extract :amount
                                                                                  (make-instance 'amount
                                                                                                 :unit (make-instance 'g)
@@ -369,6 +376,13 @@
                                    (make-instance 'medium-bowl
                                                   :used T
                                                   :contents (list (make-instance 'sweet-potato :amount
+                                                                                 (make-instance 'amount
+                                                                                                :unit (make-instance 'g)
+                                                                                                :quantity (make-instance 'quantity
+                                                                                                                         :value 500)))))
+                                   (make-instance 'medium-bowl
+                                                  :used T
+                                                  :contents (list (make-instance 'vanilla :amount
                                                                                  (make-instance 'amount
                                                                                                 :unit (make-instance 'g)
                                                                                                 :quantity (make-instance 'quantity
@@ -990,7 +1004,7 @@
                        '(fetch-and-proportion ?proportioned-tbsp-flour ?ks-with-tbsp-flour ?ks-with-sifted-flour ?target-container-8 all-purpose-flour 2 tablespoon)
                        '(sift ?sifted-tbsp-flour ?ks-with-sifted-tbsp-flour ?ks-with-tbsp-flour ?large-bowl-2 ?proportioned-tbsp-flour ?sifting-tool)
                        '(fetch-and-proportion ?proportioned-almonds ?ks-with-almonds ?ks-with-sifted-tbsp-flour ?target-container-9 almond 70 g)
-                       '(cut ?finely-chopped-almonds ?ks-with-finely-chopped-almonds ?ks-with-almonds ?proportioned-almonds fine-slices ?knife)
+                       '(cut ?finely-chopped-almonds ?ks-with-finely-chopped-almonds ?ks-with-almonds ?proportioned-almonds finely-chopped ?knife)
                        '(preheat-oven ?preheated-oven ?ks-with-preheated-oven ?ks-with-finely-chopped-almonds ?oven 165 degrees-celsius)
                        '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-preheated-oven ?empty-container-a ?warm-butter ?quantity-a ?unit-a)
                        '(transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?proportioned-sugar ?quantity-b ?unit-b)
@@ -1018,6 +1032,38 @@
                  :primary-output-var
                  '?almond-crescent-cookies))
 
+(defparameter *almond-crescent-cookies-4-environment*
+  (make-instance 'simulation-environment
+                 :recipe-id 'almond-crescent-cookies-4
+                 :kitchen-state
+                 *full-kitchen*
+                 :meaning-network
+                 (list '(get-kitchen ?kitchen)
+                       '(fetch-and-proportion ?proportioned-butter ?ks-with-butter ?kitchen ?target-container-1 butter 230 g)
+                       '(fetch-and-proportion ?proportioned-vanilla ?ks-with-vanilla ?ks-with-butter ?target-container-2 vanilla 2 teaspoon)
+                       '(fetch-and-proportion ?proportioned-powdered-sugar ?ks-with-sugar ?ks-with-vanilla ?target-container-3 powdered-white-sugar 100 g)
+                       '(fetch-and-proportion ?proportioned-water ?ks-with-water ?ks-with-sugar ?target-container-4 water 1 tablespoon)
+                       '(fetch-and-proportion ?proportioned-flour ?ks-with-flour ?ks-with-water ?target-container-5 all-purpose-flour 240 g)
+                       '(fetch-and-proportion ?proportioned-almonds ?ks-with-almonds ?ks-with-flour ?target-container-6 almond 140 g)
+                       '(cut ?chopped-almonds ?ks-with-chopped-almonds ?ks-with-almonds ?proportioned-almonds chopped ?knife)
+                       '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-chopped-almonds ?empty-container-a ?proportioned-butter ?quantity-a ?unit-a)
+                       '(transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?proportioned-vanilla ?quantity-b ?unit-b)
+                       '(transfer-contents ?output-container-c ?rest-c ?output-ks-c ?output-ks-b ?output-container-b ?proportioned-powdered-sugar ?quantity-c ?unit-c)
+                       '(beat ?beaten-mixture ?ks-with-beaten-mixture ?output-ks-c ?output-container-c ?mixing-tool)
+                       '(transfer-contents ?output-container-d ?rest-d ?output-ks-d ?ks-with-beaten-mixture ?beaten-mixture ?proportioned-flour ?quantity-d ?unit-d)
+                       '(transfer-contents ?output-container-e ?rest-e ?output-ks-e ?output-ks-d ?output-container-d ?proportioned-water ?quantity-e ?unit-e)
+                       '(mix ?dough ?ks-with-dough ?output-ks-e ?output-container-e ?mixing-tool)
+                       '(transfer-contents ?output-container-f ?rest-f ?output-ks-f ?ks-with-dough ?dough ?chopped-almonds ?quantity-f ?unit-f)
+                       '(mix ?dough-with-almonds ?ks-with-almonds-dough ?output-ks-f ?output-container-f ?mixing-tool)
+                       '(portion-and-arrange ?portioned-dough ?ks-with-dough-portions ?ks-with-almonds-dough ?dough-with-almonds 30 g ?pattern ?countertop)
+                       '(shape ?bakeable-crescents ?ks-with-crescents ?ks-with-dough-portions ?portioned-dough crescent-shape)
+                       '(fetch ?cookie-sheet ?ks-with-cookie-sheet ?ks-with-crescents cookie-sheet 1)
+                       '(grease ?greased-sheet ?ks-with-greased-sheet ?ks-with-cookie-sheet ?cookie-sheet ?grease)
+                       '(transfer-items ?tray-with-crescents ?ks-with-crescents-tray ?ks-with-greased-sheet ?bakeable-crescents ?default-pattern ?greased-sheet)
+                       '(bake ?baked-crescents ?ks-with-baked-crescents ?ks-with-crescents-tray ?tray-with-crescents ?oven 20 minute 150 degrees-celsius))
+                 :primary-output-var
+                 '?baked-crescents))
+
 ; list of all available simulation environments
 (defparameter *simulation-environments*
   (list *almond-crescent-cookies-environment*
@@ -1033,4 +1079,5 @@
         ; extra almond crescent cookies
         *almond-crescent-cookies-2-environment*
         *almond-crescent-cookies-3-environment*
+        *almond-crescent-cookies-4-environment*
         ))

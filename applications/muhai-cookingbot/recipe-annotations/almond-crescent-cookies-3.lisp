@@ -49,6 +49,13 @@
                                                                                                                               :value 1000)))))
                                         (make-instance 'medium-bowl
                                                        :used T
+                                                       :contents (list (make-instance 'almond :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 1000)))))
+                                        (make-instance 'medium-bowl
+                                                       :used T
                                                        :contents (list (make-instance 'almond-extract :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
@@ -137,7 +144,7 @@
     
     ;; "70 grams almonds, finely chopped"
     (fetch-and-proportion ?proportioned-almonds ?ks-with-almonds ?ks-with-sifted-tbsp-flour ?target-container-9 almond 70 g)
-    (cut ?finely-chopped-almonds ?ks-with-finely-chopped-almonds ?ks-with-almonds ?proportioned-almonds fine-slices ?knife)
+    (cut ?finely-chopped-almonds ?ks-with-finely-chopped-almonds ?ks-with-almonds ?proportioned-almonds finely-chopped ?knife)
     
     ;; "Preheat oven to 165 degrees C."
     (preheat-oven ?preheated-oven ?ks-with-preheated-oven ?ks-with-finely-chopped-almonds ?oven 165 degrees-celsius) 
