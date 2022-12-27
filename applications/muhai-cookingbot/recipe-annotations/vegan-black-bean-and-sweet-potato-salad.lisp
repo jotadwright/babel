@@ -8,10 +8,10 @@
 ;; We need to activate it:
 ;(activate-monitor trace-irl)
 
-;; ##################################################################
+;; ###################################################################################
 ;; Vegan Black Bean and Sweet Potato Salad
 ;; https://www.allrecipes.com/recipe/238162/vegan-black-bean-and-sweet-potato-salad/
-;; ##################################################################
+;; ###################################################################################
 
 ;; Defining the initial kitchen state
 (defparameter *initial-kitchen-state* 
