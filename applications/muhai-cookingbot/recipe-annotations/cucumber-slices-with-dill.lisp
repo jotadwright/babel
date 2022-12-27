@@ -165,7 +165,7 @@
     ;; "Cover and refrigerate at least 2 hours before serving (the longer this dish marinates the tastier it is!)."
     (cover ?covered-mixture ?kitchen-state-with-covered-mixture ?kitchen-out-h ?output-h ?bowl-lid)
 
-    ; TODO RD: refrigerate could be a special case of cool-for-time?
+    ; TODO RD: refrigerate could be a special case of leave-for-time?
     (refrigerate ?cooled-mixture ?kitchen-state-with-cooled-mixture ?kitchen-state-with-covered-mixture ?covered-mixture ?fridge 2 hour)
 
     ; TODO RD: include this step or not?

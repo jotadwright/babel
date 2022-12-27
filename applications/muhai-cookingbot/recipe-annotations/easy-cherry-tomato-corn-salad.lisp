@@ -222,7 +222,7 @@
     
     (mingle ?salad ?kitchen-state-with-salad ?kitchen-state-with-drizzled-salad-base ?drizzled-salad-base ?wooden-spoon) ;; use the same wooden spoon
 
-    ; TODO RD: refrigerate could be a special case of cool-for-time?
+    ; TODO RD: refrigerate could be a special case of leave-for-time?
     (refrigerate ?cooled-salad ?kitchen-state-with-cooled-salad ?kitchen-state-with-salad ?salad ?fridge ?cooling-quantity ?cooling-unit)))
 
 

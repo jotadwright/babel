@@ -184,7 +184,7 @@
     (bake ?baked-rounds ?ks-with-baked-rounds ?ks-with-sprinkled-dough ?sprinkled-dough ?oven 6 minute 200 degrees-celsius)
 
     ;; "Let the cookies stay on the baking sheets for half a minute, so they are just firm enough to hold their shape."
-    (cool-for-time ?cooling-rounds ?ks-with-cooling-rounds ?ks-with-baked-rounds ?baked-rounds 0.5 minute)
+    (leave-for-time ?cooling-rounds ?ks-with-cooling-rounds ?ks-with-baked-rounds ?baked-rounds 0.5 minute)
 
     ;; "Then let the cookies cool completely on wire racks."
     (fetch ?wire-rack ?ks-with-wire-rack ?ks-with-cooling-rounds wire-rack 1) ;; IMPLICIT

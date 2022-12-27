@@ -179,7 +179,7 @@
     (bake ?baked-crescents ?ks-with-baked-crescents ?ks-with-crescents-tray ?tray-with-crescents ?preheated-oven 15 minute ?bake-temp-qty ?bake-temp-unit)
 
     ;; "Cool on the baking sheet for 5 minutes before transferring to a wire rack to cool completely."
-    (cool-for-time ?cooling-cookies ?ks-with-cooling-cookies ?ks-with-baked-crescents ?baked-crescents 5 minute)
+    (leave-for-time ?cooling-cookies ?ks-with-cooling-cookies ?ks-with-baked-crescents ?baked-crescents 5 minute)
     
     (fetch ?wire-rack ?ks-with-wire-rack ?ks-with-cooling-cookies wire-rack 1) ;; IMPLICIT
     (transfer-items ?cookies-on-wire-rack ?ks-with-cookies-on-wire-rack ?ks-with-wire-rack ?cooling-cookies ?default-pattern ?wire-rack)
