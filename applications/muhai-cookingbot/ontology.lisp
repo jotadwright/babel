@@ -466,6 +466,14 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Something that can be sprinkled over something."))
 
+(defclass washable (kitchen-entity)
+  ((washed :type boolean :initarg :washed :accessor washed :initform nil))
+  (:documentation "For objects that can be washed."))
+
+(defmethod copy-object-content ((washable washable) (copy washable))
+  "Copying washable objects."
+  (setf (washed copy) (copy-object (washed washable))))
+
 
 ;; Kitchen Equipment ;;
 ;;;;;;;;;;;;;;;;;;;;;;;
@@ -710,7 +718,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Banana."))
 
-(defclass black-bean (ingredient)
+(defclass black-bean (ingredient washable)
   ()
   (:documentation "Black beans."))
 
@@ -967,7 +975,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Raisin."))
 
-(defclass red-chili-pepper (ingredient)
+(defclass red-chili-pepper (ingredient cuttable)
   ()
   (:documentation "Ret hot chili pepper."))
 
@@ -990,6 +998,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defmethod copy-object-content ((salted-butter salted-butter) (copy salted-butter))
   "Copying salted-butter objects."
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated salted-butter))))
+
+(defclass scallion (ingredient cuttable)
+  ()
+  (:documentation "Scallion."))
 
 (defclass self-rising-flour (flour)
   ()
