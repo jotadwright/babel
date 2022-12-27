@@ -278,7 +278,7 @@
            ;        (temperature-quantity 0.0 (quantity (temperature new-kitchen-state)) nil)
            ;        (temperature-unit 0.0 (unit (temperature new-kitchen-state)) nil)))))))
 
-(defprimitive cool-for-time ((container-with-ingredients-at-temperature transferable-container)
+(defprimitive leave-for-time ((container-with-ingredients-at-temperature transferable-container)
                              (kitchen-state-out kitchen-state)
                              (kitchen-state-in kitchen-state)
                              (container-with-ingredients transferable-container)
@@ -298,8 +298,8 @@
 
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at) 
      
-     (cond ((not (has-failed-objects container-with-ingredients))
-     
+     (cond (new-container
+
             (change-temperature new-container cooling-time)
    
             (bind (container-with-ingredients-at-temperature 1.0 new-container container-available-at)
@@ -2601,6 +2601,34 @@
              (cover 1.0 (make-instance 'failed-object) container-available-at)
              (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
+(defprimitive wash ((container-with-washed-ingredients transferable-container)
+                    (kitchen-state-out kitchen-state)
+                    (kitchen-state-in kitchen-state)
+                    (container-with-input-ingredients transferable-container))
+
+  ((kitchen-state-in container-with-input-ingredients => kitchen-state-out container-with-washed-ingredients)
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-container (find-object-by-persistent-id container-with-input-ingredients (counter-top new-kitchen-state)))
+          (container-available-at (+ 60 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id container-with-input-ingredients) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+     (cond (new-container
+            (loop for ingredient in (contents new-container)
+                  when (typep ingredient 'washable)
+                    do (setf (washed ingredient) t))
+
+            (bind (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (container-with-washed-ingredients 1.0 new-container container-available-at)))
+           (t
+            (bind (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (container-with-washed-ingredients 1.0 (make-instance 'failed-object) container-available-at)))))))
+
 ;;--------------------------------------------------------------------------
 ;; Helper functions
 ;;--------------------------------------------------------------------------
@@ -2642,15 +2670,16 @@
 
 (defun compute-temperature (ingredient new-amount)
   "Compute the temperature for a given ingredient, based on a given time"
-  ; only minutes are supported currently
-  (make-instance 'amount
-                 :quantity (make-instance 'quantity
+  (if (temperature ingredient)
+    (make-instance 'amount
+                   :quantity (make-instance 'quantity
                                           ; TOVERIFY RD: location-related formula?
-                                          :value (max (- (value (quantity (temperature ingredient)))
-                                                         (* (/ (value (quantity (temperature ingredient))) 45)
-                                                            (value (quantity new-amount))))
-                                                      18))
-                 :unit (make-instance 'degrees-celsius)))
+                                            :value (max (- (value (quantity (temperature ingredient)))
+                                                           (* (/ (value (quantity (temperature ingredient))) 45)
+                                                              (value (quantity new-amount))))
+                                                        18))
+                   :unit (make-instance 'degrees-celsius))
+    nil))
                         
 (defun take-n-pieces (source-container target-amount target-container)
   (assert (= (length (contents source-container)) 1))
@@ -2884,6 +2913,10 @@
           (acons 'teaspoon 5 '()))    
     (setf (gethash 'egg conversion-table)
           (acons 'piece 50 '()))
+    (setf (gethash 'fresh-cilantro conversion-table)
+          (acons 'teaspoon 0.65 '()))
+    (setf (gethash 'garlic conversion-table)
+	  (acons 'piece 6 '()))
     (setf (gethash 'ground-allspice conversion-table)
 	  (acons 'teaspoon 2 '()))
     (setf (gethash 'ground-black-pepper conversion-table)
@@ -2905,15 +2938,19 @@
     (setf (gethash 'milk conversion-table)
 	  (acons 'l 1032 '()))
     (setf (gethash 'olive-oil conversion-table)
-          (acons 'teaspoon 4.5 '()))
+          (acons 'teaspoon 4.5 (acons 'l 920 '())))
     (setf (gethash 'onion conversion-table)
           (acons 'piece 100 '()))
+    (setf (gethash 'red-chili-pepper conversion-table)
+          (acons 'piece 25 '()))  
     (setf (gethash 'red-onion conversion-table)
           (acons 'piece 50 '()))
     (setf (gethash 'red-pepper-flakes conversion-table)
           (acons 'teaspoon 0.5 '()))
     (setf (gethash 'salt conversion-table)
           (acons 'teaspoon 6 '()))
+    (setf (gethash 'scallion conversion-table)
+          (acons 'piece 17 '()))  
     (setf (gethash 'shallot conversion-table)
           (acons 'piece 50 '()))
     (setf (gethash 'vanilla conversion-table)
