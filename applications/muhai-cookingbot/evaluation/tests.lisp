@@ -270,5 +270,5 @@
 
 (evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-multiple-recipes.solution"
           "applications\\muhai-cookingbot\\evaluation\\tests\\test-results.csv"
-          t
+          nil
           'goal-condition-success 'dish-approximation-score 'execution-time)
