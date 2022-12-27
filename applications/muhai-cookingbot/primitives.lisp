@@ -62,9 +62,10 @@
                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
                   (oven-to-bake-in 0.0 oven-to-be-heated thing-baked-available-at)))
            (t
-            (bind (thing-baked 1.0 (make-instance 'failed-object) thing-baked-available-at)
-                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-                  (oven-to-bake-in 0.0 oven-to-be-heated thing-baked-available-at))))))
+            nil))))
+          ;  (bind (thing-baked 1.0 (make-instance 'failed-object) thing-baked-available-at)
+          ;        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+          ;        (oven-to-bake-in 0.0 oven-to-be-heated thing-baked-available-at))))))
      
 
   ;; Case 2: Preheated oven is available, temperature not mentioned
@@ -106,10 +107,11 @@
                   (target-temperature-quantity 0.0 (quantity oven-temperature) nil)
                   (target-temperature-unit 0.0 (unit oven-temperature) nil)))
            (t
-            (bind (thing-baked 1.0 (make-instance 'failed-object) thing-baked-available-at)
-                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-                  (target-temperature-quantity 0.0 (quantity oven-temperature) nil)
-                  (target-temperature-unit 0.0 (unit oven-temperature) nil))))))
+            nil))))
+         ;   (bind (thing-baked 1.0 (make-instance 'failed-object) thing-baked-available-at)
+         ;         (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+         ;         (target-temperature-quantity 0.0 (quantity oven-temperature) nil)
+         ;         (target-temperature-unit 0.0 (unit oven-temperature) nil))))))
            
   ;; Case 3: Oven and temperature are given, oven is considered to not have been preheated
   ((kitchen-state-in thing-to-bake oven-to-bake-in time-to-bake-quantity time-to-bake-unit target-temperature-quantity target-temperature-unit
@@ -150,8 +152,9 @@
             (bind (thing-baked 1.0 new-thing-to-bake thing-baked-available-at)
                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))
            (t
-            (bind (thing-baked 1.0 (make-instance 'failed-object) thing-baked-available-at)
-                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+            nil)))))
+           ; (bind (thing-baked 1.0 (make-instance 'failed-object) thing-baked-available-at)
+           ;       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
 (defprimitive beat ((container-with-ingredients-beaten transferable-container)
                     (kitchen-state-out kitchen-state)
@@ -187,9 +190,10 @@
                       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
                       (tool 0.0 target-tool-instance-new-ks nil))))
              (t
-              (bind (container-with-ingredients-beaten 1.0 (make-instance 'failed-object) container-available-at)
-                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-                    (tool 0.0 (make-instance 'failed-object) nil)))))))
+              nil)))))
+             ; (bind (container-with-ingredients-beaten 1.0 (make-instance 'failed-object) container-available-at)
+             ;       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+             ;       (tool 0.0 (make-instance 'failed-object) nil)))))))
 
   ;; Case 2: Reuse existing whisk for beating
   ((kitchen-state-in container-with-ingredients tool => kitchen-state-out container-with-ingredients-beaten )
@@ -214,8 +218,9 @@
               (bind (container-with-ingredients-beaten 1.0 new-container container-available-at)
                     (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
            (t
-            (bind (container-with-ingredients-beaten 1.0 (make-instance 'failed-object) container-available-at)
-                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+            nil)))))
+           ; (bind (container-with-ingredients-beaten 1.0 (make-instance 'failed-object) container-available-at)
+           ;       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
   
 (defprimitive bring-to-temperature ((container-with-ingredients-at-temperature transferable-container)
                                     (kitchen-state-out kitchen-state)
@@ -243,8 +248,9 @@
             (bind (container-with-ingredients-at-temperature 1.0 new-container container-available-at)
                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))
            (t
-            (bind (container-with-ingredients-at-temperature 1.0 (make-instance 'failed-object) container-available-at)
-                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))
+            nil))))
+           ; (bind (container-with-ingredients-at-temperature 1.0 (make-instance 'failed-object) container-available-at)
+           ;       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))
   
   ; Case 2: temperature is not given, room temperature (i.e. kitchen-state temperature is used)
   ((kitchen-state-in container-with-ingredients
@@ -266,10 +272,11 @@
                    (temperature-quantity 0.0 (quantity (temperature new-kitchen-state)) nil)
                    (temperature-unit 0.0 (unit (temperature new-kitchen-state)) nil)))
             (t
-             (bind (container-with-ingredients-at-temperature 1.0 (make-instance 'failed-object) container-available-at)
-                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-                   (temperature-quantity 0.0 (quantity (temperature new-kitchen-state)) nil)
-                   (temperature-unit 0.0 (unit (temperature new-kitchen-state)) nil)))))))
+             nil)))))
+           ;  (bind (container-with-ingredients-at-temperature 1.0 (make-instance 'failed-object) container-available-at)
+           ;        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           ;        (temperature-quantity 0.0 (quantity (temperature new-kitchen-state)) nil)
+           ;        (temperature-unit 0.0 (unit (temperature new-kitchen-state)) nil)))))))
 
 (defprimitive cool-for-time ((container-with-ingredients-at-temperature transferable-container)
                              (kitchen-state-out kitchen-state)
@@ -298,8 +305,9 @@
             (bind (container-with-ingredients-at-temperature 1.0 new-container container-available-at)
                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))
            (t
-            (bind (container-with-ingredients-at-temperature 1.0 (make-instance 'failed-object) container-available-at)
-                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+            nil)))))
+          ;  (bind (container-with-ingredients-at-temperature 1.0 (make-instance 'failed-object) container-available-at)
+          ;        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
 (defprimitive cover ((covered-object coverable-container)
                      (kitchen-state-out kitchen-state)
@@ -337,10 +345,11 @@
              (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
              (cover 0.0 new-cover container-available-at)))
            (t
-            (bind
-             (covered-object 1.0 (make-instance 'failed-object) container-available-at)
-             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-             (cover 0.0 (make-instance 'failed-object) container-available-at))))))        
+            nil))))
+           ; (bind
+           ;  (covered-object 1.0 (make-instance 'failed-object) container-available-at)
+           ;  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           ;  (cover 0.0 (make-instance 'failed-object) container-available-at))))))        
 
   ;;Case 2: cover given
   ((kitchen-state-in object cover => covered-object kitchen-state-out)
@@ -367,9 +376,10 @@
              (covered-object 1.0 new-container container-available-at)
              (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))
            (t
-            (bind
-             (covered-object 1.0 (make-instance 'failed-object) container-available-at)
-             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+            nil)))))
+          ;  (bind
+          ;   (covered-object 1.0 (make-instance 'failed-object) container-available-at)
+          ;   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
 (defprimitive cut ((cut-object transferable-container)
                    (kitchen-state-out kitchen-state)
@@ -406,9 +416,10 @@
                      (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
                      (cutting-tool 0.0 new-knife container-available-at)))
               (t
-                              (bind (cut-object 1.0 (make-instance 'failed-object) container-available-at)
-                     (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-                     (cutting-tool 0.0 (make-instance 'failed-object) container-available-at)))))))
+               nil)))))
+               ;(bind (cut-object 1.0 (make-instance 'failed-object) container-available-at)
+               ;      (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+               ;      (cutting-tool 0.0 (make-instance 'failed-object) container-available-at)))))))
 
 
   ;;Case 2: cutting tool given, cut-pattern given
@@ -437,8 +448,9 @@
               (bind (cut-object 1.0 new-container container-available-at)
                     (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
            (t
-            (bind (cut-object 1.0 (make-instance 'failed-object) container-available-at)
-                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+            nil)))))
+         ;   (bind (cut-object 1.0 (make-instance 'failed-object) container-available-at)
+         ;         (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
 (defprimitive crack ((container-with-cracked-eggs transferable-container)
                      (kitchen-state-out kitchen-state)
@@ -472,8 +484,9 @@
             (bind (container-with-cracked-eggs 1.0 new-target-container container-available-at)
                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))
            (t
-            (bind (container-with-cracked-eggs 1.0 (make-instance 'failed-object) container-available-at)
-                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))          
+            nil))))
+           ; (bind (container-with-cracked-eggs 1.0 (make-instance 'failed-object) container-available-at)
+           ;       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))          
 
   ;; Case 2: target container not given, use a medium bowl
   ((kitchen-state-in eggs  => kitchen-state-out container-with-cracked-eggs target-container)
@@ -509,9 +522,10 @@
                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
                   (target-container 0.0 target-container-instance-old-ks nil)))
            (t
-            (bind (container-with-cracked-eggs 1.0 (make-instance 'failed-object) container-available-at)
-                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-                  (target-container 0.0 (make-instance 'failed-object) nil)))))))
+            nil)))))
+           ; (bind (container-with-cracked-eggs 1.0 (make-instance 'failed-object) container-available-at)
+           ;       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           ;       (target-container 0.0 (make-instance 'failed-object) nil)))))))
 
 
 (defprimitive dip ((dipped-object t) ;;transferable container or list of kitchen entities
@@ -556,8 +570,9 @@
                      (bind (dipped-object 1.0 new-items-to-dip dipped-object-available-at)
                            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
                   (t
-                   (bind (dipped-object 1.0 (make-instance 'failed-object) dipped-object-available-at)
-                         (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))
+                   nil))))
+                   ;(bind (dipped-object 1.0 (make-instance 'failed-object) dipped-object-available-at)
+                   ;      (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))
          
          ((subtypep (type-of object) 'transferable-container)
           (let* ((new-kitchen-state (copy-object kitchen-state-in))
@@ -591,8 +606,9 @@
                      (bind (dipped-object 1.0 new-input-container dipped-object-available-at)
                            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
                   (t
-                   (bind (dipped-object 1.0 (make-instance 'failed-object) dipped-object-available-at)
-                         (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))))
+                   nil)))))))
+                   ;(bind (dipped-object 1.0 (make-instance 'failed-object) dipped-object-available-at)
+                   ;      (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))))
 
 (defprimitive fetch ((thing-fetched kitchen-entity) ; if quantity > 1, this will be a list-of-kitchen-entities 
                      (kitchen-state-out kitchen-state)
@@ -616,8 +632,9 @@
          (if target-concept-instance-new-ks
            (bind (thing-fetched 1.0 target-concept-instance-new-ks thing-available-at)
                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))
-           (bind (thing-fetched 1.0 (make-instance 'failed-object) thing-available-at)
-                 (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+           nil))
+         ;  (bind (thing-fetched 1.0 (make-instance 'failed-object) thing-available-at)
+         ;        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
 
        ;; find all objects and place them on the countertop (one by one)
        (let ((things-fetched (make-instance 'list-of-kitchen-entities))
@@ -632,8 +649,9 @@
          (if has-failed
            (bind (thing-fetched 1.0 (make-instance 'failed-object) thing-available-at)
                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))
-           (bind (thing-fetched 1.0 things-fetched thing-available-at)
-                 (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))))
+           nil))))))
+          ; (bind (thing-fetched 1.0 things-fetched thing-available-at)
+          ;       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))))
 
 (defprimitive fetch-and-proportion ((container-with-ingredient container)
                                     (kitchen-state-out kitchen-state)
@@ -692,9 +710,10 @@
              (t
               (unless ingredient-instance
                 (print (format nil "No more ~a found in current kitchen state!!!" (type-of ingredient-concept))))
-              (bind (target-container 0.0 (make-instance 'failed-object) nil)
-                    (container-with-ingredient 1.0 (make-instance 'failed-object) container-available-at)
-                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+              nil)))))
+              ;(bind (target-container 0.0 (make-instance 'failed-object) nil)
+              ;      (container-with-ingredient 1.0 (make-instance 'failed-object) container-available-at)
+              ;      (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
   ; Case 2: target container is given         
   ;; Takes a specified amount of an ingredient from somewhere in the kitchen and places it in the given container
@@ -740,8 +759,9 @@
              (t
               (unless ingredient-instance
                 (print (format nil "No more ~a found in current kitchen state!!!" (type-of ingredient-concept))))
-              (bind (container-with-ingredient 1.0 (make-instance 'failed-object) container-available-at)
-                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))))
+              nil))))))
+              ;(bind (container-with-ingredient 1.0 (make-instance 'failed-object) container-available-at)
+              ;      (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))))
 
 (defprimitive flatten ((container-with-flattened-items list-of-kitchen-entities)
                        (kitchen-state-out kitchen-state)
@@ -1285,9 +1305,10 @@
                         (container-with-mixture 1.0 container-with-input-ingredients-instance container-available-at)
                         (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
                (t
-                (bind (mixing-tool 0.0 (make-instance 'failed-object))
-                      (container-with-mixture 1.0 (make-instance 'failed-object) container-available-at)
-                      (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+                nil)))))
+               ; (bind (mixing-tool 0.0 (make-instance 'failed-object))
+               ;       (container-with-mixture 1.0 (make-instance 'failed-object) container-available-at)
+               ;       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
   ;;Case 2: Mixing tool specified
   ((kitchen-state-in container-with-input-ingredients mixing-tool => kitchen-state-out container-with-mixture )
@@ -1316,8 +1337,9 @@
             (bind (container-with-mixture 1.0 new-container-with-ingredients-to-mix container-available-at)
                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))
            (t
-            (bind (container-with-mixture 1.0 (make-instance 'failed-object) container-available-at)
-                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+            nil)))))
+           ; (bind (container-with-mixture 1.0 (make-instance 'failed-object) container-available-at)
+           ;       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
 
 (defprimitive peel ((peeled-ingredient transferable-container)
@@ -2359,12 +2381,13 @@
                     (quantity 0.0 (quantity total-amount) nil)
                     (unit 0.0 (unit total-amount) nil)))
              (t
-              (bind (target-container 0.0 (make-instance 'failed-object) nil)
-                    (container-with-all-ingredients 1.0 (make-instance 'failed-object) container-available-at)
-                    (container-with-rest 1.0 (make-instance 'failed-object) container-available-at)
-                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-                    (quantity 0.0 (make-instance 'failed-object) nil)
-                    (unit 0.0 (make-instance 'failed-object) nil)))))))
+              nil)))))
+             ; (bind (target-container 0.0 (make-instance 'failed-object) nil)
+             ;       (container-with-all-ingredients 1.0 (make-instance 'failed-object) container-available-at)
+             ;       (container-with-rest 1.0 (make-instance 'failed-object) container-available-at)
+             ;       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+             ;       (quantity 0.0 (make-instance 'failed-object) nil)
+             ;       (unit 0.0 (make-instance 'failed-object) nil)))))))
 
   ;; Case 2: Case in which the target container is given in the input-kitchen-state and no quantity and unit are given
   ((kitchen-state-in container-with-input-ingredients target-container
@@ -2406,11 +2429,12 @@
                   (quantity 0.0 (quantity total-amount) nil)
                   (unit 0.0 (unit total-amount) nil)))
            (t
-            (bind (container-with-all-ingredients 1.0 (make-instance 'failed-object) container-available-at)
-                  (container-with-rest 1.0 (make-instance 'failed-object) container-available-at)
-                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-                  (quantity 0.0 (make-instance 'failed-object) nil)
-                  (unit 0.0 (make-instance 'failed-object) nil)))))))
+            nil)))))
+         ;   (bind (container-with-all-ingredients 1.0 (make-instance 'failed-object) container-available-at)
+         ;         (container-with-rest 1.0 (make-instance 'failed-object) container-available-at)
+         ;         (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+         ;         (quantity 0.0 (make-instance 'failed-object) nil)
+         ;         (unit 0.0 (make-instance 'failed-object) nil)))))))
 
 (defprimitive transfer-items ((transferred container)
                               (kitchen-state-out kitchen-state)
@@ -2663,26 +2687,48 @@
         (values target-container source-container)))))
 
 (defun weigh-ingredient (source-container target-amount target-container)
-
-  (assert (= (length (contents source-container)) 1))
   
-  (let* ((source-ingredient (first (contents source-container)))
-         (new-amount-source (make-instance 'amount
-                                          :unit (unit target-amount)
-                                          :quantity (make-instance 'quantity
-                                                                   :value (- (value (quantity (amount source-ingredient)))
-                                                                             (value (quantity target-amount))))))
-         (target-ingredient (copy-object source-ingredient)))
+  (assert (= (length (contents source-container)) 1))
 
-    ;;adjust amounts of target and source ingredients
-    (setf (amount target-ingredient) target-amount)
-    (setf (amount source-ingredient) new-amount-source)
+  (let ((source-ingredient (first (contents source-container))))
+    (if (eq (type-of (unit (amount source-ingredient))) (type-of (unit target-amount)))
+      (let* ((new-amount-source (make-instance 'amount
+                                               :unit (unit target-amount)
+                                               :quantity (make-instance 'quantity
+                                                                        :value (- (value (quantity (amount source-ingredient)))
+                                                                                  (value (quantity target-amount))))))
+             (target-ingredient (copy-object source-ingredient)))
+
+        ;;adjust amounts of target and source ingredients
+        (setf (amount target-ingredient) target-amount)
+        (setf (amount source-ingredient) new-amount-source)
     
-    ;;add weighed ingredient to contents of target-container
-    (setf (contents target-container)
-          (cons target-ingredient (contents target-container)))
+        ;;add weighed ingredient to contents of target-container
+        (setf (contents target-container)
+              (cons target-ingredient (contents target-container)))
     
-  (values target-container source-container)))
+        (values target-container source-container))
+      ; convert everything to g for correct computation of differences
+      (let* ((source-ingredient-in-g (convert-to-g source-ingredient))
+             (target-ingredient (copy-object source-ingredient-in-g)))
+        
+        (setf (amount target-ingredient) target-amount)
+        (setf target-ingredient (convert-to-g target-ingredient))
+        (let ((new-amount-source (make-instance 'amount
+                                                :unit (make-instance 'g)
+                                                :quantity (make-instance 'quantity
+                                                                         :value (- (value (quantity (amount source-ingredient)))
+                                                                                   (value (quantity (amount target-ingredient))))))))
+
+        ;;adjust amounts of target and source ingredients
+        (setf (amount target-ingredient) target-amount)
+        (setf (amount source-ingredient) new-amount-source)
+    
+        ;;add weighed ingredient to contents of target-container
+        (setf (contents target-container)
+              (cons target-ingredient (contents target-container)))
+    
+        (values target-container source-container))))))
 
 (defun find-unused-kitchen-entity (reusable-type place &optional excluded)
   "Recursively look for an unused kitchen entity of the given type in the given place.
@@ -2708,25 +2754,24 @@
 (defun find-ingredient (ingredient-type place &optional mother-place) ;;place can be bowl!!
   (cond ((loop for el in (contents place)
                unless (typep el 'counter-top)
-               if (or (eql ingredient-type (type-of el))
-                      (member ingredient-type (mapcar #'class-name (all-superclasses (class-of el)))))
-               do (return t))
+                 if (or (eql ingredient-type (type-of el))
+                        (member ingredient-type (mapcar #'class-name (all-superclasses (class-of el)))))
+                   do (return t))
          (loop for el in (contents place)
                unless (typep el 'counter-top)
-               if (or (eql ingredient-type (type-of el))
-                      (member ingredient-type (mapcar #'class-name (all-superclasses (class-of el)))))
-               do (return (values el place mother-place))))
+                 if (or (eql ingredient-type (type-of el))
+                        (member ingredient-type (mapcar #'class-name (all-superclasses (class-of el)))))
+                   do (return (values el place mother-place))))
         (t
          (loop for el in (contents place)
                unless (typep el 'counter-top)
-               if (subtypep (type-of el) 'container)
-               do (multiple-value-bind (found-ingredient found-place found-mother-place)
-                      (find-ingredient ingredient-type el place)
-                    (cond ((and found-ingredient found-mother-place)
-                           (return (values found-place found-mother-place)))
-                          (found-ingredient
-                           (return (values found-ingredient found-place)))))))))
-
+                 if (subtypep (type-of el) 'container)
+                   do (multiple-value-bind (found-ingredient found-place found-mother-place)
+                          (find-ingredient ingredient-type el place)
+                        (cond ((and found-ingredient found-mother-place)
+                               (return (values found-place found-mother-place)))
+                              (found-ingredient
+                               (return (values found-ingredient found-place)))))))))
 
 ;; searching for a failed-object always fails
 (defmethod find-object-by-persistent-id ((object failed-object) (container container))
@@ -2871,6 +2916,8 @@
           (acons 'teaspoon 6 '()))
     (setf (gethash 'shallot conversion-table)
           (acons 'piece 50 '()))
+    (setf (gethash 'vanilla conversion-table)
+	  (acons 'teaspoon 4 '()))
     (setf (gethash 'vanilla-extract conversion-table)
 	  (acons 'l 880 (acons 'teaspoon 4 '())))
     (setf (gethash 'vegetable-oil conversion-table)
