@@ -24,19 +24,6 @@
                                                                                                                               :value 500)))))
                                         (make-instance 'medium-bowl
                                                        :used T
-                                                       :contents (list (make-instance 'salted-butter
-                                                                                      :temperature
-                                                                                      (make-instance 'amount
-                                                                                                     :unit (make-instance 'degrees-celsius)
-                                                                                                     :quantity (make-instance 'quantity
-                                                                                                                              :value 5))
-                                                                                      :amount
-                                                                                      (make-instance 'amount
-                                                                                                     :unit (make-instance 'g)
-                                                                                                     :quantity (make-instance 'quantity
-                                                                                                                              :value 500)))))
-                                        (make-instance 'medium-bowl
-                                                       :used T
                                                        :contents (list (make-instance 'cherry-tomato :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
@@ -62,6 +49,45 @@
                                                                                                      :unit (make-instance 'piece)
                                                                                                      :quantity (make-instance 'quantity
                                                                                                                               :value 12)))))
+                                        (make-instance 'medium-bowl
+                                                       :used T
+                                                       :contents (list (make-instance 'egg-white
+                                                                                      :temperature
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'degrees-celsius)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 5))
+                                                                                      :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 500)))))
+                                        (make-instance 'medium-bowl
+                                                       :used T
+                                                       :contents (list (make-instance 'salted-butter
+                                                                                      :temperature
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'degrees-celsius)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 5))
+                                                                                      :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 500)))))
+                                        (make-instance 'medium-bowl
+                                                       :used T
+                                                       :contents (list (make-instance 'shredded-coconut
+                                                                                      :temperature
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'degrees-celsius)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 5))
+                                                                                      :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 500)))))
                                         (make-instance 'medium-bowl
                                                        :used T
                                                        :contents (list (make-instance 'water
@@ -1102,7 +1128,46 @@
                        '(transfer-contents ?output-container-g ?rest-g ?output-ks-g ?ks-with-large-bowl-2 ?large-bowl-2 ?cooled-crescents ?quantity-g ?unit-g)
                        '(cover ?covered-cookies ?ks-with-covered-cookies ?output-ks-g ?output-container-g ?cover))
                  :primary-output-var
-                 '?baked-crescents))
+                 '?covered-cookies))
+
+; extra baking recipes
+
+(defparameter *coconut-tuiles-environment*
+  (make-instance 'simulation-environment
+                 :recipe-id 'coconut-tuiles
+                 :kitchen-state
+                 *full-kitchen*
+                 :meaning-network
+                 (list '(get-kitchen ?kitchen)
+                       '(fetch-and-proportion ?proportioned-butter ?ks-with-butter ?kitchen ?target-container-1 butter 230 g)
+                       '(bring-to-temperature ?warm-butter ?ks-with-warm-butter ?ks-with-butter ?proportioned-butter ?room-temp-quantity ?room-temp-unit)
+                       '(fetch-and-proportion ?proportioned-sugar ?ks-with-sugar ?ks-with-warm-butter ?target-container-2 white-sugar 100 g)
+                       '(fetch-and-proportion ?proportioned-egg-white ?ks-with-egg-white ?ks-with-sugar ?target-container-3 egg-white 80 g)
+                       '(beat ?beaten-egg-white ?ks-with-beaten-egg-white ?ks-with-egg-white ?proportioned-egg-white ?mixing-tool)
+                       '(fetch-and-proportion ?proportioned-flour ?ks-with-flour ?ks-with-beaten-egg-white ?target-container-4 all-purpose-flour 3 tablespoon)
+                       '(fetch-and-proportion ?proportioned-coconut-34 ?ks-with-coconut-34 ?ks-with-flour ?target-container-5 shredded-coconut 150 g)
+                       '(fetch-and-proportion ?proportioned-coconut-14 ?ks-with-coconut-14 ?ks-with-coconut-34 ?target-container-6 shredded-coconut 50 g)
+                       '(preheat-oven ?preheated-oven ?ks-with-preheated-oven ?ks-with-coconut-14 ?oven 200 degrees-celsius)
+                       '(fetch ?mixer ?ks-with-mixer ?ks-with-coconut-14 mixer 1)
+                       '(beat ?beaten-butter ?ks-with-beaten-butter ?ks-with-mixer ?warm-butter ?mixer)
+                       '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-beaten-butter ?empty-bowl ?beaten-butter ?quantity-a ?unit-a)
+                       '(transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?proportioned-sugar ?quantity-b ?unit-b)
+                       '(beat ?beaten-sugar-mixture ?ks-with-beaten-sugar-mixture ?ks-with-mixer ?proportioned-sugar ?mixer)
+                       '(beat ?beaten-egg-mixture ?ks-with-beaten-egg-mixture ?ks-with-beaten-sugar-mixture ?proportioned-egg-white ?mixing-tool)
+                       '(transfer-contents ?output-container-c ?rest-c ?output-ks-c ?ks-with-beaten-egg-mixture ?beaten-egg-mixture ?proportioned-flour ?quantity-c ?unit-c)
+                       '(transfer-contents ?output-container-d ?rest-d ?output-ks-d ?output-ks-c ?output-container-c ?proportioned-coconut-34 ?quantity-d ?unit-d)
+                       '(mix ?dough ?ks-with-dough ?output-ks-d ?output-container-d ?mixing-tool)
+                       '(fetch ?baking-tray ?ks-with-baking-tray ?ks-with-dough baking-tray 1)
+                       '(grease ?greased-tray ?ks-with-greased-tray ?ks-with-baking-tray ?baking-tray ?grease)
+                       '(portion-and-arrange ?portioned-dough ?ks-with-dough-portions ?ks-with-greased-tray ?dough 25 g 5-cm-apart ?greased-tray)
+                       '(sprinkle ?sprinkled-dough ?ks-with-sprinkled-dough ?ks-with-dough-portions ?portioned-dough ?proportioned-coconut-14)
+                       '(bake ?baked-rounds ?ks-with-baked-rounds ?ks-with-sprinkled-dough ?sprinkled-dough ?oven 6 minute 200 degrees-celsius)
+                       '(cool-for-time ?cooling-rounds ?ks-with-cooling-rounds ?ks-with-baked-rounds ?baked-rounds 0.5 minute)
+                       '(fetch ?wire-rack ?ks-with-wire-rack ?ks-with-cooling-rounds wire-rack 1)
+                       '(transfer-items ?rounds-on-wire-rack ?ks-with-rounds-on-wire-rack ?ks-with-wire-rack ?cooling-rounds ?default-pattern ?wire-rack)
+                       '(bring-to-temperature ?cooled-rounds ?ks-with-cooled-cookies ?ks-with-rounds-on-wire-rack ?rounds-on-wire-rack ?room-temp-qty-2 ?room-temp-unit-2))
+                 :primary-output-var
+                 '?cooled-rounds))
 
 ; list of all available simulation environments
 (defparameter *simulation-environments*
@@ -1121,4 +1186,6 @@
         *almond-crescent-cookies-3-environment*
         *almond-crescent-cookies-4-environment*
         *almond-crescent-cookies-5-environment*
+        ; extra baking recipes
+        *coconut-tuiles-environment*
         ))
