@@ -31,6 +31,13 @@
                                                                                                                               :value 500)))))
                                         (make-instance 'medium-bowl
                                                        :used T
+                                                       :contents (list (make-instance 'corn :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 500)))))
+                                        (make-instance 'medium-bowl
+                                                       :used T
                                                        :contents (list (make-instance 'cucumber :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'piece)
@@ -95,6 +102,13 @@
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
                                                                                                                               :value 500)))))
+                                        (make-instance 'medium-bowl
+                                                       :used T
+                                                       :contents (list (make-instance 'tomato :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'piece)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 12)))))
                                         (make-instance 'medium-bowl
                                                        :used T
                                                        :contents (list (make-instance 'water
@@ -258,7 +272,14 @@
                                                                                  (make-instance 'amount
                                                                                                 :unit (make-instance 'piece)
                                                                                                 :quantity (make-instance 'quantity
-                                                                                                                         :value 5)))))    
+                                                                                                                         :value 5)))))
+                                   (make-instance 'medium-bowl
+                                                  :used T
+                                                  :contents (list (make-instance 'green-chili-pepper :amount
+                                                                                 (make-instance 'amount
+                                                                                                :unit (make-instance 'piece)
+                                                                                                :quantity (make-instance 'quantity
+                                                                                                                         :value 5)))))
                                    (make-instance 'medium-bowl
                                                   :used T
                                                   :contents (list (make-instance 'ground-allspice :amount
@@ -428,6 +449,20 @@
                                                                                                 :unit (make-instance 'g)
                                                                                                 :quantity (make-instance 'quantity
                                                                                                                          :value 500)))))
+                                   (make-instance 'medium-bowl
+                                                  :used T
+                                                  :contents (list (make-instance 'tabasco :amount
+                                                                                 (make-instance 'amount
+                                                                                                :unit (make-instance 'l)
+                                                                                                :quantity (make-instance 'quantity
+                                                                                                                         :value 0.25)))))
+                                   (make-instance 'medium-bowl
+                                                  :used T
+                                                  :contents (list (make-instance 'trader-joes-cilantro-salad-dressing :amount
+                                                                                 (make-instance 'amount
+                                                                                                :unit (make-instance 'l)
+                                                                                                :quantity (make-instance 'quantity
+                                                                                                                         :value 0.5)))))
                                    (make-instance 'medium-bowl
                                                   :used T
                                                   :contents (list (make-instance 'vanilla :amount
@@ -1237,6 +1272,37 @@
                  :primary-output-var
                  '?served-salad))
 
+(defparameter *black-bean-salad-3-environment*
+  (make-instance 'simulation-environment
+                 :recipe-id 'black-bean-salad-3
+                 :kitchen-state
+                 *full-kitchen*
+                 :meaning-network
+                 (list '(get-kitchen ?kitchen)
+                       '(fetch-and-proportion ?proportioned-black-beans ?ks-with-black-beans ?kitchen ?target-container-1 black-bean 400 g)
+                       '(fetch-and-proportion ?proportioned-corn ?ks-with-corn ?ks-with-black-beans ?target-container-2 corn 400 g)
+                       '(fetch-and-proportion ?proportioned-onion ?ks-with-onion ?ks-with-corn ?target-container-3 onion 1 piece)
+                       '(cut ?chopped-onion ?ks-with-chopped-onion ?ks-with-onion ?proportioned-onion chopped ?knife)
+                       '(fetch-and-proportion ?proportioned-tomato ?ks-with-tomatoes ?ks-with-chopped-onion ?target-container-4 tomato 2 piece)
+                       '(cut ?chopped-tomato ?ks-with-chopped-tomato ?ks-with-tomatoes ?proportioned-tomato chopped ?knife)
+                       '(fetch-and-proportion ?proportioned-chili ?ks-with-chili ?ks-with-chopped-tomato ?target-container-5 green-chili-pepper 60 g)
+                       '(cut ?diced-chili ?ks-with-diced-chili ?ks-with-chili ?proportioned-chili diced ?knife)
+                       '(fetch-and-proportion ?proportioned-dressing ?ks-with-dressing ?ks-with-diced-chili ?target-container-6 trader-joes-cilantro-salad-dressing 3 tablespoon)
+                       '(fetch-and-proportion ?proportioned-tabasco ?ks-with-tabasco ?ks-with-dressing ?target-container-7 tabasco 0.5 teaspoon)
+                       '(fetch-and-proportion ?proportioned-pepper ?ks-with-pepper ?ks-with-tabasco ?target-container-8 ground-black-pepper 300 g)
+                       '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-pepper ?empty-bowl ?proportioned-black-beans ?quantity-a ?unit-a)
+                       '(transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?proportioned-corn ?quantity-b ?unit-b)
+                       '(transfer-contents ?output-container-c ?rest-c ?output-ks-c ?output-ks-b ?output-container-b ?chopped-onion ?quantity-c ?unit-c)
+                       '(transfer-contents ?output-container-d ?rest-d ?output-ks-d ?output-ks-c ?output-container-c ?chopped-tomato ?quantity-d ?unit-d)
+                       '(transfer-contents ?output-container-e ?rest-e ?output-ks-e ?output-ks-d ?output-container-d ?diced-chili ?quantity-e ?unit-e)
+                       '(transfer-contents ?output-container-f ?rest-f ?output-ks-f ?output-ks-e ?output-container-e ?proportioned-dressing ?quantity-f ?unit-f)
+                       '(transfer-contents ?output-container-g ?rest-g ?output-ks-g ?output-ks-f ?output-container-f ?proportioned-tabasco ?quantity-g ?unit-g)
+                       '(transfer-contents ?output-container-h ?rest-h ?output-ks-h ?output-ks-g ?output-container-g ?proportioned-pepper ?quantity-h ?unit-h)
+                       '(mingle ?salad ?ks-with-salad ?output-ks-h ?output-container-h ?mingling-tool)
+                       '(refrigerate ?cooled-salad ?ks-with-cooled-salad ?ks-with-salad ?salad ?fridge 1 hour))
+                 :primary-output-var
+                 '?cooled-salad))
+
 ; list of all available simulation environments
 (defparameter *simulation-environments*
   (list *almond-crescent-cookies-environment*
@@ -1256,6 +1322,7 @@
         *almond-crescent-cookies-5-environment*
         ; extra baking recipes
         *coconut-tuiles-environment*
-        ; extra salad recipes
+        ; extra black bean salad recipes
         *black-bean-salad-2-environment*
+        *black-bean-salad-3-environment*
         ))
