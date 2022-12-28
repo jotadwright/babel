@@ -955,6 +955,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A heterogeneous mixture. Components are still known."))
 
+(defclass mango (ingredient cuttable)
+  ()
+  (:documentation "Mango."))
+
 (defclass molasses (ingredient)
   ()
   (:documentation "Molasses."))
@@ -983,9 +987,13 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Raisin."))
 
+(defclass red-bell-pepper (ingredient cuttable seedable)
+  ()
+  (:documentation "Red bell pepper."))
+
 (defclass red-chili-pepper (ingredient cuttable)
   ()
-  (:documentation "Ret hot chili pepper."))
+  (:documentation "Red hot chili pepper."))
 
 (defclass red-onion (ingredient cuttable)
   ()
@@ -1007,7 +1015,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying salted-butter objects."
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated salted-butter))))
 
-(defclass scallion (ingredient cuttable)
+(defclass green-onion (ingredient cuttable)
   ()
   (:documentation "Scallion."))
 

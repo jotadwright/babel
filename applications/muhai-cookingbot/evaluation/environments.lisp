@@ -78,6 +78,20 @@
                                                                                                                               :value 500)))))
                                         (make-instance 'medium-bowl
                                                        :used T
+                                                       :contents (list (make-instance 'mango :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'piece)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 5)))))
+                                        (make-instance 'medium-bowl
+                                                       :used T
+                                                       :contents (list (make-instance 'red-bell-pepper :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'piece)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 10)))))
+                                        (make-instance 'medium-bowl
+                                                       :used T
                                                        :contents (list (make-instance 'salted-butter
                                                                                       :temperature
                                                                                       (make-instance 'amount
@@ -416,11 +430,11 @@
                                                                                                                          :value 500)))))
                                    (make-instance 'medium-bowl
                                                   :used T
-                                                  :contents (list (make-instance 'scallion :amount
+                                                  :contents (list (make-instance 'green-onion :amount
                                                                                  (make-instance 'amount
                                                                                                 :unit (make-instance 'piece)
                                                                                                 :quantity (make-instance 'quantity
-                                                                                                                         :value 5)))))
+                                                                                                                         :value 10)))))
                                    (make-instance 'medium-bowl
                                                   :used T
                                                   :contents (list (make-instance 'self-rising-flour :amount
@@ -1244,7 +1258,7 @@
                        '(fetch-and-proportion ?proportioned-black-beans ?ks-with-black-beans ?ks-with-olive-oil ?target-container-7 black-bean 425 g)
                        '(wash ?washed-black-beans ?ks-with-washed-black-beans ?ks-with-black-beans ?proportioned-black-beans)
                        '(fetch-and-proportion ?proportioned-cherry-tomatoes ?ks-with-cherry-tomatoes ?ks-with-washed-black-beans ?target-container-8 cherry-tomato 300 g)
-                       '(fetch-and-proportion ?proportioned-scallions ?ks-with-scallions ?ks-with-cherry-tomatoes ?target-container-9 scallion 4 piece)
+                       '(fetch-and-proportion ?proportioned-scallions ?ks-with-scallions ?ks-with-cherry-tomatoes ?target-container-9 green-onion 4 piece)
                        '(cut ?sliced-scallions ?ks-with-sliced-scallions ?ks-with-scallions ?proportioned-scallions slices ?knife)
                        '(fetch-and-proportion ?proportioned-red-pepper ?ks-with-red-pepper ?ks-with-sliced-scallions ?target-container-10 red-chili-pepper 1 piece)
                        '(cut ?cut-red-pepper ?ks-with-cut-red-pepper ?ks-with-red-pepper ?proportioned-red-pepper fine-slices ?knife)
@@ -1303,6 +1317,50 @@
                  :primary-output-var
                  '?cooled-salad))
 
+(defparameter *black-bean-salad-4-environment*
+  (make-instance 'simulation-environment
+                 :recipe-id 'black-bean-salad-4
+                 :kitchen-state
+                 *full-kitchen*
+                 :meaning-network
+                 (list '(get-kitchen ?kitchen)
+                       '(fetch-and-proportion ?proportioned-black-beans ?ks-with-black-beans ?kitchen ?target-container-1 black-bean 400 g)
+                       '(wash ?washed-black-beans ?ks-with-washed-black-beans ?ks-with-black-beans ?proportioned-black-beans)
+                       '(fetch-and-proportion ?proportioned-bell-pepper ?ks-with-bell-pepper ?ks-with-washed-black-beans ?target-container-2 red-bell-pepper 150 g)
+                       '(seed ?seeded-bell-pepper ?bell-pepper-seeds ?ks-with-seeded-bell-pepper ?ks-with-bell-pepper ?proportioned-bell-pepper ?knife)
+                       '(cut ?diced-bell-pepper ?ks-with-diced-bell-pepper ?ks-with-seeded-bell-pepper ?seeded-bell-pepper diced ?knife)
+                       '(fetch-and-proportion ?proportioned-onion ?ks-with-onion ?ks-with-diced-bell-pepper ?target-container-3 green-onion 6 piece)
+                       '(cut ?sliced-onion ?ks-with-sliced-onion ?ks-with-onion ?proportioned-onion fine-slices ?knife)
+                       '(fetch-and-proportion ?proportioned-jalapeno ?ks-with-jalapeno ?ks-with-sliced-onion ?target-container-4 jalapeno 1 piece)
+                       '(seed ?seeded-jalapeno ?jalapeno-seeds ?ks-with-seeded-jalapeno ?ks-with-jalapeno ?proportioned-jalapeno ?knife)
+                       '(cut ?minced-jalapeno ?ks-with-minced-jalapeno ?ks-with-seeded-jalapeno ?seeded-jalapeno minced ?knife)
+                       '(fetch-and-proportion ?proportioned-cilantro ?ks-with-cilantro ?ks-with-minced-jalapeno ?target-container-5 fresh-cilantro 20 g)
+                       '(cut ?chopped-cilantro ?ks-with-chopped-cilantro ?ks-with-cilantro ?proportioned-cilantro minced ?knife)
+                       '(fetch-and-proportion ?proportioned-lime-juice ?ks-with-lime-juice ?ks-with-cilantro ?target-container-6 lime-juice 250 ml)
+                       '(fetch-and-proportion ?proportioned-olive-oil ?ks-with-olive-oil ?ks-with-lime-juice ?target-container-7 olive-oil 1 tablespoon)
+                       '(fetch-and-proportion ?proportioned-mango ?ks-with-mango ?ks-with-olive-oil ?target-container-8 mango 330 g)
+                       '(cut ?diced-mango ?ks-with-diced-mango ?ks-with-mango ?proportioned-mango diced ?knife)
+                       '(fetch-and-proportion ?proportioned-salt ?ks-with-salt ?ks-with-diced-mango ?target-container-9 salt 0.5 teaspoon)
+                       '(fetch ?large-bowl ?ks-with-large-bowl ?ks-with-salt large-bowl 1)
+                       '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-large-bowl ?large-bowl ?washed-black-beans ?quantity-a ?unit-a)
+                       '(transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?diced-bell-pepper ?quantity-b ?unit-b)
+                       '(transfer-contents ?output-container-c ?rest-c ?output-ks-c ?output-ks-b ?output-container-b ?sliced-onion ?quantity-c ?unit-c)
+                       '(transfer-contents ?output-container-d ?rest-d ?output-ks-d ?output-ks-c ?output-container-c ?minced-jalapeno ?quantity-d ?unit-d)
+                       '(transfer-contents ?output-container-e ?rest-e ?output-ks-e ?output-ks-d ?output-container-d ?chopped-cilantro ?quantity-e ?unit-e)
+                       '(mingle ?bean-mix ?ks-with-bean-mix ?output-ks-e ?output-container-e ?mingling-tool)
+                       '(fetch ?small-bowl ?ks-with-small-bowl ?ks-with-bean-mix small-bowl 1)
+                       '(transfer-contents ?output-container-f ?rest-f ?output-ks-f ?ks-with-small-bowl ?small-bowl ?proportioned-olive-oil ?quantity-f ?unit-f)
+                       '(transfer-contents ?output-container-g ?rest-g ?output-ks-g ?output-ks-f ?output-container-f ?proportioned-lime-juice ?quantity-g ?unit-g)
+                       '(mix ?liquid-mixture ?ks-with-liquid-mixture ?output-ks-g ?output-container-g ?mixing-tool)
+                       '(transfer-contents ?output-container-h ?rest-h ?output-ks-h ?ks-with-liquid-mixture ?bean-mix ?liquid-mixture ?quantity-h ?unit-h)
+                       '(mingle ?black-bean-salad ?ks-with-black-bean-salad ?output-ks-h ?output-container-h ?mingling-tool)
+                       '(transfer-contents ?output-container-i ?rest-i ?output-ks-i ?ks-with-black-bean-salad ?black-bean-salad ?diced-mango ?quantity-i ?unit-i)
+                       '(mingle ?black-bean-mango-salad ?ks-with-black-bean-mango-salad ?output-ks-i ?output-container-i ?mingling-tool)
+                       '(sprinkle ?seasoned-salad ?ks-with-seasoned-salad ?ks-with-black-bean-mango-salad ?black-bean-mango-salad ?proportioned-salt))
+                 :primary-output-var
+                 '?seasoned-salad))
+
+
 ; list of all available simulation environments
 (defparameter *simulation-environments*
   (list *almond-crescent-cookies-environment*
@@ -1325,4 +1383,5 @@
         ; extra black bean salad recipes
         *black-bean-salad-2-environment*
         *black-bean-salad-3-environment*
+        *black-bean-salad-4-environment*
         ))

@@ -405,7 +405,7 @@
      ;; 1) find knife and place it on the countertop
      (let ((new-knife (retrieve-concept-instance-and-bring-to-countertop 'knife new-kitchen-state)))
 
-        (cond ((and new-knife (not (has-failed-objects object)))                       
+        (cond ((and new-knife new-container)                       
                 ;; 2) cut everything in the container according to the cutting pattern
                (loop for item in (contents new-container)
                      do (setf (is-cut item) cut-pattern))
@@ -436,7 +436,7 @@
 
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at) 
 
-     (cond ((not (has-failed-objects object))
+     (cond (new-container
             ;; 1) find cutting tool
             (let ((new-cutting-tool (find-object-by-persistent-id cutting-tool (counter-top new-kitchen-state))))
 
@@ -2933,16 +2933,20 @@
           (acons 'teaspoon 2 '()))
     (setf (gethash 'ground-nutmeg conversion-table)
 	  (acons 'teaspoon 2.2 '()))
-    (setf (gethash 'lime-juice conversion-table)
-	  (acons 'teaspoon 5 '()))
     (setf (gethash 'jalapeno conversion-table)
           (acons 'piece 20 '()))
+    (setf (gethash 'mango conversion-table)
+	  (acons 'piece 205 '()))
+    (setf (gethash 'lime-juice conversion-table)
+	  (acons 'teaspoon 5 (acons 'l 1023 '())))
     (setf (gethash 'milk conversion-table)
 	  (acons 'l 1032 '()))
     (setf (gethash 'olive-oil conversion-table)
           (acons 'teaspoon 4.5 (acons 'l 920 '())))
     (setf (gethash 'onion conversion-table)
           (acons 'piece 100 '()))
+    (setf (gethash 'red-bell-pepper conversion-table)
+          (acons 'piece 300 '()))  
     (setf (gethash 'red-chili-pepper conversion-table)
           (acons 'piece 25 '()))  
     (setf (gethash 'red-onion conversion-table)
@@ -2951,7 +2955,7 @@
           (acons 'teaspoon 0.5 '()))
     (setf (gethash 'salt conversion-table)
           (acons 'teaspoon 6 '()))
-    (setf (gethash 'scallion conversion-table)
+    (setf (gethash 'green-onion conversion-table)
           (acons 'piece 17 '()))  
     (setf (gethash 'shallot conversion-table)
           (acons 'piece 50 '()))
