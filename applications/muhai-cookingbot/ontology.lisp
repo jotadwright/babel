@@ -706,6 +706,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Almond flour."))
 
+(defclass avocado (ingredient cuttable seedable)
+  ()
+  (:documentation "Avocado."))
+
 (defclass baking-powder (ingredient)
   ()
   (:documentation "Baking-powder"))
