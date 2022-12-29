@@ -498,6 +498,100 @@
            ;        (temperature-quantity 0.0 (quantity (temperature new-kitchen-state)) nil)
            ;        (temperature-unit 0.0 (unit (temperature new-kitchen-state)) nil)))))))
 
+(defprimitive drain ((drained-ingredient transferable-container)
+                     (liquid-rests transferable-container)
+                     (kitchen-state-out kitchen-state)
+                     (kitchen-state-in kitchen-state)
+                     (container-with-ingredients transferable-container)
+                     (draining-tool can-drain))
+  
+  ;; Case 1: draining tool not given, use a colander
+  ((kitchen-state-in container-with-ingredients  => drained-ingredient liquid-rests kitchen-state-out draining-tool)
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-container (find-object-by-persistent-id container-with-ingredients (counter-top new-kitchen-state)))
+          (container-available-at (+ 60 (max (kitchen-time kitchen-state-in) 
+                                             (available-at (find (id container-with-ingredients) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at)
+          ;; 1) find draining tool
+          (new-draining-tool (retrieve-concept-instance-and-bring-to-countertop 'colander new-kitchen-state))
+          ;; 2) find container for liquids
+          (new-liquids-container (retrieve-concept-instance-and-bring-to-countertop 'medium-bowl new-kitchen-state)))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+     
+     (cond ((and
+             new-draining-tool
+             new-liquids-container
+             new-container)
+            
+            ;; 3) drain everything in the container
+            (let ((liquids '()))
+              (loop for item in (contents new-container)
+                    when (or (subtypep (type-of item) 'liquid)
+                             (and (subtypep (type-of item) 'liquefiable) (is-liquid item)))
+                      do (push item liquids))
+
+              (setf (contents new-liquids-container) liquids)
+              (setf (contents new-container) (set-difference (contents new-container) liquids)))
+
+            (setf (used new-draining-tool) t)
+            (setf (used new-liquids-container) t)
+     
+            (bind (drained-ingredient 1.0 new-container container-available-at)
+                  (liquid-rests 1.0 new-liquids-container container-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (draining-tool 0.0 new-draining-tool container-available-at)))
+           (t
+            nil))))
+  ; TODO RD: replace nil-case
+
+  ;; Case 2: draining tool given
+    ((kitchen-state-in container-with-ingredients draining-tool => drained-ingredient liquid-rests kitchen-state-out)
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-container (find-object-by-persistent-id container-with-ingredients (counter-top new-kitchen-state)))
+          (container-available-at (+ 60 (max (kitchen-time kitchen-state-in) 
+                                             (available-at (find (id container-with-ingredients) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at)
+          ;; 1) find draining tool
+          (new-draining-tool (find-object-by-persistent-id draining-tool (counter-top new-kitchen-state)))
+          ;; 2) find container for liquids
+          (new-liquids-container (retrieve-concept-instance-and-bring-to-countertop 'medium-bowl new-kitchen-state)))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+     
+     (cond ((and
+             new-draining-tool
+             new-liquids-container
+             new-container)
+            
+            ;; 3) drain everything in the container
+            (let ((liquids '()))
+              (loop for item in (contents new-container)
+                    when (or (subtypep (type-of item) 'liquid)
+                             (and (subtypep (type-of item) 'liquefiable) (is-liquid item)))
+                      do (push item liquids))
+
+              (setf (contents new-liquids-container) liquids)
+              (setf (contents new-container) (set-difference (contents new-container) liquids)))
+
+            (setf (used new-draining-tool) t)
+            (setf (used new-liquids-container) t)
+     
+            (bind (drained-ingredient 1.0 new-container container-available-at)
+                  (liquid-rests 1.0 new-liquids-container container-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))
+           (t
+            nil)))))
+
+
 (defprimitive leave-for-time ((container-with-ingredients-at-temperature transferable-container)
                              (kitchen-state-out kitchen-state)
                              (kitchen-state-in kitchen-state)
@@ -3133,6 +3227,8 @@
           (acons 'teaspoon 5 '()))
     (setf (gethash 'caster-sugar conversion-table)
 	  (acons 'teaspoon 5 '()))
+    (setf (gethash 'celery conversion-table)
+	  (acons 'piece 53 '()))
     (setf (gethash 'cider-vinegar conversion-table)
 	  (acons 'teaspoon 5 (acons 'l 950 '())))
     (setf (gethash 'coarse-salt conversion-table)
@@ -3190,7 +3286,9 @@
     (setf (gethash 'onion conversion-table)
           (acons 'piece 100 '()))
     (setf (gethash 'paprika-powder conversion-table)
-          (acons 'teaspoon 2.3 '())) 
+          (acons 'teaspoon 2.3 '()))
+    (setf (gethash 'potato conversion-table)
+          (acons 'piece 210 '()))
     (setf (gethash 'radish conversion-table)
           (acons 'piece 20 '()))  
     (setf (gethash 'red-bell-pepper conversion-table)
