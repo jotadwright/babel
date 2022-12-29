@@ -221,6 +221,226 @@
             nil)))))
            ; (bind (container-with-ingredients-beaten 1.0 (make-instance 'failed-object) container-available-at)
            ;       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+
+(defprimitive boil ((thing-boiled transferable-container)
+                    (kitchen-state-out kitchen-state)
+                    (kitchen-state-in kitchen-state)
+                    (thing-to-boil transferable-container)
+                    (stove-to-boil-on stove)
+                    (time-to-boil-quantity quantity)
+                    (time-to-boil-unit unit))
+
+  ;; Case 1: Stove is not given, but boiling time is given
+  ((kitchen-state-in thing-to-boil time-to-boil-quantity time-to-boil-unit
+                     => kitchen-state-out thing-boiled stove-to-boil-on)
+ 
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (stove-to-be-heated (stove new-kitchen-state))
+          (new-thing-to-boil (find-object-by-persistent-id thing-to-boil new-kitchen-state))
+          (thing-boiled-available-at (+ (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id thing-to-boil) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))
+                                       (* (value time-to-boil-quantity)
+                                          (if (eq time-to-boil-unit 'hour)
+                                            3600
+                                            60))))
+          (kitchen-state-available-at (+ (max (kitchen-time kitchen-state-in)
+                                            (available-at (find (id thing-to-boil) binding-objects
+                                                                  :key #'(lambda (binding-object)
+                                                                           (and (value binding-object)
+                                                                                (id (value binding-object)))))))
+                                         30)))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+     (cond ((and new-thing-to-boil stove-to-be-heated)
+
+            ; stove will immediately be turned off again after boiling is over, so temperature is not explicitly set
+
+            (let* ((all-contents (contents new-thing-to-boil))
+                   (spices (remove-if-not #'(lambda (object) (subtypep (type-of object) 'spice)) all-contents))
+                   (liquids (remove-if-not #'(lambda (object) (subtypep (type-of object) 'liquid)) all-contents))
+                   (liquid-mixture (create-homogeneous-mixture (append spices liquids) 'boiled))
+                   (main-content (set-difference all-contents (append spices liquids))))
+
+              ; we keep track of what the main content and liquids are boiled with
+              (loop for boilable in main-content
+                    do (setf (boiled boilable) t)
+                       (setf (boiled-with boilable) liquid-mixture))
+
+              (setf (is-liquid liquid-mixture) t)
+              (setf (contents new-thing-to-boil) (append main-content (list liquid-mixture)))
+
+              (bind (thing-boiled 1.0 new-thing-to-boil thing-boiled-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                    (stove-to-boil-on 0.0 stove-to-be-heated thing-boiled-available-at))))
+           (t
+            nil))))
+          ;  (bind (thing-boiled 1.0 (make-instance 'failed-object) thing-boiled-available-at)
+          ;        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+          ;        (stove-to-boil-on 0.0 stove-to-be-heated thing-boiled-available-at))))))
+     
+
+  ;; Case 2: Stove and time are given
+  ((kitchen-state-in thing-to-boil stove-to-boil-on time-to-boil-quantity time-to-boil-unit
+                     => kitchen-state-out thing-boiled )
+ 
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (stove-to-be-heated (find-object-by-persistent-id stove-to-boil-on new-kitchen-state))
+          (new-thing-to-boil (find-object-by-persistent-id thing-to-boil new-kitchen-state))
+          (thing-boiled-available-at (+ (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id thing-to-boil) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))
+                                       (* (value time-to-boil-quantity)
+                                          (if (eq time-to-boil-unit 'hour)
+                                            3600
+                                            60))))
+          (kitchen-state-available-at (+ (max (kitchen-time kitchen-state-in)
+                                            (available-at (find (id thing-to-boil) binding-objects
+                                                                  :key #'(lambda (binding-object)
+                                                                           (and (value binding-object)
+                                                                                (id (value binding-object)))))))
+                                         30)))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+     (cond ((and new-thing-to-boil stove-to-be-heated)
+
+            ; stove will immediately be turned off again after boiling is over, so temperature is not explicitly set
+
+            (let* ((all-contents (contents new-thing-to-boil))
+                   (spices (remove-if-not #'(lambda (object) (subtypep (type-of object) 'spice)) all-contents))
+                   (liquids (remove-if-not #'(lambda (object) (subtypep (type-of object) 'liquid)) all-contents))
+                   (liquid-mixture (create-homogeneous-mixture (append spices liquids) 'boiled))
+                   (main-content (set-difference all-contents (append spices liquids))))
+
+              ; we keep track of what the main content and liquids are boiled with
+              (loop for boilable in main-content
+                    do (setf (boiled boilable) t)
+                       (setf (boiled-with boilable) liquid-mixture))
+
+              (setf (is-liquid liquid-mixture) t)
+              (setf (contents new-thing-to-boil) (append main-content (list liquid-mixture)))
+
+              (bind (thing-boiled 1.0 new-thing-to-boil thing-boiled-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+           (t
+            nil))))
+          ;  (bind (thing-boiled 1.0 (make-instance 'failed-object) thing-boiled-available-at)
+          ;        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+           
+  ;; Case 3: Stove is given, but time is not given
+  ((kitchen-state-in thing-to-boil stove-to-boil-on
+                     => kitchen-state-out thing-boiled time-to-boil-quantity time-to-boil-unit)
+ 
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (stove-to-be-heated (find-object-by-persistent-id stove-to-boil-on new-kitchen-state))
+          (new-thing-to-boil (find-object-by-persistent-id thing-to-boil new-kitchen-state))
+          (new-time-to-boil-quantity (make-instance 'quantity :value 30)) ; fixed boiling time of 30 minutes
+          (new-time-to-boil-unit (make-instance 'minute))
+          (thing-boiled-available-at (+ (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id thing-to-boil) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))
+                                       (* (value new-time-to-boil-quantity)
+                                          (if (eq new-time-to-boil-unit 'hour)
+                                            3600
+                                            60))))
+          (kitchen-state-available-at (+ (max (kitchen-time kitchen-state-in)
+                                            (available-at (find (id thing-to-boil) binding-objects
+                                                                  :key #'(lambda (binding-object)
+                                                                           (and (value binding-object)
+                                                                                (id (value binding-object)))))))
+                                         30)))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+     (cond ((and new-thing-to-boil stove-to-be-heated)
+
+            ; stove will immediately be turned off again after boiling is over, so temperature is not explicitly set
+
+            (let* ((all-contents (contents new-thing-to-boil))
+                   (spices (remove-if-not #'(lambda (object) (subtypep (type-of object) 'spice)) all-contents))
+                   (liquids (remove-if-not #'(lambda (object) (subtypep (type-of object) 'liquid)) all-contents))
+                   (liquid-mixture (create-homogeneous-mixture (append spices liquids) 'boiled))
+                   (main-content (set-difference all-contents (append spices liquids))))
+
+              ; we keep track of what the main content and liquids are boiled with
+              (loop for boilable in main-content
+                    do (setf (boiled boilable) t)
+                       (setf (boiled-with boilable) liquid-mixture))
+
+              (setf (is-liquid liquid-mixture) t)
+              (setf (contents new-thing-to-boil) (append main-content (list liquid-mixture)))
+
+              (bind (thing-boiled 1.0 new-thing-to-boil thing-boiled-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                    (time-to-boil-quantity 0.0 new-time-to-boil-quantity nil)
+                    (time-to-boil-unit 0.0 new-time-to-boil-unit nil))))
+           (t
+            nil))))
+          ;  (bind (thing-boiled 1.0 (make-instance 'failed-object) thing-boiled-available-at)
+          ;        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+  ;; Case 4: Stove and time are not given
+  ((kitchen-state-in thing-to-boil 
+                     => kitchen-state-out thing-boiled stove-to-boil-on time-to-boil-quantity time-to-boil-unit)
+ 
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (stove-to-be-heated (stove new-kitchen-state))
+          (new-thing-to-boil (find-object-by-persistent-id thing-to-boil new-kitchen-state))
+          (new-time-to-boil-quantity (make-instance 'quantity :value 30)) ; fixed boiling time of 30 minutes
+          (new-time-to-boil-unit (make-instance 'minute))
+          (thing-boiled-available-at (+ (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id thing-to-boil) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))
+                                       (* (value new-time-to-boil-quantity)
+                                          (if (eq new-time-to-boil-unit 'hour)
+                                            3600
+                                            60))))
+          (kitchen-state-available-at (+ (max (kitchen-time kitchen-state-in)
+                                            (available-at (find (id thing-to-boil) binding-objects
+                                                                  :key #'(lambda (binding-object)
+                                                                           (and (value binding-object)
+                                                                                (id (value binding-object)))))))
+                                         30)))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+     (cond ((and new-thing-to-boil stove-to-be-heated)
+
+            ; stove will immediately be turned off again after boiling is over, so temperature is not explicitly set
+
+            (let* ((all-contents (contents new-thing-to-boil))
+                   (spices (remove-if-not #'(lambda (object) (subtypep (type-of object) 'spice)) all-contents))
+                   (liquids (remove-if-not #'(lambda (object) (subtypep (type-of object) 'liquid)) all-contents))
+                   (liquid-mixture (create-homogeneous-mixture (append spices liquids) 'boiled))
+                   (main-content (set-difference all-contents (append spices liquids))))
+
+              ; we keep track of what the main content and liquids are boiled with
+              (loop for boilable in main-content
+                    do (setf (boiled boilable) t)
+                       (setf (boiled-with boilable) liquid-mixture))
+
+              (setf (is-liquid liquid-mixture) t)
+              (setf (contents new-thing-to-boil) (append main-content (list liquid-mixture)))
+
+              (bind (thing-boiled 1.0 new-thing-to-boil thing-boiled-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                    (stove-to-boil-on 0.0 stove-to-be-heated thing-boiled-available-at)
+                    (time-to-boil-quantity 0.0 new-time-to-boil-quantity nil)
+                    (time-to-boil-unit 0.0 new-time-to-boil-unit nil))))
+           (t
+            nil)))))
+          ;  (bind (thing-boiled 1.0 (make-instance 'failed-object) thing-boiled-available-at)
+          ;        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+
   
 (defprimitive bring-to-temperature ((container-with-ingredients-at-temperature transferable-container)
                                     (kitchen-state-out kitchen-state)
@@ -2842,27 +3062,31 @@
               do (push thing (items new-list-of-kitchen-entities))
             finally (return new-list-of-kitchen-entities)))))
 
-(defun create-homogeneous-mixture-in-container (container &optional (mixing-operation 'mixed))
-  "Create a homogeneous mixture composed of the ingredients in the given container and mixed according to the given mixing-operation.
-   The mixing-operation should be a valid slotname specifying a boolean slot that will be set to T."
-  (let* ((total-value (loop for ingredient in (contents container)
+(defun create-homogeneous-mixture (ingredients &optional (mixing-operation 'mixed))
+  (let* ((total-value (loop for ingredient in ingredients
                             for current-value = (value (quantity (amount (convert-to-g ingredient))))
                             sum current-value))
          (mixture (make-instance 'homogeneous-mixture :amount (make-instance 'amount
-                                                                :unit (make-instance 'g)
-                                                                :quantity (make-instance 'quantity :value total-value))
-                                 :components (contents container))))
+                                                                             :unit (make-instance 'g)
+                                                                             :quantity (make-instance 'quantity :value total-value))
+                                 :components ingredients)))
 
-    ; modify the contents so they all contain percentages (to prevent recursion errors when portioning nested mixtures)
+    ; modify the ingredients so they all contain percentages (to prevent recursion errors when portioning nested mixtures)
     (loop for ingredient in (components mixture)
           do (setf (amount ingredient)
                    (make-instance 'amount
                                   :quantity (make-instance 'quantity
                                                            :value (/ (value (quantity (amount (convert-to-g ingredient)))) total-value))
                                   :unit (make-instance 'percent))))
-  
+
+    (setf (slot-value mixture mixing-operation) t)
+    mixture))
+
+(defun create-homogeneous-mixture-in-container (container &optional (mixing-operation 'mixed))
+  "Create a homogeneous mixture composed of the ingredients in the given container and mixed according to the given mixing-operation.
+   The mixing-operation should be a valid slotname specifying a boolean slot that will be set to T."
+  (let ((mixture (create-homogeneous-mixture (contents container) mixing-operation)))
       (setf (contents container) (list mixture))
-      (setf (slot-value (first (contents container)) mixing-operation) t)
       mixture))
 
 (defun create-heterogeneous-mixture-in-container (container)

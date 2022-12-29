@@ -125,6 +125,16 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying beatable objects."
   (setf (beaten copy) (copy-object (beaten beatable))))
 
+(defclass boilable (kitchen-entity)
+  ((boiled :type boolean :initarg :boiled :accessor boiled :initform nil)
+   (boiled-with :initarg :boiled-with :accessor boiled-with :initform nil))
+  (:documentation "For objects that can be boiled."))
+
+(defmethod copy-object-content ((boilable boilable) (copy boilable))
+  "Copying boilable objects."
+  (setf (boiled copy) (copy-object (boiled boilable)))
+  (setf (boiled-with copy) (copy-object (boiled-with boilable))))
+
 (defclass brushable (kitchen-entity)
   ((brushed-with  :initarg :brushed-with :accessor brushed-with :initform nil))
   (:documentation "Something of which the inner surface can be brushed with something that can-be-brushed-with."))
@@ -337,6 +347,18 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying lineable objects."
   (setf (lined-with copy) (copy-object (lined-with lineable))))
 
+(defclass liquefiable ()
+  ((is-liquid :type boolean :initarg :is-liquid :accessor is-liquid :initform nil))
+  (:documentation "An ingredient that can be liquefied."))
+
+(defmethod copy-object-content ((liquefiable liquefiable) (copy liquefiable))
+  "Copying liquefiable objects."
+  (setf (is-liquid copy) (copy-object (is-liquid liquefiable))))
+
+(defclass liquid (boilable)
+  ()
+  (:documentation "A liquid ingredient."))
+
 (defclass mashable (kitchen-entity)
   ((mashed :type boolean :initarg :mashed :accessor mashed :initform nil))
   (:documentation "For objects that can be mashed."))
@@ -510,6 +532,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Cookie-sheet. It's a transferable container."))
 
+(defclass cooking-pot (heatable-container reusable)
+  ()
+  (:documentation "Cooking pot. It can be heated up."))
+
 (defclass cooking-utensil (fetchable conceptualizable)
   ()
   (:documentation "A tool to be used in the kitchen."))
@@ -549,6 +575,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying fridges."
   (setf (arrangement copy) (copy-object (arrangement fridge)))
   (setf (temperature copy) (copy-object (temperature fridge))))
+
+(defclass heatable-container (transferable-container)
+  ()
+  (:documentation "A transferable container that can be heated up, i.e., that can be used for cooking."))
 
 ; TOVERIFY RD: should a jar be uncovered first?
 (defclass jar (transferable-container coverable-container reusable shakeable)
@@ -780,6 +810,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Walnut."))
 
+(defclass cider-vinegar (ingredient liquid)
+  ()
+  (:documentation "Cider vinegar."))
+
 (defclass coarse-salt (salt)
   ()
   (:documentation "Coarse salt."))
@@ -816,7 +850,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Dry white wine"))
 
-(defclass egg (ingredient has-temperature crackable)
+(defclass egg (ingredient has-temperature crackable boilable)
   ((keep-refrigerated :initform T))
   (:documentation "Eggs."))
 
@@ -880,6 +914,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Garlic"))
 
+(defclass garlic-powder (ingredient)
+  ()
+  (:documentation "Garlic powder"))
+
 (defclass green-chili-pepper (ingredient cuttable)
   ()
   (:documentation "Green chili pepper."))
@@ -915,6 +953,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass ground-nutmeg (ground-spice)
   ()
   (:documentation "Nutmeg."))
+
+(defclass hard-boiled-egg (ingredient)
+  ()
+  (:documentation "A hard-boiled egg (without its shell)"))
 
 (defclass icing-sugar (sugar)
   ()
@@ -957,7 +999,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated milk))))
 
 (defclass mixture (ingredient beatable cuttable mashable meltable mixable can-be-sprinkled-with siftable
-                              sprinkable bakeable shapeable dippable spreadable
+                              sprinkable bakeable shapeable dippable spreadable boilable liquefiable
                               can-be-sprinkled-on can-be-spread-upon  has-temperature shakeable)
   ((components :type list :initarg :components :accessor components :initform '()))
   (:documentation "An abstract class for a mixture of ingredients."))
@@ -978,6 +1020,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Mango."))
 
+(defclass mayonnaise (ingredient)
+  ()
+  (:documentation "Mayonnaise."))
+
 (defclass molasses (ingredient)
   ()
   (:documentation "Molasses."))
@@ -994,9 +1040,17 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Pancetta."))
 
+(defclass paprika-powder (ingredient)
+  ()
+  (:documentation "Paprika powder"))
+
 (defclass powdered-white-sugar (sugar sprinkable can-be-dipped-in)
   ()
   (:documentation "Powdered white sugar."))
+
+(defclass potato (ingredient cuttable peelable boilable)
+  ()
+  (:documentation "Potato"))
 
 (defclass oats (ingredient)
   ()
@@ -1062,7 +1116,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Shredded coconut."))
 
-(defclass spice (ingredient)
+(defclass spice (ingredient boilable)
   ()
   (:documentation "Abstract class for spices"))
 
@@ -1114,7 +1168,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Vinegar."))
 
-(defclass water (ingredient has-temperature)
+(defclass water (ingredient has-temperature liquid)
   ()
   (:documentation "H2O."))
 
@@ -1134,6 +1188,9 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Whole-wheat-flour."))
 
+(defclass yellow-mustard (ingredient)
+  ()
+  (:documentation "Yellow mustard."))
 
 
 ;;           Patterns             ;;
