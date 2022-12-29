@@ -24,9 +24,9 @@
                                                   :used T
                                                   :contents (list (make-instance 'lime-juice :amount
                                                                                  (make-instance 'amount
-                                                                                                :unit (make-instance 'g)
+                                                                                                :unit (make-instance 'l)
                                                                                                 :quantity (make-instance 'quantity
-                                                                                                                         :value 500)))))
+                                                                                                                         :value 0.5)))))
                                    (make-instance 'medium-bowl
                                                   :used T
                                                   :contents (list (make-instance 'cherry-tomato :amount

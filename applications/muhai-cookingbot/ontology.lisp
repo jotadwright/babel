@@ -726,10 +726,13 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Black beans."))
 
+(defclass black-olive (ingredient seedable)
+  ()
+  (:documentation "Black olive."))
+
 (defclass brown-lentils (lentils)
   ()
   (:documentation "Brown lentils."))
-
 
 (defclass brown-sugar (sugar)
   ()
@@ -833,6 +836,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Egg shell"))
 
+(defclass feta-cheese (ingredient cuttable)
+  ()
+  (:documentation "Feta cheese."))
+
 (defclass flavoring-extract (ingredient)
   ()
   (:documentation "Abstract class for all flavoring extracts."))
@@ -848,6 +855,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass fresh-cilantro (spice cuttable pluckable)
   ()
   (:documentation "Fresh cilantro (coriander)."))
+
+(defclass fresh-oregano (spice cuttable pluckable)
+  ()
+  (:documentation "Fresh oregano."))
 
 (defclass fresh-parsley (spice cuttable pluckable)
   ()
@@ -921,6 +932,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Juice is an abstract class"))
 
+(defclass lemon-juice (ingredient)
+  ()
+  (:documentation "Lemon juice."))
+
 (defclass lentils (ingredient)
   ()
   (:documentation "Abstract class for all types of lentils"))
@@ -987,6 +1002,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Oats."))
 
+(defclass radish (ingredient cuttable)
+  ()
+  (:documentation "Radish."))
+
 (defclass raisin (ingredient)
   ()
   (:documentation "Raisin."))
@@ -1006,6 +1025,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass red-pepper-flakes (spice)
   ()
   (:documentation "Red pepper flakes."))
+
+(defclass romaine-lettuce (ingredient cuttable washable)
+  ()
+  (:documentation "Romaine lettuce."))
 
 (defclass salt (spice)
   ()
@@ -1059,7 +1082,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Toast."))
 
-(defclass tomato (ingredient cuttable)
+(defclass tomato (ingredient cuttable seedable peelable)
   ((keep-refrigerated :initform T))
   (:documentation "Tomatoes."))
 
@@ -1190,6 +1213,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass thin-slivers (cutting-pattern)
   ()
   (:documentation "A pattern for cutting objects into thin slivers "))
+
+(defclass cubes (cutting-pattern)
+  ()
+  (:documentation "A pattern for cutting objects into cubes."))
 
 (defclass two-cm-cubes (cutting-pattern)
   ()
