@@ -3269,6 +3269,8 @@
           (acons 'teaspoon 2 '()))
     (setf (gethash 'ground-nutmeg conversion-table)
 	  (acons 'teaspoon 2.2 '()))
+    (setf (gethash 'hard-boiled-egg conversion-table)
+	  (acons 'piece 50 '()))
     (setf (gethash 'jalapeno conversion-table)
           (acons 'piece 20 '()))
     (setf (gethash 'mango conversion-table)

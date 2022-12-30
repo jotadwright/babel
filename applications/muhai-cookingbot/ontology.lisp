@@ -1048,7 +1048,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Powdered white sugar."))
 
-(defclass potato (ingredient cuttable peelable boilable)
+(defclass potato (ingredient cuttable peelable boilable has-temperature)
   ()
   (:documentation "Potato"))
 
