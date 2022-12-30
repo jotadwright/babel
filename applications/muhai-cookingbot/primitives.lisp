@@ -255,7 +255,7 @@
 
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
 
-     (cond ((and new-thing-to-boil stove-to-be-heated)
+     (cond ((and new-thing-to-boil stove-to-be-heated (subtypep (type-of new-thing-to-boil) 'heatable-container)) ; the container should support being put on a stove
 
             ; stove will immediately be turned off again after boiling is over, so temperature is not explicitly set
 
