@@ -776,6 +776,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying butter objects."
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated butter))))
 
+(defclass carrot (ingredient cuttable)
+  ()
+  (:documentation "Carrot."))
+
 (defclass conserved-ingredient (ingredient drainable)
    ((solid-parts :type list  :initarg :solid-parts :accessor solid-parts :initform '())
     (fluid-parts :type list  :initarg :fluid-parts :accessor fluid-parts :initform '()))
@@ -797,6 +801,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defmethod copy-object-content ((celery celery) (copy celery))
   "Copying celery objects."
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated celery))))
+
+(defclass celery-seed (spice)
+  ()
+  (:documentation "Celery seed."))
 
 (defclass cherry-tomato (ingredient cuttable)
   ((keep-refrigerated :initform T))
@@ -912,11 +920,19 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 
 (defclass garlic (ingredient cuttable)
   ()
-  (:documentation "Garlic"))
+  (:documentation "Garlic."))
 
 (defclass garlic-powder (ingredient)
   ()
-  (:documentation "Garlic powder"))
+  (:documentation "Garlic powder."))
+
+(defclass grated-horseradish (spice)
+  ()
+  (:documentation "Grated horseradish."))
+
+(defclass green-cabbage (ingredient cuttable)
+  ()
+  (:documentation "Green cabbage."))
 
 (defclass green-chili-pepper (ingredient cuttable)
   ()
@@ -1028,6 +1044,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Molasses."))
 
+(defclass mustard-seed (spice)
+  ()
+  (:documentation "Mustard seed."))
+
 (defclass olive-oil (ingredient)
   ()
   (:documentation "Olive oil."))
@@ -1120,7 +1140,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Abstract class for spices"))
 
-(defclass sugar (ingredient beatable mixable)
+(defclass sugar (spice beatable mixable)
   ()
   (:documentation "Abstract class for all sugars."))
 
@@ -1151,6 +1171,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defmethod copy-object-content ((trader-joes-cilantro-salad-dressing trader-joes-cilantro-salad-dressing) (copy trader-joes-cilantro-salad-dressing))
   "Copying trader-joes-cilantro-salad-dressing objects."
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated trader-joes-cilantro-salad-dressing))))
+
+(defclass turmeric-powder (spice)
+  ()
+  (:documentation "Turmeric."))
 
 (defclass vanilla (ingredient)
   ()
@@ -1262,6 +1286,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass minced (cutting-pattern)
   ()
   (:documentation "A minced pattern."))
+
+(defclass shredded (cutting-pattern)
+  ()
+  (:documentation "A shredded pattern."))
 
 (defclass halved (cutting-pattern)
   ()
