@@ -486,7 +486,13 @@
                                                                                                 :unit (make-instance 'piece)
                                                                                                 :quantity (make-instance 'quantity
                                                                                                                          :value 5)))))
-
+                                   (make-instance 'medium-bowl
+                                                        :used T
+                                                        :contents (list (make-instance 'marshmallow :amount
+                                                                                       (make-instance 'amount
+                                                                                                      :unit (make-instance 'g)
+                                                                                                      :quantity (make-instance 'quantity
+                                                                                                                               :value 500)))))
                                    (make-instance 'medium-bowl
                                                   :used T
                                                   :contents (list (make-instance 'molasses :amount

@@ -3000,9 +3000,11 @@
 (defun change-temperature (container new-amount)
   (if (subtypep (type-of (unit new-amount)) 'time-unit)
     (loop for el in (contents container)
-          do (setf (temperature el) (compute-temperature el new-amount)))
+          when (subtypep (type-of el) 'has-temperature)
+            do (setf (temperature el) (compute-temperature el new-amount)))
     (loop for el in (contents container)
-          do (setf (temperature el) new-amount))))
+          when (subtypep (type-of el) 'has-temperature)
+            do (setf (temperature el) new-amount))))
 
 (defun compute-temperature (ingredient new-amount)
   "Compute the temperature for a given ingredient, based on a given time"
