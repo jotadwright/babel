@@ -75,6 +75,13 @@
                                                                                                                          :value 500)))))
                                    (make-instance 'medium-bowl
                                                   :used T
+                                                  :contents (list (make-instance 'crushed-pineapple-in-syrup :amount
+                                                                                 (make-instance 'amount
+                                                                                                :unit (make-instance 'g)
+                                                                                                :quantity (make-instance 'quantity
+                                                                                                                         :value 500)))))
+                                   (make-instance 'medium-bowl
+                                                  :used T
                                                   :contents (list (make-instance 'cucumber :amount
                                                                                  (make-instance 'amount
                                                                                                 :unit (make-instance 'piece)
@@ -1735,6 +1742,35 @@
                  :primary-output-var
                        '?cole-slaw))
 
+(defparameter *cranberry-fluff-salad-environment*
+  (make-instance 'simulation-environment
+                 :recipe-id 'cranberry-fluff-salad
+                 :kitchen-state
+                 *full-kitchen*
+                 :meaning-network
+                 (list '(get-kitchen ?kitchen)
+                       '(fetch-and-proportion ?proportioned-cranberries ?ks-with-cranberries ?kitchen ?target-container-1 cranberry 200 g)
+                       '(cut ?chopped-cranberries ?ks-with-chopped-cranberries ?ks-with-cranberries ?proportioned-cranberries chopped ?knife)
+                       '(fetch-and-proportion ?proportioned-sugar ?ks-with-sugar ?ks-with-chopped-cranberries ?target-container-2 white-sugar 125 g)
+                       '(fetch-and-proportion ?proportioned-pineapple ?ks-with-pineapple ?ks-with-sugar ?target-container-3 crushed-pineapple-in-syrup 240 g)
+                       '(drain ?drained-pineapple ?rest-liquid ?ks-with-drained-pineapple ?ks-with-pineapple ?proportioned-pineapple ?colander)
+                       '(fetch-and-proportion ?proportioned-marshmallow ?ks-with-marshmallow ?ks-with-pineapple ?target-container-4 marshmallow 450 g)
+                       '(fetch-and-proportion ?proportioned-cream ?ks-with-heavy-cream ?ks-with-marshmallow ?target-container-5 heavy-cream 230 g)
+                       '(beat ?whipped-cream ?ks-with-whipped-cream ?ks-with-heavy-cream ?proportioned-cream ?whisk)
+                       '(fetch-and-proportion ?proportioned-walnut ?ks-with-walnut ?ks-with-whipped-cream ?target-container-6 walnut 60 g)
+                       '(cut ?chopped-walnut ?ks-with-chopped-walnut ?ks-with-walnut ?proportioned-walnut chopped ?knife)
+                       '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-chopped-walnut ?empty-container ?chopped-cranberries ?quantity-a ?unit-a)
+                       '(transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?proportioned-sugar ?quantity-b ?unit-b)
+                       '(transfer-contents ?output-container-c ?rest-c ?output-ks-c ?output-ks-b ?output-container-b ?drained-pineapple ?quantity-c ?unit-c)
+                       '(mingle ?intermediate-mix ?ks-with-intermediate-mix ?output-ks-c ?output-container-c ?mingling-tool)
+                       '(leave-for-time ?rested-mix ?ks-with-rested-mix ?ks-with-intermediate-mix ?intermediate-mix 0.5 hour)
+                       '(transfer-contents ?output-container-d ?rest-d ?output-ks-d ?ks-with-rested-mix ?rested-mix ?whipped-cream ?quantity-d ?unit-d)
+                       '(transfer-contents ?output-container-e ?rest-e ?output-ks-e ?output-ks-d ?output-container-d ?chopped-walnut ?quantity-e ?unit-e)
+                       '(mingle ?salad ?ks-with-salad ?output-ks-e ?output-container-e ?mingling-tool)
+                       '(refrigerate ?cranberry-fluff-salad ?ks-with-cranberry-fluff-salad ?ks-with-salad ?salad ?fridge 8 hour))
+                 :primary-output-var
+                 '?cranberry-fluff-salad))
+
 ; list of all available simulation environments
 (defparameter *simulation-environments*
   (list *almond-crescent-cookies-environment*
@@ -1763,4 +1799,5 @@
         *classic-greek-salad-environment*
         *classic-potato-salad-environment*
         *cole-slaw-environment*
+        *cranberry-fluff-salad-environment*
         ))

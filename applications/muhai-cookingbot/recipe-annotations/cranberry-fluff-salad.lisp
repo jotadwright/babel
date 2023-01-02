@@ -230,7 +230,7 @@
                                                                                        (make-instance 'amount
                                                                                                       :unit (make-instance 'g)
                                                                                                       :quantity (make-instance 'quantity
-                                                                                                                               :value 300)))))
+                                                                                                                               :value 500)))))
                                          (make-instance 'medium-bowl
                                                         :used T
                                                         :contents (list (make-instance 'heavy-cream :amount
@@ -329,7 +329,7 @@
     (mingle ?salad ?ks-with-salad ?output-ks-e ?output-container-e ?mingling-tool) ;; reuse mingling tool
     
     ;; "Refrigerate and allow to stand 8 hours for flavors to develop."
-    (refrigerate ?cranberry-fluff-salad ?ks-with-cranberry-fluff-salad ?ks-with-salad ?salad ?fridge ?cooling-quantity ?cooling-unit)))
+    (refrigerate ?cranberry-fluff-salad ?ks-with-cranberry-fluff-salad ?ks-with-salad ?salad ?fridge 8 hour)))
 
 ;; ======================
 ;; Append bindings to the recipe
