@@ -62,7 +62,7 @@
                                                                                                                               :value 100)))))
                                         (make-instance 'medium-bowl
                                                        :used T
-                                                       :contents (list (make-instance 'chopped-walnut :amount
+                                                       :contents (list (make-instance 'walnut :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
@@ -138,10 +138,11 @@
     (fetch-and-proportion ?proportioned-vanilla ?kitchen-state-with-vanilla ?kitchen-state-with-salt ?new-container-7 vanilla-extract 1 teaspoon)
                           
     ;;"50 grams chopped walnuts"
-    (fetch-and-proportion ?proportioned-walnuts ?kitchen-state-with-walnuts ?kitchen-state-with-vanilla ?new-container-8 chopped-walnut 50 g)
+    (fetch-and-proportion ?proportioned-walnuts ?kitchen-state-with-walnuts ?kitchen-state-with-vanilla ?new-container-8 walnut 50 g)
+    (cut ?chopped-walnuts ?kitchen-state-with-chopped-walnuts ?kitchen-state-with-walnuts ?proportioned-walnuts chopped ?knife)
             
     ;; "Preheat oven to 175 degrees C."
-    (preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-walnuts ?oven 175 degrees-celsius)
+    (preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-chopped-walnuts ?oven 175 degrees-celsius)
                           
     ;; "Grease and flour a baking pan."
     (fetch ?pan ?kitchen-state-with-pan ?kitchen-state-with-preheated-oven pan 1) ;; IMPLICIT
@@ -166,7 +167,7 @@
     
     ;; "Mix in the vanilla and stir in the walnuts." ;;difference between mix and stir!
     (transfer-contents ?output-container-c ?rest-c ?output-kitchen-state-c ?kitchen-state-with-flour-sugar-mixture ?flour-sugar-mixture-bowl ?proportioned-vanilla ?quantity-c ?unit-c)
-    (transfer-contents ?output-container-d ?rest-d ?output-kitchen-state-d ?output-kitchen-state-c ?output-container-c ?proportioned-walnuts ?quantity-d ?unit-d)
+    (transfer-contents ?output-container-d ?rest-d ?output-kitchen-state-d ?output-kitchen-state-c ?output-container-c ?chopped-walnuts ?quantity-d ?unit-d)
     (mix ?dough ?kitchen-state-with-dough ?output-kitchen-state-d ?output-container-d ?beating-tool)
 
     ;;  "Spread evenly into the prepared pan."

@@ -280,6 +280,27 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying crackable objects."
   (setf (cracked copy) (copy-object (cracked crackable))))
 
+(defclass crushed-pineapple (ingredient)
+  ()
+  (:documentation "Crushed-pineapple."))
+
+(defclass crushed-pineapple-in-syrup (heterogeneous-mixture)
+  ((components :type list :initarg :components :accessor components
+               :initform (list
+                          (make-instance 'crushed-pineapple
+                                         :amount (make-instance 'amount
+                                                                :quantity (make-instance 'quantity :value 0.9)
+                                                                :unit (make-instance 'percent)))
+                          (make-instance 'syrup
+                                         :amount (make-instance 'amount
+                                                                :quantity (make-instance 'quantity :value 0.1)
+                                                                :unit (make-instance 'percent))))))
+  (:documentation "Crushed-pineapple in syrup."))
+
+(defmethod copy-object-content ((crushed-pineapple-in-syrup crushed-pineapple-in-syrup) (copy crushed-pineapple-in-syrup))
+  "Copying crushed-pineapple-in-syrup objects."
+  (setf (components copy) (copy-object (components crushed-pineapple-in-syrup)))) 
+
 (defclass cuttable (kitchen-entity)
   ((is-cut :type cutting-pattern :initarg :is-cut :accessor is-cut :initform (make-instance 'uncut)))
   (:documentation "For objects that can be cut."))
@@ -814,7 +835,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying cherry-tomato objects."
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated cherry-tomato))))
 
-(defclass chopped-walnut (ingredient)
+(defclass walnut (ingredient cuttable)
   ()
   (:documentation "Walnut."))
 
@@ -837,6 +858,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass corn-flakes (ingredient)
   ()
   (:documentation "Corn flakes."))
+
+(defclass cranberry (ingredient cuttable)
+  ()
+  (:documentation "Cranberry."))
 
 (defclass cucumber (ingredient cuttable peelable seedable)
   ((keep-refrigerated :initform T))
@@ -974,6 +999,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A hard-boiled egg (without its shell)"))
 
+(defclass heavy-cream (ingredient beatable)
+  ()
+  (:documentation "Heavy cream."))
+
 (defclass icing-sugar (sugar)
   ()
   (:documentation "Icing sugar."))
@@ -1005,6 +1034,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass linguine (ingredient)
   ()
   (:documentation "Linguine."))
+
+(defclass marshmallow (ingredient)
+  ()
+  (:documentation "Marshmallow."))
 
 (defclass milk (ingredient)
   ((keep-refrigerated :initform T))
@@ -1115,6 +1148,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defmethod copy-object-content ((salted-butter salted-butter) (copy salted-butter))
   "Copying salted-butter objects."
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated salted-butter))))
+
+(defclass syrup (ingredient liquid)
+  ()
+  (:documentation "Syrup."))
 
 (defclass green-onion (ingredient cuttable)
   ()

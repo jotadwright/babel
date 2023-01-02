@@ -98,7 +98,7 @@
                                                                                                                               :value 500)))))
                                         (make-instance 'medium-bowl
                                                        :used T
-                                                       :contents (list (make-instance 'chopped-walnut :amount
+                                                       :contents (list (make-instance 'walnut :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
@@ -198,10 +198,11 @@
     (fetch-and-proportion ?proportioned-sugar ?kitchen-state-with-sugar ?kitchen-state-with-nutmeg ?target-container-9 brown-sugar 200 g)
 
     ;; "75 grams chopped walnuts"
-    (fetch-and-proportion ?proportioned-walnuts ?kitchen-state-with-walnuts ?kitchen-state-with-sugar ?target-container-10 chopped-walnut 75 g)
+    (fetch-and-proportion ?proportioned-walnuts ?kitchen-state-with-walnuts ?kitchen-state-with-sugar ?target-container-10 walnut 75 g)
+    (cut ?chopped-walnuts ?kitchen-state-with-chopped-walnuts ?kitchen-state-with-walnuts ?proportioned-walnuts chopped ?knife)
 
     ;; "2 eggs"
-    (fetch-and-proportion ?proportioned-eggs ?kitchen-state-with-eggs ?kitchen-state-with-walnuts ?target-container-11 egg 2 piece)
+    (fetch-and-proportion ?proportioned-eggs ?kitchen-state-with-eggs ?kitchen-state-with-chopped-walnuts ?target-container-11 egg 2 piece)
 
     ;; "200 ml vegetable oil"
     (fetch-and-proportion ?proportioned-oil ?kitchen-state-with-oil ?kitchen-state-with-eggs ?target-container-12 vegetable-oil 200 ml)
@@ -231,7 +232,7 @@
     ;; "Blend in rolled oats, sugar and nuts."    
     (transfer-contents ?output-container-x ?rest-x ?output-kitchen-state-x ?kitchen-state-after-sifting ?bowl-with-sifted-ingredients ?proportioned-oats ?quantity-x ?unit-x)
     (transfer-contents ?output-container-y ?rest-y ?output-kitchen-state-y ?output-kitchen-state-x ?output-container-x ?proportioned-sugar ?quantity-y ?unit-y)
-    (transfer-contents ?output-container-z ?rest-z ?output-kitchen-state-z ?output-kitchen-state-y ?output-container-y ?proportioned-walnuts ?quantity-z ?unit-z)
+    (transfer-contents ?output-container-z ?rest-z ?output-kitchen-state-z ?output-kitchen-state-y ?output-container-y ?chopped-walnuts ?quantity-z ?unit-z)
     (mix ?blended-in-oats-mixture ?kitchen-state-with-blended-oats-in-mixture ?output-kitchen-state-z ?output-container-z ?mixing-tool)
 
     ;; "In a separate bowl, beat eggs with a fork and add oil, vanilla, raisins, and water mixture;"

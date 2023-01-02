@@ -68,6 +68,13 @@
                                                                                                                          :value 500)))))
                                    (make-instance 'medium-bowl
                                                   :used T
+                                                  :contents (list (make-instance 'cranberry :amount
+                                                                                 (make-instance 'amount
+                                                                                                :unit (make-instance 'g)
+                                                                                                :quantity (make-instance 'quantity
+                                                                                                                         :value 500)))))
+                                   (make-instance 'medium-bowl
+                                                  :used T
                                                   :contents (list (make-instance 'cucumber :amount
                                                                                  (make-instance 'amount
                                                                                                 :unit (make-instance 'piece)
@@ -134,6 +141,13 @@
                                                                                                       :unit (make-instance 'piece)
                                                                                                       :quantity (make-instance 'quantity
                                                                                                                                :value 12)))))
+                                   (make-instance 'medium-bowl
+                                                  :used T
+                                                  :contents (list (make-instance 'heavy-cream :amount
+                                                                                 (make-instance 'amount
+                                                                                                :unit (make-instance 'g)
+                                                                                                :quantity (make-instance 'quantity
+                                                                                                                         :value 500))))) 
                                    (make-instance 'medium-bowl
                                                   :used T
                                                   :contents (list (make-instance 'lemon-juice :amount
@@ -338,13 +352,6 @@
                                                                                                 :unit (make-instance 'g)
                                                                                                 :quantity (make-instance 'quantity
                                                                                                                          :value 200)))))
-                                   (make-instance 'medium-bowl
-                                                  :used T
-                                                  :contents (list (make-instance 'chopped-walnut :amount
-                                                                                 (make-instance 'amount
-                                                                                                :unit (make-instance 'g)
-                                                                                                :quantity (make-instance 'quantity
-                                                                                                                         :value 100)))))
                                    (make-instance 'medium-bowl
                                                   :used T
                                                   :contents (list (make-instance 'coarse-salt :amount
@@ -650,6 +657,13 @@
                                                                                                                          :value 200)))))
                                    (make-instance 'medium-bowl
                                                   :used T
+                                                  :contents (list (make-instance 'walnut :amount
+                                                                                 (make-instance 'amount
+                                                                                                :unit (make-instance 'g)
+                                                                                                :quantity (make-instance 'quantity
+                                                                                                                         :value 500)))))
+                                   (make-instance 'medium-bowl
+                                                  :used T
                                                   :contents (list (make-instance 'water :amount
                                                                                  (make-instance 'amount
                                                                                                 :unit (make-instance 'l)
@@ -883,8 +897,9 @@
                        '(fetch-and-proportion ?proportioned-cocoa ?kitchen-state-with-cocoa ?kitchen-state-with-flour ?new-container-5 cocoa-powder 45 g)
                        '(fetch-and-proportion ?proportioned-salt ?kitchen-state-with-salt ?kitchen-state-with-cocoa ?new-container-6 salt 0.25 teaspoon)
                        '(fetch-and-proportion ?proportioned-vanilla ?kitchen-state-with-vanilla ?kitchen-state-with-salt ?new-container-7 vanilla-extract 1 teaspoon)
-                       '(fetch-and-proportion ?proportioned-walnuts ?kitchen-state-with-walnuts ?kitchen-state-with-vanilla ?new-container-8 chopped-walnut 50 g)
-                       '(preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-walnuts ?oven 175 degrees-celsius)
+                       '(fetch-and-proportion ?proportioned-walnuts ?kitchen-state-with-walnuts ?kitchen-state-with-vanilla ?new-container-8 walnut 50 g)
+                       '(cut ?chopped-walnuts ?kitchen-state-with-chopped-walnuts ?kitchen-state-with-walnuts ?proportioned-walnuts chopped ?knife)
+                       '(preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-chopped-walnuts ?oven 175 degrees-celsius)
                        '(fetch ?pan ?kitchen-state-with-pan ?kitchen-state-with-preheated-oven pan 1)
                        '(grease ?greased-pan ?kitchen-state-with-greased-pan ?kitchen-state-with-pan ?pan ?grease)
                        '(flour ?floured-pan ?kitchen-state-with-floured-pan ?kitchen-state-with-greased-pan ?greased-pan ?all-purpose-flour)
@@ -899,7 +914,7 @@
                        '(transfer-contents ?output-container-b ?rest-b ?output-kitchen-state-b ?output-kitchen-state-a ?output-container-a ?proportioned-salt ?quantity-b ?unit-b)
                        '(mix ?flour-sugar-mixture-bowl ?kitchen-state-with-flour-sugar-mixture ?output-kitchen-state-b ?output-container-b ?beating-tool)
                        '(transfer-contents ?output-container-c ?rest-c ?output-kitchen-state-c ?kitchen-state-with-flour-sugar-mixture ?flour-sugar-mixture-bowl ?proportioned-vanilla ?quantity-c ?unit-c)
-                       '(transfer-contents ?output-container-d ?rest-d ?output-kitchen-state-d ?output-kitchen-state-c ?output-container-c ?proportioned-walnuts ?quantity-d ?unit-d)
+                       '(transfer-contents ?output-container-d ?rest-d ?output-kitchen-state-d ?output-kitchen-state-c ?output-container-c ?chopped-walnuts ?quantity-d ?unit-d)
                        '(mix ?dough ?kitchen-state-with-dough ?output-kitchen-state-d ?output-container-d ?beating-tool)
                        '(spread ?pan-with-dough ?kitchen-state-with-dough-in-pan ?kitchen-state-with-dough ?floured-pan ?dough ?scraper)
                        '(bake ?baked-brownie ?kitchen-state-with-baked-brownie ?kitchen-state-with-dough-in-pan ?pan-with-dough ?preheated-oven 25 minute ?temp-quantity ?temp-unit)
@@ -984,8 +999,9 @@
                        '(fetch-and-proportion ?proportioned-cinnamon ?kitchen-state-with-cinnamon ?kitchen-state-with-oats ?target-container-7 ground-cinnamon 1 teaspoon)
                        '(fetch-and-proportion ?proportioned-nutmeg ?kitchen-state-with-nutmeg ?kitchen-state-with-cinnamon ?target-container-8 ground-nutmeg 1 teaspoon)
                        '(fetch-and-proportion ?proportioned-sugar ?kitchen-state-with-sugar ?kitchen-state-with-nutmeg ?target-container-9 brown-sugar 200 g)
-                       '(fetch-and-proportion ?proportioned-walnuts ?kitchen-state-with-walnuts ?kitchen-state-with-sugar ?target-container-10 chopped-walnut 75 g)
-                       '(fetch-and-proportion ?proportioned-eggs ?kitchen-state-with-eggs ?kitchen-state-with-walnuts ?target-container-11 egg 2 piece)
+                       '(fetch-and-proportion ?proportioned-walnuts ?kitchen-state-with-walnuts ?kitchen-state-with-sugar ?target-container-10 walnut 75 g)
+                       '(cut ?chopped-walnuts ?kitchen-state-with-chopped-walnuts ?kitchen-state-with-walnuts ?proportioned-walnuts chopped ?knife)
+                       '(fetch-and-proportion ?proportioned-eggs ?kitchen-state-with-eggs ?kitchen-state-with-chopped-walnuts ?target-container-11 egg 2 piece)
                        '(fetch-and-proportion ?proportioned-oil ?kitchen-state-with-oil ?kitchen-state-with-eggs ?target-container-12 vegetable-oil 200 ml)
                        '(fetch-and-proportion ?proportioned-vanilla ?kitchen-state-with-vanilla ?kitchen-state-with-oil ?target-container-13 vanilla-extract 1 teaspoon)
                        '(preheat-oven ?preheated-oven ?kitchen-state-with-preheating-oven ?kitchen-state-with-vanilla ?oven 175 degrees-celsius)
@@ -998,7 +1014,7 @@
                        '(sift ?bowl-with-sifted-ingredients ?kitchen-state-after-sifting ?kitchen-state-with-fetched-bowl-for-sifting ?large-bowl ?flour-soda-salt-cinnamon-nutmeg ?sifting-tool)
                        '(transfer-contents ?output-container-x ?rest-x ?output-kitchen-state-x ?kitchen-state-after-sifting ?bowl-with-sifted-ingredients ?proportioned-oats ?quantity-x ?unit-x)
                        '(transfer-contents ?output-container-y ?rest-y ?output-kitchen-state-y ?output-kitchen-state-x ?output-container-x ?proportioned-sugar ?quantity-y ?unit-y)
-                       '(transfer-contents ?output-container-z ?rest-z ?output-kitchen-state-z ?output-kitchen-state-y ?output-container-y ?proportioned-walnuts ?quantity-z ?unit-z)
+                       '(transfer-contents ?output-container-z ?rest-z ?output-kitchen-state-z ?output-kitchen-state-y ?output-container-y ?chopped-walnuts ?quantity-z ?unit-z)
                        '(mix ?blended-in-oats-mixture ?kitchen-state-with-blended-oats-in-mixture ?output-kitchen-state-z ?output-container-z ?mixing-tool)
                        '(fetch ?bowl-for-eggs ?kitchen-state-with-fetched-bowl-for-eggs ?kitchen-state-with-blended-oats-in-mixture medium-bowl 1)
                        '(crack ?container-w-cracked-eggs ?kitchen-state-with-cracked-eggs ?kitchen-state-with-fetched-bowl-for-eggs ?proportioned-eggs ?bowl-for-eggs)
