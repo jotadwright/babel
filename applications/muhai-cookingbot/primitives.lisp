@@ -2250,6 +2250,111 @@
                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
                   (seed-of-ingredient 0.0 (make-instance 'failed-object) container-available-at)))))))
 
+(defprimitive separate-eggs ((container-with-egg-yolks transferable-container)
+                             (container-with-egg-whites transferable-container) 
+                             (kitchen-state-out kitchen-state)
+                             (kitchen-state-in kitchen-state)
+                             (eggs transferable-container) ;;eggs in bowl
+                             (target-container-for-yolks transferable-container)
+                             (target-container-for-whites transferable-container)
+                             (egg-separator can-separate-eggs))
+  
+  ;; Case 1: target containers and egg separator given
+  ((kitchen-state-in eggs target-container-for-yolks target-container-for-whites egg-separator => kitchen-state-out container-with-egg-yolks container-with-egg-whites)
+
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-whole-eggs (find-object-by-persistent-id eggs new-kitchen-state))
+          (new-white-container (find-object-by-persistent-id target-container-for-whites new-kitchen-state))
+          (new-yolk-container (find-object-by-persistent-id target-container-for-yolks new-kitchen-state))
+          (new-egg-separator (find-object-by-persistent-id egg-separator (counter-top new-kitchen-state)))
+          (container-available-at (+ (kitchen-time kitchen-state-in)
+                                     (* 5 (length (contents eggs)))))
+          (kitchen-state-available-at container-available-at))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at) 
+     
+     (cond ((and new-whole-eggs new-white-container new-yolk-container new-egg-separator)          
+            (loop for egg in (contents new-whole-eggs)
+                  for egg-yolk-amount = (make-instance 'amount
+                                                       :quantity (make-instance 'quantity
+                                                                                :value (* 0.36 (value (quantity (amount egg)))))
+                                                       :unit (copy-object (unit (amount egg))))
+                  for egg-white-amount = (make-instance 'amount
+                                                        :quantity (make-instance 'quantity
+                                                                                 :value (* 0.64 (value (quantity (amount egg)))))
+                                                        :unit (copy-object (unit (amount egg)))) 
+                  for egg-yolk = (make-instance 'egg-yolk :amount egg-yolk-amount)
+                  for egg-white = (make-instance 'egg-white :amount egg-white-amount)
+                  do (setf (contents new-yolk-container) (append (contents new-yolk-container) (list egg-yolk)))
+                     (setf (contents new-white-container) (append (contents new-white-container) (list egg-white)))
+                  finally (setf (contents new-whole-eggs)
+                                (remove-if #'(lambda (i) (typep i 'whole-egg)) (contents new-whole-eggs))))
+
+            (setf (used new-yolk-container) t)
+            (setf (used new-white-container) t)
+            (setf (used new-egg-separator) t)
+                
+            (bind (container-with-egg-yolks 1.0 new-yolk-container container-available-at)
+                  (container-with-egg-whites 1.0 new-white-container container-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))
+           (t
+            nil))))
+           ; (bind (container-with-cracked-eggs 1.0 (make-instance 'failed-object) container-available-at)
+           ;       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))
+  
+  ;; Case 2: target containers and egg separator not given
+  ((kitchen-state-in eggs => kitchen-state-out container-with-egg-yolks container-with-egg-whites target-container-for-yolks target-container-for-whites egg-separator)
+
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-whole-eggs (find-object-by-persistent-id eggs new-kitchen-state))
+          (new-white-container (retrieve-concept-instance-and-bring-to-countertop 'medium-bowl new-kitchen-state))
+          (white-target-container (if new-white-container
+                                    (find-object-by-persistent-id new-white-container kitchen-state-in)
+                                    nil))
+          (new-yolk-container (retrieve-concept-instance-and-bring-to-countertop 'medium-bowl new-kitchen-state (list new-white-container)))
+          (yolk-target-container (if new-yolk-container
+                                   (find-object-by-persistent-id new-yolk-container kitchen-state-in)
+                                   nil))
+          (new-egg-separator (retrieve-concept-instance-and-bring-to-countertop 'egg-separator new-kitchen-state))
+          (container-available-at (+ (kitchen-time kitchen-state-in)
+                                     (* 5 (length (contents eggs)))))
+          (kitchen-state-available-at container-available-at))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at) 
+     
+     (cond ((and new-whole-eggs new-white-container new-yolk-container new-egg-separator)          
+            (loop for egg in (contents new-whole-eggs)
+                  for egg-yolk-amount = (make-instance 'amount
+                                                       :quantity (make-instance 'quantity
+                                                                                :value (* 0.36 (value (quantity (amount egg)))))
+                                                       :unit (copy-object (unit (amount egg))))
+                  for egg-white-amount = (make-instance 'amount
+                                                        :quantity (make-instance 'quantity
+                                                                                 :value (* 0.64 (value (quantity (amount egg)))))
+                                                        :unit (copy-object (unit (amount egg)))) 
+                  for egg-yolk = (make-instance 'egg-yolk :amount egg-yolk-amount)
+                  for egg-white = (make-instance 'egg-white :amount egg-white-amount)
+                  do (setf (contents new-yolk-container) (append (contents new-yolk-container) (list egg-yolk)))
+                     (setf (contents new-white-container) (append (contents new-white-container) (list egg-white)))
+                  finally (setf (contents new-whole-eggs)
+                                (remove-if #'(lambda (i) (typep i 'whole-egg)) (contents new-whole-eggs))))
+
+            (setf (used new-yolk-container) t)
+            (setf (used new-white-container) t)
+            (setf (used new-egg-separator) t)
+                
+            (bind
+             (container-with-egg-yolks 1.0 new-yolk-container container-available-at)
+             (container-with-egg-whites 1.0 new-white-container container-available-at)
+             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+             (target-container-for-yolks 0.0 yolk-target-container container-available-at)
+             (target-container-for-whites 0.0 white-target-container container-available-at)
+             (egg-separator 0.0 new-egg-separator container-available-at) ))
+           (t
+            nil)))))
+           ; (bind (container-with-cracked-eggs 1.0 (make-instance 'failed-object) container-available-at)
+           ;       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))          
+
 (defprimitive shake ((container-with-mixture transferable-container)
                      (kitchen-state-out kitchen-state)
                      (kitchen-state-in kitchen-state)
