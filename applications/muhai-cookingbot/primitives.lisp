@@ -529,22 +529,42 @@
              new-container)
             
             ;; 3) drain everything in the container
-            (let ((liquids '()))
+            (let ((liquids '())
+                  (solids '()))
               (loop for item in (contents new-container)
-                    when (or (subtypep (type-of item) 'liquid)
-                             (and (subtypep (type-of item) 'liquefiable) (is-liquid item)))
-                      do (push item liquids))
+                    do (cond ((or (subtypep (type-of item) 'liquid)
+                                  (and (subtypep (type-of item) 'liquefiable) (is-liquid item)))
+                              (push item liquids))
+                             ((subtypep (type-of item) 'heterogeneous-mixture)
+                                ; check if the heterogeneous-mixture should be split back up into solids and liquids
+                              (if (find-if #'(lambda (component)
+                                               (or (subtypep (type-of component) 'liquid)
+                                                   (and (subtypep (type-of component) 'liquefiable) (is-liquid component))))
+                                           (components item))
+                                (loop for component in (components item)
+                                      do (setf (value (quantity (amount component)))
+                                               (* (value (quantity (amount component))) ; mixture components are expressed in percent
+                                                  (value (quantity (amount item)))))
+                                         (setf (unit (amount component))
+                                               (unit (amount item)))
+                                         (cond ((or (subtypep (type-of component) 'liquid)
+                                                    (and (subtypep (type-of component) 'liquefiable) (is-liquid component)))
+                                                (push component liquids))
+                                               (t
+                                                (push component solids))))))
+                             (t
+                              (push item solids))))
 
               (setf (contents new-liquids-container) liquids)
-              (setf (contents new-container) (set-difference (contents new-container) liquids)))
+              (setf (contents new-container) solids)
 
-            (setf (used new-draining-tool) t)
-            (setf (used new-liquids-container) t)
+              (setf (used new-draining-tool) t)
+              (setf (used new-liquids-container) t)
      
-            (bind (drained-ingredient 1.0 new-container container-available-at)
-                  (liquid-rests 1.0 new-liquids-container container-available-at)
-                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-                  (draining-tool 0.0 new-draining-tool container-available-at)))
+              (bind (drained-ingredient 1.0 new-container container-available-at)
+                    (liquid-rests 1.0 new-liquids-container container-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                    (draining-tool 0.0 new-draining-tool container-available-at))))
            (t
             nil))))
   ; TODO RD: replace nil-case
