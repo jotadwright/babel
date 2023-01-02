@@ -262,7 +262,9 @@
             (let* ((all-contents (contents new-thing-to-boil))
                    (spices (remove-if-not #'(lambda (object) (subtypep (type-of object) 'spice)) all-contents))
                    (liquids (remove-if-not #'(lambda (object) (subtypep (type-of object) 'liquid)) all-contents))
-                   (liquid-mixture (create-homogeneous-mixture (append spices liquids) 'boiled))
+                   (liquid-mixture (if (and (= (length spices) 0) (= (length liquids) 1))
+                                     (first liquids)
+                                     (create-homogeneous-mixture (append spices liquids) 'boiled)))
                    (main-content (set-difference all-contents (append spices liquids))))
 
               ; we keep track of what the main content and liquids are boiled with
@@ -270,7 +272,10 @@
                     do (setf (boiled boilable) t)
                        (setf (boiled-with boilable) liquid-mixture))
 
-              (setf (is-liquid liquid-mixture) t)
+              (if (or (> (length spices) 0) (> (length liquids) 1))
+                (setf (is-liquid liquid-mixture) t)
+                (setf (boiled (first liquids)) t))
+              
               (setf (contents new-thing-to-boil) (append main-content (list liquid-mixture)))
 
               (bind (thing-boiled 1.0 new-thing-to-boil thing-boiled-available-at)
@@ -315,7 +320,9 @@
             (let* ((all-contents (contents new-thing-to-boil))
                    (spices (remove-if-not #'(lambda (object) (subtypep (type-of object) 'spice)) all-contents))
                    (liquids (remove-if-not #'(lambda (object) (subtypep (type-of object) 'liquid)) all-contents))
-                   (liquid-mixture (create-homogeneous-mixture (append spices liquids) 'boiled))
+                   (liquid-mixture (if (and (= (length spices) 0) (= (length liquids) 1))
+                                     (first liquids)
+                                     (create-homogeneous-mixture (append spices liquids) 'boiled)))
                    (main-content (set-difference all-contents (append spices liquids))))
 
               ; we keep track of what the main content and liquids are boiled with
@@ -323,7 +330,9 @@
                     do (setf (boiled boilable) t)
                        (setf (boiled-with boilable) liquid-mixture))
 
-              (setf (is-liquid liquid-mixture) t)
+              (if (or (> (length spices) 0) (> (length liquids) 1))
+                (setf (is-liquid liquid-mixture) t)
+                (setf (boiled (first liquids)) t))
               (setf (contents new-thing-to-boil) (append main-content (list liquid-mixture)))
 
               (bind (thing-boiled 1.0 new-thing-to-boil thing-boiled-available-at)
@@ -367,7 +376,9 @@
             (let* ((all-contents (contents new-thing-to-boil))
                    (spices (remove-if-not #'(lambda (object) (subtypep (type-of object) 'spice)) all-contents))
                    (liquids (remove-if-not #'(lambda (object) (subtypep (type-of object) 'liquid)) all-contents))
-                   (liquid-mixture (create-homogeneous-mixture (append spices liquids) 'boiled))
+                   (liquid-mixture (if (and (= (length spices) 0) (= (length liquids) 1))
+                                     (first liquids)
+                                     (create-homogeneous-mixture (append spices liquids) 'boiled)))
                    (main-content (set-difference all-contents (append spices liquids))))
 
               ; we keep track of what the main content and liquids are boiled with
@@ -375,7 +386,9 @@
                     do (setf (boiled boilable) t)
                        (setf (boiled-with boilable) liquid-mixture))
 
-              (setf (is-liquid liquid-mixture) t)
+              (if (or (> (length spices) 0) (> (length liquids) 1))
+                (setf (is-liquid liquid-mixture) t)
+                (setf (boiled (first liquids)) t))
               (setf (contents new-thing-to-boil) (append main-content (list liquid-mixture)))
 
               (bind (thing-boiled 1.0 new-thing-to-boil thing-boiled-available-at)
@@ -420,7 +433,9 @@
             (let* ((all-contents (contents new-thing-to-boil))
                    (spices (remove-if-not #'(lambda (object) (subtypep (type-of object) 'spice)) all-contents))
                    (liquids (remove-if-not #'(lambda (object) (subtypep (type-of object) 'liquid)) all-contents))
-                   (liquid-mixture (create-homogeneous-mixture (append spices liquids) 'boiled))
+                   (liquid-mixture (if (and (= (length spices) 0) (= (length liquids) 1))
+                                     (first liquids)
+                                     (create-homogeneous-mixture (append spices liquids) 'boiled)))
                    (main-content (set-difference all-contents (append spices liquids))))
 
               ; we keep track of what the main content and liquids are boiled with
@@ -428,7 +443,9 @@
                     do (setf (boiled boilable) t)
                        (setf (boiled-with boilable) liquid-mixture))
 
-              (setf (is-liquid liquid-mixture) t)
+              (if (or (> (length spices) 0) (> (length liquids) 1))
+                (setf (is-liquid liquid-mixture) t)
+                (setf (boiled (first liquids)) t))
               (setf (contents new-thing-to-boil) (append main-content (list liquid-mixture)))
 
               (bind (thing-boiled 1.0 new-thing-to-boil thing-boiled-available-at)
@@ -1296,7 +1313,7 @@
 
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
 
-     (cond ((not (has-failed-objects container-to-flour))
+     (cond (new-container
      
             ;; 1) find ingredient to be used for flouring and bring it to the countertop
             (multiple-value-bind (original-flour flour-original-location)
@@ -1432,7 +1449,6 @@
            (t
             (bind (lined-baking-tray 1.0 (make-instance 'failed-object) tray-available-at)
                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
-
 
 (defprimitive mash ((mashed-ingredient transferable-container)
                     (kitchen-state-out kitchen-state)
@@ -1727,9 +1743,17 @@
              (not (has-failed-objects input-ingredient)))
             
             ;; 3) peel everything in the container
-            (loop for item in (contents new-ingredient)
-                  do (setf (peeled item) t)
-                     (push (make-instance 'peel :peel-of item) (contents new-peel-container)))
+            (let ((peeled-ingredients '()))
+              (loop for item in (contents new-ingredient)
+                    do (cond ((and (subtypep (type-of item) 'egg) 
+                                   (boiled item)) ; peeling a hard boiled egg is a special case of peeling
+                              (push (make-instance 'hard-boiled-egg) peeled-ingredients)
+                              (push (make-instance 'egg-shell :cracked t) (contents new-peel-container)))
+                             (t
+                              (setf (peeled item) t)
+                              (push item peeled-ingredients)
+                              (push (make-instance 'peel :peel-of item) (contents new-peel-container)))))
+              (setf (contents new-ingredient) peeled-ingredients))
 
             (setf (used new-peeling-tool) t)
             (setf (used new-peel-container) t)
@@ -1767,9 +1791,17 @@
              (not (has-failed-objects input-ingredient)))
             
             ;; 3) peel everything in the container
-            (loop for item in (contents new-ingredient)
-                  do (setf (peeled item) t)
-                     (push (make-instance 'peel :peel-of item) (contents new-peel-container)))
+            (let ((peeled-ingredients '()))
+              (loop for item in (contents new-ingredient)
+                    do (cond ((and (subtypep (type-of item) 'egg) 
+                                   (boiled item)) ; peeling a hard boiled egg is a special case of peeling
+                              (push (make-instance 'hard-boiled-egg) peeled-ingredients)
+                              (push (make-instance 'egg-shell :cracked t) (contents new-peel-container)))
+                             (t
+                              (setf (peeled item) t)
+                              (push item peeled-ingredients)
+                              (push (make-instance 'peel :peel-of item) (contents new-peel-container)))))
+              (setf (contents new-ingredient) peeled-ingredients))
      
             (setf (used new-peeling-tool) t)
             (setf (used new-peel-container) t)

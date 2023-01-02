@@ -274,7 +274,7 @@
     (cut ?minced-onion ?ks-with-minced-onion ?ks-with-onion ?proportioned-onion minced ?knife)
 
     ;; "5 hard-boiled eggs"
-    (fetch-and-proportion ?proportioned-eggs ?ks-with-eggs ?ks-with-onion ?target-container-12 hard-boiled-egg 50 g)
+    (fetch-and-proportion ?proportioned-eggs ?ks-with-eggs ?ks-with-onion ?target-container-12 hard-boiled-egg 5 piece)
 
     ;; "1/2 teaspoon paprika"
     (fetch-and-proportion ?proportioned-paprika ?ks-with-paprika ?ks-with-eggs ?target-container-13 paprika-powder 1/2 teaspoon)
