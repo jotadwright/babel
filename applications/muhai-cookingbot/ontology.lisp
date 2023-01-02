@@ -919,6 +919,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying egg-yolk objects."
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated egg-yolk))))
 
+(defclass extra-virgin-olive-oil (olive-oil)
+  ()
+  (:documentation "Extra-virgin olive oil."))
+
 (defclass feta-cheese (ingredient cuttable)
   ()
   (:documentation "Feta cheese."))
