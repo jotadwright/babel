@@ -239,6 +239,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A tool that can be used for seeding."))
 
+(defclass can-separate-eggs (cooking-utensil)
+  ()
+  (:documentation "A tool that can be used for separating whole eggs into egg yolks and egg whites."))
+
 (defclass can-sift (cooking-utensil)
   ()
   (:documentation "A tool that can be used for sifting."))
@@ -568,6 +572,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defmethod copy-object-content ((counter-top counter-top) (copy counter-top))
   "Copying counter-tops."
   (setf (arrangement copy) (copy-object (arrangement counter-top))))
+
+(defclass egg-separator (can-separate-eggs reusable)
+  ()
+  (:documentation "A tool to separate eggs into egg yolks and egg whites."))
 
 (defclass fork (can-mix can-beat can-mash reusable)
   ()
@@ -902,6 +910,14 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass egg-shell (ingredient crackable)
   ()
   (:documentation "Egg shell"))
+
+(defclass egg-yolk (ingredient has-temperature)
+  ((keep-refrigerated :initform T))
+  (:documentation "Egg yolk."))
+
+(defmethod copy-object-content ((egg-yolk egg-yolk) (copy egg-yolk))
+  "Copying egg-yolk objects."
+  (setf (keep-refrigerated copy) (copy-object (keep-refrigerated egg-yolk))))
 
 (defclass feta-cheese (ingredient cuttable)
   ()

@@ -94,6 +94,15 @@
                                    (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
                                    (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
                                    (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
+                                   (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
+                                   (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
+                                   (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
+                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
+                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
                                    (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
                                    (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
                                    (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
@@ -102,6 +111,8 @@
                                    (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
                                    (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
                                    (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
+
+                                   (make-instance 'egg-separator) (make-instance 'egg-separator) (make-instance 'egg-separator)
 
                                    ;; lids
                                    (make-instance 'large-bowl-lid) (make-instance 'large-bowl-lid) (make-instance 'large-bowl-lid)
@@ -125,9 +136,11 @@
      ;; "100 grams sugar"
     (fetch-and-proportion ?proportioned-sugar ?ks-with-sugar ?ks-with-warm-butter ?target-container-2 white-sugar 100 g)
     
-    ;; "1 egg, at room temperature"
+    ;; "1 egg yolk, at room temperature"
     (fetch-and-proportion ?proportioned-egg ?ks-with-egg ?ks-with-sugar ?target-container-3 egg 1 piece)
-    (bring-to-temperature ?warm-egg ?ks-with-warm-egg ?ks-with-egg ?proportioned-egg ?room-temp-quantity-2 ?room-temp-unit-2)
+    (crack ?cracked-egg ?ks-with-cracked-egg ?ks-with-egg ?proportioned-egg ?empty-bowl-1)
+    (separate-eggs ?egg-yolk ?egg-white ?ks-with-separated-egg ?ks-with-cracked-egg ?cracked-egg ?empty-bowl-2 ?empty-bowl-3 ?egg-separator)
+    (bring-to-temperature ?warm-egg ?ks-with-warm-egg ?ks-with-separated-egg ?egg-yolk ?room-temp-quantity-2 ?room-temp-unit-2)
     
     ;; "1 teaspoon pure vanilla extract"
     (fetch-and-proportion ?proportioned-vanilla ?ks-with-vanilla ?ks-with-warm-egg ?target-container-4 vanilla-extract 1 teaspoon)
