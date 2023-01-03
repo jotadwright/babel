@@ -3178,37 +3178,68 @@
                         
 (defun take-n-pieces (source-container target-amount target-container)
   (assert (= (length (contents source-container)) 1))
-  
-  (let* ((source-ingredient (first (contents source-container)))
-         (new-amount-source (make-instance 'amount
-                                          :unit (unit target-amount)
-                                          :quantity (make-instance 'quantity
-                                                                   :value (- (value (quantity (amount source-ingredient)))
-                                                                             (value (quantity target-amount)))))))
 
-    (multiple-value-bind (wholes parts) (floor (value (quantity target-amount)))
-      (let* ((target-ingredients
-              (loop for piece from 1 to wholes
-                    collect (make-instance (type-of source-ingredient)
-                                           :amount (make-instance 'amount
-                                                                  :unit (make-instance 'piece)
-                                                                  :quantity (make-instance 'quantity :value 1)))))
-             (target-ingredients (if (= parts 0)
-                                   target-ingredients
-                                   (cons (make-instance (type-of source-ingredient)
-                                                        :amount (make-instance 'amount
-                                                                               :unit (make-instance 'piece)
-                                                                               :quantity (make-instance 'quantity :value parts)))
-                                         target-ingredients))))
+  (if (subtypep (type-of (unit target-amount)) 'piece)
+    
+    (let* ((source-ingredient (first (contents source-container)))
+           (new-amount-source (make-instance 'amount
+                                             :unit (unit target-amount)
+                                             :quantity (make-instance 'quantity
+                                                                      :value (- (value (quantity (amount source-ingredient)))
+                                                                                (value (quantity target-amount)))))))
 
-        ;;adjust amounts of source ingredient
+      (multiple-value-bind (wholes parts) (floor (value (quantity target-amount)))
+        (let* ((target-ingredients
+                (loop for piece from 1 to wholes
+                      collect (make-instance (type-of source-ingredient)
+                                             :amount (make-instance 'amount
+                                                                    :unit (make-instance 'piece)
+                                                                    :quantity (make-instance 'quantity :value 1)))))
+               (target-ingredients (if (= parts 0)
+                                     target-ingredients
+                                     (cons (make-instance (type-of source-ingredient)
+                                                          :amount (make-instance 'amount
+                                                                                 :unit (make-instance 'piece)
+                                                                                 :quantity (make-instance 'quantity :value parts)))
+                                           target-ingredients))))
+
+          ;;adjust amounts of source ingredient
+          (setf (amount source-ingredient) new-amount-source)
+
+          ;;add all target ingredients to contents of target-container
+          (setf (contents target-container)
+                (append target-ingredients (contents target-container)))
+
+          (values target-container source-container))))
+    
+    (let* ((source-ingredient (first (contents source-container)))
+           (source-ingredient-in-g (convert-to-g source-ingredient))
+           (one-piece-in-g (/ (value (quantity (amount source-ingredient-in-g))) (value (quantity (amount source-ingredient)))) )    
+           (target-ingredient (copy-object source-ingredient-in-g)))
+        
+      (setf (amount target-ingredient) target-amount)
+      (setf target-ingredient (convert-to-g target-ingredient))
+
+      (let* ((new-amount-source-in-g (make-instance 'amount
+                                               :unit (unit target-amount)
+                                               :quantity (make-instance 'quantity
+                                                                        :value (- (value (quantity (amount source-ingredient-in-g)))
+                                                                                  (value (quantity (amount target-ingredient)))))))
+             (new-amount-source (make-instance 'amount
+                                               :unit (make-instance 'piece)
+                                               :quantity (make-instance 'quantity
+                                                                        :value (/ (value (quantity new-amount-source-in-g))
+                                                                                  one-piece-in-g)))))
+
+        ;;adjust amounts of target and source ingredients
+        (setf (amount target-ingredient) target-amount)
         (setf (amount source-ingredient) new-amount-source)
 
-        ;;add all target ingredients to contents of target-container
+        ;;add weighed ingredient to contents of target-container
         (setf (contents target-container)
-              (append target-ingredients (contents target-container)))
+              (cons target-ingredient (contents target-container)))
 
-        (values target-container source-container)))))
+            (values target-container source-container)))))
 
 (defun weigh-ingredient (source-container target-amount target-container)
   
@@ -3445,7 +3476,7 @@
     (setf (gethash 'green-cabbage conversion-table)
           (acons 'piece 908 '()))
     (setf (gethash 'green-chili-pepper conversion-table)
-          (acons 'piece 25 '()))
+          (acons 'piece 25 (acons 'teaspoon 5 '())))
     (setf (gethash 'green-onion conversion-table)
           (acons 'piece 17 '()))  
     (setf (gethash 'ground-allspice conversion-table)
