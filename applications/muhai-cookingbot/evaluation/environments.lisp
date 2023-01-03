@@ -1863,7 +1863,7 @@
                        '(transfer-contents ?output-container-q ?rest-q ?output-ks-q ?output-ks-p ?output-container-p ?proportioned-black-pepper ?quantity-q ?unit-q)
                        '(refrigerate ?cooled-dressing ?ks-with-cooled-dressing ?output-ks-q ?output-container-q ?fridge-2 ?cooling-quantity-2 ?cooling-unit-2)
                        '(uncover ?uncovered-salad ?used-plastic-wrap ?ks-with-uncovered-salad ?ks-with-cooled-dressing ?cooled-salad)
-                       '(transfer-contents ?output-container-r ?rest-r ?output-ks-r ?ks-with-cooled-dressing ?uncovered-salad ?cooled-dressing ?quantity-r ?unit-r)
+                       '(transfer-contents ?output-container-r ?rest-r ?output-ks-r ?ks-with-uncovered-salad ?uncovered-salad ?cooled-dressing ?quantity-r ?unit-r)
                        '(mingle ?dressed-salad ?ks-with-dressed-salad ?output-ks-r ?output-container-r ?mingling-tool)    
                        '(sprinkle ?croutons-vinegar-salad ?ks-with-croutons-vinegar-salad ?ks-with-dressed-salad ?dressed-salad ?baked-croutons))
                  :primary-output-var

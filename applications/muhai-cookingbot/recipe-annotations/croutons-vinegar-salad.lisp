@@ -334,7 +334,7 @@
      ;; IMPLICIT: the bowl is still covered and should be uncovered first
     (uncover ?uncovered-salad ?used-plastic-wrap ?ks-with-uncovered-salad ?ks-with-cooled-dressing ?cooled-salad)
     
-    (transfer-contents ?output-container-r ?rest-r ?output-ks-r ?ks-with-cooled-dressing ?uncovered-salad ?cooled-dressing ?quantity-r ?unit-r)
+    (transfer-contents ?output-container-r ?rest-r ?output-ks-r ?ks-with-uncovered-salad ?uncovered-salad ?cooled-dressing ?quantity-r ?unit-r)
     (mingle ?dressed-salad ?ks-with-dressed-salad ?output-ks-r ?output-container-r ?mingling-tool)
     
     (sprinkle ?croutons-vinegar-salad ?ks-with-croutons-vinegar-salad ?ks-with-dressed-salad ?dressed-salad ?baked-croutons)))
