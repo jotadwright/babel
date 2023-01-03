@@ -785,7 +785,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Black beans."))
 
-(defclass black-olive (ingredient seedable)
+(defclass black-olive (ingredient seedable cuttable)
   ()
   (:documentation "Black olive."))
 
@@ -983,6 +983,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Green chili pepper."))
 
+(defclass green-onion (ingredient cuttable)
+  ()
+  (:documentation "Green onion (scallion)."))
+
 (defclass ground-allspice (ground-spice)
   ()
   (:documentation "Ground-allspice."))
@@ -1093,6 +1097,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Mayonnaise."))
 
+(defclass mixed-greens (ingredient cuttable washable)
+  ()
+  (:documentation "Mixed greens."))
+
 (defclass molasses (ingredient)
   ()
   (:documentation "Molasses."))
@@ -1153,6 +1161,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Red pepper flakes."))
 
+(defclass red-wine-vinegar (ingredient liquid)
+  ()
+  (:documentation "Red wine vinegar."))
+
 (defclass romaine-lettuce (ingredient cuttable washable)
   ()
   (:documentation "Romaine lettuce."))
@@ -1172,10 +1184,6 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass syrup (ingredient liquid)
   ()
   (:documentation "Syrup."))
-
-(defclass green-onion (ingredient cuttable)
-  ()
-  (:documentation "Scallion."))
 
 (defclass self-rising-flour (flour)
   ()
@@ -1252,6 +1260,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass water (ingredient has-temperature liquid)
   ()
   (:documentation "H2O."))
+
+(defclass white-bread-slice (ingredient cuttable)
+  ()
+  (:documentation "A slice of white bread."))
 
 (defclass white-sugar (sugar)
   ()
