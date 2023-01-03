@@ -248,7 +248,6 @@
   '((get-kitchen ?kitchen)
 
     ;; "140 grams finely chopped cooked chicken"
-    ; cooking and dicing is repeated in the instructions
     (fetch-and-proportion ?proportioned-chicken ?ks-with-chicken ?kitchen ?target-container-1 cooked-chicken 140 g)
     (cut ?chopped-chicken ?ks-with-chopped-chicken ?ks-with-chicken ?proportioned-chicken chopped ?knife)
 
@@ -300,8 +299,8 @@
     (transfer-contents ?output-container-e ?rest-e ?output-ks-e ?output-ks-d ?output-container-d ?chopped-onion ?quantity-e ?unit-e)
     (mingle ?salad ?ks-with-salad ?output-ks-e ?output-container-e ?fork)
 
-    ;; "Add the cilantro, lime juice, salt, and pepper. Stir in a teaspoon of olive oil"
-    (transfer-contents ?output-container-f ?rest-f ?output-ks-f ?output-ks-e ?output-container-e ?chopped-cilantro ?quantity-f ?unit-f)
+    ;; "Add the cilantro, lime juice, salt, and pepper. Stir in a teaspoon of olive oil."
+    (transfer-contents ?output-container-f ?rest-f ?output-ks-f ?ks-with-salad ?salad ?chopped-cilantro ?quantity-f ?unit-f)
     (transfer-contents ?output-container-g ?rest-g ?output-ks-g ?output-ks-f ?output-container-f ?proportioned-lime-juice ?quantity-g ?unit-g)
     (transfer-contents ?output-container-h ?rest-h ?output-ks-h ?output-ks-g ?output-container-g ?proportioned-salt ?quantity-h ?unit-h)
     (transfer-contents ?output-container-i ?rest-i ?output-ks-i ?output-ks-h ?output-container-h ?proportioned-pepper ?quantity-i ?unit-i)
