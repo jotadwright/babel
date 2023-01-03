@@ -1931,7 +1931,7 @@
                        '(cover ?covered-salad ?ks-with-covered-salad ?ks-with-fetched-plastic-wrap ?output-container-k ?plastic-wrap)
                        '(refrigerate ?cooled-salad ?ks-with-cooled-salad ?ks-with-covered-salad ?covered-salad ?fridge ?cooling-quantity ?cooling-unit))
                  :primary-output-var
-                 '?avocado-chicken-salad))
+                 '?cooled-salad))
 
 ; list of all available simulation environments
 (defparameter *simulation-environments*
