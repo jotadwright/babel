@@ -11,13 +11,20 @@
    (list (make-instance 'fridge
                         :contents (list
                                    (make-instance 'medium-bowl
+                                                        :used T
+                                                        :contents (list (make-instance 'apple :amount
+                                                                                       (make-instance 'amount
+                                                                                                      :unit (make-instance 'piece)
+                                                                                                      :quantity (make-instance 'quantity
+                                                                                                                               :value 6)))))
+                                   (make-instance 'medium-bowl
                                                   :used T
                                                   :contents (list (make-instance 'avocado
                                                                                  :amount
                                                                                  (make-instance 'amount
                                                                                                 :unit (make-instance 'piece)
                                                                                                 :quantity (make-instance 'quantity
-                                                                                                                         :value 5)))))
+                                                                                                                         :value 6)))))
                                    (make-instance 'medium-bowl
                                                   :used T
                                                   :contents (list (make-instance 'black-olive :amount
@@ -59,6 +66,13 @@
                                                                                                 :unit (make-instance 'l)
                                                                                                 :quantity (make-instance 'quantity
                                                                                                                          :value 0.5)))))
+                                    (make-instance 'medium-bowl
+                                                  :used T
+                                                  :contents (list (make-instance 'cooked-chicken :amount
+                                                                                 (make-instance 'amount
+                                                                                                :unit (make-instance 'g)
+                                                                                                :quantity (make-instance 'quantity
+                                                                                                                         :value 500)))))
                                    (make-instance 'medium-bowl
                                                   :used T
                                                   :contents (list (make-instance 'corn :amount
@@ -1869,6 +1883,18 @@
                  :primary-output-var
                  '?croutons-vinegar-salad))
 
+(defparameter *avocado-chicken-salad-environment*
+  (make-instance 'simulation-environment
+                 :recipe-id 'avocado-chicken-salad
+                 :kitchen-state
+                 *full-kitchen*
+                 :meaning-network
+                 (list '(get-kitchen ?kitchen)
+
+                       )
+                 :primary-output-var
+                 '?avocado-chicken-salad))
+
 ; list of all available simulation environments
 (defparameter *simulation-environments*
   (list *almond-crescent-cookies-environment*
@@ -1899,4 +1925,5 @@
         *cole-slaw-environment*
         *cranberry-fluff-salad-environment*
         *croutons-vinegar-salad-environment*
+        *avocado-chicken-salad-environment*
         ))

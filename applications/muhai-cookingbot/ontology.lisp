@@ -577,7 +577,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A tool to separate eggs into egg yolks and egg whites."))
 
-(defclass fork (can-mix can-beat can-mash reusable)
+(defclass fork (can-mix can-beat can-mash reusable can-mingle)
   ()
   (:documentation "A fork. It's a tool for mixing, beating and mashing."))
 
@@ -674,7 +674,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ((arrangement :initform (make-instance 'shelved)))
   (:documentation "The pantry. It's a container."))
 
-(defclass plastic-wrap (can-cover)
+(defclass plastic-wrap (can-cover reusable)
   ()
   (:documentation "Plastic foil. Can be used to cover most things."))
 
@@ -765,7 +765,11 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Almond flour."))
 
-(defclass avocado (ingredient cuttable seedable)
+(defclass apple (ingredient cuttable seedable peelable)
+  ()
+  (:documentation "Apple."))
+
+(defclass avocado (ingredient cuttable seedable peelable mashable)
   ()
   (:documentation "Avocado."))
 
@@ -842,6 +846,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defmethod copy-object-content ((cherry-tomato cherry-tomato) (copy cherry-tomato))
   "Copying cherry-tomato objects."
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated cherry-tomato))))
+
+(defclass cooked-chicken (ingredient cuttable)
+  ()
+  (:documentation "Cooked chicken."))
 
 (defclass walnut (ingredient cuttable)
   ()
