@@ -334,7 +334,7 @@
     (transfer-contents ?output-container-j ?rest-j ?output-ks-j ?output-ks-i ?output-container-i ?proportioned-celery-seed ?quantity-j ?unit-j)
     (transfer-contents ?output-container-k ?rest-k ?output-ks-k ?output-ks-j ?output-container-j ?proportioned-turmeric ?quantity-k ?unit-k)
 
-    (boil ?dressing ?ks-with-dressing ?output-ks-k ?output-container-k ?stove ?boiling-time-qty ?boiling-time-unit)
+    (boil ?dressing ?ks-with-dressing ?output-ks-k ?output-container-k ?stove ?heating-mode ?boiling-time-qty ?boiling-time-unit)
   
     ;; "Pour over the slaw and allow it to set in the refrigerator for two hours before serving."
     (transfer-contents ?output-container-l ?rest-l ?output-ks-l ?ks-with-dressing ?slaw ?dressing ?quantity-l ?unit-l)

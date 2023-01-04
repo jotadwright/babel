@@ -37,7 +37,7 @@
          (make-instance 'pantry
                         :contents (list  (make-instance 'medium-bowl
                                                         :used T
-                                                        :contents (list (make-instance 'olive-oil :amount
+                                                        :contents (list (make-instance 'extra-virgin-olive-oil :amount
                                                                                        (make-instance 'amount
                                                                                                       :unit (make-instance 'l)
                                                                                                       :quantity (make-instance 'quantity

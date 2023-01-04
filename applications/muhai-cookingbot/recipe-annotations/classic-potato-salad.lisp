@@ -289,7 +289,7 @@
     (transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?proportioned-salt-1 ?quantity-b ?unit-b)
     (transfer-contents ?output-container-c ?rest-c ?output-ks-c ?output-ks-b ?output-container-b ?peeled-potato ?quantity-c ?unit-c)
 
-    (boil ?boiled-potatoes ?ks-with-boiled-potatoes ?output-ks-c ?output-container-c ?stove ?boiling-time-qty ?boiling-time-unit)
+    (boil ?boiled-potatoes ?ks-with-boiled-potatoes ?output-ks-c ?output-container-c ?stove ?heating-mode ?boiling-time-qty ?boiling-time-unit)
     (drain ?drained-potato ?rest-liquid ?ks-with-drained-potatoes ?ks-with-boiled-potatoes ?boiled-potatoes ?colander)
 
     (bring-to-temperature ?cooled-potatoes ?ks-with-cooled-potatoes ?ks-with-drained-potatoes ?drained-potato ?room-temp-quantity ?room-temp-unit)
