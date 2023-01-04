@@ -817,6 +817,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Black olive."))
 
+(defclass broccoli (ingredient cuttable)
+  ()
+  (:documentation "Broccoli."))
+
 (defclass brown-lentils (lentils)
   ()
   (:documentation "Brown lentils."))
@@ -870,6 +874,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defmethod copy-object-content ((cherry-tomato cherry-tomato) (copy cherry-tomato))
   "Copying cherry-tomato objects."
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated cherry-tomato))))
+
+(defclass cooked-bacon (ingredient cuttable)
+  ()
+  (:documentation "Cooked bacon."))
 
 (defclass cooked-chicken (ingredient cuttable)
   ()
@@ -1148,6 +1156,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass molasses (ingredient)
   ()
   (:documentation "Molasses."))
+
+(defclass grated-mozzarella (ingredient cuttable)
+  ()
+  (:documentation "Grated mozzarella."))
 
 (defclass mustard-seed (spice)
   ()
