@@ -1,6 +1,7 @@
 (ql:quickload :grammar-learning) 
 (in-package :grammar-learning)
 
+
 ;; full logging
 (progn
   (deactivate-all-monitors)
@@ -12,7 +13,8 @@
   (activate-monitor trace-interactions-in-wi))
 
 
-(defun test-deletion-repair-comprehension-clevr ()
+
+#|(deftest test-deletion-repair-clevr ()
   (let* ((experiment (set-up-cxn-inventory-and-repairs))
          (cxn-inventory (grammar (first (agents experiment)))))
     (comprehend "The large gray object is what shape?"
@@ -38,24 +40,20 @@
                                              (bind attribute-category ?attribute-2 shape)
                                              (filter ?target-1 ?source-1 ?shape-8)
                                              (bind color-category ?color-2 gray)
-                                             (query ?target-7 ?source-9 ?attribute-2))))))
-    (comprehend "The large gray object is what shape?"
-                    :cxn-inventory cxn-inventory
-                    :gold-standard-meaning '((get-context ?source-1)
-                                             (filter ?target-39552 ?target-2 ?size-4)
-                                             (unique ?source-10 ?target-39552)
-                                             (bind color-category ?color-2 gray)
-                                             (filter ?target-1 ?source-1 ?shape-8)
-                                             (bind attribute-category ?attribute-2 shape)
-                                             (bind shape-category ?shape-8 thing)
-                                             (filter ?target-2 ?target-1 ?color-2)
-                                             (bind size-category ?size-4 large)
-                                             (query ?target-8 ?source-10 ?attribute-2)))
-    (add-element (make-html cxn-inventory))))
+                                             (query ?target-7 ?source-9 ?attribute-2))))))))|#
+
+
+;(test-deletion-repair-clevr)
+
+;(define-configuration-default-value :meaning-representation :geo)
+
+
+;default is IRL
+;with GEO repair doesnt work (all NILs) since no cxn detected as T
 
 
 (defun test-deletion-repair-comprehension-german ()
-  (let* ((experiment (set-up-cxn-inventory-and-repairs-german))
+  (let* ((experiment (set-up-cxn-inventory-and-repairs))
          (cxn-inventory (grammar (first (agents experiment)))))
     (comprehend "Die junge Frau gibt dem Mann den gruenen Apfel"
                     :cxn-inventory cxn-inventory
@@ -85,7 +83,46 @@
                                              (arg0 ?g ?w)
                                              (arg1 ?g ?a)
                                              (arg2 ?g ?m)
-                                             (topicalized ?w))))))))
+                                             (topicalized ?w))))))
+    (comprehend "Die junge Frau gibt dem Mann den gruenen Apfel"
+                    :cxn-inventory cxn-inventory
+                    :gold-standard-meaning '((geben-01 ?g)
+                                             (young ?y)
+                                             (woman ?w)
+                                             (mod ?w ?y)
+                                             (man ?m)
+                                             (apple ?a)
+                                             (green ?gr)
+                                             (mod ?a ?gr)
+                                             (arg0 ?g ?w)
+                                             (arg1 ?g ?a)
+                                             (arg2 ?g ?m)
+                                             (topicalized ?w)))
+    (add-element (make-html cxn-inventory))))
+
+
 
 
 (test-deletion-repair-comprehension-german)
+
+
+;;;error if set to AMR
+
+;++++ Error in (LISPWORKS:TOP-LEVEL-FORM 5): 
+  ;no deletion conditions implemented for this meaning representation (debugging I get the following with Check deletion conditions)
+
+;;;;details
+
+;OBSERVATION (Die junge Frau gibt dem Mann den Apfel)
+;overlapping meaning NIL
+;overlapping form NIL
+;non-overlapping meaning ALL
+;non-overlapping form  ALL
+
+
+
+;CXN (Die junge Frau gibt dem Mann den groenen Apfel)
+;overlapping meaning NIL (should be all but GREEN)
+;overlapping form all but GREEN (should be all)
+;non-overlapping meaning green (should be ALL)
+;non-overlapping form  GREEN
