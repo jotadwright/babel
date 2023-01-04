@@ -94,6 +94,7 @@
                                    (make-instance 'mixer)
 
                                    ;; baking equipment
+                                   (make-instance 'wire-rack)
                                    (make-instance 'cookie-sheet)
                                    (make-instance 'baking-tray)
                                    (make-instance 'baking-paper))))))
