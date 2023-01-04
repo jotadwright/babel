@@ -797,6 +797,8 @@
 
                                    (make-instance 'mixer) (make-instance 'mixer) (make-instance 'mixer)
 
+                                   (make-instance 'food-processor)
+
                                    ;; baking equipment
                                    (make-instance 'rolling-pin) (make-instance 'rolling-pin) (make-instance 'rolling-pin)
                                    (make-instance 'baking-paper) (make-instance 'baking-paper) (make-instance 'baking-paper)
@@ -1933,6 +1935,37 @@
                  :primary-output-var
                  '?cooled-salad))
 
+(defparameter *mexican-wedding-cookies-environment*
+  (make-instance 'simulation-environment
+                 :recipe-id 'mexican-wedding-cookies
+                 :kitchen-state
+                 *full-kitchen*
+                 :meaning-network
+                 (list '(get-kitchen ?kitchen)
+                       '(fetch-and-proportion ?proportioned-butter ?ks-with-butter ?kitchen ?target-container-1 butter 230 g)
+                       '(bring-to-temperature ?warm-butter ?ks-with-warm-butter ?ks-with-butter ?proportioned-butter ?room-temp-quantity ?room-temp-unit)
+                       '(fetch-and-proportion ?proportioned-powdered-sugar ?ks-with-powdered-sugar ?ks-with-warm-butter ?target-container-2 powdered-white-sugar 120 g)
+                       '(fetch-and-proportion ?proportioned-flour ?ks-with-flour ?ks-with-powdered-sugar ?target-container-3 all-purpose-flour 240 g)
+                       '(sift ?sifted-flour ?ks-with-sifted-flour ?ks-with-flour ?target-container-4 ?proportioned-flour ?sifting-tool)
+                       '(fetch-and-proportion ?proportioned-walnut ?ks-with-walnut ?ks-with-sifted-flour ?target-container-5 walnut 120 g)
+                       '(grind ?ground-walnut ?ks-with-ground-walnut ?ks-with-walnut ?target-container-6 ?proportioned-walnut ?grinding-tool)
+                       '(fetch-and-proportion ?proportioned-vanilla ?ks-with-vanilla ?ks-with-ground-walnut ?target-container-7 vanilla 1 teaspoon)
+                       '(fetch-and-proportion ?additional-powdered-sugar ?ks-with-additional-sugar ?ks-with-vanilla ?target-container-8 powdered-white-sugar 60 g)
+                       '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-additional-sugar ?empty-container ?warm-butter ?quantity-a ?unit-a)
+                       '(transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?proportioned-powdered-sugar ?quantity-b ?unit-b)
+                       '(transfer-contents ?output-container-c ?rest-c ?output-ks-c ?output-ks-b ?output-container-b ?sifted-flour ?quantity-c ?unit-c)
+                       '(transfer-contents ?output-container-d ?rest-d ?output-ks-d ?output-ks-c ?output-container-c ?ground-walnut ?quantity-d ?unit-d)
+                       '(transfer-contents ?output-container-e ?rest-e ?output-ks-e ?output-ks-d ?output-container-d ?proportioned-vanilla ?quantity-e ?unit-e)
+                       '(mix ?dough ?ks-with-dough ?output-ks-e ?output-container-e ?mixing-tool)
+                       '(portion-and-arrange ?portioned-dough ?ks-with-dough-portions ?ks-with-dough ?dough 25 g ?pattern ?countertop)
+                       '(shape ?bakeable-balls ?ks-with-balls ?ks-with-dough-portions ?portioned-dough ball-shape)
+                       '(fetch ?cookie-sheet ?ks-with-cookie-sheet ?ks-with-balls cookie-sheet 1)
+                       '(transfer-items ?tray-with-balls ?ks-with-balls-tray ?ks-with-cookie-sheet ?bakeable-balls ?default-pattern ?cookie-sheet)
+                       '(bake ?baked-balls ?ks-with-baked-balls ?ks-with-balls-tray ?tray-with-balls ?oven 10 minute 180 degrees-celsius)
+                       '(dip ?mexican-wedding-cookies ?ks-with-mexican-wedding-cookies ?ks-with-baked-balls ?baked-balls ?additional-powdered-sugar))
+                 :primary-output-var
+                 '?mexican-wedding-cookies))
+
 ; list of all available simulation environments
 (defparameter *simulation-environments*
   (list *almond-crescent-cookies-environment*
@@ -1964,4 +1997,5 @@
         *cranberry-fluff-salad-environment*
         *croutons-vinegar-salad-environment*
         *avocado-chicken-salad-environment*
+        *mexican-wedding-cookies-environment*
         ))

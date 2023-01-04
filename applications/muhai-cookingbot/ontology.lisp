@@ -213,11 +213,15 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 
 (defclass can-drain (cooking-utensil)
   ()
-  (:documentation "A tool that can drain"))
+  (:documentation "A tool that can drain."))
 
 (defclass can-flatten (cooking-utensil)
   ()
-  (:documentation "A tool that can be used to flatten dough"))
+  (:documentation "A tool that can be used to flatten dough."))
+
+(defclass can-grind (cooking-utensil)
+  ()
+  (:documentation "A tool that can be used to grind ingredients into powder."))
 
 (defclass can-mash (cooking-utensil)
   ()
@@ -340,6 +344,14 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass fluid (kitchen-entity)
   ()
   (:documentation "An ingredient that is fluid."))
+
+(defclass grindable (kitchen-entity)
+  ((ground :type boolean :initarg :ground :accessor ground :initform nil))
+  (:documentation "For objects that can be ground."))
+
+(defmethod copy-object-content ((grindable grindable) (copy grindable))
+  "Copying grindable objects."
+  (setf (ground copy) (copy-object (ground grindable))))
   
 (defclass has-temperature (kitchen-entity)                                                      
   ((temperature  :initarg :temperature :accessor temperature :initform nil))
@@ -576,6 +588,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass egg-separator (can-separate-eggs reusable)
   ()
   (:documentation "A tool to separate eggs into egg yolks and egg whites."))
+
+(defclass food-processor (can-mix can-beat can-grind reusable)
+  ()
+  (:documentation "A food processor. It's a tool for mixing, beating and grinding."))
 
 (defclass fork (can-mix can-beat can-mash reusable can-mingle)
   ()
@@ -851,7 +867,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Cooked chicken."))
 
-(defclass walnut (ingredient cuttable)
+(defclass walnut (ingredient cuttable grindable)
   ()
   (:documentation "Walnut."))
 
@@ -1000,8 +1016,12 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   (:documentation "Ground-allspice."))
 
 (defclass ground-spice (spice siftable)
-  ()
+  ((ground :type boolean :initarg :ground :accessor ground :initform t))
   (:documentation "Abstract class for ground spices"))
+
+(defmethod copy-object-content ((ground-spice ground-spice) (copy ground-spice))
+  "Copying ground-spice objects."
+  (setf (ground copy) (copy-object (ground ground-spice))))
 
 (defclass ground-black-pepper (ground-spice) 
   ()
@@ -1026,6 +1046,14 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass ground-nutmeg (ground-spice)
   ()
   (:documentation "Nutmeg."))
+
+(defclass ground-walnut (walnut grindable)
+  ((ground :type boolean :initarg :ground :accessor ground :initform t))
+  (:documentation "Ground walnut."))
+
+(defmethod copy-object-content ((ground-walnut ground-walnut) (copy ground-walnut))
+  "Copying ground-walnut objects."
+  (setf (ground copy) (copy-object (ground ground-walnut))))
 
 (defclass hard-boiled-egg (ingredient)
   ()
