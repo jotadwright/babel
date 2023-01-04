@@ -1380,6 +1380,178 @@
             (bind (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
                   (floured-container 1.0 (make-instance 'failed-object) container-available-at)))))))
 
+(defprimitive grind ((container-with-ground-contents transferable-container)
+                    (kitchen-state-out kitchen-state)
+                    (kitchen-state-in kitchen-state)
+                    (target-container transferable-container) 
+                    (container-with-ingredients-to-be-ground transferable-container)
+                    (grinding-tool can-grind))
+  
+  ;; Case 1: target container not given, grinding-tool not given so a food-processor is used
+  ((container-with-ingredients-to-be-ground kitchen-state-in
+                                         => target-container kitchen-state-out container-with-ground-contents grinding-tool)
+
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-source-container (find-object-by-persistent-id container-with-ingredients-to-be-ground new-kitchen-state))
+          (container-available-at (+ 90 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id container-with-ingredients-to-be-ground) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+     ;; 1) find target container and place it on the countertop
+     ;; 2) find grinding-tool and place it on the countertop
+     (let* ((new-target-container (retrieve-concept-instance-and-bring-to-countertop 'large-bowl new-kitchen-state))
+            (target-container-in-kitchen-input-state (if new-target-container
+                                                       (find-object-by-persistent-id new-target-container kitchen-state-in)
+                                                       nil))
+            (new-grinding-tool (retrieve-concept-instance-and-bring-to-countertop 'food-processor new-kitchen-state)))
+
+       (cond ((and new-source-container new-target-container new-grinding-tool)
+              ;; 3) transfer contents from source-container to empty target-container
+              (setf (contents new-target-container) (contents new-source-container))
+              (setf (used new-target-container) t)
+              (setf (used new-grinding-tool) t)
+
+              (loop for item in (contents new-target-container)
+                    when (typep item 'grindable)
+                      do (setf (ground item) t))
+       
+              (setf (contents new-source-container) nil)
+              (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+              (bind (container-with-ground-contents 1.0 new-target-container container-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                    (target-container 0.0 target-container-in-kitchen-input-state nil)
+                    (grinding-tool 1.0 new-grinding-tool kitchen-state-available-at)))
+             (t
+              nil
+              ; TODO RD: replace
+              )))))
+
+  ;; Case 2: target container given, grinding-tool not given so a food-processor is used
+  ((container-with-ingredients-to-be-ground kitchen-state-in target-container
+                                         =>  kitchen-state-out container-with-ground-contents grinding-tool)
+
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-source-container (find-object-by-persistent-id container-with-ingredients-to-be-ground new-kitchen-state))
+          (new-target-container (find-object-by-persistent-id target-container new-kitchen-state))
+          (container-available-at (+ 90 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id container-with-ingredients-to-be-ground) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+     ;; 1) find food-procesor and place it on the countertop
+     (let ((new-grinding-tool (retrieve-concept-instance-and-bring-to-countertop 'food-processor new-kitchen-state)))
+
+       (cond ((and new-grinding-tool new-target-container new-source-container)
+              ;; 2) transfer contents from source-container to empty target-container
+              (setf (contents new-target-container) (contents new-source-container))
+              (setf (used new-target-container) t)
+              (setf (used new-grinding-tool) t)
+
+              (loop for item in (contents new-target-container)
+                    when (typep item 'grindable)
+                      do (setf (ground item) t))
+
+              (setf (contents new-source-container) nil)
+
+              (bind (container-with-ground-contents 1.0 new-target-container container-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                    (grinding-tool 1.0 new-grinding-tool kitchen-state-available-at)))
+             (t
+              (bind (container-with-ground-contents 1.0 (make-instance 'failed-object) container-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                    (grinding-tool 1.0 (make-instance 'failed-object) kitchen-state-available-at)))))))
+
+  ;; Case 3: target container not given, grinding-tool is given
+  ((container-with-ingredients-to-be-ground kitchen-state-in grinding-tool
+                                            => target-container kitchen-state-out container-with-ground-contents)
+
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-source-container (find-object-by-persistent-id container-with-ingredients-to-be-ground new-kitchen-state))
+          (container-available-at (+ 90 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id container-with-ingredients-to-be-ground) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+     ;; 1) find target container and place it on the countertop
+     ;; 2) find grinding-tool and place it on the countertop
+     (let* ((new-target-container (retrieve-concept-instance-and-bring-to-countertop 'large-bowl new-kitchen-state))
+            (target-container-in-kitchen-input-state (if new-target-container
+                                                       (find-object-by-persistent-id new-target-container kitchen-state-in)
+                                                       nil))
+            (new-grinding-tool (find-object-by-persistent-id grinding-tool new-kitchen-state)))
+
+       (cond ((and new-source-container new-target-container new-grinding-tool)
+              ;; 3) transfer contents from source-container to empty target-container
+              (setf (contents new-target-container) (contents new-source-container))
+              (setf (used new-target-container) t)
+              (setf (used new-grinding-tool) t)
+
+              (loop for item in (contents new-target-container)
+                    when (typep item 'grindable)
+                      do (setf (ground item) t))
+       
+              (setf (contents new-source-container) nil)
+              (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+              (bind (container-with-ground-contents 1.0 new-target-container container-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                    (target-container 0.0 target-container-in-kitchen-input-state nil)))
+             (t
+              (bind (container-with-ground-contents 1.0 (make-instance 'failed-object) container-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                    (target-container 0.0 target-container-in-kitchen-input-state nil)))))))
+  
+  ;; Case 4: target container is given, grinding-tool is given
+  ((container-with-ingredients-to-be-ground target-container kitchen-state-in grinding-tool
+                                            => kitchen-state-out container-with-ground-contents)
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-grinding-tool (find-object-by-persistent-id grinding-tool new-kitchen-state))
+          (new-source-container (find-object-by-persistent-id container-with-ingredients-to-be-ground new-kitchen-state))
+          (new-target-container (find-object-by-persistent-id target-container new-kitchen-state))
+          (container-available-at (+ 60 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id container-with-ingredients-to-be-ground) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+     (cond ((and new-grinding-tool new-target-container new-source-container)
+     
+            ;; transfer contents from source-container to target-container
+            (setf (contents new-target-container) (append (contents new-target-container)
+                                                          (contents new-source-container)))
+            (setf (used new-target-container) t)
+            (setf (used new-grinding-tool) t)
+       
+            (loop for item in (contents new-target-container)
+                  when (typep item 'grindable)
+                    do (setf (ground item) t))
+       
+            (setf (contents new-source-container) nil)
+       
+            (bind (container-with-ground-contents 1.0 new-target-container container-available-at )
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))
+           (t
+            (bind (container-with-ground-contents 1.0 (make-instance 'failed-object) container-available-at )
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+
 (defprimitive line ((lined-baking-tray lineable)
                     (kitchen-state-out kitchen-state)
                     (kitchen-state-in kitchen-state)
