@@ -88,6 +88,8 @@
                                    (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
                                    (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
                                    (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
+                                   
+                                   (make-instance 'sift) (make-instance 'sift) (make-instance 'sift)
 
                                    (make-instance 'mixer)
 
@@ -124,7 +126,6 @@
     
     ;; "120 grams powdered sugar"
     (fetch-and-proportion ?proportioned-powdered-sugar ?ks-with-powdered-sugar ?ks-with-almond-flour ?target-container-7 powdered-white-sugar 120 g)
-
 
     ;; "Preheat oven to 175 degrees C."
     (preheat-oven ?preheated-oven ?ks-with-preheated-oven ?ks-with-powdered-sugar ?oven 175 degrees-celsius) 

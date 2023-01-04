@@ -739,7 +739,7 @@
                                                                                                                          :value 1000)))))))
          (make-instance 'kitchen-cabinet
                         :contents (list
-                                   ;; bowls & pots
+                                   ;; bowls, pots & pans
                                    (make-instance 'small-bowl) (make-instance 'small-bowl) (make-instance 'small-bowl)
                                    (make-instance 'small-bowl) (make-instance 'small-bowl) (make-instance 'small-bowl)
                                    (make-instance 'small-bowl) (make-instance 'small-bowl) (make-instance 'small-bowl)
@@ -756,6 +756,7 @@
                                    (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
 
                                    (make-instance 'cooking-pot) (make-instance 'cooking-pot) (make-instance 'cooking-pot)
+                                   (make-instance 'frying-pan) (make-instance 'frying-pan) (make-instance 'frying-pan)
 
                                    (make-instance 'jar) (make-instance 'jar) (make-instance 'jar)
 
@@ -1966,6 +1967,37 @@
                  :primary-output-var
                  '?mexican-wedding-cookies))
 
+(defparameter *basic-chicken-salad-environment*
+  (make-instance 'simulation-environment
+                 :recipe-id 'basic-chicken-salad
+                 :kitchen-state
+                 *full-kitchen*
+                 :meaning-network
+                 (list '(get-kitchen ?kitchen)
+                       '(fetch-and-proportion ?proportioned-almonds ?ks-with-almonds ?kitchen ?target-container-1 almond 140 g)
+                       '(fetch-and-proportion ?proportioned-mayo ?ks-with-mayo ?ks-with-almonds ?target-container-2 mayonnaise 230 g)
+                       '(fetch-and-proportion ?proportioned-lemon-juice ?ks-with-lemon-juice ?ks-with-mayo ?target-container-3 lemon-juice 1 tablespoon)
+                       '(fetch-and-proportion ?proportioned-pepper ?ks-with-pepper ?ks-with-lemon-juice ?target-container-4 ground-black-pepper 0.25 teaspoon)
+                       '(fetch-and-proportion ?proportioned-chicken ?ks-with-chicken ?ks-with-pepper ?target-container-5 cooked-chicken 150 g)
+                       '(cut ?chopped-chicken ?ks-with-chopped-chicken ?ks-with-chicken ?proportioned-chicken chopped ?knife)
+                       '(fetch-and-proportion ?proportioned-celery ?ks-with-celery ?ks-with-chopped-chicken ?target-container-6 celery 1 piece)
+                       '(cut ?chopped-celery ?ks-with-chopped-celery ?ks-with-celery ?proportioned-celery chopped ?knife)
+                       '(fetch ?frying-pan ?ks-with-frying-pan ?ks-with-chopped-celery frying-pan 1)
+                       '(grease ?greased-pan ?ks-with-greased-pan ?ks-with-frying-pan ?frying-pan ?grease)
+                       '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-greased-pan ?frying-pan ?proportioned-almonds ?quantity-a ?unit-a)
+                       '(fry ?fried-almonds ?ks-with-fried-almonds ?output-ks-a ?output-container-a ?stove medium-high-heat ?frying-time-qty ?frying-time-unit)
+                       '(fetch ?medium-bowl ?ks-with-medium-bowl ?ks-with-fried-almonds medium-bowl 1)
+                       '(transfer-contents ?output-container-b ?rest-b ?output-ks-b ?ks-with-medium-bowl ?medium-bowl ?proportioned-mayo ?quantity-b ?unit-b)
+                       '(transfer-contents ?output-container-c ?rest-c ?output-ks-c ?output-ks-b ?output-container-b ?proportioned-lemon-juice ?quantity-c ?unit-c)
+                       '(transfer-contents ?output-container-d ?rest-d ?output-ks-d ?output-ks-c ?output-container-c ?proportioned-pepper ?quantity-d ?unit-d)
+                       '(mix ?sauce-mixture ?ks-with-sauce-mixture ?output-ks-d ?output-container-d ?mixing-tool)
+                       '(transfer-contents ?output-container-e ?rest-e ?output-ks-e ?ks-with-sauce-mixture ?sauce-mixture ?chopped-chicken ?quantity-e ?unit-e)
+                       '(transfer-contents ?output-container-f ?rest-f ?output-ks-f ?output-ks-e ?output-container-e ?fried-almonds ?quantity-f ?unit-f)
+                       '(transfer-contents ?output-container-g ?rest-g ?output-ks-g ?output-ks-f ?output-container-f ?proportioned-celery ?quantity-g ?unit-g)
+                       '(mingle ?basic-chicken-salad ?ks-with-basic-chicken-salad ?output-ks-g ?output-container-g ?wooden-spoon))
+                 :primary-output-var
+                 '?basic-chicken-salad))
+
 ; list of all available simulation environments
 (defparameter *simulation-environments*
   (list *almond-crescent-cookies-environment*
@@ -1998,4 +2030,5 @@
         *croutons-vinegar-salad-environment*
         *avocado-chicken-salad-environment*
         *mexican-wedding-cookies-environment*
+        *basic-chicken-salad-environment*
         ))

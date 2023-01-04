@@ -345,6 +345,14 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "An ingredient that is fluid."))
 
+(defclass fryable (kitchen-entity)
+  ((fried :type boolean :initarg :fried :accessor fried :initform nil))
+  (:documentation "For objects that can be fried."))
+
+(defmethod copy-object-content ((fryable fryable) (copy fryable))
+  "Copying fryable objects."
+  (setf (fried copy) (copy-object (fried fryable))))
+
 (defclass grindable (kitchen-entity)
   ((ground :type boolean :initarg :ground :accessor ground :initform nil))
   (:documentation "For objects that can be ground."))
@@ -621,6 +629,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   (setf (arrangement copy) (copy-object (arrangement fridge)))
   (setf (temperature copy) (copy-object (temperature fridge))))
 
+(defclass frying-pan (heatable-container brushable reusable)
+  ()
+  (:documentation "Frying pan. It can be heated up."))
+
 (defclass heatable-container (transferable-container)
   ()
   (:documentation "A transferable container that can be heated up, i.e., that can be used for cooking."))
@@ -722,13 +734,9 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A spatula that can spread."))
 
-(defclass stove (container)
-  ((arrangement :initform (make-instance 'side-to-side)))
-  (:documentation "The stove. It's a container."))
-
-(defmethod copy-object-content ((stove stove) (copy stove))
-  "Copying stoves"
-  (setf (arrangement copy) (copy-object (arrangement stove))))
+(defclass stove (container has-temperature)
+  ()
+   (:documentation "A stove to cook on. It's a container."))
 
 (defclass table-spoon (can-spread reusable)
   ()
@@ -765,7 +773,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "All-purpose flour."))
 
-(defclass almond (ingredient cuttable)
+(defclass almond (ingredient cuttable fryable has-temperature)
   ()
   (:documentation "Almond."))
 
@@ -1456,6 +1464,33 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation " A walnut ball shape."))
 
+(defclass heating-mode (conceptualizable)
+  ((is-concept :initform T))
+  (:documentation "Heating setting."))
+
+(defmethod copy-object-content ((heating-mode heating-mode) (copy heating-mode))      
+  "Copying heating-mode objects."
+  (setf (is-concept copy) (copy-object (is-concept heating-mode))))
+
+(defclass stove-mode (heating-mode)
+  ()
+  (:documentation "Stove heating setting."))
+
+(defclass low-heat (stove-mode)
+  ()
+  (:documentation "A low heating setting for the stove."))
+
+(defclass medium-heat (stove-mode)
+  ()
+  (:documentation "A medium heating setting for the stove."))
+
+(defclass medium-high-heat (stove-mode)
+  ()
+  (:documentation "A medium-high heating setting for the stove."))
+
+(defclass high-heat (stove-mode)
+  ()
+  (:documentation "A high heating setting for the stove."))
 
 ;; Amounts, quantities and units  ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1514,13 +1549,14 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Unit: handful"))
 
-(defclass low-heat (unit)
-  ()
-  (:documentation "Unit: low heat"))
+; are these units or more like concepts, similar to shape and pattern?
+;(defclass low-heat (unit)
+;  ()
+;  (:documentation "Unit: low heat"))
 
-(defclass very-low-heat (unit)
-  ()
-  (:documentation "Unit: very low heat"))
+;(defclass very-low-heat (unit)
+;  ()
+;  (:documentation "Unit: very low heat"))
 
 (defclass tablespoon (unit)
   ()
