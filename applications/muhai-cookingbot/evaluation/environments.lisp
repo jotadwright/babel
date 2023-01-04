@@ -1716,7 +1716,7 @@
                        '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-peeled-potato ?cooking-pot ?proportioned-water ?quantity-a ?unit-a)
                        '(transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?proportioned-salt-1 ?quantity-b ?unit-b)
                        '(transfer-contents ?output-container-c ?rest-c ?output-ks-c ?output-ks-b ?output-container-b ?peeled-potato ?quantity-c ?unit-c)
-                       '(boil ?boiled-potatoes ?ks-with-boiled-potatoes ?output-ks-c ?output-container-c ?stove ?boiling-time-qty ?boiling-time-unit)
+                       '(boil ?boiled-potatoes ?ks-with-boiled-potatoes ?output-ks-c ?output-container-c ?stove ?heating-mode ?boiling-time-qty ?boiling-time-unit)
                        '(drain ?drained-potato ?rest-liquid ?ks-with-drained-potatoes ?ks-with-boiled-potatoes ?boiled-potatoes ?colander)
                        '(bring-to-temperature ?cooled-potatoes ?ks-with-cooled-potatoes ?ks-with-drained-potatoes ?drained-potato ?room-temp-quantity ?room-temp-unit)
                        '(fetch ?large-bowl ?ks-with-large-bowl ?ks-with-cooled-potatoes large-bowl 1)
@@ -1777,7 +1777,7 @@
                        '(transfer-contents ?output-container-i ?rest-i ?output-ks-i ?output-ks-h ?output-container-h ?proportioned-mustard-seed ?quantity-i ?unit-i)
                        '(transfer-contents ?output-container-j ?rest-j ?output-ks-j ?output-ks-i ?output-container-i ?proportioned-celery-seed ?quantity-j ?unit-j)
                        '(transfer-contents ?output-container-k ?rest-k ?output-ks-k ?output-ks-j ?output-container-j ?proportioned-turmeric ?quantity-k ?unit-k)
-                       '(boil ?dressing ?ks-with-dressing ?output-ks-k ?output-container-k ?stove ?boiling-time-qty ?boiling-time-unit)
+                       '(boil ?dressing ?ks-with-dressing ?output-ks-k ?output-container-k ?stove ?heating-mode ?boiling-time-qty ?boiling-time-unit)
                        '(transfer-contents ?output-container-l ?rest-l ?output-ks-l ?ks-with-dressing ?slaw ?dressing ?quantity-l ?unit-l)
                        '(refrigerate ?cole-slaw ?ks-with-cole-slaw ?output-ks-l ?output-container-l ?fridge ?cooling-quantity ?cooling-unit))
                  :primary-output-var

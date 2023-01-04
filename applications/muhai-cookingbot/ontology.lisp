@@ -1117,7 +1117,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 
 (defclass mixture (ingredient beatable cuttable mashable meltable mixable can-be-sprinkled-with siftable
                               sprinkable bakeable shapeable dippable spreadable boilable liquefiable
-                              can-be-sprinkled-on can-be-spread-upon  has-temperature shakeable)
+                              can-be-sprinkled-on can-be-spread-upon has-temperature shakeable)
   ((components :type list :initarg :components :accessor components :initform '()))
   (:documentation "An abstract class for a mixture of ingredients."))
 
