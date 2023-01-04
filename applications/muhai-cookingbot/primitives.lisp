@@ -1200,6 +1200,116 @@
             (bind (container-with-flattened-items 1.0 (make-instance 'failed-object) portions-available-at )
                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
+(defprimitive fry ((thing-fried transferable-container)
+                   (kitchen-state-out kitchen-state)
+                   (kitchen-state-in kitchen-state)
+                   (thing-to-fry transferable-container)
+                   (stove-to-fry-on stove)
+                   (heating-mode stove-mode)
+                   (time-to-fry-quantity quantity)
+                   (time-to-fry-unit unit))
+
+  ;; Case 1: Stove, heating mode and frying time are not given (defaults to 30 minutes on medium heat)
+  ((kitchen-state-in thing-to-fry
+                     => kitchen-state-out thing-fried stove-to-fry-on heating-mode time-to-fry-quantity time-to-fry-unit)
+ 
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (stove-to-be-heated (stove new-kitchen-state))
+          (new-thing-to-fry (find-object-by-persistent-id thing-to-fry new-kitchen-state))
+          (new-time-to-fry-quantity (make-instance 'quantity :value 30)) ; fixed frying time of 30 minutes
+          (new-time-to-fry-unit (make-instance 'minute))
+          (new-heating-mode (make-instance 'medium-heat)) ; default to medium heat setting
+          (thing-fried-available-at (+ (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id thing-to-fry) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))
+                                       (* (value new-time-to-fry-quantity)
+                                          (if (eq new-time-to-fry-unit 'hour)
+                                            3600
+                                            60))))
+          (kitchen-state-available-at (+ (max (kitchen-time kitchen-state-in)
+                                            (available-at (find (id thing-to-fry) binding-objects
+                                                                  :key #'(lambda (binding-object)
+                                                                           (and (value binding-object)
+                                                                                (id (value binding-object)))))))
+                                         30)))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+     (cond ((and new-thing-to-fry stove-to-be-heated (subtypep (type-of new-thing-to-fry) 'heatable-container)) ; the container should support being put on a stove
+
+            (setf (temperature stove-to-be-heated) (convert-to-temperature stove-to-be-heated new-heating-mode))
+
+              ; fry all contents
+            (loop for item in (contents new-thing-to-fry)
+                  when (typep item 'fryable)
+                    do
+                      (setf (temperature item) (copy-object (temperature stove-to-be-heated)))
+                      (setf (fried item) t))
+              
+            (bind (thing-fried 1.0 new-thing-to-fry thing-fried-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (stove-to-fry-on 0.0 stove-to-be-heated thing-fried-available-at)
+                  (time-to-fry-quantity 0.0 new-time-to-fry-quantity nil)
+                  (time-to-fry-unit 0.0 new-time-to-fry-unit nil)
+                  (heating-mode 0.0 new-heating-mode nil)))   
+           (t
+            nil))))
+          ;  (bind (thing-boiled 1.0 (make-instance 'failed-object) thing-boiled-available-at)
+          ;        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+          ;        (stove-to-boil-on 0.0 stove-to-be-heated thing-boiled-available-at))))))
+
+    ;; Case 2: Stove and frying time are not given, but heating-mode is given
+  ((kitchen-state-in thing-to-fry heating-mode
+                     => kitchen-state-out thing-fried stove-to-fry-on time-to-fry-quantity time-to-fry-unit)
+ 
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (stove-to-be-heated (stove new-kitchen-state))
+          (new-thing-to-fry (find-object-by-persistent-id thing-to-fry new-kitchen-state))
+          (new-time-to-fry-quantity (make-instance 'quantity :value 30)) ; fixed frying time of 30 minutes
+          (new-time-to-fry-unit (make-instance 'minute))
+          (thing-fried-available-at (+ (max (kitchen-time kitchen-state-in)
+                                            (available-at (find (id thing-to-fry) binding-objects
+                                                                :key #'(lambda (binding-object)
+                                                                         (and (value binding-object)
+                                                                              (id (value binding-object)))))))
+                                       (* (value new-time-to-fry-quantity)
+                                          (if (eq new-time-to-fry-unit 'hour)
+                                            3600
+                                            60))))
+          (kitchen-state-available-at (+ (max (kitchen-time kitchen-state-in)
+                                              (available-at (find (id thing-to-fry) binding-objects
+                                                                  :key #'(lambda (binding-object)
+                                                                           (and (value binding-object)
+                                                                                (id (value binding-object)))))))
+                                         30)))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+     (cond ((and new-thing-to-fry stove-to-be-heated (subtypep (type-of new-thing-to-fry) 'heatable-container)) ; the container should support being put on a stove
+
+            (setf (temperature stove-to-be-heated) (convert-to-temperature stove-to-be-heated heating-mode))
+
+              ; fry all contents
+            (loop for item in (contents new-thing-to-fry)
+                  when (typep item 'fryable)
+                    do
+                      (setf (temperature item) (copy-object (temperature stove-to-be-heated)))
+                      (setf (fried item) t))
+              
+            (bind (thing-fried 1.0 new-thing-to-fry thing-fried-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (stove-to-fry-on 0.0 stove-to-be-heated thing-fried-available-at)
+                  (time-to-fry-quantity 0.0 new-time-to-fry-quantity nil)
+                  (time-to-fry-unit 0.0 new-time-to-fry-unit nil)))
+           (t
+            nil))))
+          ;  (bind (thing-boiled 1.0 (make-instance 'failed-object) thing-boiled-available-at)
+          ;        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+          ;        (stove-to-boil-on 0.0 stove-to-be-heated thing-boiled-available-at))))))
+  )
+
 (defprimitive get-kitchen ((kitchen kitchen-state))
   ((=> kitchen)
    (bind (kitchen 1.0 *initial-kitchen-state* 0.0))))
@@ -3786,6 +3896,26 @@
                                  :quantity (make-instance 'quantity
                                                           :value converted-value)))))))
     copied-ingredient))
+
+(defmethod convert-to-temperature ((stove stove) (stove-mode stove-mode))
+  (cond ((eql (type-of stove-mode) 'low-heat)
+         (make-instance 'amount
+                        :unit (make-instance 'degrees-celsius)
+                        :quantity (make-instance 'quantity :value 110)))
+        ((eql (type-of stove-mode) 'medium-heat)
+         (make-instance 'amount
+                        :unit (make-instance 'degrees-celsius)
+                        :quantity (make-instance 'quantity :value 150)))
+        
+        ((eql (type-of stove-mode) 'medium-high-heat)
+         (make-instance 'amount
+                        :unit (make-instance 'degrees-celsius)
+                        :quantity (make-instance 'quantity :value 175)))
+        
+        ((eql (type-of stove-mode) 'high-heat)
+         (make-instance 'amount
+                        :unit (make-instance 'degrees-celsius)
+                        :quantity (make-instance 'quantity :value 200)))))      
 
 (defun has-failed-objects (&rest objects)
   "Check if any of the objects is a failed objects"
