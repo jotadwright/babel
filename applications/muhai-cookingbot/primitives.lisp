@@ -2492,14 +2492,13 @@
                                                    :quantity (make-instance 'quantity
                                                                             :value (/ value-to-transfer
                                                                                       (value (number-of-tins new-destination))))))
-                    (left-to-transfer (copy-object value-to-transfer)))
+                    (number-of-tins-left (value (number-of-tins new-destination))))
        
-               (loop while (> left-to-transfer 0)
+               (loop while (> number-of-tins-left 0)
                      for new-portion = (copy-object dough)
-                     if (> left-to-transfer (value (quantity portion-amount))) ;; not dealing with rest?
-                       do (setf (amount new-portion) portion-amount
-                                (contents new-destination) (cons new-portion (contents new-destination))
-                                left-to-transfer (- left-to-transfer (value (quantity portion-amount))))
+                     do (setf (amount new-portion) portion-amount
+                              (contents new-destination) (cons new-portion (contents new-destination))
+                              number-of-tins-left (- number-of-tins-left 1))
                      finally 
                        (setf (contents container-with-dough-instance) nil)
                        (setf (arrangement new-destination) default-arrangement-pattern)) 
