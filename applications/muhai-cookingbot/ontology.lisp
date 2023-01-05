@@ -549,6 +549,14 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A piece of baking paper. It can be used to line something with."))
 
+(defclass paper-baking-cup (reusable can-be-lined-with conceptualizable)
+  ()
+  (:documentation "A collection of paper-baking-cups. It can be used to line muffin tins with."))
+
+(defclass paper-baking-cups (list-of-kitchen-entities reusable can-be-lined-with conceptualizable)
+  ()
+  (:documentation "A collection of paper-baking-cups. It can be used to line muffin tins with."))
+
 (defclass baking-dish (transferable-container can-have-on-top reusable)
   ()
   (:documentation "A baking dish"))
@@ -685,6 +693,18 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass mixer (can-mix can-beat reusable)
   ()
   (:documentation "A mixer. It's an electric tool for mixing or beating."))
+
+(defclass muffin-tins (transferable-container lineable brushable reusable conceptualizable)
+  ()
+  (:documentation "Abstract class for muffin tins. It's a lineable container."))
+
+(defclass muffin-tins-12 (muffin-tins)
+  ((number-of-tins :type quantity :initarg :number-of-tins :accessor number-of-tins :initform (make-instance 'quantity :value 12)))
+  (:documentation "Muffin tins with 12 places for muffins."))
+
+(defmethod copy-object-content ((muffin-tins-12 muffin-tins-12) (copy muffin-tins-12))
+  "Copying quantity."
+  (setf (number-of-tins copy) (copy-object (number-of-tins muffin-tins-12))))
 
 (defclass oven (container has-temperature) 
   ((arrangement :initform (make-instance 'shelved)))
@@ -887,7 +907,11 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Walnut."))
 
-(defclass cider-vinegar (ingredient liquid)
+(defclass chocolate-chips (ingredient meltable)
+  ()
+  (:documentation "Chocolate chips"))
+
+(defclass cider-vinegar (vinegar)
   ()
   (:documentation "Cider vinegar."))
 
@@ -910,6 +934,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass cranberry (ingredient cuttable)
   ()
   (:documentation "Cranberry."))
+
+(defclass cream-cheese (ingredient has-temperature)
+  ()
+  (:documentation "Cream cheese."))
 
 (defclass cucumber (ingredient cuttable peelable seedable)
   ((keep-refrigerated :initform T))
@@ -1165,7 +1193,11 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Mustard seed."))
 
-(defclass olive-oil (ingredient)
+(defclass oil (ingredient liquid)
+  ()
+  (:documentation "Cooking oil."))
+
+(defclass olive-oil (oil)
   ()
   (:documentation "Olive oil."))
 
@@ -1217,7 +1249,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Red pepper flakes."))
 
-(defclass red-wine-vinegar (ingredient liquid)
+(defclass red-wine-vinegar (vinegar)
   ()
   (:documentation "Red wine vinegar."))
 
@@ -1245,9 +1277,9 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Self-rising flour: mixture of all-purpose flour, baking powder, and salt"))
 
-(defclass semisweet-chocolate-chips (ingredient meltable)
+(defclass semisweet-chocolate-chips (chocolate-chips)
   ()
-  (:documentation "Semisweet chcocolate chips"))
+  (:documentation "Semisweet chocolate chips"))
 
 (defclass shallot (ingredient cuttable peelable)
   ()
@@ -1309,7 +1341,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Vegetable oil."))
 
-(defclass vinegar (ingredient)
+(defclass vinegar (ingredient liquid)
   ()
   (:documentation "Vinegar."))
 
