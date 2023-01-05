@@ -49,7 +49,7 @@
 
      (setf (kitchen-time new-kitchen-state)  kitchen-state-available-at)
 
-     (cond ((not (has-failed-objects thing-to-bake))
+     (cond (new-thing-to-bake
 
             (setf (temperature oven-to-be-heated) target-temperature)
 
@@ -1777,6 +1777,9 @@
               (setf (lined-with target-tray) target-paper-instance) ;;do the lining
               (setf (is-lining target-paper-instance) t)
 
+              (setf (used target-tray) t)
+              (setf (used target-paper-instance) t)
+
               (setf (contents (counter-top new-kitchen-state)) ;;remove the paper from the countertop
                     (remove target-paper-instance (contents (counter-top new-kitchen-state))))              
 
@@ -1797,19 +1800,55 @@
                          (retrieve-concept-instance-and-bring-to-countertop (type-of baking-tray) new-kitchen-state)
                          (find-object-by-persistent-id baking-tray (counter-top new-kitchen-state))))
           (target-paper-instance (if (is-concept baking-paper)
-                                   (retrieve-concept-instance-and-bring-to-countertop (type-of baking-paper) new-kitchen-state)
+                                   nil ; will be set later, dependent on the concept's class
                                    (find-object-by-persistent-id baking-paper new-kitchen-state)))
           (tray-available-at (+ 150 (kitchen-time kitchen-state-in)))
           (kitchen-state-available-at tray-available-at))
-
+     
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+     
+     (when target-tray
+       (cond ((and (subtypep (type-of baking-tray) 'muffin-tins)
+                   (eql (type-of baking-paper) 'paper-baking-cups))
+              (let ((remaining-tins (value (number-of-tins baking-tray)))
+                    (retrieved-paper-baking-cups (make-instance 'paper-baking-cups))
+                    (current-cups '()))
+
+                (loop do
+                     (setf current-cups
+                           (retrieve-concept-instance-and-bring-to-countertop (type-of baking-paper) new-kitchen-state))
+
+                     (loop while (and (> remaining-tins 0)
+                                      (items current-cups))
+                           do
+                           (push (first (items current-cups)) (items retrieved-paper-baking-cups))
+                           (setf (items current-cups) (rest (items current-cups)))
+                           (setf remaining-tins (- remaining-tins 1)))
+
+                     (unless (items current-cups)
+                       (setf (contents (counter-top new-kitchen-state)) (remove current-cups (contents (counter-top new-kitchen-state)))))
+                     
+                   while (and (> remaining-tins 0)
+                              current-cups))
+                
+                  (setf target-paper-instance retrieved-paper-baking-cups)))
+             (t
+              (setf target-paper-instance (retrieve-concept-instance-and-bring-to-countertop 'baking-paper new-kitchen-state)))))
   
      (cond ((and
              target-tray
-             target-paper-instance)
+             target-paper-instance
+             (if (eql (type-of target-paper-instance) 'paper-baking-cups) (items target-paper-instance) t))
                    
             (setf (lined-with target-tray) target-paper-instance) ;;do the lining
             (setf (is-lining target-paper-instance) t)
+
+            (setf (used target-tray) t)
+            (setf (used target-paper-instance) t)
+
+            (when (eql (type-of target-paper-instance) 'paper-baking-cups)
+              (loop for cup in (items target-paper-instance)
+                    do (setf (used cup) t)))
 
             (setf (contents (counter-top new-kitchen-state)) ;;remove the paper from the countertop
                   (remove target-paper-instance (contents (counter-top new-kitchen-state))))
@@ -1817,6 +1856,7 @@
             (bind (lined-baking-tray 1.0 target-tray tray-available-at)
                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))
            (t
+
             (bind (lined-baking-tray 1.0 (make-instance 'failed-object) tray-available-at)
                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
@@ -2262,6 +2302,7 @@
    
     (let* ((source-destination (counter-top kitchen-state-in))
            (new-kitchen-state (copy-object kitchen-state-in))
+           (container-with-dough-instance (find-object-by-persistent-id container-with-dough (counter-top new-kitchen-state)))
            (portions-available-at (+ 80 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id container-with-dough) binding-objects
                                                                  :key #'(lambda (binding-object)
@@ -2271,12 +2312,10 @@
 
       (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
 
-      (cond ((not (has-failed-objects container-with-dough))
+      (cond (container-with-dough-instance
              
              ;; portion contents from container and put them on the counter top
-             (let* ((container-with-dough-instance
-                     (find-object-by-persistent-id container-with-dough (counter-top new-kitchen-state)))
-                    (dough (first (contents container-with-dough-instance)))
+             (let* ((dough (first (contents container-with-dough-instance)))
                     (value-to-transfer (value (quantity (amount dough))))
                     (portion-amount (make-instance 'amount :quantity quantity :unit unit))
                     (left-to-transfer (copy-object value-to-transfer))
@@ -2338,8 +2377,7 @@
                     (dough (first (contents container-with-dough-instance)))
                     (value-to-transfer (value (quantity (amount dough))))
                     (portion-amount (make-instance 'amount :quantity quantity :unit unit))
-                    (left-to-transfer (copy-object value-to-transfer))
-                    (countertop (counter-top new-kitchen-state)))
+                    (left-to-transfer (copy-object value-to-transfer)))
 
               ; convert the portion amount to grams
                (when (not (eq (type-of unit) 'g))
@@ -2357,7 +2395,7 @@
                                                                        :quantity (make-instance 'quantity
                                                                                                 :value left-to-transfer)
                                                                        :unit unit)
-                                   (contents countertop) (cons new-portion (contents countertop))
+                                   (contents new-destination) (cons new-portion (contents new-destination))
                                    left-to-transfer 0)
                      finally 
                        (setf (contents container-with-dough-instance) nil)
@@ -2394,8 +2432,7 @@
             (dough (first (contents container-with-dough-instance)))
             (value-to-transfer (value (quantity (amount dough))))
             (portion-amount (make-instance 'amount :quantity quantity :unit unit))
-            (left-to-transfer (copy-object value-to-transfer))
-            (countertop (counter-top new-kitchen-state)))
+            (left-to-transfer (copy-object value-to-transfer)))
 
        ; convert the portion amount to grams
        (when (not (eq (type-of unit) 'g))
@@ -2413,7 +2450,7 @@
                                                                :quantity (make-instance 'quantity
                                                                                         :value left-to-transfer)
                                                                :unit unit)
-                           (contents countertop) (cons new-portion (contents countertop))
+                           (contents new-destination) (cons new-portion (contents new-destination))
                            left-to-transfer 0)
              finally 
                (setf (contents container-with-dough-instance) nil)
@@ -2423,7 +2460,62 @@
              (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
            (t
             (bind (portions 1.0 (make-instance 'failed-object) portions-available-at)
-                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))
+
+
+   ;; Case 5: Destination container specified but quantity, unit and arrangement pattern not specified
+   ((kitchen-state-in container-with-dough destination  
+                      => arrangement-pattern quantity unit portions kitchen-state-out)
+   
+    (let* ((new-kitchen-state (copy-object kitchen-state-in))
+           (new-destination (find-object-by-persistent-id destination new-kitchen-state))
+           (container-with-dough-instance (find-object-by-persistent-id container-with-dough (counter-top new-kitchen-state)))
+           (default-arrangement-pattern (make-instance 'evenly-spread))
+           (portions-available-at (+ 80 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id container-with-dough) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+           (kitchen-state-available-at portions-available-at))
+
+      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+      (cond ((and container-with-dough-instance
+                  new-destination
+                  (subtypep (type-of new-destination) 'muffin-tins)) ; only muffin-tins are supported in case of no quantity and unit being specified
+     
+             ;; portion contents from container and put them on the counter top
+             (let* ((dough (first (contents container-with-dough-instance)))
+                    (value-to-transfer (value (quantity (amount dough))))
+                    (portion-amount (make-instance 'amount
+                                                   :unit (copy-object (unit (amount dough)))
+                                                   :quantity (make-instance 'quantity
+                                                                            :value (/ value-to-transfer
+                                                                                      (value (number-of-tins new-destination))))))
+                    (left-to-transfer (copy-object value-to-transfer)))
+       
+               (loop while (> left-to-transfer 0)
+                     for new-portion = (copy-object dough)
+                     if (> left-to-transfer (value (quantity portion-amount))) ;; not dealing with rest?
+                       do (setf (amount new-portion) portion-amount
+                                (contents new-destination) (cons new-portion (contents new-destination))
+                                left-to-transfer (- left-to-transfer (value (quantity portion-amount))))
+                     finally 
+                       (setf (contents container-with-dough-instance) nil)
+                       (setf (arrangement new-destination) default-arrangement-pattern)) 
+
+               (bind (portions 1.0 new-destination portions-available-at)
+                     (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                     (arrangement-pattern 0.0 default-arrangement-pattern)
+                     (quantity 0.0 (quantity portion-amount) nil)
+                     (unit 0.0 (unit portion-amount) nil))))
+            (t
+             ; TODO RD : replace
+             nil)))))
+          ;   (bind (portions 1.0 (make-instance 'failed-object) portions-available-at)
+          ;         (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+          ;         (arrangement-pattern 0.0 default-arrangement-pattern))))))
+  
   
 
 (defprimitive preheat-oven ((preheated-oven oven)
@@ -3659,15 +3751,17 @@
   "Recursively look for an unused kitchen entity of the given type in the given place.
    Optionally some entities can be excluded from the search (used when fetching multiple items at once)."
   (cond ((loop for el in (contents place)
-               if (and (eql reusable-type (type-of el))
+               if (and (or (eql reusable-type (type-of el))
+                           (member reusable-type (mapcar #'class-name (all-superclasses (class-of el)))))
                        (not (used el))
                        (not (find el excluded)))
-               do (return t)) ; first we check if an unused element of that type could be found in general (= condition part of cond)
+                 do (return t)) ; first we check if an unused element of that type could be found in general (= condition part of cond)
          (loop for el in (contents place)
-               if (and (eql reusable-type (type-of el))
+               if (and (or (eql reusable-type (type-of el))
+                           (member reusable-type (mapcar #'class-name (all-superclasses (class-of el)))))
                        (not (used el))
                        (not (find el excluded)))
-               do (return (values el place)))) ; we go over elements again and this time we will actually return the found element and the place in which it is found (= execution part of cond)
+                 do (return (values el place)))) ; we go over elements again and this time we will actually return the found element and the place in which it is found (= execution part of cond)
         (t
          (loop for el in (contents place)
                if (subtypep (type-of el) 'container)
@@ -4005,7 +4099,7 @@
         ((eql (type-of stove-mode) 'high-heat)
          (make-instance 'amount
                         :unit (make-instance 'degrees-celsius)
-                        :quantity (make-instance 'quantity :value 200)))))      
+                        :quantity (make-instance 'quantity :value 200)))))
 
 (defun has-failed-objects (&rest objects)
   "Check if any of the objects is a failed objects"
