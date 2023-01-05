@@ -233,12 +233,25 @@
                                                                                                 :quantity (make-instance 'quantity
                                                                                                                          :value 0.5)))))
                                    (make-instance 'medium-bowl
-                                                        :used T
-                                                        :contents (list (make-instance 'mixed-greens :amount
-                                                                                       (make-instance 'amount
-                                                                                                      :unit (make-instance 'g)
-                                                                                                      :quantity (make-instance 'quantity
-                                                                                                                               :value 500)))))
+                                                  :used T
+                                                  :contents (list (make-instance 'milk
+                                                                                 :temperature
+                                                                                 (make-instance 'amount
+                                                                                                :unit (make-instance 'degrees-celsius)
+                                                                                                :quantity (make-instance 'quantity
+                                                                                                                         :value 5))
+                                                                                 :amount
+                                                                                 (make-instance 'amount
+                                                                                                :unit (make-instance 'l)
+                                                                                                :quantity (make-instance 'quantity
+                                                                                                                         :value 0.5)))))
+                                   (make-instance 'medium-bowl
+                                                  :used T
+                                                  :contents (list (make-instance 'mixed-greens :amount
+                                                                                 (make-instance 'amount
+                                                                                                :unit (make-instance 'g)
+                                                                                                :quantity (make-instance 'quantity
+                                                                                                                         :value 500)))))
                                    (make-instance 'medium-bowl
                                                   :used T
                                                   :contents (list (make-instance 'radish :amount
@@ -389,6 +402,13 @@
                                                                                                                          :value 6)))))
                                    (make-instance 'medium-bowl
                                                   :used T
+                                                  :contents (list (make-instance 'bisquick-baking-mix :amount
+                                                                                 (make-instance 'amount
+                                                                                                :unit (make-instance 'g)
+                                                                                                :quantity (make-instance 'quantity
+                                                                                                                         :value 300)))))
+                                   (make-instance 'medium-bowl
+                                                  :used T
                                                   :contents (list (make-instance 'black-bean :amount
                                                                                  (make-instance 'amount
                                                                                                 :unit (make-instance 'g)
@@ -436,6 +456,13 @@
                                                                                                 :unit (make-instance 'g)
                                                                                                 :quantity (make-instance 'quantity
                                                                                                                          :value 500)))))
+                                   (make-instance 'medium-bowl
+                                                  :used T
+                                                  :contents (list (make-instance 'coconut-oil :amount
+                                                                                 (make-instance 'amount
+                                                                                                :unit (make-instance 'l)
+                                                                                                :quantity (make-instance 'quantity
+                                                                                                                         :value 0.5)))))
                                    (make-instance 'medium-bowl
                                                   :used T
                                                   :contents (list (make-instance 'corn-flakes :amount
@@ -814,6 +841,8 @@
                                    (make-instance 'knife) (make-instance 'knife) (make-instance 'knife)
                                    (make-instance 'knife) (make-instance 'knife) (make-instance 'knife)
                                    (make-instance 'knife) (make-instance 'knife) (make-instance 'knife)
+
+                                   (make-instance 'bread-knife) (make-instance 'bread-knife) (make-instance 'bread-knife)
 
                                    (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
                                    (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
@@ -1505,6 +1534,119 @@
                  :primary-output-var
                  '?cooled-rounds))
 
+(defparameter *mexican-wedding-cookies-environment*
+  (make-instance 'simulation-environment
+                 :recipe-id 'mexican-wedding-cookies
+                 :kitchen-state
+                 *full-kitchen*
+                 :meaning-network
+                 (list '(get-kitchen ?kitchen)
+                       '(fetch-and-proportion ?proportioned-butter ?ks-with-butter ?kitchen ?target-container-1 butter 230 g)
+                       '(bring-to-temperature ?warm-butter ?ks-with-warm-butter ?ks-with-butter ?proportioned-butter ?room-temp-quantity ?room-temp-unit)
+                       '(fetch-and-proportion ?proportioned-powdered-sugar ?ks-with-powdered-sugar ?ks-with-warm-butter ?target-container-2 powdered-white-sugar 120 g)
+                       '(fetch-and-proportion ?proportioned-flour ?ks-with-flour ?ks-with-powdered-sugar ?target-container-3 all-purpose-flour 240 g)
+                       '(sift ?sifted-flour ?ks-with-sifted-flour ?ks-with-flour ?target-container-4 ?proportioned-flour ?sifting-tool)
+                       '(fetch-and-proportion ?proportioned-walnut ?ks-with-walnut ?ks-with-sifted-flour ?target-container-5 walnut 120 g)
+                       '(grind ?ground-walnut ?ks-with-ground-walnut ?ks-with-walnut ?target-container-6 ?proportioned-walnut ?grinding-tool)
+                       '(fetch-and-proportion ?proportioned-vanilla ?ks-with-vanilla ?ks-with-ground-walnut ?target-container-7 vanilla 1 teaspoon)
+                       '(fetch-and-proportion ?additional-powdered-sugar ?ks-with-additional-sugar ?ks-with-vanilla ?target-container-8 powdered-white-sugar 60 g)
+                       '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-additional-sugar ?empty-container ?warm-butter ?quantity-a ?unit-a)
+                       '(transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?proportioned-powdered-sugar ?quantity-b ?unit-b)
+                       '(transfer-contents ?output-container-c ?rest-c ?output-ks-c ?output-ks-b ?output-container-b ?sifted-flour ?quantity-c ?unit-c)
+                       '(transfer-contents ?output-container-d ?rest-d ?output-ks-d ?output-ks-c ?output-container-c ?ground-walnut ?quantity-d ?unit-d)
+                       '(transfer-contents ?output-container-e ?rest-e ?output-ks-e ?output-ks-d ?output-container-d ?proportioned-vanilla ?quantity-e ?unit-e)
+                       '(mix ?dough ?ks-with-dough ?output-ks-e ?output-container-e ?mixing-tool)
+                       '(portion-and-arrange ?portioned-dough ?ks-with-dough-portions ?ks-with-dough ?dough 25 g ?pattern ?countertop)
+                       '(shape ?bakeable-balls ?ks-with-balls ?ks-with-dough-portions ?portioned-dough ball-shape)
+                       '(fetch ?cookie-sheet ?ks-with-cookie-sheet ?ks-with-balls cookie-sheet 1)
+                       '(transfer-items ?tray-with-balls ?ks-with-balls-tray ?ks-with-cookie-sheet ?bakeable-balls ?default-pattern ?cookie-sheet)
+                       '(bake ?baked-balls ?ks-with-baked-balls ?ks-with-balls-tray ?tray-with-balls ?oven 10 minute 180 degrees-celsius)
+                       '(dip ?mexican-wedding-cookies ?ks-with-mexican-wedding-cookies ?ks-with-baked-balls ?baked-balls ?additional-powdered-sugar))
+                 :primary-output-var
+                 '?mexican-wedding-cookies))
+
+(defparameter *bisquick-shortcake-biscuits-environment*
+  (make-instance 'simulation-environment
+                 :recipe-id 'bisquick-shortcake-biscuits
+                 :kitchen-state
+                 *full-kitchen*
+                 :meaning-network
+                 (list '(get-kitchen ?kitchen)
+                       '(fetch-and-proportion ?proportioned-bisquick ?ks-with-bisquick ?kitchen ?target-container-1 bisquick-baking-mix 260 g)
+                       '(fetch-and-proportion ?proportioned-butter ?ks-with-butter ?ks-with-bisquick ?target-container-2 butter 3 tablespoon)
+                       '(fetch-and-proportion ?proportioned-coconut-oil ?ks-with-coconut-oil ?ks-with-butter ?target-container-3 coconut-oil 3 tablespoon)
+                       '(fetch-and-proportion ?proportioned-milk ?ks-with-milk ?ks-with-coconut-oil ?target-container-4 milk 250 ml)
+                       '(fetch-and-proportion ?proportioned-sugar ?ks-with-sugar ?ks-with-milk ?target-container-5 white-sugar 3 tablespoon)
+                       '(preheat-oven ?preheated-oven ?ks-with-preheated-oven ?ks-with-sugar ?oven 220 degrees-celsius)
+                       '(fetch ?medium-bowl ?ks-with-medium-bowl ?ks-with-preheated-oven medium-bowl 1)
+                       '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-medium-bowl ?medium-bowl ?proportioned-bisquick ?quantity-a ?unit-a)
+                       '(transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?medium-bowl ?proportioned-sugar ?quantity-b ?unit-b)
+                       '(mix ?intermediate-mixture ?ks-with-intermediate-mixture ?output-ks-b ?output-container-b ?mixing-tool)
+                       '(transfer-contents ?output-container-c ?rest-c ?output-ks-c ?ks-with-intermediate-mixture ?intermediate-mixture ?proportioned-milk ?quantity-c ?unit-c)
+                       '(transfer-contents ?output-container-d ?rest-d ?output-ks-d ?output-ks-c ?output-container-c ?proportioned-coconut-oil ?quantity-d ?unit-d)
+                       '(mix ?dough ?ks-with-dough ?output-ks-d ?output-container-d ?mixing-tool)
+                       '(fetch ?cookie-sheet ?ks-with-cookie-sheet ?ks-with-dough cookie-sheet 1)
+                       '(grease ?greased-sheet ?ks-with-greased-sheet ?ks-with-cookie-sheet ?cookie-sheet ?proportioned-butter)
+                       '(portion-and-arrange ?portioned-dough ?ks-with-portioned-dough ?ks-with-dough ?dough 100 g ?pattern ?countertop)
+                       '(transfer-items ?portions-on-sheet ?ks-with-portions-on-sheet ?ks-with-portioned-dough ?portioned-dough ?default-pattern ?greased-sheet)
+                       '(bake ?baked-biscuit ?ks-with-baked-biscuit ?ks-with-portions-on-sheet ?portions-on-sheet ?oven 10 minute 220 degrees-celsius)
+                       '(fetch ?wire-rack ?ks-with-wire-rack ?ks-with-baked-biscuit wire-rack 1)
+                       '(transfer-items ?biscuit-on-wire-rack ?ks-with-biscuit-on-wire-rack ?ks-with-wire-rack ?baked-biscuit ?default-pattern-2 ?wire-rack)
+                       '(leave-for-time ?cooling-biscuit ?ks-with-cooling-biscuit ?ks-with-biscuit-on-wire-rack ?biscuit-on-wire-rack 5 minute)
+                       '(fetch ?bread-knife ?ks-with-bread-knife ?ks-with-cooling-biscuit bread-knife 1)
+                       '(cut ?bisquick-shortcake-biscuits ?ks-with-bisquick-shortcake-biscuits ?ks-with-bread-knife ?cooling-biscuit slices ?bread-knife))
+                 :primary-output-var
+                 '?bisquick-shortcake-biscuits))
+
+(defparameter *chocolate-cream-cheese-cupcakes-environment*
+  (make-instance 'simulation-environment
+                 :recipe-id 'chocolate-cream-cheese-cupcakes
+                 :kitchen-state
+                 *full-kitchen*
+                 :meaning-network
+                 (list '(get-kitchen ?kitchen)
+                       '(fetch-and-proportion ?proportioned-cheese ?ks-with-cheese ?kitchen ?target-container-1 cream-cheese 230 g)
+                       '(bring-to-temperature ?softened-cheese ?ks-with-softened-cheese ?ks-with-cheese ?proportioned-cheese ?room-temp-quantity ?room-temp-unit)
+                       '(fetch-and-proportion ?proportioned-egg ?ks-with-egg ?ks-with-softened-cheese ?target-container-2 egg 1 piece)
+                       '(crack ?cracked-egg ?ks-with-cracked-egg ?ks-with-egg ?proportioned-egg ?empty-bowl)
+                       '(beat ?beaten-egg ?ks-with-beaten-egg ?ks-with-egg ?proportioned-egg ?mixing-tool)
+                       '(fetch-and-proportion ?proportioned-sugar-70 ?ks-with-sugar-70 ?ks-with-beaten-egg ?target-container-3 white-sugar 70 g)
+                       '(fetch-and-proportion ?proportioned-salt-1 ?ks-with-salt-1 ?ks-with-sugar-70 ?target-container-4 salt 0.5 teaspoon)
+                       '(fetch-and-proportion ?proportioned-chocolate-chips ?ks-with-chocolate-chips ?ks-with-salt-1 ?target-container-5 chocolate-chips 180 g)
+                       '(fetch-and-proportion ?proportioned-sugar-210 ?ks-with-sugar-210 ?ks-with-chocolate-chips ?target-container-6 white-sugar 210 g)
+                       '(fetch-and-proportion ?proportioned-flour ?ks-with-flour ?ks-with-sugar-210 ?target-container-7 all-purpose-flour 180 g)
+                       '(fetch-and-proportion ?proportioned-cocoa ?ks-with-cocoa ?ks-with-flour ?target-container-8 cocoa-powder 30 g)
+                       '(fetch-and-proportion ?proportioned-baking-soda ?ks-with-baking-soda ?ks-with-cocoa ?target-container-9 baking-soda 1 teaspoon)
+                       '(fetch-and-proportion ?proportioned-salt-2 ?ks-with-salt-2 ?ks-with-baking-soda ?target-container-10 salt 0.5 teaspoon)
+                       '(fetch-and-proportion ?proportioned-water ?ks-with-water ?ks-with-salt-2 ?target-container-11 water 250 ml)
+                       '(fetch-and-proportion ?proportioned-oil ?ks-with-oil ?ks-with-water ?target-container-12 oil 120 ml)
+                       '(fetch-and-proportion ?proportioned-vinegar ?ks-with-vinegar ?ks-with-oil ?target-container-13 vinegar 1 tablespoon)
+                       '(fetch-and-proportion ?proportioned-vanilla ?ks-with-vanilla ?ks-with-vinegar ?target-container-14 vanilla 1 teaspoon)
+                       '(fetch ?small-bowl ?ks-with-small-bowl ?ks-with-vanilla small-bowl 1)
+                       '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-small-bowl ?small-bowl ?softened-cheese ?quantity-a ?unit-a)
+                       '(transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?beaten-egg ?quantity-b ?unit-b)
+                       '(transfer-contents ?output-container-c ?rest-c ?output-ks-c ?output-ks-b ?output-container-b ?proportioned-sugar-70 ?quantity-c ?unit-c)
+                       '(transfer-contents ?output-container-d ?rest-d ?output-ks-d ?output-ks-c ?output-container-c ?proportioned-salt-1 ?quantity-d ?unit-d)
+                       '(mix ?intermediate-mixture ?ks-with-intermediate-mixture ?output-ks-d ?output-container-d ?mixing-tool) ; reuse the mixing tool
+                       '(transfer-contents ?output-container-e ?rest-e ?output-ks-e ?ks-with-intermediate-mixture ?intermediate-mixture ?proportioned-chocolate-chips ?quantity-e ?unit-e)
+                       '(mingle ?chips-mixture ?ks-with-chips-mixture ?output-ks-e ?output-container-e ?mingling-tool)
+                       '(transfer-contents ?output-container-f ?rest-f ?output-ks-f ?ks-with-chips-mixture ?empty-large-bowl ?proportioned-sugar-210 ?quantity-f ?unit-f)
+                       '(transfer-contents ?output-container-g ?rest-g ?output-ks-g ?output-ks-f ?output-container-f ?proportioned-flour ?quantity-g ?unit-g)
+                       '(transfer-contents ?output-container-h ?rest-h ?output-ks-h ?output-ks-g ?output-container-g ?proportioned-cocoa ?quantity-h ?unit-h)
+                       '(transfer-contents ?output-container-i ?rest-i ?output-ks-i ?output-ks-h ?output-container-h ?proportioned-baking-soda ?quantity-i ?unit-i)
+                       '(transfer-contents ?output-container-j ?rest-j ?output-ks-j ?output-ks-i ?output-container-i ?proportioned-salt-2 ?quantity-j ?unit-j)
+                       '(transfer-contents ?output-container-k ?rest-k ?output-ks-k ?output-ks-j ?output-container-j ?proportioned-water ?quantity-k ?unit-k)
+                       '(transfer-contents ?output-container-l ?rest-l ?output-ks-l ?output-ks-k ?output-container-k ?proportioned-oil ?quantity-l ?unit-l)
+                       '(transfer-contents ?output-container-m ?rest-m ?output-ks-m ?output-ks-l ?output-container-l ?proportioned-vinegar ?quantity-m ?unit-m)
+                       '(transfer-contents ?output-container-n ?rest-n ?output-ks-n ?output-ks-m ?output-container-m ?proportioned-vanilla ?quantity-n ?unit-n)
+                       '(mix ?dough ?ks-with-dough ?output-ks-n ?output-container-n ?mixing-tool)
+                       '(fetch ?muffin-tins ?ks-with-muffin-tins ?ks-with-dough muffin-tins 1)
+                       '(line ?lined-tins ?ks-with-lined-tins ?ks-with-muffin-tins ?muffin-tins paper-baking-cups)
+                       '(portion-and-arrange ?portioned-dough ?ks-with-dough-portions ?ks-with-lined-tins ?dough ?portioning-quantity ?portioning-unit ?pattern ?lined-tins)
+                       '(bake ?baked-cupcakes ?ks-with-baked-cupcakes ?ks-with-dough-portions ?portioned-dough ?oven 20 minute 180 degrees-celsius))
+                 :primary-output-var
+                 '?baked-cupcakes))
+
 ;; extra salads
 (defparameter *black-bean-salad-2-environment*
   (make-instance 'simulation-environment
@@ -1853,6 +1995,120 @@
                  :primary-output-var
                  '?cranberry-fluff-salad))
 
+(defparameter *avocado-chicken-salad-environment*
+  (make-instance 'simulation-environment
+                 :recipe-id 'avocado-chicken-salad
+                 :kitchen-state
+                 *full-kitchen*
+                 :meaning-network
+                 (list '(get-kitchen ?kitchen)
+                       '(fetch-and-proportion ?proportioned-chicken ?ks-with-chicken ?kitchen ?target-container-1 cooked-chicken 140 g)
+                       '(cut ?chopped-chicken ?ks-with-chopped-chicken ?ks-with-chicken ?proportioned-chicken chopped ?knife)
+                       '(fetch-and-proportion ?proportioned-avocado ?ks-with-avocado ?ks-with-chopped-chicken ?target-container-2 avocado 1 piece)
+                       '(seed ?seeded-avocado ?avocado-seed ?ks-with-seeded-avocado ?ks-with-avocado ?proportioned-avocado ?knife)
+                       '(peel ?peeled-avocado ?avocado-peel ?ks-with-peeled-avocado ?ks-with-seeded-avocado ?seeded-avocado ?knife)
+                       '(fetch-and-proportion ?proportioned-apple ?ks-with-apple ?ks-with-peeled-avocado ?target-container-3 apple 1 piece)
+                       '(peel ?peeled-apple ?apple-peel ?ks-with-peeled-apple ?ks-with-apple ?proportioned-apple ?knife)
+                       '(seed ?seeded-apple ?apple-seed ?ks-with-seeded-apple ?ks-with-peeled-apple ?peeled-apple ?knife)
+                       '(cut ?chopped-apple ?ks-with-chopped-apple ?ks-with-seeded-apple ?seeded-apple chopped ?knife)
+                       '(fetch-and-proportion ?proportioned-celery ?ks-with-celery ?ks-with-chopped-apple ?target-container-4 celery 25 g)
+                       '(cut ?chopped-celery ?ks-with-chopped-celery ?ks-with-celery ?proportioned-celery finely-chopped ?knife)
+                       '(fetch-and-proportion ?proportioned-onion ?ks-with-onion ?ks-with-chopped-celery ?target-container-5 red-onion 15 g)
+                       '(cut ?chopped-onion ?ks-with-chopped-onion ?ks-with-onion ?proportioned-onion finely-chopped ?knife)
+                       '(fetch-and-proportion ?proportioned-cilantro ?ks-with-cilantro ?ks-with-chopped-onion ?target-container-6 fresh-cilantro 2 tablespoon)
+                       '(cut ?chopped-cilantro ?ks-with-chopped-cilantro ?ks-with-cilantro ?proportioned-cilantro finely-chopped ?knife)
+                       '(fetch-and-proportion ?proportioned-lime-juice ?ks-with-lime-juice ?ks-with-chopped-cilantro ?target-container-7 lime-juice 2 teaspoon)
+                       '(fetch-and-proportion ?proportioned-garlic-powder ?ks-with-garlic-powder ?ks-with-lime-juice ?target-container-8 garlic-powder 1 teaspoon)
+                       '(fetch-and-proportion ?proportioned-salt ?ks-with-salt ?ks-with-garlic-powder ?target-container-9 coarse-salt 1/2 teaspoon)
+                       '(fetch-and-proportion ?proportioned-pepper ?ks-with-pepper ?ks-with-salt ?target-container-10 ground-black-pepper 1/4 teaspoon)
+                       '(fetch ?fork ?ks-with-fetched-fork ?ks-with-pepper fork 1)
+                       '(mash ?mashed-avocado ?ks-with-mashed-avocado ?ks-with-fetched-fork ?peeled-avocado ?fork)
+                       '(fetch ?medium-bowl ?ks-with-fetched-medium-bowl ?ks-with-mashed-avocado medium-bowl 1)
+                       '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-fetched-medium-bowl ?medium-bowl ?chopped-chicken ?quantity-a ?unit-a)
+                       '(transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?mashed-avocado ?quantity-b ?unit-b)
+                       '(transfer-contents ?output-container-c ?rest-c ?output-ks-c ?output-ks-b ?output-container-b ?chopped-apple ?quantity-c ?unit-c)
+                       '(transfer-contents ?output-container-d ?rest-d ?output-ks-d ?output-ks-c ?output-container-c ?chopped-celery ?quantity-d ?unit-d)
+                       '(transfer-contents ?output-container-e ?rest-e ?output-ks-e ?output-ks-d ?output-container-d ?chopped-onion ?quantity-e ?unit-e)
+                       '(mingle ?salad ?ks-with-salad ?output-ks-e ?output-container-e ?fork)
+                       '(transfer-contents ?output-container-f ?rest-f ?output-ks-f ?ks-with-salad ?salad ?chopped-cilantro ?quantity-f ?unit-f)
+                       '(transfer-contents ?output-container-g ?rest-g ?output-ks-g ?output-ks-f ?output-container-f ?proportioned-lime-juice ?quantity-g ?unit-g)
+                       '(transfer-contents ?output-container-h ?rest-h ?output-ks-h ?output-ks-g ?output-container-g ?proportioned-salt ?quantity-h ?unit-h)
+                       '(transfer-contents ?output-container-i ?rest-i ?output-ks-i ?output-ks-h ?output-container-h ?proportioned-pepper ?quantity-i ?unit-i)
+                       '(fetch-and-proportion ?proportioned-olive-oil ?ks-with-olive-oil ?output-ks-i ?target-container-12 olive-oil 1 teaspoon)
+                       '(transfer-contents ?output-container-j ?rest-j ?output-ks-j ?ks-with-olive-oil ?output-container-i ?proportioned-olive-oil ?quantity-j ?unit-j)
+                       '(mingle ?seasoned-salad ?ks-with-seasoned-salad ?output-ks-j ?output-container-j ?fork)
+                       '(fetch ?large-bowl ?ks-with-fetched-large-bowl ?ks-with-seasoned-salad large-bowl 1)
+                       '(transfer-contents ?output-container-k ?rest-k ?output-ks-k ?ks-with-fetched-large-bowl ?large-bowl ?seasoned-salad ?quantity-k ?unit-k)
+                       '(fetch ?plastic-wrap ?ks-with-fetched-plastic-wrap ?output-ks-k plastic-wrap 1)
+                       '(cover ?covered-salad ?ks-with-covered-salad ?ks-with-fetched-plastic-wrap ?output-container-k ?plastic-wrap)
+                       '(refrigerate ?cooled-salad ?ks-with-cooled-salad ?ks-with-covered-salad ?covered-salad ?fridge ?cooling-quantity ?cooling-unit))
+                 :primary-output-var
+                 '?cooled-salad))
+
+(defparameter *basic-chicken-salad-environment*
+  (make-instance 'simulation-environment
+                 :recipe-id 'basic-chicken-salad
+                 :kitchen-state
+                 *full-kitchen*
+                 :meaning-network
+                 (list '(get-kitchen ?kitchen)
+                       '(fetch-and-proportion ?proportioned-almonds ?ks-with-almonds ?kitchen ?target-container-1 almond 140 g)
+                       '(fetch-and-proportion ?proportioned-mayo ?ks-with-mayo ?ks-with-almonds ?target-container-2 mayonnaise 230 g)
+                       '(fetch-and-proportion ?proportioned-lemon-juice ?ks-with-lemon-juice ?ks-with-mayo ?target-container-3 lemon-juice 1 tablespoon)
+                       '(fetch-and-proportion ?proportioned-pepper ?ks-with-pepper ?ks-with-lemon-juice ?target-container-4 ground-black-pepper 0.25 teaspoon)
+                       '(fetch-and-proportion ?proportioned-chicken ?ks-with-chicken ?ks-with-pepper ?target-container-5 cooked-chicken 150 g)
+                       '(cut ?chopped-chicken ?ks-with-chopped-chicken ?ks-with-chicken ?proportioned-chicken chopped ?knife)
+                       '(fetch-and-proportion ?proportioned-celery ?ks-with-celery ?ks-with-chopped-chicken ?target-container-6 celery 1 piece)
+                       '(cut ?chopped-celery ?ks-with-chopped-celery ?ks-with-celery ?proportioned-celery chopped ?knife)
+                       '(fetch ?frying-pan ?ks-with-frying-pan ?ks-with-chopped-celery frying-pan 1)
+                       '(grease ?greased-pan ?ks-with-greased-pan ?ks-with-frying-pan ?frying-pan ?grease)
+                       '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-greased-pan ?frying-pan ?proportioned-almonds ?quantity-a ?unit-a)
+                       '(fry ?fried-almonds ?ks-with-fried-almonds ?output-ks-a ?output-container-a ?stove medium-high-heat ?frying-time-qty ?frying-time-unit)
+                       '(fetch ?medium-bowl ?ks-with-medium-bowl ?ks-with-fried-almonds medium-bowl 1)
+                       '(transfer-contents ?output-container-b ?rest-b ?output-ks-b ?ks-with-medium-bowl ?medium-bowl ?proportioned-mayo ?quantity-b ?unit-b)
+                       '(transfer-contents ?output-container-c ?rest-c ?output-ks-c ?output-ks-b ?output-container-b ?proportioned-lemon-juice ?quantity-c ?unit-c)
+                       '(transfer-contents ?output-container-d ?rest-d ?output-ks-d ?output-ks-c ?output-container-c ?proportioned-pepper ?quantity-d ?unit-d)
+                       '(mix ?sauce-mixture ?ks-with-sauce-mixture ?output-ks-d ?output-container-d ?mixing-tool)
+                       '(transfer-contents ?output-container-e ?rest-e ?output-ks-e ?ks-with-sauce-mixture ?sauce-mixture ?chopped-chicken ?quantity-e ?unit-e)
+                       '(transfer-contents ?output-container-f ?rest-f ?output-ks-f ?output-ks-e ?output-container-e ?fried-almonds ?quantity-f ?unit-f)
+                       '(transfer-contents ?output-container-g ?rest-g ?output-ks-g ?output-ks-f ?output-container-f ?proportioned-celery ?quantity-g ?unit-g)
+                       '(mingle ?basic-chicken-salad ?ks-with-basic-chicken-salad ?output-ks-g ?output-container-g ?wooden-spoon))
+                 :primary-output-var
+                 '?basic-chicken-salad))
+
+(defparameter *broccoli-salad-environment*
+  (make-instance 'simulation-environment
+                 :recipe-id 'broccoli-salad
+                 :kitchen-state
+                 *full-kitchen*
+                 :meaning-network
+                 (list '(get-kitchen ?kitchen)
+                       '(fetch-and-proportion ?proportioned-broccoli ?ks-with-broccoli ?kitchen ?target-container-1 broccoli 1 piece)
+                       '(fetch-and-proportion ?proportioned-onion ?ks-with-onion ?ks-with-broccoli ?target-container-2 red-onion 50 g)
+                       '(cut ?chopped-onion ?ks-with-chopped-onion ?ks-with-onion ?proportioned-onion chopped ?knife)
+                       '(fetch-and-proportion ?proportioned-bacon ?ks-with-bacon ?ks-with-chopped-onion ?target-container-3 cooked-bacon 450 g)
+                       '(fetch-and-proportion ?proportioned-vinegar ?ks-with-vinegar ?ks-with-bacon ?target-container-4 cider-vinegar 2.5 tablespoon)
+                       '(fetch-and-proportion ?proportioned-mayo ?ks-with-mayo ?ks-with-vinegar ?target-container-5 mayonnaise 230 g)
+                       '(fetch-and-proportion ?proportioned-sugar ?ks-with-sugar ?ks-with-mayo ?target-container-6 white-sugar 70 g)
+                       '(fetch-and-proportion ?proportioned-cheese ?ks-with-grated-cheese ?ks-with-sugar ?target-container-7 grated-mozzarella 170 g)
+                       '(cut ?chopped-bacon ?ks-with-chopped-bacon ?ks-with-grated-cheese ?proportioned-bacon chopped ?knife)
+                       '(cut ?chopped-broccoli ?ks-with-chopped-broccoli ?ks-with-chopped-bacon ?proportioned-broccoli chopped ?knife)
+                       '(fetch ?large-bowl-1 ?ks-with-large-bowl-1 ?ks-with-chopped-broccoli large-bowl 1)
+                       '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-large-bowl-1 ?large-bowl-1 ?chopped-broccoli ?quantity-a ?unit-a)
+                       '(transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?chopped-onion ?quantity-b ?unit-b)
+                       '(transfer-contents ?output-container-c ?rest-c ?output-ks-c ?output-ks-b ?output-container-b ?proportioned-cheese ?quantity-c ?unit-c)
+                       '(mingle ?broccoli-mixture ?ks-with-broccoli-mixture ?output-ks-c ?output-container-c ?mingling-tool)
+                       '(fetch ?large-bowl-2 ?ks-with-large-bowl-2 ?ks-with-broccoli-mixture large-bowl 1)
+                       '(transfer-contents ?output-container-d ?rest-d ?output-ks-d ?ks-with-large-bowl-2 ?large-bowl-2 ?proportioned-vinegar ?quantity-d ?unit-d)
+                       '(transfer-contents ?output-container-e ?rest-e ?output-ks-e ?output-ks-d ?output-container-d ?proportioned-sugar ?quantity-e ?unit-e)
+                       '(transfer-contents ?output-container-f ?rest-f ?output-ks-f ?output-ks-e ?output-container-e ?proportioned-mayo ?quantity-f ?unit-f)
+                       '(mix ?dressing ?ks-with-dressing ?output-ks-f ?output-container-f ?mixing-tool)
+                       '(transfer-contents ?output-container-g ?rest-g ?output-ks-g ?ks-with-dressing ?broccoli-mixture ?dressing ?quantity-g ?unit-g)
+                       '(mingle ?broccoli-salad ?ks-with-broccoli-salad ?output-ks-g ?output-container-g ?mingling-tool)
+                       '(refrigerate ?cooled-salad ?ks-with-cooled-salad ?ks-with-broccoli-salad ?broccoli-salad ?fridge ?cooling-quantity ?cooling-unit))
+                 :primary-output-var
+                 '?proportioned-broccoli))
+
 (defparameter *croutons-vinegar-salad-environment*
   (make-instance 'simulation-environment
                  :recipe-id 'croutons-vinegar-salad
@@ -1927,200 +2183,6 @@
                  :primary-output-var
                  '?croutons-vinegar-salad))
 
-(defparameter *avocado-chicken-salad-environment*
-  (make-instance 'simulation-environment
-                 :recipe-id 'avocado-chicken-salad
-                 :kitchen-state
-                 *full-kitchen*
-                 :meaning-network
-                 (list '(get-kitchen ?kitchen)
-                       '(fetch-and-proportion ?proportioned-chicken ?ks-with-chicken ?kitchen ?target-container-1 cooked-chicken 140 g)
-                       '(cut ?chopped-chicken ?ks-with-chopped-chicken ?ks-with-chicken ?proportioned-chicken chopped ?knife)
-                       '(fetch-and-proportion ?proportioned-avocado ?ks-with-avocado ?ks-with-chopped-chicken ?target-container-2 avocado 1 piece)
-                       '(seed ?seeded-avocado ?avocado-seed ?ks-with-seeded-avocado ?ks-with-avocado ?proportioned-avocado ?knife)
-                       '(peel ?peeled-avocado ?avocado-peel ?ks-with-peeled-avocado ?ks-with-seeded-avocado ?seeded-avocado ?knife)
-                       '(fetch-and-proportion ?proportioned-apple ?ks-with-apple ?ks-with-peeled-avocado ?target-container-3 apple 1 piece)
-                       '(peel ?peeled-apple ?apple-peel ?ks-with-peeled-apple ?ks-with-apple ?proportioned-apple ?knife)
-                       '(seed ?seeded-apple ?apple-seed ?ks-with-seeded-apple ?ks-with-peeled-apple ?peeled-apple ?knife)
-                       '(cut ?chopped-apple ?ks-with-chopped-apple ?ks-with-seeded-apple ?seeded-apple chopped ?knife)
-                       '(fetch-and-proportion ?proportioned-celery ?ks-with-celery ?ks-with-chopped-apple ?target-container-4 celery 25 g)
-                       '(cut ?chopped-celery ?ks-with-chopped-celery ?ks-with-celery ?proportioned-celery finely-chopped ?knife)
-                       '(fetch-and-proportion ?proportioned-onion ?ks-with-onion ?ks-with-chopped-celery ?target-container-5 red-onion 15 g)
-                       '(cut ?chopped-onion ?ks-with-chopped-onion ?ks-with-onion ?proportioned-onion finely-chopped ?knife)
-                       '(fetch-and-proportion ?proportioned-cilantro ?ks-with-cilantro ?ks-with-chopped-onion ?target-container-6 fresh-cilantro 2 tablespoon)
-                       '(cut ?chopped-cilantro ?ks-with-chopped-cilantro ?ks-with-cilantro ?proportioned-cilantro finely-chopped ?knife)
-                       '(fetch-and-proportion ?proportioned-lime-juice ?ks-with-lime-juice ?ks-with-chopped-cilantro ?target-container-7 lime-juice 2 teaspoon)
-                       '(fetch-and-proportion ?proportioned-garlic-powder ?ks-with-garlic-powder ?ks-with-lime-juice ?target-container-8 garlic-powder 1 teaspoon)
-                       '(fetch-and-proportion ?proportioned-salt ?ks-with-salt ?ks-with-garlic-powder ?target-container-9 coarse-salt 1/2 teaspoon)
-                       '(fetch-and-proportion ?proportioned-pepper ?ks-with-pepper ?ks-with-salt ?target-container-10 ground-black-pepper 1/4 teaspoon)
-                       '(fetch ?fork ?ks-with-fetched-fork ?ks-with-pepper fork 1)
-                       '(mash ?mashed-avocado ?ks-with-mashed-avocado ?ks-with-fetched-fork ?peeled-avocado ?fork)
-                       '(fetch ?medium-bowl ?ks-with-fetched-medium-bowl ?ks-with-mashed-avocado medium-bowl 1)
-                       '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-fetched-medium-bowl ?medium-bowl ?chopped-chicken ?quantity-a ?unit-a)
-                       '(transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?mashed-avocado ?quantity-b ?unit-b)
-                       '(transfer-contents ?output-container-c ?rest-c ?output-ks-c ?output-ks-b ?output-container-b ?chopped-apple ?quantity-c ?unit-c)
-                       '(transfer-contents ?output-container-d ?rest-d ?output-ks-d ?output-ks-c ?output-container-c ?chopped-celery ?quantity-d ?unit-d)
-                       '(transfer-contents ?output-container-e ?rest-e ?output-ks-e ?output-ks-d ?output-container-d ?chopped-onion ?quantity-e ?unit-e)
-                       '(mingle ?salad ?ks-with-salad ?output-ks-e ?output-container-e ?fork)
-                       '(transfer-contents ?output-container-f ?rest-f ?output-ks-f ?ks-with-salad ?salad ?chopped-cilantro ?quantity-f ?unit-f)
-                       '(transfer-contents ?output-container-g ?rest-g ?output-ks-g ?output-ks-f ?output-container-f ?proportioned-lime-juice ?quantity-g ?unit-g)
-                       '(transfer-contents ?output-container-h ?rest-h ?output-ks-h ?output-ks-g ?output-container-g ?proportioned-salt ?quantity-h ?unit-h)
-                       '(transfer-contents ?output-container-i ?rest-i ?output-ks-i ?output-ks-h ?output-container-h ?proportioned-pepper ?quantity-i ?unit-i)
-                       '(fetch-and-proportion ?proportioned-olive-oil ?ks-with-olive-oil ?output-ks-i ?target-container-12 olive-oil 1 teaspoon)
-                       '(transfer-contents ?output-container-j ?rest-j ?output-ks-j ?ks-with-olive-oil ?output-container-i ?proportioned-olive-oil ?quantity-j ?unit-j)
-                       '(mingle ?seasoned-salad ?ks-with-seasoned-salad ?output-ks-j ?output-container-j ?fork)
-                       '(fetch ?large-bowl ?ks-with-fetched-large-bowl ?ks-with-seasoned-salad large-bowl 1)
-                       '(transfer-contents ?output-container-k ?rest-k ?output-ks-k ?ks-with-fetched-large-bowl ?large-bowl ?seasoned-salad ?quantity-k ?unit-k)
-                       '(fetch ?plastic-wrap ?ks-with-fetched-plastic-wrap ?output-ks-k plastic-wrap 1)
-                       '(cover ?covered-salad ?ks-with-covered-salad ?ks-with-fetched-plastic-wrap ?output-container-k ?plastic-wrap)
-                       '(refrigerate ?cooled-salad ?ks-with-cooled-salad ?ks-with-covered-salad ?covered-salad ?fridge ?cooling-quantity ?cooling-unit))
-                 :primary-output-var
-                 '?cooled-salad))
-
-(defparameter *mexican-wedding-cookies-environment*
-  (make-instance 'simulation-environment
-                 :recipe-id 'mexican-wedding-cookies
-                 :kitchen-state
-                 *full-kitchen*
-                 :meaning-network
-                 (list '(get-kitchen ?kitchen)
-                       '(fetch-and-proportion ?proportioned-butter ?ks-with-butter ?kitchen ?target-container-1 butter 230 g)
-                       '(bring-to-temperature ?warm-butter ?ks-with-warm-butter ?ks-with-butter ?proportioned-butter ?room-temp-quantity ?room-temp-unit)
-                       '(fetch-and-proportion ?proportioned-powdered-sugar ?ks-with-powdered-sugar ?ks-with-warm-butter ?target-container-2 powdered-white-sugar 120 g)
-                       '(fetch-and-proportion ?proportioned-flour ?ks-with-flour ?ks-with-powdered-sugar ?target-container-3 all-purpose-flour 240 g)
-                       '(sift ?sifted-flour ?ks-with-sifted-flour ?ks-with-flour ?target-container-4 ?proportioned-flour ?sifting-tool)
-                       '(fetch-and-proportion ?proportioned-walnut ?ks-with-walnut ?ks-with-sifted-flour ?target-container-5 walnut 120 g)
-                       '(grind ?ground-walnut ?ks-with-ground-walnut ?ks-with-walnut ?target-container-6 ?proportioned-walnut ?grinding-tool)
-                       '(fetch-and-proportion ?proportioned-vanilla ?ks-with-vanilla ?ks-with-ground-walnut ?target-container-7 vanilla 1 teaspoon)
-                       '(fetch-and-proportion ?additional-powdered-sugar ?ks-with-additional-sugar ?ks-with-vanilla ?target-container-8 powdered-white-sugar 60 g)
-                       '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-additional-sugar ?empty-container ?warm-butter ?quantity-a ?unit-a)
-                       '(transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?proportioned-powdered-sugar ?quantity-b ?unit-b)
-                       '(transfer-contents ?output-container-c ?rest-c ?output-ks-c ?output-ks-b ?output-container-b ?sifted-flour ?quantity-c ?unit-c)
-                       '(transfer-contents ?output-container-d ?rest-d ?output-ks-d ?output-ks-c ?output-container-c ?ground-walnut ?quantity-d ?unit-d)
-                       '(transfer-contents ?output-container-e ?rest-e ?output-ks-e ?output-ks-d ?output-container-d ?proportioned-vanilla ?quantity-e ?unit-e)
-                       '(mix ?dough ?ks-with-dough ?output-ks-e ?output-container-e ?mixing-tool)
-                       '(portion-and-arrange ?portioned-dough ?ks-with-dough-portions ?ks-with-dough ?dough 25 g ?pattern ?countertop)
-                       '(shape ?bakeable-balls ?ks-with-balls ?ks-with-dough-portions ?portioned-dough ball-shape)
-                       '(fetch ?cookie-sheet ?ks-with-cookie-sheet ?ks-with-balls cookie-sheet 1)
-                       '(transfer-items ?tray-with-balls ?ks-with-balls-tray ?ks-with-cookie-sheet ?bakeable-balls ?default-pattern ?cookie-sheet)
-                       '(bake ?baked-balls ?ks-with-baked-balls ?ks-with-balls-tray ?tray-with-balls ?oven 10 minute 180 degrees-celsius)
-                       '(dip ?mexican-wedding-cookies ?ks-with-mexican-wedding-cookies ?ks-with-baked-balls ?baked-balls ?additional-powdered-sugar))
-                 :primary-output-var
-                 '?mexican-wedding-cookies))
-
-(defparameter *basic-chicken-salad-environment*
-  (make-instance 'simulation-environment
-                 :recipe-id 'basic-chicken-salad
-                 :kitchen-state
-                 *full-kitchen*
-                 :meaning-network
-                 (list '(get-kitchen ?kitchen)
-                       '(fetch-and-proportion ?proportioned-almonds ?ks-with-almonds ?kitchen ?target-container-1 almond 140 g)
-                       '(fetch-and-proportion ?proportioned-mayo ?ks-with-mayo ?ks-with-almonds ?target-container-2 mayonnaise 230 g)
-                       '(fetch-and-proportion ?proportioned-lemon-juice ?ks-with-lemon-juice ?ks-with-mayo ?target-container-3 lemon-juice 1 tablespoon)
-                       '(fetch-and-proportion ?proportioned-pepper ?ks-with-pepper ?ks-with-lemon-juice ?target-container-4 ground-black-pepper 0.25 teaspoon)
-                       '(fetch-and-proportion ?proportioned-chicken ?ks-with-chicken ?ks-with-pepper ?target-container-5 cooked-chicken 150 g)
-                       '(cut ?chopped-chicken ?ks-with-chopped-chicken ?ks-with-chicken ?proportioned-chicken chopped ?knife)
-                       '(fetch-and-proportion ?proportioned-celery ?ks-with-celery ?ks-with-chopped-chicken ?target-container-6 celery 1 piece)
-                       '(cut ?chopped-celery ?ks-with-chopped-celery ?ks-with-celery ?proportioned-celery chopped ?knife)
-                       '(fetch ?frying-pan ?ks-with-frying-pan ?ks-with-chopped-celery frying-pan 1)
-                       '(grease ?greased-pan ?ks-with-greased-pan ?ks-with-frying-pan ?frying-pan ?grease)
-                       '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-greased-pan ?frying-pan ?proportioned-almonds ?quantity-a ?unit-a)
-                       '(fry ?fried-almonds ?ks-with-fried-almonds ?output-ks-a ?output-container-a ?stove medium-high-heat ?frying-time-qty ?frying-time-unit)
-                       '(fetch ?medium-bowl ?ks-with-medium-bowl ?ks-with-fried-almonds medium-bowl 1)
-                       '(transfer-contents ?output-container-b ?rest-b ?output-ks-b ?ks-with-medium-bowl ?medium-bowl ?proportioned-mayo ?quantity-b ?unit-b)
-                       '(transfer-contents ?output-container-c ?rest-c ?output-ks-c ?output-ks-b ?output-container-b ?proportioned-lemon-juice ?quantity-c ?unit-c)
-                       '(transfer-contents ?output-container-d ?rest-d ?output-ks-d ?output-ks-c ?output-container-c ?proportioned-pepper ?quantity-d ?unit-d)
-                       '(mix ?sauce-mixture ?ks-with-sauce-mixture ?output-ks-d ?output-container-d ?mixing-tool)
-                       '(transfer-contents ?output-container-e ?rest-e ?output-ks-e ?ks-with-sauce-mixture ?sauce-mixture ?chopped-chicken ?quantity-e ?unit-e)
-                       '(transfer-contents ?output-container-f ?rest-f ?output-ks-f ?output-ks-e ?output-container-e ?fried-almonds ?quantity-f ?unit-f)
-                       '(transfer-contents ?output-container-g ?rest-g ?output-ks-g ?output-ks-f ?output-container-f ?proportioned-celery ?quantity-g ?unit-g)
-                       '(mingle ?basic-chicken-salad ?ks-with-basic-chicken-salad ?output-ks-g ?output-container-g ?wooden-spoon))
-                 :primary-output-var
-                 '?basic-chicken-salad))
-
-(defparameter *broccoli-salad-environment*
-  (make-instance 'simulation-environment
-                 :recipe-id 'broccoli-salad
-                 :kitchen-state
-                 *full-kitchen*
-                 :meaning-network
-                 (list '(get-kitchen ?kitchen)
-                       '(fetch-and-proportion ?proportioned-broccoli ?ks-with-broccoli ?kitchen ?target-container-1 broccoli 1 piece)
-                       '(fetch-and-proportion ?proportioned-onion ?ks-with-onion ?ks-with-broccoli ?target-container-2 red-onion 50 g)
-                       '(cut ?chopped-onion ?ks-with-chopped-onion ?ks-with-onion ?proportioned-onion chopped ?knife)
-                       '(fetch-and-proportion ?proportioned-bacon ?ks-with-bacon ?ks-with-chopped-onion ?target-container-3 cooked-bacon 450 g)
-                       '(fetch-and-proportion ?proportioned-vinegar ?ks-with-vinegar ?ks-with-bacon ?target-container-4 cider-vinegar 2.5 tablespoon)
-                       '(fetch-and-proportion ?proportioned-mayo ?ks-with-mayo ?ks-with-vinegar ?target-container-5 mayonnaise 230 g)
-                       '(fetch-and-proportion ?proportioned-sugar ?ks-with-sugar ?ks-with-mayo ?target-container-6 white-sugar 70 g)
-                       '(fetch-and-proportion ?proportioned-cheese ?ks-with-grated-cheese ?ks-with-sugar ?target-container-7 grated-mozzarella 170 g)
-                       '(cut ?chopped-bacon ?ks-with-chopped-bacon ?ks-with-grated-cheese ?proportioned-bacon chopped ?knife)
-                       '(cut ?chopped-broccoli ?ks-with-chopped-broccoli ?ks-with-chopped-bacon ?proportioned-broccoli chopped ?knife)
-                       '(fetch ?large-bowl-1 ?ks-with-large-bowl-1 ?ks-with-chopped-broccoli large-bowl 1)
-                       '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-large-bowl-1 ?large-bowl-1 ?chopped-broccoli ?quantity-a ?unit-a)
-                       '(transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?chopped-onion ?quantity-b ?unit-b)
-                       '(transfer-contents ?output-container-c ?rest-c ?output-ks-c ?output-ks-b ?output-container-b ?proportioned-cheese ?quantity-c ?unit-c)
-                       '(mingle ?broccoli-mixture ?ks-with-broccoli-mixture ?output-ks-c ?output-container-c ?mingling-tool)
-                       '(fetch ?large-bowl-2 ?ks-with-large-bowl-2 ?ks-with-broccoli-mixture large-bowl 1)
-                       '(transfer-contents ?output-container-d ?rest-d ?output-ks-d ?ks-with-large-bowl-2 ?large-bowl-2 ?proportioned-vinegar ?quantity-d ?unit-d)
-                       '(transfer-contents ?output-container-e ?rest-e ?output-ks-e ?output-ks-d ?output-container-d ?proportioned-sugar ?quantity-e ?unit-e)
-                       '(transfer-contents ?output-container-f ?rest-f ?output-ks-f ?output-ks-e ?output-container-e ?proportioned-mayo ?quantity-f ?unit-f)
-                       '(mix ?dressing ?ks-with-dressing ?output-ks-f ?output-container-f ?mixing-tool)
-                       '(transfer-contents ?output-container-g ?rest-g ?output-ks-g ?ks-with-dressing ?broccoli-mixture ?dressing ?quantity-g ?unit-g)
-                       '(mingle ?broccoli-salad ?ks-with-broccoli-salad ?output-ks-g ?output-container-g ?mingling-tool)
-                       '(refrigerate ?cooled-salad ?ks-with-cooled-salad ?ks-with-broccoli-salad ?broccoli-salad ?fridge ?cooling-quantity ?cooling-unit))
-                 :primary-output-var
-                 '?proportioned-broccoli))
-
-(defparameter *chocolate-cream-cheese-cupcakes-environment*
-  (make-instance 'simulation-environment
-                 :recipe-id 'chocolate-cream-cheese-cupcakes
-                 :kitchen-state
-                 *full-kitchen*
-                 :meaning-network
-                 (list '(get-kitchen ?kitchen)
-                       '(fetch-and-proportion ?proportioned-cheese ?ks-with-cheese ?kitchen ?target-container-1 cream-cheese 230 g)
-                       '(bring-to-temperature ?softened-cheese ?ks-with-softened-cheese ?ks-with-cheese ?proportioned-cheese ?room-temp-quantity ?room-temp-unit)
-                       '(fetch-and-proportion ?proportioned-egg ?ks-with-egg ?ks-with-softened-cheese ?target-container-2 egg 1 piece)
-                       '(crack ?cracked-egg ?ks-with-cracked-egg ?ks-with-egg ?proportioned-egg ?empty-bowl)
-                       '(beat ?beaten-egg ?ks-with-beaten-egg ?ks-with-egg ?proportioned-egg ?mixing-tool)
-                       '(fetch-and-proportion ?proportioned-sugar-70 ?ks-with-sugar-70 ?ks-with-beaten-egg ?target-container-3 white-sugar 70 g)
-                       '(fetch-and-proportion ?proportioned-salt-1 ?ks-with-salt-1 ?ks-with-sugar-70 ?target-container-4 salt 0.5 teaspoon)
-                       '(fetch-and-proportion ?proportioned-chocolate-chips ?ks-with-chocolate-chips ?ks-with-salt-1 ?target-container-5 chocolate-chips 180 g)
-                       '(fetch-and-proportion ?proportioned-sugar-210 ?ks-with-sugar-210 ?ks-with-chocolate-chips ?target-container-6 white-sugar 210 g)
-                       '(fetch-and-proportion ?proportioned-flour ?ks-with-flour ?ks-with-sugar-210 ?target-container-7 all-purpose-flour 180 g)
-                       '(fetch-and-proportion ?proportioned-cocoa ?ks-with-cocoa ?ks-with-flour ?target-container-8 cocoa-powder 30 g)
-                       '(fetch-and-proportion ?proportioned-baking-soda ?ks-with-baking-soda ?ks-with-cocoa ?target-container-9 baking-soda 1 teaspoon)
-                       '(fetch-and-proportion ?proportioned-salt-2 ?ks-with-salt-2 ?ks-with-baking-soda ?target-container-10 salt 0.5 teaspoon)
-                       '(fetch-and-proportion ?proportioned-water ?ks-with-water ?ks-with-salt-2 ?target-container-11 water 250 ml)
-                       '(fetch-and-proportion ?proportioned-oil ?ks-with-oil ?ks-with-water ?target-container-12 oil 120 ml)
-                       '(fetch-and-proportion ?proportioned-vinegar ?ks-with-vinegar ?ks-with-oil ?target-container-13 vinegar 1 tablespoon)
-                       '(fetch-and-proportion ?proportioned-vanilla ?ks-with-vanilla ?ks-with-vinegar ?target-container-14 vanilla 1 teaspoon)
-                       '(fetch ?small-bowl ?ks-with-small-bowl ?ks-with-vanilla small-bowl 1)
-                       '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-small-bowl ?small-bowl ?softened-cheese ?quantity-a ?unit-a)
-                       '(transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?beaten-egg ?quantity-b ?unit-b)
-                       '(transfer-contents ?output-container-c ?rest-c ?output-ks-c ?output-ks-b ?output-container-b ?proportioned-sugar-70 ?quantity-c ?unit-c)
-                       '(transfer-contents ?output-container-d ?rest-d ?output-ks-d ?output-ks-c ?output-container-c ?proportioned-salt-1 ?quantity-d ?unit-d)
-                       '(mix ?intermediate-mixture ?ks-with-intermediate-mixture ?output-ks-d ?output-container-d ?mixing-tool) ; reuse the mixing tool
-                       '(transfer-contents ?output-container-e ?rest-e ?output-ks-e ?ks-with-intermediate-mixture ?intermediate-mixture ?proportioned-chocolate-chips ?quantity-e ?unit-e)
-                       '(mingle ?chips-mixture ?ks-with-chips-mixture ?output-ks-e ?output-container-e ?mingling-tool)
-                       '(transfer-contents ?output-container-f ?rest-f ?output-ks-f ?ks-with-chips-mixture ?empty-large-bowl ?proportioned-sugar-210 ?quantity-f ?unit-f)
-                       '(transfer-contents ?output-container-g ?rest-g ?output-ks-g ?output-ks-f ?output-container-f ?proportioned-flour ?quantity-g ?unit-g)
-                       '(transfer-contents ?output-container-h ?rest-h ?output-ks-h ?output-ks-g ?output-container-g ?proportioned-cocoa ?quantity-h ?unit-h)
-                       '(transfer-contents ?output-container-i ?rest-i ?output-ks-i ?output-ks-h ?output-container-h ?proportioned-baking-soda ?quantity-i ?unit-i)
-                       '(transfer-contents ?output-container-j ?rest-j ?output-ks-j ?output-ks-i ?output-container-i ?proportioned-salt-2 ?quantity-j ?unit-j)
-                       '(transfer-contents ?output-container-k ?rest-k ?output-ks-k ?output-ks-j ?output-container-j ?proportioned-water ?quantity-k ?unit-k)
-                       '(transfer-contents ?output-container-l ?rest-l ?output-ks-l ?output-ks-k ?output-container-k ?proportioned-oil ?quantity-l ?unit-l)
-                       '(transfer-contents ?output-container-m ?rest-m ?output-ks-m ?output-ks-l ?output-container-l ?proportioned-vinegar ?quantity-m ?unit-m)
-                       '(transfer-contents ?output-container-n ?rest-n ?output-ks-n ?output-ks-m ?output-container-m ?proportioned-vanilla ?quantity-n ?unit-n)
-                       '(mix ?dough ?ks-with-dough ?output-ks-n ?output-container-n ?mixing-tool)
-                       '(fetch ?muffin-tins ?ks-with-muffin-tins ?ks-with-dough muffin-tins 1)
-                       '(line ?lined-tins ?ks-with-lined-tins ?ks-with-muffin-tins ?muffin-tins paper-baking-cups)
-                       '(portion-and-arrange ?portioned-dough ?ks-with-dough-portions ?ks-with-lined-tins ?dough ?portioning-quantity ?portioning-unit ?pattern ?lined-tins)
-                       '(bake ?baked-cupcakes ?ks-with-baked-cupcakes ?ks-with-dough-portions ?portioned-dough ?oven 20 minute 180 degrees-celsius))
-                 :primary-output-var
-                 '?baked-cupcakes))
-
 ; list of all available simulation environments
 (defparameter *simulation-environments*
   (list *almond-crescent-cookies-environment*
@@ -2140,6 +2202,9 @@
         *almond-crescent-cookies-5-environment*
         ; extra baking recipes
         *coconut-tuiles-environment*
+        *mexican-wedding-cookies-environment*
+        *bisquick-shortcake-biscuits-environment*
+        *chocolate-cream-cheese-cupcakes-environment*
         ; extra black bean salad recipes
         *black-bean-salad-2-environment*
         *black-bean-salad-3-environment*
@@ -2150,10 +2215,8 @@
         *classic-potato-salad-environment*
         *cole-slaw-environment*
         *cranberry-fluff-salad-environment*
-        *croutons-vinegar-salad-environment*
         *avocado-chicken-salad-environment*
-        *mexican-wedding-cookies-environment*
         *basic-chicken-salad-environment*
         *broccoli-salad-environment*
-        *chocolate-cream-cheese-cupcakes-environment*
+        *croutons-vinegar-salad-environment*
         ))

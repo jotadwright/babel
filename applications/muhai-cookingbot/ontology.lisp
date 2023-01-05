@@ -569,6 +569,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A bowl. It's a container."))
 
+(defclass bread-knife (can-cut reusable)
+  ()
+  (:documentation "A ridged knife that can be used for cutting."))
+
 (defclass brush (can-brush reusable)
   ()
   (:documentation "A brush. It can brush."))
@@ -829,6 +833,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Banana."))
 
+(defclass bisquick-baking-mix (ingredient)
+  ()
+  (:documentation "Bisquick baking mix."))
+
 (defclass black-bean (ingredient washable)
   ()
   (:documentation "Black beans."))
@@ -860,6 +868,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass carrot (ingredient cuttable)
   ()
   (:documentation "Carrot."))
+
+(defclass coconut-oil (ingredient liquid)
+  ()
+  (:documentation "Coconut oil."))
 
 (defclass conserved-ingredient (ingredient drainable)
    ((solid-parts :type list  :initarg :solid-parts :accessor solid-parts :initform '())
@@ -1143,7 +1155,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Marshmallow."))
 
-(defclass milk (ingredient)
+(defclass milk (ingredient has-temperature liquid)
   ((keep-refrigerated :initform T))
   (:documentation "Milk."))
 

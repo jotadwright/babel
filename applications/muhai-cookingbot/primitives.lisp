@@ -3918,6 +3918,8 @@
           (acons 'teaspoon 5 '()))
     (setf (gethash 'cocoa-powder conversion-table)
           (acons 'teaspoon 4 '()))
+    (setf (gethash 'coconut-oil conversion-table)
+	  (acons 'teaspoon 4.5 (acons 'l 921 '())))
     (setf (gethash 'corn-flakes conversion-table)
           (acons 'teaspoon 2 '()))
     (setf (gethash 'cucumber conversion-table)
