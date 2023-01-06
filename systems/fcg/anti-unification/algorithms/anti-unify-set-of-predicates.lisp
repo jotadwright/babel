@@ -22,6 +22,27 @@
                                 :allow-generalisation-over-constants nil))
  |#
 
+(export '(anti-unify-predicate-network
+          generalisation
+          pattern-bindings source-bindings
+          pattern-delta source-delta
+          au-cost))
+
+
+(defclass au-result ()
+  ((generalisation
+    :accessor generalisation :initarg :generalisation :initform nil)
+   (pattern-bindings
+    :accessor pattern-bindings :initarg :pattern-bindings :initform nil)
+   (source-bindings
+    :accessor source-bindings :initarg :source-bindings :initform nil)
+   (pattern-delta
+    :accessor pattern-delta :initarg :pattern-delta :initform nil)
+   (source-delta
+    :accessor source-delta :initarg :source-delta :initform nil)
+   (au-cost
+    :accessor au-cost :initarg :au-cost :initform 0)))
+
 (defun anti-unify-predicate-network (pattern source &key allow-generalisation-over-constants)
   "Anti-unifies pattern with source. Returns 5 values:
    generalisation, pattern-bindings, source-bindings, pattern-delta and source-delta."
@@ -31,25 +52,30 @@
   (assert (= (length source) (length (remove-duplicates source :test #'equalp))))
 
   ;; Loop over all possible alignments of predicates in pattern and source and anti-unify them...
-  (loop for alignment in (identify-possible-alignments pattern source :allow-generalisation-over-constants allow-generalisation-over-constants)
-        for pattern-in-alignment = (cdr (assoc :pattern alignment))
-        for source-in-alignment = (cdr (assoc :source alignment))
-        for pattern-delta = (cdr (assoc :pattern-delta alignment))
-        for source-delta = (cdr (assoc :source-delta alignment))
+  (loop with possible-alignments = (identify-possible-alignments pattern source
+                                                                 :allow-generalisation-over-constants
+                                                                 allow-generalisation-over-constants)
+        for alignment in possible-alignments
+        for pattern-in-alignment = (pattern-predicates alignment)
+        for source-in-alignment = (source-predicates alignment)
+        for pattern-delta = (pattern-delta alignment)
+        for source-delta = (source-delta alignment)
         collect (multiple-value-bind (resulting-generalisation resulting-pattern-bindings resulting-source-bindings resulting-pattern-delta resulting-source-delta)
                     (anti-unify-predicate-sequence pattern-in-alignment source-in-alignment nil nil nil pattern-delta source-delta)
-                  `((:generalisation . ,resulting-generalisation)
-                    (:pattern-bindings . ,resulting-pattern-bindings)
-                    (:source-bindings . ,resulting-source-bindings)
-                    (:pattern-delta . ,resulting-pattern-delta)
-                    (:source-delta . ,resulting-source-delta)
-                    (:cost . ,(anti-unification-cost resulting-pattern-bindings
-                                                     resulting-source-bindings
-                                                     resulting-pattern-delta
-                                                     resulting-source-delta))))
-          into results
+                  ;; make the au-result into a struct/class?
+                  (make-instance 'au-result
+                                 :generalisation resulting-generalisation
+                                 :pattern-bindings resulting-pattern-bindings
+                                 :source-bindings resulting-source-bindings
+                                 :pattern-delta resulting-pattern-delta
+                                 :source-delta resulting-source-delta
+                                 :au-cost (anti-unification-cost resulting-pattern-bindings
+                                                              resulting-source-bindings
+                                                              resulting-pattern-delta
+                                                              resulting-source-delta)))
+        into results
         ;; Sort results based on increasing cost.
-        finally (return (sort results #'< :key #'(lambda (result) (cdr (assoc :cost result)))))))
+        finally (return (sort results #'< :key #'au-cost))))
   
 (defun anti-unify-predicate (pattern
                              source
@@ -131,6 +157,24 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
 ; (anti-unify-predicate-sequence '(a b c b) '(a d c e))
 
 
+(defclass alignment-state ()
+  ((pattern-predicates
+    :accessor pattern-predicates :initarg :pattern-predicates :initform nil)
+   (source-predicates
+    :accessor source-predicates :initarg :source-predicates :initform nil)
+   (pattern-delta
+    :accessor pattern-delta :initarg :pattern-delta :initform nil)
+   (source-delta
+    :accessor source-delta :initarg :source-delta :initform nil)
+   (pattern-remaining
+    :accessor pattern-remaining :initarg :pattern-remaining :initform nil)
+   (source-remaining
+    :accessor source-remaining :initarg :source-remaining :initform nil)))
+
+(defun make-initial-alignment-state (pattern source)
+  (make-instance 'alignment-state
+                 :pattern-remaining pattern
+                 :source-remaining source))
 
 
 
@@ -138,79 +182,67 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
   "Returns a list of :pattern :source :pattern-delta :source-delta alists, which list all possibilities
    to align pattern-predicates with source predicates, and the resulting delta's (= non-aligned predicates)."
   (loop with solutions = nil
-        with queue = (list `((:pattern-predicates . nil)
-                             (:source-predicates . nil)
-                             (:pattern-delta . nil)
-                             (:source-delta . nil)
-                             (:pattern-remaining . ,pattern)
-                             (:source-remaining . ,source)))
+        with queue = (list (make-initial-alignment-state pattern source))
         while queue
         for state = (pop queue)
-        for pattern-predicates = (cdr (assoc :pattern-predicates state))
-        for source-predicates = (cdr (assoc :source-predicates state))
-        for pattern-delta = (cdr (assoc :pattern-delta state))
-        for source-delta = (cdr (assoc :source-delta state))
-        for pattern-remaining = (cdr (assoc :pattern-remaining state))
-        for source-remaining = (cdr (assoc :source-remaining state))
-
-        do (cond ; no predicates remaining in pattern and source: we have a solution!
-            ((and (null pattern-remaining) (null source-remaining))
-             (push `((:pattern . ,pattern-predicates)
-                     (:source . ,source-predicates)
-                     (:pattern-delta . ,pattern-delta)
-                     (:source-delta . ,source-delta))
-                   solutions))
+        do (with-slots (pattern-predicates source-predicates pattern-delta source-delta pattern-remaining source-remaining) state
+             (cond ; no predicates remaining in pattern and source: we have a solution!
+              ((and (null pattern-remaining) (null source-remaining))
+               (push state solutions))
+              
+              ; no pattern-predicates remaining: rest of source goes to source-delta
+              ((null pattern-remaining)
+               (push (make-instance 'alignment-state
+                                    :pattern-predicates pattern-predicates
+                                    :source-predicates source-predicates
+                                    :pattern-delta pattern-delta
+                                    :source-delta (append source-delta source-remaining))
+                     queue))
             
-            ; no pattern-predicates remaining: rest of source goes to source-delta
-            ((null pattern-remaining)
-             (push `((:pattern-predicates . ,pattern-predicates)
-                     (:source-predicates . ,source-predicates)
-                     (:pattern-delta . ,pattern-delta)
-                     (:source-delta . ,(append source-delta source-remaining))
-                     (:pattern-remaining . nil)
-                     (:source-remaining . nil))
-                   queue))
+              ; no source-predicates remaining: rest of pattern goes to pattern-delta
+              ((null source-remaining)
+               (push (make-instance 'alignment-state
+                                    :pattern-predicates pattern-predicates
+                                    :source-predicates source-predicates
+                                    :pattern-delta (append pattern-delta pattern-remaining)
+                                    :source-delta source-delta)
+                     queue))
             
-            ; no source-predicates remaining: rest of source goes to source-delta
-            ((null source-remaining)
-             (push `((:pattern-predicates . ,pattern-predicates)
-                     (:source-predicates . ,source-predicates)
-                     (:pattern-delta . ,(append pattern-delta pattern-remaining))
-                     (:source-delta . ,source-delta)
-                     (:pattern-remaining . nil)
-                     (:source-remaining . nil))
-                   queue))
-            
-          ; pattern and source predicates remaining: consume first pattern predicate and combine with possible source-predicates
-          ; if more occurrences in pattern than source also keep option that it goes into the pattern-delta
-            (t
-             (let* ((first-pattern-predicate (first pattern-remaining))
-                    (matching-source-predicates (find-all first-pattern-predicate source-remaining
-                                                          :test (lambda (pattern-predicate source-predicate)
-                                                                  (matching-predicates pattern-predicate source-predicate
-                                                                                       :allow-generalisation-over-constants allow-generalisation-over-constants)))))
-               (when matching-source-predicates
-                 (loop for matching-source-predicate in matching-source-predicates
-                       do (push `((:pattern-predicates . ,(append pattern-predicates (list first-pattern-predicate)))
-                                  (:source-predicates . ,(append source-predicates (list matching-source-predicate)))
-                                  (:pattern-delta . ,pattern-delta)
-                                  (:source-delta . ,source-delta)
-                                  (:pattern-remaining . ,(rest pattern-remaining))
-                                  (:source-remaining . ,(remove matching-source-predicate source-remaining)))
-                                queue)))
-               (when (or (null matching-source-predicates)
-                         (> (length (find-all first-pattern-predicate (rest pattern-remaining)
-                                              :test (lambda (pattern-predicate remaining-pattern-predicate)
-                                                      (matching-predicates pattern-predicate remaining-pattern-predicate
-                                                                           :allow-generalisation-over-constants allow-generalisation-over-constants))))
-                            (length matching-source-predicates)))
-                 (push `((:pattern-predicates . ,pattern-predicates)
-                         (:source-predicates . ,source-predicates)
-                         (:pattern-delta . ,(append pattern-delta (list first-pattern-predicate)))
-                         (:source-delta . ,source-delta)
-                         (:pattern-remaining . ,(rest pattern-remaining))
-                         (:source-remaining . ,source-remaining))
-                       queue)))))
+              ; pattern and source predicates remaining: consume first pattern predicate and combine with possible source-predicates
+              ; if more occurrences in pattern than source also keep option that it goes into the pattern-delta
+              (t
+               (let* ((first-pattern-predicate (first pattern-remaining))
+                      (matching-source-predicates
+                       (find-all first-pattern-predicate source-remaining
+                                 :test (lambda (pattern-predicate source-predicate)
+                                         (matching-predicates pattern-predicate source-predicate
+                                                              :allow-generalisation-over-constants
+                                                              allow-generalisation-over-constants)))))
+                 (when matching-source-predicates
+                   (loop for matching-source-predicate in matching-source-predicates
+                         do (push (make-instance 'alignment-state
+                                                 :pattern-predicates (append pattern-predicates (list first-pattern-predicate))
+                                                 :source-predicates (append source-predicates (list matching-source-predicate))
+                                                 :pattern-delta pattern-delta
+                                                 :source-delta source-delta
+                                                 :pattern-remaining (rest pattern-remaining)
+                                                 :source-remaining (remove matching-source-predicate source-remaining))
+                                  queue)))
+                 (when (or (null matching-source-predicates)
+                           (> (length (find-all first-pattern-predicate (rest pattern-remaining)
+                                                :test (lambda (pattern-predicate remaining-pattern-predicate)
+                                                        (matching-predicates pattern-predicate remaining-pattern-predicate
+                                                                             :allow-generalisation-over-constants
+                                                                             allow-generalisation-over-constants))))
+                              (length matching-source-predicates)))
+                   (push (make-instance 'alignment-state
+                                        :pattern-predicates pattern-predicates
+                                        :source-predicates source-predicates
+                                        :pattern-delta (append pattern-delta (list first-pattern-predicate))
+                                        :source-delta source-delta
+                                        :pattern-remaining (rest pattern-remaining)
+                                        :source-remaining source-remaining)
+                         queue))))))
           
         finally (return solutions)))
 
@@ -267,35 +299,28 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
   (format stream "------------------------------------------------------------~%~%")
   (loop for a-u-result in list-of-anti-unification-results
         for i from 1 upto (length list-of-anti-unification-results)
-        for generalisation = (cdr (assoc :generalisation a-u-result))
-        for pattern-bindings = (cdr (assoc :pattern-bindings a-u-result))
-        for source-bindings = (cdr (assoc :source-bindings a-u-result))
-        for pattern-delta = (cdr (assoc :pattern-delta a-u-result))
-        for source-delta = (cdr (assoc :source-delta a-u-result))
-        for cost = (cdr (assoc :cost a-u-result))
-
-
-        do (format stream "--- Result ~a (cost: ~a) ---~%~%" i cost)
-           (format stream "- Generalisation:~%~%")
-           (let ((*print-pretty* t))
-             (format stream "~(~a~)~%~%" generalisation))
-           (format stream "- Pattern bindings:~%~%")
-           (let ((*print-pretty* t))
-             (format stream "~(~a~)~%~%" pattern-bindings))
-           (format stream "- Source bindings:~%~%")
-           (let ((*print-pretty* t))
-             (format stream "~(~a~)~%~%" source-bindings))
-           (format stream "- Pattern delta:~%~%")
-           (let ((*print-pretty* t))
-             (format stream "~(~a~)~%~%" pattern-delta))
-           (format stream "- Source delta:~%~%")
-           (let ((*print-pretty* t))
-             (format stream "~(~a~)~%~%~%" source-delta))))
+        do (with-slots (generalisation pattern-bindings source-bindings pattern-delta source-delta au-cost) a-u-result
+             (format stream "--- Result ~a (cost: ~a) ---~%~%" i au-cost)
+             (format stream "- Generalisation:~%~%")
+             (let ((*print-pretty* t))
+               (format stream "~(~a~)~%~%" generalisation))
+             (format stream "- Pattern bindings:~%~%")
+             (let ((*print-pretty* t))
+               (format stream "~(~a~)~%~%" pattern-bindings))
+             (format stream "- Source bindings:~%~%")
+             (let ((*print-pretty* t))
+               (format stream "~(~a~)~%~%" source-bindings))
+             (format stream "- Pattern delta:~%~%")
+             (let ((*print-pretty* t))
+               (format stream "~(~a~)~%~%" pattern-delta))
+             (format stream "- Source delta:~%~%")
+             (let ((*print-pretty* t))
+               (format stream "~(~a~)~%~%~%" source-delta)))))
 
 
 (defun anti-unification-cost (pattern-bindings source-bindings pattern-delta source-delta)
   "The anti-unification cost is the sum of the number of predicates in the deltas and the number of variables that have
-   been bound two more than 1 variable in the generalisation."
+   been bound to more than 1 variable in the generalisation."
   (let ((nr-of-predicates-in-pattern-delta (length pattern-delta))
         (nr-of-predicates-in-source-delta (length source-delta))
         (nr-of-bindings-to-multiple-vars-in-pattern (loop for (binding . rest) on  pattern-bindings
@@ -309,18 +334,15 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
 
 (defun compute-network-from-anti-unification-result (au-result pattern-or-source)
   "Returns original network based on generalisation, bindings-list and delta."  
-  (let* ((generalisation (cdr (assoc :generalisation au-result)))
-         (bindings-key (cond ((eql pattern-or-source 'pattern)
-                              :pattern-bindings)
-                             ((eql pattern-or-source 'source)
-                              :source-bindings)
-                             (t (error "The pattern or source argument should be 'pattern or 'source (got ~a)" pattern-or-source))))
-         (delta-key (cond ((eql pattern-or-source 'pattern)
-                           :pattern-delta)
-                          ((eql pattern-or-source 'source)
-                           :source-delta)))
-         (bindings-list (cdr (assoc bindings-key au-result)))
-         (delta (cdr (assoc delta-key au-result))))
+  (let* ((generalisation (generalisation au-result))
+         (bindings-key (case pattern-or-source
+                         (pattern #'pattern-bindings)
+                         (source #'source-bindings)))
+         (delta-key (case pattern-or-source
+                      (pattern #'pattern-delta)
+                      (source #'source-delta)))
+         (bindings-list (funcall bindings-key au-result))
+         (delta (funcall delta-key au-result)))
     (append (substitute-bindings (reverse-bindings bindings-list) generalisation)
             delta)))
                             
