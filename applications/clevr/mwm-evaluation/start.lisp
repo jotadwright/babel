@@ -57,9 +57,12 @@
 ;; Testing ;;
 ;;---------;;
 
+;(inspect *mwm-primitives*)
+
+#|
 ;; Test sentences (see "Babel/grammars/clevr-grammar/start.lisp" for more examples):
- (test-utterance-in-scene "What color is the small sphere?"
-                           "CLEVR_val_000003" :simulated "serie-1")
+(test-utterance-in-scene "What color is the object left of the large cube?"
+                           "CLEVR_val_000006" :simulated "serie-1")
 
 
 (draw-irl-program '((get-context ?context)(bind shape-category ?shape-1 sphere)(filter ?sphere-set ?context ?shape-1)(bind size-category ?size-1 small)(filter ?small-sphere-set ?sphere-set ?size-1)(unique ?small-sphere ?small-sphere-set)(bind attribute-category ?attribute-1 color)(query ?target ?small-sphere ?attribute-1)) :format "pdf")
@@ -80,7 +83,7 @@
 ;; Testing ;;
 ;;---------;;
 
-#|(defparameter *ontology*
+(defparameter *ontology*
   (make-mwm-ontology
         (merge-pathnames (make-pathname :directory '(:relative "serie-1"))
                          *simulated-concepts-path*)))|#
@@ -97,11 +100,11 @@
 #|(loop repeat 20
       do (time
           (evaluate-irl-program *program* *ontology*
-                                :n 1 :primitive-inventory *mwm-primitives*)|#
+                                :n 1 :primitive-inventory *mwm-primitives*)
 
 (defparameter *scene-pathname*
   (make-instance 'pathname-entity
-                 :pathname (parse-namestring "/Users/liesbetdevos/Projects/Corpora/CLEVR-v1.0/scenes/val/CLEVR_val_000012.json")))
+                 :pathname (parse-namestring "/Users/liesbetdevos/Projects/Corpora/CLEVR-v1.0/scenes/val/CLEVR_val_000006.json")))
 
 (defparameter *scene-12*
   (mwm::clevr->extracted (load-clevr-scene (pathname *scene-pathname*))
@@ -113,3 +116,8 @@
      ((tr) ((th) "CLEVR context"))
      ((tr) ((td) ,(make-html *scene-12*
                              :expand-initially t)))))
+
+(mwm::s-dot->image 
+              (mwm::concept->s-dot (cl-store:restore "/Users/liesbetdevos/Projects/babel/experiments/multidimensional-word-meanings/thesis-main-results/simulated-concepts-history100/serie-1/cube-cxn.store"))
+              :format "pdf" :open nil)
+|#

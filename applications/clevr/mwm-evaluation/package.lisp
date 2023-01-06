@@ -17,6 +17,14 @@
    :decode-json-from-string
    :encode-json-to-string
    :encode-json-alist-to-string)
+  (:import-from :mwm
+   :trace-interaction-in-web-interface :lexicon :learner :experiment :mwm-experiment :display-lexicon)
+  (:import-from :monitors
+   :deactivate-all-monitors :activate-monitor)
+  (:import-from :web-interface
+   :define-css :clear-page :add-element)
   (:import-from :cl-store :restore)
-  (:shadowing-import-from :fcg :size :attributes))
+  (:import-from :clevr-world :get-pathname)
+  (:import-from :irl :trace-irl)
+  (:shadowing-import-from :fcg :size :attributes :trace-fcg))
   
