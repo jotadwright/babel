@@ -45,15 +45,15 @@
 
 ;(test-deletion-repair-clevr)
 
-;(define-configuration-default-value :meaning-representation :geo)
+;(define-configuration-default-value :meaning-representation :amr)
 
 
 ;default is IRL
 ;with GEO repair doesnt work (all NILs) since no cxn detected as T
 
 
-(defun test-deletion-repair-comprehension-german ()
-  (let* ((experiment (set-up-cxn-inventory-and-repairs))
+(defun test-deletion-repair-long-first-comprehension-german ()
+  (let* ((experiment (set-up-cxn-inventory-and-repairs-german))  ;geo
          (cxn-inventory (grammar (first (agents experiment)))))
     (comprehend "Die junge Frau gibt dem Mann den gruenen Apfel"
                     :cxn-inventory cxn-inventory
@@ -83,7 +83,53 @@
                                              (arg0 ?g ?w)
                                              (arg1 ?g ?a)
                                              (arg2 ?g ?m)
-                                             (topicalized ?w))))))
+                                             (topicalized ?w)))
+                                 
+                                 )))))
+
+
+
+(defun test-deletion-repair-short-first-comprehension-german ()
+  (let* ((experiment (set-up-cxn-inventory-and-repairs-german))  ;geo
+         (cxn-inventory (grammar (first (agents experiment)))))
+    (comprehend "Die junge Frau gibt dem Mann den Apfel"
+                    :cxn-inventory cxn-inventory
+                    :gold-standard-meaning '((geben-01 ?g)
+                                             (young ?y)
+                                             (woman ?w)
+                                             (mod ?w ?y)
+                                             (man ?m)
+                                             (apple ?a)
+                                             (arg0 ?g ?w)
+                                             (arg1 ?g ?a)
+                                             (arg2 ?g ?m)
+                                             (topicalized ?w)))
+    (test-repair-status 'holistic->item-based--deletion
+                        (second (multiple-value-list
+                                 (comprehend "Die junge Frau gibt dem Mann den gruenen Apfel"
+                    :cxn-inventory cxn-inventory
+                    :gold-standard-meaning '((geben-01 ?g)
+                                             (young ?y)
+                                             (woman ?w)
+                                             (mod ?w ?y)
+                                             (man ?m)
+                                             (apple ?a)
+                                             (green ?gr)
+                                             (mod ?a ?gr)
+                                             (arg0 ?g ?w)
+                                             (arg1 ?g ?a)
+                                             (arg2 ?g ?m)
+                                             (topicalized ?w)))
+                                 )))))
+
+
+;;;using geo formalism 
+;(test-deletion-repair-long-first-comprehension-german)   ; this is deletion, fails to apply 
+;(test-deletion-repair-short-first-comprehension-german)  ; this is addition, works with geo formalism 
+
+(defun test-deletion-repair-comprehension-german ()
+  (let* ((experiment (set-up-cxn-inventory-and-repairs-amr))  
+         (cxn-inventory (grammar (first (agents experiment)))))
     (comprehend "Die junge Frau gibt dem Mann den gruenen Apfel"
                     :cxn-inventory cxn-inventory
                     :gold-standard-meaning '((geben-01 ?g)
@@ -98,13 +144,25 @@
                                              (arg1 ?g ?a)
                                              (arg2 ?g ?m)
                                              (topicalized ?w)))
-    (add-element (make-html cxn-inventory))))
+    
+    (test-repair-status 'holistic->item-based--deletion
+                        (second (multiple-value-list
+                                 (comprehend "Die junge Frau gibt dem Mann den Apfel"
+                    :cxn-inventory cxn-inventory
+                    :gold-standard-meaning '((geben-01 ?g)
+                                             (young ?y)
+                                             (woman ?w)
+                                             (mod ?w ?y)
+                                             (man ?m)
+                                             (apple ?a)
+                                             (arg0 ?g ?w)
+                                             (arg1 ?g ?a)
+                                             (arg2 ?g ?m)
+                                             (topicalized ?w)))
+                                 
+                                 )))))
 
-
-
-
-(test-deletion-repair-comprehension-german)
-
+;(test-deletion-repair-comprehension-german)  ;fails with amr as formalism 
 
 ;;;error if set to AMR
 
