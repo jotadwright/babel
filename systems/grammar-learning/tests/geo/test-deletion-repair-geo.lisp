@@ -1,3 +1,4 @@
+(ql:quickload :grammar-learning) 
 (in-package :grammar-learning)
 
 (defun test-deletion-repair-comprehension-geo ()
@@ -11,7 +12,7 @@
                                              (RIVERID ?E ?F)
                                              (MISSISSIPPI ?F)
                                              (RIVER ?D ?B)))
-    (test-repair-status 'holophrase->item-based+holistic+holophrase--deletion
+    (test-repair-status 'holistic->item-based--deletion
                         (second (multiple-value-list
                                  (comprehend "How long is the Mississippi ?"
                     :cxn-inventory cxn-inventory
@@ -42,6 +43,7 @@
 
 
 ;(run-deletion-tests)
+
 #|
 (defvar *fc-1* '((STRING GRAMMAR-LEARNING::?HOW-4255 "how") (STRING GRAMMAR-LEARNING::?LONG-543 "long") (STRING GRAMMAR-LEARNING::?IS-6507 "is") (STRING GRAMMAR-LEARNING::?THE-14222 "the") (STRING GRAMMAR-LEARNING::?MISSISSIPPI-788 "mississippi") (STRING GRAMMAR-LEARNING::?RIVER-1857 "river") (FCG:MEETS GRAMMAR-LEARNING::?HOW-4255 GRAMMAR-LEARNING::?LONG-543) (FCG:MEETS GRAMMAR-LEARNING::?LONG-543 GRAMMAR-LEARNING::?IS-6507) (FCG:MEETS GRAMMAR-LEARNING::?IS-6507 GRAMMAR-LEARNING::?THE-14222) (FCG:MEETS GRAMMAR-LEARNING::?THE-14222 GRAMMAR-LEARNING::?MISSISSIPPI-788) (FCG:MEETS GRAMMAR-LEARNING::?MISSISSIPPI-788 GRAMMAR-LEARNING::?RIVER-1857)))
 
