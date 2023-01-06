@@ -43,15 +43,15 @@
                (:module tests
                 :serial t
                 :components ((:file "utils")
-                             (:file "test-utils")))
-               
-                             #|(:file "test-item-based-substitution-repair")
-                             (:file "test-substitution-repair")
-                             (:file "test-addition-repair")
-                             (:file "test-deletion-repair")
-                             (:file "test-item-based-to-holistic-repair")
-                             (:file "test-holistic-to-item-based-repair")
-                             (:file "test-add-categorial-links-repair")))|#
+                             ;(:file "test-utils")
+                             (:module irl
+                              :serial t
+                              :components ((:file "test-substitution-repair-irl")
+                                           (:file "test-addition-repair-irl")
+                                           (:file "test-deletion-repair-irl")
+                                           (:file "test-add-categorial-links-repair-irl")))))
+
+
 )
                              
 

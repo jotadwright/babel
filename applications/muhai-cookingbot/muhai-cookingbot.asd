@@ -11,11 +11,14 @@
                :cl-json
                :closer-mop
                :nlp-tools
+               :dexador
                #+lispworks :drakma)
   :serial t
   :components ((:file "package")
                (:file "ontology")
+               (:file "vr-primitives")
                (:file "primitives")
+               (:file "vr-requests")
                (:file "visualisations")
                (:module personal-dynamic-memory
                 :serial t
