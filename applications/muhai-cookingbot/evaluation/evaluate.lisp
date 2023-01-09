@@ -22,4 +22,4 @@
     (when show-output
     ; open the browser to show the output
       (print "The simulation process can be investigated by opening http://localhost:8000 in your browser. We recommend using Chrome.")
-      (open-browser "http://localhost:8000")))) ; TODO RD: if we use a lispworks executable we can simply use: (sys:open-url "http://localhost:8000")
+      (sys:open-url "http://localhost:8000")))) ; (open-browser "http://localhost:8000") can be used for non-LispWorks support
