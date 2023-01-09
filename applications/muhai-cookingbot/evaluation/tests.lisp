@@ -268,7 +268,7 @@
 ;; EVALUATE ;;
 ;;;;;;;;;;;;;;
 
-(evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-multiple-recipes.solution"
-          "applications\\muhai-cookingbot\\evaluation\\tests\\test-results.csv"
-          nil
-          'goal-condition-success 'dish-approximation-score 'execution-time)
+(internal-evaluate "applications\\muhai-cookingbot\\evaluation\\tests\\test-multiple-recipes.solution"
+                   "applications\\muhai-cookingbot\\evaluation\\tests\\test-results.csv"
+                   nil
+                   'goal-condition-success 'dish-approximation-score 'execution-time)
