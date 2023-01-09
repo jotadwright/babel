@@ -105,7 +105,7 @@
   ()
   (:panes
    (input-button capi:push-button
-                 :text "Select Solution File."
+                 :text "Select Solution File"
                  :min-width '(:character 30)
                  :selection-callback 'select-input)
    (input-viewer capi:display-pane
@@ -115,7 +115,7 @@
                  :max-height '(:character 1)
                  :reader input-viewer)
    (output-button capi:push-button
-                  :text "Select Directory."
+                  :text "Select Results Directory"
                   :min-width '(:character 30)
                   :selection-callback 'select-output)
    (output-viewer capi:display-pane
@@ -130,7 +130,7 @@
                     :min-height '(:character 1)
                     :reader output-filename)
    (web-check capi:check-button-panel
-              :items '("Visualize Simulation")
+              :items '("Visualize Simulation Process")
               :reader web-check)
    (metric-checks capi:check-button-panel
                   :items '("Smatch Score" "Goal-Condition Success" "Dish Approximation Score" "Execution Time")
@@ -147,7 +147,7 @@
     capi:grid-layout
     '(" " "Input:"  input-button input-viewer " "
       " " "Output:" output-button output-viewer " "
-      " " "" "Specify Filename." output-filename " "
+      " " "" "Results Filename:" output-filename " "
       " " "Web Interface:" web-check :right-extend " "
       " " "Evaluation Metrics:" metric-checks :right-extend " "
       " " start-button :right-extend :right-extend " ")
