@@ -4,6 +4,16 @@
 ;; Anti-unifying sets of predicates constructions ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defparameter *alphabet* "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+(defparameter *alphabet-index* 0)
+(defun next-au-var ()
+  (let ((c (mkstr (char *alphabet* *alphabet-index*))))
+    (incf *alphabet-index*)
+    (when (= *alphabet-index* 26)
+      (setf *alphabet-index* 0))
+    c))
+
+
 #|
 
  (ql:quickload :fcg)
@@ -114,7 +124,7 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
    ;; None of the above (pattern and source are different and no binding is available yet) -> introduce new
    ;; binding as generalisation
    (t
-    (let ((var (make-var "X")))
+    (let ((var (make-var (next-au-var))))
       (values var
               (extend-bindings pattern var pattern-bindings)
               (extend-bindings source var source-bindings)
