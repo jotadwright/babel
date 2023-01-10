@@ -115,7 +115,6 @@
   (test-perfect-complete))
 
 ;(execute-all-tests)
-;(test-perfect-complete)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Convenience Functions (Removable) ;;
