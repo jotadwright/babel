@@ -570,7 +570,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *metrics*
-  '(smatch-score goal-condition-success dish-approximation-score execution-time)) ; TODO RD: add SMATCH
+  '(smatch-score goal-condition-success dish-approximation-score execution-time))
 
 (defun evaluate-solutions (filepath &optional (metrics *metrics*) (sim-envs *simulation-environments*))
   (let ((solutions (parse-solutions-file filepath))) ; read in the solutions
@@ -583,7 +583,6 @@
           for final-gold-node = (final-node current-sim-env) 
           for gold-output-node = (output-node current-sim-env)
           do
-            ; TODO RD: remove print statements
             (print "solution:")
             (print (recipe-id current-solution))
             ; compute the smatch score (no simulation needed for this part)
