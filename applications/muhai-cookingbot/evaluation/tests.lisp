@@ -103,8 +103,6 @@
       (print "test-perfect-complete: SUCCESS")
       (error "test-perfect-complete: FAILURE"))))
 
-;(test-perfect-complete)
-
 (defun execute-all-tests ()
   (test-perfect)
   (test-permuted-perfect)
@@ -116,6 +114,7 @@
   (test-failed-object)
   (test-perfect-complete))
 
+;(test-perfect-complete)
 ;(execute-all-tests)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -135,11 +134,6 @@
            (print (dish-score solution))
            (print "Execution Time:")
            (print (execution-time solution))))
-
-
-;(defparameter test (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-list-of-kitchen-entities.solution" (list *almond-crescent-cookies-environment*)))
-;(print-results test)
-
 
 ;;;;;;;;;;
 ;; DEMO ;;
