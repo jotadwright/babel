@@ -62,10 +62,9 @@
                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
                   (oven-to-bake-in 0.0 oven-to-be-heated thing-baked-available-at)))
            (t
-            nil))))
-          ;  (bind (thing-baked 1.0 (make-instance 'failed-object) thing-baked-available-at)
-          ;        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-          ;        (oven-to-bake-in 0.0 oven-to-be-heated thing-baked-available-at))))))
+            (bind (thing-baked 1.0 (make-instance 'failed-object) thing-baked-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (oven-to-bake-in 0.0 oven-to-be-heated thing-baked-available-at))))))
      
 
   ;; Case 2: Preheated oven is available, temperature not mentioned
@@ -107,11 +106,10 @@
                   (target-temperature-quantity 0.0 (quantity oven-temperature) nil)
                   (target-temperature-unit 0.0 (unit oven-temperature) nil)))
            (t
-            nil))))
-         ;   (bind (thing-baked 1.0 (make-instance 'failed-object) thing-baked-available-at)
-         ;         (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-         ;         (target-temperature-quantity 0.0 (quantity oven-temperature) nil)
-         ;         (target-temperature-unit 0.0 (unit oven-temperature) nil))))))
+            (bind (thing-baked 1.0 (make-instance 'failed-object) thing-baked-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (target-temperature-quantity 0.0 (quantity oven-temperature) nil)
+                  (target-temperature-unit 0.0 (unit oven-temperature) nil))))))
            
   ;; Case 3: Oven and temperature are given, oven is considered to not have been preheated
   ((kitchen-state-in thing-to-bake oven-to-bake-in time-to-bake-quantity time-to-bake-unit target-temperature-quantity target-temperature-unit
@@ -152,9 +150,8 @@
             (bind (thing-baked 1.0 new-thing-to-bake thing-baked-available-at)
                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))
            (t
-            nil)))))
-           ; (bind (thing-baked 1.0 (make-instance 'failed-object) thing-baked-available-at)
-           ;       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+            (bind (thing-baked 1.0 (make-instance 'failed-object) thing-baked-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
 (defprimitive beat ((container-with-ingredients-beaten transferable-container)
                     (kitchen-state-out kitchen-state)
@@ -190,10 +187,9 @@
                       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
                       (tool 0.0 target-tool-instance-new-ks nil))))
              (t
-              nil)))))
-             ; (bind (container-with-ingredients-beaten 1.0 (make-instance 'failed-object) container-available-at)
-             ;       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-             ;       (tool 0.0 (make-instance 'failed-object) nil)))))))
+              (bind (container-with-ingredients-beaten 1.0 (make-instance 'failed-object) container-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                    (tool 0.0 (make-instance 'failed-object) nil)))))))
 
   ;; Case 2: Reuse existing whisk for beating
   ((kitchen-state-in container-with-ingredients tool => kitchen-state-out container-with-ingredients-beaten )
@@ -218,9 +214,8 @@
               (bind (container-with-ingredients-beaten 1.0 new-container container-available-at)
                     (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
            (t
-            nil)))))
-           ; (bind (container-with-ingredients-beaten 1.0 (make-instance 'failed-object) container-available-at)
-           ;       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+            (bind (container-with-ingredients-beaten 1.0 (make-instance 'failed-object) container-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
 (defprimitive boil ((thing-boiled transferable-container)
                     (kitchen-state-out kitchen-state)
@@ -289,11 +284,10 @@
                     (stove-to-boil-on 0.0 stove-to-be-heated thing-boiled-available-at)
                     (heating-mode 0.0 new-heating-mode nil))))
            (t
-            nil))))
-          ;  (bind (thing-boiled 1.0 (make-instance 'failed-object) thing-boiled-available-at)
-          ;        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-          ;        (stove-to-boil-on 0.0 stove-to-be-heated thing-boiled-available-at))))))
-     
+            (bind (thing-boiled 1.0 (make-instance 'failed-object) thing-boiled-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (stove-to-boil-on 0.0 stove-to-be-heated thing-boiled-available-at)
+                  (heating-mode 0.0 new-heating-mode nil))))))    
 
   ;; Case 2: Stove and time are given, but heating mode is not given
   ((kitchen-state-in thing-to-boil stove-to-boil-on time-to-boil-quantity time-to-boil-unit
@@ -352,9 +346,9 @@
                     (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
                     (heating-mode 0.0 new-heating-mode nil))))
            (t
-            nil))))
-          ;  (bind (thing-boiled 1.0 (make-instance 'failed-object) thing-boiled-available-at)
-          ;        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+            (bind (thing-boiled 1.0 (make-instance 'failed-object) thing-boiled-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (heating-mode 0.0 new-heating-mode nil))))))
            
   ;; Case 3: Stove is given, but time and heating mode are not given
   ((kitchen-state-in thing-to-boil stove-to-boil-on
@@ -417,9 +411,11 @@
                     (time-to-boil-quantity 0.0 new-time-to-boil-quantity nil)
                     (time-to-boil-unit 0.0 new-time-to-boil-unit nil))))
            (t
-            nil))))
-          ;  (bind (thing-boiled 1.0 (make-instance 'failed-object) thing-boiled-available-at)
-          ;        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+            (bind (thing-boiled 1.0 (make-instance 'failed-object) thing-boiled-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (heating-mode 0.0 new-heating-mode nil)
+                  (time-to-boil-quantity 0.0 new-time-to-boil-quantity nil)
+                  (time-to-boil-unit 0.0 new-time-to-boil-unit nil))))))
   
   ;; Case 4: Stove, heating mode and time are not given
   ((kitchen-state-in thing-to-boil 
@@ -483,9 +479,12 @@
                     (time-to-boil-quantity 0.0 new-time-to-boil-quantity nil)
                     (time-to-boil-unit 0.0 new-time-to-boil-unit nil))))
            (t
-            nil))))
-          ;  (bind (thing-boiled 1.0 (make-instance 'failed-object) thing-boiled-available-at)
-          ;        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))
+              (bind (thing-boiled 1.0 (make-instance 'failed-object) thing-boiled-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                    (stove-to-boil-on 0.0 (make-instance 'failed-object) thing-boiled-available-at)
+                    (heating-mode 0.0 new-heating-mode nil)
+                    (time-to-boil-quantity 0.0 new-time-to-boil-quantity nil)
+                    (time-to-boil-unit 0.0 new-time-to-boil-unit nil))))))
     
    ;; Case 5: Stove, heating mode and time are given
   ((kitchen-state-in thing-to-boil stove-to-boil-on heating-mode time-to-boil-quantity time-to-boil-unit
@@ -542,9 +541,8 @@
               (bind (thing-boiled 1.0 new-thing-to-boil thing-boiled-available-at)
                     (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
            (t
-            nil)))))
-          ;  (bind (thing-boiled 1.0 (make-instance 'failed-object) thing-boiled-available-at)
-          ;        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+            (bind (thing-boiled 1.0 (make-instance 'failed-object) thing-boiled-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
   
 (defprimitive bring-to-temperature ((container-with-ingredients-at-temperature transferable-container)
@@ -573,9 +571,8 @@
             (bind (container-with-ingredients-at-temperature 1.0 new-container container-available-at)
                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))
            (t
-            nil))))
-           ; (bind (container-with-ingredients-at-temperature 1.0 (make-instance 'failed-object) container-available-at)
-           ;       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))
+            (bind (container-with-ingredients-at-temperature 1.0 (make-instance 'failed-object) container-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))
   
   ; Case 2: temperature is not given, room temperature (i.e. kitchen-state temperature is used)
   ((kitchen-state-in container-with-ingredients
@@ -597,176 +594,11 @@
                    (temperature-quantity 0.0 (quantity (temperature new-kitchen-state)) nil)
                    (temperature-unit 0.0 (unit (temperature new-kitchen-state)) nil)))
             (t
-             nil)))))
-           ;  (bind (container-with-ingredients-at-temperature 1.0 (make-instance 'failed-object) container-available-at)
-           ;        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-           ;        (temperature-quantity 0.0 (quantity (temperature new-kitchen-state)) nil)
-           ;        (temperature-unit 0.0 (unit (temperature new-kitchen-state)) nil)))))))
+             (bind (container-with-ingredients-at-temperature 1.0 (make-instance 'failed-object) container-available-at)
+                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                   (temperature-quantity 0.0 (quantity (temperature new-kitchen-state)) nil)
+                   (temperature-unit 0.0 (unit (temperature new-kitchen-state)) nil)))))))
 
-(defprimitive drain ((drained-ingredient transferable-container)
-                     (liquid-rests transferable-container)
-                     (kitchen-state-out kitchen-state)
-                     (kitchen-state-in kitchen-state)
-                     (container-with-ingredients transferable-container)
-                     (draining-tool can-drain))
-  
-  ;; Case 1: draining tool not given, use a colander
-  ((kitchen-state-in container-with-ingredients  => drained-ingredient liquid-rests kitchen-state-out draining-tool)
-   
-   (let* ((new-kitchen-state (copy-object kitchen-state-in))
-          (new-container (find-object-by-persistent-id container-with-ingredients (counter-top new-kitchen-state)))
-          (container-available-at (+ 60 (max (kitchen-time kitchen-state-in) 
-                                             (available-at (find (id container-with-ingredients) binding-objects
-                                                                 :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
-                                                                               (id (value binding-object)))))))))
-          (kitchen-state-available-at container-available-at)
-          ;; 1) find draining tool
-          (new-draining-tool (retrieve-concept-instance-and-bring-to-countertop 'colander new-kitchen-state))
-          ;; 2) find container for liquids
-          (new-liquids-container (retrieve-concept-instance-and-bring-to-countertop 'medium-bowl new-kitchen-state)))
-
-     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
-     
-     (cond ((and
-             new-draining-tool
-             new-liquids-container
-             new-container)
-            
-            ;; 3) drain everything in the container
-            (let ((liquids '())
-                  (solids '()))
-              (loop for item in (contents new-container)
-                    do (cond ((or (subtypep (type-of item) 'liquid)
-                                  (and (subtypep (type-of item) 'liquefiable) (is-liquid item)))
-                              (push item liquids))
-                             ((subtypep (type-of item) 'heterogeneous-mixture)
-                                ; check if the heterogeneous-mixture should be split back up into solids and liquids
-                              (if (find-if #'(lambda (component)
-                                               (or (subtypep (type-of component) 'liquid)
-                                                   (and (subtypep (type-of component) 'liquefiable) (is-liquid component))))
-                                           (components item))
-                                (loop for component in (components item)
-                                      do (setf (value (quantity (amount component)))
-                                               (* (value (quantity (amount component))) ; mixture components are expressed in percent
-                                                  (value (quantity (amount item)))))
-                                         (setf (unit (amount component))
-                                               (unit (amount item)))
-                                         (cond ((or (subtypep (type-of component) 'liquid)
-                                                    (and (subtypep (type-of component) 'liquefiable) (is-liquid component)))
-                                                (push component liquids))
-                                               (t
-                                                (push component solids))))))
-                             (t
-                              (push item solids))))
-
-              (setf (contents new-liquids-container) liquids)
-              (setf (contents new-container) solids)
-
-              (setf (used new-draining-tool) t)
-              (setf (used new-liquids-container) t)
-     
-              (bind (drained-ingredient 1.0 new-container container-available-at)
-                    (liquid-rests 1.0 new-liquids-container container-available-at)
-                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-                    (draining-tool 0.0 new-draining-tool container-available-at))))
-           (t
-            nil))))
-  ; TODO RD: replace nil-case
-
-  ;; Case 2: draining tool given
-    ((kitchen-state-in container-with-ingredients draining-tool => drained-ingredient liquid-rests kitchen-state-out)
-   
-   (let* ((new-kitchen-state (copy-object kitchen-state-in))
-          (new-container (find-object-by-persistent-id container-with-ingredients (counter-top new-kitchen-state)))
-          (container-available-at (+ 60 (max (kitchen-time kitchen-state-in) 
-                                             (available-at (find (id container-with-ingredients) binding-objects
-                                                                 :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
-                                                                               (id (value binding-object)))))))))
-          (kitchen-state-available-at container-available-at)
-          ;; 1) find draining tool
-          (new-draining-tool (find-object-by-persistent-id draining-tool (counter-top new-kitchen-state)))
-          ;; 2) find container for liquids
-          (new-liquids-container (retrieve-concept-instance-and-bring-to-countertop 'medium-bowl new-kitchen-state)))
-
-     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
-     
-     (cond ((and
-             new-draining-tool
-             new-liquids-container
-             new-container)
-            
-            ;; 3) drain everything in the container
-            (let ((liquids '())
-                  (solids '()))
-              (loop for item in (contents new-container)
-                    do (cond ((or (subtypep (type-of item) 'liquid)
-                                  (and (subtypep (type-of item) 'liquefiable) (is-liquid item)))
-                              (push item liquids))
-                             ((subtypep (type-of item) 'heterogeneous-mixture)
-                                ; check if the heterogeneous-mixture should be split back up into solids and liquids
-                              (if (find-if #'(lambda (component)
-                                               (or (subtypep (type-of component) 'liquid)
-                                                   (and (subtypep (type-of component) 'liquefiable) (is-liquid component))))
-                                           (components item))
-                                (loop for component in (components item)
-                                      do (setf (value (quantity (amount component)))
-                                               (* (value (quantity (amount component))) ; mixture components are expressed in percent
-                                                  (value (quantity (amount item)))))
-                                         (setf (unit (amount component))
-                                               (unit (amount item)))
-                                         (cond ((or (subtypep (type-of component) 'liquid)
-                                                    (and (subtypep (type-of component) 'liquefiable) (is-liquid component)))
-                                                (push component liquids))
-                                               (t
-                                                (push component solids))))))
-                             (t
-                              (push item solids))))
-
-              (setf (contents new-liquids-container) liquids)
-              (setf (contents new-container) solids)
-
-              (setf (used new-draining-tool) t)
-              (setf (used new-liquids-container) t)
-     
-              (bind (drained-ingredient 1.0 new-container container-available-at)
-                    (liquid-rests 1.0 new-liquids-container container-available-at)
-                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
-           (t
-            nil)))))
-
-
-(defprimitive leave-for-time ((container-with-ingredients-at-temperature transferable-container)
-                             (kitchen-state-out kitchen-state)
-                             (kitchen-state-in kitchen-state)
-                             (container-with-ingredients transferable-container)
-                             (cooling-quantity quantity)
-                             (cooling-unit time-unit))
-  ((kitchen-state-in container-with-ingredients cooling-quantity cooling-unit
-                     => kitchen-state-out container-with-ingredients-at-temperature)
-   
-   (let* ((cooling-time (make-instance 'amount :quantity cooling-quantity :unit cooling-unit))
-          (new-kitchen-state (copy-object kitchen-state-in))
-          (new-container (find-object-by-persistent-id container-with-ingredients (counter-top new-kitchen-state)))
-          (container-available-at (+ (kitchen-time kitchen-state-in)
-                                     (if (eq (type-of cooling-unit) 'hour)
-                                       (* 3600 (value cooling-quantity))
-                                       (* 60 (value cooling-quantity)))))
-          (kitchen-state-available-at (kitchen-time kitchen-state-in)))
-
-     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at) 
-     
-     (cond (new-container
-
-            (change-temperature new-container cooling-time)
-   
-            (bind (container-with-ingredients-at-temperature 1.0 new-container container-available-at)
-                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))
-           (t
-            nil)))))
-          ;  (bind (container-with-ingredients-at-temperature 1.0 (make-instance 'failed-object) container-available-at)
-          ;        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
 (defprimitive cover ((covered-object coverable-container)
                      (kitchen-state-out kitchen-state)
@@ -1069,6 +901,145 @@
                    ;(bind (dipped-object 1.0 (make-instance 'failed-object) dipped-object-available-at)
                    ;      (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))))
 
+
+(defprimitive drain ((drained-ingredient transferable-container)
+                     (liquid-rests transferable-container)
+                     (kitchen-state-out kitchen-state)
+                     (kitchen-state-in kitchen-state)
+                     (container-with-ingredients transferable-container)
+                     (draining-tool can-drain))
+  
+  ;; Case 1: draining tool not given, use a colander
+  ((kitchen-state-in container-with-ingredients  => drained-ingredient liquid-rests kitchen-state-out draining-tool)
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-container (find-object-by-persistent-id container-with-ingredients (counter-top new-kitchen-state)))
+          (container-available-at (+ 60 (max (kitchen-time kitchen-state-in) 
+                                             (available-at (find (id container-with-ingredients) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at)
+          ;; 1) find draining tool
+          (new-draining-tool (retrieve-concept-instance-and-bring-to-countertop 'colander new-kitchen-state))
+          ;; 2) find container for liquids
+          (new-liquids-container (retrieve-concept-instance-and-bring-to-countertop 'medium-bowl new-kitchen-state)))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+     
+     (cond ((and
+             new-draining-tool
+             new-liquids-container
+             new-container)
+            
+            ;; 3) drain everything in the container
+            (let ((liquids '())
+                  (solids '()))
+              (loop for item in (contents new-container)
+                    do (cond ((or (subtypep (type-of item) 'liquid)
+                                  (and (subtypep (type-of item) 'liquefiable) (is-liquid item)))
+                              (push item liquids))
+                             ((subtypep (type-of item) 'heterogeneous-mixture)
+                                ; check if the heterogeneous-mixture should be split back up into solids and liquids
+                              (if (find-if #'(lambda (component)
+                                               (or (subtypep (type-of component) 'liquid)
+                                                   (and (subtypep (type-of component) 'liquefiable) (is-liquid component))))
+                                           (components item))
+                                (loop for component in (components item)
+                                      do (setf (value (quantity (amount component)))
+                                               (* (value (quantity (amount component))) ; mixture components are expressed in percent
+                                                  (value (quantity (amount item)))))
+                                         (setf (unit (amount component))
+                                               (unit (amount item)))
+                                         (cond ((or (subtypep (type-of component) 'liquid)
+                                                    (and (subtypep (type-of component) 'liquefiable) (is-liquid component)))
+                                                (push component liquids))
+                                               (t
+                                                (push component solids))))))
+                             (t
+                              (push item solids))))
+
+              (setf (contents new-liquids-container) liquids)
+              (setf (contents new-container) solids)
+
+              (setf (used new-draining-tool) t)
+              (setf (used new-liquids-container) t)
+     
+              (bind (drained-ingredient 1.0 new-container container-available-at)
+                    (liquid-rests 1.0 new-liquids-container container-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                    (draining-tool 0.0 new-draining-tool container-available-at))))
+           (t
+            (bind (drained-ingredient 1.0 (make-instance 'failed-object) container-available-at)
+                  (liquid-rests 1.0  (make-instance 'failed-object) container-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (draining-tool 0.0  (make-instance 'failed-object) container-available-at))))))
+
+  ;; Case 2: draining tool given
+    ((kitchen-state-in container-with-ingredients draining-tool => drained-ingredient liquid-rests kitchen-state-out)
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-container (find-object-by-persistent-id container-with-ingredients (counter-top new-kitchen-state)))
+          (container-available-at (+ 60 (max (kitchen-time kitchen-state-in) 
+                                             (available-at (find (id container-with-ingredients) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at)
+          ;; 1) find draining tool
+          (new-draining-tool (find-object-by-persistent-id draining-tool (counter-top new-kitchen-state)))
+          ;; 2) find container for liquids
+          (new-liquids-container (retrieve-concept-instance-and-bring-to-countertop 'medium-bowl new-kitchen-state)))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+     
+     (cond ((and
+             new-draining-tool
+             new-liquids-container
+             new-container)
+            
+            ;; 3) drain everything in the container
+            (let ((liquids '())
+                  (solids '()))
+              (loop for item in (contents new-container)
+                    do (cond ((or (subtypep (type-of item) 'liquid)
+                                  (and (subtypep (type-of item) 'liquefiable) (is-liquid item)))
+                              (push item liquids))
+                             ((subtypep (type-of item) 'heterogeneous-mixture)
+                                ; check if the heterogeneous-mixture should be split back up into solids and liquids
+                              (if (find-if #'(lambda (component)
+                                               (or (subtypep (type-of component) 'liquid)
+                                                   (and (subtypep (type-of component) 'liquefiable) (is-liquid component))))
+                                           (components item))
+                                (loop for component in (components item)
+                                      do (setf (value (quantity (amount component)))
+                                               (* (value (quantity (amount component))) ; mixture components are expressed in percent
+                                                  (value (quantity (amount item)))))
+                                         (setf (unit (amount component))
+                                               (unit (amount item)))
+                                         (cond ((or (subtypep (type-of component) 'liquid)
+                                                    (and (subtypep (type-of component) 'liquefiable) (is-liquid component)))
+                                                (push component liquids))
+                                               (t
+                                                (push component solids))))))
+                             (t
+                              (push item solids))))
+
+              (setf (contents new-liquids-container) liquids)
+              (setf (contents new-container) solids)
+
+              (setf (used new-draining-tool) t)
+              (setf (used new-liquids-container) t)
+     
+              (bind (drained-ingredient 1.0 new-container container-available-at)
+                    (liquid-rests 1.0 new-liquids-container container-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+           (t
+            (bind (drained-ingredient 1.0 (make-instance 'failed-object) container-available-at)
+                  (liquid-rests 1.0 (make-instance 'failed-object) container-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+
+
 (defprimitive fetch ((thing-fetched kitchen-entity) ; if quantity > 1, this will be a list-of-kitchen-entities 
                      (kitchen-state-out kitchen-state)
                      (kitchen-state-in kitchen-state)
@@ -1288,6 +1259,92 @@
             (bind (container-with-flattened-items 1.0 (make-instance 'failed-object) portions-available-at )
                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
+(defprimitive flour ((floured-container transferable-container)
+                     (kitchen-state-out kitchen-state)
+                     (kitchen-state-in kitchen-state)
+                     (container-to-flour transferable-container)
+                     (ingredient-to-flour-with transferable-container))
+
+   ;; Case 1; no ingredient-to-flour-with given
+  ((kitchen-state-in container-to-flour => kitchen-state-out ingredient-to-flour-with floured-container )
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-container (find-object-by-persistent-id container-to-flour new-kitchen-state))
+          (container-available-at (+ 60 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id container-to-flour) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+     (cond (new-container
+     
+            ;; 1) find ingredient to be used for flouring and bring it to the countertop
+            (multiple-value-bind (original-flour flour-original-location)
+                (find-ingredient 'all-purpose-flour kitchen-state-in)
+
+              (let* ((new-flour-container
+                      (find-object-by-persistent-id original-flour
+                                                    (funcall (type-of flour-original-location) new-kitchen-state)))
+                     (flour-container-for-flouring (copy-object new-flour-container))
+                     (new-flour (first (contents new-flour-container)))
+                     (flour-for-flouring (first (contents flour-container-for-flouring)))
+                     (amount-for-flouring (make-instance 'amount :quantity (make-instance 'quantity :value 10)
+                                                         :unit (make-instance 'g))))
+       
+                (change-kitchen-entity-location new-flour-container ;;bring the flour to the countertop
+                                                (funcall (type-of flour-original-location) new-kitchen-state)
+                                                (counter-top new-kitchen-state))
+
+                ;; 2) apply the flour to the inner surface of the container
+         
+                (setf (amount flour-for-flouring) amount-for-flouring)
+                (setf (value (quantity (amount new-flour))) (- (value (quantity (amount new-flour)))
+                                                               (value (quantity amount-for-flouring))))
+                (setf (sprinkled-with new-container) flour-for-flouring)
+                (setf (used new-container) t)
+
+                ;; 3) put the flour back in the fridge
+                (change-kitchen-entity-location new-flour-container 
+                                                (counter-top new-kitchen-state)
+                                                (funcall (type-of flour-original-location) new-kitchen-state))
+         
+                (bind (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                      (floured-container 1.0 new-container container-available-at)
+                      (ingredient-to-flour-with 0.0 flour-container-for-flouring nil))))))))
+
+  ;; Case 2; ingredient-to-flour-with given
+  ((kitchen-state-in container-to-flour ingredient-to-flour-with => kitchen-state-out floured-container )
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-container (find-object-by-persistent-id container-to-flour new-kitchen-state))
+          (new-flour-container (find-object-by-persistent-id ingredient-to-flour-with new-kitchen-state))
+          (new-flour (if new-flour-container
+                       (first (contents new-flour-container))
+                       nil))
+          (container-available-at (+ 60 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id container-to-flour) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at))
+     
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+     (cond ((not (has-failed-objects container-to-flour ingredient-to-flour-with))
+             
+            ;; apply the flour to the inner surface of the container
+            (setf (contents new-flour-container) nil)
+            (setf (sprinkled-with new-container) new-flour)
+            (setf (used new-container) t)
+
+     
+            (bind (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (floured-container 1.0 new-container container-available-at)))
+           (t
+            (bind (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                  (floured-container 1.0 (make-instance 'failed-object) container-available-at)))))))
+
 (defprimitive fry ((thing-fried transferable-container)
                    (kitchen-state-out kitchen-state)
                    (kitchen-state-in kitchen-state)
@@ -1492,91 +1549,6 @@
             (bind (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
                   (greased-container 1.0 (make-instance 'failed-object) container-available-at)))))))
 
-(defprimitive flour ((floured-container transferable-container)
-                     (kitchen-state-out kitchen-state)
-                     (kitchen-state-in kitchen-state)
-                     (container-to-flour transferable-container)
-                     (ingredient-to-flour-with transferable-container))
-
-   ;; Case 1; no ingredient-to-flour-with given
-  ((kitchen-state-in container-to-flour => kitchen-state-out ingredient-to-flour-with floured-container )
-   (let* ((new-kitchen-state (copy-object kitchen-state-in))
-          (new-container (find-object-by-persistent-id container-to-flour new-kitchen-state))
-          (container-available-at (+ 60 (max (kitchen-time kitchen-state-in)
-                                             (available-at (find (id container-to-flour) binding-objects
-                                                                 :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
-                                                                               (id (value binding-object)))))))))
-          (kitchen-state-available-at container-available-at))
-
-     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
-
-     (cond (new-container
-     
-            ;; 1) find ingredient to be used for flouring and bring it to the countertop
-            (multiple-value-bind (original-flour flour-original-location)
-                (find-ingredient 'all-purpose-flour kitchen-state-in)
-
-              (let* ((new-flour-container
-                      (find-object-by-persistent-id original-flour
-                                                    (funcall (type-of flour-original-location) new-kitchen-state)))
-                     (flour-container-for-flouring (copy-object new-flour-container))
-                     (new-flour (first (contents new-flour-container)))
-                     (flour-for-flouring (first (contents flour-container-for-flouring)))
-                     (amount-for-flouring (make-instance 'amount :quantity (make-instance 'quantity :value 10)
-                                                         :unit (make-instance 'g))))
-       
-                (change-kitchen-entity-location new-flour-container ;;bring the flour to the countertop
-                                                (funcall (type-of flour-original-location) new-kitchen-state)
-                                                (counter-top new-kitchen-state))
-
-                ;; 2) apply the flour to the inner surface of the container
-         
-                (setf (amount flour-for-flouring) amount-for-flouring)
-                (setf (value (quantity (amount new-flour))) (- (value (quantity (amount new-flour)))
-                                                               (value (quantity amount-for-flouring))))
-                (setf (sprinkled-with new-container) flour-for-flouring)
-                (setf (used new-container) t)
-
-                ;; 3) put the flour back in the fridge
-                (change-kitchen-entity-location new-flour-container 
-                                                (counter-top new-kitchen-state)
-                                                (funcall (type-of flour-original-location) new-kitchen-state))
-         
-                (bind (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-                      (floured-container 1.0 new-container container-available-at)
-                      (ingredient-to-flour-with 0.0 flour-container-for-flouring nil))))))))
-
-  ;; Case 2; ingredient-to-flour-with given
-  ((kitchen-state-in container-to-flour ingredient-to-flour-with => kitchen-state-out floured-container )
-   (let* ((new-kitchen-state (copy-object kitchen-state-in))
-          (new-container (find-object-by-persistent-id container-to-flour new-kitchen-state))
-          (new-flour-container (find-object-by-persistent-id ingredient-to-flour-with new-kitchen-state))
-          (new-flour (if new-flour-container
-                       (first (contents new-flour-container))
-                       nil))
-          (container-available-at (+ 60 (max (kitchen-time kitchen-state-in)
-                                             (available-at (find (id container-to-flour) binding-objects
-                                                                 :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
-                                                                               (id (value binding-object)))))))))
-          (kitchen-state-available-at container-available-at))
-     
-     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
-
-     (cond ((not (has-failed-objects container-to-flour ingredient-to-flour-with))
-             
-            ;; apply the flour to the inner surface of the container
-            (setf (contents new-flour-container) nil)
-            (setf (sprinkled-with new-container) new-flour)
-            (setf (used new-container) t)
-
-     
-            (bind (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-                  (floured-container 1.0 new-container container-available-at)))
-           (t
-            (bind (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-                  (floured-container 1.0 (make-instance 'failed-object) container-available-at)))))))
 
 (defprimitive grind ((container-with-ground-contents transferable-container)
                     (kitchen-state-out kitchen-state)
@@ -1748,6 +1720,36 @@
                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))
            (t
             (bind (container-with-ground-contents 1.0 (make-instance 'failed-object) container-available-at )
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+
+(defprimitive leave-for-time ((container-with-ingredients-at-temperature transferable-container)
+                              (kitchen-state-out kitchen-state)
+                              (kitchen-state-in kitchen-state)
+                              (container-with-ingredients transferable-container)
+                              (cooling-quantity quantity)
+                              (cooling-unit time-unit))
+  ((kitchen-state-in container-with-ingredients cooling-quantity cooling-unit
+                     => kitchen-state-out container-with-ingredients-at-temperature)
+   
+   (let* ((cooling-time (make-instance 'amount :quantity cooling-quantity :unit cooling-unit))
+          (new-kitchen-state (copy-object kitchen-state-in))
+          (new-container (find-object-by-persistent-id container-with-ingredients (counter-top new-kitchen-state)))
+          (container-available-at (+ (kitchen-time kitchen-state-in)
+                                     (if (eq (type-of cooling-unit) 'hour)
+                                       (* 3600 (value cooling-quantity))
+                                       (* 60 (value cooling-quantity)))))
+          (kitchen-state-available-at (kitchen-time kitchen-state-in)))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at) 
+     
+     (cond (new-container
+
+            (change-temperature new-container cooling-time)
+   
+            (bind (container-with-ingredients-at-temperature 1.0 new-container container-available-at)
+                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))
+           (t
+            (bind (container-with-ingredients-at-temperature 1.0 (make-instance 'failed-object) container-available-at)
                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
 (defprimitive line ((lined-baking-tray lineable)
