@@ -6,8 +6,8 @@
 ;; Tests ;;
 ;;;;;;;;;;;
 
-(defun test-perfect ()
-  "The same network as the simulation environment's solution."
+(defun test-perfect-10 ()
+  "The same network as the simulation environment's solution, for the 10 initial recipes."
   (let* ((solutions (evaluate-solutions "applications\\muhai-cookingbot\\evaluation\\tests\\test-perfect.solution" '(goal-condition-success dish-approximation-score execution-time))) ; smatch-score)))
          (perfection (loop for solution in solutions
                              always (and ;(= (smatch-score solution) 1)
@@ -93,7 +93,7 @@
       (error "test-failed-object: FAILURE"))))
 
 (defun test-perfect-complete ()
-  "The same network as the simulation environment's solution."
+  "The same network as the simulation environment's solution, for all 30 recipes."
   (let* ((solutions (evaluate-solutions "applications\\muhai-cookingbot\\evaluation\\tests\\test-perfect-complete.solution" '(goal-condition-success dish-approximation-score execution-time))) ; smatch-score)))
          (perfection (loop for solution in solutions
                              always (and ; (= (smatch-score solution) 1)
@@ -104,7 +104,7 @@
       (error "test-perfect-complete: FAILURE"))))
 
 (defun execute-all-tests ()
-  (test-perfect)
+  (test-perfect-10)
   (test-permuted-perfect)
   (test-imperfect)
   (test-extra-operations)
