@@ -20,9 +20,12 @@
   :components ((:file "package")
                (:module utils
                 :serial t
-                :components ((:file "fcg-utils")
-                             (:file "utils")
-                             (:file "diff")))
+                :components ((:module fcg-utils
+                              :serial t
+                              :components ((:file "cxn-supplier")
+                                           (:file "queue-mode")
+                                           (:file "render-and-de-render")))
+                             (:file "utils")))
                (:module diagnostics-and-repairs
                 :serial t
                 :components ((:file "goal-tests")
@@ -30,18 +33,12 @@
                              (:file "problems-diagnostics")
                              (:file "repair-add-categorial-links")
                              (:file "repair-nothing-to-holophrase-cxn")
-                             (:file "repair-holistic-substitution")
-                             (:file "repair-holistic-addition")
-                             (:file "repair-holistic-deletion")
-                             (:file "repair-holistic-to-item-based-cxn")
-                             (:file "repair-item-based-to-holistic")
-                             (:file "repair-item-based-substitution")))
+                             (:file "repair-anti-unify")))
                (:module experiment-setup
                 :serial t
                 :components ( (:file "run-helpers")
                               (:file "grammar")
                               (:file "agent")
-                              (:file "learner")
                               (:file "alignment")
                               (:file "experiment")
                               (:file "interaction")

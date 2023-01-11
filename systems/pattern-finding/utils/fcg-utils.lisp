@@ -1,7 +1,5 @@
 (in-package :fcg)
 
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Extracting form and meaning from fcg-constructions ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -12,7 +10,8 @@
           comprehend-in-sandbox
           apply-in-sandbox
           initial-node
-          create-temp-cxn-inventory))
+          cxn-score
+          create-cxn-inventory-for-sandbox))
 
 (defgeneric extract-meaning-predicates (object))
 
@@ -69,41 +68,9 @@
     (last-elt (all-parents node))
     node))
 
-(defun create-temp-cxn-inventory (original-cxn-inventory &key (cxns-to-add nil) (categories-to-add nil) (categorial-links-to-add nil) (category-linking-mode :categories-exist))
-  (let* ((inventory-name (gensym))
-         (temp-cxn-inventory (eval `(def-fcg-constructions
-                                       ,inventory-name
-                                     :cxn-inventory ,inventory-name
-                                     :hashed t
-                                     :feature-types ((args sequence)
-                                                     (form set-of-predicates)
-                                                     (meaning set-of-predicates)
-                                                     (subunits set)
-                                                     (footprints set))
-                                     :fcg-configurations ((:node-tests :restrict-nr-of-nodes :restrict-search-depth :check-duplicate)
-                                                          (:cxn-supplier-mode . ,(get-configuration original-cxn-inventory :learner-cxn-supplier))
-                                                          (:parse-goal-tests :no-strings-in-root :no-applicable-cxns :connected-semantic-network :connected-structure :non-gold-standard-meaning)
-                                                          (:de-render-mode . ,(get-configuration original-cxn-inventory :de-render-mode))
-                                                          (:parse-order routine)
-                                                          (:max-nr-of-nodes . 250)
-                                                          (:production-order routine)
-                                                          (:meaning-representation-formalism . ,(get-configuration original-cxn-inventory :meaning-representation))
-                                                          (:render-mode . :generate-and-test)
-                                                          (:category-linking-mode . ,category-linking-mode)
-                                                          (:update-categorial-links . nil)
-                                                          (:consolidate-repairs . nil)
-                                                          (:use-meta-layer . nil)
-                                                          (:initial-categorial-link-weight . ,(get-configuration original-cxn-inventory :initial-categorial-link-weight))
-                                                          (:ignore-transitive-closure . t)
-                                                          (:hash-mode . :hash-string-meaning))))))
-    (add-categories categories-to-add (categorial-network temp-cxn-inventory) :recompute-transitive-closure nil)
-    (dolist (categorial-link categorial-links-to-add)
-      (add-categories (list (car categorial-link) (cdr categorial-link)) (categorial-network temp-cxn-inventory) :recompute-transitive-closure nil)
-      (add-link (car categorial-link) (cdr categorial-link) (categorial-network temp-cxn-inventory) :recompute-transitive-closure nil))
-    (dolist (cxn cxns-to-add)
-      (add-cxn cxn temp-cxn-inventory))
-    temp-cxn-inventory))
-    
+(defun cxn-score (cxn)
+  (attr-val cxn :score))
+
 
 (defmethod comprehend (utterance &key
                                  (cxn-inventory *fcg-constructions*)
@@ -121,14 +88,19 @@
         (fcg-apply processing-cxn-inventory initial-cfs '<- :notify (not silent))
       (let ((meaning (and solution
                           (extract-meanings
-                           (left-pole-structure (car-resulting-cfs (cipn-car solution)))))))
+                           (left-pole-structure
+                            (car-resulting-cfs
+                             (cipn-car solution)))))))
         ;; Notification
         (unless silent (notify parse-finished meaning processing-cxn-inventory))
         ;; Return value
         (values meaning solution cip)))))
 
 
-(defmethod comprehend-all (utterance &key (cxn-inventory *fcg-constructions*) (gold-standard-meaning nil) (silent nil) (n nil))
+(defmethod comprehend-all (utterance &key
+                                     (cxn-inventory *fcg-constructions*)
+                                     (gold-standard-meaning nil)
+                                     (silent nil) (n nil))
   "comprehend the input utterance with a given FCG grammar, obtaining all possible combinations"
   (let ((initial-cfs (de-render utterance (get-configuration cxn-inventory :de-render-mode) :cxn-inventory cxn-inventory))
         (processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
@@ -147,11 +119,60 @@
       (let ((meanings (mapcar #'(lambda(solution)
                                   (extract-meanings
                                    (left-pole-structure
-                                    (car-resulting-cfs (cipn-car solution)))))
+                                    (car-resulting-cfs
+                                     (cipn-car solution)))))
                               solutions)))
         (unless silent (notify parse-all-finished meanings
                                processing-cxn-inventory))
         (values meanings solutions cip)))))
+
+
+(defun create-cxn-inventory-for-sandbox (original-cxn-inventory
+                                         &key (cxns-to-add nil)
+                                         (categories-to-add nil)
+                                         (categorial-links-to-add nil)
+                                         (category-linking-mode :categories-exist))
+  (let* ((inventory-name (gensym))
+         (temp-cxn-inventory
+          (eval `(def-fcg-constructions
+                     ,inventory-name
+                   :cxn-inventory ,inventory-name
+                   :hashed t
+                   :feature-types ((args sequence)
+                                   (form set-of-predicates)
+                                   (meaning set-of-predicates)
+                                   (subunits set)
+                                   (footprints set))
+                   :fcg-configurations ((:node-tests :restrict-nr-of-nodes :restrict-search-depth :check-duplicate)
+                                        (:cxn-supplier-mode . ,(get-configuration original-cxn-inventory :learner-cxn-supplier))
+                                        (:parse-goal-tests :no-strings-in-root
+                                                           :no-applicable-cxns
+                                                           :connected-semantic-network
+                                                           :connected-structure
+                                                           :non-gold-standard-meaning)
+                                        (:de-render-mode . ,(get-configuration original-cxn-inventory :de-render-mode))
+                                        (:parse-order routine)
+                                        (:max-nr-of-nodes . 250)
+                                        (:production-order routine)
+                                        (:meaning-representation-formalism . ,(get-configuration original-cxn-inventory :meaning-representation))
+                                        (:render-mode . :generate-and-test)
+                                        (:category-linking-mode . ,category-linking-mode)
+                                        (:update-categorial-links . nil)
+                                        (:consolidate-repairs . nil)
+                                        (:use-meta-layer . nil)
+                                        (:initial-categorial-link-weight . ,(get-configuration original-cxn-inventory :initial-categorial-link-weight))
+                                        (:ignore-transitive-closure . t)
+                                        (:hash-mode . :hash-string-meaning))))))
+    (add-categories categories-to-add (categorial-network temp-cxn-inventory)
+                    :recompute-transitive-closure nil)
+    (dolist (categorial-link categorial-links-to-add)
+      (add-categories (list (car categorial-link) (cdr categorial-link)) (categorial-network temp-cxn-inventory)
+                      :recompute-transitive-closure nil)
+      (add-link (car categorial-link) (cdr categorial-link) (categorial-network temp-cxn-inventory)
+                :recompute-transitive-closure nil))
+    (dolist (cxn cxns-to-add)
+      (add-cxn cxn temp-cxn-inventory))
+    temp-cxn-inventory))
 
 
 (defun comprehend-in-sandbox (utterance cxn-inventory
@@ -162,27 +183,35 @@
                                         (categories-to-add nil)
                                         (categorial-links-to-add nil))
   "Creates a copy of the cxn inventory and applies a list of original cxns. Returns the solution cipn."
-  (let ((temp-cxn-inventory (create-temp-cxn-inventory cxn-inventory :cxns-to-add cxns-to-add :categories-to-add categories-to-add :categorial-links-to-add categorial-links-to-add)))
+  (let ((temp-cxn-inventory
+         (create-cxn-inventory-for-sandbox cxn-inventory
+                                           :cxns-to-add cxns-to-add
+                                           :categories-to-add categories-to-add
+                                           :categorial-links-to-add categorial-links-to-add)))
     (if apply-sequentially
       (let* ((initial-cfs (de-render utterance (get-configuration temp-cxn-inventory :de-render-mode)
-                                :cxn-inventory temp-cxn-inventory))
+                                     :cxn-inventory temp-cxn-inventory))
              (initial-node (top-node (create-construction-inventory-processor temp-cxn-inventory
-                                                                                   (get-configuration
-                                                                                    temp-cxn-inventory
-                                                                                    'construction-inventory-processor-mode)
-                                                                                   :initial-cfs initial-cfs
-                                                                                   :direction '<-))))
+                                                                              (get-configuration
+                                                                               temp-cxn-inventory
+                                                                               'construction-inventory-processor-mode)
+                                                                              :initial-cfs initial-cfs
+                                                                              :direction '<-))))
         (ordered-fcg-apply (mapcar #'get-processing-cxn cxns-to-add) initial-node '<- (processing-cxn-inventory temp-cxn-inventory)))
       ;; non-sequential normal comprehend
-      (second (multiple-value-list (comprehend utterance :gold-standard-meaning gold-standard-meaning :cxn-inventory temp-cxn-inventory :silent t))))
-      ))
+      (second (multiple-value-list (comprehend utterance :gold-standard-meaning gold-standard-meaning :cxn-inventory temp-cxn-inventory :silent t))))))
 
 (defun apply-in-sandbox (initial-node
                          original-cxn-inventory
                          &key (cxns-to-add nil)
                          (categories-to-add nil)
                          (categorial-links-to-add nil))
-  (let ((temp-cxn-inventory (create-temp-cxn-inventory original-cxn-inventory :cxns-to-add cxns-to-add :categories-to-add categories-to-add :categorial-links-to-add categorial-links-to-add :category-linking-mode :neighbours)))
+  (let ((temp-cxn-inventory
+         (create-cxn-inventory-for-sandbox original-cxn-inventory
+                                           :cxns-to-add cxns-to-add
+                                           :categories-to-add categories-to-add
+                                           :categorial-links-to-add categorial-links-to-add
+                                           :category-linking-mode :neighbours)))
     (multiple-value-bind
         (solution cip)
         (fcg-apply (processing-cxn-inventory temp-cxn-inventory) (car-source-cfs (cipn-car initial-node)) '<- :notify nil)
@@ -194,14 +223,13 @@
   (with-disabled-monitor-notifications
     (loop with current-node = initial-node
           for cxn in processing-cxns-to-apply
-          do (setf current-node (fcg::cip-add-child current-node
-                                                    (first (fcg-apply cxn (if (initial-node-p current-node)
-                                                                            (car-source-cfs (cipn-car (initial-node current-node)))
-                                                                            (car-resulting-cfs (cipn-car current-node)))
-                                                                                       
-                                                                      direction
-                                                                      :configuration (configuration cxn-inventory)
-                                                                      :cxn-inventory cxn-inventory))))
+          do (setf current-node (cip-add-child current-node
+                                               (first (fcg-apply cxn (if (initial-node-p current-node)
+                                                                       (car-source-cfs (cipn-car (initial-node current-node)))
+                                                                       (car-resulting-cfs (cipn-car current-node)))
+                                                                 direction
+                                                                 :configuration (configuration cxn-inventory)
+                                                                 :cxn-inventory cxn-inventory))))
           finally (return current-node))))
 
 
@@ -232,125 +260,7 @@
         ;; Return value
         (values utterance solution cip)))))
 
-(defmethod render ((node cip-node) (mode (eql :generate-and-test)) &key &allow-other-keys)
-  (render (car-resulting-cfs (cipn-car node)) :generate-and-test))
-
-(defmethod cip-enqueue ((node cip-node) (cip construction-inventory-processor)
-                        (mode (eql :add-to-front)))
-  (push node (queue cip)))
-
-;; filter the cxns for a specific set
-;; #########################################################
-;; cxn-supplier-hashed-and-scored-default-cxn-set-only
-;; ---------------------------------------------------------
-
-(export '(cxn-supplier-hashed-and-scored-routine-cxn-set-only cxn-supplier-hashed-routine-set-only))
-
-
-(defclass cxn-supplier-hashed-routine-set-only ()
-  ()
-  (:documentation "Construction supplier that returns all constructions except incompatible hashed ones."))
-
-(defmethod create-cxn-supplier ((node cip-node) (mode (eql :hashed-routine-only)))
-  "Creates an instance of the cxn-supplier."
-  (make-instance 'cxn-supplier-hashed-routine-set-only))
-
-(defmethod next-cxn ((cxn-supplier cxn-supplier-hashed-routine-set-only) (node cip-node))
-  "Returns all constructions that satisfy the hash of the node."
-  (all-constructions-of-label-hashed node :routine))
-  
 
 
 
-(defun constructions-for-application-hashed-and-scored-routine-cxn-set-only (node)
-  "computes all constructions that could be applied for this node
-   plus nil hashed constructions"
-  (let ((constructions
-         ;; get all constructions compatible
-         ;; with the hashes of the node
-         ;; append nil hashed constructions
-         (remove-duplicates
-          (append
-           (loop
-            for hash in (hash node (get-configuration node :hash-mode))
-            append (gethash hash (constructions-hash-table (construction-inventory node))))
-           (gethash nil (constructions-hash-table (construction-inventory node)))) :key #'name)))
-    ;; shuffle if requested
-    (when (get-configuration node :shuffle-cxns-before-application)
-      (setq constructions 
-            (shuffle constructions)))
-    ;; filter the cxns for a specific cxn set here using (attr-val cxn :label)
-    (setq constructions
-          (loop for cxn in constructions
-                when (equal (attr-val cxn :label) 'routine)
-                collect cxn))
-    
-    ;; sort 
-    (setq constructions
-          (sort constructions #'> :key #'(lambda (cxn) (attr-val cxn :score))))
-    ;; return constructions
-    constructions))
 
-(defclass cxn-supplier-hashed-and-scored-routine-cxn-set-only ()
-  ((remaining-constructions
-    :type list :initarg :remaining-constructions
-    :accessor remaining-constructions
-    :documentation "A list of constructions that are still to try")))
-
-(defmethod create-cxn-supplier ((node cip-node)
-                                (mode (eql :hashed-and-scored-routine-cxn-set-only)))
-  (make-instance
-   'cxn-supplier-hashed-and-scored-routine-cxn-set-only
-   :remaining-constructions (constructions-for-application-hashed-and-scored-routine-cxn-set-only node)))
-
-(defmethod next-cxn ((cxn-supplier cxn-supplier-hashed-and-scored-routine-cxn-set-only)
-                     (node cip-node))
-  (pop (remaining-constructions cxn-supplier)))
-
-
-(export '(cxn-supplier-hashed-and-scored-meta-layer-cxn-set-only))
-
-(defun constructions-for-application-hashed-and-scored-meta-layer-cxn-set-only (node)
-  "computes all constructions that could be applied for this node
-   plus nil hashed constructions"
-  (let ((constructions
-         ;; get all constructions compatible
-         ;; with the hashes of the node
-         ;; append nil hashed constructions
-         (remove-duplicates
-          (append
-           (loop
-            for hash in (hash node (get-configuration node :hash-mode))
-            append (gethash hash (constructions-hash-table (construction-inventory node))))
-           (gethash nil (constructions-hash-table (construction-inventory node)))) :key #'name)))
-    ;; shuffle if requested
-    (when (get-configuration node :shuffle-cxns-before-application)
-      (setq constructions 
-            (shuffle constructions)))
-    ;; filter the cxns for a specific cxn set here using (attr-val cxn :label)
-    (setq constructions
-          (loop for cxn in constructions
-                when (equal (attr-val cxn :label) 'meta-only)
-                collect cxn))
-    
-    ;; sort 
-    (setq constructions
-          (sort constructions #'> :key #'(lambda (cxn) (attr-val cxn :score))))
-    ;; return constructions
-    constructions))
-
-(defclass cxn-supplier-hashed-and-scored-meta-layer-cxn-set-only ()
-  ((remaining-constructions
-    :type list :initarg :remaining-constructions
-    :accessor remaining-constructions
-    :documentation "A list of constructions that are still to try")))
-
-(defmethod create-cxn-supplier ((node cip-node)
-                                (mode (eql :hashed-and-scored-meta-layer-cxn-set-only)))
-  (make-instance
-   'cxn-supplier-hashed-and-scored-meta-layer-cxn-set-only
-   :remaining-constructions (constructions-for-application-hashed-and-scored-meta-layer-cxn-set-only node)))
-
-(defmethod next-cxn ((cxn-supplier cxn-supplier-hashed-and-scored-meta-layer-cxn-set-only)
-                     (node cip-node))
-  (pop (remaining-constructions cxn-supplier)))

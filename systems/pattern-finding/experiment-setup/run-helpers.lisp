@@ -53,9 +53,6 @@
 (defun non-zero-cxn-p (cxn)
   (> (attr-val cxn :score) 0))
 
-(defun cxn-score (cxn)
-  (attr-val cxn :score))
-
 (defun find-cxn-by-type-form-and-meaning (type form meaning cxn-inventory)
   "returns a cxn with the same meaning and form if it's in the cxn-inventory"
   (loop for cxn in (find-all type (constructions-list cxn-inventory) :key #'get-cxn-type)
