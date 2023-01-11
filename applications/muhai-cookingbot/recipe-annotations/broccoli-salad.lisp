@@ -212,7 +212,7 @@
     (mingle ?broccoli-salad ?ks-with-broccoli-salad ?output-ks-g ?output-container-g ?mingling-tool) ; reuse mingling tool
 
     ;; "Best if made a day ahead and stored in the refrigerator."
-    (refrigerate ?cooled-salad ?ks-with-cooled-salad ?ks-with-broccoli-salad ?broccoli-salad ?fridge ?cooling-quantity ?cooling-unit)))
+    (refrigerate ?cooled-salad ?ks-with-cooled-salad ?ks-with-broccoli-salad ?broccoli-salad ?fridge 24 hour)))
 
 ;; ======================
 ;; Append bindings to the recipe
