@@ -136,7 +136,7 @@
     ;; "Mix thoroughly, stir in almonds."
     (mix ?dough ?ks-with-dough ?output-ks-e ?output-container-e ?mixing-tool) ; reuse the mixing tool
     (transfer-contents ?output-container-f ?rest-f ?output-ks-f ?ks-with-dough ?dough ?chopped-almonds ?quantity-f ?unit-f)
-    (mix ?dough-with-almonds ?ks-with-almonds-dough ?output-ks-f ?output-container-f ?mixing-tool) ; reuse the mixing tool
+    (mingle ?dough-with-almonds ?ks-with-almonds-dough ?output-ks-f ?output-container-f ?mixing-tool) ; reuse the mixing tool
 
     ;; "Form crescents of around 30 grams."
     (portion-and-arrange ?portioned-dough ?ks-with-dough-portions ?ks-with-almonds-dough ?dough-with-almonds 30 g ?pattern ?countertop)

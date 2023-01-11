@@ -276,12 +276,9 @@
 
     ;; "2 teaspoons lime juice"
     (fetch-and-proportion ?proportioned-lime-juice ?ks-with-lime-juice ?ks-with-chopped-cilantro ?target-container-7 lime-juice 2 teaspoon)
-    
-    ;; "1 teaspoon garlic powder"
-    (fetch-and-proportion ?proportioned-garlic-powder ?ks-with-garlic-powder ?ks-with-lime-juice ?target-container-8 garlic-powder 1 teaspoon)
 
     ;; "1/2 teaspoon kosher salt"
-    (fetch-and-proportion ?proportioned-salt ?ks-with-salt ?ks-with-garlic-powder ?target-container-9 coarse-salt 1/2 teaspoon)
+    (fetch-and-proportion ?proportioned-salt ?ks-with-salt ?ks-with-lime-juice ?target-container-9 coarse-salt 1/2 teaspoon)
 
     ;; "1/4 teaspoon freshly ground black pepper"
     (fetch-and-proportion ?proportioned-pepper ?ks-with-pepper ?ks-with-salt ?target-container-10 ground-black-pepper 1/4 teaspoon)
