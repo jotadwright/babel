@@ -778,7 +778,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   (when (contents transferable-container)
     (setf (used transferable-container) t)))
 
-(defclass whisk (can-mix can-beat reusable)
+(defclass whisk (can-mix can-beat can-mingle reusable)
   ()
   (:documentation "A whisk. It's a tool for mixing or beating."))
 
