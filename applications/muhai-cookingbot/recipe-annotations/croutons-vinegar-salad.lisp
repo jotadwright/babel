@@ -260,8 +260,8 @@
 
     ;; "Drizzle with 2 tablespoons extra-virgin olive oil and sprinkle with the dill; toss to coat."
     (transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?proportioned-olive-oil-tbsp ?quantity-b ?unit-b)
-    (transfer-contents ?output-container-c ?rest-c ?output-ks-c ?output-ks-b ?output-container-b ?proportioned-dill ?quantity-c ?unit-c)
-    (mingle ?sprinkled-bread ?ks-with-sprinkled-bread ?output-ks-c ?output-container-c ?mingling-tool)
+    (sprinkle ?bread-with-sprinkled-dill ?ks-with-sprinkled-dill ?output-ks-b ?output-container-b ?proportioned-dill)
+    (mingle ?sprinkled-bread ?ks-with-sprinkled-bread ?ks-with-sprinkled-dill ?bread-with-sprinkled-dill ?mingling-tool)
 
     ;; "Spread the bread cubes out on a rimmed baking sheet and sprinkle lightly with the garlic powder."
     (fetch ?baking-tray ?ks-with-baking-tray ?ks-with-sprinkled-bread baking-tray 1) ;; IMPLICIT
