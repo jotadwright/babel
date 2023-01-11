@@ -94,9 +94,9 @@
 
 (defun test-perfect-complete ()
   "The same network as the simulation environment's solution, for all 30 recipes."
-  (let* ((solutions (evaluate-solutions "applications\\muhai-cookingbot\\evaluation\\tests\\test-perfect-complete.solution"))
+  (let* ((solutions (evaluate-solutions "applications\\muhai-cookingbot\\evaluation\\tests\\test-perfect-complete.solution" '(goal-condition-success dish-approximation-score execution-time))) ; smatch-score))) ;; computation time for smatch-score grows exponentially with recipe length, which means for some recipes it can take a relatively long time to compute which is the reason we don't perform it by default (to speed up testing, since we are mainly interested in simulated-based metrics)
          (perfection (loop for solution in solutions
-                             always (and (= (smatch-score solution) 1)
+                             always (and ;(= (smatch-score solution) 1)
                                          (= (subgoals-ratio solution) 1)
                                          (= (dish-score solution) 1)))))
     (if perfection
