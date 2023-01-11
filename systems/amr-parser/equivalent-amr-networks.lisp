@@ -30,7 +30,7 @@
         for cdr = (cdr binding)
         collect (cons cdr car)))
 
-(defun diff-amr-networks (network-1-orig network-2-orig)
+(defun diff-amr-networks (network-1-orig-in network-2-orig-in)
   "return the diff from network-1, diff from network-2, and the variable bindings for the equal predicates"
   (multiple-value-bind (network-1 n1-renamings) (fcg::rename-variables network-1-orig)
     (multiple-value-bind (network-2 n2-renamings) (fcg::rename-variables network-2-orig)

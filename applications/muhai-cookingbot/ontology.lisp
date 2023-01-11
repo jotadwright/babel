@@ -1248,3 +1248,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass kitchen-stove-door (kitchen-entity)
   ()
   (:documentation "The stove door."))
+
+(defclass sugar-shaker (transferable-container coverable-container reusable)
+  ()
+  (:documentation "The stove door."))

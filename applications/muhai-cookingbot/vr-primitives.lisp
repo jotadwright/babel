@@ -40,14 +40,13 @@
                          (doughclump . dough)))
 
 (defun map-type (type)
-  (do-map-type type (function assoc) (function cdr)))
+  (or (cdr (assoc type *type-mapping*))
+      type))
 
 (defun rmap-type (type)
-  (do-map-type type (function rassoc) (function car)))
-
-(defun do-map-type (type f-assoc f-access)
-  (or (funcall f-access (funcall f-assoc type *type-mapping*))
+  (or (car (rassoc type *type-mapping*))
       type))
+
 
 (defun sim-find-object-by-name (name root)
   (if (string= (lisp-to-camel-case (symbol-name (slot-value root 'sim-identifier))) name)
@@ -58,6 +57,8 @@
               when found
                 return found))))
 
+
+;;  TODO DEPRECATE AND USE REQUEST-GET-LOCATION
 (defun find-unused-kitchen-entity-vr (type kitchen-state)
   (labels ((traverse (type node)
              (if (and (slot-exists-p node 'contents)
@@ -87,11 +88,9 @@
 
    (let* ((kitchen-variable-name 'kitchen)
           (response-result (cdr (assoc :kitchen (list (request-get-kitchen kitchen-variable-name)))))
-          (kitchen-contents (vr-to-symbolic-kitchen response-result))
-          (new-kitchen-state (make-instance 'kitchen-state :contents kitchen-contents)))
+          (new-kitchen-state (vr-to-symbolic-kitchen response-result)))
 
-     (pprint "KITCHEN RETRIEVED:")
-     (pprint new-kitchen-state)
+
      (bind (kitchen 1.0 new-kitchen-state 0.0))))
   :primitive-inventory *vr-primitives*)
 
@@ -106,7 +105,6 @@
   ((kitchen-in => kitchen-out)
    (let* ((kitchen-to-send (symbolic-to-vr-kitchen kitchen-in)))
      (request-set-kitchen kitchen-to-send)
-     (pprint "KITCHEN SET!")
 
      (bind (kitchen-out 1.0 kitchen-in 0.0))))
   :primitive-inventory *vr-primitives*)
@@ -134,19 +132,15 @@
           ;; Get the name to find and bind the container later
           (output-container-name (cdr (assoc :output-container vr-result)))
           ;; Transform dict into objects
-          (kitchen-objects (vr-to-symbolic-kitchen (cdr (assoc :kitchen-state-out vr-result))))
-          ;; Wrap it in the kitchen state object
-          (new-kitchen-state (make-instance 'kitchen-state :contents kitchen-objects))
+          (new-kitchen-state (vr-to-symbolic-kitchen (cdr (assoc :kitchen-state-out vr-result))))
           ;; find the container to bind later
           (output-container-object (sim-find-object-by-name output-container-name new-kitchen-state)))
 
-     ;; save result for easier debugging
 
-     (pprint "FOUND OBJECT:")
-     (pprint unused-container)
-     (pprint "PROPORTIONED:")
+     ;; set used
+     (setf (slot-value output-container-object 'used) t)
 
-     ;; TODO what do bind with target container ? (for other direction)
+
      (bind (target-container 0.0 unused-container 0)
        (container-with-ingredient 1.0 output-container-object 0)
        (kitchen-state-out 1.0 new-kitchen-state 0))))
@@ -183,9 +177,14 @@
           (container-with-rest-name (cdr (assoc :container-with-rest res)))
           (container-with-all-ingredients-name (cdr (assoc :container-with-all-ingredients res)))
           (new-kitchen-state-alist (cdr (assoc :kitchen-state-out res)))
-          (new-kitchen-state (make-instance 'kitchen-state :contents (vr-to-symbolic-kitchen new-kitchen-state-alist)))
+          (new-kitchen-state (vr-to-symbolic-kitchen new-kitchen-state-alist))
           (original-container (sim-find-object-by-name container-with-rest-name new-kitchen-state))
           (resulting-contents (sim-find-object-by-name container-with-all-ingredients-name new-kitchen-state)))
+
+
+     ;; set
+     (setf (slot-value resulting-contents 'used) t)
+
 
      (bind (target-container 0.0  resulting-contents 0)
        (container-with-all-ingredients 1.0 resulting-contents 0)
@@ -211,9 +210,12 @@
           (container-with-rest-name (cdr (assoc :container-with-rest res)))
           (container-with-all-ingredients-name (cdr (assoc :container-with-all-ingredients res)))
           (new-kitchen-state-alist (cdr (assoc :kitchen-state-out res)))
-          (new-kitchen-state (make-instance 'kitchen-state :contents (vr-to-symbolic-kitchen new-kitchen-state-alist)))
+          (new-kitchen-state (vr-to-symbolic-kitchen new-kitchen-state-alist))
           (original-container (sim-find-object-by-name container-with-rest-name new-kitchen-state))
           (resulting-contents (sim-find-object-by-name container-with-all-ingredients-name new-kitchen-state)))
+
+
+     (setf (slot-value resulting-contents 'used) t)
 
 
      (bind (container-with-all-ingredients 1.0 resulting-contents 0)
@@ -236,16 +238,16 @@
   ;;Case 1: Mixing tool not specified, use a whisk
   ((kitchen-state-in container-with-input-ingredients => kitchen-state-out container-with-mixture mixing-tool)
 
-
-
    (defvar *saved-kithcen-state-1* kitchen-state-in)
 
    ;; TODO MIXING TOOl / WHISK ???
    (let* ((res (request-to-mix (slot-value container-with-input-ingredients 'sim-identifier) 'whisk))
           (container-with-mixture-name (cdr (assoc :container-with-mixture res)))
-          (new-kitchen-state  (make-instance 'kitchen-state :contents (vr-to-symbolic-kitchen (cdr (assoc :kitchen-state-out res)))))
+          (new-kitchen-state (vr-to-symbolic-kitchen (cdr (assoc :kitchen-state-out res))))
           (target-whisk-instance (sim-find-object-by-name "whisk" new-kitchen-state))
           (container-with-new-mixture (sim-find-object-by-name container-with-mixture-name new-kitchen-state)))
+
+     (setf (slot-value container-with-new-mixture 'used) t)
 
      (bind (mixing-tool 0.0 target-whisk-instance)
        (container-with-mixture 1.0 container-with-new-mixture 0)
@@ -271,8 +273,11 @@
           (res (request-to-fetch item-name))
           (fetched-obj-name (cdr (assoc :fetched-object res)))
           (fetched-kitchen-alist (cdr (assoc :kitchen-state-out res)))
-          (new-kitchen-state (make-instance 'kitchen-state :contents (vr-to-symbolic-kitchen fetched-kitchen-alist)))
+          (new-kitchen-state (vr-to-symbolic-kitchen fetched-kitchen-alist))
           (fetched-object-instance (sim-find-object-by-name fetched-obj-name new-kitchen-state)))
+
+     ;; TODO: Is a fetched thing on countertop used or not?
+
      (bind (thing-fetched 1.0 fetched-object-instance 0)
        (kitchen-state-out 1.0 new-kitchen-state 0))))
   :primitive-inventory *vr-primitives*)
@@ -301,11 +306,12 @@
           (res (request-to-line (slot-value baking-tray 'sim-identifier) (slot-value baking-paper 'sim-identifier)))
           (lined-baking-tray-name (cdr (assoc :lined-baking-tray res)))
           (kitchen-state-alist (cdr (assoc :kitchen-state-out res)))
-          (new-kitchen-state (make-instance 'kitchen-state :contents (vr-to-symbolic-kitchen kitchen-state-alist)))
+          (new-kitchen-state (vr-to-symbolic-kitchen kitchen-state-alist))
           (target-tray (sim-find-object-by-name lined-baking-tray-name new-kitchen-state)))
-     ;;it is not already there
-     ;; 2) find baking paper and bring it to the countertop
+     ;; find baking paper and bring it to the countertop
 
+     (setf (slot-value target-tray 'used) t)
+     (setf (slot-value target-tray 'lined-with) baking-paper)
 
      (bind (lined-baking-tray 1.0 target-tray 0)
        (kitchen-state-out 1.0 new-kitchen-state 0))))
@@ -335,17 +341,15 @@
    (let* ((res (request-to-shape (slot-value portion 'sim-identifier) (slot-value baking-tray 'sim-identifier)))
           (list-of-new-portion-names (cdr (assoc :shaped-portions res)))
           (new-kitchen-state-alist (cdr (assoc :kitchen-state-out res)))
-          (new-kitchen-state (make-instance 'kitchen-state :contents (vr-to-symbolic-kitchen new-kitchen-state-alist)))
-         ;; (list-of-portions (loop for name in list-of-new-portion-names
+          (new-kitchen-state (vr-to-symbolic-kitchen new-kitchen-state-alist))
+          ;; TODO we dont need a list of portion names they already all sit in the baking tray
+          ;; (list-of-portions (loop for name in list-of-new-portion-names
           ;;                        collect (sim-find-object-by-name name new-kitchen-state)))
           ;;(new-portions (make-instance 'list-of-kitchen-entities :items list-of-portions)))
           ;; NOTE convert lisp to camel case because find object by name does lisp to camel to find in jsondata
           (baking-tray-camel-name (lisp-to-camel-case (symbol-name (slot-value baking-tray 'sim-identifier))))
           (tray-with-new-portions (sim-find-object-by-name baking-tray-camel-name new-kitchen-state)))
 
-     (defparameter *kitchen-state-after-shape* res)
-
-     
      (bind (shaped-portions 1.0 tray-with-new-portions 0)
        (kitchen-state-out 1.0 new-kitchen-state 0))))
   :primitive-inventory *vr-primitives*)
@@ -377,7 +381,7 @@
     oven-to-bake-in)
 
    ;; TODO maybe get oven name instead string "kitchenstove"
-   
+
    (let* (
           (res (request-to-bake (lisp-to-camel-case (symbol-name (slot-value thing-to-bake 'sim-identifier)))
                                 "kitchenStove"
@@ -385,7 +389,7 @@
           (thing-baked-name (cdr (assoc :thing-baked res)))
           (destination-name (cdr (assoc :output-destination-container res)))
           (kitchen-state-alist (cdr (assoc :kitchen-state-out res)))
-          (new-kitchen-state (make-instance 'kitchen-state :contents (vr-to-symbolic-kitchen kitchen-state-alist)))
+          (new-kitchen-state (vr-to-symbolic-kitchen kitchen-state-alist))
           (thing-baked-instance (sim-find-object-by-name thing-baked-name new-kitchen-state)))
 
      (bind (thing-baked 1.0 thing-baked-instance 0)
@@ -437,10 +441,9 @@
           (res (cdr (assoc :kitchen-state-out *kitchen-state-after-shape*)))
           (res-0 (request-set-kitchen res))
           (new-kitchen-state-alist  res)
-          (new-kitchen-state (make-instance 'kitchen-state :contents (vr-to-symbolic-kitchen new-kitchen-state-alist)))
+          (new-kitchen-state (vr-to-symbolic-kitchen new-kitchen-state-alist))
           (tray-with-new-portions (sim-find-object-by-name "bakingTray1" new-kitchen-state)))
 
-     (break)
      (bind (shaped-portions 1.0 tray-with-new-portions 0)
        (kitchen-state-out 1.0 new-kitchen-state 0))))
    :primitive-inventory *vr-primitives*)
@@ -452,7 +455,7 @@
                         (kitchen-state-out kitchen-state)
                         (kitchen-state-in kitchen-state)
                         (object transferable-container)
-                        (topping-container transferable-container))
+                        (topping-container sugar))
 
   ((kitchen-state-in
     object
@@ -465,10 +468,9 @@
    (let* ((result (request-to-sprinkle (slot-value object 'sim-identifier) "sugarShaker"))
           (sprinkled-object-name (cdr (assoc :sprinkled-object result)))
           (kitchen-state-alist (cdr (assoc :kitchen-state-out result)))
-          (new-kitchen-state (make-instance 'kitchen-state :contents (vr-to-symbolic-kitchen kitchen-state-alist)))
+          (new-kitchen-state (vr-to-symbolic-kitchen kitchen-state-alist))
           (sprinkled-object-instance (sim-find-object-by-name sprinkled-object-name new-kitchen-state))
           (sprinkler-instance (sim-find-object-by-name "sugarShaker" new-kitchen-state)))
-     (break)
      (bind (sprinkled-object 1.0 sprinkled-object-instance 0)
        (kitchen-state-out 1.0 new-kitchen-state 0)
        (topping-container 1.0 sprinkler-instance 0))))
@@ -492,11 +494,17 @@
   (labels ((sim-name    (x) (car x))
            (sim-parent  (x) (cadr x))
            (sim-object  (x) (caddr x))
+           ;; TODO find a way to determine whether or not object is used
            (make-object (type sim-arguments sim-identifier)
              (if type
-                 (make-instance (map-type (read-from-string (camel-case-to-lisp type)))
-                                :sim-arguments sim-arguments
-                                :sim-identifier sim-identifier)))
+                 (let ((object (make-instance (map-type (read-from-string (camel-case-to-lisp type)))
+                                              :sim-arguments sim-arguments
+                                              :sim-identifier sim-identifier)))
+                   (loop for slot in (closer-mop:class-slots (class-of object))
+                         for slot-name = (closer-mop:slot-definition-name slot)
+                         do (pprint slot-name))
+                   object)))
+
            (sim-children (node edge-list)
              (loop for child in edge-list
                    if (and (sim-parent child)
@@ -506,26 +514,28 @@
              (if (not (gethash (sim-name node) visited))
                  (progn (setf (gethash (sim-name node) visited) t)
                         (let ((children (sim-children node edge-list)))
-                             (when children
-                               (setf (slot-value (sim-object node) 'contents) (loop for child in children
+                          (when children
+                            (setf (slot-value (sim-object node) 'contents) (loop for child in children
 
-                                                                                    collect (sim-dfs visited edge-list child))))
+                                                                                 collect (sim-dfs visited edge-list child))))
                           (sim-object node))))))
 
-  ;; Find the correct keys and values in the JSON to construct the classes
-  (let ((edge-list (loop for entity in lst
-                         for entity-key-name = (car entity)
-                         for entity-type = (cdr (assoc :type (cdr (assoc :|| (cdr (assoc :custom-state-variables (cdr entity)))))))
-                         for entity-sim-arguments = (cdr entity)
-                         for entity-location = (cdr (assoc :at (cdr entity)))
-                         for entity-location-symbol = (if entity-location (intern (camel-case-to-lisp entity-location) :keyword))
-                         for object = (make-object entity-type entity-sim-arguments entity-key-name)
-                         ;; make the edge list (from, to) and add object in triple to use as container
-                         when object collect `(,entity-key-name ,entity-location-symbol ,object))))
-    ;; dfs to nest the classes in each other coming from and edge-list structure
-    (loop for edge in edge-list
-          if (not (sim-parent edge))
-            collect (sim-dfs (make-hash-table) edge-list edge)))))
+    ;; Find the correct keys and values in the JSON to construct the classes
+    (let ((object-list (loop for dictionary in lst
+                             for name          = (sim-name dictionary)
+                             for properties    = (cdr dictionary)
+                             for type          = (cdr (assoc :type (cdr (assoc :custom-state-variables properties))))
+                             for parent-string = (cdr (assoc :at properties))
+                             for parent        = (if parent-string (intern (camel-case-to-lisp parent-string) :keyword))
+                             for object-instance = (make-object type properties name)
+                             ;; make the object list (from, to) and add object in triple to use as container
+                             when object-instance collect (list name parent object-instance))))
+
+      ;; dfs to nest the classes in each other coming from and edge-list structure
+      (make-instance 'kitchen-state
+                     :contents (loop for triplet in object-list
+                                     unless (sim-parent triplet)
+                                       collect (sim-dfs (make-hash-table) object-list triplet))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -534,9 +544,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun symbolic-to-vr-kitchen (kitchen)
-
   ;; Helper and traversal functions
-  (labels ((has-contents (x)(slot-exists-p x 'contents))
+  (labels ((has-contents (x) (slot-exists-p x 'contents))
 
            ;; DFS through the objects and their contents
            (sim-my-traverse (root)
@@ -553,7 +562,9 @@
            ;;TODO maybe use persistent-id slot?
            ;;TODO the ":AT" key should be the `car` of the `edge-tuple` not from sim-argsuments
            (sim-transform (edge-tuple)
-             `( ,(intern (string-upcase (slot-value (cadr edge-tuple) 'sim-identifier)) :keyword) . ,(slot-value (cadr edge-tuple) 'sim-arguments))))
+             `( ,(intern (string-upcase (slot-value (cadr edge-tuple) 'sim-identifier)) :keyword)
+                .
+                ,(slot-value (cadr edge-tuple) 'sim-arguments))))
 
     ;;Body; returns the (alist) edge-list for the vr kitchen to use
     (sim-object-to-alist (sim-my-traverse kitchen))))

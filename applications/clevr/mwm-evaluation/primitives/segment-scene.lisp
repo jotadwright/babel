@@ -14,8 +14,8 @@
    (bind (segmented-scene
           1.0
           (case (find-data ontology 'world-type)
-            (:simulated (mwm::clevr->simulated (load-clevr-scene (get-pathname scene))))
-            (:extracted (mwm::clevr->extracted (load-clevr-scene (get-pathname scene))
+            (:simulated (mwm::clevr->simulated (load-clevr-scene (clevr-world::get-pathname scene))))
+            (:extracted (mwm::clevr->extracted (load-clevr-scene (clevr-world::get-pathname scene))
                                                :directory (get-data ontology 'extracted-scenes-path)))))))
 
   ;; second case; get the pathname from the segmented-scene
