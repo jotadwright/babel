@@ -311,7 +311,7 @@
 (mingle ?salad ?kitchen-state-with-salad ?kitchen-state-with-drizzled-salad-base ?drizzled-salad-base ?wooden-spoon)
 (refrigerate ?cooled-salad ?kitchen-state-with-cooled-salad ?kitchen-state-with-salad ?salad ?fridge ?cooling-quantity ?cooling-unit)
 
-#vegan-black-bean-and-sweet-potato-salad
+#black-bean-and-sweet-potato-salad
 (get-kitchen ?kitchen)
 (fetch-and-proportion ?proportioned-sweet-potatoes ?kitchen-state-with-sweet-potatoes ?kitchen ?target-container-1 sweet-potato 450 g)
 (peel ?peeled-sweet-potatoes ?sweet-potato-peel ?kitchen-state-with-peeled-sweet-potatoes ?kitchen-state-with-sweet-potatoes ?proportioned-sweet-potatoes ?knife)
