@@ -138,7 +138,7 @@
     ;; "Mix thoroughly"
     (mix ?dough ?ks-with-dough ?output-ks-f ?output-container-f ?mixing-tool) ; reuse the mixing tool
 
-    ;; "Take generous tablespoons of the dough and roll it into a small ball , about an inch in diameter , and then shape it into a crescent shape"
+    ;; "Take generous tablespoons of the dough and roll it into a small ball, about two cm in diameter, and then shape it into a crescent shape"
     (portion-and-arrange ?portioned-dough ?ks-with-dough-portions ?ks-with-dough ?dough 25 g ?pattern ?countertop)
     (shape ?bakeable-balls ?ks-with-balls ?ks-with-dough-portions ?portioned-dough ball-shape)
     (shape ?bakeable-crescents ?ks-with-crescents ?ks-with-balls ?bakeable-balls crescent-shape)

@@ -3881,6 +3881,8 @@
 	  (acons 'teaspoon 4 '()))
     (setf (gethash 'all-purpose-flour conversion-table)
           (acons 'teaspoon 3 '()))
+    (setf (gethash 'almond-flour conversion-table)
+	  (acons 'teaspoon 2 '()))
     (setf (gethash 'apple conversion-table)
 	  (acons 'piece 150 '()))
     (setf (gethash 'avocado conversion-table)
