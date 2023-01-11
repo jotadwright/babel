@@ -216,11 +216,8 @@
     ;; "1/4 teaspoon garlic powder"
     (fetch-and-proportion ?proportioned-garlic ?ks-with-garlic ?ks-with-dried-dill ?target-container-4 garlic-powder 0.25 teaspoon)
 
-    ;; "1/2 teaspoon kosher salt"
-    (fetch-and-proportion ?proportioned-salt-1 ?ks-with-salt-1 ?ks-with-garlic ?target-container-5 coarse-salt 0.5 teaspoon)
-
     ;; "225 grams romaine lettuce leaves"
-    (fetch-and-proportion ?proportioned-lettuce ?ks-with-lettuce ?ks-with-salt-1 ?target-container-6 romaine-lettuce 225 g)
+    (fetch-and-proportion ?proportioned-lettuce ?ks-with-lettuce ?ks-with-garlic ?target-container-6 romaine-lettuce 225 g)
 
     ;; "115 grams mixed greens"
     (fetch-and-proportion ?proportioned-greens ?ks-with-greens ?ks-with-lettuce ?target-container-7 mixed-greens 115 g)
@@ -241,16 +238,8 @@
     (fetch-and-proportion ?proportioned-carrot ?ks-with-carrot ?ks-with-sliced-onion ?target-container-11 carrot 1 piece)
     (cut ?shredded-carrot ?ks-with-shredded-carrot ?ks-with-carrot ?proportioned-carrot shredded ?knife)
 
-    ;; "1 cucumber, thinly sliced"
-    (fetch-and-proportion ?proportioned-cucumber ?ks-with-cucumber ?ks-with-shredded-carrot ?target-container-12 cucumber 1 piece)
-    (cut ?sliced-cucumber ?ks-with-sliced-cucumber ?ks-with-cucumber ?proportioned-cucumber fine-slices ?knife)
-
-    ;; "115 grams olives, sliced"
-    (fetch-and-proportion ?proportioned-olives ?ks-with-olives ?ks-with-sliced-cucumber ?target-container-13 black-olive 115 g)
-    (cut ?sliced-olives ?ks-with-sliced-olives ?ks-with-olives ?proportioned-olives slices ?knife)
-
     ;; "250 ml extra-virgin olive oil"
-    (fetch-and-proportion ?proportioned-olive-oil-ml ?ks-with-olive-oil-ml ?ks-with-sliced-olives ?target-container-14 extra-virgin-olive-oil 250 ml)
+    (fetch-and-proportion ?proportioned-olive-oil-ml ?ks-with-olive-oil-ml ?ks-with-shredded-carrot ?target-container-14 extra-virgin-olive-oil 250 ml)
 
     ;; "6 tablespoons red wine vinegar"
     (fetch-and-proportion ?proportioned-vinegar ?ks-with-vinegar ?ks-with-olive-oil-ml ?target-container-15 red-wine-vinegar 6 tablespoon)
@@ -258,17 +247,11 @@
     ;; "1 1/2 teaspoons sugar"
     (fetch-and-proportion ?proportioned-sugar ?ks-with-sugar ?ks-with-vinegar ?target-container-16 white-sugar 1.5 teaspoon)
 
-    ;; "1/2 teaspoon kosher salt"
-    (fetch-and-proportion ?proportioned-salt-2 ?ks-with-salt-2 ?ks-with-sugar ?target-container-17 coarse-salt 0.5 teaspoon)
-
-    ;; "1/2 teaspoon ground black pepper"
-    (fetch-and-proportion ?proportioned-black-pepper ?ks-with-ground-black-pepper ?ks-with-salt-2 ?target-container-18 ground-black-pepper 0.5 teaspoon)
-
     ;; "Gather the ingredients."
     ; (this already happened)
 
     ;; "Heat the oven to 190 C."
-    (preheat-oven ?heated-oven ?ks-with-heated-oven ?ks-with-ground-black-pepper ?oven 190 degrees-celsius)
+    (preheat-oven ?heated-oven ?ks-with-heated-oven ?ks-with-sugar ?oven 190 degrees-celsius)
 
     ;; "Cut the bread into 2-cm cubes and put in a large bowl."
     (cut ?bread-cubes ?ks-with-bread-cubes ?ks-with-heated-oven ?proportioned-bread two-cm-cubes ?knife)
@@ -280,15 +263,14 @@
     (transfer-contents ?output-container-c ?rest-c ?output-ks-c ?output-ks-b ?output-container-b ?proportioned-dill ?quantity-c ?unit-c)
     (mingle ?sprinkled-bread ?ks-with-sprinkled-bread ?output-ks-c ?output-container-c ?mingling-tool)
 
-    ;; "Spread the bread cubes out on a rimmed baking sheet and sprinkle lightly with the garlic powder and some kosher salt."
+    ;; "Spread the bread cubes out on a rimmed baking sheet and sprinkle lightly with the garlic powder."
     (fetch ?baking-tray ?ks-with-baking-tray ?ks-with-sprinkled-bread baking-tray 1) ;; IMPLICIT
     (transfer-contents ?output-container-d ?rest-d ?output-ks-d ?ks-with-baking-tray ?baking-tray ?sprinkled-bread ?quantity-d ?unit-d)
 
     (sprinkle ?bread-with-garlic ?ks-with-sprinkled-garlic ?output-ks-d ?output-container-d ?proportioned-garlic)
-    (sprinkle ?salty-bread ?ks-with-salty-bread ?ks-with-sprinkled-garlic ?bread-with-garlic ?proportioned-salt-1)
 
     ;; "Bake for about 12 minutes."
-    (bake ?baked-croutons ?ks-with-baked-croutons ?ks-with-salty-bread ?salty-bread ?oven 12 minute ?baking-temp-qty ?baking-temp-unit)
+    (bake ?baked-croutons ?ks-with-baked-croutons ?ks-with-sprinkled-garlic ?bread-with-garlic ?oven 12 minute ?baking-temp-qty ?baking-temp-unit)
 
     ;; "In a large bowl, combine the romaine lettuce, mixed greens, tomatoes, radishes, onion, and carrot. Toss well."
     (fetch ?large-bowl-2 ?ks-with-large-bowl-2 ?ks-with-baked-croutons large-bowl 1) ;; IMPLICIT
@@ -301,13 +283,8 @@
     (transfer-contents ?output-container-j ?rest-j ?output-ks-j ?output-ks-i ?output-container-i ?shredded-carrot ?quantity-j ?unit-j)
     (mingle ?veggies-mix ?ks-with-veggies-mix ?output-ks-j ?output-container-j ?mingling-tool)
 
-    ;; "Add sliced cucumbers and olives."
-    (transfer-contents ?output-container-k ?rest-k ?output-ks-k ?ks-with-veggies-mix ?veggies-mix ?sliced-cucumber ?quantity-k ?unit-k)
-    (transfer-contents ?output-container-l ?rest-l ?output-ks-l ?output-ks-k ?output-container-k ?sliced-olives ?quantity-l ?unit-l)
-    (mingle ?salad ?ks-with-salad ?output-ks-l ?output-container-l ?mingling-tool)
-
     ;; "Cover and refrigerate until serving time."
-    (cover ?covered-salad ?ks-with-covered-salad ?ks-with-salad ?salad ?plastic-wrap)
+    (cover ?covered-salad ?ks-with-covered-salad ?ks-with-veggies-mix ?veggies-mix ?plastic-wrap)
     (refrigerate ?cooled-salad ?ks-with-cooled-salad ?ks-with-covered-salad ?covered-salad ?fridge ?cooling-quantity ?cooling-unit)
 
     ;; "In a jar with a screw-on lid, combine the extra-virgin olive oil, red wine vinegar, and sugar."
@@ -320,21 +297,16 @@
 
     (cover ?covered-jar ?ks-with-covered-jar ?output-ks-o ?output-container-o ?jar-lid)
 
-    ;; "Shake to blend. Add salt and freshly ground black pepper. Keep refrigerated until serving time."
+    ;; "Shake to blend. Keep refrigerated until serving time."
     (shake ?salad-dressing ?ks-with-dressing ?ks-with-covered-jar ?covered-jar)
-    
-    ;; IMPLICIT: the jar is still closed and should be opened first
-    (uncover ?uncovered-dressing ?used-jar-lid ?ks-with-uncovered-dressing ?ks-with-dressing ?salad-dressing)
-    
-    (transfer-contents ?output-container-p ?rest-p ?output-ks-p ?ks-with-dressing ?uncovered-dressing ?proportioned-salt-2 ?quantity-p ?unit-p)
-    (transfer-contents ?output-container-q ?rest-q ?output-ks-q ?output-ks-p ?output-container-p ?proportioned-black-pepper ?quantity-q ?unit-q)
-    (refrigerate ?cooled-dressing ?ks-with-cooled-dressing ?output-ks-q ?output-container-q ?fridge-2 ?cooling-quantity-2 ?cooling-unit-2)
+    (refrigerate ?cooled-dressing ?ks-with-cooled-dressing ?ks-with-dressing ?salad-dressing ?fridge-2 ?cooling-quantity-2 ?cooling-unit-2)
 
     ;; "To serve the salad, toss with dressing and top with croutons."
-     ;; IMPLICIT: the bowl is still covered and should be uncovered first
+     ;; IMPLICIT: the bowl and the jar are still covered and should be uncovered first
     (uncover ?uncovered-salad ?used-plastic-wrap ?ks-with-uncovered-salad ?ks-with-cooled-dressing ?cooled-salad)
+    (uncover ?uncovered-jar ?used-jar-lid ?ks-with-uncovered-jar ?ks-with-uncovered-salad ?covered-jar)
     
-    (transfer-contents ?output-container-r ?rest-r ?output-ks-r ?ks-with-uncovered-salad ?uncovered-salad ?cooled-dressing ?quantity-r ?unit-r)
+    (transfer-contents ?output-container-r ?rest-r ?output-ks-r ?ks-with-uncovered-jar ?uncovered-salad ?uncovered-jar ?quantity-r ?unit-r)
     (mingle ?dressed-salad ?ks-with-dressed-salad ?output-ks-r ?output-container-r ?mingling-tool)
     
     (sprinkle ?croutons-vinegar-salad ?ks-with-croutons-vinegar-salad ?ks-with-dressed-salad ?dressed-salad ?baked-croutons)))
