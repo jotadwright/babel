@@ -1287,9 +1287,9 @@
                        '(refrigerate ?cooled-salad ?kitchen-state-with-cooled-salad ?kitchen-state-with-salad ?salad ?fridge ?cooling-quantity ?cooling-unit))
                  :primary-output-var '?cooled-salad))
 
-(defparameter *vegan-black-bean-and-sweet-potato-salad-environment*
+(defparameter *black-bean-and-sweet-potato-salad-environment*
   (make-instance 'simulation-environment
-                 :recipe-id 'vegan-black-bean-and-sweet-potato-salad
+                 :recipe-id 'black-bean-and-sweet-potato-salad
                  :kitchen-state
                  *full-kitchen*
                  :meaning-network
@@ -2181,7 +2181,7 @@
         *whole-wheat-ginger-snaps-environment*
         *cucumber-slices-with-dill-environment*
         *easy-cherry-tomato-corn-salad-environment*
-        *vegan-black-bean-and-sweet-potato-salad-environment*
+        *black-bean-and-sweet-potato-salad-environment*
         ; extra almond crescent cookies
         *almond-crescent-cookies-2-environment*
         *almond-crescent-cookies-3-environment*
