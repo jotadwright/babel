@@ -143,7 +143,6 @@
     (cut ?sweet-potato-cubes ?kitchen-state-with-sweet-potato-cubes ?kitchen-state-with-peeled-sweet-potatoes ?peeled-sweet-potatoes two-cm-cubes ?knife) ;; use the same knife    
     
     ;; "3 tablespoons olive oil, divided"
-    ; TODO RD: "divided" means that it will be used divided accross different parts of the recipe
     ;; IMPLICIT: "divided" means that there should be two separate portions that can be used later
     (fetch-and-proportion ?one-tablespoon-olive-oil ?kitchen-state-with-one-tablespoon-olive-oil ?kitchen-state-with-sweet-potato-cubes ?target-container-1-tablespoon olive-oil 1 tablespoon)
     (fetch-and-proportion ?two-tablespoons-olive-oil ?kitchen-state-with-two-tablespoons-olive-oil ?kitchen-state-with-one-tablespoon-olive-oil ?target-container-2-tablespoons olive-oil 2 tablespoon)
@@ -164,7 +163,6 @@
     ;; "400 grams black beans"
     (fetch-and-proportion ?proportioned-black-beans ?kitchen-state-with-black-beans ?kitchen-state-with-lime-juice ?target-container-8 black-bean 400 g)
 
-    ; TODO RD: cut in half?
     ;; "1/2 red onion, finely chopped" -- cut
     (fetch-and-proportion ?proportioned-red-onion ?kitchen-state-with-red-onion ?kitchen-state-with-black-beans ?target-container-9 red-onion 0.5 piece)
     (cut ?finely-chopped-red-onion ?kitchen-state-with-finely-chopped-onion ?kitchen-state-with-red-onion ?proportioned-red-onion fine-slices ?knife) ;; use the same knife
@@ -176,17 +174,14 @@
     ;; "Preheat oven to 230 degrees C."
     (preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-fresh-chopped-cilantro ?oven 230 degrees-celsius)
 
-    ; TODO RD: spread primitive? Not really I think.
     ;; "Spread sweet potatoes onto a rimmed baking sheet."
     (fetch ?baking-tray ?kitchen-state-with-baking-tray ?kitchen-state-with-preheated-oven baking-tray 1) ;; IMPLICIT
 
     (transfer-contents ?output-container-a ?rest-a ?output-kitchen-state-a ?kitchen-state-with-baking-tray ?baking-tray ?sweet-potato-cubes ?quantity-a ?unit-a)
 
-    ; TODO RD: is drizzle sprinkle or transfer-contents?
     ;; "Drizzle 1 tablespoon olive oil over sweet potatoes;"
     (sprinkle ?drizzled-potatoes ?kitchen-state-with-drizzled-potatoes ?output-kitchen-state-a ?output-container-a ?one-tablespoon-olive-oil)
 
-    ; TODO RD: season primitive?
     ;; "season with cumin, red pepper flakes, salt, and pepper."
     (transfer-contents ?output-container-b ?rest-b ?output-kitchen-state-b ?kitchen-state-with-drizzled-potatoes ?drizzled-potatoes ?proportioned-ground-cumin ?quantity-b ?unit-b)
     (transfer-contents ?output-container-c ?rest-c ?output-kitchen-state-c ?output-kitchen-state-b ?output-container-b ?proportioned-red-pepper-flakes ?quantity-c ?unit-c)

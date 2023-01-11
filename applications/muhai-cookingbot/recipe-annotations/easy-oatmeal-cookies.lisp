@@ -217,7 +217,7 @@
     (transfer-contents ?container-with-soaked-raisins ?empty-raisin-bowl ?kitchen-state-with-soaking-raisins ?kitchen-state-with-preheating-oven
                        ?hot-water ?proportioned-raisins ?quantity ?unit)
 
-    ;; "In a large bowl, sift flour with soda, salt and spices." ; TODO RD: was zijn de spices    
+    ;; "In a large bowl, sift flour with soda, salt and spices."   
     (transfer-contents ?flour-with-soda ?empty-soda-bowl ?kitchen-state-with-flour-and-soda ?kitchen-state-with-soaking-raisins
                        ?proportioned-flour ?proportioned-baking-soda ?quantity-1 ?unit-1)
     (transfer-contents ?flour-with-soda-and-salt ?empty-salt-bowl ?kitchen-state-with-flour-soda-and-salt ?kitchen-state-with-flour-and-soda

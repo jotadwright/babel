@@ -143,7 +143,6 @@
 (defparameter *easy-cherry-tomato-corn-salad-recipe*
   '((get-kitchen ?kitchen)
 
-    ; TODO RD: should fresh basil be plucked?
     ;; "5 grams minced fresh basil"
     (fetch-and-proportion ?proportioned-basil ?kitchen-state-with-basil ?kitchen ?target-container-1 fresh-basil 5 g)
     (cut ?minced-basil ?kitchen-state-with-cut-basil ?kitchen-state-with-basil ?proportioned-basil minced ?knife)
@@ -188,8 +187,6 @@
 
     ;; "Combine basil, olive oil, lime juice, sugar, salt, and pepper in a jar and screw on the lid;"
     (fetch ?jar ?kitchen-state-with-fetched-jar ?kitchen-state-with-cut-shallot jar 1) ;; IMPLICIT
-    ; TODO RD: should jars be closed initially?
-    ;(uncover ?uncovered-jar ?jar-lid ?kitchen-state-with-uncovered-jar ?kitchen-state-with-fetched-jar ?jar)
 
     (transfer-contents ?output-container-a ?rest-a ?output-kitchen-state-a ?kitchen-state-with-fetched-jar ?jar ?minced-basil ?quantity-a ?unit-a)
     (transfer-contents ?output-container-b ?rest-b ?output-kitchen-state-b ?output-kitchen-state-a ?output-container-a ?olive-oil ?quantity-b ?unit-b)
@@ -213,7 +210,6 @@
 
     (mingle ?salad-base ?kitchen-state-with-salad-base ?output-kitchen-state-j ?output-container-j ?wooden-spoon)
 
-    ; TODO RD: is drizzle sprinkle or transfer-contents?
     ;; "Drizzle dressing over corn mixture and toss to coat."
     ;; IMPLICIT: the jar is still closed and should be opened first
     (uncover ?uncovered-jar ?used-jar-lid ?kitchen-state-with-uncovered-jar ?kitchen-state-with-salad-base ?covered-jar)
@@ -222,7 +218,6 @@
     
     (mingle ?salad ?kitchen-state-with-salad ?kitchen-state-with-drizzled-salad-base ?drizzled-salad-base ?wooden-spoon) ;; use the same wooden spoon
 
-    ; TODO RD: refrigerate could be a special case of leave-for-time?
     (refrigerate ?cooled-salad ?kitchen-state-with-cooled-salad ?kitchen-state-with-salad ?salad ?fridge ?cooling-quantity ?cooling-unit)))
 
 

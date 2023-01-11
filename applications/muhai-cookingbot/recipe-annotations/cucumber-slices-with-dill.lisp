@@ -156,19 +156,16 @@
 
     (transfer-contents ?output-g ?rest-g ?kitchen-out-g ?kitchen-out-f ?output-f ?proportioned-salt ?quantity-g ?unit-g)
 
-    (mix ?liquid-mixture ?kitchen-state-with-liquid-mixture ?kitchen-out-g ?output-g ?mixing-tool) ; TODO RD: or possibly reuse the mingling-tool?
+    (mix ?liquid-mixture ?kitchen-state-with-liquid-mixture ?kitchen-out-g ?output-g ?mixing-tool)
 
-    ; TODO RD: should something special because it's liquid or is transfer-contents enough? (is pour needed?)
     ;; "Pour the liquid mixture over the cucumber mixture."
     (transfer-contents ?output-h ?rest-h ?kitchen-out-h ?kitchen-state-with-liquid-mixture ?cucumber-mixture ?liquid-mixture ?quantity-pour ?unit-pour)
 
     ;; "Cover and refrigerate at least 2 hours before serving (the longer this dish marinates the tastier it is!)."
     (cover ?covered-mixture ?kitchen-state-with-covered-mixture ?kitchen-out-h ?output-h ?bowl-lid)
 
-    ; TODO RD: refrigerate could be a special case of leave-for-time?
     (refrigerate ?cooled-mixture ?kitchen-state-with-cooled-mixture ?kitchen-state-with-covered-mixture ?covered-mixture ?fridge 2 hour)
 
-    ; TODO RD: include this step or not?
     ;; IMPLICIT: serving involves uncovering the salad bowl
     (uncover ?served-salad ?cover ?kitchen-state-with-served-salad ?kitchen-state-with-cooled-mixture ?cooled-mixture)))
 

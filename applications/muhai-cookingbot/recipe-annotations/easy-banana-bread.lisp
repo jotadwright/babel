@@ -103,7 +103,7 @@
                                    (make-instance 'spatula) (make-instance 'knife)
 
                                    ;; baking equipment
-                                   (make-instance 'pan)))))) ; TODO RD: make sure there is only one choice available, i.e., a pan (for resolving implicit steps while preventing potential ambiguities)
+                                   (make-instance 'pan))))))
 
 ;; 'make-html' makes an HTML representation of the kitchen state
 ;; and 'add-element' transfers that to the web interface
@@ -135,7 +135,6 @@
     ;; "Cream together butter, eggs and sugar until smooth."
     (transfer-contents ?output-container-x ?rest-x ?output-kitchen-state-x ?kitchen-state-with-self-rising-flour ?target-container-7 ?proportioned-butter ?quantity-x ?unit-x)
 
-    ; TODO RD: Or should u crack eggs as a separate step and then do transfer-contents?
     ;; IMPLICIT: "Crack eggs."
     (crack ?output-container-y ?output-kitchen-state-y ?output-kitchen-state-x ?proportioned-eggs ?output-container-x)
     

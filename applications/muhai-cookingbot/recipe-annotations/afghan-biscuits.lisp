@@ -143,7 +143,6 @@
     ;; "200 grams icing sugar"
     (fetch-and-proportion ?proportioned-icing-sugar ?kitchen-state-with-icing-sugar ?kitchen-state-with-corn-flakes ?target-container-6 icing-sugar 200 g)
 
-    ; TODO RD: what is the supposed problem with finding cocoa powder a second time? -> not a problem, but knowing which one to use for which
     ;; "2 tablespoons unsweetened cocao powder" ;;PROBLEM WITH FINDING COCOA POWDER A SECOND TIME
     (fetch-and-proportion ?proportioned-icing-cocoa-powder ?kitchen-state-with-icing-cocoa-powder ?kitchen-state-with-icing-sugar ?target-container-7 cocoa-powder 30  g)
 

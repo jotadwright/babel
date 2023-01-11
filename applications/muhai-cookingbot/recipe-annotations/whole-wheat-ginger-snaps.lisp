@@ -215,9 +215,6 @@
          ;; "Stir the dry ingredients into the molasses mixture until blended."
          (transfer-contents ?molasses-dry-mixture ?rest-molasses-dry-mix ?kitchen-state-with-molasses-dry-mixture ?kitchen-state-with-dry-mixture ?cream-eggs-molasses-mix ?dry-mixture ?quantity-stir ?unit-sir)
          (mix ?dough ?kitchen-state-with-dough ?kitchen-state-with-molasses-dry-mixture ?molasses-dry-mixture ?mixing-tool) ;; reuse the same whisk
-
-
-         ;TODO RD: should transfer-items and dip actually be switched? Because now the dipped cookies are placed on the countertop
          
          ;; "Roll the dough into small balls (25 grams), and dip the top of each ball into the remaining white sugar."
          (portion-and-arrange ?portioned-dough ?kitchen-state-with-portions ?kitchen-state-with-dough ?dough 25 g ?pattern ?countertop)
