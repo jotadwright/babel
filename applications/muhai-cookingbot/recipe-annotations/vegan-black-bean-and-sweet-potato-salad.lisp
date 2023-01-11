@@ -50,7 +50,7 @@
                                                                                                                                :value 5)))))                                          
                                          (make-instance 'medium-bowl
                                                         :used T
-                                                        :contents (list (make-instance 'olive-oil :amount
+                                                        :contents (list (make-instance 'extra-virgin-olive-oil :amount
                                                                                        (make-instance 'amount
                                                                                                       :unit (make-instance 'g)
                                                                                                       :quantity (make-instance 'quantity
@@ -134,7 +134,7 @@
 ;; and 'add-element' transfers that to the web interface
 ;(add-element (make-html *initial-kitchen-state* :expand-initially t))
 
-(defparameter *vegan-black-bean-and-sweet-potato-salad-recipe* 
+(defparameter *black-bean-and-sweet-potato-salad-recipe* 
   '((get-kitchen ?kitchen)
     
     ;; "450 grams sweet potatoes, peeled and cut into 2 cm cubes"
@@ -222,7 +222,7 @@
 ;; ======================
 
 (defparameter *extended-recipe*
-  (append-meaning-and-irl-bindings *vegan-black-bean-and-sweet-potato-salad-recipe* nil))
+  (append-meaning-and-irl-bindings *black-bean-and-sweet-potato-salad-recipe* nil))
 
 ;; ======================
 ;; Evaluate the recipe
@@ -238,5 +238,5 @@
 ;; Visualise the recipe
 ;; ======================
 
-;(draw-recipe *vegan-black-bean-and-sweet-potato-salad-recipe*)
+;(draw-recipe *black-bean-and-sweet-potato-salad-recipe*)
 ;(draw-recipe *extended-recipe*)
