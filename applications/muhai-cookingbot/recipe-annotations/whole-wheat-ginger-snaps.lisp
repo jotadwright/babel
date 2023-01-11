@@ -193,7 +193,7 @@
           (fetch ?large-bowl ?kitchen-state-with-fetched-bowl ?kitchen-state-with-greased-sheet large-bowl 1) ;; IMPLICIT    
           (transfer-contents ?butter-in-large-bowl ?empty-butter-bowl ?kitchen-state-with-butter-in-large-bowl ?kitchen-state-with-fetched-bowl ?large-bowl ?proportioned-butter ?quantity-butter ?unit-butter)
           (transfer-contents ?butter-sugar-bowl ?empty-sugar-bowl ?kitchen-state-with-butter-sugar-mix ?kitchen-state-with-butter-in-large-bowl ?butter-in-large-bowl ?proportioned-sugar ?quantity-sugar ?unit-sugar)      
-          (mix ?butter-sugar-cream ?kitchen-state-with-creamed-mix ?kitchen-state-with-butter-sugar-mix ?butter-sugar-bowl ?mixing-tool)
+          (beat ?butter-sugar-cream ?kitchen-state-with-creamed-mix ?kitchen-state-with-butter-sugar-mix ?butter-sugar-bowl ?mixing-tool)
 
          ;; "Mix in the eggs, and then the molasses."
          (transfer-contents ?mix-and-eggs ?empty-egg-bowl ?kitchen-state-with-eggs-in-mix ?kitchen-state-with-creamed-mix ?butter-sugar-cream ?beaten-eggs ?quantity-eggs ?unit-eggs)
