@@ -249,10 +249,9 @@
     (transfer-contents ?container-with-flour-and-mixture ?rest-d ?output-kitchen-state-d ?output-kitchen-state-c ?flour-soda-salt-cinnamon-nutmeg ?container-w-eggs-oil-vanilla-raisins ?quantity-d ?unit-d)
     (mix ?dough ?kitchen-state-with-dough ?output-kitchen-state-d ?container-with-flour-and-mixture ?mixing-tool) ;; reuse the same tool
 
-    ; TODO RD: rounded spoonfuls
     ;; "Drop by rounded spoonfuls 5 cm apart onto ungreased cookie sheets."
     (fetch ?cookie-sheet ?kitchen-state-with-cookie-sheet ?kitchen-state-with-dough cookie-sheet 1) ;; IMPLICIT
-    (portion-and-arrange ?portioned-dough ?kitchen-state-with-portions ?kitchen-state-with-cookie-sheet ?dough 5 g ?pattern ?countertop)
+    (portion-and-arrange ?portioned-dough ?kitchen-state-with-portions ?kitchen-state-with-cookie-sheet ?dough 1 tablespoon ?pattern ?countertop)
     (transfer-items ?sheet-with-dough ?kitchen-state-with-dough-on-sheet ?kitchen-state-with-portions ?portioned-dough 5-cm-apart ?cookie-sheet)
 
     ;; "Bake for 10 minutes in the preheated oven."
