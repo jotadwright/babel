@@ -165,7 +165,8 @@
     (beat ?beaten-sugar-mixture ?ks-with-beaten-sugar-mixture ?ks-with-mixer ?proportioned-sugar ?mixer)
 
     ;; "Add the egg whites, beat slowly to smoothen the mixture."
-    (beat ?beaten-egg-mixture ?ks-with-beaten-egg-mixture ?ks-with-beaten-sugar-mixture ?proportioned-egg-white ?mixing-tool)
+    (transfer-contents ?output-container-white ?rest-white ?output-ks-white ?ks-with-beaten-sugar-mixture ?beaten-sugar-mixture ?proportioned-egg-white ?quantity-white ?unit-white)
+    (beat ?beaten-egg-mixture ?ks-with-beaten-egg-mixture ?output-ks-white ?output-container-white ?mixing-tool)
 
     ;; "Add flour to the mixture and fold it in gently with 150 grams of the coconut."
     (transfer-contents ?output-container-c ?rest-c ?output-ks-c ?ks-with-beaten-egg-mixture ?beaten-egg-mixture ?proportioned-flour ?quantity-c ?unit-c)
