@@ -2270,7 +2270,7 @@
                     else do (setf (amount new-portion) (make-instance 'amount
                                                                       :quantity (make-instance 'quantity
                                                                                                :value left-to-transfer)
-                                                                      :unit unit)
+                                                                      :unit (make-instance 'g))
                                   (contents countertop) (cons new-portion (contents countertop))
                                   left-to-transfer 0)
                     finally 
@@ -2329,7 +2329,7 @@
                      else do (setf (amount new-portion) (make-instance 'amount
                                                                        :quantity (make-instance 'quantity
                                                                                                 :value left-to-transfer)
-                                                                       :unit unit)
+                                                                       :unit (make-instance 'g))
                                    (contents countertop) (cons new-portion (contents countertop))
                                    left-to-transfer 0)
                      finally 
@@ -2385,7 +2385,7 @@
                      else do (setf (amount new-portion) (make-instance 'amount
                                                                        :quantity (make-instance 'quantity
                                                                                                 :value left-to-transfer)
-                                                                       :unit unit)
+                                                                       :unit (make-instance 'g))
                                    (contents new-destination) (cons new-portion (contents new-destination))
                                    left-to-transfer 0)
                      finally 
@@ -2440,7 +2440,7 @@
              else do (setf (amount new-portion) (make-instance 'amount
                                                                :quantity (make-instance 'quantity
                                                                                         :value left-to-transfer)
-                                                               :unit unit)
+                                                               :unit (make-instance 'g))
                            (contents new-destination) (cons new-portion (contents new-destination))
                            left-to-transfer 0)
              finally 
