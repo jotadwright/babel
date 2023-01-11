@@ -218,7 +218,7 @@
 (fetch ?large-bowl ?kitchen-state-with-fetched-bowl ?kitchen-state-with-greased-sheet large-bowl 1)
 (transfer-contents ?butter-in-large-bowl ?empty-butter-bowl ?kitchen-state-with-butter-in-large-bowl ?kitchen-state-with-fetched-bowl ?large-bowl ?proportioned-butter ?quantity-butter ?unit-butter)
 (transfer-contents ?butter-sugar-bowl ?empty-sugar-bowl ?kitchen-state-with-butter-sugar-mix ?kitchen-state-with-butter-in-large-bowl ?butter-in-large-bowl ?proportioned-sugar ?quantity-sugar ?unit-sugar)
-(mix ?butter-sugar-cream ?kitchen-state-with-creamed-mix ?kitchen-state-with-butter-sugar-mix ?butter-sugar-bowl ?mixing-tool)
+(beat ?butter-sugar-cream ?kitchen-state-with-creamed-mix ?kitchen-state-with-butter-sugar-mix ?butter-sugar-bowl ?mixing-tool)
 (transfer-contents ?mix-and-eggs ?empty-egg-bowl ?kitchen-state-with-eggs-in-mix ?kitchen-state-with-creamed-mix ?butter-sugar-cream ?beaten-eggs ?quantity-eggs ?unit-eggs)
 (transfer-contents ?mix-eggs-and-molasses ?empty-molasses-bowl ?kitchen-state-with-molasses-in-mix ?kitchen-state-with-eggs-in-mix ?mix-and-eggs ?proportioned-molasses ?quantity-molasses ?unit-molasses)
 (mix ?cream-eggs-molasses-mix ?kitchen-state-with-cream-eggs-molasses-mix ?kitchen-state-with-molasses-in-mix ?mix-eggs-and-molasses ?beating-tool)
