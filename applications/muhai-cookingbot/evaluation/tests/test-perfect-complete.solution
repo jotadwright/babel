@@ -368,7 +368,7 @@
 (beat ?beaten-mixture ?ks-with-beaten-mixture ?output-ks-b ?output-container-b ?mixer)
 (transfer-contents ?output-container-c ?rest-c ?output-ks-c ?ks-with-beaten-mixture ?beaten-mixture ?proportioned-vanilla ?quantity-c ?unit-c)
 (transfer-contents ?output-container-d ?rest-d ?output-ks-d ?output-ks-c ?output-container-c ?proportioned-almond ?quantity-d ?unit-d)
-(mix ?intermediate-mixture ?ks-with-intermediate-mixture ?output-ks-d ?output-container-d ?mixer)
+(beat ?intermediate-mixture ?ks-with-intermediate-mixture ?output-ks-d ?output-container-d ?mixer)
 (transfer-contents ?output-container-e ?rest-e ?output-ks-e ?ks-with-intermediate-mixture ?intermediate-mixture ?proportioned-flour ?quantity-e ?unit-e)
 (transfer-contents ?output-container-f ?rest-f ?output-ks-f ?output-ks-e ?intermediate-mixture ?proportioned-almond-flour ?quantity-f ?unit-f)
 (mix ?dough ?ks-with-dough ?output-ks-f ?output-container-f ?mixing-tool)

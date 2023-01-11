@@ -144,7 +144,7 @@
     ;; "Add vanilla extract and almond extract, beat until incorporated."
     (transfer-contents ?output-container-c ?rest-c ?output-ks-c ?ks-with-beaten-mixture ?beaten-mixture ?proportioned-vanilla ?quantity-c ?unit-c) 
     (transfer-contents ?output-container-d ?rest-d ?output-ks-d ?output-ks-c ?output-container-c ?proportioned-almond ?quantity-d ?unit-d)
-    (mix ?intermediate-mixture ?ks-with-intermediate-mixture ?output-ks-d ?output-container-d ?mixer) ; reuse the mixing tool
+    (beat ?intermediate-mixture ?ks-with-intermediate-mixture ?output-ks-d ?output-container-d ?mixer) ; reuse the mixing tool
 
     ;; "Stir in the flour and almonds. Work flour mixture into a firm dough."
     (transfer-contents ?output-container-e ?rest-e ?output-ks-e ?ks-with-intermediate-mixture ?intermediate-mixture ?proportioned-flour ?quantity-e ?unit-e)
