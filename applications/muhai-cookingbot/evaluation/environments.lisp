@@ -503,6 +503,13 @@
                                                                                                                          :value 500)))))
                                    (make-instance 'medium-bowl
                                                   :used T
+                                                  :contents (list (make-instance 'extra-virgin-olive-oil :amount
+                                                                                 (make-instance 'amount
+                                                                                                :unit (make-instance 'l)
+                                                                                                :quantity (make-instance 'quantity
+                                                                                                                         :value 0.5)))))
+                                   (make-instance 'medium-bowl
+                                                  :used T
                                                   :contents (list (make-instance 'garlic :amount
                                                                                  (make-instance 'amount
                                                                                                 :unit (make-instance 'piece)
@@ -595,13 +602,6 @@
                                    (make-instance 'medium-bowl
                                                   :used T
                                                   :contents (list (make-instance 'oats :amount
-                                                                                 (make-instance 'amount
-                                                                                                :unit (make-instance 'g)
-                                                                                                :quantity (make-instance 'quantity
-                                                                                                                         :value 500)))))
-                                   (make-instance 'medium-bowl
-                                                  :used T
-                                                  :contents (list (make-instance 'extra-virgin-olive-oil :amount
                                                                                  (make-instance 'amount
                                                                                                 :unit (make-instance 'g)
                                                                                                 :quantity (make-instance 'quantity
