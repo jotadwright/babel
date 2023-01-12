@@ -49,7 +49,7 @@
         (show-output (string-equal (fourth sys:*line-arguments-list*) "t"))
         (metrics (mapcar  #'read-from-string (nthcdr 4 sys:*line-arguments-list*))))
 
-     (cond ((< 3 (length sys:*line-arguments-list*))
+     (cond ((>= (length sys:*line-arguments-list*) 3)
             (apply #'internal-evaluate `(,input ,output ,show-output ,@metrics)))
           ;  (when (hcl:delivered-image-p) (lw:quit)))
            (t
