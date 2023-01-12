@@ -116,7 +116,7 @@
     
     ;; "120 g walnuts, ground"
     (fetch-and-proportion ?proportioned-walnut ?ks-with-walnut ?ks-with-sifted-flour ?target-container-5 walnut 120 g)
-    (grind ?ground-walnut ?ks-with-ground-walnut ?ks-with-walnut ?target-container-6 ?proportioned-walnut ?grinding-tool)
+    (grind ?ground-walnut ?ks-with-ground-walnut ?ks-with-walnut ?proportioned-walnut ?grinding-tool)
     
     ;; "1 teaspoon vanilla"
     (fetch-and-proportion ?proportioned-vanilla ?ks-with-vanilla ?ks-with-ground-walnut ?target-container-7 vanilla 1 teaspoon)

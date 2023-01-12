@@ -1548,7 +1548,7 @@
                        '(fetch-and-proportion ?proportioned-flour ?ks-with-flour ?ks-with-powdered-sugar ?target-container-3 all-purpose-flour 240 g)
                        '(sift ?sifted-flour ?ks-with-sifted-flour ?ks-with-flour ?target-container-4 ?proportioned-flour ?sifting-tool)
                        '(fetch-and-proportion ?proportioned-walnut ?ks-with-walnut ?ks-with-sifted-flour ?target-container-5 walnut 120 g)
-                       '(grind ?ground-walnut ?ks-with-ground-walnut ?ks-with-walnut ?target-container-6 ?proportioned-walnut ?grinding-tool)
+                       '(grind ?ground-walnut ?ks-with-ground-walnut ?ks-with-walnut ?proportioned-walnut ?grinding-tool)
                        '(fetch-and-proportion ?proportioned-vanilla ?ks-with-vanilla ?ks-with-ground-walnut ?target-container-7 vanilla 1 teaspoon)
                        '(fetch-and-proportion ?additional-powdered-sugar ?ks-with-additional-sugar ?ks-with-vanilla ?target-container-8 powdered-white-sugar 60 g)
                        '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-additional-sugar ?empty-container ?warm-butter ?quantity-a ?unit-a)
