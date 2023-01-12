@@ -766,6 +766,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A table spoon."))
 
+(defclass tea-spoon (can-spread reusable)
+  ()
+  (:documentation "A tea spoon."))
+
 (defclass transferable-container (container fetchable conceptualizable)
   ((arrangement :initform nil)) 
   (:documentation "A container that can transferred."))

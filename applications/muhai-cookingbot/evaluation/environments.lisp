@@ -357,6 +357,12 @@
                                                                                                                          :value 12)))))
                                    (make-instance 'medium-bowl
                                                   :used T
+                                                  :contents (list (make-instance 'water :amount
+                                                                                 (make-instance 'amount
+                                                                                                :unit (make-instance 'l)
+                                                                                                :quantity (make-instance 'quantity :value 1)))))
+                                   (make-instance 'medium-bowl
+                                                  :used T
                                                   :contents (list (make-instance 'yellow-mustard :amount
                                                                                  (make-instance 'amount
                                                                                                 :unit (make-instance 'l)
@@ -748,12 +754,6 @@
                                                                                                                          :value 500)))))
                                    (make-instance 'medium-bowl
                                                   :used T
-                                                  :contents (list (make-instance 'water :amount
-                                                                                 (make-instance 'amount
-                                                                                                :unit (make-instance 'l)
-                                                                                                :quantity (make-instance 'quantity :value 1)))))
-                                   (make-instance 'medium-bowl
-                                                  :used T
                                                   :contents (list (make-instance 'white-bread-slice :amount
                                                                                  (make-instance 'amount
                                                                                                 :unit (make-instance 'piece)
@@ -818,6 +818,10 @@
                                    (make-instance 'table-spoon) (make-instance 'table-spoon) (make-instance 'table-spoon)
                                    (make-instance 'table-spoon) (make-instance 'table-spoon) (make-instance 'table-spoon)
                                    (make-instance 'table-spoon) (make-instance 'table-spoon) (make-instance 'table-spoon)
+
+                                   (make-instance 'tea-spoon) (make-instance 'tea-spoon) (make-instance 'tea-spoon)
+                                   (make-instance 'tea-spoon) (make-instance 'tea-spoon) (make-instance 'tea-spoon)
+                                   (make-instance 'tea-spoon) (make-instance 'tea-spoon) (make-instance 'tea-spoon)
 
                                    (make-instance 'knife) (make-instance 'knife) (make-instance 'knife)
                                    (make-instance 'knife) (make-instance 'knife) (make-instance 'knife)
