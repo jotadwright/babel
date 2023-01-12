@@ -1119,10 +1119,6 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Heavy cream."))
 
-(defclass icing-sugar (sugar)
-  ()
-  (:documentation "Icing sugar."))
-
 (defclass jalapeno (ingredient cuttable seedable)
   ((keep-refrigerated :initform T))
   (:documentation "Jalapeno pepper."))
@@ -1225,6 +1221,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Paprika powder"))
 
+; also called icing sugar
 (defclass powdered-white-sugar (sugar sprinkable can-be-dipped-in)
   ()
   (:documentation "Powdered white sugar."))

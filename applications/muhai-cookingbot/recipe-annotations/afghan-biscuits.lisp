@@ -56,7 +56,7 @@
                                                                                                                               :value 500)))))
                                         (make-instance 'medium-bowl
                                                        :used T
-                                                       :contents (list (make-instance 'icing-sugar :amount
+                                                       :contents (list (make-instance 'powdered-white-sugar :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
@@ -141,7 +141,7 @@
     (fetch-and-proportion ?proportioned-corn-flakes ?kitchen-state-with-corn-flakes ?kitchen-state-with-cocoa-powder ?target-container-5 corn-flakes 300 g)
 
     ;; "200 grams icing sugar"
-    (fetch-and-proportion ?proportioned-icing-sugar ?kitchen-state-with-icing-sugar ?kitchen-state-with-corn-flakes ?target-container-6 icing-sugar 200 g)
+    (fetch-and-proportion ?proportioned-icing-sugar ?kitchen-state-with-icing-sugar ?kitchen-state-with-corn-flakes ?target-container-6 powdered-white-sugar 200 g)
 
     ;; "2 tablespoons unsweetened cocao powder" ;;PROBLEM WITH FINDING COCOA POWDER A SECOND TIME
     (fetch-and-proportion ?proportioned-icing-cocoa-powder ?kitchen-state-with-icing-cocoa-powder ?kitchen-state-with-icing-sugar ?target-container-7 cocoa-powder 30  g)
