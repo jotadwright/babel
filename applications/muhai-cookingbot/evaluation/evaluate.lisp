@@ -16,10 +16,11 @@
       (clear-output))
 
     ; evaluate the input
-    (unless (find 'none metrics)
+    (unless (and (find 'none metrics) (not show-output))
       (let ((solutions (evaluate-solutions input metrics)))
       ; write away the solutions to a csv file
-        (write-solutions-to-csv solutions output metrics)
+        (unless (find 'none metrics)
+          (write-solutions-to-csv solutions output metrics))
         (print-solutions solutions metrics)))
 
     (cond (show-output
