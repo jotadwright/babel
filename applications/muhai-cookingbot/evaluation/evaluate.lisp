@@ -88,6 +88,8 @@
       (push 'dish-approximation-score metrics))
     (when (find "Execution Time" (capi:choice-selected-items (metric-checks choice)) :test #'string-equal)
       (push 'execution-time metrics))
+    (when (not metrics)
+      (push 'none metrics))
 
     (capi:apply-in-pane-process
      choice #'(setf capi:top-level-interface-display-state) :hidden choice)
