@@ -4,196 +4,44 @@ The MUHAI cookingbot is a system that can perform recipe execution tasks in simu
 
 The cookingbot has been developed by VUB and UNamur in the context of the European project [MUHAI](https://www.muhai.org) and received funding from the European Union’s Horizon 2020 research and innovation programme under grant agreement No 951846.
 
-
 ## Recipes
 
 The example recipes that are provided as examples for the recipe execution benchmark can be found in the folder 'recipe-annotations', and include the following fully annotated recipes:
 
-1. Almond crescent cookies (annotation + grammar)
-2. Afghan biscuits (annotation)
-3. Best brownies (annotation)
-4. Chocolate fudge cookies (annotation)
-5. Easy banana bread (annotation)
-6. Easy oatmeal cookies
-7. Whole wheat ginger snaps
-8. Cucumber slices with dill
-9. Easy cherry tomato corn salad
-10. Vegan black bean and sweet potato salad
-
+1. Afghan biscuits (annotation)
+2. Almond crescent cookies, from SimplyRecipes.com (annotation + grammar)
+3. Almond Crescent Cookies, from Food.com (annotation)
+4. Almond Crescent Cookies, from AllRecipes.com (annotation)
+5. Almond Crescent Cookies, from Cooks.com (annotation)
+6. Almond Crescent Cookies, from TheSpruceEats.com (annotation)
+7. Avocado Chicken Salad (annotation)
+8. Basic Chicken Salad (annotation)
+9. Best brownies (annotation)
+10. Bisquick Shortcake Biscuits (annotation)
+11. Black Bean and Corn Salad (annotation)
+12. Black Bean and Mango Salad (annotation)
+13. Black Bean Salad, from Food.com (annotation)
+14. Black Bean Salad, from SimplyRecipes.com (annotation)
+15. Broccoli Salad (annotation)
+16. Chocolate Cream Cheese Cupcakes (annotation)
+17. Chocolate fudge cookies (annotation)
+18. Classic Greek Salad (annotation)
+15. Classic Potato Salad (annotation)
+20. Coconut Tuiles (annotation)
+21. Cole Slaw (annotation)
+22. Cranberry Fluff Salad (annotation)
+23. Cucumber slices with dill (annotation)
+24. Easy banana bread (annotation)
+25. Easy cherry tomato corn salad (annotation)
+26. Easy oatmeal cookies (annotation)
+27. Mexican Wedding Cookies (annotation)
+28. Tossed Salad With Homemade Croutons and Oil and Vinegar Dressing (annotation)
+29. Vegan black bean and sweet potato salad (annotation)
+30. Whole wheat ginger snaps (annotation)
 
 ## Primitives
 
-The primitive operations that the cookingbot can actually handle, are listed here below. The number of arguments that a primitive takes is indicated between brackets behind its name.
+The primitive operations that the cookingbot can actually handle, can be found in the benchmark documentation available in the folder 'benchmark/documentation'. Extensions to these primitives can be made by modifying the 'primitives.lisp' file. However, this might also require modifications in the 'ontology.lisp' file if new ingredients or tools are introduced. 
 
-#### **get-kitchen** (1)
-- ks-out
-
-#### **fetch-and-proportion** (7)
-  - proportioned-ingredient
-  - ks-out
-  - ks-in
-  - container
-  - concept
-  - quantity
-  - unit
-
-#### **fetch** (5)
-  - fetched-thing
-  - ks-out
-  - ks-in
-  - concept-to-fetch-instance-of
-  - quantity
-
-#### **bring-to-temperature** (6)
-  - ingredient-out
-  - ks-out
-  - ks-in
-  - ingredient-in
-  - quantity
-  - unit
-
-#### **transfer-contents** (8)
-  - container-out
-  - container-rest
-  - ks-out
-  - ks-in
-  - empty-container
-  - container-in
-  - quantity
-  - unit
-
-#### **beat** (5)
-  - container-out
-  - ks-out
-  - ks-in
-  - container-in
-  - tool
-
-#### **mix** (5)
-  - container-out
-  - ks-out
-  - ks-in
-  - container-in
-  - tool
-
-#### **portion-and-arrange** (8)
-  - portions
-  - ks-out
-  - ks-in
-  - dough-to-be-portioned
-  - portion-amount
-  - portion-unit
-  - arrangement-pattern
-  - destination
-
-#### **shape** (5)
-  - shaped-portions
-  - ks-out
-  - ks-in
-  - portions
-  - shape
-
-#### **line** (5)
-  - lined-container
-  - ks-out
-  - ks-in
-  - container-to-line (can be concept)
-  - material-to-line-container-with (can be concept)
-
-####  **transfer-items** (5)
-  - items-at-destination
-  - ks-out
-  - ks-in
-  - items-at-source
-  - arrangement-pattern
-  - destination
-
-#### **bake** (9)
-  - thing-baked
-  - ks-out
-  - ks-in
-  - thing-to-bake
-  - oven-to-bake-in
-  - time-to-bake-quantity
-  - time-to-bake-unit
-  - target-temperature-quantity
-  - target-temperature-unit
-
-#### **sprinkle** (5)
-  - thing-sprinkled
-  - ks-out
-  - ks-in
-  - thing-to-sprinkle
-  - container-with-topping
-
-#### **preheat-oven** (5)
-  - preheated-oven
-  - ks-out
-  - ks-in
-  - temperature-quantity
-  - temperature-unit
-
-#### **sift** (5)
-  - container-with-sifted-contents
-  - ks-out
-  - ks-in
-  - target-container
-  - container-with-ingredients-to-be-sifted
-  - tool
-
-#### **flatten** (5)
-  - flattened-dough
-  - ks-out
-  - ks-in
-  - dough-to-flatten (can be set of items)
-  - tool
-
-#### **spread** (6)
-  - thing-with-spread-on-top
-  - ks-out
-  - ks-in
-  - thing-to-be-spread
-  - spread
-  - tool
-
-#### **melt** (4)
-  - ingredient-melted
-  - ks-out
-  - ks-in
-  - ingredient-to-melt
-
-#### **grease** (5)
-  - greased-container
-  - ks-out
-  - ks-in
-  - container-to-grease
-  - grease
-
-#### **flour** (5)
-  - floured-container
-  - ks-out
-  - ks-in
-  - container-to-flour
-  - flour
-
-#### **crack** (5)
-  - container-with-cracked-eggs
-  - ks-out
-  - ks-in
-  - container-with-eggs
-  - destination-container
-
-#### **cut** (6)
-  - container-w-cut-object
-  - ks-out
-  - ks-in
-  - container-w-object-to-cut
-  - pattern
-  - tool
-
-#### **mash** (5)
-  - container-w-mashed-ingredient
-  - ks-out
-  - ks-in
-  - container-w-ingredient-to-mash
-  - tool
+## Initial Kitchen State
+The initial kitchen state that is used in the simulator can be modified in the 'environments.lisp' file. Modifications in 'ontology.lisp' might be required in order to introduce new ingredients or tools.
