@@ -233,29 +233,30 @@
                  :primary-output-var
                  '?thing-baked))
 
-(defparameter demo (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo.solution" *metrics* (list *demo-env*)))
-(print-results demo)
 
-(defparameter demo-permuted (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-2.solution" *metrics* (list *demo-env*)))
-(print-results demo-permuted)
+;(defparameter demo (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo.solution" *metrics* (list *demo-env*)))
+;(print-results demo)
 
-(defparameter demo-non-baked (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-3.solution" *metrics* (list *demo-env*)))
-(print-results demo-non-baked)
+;(defparameter demo-permuted (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-2.solution" *metrics* (list *demo-env*)))
+;(print-results demo-permuted)
 
-(defparameter demo-missing-ingredient (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-4.solution" *metrics* (list *demo-env*)))
-(print-results demo-missing-ingredient)
+;(defparameter demo-non-baked (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-3.solution" *metrics* (list *demo-env*)))
+;(print-results demo-non-baked)
 
-(defparameter demo-extra-fetch (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-5.solution" *metrics* (list *demo-env*)))
-(print-results demo-extra-fetch)
+;(defparameter demo-missing-ingredient (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-4.solution" *metrics* (list *demo-env*)))
+;(print-results demo-missing-ingredient)
 
-(defparameter demo-changed-order (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-6.solution" *metrics* (list *demo-env*)))
-(print-results demo-changed-order)
+;(defparameter demo-extra-fetch (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-5.solution" *metrics* (list *demo-env*)))
+;(print-results demo-extra-fetch)
 
-(defparameter demo-empty (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-7.solution" *metrics* (list *demo-env*)))
-(print-results demo-empty)
+;(defparameter demo-changed-order (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-6.solution" *metrics* (list *demo-env*)))
+;(print-results demo-changed-order)
 
-(defparameter test-grammar (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test.lisp" *metrics* (list *almond-crescent-cookies-environment*)))
-(print-results test-grammar)
+;(defparameter demo-empty (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test-demo-7.solution" *metrics* (list *demo-env*)))
+;(print-results demo-empty)
+
+;(defparameter test-grammar (evaluate-solutions "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\evaluation\\tests\\test.lisp" *metrics* (list *almond-crescent-cookies-environment*)))
+;(print-results test-grammar)
 
 ;;;;;;;;;;;;;;
 ;; EVALUATE ;;
