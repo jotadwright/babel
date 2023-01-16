@@ -8,7 +8,7 @@
    - ouput should contain the path to a .csv file to which the results will be written
    - show-output is a boolean specifying whether the browser should be opened to visualize the simulation process
    - metrics can be any of all of the following values to indicate which evaluation metrics should be used: smatch-score, subgoals-ratio, dish-score, execution-time. Defaults to all metrics."
-  (let ((metrics (if metrics metrics *metrics*)))
+  (let ((metrics (if metrics metrics (remove 'smatch-score *metrics*)))) ; default is everything except the smatch-score
     (when show-output
       ; trace IRL execution
       (wi::start-web-interface :port 8000 :stream nil)
@@ -76,7 +76,6 @@
             (setf line-args (rest line-args)))
 
     (cond ((and input output)
-           (print metrics)
            (internal-evaluate input output :show-output show-output :metrics metrics :lib-dir lib-dir))
           ;  (when (hcl:delivered-image-p) (lw:quit)))
           (t
@@ -140,7 +139,9 @@
                              (capi:text-input-pane-text (output-filename choice))))
         (show-output (if (capi:choice-selected-items (web-check choice)) t nil))
         (metrics '())
-        (lib-dir (first (capi:display-pane-text (lib-viewer choice)))))
+        (lib-dir (if (listp (capi:display-pane-text (lib-viewer choice)))
+                   (first (capi:display-pane-text (lib-viewer choice)))
+                   nil)))
 
     (when (find "Smatch Score" (capi:choice-selected-items (metric-checks choice)) :test #'string-equal)
       (push 'smatch-score metrics))

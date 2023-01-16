@@ -1,1 +1,1 @@
-cookingbot-evaluator.exe "evaluation/tests/test-imperfect.solution" "evaluation/tests/results.csv" t dish-approximation-score execution-time
+cookingbot-evaluator.exe -input "evaluation/tests/test-imperfect.solution" -output "evaluation/tests/results.csv" -show-output t -metrics dish-approximation-score execution-time
