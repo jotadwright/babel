@@ -3128,49 +3128,89 @@
                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
                   (can-spread-kitchen-tool 0.0 (make-instance 'failed-object) container-available-at)))))))
 
-(defprimitive sprinkle ((sprinkled-object transferable-container)
+(defprimitive sprinkle ((sprinkled-object t) ; transferable container or list-of-kitchen-entities
                         (kitchen-state-out kitchen-state)
                         (kitchen-state-in kitchen-state)
-                        (object transferable-container)
+                        (object t) ; transferable container or list-of-kitchen-entities
                         (topping-container transferable-container))
   
   ((kitchen-state-in object topping-container
                      => kitchen-state-out sprinkled-object)
 
-   (let* ((new-kitchen-state (copy-object kitchen-state-in))
-          (new-input-container (find-object-by-persistent-id object (counter-top new-kitchen-state)))
-          (new-topping-container (find-object-by-persistent-id topping-container (counter-top new-kitchen-state)))
-          (sprinkled-object-available-at (+ (max (kitchen-time kitchen-state-in)
-                                                 (available-at (find (id object) binding-objects
-                                                                     :key #'(lambda (binding-object)
-                                                                              (and (value binding-object)
-                                                                                   (id (value binding-object)))))))
-                                            50))
-          (kitchen-state-available-at sprinkled-object-available-at))
+   (cond ((subtypep (type-of object) 'transferable-container)
 
-   (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+          (let* ((new-kitchen-state (copy-object kitchen-state-in))
+                 (new-input-container (find-object-by-persistent-id object (counter-top new-kitchen-state)))
+                 (new-topping-container (find-object-by-persistent-id topping-container (counter-top new-kitchen-state)))
+                 (sprinkled-object-available-at (+ (max (kitchen-time kitchen-state-in)
+                                                        (available-at (find (id object) binding-objects
+                                                                            :key #'(lambda (binding-object)
+                                                                                     (and (value binding-object)
+                                                                                          (id (value binding-object)))))))
+                                                   50))
+                 (kitchen-state-available-at sprinkled-object-available-at))
 
-   (cond ((and new-input-container new-topping-container)
-          (let* ((topping (first (contents new-topping-container)))
-                 (total-topping-weight-in-grams (convert-to-g topping))
-                 (topping-weight-per-portion (make-instance 'amount
-                                                            :quantity (make-instance 'quantity
-                                                                                     :value (/ (value (quantity (amount total-topping-weight-in-grams)))
-                                                                                               (length (contents new-input-container))))
-                                                            :unit (make-instance 'g))))
+            (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+            
+            (cond ((and new-input-container new-topping-container)
+                   (let* ((topping (first (contents new-topping-container)))
+                          (total-topping-weight-in-grams (convert-to-g topping))
+                          (topping-weight-per-portion (make-instance 'amount
+                                                                     :quantity (make-instance 'quantity
+                                                                                              :value (/ (value (quantity (amount total-topping-weight-in-grams)))
+                                                                                                        (length (contents new-input-container))))
+                                                                     :unit (make-instance 'g))))
 
-            (loop for portion in (contents new-input-container)
-                  for topping = (copy-object (first (contents new-topping-container)))
-                  do (setf (amount topping) topping-weight-per-portion)
-                     (setf (sprinkled-with portion) topping))
+                     (loop for portion in (contents new-input-container)
+                           for topping = (copy-object (first (contents new-topping-container)))
+                           do (setf (amount topping) topping-weight-per-portion)
+                              (setf (sprinkled-with portion) topping))
      
-            (setf (contents new-topping-container) nil)     
+                     (setf (contents new-topping-container) nil)     
      
-            (bind (sprinkled-object 1.0 new-input-container sprinkled-object-available-at)
-                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
-         (t
-          (bind (sprinkled-object 1.0 (make-instance 'failed-object) sprinkled-object-available-at)
-                (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+                     (bind (sprinkled-object 1.0 new-input-container sprinkled-object-available-at)
+                           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+                  (t
+                   (bind (sprinkled-object 1.0 (make-instance 'failed-object) sprinkled-object-available-at)
+                         (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))
+           
+           ((subtypep (type-of object) 'list-of-kitchen-entities)
+
+            (let* ((new-kitchen-state (copy-object kitchen-state-in))
+                   (new-input-items (find-kitchen-entities object (counter-top new-kitchen-state)))
+                   (new-topping-container (find-object-by-persistent-id topping-container (counter-top new-kitchen-state)))
+                   (sprinkled-object-available-at (+ (max (kitchen-time kitchen-state-in)
+                                                          (available-at (find (id object) binding-objects
+                                                                              :key #'(lambda (binding-object)
+                                                                                       (and (value binding-object)
+                                                                                            (id (value binding-object)))))))
+                                                     50))
+                   (kitchen-state-available-at sprinkled-object-available-at))
+
+              (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+            
+              (cond ((and new-input-items new-topping-container)
+                     (let* ((topping (first (contents new-topping-container)))
+                          (total-topping-weight-in-grams (convert-to-g topping))
+                          (topping-weight-per-portion (make-instance 'amount
+                                                                     :quantity (make-instance 'quantity
+                                                                                              :value (/ (value (quantity (amount total-topping-weight-in-grams)))
+                                                                                                        (length (items new-input-items))))
+                                                                     :unit (make-instance 'g))))
+
+                     (loop for portion in (items new-input-items)
+                           for topping = (copy-object (first (contents new-topping-container)))
+                           do (setf (amount topping) topping-weight-per-portion)
+                              (setf (sprinkled-with portion) topping))
+     
+                     (setf (contents new-topping-container) nil)     
+     
+                     (bind (sprinkled-object 1.0 new-input-items sprinkled-object-available-at)
+                           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+                  (t
+                   (bind (sprinkled-object 1.0 (make-instance 'failed-object) sprinkled-object-available-at)
+                         (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))))
+
 
 (defprimitive transfer-contents ((container-with-all-ingredients transferable-container)
                                  (container-with-rest transferable-container)
