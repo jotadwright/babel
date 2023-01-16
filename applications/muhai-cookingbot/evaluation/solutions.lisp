@@ -203,6 +203,7 @@
    Temporary files will be used to store the meaning networks in case they are too big to give via command line.
 
    The argument lib-dir can be used to set the path to the required library folder in case this function is used outside of a Babel setup."
+  
   (assert (progn (listp mn1) (listp mn2)))
 
   (when (and lib-dir
