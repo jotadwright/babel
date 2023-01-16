@@ -109,28 +109,34 @@
   (:panes
    (input-button capi:push-button
                  :text "Select Solution File"
-                 :min-width '(:character 30)
+                 :visible-min-width '(:character 30)
+                 :visible-max-width t
                  :selection-callback 'select-input)
    (input-viewer capi:display-pane
                  :text "No file selected."
-                 :min-width '(:character 50)
-                 :min-height '(:character 1)
-                 :max-height '(:character 1)
+                 :visible-min-width '(:character 50)
+                 :visible-max-width nil
+                 :visible-min-height '(:character 1)
+                 :visible-max-height t
                  :reader input-viewer)
    (output-button capi:push-button
                   :text "Select Results Directory"
-                  :min-width '(:character 30)
+                  :visible-min-width '(:character 30)
+                  :visible-max-width t
                   :selection-callback 'select-output)
    (output-viewer capi:display-pane
                   :text "No directory selected."
                   :visible-min-width '(:character 50)
+                  :visible-max-width nil
                   :visible-min-height '(:character 1)
                   :visible-max-height '(:character 1)
                   :reader output-viewer)
    (output-filename capi:text-input-pane
                     :text "results.csv"
-                    :max-width '(:character 50)
-                    :min-height '(:character 1)
+                    :visible-min-width '(:character 50)
+                    :visible-max-width nil
+                    :visible-min-height '(:character 1)
+                    :visible-max-height t
                     :reader output-filename)
    (web-check capi:check-button-panel
               :items '("Visualize Simulation Process")
@@ -141,7 +147,7 @@
                   :reader metric-checks)
    (start-button capi:push-button
                  :text "Start Evaluation"
-                 :max-width nil
+                 :visible-max-width nil
                  :enabled nil
                  :reader start-button
                  :selection-callback 'start-evaluation))
@@ -160,3 +166,5 @@
    (:default-initargs
     :title "Evaluator Settings"
     :auto-menus nil))
+
+(evaluate)
