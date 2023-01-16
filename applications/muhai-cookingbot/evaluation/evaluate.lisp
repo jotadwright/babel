@@ -76,9 +76,14 @@
             (setf line-args (rest line-args)))
 
     (cond ((and input output)
+           (when (and (not lib-dir)
+                      (find 'smatch-score metrics))
+             (error "No -lib-dir parameter provided while requesting Smatch Score computation."))
            (internal-evaluate input output :show-output show-output :metrics metrics :lib-dir lib-dir))
           ;  (when (hcl:delivered-image-p) (lw:quit)))
           (t
+           (unless (<= (length sys:*line-arguments-list*) 1)
+             (print "No -input and -output parameters provided. Opening GUI for parameter specification."))
            (let ((evaluation-init (make-instance 'init-panel)))
              (capi:display evaluation-init))))))
 
