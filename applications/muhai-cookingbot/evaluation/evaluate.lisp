@@ -2,7 +2,7 @@
 
 (defvar *port* 8000)
 
-(defun internal-evaluate (input output &optional (show-output nil) &rest metrics)
+(defun internal-evaluate (input output &key show-output lib-dir metrics)
   "Entry function for solution evaluation.
    - input should contain the path to a .solution file
    - ouput should contain the path to a .csv file to which the results will be written
@@ -17,7 +17,7 @@
 
     ; evaluate the input
     (unless (and (find 'none metrics) (not show-output))
-      (let ((solutions (evaluate-solutions input metrics)))
+      (let ((solutions (evaluate-solutions input metrics *simulation-environments* lib-dir)))
       ; write away the solutions to a csv file
         (unless (find 'none metrics)
           (write-solutions-to-csv solutions output metrics))
@@ -45,17 +45,43 @@
   (setf sys:*sg-default-size* 128000)
 
   ; gather the command line arguments and use them for the internal-evaluate call
-  (let ((input (second sys:*line-arguments-list*))
-        (output (third sys:*line-arguments-list*))
-        (show-output (string-equal (fourth sys:*line-arguments-list*) "t"))
-        (metrics (mapcar  #'read-from-string (nthcdr 4 sys:*line-arguments-list*))))
+  (let ((input '())
+        (output '())
+        (show-output '())
+        (metrics '())
+        (lib-dir '())
+        (line-args (rest sys:*line-arguments-list*)))
 
-     (cond ((>= (length sys:*line-arguments-list*) 3)
-            (apply #'internal-evaluate `(,input ,output ,show-output ,@metrics)))
+    (loop while line-args
+          do
+            (cond ((string-equal (first line-args) "-input")
+                   (setf input (second line-args)))
+                  ((string-equal (first line-args) "-output")
+                   (setf output (second line-args)))
+                  ((string-equal (first line-args) "-show-output")
+                   (setf show-output (or (string-equal (second line-args) "t")
+                                         (string-equal (second line-args) "true"))))
+                  ((string-equal (first line-args) "-lib-dir")
+                   (setf lib-dir (second line-args)))
+                  ((string-equal (first line-args) "-metrics")
+                   (let ((metrics-args (rest line-args)))
+                     (loop while metrics-args
+                           do
+                             (if (not (find (first metrics-args) (list "-input" "-output" "-show-output" "-lib-dir" "-metrics") :test #'string-equal))
+                               (progn
+                                 (push (first metrics-args) metrics)
+                                 (setf metrics-args (rest metrics-args)))
+                               (setf metrics-args nil)))
+                     (setf metrics (mapcar  #'read-from-string metrics)))))
+            (setf line-args (rest line-args)))
+
+    (cond ((and input output)
+           (print metrics)
+           (internal-evaluate input output :show-output show-output :metrics metrics :lib-dir lib-dir))
           ;  (when (hcl:delivered-image-p) (lw:quit)))
-           (t
-            (let ((evaluation-init (make-instance 'init-panel)))
-              (capi:display evaluation-init))))))
+          (t
+           (let ((evaluation-init (make-instance 'init-panel)))
+             (capi:display evaluation-init))))))
 
 ;; CAPI panels
 (defun select-input (item choice)
@@ -67,19 +93,54 @@
       (activate-start-button choice))))
 
 (defun select-output (item choice)
-  (let ((selected-file (capi:prompt-for-directory "please select a directory")))
-    (when selected-file
+  (let ((selected-dir (capi:prompt-for-directory "please select a directory")))
+    (when selected-dir
       (capi:apply-in-pane-process
        (output-viewer choice) #'(setf capi:display-pane-text)
-       (list (namestring selected-file)) (output-viewer choice))
+       (list (namestring selected-dir)) (output-viewer choice))
       (activate-start-button choice))))
+
+(defun select-lib (item choice)
+  (let ((selected-dir (capi:prompt-for-directory "please select a directory")))
+    (when selected-dir
+      (capi:apply-in-pane-process
+       (lib-viewer choice) #'(setf capi:display-pane-text)
+       (list (namestring selected-dir)) (lib-viewer choice))
+      (activate-start-button choice))))
+
+(defun activate-start-button (choice)
+  (if (and (listp (capi:display-pane-text (input-viewer choice)))
+           (listp (capi:display-pane-text (output-viewer choice)))
+           (or (listp (capi:display-pane-text (lib-viewer choice)))
+               (not (find "Smatch Score" (capi:choice-selected-items (metric-checks choice)) :test #'string-equal))))
+    (capi:apply-in-pane-process
+     (start-button choice) #'(setf capi:button-enabled) t (start-button choice))
+    (capi:apply-in-pane-process
+     (start-button choice) #'(setf capi:button-enabled) nil (start-button choice))))
+
+(defun metric-selection-callback (item choice)
+  (when (string-equal item "Smatch Score")
+    (capi:apply-in-pane-process
+     (lib-button choice) #'(setf capi:button-enabled) t (lib-button choice))
+    (capi:apply-in-pane-process
+     (lib-viewer choice) #'(setf capi:simple-pane-enabled) t (lib-viewer choice))
+    (activate-start-button choice)))
+
+(defun metric-retraction-callback (item choice)
+  (when (string-equal item "Smatch Score")
+    (capi:apply-in-pane-process
+     (lib-button choice) #'(setf capi:button-enabled) nil (lib-button choice))
+    (capi:apply-in-pane-process
+     (lib-viewer choice) #'(setf capi:simple-pane-enabled) nil (lib-viewer choice))
+    (activate-start-button choice)))
 
 (defun start-evaluation (item choice)
   (let ((input (first (capi:display-pane-text (input-viewer choice))))
         (output (concatenate 'string (first (capi:display-pane-text (output-viewer choice)))
                              (capi:text-input-pane-text (output-filename choice))))
         (show-output (if (capi:choice-selected-items (web-check choice)) t nil))
-        (metrics '()))
+        (metrics '())
+        (lib-dir (first (capi:display-pane-text (lib-viewer choice)))))
 
     (when (find "Smatch Score" (capi:choice-selected-items (metric-checks choice)) :test #'string-equal)
       (push 'smatch-score metrics))
@@ -95,14 +156,8 @@
     (capi:apply-in-pane-process
      choice #'(setf capi:top-level-interface-display-state) :hidden choice)
 
-    (apply #'internal-evaluate `(,input ,output ,show-output ,@metrics))))
-    ;(when (hcl:delivered-image-p) (lw:quit))))
-
-(defun activate-start-button (choice)
-  (when (and (listp (capi:display-pane-text (input-viewer choice)))
-             (listp (capi:display-pane-text (output-viewer choice))))
-    (capi:apply-in-pane-process
-     (start-button choice) #'(setf capi:button-enabled) t (start-button choice))))
+    (internal-evaluate input output :show-output show-output :metrics metrics :lib-dir lib-dir)))
+    ;(when (hcl:delivered-image-p) (lw:quit)))) ; we can close the console line if we want
                     
 (capi:define-interface init-panel ()
   ()
@@ -143,8 +198,25 @@
               :reader web-check)
    (metric-checks capi:check-button-panel
                   :items '("Smatch Score" "Goal-Condition Success" "Dish Approximation Score" "Execution Time")
+                  :selection-callback 'metric-selection-callback
+                  :retract-callback   'metric-retraction-callback
                   :layout-class 'capi:column-layout
                   :reader metric-checks)
+   (lib-button capi:push-button
+               :text "Select Smatch Directory"
+                 :visible-min-width '(:character 30)
+                 :visible-max-width t
+                 :enabled nil
+                 :selection-callback 'select-lib
+                 :reader lib-button)
+   (lib-viewer capi:display-pane
+                 :text "No library directory selected."
+                 :visible-min-width '(:character 50)
+                 :visible-max-width nil
+                 :visible-min-height '(:character 1)
+                 :visible-max-height t
+                 :enabled nil
+                 :reader lib-viewer)
    (start-button capi:push-button
                  :text "Start Evaluation"
                  :visible-max-width nil
@@ -159,6 +231,7 @@
       " " "" "Results Filename:" output-filename " "
       " " "Web Interface:" web-check :right-extend " "
       " " "Evaluation Metrics:" metric-checks :right-extend " "
+      " " "" lib-button lib-viewer " "
       " " start-button :right-extend :right-extend " ")
       :x-gap 10
       :y-gap 20

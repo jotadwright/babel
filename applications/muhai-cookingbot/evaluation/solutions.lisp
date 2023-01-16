@@ -198,10 +198,18 @@
       (format output-stream "~(~a~)~%" prim-op))
     (close output-stream)))
 
-(defun compute-smatch-score (mn1 mn2 &optional use-temp-files)
+(defun compute-smatch-score (mn1 mn2 &key use-temp-files lib-dir)
   "Calls the python smatch program which calculates the smatch score of a parsed meaning network and a gold standard meaning.
-   Temporary files will be used to store the meaning networks in case they are too big to give via command line."
+   Temporary files will be used to store the meaning networks in case they are too big to give via command line.
+
+   The argument lib-dir can be used to set the path to the required library folder in case this function is used outside of a Babel setup."
   (assert (progn (listp mn1) (listp mn2)))
+
+  (when (and lib-dir
+             (not (or (char= (char lib-dir (- (length lib-dir) 1)) #\\)
+                      (char= (char lib-dir (- (length lib-dir) 1)) #\/))))
+    (setf lib-dir (concatenate 'string lib-dir "\\")))
+  
   (if (not use-temp-files)
     (progn
       (let ((L1 (copy-list mn1))
@@ -211,9 +219,12 @@
         (setf L1 (format nil "~{~a ~}" L1))
         (setf L2 (format nil "~{~a ~}" L2))
 
-        (let* ((program (babel-pathname :directory '("libraries" "smatch")
-                                        :name "smatch" :type "py"))
-               (program-as-string (namestring program)) ;; CCL requires program arguments to all be simple strings
+        (let* ((program(babel-pathname :directory '("libraries" "smatch")
+                                       :name "smatch" :type "py"))
+               (program-as-string
+                (if lib-dir
+                  (concatenate 'string lib-dir "smatch.py")
+                  (namestring program))) ;; CCL requires program arguments to all be simple strings
                (stream (pipe-input "python" :args (list program-as-string "-m"
                                                         (format nil "~s" L1) (format nil "~s" L2))))
                (python-output (read-line stream))
@@ -223,28 +234,36 @@
           (close stream)
           (if output
             output
-            (compute-smatch-score mn1 mn2 T))))
-    (progn
-      (let* ((sol-temp-file-path (babel-pathname :directory '(".tmp") :name "temp-sol-mn" :type "lisp"))
-             (sol-temp-path-as-string (namestring sol-temp-file-path))
-             (gold-temp-file-path (babel-pathname :directory '(".tmp") :name "temp-gold-mn" :type "lisp"))
-             (gold-temp-path-as-string (namestring gold-temp-file-path)))
+            (compute-smatch-score mn1 mn2 :use-temp-files t :lib-dir lib-dir))))
+      (progn
+        (let* ((sol-temp-file-path (babel-pathname :directory '(".tmp") :name "temp-sol-mn" :type "lisp"))
+               (sol-temp-path-as-string
+                (if lib-dir
+                  (concatenate 'string lib-dir ".tmp\\temp-sol-mn.lisp")
+                  (namestring sol-temp-file-path)))
+               (gold-temp-file-path (babel-pathname :directory '(".tmp") :name "temp-gold-mn" :type "lisp"))
+               (gold-temp-path-as-string
+                (if lib-dir
+                  (concatenate 'string lib-dir ".tmp\\temp-gold-mn.lisp")
+                  (namestring gold-temp-file-path))))
         
-        (setf mn1 (sort mn1 #'string-lessp :key #'first))
-        (setf mn2 (sort mn2 #'string-lessp :key #'first))
-        (write-network-to-file mn1 sol-temp-path-as-string)
-        (write-network-to-file mn2 gold-temp-path-as-string)
+          (setf mn1 (sort mn1 #'string-lessp :key #'first))
+          (setf mn2 (sort mn2 #'string-lessp :key #'first))
+          (write-network-to-file mn1 sol-temp-path-as-string)
+          (write-network-to-file mn2 gold-temp-path-as-string)
 
-        (let* ((program (babel-pathname :directory '("libraries" "smatch")
-                                        :name "smatch" :type "py"))
-               (program-as-string (namestring program)) ;; CCL requires program arguments to all be simple strings
-               (stream (pipe-input "python" :args (list program-as-string "-m" sol-temp-path-as-string gold-temp-path-as-string)))
-               (output (read-from-string
-                        (second (split-sequence:split-sequence ":"  (read-line stream) :test #'string=)))))
-          (close stream)
-          (delete-file sol-temp-file-path)
-          (delete-file gold-temp-file-path)
-          output))))))
+          (let* ((program (babel-pathname :directory '("libraries" "smatch") :name "smatch" :type "py"))
+                 (program-as-string
+                  (if lib-dir
+                    (concatenate 'string lib-dir "smatch.py")
+                    (namestring program))) ;; CCL requires program arguments to all be simple strings
+                 (stream (pipe-input "python" :args (list program-as-string "-m" sol-temp-path-as-string gold-temp-path-as-string)))
+                 (output (read-from-string
+                          (second (split-sequence:split-sequence ":"  (read-line stream) :test #'string=)))))
+            (close stream)
+            (delete-file sol-temp-file-path)
+            (delete-file gold-temp-file-path)
+            output))))))
 
 ;; Subgoal Evaluation (Goal Condition Testing) ;;
 
@@ -607,7 +626,7 @@
 (defparameter *metrics*
   '(smatch-score goal-condition-success dish-approximation-score execution-time))
 
-(defun evaluate-solutions (filepath &optional (metrics *metrics*) (sim-envs *simulation-environments*))
+(defun evaluate-solutions (filepath &optional (metrics *metrics*) (sim-envs *simulation-environments*) (lib-dir nil))
   (let ((solutions (parse-solutions-file filepath))) ; read in the solutions
     (check-solutions solutions sim-envs) ; check if the solutions file contains all the needed solutions
     (loop for current-solution in solutions
@@ -622,7 +641,7 @@
             (print (recipe-id current-solution))
             ; compute the smatch score (no simulation needed for this part)
             (when (member 'smatch-score metrics)
-              (setf (smatch-score current-solution) (compute-smatch-score solution-mn gold-mn))) 
+              (setf (smatch-score current-solution) (compute-smatch-score solution-mn gold-mn :lib-dir lib-dir))) 
 
             ; simulate and score recipe "execution"    
             (init-kitchen-state current-sim-env)
