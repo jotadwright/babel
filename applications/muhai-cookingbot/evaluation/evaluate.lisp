@@ -167,4 +167,5 @@
     :title "Evaluator Settings"
     :auto-menus nil))
 
-(evaluate)
+; Test the GUI:
+;(evaluate)

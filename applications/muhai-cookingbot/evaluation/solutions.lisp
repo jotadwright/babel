@@ -337,13 +337,34 @@
 
 ; made so comparison code doesn't have to make certain explicit distinctions between a container and a list-of-kitchen-entities object
 (defgeneric contents-or-items (object)
-  (:documentation "Convenience function to get the contents/item from a container of list-of-kitchen-entities."))
+  (:documentation "Convenience function to get the contents/items from a container of list-of-kitchen-entities."))
 
 (defmethod contents-or-items ((container container))
   (contents container))
 
 (defmethod contents-or-items ((list-of-kitchen-entities list-of-kitchen-entities))
   (items list-of-kitchen-entities))
+
+(defun get-ingredient-additions (ingredient)
+  "Convenience function to get all the additional ingredients that have indirectly been added to an ingredient."
+  (let ((additions '()))
+    (when (and (subtypep (type-of ingredient) 'can-be-sprinkled-on)
+               (sprinkled-with ingredient))
+      (push (sprinkled-with ingredient) additions))
+    (when (and (subtypep (type-of ingredient) 'dippable)
+               (dipped-in ingredient))
+      (push (dipped-in ingredient) additions))
+    additions))
+
+(defun all-ingredients (object)
+  "Convenience function to get all the ingredients from a container or list-of-kitchen-entities, including sprinkles and dips."
+  (let ((ingredients (contents-or-items object)))
+    (loop for ingredient in ingredients
+          for additions = (get-ingredient-additions ingredient)
+          when additions
+            do
+              (setf ingredients (append additions ingredients)))
+    ingredients))
 
 (defmethod unfold-mixture ((mixture-to-unfold hierarchy-ingredient))
   "Unfold the given mixture into a list of all the base ingredients that are contained in it."
@@ -358,16 +379,30 @@
                                  :quantity (make-instance 'quantity
                                                           :value (* (value (quantity (amount comp))) mixture-value))
                                  :unit (unit (copy-object (amount inner-mixture)))))
-          (cond ((subtypep (type-of comp) 'mixture)
-                 (let ((unfolded-sub-comps (unfold-mixture (make-instance 'hierarchy-ingredient
-                                                                          :ingredient comp
-                                                                          :part-of mixture-to-unfold))))
-                   (setf unfolded-comps (append unfolded-comps unfolded-sub-comps))))
-                ((subtypep (type-of comp) 'ingredient)
-                 (setf unfolded-comps (append unfolded-comps (list (make-instance 'hierarchy-ingredient
-                                                                                  :ingredient comp
-                                                                                  :part-of mixture-to-unfold)))))
-                (t (error "unsupported component of class ~a" (type-of comp)))))
+            (cond ((subtypep (type-of comp) 'mixture)
+                   (let ((unfolded-sub-comps (unfold-mixture (make-instance 'hierarchy-ingredient
+                                                                            :ingredient comp
+                                                                            :part-of mixture-to-unfold))))
+                     (setf unfolded-comps (append unfolded-comps unfolded-sub-comps))))
+                  ((subtypep (type-of comp) 'ingredient)
+                   (setf unfolded-comps (append unfolded-comps (list (make-instance 'hierarchy-ingredient
+                                                                                    :ingredient comp
+                                                                                    :part-of mixture-to-unfold)))))
+                  (t (print "unsupported component of class ~a" (type-of comp))))
+
+            ; also take additional ingredients into account that might be present in the form of sprinkles or dips
+            (loop for addition in (get-ingredient-additions comp)
+                  do
+                    (cond ((subtypep (type-of addition) 'mixture)
+                           (let ((unfolded-sub-comps (unfold-mixture (make-instance 'hierarchy-ingredient
+                                                                                    :ingredient addition
+                                                                                    :part-of '()))))
+                             (setf unfolded-comps (append unfolded-comps unfolded-sub-comps))))
+                          ((subtypep (type-of addition) 'ingredient)
+                           (setf unfolded-comps (append unfolded-comps (list (make-instance 'hierarchy-ingredient
+                                                                                            :ingredient addition
+                                                                                            :part-of '())))))
+                          (t (print "unsupported addition of class ~a" (type-of addition))))))
     unfolded-comps))
 
 (defun unfold-dish (dish)
@@ -378,7 +413,7 @@
          (unfolded-contents '())
          (merged-contents '()))
     ; unfold every item that is in the dish     
-    (loop for item in (contents-or-items dish-copy)
+    (loop for item in (all-ingredients dish-copy)
             do (cond ((subtypep (type-of item) 'mixture)
                       (setf unfolded-contents (append unfolded-contents (unfold-mixture
                                                                          (make-instance 'hierarchy-ingredient
@@ -486,8 +521,8 @@
            (contents-score (make-instance 'similarity-score)))
     ; check if this node actually returns a container with ingredients or a list-of-kitchen-entities
       (if (not (and (or (subtypep (type-of sol-value) 'container) (subtypep (type-of sol-value) 'list-of-kitchen-entities))
-                    (contents-or-items sol-value)
-                    (loop for item in (contents-or-items sol-value) always (subtypep (type-of item) 'ingredient))))
+                    (all-ingredients sol-value)
+                    (loop for item in (all-ingredients sol-value) always (subtypep (type-of item) 'ingredient))))
         (make-instance 'similarity-score
                        :points 0
                        :max-points 1)
@@ -511,7 +546,7 @@
                   do (add-points container-score 0 1))
         ; number of portions in the dish is worth a score of 1
         ; (only 1 because right now an end dish will always be portions of the same mixture, so just one portioning operation might be missing)
-          (if (= (length (contents-or-items sol-value)) (length (contents gold-value)))
+          (if (= (length (contents-or-items sol-value)) (length (contents-or-items gold-value)))
             (add-points container-score 1 1)
             (add-points container-score 0 1))
           ;; contents specific scoring
