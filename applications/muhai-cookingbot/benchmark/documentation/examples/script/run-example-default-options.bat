@@ -1,1 +1,0 @@
-cookingbot-evaluator.exe "../evaluation/wrong-ingredient.solution" "results-default-options.csv"
