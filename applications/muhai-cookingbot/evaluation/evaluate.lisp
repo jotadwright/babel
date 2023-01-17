@@ -38,7 +38,7 @@
   (setf (lispworks:environment-variable "PATH") 
         (concatenate 'string
                      #+macosx "/usr/local/bin:/sw/bin:/opt/homebrew/bin:"
-                     #+mswindows"C:\\Program Files\\gnuplot\\bin;C:\\Program Files\\Graphviz2.38\\bin;"
+                     #+mswindows"C:\\Program Files\\gnuplot\\bin;C:\\Program Files\\Graphviz\\bin;"
                      (lispworks:environment-variable "PATH")))
 
    ; use 128K instead of the default 16K stack during evaluation
