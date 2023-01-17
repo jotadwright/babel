@@ -26,8 +26,6 @@ class NaoVision(object):
         # Set camera parameters
         self.photoCaptureProxy.setResolution(cfg.CAMERA_RESOLUTION)
         self.photoCaptureProxy.setPictureFormat(cfg.PICTURE_FORMAT)
-        # Get the Mask R-CNN model
-        self.model = cfg.MODEL
 
     def capture(self):
         '''Capture an image and store it in the image dir.
@@ -38,24 +36,6 @@ class NaoVision(object):
         # img_path = img_directory + img_name + '.' + self.cfg.PICTURE_FORMAT
         return img_paths[0]
 
-    def analyze(self, img_path):
-        '''Analyze the given image. Create a new image with the found
-        bounding boxes and use the masks to do feature extraction,
-        returning the features'''
-        plt.switch_backend('Agg')
-        image = skimage.io.imread(img_path)
-        results = self.model.detect([image], verbose=1)[0]
-        bboxes = results['rois']
-        print('Found %d objects' % len(bboxes))
-        bbox_img_path = self._add_bbox_to_image(image, bboxes, img_path)
-        data = self._extract_image_features(image, results)
-        return bbox_img_path, data
-
-    def capture_and_analyze(self):
-        '''Capture an image and immediately analyze it.
-        Returns both the original image path, the image with
-        bboxes and the feature extracted data.'''
-        pass
 
     def _add_bbox_to_image(self, image, bboxes, orig_path):
         '''Add the bboxes to the image and export this'''
