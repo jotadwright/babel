@@ -10,7 +10,8 @@
 (define-configuration-default-value :robot-ip "192.168.1.4")
 (define-configuration-default-value :robot-port "7850")
 (define-configuration-default-value :robot-vocabulary '((:en "green" "yellow" "blue" "red" "grey" "orange")
-                                                        (:nl "groen" "geel" "blauw" "rood" "grijs" "oranje")))
+                                                        (:nl "groen" "geel" "blauw" "rood" "grijs" "oranje")
+                                                        (:fr "vert" "jaune" "bleu" "rouge" "gris" "orange")))
 (define-configuration-default-value :dutch-nonsense '("tozo" "baga" "lose" "huma" "tado"
                                                       "sela" "muga" "basa" "zabi" "peza"
                                                       "futa" "tili" "rabi" "faru" "moxa"
@@ -42,7 +43,7 @@
 ;; --------------
 
 (defclass demo-experiment (experiment)
-  ()
+  ((vision-server :accessor vision-server :initarg :vision-server :documentation "Vision server for analyzing pictures the robot takes"))
   (:documentation "Experiment class"))
 
 ;(activate-monitor record-communicative-success)
@@ -56,7 +57,8 @@
   (setf *used-dutch-nonsense-words* nil)
   (case (get-configuration experiment :input-lang)
     (:en (speak (first (population experiment)) "Do you want to play a language game?"))
-    (:nl (speak (first (population experiment)) "Wil je een taalspelletje over kleuren spelen?" :speed 75))))
+    (:nl (speak (first (population experiment)) "Wil je een taalspelletje over kleuren spelen?" :speed 75))
+    (:fr (speak (first (population experiment)) "Veux-tu jouer a un jeu de langage?" :speed 75))))
 
 (defmethod destroy ((experiment demo-experiment))
   "Some cleanup when manually running an experiment"
