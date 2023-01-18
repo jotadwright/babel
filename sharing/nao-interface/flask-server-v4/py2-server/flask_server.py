@@ -47,35 +47,6 @@ def capture_image():
     pathname = vision.capture()
     return json.dumps({'pathname': pathname}), 200
 
-
-@nao_server.route("/vision/analyse", methods=["POST"])
-def analyze_image():
-    '''Analyze the image at the given pathname.
-    Returns both the data of the analysis and the pathname
-    of the image + bboxes'''
-    request_data = request.get_json(force=True)
-    errors = check_request_data(request_data, ['filename'])
-    if errors:
-        return json.dumps({'errors': errors}), 400
-    else:
-        vision = NaoVision(nao_config)
-        pathname, data = vision.analyze(request_data['filename'])
-        return json.dumps({'pathname': pathname,
-                           'data': data}), 200
-
-
-@nao_server.route("/vision/capture_analyse", methods=["POST"])
-def capture_analyze_image():
-    '''Capture an image and immediately analyse it. This returns
-    the pathname of the original image, the pathname of the image
-    with bbox and the analysis data.'''
-    vision = NaoVision(nao_config)
-    orig_pathname, bbox_pathname, data = vision.capture_and_analyze()
-    return json.dumps({'pathname': orig_pathname,
-                       'analysis_pathname': bbox_pathname,
-                       'data': data}), 200
-
-
 @nao_server.route("/posture/get", methods=["POST"])
 def get_posture():
     '''Get the current posture'''

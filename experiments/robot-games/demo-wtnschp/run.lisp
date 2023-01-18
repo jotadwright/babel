@@ -17,7 +17,8 @@
 
 (defparameter *experiment*
   (make-instance 'demo-experiment
-                 :entries '((:robot-port . "7850"))))
+                 :entries '((:robot-port . "7850")
+                            (:robot-ip . "192.168.2.4"))))
 
 ;; Switch between text and speech input
 (set-configuration *experiment* :input-form :text)
@@ -56,7 +57,7 @@
 
 
 ;; For setting up the robot
-(setf *robot* (make-robot :type 'nao :ip "192.168.1.4" :server-port "7850"))
+(setf *robot* (make-robot :type 'nao :ip "192.168.2.4" :server-port "7850"))
 
 (hear *robot* '("red" "green" "blue" "yellow"))
 
