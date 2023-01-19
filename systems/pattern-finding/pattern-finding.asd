@@ -20,16 +20,14 @@
   :components ((:file "package")
                (:module utils
                 :serial t
-                :components ((:module fcg-utils
-                              :serial t
-                              :components ((:file "cxn-supplier")
-                                           (:file "queue-mode")
-                                           (:file "render-and-de-render")))
+                :components ((:file "cxn-supplier")
+                             (:file "render-and-de-render")
+                             (:file "goal-tests")
+                             (:file "fcg-utils")
                              (:file "utils")))
                (:module diagnostics-and-repairs
                 :serial t
-                :components ((:file "goal-tests")
-                             (:file "handle-fix")
+                :components ((:file "handle-fix")
                              (:file "problems-diagnostics")
                              (:file "repair-add-categorial-links")
                              (:file "repair-nothing-to-holophrase-cxn")
@@ -46,19 +44,18 @@
                                :serial t
                                :components ( (:file "web-monitors")
                                              (:file "export-monitors")
-                                             (:file "lisp-monitors")
-                                             (:file "csv-monitors")
-                                             ))))
-               (:module tests
-                :serial t
-                :components ((:file "utils")
-                             ;(:file "test-utils")
-                             (:module irl
-                              :serial t
-                              :components ((:file "test-substitution-repair-irl")
-                                           (:file "test-addition-repair-irl")
-                                           (:file "test-deletion-repair-irl")
-                                           (:file "test-add-categorial-links-repair-irl"))))))
+                                             (:file "lisp-monitors")))))
+               ;(:module tests
+               ; :serial t
+               ; :components ((:file "utils")
+               ;              (:file "test-utils")
+               ;              (:module irl
+               ;               :serial t
+               ;               :components ((:file "test-substitution-repair-irl")
+               ;                            (:file "test-addition-repair-irl")
+               ;                            (:file "test-deletion-repair-irl")
+               ;                            (:file "test-add-categorial-links-repair-irl")))))
+               )
   :description "A Common Lisp package for learning construction grammars.")
 
 

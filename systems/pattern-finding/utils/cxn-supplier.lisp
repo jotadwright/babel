@@ -16,6 +16,11 @@
   "Returns all constructions that satisfy the hash of the node."
   (all-constructions-of-label-hashed node :routine))
 
+
+
+
+
+
 (defun constructions-for-application-hashed-and-scored-routine-cxn-set-only (node)
   "computes all constructions that could be applied for this node
    plus nil hashed constructions"
@@ -44,10 +49,6 @@
           (sort constructions #'> :key #'(lambda (cxn) (attr-val cxn :score))))
     ;; return constructions
     constructions))
-
-
-
-
 
 (defclass cxn-supplier-hashed-and-scored-routine-cxn-set-only ()
   ((remaining-constructions

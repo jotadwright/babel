@@ -7,7 +7,7 @@
 
 
 (define-event log-parsing-finished
-  (agent clevr-learning-agent)
+  (agent pattern-finding-agent)
   (process-result-data list))
 
 (define-monitor trace-interactions-in-wi)
