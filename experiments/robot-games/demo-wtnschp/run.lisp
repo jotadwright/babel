@@ -15,9 +15,18 @@
 
 (deactivate-all-monitors)
 
+(defparameter *vision-server*
+  (make-instance 'vision-server
+                 :nao-ip "192.168.2.4"
+                 :server-host "127.0.0.1"
+                 :server-port "7851"))
+
+
 (defparameter *experiment*
   (make-instance 'demo-experiment
-                 :entries '((:robot-port . "7850"))))
+                 :vision-server *vision-server*
+                 :entries '((:robot-port . "7850")
+                            (:robot-ip . "192.168.2.4"))))
 
 ;; Switch between text and speech input
 (set-configuration *experiment* :input-form :text)
@@ -51,12 +60,8 @@
 ;; Reset the experiment
 (destroy *experiment*)
 
-
-
-
-
 ;; For setting up the robot
-(setf *robot* (make-robot :type 'nao :ip "192.168.1.4" :server-port "7850"))
+(setf *robot* (make-robot :type 'nao :ip "192.168.2.4" :server-port "7850"))
 
 (hear *robot* '("red" "green" "blue" "yellow"))
 
@@ -74,3 +79,4 @@
 
 (disconnect-robot *robot*)
 ; (setf nao-interface::*nao-servers* nil)
+; (setf *vision-servers* nil)

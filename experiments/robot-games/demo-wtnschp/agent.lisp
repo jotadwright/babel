@@ -27,12 +27,14 @@
   (let* ((robot-ip (get-configuration experiment :robot-ip))
          (robot-port (get-configuration experiment :robot-port))    
          (container-name (format nil "nao-~a-~a" robot-ip robot-port))
+         (vision-server (vision-server experiment))
          (agent (make-instance 'embodied-agent
                                :experiment experiment
                                :connect-automatically nil)))
     (setf (nao-interface::ip agent) robot-ip)
     (setf (nao-interface::server-port agent) robot-port)
     (setf (nao-interface::container-name agent) container-name)
+    (setf (nao-interface::vision-server agent) vision-server)
     (make-new-connection agent :test-connection t)
     agent))
 
@@ -80,7 +82,7 @@
   (let ((task (make-instance 'lexical-speaker-task
                              :owner agent
                              :label 'lexical-speaker-task
-                             :processes '(initial-process
+                             :processes `(initial-process
                                           observe-scene           ;; observe the scene
                                           choose-topic            ;; choose a topic
                                           conceptualise           ;; conceptualise the topic
@@ -117,7 +119,7 @@
   (let ((task (make-instance 'lexical-hearer-task
                              :owner agent
                              :label 'lexical-hearer-task
-                             :processes '(initial-process
+                             :processes `(initial-process
                                           observe-scene           ;; observe the scene
                                           speech-input            ;; get speech input
                                           parse                   ;; parse the utterance

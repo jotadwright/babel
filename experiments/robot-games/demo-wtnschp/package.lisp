@@ -13,6 +13,7 @@
         :meta-layer-learning
         :irl
         :fcg
+        :assoc-utils
         #+:hunchentoot-available-on-this-platform :web-interface
         :nao-interface
         :robot-interface

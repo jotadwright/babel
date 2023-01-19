@@ -14,10 +14,12 @@
                :meta-layer-learning
                :irl
                :fcg
+               :assoc-utils
                #+:hunchentoot-available-on-this-platform :web-interface
                :nao-interface
                :robot-interface
-               :printer-interface)
+               :printer-interface
+               )
   :serial t
   :components ((:file "package")
                (:file "utils")
@@ -32,5 +34,6 @@
                (:file "experiment")
                (:file "interaction")
                (:file "html")
-               (:file "web-monitors")))
+               (:file "web-monitors")
+               (:file "vision-server")))
                

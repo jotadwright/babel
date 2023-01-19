@@ -15,9 +15,9 @@
           (run-prog "/bin/sh" :args (list "-c" arg))))
       local-pathname))
 
-(defmethod observe-world ((nao nao) &key (open t))
+(defmethod observe-world ((nao nao)(vision vision-server) &key (open t))
   (let* ((img-filename (take-picture nao :open nil))
-         (response (nao-send-http nao :endpoint "/vision/analyse"
+         (response (vision-send-http vision :endpoint "/vision/analyse"
                                   :data `((filename . ,(namestring img-filename)))))
          (pathname (rest (assoc :pathname response)))
          (data (rest (assoc :data response))))
