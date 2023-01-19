@@ -13,6 +13,7 @@ class NaoConfig(object):
     # Robot IP and port
     ROBOT_IP = "192.168.1.4"
     ROBOT_PORT = 9559
+    ROBOT_LANG = "English"
     # Camera parameters
     CAMERA_RESOLUTION = 2
     PICTURE_FORMAT = "jpg"

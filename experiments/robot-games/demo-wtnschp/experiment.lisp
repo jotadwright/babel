@@ -58,7 +58,7 @@
   (case (get-configuration experiment :input-lang)
     (:en (speak (first (population experiment)) "Do you want to play a language game?"))
     (:nl (speak (first (population experiment)) "Wil je een taalspelletje over kleuren spelen?" :speed 75))
-    (:fr (speak (first (population experiment)) "Veux-tu jouer a un jeu de langage?"))))
+    (:fr (speak (first (population experiment)) "Veux-tu jouer à un jeu de langage?"))))
 
 (defmethod destroy ((experiment demo-experiment))
   "Some cleanup when manually running an experiment"

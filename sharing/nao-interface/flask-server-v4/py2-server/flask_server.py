@@ -123,7 +123,7 @@ def speak():
         return json.dumps({'errors': errors}), 400
     else:
         speech = NaoSpeech(nao_config)
-        success = speech.say(request_data['speech'])
+        success = speech.say(request_data['speech'].encode("utf-8"))
         return json.dumps({'success': success}), 200
 
 
@@ -190,6 +190,11 @@ if __name__ == '__main__':
                         dest="robot_ip",
                         default="192.168.1.4",
                         help="The robot's IP address")
+    parser.add_argument('--robot-lang',
+                        action="store",
+                        dest="robot_lang",
+                        default="English",
+                        help="The language the robot should speak")
     parser.add_argument('--robot-port',
                         action="store",
                         dest="robot_port",
@@ -210,6 +215,8 @@ if __name__ == '__main__':
 
     if cmd.robot_ip is not None:
         nao_config.ROBOT_IP = cmd.robot_ip
+    if cmd.robot_lang is not None:
+        nao_config.ROBOT_LANG = cmd.robot_lang
     if cmd.robot_port is not None:
         nao_config.ROBOT_PORT = cmd.robot_port
     nao_server.run(host=cmd.server_host, port=cmd.server_port)
