@@ -19,4 +19,5 @@
    (:file "nao-movement")
    (:file "nao-headtouch")
    (:file "nao-speak")
+   (:file "vision-server")
    (:file "nao-vision")))

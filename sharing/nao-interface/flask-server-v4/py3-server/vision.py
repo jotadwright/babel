@@ -16,6 +16,7 @@ class Vision(object):
     with object detection, segmentation and feature extraction.'''
     def __init__(self, cfg):
         self.cfg = cfg
+        self.model_cfg = cfg.MODEL_cfg
         # Get the Mask R-CNN model
         self.model = cfg.MODEL
     
@@ -31,7 +32,7 @@ class Vision(object):
     
     def visualise_bboxes(self, im, outputs, orig_path):
         '''Add the bboxes to the image and export this'''
-        v = Visualizer(im[:, :, ::-1], MetadataCatalog.get(self.MODEL_cfg.DATASETS.TRAIN[0]), scale=1.2)
+        v = Visualizer(im[:, :, ::-1], MetadataCatalog.get(self.model_cfg.DATASETS.TRAIN[0]), scale=1.2)
         out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
         img_name_and_type = orig_path.split('/')[-1]
         img_name = img_name_and_type.split('.')[0]
@@ -39,16 +40,17 @@ class Vision(object):
         out.save(bbox_img_path)
         return bbox_img_path
     
-    def _extract_image_features(self, image, results):
+def _extract_image_features(self, image, results):
         data = {}
         num_objects = len(results["instances"])
         for i in range(num_objects):
             object_id = 'obj-' + str(i)
             object = {}
+            bboxes = results["instances"].get("pred_boxes").tensor.numpy()
             # Get data from results
-            bbox = results["instances"].get("pred_boxes")[i]
+            bbox = bboxes[i]
             mask = results["instances"].get("pred_masks")[i]
-            mask = np.array(mask.astype(np.uint8), order='F')
+            mask = np.array(mask.numpy().astype(np.uint8), order='F')
             RLE_mask = pycocomask.encode(mask)
             # colors
             lab = self._extract_lab_from_mask(image, mask)
@@ -87,6 +89,16 @@ class Vision(object):
             # add the object to data
             data[object_id] = object
         return data
+
+
+
+
+
+
+
+
+
+
     
     def _extract_rgb_from_mask(self, image, mask):
         '''Extract RGB in range [0,255]'''

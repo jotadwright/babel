@@ -1,4 +1,4 @@
-(in-package :demo-wtnschp)
+(in-package :nao-interface)
 
 ;;---------------;;
 ;; Vision server ;;

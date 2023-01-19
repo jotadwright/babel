@@ -34,6 +34,5 @@
                (:file "experiment")
                (:file "interaction")
                (:file "html")
-               (:file "web-monitors")
-               (:file "vision-server")))
+               (:file "web-monitors")))
                
