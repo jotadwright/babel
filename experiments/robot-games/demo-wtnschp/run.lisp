@@ -15,6 +15,9 @@
 
 (deactivate-all-monitors)
 
+
+(set-configuration *experiment* :input-lang :fr)
+
 (defparameter *vision-server*
   (make-instance 'vision-server
                  :nao-ip "192.168.2.4"
@@ -31,6 +34,7 @@
 ;; Switch between text and speech input
 (set-configuration *experiment* :input-form :text)
 (set-configuration *experiment* :input-form :speech)
+
 
 ;; Switch between discourse roles
 (set-configuration *experiment* :determine-interacting-agents-mode :robot-speaker-often)

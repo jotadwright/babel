@@ -40,7 +40,7 @@ class Vision(object):
         out.save(bbox_img_path)
         return bbox_img_path
     
-def _extract_image_features(self, image, results):
+    def _extract_image_features(self, image, results):
         data = {}
         num_objects = len(results["instances"])
         for i in range(num_objects):

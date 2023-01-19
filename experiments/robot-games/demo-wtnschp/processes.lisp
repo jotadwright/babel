@@ -24,8 +24,7 @@
     (:fr (speak agent (format nil "Je suis celui ~a"
                               (case (discourse-role agent)
                                 (speaker "qui parle")
-                                (hearer "qui ecoute")))
-                :speed 75)))
+                                (hearer "qui ecoute"))))))
   (make-process-result 1 nil :process process))
 
 ;; -----------------
@@ -66,7 +65,7 @@
                                 (required-context-size problem))))
       (:nl (speak agent (format nil "Oeps! Ik kan geen ~a monsters vinden"
                                 (required-context-size problem))))
-      (:fr (speak agent (format nil "Oups ! Je ne peux pas detecter ~a monstres."
+      (:fr (speak agent (format nil "Oups ! Je ne peux pas detecter ~a objets."
                                 (required-context-size problem)))))
     (detect-head-touch agent :middle)
     (restart-object object nil)
@@ -92,7 +91,7 @@
         (case (get-configuration agent :input-lang)
           (:en (speak agent (format nil "I detected ~a objects" context-size)))
           (:nl (speak agent (format nil "Ik zie ~a monsters" context-size) :speed 75))
-          (:fr (speak agent (format nil "Je vois ~a monstres" context-size) :speed 75)))
+          (:fr (speak agent (format nil "Je vois ~a objets" context-size))))
         (when img-path
           (notify observe-scene-finished img-path scene))
         process-result))))
@@ -273,6 +272,7 @@
                    &key trigger)
   "Repair by inventing a new form and adding it
    to the agent's lexicon"
+
   (declare (ignorable trigger))
   (let* ((agent (owner (task (process object))))
          (meaning (first (find-data (process object) 'topic-cat)))
@@ -284,7 +284,15 @@
                             unless (member maybe-word *used-dutch-nonsense-words*)
                             do (progn (push maybe-word *used-dutch-nonsense-words*)
                                  (setf chosen-word maybe-word))
+                            finally (return chosen-word)))
+               (:fr (loop with chosen-word = nil
+                            while (null chosen-word)
+                            for maybe-word = (random-elt (get-configuration agent :dutch-nonsense))
+                            unless (member maybe-word *used-dutch-nonsense-words*)
+                            do (progn (push maybe-word *used-dutch-nonsense-words*)
+                                 (setf chosen-word maybe-word))
                             finally (return chosen-word))))))
+    
     (add-lex-cxn agent form meaning)
     (notify new-word-repair-triggered form)
     (restart-object object nil)
@@ -392,7 +400,7 @@
          (case (get-configuration agent :input-lang)
            (:en (speak agent "I think I know!"))
            (:nl (speak agent "Ik denk dat ik het weet!" :speed 75))
-           (:fr (speak agent "Je crois que je sais!" :speed 75)))
+           (:fr (speak agent "Je crois que je sais!")))
          (robot-point-to-topic agent topic scene)
          (notify interpret-finished (id topic))))
     (make-process-result 1 (list (cons 'topic-id (when topic (id topic))))
@@ -501,7 +509,7 @@
         (:fr (speak agent (format nil "S'il-te-plait, montre-moi l'objet que tu appelerais ~a" utterance)))))
     (loop while (null observedp)
           when (detect-head-touch agent :middle)
-          do (multiple-value-bind (data img) (observe-world agent :open nil)
+          do (multiple-value-bind (data img) (observe-world agent (vision-server agent) :open nil)
                (declare (ignorable img))
                (let ((object-set (json->object-set data)))
                  (when (= (length (entities object-set)) 1)
@@ -511,7 +519,7 @@
                    (case (get-configuration agent :input-lang)
                      (:en (speak agent (format nil "Sorry, I detected ~a objects" (length (entities object-set)))))
                      (:nl (speak agent (format nil "Sorry, ik zie ~a monsters" (length (entities object-set))) :speed 75))
-                     (:fr (speak agent (format nil "Desole, j'ai detecte ~a monstres" (length (entities object-set))))))))))
+                     (:fr (speak agent (format nil "Desolé, j'ai detecte ~a objets" (length (entities object-set))))))))))
     (make-process-result 1 (list (cons 'observed-topic observed-topic))
                          :process process)))
 
@@ -601,7 +609,7 @@
         (case (get-configuration agent :input-lang)
           (:en (speak agent "You are correct!"))
           (:nl (speak agent (random-elt *speaker-success-messages*) :speed 75))
-          (:fr (speak agent (random-elt *speaker-success-messages-fr*) :speed 75)))
+          (:fr (speak agent (random-elt *speaker-success-messages-fr*))))
         (case (get-configuration agent :input-lang)
           (:en (progn (speak agent "You are wrong!")
                  (robot-give-feedback agent topic-id scene)))
@@ -609,17 +617,17 @@
                  (speak agent (random-elt *speaker-failure-messages*) :speed 75)
                  (robot-give-feedback agent topic-id scene)))
           (:fr (progn
-                 (speak agent (random-elt *speaker-failure-messages-fr*) :speed 75)
+                 (speak agent (random-elt *speaker-failure-messages-fr*))
                  (robot-give-feedback agent topic-id scene)))))
       (if success
         (case (get-configuration agent :input-lang)
           (:en (speak agent "I am correct!"))
           (:nl (speak agent (random-elt *hearer-success-messages*) :speed 75))
-          (:fr (speak agent (random-elt *hearer-success-messages-fr*) :speed 75)))
+          (:fr (speak agent (random-elt *hearer-success-messages-fr*))))
         (case (get-configuration agent :input-lang)
           (:en (speak agent "I am learning!"))
           (:nl (speak agent (random-elt *hearer-failure-messages*) :speed 75))
-          (:fr (speak agent (random-elt *hearer-failure-messages-fr*) :speed 75)))))
+          (:fr (speak agent (random-elt *hearer-failure-messages-fr*))))))
     (make-process-result 1 (list (cons 'communicated-successfully success))
                          :process process)))
 
