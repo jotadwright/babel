@@ -174,7 +174,7 @@
                  :visible-max-width t
                  :selection-callback 'select-input)
    (input-viewer capi:display-pane
-                 :text "No file selected."
+                 :text "No solution file selected."
                  :visible-min-width '(:character 50)
                  :visible-max-width nil
                  :visible-min-height '(:character 1)
@@ -186,7 +186,7 @@
                   :visible-max-width t
                   :selection-callback 'select-output)
    (output-viewer capi:display-pane
-                  :text "No directory selected."
+                  :text "No results directory selected."
                   :visible-min-width '(:character 50)
                   :visible-max-width nil
                   :visible-min-height '(:character 1)
