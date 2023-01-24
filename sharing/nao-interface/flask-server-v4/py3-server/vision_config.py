@@ -3,7 +3,6 @@
 
 import os
 from glob import glob
-
 # import some common detectron2 utilities
 from detectron2 import model_zoo
 from detectron2.engine import DefaultPredictor
@@ -12,7 +11,7 @@ from detectron2.config import get_cfg
 # Set the home directory
 home = os.path.expanduser('~')
 # We assume the directory is called Babel3!!
-babel = glob(os.path.join(home, '**/babel'))[0]
+babel = '/Users/ajouglar/babel'
 
 
 def load_detectron2(detectron_cfg):
@@ -39,7 +38,7 @@ class VisionConfig(object):
     PICTURE_FORMAT = "jpg"
     IMAGE_DIR = os.path.join(babel, ".tmp/nao-img/")
     MODEL_cfg = set_model_cfg()
-    MODEL = load_detectron2()
+    MODEL = load_detectron2(MODEL_cfg)
     
 
    

@@ -9,9 +9,9 @@ import argparse
 from flask import Flask, request
 
 #import vision class and methods
-from vision.py import Vision
+from vision import Vision
 #import vision configurations
-from vision_config.py import VisionConfig
+from vision_config import VisionConfig
 
 
 # load in the visionConfig class and store it in vision_config
@@ -20,6 +20,16 @@ vision_config = VisionConfig()
 
 # Flask server
 py3_server = Flask(__name__)
+
+@py3_server.route("/test_connection", methods=["POST"])
+def make_connection():
+    '''Test the connection by sending back the received message'''
+    request_data = request.get_json(force=True)
+    errors = check_request_data(request_data, ['message'])
+    if errors:
+        return json.dumps({'errors': errors}), 400
+    else:
+        return json.dumps({'message': request_data['message']}), 200
 
 # checking data retrieved from lisp
 def check_request_data(request_data, keys):
@@ -57,17 +67,6 @@ def analyze_image():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--robot-ip',
-                        action="store",
-                        dest="robot_ip",
-                        default="192.168.2.4",
-                        help="The robot's IP address")
-    parser.add_argument('--robot-port',
-                        action="store",
-                        dest="robot_port",
-                        default=7850,
-                        type=int,
-                        help="The robot's port number")
     parser.add_argument('--server-host',
                         action='store',
                         dest='server_host',
@@ -80,8 +79,4 @@ if __name__ == '__main__':
                         help='The server port number')
     cmd = parser.parse_args()
     
-    if cmd.robot_ip is not None:
-        vision_config.ROBOT_IP = cmd.robot_ip
-    if cmd.robot_port is not None:
-        vision_config.ROBOT_PORT = cmd.robot_port
     py3_server.run(host=cmd.server_host, port=cmd.server_port)

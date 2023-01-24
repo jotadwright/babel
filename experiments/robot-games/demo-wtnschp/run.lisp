@@ -1,6 +1,8 @@
 ;;;; /run.lisp
 
+
 ; (ql:quickload :demo-wtnschp)
+
 
 (in-package :demo-wtnschp)
 
@@ -14,6 +16,9 @@
   )
 
 (deactivate-all-monitors)
+
+
+(set-configuration *experiment* :input-lang :fr)
 
 (defparameter *vision-server*
   (make-instance 'vision-server
@@ -31,6 +36,7 @@
 ;; Switch between text and speech input
 (set-configuration *experiment* :input-form :text)
 (set-configuration *experiment* :input-form :speech)
+
 
 ;; Switch between discourse roles
 (set-configuration *experiment* :determine-interacting-agents-mode :robot-speaker-often)
@@ -75,7 +81,7 @@
 (look-direction *robot* :up 12)
 (look-direction *robot* :down 12)
 
-(speak *robot* "hello world")
+(speak *robot* "Je suis désolé")
 
 (disconnect-robot *robot*)
 ; (setf nao-interface::*nao-servers* nil)

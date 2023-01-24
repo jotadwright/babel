@@ -19,6 +19,7 @@
                :nao-interface
                :robot-interface
                :printer-interface
+               :asdf-encodings
                )
   :serial t
   :components ((:file "package")
@@ -34,6 +35,5 @@
                (:file "experiment")
                (:file "interaction")
                (:file "html")
-               (:file "web-monitors")
-               (:file "vision-server")))
+               (:file "web-monitors")))
                

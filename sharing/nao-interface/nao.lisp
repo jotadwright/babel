@@ -234,8 +234,7 @@
                      (server-host nao) (server-port nao) endpoint)))
     (with-open-stream
         #+LISPWORKS (stream (http-request uri :method :post :content json-data
-                                          :want-stream t :connection-timeout nil
-                                          :read-timeout nil :write-timeout nil))
+                                          :want-stream t :connection-timeout nil))
         #+SBCL (stream (http-request uri :method :post :context json-data
                                      :want-stream t :connection-timeout nil))
         #+CCL (stream (http-request uri :method :post :content json-data
