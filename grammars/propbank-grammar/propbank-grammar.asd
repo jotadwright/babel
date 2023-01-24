@@ -25,6 +25,8 @@
                (:module learning
                 :serial t
                 :components ((:file "cxn-name")
+                             (:file "cxn-schema")
+                             (:file "utils")
                              (:file "learn-propbank-constructions")))
                (:module grammar-metrics
                 :serial t
