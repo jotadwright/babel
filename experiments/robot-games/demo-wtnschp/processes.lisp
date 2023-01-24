@@ -24,7 +24,7 @@
     (:fr (speak agent (format nil "Je suis celui ~a"
                               (case (discourse-role agent)
                                 (speaker "qui parle")
-                                (hearer "qui ecoute"))))))
+                                (hearer "qui écoute"))))))
   (make-process-result 1 nil :process process))
 
 ;; -----------------
@@ -65,7 +65,7 @@
                                 (required-context-size problem))))
       (:nl (speak agent (format nil "Oeps! Ik kan geen ~a monsters vinden"
                                 (required-context-size problem))))
-      (:fr (speak agent (format nil "Oups ! Je ne peux pas detecter ~a objets."
+      (:fr (speak agent (format nil "Oups ! Je ne peux pas détecter ~a objets."
                                 (required-context-size problem)))))
     (detect-head-touch agent :middle)
     (restart-object object nil)
@@ -320,7 +320,7 @@
     (case (get-configuration agent :input-lang)
       (:en (speak agent (format nil "I am thinking of an object and it has the color ~a" utterance)))
       (:nl (speak agent (format nil "Ik heb een monster in mijn gedachten en het heeft de kleur ~a" utterance) :speed 75))
-      (:fr (speak agent (format nil "Je pense a un objet dont la couleur est ~a" utterance))))
+      (:fr (speak agent (format nil "Je pense à un objet dont la couleur est ~a" utterance))))
     (notify produce-finished utterance applied-cxn)
     process-result)))
 
@@ -369,9 +369,9 @@
     (case topic-position
       (0 (progn (point agent :left)
            (case (get-configuration agent :input-lang)
-             (:en (speak agent "It's the object to the left"))
-             (:nl (speak agent "Het is het linkse object"))
-             (:fr (speak agent "C'est l'objet sur la gauche")))))
+             (:en (speak agent "It's the object to the right"))
+             (:nl (speak agent "Het is het rechtse object"))
+             (:fr (speak agent "C'est l'objet sur la droite")))))
       (1 (progn (point agent :both)
            (case (get-configuration agent :input-lang)
              (:en (speak agent "It's the object in the middle"))
@@ -379,9 +379,9 @@
              (:fr (speak agent "C'est l'objet du milieu")))))
       (2 (progn (point agent :right)
            (case (get-configuration agent :input-lang)
-             (:en (speak agent "It's the object to the right"))
-             (:nl (speak agent "Het is het rechtse object"))
-             (:fr (speak agent "C'est l'objet sur la droite"))))))))
+             (:en (speak agent "It's the object to the left"))
+             (:nl (speak agent "Het is het linkse object"))
+             (:fr (speak agent "C'est l'objet sur la gauche"))))))))
 
 (defmethod run-process (process
                         (process-label (eql 'interpret))
@@ -466,7 +466,7 @@
                        do (case (get-configuration agent :input-lang)
                             (:en (speak agent "I did not understand. Could you repeat please?"))
                             (:nl (speak agent "Dat heb ik niet begrepen. Kan je dat herhalen alsjeblief?" :speed 75))
-                            (:fr (speak agent "Je n'ai pas compris. Est-ce que tu peux repeter?")))
+                            (:fr (speak agent "Je n'ai pas compris. Est-ce que tu peux répéter?")))
                        finally
                        (setf utterance this-utterance))
                  (setf utterance (prompt-correct-speech-input utterance))))
@@ -519,7 +519,7 @@
                    (case (get-configuration agent :input-lang)
                      (:en (speak agent (format nil "Sorry, I detected ~a objects" (length (entities object-set)))))
                      (:nl (speak agent (format nil "Sorry, ik zie ~a monsters" (length (entities object-set))) :speed 75))
-                     (:fr (speak agent (format nil "Desolé, j'ai detecte ~a objets" (length (entities object-set))))))))))
+                     (:fr (speak agent (format nil "Désolé, j'ai détecté ~a objets" (length (entities object-set))))))))))
     (make-process-result 1 (list (cons 'observed-topic observed-topic))
                          :process process)))
 
@@ -551,17 +551,17 @@
 ;; + Determine success +
 ;; ---------------------
 
-(defvar *speaker-success-messages-fr* '("Felicitations! Tu as reussi!"
-                                     "Bravo! Bien joue!"))
-(defvar *speaker-failure-messages-fr* '("Mince! Tu n'as pas repondu correctement"
-                                     "Mince! Tu as rate"
+(defvar *speaker-success-messages-fr* '("Félicitations! Tu as réussi!"
+                                     "Bravo! Bien joué!"))
+(defvar *speaker-failure-messages-fr* '("Mince! Tu n'as pas répondu correctement"
+                                     "Mince! Tu as raté"
                                      "Dommage! Ce n'est pas ce a quoi je pensais"))
-(defvar *hearer-success-messages-fr* '("Houra! J'ai reussi!"
-                                    "Youpi! J'ai reussi!"
-                                    "Yes! J'ai reussi"))
+(defvar *hearer-success-messages-fr* '("Houra! J'ai réussi!"
+                                    "Youpi! J'ai réussi!"
+                                    "Yes! J'ai réussi"))
 (defvar *hearer-failure-messages-fr* '("Merci! J'ai appris quelque chose"
                                     "Ok, merci! J'ai appris quelque chose"
-                                    "Grace a toi je continue a apprendre des choses"))
+                                    "Grâce a toi je continue a apprendre des choses"))
 
 (defvar *speaker-success-messages* '("Proficiat! Je hebt het juist"
                                      "Gefeliciteerd! Je hebt het juist"

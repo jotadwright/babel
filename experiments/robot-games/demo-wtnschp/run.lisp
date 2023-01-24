@@ -1,6 +1,8 @@
 ;;;; /run.lisp
 
+
 ; (ql:quickload :demo-wtnschp)
+
 
 (in-package :demo-wtnschp)
 
@@ -79,7 +81,7 @@
 (look-direction *robot* :up 12)
 (look-direction *robot* :down 12)
 
-(speak *robot* "hello world")
+(speak *robot* "Je suis désolé")
 
 (disconnect-robot *robot*)
 ; (setf nao-interface::*nao-servers* nil)

@@ -18,6 +18,7 @@ class NaoSpeech(object):
 
 
     def say(self, speech):
+        self.ttsProxy.setLanguage(self.cfg.ROBOT_LANG)
         self.ttsProxy.say(str(speech))
         return True
 

@@ -19,6 +19,7 @@
                :nao-interface
                :robot-interface
                :printer-interface
+               :asdf-encodings
                )
   :serial t
   :components ((:file "package")
