@@ -126,7 +126,7 @@
                           
                            :attributes (:lemma ,lemma
                                         :lex-category ,lex-category
-                                        :score 2
+                                    ;    :score 2
                                         :label lexical-cxn
                                         :frequency 1)
                            :description ,(sentence-string propbank-sentence)
@@ -145,7 +145,7 @@
                              (syn-class ,syn-class)))
                            :attributes (:lemma ,lemma
                                         :lex-category ,lex-category
-                                        :score 1
+                                      ;  :score 1
                                         :label lexical-cxn
                                         :frequency 1)
                            :description ,(sentence-string propbank-sentence)
@@ -214,7 +214,7 @@
                             :disable-automatic-footprints t
                             :attributes (:schema ,schema
                                          :lemma nil
-                                         :score ,(length cxn-units-with-role)
+                                      ;   :score ,(length cxn-units-with-role)
                                          :label argument-structure-cxn
                                          :frequency 1
                                          :gram-category ,gram-category)
@@ -289,7 +289,7 @@
                                               (intern (upcase lemma))
                                               lemma)
                                     :sense-category ,sense-category
-                                    :score 1
+                                   ; :score 1
                                     :label word-sense-cxn
                                     :frequency 1)
                        :description ,(sentence-string propbank-sentence)
@@ -378,7 +378,7 @@
                             :disable-automatic-footprints t
                             :attributes (:schema ,schema
                                          :lemma ,argm-lemma
-                                         :score 1
+                                     ;    :score 1
                                          :label argm-leaf-cxn
                                          :frequency 1)
                             :description ,(sentence-string propbank-sentence)
@@ -540,7 +540,7 @@
                             :disable-automatic-footprints t
                             :attributes (:schema ,schema
                                          :lemma ,preposition-lemma
-                                         :score ,(length cxn-units-with-role)
+                                      ;   :score ,(length cxn-units-with-role)
                                          :label argm-phrase-cxn
                                          :frequency 1
                                          :gram-category ,gram-category)
@@ -658,7 +658,7 @@
                                          :lemma ,(if (stringp sbar-lemma)
                                                    (intern (upcase sbar-lemma))
                                                    sbar-lemma)
-                                         :score ,(length cxn-units-with-role)
+                                       ;  :score ,(length cxn-units-with-role)
                                          :label argm-phrase-cxn
                                          :frequency 1
                                          :gram-category ,gram-category)

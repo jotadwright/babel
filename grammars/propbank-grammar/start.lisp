@@ -59,26 +59,26 @@
     (:node-tests :check-double-role-assignment)
     (:parse-goal-tests :no-valid-children)
     (:max-nr-of-nodes . 100)
-    (:node-expansion-mode . :multiple-cxns)
-    (:priority-mode . :nr-of-applied-cxns)
-    (:queue-mode . :greedy-best-first)
+
+    (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
+    (:search-algorithm . :best-first)   
+    (:cxn-supplier-mode . :cxn-sets-hashed-categorial-network)
+    (:heuristics :nr-of-applied-cxns :nr-of-units-matched :prefer-local-bindings :cxn-sets) ;;FREQUENCY!!!
+    (:heuristic-value-mode . :sum-heuristics-and-parent)
+
+    (:node-expansion-mode . :full-expansion) ;; always fully expands node immediately
     (:hash-mode . :hash-lemma)
-    (:parse-order
-     lexical-cxn
-     argument-structure-cxn
-     argm-phrase-cxn
-     argm-leaf-cxn
-     word-sense-cxn)
+    (:parse-order lexical-cxn argument-structure-cxn argm-phrase-cxn argm-leaf-cxn word-sense-cxn)
+    
     (:replace-when-equivalent . nil)
     (:learning-modes
      :core-roles
-    ; :argm-leaf
+     :argm-leaf
      :argm-pp
      :argm-sbar
-     ;
      ;:argm-phrase-with-string
      )
-    (:cxn-supplier-mode . :propbank-english)))
+    ))
 
 (defparameter *test-grammar* nil)
 
@@ -97,7 +97,7 @@
 (add-element (make-html *test-grammar*))
 (activate-monitor trace-fcg)
 
-(comprehend-and-extract-frames (random-elt *train-corpus*) :cxn-inventory *test-grammar*)
+(comprehend-and-extract-frames (random-elt *train-corpus*) :cxn-inventory *test-grammar* )
 ;;(add-element (make-html (categorial-network *test-grammar*)))
 
 ;; Cleaning learned grammars
