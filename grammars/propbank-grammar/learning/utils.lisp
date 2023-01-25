@@ -4,15 +4,30 @@
 ;; Helper functions to create new constructions  ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun make-gram-category (units-with-role)
+(defun make-gram-category (units-with-role &optional lemma)
   "Creates a unique grammatical category based on units-with-role."
-  (intern (symbol-name (make-const
-                        (format nil "~{~a~^+~}"
-                                (loop for (r . u) in units-with-role
-                                      collect (format nil "~a~a"
-                                                      (role-type r)
-                                                      (feature-value (find 'syn-class (unit-body u)
-                                                                           :key #'feature-name)))))))))
+  (if lemma
+    (intern (symbol-name (make-const
+                          (format nil "~{~a~^+~}"
+                                  (loop for (r . u) in units-with-role
+                                          if (search "ARGM" (role-type r))
+                                          collect (format nil "~a~{(~a~^-~}:~a)"
+                                                          (role-type r)
+                                                          (feature-value (find 'syn-class (unit-body u)
+                                                                               :key #'feature-name))
+                                                          lemma)
+                                          else collect
+                                          (format nil "~a~a"
+                                                        (role-type r)
+                                                        (feature-value (find 'syn-class (unit-body u)
+                                                                             :key #'feature-name))))))))
+    (intern (symbol-name (make-const
+                          (format nil "~{~a~^+~}"
+                                  (loop for (r . u) in units-with-role
+                                        collect (format nil "~a~a"
+                                                        (role-type r)
+                                                        (feature-value (find 'syn-class (unit-body u)
+                                                                             :key #'feature-name))))))))))
 
 
 (defun make-subclause-word-unit (unit-with-role unit-structure)
@@ -20,7 +35,7 @@
          (subclause-word-in-ts
           (loop for unit in unit-structure
                 when (and (find (list 'node-type 'leaf) (unit-body unit) :test #'equalp)
-                          (equal (cadr (find 'parent (unit-body unit) :key #'feature-name)) (unit-name sbar-unit))
+                         ; (equal (cadr (find 'parent (unit-body unit) :key #'feature-name)) (unit-name sbar-unit))
                           (intersection '(in aux) (unit-feature-value unit 'syn-class)))
                 return unit)))
 

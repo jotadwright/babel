@@ -72,9 +72,9 @@
     (:replace-when-equivalent . nil)
     (:learning-modes
      :core-roles
-     :argm-leaf
+    ; :argm-leaf
      :argm-pp
-     ;:argm-sbar
+     :argm-sbar
      ;
      ;:argm-phrase-with-string
      )
@@ -82,7 +82,7 @@
 
 (defparameter *test-grammar* nil)
 
-(defparameter *train-corpus* (subseq (shuffle (append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*)))  100 200 ))
+(defparameter *train-corpus* (subseq (shuffle (append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*)))  0 50 ))
 (defparameter *test-sentence* (first (subseq *train-corpus* 4 5)))
 
 (learn-propbank-grammar
