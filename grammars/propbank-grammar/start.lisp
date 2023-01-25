@@ -60,15 +60,16 @@
     (:parse-goal-tests :no-valid-children)
     (:max-nr-of-nodes . 100)
 
-    (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
+    (:construction-inventory-processor-mode . :heuristic-search)
     (:search-algorithm . :best-first)   
-    (:cxn-supplier-mode . :cxn-sets-hashed-categorial-network)
-    (:heuristics :nr-of-applied-cxns :nr-of-units-matched :prefer-local-bindings :cxn-sets) ;;FREQUENCY!!!
+    (:cxn-supplier-mode . :hashed-categorial-network)
+    (:heuristics :nr-of-applied-cxns :nr-of-units-matched :cxn-score) ;:prefer-local-bindings
     (:heuristic-value-mode . :sum-heuristics-and-parent)
+    (:sort-cxns-before-application . fcg:sort-cxns)
 
-    (:node-expansion-mode . :full-expansion) ;; always fully expands node immediately
+    (:node-expansion-mode . :beam-size-2) ;;:full-expansion) ;; always fully expands node immediately
     (:hash-mode . :hash-lemma)
-    (:parse-order lexical-cxn argument-structure-cxn argm-phrase-cxn argm-leaf-cxn word-sense-cxn)
+  ;;  (:parse-order lexical-cxn argument-structure-cxn argm-phrase-cxn argm-leaf-cxn word-sense-cxn)
     
     (:replace-when-equivalent . nil)
     (:learning-modes
@@ -82,7 +83,7 @@
 
 (defparameter *test-grammar* nil)
 
-(defparameter *train-corpus* (subseq (shuffle (append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*)))  0 50 ))
+(defparameter *train-corpus* (subseq (shuffle (append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*))) 0 10000))
 (defparameter *test-sentence* (first (subseq *train-corpus* 4 5)))
 
 (learn-propbank-grammar
@@ -97,7 +98,12 @@
 (add-element (make-html *test-grammar*))
 (activate-monitor trace-fcg)
 
-(comprehend-and-extract-frames (random-elt *train-corpus*) :cxn-inventory *test-grammar* )
+
+(progn
+  (setf *test-sentence* (random-elt *train-corpus*))
+  (comprehend-and-extract-frames *test-sentence* :cxn-inventory *test-grammar* :timeout 3000))
+
+(delete-cxn *saved-cxn* *test-grammar*)
 ;;(add-element (make-html (categorial-network *test-grammar*)))
 
 ;; Cleaning learned grammars
