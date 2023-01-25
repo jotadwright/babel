@@ -12,7 +12,7 @@
                                                           (excluded-rolesets nil)
                                                           (cxn-inventory '*propbank-learned-cxn-inventory*)
                                                           (fcg-configuration nil))
-  "Learns a Propbank Grammar."
+  "Learns a PropBank grammar based on a corpus of PropBank-annotated sentences."
   (let ((cxn-inventory (eval `(def-fcg-constructions propbank-learned-english
                                 :fcg-configurations ,fcg-configuration
                                 :visualization-configurations ((:show-constructional-dependencies . nil)
@@ -58,20 +58,27 @@
 ;; Learning constructions from an annotated frame instance. ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defgeneric learn-from-propbank-annotation (propbank-sentence roleset cxn-inventory mode))
+(defgeneric learn-from-propbank-annotation (propbank-sentence roleset cxn-inventory mode)
+  :documentation "Learns constructions and categories from a single PropBank-annotated sentence.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Core roles.           ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod learn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :core-roles)))
-  
+  "Checks for every gold frame that has been annotated in the
+propbank-sentence whether there is a spacy-benepar compatible
+annotation (i.e. every argument corresponds to a constituent) and then
+learns constructions and categories for that frame."
   (loop with gold-frames = (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)
         for gold-frame in gold-frames
         if (spacy-benepar-compatible-annotation propbank-sentence roleset :selected-role-types 'core-only)
         do (learn-constructions-for-gold-frame-instance propbank-sentence gold-frame cxn-inventory mode)))
 
 (defmethod learn-constructions-for-gold-frame-instance (propbank-sentence gold-frame cxn-inventory (mode (eql :core-roles)))
+  "Learns lexical, argument structure and word sense constructions
+along with the categories that connect them for all core roles that
+have been annotated for the given gold-frame. "
   (let* ((ts-unit-structure (ts-unit-structure propbank-sentence cxn-inventory))
          (core-units-with-role (remove-if #'(lambda (unit-with-role)
                                               (search "ARGM" (role-type (car unit-with-role))))
@@ -90,14 +97,16 @@
     (find-cxn cxn-name cxn-inventory :hash-key lemma :key #'name)))
 
 (defun add-lexical-cxn (gold-frame v-unit cxn-inventory propbank-sentence)
-  "Creates a new lexical construction if necessary, otherwise increments frequency of existing cxn."
+  "Creates a new lexical construction if necessary, otherwise
+increments frequency of existing cxn. Also adds a new lexical category
+to the categorial network. Returns the lexical category."
   (let* ((lemma (feature-value (find 'lemma (unit-body v-unit) :key #'feature-name)))
          (syn-class (feature-value (find 'syn-class (unit-body v-unit) :key #'feature-name)))
          (lex-category (intern (symbol-name (make-id (format nil "~a~a" (truncate-frame-name (frame-name gold-frame)) syn-class)))))
          (cxn-name (intern (upcase (format nil "~a~a-cxn" lemma syn-class))))
          (equivalent-cxn (find-cxn cxn-name cxn-inventory :hash-key lemma :key #'name)))
     (if equivalent-cxn
-      ;; if cxn already exists: increment frequency
+      ;; If cxn already exists: increment frequency
       (progn
         (incf (attr-val equivalent-cxn :frequency))
         (attr-val equivalent-cxn :lex-category))
@@ -126,7 +135,6 @@
                           
                            :attributes (:lemma ,lemma
                                         :lex-category ,lex-category
-                                    ;    :score 2
                                         :label lexical-cxn
                                         :frequency 1)
                            :description ,(sentence-string propbank-sentence)
@@ -145,7 +153,6 @@
                              (syn-class ,syn-class)))
                            :attributes (:lemma ,lemma
                                         :lex-category ,lex-category
-                                      ;  :score 1
                                         :label lexical-cxn
                                         :frequency 1)
                            :description ,(sentence-string propbank-sentence)
@@ -157,7 +164,9 @@
 
 
 (defun add-grammatical-cxn (gold-frame core-units-with-role cxn-inventory propbank-sentence lex-category)
-  "Learns a construction capturing all core roles."
+  "Learns a grammatical construction capturing all core roles and adds
+a grammatical category to the categorial network. Returns the
+grammatical category."
   (let* ((ts-unit-structure (ts-unit-structure propbank-sentence cxn-inventory))
          (gram-category (make-gram-category core-units-with-role))
          (cxn-units-with-role (loop for unit in core-units-with-role
@@ -224,7 +233,9 @@
 
 
 (defun add-word-sense-cxn (gold-frame v-unit cxn-inventory propbank-sentence lex-category gram-category)
-  "Creates a new lexical construction if necessary, otherwise increments frequency of existing cxn."
+  "Creates a new word sense construction if necessary, otherwise
+increments frequency of existing cxn. Adds a new sense category to the
+categorial network and returns it."
   (let* ((lemma (or (feature-value (find 'lemma (unit-body v-unit) :key #'feature-name))
                     (feature-value (find 'string (unit-body v-unit) :key #'feature-name))))
          (cxn-name (intern (upcase (format nil "~a(~a)-cxn" (frame-name gold-frame) lemma))))
@@ -320,6 +331,7 @@
         (learn-constructions-for-gold-frame-instance propbank-sentence gold-frame cxn-inventory mode)))
        
 (defmethod learn-constructions-for-gold-frame-instance (propbank-sentence gold-frame cxn-inventory (mode (eql :argm-leaf)))
+  "Learns a new construction for every modifier argument in the gold frame that corresponds to a leaf node."
   (let* ((ts-unit-structure (ts-unit-structure propbank-sentence cxn-inventory))
          (units-with-role (units-with-role ts-unit-structure gold-frame))
          (argm-leafs (remove-if-not #'(lambda (unit-with-role)

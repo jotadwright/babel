@@ -48,11 +48,11 @@ network."
                                                                                        (original-cxn-set (construction-inventory node))))))
 
          (constructions (remove nil
-                                (loop for cxn in (remove-duplicates
+                                (loop for cxn in ;(remove-duplicates
                                                   (append
                                                    (gethash nil (constructions-hash-table (construction-inventory node)))
                                                    (loop for hash in (hash node (get-configuration node :hash-mode))
-                                                         append (gethash hash (constructions-hash-table (construction-inventory node))))))
+                                                         append (gethash hash (constructions-hash-table (construction-inventory node)))))
                                       collect (cond ((attr-val cxn :gram-category)
                                                      (when (member (attr-val cxn :gram-category) lex-cat-neighbours)
                                                        cxn))
