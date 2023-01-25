@@ -409,7 +409,7 @@
         (multiple-value-bind (irl-solutions irl-solution-nodes)
             (evaluate-irl-program extended-meaning nil)
           (unless (string= utterance "end")
-            (visualize-linguistic-comprehension (irl-program (irl::processor (first irl-solution-nodes)))
+            (visualize-linguistic-comprehension (irl-program (irl::pip (first irl-solution-nodes)))
                                                 *my-network*)
             (write-data-to-gephi counter "fcg" utterance *my-network*))
           (visualize-semantic-interpretation 

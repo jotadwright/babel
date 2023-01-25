@@ -43,9 +43,11 @@
                    :name "propbank-grammar-ontonotes-ewt-core-roles+-leafs-no-aux-lw"
                    :type "fcg")))
 
+(setf *restored-grammar *restored-grammar-lw*)
+
 (cl-store:store *propbank-ewt-ontonotes-learned-cxn-inventory-no-aux* ;*propbank-ewt-ontonotes-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
-                                :name "propbank-grammar-ontonotes-ewt-core-roles+-leafs-no-aux-lw"
+                                :name "propbank-grammar-ontonotes-ewt-core-roles-no-aux-lw"
                                 :type "fcg"))
 
 
@@ -57,38 +59,46 @@
     (:node-tests :check-double-role-assignment)
     (:parse-goal-tests :no-valid-children)
     (:max-nr-of-nodes . 100)
-    (:node-expansion-mode . :multiple-cxns)
-    (:priority-mode . :nr-of-applied-cxns)
-    (:queue-mode . :greedy-best-first)
+
+    (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
+    (:search-algorithm . :best-first)   
+    (:cxn-supplier-mode . :cxn-sets-hashed-categorial-network)
+    (:heuristics :nr-of-applied-cxns :nr-of-units-matched :prefer-local-bindings :cxn-sets) ;;FREQUENCY!!!
+    (:heuristic-value-mode . :sum-heuristics-and-parent)
+
+    (:node-expansion-mode . :full-expansion) ;; always fully expands node immediately
     (:hash-mode . :hash-lemma)
-    (:parse-order
-     lexical-cxn
-     argument-structure-cxn
-     argm-phrase-cxn
-     argm-leaf-cxn
-     word-sense-cxn)
+    (:parse-order lexical-cxn argument-structure-cxn argm-phrase-cxn argm-leaf-cxn word-sense-cxn)
+    
     (:replace-when-equivalent . nil)
     (:learning-modes
      :core-roles
      :argm-leaf
-     ;:argm-pp
-     ;:argm-sbar
-     ;
+     :argm-pp
+     :argm-sbar
      ;:argm-phrase-with-string
      )
-    (:cxn-supplier-mode . :propbank-english)))
+    ))
 
-(defvar *propbank-ewt-ontonotes-learned-cxn-inventory-no-aux*)
+(defparameter *test-grammar* nil)
+
+(defparameter *train-corpus* (subseq (shuffle (append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*)))  0 50 ))
+(defparameter *test-sentence* (first (subseq *train-corpus* 4 5)))
 
 (learn-propbank-grammar
-  (shuffle (append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*)))
+  *train-corpus*
  :selected-rolesets nil
  :excluded-rolesets '("be.01" "be.02" "be.03"
                       "do.01" "do.02" "do.04" "do.11" "do.12"
                       "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11")
- :cxn-inventory '*propbank-ewt-ontonotes-learned-cxn-inventory-no-aux*
+ :cxn-inventory '*test-grammar*
  :fcg-configuration *training-configuration*)
 
+(add-element (make-html *test-grammar*))
+(activate-monitor trace-fcg)
+
+(comprehend-and-extract-frames (random-elt *train-corpus*) :cxn-inventory *test-grammar* )
+;;(add-element (make-html (categorial-network *test-grammar*)))
 
 ;; Cleaning learned grammars
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -132,6 +142,10 @@
 
 (monitors:activate-monitor trace-fcg)
 
+(comprehend-and-extract-frames "It was all over the news that Germany and Belgium were thrown out of the world cup by two strong opponents" :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory-no-aux*)
+
+
+                               
 (comprehend-and-extract-frames "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *restored-grammar-lw*)
 
 (comprehend-and-extract-frames "Studies show the different experiences of genders across many domains including education, life expectancy, personality, interests, family life, careers, and political affiliation" :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory-no-aux*)
