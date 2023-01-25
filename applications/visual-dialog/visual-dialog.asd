@@ -21,7 +21,7 @@
                 :serial t
                 :components ((:file "grammar")
                              (:file "perception")
-                             (:file "discourse")
+                             ;(:file "discourse")
                              (:file "inn")))
                (:module "ontology"
                 :serial t
