@@ -12,12 +12,13 @@
                                                           (excluded-rolesets nil)
                                                           (cxn-inventory '*propbank-learned-cxn-inventory*)
                                                           (fcg-configuration nil))
-  "Learns a Propbank Grammar."
+  "Learns a PropBank grammar based on a corpus of PropBank-annotated sentences."
   (let ((cxn-inventory (eval `(def-fcg-constructions propbank-learned-english
                                 :fcg-configurations ,fcg-configuration
                                 :visualization-configurations ((:show-constructional-dependencies . nil)
                                                                (:show-categorial-network . nil)
-                                                               (:hide-attributes . t))
+                                                               (:hide-attributes . t)
+                                                               (:hide-features . nil))
                                 :hierarchy-features (constituents dependents)
                                 :feature-types ((constituents sequence)
                                                 (dependents sequence)
@@ -58,29 +59,38 @@
 ;; Learning constructions from an annotated frame instance. ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defgeneric learn-from-propbank-annotation (propbank-sentence roleset cxn-inventory mode))
+(defgeneric learn-from-propbank-annotation (propbank-sentence roleset cxn-inventory mode)
+  (:documentation "Learns constructions and categories from a single PropBank-annotated sentence."))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Core roles.           ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod learn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :core-roles)))
-  
+  "Checks for every gold frame that has been annotated in the
+propbank-sentence whether there is a spacy-benepar compatible
+annotation (i.e. every argument corresponds to a constituent) and then
+learns constructions and categories for that frame."
   (loop with gold-frames = (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)
         for gold-frame in gold-frames
         if (spacy-benepar-compatible-annotation propbank-sentence roleset :selected-role-types 'core-only)
         do (learn-constructions-for-gold-frame-instance propbank-sentence gold-frame cxn-inventory mode)))
 
 (defmethod learn-constructions-for-gold-frame-instance (propbank-sentence gold-frame cxn-inventory (mode (eql :core-roles)))
+  "Learns lexical, argument structure and word sense constructions
+along with the categories that connect them for all core roles that
+have been annotated for the given gold-frame. "
   (let* ((ts-unit-structure (ts-unit-structure propbank-sentence cxn-inventory))
          (core-units-with-role (remove-if #'(lambda (unit-with-role)
                                               (search "ARGM" (role-type (car unit-with-role))))
-                                          (units-with-role ts-unit-structure gold-frame)))
-         (lex-category (add-lexical-cxn gold-frame (v-unit core-units-with-role) cxn-inventory propbank-sentence))
-         (gram-category (when lex-category
-                          (add-grammatical-cxn gold-frame core-units-with-role cxn-inventory propbank-sentence lex-category))))
-    (when gram-category
-      (add-word-sense-cxn gold-frame (v-unit core-units-with-role) cxn-inventory propbank-sentence lex-category gram-category))))
+                                          (units-with-role ts-unit-structure gold-frame))))
+    (when (> (length core-units-with-role) 1)
+      (let* ((lex-category (add-lexical-cxn gold-frame (v-unit core-units-with-role) cxn-inventory propbank-sentence))
+             (gram-category (when lex-category
+                              (add-grammatical-cxn gold-frame core-units-with-role cxn-inventory propbank-sentence lex-category))))
+        (when gram-category
+          (add-word-sense-cxn gold-frame (v-unit core-units-with-role) cxn-inventory propbank-sentence lex-category gram-category))))))
+
 
 (defun find-lexical-cxn (v-unit cxn-inventory)
   "Finds a lexical construction based on a v-unit."
@@ -90,16 +100,18 @@
     (find-cxn cxn-name cxn-inventory :hash-key lemma :key #'name)))
 
 (defun add-lexical-cxn (gold-frame v-unit cxn-inventory propbank-sentence)
-  "Creates a new lexical construction if necessary, otherwise increments frequency of existing cxn."
+  "Creates a new lexical construction if necessary, otherwise
+increments frequency of existing cxn. Also adds a new lexical category
+to the categorial network. Returns the lexical category."
   (let* ((lemma (feature-value (find 'lemma (unit-body v-unit) :key #'feature-name)))
          (syn-class (feature-value (find 'syn-class (unit-body v-unit) :key #'feature-name)))
          (lex-category (intern (symbol-name (make-id (format nil "~a~a" (truncate-frame-name (frame-name gold-frame)) syn-class)))))
          (cxn-name (intern (upcase (format nil "~a~a-cxn" lemma syn-class))))
          (equivalent-cxn (find-cxn cxn-name cxn-inventory :hash-key lemma :key #'name)))
     (if equivalent-cxn
-      ;; if cxn already exists: increment frequency
+      ;; If cxn already exists: increment frequency
       (progn
-        (incf (attr-val equivalent-cxn :frequency))
+        (incf (attr-val equivalent-cxn :score))
         (attr-val equivalent-cxn :lex-category))
       ;; Else make new cxn
       (when lemma
@@ -126,9 +138,8 @@
                           
                            :attributes (:lemma ,lemma
                                         :lex-category ,lex-category
-                                        :score 2
                                         :label lexical-cxn
-                                        :frequency 1)
+                                        :score 1)
                            :description ,(sentence-string propbank-sentence)
                            :disable-automatic-footprints t
                            :cxn-inventory ,cxn-inventory)))
@@ -145,9 +156,8 @@
                              (syn-class ,syn-class)))
                            :attributes (:lemma ,lemma
                                         :lex-category ,lex-category
-                                        :score 1
                                         :label lexical-cxn
-                                        :frequency 1)
+                                        :score 1)
                            :description ,(sentence-string propbank-sentence)
                            :disable-automatic-footprints t
                            :cxn-inventory ,cxn-inventory)))
@@ -157,7 +167,10 @@
 
 
 (defun add-grammatical-cxn (gold-frame core-units-with-role cxn-inventory propbank-sentence lex-category)
-  "Learns a construction capturing all core roles."
+  "Learns a grammatical construction capturing all core roles and adds
+a grammatical category to the categorial network. Returns the
+grammatical category."
+  
   (let* ((ts-unit-structure (ts-unit-structure propbank-sentence cxn-inventory))
          (gram-category (make-gram-category core-units-with-role))
          (cxn-units-with-role (loop for unit in core-units-with-role
@@ -181,7 +194,7 @@
       ;;----------------------------------------
       (progn
         ;;1) Increase its frequency
-        (incf (attr-val equivalent-cxn :frequency))
+        (incf (attr-val equivalent-cxn :score))
         ;;2) Check if there was already a link in the categorial network between the lex-category and the gram-category:
         (if (link-exists-p lex-category (attr-val equivalent-cxn :gram-category) cxn-inventory)
           ;;a) If yes, increase edge weight
@@ -214,9 +227,9 @@
                             :disable-automatic-footprints t
                             :attributes (:schema ,schema
                                          :lemma nil
-                                         :score ,(length cxn-units-with-role)
+                                      ;   :score ,(length cxn-units-with-role)
                                          :label argument-structure-cxn
-                                         :frequency 1
+                                         :score 1
                                          :gram-category ,gram-category)
                             :description ,(sentence-string propbank-sentence)
                             :cxn-inventory ,cxn-inventory))
@@ -224,7 +237,9 @@
 
 
 (defun add-word-sense-cxn (gold-frame v-unit cxn-inventory propbank-sentence lex-category gram-category)
-  "Creates a new lexical construction if necessary, otherwise increments frequency of existing cxn."
+  "Creates a new word sense construction if necessary, otherwise
+increments frequency of existing cxn. Adds a new sense category to the
+categorial network and returns it."
   (let* ((lemma (or (feature-value (find 'lemma (unit-body v-unit) :key #'feature-name))
                     (feature-value (find 'string (unit-body v-unit) :key #'feature-name))))
          (cxn-name (intern (upcase (format nil "~a(~a)-cxn" (frame-name gold-frame) lemma))))
@@ -239,7 +254,7 @@
       ;; If word sense cxn already exists
       ;;---------------------------------
       (progn
-        (incf (attr-val equivalent-cxn :frequency))
+        (incf (attr-val equivalent-cxn :score))
         
         ;; edge between gram-category and sense-category
         (if (link-exists-p gram-category (attr-val equivalent-cxn :sense-category) cxn-inventory)
@@ -289,9 +304,9 @@
                                               (intern (upcase lemma))
                                               lemma)
                                     :sense-category ,sense-category
-                                    :score 1
+                                   ; :score 1
                                     :label word-sense-cxn
-                                    :frequency 1)
+                                    :score 1)
                        :description ,(sentence-string propbank-sentence)
                        :cxn-inventory ,cxn-inventory))
         
@@ -320,6 +335,7 @@
         (learn-constructions-for-gold-frame-instance propbank-sentence gold-frame cxn-inventory mode)))
        
 (defmethod learn-constructions-for-gold-frame-instance (propbank-sentence gold-frame cxn-inventory (mode (eql :argm-leaf)))
+  "Learns a new construction for every modifier argument in the gold frame that corresponds to a leaf node."
   (let* ((ts-unit-structure (ts-unit-structure propbank-sentence cxn-inventory))
          (units-with-role (units-with-role ts-unit-structure gold-frame))
          (argm-leafs (remove-if-not #'(lambda (unit-with-role)
@@ -366,7 +382,7 @@
     (if equivalent-cxn
       
       ;; argm-leaf cxn already exists, update its frequency
-      (incf (attr-val equivalent-cxn :frequency))
+      (incf (attr-val equivalent-cxn :score))
       
       ;; create a argm-leaf cxn
       (when (and cxn-units-with-role (v-lemma units-with-role))
@@ -378,9 +394,9 @@
                             :disable-automatic-footprints t
                             :attributes (:schema ,schema
                                          :lemma ,argm-lemma
-                                         :score 1
+                                     ;    :score 1
                                          :label argm-leaf-cxn
-                                         :frequency 1)
+                                         :score 1)
                             :description ,(sentence-string propbank-sentence)
                             :cxn-inventory ,cxn-inventory))))))
 
@@ -509,7 +525,7 @@
       ;;----------------------------------------
       (progn
         ;;1) Increase its frequency
-        (incf (attr-val equivalent-cxn :frequency))
+        (incf (attr-val equivalent-cxn :score))
         ;;2) Check if there was already a link in the type hierarchy between the lex-category and the gram-category:
         (if (link-exists-p lex-category (attr-val equivalent-cxn :gram-category) cxn-inventory :link-type nil)
           ;;a) If yes, increase edge weight
@@ -540,9 +556,9 @@
                             :disable-automatic-footprints t
                             :attributes (:schema ,schema
                                          :lemma ,preposition-lemma
-                                         :score ,(length cxn-units-with-role)
+                                      ;   :score ,(length cxn-units-with-role)
                                          :label argm-phrase-cxn
-                                         :frequency 1
+                                         :score 1
                                          :gram-category ,gram-category)
                             :description ,(sentence-string propbank-sentence)
                             :cxn-inventory ,cxn-inventory))
@@ -623,7 +639,7 @@
       ;;Grammatical construction already exists
       (progn
         ;;1) Increase its frequency
-        (incf (attr-val equivalent-cxn :frequency))
+        (incf (attr-val equivalent-cxn :score))
         
         ;;2) Check if there was already a link in the type hierarchy between the lex-category and the gram-category:
         (if (link-exists-p lex-category (attr-val equivalent-cxn :gram-category) cxn-inventory :link-type nil)
@@ -658,9 +674,9 @@
                                          :lemma ,(if (stringp sbar-lemma)
                                                    (intern (upcase sbar-lemma))
                                                    sbar-lemma)
-                                         :score ,(length cxn-units-with-role)
+                                       ;  :score ,(length cxn-units-with-role)
                                          :label argm-phrase-cxn
-                                         :frequency 1
+                                         :score 1
                                          :gram-category ,gram-category)
                             :description ,(sentence-string propbank-sentence)
                             :cxn-inventory ,cxn-inventory))
@@ -742,7 +758,7 @@
     (if equivalent-cxn
       
       ;;argm-leaf cxn already exists, update its frequency
-      (incf (attr-val equivalent-cxn :frequency))
+      (incf (attr-val equivalent-cxn :score))
       
       ;;create a argm-leaf cxn
       (when (and cxn-units-with-role (v-lemma units-with-role))
@@ -756,7 +772,7 @@
                                          :lemma ,(intern (upcase argm-string))
                                          :score ,(length cxn-units-with-role)
                                          :label argm-leaf-cxn
-                                         :frequency 1)
+                                         :score 1)
                             :description ,(sentence-string propbank-sentence)
                             :cxn-inventory ,cxn-inventory))))))
 

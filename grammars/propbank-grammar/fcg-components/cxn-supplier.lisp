@@ -1,116 +1,83 @@
-(in-package :propbank-grammar)
+(in-package :fcg)
 
+(export '(cxn-supplier-cxn-sets-hashed-categorial-network sort-cxns))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                       ;;
 ;; Construction suplier  ;;
 ;;                       ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass cxn-supplier-propbank-english ()
-  ((current-label 
-    :initarg :current-label :accessor current-label
-    :documentation "The current label that is tried.")
-   (remaining-labels
-    :type list :initarg :remaining-labels :accessor remaining-labels
-    :documentation "All labels that have not been tried yet")
-   (all-constructions-of-current-label
-    :type list :initarg :all-constructions-of-current-label
-    :accessor all-constructions-of-current-label
-    :documentation "All constructions that have the current label")
-   (remaining-constructions
-    :type list :initform nil :accessor remaining-constructions :initarg :remaining-constructions
-    :documentation "A sublist of :all-constructions-of-current-label
-                    that are still to try"))
-  (:documentation "A construction pool that applies constructions of
-                   different labels by a pre-specified order"))
+
+;; Constructions are hashed and make use of links in the categorial network ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defclass cxn-supplier-hashed-categorial-network (cxn-supplier-cxn-sets)
+  ()
+  (:documentation "Construction supplier that combines hashing and categorial links."))
+
+(defmethod create-cxn-supplier ((node cip-node) (mode (eql :hashed-categorial-network)))
+  "Creates an instance of the cxn-supplier and sets the cxn-sets for the applicable direction."
+  (make-instance 'cxn-supplier-hashed-categorial-network))
+
+(defmethod next-cxn ((cxn-supplier cxn-supplier-hashed-categorial-network) (node cip-node))
+  "Returns all constructions that satisfy the hash of the node or are
+direct neighbours of the categories present in the node."
+    (constructions-for-application-hashed-categorial-network-neigbours node))
 
 
-(defmethod create-cxn-supplier ((node cip-node) (mode (eql :propbank-english)))
-  (let* ((parent (car (all-parents node))))
-    (if parent
-      ;; copy most of the stuff from the the pool of the parent
-      (make-instance 
-       'cxn-supplier-propbank-english
-       :current-label (current-label (cxn-supplier parent))
-       :remaining-labels (remaining-labels (cxn-supplier parent))
-       :remaining-constructions (all-constructions-of-current-label (cxn-supplier parent))
-       :all-constructions-of-current-label (all-constructions-of-current-label (cxn-supplier parent)))
-      ;; there is no parent, start from first label
-      (let* ((labels (get-configuration (construction-inventory (cip node))
-                                       (if (eq (direction (cip node)) '->)
-                                         :production-order :parse-order)))
-             (all-constructions-of-current-label (constructions-for-label-propbank node (car labels))))
-        (make-instance 
-         'cxn-supplier-propbank-english
-         :current-label (car labels)
-         :remaining-labels (cdr labels)
-         :remaining-constructions all-constructions-of-current-label
-         :all-constructions-of-current-label all-constructions-of-current-label)))))
+(defun constructions-for-application-hashed-categorial-network-neigbours (node)
+  "computes all constructions that could be applied for this node
+   plus nil hashed constructions"
+  (let* ((lex-categories-node (lex-categories node))
+         (lex-cat-neighbours (remove-duplicates (loop for lex-category in lex-categories-node
+                                                      append (neighbouring-categories lex-category
+                                                                                      (original-cxn-set (construction-inventory node))))))
+         (gram-categories-node (gram-categories node))
+         (gram-cat-neighbours (remove-duplicates (loop for gram-category in gram-categories-node
+                                                       append (neighbouring-categories gram-category
+                                                                                       (original-cxn-set (construction-inventory node))))))
 
-(defun constructions-for-label-propbank (node label)
-  "returns all constructions that of label 'label'"
-  (cond ;; For lexical constructions
-        ((or (equal label 'lexical-cxn)
-             (equal label 'argm-leaf-cxn))
-         (let ((constructions (loop for cxn in (loop for hash in (hash node (get-configuration node :hash-mode))
-                                                     append (gethash hash (constructions-hash-table (construction-inventory node))))
-                                    when (equal (attr-val cxn :label) label)
-                                    collect cxn)))
-           (when (get-configuration node :shuffle-cxns-before-application)
-             (setf constructions (shuffle constructions)))
-           (sort constructions #'(lambda (cxn-1 cxn-2)
-                                   (cond ((> (attr-val cxn-1 :score) (attr-val cxn-2 :score)))
-                                         ((< (attr-val cxn-1 :score) (attr-val cxn-2 :score))
-                                          nil)
-                                         ((>= (attr-val cxn-1 :frequency) (attr-val cxn-2 :frequency)))
-                                         (t
-                                          nil))))))
-        ;; For constructions bound to lex-categories
-        ((or (equal label 'argument-structure-cxn)
-             (equal label 'argm-phrase-cxn))
-         (let* ((lex-categories-node (lex-categories node))
-                (neighbours (remove-duplicates (loop for lex-category in lex-categories-node
-                                                     append (neighbouring-categories lex-category (original-cxn-set (construction-inventory node))))))
-                (constructions (loop for cxn in (if (equal label 'argument-structure-cxn)
-                                                  (gethash nil (constructions-hash-table (construction-inventory node)))
+         (constructions (remove nil
+                                (loop for cxn in ;(remove-duplicates
                                                   (append
                                                    (gethash nil (constructions-hash-table (construction-inventory node)))
-                                                   (loop for hash in (hash node (get-configuration node :hash-mode)) ;;argm-phrase cxns are hashed
-                                                        append (gethash hash (constructions-hash-table (construction-inventory node))))))
-                                     for cxn-category = (attr-val cxn :gram-category)
-                                     when (and (member cxn-category neighbours)
-                                               (equal (attr-val cxn :label) label))
-                                     collect cxn)))
-           (when (get-configuration node :shuffle-cxns-before-application)
-             (setf constructions (shuffle constructions)))
-           (sort constructions #'(lambda (cxn-1 cxn-2)
-                                   (cond ((> (attr-val cxn-1 :score) (attr-val cxn-2 :score)))
-                                         ((< (attr-val cxn-1 :score) (attr-val cxn-2 :score))
-                                          nil)
-                                         ((>= (find-highest-edge-weight lex-categories-node cxn-1 node)
-                                              (find-highest-edge-weight lex-categories-node cxn-2 node)))
-                                         (t
-                                          nil))))))
-        ;; Word sense constructions
-        ((equal label 'word-sense-cxn)
-         (let* ((gram-categories-node (gram-categories node))
-                (neighbours (remove-duplicates (loop for gram-category in gram-categories-node
-                                                     append (neighbouring-categories gram-category (original-cxn-set (construction-inventory node))))))
-                (constructions (loop for cxn in (loop for hash in (hash node (get-configuration node :hash-mode))
-                                                      append (gethash hash (constructions-hash-table (construction-inventory node))))
-                                     for cxn-category = (attr-val cxn :sense-category)
-                                     when (member cxn-category neighbours)
-                                     collect cxn)))
-           (when (get-configuration node :shuffle-cxns-before-application)
-             (setf constructions (shuffle constructions)))
-           (sort constructions #'(lambda (cxn-1 cxn-2)
-                                   (cond ((> (attr-val cxn-1 :score) (attr-val cxn-2 :score)))
-                                         ((< (attr-val cxn-1 :score) (attr-val cxn-2 :score))
-                                          nil)
-                                         ((>= (find-highest-edge-weight gram-categories-node cxn-1 node)
-                                              (find-highest-edge-weight gram-categories-node cxn-2 node)))
-                                         (t
-                                          nil))))))))
+                                                   (loop for hash in (hash node (get-configuration node :hash-mode))
+                                                         append (gethash hash (constructions-hash-table (construction-inventory node)))))
+                                      collect (cond ((attr-val cxn :gram-category)
+                                                     (when (member (attr-val cxn :gram-category) lex-cat-neighbours)
+                                                       cxn))
+                                                    ((attr-val cxn :sense-category)
+                                                     (when (member (attr-val cxn :sense-category) gram-cat-neighbours)
+                                                       cxn))
+                                                    (t
+                                                     cxn))))))
+    ;; shuffle if requested
+    (when (get-configuration node :shuffle-cxns-before-application)
+      (setq constructions 
+            (shuffle constructions)))
+    ;; sort if requested
+    (when (get-configuration node :sort-cxns-before-application)
+      (setq constructions
+            (funcall (get-configuration node :sort-cxns-before-application)
+                     constructions :node node)))
+    ;; return constructions
+    constructions))
+
+
+(defun sort-cxns (constructions &key node)
+  
+  (sort constructions #'(lambda (cxn-1 cxn-2)
+                          (cond ((> (attr-val cxn-1 :score) (attr-val cxn-2 :score)))
+                                ((< (attr-val cxn-1 :score) (attr-val cxn-2 :score))
+                                 nil)
+                                ((>= (find-highest-edge-weight (lex-categories node) cxn-1 node)
+                                     (find-highest-edge-weight (lex-categories node) cxn-2 node)))
+                                ((>= (find-highest-edge-weight (gram-categories node) cxn-1 node)
+                                     (find-highest-edge-weight (gram-categories node) cxn-2 node)))
+                                (t
+                                 nil)))))
+
+
 
 
 (defun find-highest-edge-weight (category-list cxn node)
@@ -132,23 +99,5 @@
         when gram-category
         collect it))
 
-(defmethod next-cxn ((cxn-supplier cxn-supplier-propbank-english) (node cip-node))
-  (cond ((remaining-constructions cxn-supplier)
-         ;; there are remaining constructions. just return the next one
-         (pop (remaining-constructions cxn-supplier)))
-        ((loop for child in (children node)
-               thereis (and (cxn-applied child)
-                            (not (find 'double-role-assignment (statuses child)))))
-         ;; when the node already has children where cxn application succeeded,
-         ;;  then we don't move to the next label
-         nil)
-        ((remaining-labels cxn-supplier)
-         ;; go to the next label
-         (setf (current-label cxn-supplier) (car (remaining-labels cxn-supplier)))
-         (setf (remaining-labels cxn-supplier) (cdr (remaining-labels cxn-supplier)))
-         (setf (all-constructions-of-current-label cxn-supplier)
-               (constructions-for-label-propbank node (current-label cxn-supplier)))
-         (setf (remaining-constructions cxn-supplier)
-               (all-constructions-of-current-label cxn-supplier))
-         (next-cxn cxn-supplier node))))
+
              
