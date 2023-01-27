@@ -138,36 +138,6 @@
         (return nodes-to-queue)))
 
 
-(defmethod expand-cip-node ((node cip-node) (mode (eql :beam-size-2)))
-  "Expands a cip-node with maximum two children."
-  (loop with nodes-to-queue = nil
-        with succeeded-cars = nil
-        with failed-cars = nil
-        for cxn in (listify (next-cxn (cxn-supplier node) node))
-        for new-cars = (multiple-value-list (fcg-apply (safe-cxn cxn (applied-constructions node))
-                                                       (car-resulting-cfs (cipn-car node))
-                                                       (direction (cip node)) :notify nil
-                                                       :configuration (configuration (construction-inventory node))
-                                                       :cxn-inventory (construction-inventory node)))
-        
-        do
-        (setf succeeded-cars (append succeeded-cars (first new-cars)))
-        (setf failed-cars (append failed-cars (second new-cars)))
-        when (>= (length succeeded-cars) 2)
-          do (loop for car in succeeded-cars
-                   do (push (cip-add-child node car) nodes-to-queue))
-             (loop for car in failed-cars
-                   do (cip-add-child node car :cxn-applied nil))
-             (setf (fully-expanded? node) t)
-             (return nodes-to-queue)
-        finally
-        (loop for car in succeeded-cars
-              do (push (cip-add-child node car) nodes-to-queue))
-        (loop for car in failed-cars
-              do (cip-add-child node car :cxn-applied nil))
-        (setf (fully-expanded? node) t)
-        (return nodes-to-queue)))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; Search algorithms ;;
