@@ -1,6 +1,6 @@
 (in-package :fcg)
 
-(export '(cxn-supplier-cxn-sets-hashed-categorial-network sort-cxns))
+(export '(cxn-supplier-cxn-sets-hashed-categorial-network sort-cxns-by-frequency-and-categorial-edge-weight))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                       ;;
 ;; Construction suplier  ;;
@@ -26,31 +26,28 @@ direct neighbours of the categories present in the node."
 
 
 (defun constructions-for-application-hashed-categorial-network-neigbours (node)
-  "computes all constructions that could be applied for this node
-   plus nil hashed constructions"
-  (let* ((lex-categories-node (lex-categories node))
-         (lex-cat-neighbours (remove-duplicates (loop for lex-category in lex-categories-node
+  "Computes all constructions that could be applied for this node
+   based on the hash table and the constructions that are linked to
+the node through the links in the categorial network."
+  (let* ((lex-cat-neighbours (remove-duplicates (loop for lex-category in (lex-categories node)
                                                       append (neighbouring-categories lex-category
                                                                                       (original-cxn-set (construction-inventory node))))))
-         (gram-categories-node (gram-categories node))
-         (gram-cat-neighbours (remove-duplicates (loop for gram-category in gram-categories-node
+         (gram-cat-neighbours (remove-duplicates (loop for gram-category in (gram-categories node)
                                                        append (neighbouring-categories gram-category
                                                                                        (original-cxn-set (construction-inventory node))))))
-
-         (constructions (remove nil
-                                (loop for cxn in ;(remove-duplicates
-                                                  (append
-                                                   (gethash nil (constructions-hash-table (construction-inventory node)))
-                                                   (loop for hash in (hash node (get-configuration node :hash-mode))
-                                                         append (gethash hash (constructions-hash-table (construction-inventory node)))))
-                                      collect (cond ((attr-val cxn :gram-category)
-                                                     (when (member (attr-val cxn :gram-category) lex-cat-neighbours)
-                                                       cxn))
-                                                    ((attr-val cxn :sense-category)
-                                                     (when (member (attr-val cxn :sense-category) gram-cat-neighbours)
-                                                       cxn))
-                                                    (t
-                                                     cxn))))))
+         (constructions
+          (remove nil (loop for cxn in (remove-duplicates (append
+                                                           (gethash nil (constructions-hash-table (construction-inventory node)))
+                                                           (loop for hash in (hash node (get-configuration node :hash-mode))
+                                                                 append (gethash hash (constructions-hash-table (construction-inventory node))))))
+                            collect (cond ((attr-val cxn :gram-category)
+                                           (when (member (attr-val cxn :gram-category) lex-cat-neighbours)
+                                             cxn))
+                                          ((attr-val cxn :sense-category)
+                                           (when (member (attr-val cxn :sense-category) gram-cat-neighbours)
+                                             cxn))
+                                          (t
+                                           cxn))))))
     ;; shuffle if requested
     (when (get-configuration node :shuffle-cxns-before-application)
       (setq constructions 
@@ -64,21 +61,21 @@ direct neighbours of the categories present in the node."
     constructions))
 
 
-(defun sort-cxns (constructions &key node)
-  
+#|(defun sort-cxns-by-frequency-and-categorial-edge-weight (constructions &key node)
+  "Sorts a list of constructions based on their frequency and the
+weight of the edge linking the categories present in the transient
+structure and those of the constructions."
   (sort constructions #'(lambda (cxn-1 cxn-2)
-                          (cond ((> (attr-val cxn-1 :score) (attr-val cxn-2 :score)))
-                                ((< (attr-val cxn-1 :score) (attr-val cxn-2 :score))
-                                 nil)
-                                ((>= (find-highest-edge-weight (lex-categories node) cxn-1 node)
+                          (cond ((>= (find-highest-edge-weight (lex-categories node) cxn-1 node)
                                      (find-highest-edge-weight (lex-categories node) cxn-2 node)))
                                 ((>= (find-highest-edge-weight (gram-categories node) cxn-1 node)
                                      (find-highest-edge-weight (gram-categories node) cxn-2 node)))
+                                ((> (attr-val cxn-1 :score) (attr-val cxn-2 :score)))
+                                ((< (attr-val cxn-1 :score) (attr-val cxn-2 :score))
+                                 nil)
                                 (t
                                  nil)))))
-
-
-
+|#
 
 (defun find-highest-edge-weight (category-list cxn node)
   (loop with cxn-category = (or (attr-val cxn :gram-category)

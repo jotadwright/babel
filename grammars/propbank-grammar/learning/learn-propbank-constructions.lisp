@@ -133,6 +133,7 @@ to the categorial network. Returns the lexical category."
                             (?lex-unit
                              --
                              (footprints (NOT lex))
+                             
                              (lemma ,lex-lemma)
                              (parent ?phrasal-unit)))
                           
@@ -152,6 +153,7 @@ to the categorial network. Returns the lexical category."
                             (?lex-unit
                              --
                              (footprints (NOT lex))
+                             
                              (lemma ,lemma)
                              (syn-class ,syn-class)))
                            :attributes (:lemma ,lemma
