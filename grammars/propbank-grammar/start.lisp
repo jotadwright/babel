@@ -11,7 +11,7 @@
 (in-package :propbank-grammar)
 
 
-
+(activate-monitor export-categorial-network-evolution-to-jsonl)
 
 ;; Activating spacy-api locally
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -63,13 +63,12 @@
     (:construction-inventory-processor-mode . :heuristic-search)
     (:search-algorithm . :best-first)   
     (:cxn-supplier-mode . :hashed-categorial-network)
-    (:heuristics :nr-of-applied-cxns :nr-of-units-matched) ;:prefer-local-bindings
+    (:heuristics :nr-of-applied-cxns :nr-of-units-matched :frequency :edge-weight ) ;:prefer-local-bindings
     (:heuristic-value-mode . :sum-heuristics-and-parent)
-    (:sort-cxns-before-application . fcg:sort-cxns-by-frequency-and-categorial-edge-weight)
+    (:sort-cxns-before-application . nil)
 
-    (:node-expansion-mode . :full-expansion) ;;) ;; always fully expands node immediately
+    (:node-expansion-mode . :full-expansion)
     (:hash-mode . :hash-lemma)
-  ;;  (:parse-order lexical-cxn argument-structure-cxn argm-phrase-cxn argm-leaf-cxn word-sense-cxn)
     
     (:replace-when-equivalent . nil)
     (:learning-modes
@@ -77,26 +76,39 @@
      :argm-leaf
      :argm-pp
      :argm-sbar
-     
      ;:argm-phrase-with-string
      )
     ))
 
 (defparameter *test-grammar* nil)
 
-(defparameter *train-corpus* (train-split *ewt-annotations*))
+(defparameter *train-corpus* (train-split *ewt-annotations*)); (append (train-split *ontonotes-annotations*)
+                                     (train-split *ewt-annotations*)))
   ;(subseq (shuffle (append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*))) 0 1000))
 
+(progn
+  (activate-monitor export-categorial-network-evolution-to-jsonl)
+  (learn-propbank-grammar
+   (subseq *train-corpus* 0 50)
+   :excluded-rolesets '("be.01" "be.02" "be.03"
+                        "do.01" "do.02" "do.04" "do.11" "do.12"
+                        "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
+                        "get.03" "get.06" "get.24")
+   :cxn-inventory '*test-grammar*
+   :fcg-configuration *training-configuration*))
 
-(learn-propbank-grammar
-  *train-corpus*
- :excluded-rolesets '("be.01" "be.02" "be.03"
-                      "do.01" "do.02" "do.04" "do.11" "do.12"
-                      "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
-                      "get.03" "get.06" "get.24")
- :cxn-inventory '*test-grammar*
- :fcg-configuration *training-configuration*)
 
+(export-categorial-network-evolution-to-jsonl
+ (categorial-network *test-grammar*)
+ :path (babel-pathname :directory '("grammars" "propbank-grammar" "raw-data")
+                       :name (format nil "~a~a" (multiple-value-bind (sec min hour day month year)
+                                                    (decode-universal-time (get-universal-time))
+                                                  (format nil "~d-~2,'0d-~2,'0d-~2,'0d-~2,'0d-~2,'0d-"
+                                                          year month day hour min sec)) "categorial-network")
+                       :type "jsonl")
+ :timestep 1 :interaction-number 1
+ :link-type 'nil)
+                                              
 ;(add-element (make-html *test-grammar*))
 ;(activate-monitor trace-fcg)
 
@@ -104,8 +116,10 @@
   (setf *test-sentence* (random-elt *train-corpus*))
   (comprehend-and-extract-frames *test-sentence* :cxn-inventory *test-grammar* :timeout 3000))
 
+
 (set-configuration *test-grammar* :node-expansion-mode :full-expansion)
-(set-configuration *test-grammar* :heuristics '(:nr-of-applied-cxns :nr-of-units-matched))
+(set-configuration *test-grammar* :heuristics '(:nr-of-applied-cxns :nr-of-units-matched  :edge-weight)) ;:frequency
+(comprehend-and-extract-frames "I gave her flowers" :cxn-inventory *test-grammar* :timeout 3000)
 
 (comprehend-and-evaluate (list *test-sentence*) *test-grammar*
                          :excluded-rolesets '("be.01" "be.02" "be.03"

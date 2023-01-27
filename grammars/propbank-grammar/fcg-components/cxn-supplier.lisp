@@ -52,37 +52,9 @@ the node through the links in the categorial network."
     (when (get-configuration node :shuffle-cxns-before-application)
       (setq constructions 
             (shuffle constructions)))
-    ;; sort if requested
-    (when (get-configuration node :sort-cxns-before-application)
-      (setq constructions
-            (funcall (get-configuration node :sort-cxns-before-application)
-                     constructions :node node)))
     ;; return constructions
     constructions))
 
-
-#|(defun sort-cxns-by-frequency-and-categorial-edge-weight (constructions &key node)
-  "Sorts a list of constructions based on their frequency and the
-weight of the edge linking the categories present in the transient
-structure and those of the constructions."
-  (sort constructions #'(lambda (cxn-1 cxn-2)
-                          (cond ((>= (find-highest-edge-weight (lex-categories node) cxn-1 node)
-                                     (find-highest-edge-weight (lex-categories node) cxn-2 node)))
-                                ((>= (find-highest-edge-weight (gram-categories node) cxn-1 node)
-                                     (find-highest-edge-weight (gram-categories node) cxn-2 node)))
-                                ((> (attr-val cxn-1 :score) (attr-val cxn-2 :score)))
-                                ((< (attr-val cxn-1 :score) (attr-val cxn-2 :score))
-                                 nil)
-                                (t
-                                 nil)))))
-|#
-
-(defun find-highest-edge-weight (category-list cxn node)
-  (loop with cxn-category = (or (attr-val cxn :gram-category)
-                                (attr-val cxn :sense-category))
-        for cat in category-list
-        if (link-exists-p cat cxn-category (original-cxn-set (construction-inventory node)))
-        maximize (link-weight cat cxn-category (original-cxn-set (construction-inventory node)))))
 
 (defun lex-categories (node)
   (loop for unit in (fcg-get-transient-unit-structure node)
