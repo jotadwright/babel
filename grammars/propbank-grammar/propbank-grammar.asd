@@ -19,6 +19,7 @@
                              (:file "node-tests")
                              (:file "cxn-supplier")
                              (:file "hash-mode")
+                             (:file "heuristics")
                              (:file "frame-visualisation")
                              (:file "extract-frames")
                              (:file "comprehend")))
