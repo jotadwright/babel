@@ -21,7 +21,7 @@
 (set-configuration *experiment* :input-lang :fr)
 
 (defparameter *vision-server*
-  (make-instance 'vision-server
+  (make-instance 'nao-interface::vision-server
                  :nao-ip "192.168.2.4"
                  :server-host "127.0.0.1"
                  :server-port "7851"))
