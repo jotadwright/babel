@@ -4,10 +4,11 @@
 (defclass add-cxns-and-categorial-links (repair)
   ())
 
-
+;; Events
 (define-event cxns-learned (cxns list))
 (define-event fix-applied (repair-name symbol) (form list) (learned-cxns list))
 
+;; Apply fix result
 (defstruct (apply-fix-result (:conc-name afr-))
   (orig-cxns-to-apply nil)
   (categorial-links nil)
@@ -16,7 +17,8 @@
   (top-lvl-category nil)
   (gold-standard-consulted-p nil)
   (node nil)
-  (solution-node nil))
+  (solution-node nil)
+  (repair nil))
 
 
 (defun apply-fix (form-constraints
@@ -67,7 +69,8 @@
              :top-lvl-category top-level-category
              :gold-standard-consulted-p gold-standard-consulted-p
              :node node
-             :solution-node solution-node))))
+             :solution-node solution-node
+             :repair repair-name))))
       ;; node is nil (we are in a deeper level of the recursion) just pass through the list of cxns and cats
       ;; todo: apply cxns to form instead
       (progn
@@ -80,7 +83,8 @@
          :top-lvl-category top-level-category
          :gold-standard-consulted-p gold-standard-consulted-p
          :node node
-         :solution-node nil)))))
+         :solution-node nil
+         :repair repair-name)))))
        
     
 
