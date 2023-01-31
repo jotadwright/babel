@@ -25,26 +25,31 @@
                                                       cl-user:*babel-corpora*))
                               (:corpus-data-file . ,(make-pathname :directory '(:relative "train")
                                                                    :name "stage-1" :type "jsonl"))
-                              (:number-of-samples . 100)
+                              (:number-of-samples . 1000)
                               (:shuffle-data-p . nil)
                               (:sort-data-p . t)))))
 
 (defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
 ;(add-element (make-html *cxn-inventory*))
 
-(loop repeat 6 do (run-interaction *experiment*))
+(run-interaction *experiment*)
+(loop repeat 100 do (run-interaction *experiment*))
+(go-back-n-interactions *experiment* 1)
 
-(comprehend-all "How big is the brown sphere?"
+#|
+(comprehend-all "The ball has what color?"
                 :cxn-inventory *cxn-inventory*
                 :gold-standard-meaning '((get-context ?context)
                                          (filter ?set1 ?context ?shape1)
                                          (bind shape-category ?shape1 sphere)
-                                         (filter ?set3 ?set1 ?color1)
-                                         (bind color-category ?color1 brown)
-                                         (unique ?object1 ?set3)
+                                         (unique ?object1 ?set1)
                                          (query ?target ?object1 ?attribute1)
-                                         (bind attribute-category ?attribute1 size)))
+                                         (bind attribute-category ?attribute1 color)))
+|#
 
+(defun go-back-n-interactions (experiment n)
+  (setf (interactions experiment)
+        (subseq (interactions experiment) n)))
 
 
 
