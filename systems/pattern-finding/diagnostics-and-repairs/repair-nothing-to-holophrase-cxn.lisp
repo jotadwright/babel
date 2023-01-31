@@ -58,33 +58,39 @@
    node))
 
 
-;; TO DO
-;; Check for existing identical cxns!
-
 (defun do-create-holistic-cxn (form-constraints meaning form-args meaning-args cxn-inventory node)
   (let* ((cxn-inventory
           (original-cxn-set cxn-inventory))
          (meaning-representation-formalism
           (get-configuration cxn-inventory :meaning-representation-formalism))
+         ;; make the cxn name
          (cxn-name
           (make-cxn-name form-constraints cxn-inventory :add-numeric-tail t))
          (cxn-name-holistic-cxn-apply-last
           (intern (upcase (format nil "~a-apply-last" cxn-name))))
          (cxn-name-holistic-cxn-apply-first
           (intern (upcase (format nil "~a-apply-first" cxn-name))))
-         (lex-class-holistic-cxn
-          (make-lex-class cxn-name :trim-cxn-suffix t))
+         ;; find an identical existing holistic cxn
          (existing-routine-holistic-cxn
           (find-identical-holistic-cxn form-constraints meaning form-args meaning-args cxn-inventory))
          (existing-meta-holistic-cxn
           (when existing-routine-holistic-cxn
             (alter-ego-cxn existing-routine-holistic-cxn cxn-inventory)))
+         ;; lex class
+         (lex-class-holistic-cxn
+          (if existing-routine-holistic-cxn
+            (extract-lex-class-holistic-cxn existing-routine-holistic-cxn)
+            (make-lex-class cxn-name :trim-cxn-suffix t)))
+         ;; hash keys
          (hash-string
-          (form-predicates->hash-string form-constraints))
+          (unless existing-routine-holistic-cxn
+            (form-predicates->hash-string form-constraints)))
          (hash-meaning
-          (meaning-predicates->hash-meaning meaning meaning-representation-formalism))
+          (unless existing-routine-holistic-cxn
+            (meaning-predicates->hash-meaning meaning meaning-representation-formalism)))
          (cxn-inventory-copy
-          (copy-object cxn-inventory))
+          (unless existing-routine-holistic-cxn
+            (copy-object cxn-inventory)))
          (holistic-cxn-apply-first
           (or existing-routine-holistic-cxn
               (second
