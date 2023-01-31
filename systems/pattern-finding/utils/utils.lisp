@@ -215,6 +215,13 @@
    (append network `((args ,@args)))
    (append cxn-network `((args ,@cxn-args)))))
 
+(defun identical-holistic-cxn-p (form meaning form-args meaning-args cxn)
+  (let ((cxn-args (extract-args-holistic-cxn cxn)))
+    (and (equivalent-irl-programs? form (extract-form-predicates cxn))
+         (equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
+         (equivalent-networks-and-args? form (extract-form-predicates cxn) form-args (first cxn-args))
+         (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) meaning-args (second cxn-args)))))
+
 (defun find-identical-holistic-cxn (form meaning form-args meaning-args cxn-inventory)
   "Find a routine holistic cxn that is identical to the given form, meaning, and args"
   (let ((candidate-cxns
@@ -223,13 +230,21 @@
                                        (remove-if-not #'holistic-cxn-p
                                                       (constructions cxn-inventory))))))
     (loop for cxn in candidate-cxns
-          ; list of form-args and meaning-args
-          for cxn-args = (extract-args-holistic-cxn cxn)
-          when (and (equivalent-irl-programs? form (extract-form-predicates cxn))
-                    (equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
-                    (equivalent-networks-and-args? form (extract-form-predicates cxn) form-args (first cxn-args))
-                    (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) meaning-args (second cxn-args)))
+          when (identical-holistic-cxn-p form meaning form-args meaning-args cxn)
           return cxn)))
+
+(defun identical-item-based-cxn-p (form meaning top-lvl-form-args top-lvl-meaning-args slot-form-args slot-meaning-args cxn)
+  (destructuring-bind (top-lvl-args slot-args) (extract-args-item-based-cxn cxn)
+    (and (equivalent-irl-programs? form (extract-form-predicates cxn))
+         (equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
+         (length= top-lvl-form-args (first top-lvl-args))
+         (length= top-lvl-meaning-args (second top-lvl-args))
+         (length= slot-form-args (first slot-args))
+         (length= slot-meaning-args (second slot-args))
+         (equivalent-networks-and-args? form (extract-form-predicates cxn) top-lvl-form-args (first top-lvl-args))
+         (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) top-lvl-meaning-args (second top-lvl-args))
+         (equivalent-networks-and-args? form (extract-form-predicates cxn) slot-form-args (first slot-args))
+         (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) slot-meaning-args (second slot-args)))))
 
 (defun find-identical-item-based-cxn (form meaning top-lvl-form-args top-lvl-meaning-args slot-form-args slot-meaning-args cxn-inventory)
   "Find a routine item-based cxn that is identical to the given form, meaning, and args"
@@ -239,19 +254,10 @@
                                        (remove-if #'holistic-cxn-p
                                                   (constructions cxn-inventory))))))
     (loop for cxn in candidate-cxns
-          ; lists of form-args and meaning-args
-          for (top-lvl-args slot-args) = (extract-args-item-based-cxn cxn)
-          when (and (equivalent-irl-programs? form (extract-form-predicates cxn))
-                    (equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
-                    (length= top-lvl-form-args (first top-lvl-args))
-                    (length= top-lvl-meaning-args (second top-lvl-args))
-                    (length= slot-form-args (first slot-args))
-                    (length= slot-meaning-args (second slot-args))
-                    (equivalent-networks-and-args? form (extract-form-predicates cxn) top-lvl-form-args (first top-lvl-args))
-                    (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) top-lvl-meaning-args (second top-lvl-args))
-                    (equivalent-networks-and-args? form (extract-form-predicates cxn) slot-form-args (first slot-args))
-                    (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) slot-meaning-args (second slot-args)))
+          when (identical-item-based-cxn-p form meaning top-lvl-form-args top-lvl-meaning-args
+                                           slot-form-args slot-meaning-args cxn)
           return cxn)))
+
 
 
 ;;;;;
