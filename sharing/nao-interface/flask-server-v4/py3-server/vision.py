@@ -60,8 +60,9 @@ class Vision(object):
             object['hsv'] = hsv
             object['rgb'] = rgb
             # position
-            x_mid = int((bbox[1] + bbox[3]) / 2)
-            y_mid = int((bbox[0] + bbox[2]) / 2)
+            x_mid = int((bbox[0] + bbox[3]) / 2)
+            print(x_mid)
+            y_mid = int((bbox[0] + bbox[1]) / 2)
             object['xpos'] = x_mid
             object['ypos'] = y_mid
             # width, height, area, etc

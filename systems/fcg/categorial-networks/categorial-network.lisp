@@ -130,24 +130,24 @@
   (categories (categorial-network cxn-inventory)))
 
 
-(defgeneric links (thing)
+(defgeneric links (thing &key link-type &allow-other-keys)
   (:documentation "Returns the links in the network of a grammar
    as triples of type (category-1 category-2 link-type). All links
    are returned as directed edges even though the categorial network
    is undirected. For example, the edge A<->B is returned as both
    (A, B, NIL) and (B, A, NIL)."))
 
-(defmethod links ((categorial-network categorial-network))
+(defmethod links ((categorial-network categorial-network) &key link-type)
   "Lists links in categorial-network."
-  (graph-utils:list-edges (graph categorial-network)))
+  (graph-utils:list-edges (graph categorial-network) :edge-type link-type))
 
-(defmethod links ((cxn-inventory fcg-construction-set))
+(defmethod links ((cxn-inventory fcg-construction-set) &key link-type)
   "Lists links in categorial-network."
-  (links (categorial-network cxn-inventory)))
+  (links (categorial-network cxn-inventory) :edge-type link-type))
 
-(defmethod links ((cxn-inventory hashed-fcg-construction-set))
+(defmethod links ((cxn-inventory hashed-fcg-construction-set) &key link-type)
   "Lists links in categorial-network."
-  (links (categorial-network cxn-inventory)))
+  (links (categorial-network cxn-inventory) :edge-type link-type))
 
 
 (defgeneric link-types (thing)

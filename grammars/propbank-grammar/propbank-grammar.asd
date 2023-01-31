@@ -5,7 +5,7 @@
   :author "Paul Van Eecke & Katrien Beuls <ehai@ai.vub.ac.be>"
   :maintainer "Paul Van Eecke & Katrien Beuls <ehai@ai.vub.ac.be>"
   :license "To be determined."
-  :depends-on (:utils :nlp-tools :cl-store :fcg :irl :fcg-server)
+  :depends-on (:utils :nlp-tools :cl-store :fcg :irl :fcg-server :monitors)
   :serial t
   :components ((:file "package")
                
@@ -19,6 +19,7 @@
                              (:file "node-tests")
                              (:file "cxn-supplier")
                              (:file "hash-mode")
+                             (:file "heuristics")
                              (:file "frame-visualisation")
                              (:file "extract-frames")
                              (:file "comprehend")))
@@ -34,7 +35,11 @@
                              (:file "grammar-analysis")))
                (:module cleaning-and-evaluation
                 :serial t
-                :components ((:file "clean")))
+                :components ((:file "clean")
+                             (:file "evaluation")))
+               (:module monitors
+                :serial t
+                :components ((:file "categorial-network")))
                (:module web-service
                 :serial t
                 :components ((:file "fcg-server-route")))))

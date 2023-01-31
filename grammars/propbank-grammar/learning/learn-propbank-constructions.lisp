@@ -1,5 +1,6 @@
 (in-package :propbank-grammar)
 
+(define-event learning-finished (cxn-inventory fcg-construction-set))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                              ;;
@@ -53,7 +54,8 @@
                       do
                       (learn-from-propbank-annotation sentence roleset cxn-inventory mode)))
           finally
-          (return cxn-inventory))))
+            (notify learning-finished cxn-inventory)
+            (return cxn-inventory))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Learning constructions from an annotated frame instance. ;;
@@ -84,12 +86,12 @@ have been annotated for the given gold-frame. "
          (core-units-with-role (remove-if #'(lambda (unit-with-role)
                                               (search "ARGM" (role-type (car unit-with-role))))
                                           (units-with-role ts-unit-structure gold-frame))))
-    (when (> (length core-units-with-role) 1)
+    ;(when (> (length core-units-with-role) 1)
       (let* ((lex-category (add-lexical-cxn gold-frame (v-unit core-units-with-role) cxn-inventory propbank-sentence))
              (gram-category (when lex-category
                               (add-grammatical-cxn gold-frame core-units-with-role cxn-inventory propbank-sentence lex-category))))
         (when gram-category
-          (add-word-sense-cxn gold-frame (v-unit core-units-with-role) cxn-inventory propbank-sentence lex-category gram-category))))))
+          (add-word-sense-cxn gold-frame (v-unit core-units-with-role) cxn-inventory propbank-sentence lex-category gram-category)))))
 
 
 (defun find-lexical-cxn (v-unit cxn-inventory)
@@ -133,6 +135,7 @@ to the categorial network. Returns the lexical category."
                             (?lex-unit
                              --
                              (footprints (NOT lex))
+                             
                              (lemma ,lex-lemma)
                              (parent ?phrasal-unit)))
                           
@@ -152,6 +155,7 @@ to the categorial network. Returns the lexical category."
                             (?lex-unit
                              --
                              (footprints (NOT lex))
+                             
                              (lemma ,lemma)
                              (syn-class ,syn-class)))
                            :attributes (:lemma ,lemma
