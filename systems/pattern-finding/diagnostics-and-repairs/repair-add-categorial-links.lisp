@@ -43,7 +43,9 @@
   (disable-meta-layer-configuration cxn-inventory) 
   (with-disabled-monitor-notifications
     (multiple-value-bind (parsed-meanings solutions)
-        (comprehend-all form-constraints :cxn-inventory (original-cxn-set cxn-inventory) :gold-standard-meaning meaning)
+        (comprehend-all form-constraints
+                        :cxn-inventory (original-cxn-set cxn-inventory)
+                        :gold-standard-meaning meaning)
       (declare (ignore parsed-meanings))
       (enable-meta-layer-configuration cxn-inventory)
       (let* ((required-top-lvl-args
@@ -58,26 +60,27 @@
         (when (and cip-node (member 'succeeded (statuses cip-node) :test #'string=))
           (let* ((cxns-to-apply (mapcar #'original-cxn (reverse (applied-constructions cip-node))))
                  (top-level-category (extract-contributing-lex-class (last-elt cxns-to-apply))))
+            (when (> (length cxns-to-apply) 1)
             
-            (apply-fix 
-             ;; form constraints
-             form-constraints
-             ;; cxns to appply
-             cxns-to-apply
-             ;; categorial links
-             (extract-used-categorial-links cip-node)
-             ;; original cxns to consolidate
-             nil
-             ;; categories to add
-             nil
-             ;; top level category
-             top-level-category
-             ;; gold standard consulted p
-             (gold-standard-consulted-p cip-node)
-             ;; node
-             node
-             ;; repair name
-             'add-categorial-links)))))))
+              (apply-fix 
+               ;; form constraints
+               form-constraints
+               ;; cxns to appply
+               cxns-to-apply
+               ;; categorial links
+               (extract-used-categorial-links cip-node)
+               ;; original cxns to consolidate
+               nil
+               ;; categories to add
+               nil
+               ;; top level category
+               top-level-category
+               ;; gold standard consulted p
+               (gold-standard-consulted-p cip-node)
+               ;; node
+               node
+               ;; repair name
+               'add-categorial-links))))))))
 
 (defun extract-used-categorial-links (solution-cipn)
   "For a given solution-cipn, extracts categorial links that were used (based on lex-class)."
