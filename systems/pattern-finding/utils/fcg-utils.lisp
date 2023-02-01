@@ -155,10 +155,10 @@
                      :fcg-configurations ((:node-tests :restrict-nr-of-nodes :restrict-search-depth :check-duplicate)
                                           (:cxn-supplier-mode . ,cxn-supplier)
                                           (:parse-goal-tests :no-strings-in-root
-                                           :no-applicable-cxns
-                                           :connected-semantic-network
-                                           :connected-structure
-                                           :non-gold-standard-meaning)
+                                                             :no-applicable-cxns
+                                                             :connected-semantic-network
+                                                             :connected-structure
+                                                             :non-gold-standard-meaning)
                                           (:de-render-mode . ,de-render-mode)
                                           (:parse-order routine)
                                           (:max-nr-of-nodes . 250)

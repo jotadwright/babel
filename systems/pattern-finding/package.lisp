@@ -12,6 +12,7 @@
         :web-interface
         :fcg
         :meta-layer-learning)
+  (:import-from :cl-json :decode-json-from-string)
   (:shadowing-import-from :fcg :size :attributes)
   (:export :args))
 
