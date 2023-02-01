@@ -1,7 +1,295 @@
 (in-package :pattern-finding)
 
+;;;;;
+;; Accessors and Predicates
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun get-cxn-type (cxn)
+  (attr-val cxn :cxn-type))
+
+(defun get-cxn-score (cxn)
+  (attr-val cxn :score))
+
+(defun non-zero-cxn-p (cxn)
+  (> (attr-val cxn :score) 0))
+
+(defun routine-cxn-p (cxn)
+  (eql (attr-val cxn :label) 'fcg::routine))
+
+(defun holistic-cxn-p (cxn)
+  (eql (attr-val cxn :cxn-type) 'holistic))
+
+
+;;;;;
+;; Search tree utils
+;;;;;;;;;;;;;;;;;;;;
+
+(defun initial-transient-structure (node)
+  (if (find 'fcg::initial (statuses node))
+    (car-source-cfs (cipn-car node))
+    (car-source-cfs (cipn-car (last-elt (all-parents node))))))
+
+(defun initial-node-p (node)
+  "return t if node is initial node"
+  (null (all-parents node)))
+
+
+;;;;;
+;; Make cxn name
+;;;;;;;;;;;;;;;;;;;;
+
 (defconstant +placeholder-vars+
-  '("?X" "?Y" "?Z" "?A" "?B" "?C" "?D" "?E" "?F" "?G" "?H" "?I" "?J" "?K" "?L" "?M" "?N" "?O" "?P" "?Q" "?R" "?S" "?T" "?U" "?V" "?W"))
+  '("?X" "?Y" "?Z" "?A" "?B" "?C"
+    "?D" "?E" "?F" "?G" "?H" "?I"
+    "?J" "?K" "?L" "?M" "?N" "?O"
+    "?P" "?Q" "?R" "?S" "?T" "?U"
+    "?V" "?W"))
+
+(defun variablify-missing-form-strings (form-constraints)
+  "create X Y Z etc variables by checking which strings are missing in meets constraints.
+   return a list of placeholder bindings in the form of string predicates"
+  (loop with string-constraints = (find-all 'string form-constraints :key #'first)
+        with new-string-constraints = nil
+        with meets-constraints = (set-difference form-constraints string-constraints)
+        with placeholder-index = 0
+        for meets-constraint in meets-constraints
+        for first-word-var = (second meets-constraint)
+        for second-word-var = (third meets-constraint)
+        unless (or (find first-word-var string-constraints :key #'second)
+                   (find first-word-var new-string-constraints :key #'second))
+        do (progn (push `(string ,first-word-var ,(nth placeholder-index +placeholder-vars+)) new-string-constraints)
+             (incf placeholder-index))
+        unless (or (find second-word-var string-constraints :key #'second)
+                   (find second-word-var new-string-constraints :key #'second))
+        do (progn (push `(string ,second-word-var ,(nth placeholder-index +placeholder-vars+)) new-string-constraints)
+             (incf placeholder-index))
+        finally (return new-string-constraints)))
+
+(defgeneric make-cxn-name (thing cxn-inventory &key add-cxn-suffix add-numeric-tail))
+
+(defmethod make-cxn-name ((string string) (cxn-inventory fcg-construction-set)
+                          &key (add-cxn-suffix t) (add-numeric-tail nil))
+  "Transform an utterance into a suitable construction name"
+  (declare (ignore cxn-inventory))
+  (let ((name-string
+         (substitute #\- #\Space
+                     (upcase
+                      (if add-cxn-suffix
+                        (string-append string "-cxn")
+                        string)))))
+    (if add-numeric-tail
+      (make-id name-string)
+      (intern name-string))))
+
+(defmethod make-cxn-name ((form-constraints list) (cxn-inventory fcg-construction-set)
+                          &key (add-cxn-suffix t) (add-numeric-tail nil))
+  "Transform a list of form constraints into a suitable construction name"
+  (let ((new-string-constraints (variablify-missing-form-strings form-constraints)))
+    (make-cxn-name (format nil "~{~a~^-~}"
+                           (render (append form-constraints new-string-constraints)
+                                   (get-configuration cxn-inventory :render-mode)))
+                   cxn-inventory :add-cxn-suffix add-cxn-suffix :add-numeric-tail add-numeric-tail)))
+
+
+;;;;;
+;; Make lex class
+;;;;;;;;;;;;;;;;;;;;
+
+(defun replace-special-initial-chars (string)
+  (if (member (subseq string 0 1) '("?" "!" "\"") :test #'string=)
+    (string-append "-" string)
+    string))
+ 
+(defun make-lex-class (cat-name &key add-numeric-tail trim-cxn-suffix)
+  (let* ((name-string
+          (replace-special-initial-chars
+           (if (equal (type-of cat-name) 'SYMBOL)
+             (string-downcase (symbol-name cat-name))
+             (string-downcase cat-name))))
+         (cat-name
+          (if trim-cxn-suffix
+            (fcg::replace-all name-string "-cxn" "")
+            name-string)))
+    (intern
+     (string-downcase
+      (symbol-name
+       (funcall
+        (if add-numeric-tail #'make-const #'make-symbol)
+        (upcase
+         (if cat-name cat-name "CAT")))))
+     :pattern-finding)))
+
+
+;;;;;
+;; Extracting lex classes from cxns
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun extract-lex-class-holistic-cxn (cxn)
+  "Extract the lex class from a holistic cxn.
+   Works for both routine and meta cxns."
+  (let* ((unit-to-search
+          (if (routine-cxn-p cxn)
+            (fcg::unit-structure (first (contributing-part cxn)))
+            (comprehension-lock (first (conditional-part cxn)))))
+         (syn-cat (find 'syn-cat unit-to-search :key #'first)))
+    (second (find 'lex-class (rest syn-cat) :key #'first))))
+
+(defun extract-lex-class-slot-item-based-cxn (cxn)
+  (let* ((unit-to-search
+          (if (routine-cxn-p cxn)
+            (loop for unit in (conditional-part cxn)
+                  when (find 'syn-cat (comprehension-lock unit) :key #'first)
+                  return (comprehension-lock unit))
+            (loop for unit in (contributing-part cxn)
+                  unless (find 'subunits (fcg::unit-structure unit) :key #'first)
+                  return (fcg::unit-structure unit))))
+         (syn-cat (find 'syn-cat unit-to-search :key #'first)))
+    (second (find 'lex-class (rest syn-cat) :key #'first))))
+
+(defun extract-lex-class-item-based-cxn (cxn)
+  (let* ((unit-to-search
+          (if (routine-cxn-p cxn)
+            (fcg::unit-structure (first (contributing-part cxn)))
+            (loop for unit in (contributing-part cxn)
+                  when (find 'subunits (fcg::unit-structure unit) :key #'first)
+                  return (fcg::unit-structure unit))))
+         (syn-cat (find 'syn-cat unit-to-search :key #'first)))
+    (second (find 'lex-class (rest syn-cat) :key #'first))))
+
+
+;;;;;
+;; Extracting args from cxns
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun extract-args-holistic-cxn (cxn)
+  "Extract the form-args and meaning-args from
+   a holistic cxn. Works for both routine and
+   meta cxns."
+  (let ((holistic-unit-structure
+         (fcg::unit-structure
+          (first
+           (if (routine-cxn-p cxn)
+             (contributing-part cxn)
+             (conditional-part cxn))))))
+    (list (second (find 'form-args holistic-unit-structure :key #'first))
+          (second (find 'meaning-args holistic-unit-structure :key #'first)))))
+
+(defun extract-args-item-based-cxn (cxn)
+  "Extract the top-lvl form args, top-lvl meaning args,
+   slot form args, and slot meaning args of an item-based
+   cxn. Works for both routine and meta cxns."
+  (if (routine-cxn-p cxn)
+    (let* ((slot-args
+            (loop for unit in (conditional-part cxn)
+                  for meaning-args = (second (find 'meaning-args (formulation-lock unit) :key #'first))
+                  for form-args = (second (find 'form-args (comprehension-lock unit) :key #'first))
+                  when (and meaning-args form-args)
+                  return (list form-args meaning-args)))
+           (contributing-unit-structure
+            (fcg::unit-structure (first (contributing-part cxn))))
+           (top-lvl-args
+            (list (second (find 'form-args contributing-unit-structure :key #'first))
+                  (second (find 'meaning-args contributing-unit-structure :key #'first)))))
+      (list top-lvl-args slot-args))
+    (let ((slot-args
+           (loop for unit in (contributing-part cxn)
+                 for unit-structure = (fcg::unit-structure unit)
+                 unless (find 'subunits unit-structure :key #'first)
+                 return (list (second (find 'form-args unit-structure :key #'first))
+                              (second (find 'meaning-args unit-structure :key #'first)))))
+          (top-lvl-args
+           (loop for unit in (contributing-part cxn)
+                 for unit-structure = (fcg::unit-structure unit)
+                 when (find 'subunits unit-structure :key #'first)
+                 return (list (second (find 'form-args unit-structure :key #'first))
+                              (second (find 'meaning-args unit-structure :key #'first))))))
+      (list top-lvl-args slot-args))))
+
+
+;;;;;
+;; Find identical holistic cxn
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun equivalent-networks-and-args? (network cxn-network args cxn-args)
+  (equivalent-irl-programs?
+   (append network `((args ,@args)))
+   (append cxn-network `((args ,@cxn-args)))))
+
+(defun identical-holistic-cxn-p (form meaning form-args meaning-args cxn)
+  (let ((cxn-args (extract-args-holistic-cxn cxn)))
+    (and (equivalent-irl-programs? form (extract-form-predicates cxn))
+         (equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
+         (equivalent-networks-and-args? form (extract-form-predicates cxn) form-args (first cxn-args))
+         (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) meaning-args (second cxn-args)))))
+
+(defun find-identical-holistic-cxn (form meaning form-args meaning-args cxn-inventory)
+  "Find a routine holistic cxn that is identical to the given form, meaning, and args"
+  (let ((candidate-cxns
+         (remove-if-not #'non-zero-cxn-p
+                        (remove-if-not #'routine-cxn-p
+                                       (remove-if-not #'holistic-cxn-p
+                                                      (constructions cxn-inventory))))))
+    (loop for cxn in candidate-cxns
+          when (identical-holistic-cxn-p form meaning form-args meaning-args cxn)
+          return cxn)))
+
+(defun identical-item-based-cxn-p (form meaning top-lvl-form-args top-lvl-meaning-args slot-form-args slot-meaning-args cxn)
+  (destructuring-bind (top-lvl-args slot-args) (extract-args-item-based-cxn cxn)
+    (and (equivalent-irl-programs? form (extract-form-predicates cxn))
+         (equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
+         (length= top-lvl-form-args (first top-lvl-args))
+         (length= top-lvl-meaning-args (second top-lvl-args))
+         (length= slot-form-args (first slot-args))
+         (length= slot-meaning-args (second slot-args))
+         (equivalent-networks-and-args? form (extract-form-predicates cxn) top-lvl-form-args (first top-lvl-args))
+         (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) top-lvl-meaning-args (second top-lvl-args))
+         (equivalent-networks-and-args? form (extract-form-predicates cxn) slot-form-args (first slot-args))
+         (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) slot-meaning-args (second slot-args)))))
+
+(defun find-identical-item-based-cxn (form meaning top-lvl-form-args top-lvl-meaning-args slot-form-args slot-meaning-args cxn-inventory)
+  "Find a routine item-based cxn that is identical to the given form, meaning, and args"
+  (let ((candidate-cxns
+         (remove-if-not #'non-zero-cxn-p
+                        (remove-if-not #'routine-cxn-p
+                                       (remove-if #'holistic-cxn-p
+                                                  (constructions cxn-inventory))))))
+    (loop for cxn in candidate-cxns
+          when (identical-item-based-cxn-p form meaning top-lvl-form-args top-lvl-meaning-args
+                                           slot-form-args slot-meaning-args cxn)
+          return cxn)))
+
+
+
+;;;;;
+;; Get the alter-ego cxn
+;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun alter-ego-cxn (original-cxn cxn-inventory)
+  "Given a routine cxn, return its meta counterpart
+   or vice-versa."
+  (when (attr-val original-cxn :bare-cxn-name)
+    (loop for cxn in (constructions cxn-inventory)
+          when (and (attr-val cxn :bare-cxn-name)
+                    (eq (attr-val cxn :bare-cxn-name)
+                        (attr-val original-cxn :bare-cxn-name))
+                    (not (eql (name cxn) (name original-cxn))))
+          do (return cxn))))
+                 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 (defun sort-cxns-by-form-string (cxns-to-sort utterance cxn-inventory)
   "sorts lexical cxns by matching their form strings to the utterance. handles duplicate cxns in one utterance."
@@ -137,29 +425,6 @@
            (get-boundary-units form-constraints))
       (get-boundary-units form-constraints))))
 
-#|(defun add-boundaries-to-form-constraints (form-constraints boundaries &key placeholder-var)
-  "given a list of boundaries that correspond to a certain slot and a list of form constraints,
-   create a new variable for left and right boundary, also if the original left and right boundary vars were identical
-   return both the form constraints and the new boundary list"
-  (let* ((new-form-constraints (copy-object form-constraints))
-         (placeholder-var (string-upcase (if placeholder-var placeholder-var "?X")))
-         (right-var (make-var (make-const (format nil "?RIGHT-~a-BOUNDARY" placeholder-var))))
-         (left-var (make-var (make-const (format nil "?LEFT-~a-BOUNDARY" placeholder-var))))
-         (left-boundary (first boundaries))
-         (right-boundary (second boundaries))
-         (matching-left-predicate (find left-boundary (extract-form-predicate-by-type new-form-constraints 'meets) :key #'third))
-         (matching-right-predicate (find right-boundary (extract-form-predicate-by-type new-form-constraints 'meets) :key #'second)))
-    (if (= (length (remove-duplicates boundaries)) 1)
-      (if (equal right-boundary (first (get-boundary-units form-constraints)))  
-        ; the variable is at the beginning of an utterance when the right-boundary is the leftmost-boundary
-        (values new-form-constraints (list left-var right-boundary))
-        (progn (when matching-right-predicate
-                 (setf (nth 1 matching-right-predicate) right-var))
-          (values new-form-constraints (list left-boundary right-var))))
-      ;; the boundaries are different anyway, don't touch them!
-      (values form-constraints boundaries)
-      )))
-   |# 
 (defun add-boundaries-to-form-constraints (form-constraints slot-boundaries &key placeholder-var)
   "given a list of boundaries that correspond to a certain slot and a list of form constraints,
    create a new variable for left and right boundary, also if the original left and right boundary vars were identical
@@ -206,15 +471,6 @@
         (list (second (first form-constraints)) (second (first form-constraints)))))))
 
 
-
-(defun initial-transient-structure (node)
-  (if (find 'fcg::initial (statuses node))
-    (car-source-cfs (cipn-car node))
-    (car-source-cfs (cipn-car (last-elt (all-parents node))))))
-
-(defun get-cxn-type (cxn)
-  (attr-val cxn :cxn-type))
-
 (defun get-cxns-of-type (agent type)
   (let ((found-cxns (if (eql type 'all)
                       (constructions-list (grammar agent))
@@ -246,13 +502,10 @@
    (render (extract-form-predicates cxn)
            (get-configuration (cxn-inventory cxn) :render-mode))))
 
+
 (defun item-based-number-of-slots (cxn)
-  (when (eql (get-cxn-type cxn) 'pf::item-based)
+  (when (eql (get-cxn-type cxn) 'item-based)
     (1- (length (contributing-part cxn)))))
-
-(defun non-zero-cxn-p (cxn)
-  (> (attr-val cxn :score) 0))
-
 
 
 ;; to do: split into method with type specification for processing cxn vs original cxn
@@ -301,34 +554,6 @@
   (let ((syn-cat (find 'syn-cat (comprehension-lock unit) :key #'first)))
     (second (find 'lex-class (rest syn-cat) :key #'first))))
 
-(defun extract-args-apply-last (cxn)
-  (let* ((units (conditional-part cxn))
-         (args (loop for unit in (rest units)
-                     for formulation-lock = (formulation-lock unit)
-                     for arg-list = (second (find 'args formulation-lock :key #'feature-name))
-                     collect arg-list)))
-    args))
-
-(defun extract-contributing-args (cxn)
-  (second (find 'args (fcg::unit-structure (first (contributing-part cxn))) :key #'first)))
-
-(defun extract-args-from-holistic-cxn-apply-last (cxn)
-  (second (find 'args (formulation-lock (first (conditional-part cxn))) :key #'feature-name)))
-
-
-
-
-(defun extract-args-apply-first (cxn)
-  (let* ((contributing-units (contributing-part cxn))
-         (top-unit (cond ((eql 'holistic (attr-val cxn :cxn-type))
-                          (first contributing-units))
-                         ((eql 'item-based (attr-val cxn :cxn-type))
-                          (loop for unit in contributing-units
-                                if (eql 'item-based (second (find 'phrase-type (rest (find 'syn-cat (fcg::unit-structure unit) :key #'first)) :key #'first)))
-                                  do (return unit))))))
-    (assert top-unit)
-    (second (find 'args (fcg::unit-structure top-unit) :key #'first))))
-
 (defun lex-class-apply-last-cxn (cxn)
   "return the lex-class of a cxn"
   (let ((syn-cat (find 'syn-cat (comprehension-lock (last-elt (conditional-part cxn))) :key #'feature-name)))
@@ -343,167 +568,19 @@
   "return the lex-class of a cxn"
   (let ((syn-cat (find 'syn-cat (fcg::unit-structure (first (contributing-part cxn))) :key #'feature-name)))
     (second (find 'lex-class (rest syn-cat) :key #'first))))
-         
-(defun get-cxn-boundaries-apply-first (cxn)
-  (find 'boundaries (fcg::unit-structure (last-elt (contributing-part cxn))) :key #'feature-name))
-
-(defun non-overlapping-meaning (meaning cxn &key (nom-cxn nil) (nom-observation nil))
-  (when (and nom-cxn nom-observation) (error "only nom-cxn or nom-observeration can be true"))
-  (multiple-value-bind (non-overlapping-meaning-observation non-overlapping-meaning-cxn)
-      (non-overlapping-predicates meaning (extract-meaning-predicates cxn))
-    (cond (nom-cxn non-overlapping-meaning-cxn)
-          (nom-observation non-overlapping-meaning-observation))))
-
-(defun non-overlapping-form (utterance-form-constraints cxn &key (nof-cxn nil) (nof-observation nil))
-  (when (and nof-cxn nof-observation) (error "only nof-cxn or nof-observation can be true"))
-  (multiple-value-bind (non-overlapping-form-observation non-overlapping-form-cxn)
-      (non-overlapping-predicates-ignore-length utterance-form-constraints
-                                                (extract-form-predicates cxn))
-    (let* ((meets-constraints-cxn (cdr (find-meets-constraints
-                                        (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal)
-                                        non-overlapping-form-cxn)))
-           (meets-constraints-observation (cdr (find-meets-constraints
-                                                (set-difference utterance-form-constraints non-overlapping-form-observation :test #'equal)
-                                                non-overlapping-form-observation))))
-      (cond (nof-cxn (append non-overlapping-form-cxn meets-constraints-cxn))
-            (nof-observation (append non-overlapping-form-observation meets-constraints-observation))))))
-
-(defun non-overlapping-predicates-ignore-length (network-1 network-2)
-  (let ((unique-part-network-1 (set-difference network-1 network-2 :test #'irl:unify-irl-programs))
-        (unique-part-network-2 (set-difference network-2 network-1 :test #'irl:unify-irl-programs)))
-    (values unique-part-network-1 unique-part-network-2)))
-
-(defun non-overlapping-predicates (network-1 network-2)
-  (let ((unique-part-network-1 (set-difference network-1 network-2 :test #'irl:unify-irl-programs))
-        (unique-part-network-2 (set-difference network-2 network-1 :test #'irl:unify-irl-programs)))
-    (when (and (= (length unique-part-network-1)
-                  (length unique-part-network-2))
-               (irl:equivalent-irl-programs? (set-difference network-1 unique-part-network-1)
-                                             (set-difference network-2 unique-part-network-2)))
-      (values unique-part-network-1 unique-part-network-2))))
 
 (defun arg-is-part-of-meaning-p (arg-var meaning)
   (when (or (find arg-var (remove-bind-statements meaning) :key #'second)
             (find arg-var (remove-bind-statements meaning) :key #'third))
     t))
+                    
 
-(defun equivalent-networks-and-args? (n1 n2 args1 args2)
-  (equivalent-irl-programs? (append (list (append (list 'args) args1)) n1)
-                            (append (list (append (list 'args) args2)) n2)))
 
-(defun remove-bind-statements (network)
-  (loop for predicate in network
-        unless (equal (first predicate) 'utils::bind)
-        collect predicate))
-                                               
-  
-
-(defun find-cxn-by-form-and-meaning (form meaning args-list item-based-args-list cxn-inventory &key cxn-type cxn-set)
-  "returns a cxn with the same meaning and form if it's in the cxn-inventory"
-  (loop for cxn in (sort (constructions cxn-inventory) #'> :key #'(lambda (x) (attr-val x :score)))
-        for cxn-type-cxn = (attr-val cxn :cxn-type)
-        for cxn-args = (extract-args-apply-last cxn)
-        when (and
-              (if cxn-type (equal cxn-type cxn-type-cxn) t)
-              (if cxn-set (equal cxn-set (attr-val cxn :label)) t)
-              (equivalent-irl-programs? form (extract-form-predicates cxn))
-              (equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
-              (if args-list
-                (loop for args in args-list
-                      for cxn-args-args in cxn-args
-                      always (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) args cxn-args-args))
-                t)
-              (if item-based-args-list
-                (and (equal (length item-based-args-list) (length (extract-contributing-args cxn)))
-                     (equivalent-networks-and-args? meaning
-                                                    (extract-meaning-predicates cxn)
-                                                    item-based-args-list
-                                                    (extract-contributing-args cxn)))                               
-                t)
-              )
-          return cxn))
-
-(defun initial-node-p (node)
-  "return t if node is initial node"
-  (null (all-parents node)))
 
 (defun add-cxn-suffix (string &key add-numeric-tail)
   (if add-numeric-tail
     (make-id (upcase (string-append string "-CXN")))
     (intern (upcase (string-append string "-CXN")))))
-
-(defun replace-special-initial-chars (string)
-  (if (member (subseq string 0 1) '("?" "!" "\"") :test #'string=)
-    (string-append "-" string)
-    string))
- 
-(defun make-lex-class (cat-name &key add-numeric-tail trim-cxn-suffix)
-  (let* ((name-string
-          (replace-special-initial-chars
-           (if (equal (type-of cat-name) 'SYMBOL)
-             (string-downcase (symbol-name cat-name))
-             (string-downcase cat-name))))
-         (cat-name
-          (if trim-cxn-suffix
-            (fcg::replace-all name-string "-cxn" "")
-            name-string)))
-    (intern
-     (string-downcase
-      (symbol-name
-       (funcall
-        (if add-numeric-tail #'make-const #'make-symbol)
-        (upcase
-         (if cat-name cat-name "CAT")))))
-     :pattern-finding)))
-
-(defgeneric make-cxn-name (thing cxn-inventory &key add-cxn-suffix add-numeric-tail))
-
-(defmethod make-cxn-name ((string string) (cxn-inventory fcg-construction-set)
-                          &key (add-cxn-suffix t) (add-numeric-tail nil))
-  "Transform an utterance into a suitable construction name"
-  (declare (ignore cxn-inventory))
-  (let ((name-string (substitute #\- #\Space
-                                 (upcase
-                                  (if add-cxn-suffix
-                                    (string-append string "-cxn")
-                                    string)))))
-    (if add-numeric-tail
-      (make-id name-string)
-      (intern name-string))))
-
-(defmethod make-cxn-name ((form-constraints list) (cxn-inventory fcg-construction-set)
-                          &key (add-cxn-suffix t) (add-numeric-tail nil))
-  "Transform a list of form constraints into a suitable construction name"
-  (let ((new-string-constraints (variablify-missing-form-strings form-constraints)))
-    (make-cxn-name (format nil "~{~a~^-~}"
-                           (render (append form-constraints new-string-constraints)
-                                   (get-configuration cxn-inventory :render-mode)))
-                   cxn-inventory :add-cxn-suffix add-cxn-suffix :add-numeric-tail add-numeric-tail)))
-
-(defun variablify-missing-form-strings (form-constraints)
-  "create X Y Z etc variables by checking which strings are missing in meets constraints return a list of placeholder bindings in the form of string predicates"
-  (loop with string-constraints = (extract-form-predicate-by-type form-constraints 'string)
-        with placeholder-index = 0
-        with new-string-constraints = nil
-        with meets-constraints = (set-difference form-constraints string-constraints)
-        for meets-constraint in meets-constraints
-        for first-word-var = (second meets-constraint)
-        for second-word-var = (third meets-constraint)
-        do
-          (unless (or (find first-word-var string-constraints :key #'second)
-                      (find first-word-var new-string-constraints :key #'second))
-            (push `(string ,first-word-var ,(nth placeholder-index +placeholder-vars+)) new-string-constraints)
-            (incf placeholder-index))
-          (unless (or (find second-word-var string-constraints :key #'second)
-                      (find second-word-var new-string-constraints :key #'second))
-            (push `(string ,second-word-var ,(nth placeholder-index +placeholder-vars+)) new-string-constraints)
-            (incf placeholder-index))
-        finally (return
-                 new-string-constraints)))
-  
-
-;; (make-cxn-name "What is the color of the cube" *fcg-constructions*)
-
 
 
 
@@ -1315,138 +1392,6 @@
           do (delete-cxn cxn cxn-inventory)
         finally (return cxn-inventory)))
 
-(defun create-item-based-cxn (cxn-inventory
-                              overlapping-form
-                              non-overlapping-form
-                              overlapping-meaning
-                              non-overlapping-meaning
-                              meaning
-                              item-based-args
-                              slot-args
-                              meaning-representation-formalism
-                              repair-name)
-  (declare (ignore non-overlapping-meaning))
-  (let* (;; cxn names
-         (cxn-name-item-based-cxn
-          (make-cxn-name (substitute-slot-meets-constraints non-overlapping-form overlapping-form) cxn-inventory :add-numeric-tail t))
-         (cxn-name-item-based-cxn-apply-last (intern (concatenate 'string (symbol-name cxn-name-item-based-cxn) "-APPLY-LAST")))
-         (cxn-name-item-based-cxn-apply-first (intern (concatenate 'string (symbol-name cxn-name-item-based-cxn) "-APPLY-FIRST")))
-         ;; slot boundaries (leftmost/rightmost)
-         (slot-boundaries (get-boundary-units non-overlapping-form))
-         (overlapping-form-and-rewritten-boundaries
-          (multiple-value-list (add-boundaries-to-form-constraints overlapping-form slot-boundaries)))
-         (overlapping-form-with-rewritten-boundaries (first overlapping-form-and-rewritten-boundaries))
-         (rewritten-boundaries (second overlapping-form-and-rewritten-boundaries))
-         (dummy-slot-fc (list (list 'fcg::meets (first rewritten-boundaries) (second rewritten-boundaries))))
-         (rewritten-item-based-boundaries (get-boundary-units (append dummy-slot-fc overlapping-form-with-rewritten-boundaries)))
-         ;; args
-         ;(slot-args (extract-args-from-meaning-networks non-overlapping-meaning overlapping-meaning meaning-representation-formalism))
-         
-         (existing-item-based-cxn-apply-last (find-cxn-by-form-and-meaning
-                                              overlapping-form-with-rewritten-boundaries
-                                              overlapping-meaning
-                                              (list slot-args)
-                                              item-based-args
-                                              cxn-inventory
-                                              :cxn-type 'item-based
-                                              :cxn-set 'fcg::routine))
-         (existing-item-based-cxn-apply-first (when existing-item-based-cxn-apply-last
-                                                (alter-ego-cxn existing-item-based-cxn-apply-last cxn-inventory)))
-         ;; lex classes
-         (lex-class-item-based-cxn
-          (if existing-item-based-cxn-apply-first
-            (extract-contributing-lex-class existing-item-based-cxn-apply-first)
-            (make-lex-class (symbol-name cxn-name-item-based-cxn) :trim-cxn-suffix t)))
-         (lex-class-item-based-cxn-slot
-          (if existing-item-based-cxn-apply-first
-            (lex-class-cxn existing-item-based-cxn-apply-first)
-            (make-lex-class (concatenate 'string (symbol-name lex-class-item-based-cxn) "-(x)"))))
-         (cxn-inventory-copy (copy-object cxn-inventory))
-         (new-item-based-cxn-apply-last
-          (or existing-item-based-cxn-apply-last 
-              (second (multiple-value-list (eval
-                                            `(def-fcg-cxn ,cxn-name-item-based-cxn-apply-last
-                                                          ((?item-based-unit
-                                                            (syn-cat (phrase-type item-based)
-                                                                     (lex-class ,lex-class-item-based-cxn))
-                                                            (boundaries
-                                                             (left ,(first rewritten-item-based-boundaries))
-                                                             (right ,(second rewritten-item-based-boundaries)))
-                                                            (args ,item-based-args)
-                                                            (subunits (?slot-unit)))
-                                                           (?slot-unit 
-                                                            (footprints (used-as-slot-filler)))
-                                                           <-
-                                                           (?item-based-unit
-                                                            (HASH meaning ,overlapping-meaning)
-                                                            --
-                                                            (HASH form ,overlapping-form-with-rewritten-boundaries))
-                                                           (?slot-unit
-                                                            (footprints (NOT used-as-slot-filler))
-                                                            (args ,slot-args)
-                                                            --
-                                                            (footprints (NOT used-as-slot-filler))
-                                                            (args ,slot-args)
-                                                            (syn-cat (lex-class ,lex-class-item-based-cxn-slot))
-                                                            (boundaries
-                                                             (left ,(first rewritten-boundaries))
-                                                             (right ,(second rewritten-boundaries)))
-                                                            ))
-                                                          :attributes (:label fcg::routine
-                                                                       :cxn-type item-based
-                                                                       :bare-cxn-name ,cxn-name-item-based-cxn
-                                                                       :repair ,repair-name
-                                                                       :meaning ,(loop for predicate in overlapping-meaning
-                                                                                       unless (or
-                                                                                               (equal (first predicate) 'get-context)
-                                                                                               (equal (first predicate) 'bind))
-                                                                                         return (first predicate))
-                                                                       :string ,(third (find 'string overlapping-form :key #'first)))
-                                                          :score ,(get-configuration cxn-inventory :initial-cxn-score)                 
-                                                          :cxn-inventory ,cxn-inventory-copy))))))
-         (new-item-based-cxn-apply-first
-          (or existing-item-based-cxn-apply-first
-              (second (multiple-value-list (eval
-                                            `(def-fcg-cxn ,cxn-name-item-based-cxn-apply-first
-                                                          ((?item-based-unit
-                                                            (syn-cat (phrase-type item-based)
-                                                                     (lex-class ,lex-class-item-based-cxn))
-                                                            (boundaries
-                                                             (left ,(first rewritten-item-based-boundaries))
-                                                             (right ,(second rewritten-item-based-boundaries)))
-                                                            (args ,item-based-args)
-                                                            (subunits (?slot-unit)))
-                                                           (?slot-unit
-                                                            (footprints (used-as-slot-filler))
-                                                            (syn-cat (phrase-type holistic)
-                                                                     (lex-class ,lex-class-item-based-cxn-slot))
-                                                            (args ,slot-args)
-                                                            (boundaries
-                                                             (left ,(first rewritten-boundaries))
-                                                             (right ,(second rewritten-boundaries)))
-                                                            )
-                                                           <-
-                                                           (?item-based-unit
-                                                            (HASH meaning ,overlapping-meaning)
-                                                            --
-                                                            (HASH form ,overlapping-form-with-rewritten-boundaries))
-                                                           )
-                                                          :attributes (:label fcg::meta-only
-                                                                       :cxn-type item-based
-                                                                       :bare-cxn-name ,cxn-name-item-based-cxn
-                                                                       :repair ,repair-name
-                                                                       :meaning ,(loop for predicate in overlapping-meaning
-                                                                                       unless (or
-                                                                                               (equal (first predicate) 'get-context)
-                                                                                               (equal (first predicate) 'bind))
-                                                                                         return (first predicate))
-                                                                       :string ,(third (find 'string overlapping-form :key #'first)))
-                                                          :score ,(get-configuration cxn-inventory :initial-cxn-score)               
-                                                          :cxn-inventory ,cxn-inventory-copy)))))))
-    (values new-item-based-cxn-apply-first
-            new-item-based-cxn-apply-last
-            lex-class-item-based-cxn
-            lex-class-item-based-cxn-slot)))
 
 (defmethod comprehend-w-derenderer (utterance &key
                                               (cxn-inventory *fcg-constructions*)

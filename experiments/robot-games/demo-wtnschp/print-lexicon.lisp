@@ -152,7 +152,7 @@
 \\begin{document}
 
 % HEADER
-\\parbox{\\linewidth}{\\centering\\LARGE\\bf{Spreek jij al Robots, \\name?}}
+\\parbox{\\linewidth}{\\centering\\LARGE\\bf{Parles-tu aux robots, \\name?}}
 \\vspace{.4em}
 
 % MAIN
@@ -174,7 +174,7 @@
 % FOOTER
 \\mbox{\\includegraphics[height=32pt]{~a}}
 \\hfill
-\\raisebox{13pt}{\\pbox{4.6cm}{\\centering \\textbf{ \\url{https://know.ai.vub.ac.be}}}}
+\\raisebox{13pt}{\\pbox{4.6cm}{\\centering \\textbf{ \\url{https://www.unamur.be/info}}}}
 \\hfill
 \\mbox{\\includegraphics[height=32pt]{~a}}
 
@@ -195,8 +195,8 @@
               (if chip2 "\\secondcolorchip" "") (if chip2-word1 "\\secondcolorfirstword" "") (if chip2-word2 "\\secondcolorsecondword" "")
               (if chip3 "\\thirdcolorchip" "") (if chip3-word1 "\\thirdcolorfirstword" "") (if chip3-word2 "\\thirdcolorsecondword" "")
               (if chip4 "\\fourthcolorchip" "") (if chip4-word1 "\\fourthcolorfirstword" "") (if chip4-word2 "\\fourthcolorsecondword" "")
-              (babel-pathname :directory '("systems" "printer-interface" "logos") :name "logo-lab")
-              (babel-pathname :directory '("systems" "printer-interface" "logos") :name "wf-logo")))
+              (babel-pathname :directory '("systems" "printer-interface" "logos") :name "logo-unamur")
+              (babel-pathname :directory '("systems" "printer-interface" "logos") :name "logo-printemps")))
     (let ((output-directory  (string-append "-output-directory=" (babel-pathname :directory '(".tmp")))))
       (exec-and-return  "pdflatex" "-synctex=1" "-interaction=nonstopmode" output-directory path-to-tex))
     (printer-interface:print-document path-to-pdf
@@ -357,7 +357,7 @@
 \\begin{document}
 
 % HEADER
-\\parbox{\\linewidth}{\\centering\\LARGE\\bf{Spreek jij al Robots, \\name?}}
+\\parbox{\\linewidth}{\\centering\\LARGE\\bf{Parles-tu aux robots, \\name?}}
 \\vspace{.4em}
 
 % MAIN
@@ -380,7 +380,7 @@
 % FOOTER
 \\mbox{\\includegraphics[height=32pt]{~a}}
 \\hfill
-\\raisebox{13pt}{\\pbox{4.6cm}{\\centering \\textbf{ \\url{https://know.ai.vub.ac.be}}}}
+\\raisebox{13pt}{\\pbox{4.6cm}{\\centering \\textbf{ \\url{https://www.unamur.be/info}}}}
 \\hfill
 \\mbox{\\includegraphics[height=32pt]{~a}}
 
@@ -407,8 +407,8 @@
               (if chip4 "\\fourthcolorchip" "") (if chip4-word1 "\\fourthcolorfirstword" "") (if chip4-word2 "\\fourthcolorsecondword" "")
               (if chip5 "\\fifthcolorchip" "") (if chip5-word1 "\\fifthcolorfirstword" "") (if chip5-word2 "\\fifthcolorsecondword" "")
               (if chip6 "\\sixthcolorchip" "") (if chip6-word1 "\\sixthcolorfirstword" "") (if chip6-word2 "\\sixthcolorsecondword" "")
-              (babel-pathname :directory '("systems" "printer-interface" "logos") :name "logo-lab")
-              (babel-pathname :directory '("systems" "printer-interface" "logos") :name "wf-logo")))
+              (babel-pathname :directory '("systems" "printer-interface" "logos") :name "logo-unamur")
+              (babel-pathname :directory '("systems" "printer-interface" "logos") :name "logo-printemps")))
     (let ((output-directory  (string-append "-output-directory=" (babel-pathname :directory '(".tmp")))))
       (exec-and-return  "pdflatex" "-synctex=1" "-interaction=nonstopmode" output-directory path-to-tex))
     (printer-interface:print-document path-to-pdf
