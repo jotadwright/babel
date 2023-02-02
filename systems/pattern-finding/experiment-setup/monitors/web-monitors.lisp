@@ -122,13 +122,14 @@
           cxns))
 
 (define-event-handler (trace-interactions-in-wi cxns-rewarded)
-  (add-element '((h3) "The following cxns are rewarded:"))
-  (mapcar #'(lambda (cxn)
-              (add-element (make-html cxn)))
-          cxns))
+  (when cxns
+    (add-element '((h3) "The following cxns are rewarded:"))
+    (mapcar #'(lambda (cxn)
+                (add-element (make-html cxn)))
+            cxns)))
 
 (define-event-handler (trace-interactions-in-wi cxns-punished)
-  (unless (null cxns)
+  (when cxns
     (add-element '((h3) "The following cxns are punished:"))
     (mapcar #'(lambda (cxn)
                 (add-element (make-html cxn)))
