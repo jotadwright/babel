@@ -14,24 +14,7 @@
                    &key &allow-other-keys)
   "Repair by making a new holophrase construction."
   (when (and (initial-node-p node)
-             (form-constraints-with-variables
-              (random-elt (get-data problem :utterances))
-              (get-configuration (construction-inventory node) :de-render-mode)))
-    (make-instance 'fcg::cxn-fix
-                   :repair repair
-                   :problem problem
-                   :restart-data (create-holistic-cxn problem node))))
-
-
-(defmethod repair ((repair nothing->holistic)
-                   (problem non-gold-standard-utterance)
-                   (node cip-node)
-                   &key &allow-other-keys)
-  "Repair by making a new holophrase construction."
-  (when (and (initial-node-p node)
-             (form-constraints-with-variables
-              (random-elt (get-data problem :utterances))
-              (get-configuration (construction-inventory node) :de-render-mode)))
+             (get-data problem :utterance))
     (make-instance 'fcg::cxn-fix
                    :repair repair
                    :problem problem
@@ -41,13 +24,9 @@
 (defun create-holistic-cxn (problem node)
   (do-create-holistic-cxn
    ;; form constraints
-   (form-constraints-with-variables
-    (random-elt (get-data problem :utterances))
-    (get-configuration (construction-inventory node) :de-render-mode))
+   (get-data problem :utterance)
    ;; meaning
-   (meaning-predicates-with-variables
-    (random-elt (get-data problem :meanings))
-    (get-configuration (construction-inventory node) :meaning-representation-formalism))
+   (get-data problem :meaning)
    ;; form args
    nil
    ;; meaning args
