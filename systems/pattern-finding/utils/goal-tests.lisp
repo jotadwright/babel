@@ -10,9 +10,8 @@
        (let* ((resulting-cfs (car-resulting-cfs (cipn-car node)))
               (meaning (extract-meanings (left-pole-structure resulting-cfs)))
               (meaning-representation-formalism (get-configuration (construction-inventory node) :meaning-representation-formalism))
-              (gold-standard-meanings (get-data resulting-cfs :meanings)))
-         (if (find meaning gold-standard-meanings
-                   :test #'(lambda (m1 m2) (equivalent-meaning-networks m1 m2 meaning-representation-formalism)))
+              (gold-standard-meaning (get-data resulting-cfs :meaning)))
+         (if (equivalent-meaning-networks gold-standard-meaning meaning meaning-representation-formalism)
            (progn (set-data (goal-test-data node) :result-goal-test-non-gold-standard-meaning t) t)
            (progn (set-data (goal-test-data node) :result-goal-test-non-gold-standard-meaning nil) nil)))))
 
