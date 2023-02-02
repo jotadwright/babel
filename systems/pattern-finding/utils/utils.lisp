@@ -33,6 +33,9 @@
   "return t if node is initial node"
   (null (all-parents node)))
 
+(defun all-leaf-nodes (cip)
+  (remove nil (traverse-depth-first cip :collect-fn #'(lambda (node) (unless (children node) node)))))
+
 
 ;;;;;
 ;; Make cxn name
@@ -219,6 +222,8 @@
   (let ((cxn-args (extract-args-holistic-cxn cxn)))
     (and (equivalent-irl-programs? form (extract-form-predicates cxn))
          (equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
+         (length= form-args (first cxn-args))
+         (length= meaning-args (second cxn-args))
          (equivalent-networks-and-args? form (extract-form-predicates cxn) form-args (first cxn-args))
          (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) meaning-args (second cxn-args)))))
 
@@ -1165,14 +1170,6 @@
                                                pos
                                                0)))))
 
-(defun substitute-predicate-bindings (predicate bindings)
-  (loop with frame-bindings = (irl::map-frame-bindings bindings)
-        for elt in predicate
-        for assoc-res = (assoc elt frame-bindings)
-        collect (if assoc-res
-                  (cdr assoc-res)
-                  elt)))
-
 (defun commutative-irl-subset-diff (network-1 network-2)
   "given two networks where one is a superset of the other, return non-overlapping and overlapping predicates
    if the shortest is subtracted from the longest"
@@ -1346,11 +1343,6 @@
             top-unit
             (left-pole-structure transient-structure))))))
 
-(defun remove-child-units (units)
-  (loop for unit in units
-        unless (member 'pf::used-as-slot-filler (unit-feature-value unit 'fcg:footprints))
-          collect unit))
-
 (defun sort-cipns-by-coverage-and-nr-of-applied-cxns (cipn-1 cipn-2)
   (cond ((< (length (get-root-form-predicates cipn-1))
             (length (get-root-form-predicates cipn-2)))
@@ -1438,25 +1430,6 @@
            (when (= 0 (mod interaction 100))
              (format t " (~a | ~a% overall avg.)~%" interaction (* 100 (float (/ success-count interaction)))))
         finally (return (* 100 (float (/ success-count (length data)))))))
-
-
-(defun get-top-level-ts-args (cip-node)
-  (second (find 'ARGS (rest (first (remove-child-units (left-pole-structure (car-resulting-cfs (cipn-car cip-node)))))) :key #'first)))
-
-
-(defun reject-solutions-with-incompatible-args (cip-nodes gold-standard-meaning required-args)
-  "Check if the open variables of the gold standard meaning
-   correspond with the args of the top unit of the ts of the cipn."
-  (loop for cip-node in cip-nodes
-        for parsed-meaning = (extract-meanings
-                              (left-pole-structure
-                               (car-resulting-cfs (cipn-car cip-node))))
-        for ts-top-level-args = (get-top-level-ts-args cip-node)
-        for embedding = (irl::embedding parsed-meaning gold-standard-meaning)
-        for renamed-ts-args = (when embedding (substitute-predicate-bindings ts-top-level-args (first embedding)))
-        when (or (not required-args) ;; if there aren't any required args but you still have some, succeed
-                 (equal renamed-ts-args required-args))
-          collect cip-node))
 
 
 (defun discard-partial-solutions-with-incompatible-args (cip-nodes gold-standard-meaning meaning-representation-formalism)

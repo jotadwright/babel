@@ -29,6 +29,8 @@
                               (:shuffle-data-p . nil)
                               (:sort-data-p . t)))))
 
+(run-series *experiment* 1000)
+
 (defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
 ;(add-element (make-html *cxn-inventory*))
 
@@ -37,14 +39,12 @@
 (go-back-n-interactions *experiment* 1)
 
 #|
-(comprehend-all "The ball has what color?"
+(comprehend-all "Are any spheres visible?"
                 :cxn-inventory *cxn-inventory*
                 :gold-standard-meaning '((get-context ?context)
                                          (filter ?set1 ?context ?shape1)
                                          (bind shape-category ?shape1 sphere)
-                                         (unique ?object1 ?set1)
-                                         (query ?target ?object1 ?attribute1)
-                                         (bind attribute-category ?attribute1 color)))
+                                         (exist ?answer ?set1)))
 |#
 
 (defun go-back-n-interactions (experiment n)
