@@ -81,11 +81,15 @@
                                  (cxn-inventory *fcg-constructions*)
                                  (gold-standard-meaning nil)
                                  (silent nil))
-  (let ((initial-cfs (de-render utterance (get-configuration cxn-inventory :de-render-mode) :cxn-inventory cxn-inventory))
-        (processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
+  (let* ((de-render-mode (get-configuration cxn-inventory :de-render-mode))
+         (meaning-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
+         (initial-cfs (de-render utterance de-render-mode :cxn-inventory cxn-inventory))
+         (processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
     ;; Add utterance and meaning to blackboard
-    (set-data initial-cfs :utterances (listify utterance))
-    (set-data initial-cfs :meanings (if (atom (caar gold-standard-meaning)) (list gold-standard-meaning) gold-standard-meaning))
+    (set-data initial-cfs :utterance
+              (pf::form-constraints-with-variables utterance de-render-mode))
+    (set-data initial-cfs :meaning
+              (pf::meaning-predicates-with-variables gold-standard-meaning meaning-formalism))
     ;; Notification
     (unless silent (notify parse-started (listify utterance) initial-cfs))
     ;; Construction application
@@ -107,14 +111,19 @@
                                      (gold-standard-meaning nil)
                                      (silent nil) (n nil))
   "comprehend the input utterance with a given FCG grammar, obtaining all possible combinations"
-  (let ((initial-cfs (de-render utterance (get-configuration cxn-inventory :de-render-mode) :cxn-inventory cxn-inventory))
-        (processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
+  (let* ((de-render-mode (get-configuration cxn-inventory :de-render-mode))
+         (meaning-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
+         (initial-cfs (de-render utterance de-render-mode :cxn-inventory cxn-inventory))
+         (processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
     
     ;; Add utterance and meaning to blackboard
-    (set-data initial-cfs :utterances (listify utterance))
-    (set-data initial-cfs :meanings (if (atom (caar gold-standard-meaning)) (list gold-standard-meaning) gold-standard-meaning))
-    
+    (set-data initial-cfs :utterance
+              (pf::form-constraints-with-variables utterance de-render-mode))
+    (set-data initial-cfs :meaning
+              (pf::meaning-predicates-with-variables gold-standard-meaning meaning-formalism))
+    ;; Notification
     (unless silent (notify parse-all-started n (listify utterance)))
+    ;; Construction application
     (multiple-value-bind (solutions cip)
         (if n
           (fcg-apply-with-n-solutions processing-cxn-inventory initial-cfs '<- n
