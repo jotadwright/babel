@@ -32,6 +32,7 @@
                                 :cxn-inventory ,cxn-inventory
                                 :hashed t))))
     (set-data (blackboard cxn-inventory) :training-corpus-size 0)
+    
     (loop for sentence in list-of-propbank-sentences
           for sentence-number from 1
           for training-corpus-size = (get-data (blackboard cxn-inventory) :training-corpus-size)
@@ -49,10 +50,10 @@
           (when rolesets
             (set-data (blackboard cxn-inventory) :training-corpus-size (incf training-corpus-size)))
           (loop for roleset in rolesets
-                do
+                do (export-argm-strings sentence roleset)
                 (loop for mode in (get-configuration cxn-inventory :learning-modes)
                       do
-                      (learn-from-propbank-annotation sentence roleset cxn-inventory mode)))
+                        (learn-from-propbank-annotation sentence roleset cxn-inventory mode)))
           finally
             (notify learning-finished cxn-inventory)
             (return cxn-inventory))))
@@ -507,6 +508,7 @@ categorial network and returns it."
                                           :key #'feature-name))))
          (gram-category (make-gram-category units-with-role preposition-lemma))
          (footprint (make-const 'pp))
+         
          (cxn-units-with-role (loop for unit in units-with-role
                                      if (equal (role-type (car unit)) "V")
                                      collect (make-propbank-conditional-unit-with-role unit gram-category footprint :frame-evoking t)
@@ -522,6 +524,7 @@ categorial network and returns it."
                                                                    cxn-preposition-units))
                                               cxn-inventory
                                               :hash-key preposition-lemma)))
+
     
     (if equivalent-cxn
       

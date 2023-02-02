@@ -36,7 +36,8 @@
                (:module cleaning-and-evaluation
                 :serial t
                 :components ((:file "clean")
-                             (:file "evaluation")))
+                             (:file "evaluation")
+                             (:file "argm-corpus"))
                (:module monitors
                 :serial t
                 :components ((:file "categorial-network")))

@@ -5,15 +5,15 @@
   (let ((path (or path
                   (make-file-name-with-time
                    (merge-pathnames wi::*graphviz-output-directory*
-                                    (make-pathname :name "recipe" 
-                                                   :type "pdf"))))))    
+                                    (make-pathname :name "recipe"
+                                                   :type "pdf"))))))
     (draw-predicate-network network :path path :open t :format "pdf")))
 
 (defmethod collapsed-entity-html ((e list) element-id)
   "html for the collapsed version of an entity"
   `((div :class "entity-box")
     ((div :class "entity-title")
-     ((a ,@(make-expand/collapse-link-parameters 
+     ((a ,@(make-expand/collapse-link-parameters
             element-id t "expand entity")
          :name ,(mkstr (car e)))
       ,(format nil "~(~a~)" element-id)))))
@@ -27,17 +27,19 @@
               element-id nil "collapse entity")
            :name ,(mkstr (car e)))
         ,(format nil "~(~a~)" element-id)))
-      ((table :class "entity" :cellpadding "0" :cellspacing "0") 
+      ((table :class "entity" :cellpadding "0" :cellspacing "0")
        ((tr)
         ((td :class "entity-details")
-         ,(format nil "~(~a~)" e)))))))
-        ;; ,(make-html-for-alist (cdr e) (make-id 'entity) nil t parameters)))))))
+         ,@(loop for el in e
+                 collect `((div :class "entity-detail")
+                           ,(format nil "~(~a~)" el)))))))))
+;; ,(make-html-for-alist (cdr e) (make-id 'entity) nil t parameters)))))))
 
 
 
 
 (defun make-html-for-alist (alist element-id expand/collapse-all-id expand-initially parameters)
-  (make-expandable/collapsable-element 
+  (make-expandable/collapsable-element
    element-id expand/collapse-all-id
    ;; collapsed version
    (collapsed-entity-html alist element-id)
@@ -63,14 +65,14 @@
         ;; TODO PRETTY PRINT HTML
         else if (eq slot-name 'sim-arguments)
                collect `((div :class "entity-detail")
-                         ,(format nil "~(~a~)" slot-name)
-                         ,(make-html-for-alist slot-value (make-id 'entity) nil expand-initially nil))
-                  
+                         ,(format nil "~(~a~):" slot-name)
+                         ,(make-html-for-alist slot-value (make-id 'simulation-properties) nil expand-initially nil))
+
         else if (listp slot-value)
                collect  `((div :class "entity-detail")
                           ,@(loop for el in slot-value
                                   collect (make-html el :expand-initially expand-initially)))
-        
+
         else
           collect `((div :class "entity-detail")
                     ,(format nil "~(~a~): " slot-name)

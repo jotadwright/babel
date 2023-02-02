@@ -172,7 +172,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   (setf (spread-with copy) (copy-object (spread-with can-be-spread-upon))))
 
 (defclass can-be-sprinkled-with (kitchen-entity)
-  ()
+  () 
   (:documentation "Something that can be sprinkled over something."))
 
 (defclass can-be-sprinkled-on (kitchen-entity)
@@ -629,7 +629,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Wire-racks. It's a transferable container."))
 
-(defclass wooden-spoon (can-mix reusable)
+(defclass wooden-spoon (can-mix can-beat reusable)
   ()
   (:documentation "A wooden spoon. It's a tool for mixing."))
 
@@ -700,6 +700,22 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass sugar-particle (ingredient mixable beatable meltable has-temperature can-be-brushed-with spreadable can-have-on-top aggregate)
   ((keep-refrigerated :initform t))
   (:documentation "Sugar-particle"))
+
+
+(defclass almond-flour-particle (ingredient mixable beatable meltable has-temperature can-be-brushed-with spreadable can-have-on-top aggregate)
+  ((keep-refrigerated :initform t))
+  (:documentation "Almond Flour-particle"))
+
+
+
+(defclass flour-particle (ingredient mixable beatable meltable has-temperature can-be-brushed-with spreadable can-have-on-top aggregate)
+  ((keep-refrigerated :initform t))
+  (:documentation "Flour-particle"))
+
+(defclass vanilla-extract-particle (ingredient mixable beatable meltable has-temperature can-be-brushed-with spreadable can-have-on-top aggregate)
+  ((keep-refrigerated :initform t))
+  (:documentation "Flour-particle"))
+
 
 
 
