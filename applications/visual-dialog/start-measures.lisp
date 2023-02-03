@@ -9,7 +9,9 @@
 
 ;; set path
 (defparameter *clevr-data-path*
-  (make-pathname :directory '(:absolute "Users" "laraverheyen" "documents" "datasets" "CLEVR" "CLEVR-demo")))
+  (merge-pathnames
+   (make-pathname :directory '(:relative "CLEVR-v1.0"))
+   cl-user::*babel-corpora*))
 
 
 ;; visualise measures

@@ -56,7 +56,7 @@
         (list (make-embodied-agent experiment)))
   (setf *used-dutch-nonsense-words* nil)
   (case (get-configuration experiment :input-lang)
-    (:en (speak (first (population experiment)) "Do you want to play a language game?"))
+    (:en (speak (first (population experiment)) "Veux-tu jouer à un jeu de langage?")) ;;;;Do you want to play a language game?
     (:nl (speak (first (population experiment)) "Wil je een taalspelletje over kleuren spelen?" :speed 75))
     (:fr (speak (first (population experiment)) "Veux-tu jouer à un jeu de langage?"))))
 
