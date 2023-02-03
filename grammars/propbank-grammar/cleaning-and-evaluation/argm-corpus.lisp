@@ -20,6 +20,7 @@
                             do (loop for unit in argm-units
                                      for argm-type = (intern (upcase (role-type (car unit))))
                                      for argm-string = (feature-value (assoc 'string (unit-body (cdr unit))))
+                                     when (and argm-type argm-string)
                                      do (format argm-corpus "~a~%"
                                                 (cl-json:encode-json-alist-to-string (list (cons 'item
                                                                                                  (list (cons 'label argm-type)
