@@ -33,9 +33,10 @@
 
 (defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
 ;(add-element (make-html *cxn-inventory*))
+(add-element (make-html (categorial-network (grammar (first (agents *experiment*))))))
 
 (run-interaction *experiment*)
-(loop repeat 100 do (run-interaction *experiment*))
+(loop repeat 800 do (run-interaction *experiment*))
 (go-back-n-interactions *experiment* 1)
 
 #|

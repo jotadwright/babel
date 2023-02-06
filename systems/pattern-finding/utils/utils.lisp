@@ -19,6 +19,20 @@
 (defun holistic-cxn-p (cxn)
   (eql (attr-val cxn :cxn-type) 'holistic))
 
+(defun routine-non-zero-cxns (agent)
+  (remove-if-not #'non-zero-cxn-p
+                 (remove-if-not #'routine-cxn-p
+                                (constructions (construction-inventory agent)))))
+
+(defun get-cxns-of-type (agent type)
+  (let ((found-cxns (if (eql type 'all)
+                      (constructions-list (grammar agent))
+                      (find-all type (constructions-list (grammar agent))
+                                :key #'get-cxn-type))))
+    (loop for cxn in found-cxns
+          when (non-zero-cxn-p cxn)
+          collect cxn)))
+
 
 ;;;;;
 ;; Search tree utils
@@ -475,15 +489,6 @@
                  (equal 'string (first (first form-constraints))))
         (list (second (first form-constraints)) (second (first form-constraints)))))))
 
-
-(defun get-cxns-of-type (agent type)
-  (let ((found-cxns (if (eql type 'all)
-                      (constructions-list (grammar agent))
-                      (find-all type (constructions-list (grammar agent))
-                                :key #'get-cxn-type))))
-    (loop for cxn in found-cxns
-          when (non-zero-cxn-p cxn)
-            collect cxn)))
 
 (defun set-cxn-last-used (agent cxn)
   (let ((current-interaction-nr
@@ -1465,7 +1470,8 @@
 
 (defun count-holophrases (grammar)
   (count-if #'(lambda (cxn) (and (eql (attr-val cxn :is-holophrase) t)
-                                 (string= (attr-val cxn :label) 'routine))) (constructions grammar)))
+                                 (string= (attr-val cxn :label) 'routine)))
+            (constructions grammar)))
 
 (defun print-holophrases (grammar)
   (loop for cxn in (constructions grammar)
