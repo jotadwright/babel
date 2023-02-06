@@ -49,7 +49,7 @@
              (succeeded-nodes
               (loop for cipn in solutions
                     when (find 'fcg::succeeded (statuses cipn))
-                      collect cipn))
+                    collect cipn))
              (node-with-compatible-args
               (first
                (reject-solutions-with-incompatible-args
@@ -79,6 +79,11 @@
                'add-categorial-links))))))))
 
 
+(defun gold-standard-consulted-p (cipn)
+  "the highest ranked cipn was disqualified by the gold-standard-meaning goal test"
+  (not (get-data (goal-test-data cipn) :result-goal-test-non-gold-standard-meaning)))
+
+
 (defun substitute-predicate-bindings (predicate bindings)
   (loop with frame-bindings = (irl::map-frame-bindings bindings)
         for elt in predicate
@@ -93,7 +98,7 @@
           (loop for unit in all-units
                 for footprints = (unit-feature-value unit 'fcg:footprints)
                 unless (member 'pf::used-as-slot-filler footprints)
-                  return unit)))
+                return unit)))
     (second (find 'meaning-args (rest top-unit) :key #'first))))
   
 ;(second (find 'ARGS (rest (first (remove-child-units (left-pole-structure (car-resulting-cfs (cipn-car cip-node)))))) :key #'first)))
@@ -116,19 +121,22 @@
 (defun extract-used-categorial-links (solution-cipn)
   "For a given solution-cipn, extracts categorial links that were used (based on lex-class)."
   (loop for cipn in (ignore-initial-nodes (reverse (cons solution-cipn (all-parents solution-cipn))))
-        append (let* ((processing-cxn (car-applied-cxn (cipn-car cipn)))
-                      (processing-cxn (if (equal (attr-val processing-cxn :label) 'fcg::routine)
-                                        processing-cxn
-                                        (first (remove (name processing-cxn)
-                                                       (find-all (attr-val processing-cxn :bare-cxn-name)
-                                                                 (constructions-list (construction-inventory cipn))
-                                                                 :key #'(lambda (cxn) (attr-val cxn :bare-cxn-name)))
-                                                       :key #'name))))                               
-                      (units-matching-lex-class (loop for unit in (right-pole-structure processing-cxn)
-                                                      for syn-cat = (rest (unit-feature-value unit 'syn-cat))
-                                                      for lex-class = (second (find 'lex-class syn-cat :key #'first))
-                                                      when lex-class
-                                                        collect (cons (first unit) lex-class))))
+        append (let* ((processing-cxn
+                       (car-applied-cxn (cipn-car cipn)))
+                      (processing-cxn
+                       (if (equal (attr-val processing-cxn :label) 'fcg::routine)
+                         processing-cxn
+                         (first (remove (name processing-cxn)
+                                        (find-all (attr-val processing-cxn :bare-cxn-name)
+                                                  (constructions-list (construction-inventory cipn))
+                                                  :key #'(lambda (cxn) (attr-val cxn :bare-cxn-name)))
+                                        :key #'name))))                               
+                      (units-matching-lex-class
+                       (loop for unit in (right-pole-structure processing-cxn)
+                             for syn-cat = (rest (unit-feature-value unit 'syn-cat))
+                             for lex-class = (second (find 'lex-class syn-cat :key #'first))
+                             when lex-class
+                             collect (cons (first unit) lex-class))))
                  (loop for (cxn-unit-name . cxn-lex-class) in units-matching-lex-class
                        for ts-unit-name = (cdr (find cxn-unit-name (car-second-merge-bindings (cipn-car cipn)) :key #'first))
                        for ts-unit = (find ts-unit-name (left-pole-structure (car-source-cfs (cipn-car cipn))):key #'first)
