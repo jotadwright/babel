@@ -22,7 +22,7 @@
 
 (defparameter *vision-server*
   (make-instance 'nao-interface::vision-server
-                 :nao-ip "192.168.2.4"
+                 :nao-ip "169.254.78.202"
                  :server-host "127.0.0.1"
                  :server-port "7851"))
 
@@ -31,7 +31,7 @@
   (make-instance 'demo-experiment
                  :vision-server *vision-server*
                  :entries '((:robot-port . "7850")
-                            (:robot-ip . "192.168.2.4"))))
+                            (:robot-ip . "169.254.78.202"))))
 
 ;; Switch between text and speech input
 (set-configuration *experiment* :input-form :text)

@@ -11,7 +11,7 @@ from detectron2.config import get_cfg
 # Set the home directory
 home = os.path.expanduser('~')
 # We assume the directory is called Babel3!!
-babel = '/Users/ajouglar/babel'
+babel = glob(os.path.join(home, '**/babel'))[0]
 
 
 def load_detectron2(detectron_cfg):
