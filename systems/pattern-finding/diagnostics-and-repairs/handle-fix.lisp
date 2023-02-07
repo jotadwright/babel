@@ -119,7 +119,7 @@
     ;; set statuses (colors in web interface)
     (when gold-standard-consulted-p
       (push 'gold-standard-consulted (statuses solution-node)))
-    (push (type-of repair) (statuses solution-node))
+    (push (afr-repair (restart-data fix)) (statuses solution-node))
     (push 'added-by-repair (statuses solution-node))
     ;; enqueue only second new node; never backtrack over the first applied holistic construction, we applied them as a block
     (cip-enqueue solution-node (cip node) (get-configuration node :queue-mode))))

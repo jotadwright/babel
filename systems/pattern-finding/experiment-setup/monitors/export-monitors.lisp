@@ -9,18 +9,27 @@
                 :documentation "Prints a '.' for each interaction
                  and prints the number after :dot-interval")
 
+(defun first-n (n list)
+  "Returns the first N elements of the LIST."
+  (butlast list (max (- (list-length list) n) 0)))
+
 (define-event-handler (print-a-dot-for-each-interaction interaction-finished)
-  (let* ((symbol-to-print (last-elt (repair-buffer experiment)))
-        (windowed-success (* 100 (float (average (subseq (success-buffer experiment)
-                                                         (if (> (- (length (success-buffer experiment)) 100) -1) (- (length (success-buffer experiment)) 100) 0)
-                                                         (length (success-buffer experiment)))))))
-        (grammar (grammar (first (interacting-agents experiment))))
-        (grammar-size (count-if #'non-zero-cxn-p (constructions grammar)))
-        (num-hol (count-holophrases grammar)))
+  (let* ((symbol-to-print
+          (first (repair-buffer experiment)))
+         (buffer-size
+          (get-configuration experiment :buffer-size))
+         (windowed-success
+          (* 100 (float (average (first-n buffer-size (success-buffer experiment))))))
+         (agent-grammar
+          (grammar (first (interacting-agents experiment))))
+         (grammar-size
+          (count-if #'non-zero-cxn-p (constructions agent-grammar)))
+         (num-holistic
+          (count-holophrases agent-grammar)))
     (cond ((= (interaction-number interaction) 1)
            (setf *start-time* (get-universal-time))
            (format t "~%~a" symbol-to-print))
-
+          
           ((or (= (mod (interaction-number interaction)
                        (/ (length (question-data experiment))
                           (get-configuration experiment :number-of-epochs)))
@@ -28,10 +37,11 @@
                (= (mod (interaction-number interaction)
                        (get-configuration experiment :dot-interval)) 0))
            (multiple-value-bind (h m s) (seconds-to-hours-minutes-seconds (- (get-universal-time) *start-time*))
-             (format t "~a (~a / ~,vf% / ~a cxns w. ~a hol. /~ah ~am ~as)~%" symbol-to-print (interaction-number interaction) 1 windowed-success grammar-size num-hol h m s))
+             (format t "~a (~a / ~,vf% / ~a cxns w. ~a hol. /~ah ~am ~as)~%"
+                     symbol-to-print (interaction-number interaction)
+                     1 windowed-success grammar-size num-holistic h m s))
            (setf *start-time* (get-universal-time)))
-           
-         ;(wi:clear-page))
+          
           (t (format t "~a" symbol-to-print)))))
 
 ;;;; export failed sentences and applied cxns

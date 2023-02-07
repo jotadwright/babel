@@ -19,6 +19,20 @@
 (defun holistic-cxn-p (cxn)
   (eql (attr-val cxn :cxn-type) 'holistic))
 
+(defun routine-non-zero-cxns (agent)
+  (remove-if-not #'non-zero-cxn-p
+                 (remove-if-not #'routine-cxn-p
+                                (constructions (construction-inventory agent)))))
+
+(defun get-cxns-of-type (agent type)
+  (let ((found-cxns (if (eql type 'all)
+                      (constructions-list (grammar agent))
+                      (find-all type (constructions-list (grammar agent))
+                                :key #'get-cxn-type))))
+    (loop for cxn in found-cxns
+          when (non-zero-cxn-p cxn)
+          collect cxn)))
+
 
 ;;;;;
 ;; Search tree utils
@@ -475,15 +489,6 @@
                  (equal 'string (first (first form-constraints))))
         (list (second (first form-constraints)) (second (first form-constraints)))))))
 
-
-(defun get-cxns-of-type (agent type)
-  (let ((found-cxns (if (eql type 'all)
-                      (constructions-list (grammar agent))
-                      (find-all type (constructions-list (grammar agent))
-                                :key #'get-cxn-type))))
-    (loop for cxn in found-cxns
-          when (non-zero-cxn-p cxn)
-            collect cxn)))
 
 (defun set-cxn-last-used (agent cxn)
   (let ((current-interaction-nr
@@ -1260,7 +1265,11 @@
   (set-configuration cxn-inventory :consolidate-repairs nil))
 
 (defun enable-meta-layer-configuration (cxn-inventory)
-  (set-configuration cxn-inventory :parse-goal-tests '(:no-strings-in-root :no-applicable-cxns :connected-semantic-network :connected-structure :non-gold-standard-meaning))
+  (set-configuration cxn-inventory :parse-goal-tests '(:no-strings-in-root
+                                                       :no-applicable-cxns
+                                                       :connected-semantic-network
+                                                       :connected-structure
+                                                       :non-gold-standard-meaning))
   (set-configuration cxn-inventory :category-linking-mode :neighbours)
   (set-configuration cxn-inventory :update-categorial-links t)
   (set-configuration cxn-inventory :use-meta-layer t)
@@ -1277,7 +1286,11 @@
   (set-configuration cxn-inventory :consolidate-repairs nil))
 
 (defun enable-meta-layer-configuration-item-based-first (cxn-inventory)
-  (set-configuration cxn-inventory :parse-goal-tests '(:no-strings-in-root :no-applicable-cxns :connected-semantic-network :connected-structure :non-gold-standard-meaning))
+  (set-configuration cxn-inventory :parse-goal-tests '(:no-strings-in-root
+                                                       :no-applicable-cxns
+                                                       :connected-semantic-network
+                                                       :connected-structure
+                                                       :non-gold-standard-meaning))
   (set-configuration cxn-inventory :hash-mode :hash-string-meaning)
   (set-configuration cxn-inventory :cxn-supplier-mode :hashed-and-scored-routine-cxn-set-only)
   (set-configuration cxn-inventory :max-nr-of-nodes (get-configuration cxn-inventory :original-max-nr-of-nodes))
@@ -1465,7 +1478,8 @@
 
 (defun count-holophrases (grammar)
   (count-if #'(lambda (cxn) (and (eql (attr-val cxn :is-holophrase) t)
-                                 (string= (attr-val cxn :label) 'routine))) (constructions grammar)))
+                                 (string= (attr-val cxn :label) 'routine)))
+            (constructions grammar)))
 
 (defun print-holophrases (grammar)
   (loop for cxn in (constructions grammar)
