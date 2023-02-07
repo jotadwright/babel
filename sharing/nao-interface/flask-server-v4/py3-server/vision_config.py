@@ -10,8 +10,7 @@ from detectron2.config import get_cfg
 
 # Set the home directory
 home = os.path.expanduser('~')
-# We assume the directory is called Babel3!!
-babel = glob(os.path.join(home, '**/babel'))[0]
+babel = glob(os.path.join(home, 'babel'))[0]
 
 
 def load_detectron2(detectron_cfg):
@@ -31,7 +30,7 @@ def set_model_cfg(tresh = 0.5, device = 'cpu', mask_format = 'bitmask'):
 
 class VisionConfig(object):
     '''The VisionConfig holds all configurations related to the vision server'''
-    ROBOT_IP = "192.168.2.4"
+    ROBOT_IP = "192.168.0.101"
     ROBOT_PORT = 7850
     # Camera parameters
     CAMERA_RESOLUTION = 2

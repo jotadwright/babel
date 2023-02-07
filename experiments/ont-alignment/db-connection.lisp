@@ -21,12 +21,12 @@
               '(([movie_name] (char 255) primary key)
                 ([release_date] number not null)))
 
-;(query "SELECT * :from 'actorsfilms'")
+;(query "SELECT * FROM films")
 (query "SELECT 'Actor :from actorsfilms WHERE Actor = Gérard")
 
-(query "SELECT film FROM films WHERE filmID IN (
-SELECT filmID from actors_films_relations WHERE actorID = 
-(SELECT actorID FROM actors WHERE actor = 'Gérard Depardieu'))")
+(query "SELECT film FROM films WHERE film_id IN (
+SELECT film_id from actorfilms_relations WHERE actor_id = 
+(SELECT actor_id FROM actors WHERE actor = 'Gérard Depardieu'))")
 
 
 (SELECT [movie_name] :from [films] :WHERE [movie_name] [=] "The godfather") ;in the crochets a table_name or anything that is inside a table
