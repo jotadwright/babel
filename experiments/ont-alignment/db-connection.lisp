@@ -11,6 +11,7 @@
 (initialize-database-type :database-type :sqlite)
 (connect "experiments/ont-alignment/dbs/db1_actors_films_multiple_tables.db")  ;if db doesn't exist, creates db and stores it in current folder (babel)
 (connect "experiments/ont-alignment/dbs/db2_actors_films_simple_table.db")
+(connect "experiments/ont-alignment/dbs/db3_films_years.db")
 
 (list-tables)
 (list-attributes "actorsfilms") ;returns a list of strings naming every column (attribute) in a given table / view.
