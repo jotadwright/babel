@@ -42,19 +42,6 @@
             (t
              0)))
     0))
-      #|(cond ((attr-val applied-cxn :gram-category)
-             (let ((lex-category-used (cdr (assoc (attr-val applied-cxn :gram-category) (car-match-bindings (cipn-car node))))))
-               (cdr (find (cons (attr-val applied-cxn :gram-category) lex-category-used)
-                          (get-data (blackboard (construction-inventory node)) :matched-categorial-links)
-                          :key #'car :test #'equalp))))
-            ((attr-val applied-cxn :sense-category)
-             (let ((gram-category-used (cdr (assoc (attr-val applied-cxn :sense-category) (car-match-bindings (cipn-car node))))))
-               (cdr (find (cons (attr-val applied-cxn :sense-category) gram-category-used)
-                          (get-data (blackboard (construction-inventory node)) :matched-categorial-links)
-                          :key #'car :test #'equalp))))
-            (t
-             0)))
-      |#
 
 
 (defmethod apply-heuristic ((node cip-node) (mode (eql :nr-of-units-matched)))
