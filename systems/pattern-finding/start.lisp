@@ -5,7 +5,7 @@
 (progn
   (deactivate-all-monitors)
   ;(activate-monitor display-metrics)
-  (activate-monitor trace-fcg)
+  (monitors::activate-monitor trace-fcg)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
   (activate-monitor show-type-hierarchy-after-n-interactions)
@@ -28,7 +28,7 @@
                               (:shuffle-data-p . nil)
                               (:sort-data-p . t)))))
 
-(run-series *experiment* 1000)
+(run-series *experiment* 100)
 
 (defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
 ;(add-element (make-html *cxn-inventory*))

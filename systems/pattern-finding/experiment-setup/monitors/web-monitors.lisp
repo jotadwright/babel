@@ -14,6 +14,7 @@
 (define-monitor summarize-results-after-n-interactions)
 (define-monitor evaluation-after-n-interactions)
 (define-monitor show-type-hierarchy-after-n-interactions)
+(define-monitor trace-grammar-learning-repairs-in-wi)
 
 
 
