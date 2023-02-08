@@ -1,6 +1,6 @@
 ;;;; single-or.lisp
 
-(in-package :clevr-grammar)
+(in-package :clevr-grammar-v1)
 
 ;; ----------------------------------------------------- ;;
 ;; This file contains grammatical constructions for      ;;
@@ -109,17 +109,14 @@
 
 (def-fcg-cxn union-count-cxn
              ((?count-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?target)))
                (subunits (?counting-unit ?union-unit)))
               (?counting-unit
                (footprints (single-or)))
               <-
-              (scene-unit
-               --
-               (scene ?scene))
               (?count-unit
-               (HASH meaning ((segment-scene ?segmented-scene ?scene)))
+               (HASH meaning ((get-context ?context)))
                --
                )
               (?counting-unit
@@ -137,7 +134,7 @@
                (rightmost-unit ?rightmost-counting-unit)
                (HASH form ((meets ?rightmost-counting-unit ?leftmost-union-unit))))
               (?union-unit
-               (args ((sources ?segmented-scene)
+               (args ((sources ?context)
                       (target ?union-set)))
                (sem-cat (sem-function referring-expression))
                (syn-cat (phrase-type conjuncted-clauses)

@@ -2,7 +2,7 @@
 
 (in-package :asdf)
 
-(defsystem #:clevr-grammar
+(defsystem #:clevr-grammar-v1
   :description "FCG grammar for CLEVR dataset"
   :author "EHAI <ehai@ai.vub.ac.be>"
   :maintainer "Jens Nevens <jens@ai.vub.ac.be>"
@@ -21,7 +21,7 @@
                 :serial t
                 :components ((:file "cxn-supplier")
                              (:file "de-render")
-                             (:file "node-tests")))
+                             (:file "node-test")))
                (:file "lex-and-morph")
                (:file "rpn-meaning")
                (:file "grammar")
@@ -36,5 +36,4 @@
                (:file "compare-integer")
                (:file "same-relate")
                (:file "comparison")
-               (:file "preprocess-utterance")
-               (:file "understand")))
+               (:file "preprocess-utterance")))

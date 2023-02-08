@@ -1,6 +1,6 @@
 ;;;; grammar.lisp
 
-(in-package :clevr-grammar)
+(in-package :clevr-grammar-v2)
 
 (def-fcg-constructions clevr-grammar
     :feature-types

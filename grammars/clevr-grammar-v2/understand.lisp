@@ -1,4 +1,4 @@
-(in-package :clevr-grammar)
+(in-package :clevr-grammar-v2)
 
 (export '(understand understand-and-formulate))
 

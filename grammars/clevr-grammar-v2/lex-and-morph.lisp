@@ -1,6 +1,6 @@
 ;;;; lex-and-morph.lisp
 
-(in-package :clevr-grammar)
+(in-package :clevr-grammar-v2)
 
 ;; ----------------------------------------------------- ;;
 ;; This file contains contains functions that read json  ;;

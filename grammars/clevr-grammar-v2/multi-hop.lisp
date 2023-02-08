@@ -1,6 +1,6 @@
 ;;;; multi-hop.lisp
 
-(in-package :clevr-grammar)
+(in-package :clevr-grammar-v2)
 
 ;; ----------------------------------------------------- ;;
 ;; This file contains  grammatical constructions for the ;;
