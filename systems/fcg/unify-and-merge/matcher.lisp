@@ -393,7 +393,7 @@ occurs in x."
 	((and (symbolp x) (symbolp y)
 	      (equal (symbol-name x) (symbol-name y)))
          bindings)
-        ;; unify symbols on type-hierarchy-basis
+        ;; unify symbols on categorial-network-basis
         ((and cxn-inventory (categorial-network (original-cxn-set cxn-inventory))
               (symbolp x) (symbolp y)
               (category-exists-p x (categorial-network (original-cxn-set cxn-inventory)))
@@ -401,6 +401,8 @@ occurs in x."
               (categories-linked-p x y
                                    (categorial-network (original-cxn-set cxn-inventory))
                                    (get-configuration (original-cxn-set cxn-inventory) :category-linking-mode)))
+         (append-data (blackboard (original-cxn-set cxn-inventory))
+                      :matched-categorial-links (list (cons (cons x y) (link-weight x y (categorial-network (original-cxn-set cxn-inventory))))))
          bindings)
 	;; unify variables
 	((variable-p x) (unify-variable x y bindings))
