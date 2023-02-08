@@ -11,7 +11,6 @@
 (in-package :propbank-grammar)
 
 
-(activate-monitor export-categorial-network-to-jsonl)
 
 ;; Activating spacy-api locally
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -31,23 +30,22 @@
 
 
 
-(defparameter *restored-grammar-sbcl*
+#|(defparameter *restored-grammar-sbcl*
   (cl-store:restore
    (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
                    :name "propbank-grammar-ontonotes-ewt-core-roles-no-aux-cleaned-sbcl"
-                   :type "fcg")))
+                   :type "fcg")))|#
 
 (defparameter *restored-grammar-lw*
   (cl-store:restore
    (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
-                   :name "propbank-grammar-ontonotes-ewt-core-roles+-leafs-no-aux-lw"
+                   :name "propbank-grammar-ontonotes-no-aux-lw"
                    :type "fcg")))
 
-(setf *restored-grammar *restored-grammar-lw*)
 
-(cl-store:store *propbank-ewt-ontonotes-learned-cxn-inventory-no-aux* ;*propbank-ewt-ontonotes-learned-cxn-inventory*
+(cl-store:store *propbank-ontonotes-learned-cxn-inventory-no-aux* ;*propbank-ewt-ontonotes-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
-                                :name "propbank-grammar-ontonotes-ewt-core-roles-no-aux-lw"
+                                :name "propbank-grammar-ontonotes-no-aux-lw"
                                 :type "fcg"))
 
 
@@ -78,7 +76,7 @@
     (:construction-inventory-processor-mode . :heuristic-search)
     (:search-algorithm . :best-first)   
     (:cxn-supplier-mode . :hashed-categorial-network)
-    (:heuristics :nr-of-applied-cxns :nr-of-units-matched :frequency  ) ; :edge-weight :prefer-local-bindings
+    (:heuristics :nr-of-applied-cxns :nr-of-units-matched :edge-weight) ;  :prefer-local-bindings :frequency
     (:heuristic-value-mode . :sum-heuristics-and-parent)
     (:sort-cxns-before-application . nil)
 
@@ -99,23 +97,23 @@
 (defparameter *test-grammar* nil)
 
 (defparameter *train-corpus* (train-split *ontonotes-annotations*))
-(defparameter *train-corpus* (subseq (train-split *ontonotes-annotations*) 10 20))
+
 
 ;(subseq (shuffle (append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*))) 0 1000))
 
 
-(progn
-  (activate-monitor export-categorial-network-to-jsonl)
-  (learn-propbank-grammar
-   *train-corpus*
-   :excluded-rolesets '("be.01" "be.02" "be.03"
-                        "do.01" "do.02" "do.04" "do.11" "do.12"
-                        "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
-                        "get.03" "get.06" "get.24")
-   :cxn-inventory '*test-grammar*
-   :fcg-configuration *training-configuration*))
+(learn-propbank-grammar
+ *train-corpus*
+ :excluded-rolesets '("be.01" "be.02" "be.03"
+                      "do.01" "do.02" "do.04" "do.11" "do.12"
+                      "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
+                      "get.03" "get.06" "get.24")
+ :cxn-inventory '*propbank-ontonotes-learned-cxn-inventory-no-aux*
+ :fcg-configuration *training-configuration*)
 
-                                              
+;(comprehend-and-extract-frames (second *train-corpus*) :cxn-inventory *propbank-ontonotes-learned-cxn-inventory-no-aux*)
+
+
 ;(add-element (make-html *test-grammar*))
 ;(activate-monitor trace-fcg)
 
