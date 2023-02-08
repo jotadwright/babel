@@ -7,17 +7,55 @@
 
 
 (defmethod apply-heuristic ((node cip-node) (mode (eql :edge-weight)))
-  (let ((applied-cxn (get-original-cxn (car-applied-cxn (cipn-car node)))))
-    (cond ((attr-val applied-cxn :gram-category)
-           (let ((lex-category-used (cdr (assoc (attr-val applied-cxn :gram-category) (car-match-bindings (cipn-car node))))))
-             (link-weight (attr-val applied-cxn :gram-category) 
-                          lex-category-used (original-cxn-set (construction-inventory node)))))
-          ((attr-val applied-cxn :sense-category)
-           (let ((gram-category-used (cdr (assoc (attr-val applied-cxn :sense-category) (car-match-bindings (cipn-car node))))))
-             (link-weight (attr-val applied-cxn :sense-category) 
-                          gram-category-used (original-cxn-set (construction-inventory node)))))
-          (t
-           0))))
+  (if (field? (blackboard (construction-inventory node)) :matched-categorial-links)
+    (let ((applied-cxn (get-original-cxn (car-applied-cxn (cipn-car node)))))
+      (cond ((attr-val applied-cxn :gram-category)
+             (let* ((matched-neighbours
+                     (loop for links-and-score in (get-data  (blackboard (construction-inventory node)) :matched-categorial-links)
+                           when (eq (caar links-and-score) (attr-val applied-cxn :gram-category))
+                             collect (cdar links-and-score)))
+                    (lex-cat-used 
+                     (loop for matched-neighbour-cat in matched-neighbours
+                           when (neighbouring-categories-p (attr-val applied-cxn :gram-category)
+                                                      matched-neighbour-cat
+                                                      (categorial-network (construction-inventory node))
+                                                      :link-type 'lex-gram)
+                             do (return matched-neighbour-cat))))
+               (cdr (find (cons (attr-val applied-cxn :gram-category) lex-cat-used)
+                          (get-data (blackboard (construction-inventory node)) :matched-categorial-links)
+                          :key #'car :test #'equalp))))
+            ((attr-val applied-cxn :sense-category)
+             (let* ((matched-neighbours
+                     (loop for links-and-score in (get-data  (blackboard (construction-inventory node)) :matched-categorial-links)
+                           when (eq (caar links-and-score) (attr-val applied-cxn :sense-category))
+                             collect (cdar links-and-score)))
+                    (gram-cat-used 
+                     (loop for matched-neighbour-cat in matched-neighbours
+                           when (neighbouring-categories-p (attr-val applied-cxn :sense-category)
+                                                      matched-neighbour-cat
+                                                      (categorial-network (construction-inventory node))
+                                                      :link-type 'gram-sense)
+                             do (return matched-neighbour-cat))))
+               (cdr (find (cons (attr-val applied-cxn :sense-category) gram-cat-used)
+                          (get-data (blackboard (construction-inventory node)) :matched-categorial-links)
+                          :key #'car :test #'equalp))))
+            (t
+             0)))
+    0))
+      #|(cond ((attr-val applied-cxn :gram-category)
+             (let ((lex-category-used (cdr (assoc (attr-val applied-cxn :gram-category) (car-match-bindings (cipn-car node))))))
+               (cdr (find (cons (attr-val applied-cxn :gram-category) lex-category-used)
+                          (get-data (blackboard (construction-inventory node)) :matched-categorial-links)
+                          :key #'car :test #'equalp))))
+            ((attr-val applied-cxn :sense-category)
+             (let ((gram-category-used (cdr (assoc (attr-val applied-cxn :sense-category) (car-match-bindings (cipn-car node))))))
+               (cdr (find (cons (attr-val applied-cxn :sense-category) gram-category-used)
+                          (get-data (blackboard (construction-inventory node)) :matched-categorial-links)
+                          :key #'car :test #'equalp))))
+            (t
+             0)))
+      |#
+
 
 (defmethod apply-heuristic ((node cip-node) (mode (eql :nr-of-units-matched)))
   "Returns a normalisation of the number of units matched by the cxn."

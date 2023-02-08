@@ -50,7 +50,7 @@
           (when rolesets
             (set-data (blackboard cxn-inventory) :training-corpus-size (incf training-corpus-size)))
           (loop for roleset in rolesets
-                do (export-argm-strings sentence roleset)
+                do 
                 (loop for mode in (get-configuration cxn-inventory :learning-modes)
                       do
                         (learn-from-propbank-annotation sentence roleset cxn-inventory mode)))

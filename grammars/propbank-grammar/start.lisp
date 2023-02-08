@@ -11,7 +11,6 @@
 (in-package :propbank-grammar)
 
 
-(activate-monitor export-categorial-network-to-jsonl)
 
 ;; Activating spacy-api locally
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -78,7 +77,7 @@
     (:construction-inventory-processor-mode . :heuristic-search)
     (:search-algorithm . :best-first)   
     (:cxn-supplier-mode . :hashed-categorial-network)
-    (:heuristics :nr-of-applied-cxns :nr-of-units-matched :frequency  ) ; :edge-weight :prefer-local-bindings
+    (:heuristics :nr-of-applied-cxns  :edge-weight ) ;  :prefer-local-bindings :nr-of-units-matched :frequency
     (:heuristic-value-mode . :sum-heuristics-and-parent)
     (:sort-cxns-before-application . nil)
 
@@ -99,13 +98,13 @@
 (defparameter *test-grammar* nil)
 
 (defparameter *train-corpus* (train-split *ontonotes-annotations*))
-(defparameter *train-corpus* (subseq (train-split *ontonotes-annotations*) 10 20))
+(defparameter *train-corpus* (subseq (train-split *ewt-annotations*) 10 20))
 
 ;(subseq (shuffle (append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*))) 0 1000))
 
 
 (progn
-  (activate-monitor export-categorial-network-to-jsonl)
+  
   (learn-propbank-grammar
    *train-corpus*
    :excluded-rolesets '("be.01" "be.02" "be.03"
@@ -115,6 +114,7 @@
    :cxn-inventory '*test-grammar*
    :fcg-configuration *training-configuration*))
 
+(comprehend-and-extract-frames (second *train-corpus*) :cxn-inventory *test-grammar*)
                                               
 ;(add-element (make-html *test-grammar*))
 ;(activate-monitor trace-fcg)

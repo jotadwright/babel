@@ -13,8 +13,10 @@
                                                 (selected-rolesets nil)
                                                 (timeout 60))
   "Comprehends an utterance and visualises the extracted frames."
+  (set-data (blackboard cxn-inventory) :matched-categorial-links nil)
   (multiple-value-bind (solution cipn)
-      (comprehend utterance :cxn-inventory cxn-inventory :silent silent :syntactic-analysis syntactic-analysis :selected-rolesets selected-rolesets :timeout timeout)
+      (comprehend utterance :cxn-inventory cxn-inventory :silent silent
+                  :syntactic-analysis syntactic-analysis :selected-rolesets selected-rolesets :timeout timeout)
     (if (eql solution 'time-out)
       (values 'time-out 'time-out 'time-out)
       (let ((frames (propbank-grammar::extract-frames (car-resulting-cfs (cipn-car cipn)))))
