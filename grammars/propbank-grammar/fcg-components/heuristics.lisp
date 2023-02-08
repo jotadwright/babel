@@ -47,7 +47,7 @@
 (defmethod apply-heuristic ((node cip-node) (mode (eql :nr-of-units-matched)))
   "Returns a normalisation of the number of units matched by the cxn."
   (let ((applied-cxn (get-original-cxn (car-applied-cxn (cipn-car node)))))
-    (length (conditional-part applied-cxn))))
+    (* (length (conditional-part applied-cxn)) 2)))
   
        
 (defun find-highest-edge-weight (category-list cxn node)
