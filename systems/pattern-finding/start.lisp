@@ -24,11 +24,11 @@
                                                       cl-user:*babel-corpora*))
                               (:corpus-data-file . ,(make-pathname :directory '(:relative "train")
                                                                    :name "stage-1" :type "jsonl"))
-                              (:number-of-samples . nil)
+                              (:number-of-samples . 100)
                               (:shuffle-data-p . nil)
                               (:sort-data-p . t)))))
 
-(run-series *experiment* 100)
+(run-series *experiment* 50)
 
 (defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
 ;(add-element (make-html *cxn-inventory*))
