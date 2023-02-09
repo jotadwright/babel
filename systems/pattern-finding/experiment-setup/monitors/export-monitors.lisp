@@ -24,8 +24,8 @@
           (grammar (first (interacting-agents experiment))))
          (grammar-size
           (count-if #'non-zero-cxn-p (constructions agent-grammar)))
-         (num-holistic
-          (count-holophrases agent-grammar)))
+         (non-zero-holistic-cxns
+          (count-non-zero-holophrases agent-grammar)))
     (cond ((= (interaction-number interaction) 1)
            (setf *start-time* (get-universal-time))
            (format t "~%~a" symbol-to-print))
@@ -39,7 +39,7 @@
            (multiple-value-bind (h m s) (seconds-to-hours-minutes-seconds (- (get-universal-time) *start-time*))
              (format t "~a (~a / ~,vf% / ~a cxns w. ~a hol. /~ah ~am ~as)~%"
                      symbol-to-print (interaction-number interaction)
-                     1 windowed-success grammar-size num-holistic h m s))
+                     1 windowed-success grammar-size non-zero-holistic-cxns h m s))
            (setf *start-time* (get-universal-time)))
           
           (t (format t "~a" symbol-to-print)))))

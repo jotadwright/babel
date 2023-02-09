@@ -19,6 +19,9 @@
 (defun holistic-cxn-p (cxn)
   (eql (attr-val cxn :cxn-type) 'holistic))
 
+(defun holophrase-cxn-p (cxn)
+  (eql (attr-val cxn :is-holophrase) t))
+
 (defun routine-non-zero-cxns (agent)
   (remove-if-not #'non-zero-cxn-p
                  (remove-if-not #'routine-cxn-p
@@ -38,6 +41,12 @@
     (if (routine-cxn-p cxn)
       (1- (length (conditional-part cxn)))
       (1- (length (contributing-part cxn))))))
+
+(defun count-non-zero-holophrases (grammar)
+  (count-if (compose #'holophrase-cxn-p
+                     #'routine-cxn-p
+                     #'non-zero-cxn-p)
+            (constructions grammar)))
 
 
 ;;;;;
@@ -284,7 +293,6 @@
           return cxn)))
 
 
-
 ;;;;;
 ;; Get the alter-ego cxn
 ;;;;;;;;;;;;;;;;;;;;;;;;
@@ -299,7 +307,62 @@
                         (attr-val original-cxn :bare-cxn-name))
                     (not (eql (name cxn) (name original-cxn))))
           do (return cxn))))
+
+;;;;;
+;; Enable/Disable meta layer
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun disable-meta-layer-configuration (cxn-inventory)
+  (set-configuration cxn-inventory :category-linking-mode :categories-exist)
+  (set-configuration cxn-inventory :update-categorial-links nil)
+  (set-configuration cxn-inventory :use-meta-layer nil)
+  (set-configuration cxn-inventory :consolidate-repairs nil))
+
+(defun enable-meta-layer-configuration (cxn-inventory)
+  (set-configuration cxn-inventory :parse-goal-tests '(:no-strings-in-root
+                                                       :no-applicable-cxns
+                                                       :connected-semantic-network
+                                                       :connected-structure
+                                                       :non-gold-standard-meaning))
+  (set-configuration cxn-inventory :category-linking-mode :neighbours)
+  (set-configuration cxn-inventory :update-categorial-links t)
+  (set-configuration cxn-inventory :use-meta-layer t)
+  (set-configuration cxn-inventory :consolidate-repairs t))
+
+(defun disable-meta-layer-configuration-item-based-first (cxn-inventory)
+  (set-configuration cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
+  (set-configuration cxn-inventory :parse-order '(meta-only))
+  (set-configuration cxn-inventory :category-linking-mode :categories-exist)
+  (set-configuration cxn-inventory :hash-mode :hash-string-meaning-lex-id) ; excludes nil hashed cxns (e.g. ?x-?y)
+  (set-configuration cxn-inventory :max-nr-of-nodes 250)
+  (set-configuration cxn-inventory :update-categorial-links nil)
+  (set-configuration cxn-inventory :use-meta-layer nil)
+  (set-configuration cxn-inventory :consolidate-repairs nil))
+
+(defun enable-meta-layer-configuration-item-based-first (cxn-inventory)
+  (set-configuration cxn-inventory :parse-goal-tests '(:no-strings-in-root
+                                                       :no-applicable-cxns
+                                                       :connected-semantic-network
+                                                       :connected-structure
+                                                       :non-gold-standard-meaning))
+  (set-configuration cxn-inventory :hash-mode :hash-string-meaning)
+  (set-configuration cxn-inventory :parse-order '(routine))
+  (set-configuration cxn-inventory :max-nr-of-nodes (get-configuration cxn-inventory :original-max-nr-of-nodes))
+  (set-configuration cxn-inventory :category-linking-mode :neighbours)
+  (set-configuration cxn-inventory :update-categorial-links t)
+  (set-configuration cxn-inventory :use-meta-layer t)
+  (set-configuration cxn-inventory :consolidate-repairs t))
                  
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -866,47 +929,6 @@
         when (equal var in-var)
           return predicate))
 
-(defun disable-meta-layer-configuration (cxn-inventory)
-  (set-configuration cxn-inventory :category-linking-mode :categories-exist)
-  (set-configuration cxn-inventory :update-categorial-links nil)
-  (set-configuration cxn-inventory :use-meta-layer nil)
-  (set-configuration cxn-inventory :consolidate-repairs nil))
-
-(defun enable-meta-layer-configuration (cxn-inventory)
-  (set-configuration cxn-inventory :parse-goal-tests '(:no-strings-in-root
-                                                       :no-applicable-cxns
-                                                       :connected-semantic-network
-                                                       :connected-structure
-                                                       :non-gold-standard-meaning))
-  (set-configuration cxn-inventory :category-linking-mode :neighbours)
-  (set-configuration cxn-inventory :update-categorial-links t)
-  (set-configuration cxn-inventory :use-meta-layer t)
-  (set-configuration cxn-inventory :consolidate-repairs t))
-
-(defun disable-meta-layer-configuration-item-based-first (cxn-inventory)
-  (set-configuration cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
-  (set-configuration cxn-inventory :cxn-supplier-mode :hashed-and-scored-meta-layer-cxn-set-only)
-  (set-configuration cxn-inventory :category-linking-mode :categories-exist)
-  (set-configuration cxn-inventory :hash-mode :hash-string-meaning-lex-id) ; excludes nil hashed cxns (e.g. ?x-?y)
-  (set-configuration cxn-inventory :max-nr-of-nodes 250)
-  (set-configuration cxn-inventory :update-categorial-links nil)
-  (set-configuration cxn-inventory :use-meta-layer nil)
-  (set-configuration cxn-inventory :consolidate-repairs nil))
-
-(defun enable-meta-layer-configuration-item-based-first (cxn-inventory)
-  (set-configuration cxn-inventory :parse-goal-tests '(:no-strings-in-root
-                                                       :no-applicable-cxns
-                                                       :connected-semantic-network
-                                                       :connected-structure
-                                                       :non-gold-standard-meaning))
-  (set-configuration cxn-inventory :hash-mode :hash-string-meaning)
-  (set-configuration cxn-inventory :cxn-supplier-mode :hashed-and-scored-routine-cxn-set-only)
-  (set-configuration cxn-inventory :max-nr-of-nodes (get-configuration cxn-inventory :original-max-nr-of-nodes))
-  (set-configuration cxn-inventory :category-linking-mode :neighbours)
-  (set-configuration cxn-inventory :update-categorial-links t)
-  (set-configuration cxn-inventory :use-meta-layer t)
-  (set-configuration cxn-inventory :consolidate-repairs t))
-
 (defmethod get-best-partial-analysis-cipn ((form-constraints list) (gold-standard-meaning list) (original-cxn-inventory fcg-construction-set) (mode (eql :optimal-form-coverage)))
   (disable-meta-layer-configuration original-cxn-inventory) ;; also relaxes cat-network-lookup to path-exists without transitive closure!
   (set-configuration original-cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
@@ -1078,16 +1100,10 @@
         unless (find 'FCG::INITIAL (statuses node))
           collect node))
 
-
 (defun remove-holophrases (grammar)
   (loop for cxn in (constructions grammar)
         when (eql (attr-val cxn :is-holophrase) t)
           do (delete-cxn cxn grammar)))
-
-(defun count-holophrases (grammar)
-  (count-if #'(lambda (cxn) (and (eql (attr-val cxn :is-holophrase) t)
-                                 (string= (attr-val cxn :label) 'routine)))
-            (constructions grammar)))
 
 (defun print-holophrases (grammar)
   (loop for cxn in (constructions grammar)
