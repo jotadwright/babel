@@ -89,8 +89,7 @@
      :argm-leaf
      :argm-pp
      :argm-sbar
-     
-     ;:argm-phrase-with-string ;;TO DO
+     :argm-phrase-with-string
      )
     ))
 
@@ -111,8 +110,14 @@
  :cxn-inventory '*propbank-ontonotes-learned-cxn-inventory-no-aux*
  :fcg-configuration *training-configuration*)
 
-;(comprehend-and-extract-frames (second *train-corpus*) :cxn-inventory *propbank-ontonotes-learned-cxn-inventory-no-aux*)
+;(comprehend-and-extract-frames (nth 12 *train-corpus*) :cxn-inventory *propbank-ontonotes-learned-cxn-inventory-no-aux*)
 
+(comprehend-and-evaluate (list (nth 12 *train-corpus*)) *propbank-ontonotes-learned-cxn-inventory-no-aux*
+                         :excluded-rolesets '("be.01" "be.02" "be.03"
+                                              "do.01" "do.02" "do.04" "do.11" "do.12"
+                                              "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
+                                              "get.03" "get.06" "get.24")
+                         :core-roles-only nil)
 
 ;(add-element (make-html *test-grammar*))
 ;(activate-monitor trace-fcg)

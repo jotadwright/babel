@@ -31,6 +31,7 @@
                                                 (footprints set))
                                 :cxn-inventory ,cxn-inventory
                                 :hashed t))))
+    
     (set-data (blackboard cxn-inventory) :training-corpus-size 0)
     
     (loop for sentence in list-of-propbank-sentences
@@ -232,7 +233,6 @@ grammatical category."
                             :disable-automatic-footprints t
                             :attributes (:schema ,schema
                                          :lemma nil
-                                      ;   :score ,(length cxn-units-with-role)
                                          :label argument-structure-cxn
                                          :score 1
                                          :gram-category ,gram-category)
@@ -309,7 +309,6 @@ categorial network and returns it."
                                               (intern (upcase lemma))
                                               lemma)
                                     :sense-category ,sense-category
-                                   ; :score 1
                                     :label word-sense-cxn
                                     :score 1)
                        :description ,(sentence-string propbank-sentence)
@@ -399,7 +398,6 @@ categorial network and returns it."
                             :disable-automatic-footprints t
                             :attributes (:schema ,schema
                                          :lemma ,argm-lemma
-                                     ;    :score 1
                                          :label argm-leaf-cxn
                                          :score 1)
                             :description ,(sentence-string propbank-sentence)
@@ -563,7 +561,6 @@ categorial network and returns it."
                             :disable-automatic-footprints t
                             :attributes (:schema ,schema
                                          :lemma ,preposition-lemma
-                                      ;   :score ,(length cxn-units-with-role)
                                          :label argm-phrase-cxn
                                          :score 1
                                          :gram-category ,gram-category)
@@ -681,7 +678,6 @@ categorial network and returns it."
                                          :lemma ,(if (stringp sbar-lemma)
                                                    (intern (upcase sbar-lemma))
                                                    sbar-lemma)
-                                       ;  :score ,(length cxn-units-with-role)
                                          :label argm-phrase-cxn
                                          :score 1
                                          :gram-category ,gram-category)
@@ -694,10 +690,12 @@ categorial network and returns it."
 
 
 
-#|
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ARGM phrase with string          ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;argm phrases that are not pps or sbar phrases but typically nps or advps
 
 (defmethod learn-from-propbank-annotation (propbank-sentence roleset cxn-inventory (mode (eql :argm-phrase-with-string)))
   (loop with gold-frames = (find-all roleset (propbank-frames propbank-sentence) :key #'frame-name :test #'equalp)
@@ -712,7 +710,7 @@ categorial network and returns it."
          (argm-phrases (remove-if-not #'(lambda (unit-with-role)
                                         (and (search "ARGM" (role-type (car unit-with-role)))
                                              (equalp (unit-feature-value (cdr unit-with-role) 'node-type) 'phrase)
-                                             (not (or (find 'sbar (unit-feature-value (cdr unit-with-role) 'syn-class))
+                                             (not (or (find 'sbar (unit-feature-value (cdr unit-with-role) 'syn-class)) ;;no sbar, s or pp phrases!
                                                       (find 's (unit-feature-value (cdr unit-with-role) 'syn-class))
                                                       (find 'pp (unit-feature-value (cdr unit-with-role) 'syn-class))))))
                                   units-with-role)))
@@ -727,7 +725,7 @@ categorial network and returns it."
                        if (string= (role-type role) "V")
                        do (setf v-unit-found? t)
                        else if (equal unit-name argm-unit-name)
-                       collect (let ((units-with-role (if v-unit-found? ;;v-unit precedes argm-pp-unit
+                       collect (let ((units-with-role (if v-unit-found? ;;v-unit precedes argm-unit
                                                         (list v-unit-with-role argm-phrase)
                                                         (list argm-phrase v-unit-with-role))))
                                  (add-argm-phrase-with-string-cxn gold-frame units-with-role cxn-inventory propbank-sentence ts-unit-structure))))))
@@ -735,7 +733,7 @@ categorial network and returns it."
     
   
 (defun add-argm-phrase-with-string-cxn (gold-frame units-with-role cxn-inventory propbank-sentence ts-unit-structure)
-  "Learns a construction capturing V + ARGM that is a phrase (but not pp/sbar/s)."
+  "Learns a construction capturing V + ARGM that is a phrase (but not pp/sbar/s). Categorial network not used."
   (let* ((argm-unit (find "ARGM" units-with-role :key #'(lambda (unit-w-role)
                                                           (role-type (car unit-w-role))) :test #'search))
          (argm-string (unit-feature-value (cdr argm-unit) 'string))
@@ -747,15 +745,10 @@ categorial network and returns it."
                 else collect (make-propbank-conditional-unit-with-role unit-w-role nil footprint :string argm-string)))
          (contributing-unit (make-propbank-contributing-unit units-with-role gold-frame nil footprint :include-gram-category? nil))
          (cxn-units-without-role (make-propbank-conditional-units-without-role units-with-role cxn-units-with-role ts-unit-structure))
-         (cxn-name (make-cxn-name units-with-role cxn-units-with-role cxn-units-without-role nil nil nil))
-         (schema (loop for (role . nil) in units-with-role
-                       for cxn-unit in cxn-units-with-role
-                       collect (cons (intern (role-type role))
-                                     (cond
-                                      ;; unit contains a string
-                                      ((feature-value (find 'string (cddr cxn-unit) :key #'feature-name)))
-                                      ;; unit contains a phrase-type
-                                      ((feature-value (find 'syn-class (cddr cxn-unit) :key #'feature-name)))))))
+
+         (cxn-name (make-cxn-name units-with-role cxn-units-with-role cxn-units-without-role :argm-phrase :phrase argm-string))
+         (schema (make-cxn-schema units-with-role cxn-units-with-role :argm-phrase :phrase argm-string))
+         
          (equivalent-cxn (find-equivalent-cxn schema
                                               (syn-classes (append cxn-units-with-role
                                                                    cxn-units-without-role))
@@ -783,5 +776,3 @@ categorial network and returns it."
                             :description ,(sentence-string propbank-sentence)
                             :cxn-inventory ,cxn-inventory))))))
 
-
-|#
