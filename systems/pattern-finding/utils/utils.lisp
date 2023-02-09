@@ -43,9 +43,10 @@
       (1- (length (contributing-part cxn))))))
 
 (defun count-non-zero-holophrases (grammar)
-  (count-if (compose #'holophrase-cxn-p
-                     #'routine-cxn-p
-                     #'non-zero-cxn-p)
+  (count-if #'(lambda (cxn)
+                (and (holophrase-cxn-p cxn)
+                     (routine-cxn-p cxn)
+                     (non-zero-cxn-p cxn)))
             (constructions grammar)))
 
 
