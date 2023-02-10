@@ -55,6 +55,7 @@
 (def-fcg-cxn ball-cxn 
              ((?ball-unit 
                (referent ?b)
+               (sem-cat identifier)
                (syn-cat noun)
                (salient-movf ?movf-2))
               <- 
@@ -104,7 +105,6 @@
                            (MEETS ?ORIF-2 ?ORIF-3)
                            (MEETS ?ORIF-3 ?LOCF-3))))))
 
-
 ; construction for modifier big
 (def-fcg-cxn big-cxn 
              ((?modifier-unit
@@ -139,4 +139,13 @@
               (?modifier-unit
                (HASH meaning ((mod ?r small)))
                --
-               (HASH form ((hammod ?movf hamsmallmod)))))) 
+               (HASH form ((hammod ?movf hamsmallmod))))))
+
+; Function that adds all the sigml files from a directory as lexical signs to the grammar
+(defun add-lex-cxns (signs-directory)
+  (loop for pathname in (directory signs-directory)
+        for sigml = (with-open-file (stream pathname)
+                      (xmls::parse stream))
+        do (when sigml
+             (eval (create-lex-cxn sigml)))))
+
