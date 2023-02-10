@@ -10,7 +10,7 @@
 (ql:quickload :propbank-grammar)
 (in-package :propbank-grammar)
 
-
+(activate-monitor export-categorial-network-to-jsonl)
 
 ;; Activating spacy-api locally
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -41,6 +41,8 @@
    (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
                    :name "propbank-grammar-ontonotes-no-aux-lw"
                    :type "fcg")))
+
+(categorial-network *restored-grammar-lw*)
 
 
 (cl-store:store *propbank-ontonotes-learned-cxn-inventory-no-aux* ;*propbank-ewt-ontonotes-learned-cxn-inventory*
@@ -76,7 +78,14 @@
     (:construction-inventory-processor-mode . :heuristic-search)
     (:search-algorithm . :best-first)   
     (:cxn-supplier-mode . :hashed-categorial-network)
-    (:heuristics :nr-of-applied-cxns :nr-of-units-matched :edge-weight) ;  :prefer-local-bindings :frequency
+    
+    (:heuristics
+     :nr-of-applied-cxns
+     :nr-of-units-matched
+     :argm-prediction ;; Don't forget to activate the text-to-role-classification server!!!!!
+     :edge-weight) 
+    ;;Additional heuristics: :prefer-local-bindings :frequency
+    
     (:heuristic-value-mode . :sum-heuristics-and-parent)
     (:sort-cxns-before-application . nil)
 
@@ -89,9 +98,7 @@
      :argm-leaf
      :argm-pp
      :argm-sbar
-     :argm-phrase-with-string
-     )
-    ))
+     :argm-phrase-with-string)))
 
 (defparameter *test-grammar* nil)
 
@@ -107,12 +114,20 @@
                       "do.01" "do.02" "do.04" "do.11" "do.12"
                       "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
                       "get.03" "get.06" "get.24")
- :cxn-inventory '*propbank-ontonotes-learned-cxn-inventory-no-aux*
+ :cxn-inventory '*propbank-ontonotes-learned-cxn-inventory-no-aux-all-strategies*
  :fcg-configuration *training-configuration*)
 
-;(comprehend-and-extract-frames (nth 12 *train-corpus*) :cxn-inventory *propbank-ontonotes-learned-cxn-inventory-no-aux*)
+(set-configuration *propbank-ontonotes-learned-cxn-inventory-no-aux-all-strategies*
+                   :heuristics '(:nr-of-applied-cxns
+                                 :nr-of-units-matched
+                                 :argm-prediction
+                                 :edge-weight))
 
-(comprehend-and-evaluate (list (nth 12 *train-corpus*)) *propbank-ontonotes-learned-cxn-inventory-no-aux*
+
+;;by 1940 => TMP not MNR!!
+;(comprehend-and-extract-frames (nth 21 *train-corpus*) :cxn-inventory *propbank-ontonotes-learned-cxn-inventory-no-aux-all-strategies*)
+
+(comprehend-and-evaluate (list (nth 21 *train-corpus*)) *propbank-ontonotes-learned-cxn-inventory-no-aux-all-strategies*
                          :excluded-rolesets '("be.01" "be.02" "be.03"
                                               "do.01" "do.02" "do.04" "do.11" "do.12"
                                               "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
