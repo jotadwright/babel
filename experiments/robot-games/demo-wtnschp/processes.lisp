@@ -371,7 +371,7 @@
            (case (get-configuration agent :input-lang)
              (:en (speak agent "It's the object to the right"))
              (:nl (speak agent "Het is het rechtse object"))
-             (:fr (speak agent "C'est l'objet sur la droite")))))
+             (:fr (speak agent "C'est l'objet sur la gauche")))))
       (1 (progn (point agent :both)
            (case (get-configuration agent :input-lang)
              (:en (speak agent "It's the object in the middle"))
@@ -381,7 +381,7 @@
            (case (get-configuration agent :input-lang)
              (:en (speak agent "It's the object to the left"))
              (:nl (speak agent "Het is het linkse object"))
-             (:fr (speak agent "C'est l'objet sur la gauche"))))))))
+             (:fr (speak agent "C'est l'objet sur la droite"))))))))
 
 (defmethod run-process (process
                         (process-label (eql 'interpret))

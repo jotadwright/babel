@@ -9,7 +9,7 @@
 
 
 (defun seq2seq-next-cxn (utterance/meaning applied-cxns model endpoint
-                                   &key (number-cutoff nil) (probability-cutoff nil))
+                         &key (number-cutoff nil) (probability-cutoff nil))
   "Queries the seq2seq model for a probability distribution for the next cxn to apply."
   (let* ((applied-cxns
           (if applied-cxns
@@ -29,9 +29,9 @@
               (stream #+lispworks (drakma:http-request endpoint :method :post
                                                        :content-type "application/json"
                                                        :content json :want-stream t
-                                                       :connection-timeout nil
-                                                       :read-timeout nil
-                                                       :write-timeout nil)
+                                                       :connection-timeout nil)
+                                                       ;:read-timeout nil
+                                                       ;:write-timeout nil)
                       #+sbcl (drakma:http-request endpoint :method :post
                                                   :content-type "application/json"
                                                   :content json :want-stream t

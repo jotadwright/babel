@@ -11,10 +11,10 @@
   (process-result-data list))
 
 (define-monitor trace-interactions-in-wi)
-(define-monitor trace-grammar-learning-repairs-in-wi)
 (define-monitor summarize-results-after-n-interactions)
 (define-monitor evaluation-after-n-interactions)
 (define-monitor show-type-hierarchy-after-n-interactions)
+(define-monitor trace-grammar-learning-repairs-in-wi)
 
 
 
@@ -49,11 +49,12 @@
         do (add-element (make-html cxn))))
 
 (define-event-handler (trace-interactions-in-wi interaction-finished)
-  (let* ((windowed-success (* 100 (float (average (subseq (success-buffer experiment)
-                                                          (if (> (- (length (success-buffer experiment)) 100) -1) (- (length (success-buffer experiment)) 100) 0)
-                                                          (length (success-buffer experiment)))))))
+  (let* ((buffer-size
+          (get-configuration experiment :buffer-size))
+         (windowed-success
+          (* 100 (float (average (first-n buffer-size (success-buffer experiment))))))
          (overall-success (count 1 (success-buffer experiment)))
-         (accuracy (* 100 (float ( / overall-success (interaction-number interaction)))))
+         (accuracy (* 100 (float (/ overall-success (interaction-number interaction)))))
          (grammar (grammar (first (interacting-agents experiment))))
          (grammar-size (count-if #'non-zero-cxn-p (constructions grammar)))
          (num-th-nodes (nr-of-categories grammar))
@@ -82,27 +83,31 @@
 
 (define-event-handler (summarize-results-after-n-interactions interaction-finished)
   (when (or (= (mod (interaction-number interaction)
-                (get-configuration experiment :result-display-interval)) 0)
+                    (get-configuration experiment :result-display-interval)) 0)
             (= (interaction-number interaction) (length (question-data experiment))))
     
-    (let* ((windowed-success (* 100 (float (average (subseq (success-buffer experiment)
-                                                            (if (> (- (length (success-buffer experiment)) 100) -1) (- (length (success-buffer experiment)) 100) 0)
-                                                            (length (success-buffer experiment)))))))
+    (let* ((buffer-size
+            (get-configuration experiment :buffer-size))
+           (windowed-success
+            (* 100 (float (average (first-n buffer-size (success-buffer experiment))))))
            (overall-success (count 1 (success-buffer experiment)))
            (accuracy (* 100 (float ( / overall-success (interaction-number interaction)))))
            (grammar (grammar (first (interacting-agents experiment))))
            (num-th-nodes (nr-of-categories grammar))
            (num-th-edges (nr-of-links grammar))
-           (num-hol (count-holophrases grammar))
+           (num-hol (count-non-zero-holophrases grammar))
            (grammar-size (count-if #'non-zero-cxn-p (constructions grammar))))
       (add-element `((h1) ,(format nil  "Interaction: ~a" (interaction-number interaction))))
       (add-element `((h3) ,(format nil  "Windowed accuracy: ~a%" windowed-success)))
       (add-element `((h3) ,(format nil  "Overall accuracy: ~$%" accuracy)))
       (add-element `((h3) ,(format nil  "Grammar size: ~a" grammar-size)))
-      (add-element `((h3) ,(format nil  "Holophrases ~a" num-hol)))
+      (add-element `((h3) ,(format nil  "Holophrases: ~a" num-hol)))
       (add-element `((h3) ,(format nil  "Categories: ~a" num-th-nodes)))
       (add-element `((h3) ,(format nil  "Categorial links: ~a" num-th-edges)))
-      (add-element (make-html (grammar (first (interacting-agents experiment))) :sort-by-type-and-score t :hide-zero-scored-cxns nil :routine-only t))
+      (add-element (make-html (grammar (first (interacting-agents experiment)))
+                              :sort-by-type-and-score t
+                              :hide-zero-scored-cxns nil
+                              :routine-only t))
       (add-element '((hr))))))
 
 (define-event-handler (show-type-hierarchy-after-n-interactions interaction-finished)

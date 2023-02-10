@@ -29,6 +29,7 @@
                                                  &allow-other-keys)
 
   (declare (ignore mode))
+  (assert lemma)
   
   (loop for (role . nil) in units-with-role
       for cxn-unit in cxn-units-with-role
@@ -36,6 +37,24 @@
                                      (if (equal (feature-value (find 'lemma (cddr cxn-unit) :key #'feature-name)) lemma)
                                        lemma
                                        (feature-value (find 'syn-class (cddr cxn-unit) :key #'feature-name))))))
+
+
+(defmethod make-cxn-schema (units-with-role cxn-units-with-role 
+                                                 (mode (eql :argm-phrase))
+                                                 &key phrase
+                                                 &allow-other-keys)
+
+  (declare (ignore mode))
+  (assert phrase)
+  
+  (loop for (role . nil) in units-with-role
+      for cxn-unit in cxn-units-with-role
+                       collect (cons (intern (role-type role))
+                                     (if (string= (role-type role) "V")
+                                       (feature-value (find 'syn-class (cddr cxn-unit) :key #'feature-name))
+                                       phrase
+                                       ))))
+
 
 
 
