@@ -1,0 +1,63 @@
+;;initialisation of fake table and attributes
+(defun init-table ()
+  (let* ((tables '()))
+    (dotimes (n 4)
+      (let* ((table (make-instance 'table :name "table"))
+            (attribute-list '()))
+        (dotimes (i 2)
+          (setf attribute-list (append attribute-list (list (make-instance 'attribute :name "attributeX")))))
+        (setf (attributes table) attribute-list)
+        (if (not (notempty tables))
+          (setf tables (list table))
+          (setf tables (append tables (list table))))))
+    tables))
+
+(defun init-tree (db tree parent-node)
+  (when (notempty db)
+    (let ((id 1)
+          (list-of-node '())
+          (table (first db)))
+      (dolist (attribute (attributes table))
+        ;create the node and push the node into the tree
+        (let* ((query-of-node (concatenate 'string (query parent-node) "SELECT " (name attribute) " FROM " (name table)))
+              (child-node (make-instance 'node :id id :parent-node parent-node :query query-of-node :attributes (list attribute) :depth 1 :children-node '())))
+          (push child-node (nodes tree))
+          (push child-node list-of-node)))
+      (if (not (notempty (children-node parent-node)))
+        (setf (children-node parent-node) list-of-node)
+        (setf (children-node parent-node) (append (children-node parent-node) list-of-node)))
+      (init-tree (cdr db) tree parent-node))))
+
+;;generate the node with the operator specified
+(defun node-operator-generator (id node tree operators)
+  (when operators
+    (let* ((operator (first operators))
+          (query (concatenate 'string (query node) operator " damn"))
+          (new-id (+ id 1))
+          (child (make-instance 'node :id new-id :parent-node node :query query :attributes (attributes node))))
+      (push child (children-node node))
+      (push child (nodes tree))
+    (node-operator-generator new-id node tree (cdr operators))))
+  node)
+
+;general function to generate tree
+(defun general (database-schema tree answer)
+  (let ((depth 1)
+        (id 1))
+    (dotimes (n 2) 
+          (if (= depth 1)
+            (init-tree database-schema tree (first(nodes tree)))
+            ;(write (length (nodes tree))))
+          (if (= depth 2)
+            (progn
+              (let ((list-of-node (get-all-items-from-depth tree 1)))
+                (dolist (node list-of-node)
+                  (node-operator-generator 5 node tree list-of-operator)
+                  ;push the node
+                  )
+                )))
+          (setf depth (+ depth 1)))))
+;;global variables
+(setf list-of-operator '("<" ">" "<=" ">=" "!="))
+(setf list-of-string-operator '("=" "!="))
+(setf list-of-integer-operator '("<" ">" "<=" ">=" "=" "!="))
