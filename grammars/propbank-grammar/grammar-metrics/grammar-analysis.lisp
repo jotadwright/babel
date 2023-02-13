@@ -44,7 +44,7 @@
                                         (:v v)
                                         (:arg1 np)
                                         (:arg2 . pp\(to\)))
-                                      *restored-grammar*
+                                      *propbank-ontonotes-learned-cxn-inventory-no-aux-all-strategies*
                                       :collect-fn #'name))
 
 

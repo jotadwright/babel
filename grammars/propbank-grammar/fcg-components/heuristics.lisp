@@ -55,7 +55,13 @@ matching."
 (defmethod apply-heuristic ((node cip-node) (mode (eql :nr-of-units-matched)))
   "Returns the number of units matched by the cxn."
   (let ((applied-cxn (get-original-cxn (car-applied-cxn (cipn-car node)))))
-    (length (conditional-part applied-cxn)))) ;;times 2 ?
+    (length (conditional-part applied-cxn))))
+
+
+(defmethod apply-heuristic ((node cip-node) (mode (eql :nr-of-units-matched-x2)))
+  "Returns the number of units matched by the cxn."
+  (let ((applied-cxn (get-original-cxn (car-applied-cxn (cipn-car node)))))
+    (* (length (conditional-part applied-cxn)) 2)))
 
 
 (defparameter *argm-predictor* "http://localhost:3600/predict")
@@ -84,10 +90,12 @@ SVM classifier accessible at https://gitlab.ai.vub.ac.be/ehai/text-to-role-class
 
     (if (search "\(" argm-syn-class+string)
       (let* ((argm-syn-class (upcase (subseq argm-syn-class+string 0 (search "\(" argm-syn-class+string))))
-            (ts-argm-unit-name
-             (loop for binding in bindings
-                   when (search (format nil "?~a-" argm-syn-class) (mkstr (car binding)))
-                     return (cdr binding))))
+             
+             (ts-argm-unit-name
+              (loop for binding in bindings
+                    when (search (format nil "?~a-" argm-syn-class)
+                                 (mkstr (car binding)))
+                    return (cdr binding))))
         
         (assert ts-argm-unit-name)
     

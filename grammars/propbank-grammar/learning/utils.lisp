@@ -11,7 +11,7 @@
                           (format nil "~{~a~^+~}"
                                   (loop for (r . u) in units-with-role
                                           if (search "ARGM" (role-type r))
-                                          collect (format nil "~a~{(~a~^-~}:~a)"
+                                          collect (format nil "~a(~{~a~^-~}:~a)"
                                                           (role-type r)
                                                           (feature-value (find 'syn-class (unit-body u)
                                                                                :key #'feature-name))
