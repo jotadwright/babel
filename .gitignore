@@ -27,4 +27,5 @@
 init-babel-user.lisp
 /grammars/English/lexicon
 experiments/clevr-grammar-learning/raw-data
+grammars/propbank-grammar/cleaning-and-evaluation/parameter-evaluation/raw-data
 *.fcg~ 
