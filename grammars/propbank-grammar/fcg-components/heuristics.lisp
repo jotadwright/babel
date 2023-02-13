@@ -61,7 +61,8 @@ matching."
 (defparameter *argm-predictor* "http://localhost:3600/predict")
 
 (defun send-request (json &key (host *argm-predictor*) (connection-timeout 3600))
-  "Send curl request and returns the answer."
+  "Send curl request and returns the answer. Makes use of text-to-role
+SVM classifier accessible at https://gitlab.ai.vub.ac.be/ehai/text-to-role-classification."
   (declare (ignore host))
 
   (handler-case (cl-json:camel-case-to-lisp
@@ -69,11 +70,11 @@ matching."
                          (dex:post *argm-predictor*
                                    :headers '(("content-type" . "application/json"))
                                    :content json
-                                   :connection-timeout connection-timeout))))
+                                   :connect-timeout connection-timeout))))
     (error (e)
       (format t "Error in sending request to text-to-role classification module. The Python server probably needs to be activated. ~S.~&" e))))
 
-;(send-request (cl-json:encode-json-to-string (list "er")))
+;(send-request (cl-json:encode-json-to-string (list "in the Saint Stephan's dome")))
 
 (defun extract-argm-phrase-from-ts (node cxn-argm)
   "Extract the whole argm string from the unit that constains the V's modifier argument."
