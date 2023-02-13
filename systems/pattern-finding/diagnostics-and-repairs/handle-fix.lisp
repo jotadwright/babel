@@ -71,8 +71,8 @@
              :node node
              :solution-node solution-node
              :repair repair-name))))
-      ;; node is nil (we are in a deeper level of the recursion) just pass through the list of cxns and cats
-      ;; todo: apply cxns to form instead
+      ;; node is nil (we are in a deeper level of the recursion)
+      ;; just pass through the list of cxns and cats
       (progn
         (notify fix-applied repair-name form-constraints learned-cxns)
         (make-apply-fix-result
