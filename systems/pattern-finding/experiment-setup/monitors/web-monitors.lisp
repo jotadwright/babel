@@ -14,6 +14,7 @@
 (define-monitor summarize-results-after-n-interactions)
 (define-monitor evaluation-after-n-interactions)
 (define-monitor show-type-hierarchy-after-n-interactions)
+(define-monitor trace-grammar-learning-repairs-in-wi)
 
 
 
@@ -94,7 +95,7 @@
            (grammar (grammar (first (interacting-agents experiment))))
            (num-th-nodes (nr-of-categories grammar))
            (num-th-edges (nr-of-links grammar))
-           (num-hol (count-holophrases grammar))
+           (num-hol (count-non-zero-holophrases grammar))
            (grammar-size (count-if #'non-zero-cxn-p (constructions grammar))))
       (add-element `((h1) ,(format nil  "Interaction: ~a" (interaction-number interaction))))
       (add-element `((h3) ,(format nil  "Windowed accuracy: ~a%" windowed-success)))

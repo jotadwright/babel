@@ -55,6 +55,7 @@
 (def-fcg-cxn ball-cxn 
              ((?ball-unit 
                (referent ?b)
+               (sem-cat identifier)
                (syn-cat noun)
                (salient-movf ?movf-2))
               <- 
@@ -104,6 +105,97 @@
                            (MEETS ?ORIF-2 ?ORIF-3)
                            (MEETS ?ORIF-3 ?LOCF-3))))))
 
+;; lexical construction for car
+(DEF-FCG-CXN CAR-CXN
+             ((?CAR-UNIT
+               (REFERENT ?R)
+               (SEM-CAT IDENTIFIER)
+               (SYN-CAT NOUN))
+              <-
+              (?CAR-UNIT
+               (HASH MEANING ((CAR ?R)))
+               --
+               (HASH FORM
+                     ((SIGN ?SIGN-1)
+                      (NON-MANUAL ?SIGN-1 ?NM-1)
+                      (MOUTHPICTURE ?NM-1 "car")
+                      (MANUAL ?SIGN-1 ?M-1)
+                      (SYMMETRY ?M-1 ?SYM-1)
+                      (HAMSYMMLR ?SYM-1 ?SYMF-1)
+                      (HAMMOD ?SYMF-1 HAMFINGERSTRAIGHTMOD)
+                      (HAMMOD ?SYMF-1 HAMLARGEMOD)
+                      (HANDSHAPE ?M-1 ?HS-1)
+                      (HAMFIST ?HS-1 ?HSF-1)
+                      (EXTENDED-FINGER-DIRECTION ?M-1 ?EXT-1)
+                      (HAMEXTFINGERUO ?EXT-1 ?EXTF-1)
+                      (HAMEXTFINGEROL ?EXT-1 ?EXTF-2)
+                      (PALM-ORIENTATION ?M-1 ?ORI-1)
+                      (HAMPALMUL ?ORI-1 ?ORIF-1)
+                      (LOCATION ?M-1 ?LOC-1)
+                      (HAMSHOULDERS ?LOC-1 ?LOCF-1)
+                      (MOVEMENT ?M-1 ?MOV-1)
+                      (HAMSEQBEGIN ?MOV-1 ?MOVF-1)
+                      (HAMMOVED ?MOV-1 ?MOVF-2)
+                      (HAMMOD ?MOVF-2 HAMSMALLMOD)
+                      (HAMMOVEU ?MOV-1 ?MOVF-3)
+                      (HAMMOD ?MOVF-3 HAMSMALLMOD)
+                      (HAMSEQEND ?MOV-1 ?MOVF-4)
+                      (HAMREPEATFROMSTART ?MOV-1 ?MOVF-5)
+                      (MEETS ?SYMF-1 ?HSF-1)
+                      (MEETS ?HSF-1 ?EXTF-1)
+                      (MEETS ?EXTF-1 ?EXTF-2)
+                      (MEETS ?EXTF-2 ?ORIF-1)
+                      (MEETS ?ORIF-1 ?LOCF-1)
+                      (MEETS ?LOCF-1 ?MOVF-1)
+                      (MEETS ?MOVF-1 ?MOVF-2)
+                      (MEETS ?MOVF-2 ?MOVF-3)
+                      (MEETS ?MOVF-3 ?MOVF-4)
+                      (MEETS ?MOVF-4 ?MOVF-5))))))
+
+; lexical construction for child
+(DEF-FCG-CXN CHILD-CXN
+             ((?CHILD-UNIT (REFERENT ?R)
+                           (SEM-CAT IDENTIFIER)
+                           (SYN-CAT NOUN)
+                           (sem-class two-tracked-vehicle))
+              <-
+              (?CHILD-UNIT
+               (HASH MEANING ((CHILD ?R)))
+               --
+               (HASH FORM
+                     ((SIGN ?SIGN-1)
+                      (NON-MANUAL ?SIGN-1 ?NM-1)
+                      (MOUTHPICTURE ?NM-1 "child")
+                      (MANUAL ?SIGN-1 ?M-1)
+                      (HANDSHAPE ?M-1 ?HS-1)
+                      (HAMPINCHALL ?HS-1 ?HSF-1)
+                      (HAMMOD ?HSF-1 HAMFINGERSTRAIGHTMOD)
+                      (EXTENDED-FINGER-DIRECTION ?M-1 ?EXT-1)
+                      (HAMEXTFINGERUO ?EXT-1 ?EXTF-1)
+                      (PALM-ORIENTATION ?M-1 ?ORI-1)
+                      (HAMPALMU ?ORI-1 ?ORIF-1)
+                      (LOCATION ?M-1 ?LOC-1)
+                      (HAMCHEST ?LOC-1 ?LOCF-1)
+                      (HAMMOD ?LOCF-1 HAMLRAT)
+                      (MOVEMENT ?M-1 ?MOV-1)
+                      (HAMMOVED ?MOV-1 ?MOVF-1)
+                      (HAMMOD ?MOVF-1 HAMSMALLMOD)
+                      (HAMREPEATFROMSTART ?MOV-1 ?MOVF-2)
+                      (MEETS ?HSF-1 ?EXTF-1)
+                      (MEETS ?EXTF-1 ?ORIF-1)
+                      (MEETS ?ORIF-1 ?LOCF-1)
+                      (MEETS ?LOCF-1 ?MOVF-1)
+                      (MEETS ?MOVF-1 ?MOVF-2))))))
+
+; classifier construction for two-tracked vehicles
+(def-fcg-cxn B-classifier-cxn
+             (
+              <-
+              (?noun-unit
+               (sem-class two-tracked-vehicle)
+               --
+               )))
+               
 
 ; construction for modifier big
 (def-fcg-cxn big-cxn 
@@ -139,4 +231,13 @@
               (?modifier-unit
                (HASH meaning ((mod ?r small)))
                --
-               (HASH form ((hammod ?movf hamsmallmod)))))) 
+               (HASH form ((hammod ?movf hamsmallmod))))))
+
+; Function that adds all the sigml files from a directory as lexical signs to the grammar
+(defun add-lex-cxns (signs-directory)
+  (loop for pathname in (directory signs-directory)
+        for sigml = (with-open-file (stream pathname)
+                      (xmls::parse stream))
+        do (when sigml
+             (eval (create-lex-cxn sigml)))))
+

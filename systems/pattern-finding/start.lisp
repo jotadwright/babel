@@ -5,7 +5,7 @@
 (progn
   (deactivate-all-monitors)
   ;(activate-monitor display-metrics)
-  (activate-monitor trace-fcg)
+  (monitors::activate-monitor trace-fcg)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
   (activate-monitor show-type-hierarchy-after-n-interactions)
@@ -25,10 +25,11 @@
                               (:corpus-data-file . ,(make-pathname :directory '(:relative "train")
                                                                    :name "stage-1" :type "jsonl"))
                               (:number-of-samples . nil)
-                              (:shuffle-data-p . nil)
-                              (:sort-data-p . t)))))
+                              (:shuffle-data-p . t)
+                              (:sort-data-p . nil)
+                              (:remove-duplicate-data-p . t)))))
 
-(run-series *experiment* 1000)
+(run-series *experiment* 50)
 
 (defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
 ;(add-element (make-html *cxn-inventory*))

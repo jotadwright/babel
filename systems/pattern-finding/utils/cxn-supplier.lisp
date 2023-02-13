@@ -1,115 +1,38 @@
 (in-package :fcg)
 
-(export '(cxn-supplier-hashed-and-scored-routine-cxn-set-only
-          cxn-supplier-hashed-routine-set-only))
+(export '(cxn-supplier-hashed-labeled-and-positive-scores))
 
-
-(defclass cxn-supplier-hashed-routine-set-only ()
+(defclass cxn-supplier-hashed-labeled-and-positive-scores (cxn-supplier-hashed-scored-labeled)
   ()
-  (:documentation "Construction supplier that returns all constructions except incompatible hashed ones."))
+  (:documentation "Construction supplier that returns all constructions except
+                   incompatible hashed ones, of a given label, sorted by score,
+                   and with only positive scores."))
 
-(defmethod create-cxn-supplier ((node cip-node) (mode (eql :hashed-routine-only)))
-  "Creates an instance of the cxn-supplier."
-  (make-instance 'cxn-supplier-hashed-routine-set-only))
+(defmethod create-cxn-supplier ((node cip-node) (mode (eql :hashed-labeled-positive-scores)))
+  "Create an instance of the cxn supplier"
+  (let* ((parent (car (all-parents node))))
+    (if parent
+      ;; copy most of the stuff from the the pool of the parent
+      (make-instance 
+       'cxn-supplier-hashed-labeled-and-positive-scores
+       :current-label (current-label (cxn-supplier parent))
+       :remaining-labels (remaining-labels (cxn-supplier parent))
+       :remaining-constructions (all-constructions-of-current-label (cxn-supplier parent))
+       :all-constructions-of-current-label (all-constructions-of-current-label (cxn-supplier parent)))
+      ;; there is no parent, start from first label
+      (let* ((labels (get-configuration (construction-inventory (cip node))
+                                        (if (eq (direction (cip node)) '->)
+                                          :production-order :parse-order)))
+             (all-constructions-of-current-label
+              (all-constructions-of-label-by-hash-and-score node (car labels)))
+             (all-constructions-of-current-label-with-positive-scores
+              (remove-if #'(lambda (cxn) (< (attr-val cxn :score) 0))
+                         all-constructions-of-current-label)))
+        (make-instance 
+         'cxn-supplier-hashed-labeled-and-positive-scores
+         :current-label (car labels)
+         :remaining-labels (cdr labels)
+         :remaining-constructions all-constructions-of-current-label-with-positive-scores
+         :all-constructions-of-current-label all-constructions-of-current-label-with-positive-scores)))))
 
-(defmethod next-cxn ((cxn-supplier cxn-supplier-hashed-routine-set-only) (node cip-node))
-  "Returns all constructions that satisfy the hash of the node."
-  (all-constructions-of-label-hashed node :routine))
-
-
-
-
-
-
-(defun constructions-for-application-hashed-and-scored-routine-cxn-set-only (node)
-  "computes all constructions that could be applied for this node
-   plus nil hashed constructions"
-  (let ((constructions
-         ;; get all constructions compatible
-         ;; with the hashes of the node
-         ;; append nil hashed constructions
-         (remove-duplicates
-          (append
-           (loop
-            for hash in (hash node (get-configuration node :hash-mode))
-            append (gethash hash (constructions-hash-table (construction-inventory node))))
-           (gethash nil (constructions-hash-table (construction-inventory node)))) :key #'name)))
-    ;; shuffle if requested
-    (when (get-configuration node :shuffle-cxns-before-application)
-      (setq constructions 
-            (shuffle constructions)))
-    ;; filter the cxns for a specific cxn set here using (attr-val cxn :label)
-    (setq constructions
-          (loop for cxn in constructions
-                when (equal (attr-val cxn :label) 'routine)
-                collect cxn))
-    
-    ;; sort 
-    (setq constructions
-          (sort constructions #'> :key #'(lambda (cxn) (attr-val cxn :score))))
-    ;; return constructions
-    constructions))
-
-(defclass cxn-supplier-hashed-and-scored-routine-cxn-set-only ()
-  ((remaining-constructions
-    :type list :initarg :remaining-constructions
-    :accessor remaining-constructions
-    :documentation "A list of constructions that are still to try")))
-
-(defmethod create-cxn-supplier ((node cip-node)
-                                (mode (eql :hashed-and-scored-routine-cxn-set-only)))
-  (make-instance
-   'cxn-supplier-hashed-and-scored-routine-cxn-set-only
-   :remaining-constructions (constructions-for-application-hashed-and-scored-routine-cxn-set-only node)))
-
-(defmethod next-cxn ((cxn-supplier cxn-supplier-hashed-and-scored-routine-cxn-set-only)
-                     (node cip-node))
-  (pop (remaining-constructions cxn-supplier)))
-
-
-(export '(cxn-supplier-hashed-and-scored-meta-layer-cxn-set-only))
-
-(defun constructions-for-application-hashed-and-scored-meta-layer-cxn-set-only (node)
-  "computes all constructions that could be applied for this node
-   plus nil hashed constructions"
-  (let ((constructions
-         ;; get all constructions compatible
-         ;; with the hashes of the node
-         ;; append nil hashed constructions
-         (remove-duplicates
-          (append
-           (loop
-            for hash in (hash node (get-configuration node :hash-mode))
-            append (gethash hash (constructions-hash-table (construction-inventory node))))
-           (gethash nil (constructions-hash-table (construction-inventory node)))) :key #'name)))
-    ;; shuffle if requested
-    (when (get-configuration node :shuffle-cxns-before-application)
-      (setq constructions 
-            (shuffle constructions)))
-    ;; filter the cxns for a specific cxn set here using (attr-val cxn :label)
-    (setq constructions
-          (loop for cxn in constructions
-                when (equal (attr-val cxn :label) 'meta-only)
-                collect cxn))
-    
-    ;; sort 
-    (setq constructions
-          (sort constructions #'> :key #'(lambda (cxn) (attr-val cxn :score))))
-    ;; return constructions
-    constructions))
-
-(defclass cxn-supplier-hashed-and-scored-meta-layer-cxn-set-only ()
-  ((remaining-constructions
-    :type list :initarg :remaining-constructions
-    :accessor remaining-constructions
-    :documentation "A list of constructions that are still to try")))
-
-(defmethod create-cxn-supplier ((node cip-node)
-                                (mode (eql :hashed-and-scored-meta-layer-cxn-set-only)))
-  (make-instance
-   'cxn-supplier-hashed-and-scored-meta-layer-cxn-set-only
-   :remaining-constructions (constructions-for-application-hashed-and-scored-meta-layer-cxn-set-only node)))
-
-(defmethod next-cxn ((cxn-supplier cxn-supplier-hashed-and-scored-meta-layer-cxn-set-only)
-                     (node cip-node))
-  (pop (remaining-constructions cxn-supplier)))
+;; uses next-cxn of the superclass
