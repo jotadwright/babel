@@ -46,39 +46,90 @@
     (dotimes (n 2) 
           (if (= depth 1)
             (init-tree database-schema tree (first(nodes tree))))
-            ;(write (length (nodes tree))))
           (if (= depth 2)
             (progn
-              (let ((list-of-node (get-all-items-from-depth tree 1)))
+              (let ((list-of-node (get-all-items-from-depth tree 1))
+                    (first 1))
                 (dolist (node list-of-node)
-                  ;(write (get-all-attributes-from-table (list (table-ref (first (attributes node))))))))))
-                  (clause (get-all-attributes-from-table (list (table-ref (first (attributes node))))) node tree)))))
-                  ;(write 't)))))
-                  ;(node-operator-generator 5 node tree list-of-operator))
+                  (clause (get-all-attributes-from-table (list (table-ref (first (attributes node))))) node tree first)))))
           (setf depth (+ depth 1)))))
 
-(defun clause (attributes parent-node tree)
+(defun clause (attributes parent-node tree first)
   (when (notempty attributes)
-    ;manque le premier element de la recursivite
+    (if (equal first 1)
+      (progn
+        (dolist (operator list-of-operator)
+          (let* ((query-or (concatenate 'string (query parent-node) " WHERE " (name (first attributes)) " " operator " value"))
+                 (query-and (concatenate 'string (query parent-node) " WHERE " (name (first attributes)) " " operator " value"))
+                 (and-node (make-instance 'node
+                                          :id 1
+                                          :parent-node parent-node
+                                          :query query-and
+                                          :attributes (attributes parent-node)))
+                 (or-node (make-instance 'node
+                                         :id 1
+                                         :parent-node parent-node
+                                         :query query-or
+                                         :attributes (attributes parent-node))))
+
+            ;add children to parent
+            (if (not (notempty (children-node parent-node)))
+              (setf (children-node parent-node) (list and-node or-node))
+              (setf (children-node parent-node) (append (children-node parent-node) (list and-node or-node))))
+            ;and branche
+            (push and-node (nodes tree))
+            (clause (cdr attributes) and-node tree '0)
+            ;or branche
+            (push or-node (nodes tree))
+            (clause (cdr attributes) or-node tree '0))))
+      (progn
+        (dolist (operator list-of-operator)
+          (let* ((and-node (and-clause 1 parent-node (first attributes) operator))
+                 (or-node (or-clause 1 parent-node (first attributes) operator)))
+            ;add children to parent
+            (if (not (notempty (children-node parent-node)))
+              (setf (children-node parent-node) (list and-node or-node))
+              (setf (children-node parent-node) (append (children-node parent-node) (list and-node or-node))))
+            ;and branch
+            (push and-node (nodes tree))
+            (clause (cdr attributes) and-node tree '0)
+            ;or branch
+            (push or-node (nodes tree))
+            (clause (cdr attributes) or-node tree '0)))))
+        
+   
     (if (equal (length attributes) 1)
       (progn
         (dolist (operator  list-of-operator)
-          (let* ((query (concatenate 'string (query parent-node) operator " value"))
-                (node (make-instance 'node :id 1 :parent-node parent-node :query query :attributes (attributes parent-node))))
-            (push node (nodes tree)))))
-      (progn
-        (dolist (operator list-of-operator)
-          (let* ((query-and (concatenate 'string (query parent-node) " AND " (name (first attributes)) operator " value"))
-                 (query-or (concatenate 'string (query parent-node) " OR "(name (first attributes)) operator " value"))
-                 (node-and (make-instance 'node :id 1 :parent-node parent-node :query query-and :attributes (attributes parent-node)))
-                 (node-or (make-instance 'node :id 1 :parent-node parent-node :query query-or :attributes (attributes parent-node))))
-            ;and branch
-            (push node-and (nodes tree))
-            (clause (cdr attributes) node-and tree)
-            ;or branch
-            (push node-or (nodes tree))
-            (clause (cdr attributes) node-or tree)))))))
+          (let ((and-node (and-clause 1 parent-node (first attributes) operator))
+                (or-node (or-clause 1 parent-node (first attributes) operator)))
+
+            ;add children to parent
+            (if (not (notempty (children-node parent-node)))
+              (setf (children-node parent-node) (list and-node or-node))
+              (setf (children-node parent-node) (append (children-node parent-node) (list and-node or-node))))
+            (push and-node (nodes tree))
+            (push or-node (nodes tree))))))))
 ;;global variables
 (setf list-of-operator '("<" ">" "<=" ">=" "!=" "="))
 (setf list-of-string-operator '("=" "!="))
 (setf list-of-integer-operator '("<" ">" "<=" ">=" "=" "!="))
+
+
+(defun and-clause (id parent-node attribute operator)
+  (let* ((query (concatenate 'string (query parent-node) " AND " (name attribute) " " operator " value"))
+        (node-and (make-instance 'node
+                                 :id id
+                                 :parent-node parent-node
+                                 :query query
+                                 :attributes (attributes parent-node))))
+    node-and))
+
+(defun or-clause (id parent-node attribute operator)
+  (let* ((query (concatenate 'string (query parent-node) " OR " (name attribute) " " operator " value"))
+         (node-or (make-instance 'node
+                                 :id id
+                                 :parent-node parent-node
+                                 :query query
+                                 :attributes (attributes parent-node))))
+    node-or))
