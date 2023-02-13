@@ -5,7 +5,7 @@
   :author "Paul Van Eecke & Katrien Beuls <ehai@ai.vub.ac.be>"
   :maintainer "Paul Van Eecke & Katrien Beuls <ehai@ai.vub.ac.be>"
   :license "To be determined."
-  :depends-on (:utils :nlp-tools :cl-store :fcg :irl :fcg-server :monitors)
+  :depends-on (:utils :nlp-tools :cl-store :fcg :irl :fcg-server :monitors :dexador)
   :serial t
   :components ((:file "package")
                
