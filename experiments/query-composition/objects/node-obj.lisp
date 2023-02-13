@@ -1,5 +1,3 @@
-(in-package :qc)
-
 (defclass node ()
   ((id
     :type integer

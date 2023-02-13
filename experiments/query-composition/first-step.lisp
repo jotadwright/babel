@@ -47,3 +47,16 @@
   (setf query (append query (clause list-of-critere))))
 
 ;(setf init-criteres (list (list 'a 'and) (list 'b nil)))
+
+
+
+
+
+(defun grammar (parent-node answer)
+  (let ((child-node (make-instance 'node :id 1 :parent-node parent-node :query "")))
+      
+  
+  
+  )
+
+)

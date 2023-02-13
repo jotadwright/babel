@@ -23,5 +23,9 @@
   :serial t
   :components ((:file "package")
                 (:file "first-step")
-                (:file "tree-query")
+                (:file "main")
+                (:file "attribute-obj")
+                (:file "table-obj")
+                (:file "node-obj")
+                (:file "tree-obj")
                 (:file "utils")))

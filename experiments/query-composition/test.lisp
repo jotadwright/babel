@@ -7,3 +7,5 @@
       (db (init-table)))
   (general db tree 't)
   (write (length (nodes tree))))
+
+

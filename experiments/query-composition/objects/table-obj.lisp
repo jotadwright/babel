@@ -1,5 +1,3 @@
-(in-package :qc)
-
 (defclass table ()
   ((name
     :type string

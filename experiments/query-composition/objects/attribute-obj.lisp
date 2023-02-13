@@ -1,5 +1,3 @@
-(in-package :qc)
-
 (defclass attribute ()
   ((name
     :initarg :name
@@ -7,4 +5,7 @@
    (value
     :initarg :value
     :accessor value
-    :type (or integer string))))
+    :type (or integer string))
+   (table-ref
+    :initarg :table-ref
+    :accessor table-ref)))

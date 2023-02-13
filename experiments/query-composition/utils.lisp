@@ -21,3 +21,13 @@
         (push node items)))
     items))
 
+;;DEBUGGER
+;get all attributes from list of tables
+(defun get-all-attributes-from-table (tables)
+  (let ((list-of-attribute '()))
+    (dolist (table tables)
+      (if (not (notempty list-of-attribute))
+        (setf list-of-attribute (attributes table))
+        (setf list-of-attribute (append list-of-attribute (attributes table)))))
+    list-of-attribute))
+        

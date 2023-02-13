@@ -1,5 +1,3 @@
-(in-package :qc)
-
 (defclass query-tree ()
   ((query
     :type string
