@@ -61,9 +61,6 @@
 
 
 
-
-
-
 (defun find-unit-by-span (transient-structure span)
   "Return a unit with span span"
   (loop for unit in transient-structure
