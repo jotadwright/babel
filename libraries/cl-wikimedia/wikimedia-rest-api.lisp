@@ -46,11 +46,13 @@
                            (lisp-format :alist)) ;; Turn to hashtable for faster performance
   "General function to interact with Wikimedia-rest-api for requesting JSON objects."
   (let* ((uri (format nil "https://~a.wikipedia.org/api/rest_v1/~a" language api-endpoint))
-         (response-stream (drakma:http-request uri
+         (response-stream (drakma:http-request  uri
                                                :user-agent user-agent
                                                :method method
                                                :content-type "application/json"
-                                               :want-stream t)))
+                                               :want-stream t
+                                               :external-format-out :utf-8
+                                               :external-format-in :utf-8)))
     (setf (flexi-streams:flexi-stream-external-format response-stream) :utf-8)
     (yason:parse response-stream :object-as lisp-format)))
 ;; Examples:
