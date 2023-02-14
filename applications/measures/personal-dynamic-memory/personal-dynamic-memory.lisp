@@ -73,6 +73,7 @@
                                cxn-inventory
                                world-state
                                &key silent)
+  ;; Remi: why is there comprehension-result and multiple-value-list?
   (let* ((comprehension-result (multiple-value-list (understand utterance cxn-inventory world-state :silent silent)))
          (parsed-meaning (first comprehension-result))
          (existing-bindings (accessible-entities world-state))
@@ -90,7 +91,7 @@
     
     (print-monitor-output utterance)
     
-    resulting-bindings-with-open-variables))
+    (values resulting-bindings-with-open-variables parsed-meaning)))
 
 
 

@@ -70,11 +70,11 @@
                        ((find 'pp (unit-feature-value (unit-body unit) 'syn-class))
                         (incf pp-unit-number)
                         (if (= 1 (length (nth1 pp-unit-number cxn-preposition-units)))
-                          (intern (format nil "~{~a~}(~a)" (unit-feature-value unit 'syn-class)
+                          (intern (format nil "~{~a~^-~}(~a)" (unit-feature-value unit 'syn-class)
                                           (second (find 'lemma
                                                         (nthcdr 2 (first (nth1 pp-unit-number cxn-preposition-units)))
                                                         :key #'feature-name))))
-                          (intern (format nil "~{~a~}(cc-~a)" (unit-feature-value unit 'syn-class)
+                          (intern (format nil "~{~a~^-~}(cc-~a)" (unit-feature-value unit 'syn-class)
                                           (second (find 'lemma
                                                         (nthcdr 2 (third (nth1 pp-unit-number cxn-preposition-units)))))))))
                        
@@ -97,7 +97,7 @@
                        ((or (find 'sbar (unit-feature-value (unit-body unit) 'syn-class))
                             (find 's (unit-feature-value (unit-body unit) 'syn-class)))
                         (incf s-bar-unit-number)
-                        (intern (format nil "~{~a~}(~a)" (unit-feature-value unit 'syn-class)
+                        (intern (format nil "~{~a~^-~}(~a)" (unit-feature-value unit 'syn-class)
                                         (or (second (find 'lemma
                                                           (nthcdr 2 (nth1 s-bar-unit-number cxn-s-bar-units))
                                                           :key #'feature-name))

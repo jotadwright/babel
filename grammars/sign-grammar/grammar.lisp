@@ -233,11 +233,5 @@
                --
                (HASH form ((hammod ?movf hamsmallmod))))))
 
-; Function that adds all the sigml files from a directory as lexical signs to the grammar
-(defun add-lex-cxns (signs-directory)
-  (loop for pathname in (directory signs-directory)
-        for sigml = (with-open-file (stream pathname)
-                      (xmls::parse stream))
-        do (when sigml
-             (eval (create-lex-cxn sigml)))))
+; (add-lex-cxns *BSL-lexical-signs*)
 

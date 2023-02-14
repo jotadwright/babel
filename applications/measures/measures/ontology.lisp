@@ -150,7 +150,6 @@
            (questions-and-answers (calculate-questions-and-answers-from-values sorted-vals table)))
       questions-and-answers)))
 
-
 (defun calculate-questions-and-answers-from-object-no-parent-value (value slots table)
   (loop for slot in slots
         for slot-name = (intern (symbol-name (first (harlequin-common-lisp:slot-definition-initargs slot))) 'cooking-bot-new)

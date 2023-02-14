@@ -3,7 +3,7 @@
 
 (progn 
   (monitors::activate-monitor fcg::trace-fcg)
-  (monitors::activate-monitor trace-irl)
+  (monitors::activate-monitor irl::trace-irl)
   (activate-monitor questions-introduced-by-grammar)
   (activate-monitor questions-solved-by-grammar)
   (activate-monitor questions-introduced-by-mental-simulation)

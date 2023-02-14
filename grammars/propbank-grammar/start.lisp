@@ -81,7 +81,7 @@
     
     (:heuristics
      :nr-of-applied-cxns
-     :nr-of-units-matched
+     :nr-of-units-matched-x2 ;;nr-of-units-matched
      :argm-prediction ;; Don't forget to activate the text-to-role-classification server!!!!!
      :edge-weight) 
     ;;Additional heuristics: :prefer-local-bindings :frequency
@@ -109,7 +109,7 @@
 
 
 (learn-propbank-grammar
- *train-corpus*
+ (subseq *train-corpus* 0 10000)
  :excluded-rolesets '("be.01" "be.02" "be.03"
                       "do.01" "do.02" "do.04" "do.11" "do.12"
                       "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
@@ -117,22 +117,28 @@
  :cxn-inventory '*propbank-ontonotes-learned-cxn-inventory-no-aux-all-strategies*
  :fcg-configuration *training-configuration*)
 
+;(add-element (make-html (find-cxn 'V\(IN\)+ARGM-ADV\(SBAR\:LIKE\)-11+3-CXN *propbank-ontonotes-learned-cxn-inventory-no-aux-all-strategies*)))
+
 (set-configuration *propbank-ontonotes-learned-cxn-inventory-no-aux-all-strategies*
                    :heuristics '(:nr-of-applied-cxns
                                  :nr-of-units-matched
                                  :argm-prediction
-                                 :edge-weight))
+                                 :edge-weight
+                                 ))
 
 
 ;;by 1940 => TMP not MNR!!
 ;(comprehend-and-extract-frames (nth 21 *train-corpus*) :cxn-inventory *propbank-ontonotes-learned-cxn-inventory-no-aux-all-strategies*)
 
-(comprehend-and-evaluate (list (nth 21 *train-corpus*)) *propbank-ontonotes-learned-cxn-inventory-no-aux-all-strategies*
+(comprehend-and-extract-frames (nth 25 *train-corpus*) :cxn-inventory *restored-grammar-lw*)
+
+(comprehend-and-evaluate (list (nth 26 *train-corpus*)) *propbank-ontonotes-learned-cxn-inventory-no-aux-all-strategies*
                          :excluded-rolesets '("be.01" "be.02" "be.03"
                                               "do.01" "do.02" "do.04" "do.11" "do.12"
                                               "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
                                               "get.03" "get.06" "get.24")
                          :core-roles-only nil)
+                         ;:include-sentences-with-incomplete-role-constituent-mapping nil)
 
 ;(add-element (make-html *test-grammar*))
 ;(activate-monitor trace-fcg)
