@@ -18,4 +18,12 @@
 
 (defun make-ont-agents (nb-of-agents)
   "We create a population of agents"
+  (let ((agents (loop for i from 1 to nb-of-agents
+                      for agent-id = (read-from-string (format nil "agent-~d" i))
+                      collect (make-instance 'ont-alignment-agent
+                                             :id agent-id
+                                             :experiment experiment
+                                             :lexicon (make-agent-cxn-set)))))
+    (setf (agents experiments) agents))
   )
+
