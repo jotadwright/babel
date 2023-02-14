@@ -88,7 +88,7 @@ have been annotated for the given gold-frame. "
          (core-units-with-role (remove-if #'(lambda (unit-with-role)
                                               (search "ARGM" (role-type (car unit-with-role))))
                                           (units-with-role ts-unit-structure gold-frame))))
-    ;(when (> (length core-units-with-role) 1)
+  
       (let* ((lex-category (add-lexical-cxn gold-frame (v-unit core-units-with-role) cxn-inventory propbank-sentence))
              (gram-category (when lex-category
                               (add-grammatical-cxn gold-frame core-units-with-role cxn-inventory propbank-sentence lex-category))))
@@ -594,19 +594,20 @@ categorial network and returns it."
          (lex-category (when lex-cxn (attr-val lex-cxn :lex-category)))
          (gram-categories
           (when lex-category
-            (loop with v-unit-with-role = (v-unit-with-role units-with-role)
-                  for argm-sbar in argm-sbars
-                  for sbar-unit-name = (unit-name (cdr argm-sbar))
-                  append (loop with v-unit-found? = nil
-                                for (role . unit) in units-with-role
-                                for unit-name = (unit-name unit)
-                                if (string= (role-type role) "V")
-                                do (setf v-unit-found? t)
-                                else if (equal unit-name sbar-unit-name)
-                                collect (let ((units-with-role (if v-unit-found? ;;v-unit precedes argm-pp-unit
-                                                                 (list v-unit-with-role argm-sbar)
-                                                                 (list argm-sbar v-unit-with-role))))
-                                          (add-sbar-cxn gold-frame units-with-role cxn-inventory propbank-sentence lex-category ts-unit-structure)))))))
+            (remove nil
+                    (loop with v-unit-with-role = (v-unit-with-role units-with-role)
+                          for argm-sbar in argm-sbars
+                          for sbar-unit-name = (unit-name (cdr argm-sbar))
+                          append (loop with v-unit-found? = nil
+                                       for (role . unit) in units-with-role
+                                       for unit-name = (unit-name unit)
+                                       if (string= (role-type role) "V")
+                                         do (setf v-unit-found? t)
+                                       else if (equal unit-name sbar-unit-name)
+                                              collect (let ((units-with-role (if v-unit-found? ;;v-unit precedes argm-pp-unit
+                                                                               (list v-unit-with-role argm-sbar)
+                                                                               (list argm-sbar v-unit-with-role))))
+                                                        (add-sbar-cxn gold-frame units-with-role cxn-inventory propbank-sentence lex-category ts-unit-structure))))))))
             
     (loop for gram-category in gram-categories
           do (add-word-sense-cxn gold-frame v-unit cxn-inventory propbank-sentence lex-category gram-category)))) ;;only one cxn, multiple links in th
@@ -667,23 +668,24 @@ categorial network and returns it."
         (add-link lex-category gram-category cxn-inventory :weight 1.0 :link-type nil :recompute-transitive-closure nil)
         (add-link lex-category gram-category cxn-inventory :weight 1.0 :link-type 'lex-gram :recompute-transitive-closure nil)
 
-        (eval `(def-fcg-cxn ,cxn-name
-                            (,contributing-unit
-                             <-
-                             ,@cxn-units-with-role
-                             ,@cxn-units-without-role
-                             ,cxn-sbar-unit)
-                            :disable-automatic-footprints t
-                            :attributes (:schema ,schema
-                                         :lemma ,(if (stringp sbar-lemma)
-                                                   (intern (upcase sbar-lemma))
-                                                   sbar-lemma)
-                                         :label argm-phrase-cxn
-                                         :score 1
-                                         :gram-category ,gram-category)
-                            :description ,(sentence-string propbank-sentence)
-                            :cxn-inventory ,cxn-inventory))
-        gram-category))))
+        (unless (find (unit-name cxn-sbar-unit) cxn-units-with-role :key #'unit-name :test #'equal) ;;check for avoiding duplicate unit names as a consequence of too flat constituency structures
+          (eval `(def-fcg-cxn ,cxn-name
+                              (,contributing-unit
+                               <-
+                               ,@cxn-units-with-role
+                               ,@cxn-units-without-role
+                               ,cxn-sbar-unit)
+                              :disable-automatic-footprints t
+                              :attributes (:schema ,schema
+                                           :lemma ,(if (stringp sbar-lemma)
+                                                     (intern (upcase sbar-lemma))
+                                                     sbar-lemma)
+                                           :label argm-phrase-cxn
+                                           :score 1
+                                           :gram-category ,gram-category)
+                              :description ,(sentence-string propbank-sentence)
+                              :cxn-inventory ,cxn-inventory))
+          gram-category)))))
 
 
 

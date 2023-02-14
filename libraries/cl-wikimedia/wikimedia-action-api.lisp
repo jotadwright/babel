@@ -23,7 +23,8 @@
 ;; Also check this sandbox to see what is supported: https://www.mediawiki.org/wiki/Special:ApiSandbox
 
 (export '(wikimedia-action-api
-          wikipedia-query wikipedia-search
+          wikipedia-query wikipedia-search wikidata-query wikidata-search
+          wikidata-get-entity wikidata-get-entity-statements wikidata-get-statement
           wikimedia-paraminfo
           wikipedia-parse))
 
@@ -78,16 +79,6 @@
 ;; - LISTS of pages that match certain criteria
 ;; ------------------------------------------------------------------------
 
-(defmacro wikipedia-query (&rest parameters 
-                                 &key &allow-other-keys)
-  (destructuring-bind (&whole whole 
-                              &key (language "en" language-p)
-                              &allow-other-keys)
-      parameters
-    (remf whole :language)
-    `(let ((uri (format nil "http://~a.wikipedia.org/w/api.php" ,language)))
-       (wikimedia-action-api uri :action "query" ,@whole))))
-
 ;;=========================================================================
 ;; Convenience Macro for QUERYING
 ;;=========================================================================
@@ -111,6 +102,39 @@
 (defmacro wikipedia-search (search-string &rest parameters
                                           &key &allow-other-keys)
   `(wikipedia-query :list "search" :srsearch ,search-string ,@parameters))
+;; (wikipedia-search "Venus")
+;; (wikipedia-search "Venus" :language "nl")
+;; (wikipedia-query :titles "Albert Einstein" :prop "categories")
+;; (wikipedia-query :titles "Venus")
+
+(defmacro wikidata-query (&rest parameters 
+                                &key &allow-other-keys)
+  `(wikimedia-action-api "https://wikidata.org/w/api.php" 
+                         :action "query" ,@parameters))
+;; (wikidata-query :titles "Q47652" :prop "description")
+
+(defmacro wikidata-search (search-string &rest parameters
+                                         &key &allow-other-keys)
+  `(wikidata-query :list "search" :srsearch ,search-string ,@parameters))
+;; (wikidata-search "Venus")
+
+(defmacro wikidata-get-entity (entity-id &rest parameters
+                                         &key &allow-other-keys)
+  `(wikimedia-action-api ,(format nil "https://wikidata.org/w/rest.php/wikibase/v0/entities/items/~a" entity-id)
+                         ,@parameters))
+;; (wikidata-get-entity "Q47652" :user-agent "YOURUSERAGENT")
+
+(defmacro wikidata-get-entity-statements (entity-id &rest parameters
+                                         &key &allow-other-keys)
+  `(wikimedia-action-api ,(format nil "https://wikidata.org/w/rest.php/wikibase/v0/entities/items/~a/statements" entity-id)
+                         ,@parameters))
+;; (wikidata-get-entity-statements "Q47652" :user-agent "YOURUSERAGENT")
+
+(defmacro wikidata-get-statement (statement-id &rest parameters
+                                               &key &allow-other-keys)
+  `(wikimedia-action-api ,(format nil "https://wikidata.org/w/rest.php/wikibase/v0/statements/~a" statement-id)
+                         ,@parameters))
+;; (wikidata-get-statement "Q47652$1491D330-19A6-4344-A752-2C8175D8C23A" :user-agent "YOURUSERAGENT")
 
 ;;=========================================================================
 ;; Convenience Macro for information about parameter information

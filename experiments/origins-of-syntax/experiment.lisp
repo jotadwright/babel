@@ -904,7 +904,7 @@ mode ~a. Please check why it did not calculate a priority score." (get-configura
          ;; go to the next label
          (setf (current-label cxn-supplier) (car (remaining-labels cxn-supplier)))
          (setf (remaining-labels cxn-supplier) (cdr (remaining-labels cxn-supplier)))
-         (setf (all-constructions-of-current-label cxn-supplier)
+à         (setf (all-constructions-of-current-label cxn-supplier)
                (all-constructions-of-label-by-nr-of-categories-and-score node (current-label cxn-supplier)))
          (setf (remaining-constructions cxn-supplier)
                (all-constructions-of-current-label cxn-supplier))

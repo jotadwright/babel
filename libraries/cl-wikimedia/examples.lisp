@@ -18,6 +18,9 @@
 
 (in-package :cl-wikimedia)
 
+;; First set you user-agent to your bot or e-mail address!!!
+(setf *user-agent* "REPLACE WITH YOUR BOT NAME or EMAIL ADDRESS")
+
 ;;=========================================================================
 ;; Wikimedia ACTION API
 ;;=========================================================================
@@ -35,9 +38,14 @@
                       :srsearch "Luc Steels"
                       :lisp-format :hash-table)
 
+;; Example for Wikidata:
+(wikimedia-action-api "https://wikidata.org/w/api.php"
+                      :action "query"
+                      :list "search"
+                      :srsearch "Venus")
+
 ;; Querying Wikipedia
 ;; ------------------------------------------------------------------------
-
 ;; Search
 (wikipedia-query :list "search"
                  :srsearch "Luc Steels"
@@ -64,6 +72,13 @@
                  :cmtitle "Category:Linguistics"
                  :cmlimit "500")
 
+;; Querying Wikidata (will only work if you have set your user-agent!!)
+;; ------------------------------------------------------------------------
+(wikidata-query :titles "Q47652")
+(wikidata-query :list "search"
+                :srsearch "Venus")
+(wikidata-search "Venus")
+
 ;; Requesting parameter information
 ;; ------------------------------------------------------------------------
 
@@ -83,3 +98,35 @@
 (wikipedia-parse :page "Luc_Steels" :prop "properties")
 
 (wikipedia-parse-summary "Gal_Gadot")
+
+;; Getting a page summary
+;; ------------------------------------------------------------------------
+(wikimedia-summary "Gal Gadot")
+(wikimedia-summary "Gal Gadot" :lisp-format :alist)
+
+;; If you store the summary as a hash-table, you can use
+;; convenient helper functions
+(defparameter *my-wikimedia-summary* (wikimedia-summary "Venus (mythology)"))
+(wikimedia-summary-title *my-wikimedia-summary*)
+(wikimedia-summary-extract *my-wikimedia-summary*)
+(wikimedia-summary-extract-html *my-wikimedia-summary*)
+(wikimedia-summary-thumbnail *my-wikimedia-summary*)
+
+;; Wikidata-specific helper functions
+;; ------------------------------------------------------------------------
+(wikidata-get-entity "Q47652")
+(wikidata-get-entity-statements "Q47652")
+(wikidata-get-statement "Q47652$1491D330-19A6-4344-A752-2C8175D8C23A")
+
+;; If you store the wikidata entity information as a hash-table, you can use
+;; convenience functions (prefix wd-):
+(defparameter *my-wikidata-entity* (wikidata-get-entity "Q47652" :lisp-format :hash-table))
+(wd-entity-id *my-wikidata-entity*)
+(wd-entity-description *my-wikidata-entity* "en")
+(wd-entity-aliases *my-wikidata-entity* :return-as-list-p t)
+(wd-entity-wikipedia-title *my-wikidata-entity* "en")
+
+;; Combining wikidata with wikipedia information
+;; ------------------------------------------------------------------------
+(wd-entity-wikipedia-summary *my-wikidata-entity* "en")
+(wd-entity-wikipedia-summary *my-wikidata-entity* "en" :lisp-format :alist)
