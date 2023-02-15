@@ -154,6 +154,85 @@
                       (MEETS ?MOVF-3 ?MOVF-4)
                       (MEETS ?MOVF-4 ?MOVF-5))))))
 
+
+(def-fcg-cxn CL-hamflathand-cxn
+             ((?noun-unit
+               (subunits (?classifier-unit)))
+              (?classifier-unit
+               (referent ?r)
+               (syn-cat classifier)
+               (orientation-boundary ?orif-1)
+               (movement-boundary ?movf-1)
+               (handshape-boundary ?hsf-1))
+              <-
+              (?noun-unit
+               (referent ?r)
+               --
+               (CL-form hamflathand)
+               (form ((SIGN ?SIGN-2))))
+              (?classifier-unit
+               --
+               (hash form
+                     ((SIGN ?SIGN-1)
+                      (MANUAL ?SIGN-1 ?M-1)
+                      (HANDSHAPE ?M-1 ?HS-1)
+                      (HAMFLATHAND ?HS-1 ?HSF-1)
+                      (EXTENDED-FINGER-DIRECTION ?M-1 ?EXT-1)
+                      (HAMEXTFINGERO ?EXT-1 ?EXTF-1)
+                      (PALM-ORIENTATION ?M-1 ?ORI-1)
+                      (HAMPALMD ?ORI-1 ?ORIF-1)
+                      (MOVEMENT ?M-1 ?MOV-1)
+                      (HAMMOVED ?MOV-1 ?MOVF-1)
+                      (MEETS ?HSF-1 ?EXTF-1)
+                      (MEETS ?EXTF-1 ?ORIF-1)
+                      (MEETS ?SIGN-2 ?SIGN-1))))))
+
+(def-fcg-cxn CL-left-cxn
+             (
+               <-
+               (?classifier-unit
+                (location left)
+                
+                --
+                (syn-cat classifier)
+                (orientation-boundary ?orif-1)
+                (movement-boundary ?movf-1)
+                (handshape-boundary ?hsf-1)
+                (hash form
+                      ((NON-MANUAL ?SIGN-1 ?NM-1)
+                       (EYEGAZE ?NM-1 "LD")
+                       (SYMMETRY ?M-1 ?SYM-1)
+                       (HAMNONDOMINANT ?SYM-1 ?SYMF-1)
+                       (LOCATION ?M-1 ?LOC-1)
+                       (HAMLRAT ?LOC-1 ?LOCF-1)
+                       (HAMCHEST ?LOC-1 ?LOCF-2)
+                       (MEETS ?SYMF-1 ?HSF-1)
+                       (MEETS ?ORIF-1 ?LOCF-1)
+                       (MEETS ?LOCF-1 ?LOCF-2)
+                       (MEETS ?LOCF-2 ?MOVF-1))))))
+
+(def-fcg-cxn CL-right-cxn
+             (
+               <-
+               (?classifier-unit
+                (location right)
+                
+                --
+                (syn-cat classifier)
+                (orientation-boundary ?orif-1)
+                (movement-boundary ?movf-1)
+                (hash form
+                      ((NON-MANUAL ?SIGN-1 ?NM-1)
+                       (EYEGAZE ?NM-1 "RD")
+                       (LOCATION ?M-1 ?LOC-1)
+                       (HAMSHOULDERS ?LOC-1 ?LOCF-1)
+                       (HAMLRAT ?LOC-1 ?LOCF-2)
+                       (MEETS ?ORIF-1 ?LOCF-1)
+                       (MEETS ?LOCF-1 ?LOCF-2)
+                       (MEETS ?LOCF-2 ?MOVF-1))))))
+
+
+
 ; lexical construction for child
 (DEF-FCG-CXN CHILD-CXN
              ((?CHILD-UNIT (REFERENT ?R)
@@ -178,7 +257,7 @@
                       (HAMPALMU ?ORI-1 ?ORIF-1)
                       (LOCATION ?M-1 ?LOC-1)
                       (HAMCHEST ?LOC-1 ?LOCF-1)
-                      (HAMMOD ?LOCF-1 HAMLRAT)
+                      (HAMLRAT ?LOC-1 ?LOCF-2)
                       (MOVEMENT ?M-1 ?MOV-1)
                       (HAMMOVED ?MOV-1 ?MOVF-1)
                       (HAMMOD ?MOVF-1 HAMSMALLMOD)
@@ -186,44 +265,25 @@
                       (MEETS ?HSF-1 ?EXTF-1)
                       (MEETS ?EXTF-1 ?ORIF-1)
                       (MEETS ?ORIF-1 ?LOCF-1)
-                      (MEETS ?LOCF-1 ?MOVF-1)
+                      (MEETS ?LOCF-1 ?LOCF-2)
+                      (MEETS ?LOCF-2 ?MOVF-1)
                       (MEETS ?MOVF-1 ?MOVF-2))))))
 
-(def-fcg-cxn CL-hamflathand-cxn
-             ((?classifier-unit
-               (referent ?r)
-               (orientation ?ORIF-1))
-              <-
-              (?noun-unit
-               (referent ?r)
-               (CL-form hamflathand)
-               --
-               )
-              (?classifier-unit
-               --
-               (hash form
-                     ((SIGN ?SIGN-1)
-                      (MANUAL ?SIGN-1 ?M-1)
-                      (HANDSHAPE ?M-1 ?HS-1)
-                      (HAMFLATHAND ?HS-1 ?HSF-1)
-                      (EXTENDED-FINGER-DIRECTION ?M-1 ?EXT-1)
-                      (HAMEXTFINGERO ?EXT-1 ?EXTF-1)
-                      (PALM-ORIENTATION ?M-1 ?ORI-1)
-                      (HAMPALMD ?ORI-1 ?ORIF-1)
-                      (MOVEMENT ?M-1 ?MOV-1)
-                      (HAMMOVED ?MOV-1 ?MOVF-1)
-                      (MEETS ?HSF-1 ?EXTF-1)
-                      (MEETS ?EXTF-1 ?ORIF-1))))))
-
 (def-fcg-cxn CL-hamfinger2-cxn
-             ((?classifier-unit
+             ((?noun-unit
+               (subunits (?classifier-unit)))
+              (?classifier-unit
                (referent ?r)
-               (orientation ?ORIF-1))
+               (syn-cat classifier)
+               (orientation-boundary ?orif-1)
+               (movement-boundary ?movf-1)
+               (handshape-boundary ?hsf-1))
               <-
               (?noun-unit
                (referent ?r)
-               (CL-form hamfinger2)
                --
+               (CL-form hamfinger2)
+               (form ((SIGN ?SIGN-2)))
                )
               (?classifier-unit
                --
@@ -235,89 +295,12 @@
                       (EXTENDED-FINGER-DIRECTION ?M-1 ?EXT-1)
                       (HAMEXTFINGERU ?EXT-1 ?EXTF-1)
                       (PALM-ORIENTATION ?M-1 ?ORI-1)
-                      (HAMPALMDL ?ORI-1 ?ORIF-1)
+                      (HAMPALML ?ORI-1 ?ORIF-1)
                       (MOVEMENT ?M-1 ?MOV-1)
                       (HAMMOVED ?MOV-1 ?MOVF-1)
                       (MEETS ?HSF-1 ?EXTF-1)
-                      (MEETS ?EXTF-1 ?ORIF-1))))))
-
-
-
-(def-fcg-cxn CL-left-cxn
-             ((
-               <-
-               (?classifier-unit
-                (form ((SIGN ?SIGN-1)
-                       (MANUAL ?SIGN-1 ?M-1)
-                       (MOVEMENT ?M-1 ?MOV-1)
-                       (HAMMOVED ?MOV-1 ?MOVF-1)))
-                (location left)
-                (orientation ?ORIF-1)
-                --
-                (hash form
-                      ((NON-MANUAL ?SIGN-1 ?NM-1)
-                       (EYEGAZE ?NM-1 "LD")
-                       (LOCATION ?M-1 ?LOC-1)
-                       (HAMLRAT ?LOC-1 ?LOCF-1)
-                       (HAMCHEST ?LOC-1 ?LOCF-2)
-                       (MEETS ?ORIF-1 ?LOCF-1)
-                       (MEETS ?LOCF-1 ?LOCF-2)
-                       (MEETS ?LOCF-2 ?MOVF-1)))))))
-
-
-
-(def-fcg-cxn CL-right-cxn
-             ((
-               <-
-               (?classifier-unit
-                (form ((SIGN ?SIGN-1)
-                       (MANUAL ?SIGN-1 ?M-1)
-                       (MOVEMENT ?M-1 ?MOV-1)
-                       (HAMMOVED ?MOV-1 ?MOVF-1)))
-                (location right)
-                (orientation ?ORIF-1)
-                --
-                (hash form
-                      ((NON-MANUAL ?SIGN-1 ?NM-1)
-                       (EYEGAZE ?NM-1 "RD")
-                       (LOCATION ?M-1 ?LOC-1)
-                       (HAMCHEST ?LOC-1 ?LOCF-1)
-                       (HAMLRAT ?LOC-1 ?LOCF-2)
-                       (MEETS ?ORIF-1 ?LOCF-1)
-                       (MEETS ?LOCF-1 ?LOCF-2)
-                       (MEETS ?LOCF-2 ?MOVF-1)))))))
-
-(def-fcg-cxn non-dominant-hand-cxn
-             ((
-               <-
-               (?sign-unit
-                (form ((SIGN ?SIGN-1)
-                       (MANUAL ?SIGN-1 ?M-1)))
-                (hand weak)
-                (handshape-boundary ?HSF-1)
-                --
-                (hash form
-                      ((SYMMETRY ?M-1 ?SYM-1)
-                       (HAMNONDOMINANT ?SYM-1 ?SYMF-1)
-                       (MEETS ?SYMF-1 ?HSF-1)))))))
-
-(def-fcg-cxn simultaneous-cxn
-             ((
-               <-
-               (?strong-hand-unit
-                (form (SIGN ?SIGN-1))
-                --
-                (hash form
-                      ((HAND ?SIGN-1 "strong"))))
-               (?weak-hand-unit
-                (form (SIGN ?SIGN-2))
-                --
-                (hash form
-                      ((HAND ?SIGN-2 "weak"))))
-               (?simultaneous-unit
-                (HASH form
-                      ((COINCIDES ?SIGN-1 ?SIGN-2))))))) 
-               
+                      (MEETS ?EXTF-1 ?ORIF-1)
+                      (MEETS ?SIGN-2 ?SIGN-1))))))
 
 ; construction for modifier big
 (def-fcg-cxn big-cxn 
