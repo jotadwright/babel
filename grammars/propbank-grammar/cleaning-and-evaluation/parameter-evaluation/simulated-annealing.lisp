@@ -1,6 +1,4 @@
 
-
-
 (defun simulated-annealing-plots (initial-params list-of-combinations &key (temperature 1000) (cooling-rate 0.95) (steps 16) (train-set *train-corpus*) (dev-set *dev-corpus*))
   "Uses simulated annealing to optimize the parameters for a given evaluation function."
   (let* ((current-params initial-params)
@@ -27,16 +25,16 @@
                 current-score new-score
                 used-params (cons current-params used-params)))
         (setf temperature (* temperature cooling-rate))
-        (push (cons current-params current-score) f1-scores))
+        (push (cons current-params current-score) f1-scores)
+        (store-f1-params (reverse f1-scores) init-temp cooling-rate steps (length train-set) (length dev-set)))
       (format t "Step ~a: temperature = ~a, best score = ~a, best parameters = ~a~% " step temperature best-score best-params))
-    (format t "F1-scores evolution = ~a~% " f1-scores)
-    (store-f1-params f1-scores init-temp cooling-rate steps (length train-set) (length dev-set))
-    (plot-f1-scores f1-scores)
+    (format t "F1-scores evolution = ~a~% " (reverse f1-scores))
+    (store-f1-params (reverse f1-scores) init-temp cooling-rate steps (length train-set) (length dev-set))
+    (plot-f1-scores (reverse f1-scores))
     (let ((total-runtime (/ (- (get-internal-real-time) start-time) internal-time-units-per-second)))
-      (store-run-info total-runtime init-temp temperature cooling-rate steps (length train-set) (length dev-set) f1-scores list-of-combinations)
+      (store-run-info total-runtime init-temp temperature cooling-rate steps (length train-set) (length dev-set) (reverse f1-scores) list-of-combinations)
       (format t "Total runtime: ~f seconds~%" total-runtime))
     best-params))
-
 
 
 (defun plot-f1-scores (f1-scores-and-params)
@@ -118,16 +116,12 @@
 (defun learn-predict-evaluate-sa (current-combination &optional (old-training-configuration *training-configuration-all*) (new-training-configuration *training-configuration-new*) (train-corpus *train-corpus*))
   "Evaluates a PropBank grammar using specified parameters, training configurations and corpus."  
   (let ((new-training-configuration (copy-list old-training-configuration)))
-    (let ((updated-training-config (adjust-training-configuration current-combination :heuristics new-training-configuration)))
+    (let ((updated-training-config (adjust-training-configuration current-combination new-training-configuration)))
       (format t "Running configuration: ~A~%" updated-training-config)
-      (learn-propbank-grammar
-       train-corpus
-       :excluded-rolesets '("be.01" "be.02" "be.03"
-                    "do.01" "do.02" "do.04" "do.11" "do.12"
-                    "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
-                    "get.03" "get.06" "get.24")
-       :cxn-inventory '*test-grammar*
-       :fcg-configuration updated-training-config)
+      (learn-propbank-grammar-roles
+             train-corpus
+             :cxn-inventory '*test-grammar*
+             :fcg-configuration updated-training-config)
       (store-learned-grammar current-combination)
       (let ((predictions-comprehend (comprehend-propbank-corpus-parameters *test-grammar* current-combination)))
         (evaluate-predictions-f1 predictions-comprehend)))))
