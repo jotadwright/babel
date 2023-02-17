@@ -1,0 +1,75 @@
+﻿Question;Query
+Which countries belong to South America?;"select * from country inner join continent on country.continentId = continent.id where continent.name = “South America”;"
+Which countries belong to Africa?;"select * from country inner join continent on country.continentId = continent.id where continent.name = “Africa”;"
+Which countries belong to Europe?;"select * from country inner join continent on country.continentId = continent.id where continent.name = “Europe”;"
+Which countries belong to Asia?;"select * from country inner join continent on country.continentId = continent.id where continent.name = “Asia”;"
+Which countries belong to Oceania?;"select * from country inner join continent on country.continentId = continent.id where continent.name = “Océania”;"
+Which continent is the largest?;"select max(size) from continent;"
+Which continent has the highest density?;"select max(density) from continent;"
+Which continent has the largest population?;"select max(population) from continent;"
+Which continent is the smallest?;"select min(size) from continent;"
+Which continent has the lowest density?;"select min(density) from continent;"
+Which continent has the smallest population?;"select min(population) from continent;"
+What is the average population of the continents?;"select avg(population) from continent;"
+What is the average density of the continents?;"select avg(density) from continent;"
+What is the average size of the continents?;"select avg(size) from continent;"
+What is the population of South America?;select population from continent where name =  “South America”
+What is the population of North America?;select population from continent where name =  “North America”
+What is the population of Africa?;select population from continent where name =  “Africa”
+What is the population of Asia?;select population from continent where name =  “Asia”
+What is the population of Europe?;select population from continent where name =  “Europe”
+Which continents have countries beginning with A?;select * from continent inner join country on continent.id = country.continentId where country.name LIKE “A%”
+Which continents have countries beginning with B?;select * from continent inner join country on continent.id = country.continentId where country.name LIKE “B%”
+Which continents have countries beginning with C?;select * from continent inner join country on continent.id = country.continentId where country.name LIKE “C%”
+Which continents have countries beginning with D?;select * from continent inner join country on continent.id = country.continentId where country.name LIKE “D%”
+Which continents have countries beginning with E?;select * from continent inner join country on continent.id = country.continentId where country.name LIKE “E%”
+How many rivers run through Egypt?;select count(*) from country_river inner join country on country_river.countryId = country.id where name = “Egypt”
+How many rivers run through China?;select count(*) from country_river inner join country on country_river.countryId = country.id where name = “China”
+How many rivers run through India?;select count(*) from country_river inner join country on country_river.countryId = country.id where name = “India”
+How many rivers run through Indonesia?;select count(*) from country_river inner join country on country_river.countryId = country.id where name = “Indonesia”
+How many rivers run through Brazil?;select count(*) from country_river inner join country on country_river.countryId = country.id where name = “Brazil”
+What is the name of the country through which the river01 flows?;"select country.name from country 
+inner join country_river on country.id = country_river.countryId
+inner join river on country_river.riverId = river.Id where river.name = “river01”"
+What is the name of the country through which the river02 flows?;"select country.name from country 
+inner join country_river on country.id = country_river.countryId
+inner join river on country_river.riverId = river.Id where river.name = “river02”"
+What is the name of the country through which the river03 flows?;"select country.name from country 
+inner join country_river on country.id = country_river.countryId
+inner join river on country_river.riverId = river.Id where river.name = “river03”"
+What is the name of the country through which the river04 flows?;"select country.name from country 
+inner join country_river on country.id = country_river.countryId
+inner join river on country_river.riverId = river.Id where river.name = “river04”"
+What is the name of the country through which the river05 flows?;"select country.name from country 
+inner join country_river on country.id = country_river.countryId
+inner join river on country_river.riverId = river.Id where river.name = “river05”"
+Which country has the largest population?;select max(population) from country
+Which country has the smallest population?;select min(population) from country
+What is the average population?;select avg(population) from country
+Which country has the highest density?;select max(density) from country
+Which country has the lowest density?;select min(density) from country
+What is the average density?;select avg(density) from country
+What information is available on countries with A in their name?;select * from country where name like “A%”
+What information is available about countries with B in their name?;select * from country where name like “B%”
+What information is available about countries with C in their name?;select * from country where name like “C%”
+What information is available about countries with D in their name?;select * from country where name like “D%”
+What information is available about countries beginning with E in their name?;select * from country where name like “E%”
+What information is available about countries with A in their name?;select * from country where name like “%A%”
+What information is available about countries with B in their name?;select * from country where name like “%B%”
+What information is available on countries with a C in their name?;select * from country where name like “%C%”
+What information is available on countries with a D in their name?;select * from country where name like “%D%”
+What information is available on countries with an E in their name?;select * from country where name like “%E%”
+What information is available on countries with an A at the end of their name?;select * from country where name like “%A”
+What information is available on countries with a B at the end of their name?;select * from country where name like “%B”
+What information is available about countries with a C at the end of their name?;select * from country where name like “%C”
+What information is available about countries with a D at the end of their name?;select * from country where name like “%D”
+What information is available about countries with an E at the end of their name? ;select * from country where name like “%E”
+Which countries have rivers with a flow of over 1000?;"select * from country inner join country river on country.id = country_river.countryId
+inner join river on river.id =  country_river.riverId where river.flow > 1000"
+Which countries have rivers with a flow of less than 1000?;"select * from country inner join country river on country.id = country_river.countryId
+inner join river on river.id =  country_river.riverId where river.flow < 1000"
+Which countries have rivers with a flow of 2410?;"select * from country inner join country river on country.id = country_river.countryId
+inner join river on river.id =  country_river.riverId where river.flow = 2410"
+What is the maximum fow in the rivers?;select max(flow) from river
+What is the minimum fow in the rivers?;select min(flow) from river
+What is the maximum size of the river?;select max(size) from river

@@ -2,6 +2,10 @@
 (defun notempty (list)
   (not (null list)))
 
+;empty
+(defun empty (list)
+  (null list))
+
 ; remove duplicates form lisp
 (defun remove-duplicates-from-list (list)
   (remove-duplicates list :test #'equal))
@@ -21,7 +25,6 @@
         (push node items)))
     items))
 
-;;DEBUGGER
 ;get all attributes from list of tables
 (defun get-all-attributes-from-table (tables)
   (let ((list-of-attribute '()))
@@ -31,3 +34,10 @@
         (setf list-of-attribute (append list-of-attribute (attributes table)))))
     list-of-attribute))
         
+(defun get-all-permutations (att len subsets)
+  (let ((sub subsets))
+    (if (<= len (length att))
+      (progn
+        (setf sub (append sub (permutations-of-length att len)))
+        (get-all-permutations att (+ len 1) sub))
+      sub)))
