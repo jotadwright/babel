@@ -130,3 +130,19 @@
 ;; ------------------------------------------------------------------------
 (wd-entity-wikipedia-summary *my-wikidata-entity* "en")
 (wd-entity-wikipedia-summary *my-wikidata-entity* "en" :lisp-format :alist)
+
+;; Performaing a SPARQL query
+;; ------------------------------------------------------------------------
+
+(wikidata-sparql-query
+ ;; Return 1 URI whose English label is "Venus and Cupid" and which has 
+ ;; a Creator statement whose English label is "Lorenzo Lotto"
+ "SELECT ?uri
+   WHERE { 
+   ?uri rdfs:label \"Venus and Cupid\"@en.
+   ?uri rdfs:label ?itemLabel.
+   ?uri p:P170 ?statement.
+   ?statement ps:P170 ?creator.
+   ?creator rdfs:label \"Lorenzo Lotto\"@en.
+ } limit 1"
+ :lisp-format :alist)

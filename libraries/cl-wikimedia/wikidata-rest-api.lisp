@@ -28,7 +28,9 @@
           wd-entity-description wd-entity-descriptions
           wd-entity-label wd-entity-labels
           wd-entity-sitelinks
-          wd-entity-wikipedia-title wd-entity-wikipedia-page wd-entity-wikipedia-summary))
+          wd-entity-wikipedia-title wd-entity-wikipedia-page wd-entity-wikipedia-summary
+          *wikidata-sparql-endpoint*
+          wikidata-sparql-query))
 
 ;; The commented examples assume the following wikidata entity:
 ;; (defparameter *venus* (wikidata-get-entity "Q47652" :user-agent "YOURUSERAGENT" :lisp-format :hash-table))
@@ -132,3 +134,15 @@
 ;; (wd-entity-wikipedia-summary *venus* "en" :lisp-format :alist)
 ;; (wikimedia-summary-extract (wd-entity-wikipedia-summary *venus* "en"))
 ;; (wikimedia-summary-thumbnail (wd-entity-wikipedia-summary *venus* "en")) 
+
+;; SPARQL query
+;; ------------------------------------------------------------------------ 
+
+(defparameter *wikidata-sparql-endpoint* "https://query.wikidata.org/sparql")
+
+(defun wikidata-sparql-query (query &key (lisp-format :hash-table))
+  "Perform a sparql-query on wikidata."
+  (wikimedia-action-api *wikidata-sparql-endpoint*
+                        :query query
+                        :content-type "application/x-www-form-urlencoded"
+                        :lisp-format lisp-format))
