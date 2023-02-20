@@ -27,7 +27,8 @@
 ;;OK
 (defun where-node (id node attribute operator value att)
   "function that creates a node with the WHERE clause and returns the newly created node with its associated parent."
-  (let* ((q (concatenate 'string (q node) " WHERE " attribute " " operator " '" (write-to-string value) "'"))
+  (let* ((val (change-type value))
+         (q (concatenate 'string (q node) " WHERE " attribute " " operator " '"val"'"))
           (child (make-instance 'node :id id :parent node :depth (+ (depth node) 1) :q q :attrs att :tble (tble node))))
     (push child (children node))
     child))

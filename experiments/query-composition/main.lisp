@@ -24,7 +24,10 @@
       (if (equal (depth parent) 0)
         (progn 
           (dolist (tble tables)
-            (let ((permutations (get-all-permutations (attributes tble) '1 '())))
+;First rule
+            (let ((permutations '()))
+              (if (>= (length (attributes tble)) (length (first answer)))
+                (setf permutations (permutations-of-length (attributes tble) (length (first answer)))))
 ;type de sortie ( (attributes) (attributes) )
               (dolist (perm permutations)
 ;(attributes attributes)
@@ -35,13 +38,35 @@
                   (setf (children parent) (push  child-node (children parent)))
                   ;test the node created
                   (if (goal-test answer child-node)
-                    (progn
-                      (return-from create (q child-node))))))))
+                    (return-from create (q child-node)))))))
                       
 ;Push nodes creates
           (setf nodes (append nodes (children parent)))
           (setf nodes (remove parent nodes))
+          (create nodes tree '1 answer)))
+      (if (equal (depth parent) 1)
+        (progn
+          (let ((list-of-perm (permutations-of-length (attributes (tble parent)) (length (attributes (tble parent))))))
+            (dolist (perm list-of-perm)
+;get data from the query
+              (let ((result (flatten (query (concatenate 'string "SELECT " (name (first perm)) " FROM " (name (tble parent)))))))
+;iterate the result value and the operators
+                (dolist (value result)
+                  (dolist (operator list-of-operator)
+                    (let ((child-node (where-node id parent (name (first perm)) operator value (cdr perm))))
+                      (setf (children parent) (push child-node (children parent)))
+                      (if (goal-test answer child-node)
+                        (progn
+                          (write (q child-node))
+                          (return-from create 'test)))
+                      ))))))
+          (setf nodes (remove parent nodes))
+          (setf nodes (append nodes (children parent)))
           (create nodes tree '1 answer)))))
+
+
+
+
 
 (defun get-all-permutations (att len subsets)
   (let ((sub subsets))

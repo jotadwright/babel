@@ -41,3 +41,11 @@
         (setf sub (append sub (permutations-of-length att len)))
         (get-all-permutations att (+ len 1) sub))
       sub)))
+
+
+(defun change-type (val)
+  (cond ((typep val 'double-float)
+         (return-from change-type (write-to-string (round val)))))
+  (cond ((typep val 'integer)
+         (return-from change-type (write-to-string val))))
+  (return-from change-type val))
