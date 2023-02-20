@@ -131,7 +131,7 @@
   (let ((predictions nil)
         (output-file (or output-file
                          (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "predictions-parameter")
-                                         :name (format nil "~a~a" combination "-predictions")
+                                         :name (string-replace (format nil "~a-prediction" combination) "*" "")
                                          :type "store"))))
     (loop for sentence in list-of-propbank-sentences
           for sentence-number from 1
@@ -215,7 +215,7 @@
           (return cxn-inventory)))))
 
 
-(defun store-learned-grammar (combination &optional (grammar *test-grammar*))
+(defun store-learned-grammar (combination &optional (grammar test-grammar))
   "Stores the learned grammar using the configuration specified in 'updated-training-config' for the given 'parameter'
    in a file with a name specified in 'config-file-name' and path"
     (cl-store:store grammar (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "grammars-parameter")
