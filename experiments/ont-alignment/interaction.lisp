@@ -4,16 +4,14 @@
 ;functions to get random;
 ;-------elements--------;
 
-(defun random-n-elems (n lst)
-  "function that gets n random and diverse elements out of a list without taking into account the nil element"
-  (let* ((non-nil-elems (remove nil lst))
-        (duo (loop repeat (min n (length non-nil-elems))
-                   collect (pop non-nil-elems))))
-    duo))
-
 (defun pick-random-elem (list)
   "function to get a random element from a given list"
   (nth (random (length list)) list))
+
+
+;-----------------------;
+;functions to parse json;
+;-----------------------;
 
 (defun read-json-data (json-file)
   "function to read data from json file"
@@ -23,15 +21,37 @@
     json-data))
 
 
+(defun add-to-dictionary (question answer learner)
+  (setf random (create-agent-dico))
+  (setf (question random) question)
+  (setf (answer random) answer)
+  (setf (query random) nil)
+  )
+
 ;-----------------------;
 ;core of the experiment:;
 ;----the interaction----;
 
-(defun create-interaction ()
+(defclass ont-alignment-experiment (experiment)
+  ())
+
+(defmethod initialize-instance :after ((experiment ont-alignment-experiment) &key)
+  "creates new instances"
+  (setf (agents experiment) (make-ont-agents 5 experiment)))
+
+(defmethod interact ((experiment ont-alignment-experiment) (interaction interaction) &key)
   "main function of the experiment : create an interaction between two agents chosen randomly out the population"
-  (let* ((agent-duo (random-n-elems 2 (list "agent-3" "agent-4" "agent-5")))
-         (tutor (car agent-duo))
-         (learner (cadr agent-duo))
-         (question-answer-pair (pick-random-elem (read-json-data "experiments/ont-alignment/data/question_answer_pairs.json"))))
+  (let* ((interacting-agents (interacting-agents interaction))
+         (tutor (first interacting-agents))
+         (learner (second interacting-agents)))
+    ;1-the tutor choses a random question-answer pair
+    (setf (qa-pair tutor) (pick-random-elem (read-json-data "experiments/ont-alignment/data/question_answer_pairs.json")))
     (format nil "The tutor is ~d and the learner is ~d." tutor learner)
-    (format nil "The tutor chose the following question : ~d and gave it to the learner." (car question-answer-pair))))
+    (format nil "The tutor chose the following question : ~d and gave it to the learner." (car (qa-pair tutor)))
+    ;2-the tutor asks the question to the learner and the learner checks whether it already knows the answer
+    (if (not (find (car (qa-pair tutor)) (dictionary learner)))
+    ;3-if it doesn't know the answer, the tutor reveals it and the learner stocks it
+      (push (add-to-dictionary (car (qa-pair tutor)) (cadr (qa-pair tutor)) learner) (dictionary learner))
+      )
+    ;4-the learner tries to reconstruct a query leading to the same answer
+    ))

@@ -8,7 +8,5 @@
   :components 
   ((:file "package")
    (:file "agent")
-   (:file "db-connection")
    (:file "interaction")
-   (:file "learning-sql")
 ))
