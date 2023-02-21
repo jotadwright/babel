@@ -47,8 +47,7 @@
                       for agent-id = (read-from-string (format nil "agent-~d" i))
                       collect (make-instance 'ont-alignment-agent
                                              :id agent-id
-                                             :query-lang "sql"
-                                             :personal-db "whatever"))))
+                                             :query-lang "sql"))))
     (setf (agents experiment) agents)))
 
 (defun make-tutor-agent (experiment)
