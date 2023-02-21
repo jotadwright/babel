@@ -120,19 +120,19 @@
 
 (defmacro wikidata-get-entity (entity-id &rest parameters
                                          &key &allow-other-keys)
-  `(wikimedia-action-api ,(format nil "https://wikidata.org/w/rest.php/wikibase/v0/entities/items/~a" entity-id)
+  `(wikimedia-action-api (format nil "https://wikidata.org/w/rest.php/wikibase/v0/entities/items/~a" ,entity-id)
                          ,@parameters))
 ;; (wikidata-get-entity "Q47652" :user-agent "YOURUSERAGENT")
 
 (defmacro wikidata-get-entity-statements (entity-id &rest parameters
                                          &key &allow-other-keys)
-  `(wikimedia-action-api ,(format nil "https://wikidata.org/w/rest.php/wikibase/v0/entities/items/~a/statements" entity-id)
+  `(wikimedia-action-api (format nil "https://wikidata.org/w/rest.php/wikibase/v0/entities/items/~a/statements" ,entity-id)
                          ,@parameters))
 ;; (wikidata-get-entity-statements "Q47652" :user-agent "YOURUSERAGENT")
 
 (defmacro wikidata-get-statement (statement-id &rest parameters
                                                &key &allow-other-keys)
-  `(wikimedia-action-api ,(format nil "https://wikidata.org/w/rest.php/wikibase/v0/statements/~a" statement-id)
+  `(wikimedia-action-api (format nil "https://wikidata.org/w/rest.php/wikibase/v0/statements/~a" ,statement-id)
                          ,@parameters))
 ;; (wikidata-get-statement "Q47652$1491D330-19A6-4344-A752-2C8175D8C23A" :user-agent "YOURUSERAGENT")
 

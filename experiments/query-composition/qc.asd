@@ -17,15 +17,22 @@
                :meta-layer-learning
                :irl
                :fcg 
-               :cl-mop
-               :cl-json
+               :cl-postgres
+               :postmodern
                )
   :serial t
   :components ((:file "package")
-                (:file "first-step")
+                (:module "objects"
+                 :serial t
+                 :components ((:file "attribute-obj")
+                              (:file "node-obj")
+                              (:file "tree-obj")
+                              (:file "table-obj")))
+                ;(:file "attribute-obj")
+                ;(:file "node-obj")
+                ;(:file "table-obj")
+                ;(:file "tree-obj")
+                ;(:file "first-step")
                 (:file "main")
-                (:file "attribute-obj")
-                (:file "table-obj")
-                (:file "node-obj")
-                (:file "tree-obj")
-                (:file "utils")))
+                (:file "utils")
+                (:file "schema")))

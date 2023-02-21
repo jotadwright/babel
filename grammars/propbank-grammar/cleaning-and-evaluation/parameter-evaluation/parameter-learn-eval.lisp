@@ -1,21 +1,17 @@
 
 (in-package :propbank-grammar)
 
-(defun parameters-learn-comprehend-evaluate-grammar (parameter &optional (old-training-configuration *training-configuration-all*) (new-training-configuration *training-configuration-new*) (train-corpus *train-corpus*))
+(defun parameters-learn-comprehend-evaluate-grammar (parameters &optional (old-training-configuration *training-configuration-all*) (new-training-configuration *training-configuration-new*) (train-corpus *train-corpus*))
   "Learn and make predictions for a PropBank grammar using specified parameters, training configurations and corpus."  
   (let ((new-training-configuration (copy-list old-training-configuration)))
-    (let ((comb-parameters (combinations-parameter parameter)))
+    (let ((comb-parameters (all-combinations-parameters parameters)))
       (let ((count 0) (total (length comb-parameters)))
         (dolist (combination comb-parameters)
           (incf count)
-          (let ((updated-training-config (adjust-training-configuration combination parameter new-training-configuration)))
-            (format t "Running configuration ~A/~A: ~A~%" count total updated-training-config)
-            (learn-propbank-grammar
+          (let ((updated-training-config (adjust-training-configuration combination new-training-configuration)))
+            (format t "Running configuration ~A/~A: ~A~% " count total updated-training-config)
+            (learn-propbank-grammar-roles
              train-corpus
-             :excluded-rolesets '("be.01" "be.02" "be.03"
-                          "do.01" "do.02" "do.04" "do.11" "do.12"
-                          "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
-                          "get.03" "get.06" "get.24")
              :cxn-inventory '*test-grammar*
              :fcg-configuration updated-training-config)
             (store-learned-grammar combination)
@@ -109,25 +105,21 @@
         finally (let ((f1-score `,(compute-f1-score number-of-correct-predictions number-of-grammar-predictions number-of-gold-standard-predictions)
                                           
                                            ))
-                  (format t "F1 Score: ~A" f1-score)
+                  (format t "F1 Score: ~A " f1-score)
                   (return f1-score))))
 
 ;; Brute force without evaluation of predictions
-(defun parameters-learn-comprehend-grammar (parameter &optional (old-training-configuration *training-configuration-all*) (new-training-configuration *training-configuration-new*) (train-corpus *train-corpus*))
+(defun parameters-learn-comprehend-grammar (parameters &optional (old-training-configuration *training-configuration-all*) (new-training-configuration *training-configuration-new*) (train-corpus *train-corpus*))
   "Learn and make predictions for a PropBank grammar using specified parameters, training configurations and corpus."  
   (let ((new-training-configuration (copy-list old-training-configuration)))
-    (let ((comb-parameters (combinations-parameter parameter)))
+    (let ((comb-parameters (all-combinations-parameters parameters)))
       (let ((count 0) (total (length comb-parameters)))
         (dolist (combination comb-parameters)
           (incf count)
-          (let ((updated-training-config (adjust-training-configuration combination parameter new-training-configuration)))
-            (format t "Running configuration ~A/~A: ~A~%" count total updated-training-config)
-            (learn-propbank-grammar
+          (let ((updated-training-config (adjust-training-configuration combination new-training-configuration)))
+            (format t "Running configuration ~A/~A: ~A~% " count total updated-training-config)
+            (learn-propbank-grammar-roles
              train-corpus
-             :excluded-rolesets '("be.01" "be.02" "be.03"
-                          "do.01" "do.02" "do.04" "do.11" "do.12"
-                          "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
-                          "get.03" "get.06" "get.24")
              :cxn-inventory '*test-grammar*
              :fcg-configuration updated-training-config)
             (store-learned-grammar combination)
@@ -139,7 +131,7 @@
   (let ((predictions nil)
         (output-file (or output-file
                          (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "predictions-parameter")
-                                         :name (format nil "~a~a" combination "-predictions")
+                                         :name (string-replace (format nil "~a-prediction" combination) "*" "")
                                          :type "store"))))
     (loop for sentence in list-of-propbank-sentences
           for sentence-number from 1
@@ -156,53 +148,135 @@
           finally (progn (cl-store:store predictions output-file)
                         (return predictions)))))
 
-(defun parameters-learn-grammar (parameter &optional (old-training-configuration *training-configuration-all*) (new-training-configuration *training-configuration-new*) (train-corpus *train-corpus*))
+(defun parameters-learn-grammar (parameters &optional (old-training-configuration *training-configuration-all*) (new-training-configuration *training-configuration-new*) (train-corpus *train-corpus*))
   "Learn PropBank grammar using specified parameters, training configurations and corpus."
   (let ((new-training-configuration (copy-list old-training-configuration)))
-    (let ((comb-parameters (combinations-parameter parameter)))
+    (let ((comb-parameters (all-combinations-parameters parameters)))
       (let ((count 0) (total (length comb-parameters)))
         (dolist (combination comb-parameters)
           (incf count)
           (let ((updated-training-config (adjust-training-configuration combination new-training-configuration)))
-            (format t "Running configuration ~A/~A: ~A~%" count total updated-training-config)
-            (learn-propbank-grammar
+            (format t "Running configuration ~A/~A: ~A~% " count total updated-training-config)
+            (learn-propbank-grammar-roles
              train-corpus
-             :excluded-rolesets '("be.01" "be.02" "be.03"
-                          "do.01" "do.02" "do.04" "do.11" "do.12"
-                          "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
-                          "get.03" "get.06" "get.24")
              :cxn-inventory '*test-grammar*
              :fcg-configuration updated-training-config)
             (store-learned-grammar combination)))))))
 
+(defun learn-propbank-grammar-roles (list-of-propbank-sentences &key
+                                                          (selected-rolesets nil)
+                                                          
+                                                          (cxn-inventory '*propbank-learned-cxn-inventory*)
+                                                          (fcg-configuration nil))
+  "Learns a PropBank grammar based on a corpus of PropBank-annotated sentences."
+  (let ((cxn-inventory (eval `(def-fcg-constructions propbank-learned-english
+                                :fcg-configurations ,fcg-configuration
+                                :visualization-configurations ((:show-constructional-dependencies . nil)
+                                                               (:show-categorial-network . nil)
+                                                               (:hide-attributes . t)
+                                                               (:hide-features . nil))
+                                :hierarchy-features (constituents dependents)
+                                :feature-types ((constituents sequence)
+                                                (dependents sequence)
+                                                (span sequence)
+                                                (syn-class set)
+                                                (args set-of-predicates)
+                                                (word-order set-of-predicates)
+                                                (meaning set-of-predicates)
+                                                (footprints set))
+                                :cxn-inventory ,cxn-inventory
+                                :hashed t))))
+    
+    (set-data (blackboard cxn-inventory) :training-corpus-size 0)
+(let ((excluded-rolesets (mapcar (lambda (roleset) (format nil "~a" roleset)) (get-configuration cxn-inventory :excluded-rolesets))))
+  (loop for sentence in list-of-propbank-sentences
+        for sentence-number from 1
+        for training-corpus-size = (get-data (blackboard cxn-inventory) :training-corpus-size)
+        for rolesets = (cond (selected-rolesets
+                              (intersection selected-rolesets (all-rolesets sentence) :test #'equalp))
+                             (excluded-rolesets
+                               (loop for roleset in (all-rolesets sentence)
+                                     unless (member roleset excluded-rolesets :test #'equalp)
+                                     collect roleset))
+                             (t
+                              (all-rolesets sentence)))
+        do
+        (when (= 0 (mod sentence-number 100))
+          (format t "~%---> Sentence ~a." sentence-number))
+        (when rolesets
+          (set-data (blackboard cxn-inventory) :training-corpus-size (incf training-corpus-size)))
+        (loop for roleset in rolesets
+              do 
+              (loop for mode in (get-configuration cxn-inventory :learning-modes)
+                    do
+                      (learn-from-propbank-annotation sentence roleset cxn-inventory mode)))
+        finally
+          (notify learning-finished cxn-inventory)
+          (return cxn-inventory)))))
 
-(defun store-learned-grammar (combination &optional (grammar *test-grammar*))
+
+(defun store-learned-grammar (combination &optional (grammar test-grammar))
   "Stores the learned grammar using the configuration specified in 'updated-training-config' for the given 'parameter'
    in a file with a name specified in 'config-file-name' and path"
     (cl-store:store grammar (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "grammars-parameter")
                                 :name (format nil "~a~a" combination "-grammar")
                                 :type "fcg")))
 
-(defun adjust-training-configuration (updated-parameter parameter &optional (training-configuration *training-configuration-new*))
-  "Adjusts the value of 'parameter' in the 'training-configuration' to 'updated-parameter'"
-  (let ((updated-config training-configuration))
-    (loop for (key . value) in updated-config
-      when (eq key parameter)
-        do (setf (cdr (assoc key updated-config)) (if (listp updated-parameter) updated-parameter (list updated-parameter))))
+
+(defun adjust-training-configuration (updated-parameters &optional (training-configuration *training-configuration-new*))
+  "Adjusts the given training configuration with the updated parameters."
+  (let ((updated-config (copy-list training-configuration)))
+    (dolist (parameter updated-parameters)
+      (loop for (key . value) in updated-config
+            when (eq key (car parameter))
+            do (setf (cdr (assoc key updated-config)) (if (listp (cdr parameter)) (cdr parameter) (list (cdr parameter))))))
     updated-config))
 
-(defun filter-combinations (combinations parameters-to-include)
-  (remove-if-not (lambda (combination)
-                   (every (lambda (param) (member param combination))
-                           parameters-to-include))
-                 combinations))
+(defun filter-combinations (combinations &key parameters-to-include parameters-to-exclude)
+  (remove-if (lambda (combination)
+               (let ((flattened-combination (flatten combination)))
+                 (or (and parameters-to-include
+                          (some (lambda (include)
+                                  (not (every (lambda (param) (member param flattened-combination)) include)))
+                                parameters-to-include))
+                     (and parameters-to-exclude
+                          (some (lambda (exclude)
+                                  (every (lambda (param) (member param flattened-combination)) exclude))
+                                parameters-to-exclude)))))
+             combinations))
 
-(defun combinations-parameter (parameter &optional (training-configuration *training-configuration-all*))
+(defun all-combinations-parameters (parameters &optional (training-configuration *training-configuration-all*))
   "Returns all possible combinations of values for the given 'parameter' from 'training-configuration'"
-  (let ((collected-parameter (collect-training-parameter parameter training-configuration)))
-    (let ((values-parameter (extract-values-parameter collected-parameter)))
-      (let ((comb-parameters (get-combinations-parameter values-parameter)))
-        comb-parameters))))
+  (let ((hash-table-combinations (combinations-parameters parameters training-configuration)))
+    (let ((list-of-all-combinations-parameters (make-combinations-from-ht hash-table-combinations)))
+      list-of-all-combinations-parameters)))
+
+(defun make-combinations-from-ht (ht)
+  "Returns a list of all possible combinations of the values associated with the keys in a given hash table."
+  (let ((keys (hash-table-keys ht)))
+    (let ((values (mapcar #'(lambda (k) (gethash k ht)) keys)))
+      (loop for values-combination in (apply #'cartesian-product values)
+            collect (loop for i from 0 below (length keys)
+                          collect (cons (nth i keys) (nth i values-combination)))))))
+
+(defun combinations-parameters (parameters &optional (training-configuration *training-configuration-all*))
+  "Returns all possible combinations of values for the given 'parameter' from 'training-configuration'"
+  (let ((collected-parameters (collect-training-parameters parameters training-configuration)))
+    (let ((hash-table-combinations-parameters (create-combinations-hash-table collected-parameters)))
+      hash-table-combinations-parameters)))
+
+(defun create-combinations-hash-table (data)
+  "Creates a hash table with the specified keys and values."
+  (let ((ht (make-hash-table)))
+    (dolist (item data)
+      (let ((key (car item))
+            (values (cdr item)))
+        (setf (gethash key ht) (get-combinations-parameter values))))
+    ht))
+
+(defun hash-table-keys (hash-table)
+  (loop for key being the hash-keys in hash-table
+        collect key))
 
 (defun get-combinations-parameter (input-list)
   "Returns all possible combinations of a given input list."
@@ -218,17 +292,18 @@
         (maphash (lambda (k v) (push k result-list)) result)
         (sort (sort result-list #'(lambda (a b) (< (length a) (length b)))) #'(lambda (a b) (string< (prin1-to-string a) (prin1-to-string b))))))))
 
-
-(defun extract-values-parameter (parameter)
-  "Extracts the values of a given parameter."
-  (loop for value in (car parameter)
-        collect value))
+(defun collect-training-parameters (training-parameters &optional (training-configuration *training-configuration-all*))
+  "Collects multiple training parameters from a given training configuration."
+  (let ((collected-parameters '()))
+    (dolist (training-parameter training-parameters)
+      (setf collected-parameters (append (collect-training-parameter training-parameter training-configuration) collected-parameters)))
+    collected-parameters))
 
 (defun collect-training-parameter (training-parameter &optional (training-configuration *training-configuration-all*))
   "Collects the training parameter from a given training configuration."
   (loop for (key . value) in training-configuration
         when (eq key training-parameter)
-        collect value))
+        collect (cons training-parameter value)))
 
 
 
