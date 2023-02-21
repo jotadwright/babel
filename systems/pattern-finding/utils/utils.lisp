@@ -43,9 +43,10 @@
       (1- (length (contributing-part cxn))))))
 
 (defun count-non-zero-holophrases (grammar)
-  (count-if (compose #'holophrase-cxn-p
-                     #'routine-cxn-p
-                     #'non-zero-cxn-p)
+  (count-if #'(lambda (cxn)
+                (and (holophrase-cxn-p cxn)
+                     (routine-cxn-p cxn)
+                     (non-zero-cxn-p cxn)))
             (constructions grammar)))
 
 
@@ -267,7 +268,9 @@
           when (identical-holistic-cxn-p form meaning form-args meaning-args cxn)
           return cxn)))
 
-(defun identical-item-based-cxn-p (form meaning top-lvl-form-args top-lvl-meaning-args slot-form-args slot-meaning-args cxn)
+(defun identical-item-based-cxn-p (form meaning top-lvl-form-args top-lvl-meaning-args
+                                   slot-form-args slot-meaning-args cxn
+                                   &key (allow-args-reordering t))
   (destructuring-bind (top-lvl-args slot-args) (extract-args-item-based-cxn cxn)
     (let ((equivalent-form-meaning-and-top-lvl-args
            (and (equivalent-irl-programs? form (extract-form-predicates cxn))
@@ -279,15 +282,22 @@
                 (equivalent-networks-and-args? form (extract-form-predicates cxn) top-lvl-form-args (first top-lvl-args))
                 (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) top-lvl-meaning-args (second top-lvl-args)))))
       (when equivalent-form-meaning-and-top-lvl-args
-        (let (reordered-slot-form-args reordered-slot-meaning-args)
-          (loop for candidate-args in (reverse (permutations-of-length slot-form-args (length slot-form-args)))
-                when (equivalent-networks-and-args? form (extract-form-predicates cxn) candidate-args (first slot-args))
-                do (setf reordered-slot-form-args candidate-args) and return nil)
-          (loop for candidate-args in (reverse (permutations-of-length slot-meaning-args (length slot-meaning-args)))
-                when (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) candidate-args (second slot-args))
-                do (setf reordered-slot-meaning-args candidate-args) and return nil)
-          (when (and reordered-slot-form-args reordered-slot-meaning-args)
-            (values t reordered-slot-form-args reordered-slot-meaning-args)))))))
+        (if allow-args-reordering
+          (let (reordered-slot-form-args reordered-slot-meaning-args)
+            (loop for candidate-args in (reverse (permutations-of-length slot-form-args (length slot-form-args)))
+                  when (equivalent-networks-and-args? form (extract-form-predicates cxn) candidate-args (first slot-args))
+                  do (setf reordered-slot-form-args candidate-args) and return nil)
+            (loop for candidate-args in (reverse (permutations-of-length slot-meaning-args (length slot-meaning-args)))
+                  when (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) candidate-args (second slot-args))
+                  do (setf reordered-slot-meaning-args candidate-args) and return nil)
+            (when (and reordered-slot-form-args reordered-slot-meaning-args)
+              (values t reordered-slot-form-args reordered-slot-meaning-args)))
+          (let ((equivalent-networks-and-args
+                 (and (equivalent-networks-and-args? form (extract-form-predicates cxn) slot-form-args (first slot-args))
+                      (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) slot-meaning-args (second slot-args)))))
+            (when equivalent-networks-and-args
+              (values t nil nil))))))))
+                      
 
 (defun find-identical-item-based-cxn (form meaning top-lvl-form-args top-lvl-meaning-args slot-form-args slot-meaning-args cxn-inventory)
   "Find a routine item-based cxn that is identical to the given form, meaning, and args"
@@ -298,7 +308,8 @@
                                                   (constructions cxn-inventory))))))
     (loop for cxn in candidate-cxns
           when (identical-item-based-cxn-p form meaning top-lvl-form-args top-lvl-meaning-args
-                                           slot-form-args slot-meaning-args cxn)
+                                           slot-form-args slot-meaning-args cxn
+                                           :allow-args-reordering nil)
           return cxn)))
 
 

@@ -1,3 +1,4 @@
+(in-package :propbank-grammar)
 
 (defun simulated-annealing-plots (initial-params list-of-combinations &key (temperature 1000) (cooling-rate 0.95) (steps 16) (train-set *train-corpus*) (dev-set *dev-corpus*))
   "Uses simulated annealing to optimize the parameters for a given evaluation function."
@@ -81,10 +82,17 @@
 
 (defun store-f1-params (f1-scores-params temperature cooling-rate steps train-set-size test-set-size)
   (let ((file-name (format nil "f1-scores-params-temp~A-cool~A-steps~A-train~A-dev~A" temperature cooling-rate steps train-set-size test-set-size)))
-    (cl-store:store f1-scores-params
+        (cl-store:store f1-scores-params
                     (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "predictions-parameter")
                                     :name file-name
-                                    :type "store"))))
+                                    :type "store"))
+    (with-open-file (stream (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "predictions-parameter")
+                                          :name file-name
+                                          :type "csv")
+                         :direction :output
+                         :if-exists :supersede)
+      (loop for (params . score) in f1-scores-params
+            do (format stream "~A,~A~%" (format nil "~{~A~^,~}" params) score)))))
 
 
 (defun simulated-annealing (initial-params list-of-combinations &optional (temperature 1000) (cooling-rate 0.95) (steps 20))
@@ -113,19 +121,19 @@
       (format t "Step ~a: temperature = ~a, best score = ~a, best parameters = ~a~% " step temperature best-score best-params))
     best-params))
 
-(defun learn-predict-evaluate-sa (current-combination &optional (old-training-configuration *training-configuration-all*) (new-training-configuration *training-configuration-new*) (train-corpus *train-corpus*))
-  "Evaluates a PropBank grammar using specified parameters, training configurations and corpus."  
-  (let ((new-training-configuration (copy-list old-training-configuration)))
+(defun learn-predict-evaluate-sa (current-combination &optional (old-training-configuration *training-configuration-all*) (new-training-configuration training-configuration-new) (train-corpus *train-corpus*))
+  "Evaluates a PropBank grammar using specified parameters, training configurations and corpus."
+  (let ((new-training-configuration (copy-list old-training-configuration))
+        (test-grammar nil))
     (let ((updated-training-config (adjust-training-configuration current-combination new-training-configuration)))
       (format t "Running configuration: ~A~%" updated-training-config)
       (learn-propbank-grammar-roles
-             train-corpus
-             :cxn-inventory '*test-grammar*
+             *train-corpus*
+             :cxn-inventory 'test-grammar
              :fcg-configuration updated-training-config)
       (store-learned-grammar current-combination)
-      (let ((predictions-comprehend (comprehend-propbank-corpus-parameters *test-grammar* current-combination)))
+      (let ((predictions-comprehend (comprehend-propbank-corpus-parameters test-grammar current-combination)))
         (evaluate-predictions-f1 predictions-comprehend)))))
-
 
 (defun random-neighbour (current-parameter list-of-combinations-parameters &optional used-parameters)
   "Generates a random near neighbour of the given parameters."

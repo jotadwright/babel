@@ -125,14 +125,19 @@
             (store-learned-grammar combination)
             (comprehend-propbank-corpus-parameters *test-grammar* combination)))))))
 
-
 (defun comprehend-propbank-corpus-parameters (cxn-inventory combination &optional (list-of-propbank-sentences *dev-corpus*) &key (output-file nil) (timeout 60) (silent t))
   "Make predictions for a PropBank grammar using specified parameters, training configurations and corpus."
-  (let ((predictions nil)
+  (let* ((predictions nil)
+        (filename (format nil "~a-prediction" combination))
         (output-file (or output-file
                          (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "predictions-parameter")
-                                         :name (format nil "~a~a" combination "-predictions")
-                                         :type "store"))))
+                                         :name filename
+                                         )))
+         (pathname-string (namestring output-file))
+         (pathname-length (length pathname-string))
+         (pathname-cutoff (min pathname-length 255))
+         (output-file (subseq pathname-string 0 pathname-cutoff))
+         (output-file (format nil (format nil "~a~a" output-file ".store"))))
     (loop for sentence in list-of-propbank-sentences
           for sentence-number from 1
           do (format t "~%Sentence ~a: ~a" sentence-number (sentence-string sentence))
@@ -188,7 +193,7 @@
                                 :hashed t))))
     
     (set-data (blackboard cxn-inventory) :training-corpus-size 0)
-(let ((excluded-rolesets (mapcar (lambda (roleset) (format nil "~a" roleset)) (get-configuration cxn-inventory :excluded-rolesets))))
+(let ((excluded-rolesets (mapcar (lambda (roleset) (format nil "~a" roleset)) (deepest-level (get-configuration test-grammar :excluded-rolesets)))))
   (loop for sentence in list-of-propbank-sentences
         for sentence-number from 1
         for training-corpus-size = (get-data (blackboard cxn-inventory) :training-corpus-size)
@@ -214,14 +219,27 @@
           (notify learning-finished cxn-inventory)
           (return cxn-inventory)))))
 
+(defun deepest-level (lst &optional (result '()))
+  (cond
+    ((null lst) result)
+    ((listp (first lst))
+     (append (deepest-level (first lst) result)
+             (deepest-level (rest lst) result)))
+    (t (deepest-level (rest lst) (cons (first lst) result)))))
 
-(defun store-learned-grammar (combination &optional (grammar *test-grammar*))
+(defun store-learned-grammar (combination &optional (grammar test-grammar))
   "Stores the learned grammar using the configuration specified in 'updated-training-config' for the given 'parameter'
    in a file with a name specified in 'config-file-name' and path"
-    (cl-store:store grammar (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "grammars-parameter")
-                                :name (format nil "~a~a" combination "-grammar")
-                                :type "fcg")))
-
+  (let* ((filename (format nil "~a~a" combination "-grammar"))
+         (pathname (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "grammars-parameter")
+                                   :name filename
+                                   ))
+         (pathname-string (namestring pathname))
+         (pathname-length (length pathname-string))
+         (pathname-cutoff (min pathname-length 251))
+         (pathname (subseq pathname-string 0 pathname-cutoff))
+         (pathname (format nil (format nil "~a~a" pathname ".fcg"))))
+    (cl-store:store grammar pathname)))
 
 (defun adjust-training-configuration (updated-parameters &optional (training-configuration *training-configuration-new*))
   "Adjusts the given training configuration with the updated parameters."
