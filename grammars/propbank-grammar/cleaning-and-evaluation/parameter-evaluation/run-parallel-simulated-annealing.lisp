@@ -13,6 +13,11 @@
                       '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation")
                       :name "parallel-simulated-annealing" :type "lisp"))
 
+;; Activating spacy-api locally
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(setf nlp-tools::*penelope-host* "http://127.0.0.1:5000")
+
 ;; Loading the Propbank annotations (takes a couple of minutes)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -35,9 +40,9 @@
 (defparameter *dev-corpus* (subseq (shuffle (append (dev-split *ontonotes-annotations*)
                                               (dev-split *ewt-annotations*))) 0 50))
 
-(defparameter *train-corpus* (subseq (shuffle (train-split *ewt-annotations*)) 10000))
+(defparameter *train-corpus* (subseq (shuffle (train-split *ewt-annotations*)) 0 12000))
 
-(defparameter *dev-corpus* (subseq (shuffle (dev-split *ewt-annotations*)) 0 20))
+(defparameter *dev-corpus* (subseq (shuffle (dev-split *ewt-annotations*)) 0 50))
 
 ;; Setting the globals
 ;;;;;;;;;;;;;;;;;;;;;;
@@ -75,8 +80,9 @@
      :argm-sbar
      :argm-phrase-with-string)
     (:excluded-rolesets
-     :be.01 :be.02 :be.03
-     :have.01 :have.02 :have.03)))
+     ((:be.01 :be.02 :be.03))
+     ((:have.01 :have.02 :have.03 :have.04 :have.05 :have.06 :have.07 :have.08 :have.09 :have.10 :have.11))
+     ((:get.03 :get.06 :get.24)))))
 
 ; (:excluded-rolesets
 ;      :be.01 :be.02 :be.03
@@ -95,11 +101,11 @@
 
 ;; filter that list to only include combinations with certain parameters
 (setf filtered-combinations (filter-combinations combinations-parameters
-                                         :parameters-to-exclude '((:FREQUENCY :EDGE-WEIGHT :PREFER-LOCAL-BINDINGS) (:nr-of-units-matched-x2 :nr-of-units-matched))
+                                         :parameters-to-exclude '((:FREQUENCY :EDGE-WEIGHT :PREFER-LOCAL-BINDINGS) (:nr-of-units-matched-x2 :nr-of-units-matched) (:FREQUENCY :EDGE-WEIGHT) (:FREQUENCY :PREFER-LOCAL-BINDINGS) (:EDGE-WEIGHT :PREFER-LOCAL-BINDINGS))
                                          :parameters-to-include '((:NR-OF-APPLIED-CXNS :CORE-ROLES))))
 
-;; use simulated annealing to explore the search space of the list of combinations. Steps indicate how many configurations it will learn and predict.
-(parallel-simulated-annealing-plots '((:LEARNING-MODES :CORE-ROLES) (:EXCLUDED-ROLESETS) (:HEURISTICS :NR-OF-APPLIED-CXNS :NR-OF-UNITS-MATCHED)) filtered-combinations :num-threads 4 :steps 20)
+;; use simulated annealing to explore the search space of the list of combinations. Steps indicate how many configurations it will learn and predict in every thread.
+(parallel-simulated-annealing-plots '((:EXCLUDED-ROLESETS) (:LEARNING-MODES :CORE-ROLES) (:HEURISTICS :NR-OF-APPLIED-CXNS)) filtered-combinations :num-threads 4 :steps 4)
 
 
 
