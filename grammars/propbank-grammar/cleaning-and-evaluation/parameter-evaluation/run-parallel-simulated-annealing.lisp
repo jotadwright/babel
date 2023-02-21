@@ -28,21 +28,8 @@
 (defparameter *train-corpus* (shuffle (append (train-split *ontonotes-annotations*)
                                               (train-split *ewt-annotations*))))
 
-(defparameter *dev-corpus* (shuffle (append (dev-split *ontonotes-annotations*)
-                                             (dev-split *ewt-annotations*))))
-                        
-(defparameter *test-corpus* (shuffle (append (test-split *ontonotes-annotations*)
-                                             (test-split *ewt-annotations*))))
-
-(defparameter *train-corpus* (subseq (shuffle (append (train-split *ontonotes-annotations*)
-                                              (train-split *ewt-annotations*))) 0 25000))
-
 (defparameter *dev-corpus* (subseq (shuffle (append (dev-split *ontonotes-annotations*)
-                                              (dev-split *ewt-annotations*))) 0 50))
-
-(defparameter *train-corpus* (subseq (shuffle (train-split *ewt-annotations*)) 0 12000))
-
-(defparameter *dev-corpus* (subseq (shuffle (dev-split *ewt-annotations*)) 0 50))
+                                              (dev-split *ewt-annotations*))) 0 2000))
 
 ;; Setting the globals
 ;;;;;;;;;;;;;;;;;;;;;;
@@ -105,7 +92,7 @@
                                          :parameters-to-include '((:NR-OF-APPLIED-CXNS :CORE-ROLES))))
 
 ;; use simulated annealing to explore the search space of the list of combinations. Steps indicate how many configurations it will learn and predict in every thread.
-(parallel-simulated-annealing-plots '((:EXCLUDED-ROLESETS) (:LEARNING-MODES :CORE-ROLES) (:HEURISTICS :NR-OF-APPLIED-CXNS)) filtered-combinations :num-threads 4 :steps 4)
+(parallel-simulated-annealing-plots '((:HEURISTICS :NR-OF-APPLIED-CXNS) (:LEARNING-MODES :CORE-ROLES) (:EXCLUDED-ROLESETS)) filtered-combinations :num-threads 10 :steps 100)
 
 
 
