@@ -4,7 +4,7 @@
 
 (defpackage :intention-reading
   (:documentation "Tutor-learner experiment to learn the clevr grammar")
-  (:use :common-lisp :utils :experiment-framework
+  (:use :common-lisp :common-lisp-user :utils :experiment-framework
         :plot-raw-data :monitors :web-interface
         :tasks-and-processes :meta-layer-learning
         :irl :fcg :clevr-world)
