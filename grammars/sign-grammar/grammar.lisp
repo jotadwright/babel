@@ -202,8 +202,6 @@
 ;; A classifier is placed on the left (first a noun is signed, followed by a classifier with the same referent that is placed
 ;; left in the signing space by a downwards movement and an eye-gaze). The form of the classifier is defined by the lexical sign for the noun
 
-
-
 (def-fcg-cxn CL-left-placement
              ((?placement-unit
                (placement left))
@@ -221,16 +219,22 @@
                --
                (syn-cat classifier)
                (orientation-boundary ?orif-1)
+               (movement-boundary ?movf-1)
+               (handshape-boundary ?hsf-1)
                (form ((SIGN ?SIGN-2)
                       (MANUAL ?SIGN-2 ?M-1)))
                (hash form
                       ((NON-MANUAL ?SIGN-2 ?NM-1)
                        (EYEGAZE ?NM-1 "LD")
+                       (SYMMETRY ?M-1 ?SYM-1)
+                       (HAMNONDOMINANT ?SYM-1 ?SYMF-1)
                        (LOCATION ?M-1 ?LOC-1)
                        (HAMLRAT ?LOC-1 ?LOCF-1)
                        (HAMCHEST ?LOC-1 ?LOCF-2)
+                       (MEETS ?SYMF-2 ?HSF-1)
                        (MEETS ?ORIF-1 ?LOCF-1)
-                       (MEETS ?LOCF-1 ?LOCF-2))))))
+                       (MEETS ?LOCF-1 ?LOCF-2)
+                       (MEETS ?LOCF-2 ?MOVF-1))))))
 
 ;; The same construction as before, but for the right location in signing space
 
@@ -251,6 +255,7 @@
                 --
                 (syn-cat classifier)
                 (orientation-boundary ?orif-1)
+                (movement-boundary ?movf-1)
                 (form ((SIGN ?SIGN-2)
                        (MANUAL ?SIGN-2 ?M-1)))
                 (hash form
@@ -260,7 +265,8 @@
                        (HAMCHEST ?LOC-1 ?LOCF-1)
                        (HAMLRAT ?LOC-1 ?LOCF-2)
                        (MEETS ?ORIF-1 ?LOCF-1)
-                       (MEETS ?LOCF-1 ?LOCF-2)))
+                       (MEETS ?LOCF-1 ?LOCF-2)
+                       (MEETS ?LOCF-2 ?MOVF-1)))
                 ))
                )
 
@@ -269,7 +275,8 @@
 
 (def-fcg-cxn CL-left-hold-cxn
              ((?hold-unit
-               (placement left))
+               (placement left)
+               (location-boundary ?locf-2))
               <-
               (?hold-unit
                (sem-cat ref-expression)
@@ -293,7 +300,8 @@
 
 (def-fcg-cxn CL-left-hold-2-cxn
              ((?hold-unit
-               (placement left))
+               (placement left)
+               (location-boundary ?locf-2))
               <-
               (?hold-unit
                (sem-cat ref-expression)
@@ -320,7 +328,8 @@
 
 (def-fcg-cxn CL-right-hold-cxn
               ((?hold-unit
-               (placement right))
+               (placement right)
+               (location-boundary ?locf-2))
                <-
                (?hold-unit
                 (sem-cat ref-expression)
@@ -350,12 +359,15 @@
                (subunits (?noun-unit ?classifier-unit))
                (referent ?r)
                (sem-cat ref-expression)
-               (syn-cat NP))
+               (syn-cat NP)
+               (boundaries ((leftmost-boundary ?sign-1)
+                            (rightmost-boundary ?sign-2))))
               (?classifier-unit
                (referent ?r)
                (sem-cat ref-expression)
                (orientation-boundary ?orif-1)
                (movement-boundary ?movf-1)
+               (handshape-boundary ?hsf-1)
                (syn-cat classifier)
                (handconfiguration ((handshape hamflathand)
                                   (extended-finger-direction hamextfingero)
@@ -443,7 +455,9 @@
                (subunits (?noun-unit ?classifier-unit))
                (referent ?r)
                (sem-cat ref-expression)
-               (syn-cat NP))
+               (syn-cat NP)
+               (boundaries ((leftmost-boundary ?sign-1)
+                            (rightmost-boundary ?sign-2))))
               (?classifier-unit
                (referent ?r)
                (handconfiguration ((handshape hamfinger2)
@@ -451,6 +465,7 @@
                                    (palm-orientation hampalml)))
                (sem-cat ref-expression)
                (orientation-boundary ?orif-1)
+               (handshape-boundary ?hsf-1)
                (movement-boundary ?movf-1)
                (syn-cat classifier))
               
@@ -542,11 +557,13 @@
                (syn-cat classifier)
                (handconfiguration ((handshape hamfinger2)
                                    (extended-finger-direction hamextfingeru)
-                                   (palm-orientation hampalml))))
+                                   (palm-orientation hampalml)))
+               (form ((sign ?sign-1))))
               (?movement-unit
+               --
                (hash form
-                     ((SIGN ?SIGN-1)
-                      (MANUAL ?SIGN-1 ?M-1)
+                     ((SIGN ?SIGN-2)
+                      (MANUAL ?SIGN-2 ?M-1)
                       (HANDSHAPE ?M-1 ?HS-1)
                       (HAMFINGER2 ?HS-1 ?HSF-1)
                       (EXTENDED-FINGER-DIRECTION ?M-1 ?EXT-1)
@@ -555,40 +572,62 @@
                       (HAMPALML ?ORI-1 ?ORIF-1)
                       (MOVEMENT ?M-1 ?MOV-1)
                       (MEETS ?HSF-1 ?EXTF-1)
-                      (MEETS ?EXTF-1 ?ORIF-1))))))
+                      (MEETS ?EXTF-1 ?ORIF-1)
+                      (MEETS ?SIGN-1 ?SIGN-2))))))
 
-(def-fcg-cxn CL-rl-movement-cxn
-             ((?movement-unit
-               (syn-cat clause)
+(def-fcg-cxn x-approaches-y-cxn
+             ((?approach-unit
+               (phrase-type clause)
                (sem-cat ref-expression)
-               (subunits (?ground-unit ?figure-unit)))
+               (subunits (?agent-placement-unit ?destionation-placement-unit)))
               <-
-              (?figure-unit
+              (?agent-unit
                (referent ?f)
                (sem-cat ref-expression)
                --
                (orientation-boundary ?orif-1)
+               (location-boundary ?locf-1)
                (syn-cat classifier)
                (placement right)
                (form ((sign ?sign-1)
                       (manual ?sign-1 ?m-1)
-                      (movement ?m-1 ?mov-1)))
-               (hash form
-                     ((hammovel ?mov-1 ?movf-1))))
-              (?ground-unit
+                      (movement ?m-1 ?mov-1)
+                      )))
+              (?agent-placement-unit
+               (referent ?f)
+               (sem-cat ref-expression)
+               --
+               (syn-cat NP)
+               (placement right)
+               (boundaries ((leftmost-boundary ?sign-4)
+                            (rightmost-boundary ?sign-5))))
+              (?destination-unit
                (referent ?g)
                (sem-cat ref-expression)
                --
                (syn-cat classifier)
                (placement left))
-                     
-              (?movement-unit
+              (?destionation-placement-unit
+               (referent ?g)
+               (sem-cat ref-expression)
+               --
+               (syn-cat NP)
+               (boundaries ((leftmost-boundary ?sign-2)
+                            (rightmost-boundary ?sign-3)))
+               (placement left))   
+              (?approach-unit
                (hash meaning
-                     ((move.01 ?m)
-                      (arg0 ?m ?f)
+                     ((approach.01 ?m)
+                      (arg1 ?m ?f)
                       (arg2 ?m ?g)))
                --
-               )))
+               (hash form
+                     ((hammovel ?mov-1 ?movf-1)
+                      (non-manual ?sign-1 ?nm-1)
+                      (eyegaze ?nm-1 "HC")
+                      (meets ?sign-3 ?sign-4)
+                      (meets ?locf-1 ?movf-1))))))
+
 
 ;;------------------------;;
 ;; Modifier constructions ;;
