@@ -14,7 +14,7 @@
            (applied-cxn (first (applied-constructions node)))
            (cxn-probability (rest
                              (assoc (name applied-cxn) distribution
-                                    :key #'(lambda (n) (intern (mkstr n) :clevr-grammar-v1))
+                                    :key #'(lambda (n) (intern (mkstr n) :clevr-grammar))
                                     :test #'equal))))
       cxn-probability)
     0))
@@ -57,7 +57,7 @@
       (let* ((distribution (get-data (parent node) :seq2seq-prediction))
              (applied-cxn (first (applied-constructions node)))
              (cxn-prob (cdr (assoc (name applied-cxn) distribution
-                                   :key #'(lambda (n) (intern (mkstr n) :clevr-grammar-v1))
+                                   :key #'(lambda (n) (intern (mkstr n) :clevr-grammar))
                                    :test #'equal))))
         (+ cxn-prob
            (priority (parent node))))

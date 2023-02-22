@@ -1,6 +1,6 @@
 ;;;; preprocess-utterance.lisp
 
-(in-package :clevr-grammar-v1)
+(in-package :clevr-grammar)
 
 (export '(preprocess-utterance))
 
