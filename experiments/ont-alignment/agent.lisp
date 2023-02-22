@@ -36,10 +36,17 @@
     :documentation "The query in query language")
    ))
 
-(defun create-agent-dico ()
+(defun create-dictionary-item ()
      "function to create a dictionary that stores qa-pairs and queries for an agent"
      (make-instance 'agent-dictionary
      ))
+
+(defun add-to-dictionary (question answer learner)
+  (setf item (create-dictionary-item))
+  (setf (question item) question)
+  (setf (answer item) answer)
+  (setf (query item) nil)
+)
 
 (defmethod make-ont-agents ((nb-of-agents integer)(experiment experiment))
   "method to create a population of agents"
@@ -49,12 +56,4 @@
                                              :id agent-id
                                              :query-lang "sql"))))
     (setf (agents experiment) agents)))
-
-(defun make-tutor-agent (experiment)
-  (make-instance 'spatial-agent :id 'tutor
-                 :experiment experiment))
-
-(defun make-learner-agent (experiment)
-  (make-instance 'spatial-agent :id 'learner
-                 :experiment experiment))
 

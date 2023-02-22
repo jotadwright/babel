@@ -21,13 +21,6 @@
     json-data))
 
 
-(defun add-to-dictionary (question answer learner)
-  (setf random (create-agent-dico))
-  (setf (question random) question)
-  (setf (answer random) answer)
-  (setf (query random) nil)
-  )
-
 ;-----------------------;
 ;core of the experiment:;
 ;----the interaction----;
@@ -37,7 +30,7 @@
 
 (defmethod initialize-instance :after ((experiment ont-alignment-experiment) &key)
   "creates new instances"
-  (setf (agents experiment) (make-ont-agents 5 experiment)))
+  (setf (agents experiment) (make-ont-agents 3 experiment)))
 
 (defmethod interact ((experiment ont-alignment-experiment) (interaction interaction) &key)
   "main function of the experiment : create an interaction between two agents chosen randomly out the population"
@@ -53,6 +46,9 @@
     ;3-if it doesn't know the answer, the tutor reveals it and the learner stocks it
       (push (add-to-dictionary (car (qa-pair tutor)) (cadr (qa-pair tutor)) learner) (dictionary learner)))
     ;4-the learner tries to reconstruct a query leading to the same answer
-    ;first it connects to the desired db
-    (connecting-to-db learner "db2" "db2_actors_films_simple_table.db")
+    ;first it connects to the desired db if it is not already the case
+    (if (= (interaction-number interaction) 1)
+      (connecting-to-db learner "db2" "db2_actors_films_simple_table.db")
+      (setf (personal-db agent) "db2"))
+    ;5-the learner tries to reconstruct a query to get to the answer
     ))
