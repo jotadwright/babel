@@ -48,7 +48,7 @@
     ;4-the learner tries to reconstruct a query leading to the same answer
     ;first it connects to the desired db if it is not already the case
     (if (= (interaction-number interaction) 1)
-      (connecting-to-db learner "db2" "db2_actors_films_simple_table.db")
-      (setf (personal-db agent) "db2"))
+      (connecting-to-db learner "db2" "db2_actors_films_simple_table.db"))
     ;5-the learner tries to reconstruct a query to get to the answer
+    (try-queries-until-success "actorsfilms" (cadr (qa-pair tutor))) ;"SELECT value FROM actorsfilms WHERE value  = answer"
     ))
