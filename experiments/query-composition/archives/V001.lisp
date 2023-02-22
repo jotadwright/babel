@@ -34,24 +34,26 @@
                         (progn
                           (push (q child-node) queries)))
                       (setf queue (push-end child-node queue))))))))
-            (if (not (equal (depth parent) 0))
+            (if (equal (depth parent) 1)
               (progn
-                (let ((attrs '()))
+                (let ((list-of-perm '())
+                      (exclude-id-attrs (remove-if #'(lambda (item) (equal (name item) "id")) (attributes (tble parent)))))
                   (if exclude-id
-                    (setf attrs (remove-if #'(lambda (item) (equal (name item) "id")) (attributes (tble parent))))
-                    (setf attrs (attributes (tble parent))))
-                  (dolist (attr attrs)
-                    (let ((result (flatten (query (concatenate 'string "SELECT " (name attr) " FROM " (name (tble parent)))))))
-                      (dolist (val result)
+                    (setf list-of-perm (permutations-of-length exclude-id-attrs (length exclude-id-attrs)))
+                    (setf list-of-perm (permutations-of-length (attributes (tble parent)) (length (attributes (tble parent))))))
+                  (dolist (perm list-of-perm)
+;get data from the query
+                    (let ((result (flatten (query (concatenate 'string "SELECT " (name (first perm)) " FROM " (name (tble parent)))))))
+;iterate the result value and the operators
+                      (dolist (value result)
                         (dolist (operator list-of-operator)
-                          (if (equal (depth parent) 1)
-                            (progn
-                              (let ((child-node (where-node id parent (name attr) operator val '())))
-                                (setf id (+ id 1))
-                                (setf (children parent) (push child-node (children parent)))
-                                (setf queue (push-end child-node queue))
-                                (if (goal-test answer child-node)
-                                  (push (q child-node) queries))))))))))))
+                          (let ((child-node (where-node id parent (name (first perm)) operator value (cdr perm))))
+                            (setf id (+ id 1))
+                            (setf (children parent) (push child-node (children parent)))
+                            (setf queue (push-end child-node queue))
+                            (if (goal-test answer child-node)
+                              (progn
+                                (push (q child-node) queries)))))))))))
             (if (> (depth parent) 1)
               (progn
                 (let ((results (flatten (query (concatenate 'string "SELECT " (name (first (attrs parent))) " FROM " (name (tble parent)))))))
@@ -91,15 +93,3 @@
       t)))
 
 (setf list-of-operator '("<" ">" "<=" ">=" "!=" "="))
-
-
-;(defun timed-instruction (instruction)
-;  (let ((start-time (get-internal-real-time)))
-;    (write start-time)
-;    (query "SELECT * FROM continent where name='Africa'")
-;    (let ((end-time (get-internal-real-time)))
-;      (write end-time)
-;      (setf elapsed-time (- end-time start-time)))
-;    elapsed-time))
-
-;(timed-instruction 'test)
