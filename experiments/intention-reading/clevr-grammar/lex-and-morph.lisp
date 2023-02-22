@@ -318,7 +318,7 @@
   ;; since a lex cxn for a shape is different than for a color.
   ;; Additionally, there will be a generic 'thing-cxn' that is similar
   ;; to a shape. This is added manually in the end.
-  (let* ((metadata-file (babel-pathname :directory '("grammars" "clevr-grammar" "data")
+  (let* ((metadata-file (babel-pathname :directory '("grammars" "clevr-grammar-v1" "data")
                                         :name "metadata" :type "json"))
          (metadata (decode-json-from-source metadata-file))
          (metadata-types (cdr (assoc :types metadata))))
@@ -349,7 +349,7 @@
   ;; Also, metadata.json contains 'cylinder' as a shape, but there are
   ;; no synonyms specified in synonyms.json. So, we add the morph cxns
   ;; for cylinder manually.
-  (let* ((synonyms-file (babel-pathname :directory '("grammars" "clevr-grammar" "data")
+  (let* ((synonyms-file (babel-pathname :directory '("grammars" "clevr-grammar-v1" "data")
                                         :name "synonyms" :type "json"))
          (synonyms (decode-json-from-source synonyms-file)))
     (loop for (key . list-of-synonyms) in synonyms

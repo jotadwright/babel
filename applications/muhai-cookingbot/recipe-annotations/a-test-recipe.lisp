@@ -12,76 +12,7 @@
 ;; ##################################################################
 
 ;; Defining the initial kitchen state
-(defparameter *initial-kitchen-state*
-  (make-instance
-   'kitchen-state
-   :contents
-   (list (make-instance 'fridge
-                        :contents (list (make-instance 'medium-bowl
-                                                       :contents (list (make-instance 'butter
-                                                                                      :temperature
-                                                                                      (make-instance 'amount
-                                                                                                     :unit (make-instance 'degrees-celsius)
-                                                                                                     :quantity (make-instance 'quantity
-                                                                                                                              :value 5))
-                                                                                      :amount
-                                                                                      (make-instance 'amount
-                                                                                                     :unit (make-instance 'g)
-                                                                                                     :quantity (make-instance 'quantity
-                                                                                                                              :value 500)))))))
-         (make-instance 'pantry
-                        :contents (list (make-instance 'medium-bowl
-                                                       :contents (list (make-instance 'white-sugar :amount
-                                                                                      (make-instance 'amount
-                                                                                                     :unit (make-instance 'g)
-                                                                                                     :quantity (make-instance 'quantity
-                                                                                                                              :value 1000)))))
-                                        (make-instance 'medium-bowl
-                                                       :contents (list (make-instance 'vanilla-extract :amount
-                                                                                      (make-instance 'amount
-                                                                                                     :unit (make-instance 'g)
-                                                                                                     :quantity (make-instance 'quantity
-                                                                                                                              :value 100)))))
-                                        (make-instance 'medium-bowl
-                                                       :contents (list (make-instance 'almond-extract :amount
-                                                                                      (make-instance 'amount
-                                                                                                     :unit (make-instance 'g)
-                                                                                                     :quantity (make-instance 'quantity
-                                                                                                                              :value 100)))))
-                                        (make-instance 'medium-bowl
-                                                       :contents (list (make-instance 'all-purpose-flour :amount
-                                                                                      (make-instance 'amount
-                                                                                                     :unit (make-instance 'g)
-                                                                                                     :quantity (make-instance 'quantity
-                                                                                                                              :value 1000)))))
-                                        (make-instance 'medium-bowl
-                                                       :contents (list (make-instance 'almond-flour :amount
-                                                                                      (make-instance 'amount
-                                                                                                     :unit (make-instance 'g)
-                                                                                                     :quantity (make-instance 'quantity
-                                                                                                                              :value 1000)))))
-                                        (make-instance 'medium-bowl
-                                                       :contents (list (make-instance 'powdered-white-sugar :amount
-                                                                                      (make-instance 'amount
-                                                                                                     :unit (make-instance 'g)
-                                                                                                     :quantity (make-instance 'quantity
-                                                                                                                              :value 500)))))))
-         (make-instance 'kitchen-cabinet
-                        :contents (list
-                                   ;; bowls
-                                   (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
-                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
-                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
-                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
 
-                                   ;; tools
-                                   (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
-                                   (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
-                                   (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
-
-                                   ;; baking equipment
-                                   (make-instance 'baking-tray)
-                                   (make-instance 'baking-paper))))))
 
 
 (defparameter *almond-cookies-recipe*
@@ -100,10 +31,6 @@
     (transfer-contents ?to-mix ?rest-2 ?kitchen-5 ?kitchen-4 ?output-1 ?proportioned-sugar ?quantity-2 ?unit-2)
 
     (mix ?container-with-dough ?kitchen-6 ?kitchen-5 ?to-mix ?mixture-tool)
-
-    (fetch ?fetched-baking-tray ?kitchen-7 ?kitchen-6 baking-tray 1)
-
-    (fetch ?fetched-baking-paper ?kitchen-8 ?kitchen-7 baking-paper 1)
 
     (line ?lined-baking-tray ?kitchen-9 ?kitchen-8 ?fetched-baking-tray ?fetched-baking-paper)
 

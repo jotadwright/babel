@@ -29,15 +29,17 @@
                               (:sort-data-p . nil)
                               (:remove-duplicate-data-p . t)))))
 
-(run-series *experiment* 50)
+(length (question-data *experiment*))
+(run-series *experiment* 100)
 
 (defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
-;(add-element (make-html *cxn-inventory*))
+(add-element (make-html *cxn-inventory*))-
 (add-element (make-html (categorial-network (grammar (first (agents *experiment*))))))
 
 (run-interaction *experiment*)
 (loop repeat 800 do (run-interaction *experiment*))
 (go-back-n-interactions *experiment* 1)
+(remove-cxns-learned-at *experiment* 6)
 
 (comprehend-all "Are any spheres visible?"
                 :cxn-inventory *cxn-inventory*
@@ -49,3 +51,15 @@
 (defun go-back-n-interactions (experiment n)
   (setf (interactions experiment)
         (subseq (interactions experiment) n)))
+
+(defun remove-cxns-learned-at (experiment at)
+  (let ((learned-at-cxns
+         (find-all-if #'(lambda (cxn)
+                          (string= (format nil "@~a" at)
+                                   (attr-val cxn :learned-at)))
+                      (constructions (grammar (learner experiment))))))
+    (loop with grammar = (grammar (learner experiment))
+          for cxn in learned-at-cxns
+          for alter-ego-cxn = (alter-ego-cxn cxn grammar)
+          do (delete-cxn (name cxn) grammar :key #'name)
+             (delete-cxn (name alter-ego-cxn) grammar :key #'name))))
