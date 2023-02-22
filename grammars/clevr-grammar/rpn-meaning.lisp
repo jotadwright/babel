@@ -1,4 +1,4 @@
-(in-package :clevr-grammar-v1)
+(in-package :clevr-grammar)
 
 (defun all-linked-predicates (predicate var irl-program)
   "Find the next predicate, given a variable"

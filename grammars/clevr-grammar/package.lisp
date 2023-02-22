@@ -2,7 +2,7 @@
 
 (in-package :cl-user)
 
-(defpackage :clevr-grammar-v1
+(defpackage :clevr-grammar
   (:documentation "FCG grammar for CLEVR dataset with IRL primitives")
   (:use :common-lisp :utils :fcg :clevr-world :clevr-primitives)
   (:import-from :monitors
