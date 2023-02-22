@@ -55,3 +55,7 @@
 
 (defun concat-array (array)
   (concatenate 'string "" (first array)))
+
+
+(defun push-end (item lst)
+  (setf lst (append lst (list item))))

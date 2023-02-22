@@ -1,10 +1,17 @@
 (in-package :qc)
 
-(defun query-generator (queue tree answer &optional tables)
+;; PARAMS
+;; queue: list of nodes to expand.
+;; tree: object named tree containing all the nodes created.
+;; answer: answer is the expected answer to validate the goal test.
+;; tables: schema of your database.
+;; KEYS
+;; exclude-id: exclusion of the id attributes in the where clause.
+(defun query-generator (queue tree answer &optional tables &key exclude-id)
+  "This function loops on a Queue and generates different queries according to a syntactic order corresponding to the SQL language. Once the goal-test has been validated, the positive query will be returned."
   (let ((queries '()) 
         (id 1))
     (loop
-        named search
         until (not queue)
         for parent = (pop queue)
         do
@@ -25,10 +32,14 @@
                         (progn
                           (push (q child-node) queries)
                           (return-from query-generator (q child-node))))
-                      (push child-node queue)))))))
+                      (setf queue (push-end child-node queue))))))))
             (if (equal (depth parent) 1)
               (progn
-                (let ((list-of-perm (permutations-of-length (attributes (tble parent)) (length (attributes (tble parent))))))
+                (let ((list-of-perm '())
+                      (exclude-id-attrs (remove-if #'(lambda (item) (equal (name item) "id")) (attributes (tble parent)))))
+                  (if exclude-id
+                    (setf list-of-perm (permutations-of-length exclude-id-attrs (length exclude-id-attrs)))
+                    (setf list-of-perm (permutations-of-length (attributes (tble parent)) (length (attributes (tble parent))))))
                   (dolist (perm list-of-perm)
 ;get data from the query
                     (let ((result (flatten (query (concatenate 'string "SELECT " (name (first perm)) " FROM " (name (tble parent)))))))
@@ -38,10 +49,11 @@
                           (let ((child-node (where-node id parent (name (first perm)) operator value (cdr perm))))
                             (setf id (+ id 1))
                             (setf (children parent) (push child-node (children parent)))
-                            (push child-node queue)
+                            (setf queue (push-end child-node queue))
                             (if (goal-test answer child-node)
                               (progn
-                                (push (q child-node) queries)))))))))))
+                                (push (q child-node) queries)
+                                (return-from query-generator (q child-node))))))))))))
             (if (> (depth parent) 1)
               (progn
                 (let ((results (flatten (query (concatenate 'string "SELECT " (name (first (attrs parent))) " FROM " (name (tble parent)))))))
@@ -52,14 +64,19 @@
                         (setf (children parent) (append (children parent) (list and-child or-child)))
                         (setf id (+ id 2))
                         (if (goal-test answer and-child)
-                          (push (q and-child) queries))
+                          (progn
+                            (push (q and-child) queries)
+                            (return-from query-generator (q and-child))))
                         (if (goal-test answer or-child)
-                          (push (q or-child) queries))
+                          (progn
+                            (push (q or-child) queries)
+                            (return-from query-generator (q or-child))))
                         (if (> (length (attrs parent)) 1)
                           (progn
-                            (push or-child queue)
-                            (push and-child queue))))))))))
+                            (setf queue (push-end or-child queue))
+                            (setf queue (push-end and-child queue)))))))))))
     queries))
+
        
        
 
@@ -78,3 +95,13 @@
 (setf list-of-operator '("<" ">" "<=" ">=" "!=" "="))
 
 
+;(defun timed-instruction (instruction)
+;  (let ((start-time (get-internal-real-time)))
+;    (write start-time)
+;    (query "SELECT * FROM continent where name='Africa'")
+;    (let ((end-time (get-internal-real-time)))
+;      (write end-time)
+;      (setf elapsed-time (- end-time start-time)))
+;    elapsed-time))
+
+;(timed-instruction 'test)

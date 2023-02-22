@@ -2,7 +2,7 @@
 
 (in-package :asdf)
 
-(defsystem #:clevr-grammar-v1
+(defsystem #:clevr-grammar
   :description "FCG grammar for CLEVR dataset"
   :author "EHAI <ehai@ai.vub.ac.be>"
   :maintainer "Jens Nevens <jens@ai.vub.ac.be>"
