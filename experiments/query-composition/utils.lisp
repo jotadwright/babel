@@ -1,3 +1,5 @@
+(in-package :qc)
+
 ; not empty
 (defun notempty (list)
   (not (null list)))
@@ -49,3 +51,7 @@
   (cond ((typep val 'integer)
          (return-from change-type (write-to-string val))))
   (return-from change-type val))
+
+
+(defun concat-array (array)
+  (concatenate 'string "" (first array)))

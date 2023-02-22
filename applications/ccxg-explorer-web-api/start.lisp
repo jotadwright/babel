@@ -1,4 +1,4 @@
-(in-package :propbank-english)
+(in-package :propbank-grammar)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                         ;;
