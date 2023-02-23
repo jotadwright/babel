@@ -11,8 +11,6 @@
 
 (disconnect-toplevel)
 
+(setup-database)
 
 
-(typep t 'boolean)
-
-(typep "t" 'string)
