@@ -39,8 +39,8 @@
          (learner (second interacting-agents)))
     ;1-the tutor choses a random question-answer pair
     (setf (qa-pair tutor) (pick-random-elem (read-json-data "experiments/ont-alignment/data/question_answer_pairs.json")))
-    (format t "The tutor is ~d and the learner is ~d." tutor learner)
-    (format t "The tutor chose the following question : ~d and gave it to the learner." (car (qa-pair tutor)))
+    (format t "The tutor is ~d and the learner is ~d.~%" tutor learner)
+    (format t "The tutor chose the following question : ~d and gave it to the learner.~%" (car (qa-pair tutor)))
     ;2-the tutor asks the question to the learner and the learner checks whether it already knows the answer
     (if (not (find (car (qa-pair tutor)) (dictionary learner)))
     ;3-if it doesn't know the answer, the tutor reveals it and the learner stocks it
