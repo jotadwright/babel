@@ -175,7 +175,7 @@
                                                           (fcg-configuration nil))
   "Learns a PropBank grammar based on a corpus of PropBank-annotated sentences."
   (let ((cxn-inventory (eval `(def-fcg-constructions propbank-learned-english
-                                :fcg-configurations ,fcg-configuration
+                                :fcg-configurations ,(flatten-training-configuration fcg-configuration)
                                 :visualization-configurations ((:show-constructional-dependencies . nil)
                                                                (:show-categorial-network . nil)
                                                                (:hide-attributes . t)
@@ -193,7 +193,7 @@
                                 :hashed t))))
     
     (set-data (blackboard cxn-inventory) :training-corpus-size 0)
-(let ((excluded-rolesets (mapcar (lambda (roleset) (format nil "~a" roleset)) (deepest-level (get-configuration test-grammar :excluded-rolesets)))))
+(let ((excluded-rolesets (mapcar (lambda (roleset) (format nil "~a" roleset)) (get-configuration test-grammar :excluded-rolesets))))
   (loop for sentence in list-of-propbank-sentences
         for sentence-number from 1
         for training-corpus-size = (get-data (blackboard cxn-inventory) :training-corpus-size)
@@ -219,13 +219,19 @@
           (notify learning-finished cxn-inventory)
           (return cxn-inventory)))))
 
-(defun deepest-level (lst &optional (result '()))
-  (cond
-    ((null lst) result)
-    ((listp (first lst))
-     (append (deepest-level (first lst) result)
-             (deepest-level (rest lst) result)))
-    (t (deepest-level (rest lst) (cons (first lst) result)))))
+(defun flatten-training-configuration (training-configuration)
+  (loop for item in training-configuration
+        collect (if (consp item)
+                    (cons (car item) (flatten-list (cdr item)))
+                    (cons (car item) (cdr item)))))
+
+(defun flatten-list (list)
+  (if (listp list)
+      (loop for item in list
+            append (if (consp item)
+                       (flatten-list item)
+                       (list item)))
+      list))
 
 (defun store-learned-grammar (combination &optional (grammar test-grammar))
   "Stores the learned grammar using the configuration specified in 'updated-training-config' for the given 'parameter'
