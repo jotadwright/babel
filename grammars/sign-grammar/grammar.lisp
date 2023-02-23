@@ -50,6 +50,7 @@
                                  (:select-subfeatures . nil)))
 
 
+
 ;;-----------------------;;
 ;; Lexical Constructions ;;
 ;;-----------------------;;
@@ -226,6 +227,8 @@
                (referent ?r)
                (syn-cat classifier)
                (placement left)
+               (handshape-boundary ?hsf-1)
+               (orientation-boundary ?orif-1)
                (handconfiguration ((handedness one-handed))))
               <-
               (?placement-unit
@@ -244,6 +247,8 @@
                        (LOCATION ?M-1 ?LOC-1)
                        (HAMLRAT ?LOC-1 ?LOCF-1)
                        (HAMCHEST ?LOC-1 ?LOCF-2)
+                       (MEETS ?SYMF-1 ?HSF-1)
+                       (MEETS ?ORIF-2 ?LOCF-1)
                        (MEETS ?LOCF-1 ?LOCF-2)
                        (MEETS ?LOCF-2 ?MOVF-1))))))
 
@@ -265,6 +270,7 @@
                (referent ?r)
                (syn-cat classifier)
                (placement right)
+               (handshape-boundary ?orif-1)
                (handconfiguration ((handedness one-handed))))
                <-
                (?placement-unit
@@ -281,6 +287,7 @@
                        (LOCATION ?M-1 ?LOC-1)
                        (HAMCHEST ?LOC-1 ?LOCF-1)
                        (HAMLRAT ?LOC-1 ?LOCF-2)
+                       (MEETS ?ORIF-1 ?LOCF-1)
                        (MEETS ?LOCF-1 ?LOCF-2)
                        (MEETS ?LOCF-2 ?MOVF-1)))
                 ))
@@ -292,24 +299,41 @@
               (?hold-unit-2
                (subunits (?hold-unit-3)))
               (?classifier-unit
-               (subunits (?hold-unit-1))
+               (subunits (?hold-unit-1)))
+              (?placement-unit-1
                (footprints (complete)))
               <-
+              (?placement-unit-1
+               (sem-cat ref-expression)
+               (referent ?r)
+               (placement left)
+               (subunits (?classifier-unit))
+               (footprints (NOT complete))
+               --
+               (syn-cat np))
               (?classifier-unit
                (referent ?r)
                (sem-cat ref-expression)
-               (footprints (NOT complete))
+               
+               (placement left)
+               (sem-class two-track-vehicle)
                --
                (syn-cat classifier)
                (handconfiguration ((handshape hamflathand)
                                    (extended-finger-direction hamextfingero)
                                    (palm-orientation hampalmd)))
-               (placement left)
                (form ((SIGN ?SIGN-1))))
+              (?placement-unit-2
+               (sem-cat ref-expression)
+               (placement right)
+               (subunits (?dominant-unit-1 ?dominant-unit-2))
+               --
+               (syn-cat np))
               (?dominant-unit-1
                (sem-cat ref-expression)
                --
                (handconfiguration ((handedness one-handed)))
+               (syn-cat noun)
                (form ((SIGN ?SIGN-5)))
                (hash form
                      ((HAND ?SIGN-5 "strong")
@@ -336,6 +360,7 @@
                       (HAND ?SIGN-2 "weak"))))
               (?dominant-unit-2
                (sem-cat ref-expression)
+               (subunits (?dominant-unit-3))
                --
                (handconfiguration ((handedness one-handed)))
                (form ((SIGN ?SIGN-6)
@@ -403,13 +428,14 @@
               (?classifier-unit
                (referent ?r)
                (sem-cat ref-expression)
+               (placement left)
+               (sem-class person)
                (footprints (NOT complete))
                --
                (syn-cat classifier)
                (handconfiguration ((handshape hamfinger2)
                                    (extended-finger-direction hamextfingeru)
                                    (palm-orientation hampalml)))
-               (placement left)
                (form ((SIGN ?SIGN-1))))
               (?dominant-unit-1
                (sem-cat ref-expression)
@@ -496,8 +522,7 @@
                       (MEETS ?LOCF-5 ?LOCF-6)
                       (COINCIDES ?SIGN-7 ?SIGN-4)
                       (HAND ?SIGN-4 "weak"))))))
-
-              
+            
 ; hamflathand placement
 ; meaning: there is a referent that is a vehicle
 ; form: a classifier follows a noun. The noun refers to a person
@@ -512,6 +537,7 @@
                (footprints (class-identified)))
               (?classifier-unit
                (orientation-boundary ?orif-1)
+               (handshape-boundary ?hsf-1)
                (sem-class two-track-vehicle)
                (handconfiguration ((handshape hamflathand)
                                   (extended-finger-direction hamextfingero)
@@ -565,6 +591,7 @@
                (handconfiguration ((handshape hamfinger2)
                                    (extended-finger-direction hamextfingeru)
                                    (palm-orientation hampalml)))
+               (orientation-boundary ?orif-1)
                (sem-class person))
               
               <-
@@ -607,7 +634,6 @@
                (sem-cat ref-expression)
                (syn-cat classifier)
                (referent ?r)
-               (orientation-boundary ?orif-1)
                (placement right)
                (handconfiguration ((handedness one-handed))))
               (?classifier-unit
@@ -643,6 +669,7 @@
                       (MOVEMENT ?M-1 ?MOV-1)
                       (MEETS ?HSF-1 ?EXTF-1)
                       (MEETS ?EXTF-1 ?ORIF-1)
+                      (MEETS ?ORIF-1 ?LOCF-1)
                       (MEETS ?LOCF-1 ?LOCF-2)
                       (MEETS ?LOCF-2 ?MOVF-2)
                       (MEETS ?SIGN-1 ?SIGN-2))))))
