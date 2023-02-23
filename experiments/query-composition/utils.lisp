@@ -77,3 +77,7 @@
                (setf tamp (push-end (list elem) tamp)))))
          (setf result tamp))
     result))
+
+
+(defun random-between (min max)
+  (+ min (random (+ 1 (- max min)))))

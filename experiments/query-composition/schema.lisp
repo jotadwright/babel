@@ -47,8 +47,8 @@
 
 (defclass river ()
   ((id :col-type integer :col-identity t :accessor id)
-   (name :col-type (or db-null string) :initarg :name :accessor  river-name :col-default "")
-   (size :col-type integer :initarg :size :accessor river-size :col-default null)
+   (name :col-type (or db-null string) :initarg :name :accessor  river-name)
+   (size :col-type integer :initarg :size :accessor river-size)
    (flow :col-type integer :initarg :flow :accessor river-flow))
   (:documentation "Dao class for a river record from database")
   (:metaclass dao-class)

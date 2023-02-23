@@ -19,7 +19,7 @@
                :fcg 
                :cl-postgres
                :postmodern
-               )
+               :cl-csv)
   :serial t
   :components ((:file "package")
                 (:module "objects"

@@ -11,7 +11,7 @@ Africa,Central African Republic
 Africa,Chad
 Africa,Comoros
 Africa,Congo
-Africa,"Congo, Democratic Republic of"
+"Africa,""Congo, Democratic Republic of"""
 Africa,Djibouti
 Africa,Egypt
 Africa,Equatorial Guinea
@@ -70,8 +70,8 @@ Asia,Israel
 Asia,Japan
 Asia,Jordan
 Asia,Kazakhstan
-Asia,"Korea, North"
-Asia,"Korea, South"
+"Asia,""Korea, North"""
+"Asia,""Korea, South"""
 Asia,Kuwait
 Asia,Kyrgyzstan
 Asia,Laos
