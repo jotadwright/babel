@@ -10,4 +10,5 @@
    (:file "agent")
    (:file "interaction")
    (:file "db-connection")
+   (:file "query-making")
 ))

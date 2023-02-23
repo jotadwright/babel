@@ -9,9 +9,9 @@
 ;; Loading the package and setup ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(ql:quickload :clevr-grammar-v1)
+(ql:quickload :clevr-grammar)
 
-(in-package :clevr-grammar-v1)
+(in-package :clevr-grammar)
 (use-package :web-interface)
 
 (activate-monitor  trace-fcg)
@@ -37,7 +37,7 @@
                          #+ccl "http://127.0.0.1:8888/next-cxn")
     (:seq2seq-model-comprehension . "clevr_comprehension_model")
     (:seq2seq-model-formulation . "clevr_formulation_model")
-    (:seq2seq-rpn-fn . clevr-grammar-v1::clevr-meaning->rpn)))
+    (:seq2seq-rpn-fn . clevr-grammar::clevr-meaning->rpn)))
 
 (defparameter *utterance* "Does the large yellow sphere have the same material as the sphere in front of the tiny blue object?")
 (defparameter *meaning* (comprehend *utterance*))

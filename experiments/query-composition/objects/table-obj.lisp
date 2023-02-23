@@ -19,11 +19,10 @@
     table))
 
 (defun init-schema ()
-  ;(connect-toplevel "master_db" "postgres" "root" "localhost")
   (let ((tables '())
         (table-name nil)
         (attrs '()))
-    (dolist (res (query "SELECT table_name, column_name FROM information_schema.columns WHERE table_schema='public' ORDER BY table_name;"))
+    (dolist (res (query "SELECT table_name, column_name FROM information_schema.columns WHERE table_schema='public' ORDER BY table_name, column_name"))
       (if (not table-name)
         (setf table-name (first res)))
       (if (equal table-name (first res))
@@ -31,10 +30,7 @@
         (progn
           (push (init-table table-name attrs) tables)
           (setf attrs '())
-          (setf table-name (first res)))))
+          (setf table-name (first res))
+          (push (last res) attrs))))
     (push (init-table table-name attrs) tables)
   tables))
-
-
-
-(init-schema)

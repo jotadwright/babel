@@ -1,6 +1,6 @@
 ;;;; compare-integer.lisp
 
-(in-package :clevr-grammar-v1)
+(in-package :clevr-grammar)
 
 ;; ----------------------------------------------------- ;;
 ;; This file contains grammatical constructions for      ;;

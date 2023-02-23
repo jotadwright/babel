@@ -26,16 +26,18 @@
 
 
 (defparameter *train-corpus* (shuffle (append (train-split *ontonotes-annotations*)
-                                              (train-split *ewt-annotations*))))
+                                              (train-split *ewt-annotations*)
+                                              (dev-split *ontonotes-annotations*)
+                                              (dev-split *ewt-annotations*))))
 
-(defparameter *dev-corpus* (subseq (shuffle (append (dev-split *ontonotes-annotations*)
-                                              (dev-split *ewt-annotations*))) 0 2000))
+(defparameter *dev-corpus* (shuffle (append (test-split *ontonotes-annotations*)
+                                              (test-split *ewt-annotations*))))
 
 ;; Setting the globals
 ;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *training-configuration-all*
-  `((:de-render-mode .  :de-render-constituents-dependents)
+  `((:de-render-mode . :de-render-constituents-dependents)
     (:node-tests :check-double-role-assignment)
     (:parse-goal-tests :no-valid-children)
     (:max-nr-of-nodes . 100)
@@ -45,9 +47,10 @@
     (:cxn-supplier-mode . :hashed-categorial-network)
     
     (:heuristics
-     :nr-of-applied-cxns
-     :nr-of-units-matched-x2
-     :nr-of-units-matched
+     ((:nr-of-applied-cxns
+     :nr-of-units-matched-x2))
+     ((:nr-of-applied-cxns
+     :nr-of-units-matched))
      :argm-prediction ;; Don't forget to activate the text-to-role-classification server!!!!!
      :edge-weight
      :prefer-local-bindings
@@ -62,14 +65,14 @@
     (:replace-when-equivalent . nil)
     (:learning-modes
      :core-roles
-     :argm-leaf
+     ((:argm-leaf
      :argm-pp
      :argm-sbar
-     :argm-phrase-with-string)
+     :argm-phrase-with-string)))
     (:excluded-rolesets
-     ((:be.01 :be.02 :be.03))
-     ((:have.01 :have.02 :have.03 :have.04 :have.05 :have.06 :have.07 :have.08 :have.09 :have.10 :have.11))
-     ((:get.03 :get.06 :get.24)))))
+     ((:be.01 :be.02 :be.03
+     :have.01 :have.02 :have.03 :have.04 :have.05 :have.06 :have.07 :have.08 :have.09 :have.10 :have.11
+     :get.03 :get.06 :get.24)))))
 
 ; (:excluded-rolesets
 ;      :be.01 :be.02 :be.03
@@ -92,7 +95,7 @@
                                          :parameters-to-include '((:NR-OF-APPLIED-CXNS :CORE-ROLES))))
 
 ;; use simulated annealing to explore the search space of the list of combinations. Steps indicate how many configurations it will learn and predict in every thread.
-(parallel-simulated-annealing-plots '((:HEURISTICS :NR-OF-APPLIED-CXNS) (:LEARNING-MODES :CORE-ROLES) (:EXCLUDED-ROLESETS)) filtered-combinations :num-threads 10 :steps 100)
+(parallel-simulated-annealing-plots '((:HEURISTICS :NR-OF-APPLIED-CXNS) (:LEARNING-MODES :CORE-ROLES) (:EXCLUDED-ROLESETS)) filtered-combinations :num-threads 12 :steps 6)
 
 
 

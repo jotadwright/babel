@@ -5,7 +5,6 @@
     :initarg :name
     :type string
     :accessor name)
-   (value
-    :initarg :value
-    :accessor value
-    :type (or integer string))))
+   (type-att
+    :initarg :type-att
+    :accessor type-att)))

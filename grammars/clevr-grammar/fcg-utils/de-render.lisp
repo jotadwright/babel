@@ -9,7 +9,7 @@
   "There were too many precedes constraints in the root, slowing down the processing for very large
    sentences. However, only a few cxns actually need 'precedes' and don't need 'long distance' precedes.
    To solve this, we constrain the generation of precedes constraints to only contain precedes within 3."
-  (de-render (clevr-grammar-v1::preprocess-utterance utterance) :de-render-string-meets-precedes-within-3))
+  (de-render (clevr-grammar::preprocess-utterance utterance) :de-render-string-meets-precedes-within-3))
 
 (defmethod de-render ((utterance list) (mode (eql :de-render-string-meets-precedes-within-3))
                       &key &allow-other-keys)
