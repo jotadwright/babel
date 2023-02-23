@@ -32,11 +32,10 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-get-time ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun request-to-get-time ()
-  ;(pprint (send-request "/abe-sim-command/to-get-time"
-  ;                      (cl-json:encode-json-to-string `())))
-  (cdr (assoc :response
-              (send-request "/abe-sim-command/to-get-time"
-                            (cl-json:encode-json-to-string `())))))
+  (let ((time (cdr (assoc :response
+                          (send-request "/abe-sim-command/to-get-time"
+                                        (cl-json:encode-json-to-string `()))))))
+    time))
 
 
 
@@ -54,7 +53,7 @@
                             (cl-json:encode-json-to-string `((:object . ,object)
                                                              (:topping-container . ,topping-container)
                                                              (:kitchen-state-in . ,kitchen-state-in)
-                                                             (:set-world-state . (not (not kitchen-state-in)))))))))
+                                                             (:set-world-state . ,(not (not kitchen-state-in)))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-bake ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun request-to-bake (thing-to-bake oven input-destination-container &optional (kitchen-state-in nil))
@@ -64,7 +63,7 @@
                                                              (:oven . ,oven)
                                                              (:input-destination-container . ,input-destination-container)
                                                              (:kitchen-state-in . ,kitchen-state-in)
-                                                             (:set-world-state . (not (not kitchen-state-in)))))))))
+                                                             (:set-world-state . ,(not (not kitchen-state-in)))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-shape ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun request-to-shape (container-with-dough destination &optional (kitchen-state-in nil))
@@ -73,7 +72,7 @@
                             (cl-json:encode-json-to-string `((:container-with-dough . ,container-with-dough)
                                                              (:destination . ,destination)
                                                              (:kitchen-state-in . ,kitchen-state-in)
-                                                             (:set-world-state . (not (not kitchen-state-in)))))))))
+                                                             (:set-world-state . ,(not (not kitchen-state-in)))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-line ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun request-to-line (baking-tray baking-paper &optional (kitchen-state-in nil))
@@ -82,7 +81,7 @@
                             (cl-json:encode-json-to-string `((:baking-tray . ,baking-tray)
                                                              (:baking-paper . ,baking-paper)
                                                              (:kitchen-state-in . ,kitchen-state-in)
-                                                             (:set-world-state . (not (not kitchen-state-in)))))))))
+                                                             (:set-world-state . ,(not (not kitchen-state-in)))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-mix  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun request-to-mix (container-with-input-ingredients mixing-tool &optional (kitchen-state-in nil))
@@ -91,7 +90,7 @@
                             (cl-json:encode-json-to-string `((:container-with-input-ingredients . ,container-with-input-ingredients)
                                                              (:mixing-tool . ,mixing-tool)
                                                              (:kitchen-state-in . ,kitchen-state-in)
-                                                             (:set-world-state . (not (not kitchen-state-in)))))))))
+                                                             (:set-world-state . ,(not (not kitchen-state-in)))))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-beat  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -101,7 +100,7 @@
                             (cl-json:encode-json-to-string `((:container-with-input-ingredients . ,container-with-input-ingredients)
                                                              (:beating-tool . ,beating-tool)
                                                              (:kitchen-state-in . ,kitchen-state-in)
-                                                             (:set-world-state . (not (not kitchen-state-in)))))))))
+                                                             (:set-world-state . ,(not (not kitchen-state-in)))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-transfer ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun request-to-transfer (container-with-input-ingredients target-container &optional (kitchen-state-in nil)) ;
@@ -110,7 +109,7 @@
                             (cl-json:encode-json-to-string `((:container-with-input-ingredients . ,container-with-input-ingredients)
                                                              (:target-container . ,target-container)
                                                              (:kitchen-state-in . ,kitchen-state-in)
-                                                             (:set-world-state . (not (not kitchen-state-in)))))))))
+                                                             (:set-world-state . ,(not (not kitchen-state-in)))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-portion ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun request-to-portion (container-with-ingredient target-container quantity &optional (kitchen-state-in nil))
@@ -121,7 +120,7 @@
                                                 (:target-container . ,target-container)
                                                 (:quantity . ,quantity)
                                                 (:kitchen-state-in . ,kitchen-state-in)
-                                                (:set-world-state . (not (not kitchen-state-in)))))))))
+                                                (:set-world-state . ,(not (not kitchen-state-in)))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-fetch ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun request-to-fetch (object &optional (kitchen-state-in nil))
@@ -129,7 +128,7 @@
               (send-request "/abe-sim-command/to-fetch"
                             (cl-json:encode-json-to-string `((:object . ,object)
                                                              (:kitchen-state-in . ,kitchen-state-in)
-                                                             (:set-world-state . (not (not kitchen-state-in))) ))))))
+                                                             (:set-world-state . ,(not (not kitchen-state-in))) ))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-get-location ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun request-get-location (available-location-variable type &optional (kitchen-state-in nil))
@@ -138,7 +137,7 @@
                             (cl-json:encode-json-to-string `((:available-location . ,available-location-variable)
                                                              (:type . ,type)
                                                              (:kitchen-state-in . ,kitchen-state-in)
-                                                             (:set-world-state . (not (not kitchen-state-in)))))))))
+                                                             (:set-world-state . ,(not (not kitchen-state-in)))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-get-kitchen ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun request-get-kitchen (kitchen-state-variable)

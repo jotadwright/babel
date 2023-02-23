@@ -5,7 +5,7 @@
 ;;                              ;;                                        
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(in-package :propbank-english)
+(in-package :propbank-grammar)
 
 (defun keys-present-p (json &rest keys)
   "Check if all keys are present in the given
@@ -32,16 +32,18 @@
                     (snooze:payload-as-string))
                  (error (e)
                    (snooze:http-condition 400 "Malformed JSON (~a)!" e))))
-         (missing-keys (keys-present-p json :schema :order-matters :max-n :corpus))
+         (missing-keys (keys-present-p json :schema :order-matters :max-n :corpus :allow-additional-roles))
          (schema (rest (assoc :schema json)))
          (order-matters (rest (assoc :order-matters json)))
          (max-n (rest (assoc :max-n json)))
-         (corpus (rest (assoc :corpus json))))
+         (corpus (rest (assoc :corpus json)))
+         (allow-additional-roles (rest (assoc :allow-additional-roles json))))
     (when missing-keys
       (snooze:http-condition 400 "JSON missing key(s): ({~a~^, ~})" missing-keys))
-        
+    (when (and order-matters allow-additional-roles)
+      (snooze:http-condition 400 "JSON can not simultaneously have order-matters and additional-roles-allowed"))
     (let ((results (handler-case (find-by-schema (make-kw corpus)
-                                                 (transform-schema schema order-matters)
+                                                 (transform-schema schema order-matters allow-additional-roles)
                                                  :max-n (parse-integer max-n))
                        (error (e)
                          (snooze:http-condition 500 "Error in construction explorer API!" e)))))
@@ -53,7 +55,7 @@
 (snooze:defroute by-schema(:options :text/*))
 
 
-(defun transform-schema (schema order-matters)
+(defun transform-schema (schema order-matters allow-additional-roles)
   (loop for role in schema
         collect (loop for (role-part . role-value) in role
                       collect (cond ((eq role-part :string)
@@ -66,9 +68,9 @@
                       into roles
                       finally (return `(==1 ,@roles)))
         into transformed-roles
-        finally (return (if order-matters
-                          transformed-roles
-                          (append (list '==p) transformed-roles)))))
+        finally (return (cond (order-matters transformed-roles)
+                              (allow-additional-roles (append (list '==) transformed-roles))
+                              (t (append (list '==p) transformed-roles))))))
 
 (defun transform-results (results)
   `((:results . ,(loop for result in results collect (transform-result result)))))
