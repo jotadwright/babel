@@ -28,11 +28,9 @@
                               (:file "node-obj")
                               (:file "tree-obj")
                               (:file "table-obj")))
-                ;(:file "attribute-obj")
-                ;(:file "node-obj")
-                ;(:file "table-obj")
-                ;(:file "tree-obj")
-                ;(:file "first-step")
-                (:file "main")
-                (:file "utils")
-                (:file "schema")))
+                (:module "db"
+                 :serial t
+                 :components ((:file "setup-database")
+                              (:file "schema")))
+                (:file "query-compose")
+                (:file "utils")))
