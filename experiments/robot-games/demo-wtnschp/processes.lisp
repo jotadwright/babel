@@ -20,7 +20,11 @@
                               (case (discourse-role agent)
                                 (speaker "spreker")
                                 (hearer "luisteraar")))
-                :speed 75)))
+                :speed 75))
+    (:fr (speak agent (format nil "Je suis celui ~a"
+                              (case (discourse-role agent)
+                                (speaker "qui parle")
+                                (hearer "qui écoute"))))))
   (make-process-result 1 nil :process process))
 
 ;; -----------------
@@ -60,6 +64,8 @@
       (:en (speak agent (format nil "I could not detect ~a objects"
                                 (required-context-size problem))))
       (:nl (speak agent (format nil "Oeps! Ik kan geen ~a monsters vinden"
+                                (required-context-size problem))))
+      (:fr (speak agent (format nil "Oups ! Je ne peux pas détecter ~a objets."
                                 (required-context-size problem)))))
     (detect-head-touch agent :middle)
     (restart-object object nil)
@@ -74,9 +80,9 @@
   "Process to observe the scene using the robot's vision.
    The diagnostic will check if the right amount of objects is detected.
    If not, the repair will generate a new scene and restart this process."
-  (let ((context-size (get-configuration agent :context-size))
-        scene process-result)
-    (multiple-value-bind (data img-path) (observe-world agent :open nil)
+  (let* ((context-size (get-configuration agent :context-size))
+         scene process-result)
+    (multiple-value-bind (data img-path) (observe-world agent (vision-server agent) :open nil)
       (setf scene (json->object-set data))
       (setf process-result (make-process-result 1 (list (cons 'scene scene)
                                                         (cons 'required-size context-size))
@@ -84,10 +90,12 @@
       (unless (notify-learning process-result :trigger 'detection)
         (case (get-configuration agent :input-lang)
           (:en (speak agent (format nil "I detected ~a objects" context-size)))
-          (:nl (speak agent (format nil "Ik zie ~a monsters" context-size) :speed 75)))
+          (:nl (speak agent (format nil "Ik zie ~a monsters" context-size) :speed 75))
+          (:fr (speak agent (format nil "Je vois ~a objets" context-size))))
         (when img-path
           (notify observe-scene-finished img-path scene))
         process-result))))
+
 
 ;; ----------------
 ;; + Choose Topic +
@@ -264,6 +272,7 @@
                    &key trigger)
   "Repair by inventing a new form and adding it
    to the agent's lexicon"
+
   (declare (ignorable trigger))
   (let* ((agent (owner (task (process object))))
          (meaning (first (find-data (process object) 'topic-cat)))
@@ -275,7 +284,15 @@
                             unless (member maybe-word *used-dutch-nonsense-words*)
                             do (progn (push maybe-word *used-dutch-nonsense-words*)
                                  (setf chosen-word maybe-word))
+                            finally (return chosen-word)))
+               (:fr (loop with chosen-word = nil
+                            while (null chosen-word)
+                            for maybe-word = (random-elt (get-configuration agent :dutch-nonsense))
+                            unless (member maybe-word *used-dutch-nonsense-words*)
+                            do (progn (push maybe-word *used-dutch-nonsense-words*)
+                                 (setf chosen-word maybe-word))
                             finally (return chosen-word))))))
+    
     (add-lex-cxn agent form meaning)
     (notify new-word-repair-triggered form)
     (restart-object object nil)
@@ -302,7 +319,8 @@
   (unless (notify-learning process-result :trigger 'production)
     (case (get-configuration agent :input-lang)
       (:en (speak agent (format nil "I am thinking of an object and it has the color ~a" utterance)))
-      (:nl (speak agent (format nil "Ik heb een monster in mijn gedachten en het heeft de kleur ~a" utterance) :speed 75)))
+      (:nl (speak agent (format nil "Ik heb een monster in mijn gedachten en het heeft de kleur ~a" utterance) :speed 75))
+      (:fr (speak agent (format nil "Je pense à un objet dont la couleur est ~a" utterance))))
     (notify produce-finished utterance applied-cxn)
     process-result)))
 
@@ -328,7 +346,8 @@
     (unless applied-cxn
       (case (get-configuration agent :input-lang)
         (:en (speak agent (format nil "I do not know the word ~a" utterance)))
-        (:nl (speak agent (format nil "Ik ken het woord ~a niet" utterance) :speed 75))))
+        (:nl (speak agent (format nil "Ik ken het woord ~a niet" utterance) :speed 75))
+        (:fr (speak agent (format nil "Je ne connais pas le mot ~a" utterance)))))
     (make-process-result 1 (list (cons 'applied-cxn applied-cxn))
                          :process process)))
 
@@ -350,16 +369,19 @@
     (case topic-position
       (0 (progn (point agent :left)
            (case (get-configuration agent :input-lang)
-             (:en (speak agent "It's the object to the left"))
-             (:nl (speak agent "Het is het linkse object")))))
+             (:en (speak agent "It's the object to the right"))
+             (:nl (speak agent "Het is het rechtse object"))
+             (:fr (speak agent "C'est l'objet sur la gauche")))))
       (1 (progn (point agent :both)
            (case (get-configuration agent :input-lang)
              (:en (speak agent "It's the object in the middle"))
-             (:nl (speak agent "Het is het middelste object")))))
+             (:nl (speak agent "Het is het middelste object"))
+             (:fr (speak agent "C'est l'objet du milieu")))))
       (2 (progn (point agent :right)
            (case (get-configuration agent :input-lang)
-             (:en (speak agent "It's the object to the right"))
-             (:nl (speak agent "Het is het rechtse object"))))))))
+             (:en (speak agent "It's the object to the left"))
+             (:nl (speak agent "Het is het linkse object"))
+             (:fr (speak agent "C'est l'objet sur la droite"))))))))
 
 (defmethod run-process (process
                         (process-label (eql 'interpret))
@@ -377,7 +399,8 @@
          (setf topic (interpret (entities scene) category))
          (case (get-configuration agent :input-lang)
            (:en (speak agent "I think I know!"))
-           (:nl (speak agent "Ik denk dat ik het weet!" :speed 75)))
+           (:nl (speak agent "Ik denk dat ik het weet!" :speed 75))
+           (:fr (speak agent "Je crois que je sais!")))
          (robot-point-to-topic agent topic scene)
          (notify interpret-finished (id topic))))
     (make-process-result 1 (list (cons 'topic-id (when topic (id topic))))
@@ -432,7 +455,8 @@
           (remove-duplicates (append vocab words) :test #'string=))
     (case (get-configuration agent :input-lang)
       (:en (speak agent "Choose an object and say its color"))
-      (:nl (speak agent "Kies een monster en benoem zijn kleur" :speed 75)))
+      (:nl (speak agent "Kies een monster en benoem zijn kleur" :speed 75))
+      (:fr (speak agent "Choisis un objet et dis-moi sa couleur")))
     (case input-form
       (:speech (when (detect-head-touch agent :middle)
                  (loop with this-utterance = ""
@@ -441,7 +465,8 @@
                        when (= (length this-utterance) 0)
                        do (case (get-configuration agent :input-lang)
                             (:en (speak agent "I did not understand. Could you repeat please?"))
-                            (:nl (speak agent "Dat heb ik niet begrepen. Kan je dat herhalen alsjeblief?" :speed 75)))
+                            (:nl (speak agent "Dat heb ik niet begrepen. Kan je dat herhalen alsjeblief?" :speed 75))
+                            (:fr (speak agent "Je n'ai pas compris. Est-ce que tu peux répéter?")))
                        finally
                        (setf utterance this-utterance))
                  (setf utterance (prompt-correct-speech-input utterance))))
@@ -475,14 +500,16 @@
              (find-data prev-process-input 'topic-id))
       (case (get-configuration agent :input-lang)
         (:en (speak agent (format nil "Am I correct? Please show me the object you would call ~a" utterance)))
-        (:nl (speak agent (format nil "Had ik het juist? Welk monster had jij in gedachten?" utterance) :speed 75)))
+        (:nl (speak agent (format nil "Had ik het juist? Welk monster had jij in gedachten?" utterance) :speed 75))
+        (:fr (speak agent (format nil "Ai-je bon? S'il-te-plait, montre-moi l'objet que tu appelerais ~a" utterance))))
       ;; else; if speaker or unknown word
       (case (get-configuration agent :input-lang)
         (:en (speak agent (format nil "Please show me the object you would call ~a" utterance)))
-        (:nl (speak agent (format nil "Toon mij het monster dat jij ~a zou noemen" utterance) :speed 75))))
+        (:nl (speak agent (format nil "Toon mij het monster dat jij ~a zou noemen" utterance) :speed 75))
+        (:fr (speak agent (format nil "S'il-te-plait, montre-moi l'objet que tu appelerais ~a" utterance)))))
     (loop while (null observedp)
           when (detect-head-touch agent :middle)
-          do (multiple-value-bind (data img) (observe-world agent :open nil)
+          do (multiple-value-bind (data img) (observe-world agent (vision-server agent) :open nil)
                (declare (ignorable img))
                (let ((object-set (json->object-set data)))
                  (when (= (length (entities object-set)) 1)
@@ -491,7 +518,8 @@
                  (unless (= (length (entities object-set)) 1)
                    (case (get-configuration agent :input-lang)
                      (:en (speak agent (format nil "Sorry, I detected ~a objects" (length (entities object-set)))))
-                     (:nl (speak agent (format nil "Sorry, ik zie ~a monsters" (length (entities object-set))) :speed 75)))))))
+                     (:nl (speak agent (format nil "Sorry, ik zie ~a monsters" (length (entities object-set))) :speed 75))
+                     (:fr (speak agent (format nil "Désolé, j'ai détecté ~a objets" (length (entities object-set))))))))))
     (make-process-result 1 (list (cons 'observed-topic observed-topic))
                          :process process)))
 
@@ -523,6 +551,18 @@
 ;; + Determine success +
 ;; ---------------------
 
+(defvar *speaker-success-messages-fr* '("Félicitations! Tu as réussi!"
+                                     "Bravo! Bien joué!"))
+(defvar *speaker-failure-messages-fr* '("Mince! Tu n'as pas répondu correctement"
+                                     "Mince! Tu as raté"
+                                     "Dommage! Ce n'est pas ce a quoi je pensais"))
+(defvar *hearer-success-messages-fr* '("Houra! J'ai réussi!"
+                                    "Youpi! J'ai réussi!"
+                                    "Yes! J'ai réussi"))
+(defvar *hearer-failure-messages-fr* '("Merci! J'ai appris quelque chose"
+                                    "Ok, merci! J'ai appris quelque chose"
+                                    "Grâce a toi je continue a apprendre des choses"))
+
 (defvar *speaker-success-messages* '("Proficiat! Je hebt het juist"
                                      "Gefeliciteerd! Je hebt het juist"
                                      "Bravo! Goed gedaan"))
@@ -542,13 +582,16 @@
     (case topic-position
       (0 (case (get-configuration agent :input-lang)
            (:en (speak agent "I meant the object on the left"))
-           (:nl (speak agent "Ik bedoelde het linkse monster. Volgende keer beter"))))
+           (:nl (speak agent "Ik bedoelde het linkse monster. Volgende keer beter"))
+           (:fr (speak agent "Je voulais parler de l'objet sur la gauche"))))
       (1 (case (get-configuration agent :input-lang)
            (:en (speak agent "I meant the object in the middle"))
-           (:nl (speak agent "Ik bedoelde het middelste monster. Volgende keer beter"))))
+           (:nl (speak agent "Ik bedoelde het middelste monster. Volgende keer beter"))
+           (:fr (speak agent "Je voulais parler de l'objet du milieu"))))
       (2 (case (get-configuration agent :input-lang)
            (:en (speak agent "I meant the object on the right"))
-           (:nl (speak agent "Ik bedoelde het rechtse monster. Volgende keer beter")))))))
+           (:nl (speak agent "Ik bedoelde het rechtse monster. Volgende keer beter"))
+           (:fr (speak agent "Je voulais parler de l'objet sur la droite")))))))
 
 (defmethod run-process (process
                         (process-label (eql 'determine-success))
@@ -565,20 +608,26 @@
       (if success
         (case (get-configuration agent :input-lang)
           (:en (speak agent "You are correct!"))
-          (:nl (speak agent (random-elt *speaker-success-messages*) :speed 75)))
+          (:nl (speak agent (random-elt *speaker-success-messages*) :speed 75))
+          (:fr (speak agent (random-elt *speaker-success-messages-fr*))))
         (case (get-configuration agent :input-lang)
           (:en (progn (speak agent "You are wrong!")
                  (robot-give-feedback agent topic-id scene)))
           (:nl (progn
                  (speak agent (random-elt *speaker-failure-messages*) :speed 75)
+                 (robot-give-feedback agent topic-id scene)))
+          (:fr (progn
+                 (speak agent (random-elt *speaker-failure-messages-fr*))
                  (robot-give-feedback agent topic-id scene)))))
       (if success
         (case (get-configuration agent :input-lang)
           (:en (speak agent "I am correct!"))
-          (:nl (speak agent (random-elt *hearer-success-messages*) :speed 75)))
+          (:nl (speak agent (random-elt *hearer-success-messages*) :speed 75))
+          (:fr (speak agent (random-elt *hearer-success-messages-fr*))))
         (case (get-configuration agent :input-lang)
           (:en (speak agent "I am learning!"))
-          (:nl (speak agent (random-elt *hearer-failure-messages*) :speed 75)))))
+          (:nl (speak agent (random-elt *hearer-failure-messages*) :speed 75))
+          (:fr (speak agent (random-elt *hearer-failure-messages-fr*))))))
     (make-process-result 1 (list (cons 'communicated-successfully success))
                          :process process)))
 

@@ -7,7 +7,7 @@
 (defconstant +alphabet+ "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 (defparameter *alphabet-index* 0)
 (defun next-au-var ()
-  (let ((c (mkstr (char *alphabet* *alphabet-index*))))
+  (let ((c (mkstr (char +alphabet+ *alphabet-index*))))
     (incf *alphabet-index*)
     (when (= *alphabet-index* 26)
       (setf *alphabet-index* 0))
@@ -355,5 +355,14 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
          (delta (funcall delta-key au-result)))
     (append (substitute-bindings (reverse-bindings bindings-list) generalisation)
             delta)))
+
+(defmethod copy-object-content ((au-result au-result) (copy au-result))
+  ;; shallow copy
+  (setf (generalisation copy) (generalisation au-result)
+        (pattern-bindings copy) (pattern-bindings au-result)
+        (source-bindings copy) (source-bindings au-result)
+        (pattern-delta copy) (pattern-delta au-result)
+        (source-delta copy) (source-delta au-result)
+        (au-cost copy) (au-cost au-result)))
                             
     

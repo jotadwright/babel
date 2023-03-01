@@ -429,7 +429,7 @@
 ;; (ontonotes-file-lists)
 
 (defmethod spacy-benepar-compatible-annotation ((sentence conll-sentence) role-set &key (selected-role-types 'all))
-  "Returns T if all selected role types (all, core-only, argm-only) or a selected role type correspond to a constituent in de spacy-benepar tree."
+  "Returns T if all selected role types (all, core-only, argm-only) or a selected role type correspond to a constituent in the spacy-benepar tree."
   (let ((syntactic-analysis (remove '(nil) (left-pole-structure (initial-transient-structure sentence)) :test #'equalp))
         (selected-roles (loop for frame in (propbank-frames sentence)
                               if (equalp (frame-name frame) role-set)

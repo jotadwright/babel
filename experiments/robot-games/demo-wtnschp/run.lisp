@@ -1,6 +1,8 @@
 ;;;; /run.lisp
 
+
 ; (ql:quickload :demo-wtnschp)
+
 
 (in-package :demo-wtnschp)
 
@@ -15,13 +17,26 @@
 
 (deactivate-all-monitors)
 
+
+(set-configuration *experiment* :input-lang :fr)
+
+(defparameter *vision-server*
+  (make-instance 'nao-interface::vision-server
+                 :nao-ip "192.168.0.101"
+                 :server-host "127.0.0.1"
+                 :server-port "7851"))
+
+
 (defparameter *experiment*
   (make-instance 'demo-experiment
-                 :entries '((:robot-port . "7850"))))
+                 :vision-server *vision-server*
+                 :entries '((:robot-port . "7850")
+                            (:robot-ip . "192.168.0.101"))))
 
 ;; Switch between text and speech input
 (set-configuration *experiment* :input-form :text)
 (set-configuration *experiment* :input-form :speech)
+
 
 ;; Switch between discourse roles
 (set-configuration *experiment* :determine-interacting-agents-mode :robot-speaker-often)
@@ -51,12 +66,8 @@
 ;; Reset the experiment
 (destroy *experiment*)
 
-
-
-
-
 ;; For setting up the robot
-(setf *robot* (make-robot :type 'nao :ip "192.168.1.4" :server-port "7850"))
+(setf *robot* (make-robot :type 'nao :ip "192.168.2.4" :server-port "7850"))
 
 (hear *robot* '("red" "green" "blue" "yellow"))
 
@@ -70,7 +81,8 @@
 (look-direction *robot* :up 12)
 (look-direction *robot* :down 12)
 
-(speak *robot* "hello world")
+(speak *robot* "Je suis désolé")
 
 (disconnect-robot *robot*)
 ; (setf nao-interface::*nao-servers* nil)
+; (setf *vision-servers* nil)

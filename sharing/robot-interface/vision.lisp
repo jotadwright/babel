@@ -6,7 +6,7 @@
   (:documentation "Takes a picture, copies it from the robot to your computer and
    optionally opens it. Returns the filename of the image."))
 
-(defgeneric observe-world (robot &key open)
+(defgeneric observe-world (robot vision-server &key open)
   (:documentation "Takes a picture and performs object segmentation on it.
    The 'open' keyword can be used to show the image with the result of
    segmentation as an overlay. Returns both the detected features and

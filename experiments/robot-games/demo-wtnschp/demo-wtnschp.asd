@@ -14,10 +14,13 @@
                :meta-layer-learning
                :irl
                :fcg
+               :assoc-utils
                #+:hunchentoot-available-on-this-platform :web-interface
                :nao-interface
                :robot-interface
-               :printer-interface)
+               :printer-interface
+               :asdf-encodings
+               )
   :serial t
   :components ((:file "package")
                (:file "utils")

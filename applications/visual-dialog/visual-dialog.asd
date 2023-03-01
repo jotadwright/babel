@@ -17,6 +17,12 @@
                )
   :serial t
   :components ((:file "package")
+               (:module "measures"
+                :serial t
+                :components ((:file "grammar")
+                             (:file "perception")
+                             ;(:file "discourse")
+                             (:file "inn")))
                (:module "ontology"
                 :serial t
                 :components ((:file "classes")

@@ -13,11 +13,14 @@
                 :documentation "Exports communicative success"
                 :data-sources '((average record-communicative-success))
                 :file-name (babel-pathname :name "communicative-success" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
+                                           :directory '("systems" "pattern-finding" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
 (define-event-handler (record-communicative-success interaction-finished)
   (record-value monitor (if (communicated-successfully interaction) 1 0)))
+
+
+
 
 ;;;; Grammar size
 (define-monitor record-lexicon-size
@@ -29,11 +32,14 @@
                 :documentation "Exports lexicon size"
                 :data-sources '(record-lexicon-size)
                 :file-name (babel-pathname :name "grammar-size" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
+                                           :directory '("systems" "pattern-finding" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
 (define-event-handler (record-lexicon-size interaction-finished)
-  (record-value monitor (length (get-cxns-of-type (learner experiment) 'all))))
+  (record-value monitor (length (routine-non-zero-cxns (learner experiment)))))
+
+
+
 
 
 ;;;; Gnuplot Display monitor
@@ -54,6 +60,10 @@
                 :draw-y1-grid t
                 :error-bars nil)
 
+
+
+
+
 ;;;; Avg cxn score
 (define-monitor record-avg-cxn-score
                 :class 'data-recorder
@@ -65,27 +75,31 @@
                 :documentation "exports avg cxn score"
                 :data-sources '((average record-avg-cxn-score))
                 :file-name (babel-pathname :name "avg-cxn-score" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
+                                           :directory '("systems" "pattern-finding" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
                 
 (define-event-handler (record-avg-cxn-score interaction-finished)
-  (record-value monitor (average (mapcar #'cxn-score (get-cxns-of-type (learner experiment) 'all)))))
+  (record-value monitor (average (mapcar #'cxn-score (routine-non-zero-cxns (learner experiment))))))
+
+
+
+
 
 ;;;; lexicon size per cxn type 
-(define-monitor record-number-of-holophrase-cxns
+(define-monitor record-number-of-holistic-cxns
                 :class 'data-recorder)
 
-(define-monitor export-number-of-holophrase-cxns
+(define-monitor export-number-of-holostic-cxns
                 :class 'lisp-data-file-writer
-                :data-sources '(record-number-of-holophrase-cxns)
-                :file-name (babel-pathname :name "number-of-holophrase-cxns" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
+                :data-sources '(record-number-of-holistic-cxns)
+                :file-name (babel-pathname :name "number-of-holostic-cxns" :type "lisp"
+                                           :directory '("systems" "pattern-finding" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
-(define-event-handler (record-number-of-holophrase-cxns interaction-finished)
-  (record-value
-   monitor
-   (length (get-cxns-of-type (learner experiment) 'pf::holophrase))))
+(define-event-handler (record-number-of-holistic-cxns interaction-finished)
+  (let* ((cxns (routine-non-zero-cxns (learner experiment)))
+         (holistic-cxns (remove-if-not #'holistic-cxn-p cxns)))
+    (record-value monitor (length holistic-cxns))))
 
 (define-monitor record-number-of-item-based-cxns
                 :class 'data-recorder)
@@ -94,47 +108,34 @@
                 :class 'lisp-data-file-writer
                 :data-sources '(record-number-of-item-based-cxns)
                 :file-name (babel-pathname :name "number-of-item-based-cxns" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
+                                           :directory '("systems" "pattern-finding" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
 (define-event-handler (record-number-of-item-based-cxns interaction-finished)
-  (record-value
-   monitor
-   (length (get-cxns-of-type (learner experiment) 'pf::item-based))))
+  (let* ((cxns (routine-non-zero-cxns (learner experiment)))
+         (item-based-cxns (remove-if #'holistic-cxn-p cxns)))
+    (record-value monitor (length item-based-cxns))))
 
-(define-monitor record-number-of-lexical-cxns
-                :class 'data-recorder)
 
-(define-monitor export-number-of-lexical-cxns
-                :class 'lisp-data-file-writer
-                :data-sources '(record-number-of-lexical-cxns)
-                :file-name (babel-pathname :name "number-of-lexical-cxns" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
-                :add-time-and-experiment-to-file-name nil)
 
-(define-event-handler (record-number-of-lexical-cxns interaction-finished)
-  (record-value
-   monitor
-   (length (get-cxns-of-type (learner experiment) 'pf::lexical))))
+
 
 
 ;;;; avg cxn score per cxn type
-(define-monitor record-avg-holophrase-cxn-score
+(define-monitor record-avg-holostic-cxn-score
                 :class 'data-recorder :average-window 100)
 
-(define-monitor export-avg-holophrase-cxn-score
+(define-monitor export-avg-holostic-cxn-score
                 :class 'lisp-data-file-writer
-                :data-sources '((average record-avg-holophrase-cxn-score))
+                :data-sources '((average record-avg-holostic-cxn-score))
                 :file-name (babel-pathname :name "avg-holophrase-cxn-score" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
+                                           :directory '("systems" "pattern-finding" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
-(define-event-handler (record-avg-holophrase-cxn-score interaction-finished)
-  (record-value
-   monitor
-   (average
-    (mapcar #'cxn-score
-            (get-cxns-of-type (learner experiment) 'pf::holophrase)))))
+(define-event-handler (record-avg-holostic-cxn-score interaction-finished)
+  (let* ((cxns (routine-non-zero-cxns (learner experiment)))
+         (holistic-cxns (remove-if-not #'holistic-cxn-p cxns)))
+    (record-value monitor (average (mapcar #'cxn-score holistic-cxns)))))
 
 (define-monitor record-avg-item-based-cxn-score
                 :class 'data-recorder :average-window 100)
@@ -143,32 +144,14 @@
                 :class 'lisp-data-file-writer
                 :data-sources '((average record-avg-item-based-cxn-score))
                 :file-name (babel-pathname :name "avg-item-based-cxn-score" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
+                                           :directory '("systems" "pattern-finding" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
 (define-event-handler (record-avg-item-based-cxn-score interaction-finished)
-  (record-value
-   monitor
-   (average
-    (mapcar #'cxn-score
-            (get-cxns-of-type (learner experiment) 'pf::item-based)))))
+  (let* ((cxns (routine-non-zero-cxns (learner experiment)))
+         (item-based-cxns (remove-if #'holistic-cxn-p cxns)))
+    (record-value monitor (average (mapcar #'cxn-score item-based-cxns)))))
 
-(define-monitor record-avg-lexical-cxn-score
-                :class 'data-recorder :average-window 100)
-
-(define-monitor export-avg-lexical-cxn-score
-                :class 'lisp-data-file-writer
-                :data-sources '((average record-avg-lexical-cxn-score))
-                :file-name (babel-pathname :name "avg-lexical-cxn-score" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
-                :add-time-and-experiment-to-file-name nil)
-
-(define-event-handler (record-avg-lexical-cxn-score interaction-finished)
-  (record-value
-   monitor
-   (average
-    (mapcar #'cxn-score
-            (get-cxns-of-type (learner experiment) 'pf::lexical)))))
 
 ;; nr of item-based cxns with slots 
 (define-monitor record-num-item-based-1
@@ -267,6 +250,9 @@
    (count 6 (get-cxns-of-type (learner experiment) 'pf::item-based)
           :key #'item-based-number-of-slots :test #'=)))
 
+
+
+
 ;; repair monitors
 (define-monitor record-repair-usage-nothing->holophrase
                 :class 'data-recorder)
@@ -275,101 +261,32 @@
                 :class 'lisp-data-file-writer
                 :data-sources '(record-repair-usage-nothing->holophrase)
                 :file-name (babel-pathname :name "repair-usage-nothing-to-holophrase" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
+                                           :directory '("systems" "pattern-finding" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
 (define-event-handler (record-repair-usage-nothing->holophrase interaction-finished)
   (record-value
    monitor
-   (if (string= (last-elt (repair-buffer experiment)) "h")
+   (if (string= (first (repair-buffer experiment)) "h")
      1
      0)))
 
-(define-monitor record-repair-usage-lexical->item-based
+(define-monitor record-repair-usage-anti-unification
                 :class 'data-recorder)
 
-(define-monitor export-repair-usage-lexical->item-based
+(define-monitor export-repair-usage-anti-unification
                 :class 'lisp-data-file-writer
-                :data-sources '(record-repair-usage-lexical->item-based)
-                :file-name (babel-pathname :name "repair-usage-lexical-to-item-based" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
+                :data-sources '(record-repair-usage-anti-unification)
+                :file-name (babel-pathname :name "repair-usage-anti-unification" :type "lisp"
+                                           :directory '("systems" "pattern-finding" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
-(define-event-handler (record-repair-usage-lexical->item-based interaction-finished)
+(define-event-handler (record-repair-usage-anti-unification interaction-finished)
   (record-value
    monitor
-   (if (string= (last-elt (repair-buffer experiment)) "i")
+   (if (string= (first (repair-buffer experiment)) "a")
      1
      0)))
-
-(define-monitor record-repair-usage-item-based->lexical
-                :class 'data-recorder)
-
-(define-monitor export-repair-usage-item-based->lexical
-                :class 'lisp-data-file-writer
-                :data-sources '(record-repair-usage-item-based->lexical)
-                :file-name (babel-pathname :name "repair-usage-item-based-to-lexical" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
-                :add-time-and-experiment-to-file-name nil)
-
-(define-event-handler (record-repair-usage-item-based->lexical interaction-finished)
-  (record-value
-   monitor
-   (if (string= (last-elt (repair-buffer experiment)) "l")
-     1
-     0)))
-
-(define-monitor record-repair-usage-holophrase->item-based+lexical+lexical--substitution
-                :class 'data-recorder)
-
-(define-monitor export-repair-usage-holophrase->item-based+lexical+lexical--substitution
-                :class 'lisp-data-file-writer
-                :data-sources '(record-repair-usage-holophrase->item-based+lexical+lexical--substitution)
-                :file-name (babel-pathname :name "repair-usage-holophrase-to-item-based+lexical+lexical--substitution" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
-                :add-time-and-experiment-to-file-name nil)
-
-(define-event-handler (record-repair-usage-holophrase->item-based+lexical+lexical--substitution interaction-finished)
-  (record-value
-   monitor
-   (if (string= (last-elt (repair-buffer experiment)) "s")
-     1
-     0)))
-
-(define-monitor record-repair-usage-holophrase->item-based+lexical+lexical--addition
-                :class 'data-recorder)
-
-(define-monitor export-repair-usage-holophrase->item-based+lexical+lexical--addition
-                :class 'lisp-data-file-writer
-                :data-sources '(record-repair-usage-holophrase->item-based+lexical+lexical--addition)
-                :file-name (babel-pathname :name "repair-usage-holophrase-to-item-based+lexical+lexical--addition" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
-                :add-time-and-experiment-to-file-name nil)
-
-(define-event-handler (record-repair-usage-holophrase->item-based+lexical+lexical--addition interaction-finished)
-  (record-value
-   monitor
-   (if (string= (last-elt (repair-buffer experiment)) "a")
-     1
-     0)))
-
-(define-monitor record-repair-usage-holophrase->item-based+lexical+lexical--deletion
-                :class 'data-recorder)
-
-(define-monitor export-repair-usage-holophrase->item-based+lexical+lexical--deletion
-                :class 'lisp-data-file-writer
-                :data-sources '(record-repair-usage-holophrase->item-based+lexical+lexical--deletion)
-                :file-name (babel-pathname :name "repair-usage-holophrase-to-item-based+lexical+lexical--deletion" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
-                :add-time-and-experiment-to-file-name nil)
-
-(define-event-handler (record-repair-usage-holophrase->item-based+lexical+lexical--deletion interaction-finished)
-  (record-value
-   monitor
-   (if (string= (last-elt (repair-buffer experiment)) "d")
-     1
-     0)))
-
 
 (define-monitor record-repair-usage-add-categorial-links
                 :class 'data-recorder)
@@ -378,66 +295,69 @@
                 :class 'lisp-data-file-writer
                 :data-sources '(record-repair-usage-add-categorial-links)
                 :file-name (babel-pathname :name "repair-usage-add-categorial-links" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
+                                           :directory '("systems" "pattern-finding" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
 (define-event-handler (record-repair-usage-add-categorial-links interaction-finished)
   (record-value
    monitor
-   (if (string= (last-elt (repair-buffer experiment)) "t")
+   (if (string= (first (repair-buffer experiment)) "c")
      1
      0)))
 
 
 ;;;; Number of nodes in the type hierarchy
-(define-monitor record-number-of-nodes-in-th
+(define-monitor record-number-of-nodes
                 :class 'data-recorder
                 :average-window 1
                 :documentation "records the number of nodes in the type hierarchy")
 
-(define-monitor export-number-of-nodes-in-th
+(define-monitor export-number-of-nodes
                 :class 'lisp-data-file-writer
                 :documentation "exports the number of nodes in the type hierarchy"
-                :data-sources '(record-number-of-nodes-in-th)
+                :data-sources '(record-number-of-nodes)
                 :file-name (babel-pathname :name "number-of-th-nodes" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
+                                           :directory '("systems" "pattern-finding" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
-(define-event-handler (record-number-of-nodes-in-th interaction-finished)
+(define-event-handler (record-number-of-nodes interaction-finished)
   (record-value monitor
-                  (categories
-                   (grammar
-                    (learner experiment)))))
+                  (length
+                   (categories
+                    (grammar
+                     (learner experiment))))))
 
 
 ;;;; Number of edges in the type hierarchy
-(define-monitor record-number-of-edges-in-th
+(define-monitor record-number-of-edges
                 :class 'data-recorder
                 :average-window 1
                 :documentation "records the number of edges in the type hierarchy")
 
-(define-monitor export-number-of-edges-in-th
+(define-monitor export-number-of-edges
                 :class 'lisp-data-file-writer
                 :documentation "exports the number of edges in the type hierarchy"
-                :data-sources '(record-number-of-edges-in-th)
+                :data-sources '(record-number-of-edges)
                 :file-name (babel-pathname :name "number-of-th-edges" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
+                                           :directory '("systems" "pattern-finding" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
-(define-event-handler (record-number-of-edges-in-th interaction-finished)
+(define-event-handler (record-number-of-edges interaction-finished)
   (record-value monitor
-                
-                  (links
-                   (grammar
-                    (learner experiment)))))
+                (length
+                 (links
+                  (grammar
+                   (learner experiment))))))
 
+
+  
 ;; utilty function to get all of them
 (defun get-all-lisp-monitors ()
   '("export-communicative-success"
     "export-lexicon-size"
     "export-avg-cxn-score"
-    "export-number-of-nodes-in-th"
-    "export-number-of-edges-in-th"
+    "export-number-of-nodes"
+    "export-number-of-edges"
     "export-num-item-based-1"
     "export-num-item-based-2"
     "export-num-item-based-3"
@@ -445,16 +365,9 @@
     "export-num-item-based-5"
     "export-num-item-based-6"
     "export-repair-usage-nothing->holophrase"
-    "export-repair-usage-lexical->item-based"
-    "export-repair-usage-item-based->lexical"
-    "export-repair-usage-holophrase->item-based+lexical+lexical--substitution"
-    "export-repair-usage-holophrase->item-based+lexical+lexical--addition"
-    "export-repair-usage-holophrase->item-based+lexical+lexical--deletion"
     "export-repair-usage-add-categorial-links"
-    "export-number-of-holophrase-cxns"
+    "export-repair-usage-anti-unification"
+    "export-number-of-holostic-cxns"
     "export-number-of-item-based-cxns"
-    "export-number-of-lexical-cxns"
-    "export-avg-holophrase-cxn-score"
-    "export-avg-item-based-cxn-score"
-    "export-avg-lexical-cxn-score"
-))
+    "export-avg-holostic-cxn-score"
+    "export-avg-item-based-cxn-score"))

@@ -72,15 +72,24 @@
   (attr-val cxn :score))
 
 
+
+;;
+;; comprehend and formulate
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defmethod comprehend (utterance &key
                                  (cxn-inventory *fcg-constructions*)
                                  (gold-standard-meaning nil)
                                  (silent nil))
-  (let ((initial-cfs (de-render utterance (get-configuration cxn-inventory :de-render-mode) :cxn-inventory cxn-inventory))
-        (processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
+  (let* ((de-render-mode (get-configuration cxn-inventory :de-render-mode))
+         (meaning-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
+         (initial-cfs (de-render utterance de-render-mode :cxn-inventory cxn-inventory))
+         (processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
     ;; Add utterance and meaning to blackboard
-    (set-data initial-cfs :utterances (listify utterance))
-    (set-data initial-cfs :meanings (if (atom (caar gold-standard-meaning)) (list gold-standard-meaning) gold-standard-meaning))
+    (set-data initial-cfs :utterance
+              (pf::form-constraints-with-variables utterance de-render-mode))
+    (set-data initial-cfs :meaning
+              (pf::meaning-predicates-with-variables gold-standard-meaning meaning-formalism))
     ;; Notification
     (unless silent (notify parse-started (listify utterance) initial-cfs))
     ;; Construction application
@@ -102,14 +111,19 @@
                                      (gold-standard-meaning nil)
                                      (silent nil) (n nil))
   "comprehend the input utterance with a given FCG grammar, obtaining all possible combinations"
-  (let ((initial-cfs (de-render utterance (get-configuration cxn-inventory :de-render-mode) :cxn-inventory cxn-inventory))
-        (processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
+  (let* ((de-render-mode (get-configuration cxn-inventory :de-render-mode))
+         (meaning-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
+         (initial-cfs (de-render utterance de-render-mode :cxn-inventory cxn-inventory))
+         (processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
     
     ;; Add utterance and meaning to blackboard
-    (set-data initial-cfs :utterances (listify utterance))
-    (set-data initial-cfs :meanings (if (atom (caar gold-standard-meaning)) (list gold-standard-meaning) gold-standard-meaning))
-    
+    (set-data initial-cfs :utterance
+              (pf::form-constraints-with-variables utterance de-render-mode))
+    (set-data initial-cfs :meaning
+              (pf::meaning-predicates-with-variables gold-standard-meaning meaning-formalism))
+    ;; Notification
     (unless silent (notify parse-all-started n (listify utterance)))
+    ;; Construction application
     (multiple-value-bind (solutions cip)
         (if n
           (fcg-apply-with-n-solutions processing-cxn-inventory initial-cfs '<- n
@@ -132,47 +146,51 @@
                                          (categories-to-add nil)
                                          (categorial-links-to-add nil)
                                          (category-linking-mode :categories-exist))
-  (let* ((inventory-name (gensym))
-         (temp-cxn-inventory
-          (eval `(def-fcg-constructions
-                     ,inventory-name
-                   :cxn-inventory ,inventory-name
-                   :hashed t
-                   :feature-types ((args sequence)
-                                   (form set-of-predicates)
-                                   (meaning set-of-predicates)
-                                   (subunits set)
-                                   (footprints set))
-                   :fcg-configurations ((:node-tests :restrict-nr-of-nodes :restrict-search-depth :check-duplicate)
-                                        (:cxn-supplier-mode . ,(get-configuration original-cxn-inventory :learner-cxn-supplier))
-                                        (:parse-goal-tests :no-strings-in-root
-                                                           :no-applicable-cxns
-                                                           :connected-semantic-network
-                                                           :connected-structure
-                                                           :non-gold-standard-meaning)
-                                        (:de-render-mode . ,(get-configuration original-cxn-inventory :de-render-mode))
-                                        (:parse-order routine)
-                                        (:max-nr-of-nodes . 250)
-                                        (:production-order routine)
-                                        (:meaning-representation-formalism . ,(get-configuration original-cxn-inventory :meaning-representation))
-                                        (:render-mode . :generate-and-test)
-                                        (:category-linking-mode . ,category-linking-mode)
-                                        (:update-categorial-links . nil)
-                                        (:consolidate-repairs . nil)
-                                        (:use-meta-layer . nil)
-                                        (:initial-categorial-link-weight . ,(get-configuration original-cxn-inventory :initial-categorial-link-weight))
-                                        (:ignore-transitive-closure . t)
-                                        (:hash-mode . :hash-string-meaning))))))
-    (add-categories categories-to-add (categorial-network temp-cxn-inventory)
-                    :recompute-transitive-closure nil)
-    (dolist (categorial-link categorial-links-to-add)
-      (add-categories (list (car categorial-link) (cdr categorial-link)) (categorial-network temp-cxn-inventory)
+  (with-configurations ((cxn-supplier :learner-cxn-supplier)
+                        (de-render-mode :de-render-mode)
+                        (meaning-representation :meaning-representation)
+                        (initial-link-weight :initial-categorial-link-weight))
+      original-cxn-inventory
+    (let* ((inventory-name (gensym))
+           (temp-cxn-inventory
+            (eval `(def-fcg-constructions ,inventory-name
+                     :cxn-inventory ,inventory-name
+                     :hashed t
+                     :feature-types ((args sequence)
+                                     (form set-of-predicates)
+                                     (meaning set-of-predicates)
+                                     (subunits set)
+                                     (footprints set))
+                     :fcg-configurations ((:node-tests :restrict-nr-of-nodes :restrict-search-depth :check-duplicate)
+                                          (:cxn-supplier-mode . ,cxn-supplier)
+                                          (:parse-goal-tests :no-strings-in-root
+                                                             :no-applicable-cxns
+                                                             :connected-semantic-network
+                                                             :connected-structure
+                                                             :non-gold-standard-meaning)
+                                          (:de-render-mode . ,de-render-mode)
+                                          (:parse-order routine)
+                                          (:max-nr-of-nodes . 250)
+                                          (:production-order routine)
+                                          (:meaning-representation-formalism . ,meaning-representation)
+                                          (:render-mode . :generate-and-test)
+                                          (:category-linking-mode . ,category-linking-mode)
+                                          (:update-categorial-links . nil)
+                                          (:consolidate-repairs . nil)
+                                          (:use-meta-layer . nil)
+                                          (:initial-categorial-link-weight . ,initial-link-weight)
+                                          (:ignore-transitive-closure . t)
+                                          (:hash-mode . :hash-string-meaning))))))
+      (add-categories categories-to-add (categorial-network temp-cxn-inventory)
                       :recompute-transitive-closure nil)
-      (add-link (car categorial-link) (cdr categorial-link) (categorial-network temp-cxn-inventory)
-                :recompute-transitive-closure nil))
-    (dolist (cxn cxns-to-add)
-      (add-cxn cxn temp-cxn-inventory))
-    temp-cxn-inventory))
+      (dolist (categorial-link categorial-links-to-add)
+        (add-categories (list (car categorial-link) (cdr categorial-link)) (categorial-network temp-cxn-inventory)
+                        :recompute-transitive-closure nil)
+        (add-link (car categorial-link) (cdr categorial-link) (categorial-network temp-cxn-inventory)
+                  :recompute-transitive-closure nil))
+      (dolist (cxn cxns-to-add)
+        (add-cxn cxn temp-cxn-inventory))
+      temp-cxn-inventory)))
 
 
 (defun comprehend-in-sandbox (utterance cxn-inventory
@@ -212,9 +230,10 @@
                                            :categories-to-add categories-to-add
                                            :categorial-links-to-add categorial-links-to-add
                                            :category-linking-mode :neighbours)))
-    (multiple-value-bind
-        (solution cip)
-        (fcg-apply (processing-cxn-inventory temp-cxn-inventory) (car-source-cfs (cipn-car initial-node)) '<- :notify nil)
+    (multiple-value-bind (solution cip)
+        (fcg-apply (processing-cxn-inventory temp-cxn-inventory)
+                   (car-source-cfs (cipn-car initial-node))
+                   '<- :notify nil)
       (declare (ignore cip))
       solution)))
 

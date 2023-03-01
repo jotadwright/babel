@@ -10,8 +10,7 @@
 (ql:quickload :propbank-grammar)
 (in-package :propbank-grammar)
 
-
-
+(activate-monitor export-categorial-network-to-jsonl)
 
 ;; Activating spacy-api locally
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -31,63 +30,160 @@
 
 
 
-(defparameter *restored-grammar-sbcl*
+#|(defparameter *restored-grammar-sbcl*
   (cl-store:restore
    (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
                    :name "propbank-grammar-ontonotes-ewt-core-roles-no-aux-cleaned-sbcl"
-                   :type "fcg")))
+                   :type "fcg")))|#
 
 (defparameter *restored-grammar-lw*
   (cl-store:restore
    (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
-                   :name "propbank-grammar-ontonotes-ewt-core-roles+-leafs-no-aux-lw"
+                   :name "propbank-grammar-ontonotes-no-aux-lw"
                    :type "fcg")))
 
-(cl-store:store *propbank-ewt-ontonotes-learned-cxn-inventory-no-aux* ;*propbank-ewt-ontonotes-learned-cxn-inventory*
+(categorial-network *restored-grammar-lw*)
+
+
+(cl-store:store *propbank-ontonotes-learned-cxn-inventory-no-aux* ;*propbank-ewt-ontonotes-learned-cxn-inventory*
                 (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
-                                :name "propbank-grammar-ontonotes-ewt-core-roles+-leafs-no-aux-lw"
+                                :name "propbank-grammar-ontonotes-no-aux-lw"
                                 :type "fcg"))
+
+
+
+;; Exporting argms + phrase strings to json file to gather training data for argm classifier
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *full-corpus* (append (train-split *ontonotes-annotations*)
+                                    (test-split *ontonotes-annotations*)
+                                    (dev-split *ontonotes-annotations*)
+                                    (train-split *ewt-annotations*)
+                                    (test-split *ewt-annotations*)
+                                    (dev-split *ewt-annotations*)))
+
+(export-argm-strings *full-corpus* :corpus-path
+                     (babel-pathname :directory '("grammars" "propbank-grammar" "raw-data") :name "argm-phrases" :type "json"))
 
 
 ;; Learning grammars from the annotated data
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *training-configuration*
-  '((:de-render-mode .  :de-render-constituents-dependents)
+  `((:de-render-mode .  :de-render-constituents-dependents)
     (:node-tests :check-double-role-assignment)
     (:parse-goal-tests :no-valid-children)
     (:max-nr-of-nodes . 100)
-    (:node-expansion-mode . :multiple-cxns)
-    (:priority-mode . :nr-of-applied-cxns)
-    (:queue-mode . :greedy-best-first)
+
+    (:construction-inventory-processor-mode . :heuristic-search)
+    (:search-algorithm . :best-first)   
+    (:cxn-supplier-mode . :hashed-categorial-network)
+    
+    (:heuristics
+     :nr-of-applied-cxns
+     :nr-of-units-matched-x2 ;;nr-of-units-matched
+     :argm-prediction ;; Don't forget to activate the text-to-role-classification server!!!!!
+     :edge-weight) 
+    ;;Additional heuristics: :prefer-local-bindings :frequency
+    
+    (:heuristic-value-mode . :sum-heuristics-and-parent)
+    (:sort-cxns-before-application . nil)
+
+    (:node-expansion-mode . :full-expansion)
     (:hash-mode . :hash-lemma)
-    (:parse-order
-     lexical-cxn
-     argument-structure-cxn
-     argm-phrase-cxn
-     argm-leaf-cxn
-     word-sense-cxn)
+    
     (:replace-when-equivalent . nil)
     (:learning-modes
      :core-roles
      :argm-leaf
-     ;:argm-pp
-     ;:argm-sbar
-     ;
-     ;:argm-phrase-with-string
-     )
-    (:cxn-supplier-mode . :propbank-english)))
+     :argm-pp
+     :argm-sbar
+     :argm-phrase-with-string)))
 
-(defvar *propbank-ewt-ontonotes-learned-cxn-inventory-no-aux*)
+(defparameter *test-grammar* nil)
+
+(defparameter *train-corpus* (train-split *ontonotes-annotations*))
+
+
+;(subseq (shuffle (append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*))) 0 1000))
+
 
 (learn-propbank-grammar
-  (shuffle (append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*)))
- :selected-rolesets nil
+ (subseq *train-corpus* 0 10000)
  :excluded-rolesets '("be.01" "be.02" "be.03"
                       "do.01" "do.02" "do.04" "do.11" "do.12"
-                      "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11")
- :cxn-inventory '*propbank-ewt-ontonotes-learned-cxn-inventory-no-aux*
+                      "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
+                      "get.03" "get.06" "get.24")
+ :cxn-inventory '*propbank-ontonotes-learned-cxn-inventory-no-aux-all-strategies*
  :fcg-configuration *training-configuration*)
+
+;(add-element (make-html (find-cxn 'V\(IN\)+ARGM-ADV\(SBAR\:LIKE\)-11+3-CXN *propbank-ontonotes-learned-cxn-inventory-no-aux-all-strategies*)))
+
+(set-configuration *propbank-ontonotes-learned-cxn-inventory-no-aux-all-strategies*
+                   :heuristics '(:nr-of-applied-cxns
+                                 :nr-of-units-matched
+                                 :argm-prediction
+                                 :edge-weight
+                                 ))
+
+
+;;by 1940 => TMP not MNR!!
+;(comprehend-and-extract-frames (nth 21 *train-corpus*) :cxn-inventory *propbank-ontonotes-learned-cxn-inventory-no-aux-all-strategies*)
+
+(comprehend-and-extract-frames (nth 25 *train-corpus*) :cxn-inventory *restored-grammar-lw*)
+
+(comprehend-and-evaluate (list (nth 26 *train-corpus*)) *propbank-ontonotes-learned-cxn-inventory-no-aux-all-strategies*
+                         :excluded-rolesets '("be.01" "be.02" "be.03"
+                                              "do.01" "do.02" "do.04" "do.11" "do.12"
+                                              "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
+                                              "get.03" "get.06" "get.24")
+                         :core-roles-only nil)
+                         ;:include-sentences-with-incomplete-role-constituent-mapping nil)
+
+;(add-element (make-html *test-grammar*))
+;(activate-monitor trace-fcg)
+
+;; Testing learned grammars
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+(comprehend-and-extract-frames "The child fed the cat for her mother" :cxn-inventory *test-grammar*)
+
+(comprehend-and-extract-frames "The walls crumbled to the ground." :cxn-inventory *test-grammar*)
+
+(comprehend-and-extract-frames "The plumber unclogged the sink with a drain snake." :cxn-inventory *test-grammar*)
+
+
+
+#|
+(comprehend-and-extract-frames "This wage inflation is bleeding the NFL dry, the owners contend" :cxn-inventory *test-grammar* :timeout 600)
+"The child fed the cat for her mother"
+
+
+"This wage inflation is bleeding the NFL dry, the owners contend"
+
+
+(comprehend-and-extract-frames "I gave her flowers at the restaurant" :cxn-inventory *test-grammar* :timeout 3000)
+
+(comprehend-and-evaluate (list *test-sentence*) *test-grammar*
+                         :excluded-rolesets '("be.01" "be.02" "be.03"
+                                              "do.01" "do.02" "do.04" "do.11" "do.12"
+                                              "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
+                                              "get.03" "get.06" "get.24")
+                         :core-roles-only nil)
+
+(loop for i from 0
+      for sentence in (subseq *train-corpus* 0 5)
+        do (pprint i)
+           (comprehend-and-evaluate (list sentence) *test-grammar*
+                         :excluded-rolesets '("be.01" "be.02" "be.03"
+                                              "do.01" "do.02" "do.04" "do.11" "do.12"
+                                              "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
+                                              "get.03" "get.06" "get.24")
+                         :core-roles-only t
+                         :include-sentences-with-incomplete-role-constituent-mapping nil))
+
 
 
 ;; Cleaning learned grammars
@@ -127,11 +223,21 @@
 (comprehend "Hello world" :cxn-inventory *restored-grammar*)
 (comprehend-and-extract-frames "I love you" :cxn-inventory *restored-grammar*)
 
+
+|#
+
+
+
+
 ;; Testing learned grammars
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (monitors:activate-monitor trace-fcg)
 
+(comprehend-and-extract-frames "It was all over the news that Germany and Belgium were thrown out of the world cup by two strong opponents" :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory-no-aux*)
+
+
+                               
 (comprehend-and-extract-frames "Oxygen levels in oceans have fallen 2% in 50 years due to climate change, affecting marine habitat and large fish such as tuna and sharks" :cxn-inventory *restored-grammar-lw*)
 
 (comprehend-and-extract-frames "Studies show the different experiences of genders across many domains including education, life expectancy, personality, interests, family life, careers, and political affiliation" :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory-no-aux*)

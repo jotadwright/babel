@@ -19,7 +19,8 @@
           set-configurations
           get-configuration-or-default
 	  define-configuration-default-value
-          require-configuration))
+          require-configuration
+          with-configurations))
 
 (defclass configuration ()
   ((configuration :initarg :entries
@@ -162,5 +163,13 @@
 	 (error 
 	  (format nil "Please set the ~(~:w~) configuration in ~a" ,key object)))
        (values value key-exists))))
+
+;; ----------------------------------------------------------------------------
+;;
+
+(defmacro with-configurations (local-names-and-keys configuration &body body)
+  `(symbol-macrolet (,@(loop for (name key) in local-names-and-keys
+                             collect `(,name (get-configuration ,configuration ,key))))
+     ,@body))
 
 ;; ############################################################################

@@ -51,7 +51,8 @@
    (server-port :initarg :server-port :type string :accessor server-port :initform ""
                 :documentation "Port to which the nao server should listen")
    (container-name :initarg :container-name :type string :accessor container-name :initform ""
-                   :documentation "Name of the Docker container of this Nao"))
+                   :documentation "Name of the Docker container of this Nao")
+   (vision-server :initarg :vision-server :accessor vision-server :documentation "pointer to the vision server in python three (if applicable)"))
   (:documentation "Nao robot class"))
 
 (defmethod initialize-instance :after ((nao nao) &key (connect-automatically t) &allow-other-keys)
@@ -233,8 +234,7 @@
                      (server-host nao) (server-port nao) endpoint)))
     (with-open-stream
         #+LISPWORKS (stream (http-request uri :method :post :content json-data
-                                          :want-stream t :connection-timeout nil
-                                          :read-timeout nil :write-timeout nil))
+                                          :want-stream t :connection-timeout nil))
         #+SBCL (stream (http-request uri :method :post :context json-data
                                      :want-stream t :connection-timeout nil))
         #+CCL (stream (http-request uri :method :post :content json-data

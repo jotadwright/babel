@@ -81,7 +81,6 @@
   (assert (hash-table-p wikimedia-featured))
   (gethash "tfa" wikimedia-featured))
 
-
 ;; Wikimedia-On-This-Day + helper functions
 ;; ----------------------------------------------------------------------------------
 (defun wikimedia-on-this-day (&key (language "en")

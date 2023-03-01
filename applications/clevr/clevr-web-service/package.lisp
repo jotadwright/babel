@@ -23,10 +23,10 @@
                 :encode-json-to-string
                 :encode-json-alist-to-string
                 :decode-json-from-string)
-  (:import-from :clevr-grammar :*CLEVR*)
+  (:import-from :clevr-grammar :*CLEVR* 
+                :preprocess-utterance 
+                :preprocess-program)
   (:import-from :clevr-evaluation
-                :preprocess-sentence
-                :preprocess-program
                 :preprocess-program-for-web-service
                 :get-target-value
                 :answer->str

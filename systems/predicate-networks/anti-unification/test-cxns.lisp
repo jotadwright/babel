@@ -9,19 +9,19 @@
                   (meaning-args sequence))
   :fcg-configurations ((:cxn-supplier-mode . :scores)
                        (:parse-goal-tests :no-applicable-cxns
-                        :connected-semantic-network
-                        :no-strings-in-root)
+                                          :connected-semantic-network
+                                          :no-strings-in-root)
                        (:production-goal-tests :no-applicable-cxns
-                        :connected-structure
-                        :no-meaning-in-root)
+                                               :connected-structure
+                                               :no-meaning-in-root)
                        (:th-connected-mode . :neighbours))
   :visualization-configurations
   ((:show-constructional-dependencies . nil)
    (:show-categorial-network . t))
 
-  (def-fcg-cxn generalisation-cxn
+  (def-fcg-cxn what-color-is-the-x-cxn
                ((?item-based-unit
-                 (syn-cat (lex-class item-based-cat-1))
+                 (syn-cat (lex-class what-color-is-the-x))
                  (meaning-args (?x-22678 ?x-22680 ?x-22682 ?x-22679))
                  (form-args (?x-22740 ?x-22741))
                  (subunits (?slot-unit)))
@@ -45,14 +45,14 @@
                              (meets ?x-22740 ?x-22741))))
                  (?slot-unit
                   (meaning-args (?x-22678 ?x-22680 ?x-22682 ?x-22679))
-                  (syn-cat (lex-class slot-cat-1))
+                  (syn-cat (lex-class what-color-is-the-x-\(x\)))
                   --
-                  (syn-cat (lex-class slot-cat-1))
+                  (syn-cat (lex-class what-color-is-the-x-\(x\)))
                   (form-args (?x-22740 ?x-22741)))))
 
-  (def-fcg-cxn pattern-slot-cxn
+  (def-fcg-cxn large-cube-cxn
                ((?slot-unit
-                 (syn-cat (lex-class slot-cat-1))
+                 (syn-cat (lex-class large-cube))
                  (meaning-args (?shape-1 ?size-1 ?x ?x))
                  (form-args (?large-74978 ?cube-74979)))
                 <-
@@ -63,9 +63,9 @@
                  (HASH form ((string ?large-74978 "large")
                              (string ?cube-74979 "cube"))))))
 
-  (def-fcg-cxn source-slot-cxn
+  (def-fcg-cxn small-blue-sphere-cxn
                ((?slot-unit
-                 (syn-cat (lex-class slot-cat-1))
+                 (syn-cat (lex-class small-blue-sphere))
                  (meaning-args (?b1 ?b2 ?s3 ?s2))
                  (form-args (?small-74984 ?blue-74985)))
                 <-
@@ -84,9 +84,11 @@
 )
 
 
-(add-categories '(slot-cat-1 item-based-cat-1)
+(add-categories '(small-blue-sphere large-cube what-color-is-the-x-\(x\) what-color-is-the-x)
                 (categorial-network *fcg-constructions*))
-(add-link 'slot-cat-1 'item-based-cat-1
+(add-link 'small-blue-sphere 'what-color-is-the-x-\(x\)
+          (categorial-network *fcg-constructions*))
+(add-link 'large-cube 'what-color-is-the-x-\(x\)
           (categorial-network *fcg-constructions*))
 (activate-monitor trace-fcg)
 (comprehend-and-formulate "what color is the large cube")
