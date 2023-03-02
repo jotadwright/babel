@@ -17,6 +17,7 @@
 *.wx64fsl
 *.wx32fsl
 *.lisp~
+*.fcg~
 *.asd~
 *.ps
 *.64xfasl
@@ -25,8 +26,3 @@
 .DS_Store
 **/.tmp
 init-babel-user.lisp
-/grammars/English/lexicon
-experiments/clevr-grammar-learning/raw-data
-grammars/propbank-grammar/cleaning-and-evaluation/parameter-evaluation/raw-data
-*.fcg~ 
-Evaluating.
