@@ -889,6 +889,18 @@
           (extract-form-predicate-by-type overlapping-form-cxn 'string)
           (connected-semantic-network non-overlapping-meaning-cxn)
           (check-meets-continuity non-overlapping-form-cxn)))
+        ((equal meaning-representation-formalism :amr)
+         (and (not overlapping-meaning-observation)
+          (not overlapping-form-observation)
+          (> (length non-overlapping-meaning-observation) 0)
+          (> (length non-overlapping-form-observation) 0)
+          (> (length non-overlapping-meaning-cxn) 0)
+          (> (length non-overlapping-form-cxn) 0)
+          (> (length overlapping-meaning-cxn) 0)
+          (> (length overlapping-form-cxn) 0)
+          (extract-form-predicate-by-type overlapping-form-cxn 'string)
+          (connected-semantic-network non-overlapping-meaning-cxn)
+          (check-meets-continuity non-overlapping-form-cxn)))
          
         (t (error "no deletion conditions implemented for this meaning representation"))))
 
@@ -1098,9 +1110,22 @@
 (defmethod equivalent-meaning-networks (m1 m2  (mode (eql :geo)))
   (amr::equivalent-amr-predicate-networks m1 m2))
 
+
+
+;;;modified version with longer first 
 (defmethod diff-meaning-networks (network-1 network-2 (mode (eql :amr)))
-  (multiple-value-bind (n1-diff n2-diff) (amr::diff-amr-networks network-1 network-2)
-    (values n1-diff n2-diff)))
+  (let ((longest-network (if (>(length network-1)
+                               (length network-2))
+                           network-1 network-2))
+        (shortest-network (if (>(length network-1)
+                                (length network-2))
+                            network-2 network-1)))
+  
+    (multiple-value-bind (n1-diff n2-diff) (amr::diff-amr-networks network-1 network-2)
+      (values n1-diff n2-diff))))
+
+
+
 
 (defmethod diff-meaning-networks (network-1 network-2 (mode (eql :geo)))
   (multiple-value-bind (n1-diff n2-diff) (diff-geo-networks network-1 network-2)
@@ -1121,6 +1146,48 @@
               overlapping-meaning-n1
               overlapping-meaning-n2
               ))))
+
+
+
+;test german deletion
+#|(defmethod diff-meaning-networks (network-2 network-1 (mode (eql :geo)))
+  (multiple-value-bind (n1-diff n2-diff) (diff-geo-networks network-1 network-2)
+    (let* ((shared-meaning (set-difference network-1 n1-diff :test #'equal))
+           (n2-renamings (reverse-bindings (irl::map-frame-bindings (first (equivalent-irl-programs? network-2 (append shared-meaning n2-diff))))))
+           ; we need n2 in the correct order, but with renamed vars, do the renamings
+           (renamed-network-2 (fcg::rename-variables network-2 n2-renamings))
+           (continuous-n1-diff (extract-continuous-diff n1-diff network-1))
+           (continuous-n2-diff (extract-continuous-diff n2-diff renamed-network-2))
+           (overlapping-meaning-n1 (sort-subnetwork-according-to-parent
+                                             (set-difference network-1 continuous-n1-diff :test #'equal)
+                                             network-1))
+           (overlapping-meaning-n2 (sort-subnetwork-according-to-parent
+                                     (set-difference renamed-network-2 continuous-n2-diff :test #'equal)
+                                     renamed-network-2)))
+      (values continuous-n1-diff
+              continuous-n2-diff
+              overlapping-meaning-n1
+              overlapping-meaning-n2
+              ))))|#
+
+
+;test german deletion
+#|(defmethod diff-meaning-networks (network-2 network-1 (mode (eql :amr)))   ;inverting networks, longer first 
+  (multiple-value-bind (n2-diff n1-diff) (amr::diff-amr-networks network-2 network-1)
+    (values n2-diff n1-diff)))|#
+
+;;test
+
+#|(defmethod diff-meaning-networks (network-1 network-2 (mode (eql :amr)))
+  (let* ((longest-network (if (< (length network-1) (length network-2))
+                            network-2
+                            network-1))
+         (shortest-network (if (< (length network-1) (length network-2))
+                             network-1
+                             network-2)) 
+  (multiple-value-bind (n1-diff n2-diff) (amr::diff-amr-networks network-2 network-1)
+    (values n1-diff n2-diff)))))|#
+
 
 (defun extract-continuous-diff (diff network)
   (when (and diff
