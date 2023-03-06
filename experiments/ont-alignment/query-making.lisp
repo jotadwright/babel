@@ -6,13 +6,6 @@
          (result (postmodern::query sql-query)))
     (print result)))
 
-(defun generate-sql-query (table column where)
-  "Generates a SQL query for selecting data from a table with optional WHERE clause."
-  (let* ((sql-query (format nil "SELECT ~a FROM ~a WHERE ~a" column table where))
-         (result (postmodern::query sql-query)))
-    (when result
-      (print result))))
-
 (defun get-all-entities (table)
   "Fetches all entities from a given table and returns them in a list.
    The result is, as a consequence, a list of lists."
@@ -27,13 +20,9 @@
    Returns the first successful query."
   (let* ((entity-list (get-all-entities table))
          (column-name-list (loop for entity in entity-list
-                                   collect (get-nth-element entity 3))))
+                                 collect (get-nth-element entity 3))))
     (format t "The different columns of the table are: ~a~%" column-name-list)
     (loop for column in column-name-list
-          for result = (generate-sql-query table column (format nil "~a = '~a'" column answer))
-          when result return result)))
-
-
-;(postmodern::query "SELECT year FROM actorsfilms WHERE film = 'American Loser'")
-
-;(postmodern::query "SELECT film FROM actorsfilms WHERE actor = 'Nelson Franklin'")
+          for result = (handler-case (generate-sql-query table column (format nil "~a = '~a'" column answer))
+                          (condition () nil))
+          when result return (get-nth-element (get-nth-element result 0) 0))))

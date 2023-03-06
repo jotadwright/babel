@@ -30,19 +30,18 @@
   (let* ((val (change-type value))
          (q (concatenate 'string (q node) " WHERE " attribute " " operator " '"val"'"))
           (child (make-instance 'node :id id :parent node :depth (+ (depth node) 1) :q q :attrs att :tble (tble node))))
-    (push child (children node))
     child))
 ;;OK
 (defun and-node (id node attribute operator value)
   "function that creates a node with the AND clause and returns the newly created node with its associated parent."
-  (let* ((q (concatenate 'string (q node) " AND " attribute " " operator " '" value "'"))
-          (child (make-instance 'node :id id :parent node :depth (+ (depth node) 1) :q q :attrs (cdr (attrs node)) :tble (tble node))))
-    (push child (children node))
+  (let* ((val (change-type value))
+          (q (concatenate 'string (q node) " AND " (name attribute) " " operator " '" val "'"))
+          (child (make-instance 'node :id id :parent node :depth (+ (depth node) 1) :q q :attrs (append (attrs node) (list attribute)) :tble (tble node))))
     child))
 ;;OK
 (defun or-node (id node attribute operator value)
   "function that creates a node with the OR clause and returns the newly created node with its associated parent."
-  (let* ((q (concatenate 'string (q node) " OR " attribute " " operator " '" value "'"))
-          (child (make-instance 'node :id id :parent node :depth (+ (depth node) 1) :q q :attrs (cdr (attrs node)) :tble (tble node))))
-    (push child (children node))
+  (let* ((val (change-type value))
+          (q (concatenate 'string (q node) " OR " (name attribute) " " operator " '" val "'"))
+          (child (make-instance 'node :id id :parent node :depth (+ (depth node) 1) :q q :attrs (append (attrs node) (list attribute)) :tble (tble node))))
     child))
