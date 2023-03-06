@@ -6,23 +6,29 @@
    (children :type list :initarg :children :initform '() :accessor children)
    (depth :type integer :initarg :depth :initform nil :accessor depth)
    (tble :type table :initarg :tble :initform nil :accessor tble)
+   (ref-tbles :type list :initarg :ref-tbles :initform '() :accessor ref-tbles)
    (attrs :type attrs :initarg :attrs :initform nil :accessor attrs)
    (q :type integer :initarg :q :initform "" :accessor q)))
 
-;;DEBUGGER
+;;OK
 (defun init-node (id node attributes table)
   "function that create a node with the SELECT .. FROM .. clause and return the newly created node with its associated parent."
     (let* ((q "SELECT ")
-           (child (make-instance 'node :id id :parent node :depth (+ (depth node) 1)  :q "" :tble table))
+           (child (make-instance 'node :id id :parent node :depth (+ (depth node) 1)  :q "" :tble table :ref-tbles (list table)))
            (last-elem (last attributes)))
       (dolist (att-n attributes)
-        (if (or (equal (length attributes) 1) (equal att-n (first last-elem)))
-         (setf q (concatenate 'string q att-n))
-          (setf q (concatenate 'string q att-n ","))))
+          (if (> (length (ref-tbles node)) 1)
+            (progn
+              (if (or (equal (length attributes) 1) (equal att-n (first last-elem)))
+                (setf q (concatenate 'string q (name table) "." att-n))
+                (setf q (concatenate 'string q (name table) "." att-n ","))))
+            (progn
+              (if (or (equal (length attributes) 1) (equal att-n (first last-elem)))          
+                (setf q (concatenate 'string q att-n))
+                (setf q (concatenate 'string q att-n ","))))))
       (setf q (concatenate 'string q " FROM "(name  table)))
       (setf (q child) q)
       child))
-        
     
 ;;OK
 (defun where-node (id node attribute operator value att)

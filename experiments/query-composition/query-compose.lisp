@@ -29,7 +29,6 @@
              :type integer
              :documentation "The state to check if a new query is found.")))
 
-
 ;;PARAMS
 ;; composer: A query-composer object.
 ;; answer: The goal of the tested queries.
@@ -46,10 +45,11 @@
               (return-from compose-query (nth (- (length (queries composer)) (state composer)) (queries composer)))))
           (if (equal (depth parent) 0)
             (progn
+              (let ((join-nodes '()))
               (dolist (tble (tables composer))
                 (let ((permutations '()))
                   (if (>= (length (attributes tble)) (length (first answer)))
-                    (setf permutations (permutations-of-length (attributes tble) (length (first answer)))))
+                    (setf permutations (permutations-of-length (sort-by-type (attributes tble) (first answer)) (length (first answer)))))
                   (dolist (perm permutations)
                     (let* ((attributes-names '())
                            (child-node nil))
@@ -63,7 +63,7 @@
                       (setf (queue composer) (push-end child-node (queue composer)))
                       (if (goal-test answer child-node)
                         (progn
-                          (setf (queries composer) (push (q child-node) (queries composer)))))))))))
+                          (setf (queries composer) (push (q child-node) (queries composer))))))))))))
           (if (not (equal (depth parent) 0))
               (progn
                 (let ((attrs '()))
@@ -73,7 +73,10 @@
                   (dolist (attr attrs)
                     (let ((result (flatten (query (concatenate 'string "SELECT " (name attr) " FROM " (name (tble parent)))))))
                       (dolist (val result)
-                        (dolist (operator list-of-operator)
+                        (let ((operators '("<" ">" "<=" ">=" "!=" "=")))
+                          (if (not (typep (first result) 'bit))
+                            (setf operators  '("!=" "=")))
+                        (dolist (operator operators)
                           (if (equal (depth parent) 1)
                             (progn
                               (let ((child-node (where-node (current-id composer)
@@ -112,13 +115,11 @@
                                     (push (q and-child) queries)))
                                 (if (goal-test answer or-child)
                                   (progn
-                                    (push (q or-child) queries)))))))))))))))
+                                    (push (q or-child) queries))))))))))))))))
                                   
 
 (defun goal-test (answer node)
   (let ((res-of (query (q node))))
     (if (equal answer res-of)
       t)))
-
-(setf list-of-operator '("<" ">" "<=" ">=" "!=" "="))
           
