@@ -11,8 +11,7 @@
                :cl-json
                :closer-mop
                :nlp-tools
-               :dexador
-               #+lispworks :drakma)
+               :dexador)
   :serial t
   :components ((:file "package")
                (:file "ontology")
@@ -29,4 +28,11 @@
                              (:file "understand")
                              (:file "expansions")
                              (:file "utils")
-                             (:file "heuristics")))))
+                             (:file "heuristics")))
+               (:module evaluation
+                :serial t
+                :components ((:file "irl-helpers")
+                             (:file "helpers")
+                             (:file "solutions")
+                             (:file "environments")
+                             (:file "evaluate")))))

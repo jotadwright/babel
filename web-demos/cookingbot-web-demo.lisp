@@ -84,7 +84,7 @@
 (defun understanding ()
   (add-element '((a :name "2")))
   (add-element '((h2) "2. Demonstration of the understanding process"))
-  (process-uterances '(;;;; Ingredients
+  (process-utterances '(;;;; Ingredients
                      "226 grams butter , room temperature"
                      "116 grams sugar"    
                      "4 grams vanilla extract"

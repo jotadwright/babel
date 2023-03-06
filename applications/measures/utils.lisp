@@ -7,7 +7,7 @@
                        *fcg-constructions*
                        `((get-kitchen ,(make-var 'kitchen-state)))))
   (print-initial-output)
-  (process-uterances recipe *pdm*))
+  (process-utterances recipe *pdm*))
   
 (defun my-initialize-values ()
   (setf (slot-value (monitors::get-monitor 'questions-introduced-by-grammar) 'values) nil

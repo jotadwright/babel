@@ -10,5 +10,6 @@
         :fcg
         :cl-json
         )
+  (:export #:evaluate)
   (:shadow "PROTOTYPE" "PP")
   (:documentation ""))

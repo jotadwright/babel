@@ -51,29 +51,30 @@
 
 (defmethod make-html-for-entity-details ((e kitchen-entity) &key expand-initially)
   "Default HTML visualisation method for object of class kitchen-entity."
-  (loop for slot in (closer-mop:class-slots (class-of e))
-        for slot-name = (closer-mop:slot-definition-name slot)
-        for slot-value = (slot-value e slot-name)
-        if (or (symbolp slot-value)
-               (stringp slot-value)
-               (numberp slot-value))
-          collect (if (eq 'id slot-name)
+  (unless (eq (type-of e) 'failed-object)
+    (loop for slot in (closer-mop:class-slots (class-of e))
+          for slot-name = (closer-mop:slot-definition-name slot)
+          for slot-value = (slot-value e slot-name)
+          if (or (symbolp slot-value)
+                 (stringp slot-value)
+                 (numberp slot-value))
+            collect (if (eq 'id slot-name)
                       ""
                       `((div :class "entity-detail")
                         ,(format nil "~(~a~): ~(~a~)" slot-name slot-value)))
-
-        ;; TODO PRETTY PRINT HTML
-        else if (eq slot-name 'sim-arguments)
-               collect `((div :class "entity-detail")
-                         ,(format nil "~(~a~):" slot-name)
-                         ,(make-html-for-alist slot-value (make-id 'simulation-properties) nil expand-initially nil))
-
-        else if (listp slot-value)
-               collect  `((div :class "entity-detail")
-                          ,@(loop for el in slot-value
-                                  collect (make-html el :expand-initially expand-initially)))
-
-        else
-          collect `((div :class "entity-detail")
-                    ,(format nil "~(~a~): " slot-name)
-                    ,(make-html slot-value :expand-initially expand-initially))))
+            
+            ;; TODO PRETTY PRINT HTML
+            else if (eq slot-name 'sim-arguments)
+                   collect `((div :class "entity-detail")
+                             ,(format nil "~(~a~):" slot-name)
+                             ,(make-html-for-alist slot-value (make-id 'simulation-properties) nil expand-initially nil))
+                   
+            else if (listp slot-value)
+                   collect  `((div :class "entity-detail")
+                              ,@(loop for el in slot-value
+                                      collect (make-html el :expand-initially expand-initially)))
+                   
+                   else
+                   collect `((div :class "entity-detail")
+                             ,(format nil "~(~a~): " slot-name)
+                             ,(make-html slot-value :expand-initially expand-initially)))))
