@@ -1599,7 +1599,7 @@
                        '(bring-to-temperature ?softened-cheese ?ks-with-softened-cheese ?ks-with-cheese ?proportioned-cheese ?room-temp-quantity ?room-temp-unit)
                        '(fetch-and-proportion ?proportioned-egg ?ks-with-egg ?ks-with-softened-cheese ?target-container-2 egg 1 piece)
                        '(crack ?cracked-egg ?ks-with-cracked-egg ?ks-with-egg ?proportioned-egg ?empty-bowl)
-                       '(beat ?beaten-egg ?ks-with-beaten-egg ?ks-with-cracked-egg ?proportioned-egg ?mixing-tool)
+                       '(beat ?beaten-egg ?ks-with-beaten-egg ?ks-with-cracked-egg ?cracked-egg ?mixing-tool)
                        '(fetch-and-proportion ?proportioned-sugar-70 ?ks-with-sugar-70 ?ks-with-beaten-egg ?target-container-3 white-sugar 70 g)
                        '(fetch-and-proportion ?proportioned-salt-1 ?ks-with-salt-1 ?ks-with-sugar-70 ?target-container-4 salt 0.5 teaspoon)
                        '(fetch-and-proportion ?proportioned-chocolate-chips ?ks-with-chocolate-chips ?ks-with-salt-1 ?target-container-5 chocolate-chips 180 g)
