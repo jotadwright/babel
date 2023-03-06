@@ -901,6 +901,8 @@
   "Set initial kitchen state to be used in simulation to the one of the given environment."
   (setf *initial-kitchen-state* (copy-object (kitchen-state simulation-environment))))
 
+(activate-monitor trace-irl)
+
 #|
 (defparameter *almond-crescent-cookies-environment*
   (make-instance 'simulation-environment
@@ -947,7 +949,7 @@
                  (list '(get-kitchen ?kitchen-state)
                        '(fetch-and-proportion ?proportioned-butter ?kitchen-state-with-butter ?kitchen-state ?target-container-1 butter 200 g)
                        '(bring-to-temperature ?butter-at-room-temp ?kitchen-state-with-butter-at-room-temp ?kitchen-state-with-butter ?proportioned-butter ?room-temp-quantity ?room-temp-unit)
-                       '(fetch-and-proportion ?proportioned-caster-sugar ?kitchen-state-with-caster-sugar ?kitchen-state-with-butter ?target-container-2 caster-sugar 100 g)
+                       '(fetch-and-proportion ?proportioned-caster-sugar ?kitchen-state-with-caster-sugar ?kitchen-state-with-butter-at-room-temp ?target-container-2 caster-sugar 100 g)
                        '(fetch-and-proportion ?proportioned-all-purpose-flour ?kitchen-state-with-all-purpose-flour ?kitchen-state-with-caster-sugar ?target-container-3 all-purpose-flour 300 g)
                        '(fetch-and-proportion ?proportioned-cocoa-powder ?kitchen-state-with-cocoa-powder ?kitchen-state-with-all-purpose-flour ?target-container-4 cocoa-powder 3 tablespoon)
                        '(fetch-and-proportion ?proportioned-corn-flakes ?kitchen-state-with-corn-flakes ?kitchen-state-with-cocoa-powder ?target-container-5 corn-flakes 300 g)
@@ -1499,11 +1501,11 @@
                        '(fetch-and-proportion ?proportioned-coconut-34 ?ks-with-coconut-34 ?ks-with-flour ?target-container-5 shredded-coconut 150 g)
                        '(fetch-and-proportion ?proportioned-coconut-14 ?ks-with-coconut-14 ?ks-with-coconut-34 ?target-container-6 shredded-coconut 50 g)
                        '(preheat-oven ?preheated-oven ?ks-with-preheated-oven ?ks-with-coconut-14 ?oven 200 degrees-celsius)
-                       '(fetch ?mixer ?ks-with-mixer ?ks-with-coconut-14 mixer 1)
+                       '(fetch ?mixer ?ks-with-mixer ?ks-with-preheated-oven mixer 1)
                        '(beat ?beaten-butter ?ks-with-beaten-butter ?ks-with-mixer ?warm-butter ?mixer)
                        '(transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-beaten-butter ?empty-bowl ?beaten-butter ?quantity-a ?unit-a)
                        '(transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?proportioned-sugar ?quantity-b ?unit-b)
-                       '(beat ?beaten-sugar-mixture ?ks-with-beaten-sugar-mixture ?ks-with-mixer ?proportioned-sugar ?mixer)
+                       '(beat ?beaten-sugar-mixture ?ks-with-beaten-sugar-mixture ?output-ks-b ?proportioned-sugar ?mixer)
                        '(transfer-contents ?output-container-white ?rest-white ?output-ks-white ?ks-with-beaten-sugar-mixture ?beaten-sugar-mixture ?proportioned-egg-white ?quantity-white ?unit-white)
                        '(beat ?beaten-egg-mixture ?ks-with-beaten-egg-mixture ?output-ks-white ?output-container-white ?mixing-tool)
                        '(transfer-contents ?output-container-c ?rest-c ?output-ks-c ?ks-with-beaten-egg-mixture ?beaten-egg-mixture ?proportioned-flour ?quantity-c ?unit-c)
@@ -1574,7 +1576,7 @@
                        '(mix ?dough ?ks-with-dough ?output-ks-d ?output-container-d ?mixing-tool)
                        '(fetch ?cookie-sheet ?ks-with-cookie-sheet ?ks-with-dough cookie-sheet 1)
                        '(grease ?greased-sheet ?ks-with-greased-sheet ?ks-with-cookie-sheet ?cookie-sheet ?proportioned-butter)
-                       '(portion-and-arrange ?portioned-dough ?ks-with-portioned-dough ?ks-with-dough ?dough 100 g ?pattern ?countertop)
+                       '(portion-and-arrange ?portioned-dough ?ks-with-portioned-dough ?ks-with-greased-sheet ?dough 100 g ?pattern ?countertop)
                        '(transfer-items ?portions-on-sheet ?ks-with-portions-on-sheet ?ks-with-portioned-dough ?portioned-dough ?default-pattern ?greased-sheet)
                        '(bake ?baked-biscuit ?ks-with-baked-biscuit ?ks-with-portions-on-sheet ?portions-on-sheet ?oven 10 minute 220 degrees-celsius)
                        '(fetch ?wire-rack ?ks-with-wire-rack ?ks-with-baked-biscuit wire-rack 1)
@@ -1586,6 +1588,7 @@
                  '?bisquick-shortcake-biscuits))
 
 (defparameter *chocolate-cream-cheese-cupcakes-environment*
+  ;; error!!
   (make-instance 'simulation-environment
                  :recipe-id 'chocolate-cream-cheese-cupcakes
                  :kitchen-state
@@ -1596,7 +1599,7 @@
                        '(bring-to-temperature ?softened-cheese ?ks-with-softened-cheese ?ks-with-cheese ?proportioned-cheese ?room-temp-quantity ?room-temp-unit)
                        '(fetch-and-proportion ?proportioned-egg ?ks-with-egg ?ks-with-softened-cheese ?target-container-2 egg 1 piece)
                        '(crack ?cracked-egg ?ks-with-cracked-egg ?ks-with-egg ?proportioned-egg ?empty-bowl)
-                       '(beat ?beaten-egg ?ks-with-beaten-egg ?ks-with-egg ?proportioned-egg ?mixing-tool)
+                       '(beat ?beaten-egg ?ks-with-beaten-egg ?ks-with-cracked-egg ?proportioned-egg ?mixing-tool)
                        '(fetch-and-proportion ?proportioned-sugar-70 ?ks-with-sugar-70 ?ks-with-beaten-egg ?target-container-3 white-sugar 70 g)
                        '(fetch-and-proportion ?proportioned-salt-1 ?ks-with-salt-1 ?ks-with-sugar-70 ?target-container-4 salt 0.5 teaspoon)
                        '(fetch-and-proportion ?proportioned-chocolate-chips ?ks-with-chocolate-chips ?ks-with-salt-1 ?target-container-5 chocolate-chips 180 g)
@@ -1730,7 +1733,7 @@
                        '(cut ?minced-jalapeno ?ks-with-minced-jalapeno ?ks-with-seeded-jalapeno ?seeded-jalapeno minced ?knife)
                        '(fetch-and-proportion ?proportioned-cilantro ?ks-with-cilantro ?ks-with-minced-jalapeno ?target-container-5 fresh-cilantro 20 g)
                        '(cut ?chopped-cilantro ?ks-with-chopped-cilantro ?ks-with-cilantro ?proportioned-cilantro minced ?knife)
-                       '(fetch-and-proportion ?proportioned-lime-juice ?ks-with-lime-juice ?ks-with-cilantro ?target-container-6 lime-juice 250 ml)
+                       '(fetch-and-proportion ?proportioned-lime-juice ?ks-with-lime-juice ?ks-with-chopped-cilantro ?target-container-6 lime-juice 250 ml)
                        '(fetch-and-proportion ?proportioned-olive-oil ?ks-with-olive-oil ?ks-with-lime-juice ?target-container-7 olive-oil 1 tablespoon)
                        '(fetch-and-proportion ?proportioned-mango ?ks-with-mango ?ks-with-olive-oil ?target-container-8 mango 330 g)
                        '(cut ?diced-mango ?ks-with-diced-mango ?ks-with-mango ?proportioned-mango diced ?knife)
@@ -1878,7 +1881,7 @@
                        '(cut ?sliced-celery ?ks-with-sliced-celery ?ks-with-celery ?proportioned-celery slices ?knife)
                        '(fetch-and-proportion ?proportioned-onion ?ks-with-onion ?ks-with-sliced-celery ?target-container-11 onion 50 g)
                        '(cut ?minced-onion ?ks-with-minced-onion ?ks-with-onion ?proportioned-onion minced ?knife)
-                       '(fetch-and-proportion ?proportioned-eggs ?ks-with-eggs ?ks-with-onion ?target-container-12 hard-boiled-egg 5 piece)
+                       '(fetch-and-proportion ?proportioned-eggs ?ks-with-eggs ?ks-with-minced-onion ?target-container-12 hard-boiled-egg 5 piece)
                        '(fetch-and-proportion ?proportioned-paprika ?ks-with-paprika ?ks-with-eggs ?target-container-13 paprika-powder 1/2 teaspoon)
                        '(fetch ?cooking-pot ?ks-with-cooking-pot ?ks-with-paprika cooking-pot 1)
                        '(fetch-and-proportion ?proportioned-water ?ks-with-water ?ks-with-cooking-pot ?target-container-14 water 500 ml)
@@ -1965,7 +1968,7 @@
                        '(fetch-and-proportion ?proportioned-sugar ?ks-with-sugar ?ks-with-chopped-cranberries ?target-container-2 white-sugar 125 g)
                        '(fetch-and-proportion ?proportioned-pineapple ?ks-with-pineapple ?ks-with-sugar ?target-container-3 crushed-pineapple-in-syrup 240 g)
                        '(drain ?drained-pineapple ?rest-liquid ?ks-with-drained-pineapple ?ks-with-pineapple ?proportioned-pineapple ?colander)
-                       '(fetch-and-proportion ?proportioned-marshmallow ?ks-with-marshmallow ?ks-with-pineapple ?target-container-4 marshmallow 450 g)
+                       '(fetch-and-proportion ?proportioned-marshmallow ?ks-with-marshmallow ?ks-with-drained-pineapple ?target-container-4 marshmallow 450 g)
                        '(fetch-and-proportion ?proportioned-cream ?ks-with-heavy-cream ?ks-with-marshmallow ?target-container-5 heavy-cream 230 g)
                        '(beat ?whipped-cream ?ks-with-whipped-cream ?ks-with-heavy-cream ?proportioned-cream ?whisk)
                        '(fetch-and-proportion ?proportioned-walnut ?ks-with-walnut ?ks-with-whipped-cream ?target-container-6 walnut 60 g)
