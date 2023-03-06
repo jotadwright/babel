@@ -15,7 +15,10 @@
 (defun init-table (table-name attrs)
   (let ((table (make-instance 'table :name table-name :attributes '())))
     (dolist (attr attrs)
-      (push (make-instance 'attribute :name (concat-array attr)) (attributes table)))
+       (let ((attribute-check (flatten (query (concatenate 'string "SELECT " (concat-array attr) " FROM " table-name " LIMIT 1")))))
+         (push (make-instance 'attribute :name (concat-array attr) :type-att (type-of (first attribute-check))) (attributes table))
+         (write (typep (first attribute-check) 'bit))))
+    
     table))
 
 (defun init-schema ()

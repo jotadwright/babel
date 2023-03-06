@@ -61,6 +61,10 @@
                       (setf (current-id composer) (+ (current-id composer) 1))
                       (setf (children parent) (push child-node (children parent)))
                       (setf (queue composer) (push-end child-node (queue composer)))
+                      ;;Join part
+                      ;;create node that satisty constraint
+                      (let ((select-node (init-node 1 parent attributes-names tble :join t)))
+                        (setf join-nodes (append join-nodes (inner-outer-compose composer select-node answer))))
                       (if (goal-test answer child-node)
                         (progn
                           (setf (queries composer) (push (q child-node) (queries composer))))))))))))
@@ -116,7 +120,58 @@
                                 (if (goal-test answer or-child)
                                   (progn
                                     (push (q or-child) queries))))))))))))))))
-                                  
+
+(defmethod inner-outer-compose ((composer query-composer) node answer)
+  (let ((queue (list node))
+         (answers '()))
+    (loop until (not queue)
+             for parent = (pop queue)
+             do
+             (let* ((q1 "SELECT tc.table_name, kcu.column_name, ccu.table_name AS foreign_table_name, ccu.column_name AS foreign_column_name FROM  information_schema.table_constraints AS tc JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name WHERE constraint_type = 'FOREIGN KEY' AND tc.table_name=")
+                     (q2 "SELECT tc.table_name, kcu.column_name, ccu.table_name AS foreign_table_name, ccu.column_name AS foreign_column_name FROM  information_schema.table_constraints AS tc JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name WHERE constraint_type = 'FOREIGN KEY' AND ccu.table_name=")
+                    (is-referenced  (query (concatenate 'string q1 "'" (name (car (last (ref-tbles parent)))) "'")))
+                    (references (query (concatenate 'string q2 "'" (name (car (last (ref-tbles parent))))"'")))
+                    (inner-node nil)
+                    (outer-node nil))
+               (if is-referenced
+                 (progn
+                   (dolist (ref is-referenced)
+                     (let* ((ref-obj (init-reference-info ref)))
+                       (if (not (is-table-present (foreign-table ref-obj) (ref-tbles parent)))
+                         (progn
+                           (setf inner-node (join-node 1 parent ref-obj (is-table-present (foreign-table ref-obj) (ref-tbles parent) :get-obj t)  :foreign-ref t))
+                           (setf outer-node (join-node 1 parent ref-obj (is-table-present (foreign-table ref-obj) (ref-tbles parent) :get-obj t)  :foreign-ref t :outer-join t))
+                           (push-end inner-node queue)
+                           (push-end outer-node queue)
+                           (setf answers (push-end inner-node answers))
+                           (setf answers (push-end outer-node answers))
+                           (if (goal-test answer inner-node)
+                             (progn
+                               (setf (queries composer) (push (q inner-node) (queries composer)))))
+                           (if (goal-test answer outer-node)
+                             (progn
+                               (setf (queries composer) (push (q outer-node) (queries composer)))))
+                           ))))))
+               (if references
+                 (progn
+                   (dolist (ref references)
+                     (let ((ref-obj (init-reference-info ref)))
+                       (if (not (is-table-present (table-name ref-obj) (ref-tbles parent)))
+                         (progn
+                           (setf inner-node (join-node 1 parent ref-obj (is-table-present (foreign-table ref-obj) (ref-tbles parent) :get-obj t)))
+                           (setf outer-node (join-node 1 parent ref-obj (is-table-present (foreign-table ref-obj) (ref-tbles parent) :get-obj t) :outer-join t))
+                           (push-end inner-node queue)
+                           (push-end outer-node queue)
+                           (setf answers (push-end inner-node answers))
+                           (setf answers (push-end outer-node answers))
+                           (if (goal-test answer inner-node)
+                             (progn
+                               (setf (queries composer) (push (q inner-node) (queries composer)))))
+                           (if (goal-test answer outer-node)
+                             (progn
+                               (setf (queries composer) (push (q outer-node) (queries composer)))))
+                           ))))))))
+    answers))
 
 (defun goal-test (answer node)
   (let ((res-of (query (q node))))
