@@ -11,7 +11,7 @@
                :cl-json
                :closer-mop
                :nlp-tools
-               #+lispworks :drakma)
+               :dexador)
   :serial t
   :components ((:file "package")
                (:file "ontology")

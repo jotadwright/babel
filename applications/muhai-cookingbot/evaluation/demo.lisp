@@ -30,6 +30,14 @@
 ;; DEMO ;;
 ;;;;;;;;;;
 
+(activate-monitor trace-irl)
+
+(defparameter *perfect-solution*
+  (evaluate-solutions "applications/muhai-cookingbot/recipe-execution-benchmark/data/gold standard solutions/meaning-only/afghan-biscuits.solution"
+                      '(goal-condition-success dish-approximation-score execution-time)
+                      (list *afghan-biscuits-environment*)))
+(print-results *perfect-solution*)
+
 (defparameter perfect-solution (evaluate-solutions "applications\\muhai-cookingbot\\benchmark\\documentation\\metrics\\examples\\perfect.solution" *metrics* (list *almond-crescent-cookies-environment*)))
 (print-results perfect-solution)
 
