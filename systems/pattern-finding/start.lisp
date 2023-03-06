@@ -4,13 +4,14 @@
 
 (progn
   (deactivate-all-monitors)
-  ;(activate-monitor display-metrics)
+  (activate-monitor display-metrics)
   (monitors::activate-monitor trace-fcg)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
   (activate-monitor show-type-hierarchy-after-n-interactions)
   (activate-monitor trace-interactions-in-wi)
   )
+
 
 (progn
   (wi::reset)
@@ -25,28 +26,33 @@
                               (:corpus-data-file . ,(make-pathname :directory '(:relative "train")
                                                                    :name "stage-1" :type "jsonl"))
                               (:number-of-samples . nil)
-                              (:shuffle-data-p . t)
-                              (:sort-data-p . nil)
+                              (:shuffle-data-p . nil)
+                              (:sort-data-p . t)
                               (:remove-duplicate-data-p . t)))))
 
 (length (question-data *experiment*))
-(run-series *experiment* 100)
+(run-series *experiment* 10)
 
 (defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
-(add-element (make-html *cxn-inventory*))-
+(add-element (make-html *cxn-inventory*))
 (add-element (make-html (categorial-network (grammar (first (agents *experiment*))))))
 
 (run-interaction *experiment*)
-(loop repeat 800 do (run-interaction *experiment*))
-(go-back-n-interactions *experiment* 1)
-(remove-cxns-learned-at *experiment* 6)
+(loop repeat 100 do (run-interaction *experiment*))
 
-(comprehend-all "Are any spheres visible?"
+(go-back-n-interactions *experiment* 1)
+(remove-cxns-learned-at *experiment* 9)
+
+(comprehend-all "Are there more blocks than balls?"
                 :cxn-inventory *cxn-inventory*
                 :gold-standard-meaning '((get-context ?context)
                                          (filter ?set1 ?context ?shape1)
-                                         (bind shape-category ?shape1 sphere)
-                                         (exist ?answer ?set1)))
+                                         (bind shape-category ?shape1 cube)
+                                         (filter ?set2 ?context ?shape2)
+                                         (bind shape-category ?shape2 sphere)
+                                         (count ?num1 ?set1)
+                                         (count ?num2 ?set2)
+                                         (greater-than ?target ?num1 ?num2)))
 
 (defun go-back-n-interactions (experiment n)
   (setf (interactions experiment)
