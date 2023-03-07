@@ -9,11 +9,6 @@
            :initarg :tree
            :type tree-query
            :documentation "Tree that represent the path of the object.")
-   (current-id :accessor current-id
-                    :initarg :current-id
-                    :initform 1
-                    :type integer
-                    :documentation "Current id to be assigned to the new tree node.")
    (tables :accessor tables
                :initarg :tables
                :type list
@@ -42,11 +37,11 @@
           (if (or (not (equal (length (queries composer)) (state composer))) all-queries)
             (progn
               (setf (state composer) (+ (state composer) 1))
-              (return-from compose-query (nth (- (length (queries composer)) (state composer)) (queries composer)))))
+              (return-from compose-query (sql-compile (q (nth (- (length (queries composer)) (state composer)) (queries composer)))))))
           (if (equal (depth parent) 0)
             (select-compose composer parent answer))
           (if (not (equal (depth parent) 0))
-              (condition-compose composer parent answer :exclude-id exclude-id))))
+             (condition-compose composer parent answer :exclude-id exclude-id))))
 
 (defmethod condition-compose ((composer query-composer) parent answer &key exclude-id)
   (let ((attrs '()))
@@ -56,24 +51,22 @@
     (dolist (attr attrs)
       (let ((result (flatten (query (concatenate 'string "SELECT " (name attr) " FROM " (name (tble parent)))))))
         (dolist (val result)
-          (let ((operators '("<" ">" "<=" ">=" "!=" "=")))
+          (let ((operators '(:< :> :<= :>= :!= :=)))
             (if (not (typep (first result) 'bit))
-              (setf operators  '("!=" "=")))
+              (setf operators  '(:!= :=)))
             (dolist (operator operators)
               (if (equal (depth parent) 1)
                 (progn
-                  (let ((child-node (where-node (current-id composer)
-                                                parent
+                  (let ((child-node (where-node parent
                                                 (name attr)
                                                 operator
                                                 val
                                                 '())))
-                    (setf (current-id composer) (+ (current-id composer) 1))
                     (setf (children parent) (push child-node (children parent)))
                     (setf (queue composer) (push-end child-node (queue composer)))
                     (if (goal-test answer child-node)
                       (progn
-                        (setf (queries composer) (push (q child-node) (queries composer)))))))
+                        (setf (queries composer) (push child-node (queries composer)))))))
                 (progn
                   (let ((and-child (and-node (current-id composer) parent attr operator val))
                         (or-child (or-node (+ (current-id composer) 1) parent attr operator val)))
@@ -87,10 +80,10 @@
                         (write "finish leaf")))
                     (if (goal-test answer and-child)
                       (progn
-                        (push (q and-child) queries)))
+                        (setf (queries composer) (push and-child (queries composer)))))
                     (if (goal-test answer or-child)
                       (progn
-                        (push (q or-child) queries)))))))))))))  
+                        (setf (queries composer) (push or-child (queries composer)))))))))))))))
 
 (defmethod select-compose ((composer query-composer) parent answer)
    (let ((join-nodes '()))
@@ -115,7 +108,8 @@
                         (setf join-nodes (append join-nodes (inner-outer-compose composer select-node answer))))
                       (if (goal-test answer child-node)
                         (progn
-                          (setf (queries composer) (push (q child-node) (queries composer)))))))))))
+                          (setf (queries composer) (push child-node (queries composer)))))))))
+              (setf (queue composer) (append (queue composer) join-nodes))))
 
 (defmethod inner-outer-compose ((composer query-composer) node answer)
   (let ((queue (list node))
@@ -143,10 +137,10 @@
                            (setf answers (push-end outer-node answers))
                            (if (goal-test answer inner-node)
                              (progn
-                               (setf (queries composer) (push (q inner-node) (queries composer)))))
+                               (setf (queries composer) (push inner-node (queries composer)))))
                            (if (goal-test answer outer-node)
                              (progn
-                               (setf (queries composer) (push (q outer-node) (queries composer)))))
+                               (setf (queries composer) (push outer-node (queries composer)))))
                            ))))))
                (if references
                  (progn
@@ -162,15 +156,22 @@
                            (setf answers (push-end outer-node answers))
                            (if (goal-test answer inner-node)
                              (progn
-                               (setf (queries composer) (push (q inner-node) (queries composer)))))
+                               (setf (queries composer) (push inner-node (queries composer)))))
                            (if (goal-test answer outer-node)
                              (progn
-                               (setf (queries composer) (push (q outer-node) (queries composer)))))
+                               (setf (queries composer) (push outer-node (queries composer)))))
                            ))))))))
     answers))
 
 (defun goal-test (answer node)
-  (let ((res-of (query (q node))))
-    (if (equal answer res-of)
-      t)))
-          
+  (let ((start-time (get-internal-real-time))
+         (res-of nil))
+    (setf res-of (query (sql-compile (q node))))
+    (let ((end-time (get-internal-real-time)))
+      (if (equal answer res-of)
+        (progn
+          (setf (time-result node) (float (/ (- end-time start-time) 1000)))
+          t)))))
+
+
+
