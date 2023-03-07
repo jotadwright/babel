@@ -4,6 +4,9 @@
 ;; IRL NODE HELPER FUNCTIONS ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(export '(get-predicate-name get-output-binding get-output-value
+          get-output-kitchen-state get-full-node-sequence))
+
 (defmethod get-predicate-name ((irl-node pip-node))
   "Get the predicate name belonging to this node's primitive under evaluation."
   (first (primitive-under-evaluation irl-node)))
