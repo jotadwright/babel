@@ -79,5 +79,15 @@
     result))
 
 
+(defun is-table-present (name lst &key get-obj)
+  (let ((result nil))
+    (dolist (table lst)
+      (if (equal name (name table))
+        (if get-obj
+          (setf result table)
+          (setf result t))))
+    result))
+
+
 (defun random-between (min max)
   (+ min (random (+ 1 (- max min)))))
