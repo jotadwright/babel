@@ -620,7 +620,7 @@
         for slot-name = (closer-mop:slot-definition-name slot)
         for slot-initarg = (car (closer-mop:slot-definition-initargs slot))
         for slot-value = (slot-value object slot-name)
-        unless (eq slot-name 'sim-arguments)
+        unless (or (eq slot-name 'sim-arguments) (eq slot-name 'contents))
           collect (cons slot-initarg  slot-value)))
 
 
