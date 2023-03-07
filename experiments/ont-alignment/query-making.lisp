@@ -1,28 +1,62 @@
 (in-package :ont-alignment)
 
-(defun generate-sql-query (table column where)
-  "Generates a SQL query for selecting data from a table with optional WHERE clause."
-  (let* ((sql-query (format nil "SELECT ~a FROM ~a WHERE ~a" column table where))
-         (result (postmodern::query sql-query)))
-    (print result)))
+(defun generate-query-string (table &key (column "*") (count nil) (where nil) (in nil))
+  "Allows an agent to generate a basic sql query string. The table name is mandatory.
+  The optional arguments are :
+  - COLUMN : the name of the column to select (defaults to '*' to select all columns).
+  - COUNT : a boolean indicating whether to count the number of rows. If nil, returns all rows.
+  - WHERE : a string representing the WHERE clause ; can be column_name=value, or a column_name if IN clause.
+  - IN : a subquery string"
+  (let ((select-clause (if count (format nil "SELECT COUNT(~a)" column) (format nil "SELECT ~a" column)))
+        (from-clause  (format nil "FROM ~a"table))
+        (where-clause (if where (format nil "WHERE ~a" where) ""))
+        (in-clause (if in (format nil "IN (~a)" in) "")))
+    (concatenate 'string select-clause " " from-clause " " where-clause " " in-clause)))
 
-(defun get-all-entities (table)
-  "Fetches all entities from a given table and returns them in a list.
-   The result is, as a consequence, a list of lists."
-  (postmodern::query "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = $1" table))
+;example (we can generate as many IN-clause as we want):
+;(generate-query-string films :column "film_name" :where "film_id" :in (generate-query-string "actors_films_relations" :column film_id :where "actor_id" :in (generate-query-string "actors" :column "actor_id" :where (concatenate "actor =" "'Gerard Depardieu'"))))
+;(generate-postmodern-query (basic-sql-grammar "actorsfilms" :column "film" :where (concatenate 'string "actor" " = " "'Gerard Depardieu'")))
 
-(defun get-nth-element (lst n)
-  "Returns the nth element of list lst"
-  (nth n lst))
+(defun generate-postmodern-query (query-string)
+  "Generates a query that postmodern library can process."
+  (let ((result (postmodern::query query-string)))
+    result))
 
-(defun try-queries-until-success (table answer)
+(defun is-substring (substring string)
+  "Check if a substring is part of a string."
+  (let ((result (search substring string)))
+    (if (not (null result))
+      (format t "~a is a substring of ~a~%" substring string)
+      (format t "~a is not a substring of ~a~%" substring string))))
+
+(defun query-reverse-engineering (column-names-list answer)
+  "From a given answer, tries to synthesize the query that led to it."
+  ;step 1 : we need to get the column and table where the answer was found
+  (let* ((answer-column (loop for item in column-names-list
+                           append (loop for column in (first (cdr item))
+                                        for result = (ignore-errors (generate-postmodern-query (format nil "SELECT ~a FROM ~a WHERE ~a = '~a'" column (first (car column-names-list)) column answer))) 
+                                        when result return (list column))))
+  ;step 2 : we need to find out from which column we need to start the query to get to the answer
+  ;SELECT col FROM actorsfilms WHERE select-column = answer
+         (where-column (loop for item in updated-col-names-list
+                             append (loop for column in (first (cdr item))
+                                          for result = (generate-postmodern-query (format nil "SELECT ~a FROM ~a WHERE ~a = '~a'" column (first (car column-names-list)) answer-column answer))
+                                          when result return result))))
+    where-column))
+    
+(defun try-queries-until-success (answer)
   "Tries different queries to get to the answer without error.
    Returns the first successful query."
-  (let* ((entity-list (get-all-entities table))
-         (column-name-list (loop for entity in entity-list
-                                 collect (get-nth-element entity 3))))
-    (format t "The different columns of the table are: ~a~%" column-name-list)
-    (loop for column in column-name-list
-          for result = (handler-case (generate-sql-query table column (format nil "~a = '~a'" column answer))
-                          (condition () nil))
-          when result return (get-nth-element (get-nth-element result 0) 0))))
+  (let ((tables-list (postmodern::list-tables t))
+        ;the list-tables function retrieves all the tables of a given database and if the strings-p arg is set to true the result is list of strings
+        (column-names-list '()))
+        ;this variable is aimed to store an association list of each table and its columns
+    (format t "The different tables of the database are: ~a~%" tables-list)
+    (loop for table in tables-list
+          do (progn (push (cons table (list (postmodern::list-columns table))) column-names-list)
+                (format t "The different columns of the table ~a are: ~a~%" table (postmodern:list-columns table))))
+    (print (query-reverse-engineering column-names-list answer))))
+
+;(postmodern::query "SELECT film FROM actorsfilms WHERE actor = 'Gerard Depardieu'")
+
+;(postmodern::query "SELECT count(film) FROM actorsfilms WHERE actor = 'Gerard Depardieu'")

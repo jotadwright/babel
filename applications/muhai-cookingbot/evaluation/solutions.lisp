@@ -54,10 +54,10 @@
                     (error "Invalid IRL program in solution ~S. Error was thrown: ~a" (recipe-id (first solutions)) (format nil "~{~a~}" messages)))))
               solutions)))
 
-(defun check-solutions (solutions &optional (sim-envs *simulation-environments*))
+(defun check-solutions (solutions gold-standard-solutions)
   "Check if the given solutions don't contain duplicate solutions or solutions that are unavailable in the simulation environment."
   (loop for solution in solutions
-        when (not (find (recipe-id solution) sim-envs :key #'(lambda (sim-env) (recipe-id sim-env))))
+        when (not (find (recipe-id solution) gold-standard-solutions :key #'(lambda (sim-env) (recipe-id sim-env))))
           do (error "Solution contains recipe ~S which is currently unsupported" (recipe-id solution))
         when (> (count (recipe-id solution) solutions :key #'(lambda (sol) (recipe-id sol))) 1)
           do (error "Duplicate entry found for recipe ~S" (recipe-id solution))))
@@ -198,73 +198,41 @@
       (format output-stream "~(~a~)~%" prim-op))
     (close output-stream)))
 
-(defun compute-smatch-score (mn1 mn2 &key use-temp-files lib-dir)
-  "Calls the python smatch program which calculates the smatch score of a parsed meaning network and a gold standard meaning.
-   Temporary files will be used to store the meaning networks in case they are too big to give via command line.
-
-   The argument lib-dir can be used to set the path to the required library folder in case this function is used outside of a Babel setup."
-  
+(defun compute-smatch-score (mn1 mn2
+                             &key use-temp-files
+                             (smatch-dir (babel-pathname :directory '("applications"
+                                                                      "muhai-cookingbot"
+                                                                      "recipe-execution-benchmark"
+                                                                      "libs"
+                                                                      "smatch"))))
+  "Calls the python smatch program which calculates the smatch score
+   of a parsed meaning network and a gold standard meaning.
+   Temporary files will be used to store the meaning networks
+   in case they are too big to give via command line.
+   The argument lib-dir can be used to set the path to the required
+   library folder in case this function is used outside of a Babel setup."
   (assert (progn (listp mn1) (listp mn2)))
-
-  (when (and lib-dir
-             (not (or (char= (char lib-dir (- (length lib-dir) 1)) #\\)
-                      (char= (char lib-dir (- (length lib-dir) 1)) #\/))))
-    (setf lib-dir (concatenate 'string lib-dir "\\")))
+  (assert (directory-pathname-p smatch-dir))
+  (assert (program-installed-p "python3"))
   
-  (if (not use-temp-files)
-    (progn
-      (let ((L1 (copy-list mn1))
-            (L2 (copy-list mn2)))
-        (setf L1 (sort L1 #'string-lessp :key #'first))
-        (setf L2 (sort L2 #'string-lessp :key #'first))
-        (setf L1 (format nil "~{~a ~}" L1))
-        (setf L2 (format nil "~{~a ~}" L2))
-
-        (let* ((program(babel-pathname :directory '("libraries" "smatch")
-                                       :name "smatch" :type "py"))
-               (program-as-string
-                (if lib-dir
-                  (concatenate 'string lib-dir "smatch.py")
-                  (namestring program))) ;; CCL requires program arguments to all be simple strings
-               (stream (pipe-input "python" :args (list program-as-string "-m"
-                                                        (format nil "~s" L1) (format nil "~s" L2))))
-               (python-output (read-line stream))
-               (output (if (search "F-score:" python-output)
-                         (read-from-string (second (split-sequence:split-sequence ":" python-output :test #'string=)))
-                         nil)))
-          (close stream)
-          (if output
-            output
-            (compute-smatch-score mn1 mn2 :use-temp-files t :lib-dir lib-dir))))
-      (progn
-        (let* ((sol-temp-file-path (babel-pathname :directory '(".tmp") :name "temp-sol-mn" :type "lisp"))
-               (sol-temp-path-as-string
-                (if lib-dir
-                  (concatenate 'string lib-dir ".tmp\\temp-sol-mn.lisp")
-                  (namestring sol-temp-file-path)))
-               (gold-temp-file-path (babel-pathname :directory '(".tmp") :name "temp-gold-mn" :type "lisp"))
-               (gold-temp-path-as-string
-                (if lib-dir
-                  (concatenate 'string lib-dir ".tmp\\temp-gold-mn.lisp")
-                  (namestring gold-temp-file-path))))
-        
-          (setf mn1 (sort mn1 #'string-lessp :key #'first))
-          (setf mn2 (sort mn2 #'string-lessp :key #'first))
-          (write-network-to-file mn1 sol-temp-path-as-string)
-          (write-network-to-file mn2 gold-temp-path-as-string)
-
-          (let* ((program (babel-pathname :directory '("libraries" "smatch") :name "smatch" :type "py"))
-                 (program-as-string
-                  (if lib-dir
-                    (concatenate 'string lib-dir "smatch.py")
-                    (namestring program))) ;; CCL requires program arguments to all be simple strings
-                 (stream (pipe-input "python" :args (list program-as-string "-m" sol-temp-path-as-string gold-temp-path-as-string)))
-                 (output (read-from-string
-                          (second (split-sequence:split-sequence ":"  (read-line stream) :test #'string=)))))
-            (close stream)
-            (delete-file sol-temp-file-path)
-            (delete-file gold-temp-file-path)
-            output))))))
+  (let ((L1 (copy-list mn1))
+        (L2 (copy-list mn2)))
+    (setf L1 (sort L1 #'string-lessp :key #'first))
+    (setf L2 (sort L2 #'string-lessp :key #'first))
+    (setf L1 (format nil "'~{~a~^ ~}'" L1))
+    (setf L2 (format nil "'~{~a~^ ~}'" L2))
+    (let* ((smatch (merge-pathnames
+                    (make-pathname :name "smatch" :type "py")
+                    smatch-dir))
+           (output (first (exec-and-return "python3"
+                                    (namestring smatch)
+                                    "-m" L1 L2))))
+      (if (search "F-score:" output)
+        (read-from-string (second (split output #\:)))
+        (error "Error during the execution of smatch. Arguments where ~a"
+               (list (namestring smatch)
+                     (format nil "\"~a\"" L1)
+                     (format nil "\"~a\"" L2)))))))
 
 ;; Subgoal Evaluation (Goal Condition Testing) ;;
 
@@ -624,49 +592,58 @@
 ;; Solution File Evaluation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *metrics*
+(defparameter *all-metrics*
   '(smatch-score goal-condition-success dish-approximation-score execution-time))
 
-(defun evaluate-solutions (filepath &optional (metrics *metrics*) (sim-envs *simulation-environments*) (lib-dir nil))
-  (let ((solutions (parse-solutions-file filepath))) ; read in the solutions
-    (check-solutions solutions sim-envs) ; check if the solutions file contains all the needed solutions
+(defparameter *all-simulation-metrics*
+  '(goal-condition-success dish-approximation-score execution-time))
+
+(defun evaluate-solutions (solutions-file gold-standard-solutions &key (metrics *all-metrics*))
+  ; read in the solutions file
+  (let ((solutions (parse-solutions-file solutions-file)))
+    ; check if the solutions file contains all the needed solutions
+    (check-solutions solutions gold-standard-solutions)
+    ; compare the solutions against the gold standards
     (loop for current-solution in solutions
           for solution-mn = (meaning-network current-solution)  
           for current-id = (recipe-id current-solution)
-          for current-sim-env = (find current-id sim-envs :key #'(lambda (sim-env) (recipe-id sim-env)))
+          for current-sim-env = (find current-id gold-standard-solutions
+                                      :key #'(lambda (env) (recipe-id env)))
           for gold-mn = (meaning-network current-sim-env)
           for final-gold-node = (final-node current-sim-env) 
           for gold-output-node = (output-node current-sim-env)
           do
-            (print "solution:")
-            (print (recipe-id current-solution))
             ; compute the smatch score (no simulation needed for this part)
             (when (member 'smatch-score metrics)
-              (setf (smatch-score current-solution) (compute-smatch-score solution-mn gold-mn :lib-dir lib-dir))) 
+              (setf (smatch-score current-solution)
+                    (compute-smatch-score solution-mn gold-mn)))
 
             ; simulate and score recipe "execution"    
             (init-kitchen-state current-sim-env)
             (let ((extended-mn (append-meaning-and-irl-bindings solution-mn nil)))
               (multiple-value-bind (sol-bindings sol-nodes) (evaluate-irl-program extended-mn nil)
-                (cond ((and sol-bindings sol-nodes)
-                        ; compute subgoal success ratio
-                       (when (member 'goal-condition-success metrics)
-                         (setf (subgoals-ratio current-solution)
-                               (if sol-nodes (compute-subgoal-success-ratio (first sol-nodes) final-gold-node)
-                                 0)))
-                        ; compute the dish score
-                       ; if all subgoals are reached, then the dish score is not necessarily maximal,
-                       ; since we could have altered the final dish further after reaching all subgoals
-                       (when (member 'dish-approximation-score metrics)
-                         (setf (dish-score current-solution) (if sol-nodes
-                                                               (find-best-dish-score (first sol-nodes) gold-output-node)
-                                                               0)))
-                       ; compute the ratio of needed execution time to the execution time of the golden standard
-                       (when (member 'execution-time metrics)
-                         (setf (execution-time current-solution) (if sol-bindings
-                                                                   (compute-execution-time (first sol-bindings))
-                                                                   0))))
-                      (t
-                       (unless sol-bindings (print "no sol bindings"))
-                       (unless sol-nodes (print "no sol nodes")))))))
+                (if (and sol-bindings sol-nodes)
+                  (progn ; compute subgoal success ratio
+                    (when (member 'goal-condition-success metrics)
+                      (setf (subgoals-ratio current-solution)
+                            (if sol-nodes
+                              (compute-subgoal-success-ratio (first sol-nodes) final-gold-node)
+                              0)))
+                    ; compute the dish score
+                    ; if all subgoals are reached, then the dish score is not necessarily maximal,
+                    ; since we could have altered the final dish further after reaching all subgoals
+                    (when (member 'dish-approximation-score metrics)
+                      (setf (dish-score current-solution)
+                            (if sol-nodes
+                              (find-best-dish-score (first sol-nodes) gold-output-node)
+                              0)))
+                     ; compute the ratio of needed execution time to the execution time of the golden standard
+                    (when (member 'execution-time metrics)
+                      (setf (execution-time current-solution)
+                            (if sol-bindings
+                              (compute-execution-time (first sol-bindings))
+                              0))))
+                  (progn
+                   (unless sol-bindings (print "no sol bindings"))
+                   (unless sol-nodes (print "no sol nodes")))))))
     solutions))

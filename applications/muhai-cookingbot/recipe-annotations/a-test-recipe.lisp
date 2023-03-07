@@ -14,7 +14,6 @@
 ;; Defining the initial kitchen state
 
 
-
 (defparameter *almond-cookies-recipe*
 
   '(
@@ -32,6 +31,10 @@
 
     (mix ?container-with-dough ?kitchen-6 ?kitchen-5 ?to-mix ?mixture-tool)
 
+    (fetch ?fetched-baking-tray ?kitchen-7 ?kitchen-6 baking-tray 1)
+
+    (fetch ?fetched-baking-paper ?kitchen-8 ?kitchen-7 baking-paper 1)
+
     (line ?lined-baking-tray ?kitchen-9 ?kitchen-8 ?fetched-baking-tray ?fetched-baking-paper)
 
     (shape ?shaped-result ?kitchen-10 ?kitchen-9 ?container-with-dough ?lined-baking-tray crescent-shape)
@@ -40,6 +43,7 @@
 
     (sprinkle ?sprinkled-object ?kitchen-12 ?kitchen-11 ?baked-dough ?topping-container)
     ))
+
 
 
 ;; ======================
