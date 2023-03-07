@@ -28,3 +28,6 @@
   (format t (compose-query composer-obj result :exclude-id t :all-queries t )))
 
 (disconnect-toplevel)
+
+
+(init-schema)
