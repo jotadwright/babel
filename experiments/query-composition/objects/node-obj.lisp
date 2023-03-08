@@ -17,7 +17,7 @@
     (let* ((q '(:select))
            (child (make-instance 'node :id (make-id) :parent node :depth (+ (depth node) 1)  :q "" :tble table :ref-tbles (list table)))
            (last-elem (last attributes))
-           (table-name (intern (name table))))
+           (table-name (intern (string-upcase (name table)))))
       (dolist (att-n attributes)
           (if join
             (progn
@@ -31,7 +31,7 @@
       child))
 
 ;;OK
-(defun join-node (node ref-info table &key foreign-ref outer-join)
+(defun join-node (node ref-info table-obj &key foreign-ref outer-join)
   "function that create a node with the ... INNER JOIN || OUTER JOIN ... ON ... =  ... clause and return the newly created node."
   (let* ((f-table "")
           (f-column "")
@@ -54,7 +54,7 @@
     (let* ((foreign-t (intern (concatenate 'string f-table "." f-column)))
             (main-t (intern (concatenate 'string table "." column)))
            (join-query (list join (intern f-table) :on (list := foreign-t main-t))))
-  (make-instance 'node :id (make-id) :parent node :depth (depth node) :ref-tbles (push-end table (ref-tbles node)) :q (append (q node) join-query)))))
+  (make-instance 'node :id (make-id) :parent node :depth (depth node) :tble (tble node) :ref-tbles (push-end table-obj (ref-tbles node)) :q (append (q node) join-query)))))
 
 ;;OK
 (defun where-node (node attribute operator value att)
@@ -62,6 +62,8 @@
   (let* ((val (change-type value))
           (condition (list :where (list operator (intern attribute) val)))
           (child (make-instance 'node :id (make-id) :parent node :depth (+ (depth node) 1) :q (append (q node) condition) :attrs att :tble (tble node))))
+    (write (ref-tbles node))
+    (terpri)
     child))
 
 ;;OK

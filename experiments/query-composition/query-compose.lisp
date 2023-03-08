@@ -3,26 +3,34 @@
 (defclass query-composer ()
   ((queue :accessor queue
                :initarg :queue
+               :initform '()
                :type list
                :documentation "List of node to expand.")
    (tree :accessor tree
            :initarg :tree
+           :initform nil
            :type tree-query
            :documentation "Tree that represent the path of the object.")
    (tables :accessor tables
                :initarg :tables
+               :initform '()
                :type list
                :documentation "List of table and attributes who represent the database.")
    (queries :accessor queries
                  :initarg :queries
                  :initform '()
                  :type sql-query
-                 :documentation "List of SQL query object that the method return.")
-   (state :accessor state
-             :initarg :state
-             :initform 0
-             :type integer
-             :documentation "The state to check if a new query is found.")))
+                 :documentation "List of SQL query object that the method return.")))
+
+(defmethod initialize-instance :after ((composer query-composer) &key)
+  (let* ((result (query "SELECT name FROM continent where name='Africa'"))
+       (root-node (make-instance 'node :id (make-id) :parent nil :children '() :depth 0 :q ""))
+       (tree (make-instance 'query-tree :nodes  (list  root-node) :root root-node)))
+    (setf (tables composer) (init-schema))
+    (setf (tree composer) tree)
+    (setf (queue composer) (nodes tree))))
+    
+
 
 ;;PARAMS
 ;; composer: A query-composer object.
@@ -34,16 +42,19 @@
   (loop until (not (queue composer))
            for parent = (pop (queue composer))
            do
-          (if (or (not (equal (length (queries composer)) (state composer))) all-queries)
+          (if (not (equal (depth parent) 0))
             (progn
-              (setf (state composer) (+ (state composer) 1))
-              (return-from compose-query (sql-compile (q (nth (- (length (queries composer)) (state composer)) (queries composer)))))))
+              (if (goal-test answer parent)
+                (progn
+                  (if all-queries
+                    (setf (queries composer) (push parent (queries composer)))
+                    (return-from compose-query (sql-compile (q parent))))))))
           (if (equal (depth parent) 0)
             (select-compose composer parent answer))
           (if (not (equal (depth parent) 0))
-             (condition-compose composer parent answer :exclude-id exclude-id))))
+            (condition-compose composer parent :exclude-id exclude-id))))
 
-(defmethod condition-compose ((composer query-composer) parent answer &key exclude-id)
+(defmethod condition-compose ((composer query-composer) parent &key exclude-id)
   (let ((attrs '()))
     (if exclude-id
       (setf attrs (remove-if #'(lambda (item) (equal (name item) "id")) (attributes (tble parent))))
@@ -63,27 +74,16 @@
                                                 val
                                                 '())))
                     (setf (children parent) (push child-node (children parent)))
-                    (setf (queue composer) (push-end child-node (queue composer)))
-                    (if (goal-test answer child-node)
-                      (progn
-                        (setf (queries composer) (push child-node (queries composer)))))))
-                (progn
-                  (let ((and-child (and-node (current-id composer) parent attr operator val))
-                        (or-child (or-node (+ (current-id composer) 1) parent attr operator val)))
-                    (setf (children parent) (append (children parent) (list and-child or-child)))
-                    (setf (current-id composer) (+ (current-id composer) 2))
-                    (if (not (equal (length (attrs and-child)) (length (attributes (tble parent)))))
-                      (progn
-                        (setf (queue composer) (push-end and-child (queue composer)))
-                        (setf (queue composer) (push-end or-child (queue composer))))
-                      (progn
-                        (write "finish leaf")))
-                    (if (goal-test answer and-child)
-                      (progn
-                        (setf (queries composer) (push and-child (queries composer)))))
-                    (if (goal-test answer or-child)
-                      (progn
-                        (setf (queries composer) (push or-child (queries composer)))))))))))))))
+                    (setf (queue composer) (push-end child-node (queue composer)))))))))))))
+                  ;(let ((and-child (and-node parent attr operator val))
+                   ;     (or-child (or-node parent attr operator val)))
+                    ;(setf (children parent) (append (children parent) (list and-child or-child)))
+                    ;(if (not (equal (length (attrs and-child)) (length (attributes (tble parent)))))
+                     ; (progn
+                      ;  (setf (queue composer) (push-end and-child (queue composer)))
+                       ; (setf (queue composer) (push-end or-child (queue composer))))
+                      ;(progn
+                       ; (write "finish leaf")))))))))))))
 
 (defmethod select-compose ((composer query-composer) parent answer)
    (let ((join-nodes '()))
@@ -95,23 +95,19 @@
                     (let* ((attributes-names '())
                            (child-node nil))
                       (mapcar #'(lambda (x) (push (name x) attributes-names)) perm)
-                      (setf child-node (init-node (current-id composer)
-                                                                parent
+                      (setf child-node (init-node parent
                                                                 attributes-names
                                                                 tble))
-                      (setf (current-id composer) (+ (current-id composer) 1))
                       (setf (children parent) (push child-node (children parent)))
                       (setf (queue composer) (push-end child-node (queue composer)))
                       ;;Join part
                       ;;create node that satisty constraint
-                      (let ((select-node (init-node 1 parent attributes-names tble :join t)))
-                        (setf join-nodes (append join-nodes (inner-outer-compose composer select-node answer))))
-                      (if (goal-test answer child-node)
-                        (progn
-                          (setf (queries composer) (push child-node (queries composer)))))))))
+                      (let ((select-node (init-node parent attributes-names tble :join t)))
+                        (setf join-nodes (append join-nodes (inner-outer-compose composer select-node))))
+                      ))))
               (setf (queue composer) (append (queue composer) join-nodes))))
 
-(defmethod inner-outer-compose ((composer query-composer) node answer)
+(defmethod inner-outer-compose ((composer query-composer) node)
   (let ((queue (list node))
          (answers '()))
     (loop until (not queue)
@@ -129,18 +125,11 @@
                      (let* ((ref-obj (init-reference-info ref)))
                        (if (not (is-table-present (foreign-table ref-obj) (ref-tbles parent)))
                          (progn
-                           (setf inner-node (join-node 1 parent ref-obj (is-table-present (foreign-table ref-obj) (ref-tbles parent) :get-obj t)  :foreign-ref t))
-                           (setf outer-node (join-node 1 parent ref-obj (is-table-present (foreign-table ref-obj) (ref-tbles parent) :get-obj t)  :foreign-ref t :outer-join t))
-                           (push-end inner-node queue)
-                           (push-end outer-node queue)
+                           (write (foreign-table ref-obj))
+                           (setf inner-node (join-node parent ref-obj (is-table-present (foreign-table ref-obj) (ref-tbles parent) :get-obj t)  :foreign-ref t))
+                           ;(setf outer-node (join-node parent ref-obj (is-table-present (foreign-table ref-obj) (ref-tbles parent) :get-obj t)  :foreign-ref t :outer-join t))
                            (setf answers (push-end inner-node answers))
-                           (setf answers (push-end outer-node answers))
-                           (if (goal-test answer inner-node)
-                             (progn
-                               (setf (queries composer) (push inner-node (queries composer)))))
-                           (if (goal-test answer outer-node)
-                             (progn
-                               (setf (queries composer) (push outer-node (queries composer)))))
+                           ;(setf answers (push-end outer-node answers))
                            ))))))
                (if references
                  (progn
@@ -148,18 +137,10 @@
                      (let ((ref-obj (init-reference-info ref)))
                        (if (not (is-table-present (table-name ref-obj) (ref-tbles parent)))
                          (progn
-                           (setf inner-node (join-node 1 parent ref-obj (is-table-present (foreign-table ref-obj) (ref-tbles parent) :get-obj t)))
-                           (setf outer-node (join-node 1 parent ref-obj (is-table-present (foreign-table ref-obj) (ref-tbles parent) :get-obj t) :outer-join t))
-                           (push-end inner-node queue)
-                           (push-end outer-node queue)
+                           (setf inner-node (join-node parent ref-obj (is-table-present (table-name ref-obj) (ref-tbles parent) :get-obj t)))
+                           ;(setf outer-node (join-node parent ref-obj (is-table-present (foreign-table ref-obj) (ref-tbles parent) :get-obj t) :outer-join t))
                            (setf answers (push-end inner-node answers))
-                           (setf answers (push-end outer-node answers))
-                           (if (goal-test answer inner-node)
-                             (progn
-                               (setf (queries composer) (push inner-node (queries composer)))))
-                           (if (goal-test answer outer-node)
-                             (progn
-                               (setf (queries composer) (push outer-node (queries composer)))))
+                           ;(setf answers (push-end outer-node answers))
                            ))))))))
     answers))
 
