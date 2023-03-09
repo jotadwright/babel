@@ -12,7 +12,8 @@
    (type-att
     :initarg :type-att
     :initform nil
-    :accessor type-att)))
+    :accessor type-att))
+  (:documentation "An object representing an attribute of a table. It is composed of its name, the set of operators that can be applied to it and the type of data it will contain."))
 
 (defun define-type (att obj)
   (cond ((typep att 'string)
@@ -27,9 +28,4 @@
          (progn
            (setf (operators obj) '(:!= :=))
            (setf (type-att obj) 'boolean)))))
-        
-        
-(defun get-permutations (attributes)
-  (let
-                  
 

@@ -9,7 +9,8 @@
     :type list
     :initform nil
     :initarg :attributes
-    :accessor attributes)))
+    :accessor attributes))
+  (:documentation "An object that represents a table in its database. It is characterised by its name and the list of attributes that make it up."))
 
 ;;OK
 (defun init-table (table-name attrs)

@@ -1,17 +1,57 @@
 (in-package :qc)
 
 (defclass node ()
-  ((id :type integer :initarg :id :accessor id)
-   (parent :type node :initarg :parent :initform nil :accessor parent)
-   (children :type list :initarg :children :initform '() :accessor children)
-   (depth :type integer :initarg :depth :initform nil :accessor depth)
-   (tble :type table :initarg :tble :initform nil :accessor tble)
-   (ref-tbles :type list :initarg :ref-tbles :initform '() :accessor ref-tbles)
-   (selection :type list :initarg :selection :initform '() :accessor selection)
-   (conditions :type list :initarg :conditions :initform '() :accessor conditions)
-   (attrs :type attrs :initarg :attrs :initform nil :accessor attrs)
-   (time-result :type float :initarg :time-result :initform nil :accessor time-result)
-   (q :type integer :initarg :q :initform "" :accessor q)))
+  ((id :type integer
+       :initarg :id
+       :accessor id)
+   (parent :type node
+           :initarg :parent
+           :initform nil
+           :accessor parent)
+   (children :type list
+             :initarg :children
+             :initform '()
+             :accessor children)
+   (depth :type integer
+          :initarg :depth
+          :initform nil
+          :accessor depth
+          :documentation "Depth of the node.")
+   (tble :type table
+         :initarg :tble
+         :initform nil
+         :accessor tble
+         :documentation "Table referred in SELECT form.")
+   (ref-tbles :type list
+              :initarg :ref-tbles
+              :initform '()
+              :accessor ref-tbles
+              :documentation "Set of tables referred to in the query.")
+   (selection :type list
+              :initarg :selection
+              :initform '()
+              :accessor selection
+              :documentation "Selection part f the query used for children.")
+   (conditions :type list
+               :initarg :conditions
+               :initform '()
+               :accessor conditions
+               :documentation "Condition part of the request used for children.")
+   (attrs :type list
+          :initarg :attrs
+          :initform '()
+          :accessor attrs)
+   (time-result :type float
+                :initarg :time-result
+                :initform nil
+                :accessor time-result
+                :documentation "Execution time of the query.")
+   (q :type integer
+      :initarg :q
+      :initform ""
+      :accessor q
+      :documentation "Query generated"))
+  (:documentation "Object representing a node of the tree. This object is represented by a set of attributes that allows it to obtain and store all the information necessary for its SQL query."))
 
 ;;OK
 (defun init-node (node attributes table &key join)

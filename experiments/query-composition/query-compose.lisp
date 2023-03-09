@@ -20,7 +20,8 @@
                  :initarg :queries
                  :initform '()
                  :type sql-query
-                 :documentation "List of SQL query object that the method return.")))
+                 :documentation "List of SQL query object that the method return."))
+  (:documentation "Object representing the core of the research. This represents all the information to generate the tree. In particular the tree, the list of nodes to expand, the set of tables in the database as well as the set of nodes that lead to a valid query."))
 
 (defmethod initialize-instance :after ((composer query-composer) &key)
   (let* ((result (query "SELECT name FROM continent where name='Africa'"))
@@ -155,8 +156,6 @@
     (let ((end-time (get-internal-real-time)))
       (if (equal answer res-of)
         (progn
-          (write "TIME")
-          (terpri)
           (setf (time-result node) (float (/ (- end-time start-time) 1000)))
           t)))))
 
