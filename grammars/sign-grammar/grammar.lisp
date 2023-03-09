@@ -12,6 +12,10 @@
                   (meaning set-of-predicates)
                   (holds set-of-predicates)
                   (boundaries set-of-predicates)
+                  (noun-boundaries set-of-predicates)
+                  (classifier-boundaries set-of-predicates)
+                  (classifier-configurations set-of-predicates)
+                  (noun-configurations set-of-predicates)
                   (handconfiguration set-of-predicates)
                   (location-params set-of-predicates)
                   
@@ -60,8 +64,8 @@
                (ontological-class two-track-vehicle)
                (sem-cat concept)
                (syn-cat noun)
-               (right-temporal-boundary ?m-1)
-               (left-temporal-boundary ?h-1)
+               (boundaries ((right-manual-boundary ?m-1)
+                            (left-manual-boundary ?h-1)))
                (eyegaze ?eg-1))
                <-
                (?car-unit
@@ -119,8 +123,8 @@
                (ontological-class person)
                (sem-cat concept)
                (syn-cat noun)
-               (right-temporal-boundary ?m-1)
-               (left-temporal-boundary ?h-1)
+               (boundaries ((right-manual-boundary ?m-1)
+                            (left-manual-boundary ?h-1)))
                (eyegaze ?eg-1))
               <-
               (?child-unit
@@ -151,133 +155,110 @@
                       (overlaps ?h-1 ?eg-1)
                       (overlaps ?eg-1 ?m-1))))))
 
+
+
+
 (def-fcg-cxn vehicle-classifier-cxn
-             ((?classifier-unit
-               (hand ?hand)
-               (initial-position ?ref-1)
-               (end-position ?ref-2)
-               (syn-cat classifier)
-               (left-temporal-boundary ?h-1)
-               (right-temporal-boundary ?h-2)
-               (handshape flat)
-               (extended-finger-direction out)
-               (palm-orientation down)
-               (movement ?m-1)
-               (eye-gaze ?eg-1))
-              <-
-              (?classifier-unit
+             ((?identified-vehicle
                (ontological-class two-track-vehicle)
-               --
-               (hash form
-                     ((hold ?h-1)
-                      (hand ?h-1 ?hand)
-                      (handshape ?h-1 flat)
-                      (extended-finger-direction ?h-1 out)
-                      (palm-orientation ?h-1 down)
-                      (position ?h-1 ?ref-1)
-                      (path-movement ?m-1)
-                      (initial-hold ?m-1 ?h-1)
-                      (end-hold ?m-1 ?h-2)
-                      (hold ?h-2)
-                      (hand ?h-2 ?hand)
-                      (handshape ?h-2 flat)
-                      (extended-finger-direction ?h-2 out)
-                      (palm-orientation ?h-2 down)
-                      (position ?h-2 ?ref-2)
-                      (eye-gaze ?eg-1)
-                      (direction ?eg-1 ?ref-2)
-                      (meets ?h-1 ?m-1)
-                      (meets ?m-1 ?h-2)
-                      (overlaps ?h-1 ?eg-1)
-                      (overlaps ?eg-1 ?h-2))))))
-
-(def-fcg-cxn person-classifier-cxn
-             ((?classifier-unit
-               (hand ?hand)
-               (syn-cat classifier)
-               (initial-position ?ref-1)
-               (end-position ?ref-2)
-               (left-temporal-boundary ?h-1)
-               (right-temporal-boundary ?h-2)
-               (handshape finger2)
-               (extended-finger-direction up)
-               (palm-orientation left)
-               (movement ?m-1)
-               (eye-gaze ?eg-1))
-              <-
-              (?classifier-unit
-               (ontological-class person)
-               --
-               (hash form
-                     ((hold ?h-1)
-                      (hand ?h-1 ?hand)
-                      (handshape ?h-1 finger2)
-                      (extended-finger-direction ?h-1 up)
-                      (palm-orientation ?h-1 left)
-                      (position ?h-1 ?ref-1)
-                      (path-movement ?m-1)
-                      (initial-hold ?m-1 ?h-1)
-                      (end-hold ?m-1 ?h-2)
-                      (hold ?h-2)
-                      (hand ?h-2 ?hand)
-                      (handshape ?h-2 finger2)
-                      (extended-finger-direction ?h-2 up)
-                      (palm-orientation ?h-2 left)
-                      (position ?h-2 ?ref-2)
-                      (eye-gaze ?eg-1)
-                      (direction ?eg-1 ?ref-2))))))
-
-(def-fcg-cxn vehicle-identifier-cxn
-             ((?classifier-unit
-               (ontological-class two-track-vehicle)
-               (noun-eyegaze ?eg-3)
-               (noun-hold ?h-5)
-               (subunits (?vehicle-unit)))
-              <-
-              (?classifier-unit
                (referent ?r)
-               --
-               (left-temporal-boundary ?h-3)
-               (handshape flat)
-               (extended-finger-direction out)
-               (palm-orientation down)
-               (hash form ((meets ?m-2 ?h-3)))
+               (noun-boundaries ((left-manual-boundary ?h-5)
+                                 (right-manual-boundary ?m-2)))
+               (classifier-boundaries ((left-manual-boundary ?h-1)
+                                       (right-manual-boundary ?h-2)))
+               (classifier-configurations ((handshape flat)
+                                           (extended-finger-direction out)
+                                           (palm-orientation down)
+                                           (hand ?hand)
+                                           (movement ?m-1)
+                                           (initial-position ?ref-1)
+                                           (end-position ?ref-2)
+                                           (eye-gaze ?eg-1)))
+               (noun-configurations ((eye-gaze ?eg-3)))
+               (subunits (?vehicle-unit ?classifier-unit))
                (syn-cat classifier))
+              <-
+              (?classifier-unit
+               --
+               (hash form ((meets ?m-2 ?h-1)
+                           (hold ?h-1)
+                           (hand ?h-1 ?hand)
+                           (handshape ?h-1 flat)
+                           (extended-finger-direction ?h-1 out)
+                           (palm-orientation ?h-1 down)
+                           (position ?h-1 ?ref-1)
+                           (path-movement ?m-1)
+                           (initial-hold ?m-1 ?h-1)
+                           (end-hold ?m-1 ?h-2)
+                           (hold ?h-2)
+                           (hand ?h-2 ?hand)
+                           (handshape ?h-2 flat)
+                           (extended-finger-direction ?h-2 out)
+                           (palm-orientation ?h-2 down)
+                           (position ?h-2 ?ref-2)
+                           (eye-gaze ?eg-1)
+                           (direction ?eg-1 ?ref-2)
+                           (meets ?h-1 ?m-1)
+                           (meets ?m-1 ?h-2)
+                           (overlaps ?h-1 ?eg-1)
+                           (overlaps ?eg-1 ?h-2))))
               (?vehicle-unit
                (ontological-class two-track-vehicle)
                (referent ?r)
                --
-               (right-temporal-boundary ?m-2)
+               (boundaries ((left-manual-boundary ?h-5)
+                            (right-manual-boundary ?m-2)))
                (syn-cat noun)
-               (eyegaze ?eg-3)
-               (left-temporal-boundary ?h-5)
-               )))
+               (eyegaze ?eg-3))))
 
-(def-fcg-cxn person-identifier-cxn
-             ((?classifier-unit
-               (noun-eyegaze ?eg-3)
-               (noun-hold ?h-5)
+(def-fcg-cxn person-classifier-cxn
+             ((?identified-person-unit
+               (noun-boundaries ((left-manual-boundary ?h-5)
+                                 (right-manual-boundary ?m-2)))
+               (classifier-boundaries ((left-manual-boundary ?h-1)
+                                       (right-manual-boundary ?h-2)))
+               (classifier-configurations ((handshape finger2)
+                                            (extended-finger-direction up)
+                                            (palm-orientation left)
+                                            (hand ?hand)
+                                            (initial-position ?ref-1)
+                                            (end-position ?ref-2)
+                                            (movement ?m-1)
+                                            (eye-gaze ?eg-1)))
+               (noun-configurations ((eye-gaze ?eg-3)))
                (ontological-class person)
-               (?approaches-unit
-               (subunits (?person-unit))))
+               (referent ?r)
+               (syn-cat classifier)
+               (subunits (?person-unit ?classifier-unit)))
               <-
               (?classifier-unit
-               (referent ?r)
                --
-               (left-temporal-boundary ?h-3)
-               (handshape finger2)
-               (extended-finger-direction up)
-               (palm-orientation left)
-               (hash form ((meets ?m-2 ?h-3)))
-               (syn-cat classifier))
+               (hash form ((meets ?m-2 ?h-1)
+                           (hold ?h-1)
+                           (hand ?h-1 ?hand)
+                           (handshape ?h-1 finger2)
+                           (extended-finger-direction ?h-1 up)
+                           (palm-orientation ?h-1 left)
+                           (position ?h-1 ?ref-1)
+                           (path-movement ?m-1)
+                           (initial-hold ?m-1 ?h-1)
+                           (end-hold ?m-1 ?h-2)
+                           (hold ?h-2)
+                           (hand ?h-2 ?hand)
+                           (handshape ?h-2 finger2)
+                           (extended-finger-direction ?h-2 up)
+                           (palm-orientation ?h-2 left)
+                           (position ?h-2 ?ref-2)
+                           (eye-gaze ?eg-1)
+                           (direction ?eg-1 ?ref-2))))
               (?person-unit
                (ontological-class person)
                (referent ?r)
                --
-               (right-temporal-boundary ?m-2)
+               (boundaries ((right-manual-boundary ?m-2)
+                            (left-manual-boundary ?h-5)))
                (syn-cat noun)
                (eyegaze ?eg-3)
-               (left-temporal-boundary ?h-5)
                )))
 
 (def-fcg-cxn x-approaches-y-cxn
@@ -290,15 +271,15 @@
               <-
               (?x-unit
                --
-               (right-temporal-boundary ?h-7)
-               (hand ?hand-1)
-               (handshape ?handshape-1)
-               (extended-finger-direction ?extended-finger-direction-1)
-               (palm-orientation ?palm-orientation-1)
-               (initial-position ?ref-6)
-               (end-position ?ref-5)
-               (noun-eyegaze ?eg-3)
-               (noun-hold ?h-5)
+               (classifier-boundaries ((right-manual-boundary ?h-7)))
+               (classifier-configurations ((hand ?hand-1)
+                                           (handshape ?handshape-1)
+                                           (extended-finger-direction ?extended-finger-direction-1)
+                                           (palm-orientation ?palm-orientation-1)
+                                           (initial-position ?ref-6)
+                                           (end-position ?ref-5)))
+               (noun-boundaries ((left-manual-boundary ?h-5)))
+               (noun-configurations ((eye-gaze ?eg-3)))
                (syn-cat classifier)
                (hash form
                      ((ref-point ?ref-5)
@@ -332,15 +313,15 @@
                       (before ?eg-2 ?eg-3))))
               (?y-unit
                --
-               (right-temporal-boundary ?h-4)
+               (classifier-boundaries ((right-manual-boundary ?h-4)))
+               (classifier-configurations ((handshape ?handshape-2)
+                                           (extended-finger-direction ?extended-finger-direction-2)
+                                           (palm-orientation ?palm-orientation-2)
+                                           (movement ?m-3)
+                                           (eye-gaze ?eg-2)
+                                           (initial-position ?ref-3)
+                                           (end-position ?ref-4)))
                (syn-cat classifier)
-               (handshape ?handshape-2)
-               (extended-finger-direction ?extended-finger-direction-2)
-               (palm-orientation ?palm-orientation-2)
-               (movement ?m-3)
-               (eye-gaze ?eg-2)
-               (initial-position ?ref-3)
-               (end-position ?ref-4)
                (hash form
                      ((ref-point ?ref-4)
                       (focal-point ?ref-4 chest)
