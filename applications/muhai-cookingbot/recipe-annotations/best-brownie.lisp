@@ -1,21 +1,26 @@
-;(ql:quickload :muhai-cookingbot)
+(ql:quickload :muhai-cookingbot)
+
 (in-package :muhai-cookingbot)
 
 ;; The 'trace-irl' monitor will make sure that
 ;; the IRL evaluation process is shown on the web
 ;; interface (which can be found at localhost:8000).
 ;; We need to activate it:
-(activate-monitor trace-irl)
+;(activate-monitor trace-irl)
 
 ;; ##################################################################
-;; Chocolate Fudge Cookies
-;; https://www.allrecipes.com/recipe/19259/chocolate-fudge-cookies/
+;; Best brownie recipe
+;; https://www.allrecipes.com/recipe/25010/absolutely-best-brownies/
 ;; ##################################################################
 
 ;; Defining the initial kitchen state
 (defparameter *initial-kitchen-state* 
-  (list (make-instance 'fridge
+  (make-instance 
+   'kitchen-state
+   :contents
+   (list (make-instance 'fridge
                         :contents (list (make-instance 'medium-bowl
+                                                       :used T
                                                        :contents (list (make-instance 'butter
                                                                                       :temperature
                                                                                       (make-instance 'amount
@@ -28,6 +33,7 @@
                                                                                                      :quantity (make-instance 'quantity
                                                                                                                               :value 500)))))
                                         (make-instance 'medium-bowl
+                                                       :used T
                                                        :contents (list (make-instance 'egg
                                                                                       :temperature
                                                                                       (make-instance 'amount
@@ -41,36 +47,42 @@
                                                                                                                               :value 12)))))))
          (make-instance 'pantry
                         :contents (list (make-instance 'medium-bowl
+                                                       :used T
                                                        :contents (list (make-instance 'white-sugar :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
                                                                                                                               :value 1000)))))
                                         (make-instance 'medium-bowl
+                                                       :used T
                                                        :contents (list (make-instance 'vanilla-extract :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
                                                                                                                               :value 100)))))
                                         (make-instance 'medium-bowl
-                                                       :contents (list (make-instance 'chopped-walnut :amount
+                                                       :used T
+                                                       :contents (list (make-instance 'walnut :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
                                                                                                                               :value 100)))))
                                         (make-instance 'medium-bowl
+                                                       :used T
                                                        :contents (list (make-instance 'all-purpose-flour :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
                                                                                                      :quantity (make-instance 'quantity
                                                                                                                               :value 1000)))))
                                         (make-instance 'medium-bowl
-                                                         :contents (list (make-instance 'cocoa-powder :amount
-                                                                                        (make-instance 'amount
-                                                                                                       :unit (make-instance 'g)
-                                                                                                       :quantity (make-instance 'quantity
-                                                                                                                                :value 500)))))
+                                                       :used T
+                                                       :contents (list (make-instance 'cocoa-powder :amount
+                                                                                      (make-instance 'amount
+                                                                                                     :unit (make-instance 'g)
+                                                                                                     :quantity (make-instance 'quantity
+                                                                                                                              :value 500)))))
                                         (make-instance 'medium-bowl
+                                                       :used T
                                                        :contents (list (make-instance 'salt :amount
                                                                                       (make-instance 'amount
                                                                                                      :unit (make-instance 'g)
@@ -93,112 +105,101 @@
                                    ;; baking equipment
                                    (make-instance 'baking-tray)
                                    (make-instance 'pan)
-                                   (make-instance 'baking-paper)))))
+                                   (make-instance 'baking-paper))))))
+
+;; 'make-html' makes an HTML representation of the kitchen state
+;; and 'add-element' transfers that to the web interface
+;(add-element (make-html *initial-kitchen-state* :expand-initially t))
 
 
-
-(defparameter *chocolate-fudge-cookies-recipe* 
-  '((get-kitchen ?kitchen)
-
-    ;; Ingredients
-
-    ;; "1 (18.25 ounce) (517 g) package devil's food cake mix"
-    (fetch-and-proportion ?proportioned-devils-food-cake-mix ?kitchen-state-with-devils-food-cake-mix ?kitchen devils-food-cake-mix 517 g)
-
+(defparameter *brownie-recipe* 
+  '((get-kitchen ?kitchen-state)
+    
+    ;; "120 grams butter, melted"
+    (fetch-and-proportion ?proportioned-butter ?kitchen-state-with-butter ?kitchen-state ?new-container-1 butter 120 g)
+    (melt ?melted-butter ?kitchen-state-with-melted-butter ?kitchen-state-with-butter ?proportioned-butter ?microwave)
+    
+    ;; "200 grams white sugar"
+    (fetch-and-proportion ?proportioned-sugar ?kitchen-state-with-sugar ?kitchen-state-with-melted-butter ?new-container-2 white-sugar 200 g)
+                          
     ;; "2 eggs"
-    (fetch-and-proportion ?proportioned-eggs ?kitchen-state-with-eggs ?kitchen-state-with-devils-food-cake-mix egg 2 piece)
-
-    ;; "1/4 cup (56 g) vegetable oil (for dough) + 1/4 cup (56 g) vegetable oil (to grease the baking tray)"
-    (fetch-and-proportion ?vegetable-oil-dough ?kitchen-state-with-vegetable-oil-1 ?kitchen-state-with-eggs vegetable-oil 56 g)
-    (fetch-and-proportion ?vegetable-oil-baking-tray ?kitchen-state-with-vegetable-oil-2 ?kitchen-state-with-vegetable-oil-1 vegetable-oil 56 g)
-
-    ;; "1 cup semi-sweet chocolate chips"
-    (fetch-and-proportion ?proportioned-semisweet-chocolate-chips ?kitchen-state-with-semisweet-chocolate-chips ?kitchen-state-with-vegetable-oil-2 semisweet-chocolate-chips 160 g)
-
-    ;; Steps
+    (fetch-and-proportion ?proportioned-eggs ?kitchen-state-with-eggs ?kitchen-state-with-sugar ?new-container-3 egg 2 piece)
     
-    ;; "Grease cookie baking tray"
-    (fetch ?baking-tray ?kitchen-state-with-baking-tray ?kitchen-state-with-semisweet-chocolate-chips baking-tray 1)
-    (grease ?greased-baking-tray ?kitchen-state-with-greased-baking-tray ?kitchen-state-with-baking-tray ?baking-tray ?vegetable-oil-baking-tray)
-
-    ;; "In a medium bowl, stir together the cake mix, eggs and oil until well blended"
-    (bind-and-fetch ?medium-bowl ?kitchen-state-with-medium-bowl ?kitchen-state-with-greased-baking-tray medium-bowl)
-
-    (combine ?cake-eggs-oil-mixture ?kitchen-state-with-cake-eggs-oil-mixture ?kitchen-state-with-medium-bowl ?medium-bowl 
-             ?proportioned-devils-food-cake-mix ?proportioned-eggs ?proportioned-vegetable-oil)
-
-    ;; "Fold in the chocolate chips"
-    (combine ?chocolate-chips-mixture ?kitchen-state-with-chocolate-chips-mixture ?kitchen-state-with-cake-eggs-oil-mixture ?medium-bowl 
-             ?proportioned-semisweet-chocolate-chips ?cake-eggs-oil-mixture)
-
-    ;; "Roll the dough into walnut sized balls. Place the cookies 2 inches apart on the cookie baking tray"
-    (define-amount ?cookie-dough-portion 20 g)
-    (bind two-inch ?pattern ,(make-instance 'two-inch))
-    ;(bind even-spread ?pattern ,(make-instance 'even-spread))
-
-    (to-portion-and-arrange ?tray-with-arranged-cookie-dough ?kitchen-state-with-arranged-tray ?kitchen-state-with-chocolate-chips-mixture ?chocolate-chips-mixture
-     ?cookie-dough-portion ?pattern ?greased-baking-tray)
-
-    (shape ?tray-with-shaped-cookies ?kitchen-state-with-shaped-cookies-on-tray ?kitchen-state-with-arranged-tray ?tray-with-arranged-cookie-dough walnut-ball-shape)
-
-     ;; "Preheat oven to 350 degrees F (175 degrees C)"
-    (preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-shaped-cookies-on-tray 175 degrees-celsius)
-
-    ;; "Bake for 8 to 10 minutes in the preheated oven"
-    (to-transfer ?oven-with-tray ?tray-with-shaped-cookies-inside-oven ?kitchen-state-with-tray-in-oven ?kitchen-state-with-preheated-oven 
-     ?tray-with-shaped-cookies ?preheated-oven)
-    (define-amount ?time-to-bake 9 minute)
-    (to-bake ?tray-with-baked-cookies ?kitchen-state-with-baked-cookies-in-oven ?kitchen-state-with-tray-in-oven ?tray-with-shaped-cookies-inside-oven 
-      ?time-to-bake)
-
-    ;; "Allow cookies to cool on baking tray for 5 minutes before removing to a wire rack to cool completely"
-    ;;(define-ammount ?time-to-cool 5 min)
-    ;;(cool ?semi-cooled-cookies ?kitchen-state-with-semi-cooled-cookies ?kitchen-state-with-baked-cookies-in-oven ?tray-with-baked-cookies)
+    ;; "70 grams all-purpose flour"
+   (fetch-and-proportion ?proportioned-flour ?kitchen-state-with-flour ?kitchen-state-with-eggs ?new-container-4 all-purpose-flour 70 g)
     
-    (define-amount ?semi-cool-temp 60 degrees-celsius)
-    (to-cool ?semi-cooled-cookies ?kitchen-state-with-semi-cooled-cookies ?kitchen-state-with-baked-cookies-in-oven ?tray-with-baked-cookies ?semi-cool-temp)
+    ;; "45 grams unsweetened cocoa powder"
+    (fetch-and-proportion ?proportioned-cocoa ?kitchen-state-with-cocoa ?kitchen-state-with-flour ?new-container-5 cocoa-powder 45 g)
 
-    (to-fetch ?fetched-semi-cooled-cookies ?kitchen-state-with-semi-cooled-cookies-on-counter ?kitchen-state-with-semi-cooled-cookies ?semi-cooled-cookies)
+    ;; "1/4 teaspoon salt"
+    (fetch-and-proportion ?proportioned-salt ?kitchen-state-with-salt ?kitchen-state-with-cocoa ?new-container-6 salt 0.25 teaspoon)
 
-    (bind-and-fetch ?wire-racks ?kitchen-state-with-wire-racks-on-counter ?kitchen-state-with-semi-cooled-cookies-on-counter wire-racks)
+    ;; "1 teaspoon vanilla extract"
+    (fetch-and-proportion ?proportioned-vanilla ?kitchen-state-with-vanilla ?kitchen-state-with-salt ?new-container-7 vanilla-extract 1 teaspoon)
+                          
+    ;;"50 grams chopped walnuts"
+    (fetch-and-proportion ?proportioned-walnuts ?kitchen-state-with-walnuts ?kitchen-state-with-vanilla ?new-container-8 walnut 50 g)
+    (cut ?chopped-walnuts ?kitchen-state-with-chopped-walnuts ?kitchen-state-with-walnuts ?proportioned-walnuts chopped ?knife)
+            
+    ;; "Preheat oven to 175 degrees C."
+    (preheat-oven ?preheated-oven ?kitchen-state-with-preheated-oven ?kitchen-state-with-chopped-walnuts ?oven 175 degrees-celsius)
+                          
+    ;; "Grease and flour a baking pan."
+    (fetch ?pan ?kitchen-state-with-pan ?kitchen-state-with-preheated-oven pan 1) ;; IMPLICIT
+    (grease ?greased-pan ?kitchen-state-with-greased-pan ?kitchen-state-with-pan ?pan ?grease)
+    (flour ?floured-pan ?kitchen-state-with-floured-pan ?kitchen-state-with-greased-pan ?greased-pan ?all-purpose-flour)
+
+    ;;  "In a medium bowl, beat together the butter and sugar."
+    (fetch ?medium-bowl-1 ?kitchen-state-with-medium-bowl ?kitchen-state-with-floured-pan medium-bowl 1) ;; IMPLICIT
+    (transfer-contents ?output-container-x ?rest-x ?output-kitchen-state-x ?kitchen-state-with-medium-bowl ?medium-bowl-1 ?melted-butter ?quantity-x ?unit-x)
+    (transfer-contents ?output-container-y ?rest-y ?output-kitchen-state-y ?output-kitchen-state-x ?output-container-x ?proportioned-sugar ?quantity-y ?unit-y)
+    (beat ?beaten-mixture-bowl ?kitchen-state-with-beaten-mixture ?output-kitchen-state-y ?output-container-y ?beating-tool)
+
+    ;; "Add eggs, and mix well."
+    (crack ?mixture-with-cracked-eggs ?kitchen-state-with-cracked-eggs ?kitchen-state-with-beaten-mixture ?proportioned-eggs ?beaten-mixture-bowl)
+    (mix ?egg-sugar-mixture ?kitchen-state-with-egg-sugar-mixture ?kitchen-state-with-cracked-eggs ?mixture-with-cracked-eggs ?beating-tool) ;; use the same whisk
+
+    ;; "Combine the flour, cocoa and salt; stir into the sugar mixture."
+    (transfer-contents ?output-container-z ?rest-z ?output-kitchen-state-z ?kitchen-state-with-egg-sugar-mixture ?egg-sugar-mixture ?proportioned-flour ?quantity-z ?unit-z)
+    (transfer-contents ?output-container-a ?rest-a ?output-kitchen-state-a ?output-kitchen-state-z ?output-container-z ?proportioned-cocoa ?quantity-a ?unit-a)
+    (transfer-contents ?output-container-b ?rest-b ?output-kitchen-state-b ?output-kitchen-state-a ?output-container-a ?proportioned-salt ?quantity-b ?unit-b)
+    (mix ?flour-sugar-mixture-bowl ?kitchen-state-with-flour-sugar-mixture ?output-kitchen-state-b ?output-container-b ?beating-tool)
     
-    (transfer-all-contents ?wire-racks-with-semi-cooled-cookies ?kitchen-state-with-semi-cooled-cookies-in-racks ?kitchen-state-with-wire-racks-on-counter 
-      ?wire-racks ?semi-cooled-cookies)
+    ;; "Mix in the vanilla and stir in the walnuts." ;;difference between mix and stir!
+    (transfer-contents ?output-container-c ?rest-c ?output-kitchen-state-c ?kitchen-state-with-flour-sugar-mixture ?flour-sugar-mixture-bowl ?proportioned-vanilla ?quantity-c ?unit-c)
+    (transfer-contents ?output-container-d ?rest-d ?output-kitchen-state-d ?output-kitchen-state-c ?output-container-c ?chopped-walnuts ?quantity-d ?unit-d)
+    (mix ?dough ?kitchen-state-with-dough ?output-kitchen-state-d ?output-container-d ?beating-tool)
 
-    ;(cool ?cooled-cookies ?kitchen-state-with-cooled-cookies ?kitchen-state-with-semi-cooled-cookies-in-racks ?wire-racks-with-semi-cooled-cookies)
-    (define-amount ?cool-temp 18 degrees-celsius)
-    (to-cool ?cooled-cookies  ?kitchen-state-with-cooled-cookies ?kitchen-state-with-semi-cooled-cookies-in-racks ?wire-racks-with-semi-cooled-cookies ?cool-temp)))
+    ;;  "Spread evenly into the prepared pan."
+    (spread ?pan-with-dough ?kitchen-state-with-dough-in-pan ?kitchen-state-with-dough ?floured-pan ?dough ?scraper)
 
-(evaluate-irl-program (expand-macros *chocolate-fudge-cookies-recipe*) nil)
-
-
-
-
-;; Inspecting small parts of the recipe:
-;;--------------------------------------
-;; printing to the output buffer
-(pprint `((bind ?kitchen-state *kitchen-state-1*)
-          ,@(fetch-and-proportion ?proportioned-butter ?kitchen-state-with-butter *butter-1* ?kitchen-state 113 g)
-          (melt ?melted-butter ?kitchen-state-with-melted-butter ?proportioned-butter ?kitchen-state-with-butter)))
-
-;; drawing a network
-(draw-recipe '((bind ?kitchen-state *kitchen-state-1*)   
-               ,@(fetch-and-proportion ?proportioned-devils-food-cake-mix ?kitchen-state-with-devils-food-cake-mix *devils-food-cake-mix-1* ?kitchen-state 517 g))
-             :expand nil) ;;t or nil
-
+    ;;  "Bake for 25 to 30 minutes in the preheated oven."
+    (bake ?baked-brownie ?kitchen-state-with-baked-brownie ?kitchen-state-with-dough-in-pan ?pan-with-dough ?preheated-oven 25 minute ?temp-quantity ?temp-unit)
+                          
+    ;;  "Cool before cutting into squares."
+    (bring-to-temperature ?cooled-brownie ?kitchen-state-with-cooled-brownie ?kitchen-state-with-baked-brownie ?baked-brownie 18 degrees-celsius)
+    (cut ?cut-brownie ?kitchen-state-with-cut-brownie ?kitchen-state-with-cooled-brownie ?cooled-brownie squares ?knife)))
 
 ;; ======================
-;; Macro definitions
+;; Append bindings to the recipe
 ;; ======================
 
+(defparameter *extended-recipe*
+  (append-meaning-and-irl-bindings *brownie-recipe* nil))
+
+;; ======================
+;; Evaluate the recipe
+;; ======================
+
+;(activate-monitor trace-irl)
+
+;(clear-output)
+
+;(evaluate-irl-program *extended-recipe* nil)
 
 ;; ======================
 ;; Visualise the recipe
 ;; ======================
 
-;; High-level recipe notation:
-(draw-recipe *chocolate-fudge-cookies-recipe* :expand nil)
-
-;; All primitives expanded:
-(draw-recipe *chocolate-fudge-cookies-recipe* :expand t)
+;(draw-recipe *brownie-recipe*)
 

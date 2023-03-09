@@ -26,33 +26,41 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   (setf (persistent-id copy) (persistent-id kitchen-entity))
   (setf (id copy)  (make-id (persistent-id kitchen-entity))))
 
-(defclass kitchen-state (container)
+(defclass kitchen-state (container has-temperature)
   ((kitchen-time :type integer
                  :accessor kitchen-time
                  :initarg :kitchen-time
-                 :initform 0))
-  (:documentation "Representation of the state of the kitchen."))
+                 :initform 0)
+   (temperature :initarg :temperature
+                :accessor temperature
+                :initform (make-instance 'amount
+                                         :unit (make-instance 'degrees-celsius)
+                                         :quantity (make-instance 'quantity
+                                                                  :value 18)))))
 
 (defmethod copy-object-content ((kitchen-state kitchen-state) (copy kitchen-state))
   (setf (kitchen-time copy) (kitchen-time kitchen-state))
-  )
+  (setf (temperature copy) (copy-object (temperature kitchen-state))))
 
-;; (defmethod initialize-instance :after ((kitchen-state kitchen-state) &key)
-;;   (when (null (arrangement kitchen-state))
-;;     (setf (arrangement kitchen-state) (make-instance 'sectionalized)))
-;;   (let ((counter-top-instance (find-in-kitchen-state-contents kitchen-state 'counter-top))
-;;         (pantry-instance (find-in-kitchen-state-contents kitchen-state 'pantry))
-;;         (fridge-instance (find-in-kitchen-state-contents kitchen-state 'fridge))
-;;         (freezer-instance (find-in-kitchen-state-contents kitchen-state 'freezer))
-;;         (oven-instance (find-in-kitchen-state-contents kitchen-state 'oven))
-;;         (kitchen-cabinet-instance (find-in-kitchen-state-contents kitchen-state 'kitchen-cabinet)))
-;;     (break)
-;;     (when (null kitchen-cabinet-instance) (setf (contents kitchen-state) (cons (make-instance 'kitchen-cabinet) (contents kitchen-state))))
-;;     (when (null pantry-instance) (setf (contents kitchen-state) (cons (make-instance 'pantry) (contents kitchen-state))))
-;;     (when (null fridge-instance) (setf (contents kitchen-state) (cons (make-instance 'fridge) (contents kitchen-state))))
-;;     (when (null freezer-instance) (setf (contents kitchen-state) (cons (make-instance 'freezer) (contents kitchen-state))))
-;;     (when (null oven-instance) (setf (contents kitchen-state) (cons (make-instance 'oven) (contents kitchen-state))))
-;;     (when (null counter-top-instance) (setf (contents kitchen-state) (cons (make-instance 'counter-top) (contents kitchen-state))))))
+(defmethod initialize-instance :after ((kitchen-state kitchen-state) &key)
+  (when (null (arrangement kitchen-state))
+    (setf (arrangement kitchen-state) (make-instance 'sectionalized)))
+  (let ((counter-top-instance (find-in-kitchen-state-contents kitchen-state 'counter-top))
+        (kitchen-cabinet-instance (find-in-kitchen-state-contents kitchen-state 'kitchen-cabinet))
+        (pantry-instance (find-in-kitchen-state-contents kitchen-state 'pantry))
+        (fridge-instance (find-in-kitchen-state-contents kitchen-state 'fridge))
+        (freezer-instance (find-in-kitchen-state-contents kitchen-state 'freezer))
+        (oven-instance (find-in-kitchen-state-contents kitchen-state 'oven))
+        (microwave-instance (find-in-kitchen-state-contents kitchen-state 'microwave))
+        (stove-instance (find-in-kitchen-state-contents kitchen-state 'stove)))
+    (when (null counter-top-instance) (setf (contents kitchen-state) (cons (make-instance 'counter-top) (contents kitchen-state))))
+    (when (null kitchen-cabinet-instance) (setf (contents kitchen-state) (cons (make-instance 'kitchen-cabinet) (contents kitchen-state))))
+    (when (null pantry-instance) (setf (contents kitchen-state) (cons (make-instance 'pantry) (contents kitchen-state))))
+    (when (null fridge-instance) (setf (contents kitchen-state) (cons (make-instance 'fridge) (contents kitchen-state))))
+    (when (null freezer-instance) (setf (contents kitchen-state) (cons (make-instance 'freezer) (contents kitchen-state))))
+    (when (null oven-instance) (setf (contents kitchen-state) (cons (make-instance 'oven) (contents kitchen-state))))
+    (when (null microwave-instance) (setf (contents kitchen-state) (cons (make-instance 'microwave) (contents kitchen-state))))
+    (when (null stove-instance) (setf (contents kitchen-state) (cons (make-instance 'stove) (contents kitchen-state))))))
 
 ;; Readers for kitchen-state contents
 ;; NOTE made recursive because the nestings in VR kitchen
@@ -86,6 +94,9 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defmethod oven ((kitchen-state kitchen-state))
   (find-in-kitchen-state-contents kitchen-state 'oven))
 
+(defmethod microwave ((kitchen-state kitchen-state))
+  (find-in-kitchen-state-contents kitchen-state 'microwave))
+
 (defmethod kitchen-cabinet ((kitchen-state kitchen-state))
   (find-in-kitchen-state-contents kitchen-state 'kitchen-cabinet))
 
@@ -95,9 +106,9 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 ;; Abstract classes for properties ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass aggregate (kitchen-entity)
-  ()
-  (:documentation "For ingredients that are formed by combining several separate elements in VR, e.g. butter or liquids"))
+;(defclass aggregate (kitchen-entity)
+;  ()
+;  (:documentation "For ingredients that are formed by combining several separate elements in VR, e.g. butter or liquids"))
 
 (defclass arrangeable (kitchen-entity)
   ((arrangement  :initarg :arrangement :accessor arrangement :initform nil))
@@ -122,6 +133,16 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defmethod copy-object-content ((beatable beatable) (copy beatable))
   "Copying beatable objects."
   (setf (beaten copy) (copy-object (beaten beatable))))
+
+(defclass boilable (kitchen-entity)
+  ((boiled :type boolean :initarg :boiled :accessor boiled :initform nil)
+   (boiled-with :initarg :boiled-with :accessor boiled-with :initform nil))
+  (:documentation "For objects that can be boiled."))
+
+(defmethod copy-object-content ((boilable boilable) (copy boilable))
+  "Copying boilable objects."
+  (setf (boiled copy) (copy-object (boiled boilable)))
+  (setf (boiled-with copy) (copy-object (boiled-with boilable))))
 
 (defclass brushable (kitchen-entity)
   ((brushed-with  :initarg :brushed-with :accessor brushed-with :initform nil))
@@ -184,12 +205,12 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   (setf (sprinkled-with copy) (copy-object (sprinkled-with can-be-sprinkled-on))))
 
 (defclass can-cover(cooking-utensil)
-  ((covered-container :type boolean :initarg :covered-container :accessor covered-container :initform nil))
+  ((is-covering :type boolean :initarg :is-covering :accessor is-covering :initform nil))
   (:documentation "Something that can be used to cover a coverable container"))
 
 (defmethod copy-object-content ((can-cover can-cover) (copy can-cover))
   "Copying coverable objects."
-  (setf (covered-container copy) (copy-object (covered-container can-cover))))
+  (setf (is-covering copy) (copy-object (is-covering can-cover))))
 
 (defclass can-brush (cooking-utensil)
   ()
@@ -201,19 +222,27 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 
 (defclass can-drain (cooking-utensil)
   ()
-  (:documentation "A tool that can drain"))
+  (:documentation "A tool that can drain."))
 
 (defclass can-flatten (cooking-utensil)
   ()
-  (:documentation "A tool that can be used to flatten dough"))
+  (:documentation "A tool that can be used to flatten dough."))
+
+(defclass can-grind (cooking-utensil)
+  ()
+  (:documentation "A tool that can be used to grind ingredients into powder."))
 
 (defclass can-mash (cooking-utensil)
   ()
   (:documentation "A tool that can be used for mashing."))
 
+(defclass can-mingle (cooking-utensil)
+  ()
+  (:documentation "A tool that can be used for mingling."))
+
 (defclass can-mix (cooking-utensil)
   ()
-  (:documentation "A tool that can be used for beating."))
+  (:documentation "A tool that can be used for mixing or beating."))
 
 (defclass can-peel (cooking-utensil)
   ()
@@ -222,6 +251,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass can-seed (cooking-utensil)
   ()
   (:documentation "A tool that can be used for seeding."))
+
+(defclass can-separate-eggs (cooking-utensil)
+  ()
+  (:documentation "A tool that can be used for separating whole eggs into egg yolks and egg whites."))
 
 (defclass can-sift (cooking-utensil)
   ()
@@ -249,13 +282,12 @@ in the cookingbot ontology should subclass of kitchen-entity."))
                               collect (copy-object item))))
 
 (defclass coverable-container (container)
-  ((cover :initarg :cover :accessor cover :initform nil))
+  ((covered-with :initarg :covered-with :accessor covered-with :initform nil))
   (:documentation "Containers that can also be covered"))
 
 (defmethod copy-object-content ((coverable-container coverable-container) (copy coverable-container))
   "Copying coverable objects."
-  (setf (cover copy) (copy-object (cover coverable-container))))
-
+  (setf (covered-with copy) (copy-object (covered-with coverable-container))))
 
 (defclass crackable (kitchen-entity)
   ((cracked :type boolean :initarg :cracked :accessor cracked :initform nil))
@@ -265,8 +297,29 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying crackable objects."
   (setf (cracked copy) (copy-object (cracked crackable))))
 
+(defclass crushed-pineapple (ingredient)
+  ()
+  (:documentation "Crushed-pineapple."))
+
+(defclass crushed-pineapple-in-syrup (heterogeneous-mixture)
+  ((components :type list :initarg :components :accessor components
+               :initform (list
+                          (make-instance 'crushed-pineapple
+                                         :amount (make-instance 'amount
+                                                                :quantity (make-instance 'quantity :value 0.9)
+                                                                :unit (make-instance 'percent)))
+                          (make-instance 'syrup
+                                         :amount (make-instance 'amount
+                                                                :quantity (make-instance 'quantity :value 0.1)
+                                                                :unit (make-instance 'percent))))))
+  (:documentation "Crushed-pineapple in syrup."))
+
+(defmethod copy-object-content ((crushed-pineapple-in-syrup crushed-pineapple-in-syrup) (copy crushed-pineapple-in-syrup))
+  "Copying crushed-pineapple-in-syrup objects."
+  (setf (components copy) (copy-object (components crushed-pineapple-in-syrup)))) 
+
 (defclass cuttable (kitchen-entity)
-  ((is-cut :type boolean :initarg :is-cut :accessor is-cut :initform nil))
+  ((is-cut :type cutting-pattern :initarg :is-cut :accessor is-cut :initform (make-instance 'uncut)))
   (:documentation "For objects that can be cut."))
 
 (defmethod copy-object-content ((cuttable cuttable) (copy cuttable))
@@ -275,7 +328,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 
 (defclass dippable (kitchen-entity)
   ((dipped-in  :initarg :dipped-in :accessor dipped-in :initform nil))
-  (:documentation "Something of which the inner surface can be covered with something that can-be-lined-with."))
+  (:documentation "For objects that can be dipped in something."))
 
 (defmethod copy-object-content ((dippable dippable) (copy dippable))
   "Copying dippable objects."
@@ -301,7 +354,23 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "An ingredient that is fluid."))
 
-(defclass has-temperature (kitchen-entity)
+(defclass fryable (kitchen-entity)
+  ((fried :type boolean :initarg :fried :accessor fried :initform nil))
+  (:documentation "For objects that can be fried."))
+
+(defmethod copy-object-content ((fryable fryable) (copy fryable))
+  "Copying fryable objects."
+  (setf (fried copy) (copy-object (fried fryable))))
+
+(defclass grindable (kitchen-entity)
+  ((ground :type boolean :initarg :ground :accessor ground :initform nil))
+  (:documentation "For objects that can be ground."))
+
+(defmethod copy-object-content ((grindable grindable) (copy grindable))
+  "Copying grindable objects."
+  (setf (ground copy) (copy-object (ground grindable))))
+  
+(defclass has-temperature (kitchen-entity)                                                      
   ((temperature  :initarg :temperature :accessor temperature :initform nil))
   (:documentation "For object/containers with a temperature."))
 
@@ -309,7 +378,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying  objects with temperature."
   (setf (temperature copy) (copy-object (temperature has-temperature))))
 
-(defclass ingredient (fetchable conceptualizable perishable)
+(defclass ingredient (fetchable conceptualizable perishable can-be-sprinkled-on)
   ((amount :type amount :initarg :amount :accessor amount :initform (make-instance 'amount)))
   (:documentation "For objects that are ingredients (they have an amount)."))
 
@@ -324,7 +393,6 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying list of kitchen entities."
   (setf (items copy) (copy-object (items list))))
 
-
 (defclass lineable (kitchen-entity)
   ((lined-with :initarg :lined-with :accessor lined-with :initform nil))
   (:documentation "Something of which the inner surface can be covered with something that can-be-lined-with."))
@@ -332,6 +400,18 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defmethod copy-object-content ((lineable lineable) (copy lineable))
   "Copying lineable objects."
   (setf (lined-with copy) (copy-object (lined-with lineable))))
+
+(defclass liquefiable ()
+  ((is-liquid :type boolean :initarg :is-liquid :accessor is-liquid :initform nil))
+  (:documentation "An ingredient that can be liquefied."))
+
+(defmethod copy-object-content ((liquefiable liquefiable) (copy liquefiable))
+  "Copying liquefiable objects."
+  (setf (is-liquid copy) (copy-object (is-liquid liquefiable))))
+
+(defclass liquid (boilable)
+  ()
+  (:documentation "A liquid ingredient."))
 
 (defclass mashable (kitchen-entity)
   ((mashed :type boolean :initarg :mashed :accessor mashed :initform nil))
@@ -374,7 +454,6 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying perishable objects."
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated perishable))))
 
-
 (defclass pluckable (kitchen-entity)
   ((is-plucked :type boolean :initarg :is-plucked :accessor is-plucked :initform nil)
    (plucked :type ingredient :initarg :plucked :accessor plucked :initform nil) ;;leaves
@@ -391,10 +470,17 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ((used :type boolean :initarg :used :accessor used :initform nil))
   (:documentation "For objects that can be reused (and might not cleaning first)."))
 
-
 (defmethod copy-object-content ((reusable reusable) (copy reusable))
   "Copying reusable objects."
   (setf (used copy) (copy-object (used reusable))))
+
+(defclass seed (kitchen-entity)
+  ((seed-of :initarg :seed-of :accessor seed-of :initform nil))
+  (:documentation "For seeds of an object."))
+
+(defmethod copy-object-content ((seed seed) (copy seed))
+  "Copying seed objects."
+  (setf (seed-of copy) (copy-object (seed-of seed))))
 
 (defclass seedable (kitchen-entity)
   ((seeded :type boolean :initarg :seeded :accessor seeded :initform nil))
@@ -431,6 +517,15 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ((sifted :type boolean :initarg :sifted :accessor sifted :initform nil))
   (:documentation "For objects that can be sifted"))
 
+(defclass peel (kitchen-entity)
+  ((peel-of :initarg :peel-of :accessor peel-of :initform nil))
+  (:documentation "For peels of an object."))
+
+(defmethod copy-object-content ((peel peel) (copy peel))
+  "Copying peel objects."
+  (setf (peel-of copy) (copy-object (peel-of peel))))
+
+
 (defmethod copy-object-content ((siftable siftable) (copy siftable))
   "Copying siftable objects."
   (setf (sifted copy) (copy-object (sifted siftable))))
@@ -447,6 +542,14 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Something that can be sprinkled over something."))
 
+(defclass washable (kitchen-entity)
+  ((washed :type boolean :initarg :washed :accessor washed :initform nil))
+  (:documentation "For objects that can be washed."))
+
+(defmethod copy-object-content ((washable washable) (copy washable))
+  "Copying washable objects."
+  (setf (washed copy) (copy-object (washed washable))))
+
 
 ;; Kitchen Equipment ;;
 ;;;;;;;;;;;;;;;;;;;;;;;
@@ -454,6 +557,14 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass baking-paper (reusable can-be-lined-with)
   ()
   (:documentation "A piece of baking paper. It can be used to line something with."))
+
+(defclass paper-baking-cup (reusable can-be-lined-with conceptualizable)
+  ()
+  (:documentation "A collection of paper-baking-cups. It can be used to line muffin tins with."))
+
+(defclass paper-baking-cups (list-of-kitchen-entities reusable can-be-lined-with conceptualizable)
+  ()
+  (:documentation "A collection of paper-baking-cups. It can be used to line muffin tins with."))
 
 (defclass baking-dish (transferable-container can-have-on-top reusable)
   ()
@@ -467,6 +578,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A bowl. It's a container."))
 
+(defclass bread-knife (can-cut reusable)
+  ()
+  (:documentation "A ridged knife that can be used for cutting."))
+
 (defclass brush (can-brush reusable)
   ()
   (:documentation "A brush. It can brush."))
@@ -477,11 +592,15 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 
 (defclass colander (can-drain reusable)
   ()
-  (:documentation "A colander...It can drain..."))
+  (:documentation "A colander. It can drain."))
 
 (defclass cookie-sheet (transferable-container lineable brushable reusable)
   ()
-  (:documentation "Cookie-sheet. Its' a transferable container."))
+  (:documentation "Cookie-sheet. It's a transferable container."))
+
+(defclass cooking-pot (heatable-container reusable)
+  ()
+  (:documentation "Cooking pot. It can be heated up."))
 
 (defclass cooking-utensil (fetchable conceptualizable)
   ()
@@ -495,34 +614,62 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying counter-tops."
   (setf (arrangement copy) (copy-object (arrangement counter-top))))
 
-(defclass fork (can-mix can-beat can-mash reusable)
+(defclass egg-separator (can-separate-eggs reusable)
+  ()
+  (:documentation "A tool to separate eggs into egg yolks and egg whites."))
+
+(defclass food-processor (can-mix can-beat can-grind reusable)
+  ()
+  (:documentation "A food processor. It's a tool for mixing, beating and grinding."))
+
+(defclass fork (can-mix can-beat can-mash reusable can-mingle)
   ()
   (:documentation "A fork. It's a tool for mixing, beating and mashing."))
 
-(defclass freezer (container)
-  ((arrangement :initform (make-instance 'shelved)))
+(defclass freezer (container has-temperature)
+  ((arrangement :initform (make-instance 'shelved))
+   (temperature :initarg :temperature :accessor temperature :initform (make-instance 'amount
+                                                                                     :quantity (make-instance 'quantity :value -18)
+                                                                                     :unit (make-instance 'degrees-celsius))))
   (:documentation "The freezer. It's a container."))
 
 (defmethod copy-object-content ((freezer freezer) (copy freezer))
   "Copying freezers."
-  (setf (arrangement copy) (copy-object (arrangement freezer))))
+  (setf (arrangement copy) (copy-object (arrangement freezer)))
+  (setf (temperature copy) (copy-object (temperature freezer))))
 
-(defclass fridge (container)
-  ((arrangement :initform (make-instance 'shelved)))
+(defclass fridge (container has-temperature)
+  ((arrangement :initform (make-instance 'shelved))
+   (temperature :initarg :temperature :accessor temperature :initform (make-instance 'amount
+                                                                                     :quantity (make-instance 'quantity :value 5)
+                                                                                     :unit (make-instance 'degrees-celsius))))
   (:documentation "The fridge. It's a container."))
 
 (defmethod copy-object-content ((fridge fridge) (copy fridge))
   "Copying fridges."
-  (setf (arrangement copy) (copy-object (arrangement fridge))))
+  (setf (arrangement copy) (copy-object (arrangement fridge)))
+  (setf (temperature copy) (copy-object (temperature fridge))))
 
-
-(defclass jar (transferable-container coverable-container reusable shakeable)
+(defclass frying-pan (heatable-container brushable reusable)
   ()
+  (:documentation "Frying pan. It can be heated up."))
+
+(defclass heatable-container (transferable-container)
+  ()
+  (:documentation "A transferable container that can be heated up, i.e., that can be used for cooking."))
+
+; TOVERIFY RD: should a jar be uncovered first?
+(defclass jar (transferable-container coverable-container reusable shakeable)
+  (); ((covered-with :initarg :covered-with :accessor covered-with :initform (make-instance 'jar-lid :is-covering T)))
   (:documentation "A jar. It's a container, coverable and tranferable."))
+
+;(defmethod copy-object-content ((jar jar) (copy jar))
+;  "Copying jar objects."
+;  (setf (covered-with copy) (copy-object (covered-with jar))))
 
 (defclass jar-lid (can-cover reusable)
   ()
-  (:documentation "A jar-lid. Used to cover (close) a jar"))
+  (:documentation "A jar lid. Used to cover (close) a jar"))
 
 (defclass kitchen-cabinet (container)
   ((arrangement :initform (make-instance 'shelved)))
@@ -552,7 +699,27 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A medium bowl lid. Used to cover a medium bowl"))
 
-(defclass oven (container has-temperature)
+(defclass microwave (container has-temperature) 
+  ()
+  (:documentation "The microwave. It's a container."))
+
+(defclass mixer (can-mix can-beat reusable)
+  ()
+  (:documentation "A mixer. It's an electric tool for mixing or beating."))
+
+(defclass muffin-tins (transferable-container lineable brushable reusable conceptualizable)
+  ()
+  (:documentation "Abstract class for muffin tins. It's a lineable container."))
+
+(defclass muffin-tins-12 (muffin-tins)
+  ((number-of-tins :type quantity :initarg :number-of-tins :accessor number-of-tins :initform (make-instance 'quantity :value 12)))
+  (:documentation "Muffin tins with 12 places for muffins."))
+
+(defmethod copy-object-content ((muffin-tins-12 muffin-tins-12) (copy muffin-tins-12))
+  "Copying quantity."
+  (setf (number-of-tins copy) (copy-object (number-of-tins muffin-tins-12))))
+
+(defclass oven (container has-temperature) 
   ((arrangement :initform (make-instance 'shelved)))
   (:documentation "The oven. It's a container."))
 
@@ -568,10 +735,13 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ((arrangement :initform (make-instance 'shelved)))
   (:documentation "The pantry. It's a container."))
 
+(defclass plastic-wrap (can-cover reusable)
+  ()
+  (:documentation "Plastic foil. Can be used to cover most things."))
+
 (defmethod copy-object-content ((pantry pantry) (copy pantry))
   "Copying pantries."
   (setf (arrangement copy) (copy-object (arrangement pantry))))
-
 
 (defclass rolling-pin (can-flatten reusable)
   ()
@@ -597,17 +767,17 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A spatula that can spread."))
 
-(defclass stove (container)
-  ((arrangement :initform (make-instance 'side-to-side)))
-  (:documentation "The stove It's a container."))
-
-(defmethod copy-object-content ((stove stove) (copy stove))
-  "Copying stoves"
-  (setf (arrangement copy) (copy-object (arrangement stove))))
+(defclass stove (container has-temperature)
+  ()
+   (:documentation "A stove to cook on. It's a container."))
 
 (defclass table-spoon (can-spread reusable)
   ()
   (:documentation "A table spoon."))
+
+(defclass tea-spoon (can-spread reusable)
+  ()
+  (:documentation "A tea spoon."))
 
 (defclass transferable-container (container fetchable conceptualizable)
   ((arrangement :initform nil))
@@ -621,17 +791,17 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   (when (contents transferable-container)
     (setf (used transferable-container) t)))
 
-(defclass whisk (can-mix can-beat reusable)
+(defclass whisk (can-mix can-beat can-mingle reusable)
   ()
   (:documentation "A whisk. It's a tool for mixing or beating."))
 
 (defclass wire-rack (transferable-container lineable reusable)
   ()
-  (:documentation "Wire-racks. It's a transferable container."))
+  (:documentation "A wire rack. It's a transferable container."))
 
-(defclass wooden-spoon (can-mix can-beat reusable)
+(defclass wooden-spoon (can-mix can-mingle reusable)
   ()
-  (:documentation "A wooden spoon. It's a tool for mixing."))
+  (:documentation "A wooden spoon. It's a tool for mixing or mingling."))
 
 ;; Ingredients  ;;
 ;;;;;;;;;;;;;;;;;;
@@ -640,11 +810,11 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "All-purpose flour."))
 
-(defclass almond (ingredient)
+(defclass almond (ingredient cuttable fryable has-temperature)
   ()
   (:documentation "Almond."))
 
-(defclass almond-extract (flavoring-extract almond)
+(defclass almond-extract (flavoring-extract)
   ()
   (:documentation "Almond extract."))
 
@@ -655,6 +825,14 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass almond-flour (flour)
   ()
   (:documentation "Almond flour."))
+
+(defclass apple (ingredient cuttable seedable peelable)
+  ()
+  (:documentation "Apple."))
+
+(defclass avocado (ingredient cuttable seedable peelable mashable)
+  ()
+  (:documentation "Avocado."))
 
 (defclass baking-powder (ingredient)
   ()
@@ -668,29 +846,37 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Banana."))
 
-(defclass black-bean (ingredient)
+(defclass bisquick-baking-mix (ingredient)
+  ()
+  (:documentation "Bisquick baking mix."))
+
+(defclass black-bean (ingredient washable)
   ()
   (:documentation "Black beans."))
+
+(defclass black-olive (ingredient seedable cuttable)
+  ()
+  (:documentation "Black olive."))
+
+(defclass broccoli (ingredient cuttable)
+  ()
+  (:documentation "Broccoli."))
 
 (defclass brown-lentils (lentils)
   ()
   (:documentation "Brown lentils."))
 
-
 (defclass brown-sugar (sugar)
   ()
   (:documentation "Plain brown sugar."))
 
-(defclass butter (ingredient mixable beatable meltable has-temperature can-be-brushed-with spreadable can-have-on-top aggregate)
+(defclass butter (ingredient mixable beatable meltable has-temperature can-be-brushed-with spreadable can-have-on-top) ; aggregate)
   ((keep-refrigerated :initform t))
   (:documentation "Butter."))
-
-
 
 (defmethod copy-object-content ((butter butter) (copy butter))
   "Copying butter objects."
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated butter))))
-
 
 (defclass butter-particle (ingredient mixable beatable meltable has-temperature can-be-brushed-with spreadable can-have-on-top aggregate)
   ((keep-refrigerated :initform t))
@@ -707,7 +893,6 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   (:documentation "Almond Flour-particle"))
 
 
-
 (defclass flour-particle (ingredient mixable beatable meltable has-temperature can-be-brushed-with spreadable can-have-on-top aggregate)
   ((keep-refrigerated :initform t))
   (:documentation "Flour-particle"))
@@ -717,13 +902,18 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   (:documentation "Flour-particle"))
 
 
-
-
 (defmethod copy-object-content ((butter-particle butter-particle) (copy butter-particle))
   "Copying butter objects."
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated butter-particle))))
 
 
+(defclass carrot (ingredient cuttable)
+  ()
+  (:documentation "Carrot."))
+
+(defclass coconut-oil (ingredient liquid)
+  ()
+  (:documentation "Coconut oil."))
 
 (defclass conserved-ingredient (ingredient drainable)
    ((solid-parts :type list  :initarg :solid-parts :accessor solid-parts :initform '())
@@ -747,6 +937,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying celery objects."
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated celery))))
 
+(defclass celery-seed (spice)
+  ()
+  (:documentation "Celery seed."))
+
 (defclass cherry-tomato (ingredient cuttable)
   ((keep-refrigerated :initform T))
   (:documentation "Cherry tomatoes."))
@@ -755,18 +949,49 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying cherry-tomato objects."
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated cherry-tomato))))
 
-(defclass chopped-walnut (ingredient)
+(defclass cooked-bacon (ingredient cuttable)
+  ()
+  (:documentation "Cooked bacon."))
+
+(defclass cooked-chicken (ingredient cuttable)
+  ()
+  (:documentation "Cooked chicken."))
+
+(defclass walnut (ingredient cuttable grindable)
   ()
   (:documentation "Walnut."))
+
+(defclass chocolate-chips (ingredient meltable)
+  ()
+  (:documentation "Chocolate chips"))
+
+(defclass cider-vinegar (vinegar)
+  ()
+  (:documentation "Cider vinegar."))
+
+(defclass coarse-salt (salt)
+  ()
+  (:documentation "Coarse salt."))
 
 (defclass cocoa-powder (ingredient siftable)
   ()
   (:documentation "Cocoa powder."))
 
+(defclass corn (ingredient)
+  ()
+  (:documentation "Corn."))
+
 (defclass corn-flakes (ingredient)
   ()
   (:documentation "Corn flakes."))
 
+(defclass cranberry (ingredient cuttable)
+  ()
+  (:documentation "Cranberry."))
+
+(defclass cream-cheese (ingredient has-temperature)
+  ()
+  (:documentation "Cream cheese."))
 
 (defclass cucumber (ingredient cuttable peelable seedable)
   ((keep-refrigerated :initform T))
@@ -788,7 +1013,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Dry white wine"))
 
-(defclass egg (ingredient has-temperature crackable)
+(defclass egg (ingredient has-temperature crackable boilable)
   ((keep-refrigerated :initform T))
   (:documentation "Eggs."))
 
@@ -796,9 +1021,33 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying egg objects."
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated egg))))
 
+(defclass egg-white (ingredient has-temperature)
+  ((keep-refrigerated :initform T))
+  (:documentation "Egg white."))
+
+(defmethod copy-object-content ((egg-white egg-white) (copy egg-white))
+  "Copying egg-white objects."
+  (setf (keep-refrigerated copy) (copy-object (keep-refrigerated egg-white))))
+
 (defclass egg-shell (ingredient crackable)
   ()
   (:documentation "Egg shell"))
+
+(defclass egg-yolk (ingredient has-temperature)
+  ((keep-refrigerated :initform T))
+  (:documentation "Egg yolk."))
+
+(defmethod copy-object-content ((egg-yolk egg-yolk) (copy egg-yolk))
+  "Copying egg-yolk objects."
+  (setf (keep-refrigerated copy) (copy-object (keep-refrigerated egg-yolk))))
+
+(defclass extra-virgin-olive-oil (olive-oil)
+  ()
+  (:documentation "Extra-virgin olive oil."))
+
+(defclass feta-cheese (ingredient cuttable)
+  ()
+  (:documentation "Feta cheese."))
 
 (defclass flavoring-extract (ingredient)
   ()
@@ -816,6 +1065,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Fresh cilantro (coriander)."))
 
+(defclass fresh-oregano (spice cuttable pluckable)
+  ()
+  (:documentation "Fresh oregano."))
+
 (defclass fresh-parsley (spice cuttable pluckable)
   ()
   (:documentation "Fresh parsley"))
@@ -832,19 +1085,41 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying frozen-corn objects."
   (setf (keep-frozen copy) (copy-object (keep-frozen frozen-corn))))
 
-
 (defclass garlic (ingredient cuttable)
   ()
-  (:documentation "Garlic"))
+  (:documentation "Garlic."))
+
+(defclass garlic-powder (ingredient)
+  ()
+  (:documentation "Garlic powder."))
+
+(defclass grated-horseradish (spice)
+  ()
+  (:documentation "Grated horseradish."))
+
+(defclass green-cabbage (ingredient cuttable)
+  ()
+  (:documentation "Green cabbage."))
+
+(defclass green-chili-pepper (ingredient cuttable)
+  ()
+  (:documentation "Green chili pepper."))
+
+(defclass green-onion (ingredient cuttable)
+  ()
+  (:documentation "Green onion (scallion)."))
 
 (defclass ground-allspice (ground-spice)
   ()
   (:documentation "Ground-allspice."))
 
 (defclass ground-spice (spice siftable)
-  ()
+  ((ground :type boolean :initarg :ground :accessor ground :initform t))
   (:documentation "Abstract class for ground spices"))
 
+(defmethod copy-object-content ((ground-spice ground-spice) (copy ground-spice))
+  "Copying ground-spice objects."
+  (setf (ground copy) (copy-object (ground ground-spice))))
 
 (defclass ground-black-pepper (ground-spice)
   ()
@@ -870,9 +1145,21 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Nutmeg."))
 
-(defclass icing-sugar (sugar)
+(defclass ground-walnut (walnut grindable)
+  ((ground :type boolean :initarg :ground :accessor ground :initform t))
+  (:documentation "Ground walnut."))
+
+(defmethod copy-object-content ((ground-walnut ground-walnut) (copy ground-walnut))
+  "Copying ground-walnut objects."
+  (setf (ground copy) (copy-object (ground ground-walnut))))
+
+(defclass hard-boiled-egg (ingredient)
   ()
-  (:documentation "Icing sugar."))
+  (:documentation "A hard-boiled egg (without its shell)"))
+
+(defclass heavy-cream (ingredient beatable)
+  ()
+  (:documentation "Heavy cream."))
 
 (defclass jalapeno (ingredient cuttable seedable)
   ((keep-refrigerated :initform T))
@@ -886,6 +1173,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Juice is an abstract class"))
 
+(defclass lemon-juice (ingredient)
+  ()
+  (:documentation "Lemon juice."))
+
 (defclass lentils (ingredient)
   ()
   (:documentation "Abstract class for all types of lentils"))
@@ -898,7 +1189,11 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Linguine."))
 
-(defclass milk (ingredient)
+(defclass marshmallow (ingredient)
+  ()
+  (:documentation "Marshmallow."))
+
+(defclass milk (ingredient has-temperature liquid)
   ((keep-refrigerated :initform T))
   (:documentation "Milk."))
 
@@ -907,28 +1202,52 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated milk))))
 
 (defclass mixture (ingredient beatable cuttable mashable meltable mixable can-be-sprinkled-with siftable
-                              sprinkable bakeable shapeable dippable spreadable
-                              can-be-sprinkled-on can-be-spread-upon  has-temperature shakeable)
-  ()
+                              sprinkable bakeable shapeable dippable spreadable boilable liquefiable
+                              can-be-sprinkled-on can-be-spread-upon has-temperature shakeable)
+  ((components :type list :initarg :components :accessor components :initform '()))
   (:documentation "An abstract class for a mixture of ingredients."))
+
+(defmethod copy-object-content ((mixture mixture) (copy mixture))
+  "Copying mixtures."
+  (setf (components copy) (copy-object (components mixture))))
 
 (defclass homogeneous-mixture (mixture flattenable)
   ()
   (:documentation "A homogeneous mixture. Components are indistinguishable from the whole."))
 
 (defclass heterogeneous-mixture (mixture)
-  ((components :type list :initarg :components :accessor components :initform '()))
+  ()
   (:documentation "A heterogeneous mixture. Components are still known."))
 
-(defmethod copy-object-content ((heterogeneous-mixture heterogeneous-mixture) (copy heterogeneous-mixture))
-  "Copying heterogeneous-mixtures."
-  (setf (components copy) (copy-object (components heterogeneous-mixture))))
+(defclass mango (ingredient cuttable)
+  ()
+  (:documentation "Mango."))
+
+(defclass mayonnaise (ingredient)
+  ()
+  (:documentation "Mayonnaise."))
+
+(defclass mixed-greens (ingredient cuttable washable)
+  ()
+  (:documentation "Mixed greens."))
 
 (defclass molasses (ingredient)
   ()
   (:documentation "Molasses."))
 
-(defclass olive-oil (ingredient)
+(defclass grated-mozzarella (ingredient cuttable)
+  ()
+  (:documentation "Grated mozzarella."))
+
+(defclass mustard-seed (spice)
+  ()
+  (:documentation "Mustard seed."))
+
+(defclass oil (ingredient liquid)
+  ()
+  (:documentation "Cooking oil."))
+
+(defclass olive-oil (oil)
   ()
   (:documentation "Olive oil."))
 
@@ -940,23 +1259,38 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Pancetta."))
 
+(defclass paprika-powder (ingredient)
+  ()
+  (:documentation "Paprika powder"))
 
-
+; also called icing sugar
 (defclass powdered-white-sugar (sugar sprinkable can-be-dipped-in)
   ()
   (:documentation "Powdered white sugar."))
+
+(defclass potato (ingredient cuttable peelable boilable has-temperature)
+  ()
+  (:documentation "Potato"))
 
 (defclass oats (ingredient)
   ()
   (:documentation "Oats."))
 
+(defclass radish (ingredient cuttable)
+  ()
+  (:documentation "Radish."))
+
 (defclass raisin (ingredient)
   ()
   (:documentation "Raisin."))
 
-(defclass red-chilipepper (ingredient)
+(defclass red-bell-pepper (ingredient cuttable seedable)
   ()
-  (:documentation "Ret hot chili pepper."))
+  (:documentation "Red bell pepper."))
+
+(defclass red-chili-pepper (ingredient cuttable)
+  ()
+  (:documentation "Red hot chili pepper."))
 
 (defclass red-onion (ingredient cuttable)
   ()
@@ -966,27 +1300,51 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Red pepper flakes."))
 
+(defclass red-wine-vinegar (vinegar)
+  ()
+  (:documentation "Red wine vinegar."))
+
+(defclass romaine-lettuce (ingredient cuttable washable)
+  ()
+  (:documentation "Romaine lettuce."))
+
 (defclass salt (spice)
   ()
   (:documentation "Salt."))
+
+(defclass salted-butter (ingredient mixable beatable meltable has-temperature can-be-brushed-with spreadable can-have-on-top)
+  ((keep-refrigerated :initform t))
+  (:documentation "Salted butter."))
+
+(defmethod copy-object-content ((salted-butter salted-butter) (copy salted-butter))
+  "Copying salted-butter objects."
+  (setf (keep-refrigerated copy) (copy-object (keep-refrigerated salted-butter))))
+
+(defclass syrup (ingredient liquid)
+  ()
+  (:documentation "Syrup."))
 
 (defclass self-rising-flour (flour)
   ()
   (:documentation "Self-rising flour: mixture of all-purpose flour, baking powder, and salt"))
 
-(defclass semisweet-chocolate-chips (ingredient)
+(defclass semisweet-chocolate-chips (chocolate-chips)
   ()
-  (:documentation "Semisweet chcocolate chips"))
+  (:documentation "Semisweet chocolate chips"))
 
 (defclass shallot (ingredient cuttable peelable)
   ()
   (:documentation "Shallot."))
 
-(defclass spice (ingredient)
+(defclass shredded-coconut (ingredient has-temperature)
+  ()
+  (:documentation "Shredded coconut."))
+
+(defclass spice (ingredient boilable)
   ()
   (:documentation "Abstract class for spices"))
 
-(defclass sugar (ingredient beatable mixable)
+(defclass sugar (spice beatable mixable)
   ()
   (:documentation "Abstract class for all sugars."))
 
@@ -994,15 +1352,39 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Sweet Potato"))
 
+(defclass tabasco (ingredient)
+  ()
+  (:documentation "Tabasco"))
+
 (defclass toast (ingredient can-be-spread-upon bakeable can-have-on-top)
   ()
   (:documentation "Toast."))
+
+(defclass tomato (ingredient cuttable seedable peelable)
+  ((keep-refrigerated :initform T))
+  (:documentation "Tomatoes."))
+
+(defmethod copy-object-content ((tomato tomato) (copy tomato))
+  "Copying tomato objects."
+  (setf (keep-refrigerated copy) (copy-object (keep-refrigerated tomato))))
+
+(defclass trader-joes-cilantro-salad-dressing (ingredient)
+  ((keep-refrigerated :initform T))
+  (:documentation "Trader Joe's cilantro salad dressing."))
+
+(defmethod copy-object-content ((trader-joes-cilantro-salad-dressing trader-joes-cilantro-salad-dressing) (copy trader-joes-cilantro-salad-dressing))
+  "Copying trader-joes-cilantro-salad-dressing objects."
+  (setf (keep-refrigerated copy) (copy-object (keep-refrigerated trader-joes-cilantro-salad-dressing))))
+
+(defclass turmeric-powder (spice)
+  ()
+  (:documentation "Turmeric."))
 
 (defclass vanilla (ingredient)
   ()
   (:documentation "Vanilla."))
 
-(defclass vanilla-extract (flavoring-extract vanilla)
+(defclass vanilla-extract (flavoring-extract)
   ()
   (:documentation "Vanilla extract."))
 
@@ -1010,13 +1392,17 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Vegetable oil."))
 
-(defclass vinegar (ingredient)
+(defclass vinegar (ingredient liquid)
   ()
   (:documentation "Vinegar."))
 
-(defclass water (ingredient has-temperature)
+(defclass water (ingredient has-temperature liquid)
   ()
   (:documentation "H2O."))
+
+(defclass white-bread-slice (ingredient cuttable)
+  ()
+  (:documentation "A slice of white bread."))
 
 (defclass white-sugar (sugar)
   ()
@@ -1034,6 +1420,9 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Whole-wheat-flour."))
 
+(defclass yellow-mustard (ingredient)
+  ()
+  (:documentation "Yellow mustard."))
 
 
 ;;           Patterns             ;;
@@ -1075,17 +1464,28 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A pattern in which something can be divided."))
 
-(defclass chopped (cutting-pattern)
+(defclass uncut (cutting-pattern)
+  () 
+  (:documentation "An uncut pattern."))
+ 
+(defclass fine-slices (cutting-pattern)
   ()
-  (:documentation "A chopped pattern."))
-
-(defclass finely-chopped (cutting-pattern)
-  ()
-  (:documentation "A finely chopped pattern."))
+  (:documentation "A finely sliced pattern."))
 
 (defclass slices (cutting-pattern)
   ()
   (:documentation "A sliced pattern."))
+
+(defclass finely-chopped (cutting-pattern)
+  ()
+  (:documentation "A chopped pattern."))
+
+(defclass chopped (cutting-pattern)
+  ()
+  (:documentation "A chopped pattern."))
+(defclass diced (cutting-pattern)
+  ()
+  (:documentation "A diced pattern."))
 
 (defclass squares (cutting-pattern)
   ()
@@ -1095,6 +1495,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A minced pattern."))
 
+(defclass shredded (cutting-pattern)
+  ()
+  (:documentation "A shredded pattern."))
+
 (defclass halved (cutting-pattern)
   ()
   (:documentation "A halved pattern."))
@@ -1103,9 +1507,13 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A pattern for cutting objects into thin slivers "))
 
-(defclass three-quarter-inch-cubes (cutting-pattern)
+(defclass cubes (cutting-pattern)
   ()
-  (:documentation "A pattern for cutting objects into 3/4 inch cubes "))
+  (:documentation "A pattern for cutting objects into cubes."))
+
+(defclass two-cm-cubes (cutting-pattern)
+  ()
+  (:documentation "A pattern for cutting objects into 2 cm cubes "))
 
 (defclass on-angle (arrangement-pattern)
   ()
@@ -1115,9 +1523,9 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A pattern for cutting objects into peasized cubes "))
 
-(defclass two-inch-apart (arrangement-pattern)
+(defclass 5-cm-apart (arrangement-pattern)
   ()
-  (:documentation "A pattern in which objects are arranged with a distance of 2 inch."))
+  (:documentation "A pattern in which objects are arranged with a distance of 5 cm."))
 
 (defclass cover-pattern (pattern)
   ()
@@ -1151,6 +1559,33 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation " A walnut ball shape."))
 
+(defclass heating-mode (conceptualizable)
+  ((is-concept :initform T))
+  (:documentation "Heating setting."))
+
+(defmethod copy-object-content ((heating-mode heating-mode) (copy heating-mode))      
+  "Copying heating-mode objects."
+  (setf (is-concept copy) (copy-object (is-concept heating-mode))))
+
+(defclass stove-mode (heating-mode)
+  ()
+  (:documentation "Stove heating setting."))
+
+(defclass low-heat (stove-mode)
+  ()
+  (:documentation "A low heating setting for the stove."))
+
+(defclass medium-heat (stove-mode)
+  ()
+  (:documentation "A medium heating setting for the stove."))
+
+(defclass medium-high-heat (stove-mode)
+  ()
+  (:documentation "A medium-high heating setting for the stove."))
+
+(defclass high-heat (stove-mode)
+  ()
+  (:documentation "A high heating setting for the stove."))
 
 ;; Amounts, quantities and units  ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1209,13 +1644,14 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Unit: handful"))
 
-(defclass low-heat (unit)
-  ()
-  (:documentation "Unit: low heat"))
+; are these units or more like concepts, similar to shape and pattern?
+;(defclass low-heat (unit)
+;  ()
+;  (:documentation "Unit: low heat"))
 
-(defclass very-low-heat (unit)
-  ()
-  (:documentation "Unit: very low heat"))
+;(defclass very-low-heat (unit)
+;  ()
+;  (:documentation "Unit: very low heat"))
 
 (defclass tablespoon (unit)
   ()
@@ -1233,7 +1669,15 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Unit: milliliter."))
 
-(defclass minute (unit)
+(defclass time-unit (unit)
+  ()
+  (:documentation "Unit to describe a duration."))
+
+(defclass hour (time-unit)
+  ()
+  (:documentation "Unit: hour."))
+
+(defclass minute (time-unit)
   ()
   (:documentation "Unit: minute."))
 
@@ -1268,3 +1712,29 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass sugar-shaker (transferable-container coverable-container reusable)
   ()
   (:documentation "The stove door."))
+
+;; Failed Output  ;;
+;;;;;;;;;;;;;;;;;;;;
+
+(defclass failed-object (arrangement-pattern
+                         can-cover
+                         can-cut
+                         can-mash
+                         can-mingle
+                         can-mix
+                         can-peel
+                         can-seed
+                         can-spread
+                         coverable-container
+                         fridge
+                         kitchen-state
+                         lineable
+                         list-of-kitchen-entities
+                         oven
+                         quantity
+                         shape
+                         sift 
+                         time-unit
+                         transferable-container)
+  ()
+  (:documentation "Object that represents a failed output of a primitive. It can be seen as a custom NIL value."))

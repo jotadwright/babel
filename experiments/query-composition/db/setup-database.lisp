@@ -1,13 +1,5 @@
 (in-package  :qc)
 
-;; DBNAME USER PASSWORD HOST
-;;(connect-toplevel "lisp_db" "admin" "root" "localhost")
-;;(disconnect-toplevel)
-
-
-
-
-
 (defun continent-data ()
   (let ((data '(("Africa" 1393676444 30370000 46) ("Asia" 4694576167 44579000 100)("Europe" 745173774 10180000 73)("North America" 491921432 24930000 20)("Oceania" 44491724 8525990 4)("South America" 415897337 17840000 23))))
     (execute "DROP TABLE IF EXISTS continent CASCADE")
@@ -19,8 +11,8 @@
 (defun country-data ()
   (let ((data-without-id '())
         (data '())
-        (countries-info(cl-csv:read-csv #P "./experiments/query-composition/postgres/archive/country_informations.csv"))
-        (country-continent (cl-csv:read-csv #P "./experiments/query-composition/postgres/archive/continentCountry.csv")))
+        (countries-info(cl-csv:read-csv #P "./experiments/query-composition/db/archive/country_informations.csv"))
+        (country-continent (cl-csv:read-csv #P "./experiments/query-composition/db/archive/continentCountry.csv")))
     (dolist (c-i countries-info)
       (dolist (c-c country-continent)
         (if (equal (first c-i) (second c-c))
@@ -85,7 +77,8 @@
     ;;insert data into Database
     (query (:insert-rows-into 'river :columns 'flow 'size 'name
             :values data))))
-;;DEBUG
+
+;;DEBUG NOT WORK
 (defun country-river-data ()
   (let ((data '())
         (id-countries (flatten (query "SELECT id FROM country ORDER BY id ASC")))
@@ -105,13 +98,14 @@
             :values data))))
         
 
-(defun setup-database (&key db-name user password host)
+(defun setup-database (&key dbname username password hostname)
+  (connect-toplevel dbname username password hostname)
   (continent-data)
   (country-data)
   (city-data)
   (road-data)
-  (river-data))
-
+  (river-data)
+  (disconnect-toplevel))
 
 
 

@@ -49,7 +49,7 @@
 ;; PDM utility functions / methods ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun process-uterances (list-of-utterances personal-dynamic-memory &key silent)
+(defun process-utterances (list-of-utterances personal-dynamic-memory &key silent)
   (loop with cxn-inventory = (grammar personal-dynamic-memory)
         with meaning-network = nil
         with final-set-of-bindings = nil

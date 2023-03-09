@@ -25,7 +25,7 @@
 (defun routine-non-zero-cxns (agent)
   (remove-if-not #'non-zero-cxn-p
                  (remove-if-not #'routine-cxn-p
-                                (constructions (construction-inventory agent)))))
+                                (constructions (grammar agent)))))
 
 (defun get-cxns-of-type (agent type)
   (let ((found-cxns (if (eql type 'all)
@@ -123,6 +123,21 @@
                                    (get-configuration cxn-inventory :render-mode)))
                    cxn-inventory :add-cxn-suffix add-cxn-suffix :add-numeric-tail add-numeric-tail)))
 
+(defgeneric make-unit-name (thing cxn-inventory))
+
+(defmethod make-unit-name ((string string) (cxn-inventory fcg-construction-set))
+  "Transform an utterance into a suitable construction name"
+  (declare (ignore cxn-inventory))
+  (variablify (intern (string-append string "-unit"))))
+
+(defmethod make-unit-name ((form-constraints list) (cxn-inventory fcg-construction-set))
+  "Transform a list of form constraints into a suitable construction name"
+  (let ((new-string-constraints (variablify-missing-form-strings form-constraints)))
+    (make-unit-name (format nil "~{~a~^-~}"
+                           (render (append form-constraints new-string-constraints)
+                                   (get-configuration cxn-inventory :render-mode)))
+                   cxn-inventory)))
+
 
 ;;;;;
 ;; Make lex class
@@ -188,6 +203,12 @@
                   return (fcg::unit-structure unit))))
          (syn-cat (find 'syn-cat unit-to-search :key #'first)))
     (second (find 'lex-class (rest syn-cat) :key #'first))))
+
+(defun lex-class (unit)
+  (let* ((syn-cat (find 'syn-cat (unit-body unit) :key #'first))
+         (lex-class (find 'lex-class (second syn-cat) :key #'first)))    
+    (when lex-class
+      (second lex-class))))
 
 
 ;;;;;
@@ -269,34 +290,18 @@
           return cxn)))
 
 (defun identical-item-based-cxn-p (form meaning top-lvl-form-args top-lvl-meaning-args
-                                   slot-form-args slot-meaning-args cxn
-                                   &key (allow-args-reordering t))
+                                   slot-form-args slot-meaning-args cxn)
   (destructuring-bind (top-lvl-args slot-args) (extract-args-item-based-cxn cxn)
-    (let ((equivalent-form-meaning-and-top-lvl-args
-           (and (equivalent-irl-programs? form (extract-form-predicates cxn))
-                (equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
-                (length= top-lvl-form-args (first top-lvl-args))
-                (length= top-lvl-meaning-args (second top-lvl-args))
-                (length= slot-form-args (first slot-args))
-                (length= slot-meaning-args (second slot-args))
-                (equivalent-networks-and-args? form (extract-form-predicates cxn) top-lvl-form-args (first top-lvl-args))
-                (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) top-lvl-meaning-args (second top-lvl-args)))))
-      (when equivalent-form-meaning-and-top-lvl-args
-        (if allow-args-reordering
-          (let (reordered-slot-form-args reordered-slot-meaning-args)
-            (loop for candidate-args in (reverse (permutations-of-length slot-form-args (length slot-form-args)))
-                  when (equivalent-networks-and-args? form (extract-form-predicates cxn) candidate-args (first slot-args))
-                  do (setf reordered-slot-form-args candidate-args) and return nil)
-            (loop for candidate-args in (reverse (permutations-of-length slot-meaning-args (length slot-meaning-args)))
-                  when (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) candidate-args (second slot-args))
-                  do (setf reordered-slot-meaning-args candidate-args) and return nil)
-            (when (and reordered-slot-form-args reordered-slot-meaning-args)
-              (values t reordered-slot-form-args reordered-slot-meaning-args)))
-          (let ((equivalent-networks-and-args
-                 (and (equivalent-networks-and-args? form (extract-form-predicates cxn) slot-form-args (first slot-args))
-                      (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) slot-meaning-args (second slot-args)))))
-            (when equivalent-networks-and-args
-              (values t nil nil))))))))
+    (and (equivalent-irl-programs? form (extract-form-predicates cxn))
+         (equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
+         (length= top-lvl-form-args (first top-lvl-args))
+         (length= top-lvl-meaning-args (second top-lvl-args))
+         (length= slot-form-args (first slot-args))
+         (length= slot-meaning-args (second slot-args))
+         (equivalent-networks-and-args? form (extract-form-predicates cxn) top-lvl-form-args (first top-lvl-args))
+         (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) top-lvl-meaning-args (second top-lvl-args))
+         (equivalent-networks-and-args? form (extract-form-predicates cxn) slot-form-args (first slot-args))
+         (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) slot-meaning-args (second slot-args)))))
                       
 
 (defun find-identical-item-based-cxn (form meaning top-lvl-form-args top-lvl-meaning-args slot-form-args slot-meaning-args cxn-inventory)
@@ -308,8 +313,7 @@
                                                   (constructions cxn-inventory))))))
     (loop for cxn in candidate-cxns
           when (identical-item-based-cxn-p form meaning top-lvl-form-args top-lvl-meaning-args
-                                           slot-form-args slot-meaning-args cxn
-                                           :allow-args-reordering nil)
+                                           slot-form-args slot-meaning-args cxn)
           return cxn)))
 
 
@@ -399,7 +403,10 @@
 
 
 
-
+(defun remove-child-units (units)
+  (loop for unit in units
+        unless (member 'pf::used-as-slot-filler (unit-feature-value unit 'fcg:footprints))
+        collect unit))
 
 
 (defun sort-cxns-by-form-string (cxns-to-sort utterance cxn-inventory)
@@ -1001,6 +1008,14 @@
 (defun extract-meaning-from-tree (top-unit-name transient-structure)
   (let ((top-unit (find top-unit-name (left-pole-structure transient-structure) :key #'first :test #'string=)))
     (extract-meanings
+     (cons top-unit
+           (all-subunits
+            top-unit
+            (left-pole-structure transient-structure))))))
+
+(defun extract-form-from-tree (top-unit-name transient-structure)
+  (let ((top-unit (find top-unit-name (left-pole-structure transient-structure) :key #'first :test #'string=)))
+    (extract-forms 
      (cons top-unit
            (all-subunits
             top-unit

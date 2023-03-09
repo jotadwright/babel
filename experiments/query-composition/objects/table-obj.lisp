@@ -11,14 +11,18 @@
     :initarg :attributes
     :accessor attributes)))
 
-
+;;OK
 (defun init-table (table-name attrs)
+  "Function that instantiates a database table with all attributes"
   (let ((table (make-instance 'table :name table-name :attributes '())))
     (dolist (attr attrs)
-      (push (make-instance 'attribute :name (concat-array attr)) (attributes table)))
+       (let ((attribute-check (flatten (query (concatenate 'string "SELECT " (concat-array attr) " FROM " table-name " LIMIT 1")))))
+         (push (make-instance 'attribute :name (concat-array attr) :type-att (type-of (first attribute-check))) (attributes table))))
     table))
 
+;;OK
 (defun init-schema ()
+  "Function that instantiates the whole database connected with the postmodern library"
   (let ((tables '())
         (table-name nil)
         (attrs '()))
