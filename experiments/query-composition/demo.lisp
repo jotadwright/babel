@@ -14,13 +14,13 @@
 ;; show query one by one
 (let ((result (query "SELECT name FROM continent WHERE name='Africa'"))
        (composer-obj (make-instance 'query-composer)))
-  (format t (compose-query composer-obj result :exclude-id t))
+  (write (compose-query composer-obj result :exclude-id t))
   (terpri)
-  (format t (compose-query composer-obj result :exclude-id t)))
+  (write (compose-query composer-obj result :exclude-id t)))
 
 ;; show all the queries
 (let ((result (query "SELECT name FROM continent WHERE name='Africa'"))
        (composer-obj (make-instance 'query-composer)))
-  (format t (compose-query composer-obj result :exclude-id t :all-queries t)))
+  (write (compose-query composer-obj result :exclude-id t :all-queries t)))
 
 (disconnect-toplevel)

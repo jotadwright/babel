@@ -42,18 +42,21 @@
   (loop until (not (queue composer))
            for parent = (pop (queue composer))
            do
-          (if (not (equal (depth parent) 0))
+         (if (not (equal (depth parent) 0))
             (progn
               (if (goal-test answer parent)
                 (progn
                   (if all-queries
                     (setf (queries composer) (push parent (queries composer)))
-                    (return-from compose-query (sql-compile (q parent))))))))
+                    (return-from compose-query (q parent)))))))
           (if (equal (depth parent) 0)
             (select-compose composer parent answer))
           (if (not (equal (depth parent) 0))
-            (condition-compose composer parent :exclude-id exclude-id))))
+            (condition-compose composer parent :exclude-id exclude-id)))
+  (queries composer))
 
+
+;;REVIEW THIS ONE
 (defmethod condition-compose ((composer query-composer) parent &key exclude-id)
   (let ((attrs '()))
     (if exclude-id
@@ -74,16 +77,18 @@
                                                 val
                                                 '())))
                     (setf (children parent) (push child-node (children parent)))
-                    (setf (queue composer) (push-end child-node (queue composer)))))))))))))
-                  ;(let ((and-child (and-node parent attr operator val))
-                   ;     (or-child (or-node parent attr operator val)))
-                    ;(setf (children parent) (append (children parent) (list and-child or-child)))
-                    ;(if (not (equal (length (attrs and-child)) (length (attributes (tble parent)))))
-                     ; (progn
-                      ;  (setf (queue composer) (push-end and-child (queue composer)))
-                       ; (setf (queue composer) (push-end or-child (queue composer))))
-                      ;(progn
-                       ; (write "finish leaf")))))))))))))
+                    (setf (queue composer) (push-end child-node (queue composer)))))
+               ; (progn
+               ;   (let ((and-child (and-node parent attr operator val))
+               ;         (or-child (or-node parent attr operator val)))
+               ;     (setf (children parent) (append (children parent) (list and-child or-child)))
+               ;     (if (not (equal (length (attrs and-child)) (length (attributes (tble parent)))))
+               ;       (progn
+               ;         (setf (queue composer) (push-end and-child (queue composer)))
+               ;         (setf (queue composer) (push-end or-child (queue composer))))
+               ;       (progn
+               ;         (write "finish leaf")))))
+                ))))))))
 
 (defmethod select-compose ((composer query-composer) parent answer)
    (let ((join-nodes '()))
@@ -125,8 +130,8 @@
                      (let* ((ref-obj (init-reference-info ref)))
                        (if (not (is-table-present (foreign-table ref-obj) (ref-tbles parent)))
                          (progn
-                           (write (foreign-table ref-obj))
-                           (setf inner-node (join-node parent ref-obj (is-table-present (foreign-table ref-obj) (ref-tbles parent) :get-obj t)  :foreign-ref t))
+                           (setf inner-node (join-node parent ref-obj (is-table-present (foreign-table ref-obj) (tables composer) :get-obj t)  :foreign-ref t))
+                           (setf queue (push-end inner-node queue))
                            ;(setf outer-node (join-node parent ref-obj (is-table-present (foreign-table ref-obj) (ref-tbles parent) :get-obj t)  :foreign-ref t :outer-join t))
                            (setf answers (push-end inner-node answers))
                            ;(setf answers (push-end outer-node answers))
@@ -137,7 +142,8 @@
                      (let ((ref-obj (init-reference-info ref)))
                        (if (not (is-table-present (table-name ref-obj) (ref-tbles parent)))
                          (progn
-                           (setf inner-node (join-node parent ref-obj (is-table-present (table-name ref-obj) (ref-tbles parent) :get-obj t)))
+                           (setf inner-node (join-node parent ref-obj (is-table-present (table-name ref-obj) (tables composer) :get-obj t)))
+                           (setf queue (push-end inner-node queue))
                            ;(setf outer-node (join-node parent ref-obj (is-table-present (foreign-table ref-obj) (ref-tbles parent) :get-obj t) :outer-join t))
                            (setf answers (push-end inner-node answers))
                            ;(setf answers (push-end outer-node answers))
@@ -151,6 +157,8 @@
     (let ((end-time (get-internal-real-time)))
       (if (equal answer res-of)
         (progn
+          (write "TIME")
+          (terpri)
           (setf (time-result node) (float (/ (- end-time start-time) 1000)))
           t)))))
 
