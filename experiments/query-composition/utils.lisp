@@ -59,24 +59,7 @@
   "Push at the end of a sequence an item and returning the sequence"
   (setf lst (append lst (list item))))
 
-(defun permutations-of-lists (lst)
-  "Function that we pass in parameter a list of type ((a b) (c d)) and tranform to obtain a list of combination of these lists ((a c) (b c) (a d) (b d))"
-  (let ((result '()))
-    (loop
-       until (not lst)
-       for elems-lst = (pop lst)
-       for  tamp = '()
-       do
-         (if result
-           (progn
-             (dolist (elem elems-lst)
-               (dolist (r result)
-                 (setf tamp (push-end (push-end elem r) tamp)))))
-           (progn
-             (dolist (elem elems-lst)
-               (setf tamp (push-end (list elem) tamp)))))
-         (setf result tamp))
-    result))
+
 
 
 (defun is-table-present (name lst &key get-obj)
@@ -91,3 +74,13 @@
 
 (defun random-between (min max)
   (+ min (random (+ 1 (- max min)))))
+
+
+
+(defun sort-type (table answer)
+  (let ((result '()))
+    (dolist (val answer)
+      (dolist (att (attributes table))
+        (if (typep val (type-att att))
+          (push att result))))
+    result))

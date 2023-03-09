@@ -16,8 +16,6 @@
 ;;OK
 (defun init-node (node attributes table &key join)
   "function that create a node with the SELECT .. FROM .. clause and return the newly created node with its associated parent."
-  (write attributes)
-  (terpri)
     (let* ((q '(:select))
             (table-name (intern (string-upcase (name table)))))
       (dolist (att-n attributes)
@@ -125,7 +123,3 @@
                    :tble (tble node)
                    :selection (selection node)
                    :conditions or-condition)))
-
-
-
-(nconc '(1 2 3) (list 4))

@@ -5,21 +5,31 @@
     :initarg :name
     :type string
     :accessor name)
+   (operators
+    :initarg :operators
+    :initform '()
+    :accessor operators)
    (type-att
     :initarg :type-att
+    :initform nil
     :accessor type-att)))
 
-
-(defun sort-by-type (lst result)
-  (let ((list-of-att '()))
-    (dolist (res result)
-      (dolist (att lst)
-        (if (equal (type-of res) (type-att att))
-          (push att list-of-att))))
-    list-of-att))
-    
-
-
-
-
+(defun define-type (att obj)
+  (cond ((typep att 'string)
+         (progn
+           (setf (operators obj) '(:!= :=))
+           (setf (type-att obj) 'string)))
+        ((typep att 'integer)
+         (progn
+           (setf (operators obj) '(:< :> :<= :>= :!= :=))
+           (setf (type-att obj) 'integer)))
+        ((typep att 'boolean)
+         (progn
+           (setf (operators obj) '(:!= :=))
+           (setf (type-att obj) 'boolean)))))
+        
+        
+(defun get-permutations (attributes)
+  (let
+                  
 

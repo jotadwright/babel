@@ -65,10 +65,7 @@
     (dolist (attr attrs)
       (let ((result (flatten (query (concatenate 'string "SELECT " (name attr) " FROM " (name (tble parent)))))))
         (dolist (val result)
-          (let ((operators '(:< :> :<= :>= :!= :=)))
-            (if (not (typep (first result) 'bit))
-              (setf operators  '(:!= :=)))
-            (dolist (operator operators)
+            (dolist (operator (operators attr))
               (if (equal (depth parent) 1)
                 (progn
                   (let ((child-node (where-node parent
@@ -76,8 +73,8 @@
                                                 operator
                                                 val
                                                 '())))
-                    (setf (children parent) (push child-node (children parent)))
-                    (setf (queue composer) (push-end child-node (queue composer)))))
+                    (setf (children parent) (nconc (children parent) (list child-node)))
+                    (setf (queue composer) (nconc (queue composer) (list child-node)))))
                ; (progn
                ;   (let ((and-child (and-node parent attr operator val))
                ;         (or-child (or-node parent attr operator val)))
@@ -88,14 +85,14 @@
                ;         (setf (queue composer) (push-end or-child (queue composer))))
                ;       (progn
                ;         (write "finish leaf")))))
-                ))))))))
+                )))))))
 
 (defmethod select-compose ((composer query-composer) parent answer)
    (let ((join-nodes '()))
               (dolist (tble (tables composer))
                 (let ((permutations '()))
                   (if (>= (length (attributes tble)) (length (first answer)))
-                    (setf permutations (permutations-of-length (sort-by-type (attributes tble) (first answer)) (length (first answer)))))
+                    (setf permutations (permutations-of-length (sort-type tble (first answer)) (length (first answer)))))
                   (dolist (perm permutations)
                     (let* ((attributes-names '())
                            (child-node nil))
@@ -103,14 +100,15 @@
                       (setf child-node (init-node parent
                                                                 attributes-names
                                                                 tble))
-                      (setf (children parent) (push child-node (children parent)))
-                      (setf (queue composer) (push-end child-node (queue composer)))
+                      (setf (children parent) (nconc (children parent) (list child-node)))
+                      (setf (queue composer) (nconc (queue composer) (list child-node)))
                       ;;Join part
                       ;;create node that satisty constraint
                       (let ((select-node (init-node parent attributes-names tble :join t)))
                         (setf join-nodes (append join-nodes (inner-outer-compose composer select-node))))
                       ))))
-              (setf (queue composer) (append (queue composer) join-nodes))))
+             ; (setf (queue composer) (nconc (queue composer) join-nodes))
+              ))
 
 (defmethod inner-outer-compose ((composer query-composer) node)
   (let ((queue (list node))
