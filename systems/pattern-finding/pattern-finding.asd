@@ -31,7 +31,8 @@
                              (:file "problems-diagnostics")
                              (:file "repair-add-categorial-links")
                              (:file "repair-nothing-to-holophrase-cxn")
-                             (:file "repair-anti-unify")))
+                             (:file "repair-anti-unify")
+                             (:file "repair-partial-analysis")))
                (:module experiment-setup
                 :serial t
                 :components ( (:file "run-helpers")
