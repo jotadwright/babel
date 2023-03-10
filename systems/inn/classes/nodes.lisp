@@ -169,7 +169,7 @@
            (format ,stream "~%  ~s)~%~%" ,color)))
      ,@(if shape
          `((format ,stream "(defmethod get-node-shape ((type (eql '~(~a~))))" ',(or type name))
-           (format ,stream "~%  ~s)" ,shape)))))
+           (format ,stream "~%  ~s)" ,shape))))))
 
 #|
 Example (check output buffer):
