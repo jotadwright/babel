@@ -1,37 +1,83 @@
 (in-package :qc)
 
 (defclass node ()
-  ((id :type integer :initarg :id :accessor id)
-   (parent :type node :initarg :parent :initform nil :accessor parent)
-   (children :type list :initarg :children :initform '() :accessor children)
-   (depth :type integer :initarg :depth :initform nil :accessor depth)
-   (tble :type table :initarg :tble :initform nil :accessor tble)
-   (ref-tbles :type list :initarg :ref-tbles :initform '() :accessor ref-tbles)
-   (attrs :type attrs :initarg :attrs :initform nil :accessor attrs)
-   (time-result :type float :initarg :time-result :initform nil :accessor time-result)
-   (q :type integer :initarg :q :initform "" :accessor q)))
+  ((id :type integer
+       :initarg :id
+       :accessor id)
+   (parent :type node
+           :initarg :parent
+           :initform nil
+           :accessor parent)
+   (children :type list
+             :initarg :children
+             :initform '()
+             :accessor children)
+   (depth :type integer
+          :initarg :depth
+          :initform nil
+          :accessor depth
+          :documentation "Depth of the node.")
+   (tble :type table
+         :initarg :tble
+         :initform nil
+         :accessor tble
+         :documentation "Table referred in SELECT form.")
+   (ref-tbles :type list
+              :initarg :ref-tbles
+              :initform '()
+              :accessor ref-tbles
+              :documentation "Set of tables referred to in the query.")
+   (selection :type list
+              :initarg :selection
+              :initform '()
+              :accessor selection
+              :documentation "Selection part f the query used for children.")
+   (conditions :type list
+               :initarg :conditions
+               :initform '()
+               :accessor conditions
+               :documentation "Condition part of the request used for children.")
+   (attrs :type list
+          :initarg :attrs
+          :initform '()
+          :accessor attrs)
+   (time-result :type float
+                :initarg :time-result
+                :initform nil
+                :accessor time-result
+                :documentation "Execution time of the query.")
+   (q :type integer
+      :initarg :q
+      :initform ""
+      :accessor q
+      :documentation "Query generated"))
+  (:documentation "Object representing a node of the tree. This object is represented by a set of attributes that allows it to obtain and store all the information necessary for its SQL query."))
 
 ;;OK
 (defun init-node (node attributes table &key join)
   "function that create a node with the SELECT .. FROM .. clause and return the newly created node with its associated parent."
     (let* ((q '(:select))
-           (child (make-instance 'node :id (make-id) :parent node :depth (+ (depth node) 1)  :q "" :tble table :ref-tbles (list table)))
-           (last-elem (last attributes))
-           (table-name (intern (name table))))
+            (table-name (intern (string-upcase (name table)))))
       (dolist (att-n attributes)
           (if join
             (progn
-              (let ((att (intern (concatenate 'string (symbol-name table-name) "." att-n))))
+              (let ((att (intern (string-upcase (concatenate 'string (symbol-name table-name) "." att-n)))))
                 (setf q (push-end att q))))
             (progn
-               (setf q (push-end (intern att-n) q)))))
+               (setf q (push-end (intern (string-upcase att-n)) q)))))
       (setf q (push-end :from q))
       (setf q (push-end table-name q))
-      (setf (q child) q)
-      child))
+      (make-instance 'node
+                     :id (make-id)
+                     :parent node
+                     :depth (+ (depth node) 1)
+                     :q q
+                     :selection q
+                     :tble table
+                     :ref-tbles (list table))))
 
 ;;OK
-(defun join-node (node ref-info table &key foreign-ref outer-join)
+(defun join-node (node ref-info table-obj &key foreign-ref outer-join)
   "function that create a node with the ... INNER JOIN || OUTER JOIN ... ON ... =  ... clause and return the newly created node."
   (let* ((f-table "")
           (f-column "")
@@ -54,28 +100,66 @@
     (let* ((foreign-t (intern (concatenate 'string f-table "." f-column)))
             (main-t (intern (concatenate 'string table "." column)))
            (join-query (list join (intern f-table) :on (list := foreign-t main-t))))
-  (make-instance 'node :id (make-id) :parent node :depth (depth node) :ref-tbles (push-end table (ref-tbles node)) :q (append (q node) join-query)))))
+  (make-instance 'node
+                 :id (make-id)
+                 :parent node
+                 :depth (depth node)
+                 :tble (tble node)
+                 :ref-tbles (push-end table-obj (ref-tbles node))
+                 :q (append (q node) join-query)
+                 :selection (append (q node) join-query)))))
 
 ;;OK
 (defun where-node (node attribute operator value att)
   "function that creates a node with the WHERE clause and returns the newly created node with its associated parent."
-  (let* ((val (change-type value))
-          (condition (list :where (list operator (intern attribute) val)))
-          (child (make-instance 'node :id (make-id) :parent node :depth (+ (depth node) 1) :q (append (q node) condition) :attrs att :tble (tble node))))
-    child))
+  (let* ((val-att (change-type value))
+           (condition nil))
+    (if (equal (length (ref-tbles node)) 1)
+      (setf condition (list operator (intern (string-upcase attribute)) val-att))
+      (setf condition (list operator (intern (string-upcase (concatenate 'string (name (tble node)) "." attribute))) val-att))) 
+    (make-instance 'node
+                               :id (make-id)
+                               :parent node
+                               :depth (+ (depth node) 1)
+                               :q (append (q node) (list :where condition))
+                               :attrs att
+                               :tble (tble node)
+                               :ref-tbles (ref-tbles node)
+                               :selection (selection node)
+                               :conditions (push-end condition (conditions node)))))
 
 ;;OK
 (defun and-node (node attribute operator value)
   "function that creates a node with the AND clause and returns the newly created node with its associated parent."
   (let* ((val (change-type value))
-          (q (concatenate 'string (q node) " AND " (name attribute) " " operator " '" val "'"))
-          (child (make-instance 'node :id (make-id) :parent node :depth (+ (depth node) 1) :q q :attrs (append (attrs node) (list attribute)) :tble (tble node))))
-    child))
+          (and-condition nil))
+    (if (equal (length (ref-tbles node)) 1)
+      (setf and-condition (list :and (conditions node) (list operator (intern (name attribute)) val)))
+      (setf and-condition (list :and (conditions node) (list  operator (intern (concatenate 'string (name (tble node)) "." (name attribute))) val))))
+    (make-instance 'node
+                   :id (make-id)
+                   :parent node
+                   :depth (+ (depth node) 1)
+                   :q (append (selection node) (list :where and-condition))
+                   :attrs (push-end attribute (attrs node))
+                   :tble (tble node)
+                   :selection (selection node)
+                   :conditions and-condition)))
 
 ;;OK
 (defun or-node (node attribute operator value)
   "function that creates a node with the OR clause and returns the newly created node with its associated parent."
   (let* ((val (change-type value))
-          (q (concatenate 'string (q node) " OR " (name attribute) " " operator " '" val "'"))
-          (child (make-instance 'node :id (make-id) :parent node :depth (+ (depth node) 1) :q q :attrs (append (attrs node) (list attribute)) :tble (tble node))))
-    child))
+          (or-condition nil))
+    (if (equal (length (ref-tbles node)) 1)
+      (setf or-condition (list :or (conditions node) (list operator (intern (name attribute)) val)))
+      (setf or-condition (list :or (conditions node) (list  operator (intern (concatenate 'string (name (tble node)) "." (name attribute))) val))))
+    (make-instance 'node
+                   :id (make-id)
+                   :parent node
+                   :depth (+ (depth node) 1)
+                   :q (append (selection node) (list :where or-condition))
+                   :attrs (push-end attribute (attrs node))
+                   :tble (tble node)
+                   :selection (selection node)
+                   :conditions or-condition)))
