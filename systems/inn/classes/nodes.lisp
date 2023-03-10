@@ -71,7 +71,7 @@
 (export '(inn-node 
           make-inn-node
           inn-node-label inn-node-color inn-node-shape 
-          inn-node-type inn-node-attributes))
+          inn-node-type inn-node-attributes inn-node-id))
 
 ;; Inn-nodes "inherit" from the node-struct from graph-utils.
 ;; They are therefore structs as well.
@@ -90,7 +90,8 @@
   (destructuring-bind (&whole whole
                               &key (constructor 'make-inn-node-constructor)
                               (type t)
-                              (id (graph-utils::next-node-id)))
+                              (id (graph-utils::next-node-id))
+                              &allow-other-keys)
       parameters
     ;; Remove them from the parameters list, also remove color or shape
     ;; (indeed: you CANNOT manually override color and shape. You need to 
@@ -125,7 +126,8 @@
                                       &key &allow-other-keys)
   (destructuring-bind (&whole whole
                               &key (constructor 'make-narrative-question-constructor)
-                              (type 'open-narrative-question))
+                              (type 'open-narrative-question)
+                              &allow-other-keys)
       parameters
     ;; Remove the constructor and type from the parameters
     (dolist (indicator '(:constructor :type))
@@ -144,6 +146,8 @@
 ;; The following macro writes the necessary code (defstructs, constructor functions,
 ;; and defmethods) for defining a custom inn-node with additional slots.
 ;; --------------------------------------------------------------------------
+(export '(define-inn-node))
+
 (defmacro define-inn-node (name &key (stream t) (package :inn) slots type color shape)
   `(progn
      (format ,stream "~%~%(in-package :~(~a~))~%~%" ,package)
@@ -154,7 +158,8 @@
      (format ,stream "~%                         &key &allow-other-keys)")
      (format ,stream "~%  (destructuring-bind (&whole whole")
      (format ,stream "~%                              &key (constructor 'make-~(~a~)-constructor)" ',name)
-     (format ,stream "~%                                   (type '~(~a~)))" ',(or type name))
+     (format ,stream "~%                                   (type '~(~a~))" ',(or type name))
+     (format ,stream "~%                                   &allow-other-keys)"
      (format ,stream "~%      parameters")
      (format ,stream "~%    (dolist (indicator '(:constructor :type))")
      (format ,stream "~%      (remf whole indicator))")
