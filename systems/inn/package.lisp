@@ -16,7 +16,7 @@
 (in-package :common-lisp)
 
 (defpackage :inn
-  (:use :common-lisp :cl-user :web-interface :fcg :irl)
+  (:use :common-lisp :cl-user :utils :web-interface :fcg :irl)
   (:documentation "A package for building, visualizing and exporting interactive narrative networks."))
 
 (wi:activate-vis-js)

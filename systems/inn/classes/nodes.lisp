@@ -15,10 +15,6 @@
 
 (in-package :inn)
 
-(import '(graph-utils::node
-          graph-utils::next-node-id
-          graph-utils::node=))
-
 ;; See example of how to use a helper macro for writing custom inn-node code
 ;; at the end of this file.
 
@@ -81,7 +77,7 @@
 ;; They are therefore structs as well.
 (defstruct (inn-node
             (:constructor make-inn-node-constructor)
-            (:include node))
+            (:include graph-utils::node))
   label
   color
   shape
@@ -94,7 +90,7 @@
   (destructuring-bind (&whole whole
                               &key (constructor 'make-inn-node-constructor)
                               (type t)
-                              (id (next-node-id)))
+                              (id (graph-utils::next-node-id)))
       parameters
     ;; Remove them from the parameters list, also remove color or shape
     ;; (indeed: you CANNOT manually override color and shape. You need to 

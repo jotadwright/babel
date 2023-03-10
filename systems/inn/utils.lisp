@@ -22,16 +22,28 @@
 ;; (cons-new 'a  '(a b))
 ;; (cons-new 'a '(b))
 
-(defun get-object-id (object)
-  "Object-id function from older version."
-  (cond ((null object) (make-var 'question))
-        ((eql 'none object) (make-const 'none))
-        ((or (symbolp object) (numberp object)) object)
-        ((eql 'binding (type-of object)) (slot-value object 'variable))
-        (t
-         (persistent-id object))))
-
 (defun get-slot-names (clos-object)
   "Retrieve the slot names associated with the class of a clos-object."
   (mapcar #'harlequin-common-lisp:slot-definition-name
           (harlequin-common-lisp:class-slots (class-of clos-object))))
+
+(export '(inn-object-id))
+
+(defgeneric inn-object-id (object))
+
+(defmethod inn-object-id ((object (eql nil)))
+  (make-var 'question))
+;; (inn-object-id nil)
+
+(defmethod inn-object-id ((object (eql 'none)))
+  (make-const 'none))
+;; (inn-object-id 'none)
+
+(defmethod inn-object-id (object)
+  object)
+;; (inn-object-id 'test)
+;; (inn-object-id 14)
+
+(defmethod inn-object-id ((object binding))
+  (slot-value object 'variable))
+;; (inn-object-id (make-instance 'binding :var (make-var)))
