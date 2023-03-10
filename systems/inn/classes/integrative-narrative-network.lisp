@@ -17,9 +17,9 @@
 
 (export '(integrative-narrative-network
           id bound-variables update-nodes update-edges
-          make-inn))
+          make-inn make-integrative-narrative-network))
 
-(defclass integrative-narrative-network (network)
+(defclass integrative-narrative-network (graph-utils:graph)
   ((id :documentation "The ID of the network."
        :type symbol
        :initform (gensym "network")
@@ -32,16 +32,20 @@
                     :accessor bound-variables)
    (update-nodes :documentation "Nodes to be updated."
                  :type hash-table
-                 :initform (make-hash-table)
+                 :initform (make-hash-table :test 'equal)
                  :initarg  :update-nodes
                  :accessor update-nodes)
    (update-edges :documentation "Edges to be updated."
                  :type hash-table
-                 :initform (make-hash-table)
+                 :initform (make-hash-table :test 'equal)
                  :initarg  :update-edges
                  :accessor update-edges))
   (:documentation "Base class for integrative narrative networks."))
 
 (defmacro make-inn (&rest keys-and-values)
+  `(make-instance 'integrative-narrative-network
+                  ,@keys-and-values))
+
+(defmacro make-integrative-narrative-network (&rest keys-and-values)
   `(make-instance 'integrative-narrative-network
                   ,@keys-and-values))

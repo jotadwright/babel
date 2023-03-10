@@ -15,13 +15,23 @@
 
 (in-package :inn)
 
+;; For formatting nodes in a string that is understood by vis.js.
+
 (export '(inn-format-node))
 
-(defun inn-format-node (node) ;;(id &key type label (opacity 1.0))
-  "Format a node."
-  (let ((shape (inn-shape node))
-        (color (inn-color node))
-        (label (inn-label node)))
+(defgeneric inn-format-node (inn-node))
+
+(defmethod inn-format-node ((node inn-node))
+  (let ((id (inn-node-id node))
+        (color (inn-node-color node))
+        (shape (inn-node-shape node))
+        (label (inn-node-label node)))
     (if label 
       (format nil "{ id: '~a', label: '~a', shape: '~a', color: '~a'}" id label shape color)
       (format nil "{ id: '~a', shape: '~a', color: '~a'}" id shape color))))
+;; (inn-format-node (make-inn-node))
+;; (inn-format-node (make-narrative-question))
+
+(defmethod inn-format-node ((node t))
+  (error (format nil "The object of type ~a is not an inn-node." (type-of node))))
+;; (inn-format-node (make-instance 'integrative-narrative-network))

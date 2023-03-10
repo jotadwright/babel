@@ -15,10 +15,6 @@
 
 (in-package :inn)
 
-;; -------------------------------------------------------------------------
-;; Class definition
-;; -------------------------------------------------------------------------
+(import '(graph-utils::edge))
 
-(defclass inn-edge (net-edge)
-  ()
-  (:documentation "Basic class for edges in Integrative Narrative Networks."))
+;; Currently no custom code needed for edges.

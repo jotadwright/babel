@@ -15,102 +15,174 @@
 
 (in-package :inn)
 
-;; -------------------------------------------------------------------------
-;; Class definition
-;; -------------------------------------------------------------------------
+(import '(graph-utils::node
+          graph-utils::next-node-id
+          graph-utils::node=))
 
-(export '(inn-node inn-label inn-color inn-shape inn-type inn-attributes
-                   open-question answered-question entity predicate))
-
-(defclass inn-node (net-node)
-  ((label :documentation "The label of the node. Need not be unique."
-	  :initform nil
-	  :initarg :label
-	  :accessor inn-label)
-   (color :documentation "The color of the node."
-          :type string
-          :initform "grey"
-          :initarg :color
-          :accessor inn-color)
-   (shape :documentation "The shape of the node."
-          :initform "square"
-          :initarg :shape
-          :accessor inn-shape)
-   (type :documentation "The type of a node."
-         :type symbol
-         :initform t
-         :initarg :type
-         :accessor inn-type)
-   (attributes :documentation "A list of attributes."
-               :type list
-               :initform nil
-               :initarg :attributes
-               :accessor inn-attributes))
-  (:documentation "The basic node class for Integrative Narrative Networks."))
-
-(defmethod initialize-instance :after ((class inn-node) &key)
-  (case (inn-type class)
-    (open-question
-     (setf (slot-value class 'color) "red"
-           (slot-value class 'shape) "diamond"))
-    (answered-question
-     (setf (slot-value class 'color) "green"
-           (slot-value class 'shape) "diamond"))
-    (entity
-     (setf (slot-value class 'color) "cyan"
-           (slot-value class 'shape) "circle"))
-    (predicate
-     (setf (slot-value class 'color) "purple"
-           (slot-value class 'shape) "triangle"))
-    (t
-     nil)))
-
-(export '(posed-by answered-by inn-answer))
-
-(defclass narrative-question (inn-node)
-  ((posed-by :documentation "The knowledge source or cognitive system that has posed the question."
-             :initform nil
-             :initarg :posed-by
-             :accessor posed-by)
-   (answered-by :documentation "The knowledge source or cognitive system(s) that have answered the question."
-                :initform nil
-                :initarg :answered-by
-                :accessor answered-by)
-   (answer :documentation "The node that represents the answer to the question."
-           :initform nil
-           :initarg :answer
-           :accessor inn-answer))
-  (:documentation "A narrative question is a particular node in integrative narrative questions."))
+;; See example of how to use a helper macro for writing custom inn-node code
+;; at the end of this file.
 
 ;; -------------------------------------------------------------------------
-;; Helper Macros
+;; Visual Identity
 ;; -------------------------------------------------------------------------
 
-(export '(inn-make-open-question inn-make-answered-question
-                                 inn-make-entity inn-make-predicate))
+(export '(get-node-color
+          get-node-shape
+          open-narrative-question answered-narrative-question predicate))
 
-;; Helper macros
-;; ----------------
-(defmacro inn-make-open-question (&rest keys-and-values)
-  `(make-instance 'narrative-question
-                  :type 'open-question
-                  ,@keys-and-values))
-;; (inn-make-open-question)
+;; Color of nodes.
+;; ---------------
+(defgeneric get-node-color (type))
 
-(defmacro inn-make-answered-question (&rest keys-and-values)
-  `(make-instance 'narrative-question
-                  :type 'answered-question
-                  ,@keys-and-values))
-;; (inn-make-answered-question)
+(defmethod get-node-color ((type (eql 'open-narrative-question)))
+  "red")
 
-(defmacro inn-make-entity (&rest keys-and-values)
-  `(make-instance 'inn-node
-                  :type 'entity
-                  ,@keys-and-values))
-;; (inn-make-entity :id 'my-entity)
+(defmethod get-node-color ((type (eql 'answered-narrative-question)))
+  "green")
 
-(defmacro inn-make-predicate (&rest keys-and-values)
-  `(make-instance 'inn-node
-                  :type 'predicate
-                  ,@keys-and-values))
-;; (inn-make-predicate :label '(push ?ev ?x ?y))
+(defmethod get-node-color ((type (eql 'entity)))
+  "cyan")
+
+(defmethod get-node-color ((type (eql 'predicate)))
+  "purple")
+
+(defmethod get-node-color ((type t))
+  "gray")
+
+;; Shape of nodes.
+;; ---------------
+(defgeneric get-node-shape (type))
+
+(defmethod get-node-shape ((type (eql 'answered-narrative-question)))
+  "diamond")
+
+(defmethod get-node-shape ((type (eql 'open-narrative-question)))
+  "diamond")
+
+(defmethod get-node-shape ((type (eql 'entity)))
+  "circle")
+
+(defmethod get-node-shape ((type (eql 'predicate)))
+  "triangle")
+
+(defmethod get-node-shape ((type t))
+  "square")
+
+;; -------------------------------------------------------------------------
+;; Struct definitions and Constructor Functions
+;; -------------------------------------------------------------------------
+
+(export '(inn-node 
+          make-inn-node
+          inn-node-label inn-node-color inn-node-shape 
+          inn-node-type inn-node-attributes))
+
+;; Inn-nodes "inherit" from the node-struct from graph-utils.
+;; They are therefore structs as well.
+(defstruct (inn-node
+            (:constructor make-inn-node-constructor)
+            (:include node))
+  label
+  color
+  shape
+  (type t)
+  attributes)
+
+;; Customized constructor function.
+(defun make-inn-node (&rest parameters
+                            &key &allow-other-keys)
+  (destructuring-bind (&whole whole
+                              &key (constructor 'make-inn-node-constructor)
+                              (type t)
+                              (id (next-node-id)))
+      parameters
+    ;; Remove them from the parameters list, also remove color or shape
+    ;; (indeed: you CANNOT manually override color and shape. You need to 
+    ;;  use the dedicated defmethods for that!)
+    (dolist (indicator '(:constructor :id :type :color :shape))
+      (remf whole indicator))
+    ;; Now apply the constructor. It is impossible to 
+    (apply constructor `(:id ,id
+                         :type ,type
+                         :color ,(get-node-color type)
+                         :shape ,(get-node-shape type)
+                         ,@whole))))
+;; (make-inn-node :type 'answered-narrative-question)
+
+(export '(posed-by answered-by inn-answer
+                   narrative-question-posed-by
+                   narrative-question-answered-by
+                   narrative-question-answer))
+
+(defstruct (narrative-question 
+            (:include inn-node)
+            (:constructor make-narrative-question-constructor))
+  posed-by ;; The knowledge source or cognitive system that introduced a question
+  answered-by ;; The knowledge source or system that answered a question
+  answer) ;; The ID of the node that represents the answer to the question.
+
+(export '(make-narrative-question
+          make-open-narrative-question
+          make-answered-narrative-question))
+
+(defun make-narrative-question (&rest parameters
+                                      &key &allow-other-keys)
+  (destructuring-bind (&whole whole
+                              &key (constructor 'make-narrative-question-constructor)
+                              (type 'open-narrative-question))
+      parameters
+    ;; Remove the constructor and type from the parameters
+    (dolist (indicator '(:constructor :type))
+      (remf whole indicator))
+    ;; Now call the basic constructor function
+    (apply 'make-inn-node 
+           `(:constructor ,constructor
+             :type ,type
+             ,@whole))))
+;; (make-narrative-question)
+
+;; -------------------------------------------------------------------------
+;; Helper Macro for writing customized inn-node-code.
+;; -------------------------------------------------------------------------
+;;
+;; The following macro writes the necessary code (defstructs, constructor functions,
+;; and defmethods) for defining a custom inn-node with additional slots.
+;; --------------------------------------------------------------------------
+(defmacro define-inn-node (name &key (stream t) (package :inn) slots type color shape)
+  `(progn
+     (format ,stream "~%~%(in-package :~(~a~))~%~%" ,package)
+     (format ,stream "(defstruct (~(~a~) (:include inn-node)" ',name)
+     (format ,stream "~%                  (:constructor make-~(~a~)-constructor))" ',name)
+     (format ,stream "~%  ~{~(~a~)~^ ~})~%~%" ',slots)
+     (format ,stream "(defun make-~(~a~) (&rest parameters" ',name)
+     (format ,stream "~%                         &key &allow-other-keys)")
+     (format ,stream "~%  (destructuring-bind (&whole whole")
+     (format ,stream "~%                              &key (constructor 'make-~(~a~)-constructor)" ',name)
+     (format ,stream "~%                                   (type '~(~a~)))" ',(or type name))
+     (format ,stream "~%      parameters")
+     (format ,stream "~%    (dolist (indicator '(:constructor :type))")
+     (format ,stream "~%      (remf whole indicator))")
+     (format ,stream "~%    (apply 'make-inn-node `(:constructor ,constructor :type ,type ,@whole))))~%~%")
+     ,@(if color
+         `((format ,stream "(defmethod get-node-color ((type (eql '~(~a~))))" ',(or type name))
+           (format ,stream "~%  ~s)~%~%" ,color)))
+     ,@(if shape
+         `((format ,stream "(defmethod get-node-shape ((type (eql '~(~a~))))" ',(or type name))
+           (format ,stream "~%  ~s)" ,shape)))))
+
+#|
+Example (check output buffer):
+------------------------------
+(define-inn-node inn-image :slots (url) :type image :color "orange" :shape "square")
+
+Example writing to a file:
+--------------------------
+(with-open-file (stream (babel-pathname :name "test" :type "lisp") 
+                        :direction :output
+                        :if-exists :supersede)
+  (define-inn-node inn-image 
+                   :slots (url size)
+                   :stream stream 
+                   :color "blue" 
+                   :shape "square"))
+|#
