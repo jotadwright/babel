@@ -53,40 +53,47 @@
           (if (equal (depth parent) 0)
             (select-compose composer parent answer))
           (if (not (equal (depth parent) 0))
-            (condition-compose composer parent :exclude-id exclude-id)))
+            (let ((start-time (get-internal-real-time)))
+              (condition-compose composer parent :exclude-id exclude-id)
+              (let ((end-time (get-internal-real-time)))
+                (write (- end-time start-time))
+                (terpri)))))
   (queries composer))
 
 
 ;;REVIEW THIS ONE
 (defmethod condition-compose ((composer query-composer) parent &key exclude-id)
-  (let ((attrs '()))
+  (let ((attrs '())
+         (nodes-lst '()))
     (if exclude-id
       (setf attrs (remove-if #'(lambda (item) (equal (name item) "id")) (attributes (tble parent))))
       (setf attrs (attributes (tble parent))))
     (dolist (attr attrs)
-      (let ((result (flatten (query (concatenate 'string "SELECT " (name attr) " FROM " (name (tble parent)))))))
-        (dolist (val result)
-            (dolist (operator (operators attr))
-              (if (equal (depth parent) 1)
-                (progn
-                  (let ((child-node (where-node parent
-                                                (name attr)
-                                                operator
-                                                val
-                                                '())))
-                    (setf (children parent) (nconc (children parent) (list child-node)))
-                    (setf (queue composer) (nconc (queue composer) (list child-node)))))
-               ; (progn
-               ;   (let ((and-child (and-node parent attr operator val))
-               ;         (or-child (or-node parent attr operator val)))
-               ;     (setf (children parent) (append (children parent) (list and-child or-child)))
-               ;     (if (not (equal (length (attrs and-child)) (length (attributes (tble parent)))))
-               ;       (progn
-               ;         (setf (queue composer) (push-end and-child (queue composer)))
-               ;         (setf (queue composer) (push-end or-child (queue composer))))
-               ;       (progn
-               ;         (write "finish leaf")))))
-                )))))))
+      (if (not (attr-is-present parent attr))
+        (progn
+          (let ((result (flatten (query (concatenate 'string "SELECT Distinct(" (name attr) ") FROM " (name (tble parent)))))))
+            (dolist (val result)
+              (dolist (operator (operators attr))
+                (if (equal (depth parent) 1)
+                  (progn
+                    (let ((child-node (where-node parent
+                                                  (name attr)
+                                                  operator
+                                                  val
+                                                  '())))
+                      
+                      (setf nodes-lst (append nodes-lst (list child-node)))))
+                  (progn
+                    (let ((and-child (and-node parent attr operator val))
+                          (or-child (or-node parent attr operator val)))
+                      (if (not (equal (length (attrs and-child)) (length (attributes (tble parent)))))
+                        (progn
+                          (setf nodes-lst (append nodes-lst (list and-child or-child))))
+                        (progn
+                          (write "finish leaf")))))
+                  )))))))
+    (setf (children parent) nodes-lst)
+    (setf (queue composer) (append (queue composer) nodes-lst))))
 
 (defmethod select-compose ((composer query-composer) parent answer)
    (let ((join-nodes '()))

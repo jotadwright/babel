@@ -12,7 +12,7 @@
 (connect-toplevel "lisp_db" "admin" "root" "localhost")
 
 ;; show query one by one
-(let ((result (query "SELECT name FROM continent WHERE name='Africa'"))
+(let ((result (query "SELECT name FROM continent where id=1"))
        (composer-obj (make-instance 'query-composer)))
   (write (compose-query composer-obj result :exclude-id t))
   (terpri)

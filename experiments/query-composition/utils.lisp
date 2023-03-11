@@ -39,3 +39,12 @@
         (if (typep val (type-att att))
           (push att result))))
     result))
+
+
+
+
+(defun attr-is-present (node attr)
+  (dolist (ref-att (attrs node))
+    (if (equal (name ref-att) (name attr))
+      (return-from attr-is-present t)))
+  nil)
