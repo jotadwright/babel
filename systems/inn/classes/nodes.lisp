@@ -148,10 +148,10 @@
 ;; --------------------------------------------------------------------------
 (export '(define-inn-node))
 
-(defmacro define-inn-node (name &key (stream t) (package :inn) slots type color shape)
+(defmacro define-inn-node (name &key (include :inn-node) (stream t) (package :inn) slots type color shape)
   `(progn
      (format ,stream "~%~%(in-package :~(~a~))~%~%" ,package)
-     (format ,stream "(defstruct (~(~a~) (:include inn-node)" ',name)
+     (format ,stream "(defstruct (~(~a~) (:include ~a)" ',name ,include)
      (format ,stream "~%                  (:constructor make-~(~a~)-constructor))" ',name)
      (format ,stream "~%  ~{~(~a~)~^ ~})~%~%" ',slots)
      (format ,stream "(defun make-~(~a~) (&rest parameters" ',name)
