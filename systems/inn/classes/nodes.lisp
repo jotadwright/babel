@@ -30,6 +30,9 @@
 ;; ---------------
 (defgeneric get-node-color (type))
 
+(defmethod get-node-color ((type (eql 'narrative-question)))
+  "red")
+
 (defmethod get-node-color ((type (eql 'open-narrative-question)))
   "red")
 
@@ -48,6 +51,9 @@
 ;; Shape of nodes.
 ;; ---------------
 (defgeneric get-node-shape (type))
+
+(defmethod get-node-shape ((type (eql 'narrative-question)))
+  "diamond")
 
 (defmethod get-node-shape ((type (eql 'answered-narrative-question)))
   "diamond")
@@ -70,7 +76,7 @@
 
 (export '(inn-node 
           make-inn-node
-          inn-node-label inn-node-color inn-node-shape 
+          inn-node-label inn-node-color inn-node-shape inn-node-description
           inn-node-type inn-node-attributes inn-node-id))
 
 ;; Inn-nodes "inherit" from the node-struct from graph-utils.
@@ -81,6 +87,7 @@
   label
   color
   shape
+  (description "No description available.")
   (type t)
   attributes)
 
@@ -106,10 +113,12 @@
                          ,@whole))))
 ;; (make-inn-node :type 'answered-narrative-question)
 
-(export '(posed-by answered-by inn-answer
-                   narrative-question-posed-by
-                   narrative-question-answered-by
-                   narrative-question-answer))
+(export '(posed-by 
+          narrative-question
+          answered-by inn-answer
+          narrative-question-posed-by
+          narrative-question-answered-by
+          narrative-question-answer))
 
 (defstruct (narrative-question 
             (:include inn-node)
@@ -139,6 +148,14 @@
              ,@whole))))
 ;; (make-narrative-question)
 
+(defmacro make-open-narrative-question (&rest parameters)
+  `(make-narrative-question ,@parameters
+                            :type 'open-narrative-question))
+
+(defmacro make-answered-narrative-question (&rest parameters)
+  `(make-narrative-question ,@parameters
+                            :type 'answered-narrative-question))
+
 ;; -------------------------------------------------------------------------
 ;; Helper Macro for writing customized inn-node-code.
 ;; -------------------------------------------------------------------------
@@ -159,7 +176,7 @@
      (format ,stream "~%  (destructuring-bind (&whole whole")
      (format ,stream "~%                              &key (constructor 'make-~(~a~)-constructor)" ',name)
      (format ,stream "~%                                   (type '~(~a~))" ',(or type name))
-     (format ,stream "~%                                   &allow-other-keys)"
+     (format ,stream "~%                                   &allow-other-keys)")
      (format ,stream "~%      parameters")
      (format ,stream "~%    (dolist (indicator '(:constructor :type))")
      (format ,stream "~%      (remf whole indicator))")
@@ -169,7 +186,7 @@
            (format ,stream "~%  ~s)~%~%" ,color)))
      ,@(if shape
          `((format ,stream "(defmethod get-node-shape ((type (eql '~(~a~))))" ',(or type name))
-           (format ,stream "~%  ~s)" ,shape))))))
+           (format ,stream "~%  ~s)" ,shape)))))
 
 #|
 Example (check output buffer):
