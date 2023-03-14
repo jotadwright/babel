@@ -32,6 +32,7 @@
           (setf result t))))
     result))
 
+;;DEBUGGING
 (defun sort-type (table answer)
   (let ((result '()))
     (dolist (val answer)
@@ -48,3 +49,8 @@
     (if (equal (name ref-att) (name attr))
       (return-from attr-is-present t)))
   nil)
+
+
+(defun random-between (a b)
+  "Returns a random number between A and B (inclusive)"
+  (+ a (random b)))
