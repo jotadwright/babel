@@ -13,6 +13,7 @@
 (defclass diagnose-non-gold-standard-meaning (diagnostic)
   ((trigger :initform 'fcg::new-node)))
 
+#|
 (defun unknown-utterance-p (node)
   ;; the utterance is completely unknown when
   (and ;; node is fully expanded
@@ -163,8 +164,8 @@
                (set-data problem :utterance (get-data resulting-cfs :utterance))
                (set-data problem :meaning (get-data resulting-cfs :meaning))
                problem))))))
+|#
 
-#|
 (defmethod diagnose ((diagnostic diagnose-non-gold-standard-meaning) (node cip-node)
                      &key &allow-other-keys)
   "Diagnose that the meaning or form in a fully expanded node does not match the gold standard."
@@ -185,7 +186,6 @@
           (set-data problem :utterance (get-data resulting-cfs :utterance))
           (set-data problem :meaning gold-standard-meaning)
           problem)))))
-|#
 
 
 ;; Production ;;

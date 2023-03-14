@@ -357,7 +357,8 @@
                           (format nil "~a" category-1))
                          (t
                           (format nil "~a and ~a" category-1 category-2))))))
-  (graph-utils:edge-weight (graph categorial-network) category-1 category-2 link-type))
+  (when (link-exists-p category-1 category-2 categorial-network :link-type link-type)
+    (graph-utils:edge-weight (graph categorial-network) category-1 category-2 link-type)))
 
 (defmethod link-weight ((category-1 symbol) (category-2 symbol) (cxn-inventory fcg-construction-set) &key link-type)
   "Returns the weight of a link."

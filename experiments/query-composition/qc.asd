@@ -27,7 +27,8 @@
                  :components ((:file "attribute-obj")
                               (:file "node-obj")
                               (:file "tree-obj")
-                              (:file "table-obj")))
+                              (:file "table-obj")
+                              (:file "reference-info-obj")))
                 (:module "db"
                  :serial t
                  :components ((:file "setup-database")

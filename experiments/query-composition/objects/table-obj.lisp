@@ -9,16 +9,24 @@
     :type list
     :initform nil
     :initarg :attributes
-    :accessor attributes)))
+    :accessor attributes))
+  (:documentation "An object that represents a table in its database. It is characterised by its name and the list of attributes that make it up."))
 
-
+;;OK
 (defun init-table (table-name attrs)
+  "Function that instantiates a database table with all attributes"
   (let ((table (make-instance 'table :name table-name :attributes '())))
     (dolist (attr attrs)
-      (push (make-instance 'attribute :name (concat-array attr)) (attributes table)))
+       (let* ((attribute-check (first (flatten (query (concatenate 'string "SELECT " (concat-array attr) " FROM " table-name " LIMIT 1")))))
+              (att-obj (make-instance 'attribute
+                                      :name (concat-array attr))))
+         (define-type attribute-check att-obj)
+         (push att-obj (attributes table))))
     table))
 
+;;OK
 (defun init-schema ()
+  "Function that instantiates the whole database connected with the postmodern library"
   (let ((tables '())
         (table-name nil)
         (attrs '()))

@@ -781,88 +781,44 @@
                                                                                                 :quantity (make-instance 'quantity
                                                                                                                          :value 1000)))))))
          (make-instance 'kitchen-cabinet
-                        :contents (list
-                                   ;; bowls, pots & pans
-                                   (make-instance 'small-bowl) (make-instance 'small-bowl) (make-instance 'small-bowl)
-                                   (make-instance 'small-bowl) (make-instance 'small-bowl) (make-instance 'small-bowl)
-                                   (make-instance 'small-bowl) (make-instance 'small-bowl) (make-instance 'small-bowl)
-                                     
-                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
-                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
-                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
-                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
-                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
-                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
-
-                                   (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
-                                   (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
-                                   (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
-
-                                   (make-instance 'cooking-pot) (make-instance 'cooking-pot) (make-instance 'cooking-pot)
-                                   (make-instance 'frying-pan) (make-instance 'frying-pan) (make-instance 'frying-pan)
-
-                                   (make-instance 'jar) (make-instance 'jar) (make-instance 'jar)
-
-                                   ;; lids & wrapping
-                                   (make-instance 'small-bowl-lid) (make-instance 'small-bowl-lid) (make-instance 'small-bowl-lid)
-                                   (make-instance 'medium-bowl-lid) (make-instance 'medium-bowl-lid) (make-instance 'medium-bowl-lid)
-                                   (make-instance 'large-bowl-lid) (make-instance 'large-bowl-lid) (make-instance 'large-bowl-lid)
-                                   (make-instance 'jar-lid) (make-instance 'jar-lid) (make-instance 'jar-lid)
-                                   (make-instance 'plastic-wrap)
-
-                                   ;; tools
-                                   (make-instance 'fork) (make-instance 'fork) (make-instance 'fork)
-                                   (make-instance 'fork) (make-instance 'fork) (make-instance 'fork)
-                                   (make-instance 'fork) (make-instance 'fork) (make-instance 'fork)
-
-                                   (make-instance 'table-spoon) (make-instance 'table-spoon) (make-instance 'table-spoon)
-                                   (make-instance 'table-spoon) (make-instance 'table-spoon) (make-instance 'table-spoon)
-                                   (make-instance 'table-spoon) (make-instance 'table-spoon) (make-instance 'table-spoon)
-
-                                   (make-instance 'tea-spoon) (make-instance 'tea-spoon) (make-instance 'tea-spoon)
-                                   (make-instance 'tea-spoon) (make-instance 'tea-spoon) (make-instance 'tea-spoon)
-                                   (make-instance 'tea-spoon) (make-instance 'tea-spoon) (make-instance 'tea-spoon)
-
-                                   (make-instance 'knife) (make-instance 'knife) (make-instance 'knife)
-                                   (make-instance 'knife) (make-instance 'knife) (make-instance 'knife)
-                                   (make-instance 'knife) (make-instance 'knife) (make-instance 'knife)
-
-                                   (make-instance 'bread-knife) (make-instance 'bread-knife) (make-instance 'bread-knife)
-
-                                   (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
-                                   (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
-                                   (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
-
-                                   (make-instance 'wooden-spoon) (make-instance 'wooden-spoon) (make-instance 'wooden-spoon)
-                                   (make-instance 'wooden-spoon) (make-instance 'wooden-spoon) (make-instance 'wooden-spoon)
-                                   (make-instance 'wooden-spoon) (make-instance 'wooden-spoon) (make-instance 'wooden-spoon)
-
-                                   (make-instance 'spatula) (make-instance 'spatula) (make-instance 'spatula)
-                                                                                 
-                                   (make-instance 'sift) (make-instance 'sift) (make-instance 'sift)
-
-                                   (make-instance 'egg-separator) (make-instance 'egg-separator) (make-instance 'egg-separator)
-                                   
-                                   (make-instance 'colander) (make-instance 'colander) (make-instance 'colander)
-
-                                   (make-instance 'mixer) (make-instance 'mixer) (make-instance 'mixer)
-
-                                   (make-instance 'food-processor)
-
-                                   ;; baking equipment
-                                   (make-instance 'rolling-pin) (make-instance 'rolling-pin) (make-instance 'rolling-pin)
-                                   (make-instance 'baking-paper) (make-instance 'baking-paper) (make-instance 'baking-paper)
-                                   (make-instance 'paper-baking-cups :items
-                                                  (list (make-instance 'paper-baking-cup) (make-instance 'paper-baking-cup) (make-instance 'paper-baking-cup)
-                                                        (make-instance 'paper-baking-cup) (make-instance 'paper-baking-cup) (make-instance 'paper-baking-cup)
-                                                        (make-instance 'paper-baking-cup) (make-instance 'paper-baking-cup) (make-instance 'paper-baking-cup)
-                                                        (make-instance 'paper-baking-cup) (make-instance 'paper-baking-cup) (make-instance 'paper-baking-cup)
-                                                        (make-instance 'paper-baking-cup) (make-instance 'paper-baking-cup) (make-instance 'paper-baking-cup)))                     
-                                   (make-instance 'wire-rack)
-                                   (make-instance 'pan)
-                                   (make-instance 'cookie-sheet)
-                                   (make-instance 'muffin-tins-12)
-                                   (make-instance 'baking-tray))))))
+                        :contents (append
+                                   (loop repeat 9 collect (make-instance 'small-bowl))
+                                   (loop repeat 18 collect (make-instance 'medium-bowl))
+                                   (loop repeat 9 collect (make-instance 'large-bowl))
+                                   (loop repeat 3 collect (make-instance 'cooking-pot))
+                                   (loop repeat 3 collect (make-instance 'frying-pan))
+                                   (loop repeat 3 collect (make-instance 'jar))
+                                   (loop repeat 9 collect (make-instance 'small-bowl-lid))
+                                   (loop repeat 18 collect (make-instance 'medium-bowl-lid))
+                                   (loop repeat 9 collect (make-instance 'large-bowl-lid))
+                                   (loop repeat 3 collect (make-instance 'jar-lid))
+                                   (loop repeat 1 collect (make-instance 'plastic-wrap))
+                                   (loop repeat 9 collect (make-instance 'fork))
+                                   (loop repeat 9 collect (make-instance 'table-spoon))
+                                   (loop repeat 9 collect (make-instance 'tea-spoon))
+                                   (loop repeat 9 collect (make-instance 'knife))
+                                   (loop repeat 3 collect (make-instance 'bread-knife))
+                                   (loop repeat 9 collect (make-instance 'whisk))
+                                   (loop repeat 9 collect (make-instance 'wooden-spoon))
+                                   (loop repeat 3 collect (make-instance 'spatula))
+                                   (loop repeat 3 collect (make-instance 'sift))
+                                   (loop repeat 3 collect (make-instance 'egg-separator))
+                                   (loop repeat 3 collect (make-instance 'colander))
+                                   (loop repeat 3 collect (make-instance 'mixer))
+                                   (loop repeat 1 collect (make-instance 'food-processor))
+                                   (loop repeat 3 collect (make-instance 'rolling-pin))
+                                   (loop repeat 3 collect (make-instance 'baking-paper))
+                                   (list (make-instance 'paper-baking-cups
+                                                        :items (list (make-instance 'paper-baking-cup) (make-instance 'paper-baking-cup) (make-instance 'paper-baking-cup)
+                                                                     (make-instance 'paper-baking-cup) (make-instance 'paper-baking-cup) (make-instance 'paper-baking-cup)
+                                                                     (make-instance 'paper-baking-cup) (make-instance 'paper-baking-cup) (make-instance 'paper-baking-cup)
+                                                                     (make-instance 'paper-baking-cup) (make-instance 'paper-baking-cup) (make-instance 'paper-baking-cup)
+                                                                     (make-instance 'paper-baking-cup) (make-instance 'paper-baking-cup) (make-instance 'paper-baking-cup)))                     
+                                         (make-instance 'wire-rack)
+                                         (make-instance 'pan)
+                                         (make-instance 'cookie-sheet)
+                                         (make-instance 'muffin-tins-12)
+                                         (make-instance 'baking-tray)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Simulation Environments ;;
@@ -901,14 +857,12 @@
   "Set initial kitchen state to be used in simulation to the one of the given environment."
   (setf *initial-kitchen-state* (copy-object (kitchen-state simulation-environment))))
 
-(activate-monitor trace-irl)
 
-#|
-(defparameter *almond-crescent-cookies-environment*
+(defun almond-crescent-cookies-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'almond-crescent-cookies
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen)
                        '(fetch-and-proportion ?proportioned-butter ?ks-with-butter ?kitchen ?target-container-1 butter 230 g)
@@ -940,11 +894,11 @@
                  :primary-output-var
                  '?almond-crescent-cookies))
 
-(defparameter *afghan-biscuits-environment*
+(defun afghan-biscuits-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'afghan-biscuits
                  :kitchen-state
-                 *full-kitchen*                                    
+                 kitchen-state                                    
                  :meaning-network
                  (list '(get-kitchen ?kitchen-state)
                        '(fetch-and-proportion ?proportioned-butter ?kitchen-state-with-butter ?kitchen-state ?target-container-1 butter 200 g)
@@ -992,11 +946,11 @@
                        '(sprinkle ?sprinkled-cookies ?kitchen-state-with-sprinkled-cookies ?kitchen-state-with-iced-cookies ?iced-cookies ?proportioned-almonds))
                  :primary-output-var '?sprinkled-cookies))
 
-(defparameter *best-brownies-environment*
+(defun best-brownies-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'best-brownies
                  :kitchen-state 
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen-state)
                        '(fetch-and-proportion ?proportioned-butter ?kitchen-state-with-butter ?kitchen-state ?new-container-1 butter 120 g)
@@ -1032,11 +986,11 @@
                        '(cut ?cut-brownie ?kitchen-state-with-cut-brownie ?kitchen-state-with-cooled-brownie ?cooled-brownie squares ?knife))
                  :primary-output-var '?cut-brownie))
 
-(defparameter *chocolate-fudge-cookies-environment*
+(defun chocolate-fudge-cookies-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'chocolate-fudge-cookies
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen-state)
                        '(fetch-and-proportion ?proportioned-devils-food-cake-mix ?kitchen-state-with-devils-food-cake-mix ?kitchen-state ?target-container-1 devils-food-cake-mix 500 g)
@@ -1063,11 +1017,11 @@
                        '(bring-to-temperature ?cooled-cookies ?kitchen-state-with-cooled-cookies ?kitchen-state-with-cookies-on-wire-rack ?cookies-on-wire-rack ?room-temp-quantity ?room-temp-unit))
                  :primary-output-var '?cooled-cookies))
 
-(defparameter *easy-banana-bread-environment*
+(defun easy-banana-bread-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'easy-banana-bread
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen-state)
                        '(fetch-and-proportion ?proportioned-butter ?kitchen-state-with-butter ?kitchen-state ?target-container-1 butter 60 g)
@@ -1092,11 +1046,11 @@
                        '(bake ?baked-banana-bread ?kitchen-state-with-baked-banana-bread ?kitchen-state-with-batter-in-pan ?pan-with-batter ?oven 60 minute 165 degrees-celsius))
                  :primary-output-var '?baked-banana-bread))
 
-(defparameter *easy-oatmeal-cookies-environment*
+(defun easy-oatmeal-cookies-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'easy-oatmeal-cookies
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen)
                        '(fetch-and-proportion ?proportioned-raisins ?kitchen-state-with-raisins ?kitchen ?target-container-1 raisin 150 g)
@@ -1141,11 +1095,11 @@
                        '(bake ?baked-cookies ?kitchen-state-with-baked-cookies ?kitchen-state-with-dough-on-sheet ?sheet-with-dough ?preheated-oven 10 minute ?bake-quantity ?bake-unit))
                  :primary-output-var '?baked-cookies))
 
-(defparameter *whole-wheat-ginger-snaps-environment*
+(defun whole-wheat-ginger-snaps-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'whole-wheat-ginger-snaps
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen-state)
                        '(fetch-and-proportion ?proportioned-butter ?kitchen-state-with-butter ?kitchen-state ?target-container-1 butter 225 g)
@@ -1194,11 +1148,11 @@
                        '(bring-to-temperature ?cooled-snaps ?kitchen-state-with-cooled-snaps ?kitchen-state-with-snaps-on-wire-rack ?snaps-on-wire-rack ?room-temp-quantity ?room-temp-unit))
                  :primary-output-var '?cooled-snaps))
 
-(defparameter *cucumber-slices-with-dill-environment*
+(defun cucumber-slices-with-dill-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'cucumber-slices-with-dill
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen)
                        '(fetch-and-proportion ?proportioned-cucumbers ?kitchen-state-with-cucumbers ?kitchen ?target-container-1 cucumber 4 piece)
@@ -1227,11 +1181,11 @@
                        '(uncover ?served-salad ?cover ?kitchen-state-with-served-salad ?kitchen-state-with-cooled-mixture ?cooled-mixture))
                  :primary-output-var '?served-salad))
 
-(defparameter *easy-cherry-tomato-corn-salad-environment*
+(defun easy-cherry-tomato-corn-salad-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'easy-cherry-tomato-corn-salad
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen)
                        '(fetch-and-proportion ?proportioned-basil ?kitchen-state-with-basil ?kitchen ?target-container-1 fresh-basil 5 g)
@@ -1275,11 +1229,11 @@
                        '(refrigerate ?cooled-salad ?kitchen-state-with-cooled-salad ?kitchen-state-with-salad ?salad ?fridge ?cooling-quantity ?cooling-unit))
                  :primary-output-var '?cooled-salad))
 
-(defparameter *black-bean-and-sweet-potato-salad-environment*
+(defun black-bean-and-sweet-potato-salad-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'black-bean-and-sweet-potato-salad
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen)
                        '(fetch-and-proportion ?proportioned-sweet-potatoes ?kitchen-state-with-sweet-potatoes ?kitchen ?target-container-1 sweet-potato 450 g)
@@ -1320,11 +1274,11 @@
                  :primary-output-var '?salad))
 
 ; Extra Almond Crescent Cookies
-(defparameter *almond-crescent-cookies-2-environment*
+(defun almond-crescent-cookies-2-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'almond-crescent-cookies-2
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen)
                         '(fetch-and-proportion ?proportioned-butter ?ks-with-butter ?kitchen ?target-container-1 butter 230 g)
@@ -1362,11 +1316,11 @@
                  :primary-output-var
                  '?cooled-cookies))
 
-(defparameter *almond-crescent-cookies-3-environment*
+(defun almond-crescent-cookies-3-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'almond-crescent-cookies-3
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen)
                        '(fetch-and-proportion ?proportioned-butter ?ks-with-butter ?kitchen ?target-container-1 salted-butter 120 g)
@@ -1409,11 +1363,11 @@
                  :primary-output-var
                  '?almond-crescent-cookies))
 
-(defparameter *almond-crescent-cookies-4-environment*
+(defun almond-crescent-cookies-4-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'almond-crescent-cookies-4
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen)
                        '(fetch-and-proportion ?proportioned-butter ?ks-with-butter ?kitchen ?target-container-1 butter 230 g)
@@ -1441,11 +1395,11 @@
                  :primary-output-var
                  '?baked-crescents))
 
-(defparameter *almond-crescent-cookies-5-environment*
+(defun almond-crescent-cookies-5-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'almond-crescent-cookies-5
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen)
                        '(fetch-and-proportion ?proportioned-butter ?ks-with-butter ?kitchen ?target-container-1 butter 230 g)
@@ -1485,11 +1439,11 @@
 
 ; extra baking recipes
 
-(defparameter *coconut-tuiles-environment*
+(defun coconut-tuiles-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'coconut-tuiles
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen)
                        '(fetch-and-proportion ?proportioned-butter ?ks-with-butter ?kitchen ?target-container-1 butter 230 g)
@@ -1523,11 +1477,11 @@
                  :primary-output-var
                  '?cooled-rounds))
 
-(defparameter *mexican-wedding-cookies-environment*
+(defun mexican-wedding-cookies-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'mexican-wedding-cookies
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen)
                        '(fetch-and-proportion ?proportioned-butter ?ks-with-butter ?kitchen ?target-container-1 butter 230 g)
@@ -1554,11 +1508,11 @@
                  :primary-output-var
                  '?mexican-wedding-cookies))
 
-(defparameter *bisquick-shortcake-biscuits-environment*
+(defun bisquick-shortcake-biscuits-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'bisquick-shortcake-biscuits
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen)
                        '(fetch-and-proportion ?proportioned-bisquick ?ks-with-bisquick ?kitchen ?target-container-1 bisquick-baking-mix 260 g)
@@ -1587,12 +1541,11 @@
                  :primary-output-var
                  '?bisquick-shortcake-biscuits))
 
-(defparameter *chocolate-cream-cheese-cupcakes-environment*
-  ;; error!!
+(defun chocolate-cream-cheese-cupcakes-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'chocolate-cream-cheese-cupcakes
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen)
                        '(fetch-and-proportion ?proportioned-cheese ?ks-with-cheese ?kitchen ?target-container-1 cream-cheese 230 g)
@@ -1638,11 +1591,11 @@
                  '?baked-cupcakes))
 
 ;; extra salads
-(defparameter *black-bean-salad-2-environment*
+(defun black-bean-salad-2-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'black-bean-salad-2
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen)
                        '(fetch-and-proportion ?proportioned-lime-juice ?ks-with-lime-juice ?kitchen ?target-container-1 lime-juice 3 teaspoon)
@@ -1683,11 +1636,11 @@
                  :primary-output-var
                  '?served-salad))
 
-(defparameter *black-bean-salad-3-environment*
+(defun black-bean-salad-3-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'black-bean-salad-3
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen)
                        '(fetch-and-proportion ?proportioned-black-beans ?ks-with-black-beans ?kitchen ?target-container-1 black-bean 400 g)
@@ -1714,11 +1667,11 @@
                  :primary-output-var
                  '?cooled-salad))
 
-(defparameter *black-bean-salad-4-environment*
+(defun black-bean-salad-4-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'black-bean-salad-4
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen)
                        '(fetch-and-proportion ?proportioned-black-beans ?ks-with-black-beans ?kitchen ?target-container-1 black-bean 400 g)
@@ -1757,11 +1710,11 @@
                  :primary-output-var
                  '?seasoned-salad))
 
-(defparameter *black-bean-salad-5-environment*
+(defun black-bean-salad-5-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'black-bean-salad-5
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen)
                        '(fetch-and-proportion ?proportioned-black-beans ?ks-with-black-beans ?kitchen ?target-container-1 black-bean 400 g)
@@ -1806,11 +1759,11 @@
                  :primary-output-var
                  '?black-bean-salad))
 
-(defparameter *classic-greek-salad-environment*
+(defun classic-greek-salad-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'classic-greek-salad
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen)
                        '(fetch-and-proportion ?proportioned-cucumber ?ks-with-cucumber ?kitchen ?target-container-1 cucumber 1 piece)
@@ -1861,11 +1814,11 @@
                  :primary-output-var
                  '?greek-salad))
 
-(defparameter *classic-potato-salad-environment*
+(defun classic-potato-salad-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'classic-potato-salad
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen)
                        '(fetch-and-proportion ?proportioned-potatoes ?ks-with-potatoes ?kitchen ?target-container-1 potato 8 piece)
@@ -1913,11 +1866,11 @@
                  :primary-output-var
                        '?potato-salad))
 
-(defparameter *cole-slaw-environment*
+(defun cole-slaw-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'cole-slaw
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen)
                        '(fetch-and-proportion ?proportioned-cabbage ?ks-with-cabbage ?kitchen ?target-container-1 green-cabbage 1 piece)
@@ -1956,11 +1909,11 @@
                  :primary-output-var
                        '?cole-slaw))
 
-(defparameter *cranberry-fluff-salad-environment*
+(defun cranberry-fluff-salad-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'cranberry-fluff-salad
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen)
                        '(fetch-and-proportion ?proportioned-cranberries ?ks-with-cranberries ?kitchen ?target-container-1 cranberry 200 g)
@@ -1985,11 +1938,11 @@
                  :primary-output-var
                  '?cranberry-fluff-salad))
 
-(defparameter *avocado-chicken-salad-environment*
+(defun avocado-chicken-salad-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'avocado-chicken-salad
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen)
                        '(fetch-and-proportion ?proportioned-chicken ?ks-with-chicken ?kitchen ?target-container-1 cooked-chicken 140 g)
@@ -2034,11 +1987,11 @@
                  :primary-output-var
                  '?cooled-salad))
 
-(defparameter *basic-chicken-salad-environment*
+(defun basic-chicken-salad-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'basic-chicken-salad
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen)
                        '(fetch-and-proportion ?proportioned-almonds ?ks-with-almonds ?kitchen ?target-container-1 almond 140 g)
@@ -2065,11 +2018,11 @@
                  :primary-output-var
                  '?basic-chicken-salad))
 
-(defparameter *broccoli-salad-environment*
+(defun broccoli-salad-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'broccoli-salad
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen)
                        '(fetch-and-proportion ?proportioned-broccoli ?ks-with-broccoli ?kitchen ?target-container-1 broccoli 1 piece)
@@ -2098,11 +2051,11 @@
                  :primary-output-var
                  '?proportioned-broccoli))
 
-(defparameter *croutons-vinegar-salad-environment*
+(defun croutons-vinegar-salad-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
                  :recipe-id 'croutons-vinegar-salad
                  :kitchen-state
-                 *full-kitchen*
+                 kitchen-state
                  :meaning-network
                  (list '(get-kitchen ?kitchen)
                        '(fetch-and-proportion ?proportioned-bread ?ks-with-bread ?kitchen ?target-container-1 white-bread-slice 1 piece)
@@ -2158,42 +2111,3 @@
                        '(sprinkle ?croutons-vinegar-salad ?ks-with-croutons-vinegar-salad ?ks-with-dressed-salad ?dressed-salad ?baked-croutons))
                  :primary-output-var
                  '?croutons-vinegar-salad))
-
-; list of all available simulation environments
-(defparameter *simulation-environments*
-  (list *almond-crescent-cookies-environment*
-        *afghan-biscuits-environment*
-        *best-brownies-environment*
-        *chocolate-fudge-cookies-environment*
-        *easy-banana-bread-environment*
-        *easy-oatmeal-cookies-environment*
-        *whole-wheat-ginger-snaps-environment*
-        *cucumber-slices-with-dill-environment*
-        *easy-cherry-tomato-corn-salad-environment*
-        *black-bean-and-sweet-potato-salad-environment*
-        ; extra almond crescent cookies
-        *almond-crescent-cookies-2-environment*
-        *almond-crescent-cookies-3-environment*
-        *almond-crescent-cookies-4-environment*
-        *almond-crescent-cookies-5-environment*
-        ; extra baking recipes
-        *coconut-tuiles-environment*
-        *mexican-wedding-cookies-environment*
-        *bisquick-shortcake-biscuits-environment*
-        *chocolate-cream-cheese-cupcakes-environment*
-        ; extra black bean salad recipes
-        *black-bean-salad-2-environment*
-        *black-bean-salad-3-environment*
-        *black-bean-salad-4-environment*
-        *black-bean-salad-5-environment*
-        ; extra salad recipes
-        *classic-greek-salad-environment*
-        *classic-potato-salad-environment*
-        *cole-slaw-environment*
-        *cranberry-fluff-salad-environment*
-        *avocado-chicken-salad-environment*
-        *basic-chicken-salad-environment*
-        *broccoli-salad-environment*
-        *croutons-vinegar-salad-environment*
-        ))
-|#
