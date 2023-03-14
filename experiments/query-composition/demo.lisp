@@ -12,15 +12,21 @@
 (connect-toplevel "lisp_db" "admin" "root" "localhost")
 
 ;; show query one by one
-(let ((result (query "SELECT name FROM continent where id=1"))
+(let ((start-time (get-internal-real-time))
+       (result (query "SELECT population FROM continent where id=1"))
        (composer-obj (make-instance 'query-composer)))
   (write (compose-query composer-obj result :exclude-id t))
-  (terpri)
-  (write (compose-query composer-obj result :exclude-id t)))
+  (terpri))
 
 ;; show all the queries
-(let ((result (query "SELECT name FROM continent WHERE name='Africa'"))
+(let ((result (query "SELECT name FROM road WHERE id=1"))
        (composer-obj (make-instance 'query-composer)))
   (write (compose-query composer-obj result :exclude-id t :all-queries t)))
 
 (disconnect-toplevel)
+
+(let* ((master (make-instance 'master-agent))
+       (quest (q (get-question master)))
+       (composer-obj (make-instance 'query-composer)))
+  (write (query quest))
+  (write (compose-query composer-obj (query quest) :exclude-id t)))
