@@ -67,12 +67,10 @@
 
 
 (defparameter *train-corpus* (shuffle (append (train-split *ontonotes-annotations*)
-                                              (train-split *ewt-annotations*)
-                                              (dev-split *ontonotes-annotations*)
-                                              (dev-split *ewt-annotations*))))
+                                              (train-split *ewt-annotations*))))
 
-(defparameter *dev-corpus* (shuffle (append (test-split *ontonotes-annotations*)
-                                              (test-split *ewt-annotations*))))
+(defparameter *dev-corpus* (shuffle (append (dev-split *ontonotes-annotations*)
+                                              (dev-split *ewt-annotations*))))
 
 
 ;; Setting the globals

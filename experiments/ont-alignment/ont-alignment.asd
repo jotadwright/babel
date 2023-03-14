@@ -11,4 +11,5 @@
    (:file "interaction")
    (:file "db-connection")
    (:file "query-making")
+   (:file "data-manipulation")	
 ))

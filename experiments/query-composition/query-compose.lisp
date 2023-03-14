@@ -50,6 +50,7 @@
                   (if all-queries
                     (setf (queries composer) (push parent (queries composer)))
                     (return-from compose-query (q parent)))))))
+          
           (if (equal (depth parent) 0)
             (select-compose composer parent answer))
           (if (not (equal (depth parent) 0))
@@ -58,10 +59,10 @@
               (let ((end-time (get-internal-real-time)))
                 (write (- end-time start-time))
                 (terpri)))))
+  
   (queries composer))
 
 
-;;REVIEW THIS ONE
 (defmethod condition-compose ((composer query-composer) parent &key exclude-id)
   (let ((attrs '())
          (nodes-lst '()))
@@ -76,28 +77,27 @@
               (dolist (operator (operators attr))
                 (if (equal (depth parent) 1)
                   (progn
-                    (let ((child-node (where-node parent
-                                                  (name attr)
-                                                  operator
-                                                  val
-                                                  '())))
-                      
+                    (let ((child-node (where-node parent attr operator val)))
                       (setf nodes-lst (append nodes-lst (list child-node)))))
                   (progn
-                    (let ((and-child (and-node parent attr operator val))
-                          (or-child (or-node parent attr operator val)))
-                      (if (not (equal (length (attrs and-child)) (length (attributes (tble parent)))))
+                    (let ((and-child (and-node composer parent attr operator val))
+                          (or-child (or-node composer parent attr operator val)))
+                      (if and-child
                         (progn
-                          (setf nodes-lst (append nodes-lst (list and-child or-child))))
+                          (if (not (equal (length (attrs and-child)) (length (attributes (tble parent)))))
+                            (setf nodes-lst (append nodes-lst (list and-child))))))
+                      (if and-child
                         (progn
-                          (write "finish leaf")))))
+                          (if (not (equal (length (attrs or-child)) (length (attributes (tble parent)))))
+                            (setf nodes-lst (append nodes-lst (list or-child))))))))
                   )))))))
     (setf (children parent) nodes-lst)
     (setf (queue composer) (append (queue composer) nodes-lst))))
 
 (defmethod select-compose ((composer query-composer) parent answer)
-   (let ((join-nodes '()))
-              (dolist (tble (tables composer))
+   (let ((join-nodes '())
+          (tables (sort-table composer answer)))
+              (dolist (tble tables)
                 (let ((permutations '()))
                   (if (>= (length (attributes tble)) (length (first answer)))
                     (setf permutations (permutations-of-length (sort-type tble (first answer)) (length (first answer)))))
@@ -105,9 +105,7 @@
                     (let* ((attributes-names '())
                            (child-node nil))
                       (mapcar #'(lambda (x) (push (name x) attributes-names)) perm)
-                      (setf child-node (init-node parent
-                                                                attributes-names
-                                                                tble))
+                      (setf child-node (init-node parent attributes-names tble))
                       (setf (children parent) (nconc (children parent) (list child-node)))
                       (setf (queue composer) (nconc (queue composer) (list child-node)))
                       ;;Join part
@@ -155,6 +153,42 @@
                            ;(setf answers (push-end outer-node answers))
                            ))))))))
     answers))
+
+(defmethod sort-table ((composer query-composer) answer)
+  (let ((row (first answer))
+         (tables  '()))
+    (dolist (value row)
+      (dolist (table (tables composer)) 
+        (dolist (att (attributes table))
+          (if (typep value (type-att att))
+          ;query the database
+            (let ((result (query (concatenate 'string "SELECT " (name att) " FROM " (name table) " WHERE " (name att) " = '" (change-type value) "'"))))
+              (if result
+                (setf tables (push table tables))))))))
+   (if (empty tables)
+     (tables composer)
+     tables)))
+
+;;UNPRECATED
+(defmethod is-permutation ((composer query-composer) node)
+  ;get the node with the same depth as new-node
+  (let ((node-to-compare '()))
+    (mapcar #'(lambda (x)
+                (if (equal (depth x) (depth node))
+                  (push x node-to-compare)))
+              (queue composer))
+    ;sort this list in which are the same attrs, table
+    (loop until (not node-to-compare )
+             for n = (pop node-to-compare)
+             do
+             (if (and (equal (attributes-selected n) (attributes-selected node))
+                         (equal (tble n) (tble node)))
+               (progn
+                 
+                 (let* ((current-n (sort (cdn-to-compare node) #'string-lessp :key #'second))
+                        (other-n  (sort (cdn-to-compare n) #'string-lessp :key #'second)))
+                   (if (and (equal current-n other-n) (equal (query (sql-compile (q n))) (query (sql-compile (q node)))))
+                     (setf (stop n) t))))))))
 
 (defun goal-test (answer node)
   (let ((start-time (get-internal-real-time))

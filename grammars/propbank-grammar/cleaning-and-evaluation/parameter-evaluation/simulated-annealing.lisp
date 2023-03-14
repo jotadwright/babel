@@ -37,7 +37,6 @@
       (format t "Total runtime: ~f seconds~%" total-runtime))
     best-params))
 
-
 (defun plot-f1-scores (f1-scores-and-params)
   "Plots the f1 scores using Gnuplot."
   (utils:with-open-pipe (stream (monitors:pipe-to-gnuplot))
@@ -134,14 +133,17 @@
              :fcg-configuration updated-training-config)
       (store-learned-grammar current-combination :random-number random-number)
       (let* ((test-sentences *dev-corpus*)
-             (f1-scores nil))
+             (f1-scores nil)
+             (f1-scores-loose nil))
         (loop for i below (ceiling (length test-sentences) test-batch-size)
               for batch = (subseq test-sentences (* i test-batch-size) (* (1+ i) test-batch-size))
               do (let ((predictions-comprehend (comprehend-propbank-corpus-parameters test-grammar current-combination batch :random-number random-number)))
-                   (push (evaluate-predictions-f1 predictions-comprehend) f1-scores)))
+                   (push (evaluate-predictions-f1 predictions-comprehend) f1-scores)
+                   (push (evaluate-predictions-f1 predictions-comprehend :include-word-sense nil :include-timed-out-sentences nil) f1-scores-loose)))
         (let ((final-f1 (/ (reduce #'+ f1-scores) (length f1-scores))))
           (format t "Final mean F1 score for current combination: ~a ~A~%" current-combination final-f1)
           (store-f1-scores-batch current-combination f1-scores test-batch-size)
+          (store-f1-scores-batch-loose current-combination f1-scores-loose test-batch-size)
           final-f1)))))
 
 (defun random-neighbour (current-parameter list-of-combinations-parameters &optional used-parameters)
