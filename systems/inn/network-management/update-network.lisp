@@ -55,22 +55,6 @@
 	      (gethash id (graph-utils::ids graph)) node)
         id))))
 
-(defmethod add-node ((graph undirected-typed-graph) value &key capacity)
-  "Add a node to the graph."
-  (or (gethash value (nodes graph))
-      (let ((id (incf (last-id graph))))
-        (maphash (lambda (etype matrix)
-                   (declare (ignore etype))
-                   (incf-sarray-dimensions matrix))
-                 (matrix graph))
-        (when capacity
-          (setf (gethash id (node-caps graph)) capacity))
-        (setf (gethash id (degree-table graph)) 0
-              (gethash value (nodes graph)) id
-              (gethash id (ids graph)) value)
-        id)))
-        (graph-utils:add-node graph node)))))
-
 (defgeneric inn-add-nodes (inn list-of-nodes &key &allow-other-keys))
 
 (defmethod inn-add-nodes ((graph integrative-narrative-network)
