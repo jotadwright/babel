@@ -39,6 +39,7 @@
     ;step 2 : we need to find out from which column we need to start the query to get to the answer
     possible-answer-columns))
 
+
 ;(postmodern::query (:select 'film :from 'actorsfilms :where (:in 'film (:set "All for Nikki" "The Prince" "Ask Me Anything"))))
  
 
