@@ -15,6 +15,5 @@
 
 (in-package :inn)
 
-(import '(graph-utils::edge))
+;; No custom code needed for edges for the moment.
 
-;; Currently no custom code needed for edges.
