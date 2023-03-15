@@ -14,10 +14,10 @@
 
 (defun list-to-string (list)
   "Takes a list as input and makes it a string able to be processed in an in-clause in sql."
-  (let ((formatted-string (concatenate 'string "\"" (first list) "\"")))
+  (let ((formatted-string (concatenate 'string "'" (first list) "'")))
     (loop for elem in list
           do (if (not (string= (first list) elem))
-               (setf formatted-string (concatenate 'string formatted-string ", \"" elem "\""))))
+               (setf formatted-string (concatenate 'string formatted-string ", '" elem "'"))))
     formatted-string))
 
 (defun list-to-set (lst)

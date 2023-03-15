@@ -24,14 +24,11 @@
     (format t "The tutor is ~d and the learner is ~d.~%" tutor learner)
     (format t "The tutor chose the following question : ~d and gave it to the learner.~%" (first (qa-pair tutor)))
     ;3-the tutor asks the question to the learner and the learner checks whether it already knows the answer
-    (if (not (find (first (qa-pair tutor)) (dictionary learner)))
-    ;4-if it doesn't know the answer, the tutor reveals it and the learner stocks it
-      (if (> (length (cdr (qa-pair tutor))) 1)
-        (progn (push (add-to-dictionary (first (qa-pair tutor)) (cdr (qa-pair tutor)) learner) (dictionary learner))
-          (format t "The answer is a ~d.~%" (type-of (cdr (qa-pair tutor))))
-          (try-queries-until-success (cdr (qa-pair tutor))))
-        (progn (push (add-to-dictionary (first (qa-pair tutor)) (second (qa-pair tutor)) learner) (dictionary learner))
-          (format t "The answer is ~d.~%" (type-of (second (qa-pair tutor))))
-          (try-queries-until-success (second (qa-pair tutor))))))))
+    (when (not (find (first (qa-pair tutor)) (dictionary learner)))
+    ;4-if item doesn't know the answer, the tutor reveals it and the learner stocks it
+      (progn
+        (push (add-to-dictionary (first (qa-pair tutor)) (cdr (qa-pair tutor)) learner) (dictionary learner))
+        (format t "The answer is of type ~d.~%" (type-of (cdr (qa-pair tutor))))
+        (try-queries-until-success (cdr (qa-pair tutor)))))))
     ;5-the learner tries to reconstruct a query to get to the answer
      ;"SELECT value FROM actorsfilms WHERE value  = answer"
