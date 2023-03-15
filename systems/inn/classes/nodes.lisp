@@ -115,6 +115,11 @@
 
 (export '(posed-by 
           narrative-question
+          narrative-question-id
+          narrative-question-label
+          narrative-question-description
+          narrative-question-shape
+          narrative-question-color
           answered-by inn-answer
           narrative-question-posed-by
           narrative-question-answered-by
