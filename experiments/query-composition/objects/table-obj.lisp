@@ -20,6 +20,7 @@
        (let* ((attribute-check (first (flatten (query (concatenate 'string "SELECT " (concat-array attr) " FROM " table-name " LIMIT 1")))))
               (att-obj (make-instance 'attribute
                                       :name (concat-array attr))))
+         (define-constraint table-name att-obj)
          (define-type attribute-check att-obj)
          (push att-obj (attributes table))))
     table))

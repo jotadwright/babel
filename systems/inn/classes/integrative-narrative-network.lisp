@@ -15,9 +15,11 @@
 
 (in-package :inn)
 
+(import '(graph-utils::lookup-node))
 (export '(integrative-narrative-network
           id bound-variables update-nodes update-edges
-          make-inn make-integrative-narrative-network))
+          make-inn make-integrative-narrative-network
+          graph-utils::lookup-node))
 
 (defclass integrative-narrative-network (graph-utils:graph)
   ((id :documentation "The ID of the network."
@@ -30,11 +32,6 @@
                     :initform (make-hash-table)
                     :initarg  :bound-variables
                     :accessor bound-variables)
-   (update-nodes :documentation "Nodes to be updated."
-                 :type hash-table
-                 :initform (make-hash-table :test 'equal)
-                 :initarg  :update-nodes
-                 :accessor update-nodes)
    (update-edges :documentation "Edges to be updated."
                  :type hash-table
                  :initform (make-hash-table :test 'equal)
