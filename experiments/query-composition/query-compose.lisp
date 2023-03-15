@@ -64,7 +64,6 @@
     (if exclude-id
       (setf attrs (remove-if #'(lambda (item) (equal (name item) "id")) (attributes (tble parent))))
       (setf attrs (attributes (tble parent))))
-    (let ((start-time (get-internal-real-time)))
     (dolist (attr attrs)
       (if (not (attr-is-present parent attr))
         (progn
@@ -87,8 +86,6 @@
                           (if (not (equal (length (attrs or-child)) (length (attributes (tble parent)))))
                             (setf nodes-lst (append nodes-lst (list or-child))))))))
                   )))))))
-    (let ((interval (- (get-internal-real-time) start-time)))))
-    
     (setf (children parent) nodes-lst)
     (setf (queue composer) (append (queue composer) nodes-lst))))
 
@@ -97,12 +94,14 @@
           (tables (sort-table composer answer)))
               (dolist (tble tables)
                 (let ((permutations nil))
-                  (if (>= (length (attributes tble)) (length (first answer)))
-                    (setf permutations (get-selection tble (first answer))))
+                  (cond ((equal (length (attributes tble)) (length (first answer))) (setf permutations '(("*"))))
+                            ((> (length (attributes tble)) (length (first answer))) (setf permutations (get-selection tble (first answer)))))
                   (dolist (perm permutations)
                     (let* ((attributes-names '())
                            (child-node nil))
-                      (mapcar #'(lambda (x) (push (name x) attributes-names)) perm)
+                      (if (equal (length (attributes tble)) (length (first answer)))
+                        (setf attributes-names perm)
+                        (mapcar #'(lambda (x) (push (name x) attributes-names)) perm))
                       (setf child-node (init-node parent attributes-names tble))
                       (setf (children parent) (nconc (children parent) (list child-node)))
                       (setf (queue composer) (nconc (queue composer) (list child-node)))
@@ -159,6 +158,10 @@
     (dolist (value row)
       (dolist (table (tables composer)) 
         (dolist (att (attributes table))
+          (if (and (typep value (type-att att)) (equal (type-att att) 'string))
+            (let ((result (query (concatenate 'string "SELECT " (name att) " FROM " (name table) " WHERE " (name att) " = '" (change-type value) "'"))))
+              (if result
+                (return-from sort-table (list table)))))
           (if (typep value (type-att att))
           ;query the database
             (let ((result (query (concatenate 'string "SELECT " (name att) " FROM " (name table) " WHERE " (name att) " = '" (change-type value) "'"))))
@@ -185,8 +188,9 @@
       (pushend att-of-type list-to-merge)))
     (apply #'combinations list-to-merge)
     (let ((selection (apply #'combinations list-to-merge)))
-      (mapcar #'(lambda (x) (if (duplicates? x) (remove x selection))) selection)
-      selection)))
+        (mapcar #'(lambda (x) (if (duplicates? x) (setf selection (remove x selection)))) selection)
+        selection)))
+    
 
 (defun goal-test (answer node)
   (let ((start-time (get-internal-real-time))
