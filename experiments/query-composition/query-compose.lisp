@@ -24,8 +24,7 @@
   (:documentation "Object representing the core of the research. This represents all the information to generate the tree. In particular the tree, the list of nodes to expand, the set of tables in the database as well as the set of nodes that lead to a valid query."))
 
 (defmethod initialize-instance :after ((composer query-composer) &key)
-  (let* ((result (query "SELECT name FROM continent where name='Africa'"))
-       (root-node (make-instance 'node :id (make-id) :parent nil :children '() :depth 0 :q ""))
+  (let* ((root-node (make-instance 'node :id (make-id) :parent nil :children '() :depth 0 :q ""))
        (tree (make-instance 'query-tree :nodes  (list  root-node) :root root-node)))
     (setf (tables composer) (init-schema))
     (setf (tree composer) tree)
@@ -44,13 +43,10 @@
            for parent = (pop (queue composer))
            do
          (if (not (equal (depth parent) 0))
-            (progn
-              (if (goal-test answer parent)
-                (progn
-                  (if all-queries
-                    (setf (queries composer) (push parent (queries composer)))
-                    (return-from compose-query (q parent)))))))
-          
+            (progn (if (goal-test answer parent)
+                     (progn (if all-queries
+                              (setf (queries composer) (push parent (queries composer)))
+                              (return-from compose-query (q parent)))))))
           (if (equal (depth parent) 0)
             (select-compose composer parent answer))
           (if (not (equal (depth parent) 0))
@@ -59,7 +55,6 @@
               (let ((end-time (get-internal-real-time)))
                 (write (- end-time start-time))
                 (terpri)))))
-  
   (queries composer))
 
 
@@ -98,13 +93,15 @@
    (let ((join-nodes '())
           (tables (sort-table composer answer)))
               (dolist (tble tables)
-                (let ((permutations '()))
-                  (if (>= (length (attributes tble)) (length (first answer)))
-                    (setf permutations (permutations-of-length (sort-type tble (first answer)) (length (first answer)))))
+                (let ((permutations nil))
+                  (cond ((equal (length (attributes tble)) (length (first answer))) (setf permutations '(("*"))))
+                            ((> (length (attributes tble)) (length (first answer))) (setf permutations (get-selection tble (first answer)))))
                   (dolist (perm permutations)
                     (let* ((attributes-names '())
                            (child-node nil))
-                      (mapcar #'(lambda (x) (push (name x) attributes-names)) perm)
+                      (if (equal (length (attributes tble)) (length (first answer)))
+                        (setf attributes-names perm)
+                        (mapcar #'(lambda (x) (push (name x) attributes-names)) perm))
                       (setf child-node (init-node parent attributes-names tble))
                       (setf (children parent) (nconc (children parent) (list child-node)))
                       (setf (queue composer) (nconc (queue composer) (list child-node)))
@@ -117,6 +114,7 @@
               ))
 
 (defmethod inner-outer-compose ((composer query-composer) node)
+  
   (let ((queue (list node))
          (answers '()))
     (loop until (not queue)
@@ -160,6 +158,10 @@
     (dolist (value row)
       (dolist (table (tables composer)) 
         (dolist (att (attributes table))
+          (if (and (typep value (type-att att)) (equal (type-att att) 'string))
+            (let ((result (query (concatenate 'string "SELECT " (name att) " FROM " (name table) " WHERE " (name att) " = '" (change-type value) "'"))))
+              (if result
+                (return-from sort-table (list table)))))
           (if (typep value (type-att att))
           ;query the database
             (let ((result (query (concatenate 'string "SELECT " (name att) " FROM " (name table) " WHERE " (name att) " = '" (change-type value) "'"))))
@@ -169,26 +171,26 @@
      (tables composer)
      tables)))
 
-;;UNPRECATED
-(defmethod is-permutation ((composer query-composer) node)
-  ;get the node with the same depth as new-node
-  (let ((node-to-compare '()))
-    (mapcar #'(lambda (x)
-                (if (equal (depth x) (depth node))
-                  (push x node-to-compare)))
-              (queue composer))
-    ;sort this list in which are the same attrs, table
-    (loop until (not node-to-compare )
-             for n = (pop node-to-compare)
-             do
-             (if (and (equal (attributes-selected n) (attributes-selected node))
-                         (equal (tble n) (tble node)))
-               (progn
-                 
-                 (let* ((current-n (sort (cdn-to-compare node) #'string-lessp :key #'second))
-                        (other-n  (sort (cdn-to-compare n) #'string-lessp :key #'second)))
-                   (if (and (equal current-n other-n) (equal (query (sql-compile (q n))) (query (sql-compile (q node)))))
-                     (setf (stop n) t))))))))
+
+;OK
+(defmethod get-selection (table answer)
+  (let ((list-to-merge '()))
+    (dolist (part answer)
+      (let ((att-of-type '()))
+      (if (typep part 'string)
+        (mapcar #'(lambda (x)
+                    (if (equal (type-att x) 'string)
+                      (push x att-of-type))) (attributes table)))
+      (if (typep part 'integer)
+        (mapcar #'(lambda (x)
+                    (if (equal (type-att x) 'integer)
+                      (push x att-of-type))) (attributes table)))
+      (pushend att-of-type list-to-merge)))
+    (apply #'combinations list-to-merge)
+    (let ((selection (apply #'combinations list-to-merge)))
+        (mapcar #'(lambda (x) (if (duplicates? x) (setf selection (remove x selection)))) selection)
+        selection)))
+    
 
 (defun goal-test (answer node)
   (let ((start-time (get-internal-real-time))
