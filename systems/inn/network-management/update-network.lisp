@@ -13,63 +13,63 @@
 ;; limitations under the License.
 ;;=========================================================================
 
-;; ------------------------------------------------------------------------
-;; 1. Grounding the methods in :graph-utils
-;; ------------------------------------------------------------------------
-
-(in-package :graph-utils)
-
-(defmethod add-node ((graph inn:integrative-narrative-network)
-                     (node inn:inn-node)
-                     &key &allow-other-keys)
-  (let* ((existing-node-p (lookup-node graph (inn:inn-node-id node)))
-         (id (if existing-node-p 
-               (inn:inn-node-id node) 
-               (setf (inn:inn-node-id node) (incf (last-id graph)))))
-         (vis-node (inn:inn-format-node node)))
-    ;; If the node already exists:
-    (if existing-node-p
-      ;; Then we simply update the vis.js-network:
-      (wi:vis-update-node vis-node)
-      ;; Else we add a new one and expand our inn:
-      (progn
-        (incf-sarray-dimensions (matrix graph))
-        (wi:vis-add-node vis-node)))
-    ;; Now store or modify the node in the INN:
-    (setf (gethash id (degree-table graph)) 0
-          (gethash node (nodes graph)) id
-          (gethash id (ids graph)) node)
-    id))
-
-(defmethod add-edge ((graph inn:integrative-narrative-network)
-                     (n1 integer) 
-                     (n2 integer)
-                     &key (weight 1) edge-type &allow-other-keys)
-  (declare (ignorable weight edge-type))
-  (unless (or (= n1 n2)
-              (edge-exists? graph n1 n2))
-    (wi:vis-add-edge (wi::format-vis-js-edge n1 n2))
-    (call-next-method)))
-
-;; ------------------------------------------------------------------------
-;; 2. The public INN interface.
-;; ------------------------------------------------------------------------
-
 (in-package :inn)
 
 (export '(inn-add-node 
+          inn-update-node
           inn-add-nodes
           inn-delete-node
           inn-delete-nodes
           inn-add-edge
-          inn-delet-edge))
+          inn-add-edges
+          inn-delete-edge
+          inn-delete-edges))
 
 (defgeneric inn-add-node (graph node &key &allow-other-keys))
+
+(defun inn-update-node (graph node)
+  ;; Update the vis network:
+  (vis-update-node (inn-format-node node))
+  ;; Update the INN network:
+  (let ((id (inn-node-id node)))
+    (setf (gethash id (graph-utils::degree-table graph)) 0
+          (gethash node (graph-utils::nodes graph)) id
+          (gethash id (graph-utils::ids graph)) node)
+    id))
 
 (defmethod inn-add-node ((graph integrative-narrative-network)
                          (node inn-node)
                          &key &allow-other-keys)
-  (graph-utils:add-node graph node))
+  (let ((existing-node? (graph-utils::lookup-node graph (inn-node-id node))))
+    (if existing-node? ;; If the node already exists:
+      ;; Then update it:
+      (inn-update-node graph node)
+      ;; Otherwise we add it. We first ensure we have a compatible ID:
+      (let ((id (setf (inn-node-id node) (incf (graph-utils::last-id graph)))))
+        ;; We add the node to our vis network:
+        (vis-add-node (inn-format-node node))
+        ;; And we add the node to the INN:
+        (graph-utils::incf-sarray-dimensions (graph-utils::matrix graph))
+        (setf (gethash id (graph-utils::degree-table graph)) 0
+	      (gethash node (graph-utils::nodes graph)) id
+	      (gethash id (graph-utils::ids graph)) node)
+        id))))
+
+(defmethod add-node ((graph undirected-typed-graph) value &key capacity)
+  "Add a node to the graph."
+  (or (gethash value (nodes graph))
+      (let ((id (incf (last-id graph))))
+        (maphash (lambda (etype matrix)
+                   (declare (ignore etype))
+                   (incf-sarray-dimensions matrix))
+                 (matrix graph))
+        (when capacity
+          (setf (gethash id (node-caps graph)) capacity))
+        (setf (gethash id (degree-table graph)) 0
+              (gethash value (nodes graph)) id
+              (gethash id (ids graph)) value)
+        id)))
+        (graph-utils:add-node graph node)))))
 
 (defgeneric inn-add-nodes (inn list-of-nodes &key &allow-other-keys))
 
@@ -106,7 +106,13 @@
                          (node1 integer)
                          (node2 integer)
                          &key (weight 1) edge-type &allow-other-keys)
-  (graph-utils::add-edge graph node1 node2 :weight weight :edge-type edge-type))
+  (unless (or (= node1 node2)
+              (graph-utils:edge-exists? graph node1 node2 :edge-type edge-type))
+    (let ((vis-edge (inn-format-edge node1 node2 :id (gensym "edge"))))
+      (setf (gethash (list node1 node2) (vis-edges graph)) vis-edge
+            (gethash (list node2 node1) (vis-edges graph)) vis-edge)
+      (wi:vis-add-edge vis-edge)
+      (graph-utils::add-edge graph node1 node2 :weight weight :edge-type edge-type))))
 
 (defmethod inn-add-edge ((graph integrative-narrative-network)
                          (node1 inn-node)
@@ -130,8 +136,12 @@
                             (n1 integer)
                             (n2 integer)
                             &optional edge-type)
-  (vis-remove-edge (wi::format-vis-js-edge n1 n2))
-  (graph-utils::delete-edge graph n1 n2 edge-type))
+  (let ((vis-edge (or (gethash (list n1 n2) (vis-edges graph))
+                      (gethash (list n2 n1) (vis-edges graph)))))
+    (vis-remove-edge vis-edge)
+    (remhash (list n1 n2) (vis-edges graph))
+    (remhash (list n2 n1) (vis-edges graph))
+    (graph-utils::delete-edge graph n1 n2 edge-type)))
 
 (defmethod inn-delete-edge ((graph integrative-narrative-network)
                             (node1 inn-node)

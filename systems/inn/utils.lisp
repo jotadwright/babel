@@ -47,3 +47,12 @@
 (defmethod inn-object-id ((object binding))
   (slot-value object 'variable))
 ;; (inn-object-id (make-instance 'binding :var (make-var)))
+
+(defun store-network (inn &optional pathname)
+  (let ((path (or pathname (merge-pathnames ".tmp/inn.fcg" (babel-pathname)))))
+    (cl-store::store inn path)))
+
+(defun restore-network (pathname)
+  (cl-store::restore pathname))
+
+

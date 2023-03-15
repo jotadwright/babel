@@ -32,11 +32,11 @@
                     :initform (make-hash-table)
                     :initarg  :bound-variables
                     :accessor bound-variables)
-   (update-edges :documentation "Edges to be updated."
-                 :type hash-table
-                 :initform (make-hash-table :test 'equal)
-                 :initarg  :update-edges
-                 :accessor update-edges))
+   (vis-edges :documentation "List of vis-edges"
+              :type hash-table
+              :initform (make-hash-table :test 'equal)
+              :initarg :vis-edges
+              :accessor vis-edges))
   (:documentation "Base class for integrative narrative networks."))
 
 (defmacro make-inn (&rest keys-and-values)
