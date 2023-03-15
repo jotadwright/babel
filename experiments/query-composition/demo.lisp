@@ -13,7 +13,7 @@
 
 ;; show query one by one
 (let ((start-time (get-internal-real-time))
-       (result (query "SELECT population FROM continent where id=1"))
+       (result (query "SELECT name FROM continent where id=1"))
        (composer-obj (make-instance 'query-composer)))
   (write (compose-query composer-obj result :exclude-id t))
   (terpri))
@@ -25,6 +25,7 @@
 
 (disconnect-toplevel)
 
+;don't use right now
 (let* ((master (make-instance 'master-agent))
        (quest (q (get-question master)))
        (composer-obj (make-instance 'query-composer)))
