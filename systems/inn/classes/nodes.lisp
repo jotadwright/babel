@@ -115,6 +115,11 @@
 
 (export '(posed-by 
           narrative-question
+          narrative-question-id
+          narrative-question-label
+          narrative-question-description
+          narrative-question-shape
+          narrative-question-color
           answered-by inn-answer
           narrative-question-posed-by
           narrative-question-answered-by
@@ -129,7 +134,8 @@
 
 (export '(make-narrative-question
           make-open-narrative-question
-          make-answered-narrative-question))
+          make-answered-narrative-question
+          inn-answer-question))
 
 (defun make-narrative-question (&rest parameters
                                       &key &allow-other-keys)
@@ -155,6 +161,26 @@
 (defmacro make-answered-narrative-question (&rest parameters)
   `(make-narrative-question ,@parameters
                             :type 'answered-narrative-question))
+
+(defun inn-answer-question (narrative-question
+                            &key answered-by answer)
+  (setf (narrative-question-type narrative-question) 'answered-narrative-question
+        (narrative-question-shape narrative-question) (get-node-shape 'answered-narrative-question)
+        (narrative-question-color narrative-question) (get-node-color 'answered-narrative-question)
+        (narrative-question-answer narrative-question) answer
+        (narrative-question-answered-by narrative-question) answered-by)
+  (vis-update-node (inn-format-node narrative-question))
+  narrative-question)
+
+(export '(make-entity-node make-predicate-node))
+
+(defmacro make-entity-node (&rest parameters)
+  `(make-inn-node ,@parameters
+                  :type 'entity))
+
+(defmacro make-predicate-node (&rest parameters)
+  `(make-inn-node ,@parameters
+                  :type 'predicate))
 
 ;; -------------------------------------------------------------------------
 ;; Helper Macro for writing customized inn-node-code.

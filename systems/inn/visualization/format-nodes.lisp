@@ -21,8 +21,11 @@
 
 (defgeneric inn-format-node (inn-node))
 
+(defmethod inn-format-node ((id integer))
+  (format nil "{ id: '~a'}" id))
+
 (defmethod inn-format-node ((node inn-node))
-  (let ((id (inn-node-id node))
+  (let ((id (graph-utils::node-id node))
         (color (inn-node-color node))
         (shape (inn-node-shape node))
         (label (inn-node-label node)))
