@@ -31,7 +31,8 @@
                (:module "visualization"
                 :serial t
                 :components ((:file "format-nodes")
-                             (:file "format-edges")))
+                             (:file "format-edges")
+                             (:file "draw-vis-network")))
                (:module "network-management"
                 :serial t
                 :components ((:file "update-network")))))
