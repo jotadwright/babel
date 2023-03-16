@@ -16,8 +16,8 @@
   ((source-object-set attribute scene => target-category)
    
    (if (equal (length (collect-objects-from-world-model source-object-set)) 0)
-     (bind (target-category 1.0 (attribute-none attribute ontology)))
-     (bind (target-category 1.0 (query-object-attribute (first (collect-objects-from-world-model source-object-set)) attribute ontology)))))
+       (bind (target-category 1.0 (attribute-none attribute ontology)))
+       (bind (target-category 1.0 (query-object-attribute (first (collect-objects-from-world-model source-object-set)) attribute ontology)))))
   
   ;; second case; given source-object and target-category, compute the attribute
   ((source-object-set target-category scene => attribute)
@@ -33,7 +33,7 @@
   ;; third case; given source-object, compute pairs of attribute and target-category
   ((source-object-set scene => target-category attribute)
    (loop for attr in (get-data ontology 'attributes)
-         for target-cat = (query-object-attribute (first (objects source-object-set)) attr ontology)
+         for target-cat = (query-object-attribute (first (objects (object-set (first (set-items source-object-set))))) attr ontology)
          when target-cat
          do (bind (attribute 1.0 attr)
                   (target-category 1.0 target-cat))))
