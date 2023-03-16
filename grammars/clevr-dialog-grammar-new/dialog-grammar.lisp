@@ -27,8 +27,7 @@ nodes."
                        (:parse-goal-tests :no-applicable-cxns
                                           :no-strings-in-root
                                           :connected-semantic-network
-                                          :connected-structure
-                                          )
+                                          :connected-structure)
                        (:production-goal-tests :no-applicable-cxns
                                                :no-meaning-in-root :connected-structure)
                        (:max-nr-of-nodes . 20000)
@@ -461,7 +460,6 @@ nodes."
               <-
               (?what-is-unit
                (HASH meaning ((query ?specific-attribute ?unique ?scene ?attribute)))
-               
                --
                (HASH form ((string ?what-unit "what")
                            (string ?is-unit "is")
@@ -1556,8 +1554,6 @@ nodes."
               (?nom-unit
                (footprints (plural)))
               <-
-              (?plural-np-unit
-               --)
               (?nom-unit
                (args ((target ?inset) (source ?context)))
                (sem-cat (sem-class nominal)

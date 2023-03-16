@@ -19,6 +19,7 @@
           get-context get-memory
           get-last-attribute-category immediate-relate
           more-than-1 query
-          relate set-diff unique
+          relate set-diff unique select-one
+          segment-scene
           understand
           ))
