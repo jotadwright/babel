@@ -8,7 +8,7 @@
         :web-interface
         :irl
         :fcg
-        :cl-json
-        )
+        :cl-json)
+  (:export #:evaluate)
   (:shadow "PROTOTYPE" "PP")
   (:documentation ""))

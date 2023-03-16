@@ -1,0 +1,5 @@
+#almond-crescent-cookies
+(get-kitchen ?kitchen)
+(fetch ?baking-tray ?kitchen-state-with-baking-tray ?kitchen baking-tray 1) 
+(fetch-and-proportion ?proportioned-butter ?ks-with-butter ?kitchen-state-with-baking-tray ?baking-tray linguine 230 g)
+(bring-to-temperature ?warm-butter ?ks-with-warm-butter ?ks-with-butter ?proportioned-butter ?room-temp-quantity ?room-temp-unit)

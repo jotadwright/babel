@@ -1,2 +1,3 @@
 *.lisp~
 *.pdf
+recipe-execution-benchmark/libs/smatch/__pycache__

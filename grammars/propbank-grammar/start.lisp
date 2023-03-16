@@ -154,6 +154,9 @@
 
 (comprehend-and-extract-frames "The plumber unclogged the sink with a drain snake." :cxn-inventory *test-grammar*)
 
+(comprehend-and-extract-frames "You should not sprinkle the cos lettuce during the heat of the sun."
+                               :cxn-inventory *restored-grammar-lw*)
+
 
 
 #|

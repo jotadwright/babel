@@ -63,7 +63,7 @@
   (let* ((distribution (seq2seq-distribution-for-node node))
          (hash-compatible-cxns (all-cxns-except-incompatible-hashed-cxns node))
          (comptatible-cxns (loop for cxn-and-prob in distribution
-                              if (find (intern (mkstr (car cxn-and-prob)) :clevr-grammar-v1)
+                              if (find (intern (mkstr (car cxn-and-prob)) :clevr-grammar)
                                        hash-compatible-cxns
                                        :test #'equal :key #'name)
                               collect it)))
@@ -95,7 +95,7 @@
   (let* ((distribution (seq2seq-distribution-for-node node))
          (hash-compatible-cxns (all-cxns-except-incompatible-hashed-cxns node))
          (comptatible-cxns (loop for cxn-and-prob in distribution
-                                 for cxn = (find (intern (mkstr (car cxn-and-prob)) :clevr-grammar-v1)
+                                 for cxn = (find (intern (mkstr (car cxn-and-prob)) :clevr-grammar)
                                                  hash-compatible-cxns
                                                  :test #'equal :key #'name)
                                  if cxn
@@ -143,7 +143,7 @@
          (cxns-with-label (all-constructions-of-label node label))
          (compatible-cxns-with-probabilities
           (loop for (cxn-name . prob) in distribution
-                for found-cxn = (find (intern (mkstr cxn-name) :clevr-grammar-v1)
+                for found-cxn = (find (intern (mkstr cxn-name) :clevr-grammar)
                                       cxns-with-label :test #'equal :key #'name)
                 if found-cxn
                 collect (cons found-cxn prob)))

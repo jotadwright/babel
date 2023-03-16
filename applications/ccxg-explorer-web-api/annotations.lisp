@@ -1,4 +1,4 @@
-(in-package :propbank-english)
+(in-package :propbank-grammar)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                                  ;;
@@ -10,13 +10,22 @@
 ;; The annotations are stored here:
 (defparameter *CCxG-explorer-annotations* (make-hash-table))
 
+
 (defun store-annotations ()
   (store *CCxG-explorer-annotations* (make-pathname :directory (pathname-directory (or *load-truename*
-                                                                                       *compile-file-truename*)) :name "annotations" :type "store")))
+                                                                                       *compile-file-truename*))
+                                                    :name "annotations" :type "store")))
+
 
 (defun restore-annotations ()
-  (setf *CCxG-explorer-annotations* (restore (make-pathname :directory (pathname-directory (or *load-truename*
-                                                                                       *compile-file-truename*)) :name "annotations" :type "store"))))
+  (setf *CCxG-explorer-annotations*
+        (cl-store:restore
+         (make-pathname :directory (pathname-directory (or *load-truename*
+                                                                                       *compile-file-truename*))
+                                                            :name "annotations" :type "store"))))
+
+
+(restore-annotations)
 
 (defun make-ccxg-explorer-annotations-for-propbank-sentences (corpus-name list-of-propbank-sentences)
   "Makes ccxg explorer annotations for list-of-propbank-sentences and populates *CCxG-explorer-annotations*."

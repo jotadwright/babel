@@ -19,20 +19,22 @@
                :fcg 
                :cl-postgres
                :postmodern
-               )
+               :cl-csv)
   :serial t
   :components ((:file "package")
+                (:file "query-compose")
                 (:module "objects"
                  :serial t
                  :components ((:file "attribute-obj")
                               (:file "node-obj")
                               (:file "tree-obj")
-                              (:file "table-obj")))
-                ;(:file "attribute-obj")
-                ;(:file "node-obj")
-                ;(:file "table-obj")
-                ;(:file "tree-obj")
-                ;(:file "first-step")
-                (:file "main")
-                (:file "utils")
-                (:file "schema")))
+                              (:file "table-obj")
+                              (:file "reference-info-obj")))
+                (:module "db"
+                 :serial t
+                 :components ((:file "setup-database")
+                              (:file "schema")))
+                (:module "agents"
+                 :serial t
+                 :components ((:file "master-agent")))
+                (:file "utils")))

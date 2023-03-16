@@ -15,12 +15,11 @@
                    &key &allow-other-keys)
   "Repair by adding new th links for existing nodes that were not previously connected."
   (let ((cxns-and-categorial-links (create-categorial-links problem node)))
-    (if cxns-and-categorial-links
+    (when cxns-and-categorial-links
       (make-instance 'fcg::cxn-fix
                      :repair repair
                      :problem problem
-                     :restart-data cxns-and-categorial-links)
-      nil)))
+                     :restart-data cxns-and-categorial-links))))
 
 
 (defun create-categorial-links (problem node)
@@ -100,8 +99,7 @@
                 unless (member 'pf::used-as-slot-filler footprints)
                 return unit)))
     (second (find 'meaning-args (rest top-unit) :key #'first))))
-  
-;(second (find 'ARGS (rest (first (remove-child-units (left-pole-structure (car-resulting-cfs (cipn-car cip-node)))))) :key #'first)))
+
 
 (defun reject-solutions-with-incompatible-args (cip-nodes gold-standard-meaning required-args)
   "Check if the open variables of the gold standard meaning
@@ -115,7 +113,7 @@
         for renamed-ts-args = (when embedding (substitute-predicate-bindings ts-top-level-args (first embedding)))
         when (or (not required-args) ;; if there aren't any required args but you still have some, succeed
                  (equal renamed-ts-args required-args))
-          collect cip-node))
+        collect cip-node))
 
 
 (defun extract-used-categorial-links (solution-cipn)
@@ -142,5 +140,5 @@
                        for ts-unit = (find ts-unit-name (left-pole-structure (car-source-cfs (cipn-car cipn))):key #'first)
                        for ts-lex-class = (second (find 'lex-class (second (find 'syn-cat (rest ts-unit) :key #'first)) :key #'first))
                        when (and cxn-lex-class ts-lex-class)
-                         collect (cons ts-lex-class cxn-lex-class)))))
+                       collect (cons ts-lex-class cxn-lex-class)))))
             

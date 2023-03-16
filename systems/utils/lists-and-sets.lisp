@@ -945,7 +945,7 @@ element for which the sought value satisfies the test"
 	  eq-sets
 	  eql-sets))
 
-(defun union+ (&rest sets)
+(defun union+ (sets)
   "Returns the union of any number of sets."
   (if (cdr sets)
       (union (car sets) (union+ (cdr sets)))

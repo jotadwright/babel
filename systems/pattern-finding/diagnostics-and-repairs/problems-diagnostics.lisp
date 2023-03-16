@@ -13,6 +13,7 @@
 (defclass diagnose-non-gold-standard-meaning (diagnostic)
   ((trigger :initform 'fcg::new-node)))
 
+#|
 (defun unknown-utterance-p (node)
   ;; the utterance is completely unknown when
   (and ;; node is fully expanded
@@ -47,6 +48,8 @@
        (fully-expanded? node)
        ;; there are some applied cxns
        (applied-constructions node)
+       ;; there are no children
+       (null (children node))
        ;; no repair has applied yet
        (not (some-applied-repair-in-tree node))))
 
@@ -75,8 +78,8 @@
     (not (equivalent-irl-programs? gold-standard-meaning meaning))))
 
 (defun all-nodes-diagnosed-p (node)
-  ;; all nodes in the tree (except for the initial node)
-  ;; must be diagnosed. For this, we truly need to traverse
+  ;; all leafs in the tree must be diagnosed.
+  ;; For this, we truly need to traverse
   ;; the entire tree...
   (let ((undiagnosed-node-found-p nil))
     (traverse-depth-first
@@ -113,15 +116,12 @@
   ;; initial node
   (find-data (initial-node node) :candidates))
       
-#|
 (defmethod diagnose ((diagnostic diagnose-non-gold-standard-meaning) (node cip-node)
                      &key &allow-other-keys)
   (when (eql (direction (cip node)) '<-)
     (let ((resulting-cfs (car-resulting-cfs (cipn-car node))))
       (cond (; utterance is unknown, not a single cxn could apply
-             ; or all nodes were tried to repair, but none of them succeeded
-             (or (unknown-utterance-p node)
-                 (all-partial-analysis-repairs-failed-p node))
+             (unknown-utterance-p node)
              ; make a problem
              (let ((problem (make-instance 'non-gold-standard-meaning)))
                (set-data problem :utterance (get-data resulting-cfs :utterance))

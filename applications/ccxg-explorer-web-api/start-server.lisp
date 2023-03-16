@@ -1,11 +1,12 @@
 ;;;; start-server.lisp
 
-(ql:quickload :propbank-english)
-(in-package :propbank-english)
+(ql:quickload :propbank-grammar)
+(in-package :propbank-grammar)
 
 (load (babel-pathname :directory
-                      '("applications" "ccxg-explorer-web-api")
-                      :name "annotations" :type "lisp"))
+                     '("applications" "ccxg-explorer-web-api")
+                     :name "annotations"
+                     :type "lisp"))
 
 (load (babel-pathname :directory
                       '("applications" "ccxg-explorer-web-api")
@@ -15,7 +16,7 @@
                       '("applications" "ccxg-explorer-web-api")
                       :name "web-service" :type "lisp"))
 
-(restore-annotations)
+;(restore-annotations)
 
 
 (in-package :hunchentoot)
@@ -42,13 +43,18 @@ either return a handler or neglect by returning NIL."
   (call-next-method))
 
 
-(in-package :propbank-english)
+(in-package :propbank-grammar)
 
 
 
 (defvar *ccxg-explorer-app* (snooze:make-hunchentoot-app))
 (push *ccxg-explorer-app* hunchentoot:*dispatch-table*)
 (defvar *ccxg-explorer-acceptor* (make-instance 'hunchentoot:cors-acceptor :port 8500)) ;; Kortrijk
+
+(if (hunchentoot:started-p *ccxg-explorer-acceptor*)
+    (hunchentoot:stop *ccxg-explorer-acceptor*))
+
 (hunchentoot:start *ccxg-explorer-acceptor*)
-;(hunchentoot:stop *ccxg-explorer-acceptor*)
+
+
 

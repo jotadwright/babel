@@ -24,7 +24,7 @@
       (http-condition 400 "Invalid irl-encoding specified: ~a. Expected 'sexpr' or 'json'."
                       irl-encoding))
     (multiple-value-bind (irl-programs cipns)
-        (handler-case (fcg:comprehend-all (preprocess-sentence utterance)
+        (handler-case (fcg:comprehend-all (preprocess-utterance utterance)
                                           :cxn-inventory *CLEVR*
                                           :silent t
                                           :n n)
@@ -163,7 +163,7 @@
     (unless (stringp utterance)
       (http-condition 400 "utterance is of type ~a. Expected something of type string." (type-of utterance)))
     (multiple-value-bind (utterance cipn)
-        (handler-case (fcg:comprehend-and-formulate (preprocess-sentence utterance)
+        (handler-case (fcg:comprehend-and-formulate (preprocess-utterance utterance)
                                                     :cxn-inventory *CLEVR*
                                                     :silent t)
           (error (e)
