@@ -52,9 +52,9 @@
                 :initform nil
                 :accessor time-result
                 :documentation "Execution time of the query.")
-   (q :type integer
+   (q :type list
       :initarg :q
-      :initform ""
+      :initform nil
       :accessor q
       :documentation "Query generated"))
   (:documentation "Object representing a node of the tree. This object is represented by a set of attributes that allows it to obtain and store all the information necessary for its SQL query."))
@@ -150,7 +150,7 @@
     ;Set the permutation query
     (setf permutation-query (append (selection node) (list :where (list :and cdn (conditions node)))))
     ;Testing the query
-    (if (not (node-test composer permutation-query))
+    (if (not (node-test composer  permutation-query))
       (make-instance 'node
                      :id (make-id)
                      :parent node
@@ -192,3 +192,15 @@
                 (if (equal q (q x))
                   (return-from node-test t)))
               (queue composer)))
+
+(defun length-query (node)
+  (length (q node)))
+
+;;Take too much time
+;(defmethod node-test ((composer query-composer) depth q)
+;  (let* ((all-nodes-with-depth (find-all depth (queue composer) :key #'depth :test #'=))
+;          (all-nodes-with-length-q (find-all (length q) all-nodes-with-depth :key #'length-query :test #'=)))
+;    (loop for queue-node in all-nodes-with-length-q
+;             when (equal (q queue-node) q)
+;             return nil)))
+              

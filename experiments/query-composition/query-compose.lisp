@@ -39,23 +39,55 @@
 ;; exclude-id: If true, that's exclude the id in the clause condition.
 ;; all-queries: If true, the program returns all queries that match the answer.
 (defmethod compose-query ((composer query-composer) answer &key exclude-id all-queries)
-  (loop until (not (queue composer))
-           for parent = (pop (queue composer))
+    (loop until (not (queue composer))
+          for parent = (pop (queue composer))
+          do
+            (if (not (equal (depth parent) 0))
+              (progn (if (goal-test answer parent)
+                       (progn (if all-queries
+                                (setf (queries composer) (push parent (queries composer)))
+                                (return-from compose-query (q parent)))))))
+            (if (equal (depth parent) 0)
+              (select-compose composer parent answer))
+            (if (not (equal (depth parent) 0))
+              ;(let ((start-time (get-internal-real-time)))
+                (condition-compose composer parent :exclude-id exclude-id)))
+                ;(let ((end-time (get-internal-real-time)))
+                 ; (write (- end-time start-time))
+                 ; (terpri)))))
+    (queries composer))
+
+
+(defmethod compose-query2 ((composer query-composer) answer &key exclude-id all-queries)
+  (let ((expand-lst '()))
+    (loop until (not (queue composer))
+          for parent = (pop (queue composer))
+          do
+            (if (not (equal (depth parent) 0))
+              (progn (if (goal-test answer parent)
+                       (progn (if all-queries
+                                (setf (queries composer) (push parent (queries composer)))
+                                (return-from compose-query2 (q parent)))))))
+            (push parent expand-lst)
+            (if (not (queue composer))
+              (progn
+                (expand composer expand-lst answer :exclude-id exclude-id)
+                (setf expand-lst '()))))))
+
+    
+
+(defmethod expand ((composer query-composer) queue answer &key exclude-id)
+  (loop until (not queue)
+           for parent = (pop queue)
            do
-         (if (not (equal (depth parent) 0))
-            (progn (if (goal-test answer parent)
-                     (progn (if all-queries
-                              (setf (queries composer) (push parent (queries composer)))
-                              (return-from compose-query (q parent)))))))
           (if (equal (depth parent) 0)
             (select-compose composer parent answer))
           (if (not (equal (depth parent) 0))
-            (let ((start-time (get-internal-real-time)))
-              (condition-compose composer parent :exclude-id exclude-id)
-              (let ((end-time (get-internal-real-time)))
-                (write (- end-time start-time))
-                (terpri)))))
-  (queries composer))
+            ;(let ((start-time (get-internal-real-time)))
+              (condition-compose composer parent :exclude-id exclude-id))))
+             ; (let ((end-time (get-internal-real-time)))
+              ;  (write (- end-time start-time))
+               ; (terpri))))))
 
 
 (defmethod condition-compose ((composer query-composer) parent &key exclude-id)

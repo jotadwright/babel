@@ -13,13 +13,14 @@
 
 ;; show query one by one
 (let ((start-time (get-internal-real-time))
-       (result (query "SELECT name FROM continent where id=1"))
+       (result (query "SELECT name  from country where id=1"))
        (composer-obj (make-instance 'query-composer)))
-  (write (compose-query composer-obj result :exclude-id t))
+  
+  (write (compose-query2 composer-obj result :exclude-id t))
   (terpri))
 
 ;; show all the queries
-(let ((result (query "SELECT name FROM road WHERE id=1"))
+(let ((result (query "SELECT name FROM city WHERE id=1"))
        (composer-obj (make-instance 'query-composer)))
   (write (compose-query composer-obj result :exclude-id t :all-queries t)))
 
@@ -29,5 +30,7 @@
 (let* ((master (make-instance 'master-agent))
        (quest (q (get-question master)))
        (composer-obj (make-instance 'query-composer)))
-  (write (query quest))
-  (write (compose-query composer-obj (query quest) :exclude-id t)))
+  (write quest)
+  (terpri)
+  (write (compose-query composer-obj (query quest) :exclude-id t))
+  (terpri))
