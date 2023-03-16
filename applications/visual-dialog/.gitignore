@@ -1,1 +1,4 @@
 evaluation/results/*
+measures/*.pdf
+measures/data
+measures/.ipynb_checkpoints
