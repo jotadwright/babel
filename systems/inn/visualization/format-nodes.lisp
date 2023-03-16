@@ -16,8 +16,7 @@
 (in-package :inn)
 
 ;; For formatting nodes in a string that is understood by vis.js.
-
-(export '(inn-format-node))
+(export '(inn-format-node inn-format-nodes))
 
 (defgeneric inn-format-node (inn-node))
 
@@ -38,3 +37,6 @@
 (defmethod inn-format-node ((node t))
   (error (format nil "The object of type ~a is not an inn-node." (type-of node))))
 ;; (inn-format-node (make-instance 'integrative-narrative-network))
+
+(defun inn-format-nodes (nodes)
+  (mapcar #'inn-format-node nodes))

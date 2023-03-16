@@ -31,16 +31,18 @@
                 for columns-list = (first (cdr item))
                 append (if (consp answer)
                          (loop for column in columns-list
-                               for result = (handler-case (generate-postmodern-query (generate-query-string table_name :column column :where column :in (list-to-string answer))))
+                               for result = (ignore-errors (generate-postmodern-query (generate-query-string table_name :column column :where column :in (list-to-string answer))))
                                when result collect column)
                          (loop for column in columns-list
-                               for result = (handler-case (generate-postmodern-query (generate-query-string table_name :column column :where (format nil "~a = ~a" column answer))))
+                               for result = (ignore-errors (generate-postmodern-query (generate-query-string table_name :column column :where (format nil "~a = ~a" column answer))))
                                when result collect column))))
     ;step 2 : we need to find out from which column we need to start the query to get to the answer
     possible-answer-columns))
 
-;(postmodern::query (:select 'film :from 'actorsfilms :where (:in 'film (:set "All for Nikki" "The Prince" "Ask Me Anything"))))
- 
+
+;(postmodern::query (:select 'film :from 'actorsfilms :where (:in 'film (:set "Toxin" "Black Coffee" "Perfect Combination"))))
+(postmodern::query "SELECT film FROM actorsfilms WHERE film IN ('Toxin', 'Black Coffee', 'Perfect Combination')")
+
 
 (defun try-queries-until-success (answer)
   "Tries different queries to get to the answer without error.

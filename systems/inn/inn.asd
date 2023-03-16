@@ -30,7 +30,8 @@
                              (:file "edges")))
                (:module "visualization"
                 :serial t
-                :components ((:file "format-nodes")))
+                :components ((:file "format-nodes")
+                             (:file "format-edges")))
                (:module "network-management"
                 :serial t
                 :components ((:file "update-network")))))

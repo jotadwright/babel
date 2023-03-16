@@ -16,4 +16,3 @@
 (in-package :inn)
 
 ;; No custom code needed for edges for the moment.
-
