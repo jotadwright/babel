@@ -13,11 +13,18 @@
 
 ;; show query one by one
 (let ((start-time (get-internal-real-time))
-       (result (query "SELECT name  from country where id=1"))
-       (composer-obj (make-instance 'query-composer)))
-  
-  (write (compose-query2 composer-obj result :exclude-id t))
+       (result (query "SELECT name, population from country where id=1"))
+       (composer-obj (make-instance 'query-composer))
+       (start-time (get-internal-real-time)))
+
+  (write (compose-query2 composer-obj result
+                         :exclude-constraint t
+                         :sort-table t
+                         :star-shortcut t))
+  (terpri)
+  (write (- (get-internal-real-time) start-time))
   (terpri))
+
 
 ;; show all the queries
 (let ((result (query "SELECT name FROM city WHERE id=1"))
@@ -34,3 +41,16 @@
   (terpri)
   (write (compose-query composer-obj (query quest) :exclude-id t))
   (terpri))
+
+
+(add-element (make-html-for-t (make-instance 'query-composer)))
+
+
+(defmethod make-html-for-t ((tree query-tree) ts)
+  `((h1), (root tree)))
+
+(defmethod make-html-for-search-tree ((tree query-tree))
+  (
+  (write "test"))
+  
+                    
