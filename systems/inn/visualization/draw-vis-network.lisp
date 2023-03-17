@@ -25,22 +25,45 @@
              (vis-edges inn))
     vis-edges))
 
-(defun draw-inn-network-in-vis-js (inn 
-                                   &key (destroy-network? t)
-                                   (id "integrativeNarrativeNetwork")
-                                   (options "interaction: { navigationButtons: true, keyboard: true }"))
-  (if destroy-network?
-    (vis-destroy-network))
-  (let* ((nodes (graph-utils::nodes inn))
+(defun draw-inn-network-in-vis-js 
+       (inn 
+        &key
+        (interaction t)
+        (id "integrativeNarrativeNetwork")
+        (height "80%")
+        (width "80%")
+        (other-options "")
+        (reset-web-interface t))
+  (vis-destroy-network)
+  (let* ((options 
+          (format nil "~a~%~a~%~a~%~a"
+                  (if interaction "interaction: { navigationButtons: true, keyboard: false }," "")
+                  (format nil "height: '~a'," height)
+                  (format nil "width: '~a'," width)
+                  other-options))
+         (nodes (graph-utils::nodes inn))
          (inn-nodes (graph-utils::ids inn))
          (formatted-nodes (if nodes
-                            (loop for key being each hash-key of nodes
-                                    using (hash-value value)
+                            (loop for value being each hash-value of nodes
                                   collect (inn-format-node (gethash value inn-nodes)))))
          (edges (collect-vis-edges inn)))
-    (add-element 
-     `((div :id ,id) 
-       ,(wi::make-vis-network :element-id id
-                              :nodes formatted-nodes
-                              :edges edges
-                              :options options)))))
+    (if reset-web-interface (wi::reset))
+    (add-element
+     `((div :id "interactiveINN")
+       ((div :class "table")
+        ((table)
+         ((tr)
+          ((td)
+           ((button :class "inn-button" :role "button" :onclick "javascript:ajax_addinnnode();") "Add Node"))
+          ((td)
+           ((button :class "inn-button" :role "button") "Add Edge"))
+          ((td)
+           ((button :class "inn-button" :role "button") "Delete Selection")))
+         ((tr :colspan "3")
+          ((div :id "innpopup")))))
+       ((div :id ,id) 
+        ,(wi::make-vis-network :element-id id
+                               :nodes formatted-nodes
+                               :edges edges
+                               :options options))))))
+;; (draw-inn-network-in-vis-js (make-instance 'integrative-narrative-network))
