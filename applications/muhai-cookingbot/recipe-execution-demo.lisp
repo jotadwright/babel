@@ -64,31 +64,34 @@
            (print "Execution Time:")
            (print (execution-time solution))))
 
-(defun show-metrics-on-web-interface (solutions)
-  (loop for solution in solutions
-        do (add-element '((hr)))
-           (add-element `((h2) ,(format nil "Metrics for recipe '~(~a~)'"
-                                        (recipe-id solution))))
-           (when (smatch-score solution)
-             (add-element `((h3) ,(format nil "Smatch Score: ~a"
-                                          (smatch-score solution)))))
-           (when (subgoals-ratio solution)
-             (add-element `((h3) ,(format nil "Ratio of Reached Subgoals: ~a"
-                                          (subgoals-ratio solution)))))
-           (when (dish-score solution)
-             (add-element `((h3) ,(format nil "Dish score: ~a"
-                                          (dish-score solution)))))
-           (when (execution-time solution)
-             (add-element `((h3) ,(format nil "Execution time: ~a"
-                                          (execution-time solution)))))))
+(defun show-metrics-on-web-interface (solution)
+  (add-element
+   `((h2) ,(format nil "Metrics for recipe '~(~a~)'"
+                   (recipe-id solution))))
+  (add-element
+   `((table :class "entity")
+     ((tr)
+      ((td) ((b) "Smatch Score"))
+      ((td :style "padding-left: 20px;")
+       ,(format nil "~a" (smatch-score solution))))
+     ((tr)
+      ((td) ((b) "Ratio of Reached Subgoals"))
+      ((td :style "padding-left: 20px;")
+       ,(format nil "~a" (subgoals-ratio solution))))
+     ((tr)
+      ((td) ((b) "Dish Approxmiation Score"))
+      ((td :style "padding-left: 20px;")
+       ,(format nil "~a" (dish-score solution))))
+     ((tr)
+      ((td) ((b) "Execution Time"))
+      ((td :style "padding-left: 20px;")
+       ,(format nil "~a" (execution-time solution)))))))
 
 
 (defparameter *almond-crescent-cookies-gold-standard*
   (with-disabled-monitors
      (almond-crescent-cookies-gold-standard)))
-
-
-(progn
+  
 (defparameter *perfect-solution*
   (evaluate-solutions 
    (babel-pathname :directory '("applications" "muhai-cookingbot"
@@ -97,10 +100,11 @@
                    :name "perfect" :type "solution")
    (list *almond-crescent-cookies-gold-standard*)
    :metrics *all-metrics*))
-(print-results *perfect-solution*)
-(show-metrics-on-web-interface *perfect-solution*)
+(show-metrics-on-web-interface (first *perfect-solution*))
 
 
+;; operations are presented in a different order in the file
+;; but the kitchen states are connected correctly
 (defparameter *perfect-permuted-sequence*
   (evaluate-solutions
    (babel-pathname :directory '("applications" "muhai-cookingbot"
@@ -109,10 +113,10 @@
                    :name "perfect-permuted-sequence" :type "solution")
    (list *almond-crescent-cookies-gold-standard*)
    :metrics *all-metrics*))
-(print-results *perfect-permuted-sequence*)
-(show-metrics-on-web-interface *perfect-permuted-sequence*)
+(show-metrics-on-web-interface (first *perfect-permuted-sequence*))
 
 
+;; almond extract is added to the bowl first before the vanilla extract is added
 (defparameter *perfect-switched-operations*
   (evaluate-solutions
    (babel-pathname :directory '("applications" "muhai-cookingbot"
@@ -121,10 +125,10 @@
                    :name "perfect-switched-operations" :type "solution")
    (list *almond-crescent-cookies-gold-standard*)
    :metrics *all-metrics*))
-(print-results *perfect-switched-operations*)
-(show-metrics-on-web-interface *perfect-switched-operations*)
+(show-metrics-on-web-interface (first *perfect-switched-operations*))
 
 
+;; using always new tools instead of reusing the same tools
 (defparameter *missing-tool-reuse*
   (evaluate-solutions
    (babel-pathname :directory '("applications" "muhai-cookingbot"
@@ -133,10 +137,11 @@
                    :name "missing-tool-reuse" :type "solution")
    (list *almond-crescent-cookies-gold-standard*)
    :metrics *all-metrics*))
-(print-results *missing-tool-reuse*)
-(show-metrics-on-web-interface *missing-tool-reuse*)
+(show-metrics-on-web-interface (first *missing-tool-reuse*))
 
 
+;; missing the unspecified operation of letting the butter get
+;; to room temperature
 (defparameter *missing-minor-implicit*
   (evaluate-solutions
    (babel-pathname :directory '("applications" "muhai-cookingbot"
@@ -145,9 +150,11 @@
                 :name "missing-minor-implicit" :type "solution")
    (list *almond-crescent-cookies-gold-standard*)
    :metrics *all-metrics*))
-(print-results *missing-minor-implicit*)
-(show-metrics-on-web-interface *missing-minor-implicit*)
+(show-metrics-on-web-interface (first *missing-minor-implicit*))
 
+
+;;  MISSING STEPS: putting the cookies on a lined baking tray,
+;; baking them and sprinkling some powdered sugar on it
 (defparameter *partial-failure*
   (evaluate-solutions
    (babel-pathname :directory '("applications" "muhai-cookingbot"
@@ -156,9 +163,10 @@
                    :name "partial-failure" :type "solution")
    (list *almond-crescent-cookies-gold-standard*)
    :metrics *all-metrics*))
-(print-results *partial-failure*)
-(show-metrics-on-web-interface *partial-failure*)
+(show-metrics-on-web-interface (first *partial-failure*))
 
+
+;; used cocoa-powder instead of sugar   
 (defparameter *wrong-ingredient*
   (evaluate-solutions
    (babel-pathname :directory '("applications" "muhai-cookingbot"
@@ -167,9 +175,11 @@
                    :name "wrong-ingredient" :type "solution")
    (list *almond-crescent-cookies-gold-standard*)
    :metrics *all-metrics*))
-(print-results *wrong-ingredient*)
-(show-metrics-on-web-interface *wrong-ingredient*)
+(show-metrics-on-web-interface (first *wrong-ingredient*))
 
+
+;; additional operations occur in order to make some chocolate dip,
+;; which is not part of the original recipe
 (defparameter *additional-side-dish*
   (evaluate-solutions
    (babel-pathname :directory '("applications" "muhai-cookingbot"
@@ -178,9 +188,11 @@
                    :name "additional-side-dish" :type "solution")
    (list *almond-crescent-cookies-gold-standard*)
    :metrics *all-metrics*))
-(print-results *additional-side-dish*)
-(show-metrics-on-web-interface *additional-side-dish*)
+(show-metrics-on-web-interface (first *additional-side-dish*))
 
+
+;; additional operations in order to make some chocolate
+;; dip in which the cookies are dipped, which is not part of the main dish
 (defparameter *extended-main-dish*
   (evaluate-solutions
    (babel-pathname :directory '("applications" "muhai-cookingbot"
@@ -189,9 +201,10 @@
                    :name "extended-main-dish" :type "solution")
    (list *almond-crescent-cookies-gold-standard*)
    :metrics *all-metrics*))
-(print-results *extended-main-dish*)
-(show-metrics-on-web-interface *extended-main-dish*)
+(show-metrics-on-web-interface (first *extended-main-dish*))
 
+
+;; only steps that have been recognized were fetching tools
 (defparameter *no-cooking*
   (evaluate-solutions
    (babel-pathname :directory '("applications" "muhai-cookingbot"
@@ -200,7 +213,5 @@
                    :name "no-cooking" :type "solution")
    (list *almond-crescent-cookies-gold-standard*)
    :metrics *all-metrics*))
-(print-results *no-cooking*)
-(show-metrics-on-web-interface *no-cooking*)
-)
+(show-metrics-on-web-interface (first *no-cooking*))
 
