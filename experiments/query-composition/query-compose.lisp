@@ -75,7 +75,8 @@
                         :exclude-constraint exclude-constraint
                         :sort-table sort-table
                         :star-shortcut star-shortcut)
-                (setf expand-lst '()))))))
+                (setf expand-lst '()))))
+    (queries composer)))
 
     
 
@@ -190,6 +191,7 @@
                            ))))))))
     answers))
 
+;OK
 (defmethod sort-table ((composer query-composer) answer)
   (let ((row (first answer))
          (tables  '()))
@@ -198,9 +200,9 @@
         (dolist (att (attributes table))
           (if (and (typep value (type-att att)) (equal (type-att att) 'string))
             (let ((result (query (concatenate 'string "SELECT " (name att) " FROM " (name table) " WHERE " (name att) " = '" (change-type value) "'"))))
-              (if result
-                (return-from sort-table (list table)))))
-          (if (typep value (type-att att))
+              (if (notempty result)
+                (setf tables (push table tables)))))
+          (if (and (typep value (type-att att)) (not (equal (type-att att) 'string)))
           ;query the database
             (let ((result (query (concatenate 'string "SELECT " (name att) " FROM " (name table) " WHERE " (name att) " = '" (change-type value) "'"))))
               (if result
@@ -229,7 +231,7 @@
         (mapcar #'(lambda (x) (if (duplicates? x) (setf selection (remove x selection)))) selection)
         selection)))
     
-
+;OK
 (defun goal-test (answer node)
   (let ((start-time (get-internal-real-time))
          (res-of nil))

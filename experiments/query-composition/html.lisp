@@ -30,7 +30,11 @@
             (get-tree-html child))))
 
 
-(define-css 'test "table.report { border:1px solid black }")
+(define-css 'test "
+table.report { border:1px solid black }
+tr {border:1px solid black}
+th {background-color:#AAAAAA}")
+
 
 (defmethod make-html-report ((compose-obj query-composer) (question-obj question) time-result node-obj sorts)
   (let ((report
