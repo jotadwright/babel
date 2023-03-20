@@ -10,8 +10,7 @@
   (:shadowing-import-from :jonathan
    :to-json :parse)
   (:import-from :drakma
-   :http-request)
-  )
+   :http-request))
 
 (in-package :visual-dialog)
 

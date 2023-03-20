@@ -116,9 +116,9 @@
 ;;;;; Predicate Networks in vis.js
 ;;;;; -----------------------------------------------------------------------------------
 
-(defun format-vis-js-node (id &key label (group "predicateNodes"))
-  "Helper function for adding a node to the javascript code."
-  (format nil "{ id: '~a', label: '~a', group: '~a' }" id (or label id) group))
+(defun format-vis-js-edge ( start-id end-id)	
+  "Helper function for adding an edge to the javascript code."	
+  (format nil "{id: '~a-~a', from: '~a', to: '~a' }" start-id end-id start-id end-id))
 
 (defun format-vis-js-edge (start-id end-id)
   "Helper function for adding an edge to the javascript code."
