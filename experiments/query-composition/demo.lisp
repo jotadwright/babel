@@ -4,53 +4,37 @@
 
 ;; setup create table and insert data into your database for corresponding to the experience
 ;; for this, replace the value of differents keys to yours connections options
-(setup-database :dbname "lisp_db"
-                           :username "admin"
-                           :password "root"
-                           :hostname "localhost")
+;(setup-database :dbname "lisp_db"
+;                           :username "admin"
+;                           :password "root"
+;                           :hostname "localhost")
 
 (connect-toplevel "lisp_db" "admin" "root" "localhost")
 
-;; show query one by one
-(let ((start-time (get-internal-real-time))
-       (result (query "SELECT name, population from country where id=1"))
-       (composer-obj (make-instance 'query-composer))
-       (start-time (get-internal-real-time)))
-
-  (write (compose-query2 composer-obj result
+(let* ((master (make-instance 'master-agent))
+       (quest (get-question master))
+       (composer-obj-1 (make-instance 'query-composer))
+       (composer-obj-2 (make-instance 'query-composer))
+       (composer-obj-3 (make-instance 'query-composer))
+       (start-time (get-internal-real-time))
+       (node-found nil))
+  (write (query (query-associated quest)))
+  ;;All sort
+ (setf node-found (compose-query2 composer-obj-1 (query (query-associated quest))
                          :exclude-constraint t
                          :sort-table t
                          :star-shortcut t))
-  (terpri)
-  (write (- (get-internal-real-time) start-time))
-  (terpri))
-
-
-;; show all the queries
-(let ((result (query "SELECT name FROM city WHERE id=1"))
-       (composer-obj (make-instance 'query-composer)))
-  (write (compose-query composer-obj result :exclude-id t :all-queries t)))
+  (make-html-report composer-obj-1 quest (- (get-internal-real-time) start-time) node-found '("Exclude constraint" "Sort table" "Star shortcut"))
+  ;;Sort-table & shortcut-sort
+  (setf start-time (get-internal-real-time))
+  (setf node-found (compose-query2 composer-obj-2 (query (query-associated quest))
+                         :sort-table t
+                         :star-shortcut t))
+  (make-html-report composer-obj-2 quest (- (get-internal-real-time) start-time) node-found '("Sort table" "Star shortcut"))
+  ;;Only short-cut sort
+  (setf start-time (get-internal-real-time))
+  (setf node-found (compose-query2 composer-obj-3 (query (query-associated quest))
+                         :star-shortcut t))
+  (make-html-report composer-obj-3 quest (- (get-internal-real-time) start-time) node-found '("Star shortcut")))
 
 (disconnect-toplevel)
-
-;don't use right now
-(let* ((master (make-instance 'master-agent))
-       (quest (q (get-question master)))
-       (composer-obj (make-instance 'query-composer)))
-  (write quest)
-  (terpri)
-  (write (compose-query composer-obj (query quest) :exclude-id t))
-  (terpri))
-
-
-(add-element (make-html-for-t (make-instance 'query-composer)))
-
-
-(defmethod make-html-for-t ((tree query-tree) ts)
-  `((h1), (root tree)))
-
-(defmethod make-html-for-search-tree ((tree query-tree))
-  (
-  (write "test"))
-  
-                    

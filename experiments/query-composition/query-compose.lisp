@@ -67,7 +67,7 @@
               (progn (if (goal-test answer parent)
                        (progn (if all-queries
                                 (setf (queries composer) (push parent (queries composer)))
-                                (return-from compose-query2 (q parent)))))))
+                                (return-from compose-query2 parent))))))
             (push parent expand-lst)
             (if (not (queue composer))
               (progn
@@ -237,7 +237,7 @@
     (let ((end-time (get-internal-real-time)))
       (if (equal answer res-of)
         (progn
-          (setf (time-result node) (float (/ (- end-time start-time) 1000)))
+          (setf (time-result node) (- end-time start-time))
           t)))))
 
 

@@ -1,18 +1,7 @@
 (in-package :qc)
 
-(defclass node ()
-  ((id :type integer
-       :initarg :id
-       :accessor id)
-   (parent :type node
-           :initarg :parent
-           :initform nil
-           :accessor parent)
-   (children :type list
-             :initarg :children
-             :initform '()
-             :accessor children)
-   (depth :type integer
+(defclass node (tree-node)
+  ((depth :type integer
           :initarg :depth
           :initform nil
           :accessor depth
@@ -30,7 +19,7 @@
    (ref-tbles :type list
               :initarg :ref-tbles
               :initform '()
-              :accessor ref-tbles
+              :accessor ref-tbles 
               :documentation "Set of tables referred to in the query.")
    (selection :type list
               :initarg :selection
