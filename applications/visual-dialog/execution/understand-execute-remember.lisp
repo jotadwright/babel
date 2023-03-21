@@ -21,8 +21,8 @@
                 ((or (find 'count-objects irl-program :test #'equal :key #'first)
                      (find 'more-than-1 irl-program :test #'equal :key #'first))
                  (setf memory (initialize-memory-multiple-objects-caption input-sentence irl-program list-of-bindings))))
-          (when (not silent)
-            (add-conversation-memory memory))
+          ;(when (not silent)
+          ;  (add-conversation-memory memory))
           (set-data ontology 'conversation-memory memory)
           memory)
         (make-instance 'world-model
@@ -61,8 +61,8 @@
                                                                     :answer (id target-value)
                                                                     :topic-list (find-topic source-value)
                                                                     :object-set new-object-set))))
-        (when (not silent)
-          (add-conversation-memory memory))
+        #|(when (not silent)
+          (add-conversation-memory memory))|#
         (set-data ontology 'conversation-memory memory)
         memory)
       (make-instance 'world-model
@@ -82,7 +82,14 @@
                  (irl-program (push scene-var-bind-statement irl-program))
                  (memory-var (extract-memory-unit-variable cipn))
                  (memory-var-bind-statement `(bind world-model ,memory-var ,memory))
-                 (irl-program (push memory-var-bind-statement irl-program))
+                 (memory-in-meaning?
+                  (loop for prim in irl-program
+                        when (find memory-var prim)
+                            collect prim))
+                 (irl-program (if memory-in-meaning?
+                                (push memory-var-bind-statement irl-program)
+                                irl-program))
+; (irl-program (push memory-var-bind-statement irl-program))
                  (solutions (evaluate-irl-program irl-program ontology :silent (if silent silent) :n 1 :primitive-inventory (get-primitive-inventory (get-data ontology 'world)))))
             (if solutions
               (let* ((target-value (get-target-value irl-program (first solutions)))
@@ -94,7 +101,7 @@
                                        :objects (loop for object in (objects (object-set last-set))
                                                       collect (copy-object object)))
                         (make-instance 'object-set)
-; :scene-configuration (copy-scene-configuration (object-set last-set))
+;:scene-configuration (copy-scene-configuration (object-set last-set))
                                                    ))
                     items-list question)
                 (if (not (eq target-primitive 'exist-or-count))
@@ -119,8 +126,8 @@
                                               :answer (id target-value)
                                               :topic-list (find-topic source-value)))
                 (push new-item (set-items memory))
-                (when (not silent)
-                  (add-conversation-memory memory))
+                #|(when (not silent)
+                  (add-conversation-memory memory))|#
                 (id target-value))
               (if (eq (get-configuration (get-data ontology 'world) :evaluation-mode) :guess)
                 (guess-answer irl-program (get-configuration (get-data ontology 'world) :dataset))

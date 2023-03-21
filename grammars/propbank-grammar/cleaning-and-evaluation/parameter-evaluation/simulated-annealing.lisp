@@ -37,7 +37,6 @@
       (format t "Total runtime: ~f seconds~%" total-runtime))
     best-params))
 
-
 (defun plot-f1-scores (f1-scores-and-params)
   "Plots the f1 scores using Gnuplot."
   (utils:with-open-pipe (stream (monitors:pipe-to-gnuplot))
@@ -121,28 +120,41 @@
       (format t "Step ~a: temperature = ~a, best score = ~a, best parameters = ~a~% " step temperature best-score best-params))
     best-params))
 
-(defun learn-predict-evaluate-sa (current-combination &optional (old-training-configuration *training-configuration-all*) (new-training-configuration training-configuration-new) (train-corpus *train-corpus*))
+(defun learn-predict-evaluate-sa (current-combination &key (test-batch-size 500) (old-training-configuration training-configuration-all) (new-training-configuration training-configuration-new) (train-corpus *train-corpus*))
   "Evaluates a PropBank grammar using specified parameters, training configurations and corpus."
-  (let ((new-training-configuration (copy-list old-training-configuration))
-        (test-grammar nil))
+  (let* ((random-number (format nil "~4,'0d" (random 10000)))
+         (new-training-configuration (copy-list old-training-configuration))
+         (test-grammar nil))
     (let ((updated-training-config (adjust-training-configuration current-combination new-training-configuration)))
       (format t "Running configuration: ~A~%" updated-training-config)
       (learn-propbank-grammar-roles
              *train-corpus*
              :cxn-inventory 'test-grammar
              :fcg-configuration updated-training-config)
-      (store-learned-grammar current-combination)
-      (let ((predictions-comprehend (comprehend-propbank-corpus-parameters test-grammar current-combination)))
-        (evaluate-predictions-f1 predictions-comprehend)))))
+      (store-learned-grammar current-combination :random-number random-number)
+      (let* ((test-sentences *dev-corpus*)
+             (f1-scores nil)
+             (f1-scores-loose nil))
+        (loop for i below (ceiling (length test-sentences) test-batch-size)
+              for batch = (subseq test-sentences (* i test-batch-size) (* (1+ i) test-batch-size))
+              do (let ((predictions-comprehend (comprehend-propbank-corpus-parameters test-grammar current-combination batch :random-number random-number)))
+                   (push (evaluate-predictions-f1 predictions-comprehend) f1-scores)
+                   (push (evaluate-predictions-f1 predictions-comprehend :include-word-sense nil :include-timed-out-sentences nil) f1-scores-loose)))
+        (let ((final-f1 (/ (reduce #'+ f1-scores) (length f1-scores))))
+          (format t "Final mean F1 score for current combination: ~a ~A~%" current-combination final-f1)
+          (store-f1-scores-batch current-combination f1-scores test-batch-size)
+          (store-f1-scores-batch-loose current-combination f1-scores-loose test-batch-size)
+          final-f1)))))
 
 (defun random-neighbour (current-parameter list-of-combinations-parameters &optional used-parameters)
   "Generates a random near neighbour of the given parameters."
   (let ((used-parameters (or used-parameters '()))
         (random-index (random (length list-of-combinations-parameters)))
         (neighbour nil))
-    (push current-parameter used-parameters)
-    (dotimes (i (length list-of-combinations-parameters))
-      (setf neighbour (nth (mod (+ i random-index) (length list-of-combinations-parameters)) list-of-combinations-parameters))
-      (when (not (member neighbour used-parameters))
-        (return neighbour)))
+    (loop for i below (length list-of-combinations-parameters) do
+          (setf neighbour (nth (mod (+ i random-index) (length list-of-combinations-parameters)) list-of-combinations-parameters))
+          (unless (member neighbour used-parameters)
+            (return-from random-neighbour neighbour)))
+    (unless neighbour
+      (error "All remaining parameter combinations have been used"))
     neighbour))

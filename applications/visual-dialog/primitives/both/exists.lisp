@@ -37,4 +37,4 @@
   (length (objects object-set)))
 
 (defmethod get-length ((set world-model))
-  (length (objects (object-set (first (set-items set))))))
+  (length (collect-objects-from-world-model set)))

@@ -108,7 +108,8 @@
 
               <-
               (?there-is-X-unit
-               (HASH meaning ((exist yes ?target)))
+               (HASH meaning ((exist ?yes ?target)
+                              (bind boolean-category ?yes yes)))
                --
                (HASH form ((meets ?there-unit ?is-unit) (meets ?is-unit ?leftmost-unit))))
               (?there-unit
@@ -288,7 +289,8 @@
                (subunits (?the-unit ?image-unit ?has-unit ?X-unit)))
               <-
               (?the-image-has-X-unit
-               (HASH meaning ((exist yes ?target)
+               (HASH meaning ((exist ?yes ?target)
+                              (bind boolean-category ?yes yes)
                               ;(get-context ?original-input )
                               (segment-scene ?segmented-scene ?scene)))
                --
@@ -326,7 +328,8 @@
                (subunits (?no-unit ?other-unit ?x-unit ?except-unit ?for-unit ?one-unit)))
               <-
               (?no-other-x-except-for-one-unit
-               (HASH meaning ((exist yes ?unique)
+               (HASH meaning ((exist ?yes ?unique)
+                              (bind boolean-category ?yes yes)
                               (segment-scene ?segmented-scene ?scene)))
                --
                (HASH form ((meets ?no-unit ?other-unit)
@@ -376,7 +379,8 @@
                (subunits (?no-unit ?other-unit ?x-unit ?except-unit ?for-unit ?exactly-unit ?one-unit)))
               <-
               (?no-other-x-except-for-one-unit
-               (HASH meaning ((exist yes ?unique)
+               (HASH meaning ((exist ?yes ?unique)
+                              (bind boolean-category ?yes yes)
                              ; (get-context ?source)
                               (segment-scene ?segmented-scene ?scene)
                               ))
@@ -441,7 +445,8 @@
                (args ((context ?segmented-scene))))
               <-
               (?X-is-present-R-of-Y-unit
-               (HASH meaning ((exist yes ?first-np-target)
+               (HASH meaning ((exist ?yes ?first-np-target)
+                              (bind boolean-category ?yes yes)
                               (immediate-relate ?first-np-source ?unique ?segmented-scene ?scene ?relation)))
                --
                (HASH form ((meets ?rightmost-first-np-unit ?is-unit) (meets ?is-unit ?present-unit) (meets ?present-unit ?leftmost-relation-unit))))
@@ -501,7 +506,8 @@
                (args ((context ?segmented-scene))))
               <-
               (?X-stands-R-of-Y-unit
-               (HASH meaning ((exist yes ?first-np-target)
+               (HASH meaning ((exist ?yes ?first-np-target)
+                              (bind boolean-category ?yes yes)
                               (immediate-relate ?first-np-source ?unique ?segmented-scene ?scene ?relation)))
                --
                (HASH form ((meets ?rightmost-first-np-unit ?stands-unit) (meets ?stands-unit ?leftmost-relation-unit) )))
@@ -558,7 +564,8 @@
                (subunits (?X-unit ?is-unit ?extreme-relation-unit)))
               <-
               (?X-is-extreme-relation-unit
-               (HASH meaning ((exist yes ?first-np-target)))
+               (HASH meaning ((exist ?yes ?first-np-target)
+                              (bind boolean-category ?yes yes)))
                --
                (HASH form ((meets ?rightmost-unit ?is-unit) (meets ?is-unit ?leftmost-extreme-relation-unit))))
               (?X-unit
@@ -599,7 +606,8 @@
                (subunits (?X-unit ?is-unit ?extreme-relation-unit)))
               <-
               (?X-is-extreme-relation-unit
-               (HASH meaning ((exist yes ?first-np-target)
+               (HASH meaning ((exist ?yes ?first-np-target)
+                              (bind boolean-category ?yes yes)
                               (segment-scene ?segmented-scene ?scene)))
                --
                (HASH form ((meets ?thing-unit ?is-unit) (meets ?is-unit ?determiner-unit))))
@@ -644,7 +652,8 @@
                (subunits (?X-unit ?is-unit ?extreme-relation-unit ?in-unit ?the-unit ?image-unit)))
               <-
               (?X-is-extreme-relation-unit
-               (HASH meaning ((exist yes ?first-np-target)
+               (HASH meaning ((exist ?yes ?first-np-target)
+                              (bind boolean-category ?yes yes)
                               ;(get-context ?context)
                               (segment-scene ?segmented-scene ?scene)
                               ))
@@ -708,7 +717,8 @@
                )
               <-
               (?there-is-x-sitting-extreme-unit
-               (HASH meaning ((exist yes ?first-np-target)))
+               (HASH meaning ((exist ?yes ?first-np-target)
+                              (bind boolean-category ?yes yes)))
                --
                (HASH form ((meets ?there-unit ?is-unit)
                            (meets ?is-unit ?determiner-unit)
@@ -779,7 +789,8 @@
                )
               <-
               (?there-is-x-extreme-unit
-               (HASH meaning ((exist yes ?first-np-target)))
+               (HASH meaning ((exist ?yes ?first-np-target)
+                              (bind boolean-category ?yes yes)))
                --
                (HASH form ((meets ?there-unit ?is-unit)
                            (meets ?is-unit ?determiner-unit)
@@ -897,7 +908,8 @@
                (args ((context ?first-np-source))))
               <-
               (?X-is-present-unit
-               (HASH meaning ((exist yes ?first-np-target)))
+               (HASH meaning ((exist ?yes ?first-np-target)
+                              (bind boolean-category ?yes yes)))
                --
                (HASH form ((meets ?rightmost-first-np-unit ?is-unit)
                            (meets ?is-unit ?present-unit))))

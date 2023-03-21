@@ -22,6 +22,7 @@
                :cl-csv)
   :serial t
   :components ((:file "package")
+                (:file "query-compose")
                 (:module "objects"
                  :serial t
                  :components ((:file "attribute-obj")
@@ -33,5 +34,8 @@
                  :serial t
                  :components ((:file "setup-database")
                               (:file "schema")))
-                (:file "query-compose")
+                (:module "agents"
+                 :serial t
+                 :components ((:file "master-agent")))
+                (:file "html")
                 (:file "utils")))

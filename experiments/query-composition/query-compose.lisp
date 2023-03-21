@@ -20,11 +20,11 @@
                  :initarg :queries
                  :initform '()
                  :type sql-query
-                 :documentation "List of SQL query object that the method return.")))
+                 :documentation "List of SQL query object that the method return."))
+  (:documentation "Object representing the core of the research. This represents all the information to generate the tree. In particular the tree, the list of nodes to expand, the set of tables in the database as well as the set of nodes that lead to a valid query."))
 
 (defmethod initialize-instance :after ((composer query-composer) &key)
-  (let* ((result (query "SELECT name FROM continent where name='Africa'"))
-       (root-node (make-instance 'node :id (make-id) :parent nil :children '() :depth 0 :q ""))
+  (let* ((root-node (make-instance 'node :id (make-id) :parent nil :children '() :depth 0 :q ""))
        (tree (make-instance 'query-tree :nodes  (list  root-node) :root root-node)))
     (setf (tables composer) (init-schema))
     (setf (tree composer) tree)
@@ -39,80 +39,121 @@
 ;; exclude-id: If true, that's exclude the id in the clause condition.
 ;; all-queries: If true, the program returns all queries that match the answer.
 (defmethod compose-query ((composer query-composer) answer &key exclude-id all-queries)
-  (loop until (not (queue composer))
-           for parent = (pop (queue composer))
+    (loop until (not (queue composer))
+          for parent = (pop (queue composer))
+          do
+            (if (not (equal (depth parent) 0))
+              (progn (if (goal-test answer parent)
+                       (progn (if all-queries
+                                (setf (queries composer) (push parent (queries composer)))
+                                (return-from compose-query (q parent)))))))
+            (if (equal (depth parent) 0)
+              (select-compose composer parent answer))
+            (if (not (equal (depth parent) 0))
+              ;(let ((start-time (get-internal-real-time)))
+                (condition-compose composer parent :exclude-id exclude-id)))
+                ;(let ((end-time (get-internal-real-time)))
+                 ; (write (- end-time start-time))
+                 ; (terpri)))))
+    (queries composer))
+
+
+(defmethod compose-query2 ((composer query-composer) answer &key sort-table star-shortcut exclude-constraint all-queries)
+  (let ((expand-lst '()))
+    (loop until (not (queue composer))
+          for parent = (pop (queue composer))
+          do
+            (if (not (equal (depth parent) 0))
+              (progn (if (goal-test answer parent)
+                       (progn (if all-queries
+                                (setf (queries composer) (push parent (queries composer)))
+                                (return-from compose-query2 parent))))))
+            (push parent expand-lst)
+            (if (not (queue composer))
+              (progn
+                (expand composer expand-lst answer
+                        :exclude-constraint exclude-constraint
+                        :sort-table sort-table
+                        :star-shortcut star-shortcut)
+                (setf expand-lst '()))))
+    (queries composer)))
+
+    
+
+(defmethod expand ((composer query-composer) queue answer &key sort-table star-shortcut exclude-constraint)
+  (loop until (not queue)
+           for parent = (pop queue)
            do
-         (if (not (equal (depth parent) 0))
-            (progn
-              (if (goal-test answer parent)
-                (progn
-                  (if all-queries
-                    (setf (queries composer) (push parent (queries composer)))
-                    (return-from compose-query (q parent)))))))
           (if (equal (depth parent) 0)
-            (select-compose composer parent answer))
+            (select-compose composer parent answer :sort-table sort-table :star-shortcut star-shortcut))
           (if (not (equal (depth parent) 0))
-            (condition-compose composer parent :exclude-id exclude-id)))
-  (queries composer))
+            ;(let ((start-time (get-internal-real-time)))
+              (condition-compose composer parent :exclude-id exclude-constraint))))
+             ; (let ((end-time (get-internal-real-time)))
+              ;  (write (- end-time start-time))
+               ; (terpri))))))
 
 
-;;REVIEW THIS ONE
 (defmethod condition-compose ((composer query-composer) parent &key exclude-id)
-  (let ((attrs '()))
+  (let ((attrs '())
+         (nodes-lst '()))
     (if exclude-id
-      (setf attrs (remove-if #'(lambda (item) (equal (name item) "id")) (attributes (tble parent))))
+      (setf attrs (remove-if #'(lambda (item) (or (equal (constraint item) 'primary) (equal (constraint item) 'foreign))) (attributes (tble parent))))
       (setf attrs (attributes (tble parent))))
     (dolist (attr attrs)
-      (let ((result (flatten (query (concatenate 'string "SELECT " (name attr) " FROM " (name (tble parent)))))))
-        (dolist (val result)
-          (let ((operators '(:< :> :<= :>= :!= :=)))
-            (if (not (typep (first result) 'bit))
-              (setf operators  '(:!= :=)))
-            (dolist (operator operators)
-              (if (equal (depth parent) 1)
-                (progn
-                  (let ((child-node (where-node parent
-                                                (name attr)
-                                                operator
-                                                val
-                                                '())))
-                    (setf (children parent) (push child-node (children parent)))
-                    (setf (queue composer) (push-end child-node (queue composer)))))
-               ; (progn
-               ;   (let ((and-child (and-node parent attr operator val))
-               ;         (or-child (or-node parent attr operator val)))
-               ;     (setf (children parent) (append (children parent) (list and-child or-child)))
-               ;     (if (not (equal (length (attrs and-child)) (length (attributes (tble parent)))))
-               ;       (progn
-               ;         (setf (queue composer) (push-end and-child (queue composer)))
-               ;         (setf (queue composer) (push-end or-child (queue composer))))
-               ;       (progn
-               ;         (write "finish leaf")))))
-                ))))))))
+      (if (not (attr-is-present parent attr))
+        (progn
+          (let ((result (flatten (query (concatenate 'string "SELECT Distinct(" (name attr) ") FROM " (name (tble parent)))))))
+            (dolist (val result)
+              (dolist (operator (operators attr))
+                (if (equal (depth parent) 1)
+                  (progn
+                    (let ((child-node (where-node parent attr operator val)))
+                      (setf nodes-lst (append nodes-lst (list child-node)))))
+                  (progn
+                    (let ((and-child (and-node composer parent attr operator val))
+                          (or-child (or-node composer parent attr operator val)))
+                      (if and-child
+                        (progn
+                          (if (not (equal (length (attrs and-child)) (length (attributes (tble parent)))))
+                            (setf nodes-lst (append nodes-lst (list and-child))))))
+                      (if and-child
+                        (progn
+                          (if (not (equal (length (attrs or-child)) (length (attributes (tble parent)))))
+                            (setf nodes-lst (append nodes-lst (list or-child))))))))
+                  )))))))
+    (setf (children parent) nodes-lst)
+    (setf (queue composer) (append (queue composer) nodes-lst))))
 
-(defmethod select-compose ((composer query-composer) parent answer)
-   (let ((join-nodes '()))
-              (dolist (tble (tables composer))
-                (let ((permutations '()))
-                  (if (>= (length (attributes tble)) (length (first answer)))
-                    (setf permutations (permutations-of-length (sort-by-type (attributes tble) (first answer)) (length (first answer)))))
-                  (dolist (perm permutations)
-                    (let* ((attributes-names '())
-                           (child-node nil))
-                      (mapcar #'(lambda (x) (push (name x) attributes-names)) perm)
-                      (setf child-node (init-node parent
-                                                                attributes-names
-                                                                tble))
-                      (setf (children parent) (push child-node (children parent)))
-                      (setf (queue composer) (push-end child-node (queue composer)))
-                      ;;Join part
-                      ;;create node that satisty constraint
-                      (let ((select-node (init-node parent attributes-names tble :join t)))
-                        (setf join-nodes (append join-nodes (inner-outer-compose composer select-node))))
-                      ))))
-              (setf (queue composer) (append (queue composer) join-nodes))))
+(defmethod select-compose ((composer query-composer) parent answer &key sort-table star-shortcut)
+   (let ((join-nodes '())
+          (tables nil))
+     (if sort-table
+       (setf tables (sort-table composer answer))
+       (setf tables (tables composer)))
+     (dolist (tble tables)
+       (let ((permutations nil))
+         (cond ((and (equal (length (attributes tble)) (length (first answer))) star-shortcut) (setf permutations '(("*"))))
+               ((>= (length (attributes tble)) (length (first answer))) (setf permutations (get-selection tble (first answer)))))
+         (dolist (perm permutations)
+           (let* ((attributes-names '())
+                  (child-node nil))
+             (if (equal (length (attributes tble)) (length (first answer)))
+               (setf attributes-names perm)
+               (mapcar #'(lambda (x) (push (name x) attributes-names)) perm))
+             (setf child-node (init-node parent attributes-names tble))
+             (setf (children parent) (nconc (children parent) (list child-node)))
+             (setf (queue composer) (nconc (queue composer) (list child-node)))
+             ;;Join part
+             ;;create node that satisty constraint
+             (let ((select-node (init-node parent attributes-names tble :join t)))
+               (setf join-nodes (append join-nodes (inner-outer-compose composer select-node))))
+             ))))
+     ;; (setf (queue composer) (nconc (queue composer) join-nodes))
+     ))
 
 (defmethod inner-outer-compose ((composer query-composer) node)
+  
   (let ((queue (list node))
          (answers '()))
     (loop until (not queue)
@@ -150,6 +191,47 @@
                            ))))))))
     answers))
 
+;OK
+(defmethod sort-table ((composer query-composer) answer)
+  (let ((row (first answer))
+         (tables  '()))
+    (dolist (value row)
+      (dolist (table (tables composer)) 
+        (dolist (att (attributes table))
+          (if (and (typep value (type-att att)) (equal (type-att att) 'string))
+            (let ((result (query (concatenate 'string "SELECT " (name att) " FROM " (name table) " WHERE " (name att) " = '" (change-type value) "'"))))
+              (if (notempty result)
+                (setf tables (push table tables)))))
+          (if (and (typep value (type-att att)) (not (equal (type-att att) 'string)))
+          ;query the database
+            (let ((result (query (concatenate 'string "SELECT " (name att) " FROM " (name table) " WHERE " (name att) " = '" (change-type value) "'"))))
+              (if result
+                (setf tables (push table tables))))))))
+   (if (empty tables)
+     (tables composer)
+     tables)))
+
+
+;OK
+(defmethod get-selection (table answer)
+  (let ((list-to-merge '()))
+    (dolist (part answer)
+      (let ((att-of-type '()))
+      (if (typep part 'string)
+        (mapcar #'(lambda (x)
+                    (if (equal (type-att x) 'string)
+                      (push x att-of-type))) (attributes table)))
+      (if (typep part 'integer)
+        (mapcar #'(lambda (x)
+                    (if (equal (type-att x) 'integer)
+                      (push x att-of-type))) (attributes table)))
+      (pushend att-of-type list-to-merge)))
+    (apply #'combinations list-to-merge)
+    (let ((selection (apply #'combinations list-to-merge)))
+        (mapcar #'(lambda (x) (if (duplicates? x) (setf selection (remove x selection)))) selection)
+        selection)))
+    
+;OK
 (defun goal-test (answer node)
   (let ((start-time (get-internal-real-time))
          (res-of nil))
@@ -157,9 +239,7 @@
     (let ((end-time (get-internal-real-time)))
       (if (equal answer res-of)
         (progn
-          (write "TIME")
-          (terpri)
-          (setf (time-result node) (float (/ (- end-time start-time) 1000)))
+          (setf (time-result node) (- end-time start-time))
           t)))))
 
 

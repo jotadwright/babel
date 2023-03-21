@@ -7,6 +7,7 @@
 (run-interaction *experiment*)
 
 
-;(postmodern::query "SELECT year FROM actorsfilms WHERE film = 'American Loser'")
 
-;(postmodern::query "SELECT film FROM actorsfilms WHERE actor = 'Nelson Franklin'")
+
+
+ 

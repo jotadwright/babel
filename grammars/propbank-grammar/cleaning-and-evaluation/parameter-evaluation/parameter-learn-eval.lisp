@@ -1,7 +1,7 @@
 
 (in-package :propbank-grammar)
 
-(defun parameters-learn-comprehend-evaluate-grammar (parameters &optional (old-training-configuration *training-configuration-all*) (new-training-configuration *training-configuration-new*) (train-corpus *train-corpus*))
+(defun parameters-learn-comprehend-evaluate-grammar (parameters &optional (old-training-configuration training-configuration-all) (new-training-configuration training-configuration-new) (train-corpus *train-corpus*))
   "Learn and make predictions for a PropBank grammar using specified parameters, training configurations and corpus."  
   (let ((new-training-configuration (copy-list old-training-configuration)))
     (let ((comb-parameters (all-combinations-parameters parameters)))
@@ -109,7 +109,7 @@
                   (return f1-score))))
 
 ;; Brute force without evaluation of predictions
-(defun parameters-learn-comprehend-grammar (parameters &optional (old-training-configuration *training-configuration-all*) (new-training-configuration *training-configuration-new*) (train-corpus *train-corpus*))
+(defun parameters-learn-comprehend-grammar (parameters &optional (old-training-configuration training-configuration-all) (new-training-configuration training-configuration-new) (train-corpus *train-corpus*))
   "Learn and make predictions for a PropBank grammar using specified parameters, training configurations and corpus."  
   (let ((new-training-configuration (copy-list old-training-configuration)))
     (let ((comb-parameters (all-combinations-parameters parameters)))
@@ -125,35 +125,40 @@
             (store-learned-grammar combination)
             (comprehend-propbank-corpus-parameters *test-grammar* combination)))))))
 
-(defun comprehend-propbank-corpus-parameters (cxn-inventory combination &optional (list-of-propbank-sentences *dev-corpus*) &key (output-file nil) (timeout 60) (silent t))
+(defun comprehend-propbank-corpus-parameters (cxn-inventory combination &optional (list-of-propbank-sentences *dev-corpus*) &key (output-file nil) (timeout 60) (silent t) (random-number 0000))
   "Make predictions for a PropBank grammar using specified parameters, training configurations and corpus."
-  (let* ((predictions nil)
-        (filename (format nil "~a-prediction" combination))
-        (output-file (or output-file
-                         (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "predictions-parameter")
-                                         :name filename
-                                         )))
-         (pathname-string (namestring output-file))
-         (pathname-length (length pathname-string))
-         (pathname-cutoff (min pathname-length 255))
-         (output-file (subseq pathname-string 0 pathname-cutoff))
-         (output-file (format nil (format nil "~a~a" output-file ".store"))))
-    (loop for sentence in list-of-propbank-sentences
-          for sentence-number from 1
-          do (format t "~%Sentence ~a: ~a" sentence-number (sentence-string sentence))
-          collect (let* ((cipn (second (multiple-value-list (comprehend-and-extract-frames sentence :cxn-inventory cxn-inventory :silent silent :timeout timeout))))
-                         (annotation (propbank-frames sentence)))
-                    (if (eql cipn 'time-out)
-                      (progn (format t " --> timed out .~%")
-                        (list sentence annotation 'time-out))
-                      (let ((solution (remove-if-not #'frame-with-name (frames (extract-frames (car-resulting-cfs (cipn-car cipn)))))))
-                        (format t " --> done .~%")
-                        (list sentence annotation solution))))
-          into predictions
-          finally (progn (cl-store:store predictions output-file)
-                        (return predictions)))))
+  (let* ((predictions (loop for sentence in list-of-propbank-sentences
+                           for sentence-number from 1
+                           do (format t "~%Sentence ~a: ~a" sentence-number (sentence-string sentence))
+                           collect (let ((start-time (get-internal-real-time)))
+                                     (multiple-value-bind (cipn elapsed-time)
+                                         (progn
+                                           (setf (values cipn) (second (multiple-value-list (comprehend-and-extract-frames sentence :cxn-inventory cxn-inventory :silent silent :timeout timeout))))
+                                           (setf elapsed-time (- (get-internal-real-time) start-time))
+                                           (values cipn elapsed-time))
+                                       (let* ((elapsed-time-seconds (/ (float elapsed-time) internal-time-units-per-second))
+                                              (annotation (propbank-frames sentence)))
+                                         (if (eql cipn 'time-out)
+                                             (progn (format t " --> timed out (~,2f seconds) .~%" elapsed-time-seconds)
+                                                    (list sentence annotation 'time-out elapsed-time-seconds))
+                                             (let ((solution (remove-if-not #'frame-with-name (frames (extract-frames (car-resulting-cfs (cipn-car cipn)))))))
+                                               (format t " --> done (~,2f seconds) .~%" elapsed-time-seconds)
+                                               (list sentence annotation solution elapsed-time-seconds))))))))
+        (sorted-combination (sort combination (lambda (x y)
+                                                (> (length (cdr x)) (length (cdr y))))))
+        (filename (format nil "~a" sorted-combination))
+        (filename-string (namestring filename))
+        (filename-length (length filename-string))
+        (filename-cutoff (min filename-length 240))
+        (filename-final (subseq filename-string 0 filename-cutoff))
+        (output-file (format nil (format nil "~a~a-prd~a~a" (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "predictions-parameter")
+                                                              ) filename-final random-number ".store"))))
+    (with-open-file (out-stream output-file :direction :output :if-does-not-exist :create :if-exists :append)
+      (let ((binary-stream (flexi-streams:make-flexi-stream out-stream :element-type '(unsigned-byte 8))))
+        (cl-store:store predictions binary-stream)))
+    predictions))
 
-(defun parameters-learn-grammar (parameters &optional (old-training-configuration *training-configuration-all*) (new-training-configuration *training-configuration-new*) (train-corpus *train-corpus*))
+(defun parameters-learn-grammar (parameters &optional (old-training-configuration training-configuration-all) (new-training-configuration training-configuration-new) (train-corpus *train-corpus*))
   "Learn PropBank grammar using specified parameters, training configurations and corpus."
   (let ((new-training-configuration (copy-list old-training-configuration)))
     (let ((comb-parameters (all-combinations-parameters parameters)))
@@ -233,21 +238,21 @@
                        (list item)))
       list))
 
-(defun store-learned-grammar (combination &optional (grammar test-grammar))
+(defun store-learned-grammar (combination &key (grammar test-grammar) (random-number 000))
   "Stores the learned grammar using the configuration specified in 'updated-training-config' for the given 'parameter'
    in a file with a name specified in 'config-file-name' and path"
-  (let* ((filename (format nil "~a~a" combination "-grammar"))
-         (pathname (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "grammars-parameter")
-                                   :name filename
-                                   ))
-         (pathname-string (namestring pathname))
-         (pathname-length (length pathname-string))
-         (pathname-cutoff (min pathname-length 251))
-         (pathname (subseq pathname-string 0 pathname-cutoff))
-         (pathname (format nil (format nil "~a~a" pathname ".fcg"))))
+  (let* ((sorted-combination (sort combination (lambda (x y)
+                                              (> (length (cdr x)) (length (cdr y))))))  ; sort sublists by length
+         (filename (format nil "~a" sorted-combination))
+         (filename-string (namestring filename))
+         (filename-length (length filename-string))
+         (filename-cutoff (min filename-length 240))
+         (filename-final (subseq filename-string 0 filename-cutoff))
+         (pathname (format nil (format nil "~a~a-gr~a~a" (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "grammars-parameter")
+                                                              ) filename-final random-number ".fcg"))))
     (cl-store:store grammar pathname)))
 
-(defun adjust-training-configuration (updated-parameters &optional (training-configuration *training-configuration-new*))
+(defun adjust-training-configuration (updated-parameters &optional (training-configuration training-configuration-new))
   "Adjusts the given training configuration with the updated parameters."
   (let ((updated-config (copy-list training-configuration)))
     (dolist (parameter updated-parameters)
@@ -269,7 +274,7 @@
                                 parameters-to-exclude)))))
              combinations))
 
-(defun all-combinations-parameters (parameters &optional (training-configuration *training-configuration-all*))
+(defun all-combinations-parameters (parameters &optional (training-configuration training-configuration-all))
   "Returns all possible combinations of values for the given 'parameter' from 'training-configuration'"
   (let ((hash-table-combinations (combinations-parameters parameters training-configuration)))
     (let ((list-of-all-combinations-parameters (make-combinations-from-ht hash-table-combinations)))
@@ -283,7 +288,7 @@
             collect (loop for i from 0 below (length keys)
                           collect (cons (nth i keys) (nth i values-combination)))))))
 
-(defun combinations-parameters (parameters &optional (training-configuration *training-configuration-all*))
+(defun combinations-parameters (parameters &optional (training-configuration training-configuration-all))
   "Returns all possible combinations of values for the given 'parameter' from 'training-configuration'"
   (let ((collected-parameters (collect-training-parameters parameters training-configuration)))
     (let ((hash-table-combinations-parameters (create-combinations-hash-table collected-parameters)))
@@ -316,14 +321,14 @@
         (maphash (lambda (k v) (push k result-list)) result)
         (sort (sort result-list #'(lambda (a b) (< (length a) (length b)))) #'(lambda (a b) (string< (prin1-to-string a) (prin1-to-string b))))))))
 
-(defun collect-training-parameters (training-parameters &optional (training-configuration *training-configuration-all*))
+(defun collect-training-parameters (training-parameters &optional (training-configuration training-configuration-all))
   "Collects multiple training parameters from a given training configuration."
   (let ((collected-parameters '()))
     (dolist (training-parameter training-parameters)
       (setf collected-parameters (append (collect-training-parameter training-parameter training-configuration) collected-parameters)))
     collected-parameters))
 
-(defun collect-training-parameter (training-parameter &optional (training-configuration *training-configuration-all*))
+(defun collect-training-parameter (training-parameter &optional (training-configuration training-configuration-all))
   "Collects the training parameter from a given training configuration."
   (loop for (key . value) in training-configuration
         when (eq key training-parameter)

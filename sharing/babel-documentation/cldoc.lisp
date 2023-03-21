@@ -24,7 +24,7 @@
 ;; #################################
 
 ;; (ql:quickload :fcg)
-(extract-documentation-fcg 'html
+(extract-documentation-fcg 'cludg:html
                            "~/Desktop/tech-doc/fcg"
                            (asdf/system:find-system :fcg)
                            :table-of-contents-title "Fluid Construction Grammar (FCG)")
@@ -85,12 +85,33 @@
      (asdf:find-system :utils) 
       :table-of-contents-title "Utils")
 
-;; (ql:quickload:plot-raw-data)
+;; (ql:quickload :plot-raw-data)
 (extract-documentation-fcg
       'cludg:html 
       "~/Desktop/tech-doc/plot-raw-data" 
      (asdf:find-system :plot-raw-data) 
       :table-of-contents-title "Plot Raw Data")
+
+;; (ql:quickload :amr)
+(extract-documentation-fcg
+ 'cludg:html
+ "~/Desktop/tech-doc/amr-parser"
+ (asdf:find-system :amr)
+ :table-of-contents-title "AMR Parser")
+
+;; (ql:quickload :cl-pcp)
+(extract-documentation-fcg
+ 'cludg:html
+ "~/Desktop/tech-doc/cl-pcp"
+ (asdf:find-system :cl-pcp)
+ :table-of-contents-title "Parallel Corpus Processing")
+
+;; (ql:quickload :nlp-tools)
+(extract-documentation-fcg
+ 'cludg:html
+ "~/Desktop/tech-doc/nlp-tools"
+ (asdf:find-system :nlp-tools)
+ :table-of-contents-title "NLP Tools"))
 
 ;; ############################
 ;; Add to fcg-net.org server: #

@@ -8,7 +8,6 @@
         :test-framework
         :irl
         :amr
-        :clevr-world
         :web-interface
         :fcg
         :meta-layer-learning)

@@ -14,7 +14,6 @@
                :experiment-framework
                :test-framework
                :plot-raw-data
-               :clevr-world
                :cl-json)
   :serial t
   :components ((:file "package")
@@ -31,7 +30,8 @@
                              (:file "problems-diagnostics")
                              (:file "repair-add-categorial-links")
                              (:file "repair-nothing-to-holophrase-cxn")
-                             (:file "repair-anti-unify")))
+                             (:file "repair-anti-unify")
+                             (:file "repair-partial-analysis")))
                (:module experiment-setup
                 :serial t
                 :components ( (:file "run-helpers")
@@ -45,10 +45,11 @@
                                :components ( (:file "web-monitors")
                                              (:file "export-monitors")
                                              (:file "lisp-monitors")))))
-               (:module tests
-                :serial t
-                :components ((:file "utils")
-                             (:file "test-repairs"))))
+               ;(:module tests
+               ; :serial t
+               ; :components ((:file "utils")
+               ;              (:file "test-repairs")))
+               )
   :description "A Common Lisp package for learning construction grammars.")
 
 

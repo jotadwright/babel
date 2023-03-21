@@ -72,11 +72,16 @@
   (let* ((node-id (get-object-id node)) ;; The variable name
          (value (slot-value node 'value)) ;; An entity
          (value-id (if value (get-object-id value))))
-    ;; If the binding is already known, we do not have to add it again.
-   ; (if (and (gethash node-id (integrative-network-nodes network))
-   ;          (eql 'answered-question (integrative-network-node-type 
-   ;                                   (gethash node-id (integrative-network-nodes network)))))
-   ;   nil
+    ;; If the binding is already known, we only have to add the edge
+   ; (if (gethash node-id (integrative-network-nodes network))
+        #|(and (gethash node-id (integrative-network-nodes network))
+             (eql 'answered-question (integrative-network-node-type 
+                                      (gethash node-id (integrative-network-nodes network))))
+             )|#
+   ;   (progn 
+   ;     (push value-id (integrative-network-node-connected-nodes (gethash node-id (integrative-network-nodes network))))
+   ;     (push value-id (gethash node-id (integrative-network-update-edges network)))
+   ;     (identify-network-updates value network :under-attention? t :exhaustive? exhaustive?))
       ;; Otherwise we add a new node and its edges to the update list
       (if value
         (progn
@@ -92,7 +97,7 @@
                                                                             :label node-id
                                                                             :type 'open-question
                                                                             :under-attention t)))
-      ;)
+   ;  )
     ;; Return NIL
     nil))
 
@@ -128,6 +133,19 @@
         ;;  Else return NIL:
         nil))))
 
+
+(defmethod identify-network-updates ((nodes cons)
+                                     (network integrative-network)
+                                     &key exhaustive? &allow-other-keys)
+  ;Identify network updates for cons, the links between the variables
+  ;First replace in the edges network the old variable with the new one. Otherwise, the collect-edges will detect a change in the old and new meaning network, because the variable is replaced
+  (loop for key being each hash-key of (integrative-network-edges network)
+          using (hash-value v)
+        do (setf (gethash key (integrative-network-edges network))
+                 (substitute  (cdr nodes) (first nodes) v)))
+  (identify-network-updates (first nodes) network :source (list (cdr nodes)) :open-question? nil)  
+  (setf (gethash (first nodes) (integrative-network-update-edges network)) (list (cdr nodes))))
+
 ;; ------------------------------------------------------------------------------------------
 ;; (c) List: Intended to be used as handling a list of bindings (= accessible entities), 
 ;;           but can be used for any list.
@@ -144,14 +162,17 @@
 
 (defmethod identify-network-updates ((object t)
                                      (network integrative-network)
-                                     &key source (under-attention? nil) &allow-other-keys)
+                                     &key source (under-attention? nil) (open-question? t) &allow-other-keys)
   (let* ((node-id (get-object-id object))
-         (existing-node (or (gethash node-id (integrative-network-update-nodes network)) 
-                            (gethash node-id (integrative-network-nodes network))))
-         (existing-edges (if existing-node (integrative-network-node-connected-nodes existing-node)))
+         ;(existing-node (or (gethash node-id (integrative-network-update-nodes network)) 
+         ;                   (gethash node-id (integrative-network-nodes network))))
+         ;(existing-edges (if existing-node (integrative-network-node-connected-nodes existing-node)))
+         existing-node
+         existing-edges
          (node (make-integrative-network-node
                 :label node-id
-                :type (cond ((and existing-node (variable-p node-id)) 'answered-question)
+                :type (cond ((not open-question?) 'answered-question)
+                            ((and existing-node (variable-p node-id)) 'answered-question)
                             ((variable-p node-id) 'open-question)
                             (t
                              'value))
@@ -169,7 +190,7 @@
   (case type
     (open-question "diamond")
     (answered-question "diamond")
-    (entity "circle")
+    (entity "hexagon")
     (predicate "triangle")
     (t
      "square")))
@@ -246,22 +267,35 @@
 
 (defun collect-new-edges (integrative-network)
   "Edges are collected with filter for double-edges and formatted on the fly."
-  (let* ((new-edge-spec (integrative-network-update-edges integrative-network))
+  (let* ((old-edges (integrative-network-edges integrative-network))
+         (intermediate-edge-spec (integrative-network-update-edges integrative-network))
+         (new-table (make-hash-table))
+         (new-edge-spec (loop for edge-key being the hash-keys in intermediate-edge-spec
+                              when (or
+                                    (not (gethash edge-key old-edges))
+                                       (and
+                                        (gethash edge-key old-edges)
+                                        (not (permutation-of? (gethash edge-key old-edges)
+                                                              (gethash edge-key intermediate-edge-spec))))
+                                       )
+                                do (setf (gethash edge-key new-table) (gethash edge-key intermediate-edge-spec))))
          (already-handled nil)
-         (new-edges (loop for key being the hash-keys in new-edge-spec
-                          do (push key already-handled)
-                          append (loop for to-node in (gethash key new-edge-spec)
-                                         ;; Unless an edge in the other direction was already collected 
-                                         unless (and (member to-node already-handled)
-                                                     (member key (gethash to-node new-edge-spec)))
-                                         ;; Format the edge and collect it
-                                         collect (wi::format-vis-js-edge key to-node)))))
+         (new-edges (loop for key being the hash-keys in new-table
+                           do (push key already-handled)
+                           append (loop for to-node in (gethash key new-table)
+                                        ;; Unless an edge in the other direction was already collected 
+                                      ;  unless (and (member to-node already-handled)
+                                      ;              (member key (gethash to-node new-table)))
+                                          ;; Format the edge and collect it
+                                          collect (wi::format-vis-js-edge key to-node)))))
+    
     ;; Also add edges to the persistent network:
-    (loop for key being the hash-keys in new-edge-spec
-          do (loop for target in (gethash key new-edge-spec)
+    (loop for key being the hash-keys in new-table
+          do (loop for target in (gethash key new-table)
                    unless (member key (gethash target (integrative-network-edges integrative-network)))
                      do (setf (gethash key (integrative-network-edges integrative-network))
                               (cons-new target (gethash key (integrative-network-edges integrative-network))))))
+
     ;; Reset the update network:
     (setf (integrative-network-update-edges integrative-network) (make-hash-table))
     ;; Return the formatted edges:
@@ -291,7 +325,9 @@
 (defun initialize-values ()
   (setf (slot-value (monitors::get-monitor 'questions-introduced-by-grammar) 'values) nil
         (slot-value (monitors::get-monitor 'questions-solved-by-grammar) 'values) nil
-        (slot-value (monitors::get-monitor 'questions-solved-by-mental-simulation) 'values) nil))
+        (slot-value (monitors::get-monitor 'questions-solved-by-mental-simulation) 'values) nil
+        (slot-value (monitors::get-monitor 'node-names-fcg) 'values) nil
+        (slot-value (monitors::get-monitor 'node-names-irl) 'values) nil))
 
 
 (defun instantiate-meaning-network (network)
@@ -304,3 +340,12 @@
           for bind = (find var binds)
           when bind
             do (setf var (last-elt bind)))))
+
+
+(defparameter *counter* 0)
+
+(defun get-next-number ()
+  (incf *counter*))
+
+
+(defparameter *predicate-counter* 0)

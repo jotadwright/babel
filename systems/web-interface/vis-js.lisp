@@ -43,13 +43,13 @@
 ;;;;; -----------------------------------------------------------------------------------
 
 (defun make-vis-network (&key (element-id "visNetwork")
-                              (nodes "{id: 'node1'}")
+                              nodes
                               edges (options ""))
   "Returns a network, to be added with add-element."
   `((script :type "text/javascript")
     ,(format nil
              "var nodes = new vis.DataSet([~a]);~%
-              ~a~%~%
+              var edges = new vis.DataSet([~a]);~%~%
               var container = document.getElementById('~a');~%~%
 
               var data = {
@@ -61,9 +61,8 @@
               };
              
              var network = new vis.Network(container, data, options);"
-             (vis-format-many nodes)
-             (if edges (format nil "var edges = new vis.DataSet([~a]);" (vis-format-many edges)) 
-               "")
+             (if nodes (vis-format-many nodes) "")
+             (if edges (vis-format-many edges) "")
              element-id
              options)))
 
@@ -117,9 +116,9 @@
 ;;;;; Predicate Networks in vis.js
 ;;;;; -----------------------------------------------------------------------------------
 
-(defun format-vis-js-node (id &key label (group "predicateNodes"))
-  "Helper function for adding a node to the javascript code."
-  (format nil "{ id: '~a', label: '~a', group: '~a' }" id (or label id) group))
+(defun format-vis-js-edge ( start-id end-id)	
+  "Helper function for adding an edge to the javascript code."	
+  (format nil "{id: '~a-~a', from: '~a', to: '~a' }" start-id end-id start-id end-id))
 
 (defun format-vis-js-edge (start-id end-id)
   "Helper function for adding an edge to the javascript code."
