@@ -33,6 +33,7 @@
   (cond ((string= "nodetype" input) :type)
         ((string= "nodelabel" input) :label)
         ((string= "nodedescription" input) :description)
+        ((string= "clusterids" input) :cluster-ids)
         (t
          (read-from-string (format nil ":~a" input)))))
 ;; (make-keyword-from-input "nodetype")
@@ -57,15 +58,17 @@
          (split-inputs (split-sequence::split-sequence #\, inputs))
          (keys-and-values (turn-split-inputs-into-keys-and-values split-inputs))
          (package (package-name (symbol-package class-name)))
-         (constructor-fn (read-from-string (format nil "~a::make-~a" package class-name)))
+         (constructor-fn (read-from-string 
+                          (format nil "~a::make-~a" package class-name)))
          (inn (inn:get-current-inn)))
     (destructuring-bind (&whole whole
                                 &key (type t)
                                 (description "No description available.")
                                 (label "label")
+                                (cluster-ids nil)
                                 &allow-other-keys)
         keys-and-values
-      (dolist (indicator '(:type :description :label))
+      (dolist (indicator '(:type :description :label :cluster-ids))
         (remf whole indicator))
       (inn::inn-add-node inn
                          (apply constructor-fn `(:type ,(if (stringp type)
@@ -73,31 +76,39 @@
                                                           type)
                                                  :description ,description
                                                  :label ,label
+                                                 :cluster-ids ,(if (stringp cluster-ids)
+                                                                 (if (string= cluster-ids "")
+                                                                   nil
+                                                                   (read-from-string cluster-ids))
+                                                                 nil)
                                                  ,@whole)))
       (clearaddnode))))
 
 (defun-ajax expandaddnode (value) (*ajax-processor*)
-  (let* ((class-name (class-name (nth (parse-integer value) (inn:inn-node-structures))))
+  (let* ((class-name (class-name 
+                      (nth (parse-integer value) (inn:inn-node-structures))))
          (slot-descriptors (inn::get-inn-node-slot-descriptors class-name))
          (type-instruction (or (documentation class-name 'structure) "Type:")))
-    (replace-element-content "typeinstruction"
-                             `((th) ,type-instruction))
-    (replace-element-content "expandablerow"
-                             (if (null slot-descriptors)
-                               nil
-                               `((div)
-                                  ,@(loop for slot-descriptor in slot-descriptors
-                                          for th = (format nil "~a" (first slot-descriptor))
-                                          for default = (if (second slot-descriptor) 
-                                                          (format nil "~a" (second slot-descriptor))
-                                                          "")
-                                          collect `((tr)
-                                                    ((th) ,th)
-                                                    ((td :colspan "2")
-                                                     ((input :id ,th
-                                                             :type "text"
-                                                             :name "array[]"
-                                                             :value ,default))))))))
+    (replace-element-content 
+     "typeinstruction"
+     `((th) ,type-instruction))
+    (replace-element-content 
+     "expandablerow"
+     (if (null slot-descriptors)
+       nil
+       `((div)
+         ,@(loop for slot-descriptor in slot-descriptors
+                 for th = (format nil "~a" (first slot-descriptor))
+                 for default = (if (second slot-descriptor) 
+                                 (format nil "~a" (second slot-descriptor))
+                                 "")
+                 collect `((tr)
+                           ((th) ,th)
+                           ((td :colspan "2")
+                            ((input :id ,th
+                                    :type "text"
+                                    :name "array[]"
+                                    :value ,default))))))))
     nil))
 
 (defun-ajax addinnnode () (*ajax-processor*)
@@ -131,7 +142,12 @@
        ((tr)
         ((th) "description:")
         ((td :colspan "2")
-         ((input :type "text" :id "nodedescription" :value "No description available."))))
+         ((input :type "text" :id "nodedescription" 
+                 :value "No description available."))))
+       ((tr)
+        ((th) "cluster-ids:")
+        ((td :colspan "2")
+         ((input :type "text" :id "clusterids" :value ""))))
        ((tr :id "expandablerow"))
        ((tr)
         ((td :colspan "3")
@@ -168,9 +184,6 @@
 ;; -------------------------------------------------------------------------
 
 (defun-ajax addedge (from to) (*ajax-processor*)
-  (replace-element-content 
-   "innpopup"
-   `((p) "Draw the edge from its initial node to its end node."))
   (let ((from-id (parse-integer from))
         (to-id (parse-integer to))
         (inn (inn:get-current-inn)))
@@ -178,7 +191,6 @@
     ;; See if there were open questions that are now answered:
     (inn:question-answered? inn from-id :answered-by to-id)
     (inn:question-answered? inn to-id :answered-by from-id)
-    ;;    (replace-element-content "innpopup" "")
     nil))
 
 ;; -------------------------------------------------------------------------

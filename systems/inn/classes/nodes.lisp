@@ -74,6 +74,7 @@
 
 (export '(inn-node 
           make-inn-node
+          inn-node-cluster-ids
           inn-node-p
           inn-node-label inn-node-color inn-node-shape inn-node-description
           inn-node-type inn-node-attributes inn-node-id))
@@ -85,6 +86,7 @@
             (:include graph-utils::node))
   "Type (:entity, :predicate, T or other values):"
   (label "")
+  cluster-ids ; can be used for clustering nodes.
   color
   shape
   (description "No description available.")
@@ -129,7 +131,9 @@
           narrative-question-color
           narrative-question-posed-by
           narrative-question-answered-by
-          narrative-question-answer))
+          narrative-question-answer
+          narrative-question-bindings
+          narrative-question-irl-programs))
 
 (defstruct (narrative-question 
             (:include inn-node)
@@ -137,7 +141,10 @@
   "Type (:open-narrative-question or :answered-narrative-question):"
   posed-by ;; The knowledge source or cognitive system that introduced a question
   answered-by ;; The knowledge source or system that answered a question
-  answer) ;; The ID of the node that represents the answer to the question.
+  answer ;; The ID of the node that represents the answer to the question.
+  bindings ;;  Bindings for variables used in the narrative question 
+  irl-programs) ;; Possible  IRL programs in which the question may appear
+
 
 (export '(make-narrative-question
           make-open-narrative-question
@@ -186,9 +193,12 @@
 
 (defun inn-answer-question (narrative-question
                             &key answered-by answer)
-  (setf (narrative-question-type narrative-question) :answered-narrative-question
-        (narrative-question-shape narrative-question) (get-node-shape :answered-narrative-question)
-        (narrative-question-color narrative-question) (get-node-color :answered-narrative-question)
+  (setf (narrative-question-type narrative-question) 
+        :answered-narrative-question
+        (narrative-question-shape narrative-question) 
+        (get-node-shape :answered-narrative-question)
+        (narrative-question-color narrative-question) 
+        (get-node-color :answered-narrative-question)
         (narrative-question-answer narrative-question) answer
         (narrative-question-answered-by narrative-question) answered-by)
   (vis-update-node (inn-format-node narrative-question))
@@ -225,17 +235,20 @@
   (svref (get-structure-descriptor class) 13))
 ;; (get-inn-node-constructor 'inn-node)
 
-(defun get-inn-node-slot-descriptors (class 
-                                      &optional (the-ignorable '(graph-utils::value 
-                                                                 graph-utils::weight
-                                                                 graph-utils::id
-                                                                 type label description
-                                                                 color shape attributes)))
+(defun get-inn-node-slot-descriptors 
+       (class 
+        &optional (the-ignorable '(graph-utils::value 
+                                   graph-utils::weight
+                                   graph-utils::id
+                                   type label description
+                                   color shape attributes
+                                   cluster-ids)))
   (let ((slot-descriptors (svref (get-structure-descriptor class) 11)))
     (loop for slot-descriptor in slot-descriptors
           for name = (slot-value slot-descriptor 'structure::name)
           unless (member name the-ignorable)
-            collect (list name (slot-value slot-descriptor 'structure::default)))))
+            collect 
+              (list name (slot-value slot-descriptor 'structure::default)))))
                           
 ;; -------------------------------------------------------------------------
 ;; Helper Macro for writing customized inn-node-code.

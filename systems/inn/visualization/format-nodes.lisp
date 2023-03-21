@@ -24,18 +24,29 @@
   (format nil "{ id: '~a'}" id))
 
 (defmethod inn-format-node ((node inn-node))
-  (let ((id (graph-utils::node-id node))
-        (color (inn-node-color node))
-        (shape (inn-node-shape node))
-        (label (inn-node-label node)))
-    (if label 
-      (format nil "{ id: '~a', label: '~a', shape: '~a', color: '~a'}" id label shape color)
-      (format nil "{ id: '~a', shape: '~a', color: '~a'}" id shape color))))
+  (let ((label (inn-node-label node))
+        (cluster-ids (inn-node-cluster-ids node)))
+    (format nil "{ ~{~a~} }"
+            `(,(format nil "id: '~a', " (inn-node-id node))
+              ,(format nil "label: '~a', " label "")
+              ,(format nil "color: '~a', " (inn-node-color node))
+              ,(format nil "shape: '~a', " (inn-node-shape node))
+              ,(if cluster-ids
+                 (format nil "~{~a~^, ~}"
+                         (loop for key-value in cluster-ids
+                              collect (format nil "~a: '~a'"
+                                              (first key-value)
+                                              (second key-value))))
+                 "")))))
 ;; (inn-format-node (make-inn-node))
 ;; (inn-format-node (make-narrative-question))
 
+(defmethod inn-format-node ((node narrative-question))
+  (call-next-method))
+
 (defmethod inn-format-node ((node t))
-  (error (format nil "The object of type ~a is not an inn-node." (type-of node))))
+  (error (format nil "The object of type ~a is not an inn-node." 
+                 (type-of node))))
 ;; (inn-format-node (make-instance 'integrative-narrative-network))
 
 (defun inn-format-nodes (nodes)

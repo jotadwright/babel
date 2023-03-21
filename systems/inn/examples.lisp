@@ -170,9 +170,13 @@
 ;; Let's call it a day:
 (progn
   (wi::reset)
-  (store-network *my-inn* (merge-pathnames "my-fabulous-network.lisp" (babel-pathname))))
+  (store-network *my-inn* 
+                 (merge-pathnames "my-fabulous-network.lisp" 
+                                  (babel-pathname))))
 
 ;; Let's get starting again
-(setf *stored-network* (restore-network (merge-pathnames "my-fabulous-network.lisp" (babel-pathname))))
-(draw-vis-network *stored-network*)
+(setf *stored-network* 
+      (restore-network (merge-pathnames "my-fabulous-network.lisp" 
+                                        (babel-pathname))))
+(draw-inn-network-in-vis-js *stored-network*)
 
