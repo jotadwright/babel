@@ -24,22 +24,20 @@
 (defmethod question-answered? ((graph integrative-narrative-network)
                                (question narrative-question)
                                &key answered-by answer &allow-other-keys)
-  (if (and (eql :open-narrative-question (narrative-question-type question))
-           (> (length 
-               (graph-utils::neighbors graph (narrative-question-id question)))
-              1))
-    (inn-answer-question question 
-                         :answered-by answered-by
-                         :answer answer)))
-
-(defmethod question-answered? ((graph integrative-narrative-network)
-                               (question narrative-question)
-                               &key &allow-other-keys)
-  (if (and (eql :answered-narrative-question (narrative-question-type question))
+  (cond ((and (eql :open-narrative-question (narrative-question-type question))
+              (> (length 
+                  (graph-utils::neighbors graph (narrative-question-id question)))
+                 1))
+         (inn-answer-question question 
+                              :answered-by answered-by
+                              :answer answer))
+        ((and (eql :answered-narrative-question (narrative-question-type question))
            (< (length 
                (graph-utils::neighbors graph (narrative-question-id question)))
               2))
-    (undo-inn-answer-question question)))
+         (undo-inn-answer-question question))
+        (t
+         nil)))
 
 (defmethod question-answered? ((graph integrative-narrative-network)
                                (node-id integer)
@@ -85,10 +83,16 @@
                             &optional edge-type)
   (let ((vis-edge (or (gethash (list n1 n2) (vis-edges graph))
                       (gethash (list n2 n1) (vis-edges graph)))))
+    ;; Remove the edge from the web interface
     (vis-remove-edge vis-edge)
+    ;; Remove edge information from the narrative-network
     (remhash (list n1 n2) (vis-edges graph))
     (remhash (list n2 n1) (vis-edges graph))
-    (graph-utils::delete-edge graph n1 n2 edge-type)))
+    ;; Remove the edge from the inn:
+    (graph-utils::delete-edge graph n1 n2 edge-type)
+    ;; Check whether its from and to nodes require updating:
+    (question-answered? graph n1)
+    (question-answered? graph n2)))
 
 (defmethod inn-delete-edge ((graph integrative-narrative-network)
                             (node1 inn-node)
@@ -145,12 +149,17 @@
                             &key &allow-other-keys)
   (wi:vis-remove-node (inn:inn-format-node id))
   (let ((neighbours (graph-utils::neighbors graph id))) ;; Get the id of the neighbours
+    ;; Remove relevant edges as well:
     (dolist (neighbour neighbours)
       (let ((direction1 (list id neighbour))
             (direction2 (list neighbour id)))
         (remhash direction1 (vis-edges graph))
         (remhash direction2 (vis-edges graph))))
-    (graph-utils::delete-node graph id)))
+    ;; Delete the node
+    (graph-utils::delete-node graph id)
+    ;; Now check whether questions become open again:
+    (dolist (neighbour neighbours)
+      (question-answered? graph neighbour))))
 
 (defmethod inn-delete-node ((graph integrative-narrative-network)
                             (node inn-node)

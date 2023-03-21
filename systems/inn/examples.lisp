@@ -72,7 +72,6 @@
 ;; -------------------------------------------------------------------------
 ;; Example 2: Manipulating the network and adding custom nodes.
 ;; -------------------------------------------------------------------------
-
 ;; (a) Resetting the interface and network
 ;; -------------------------------------------------------------------------
 (progn
@@ -103,7 +102,7 @@
 (defstruct (inn-image (:include INN-NODE)
                   (:constructor make-inn-image-constructor))
   "Type (:INN-IMAGE):"
-  (url "http://via.placeholder.com/640x360")) ; Customized to have placeholder. 
+  (url "http://via.placeholder.com/640x360.png")) ; Customized to have placeholder. 
 
 (defun make-inn-image (&rest parameters
                          &key &allow-other-keys)
@@ -152,9 +151,12 @@
 ;;    * URL: https://upload.wikimedia.org/wikipedia/commons/4/4b/La_Tour_Eiffel_vue_de_la_Tour_Saint-Jacques%2C_Paris_ao%C3%BBt_2014_%282%29.jpg
 ;;
 ;; 4. * Draw an edge from the red open question to the Paris node
+;;    * The open question (red) is now answered and becomes green
+;;
+;; 5. * Select either the Paris node or the edge that connects it
+;;      to the "works in" question. Now click the "delete" button  
+;;      that appears. The question is open again and becomes red.
 
-
-  
 ;; -------------------------------------------------------------------------
 ;; Example 3: Storing, Restoring, and Saving
 ;; -------------------------------------------------------------------------

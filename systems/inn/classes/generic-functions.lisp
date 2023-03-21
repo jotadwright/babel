@@ -15,6 +15,10 @@
 
 (in-package :inn)
 
+;; ---------------------------------------------------------------------------------
+;; See /systems/inn/network-management/update-network.lisp for the methods.
+;; ---------------------------------------------------------------------------------
+
 (export '(inn-add-node 
           inn-update-node
           inn-add-nodes
@@ -46,5 +50,3 @@
 (defgeneric inn-add-nodes (inn list-of-nodes &key &allow-other-keys))
 (defgeneric inn-delete-node (graph node &key &allow-other-keys))
 (defgeneric inn-delete-nodes (graph nodes &key &allow-other-keys))
-
-

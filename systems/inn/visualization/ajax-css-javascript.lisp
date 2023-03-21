@@ -251,7 +251,8 @@
   touch-action: manipulation;
 }
 
-.button-43:hover {
+
+.inn-button:active {
   background-image: linear-gradient(-180deg, #1D95C9 0%, #17759C 100%);
 }
 
@@ -260,3 +261,7 @@
     padding: 1rem 2rem;
   }
 }")
+
+;;; .inn-button:hover {
+;;;   background-image: linear-gradient(-180deg, #1D95C9 0%, #17759C 100%);
+;;; }
