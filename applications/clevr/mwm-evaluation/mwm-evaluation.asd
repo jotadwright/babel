@@ -15,7 +15,7 @@
                :irl
                :fcg
                :clevr-world
-               :clevr-grammar
+               :clevr-grammar-v2
                :mwm)
   :serial t
   :components ((:file "package")
