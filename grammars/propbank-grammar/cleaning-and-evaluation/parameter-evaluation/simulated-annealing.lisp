@@ -120,7 +120,7 @@
       (format t "Step ~a: temperature = ~a, best score = ~a, best parameters = ~a~% " step temperature best-score best-params))
     best-params))
 
-(defun learn-predict-evaluate-sa (current-combination &key (test-batch-size 500) (old-training-configuration *training-configuration-all*) (new-training-configuration training-configuration-new) (train-corpus *train-corpus*))
+(defun learn-predict-evaluate-sa (current-combination &key (test-batch-size 500) (old-training-configuration training-configuration-all) (new-training-configuration training-configuration-new) (train-corpus *train-corpus*))
   "Evaluates a PropBank grammar using specified parameters, training configurations and corpus."
   (let* ((random-number (format nil "~4,'0d" (random 10000)))
          (new-training-configuration (copy-list old-training-configuration))

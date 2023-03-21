@@ -24,6 +24,7 @@
                           (dolist (score (simulated-annealing-for-par (random-neighbour best-params combinations initial-params) combinations :temperature temperature :cooling-rate cooling-rate :steps steps :train-set train-set :dev-set dev-set :thread-nmb thread-nmb :test-batch-size test-batch-size))
                             (push score f1-scores))))))
           (push thread threads)
+          (sleep 5)
           ))
       (mapc #'bt:join-thread threads))
     (let ((sorted-f1-scores (sort f1-scores #'> :key #'cdr)))
