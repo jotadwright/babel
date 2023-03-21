@@ -14,10 +14,8 @@
 
 
 (let ((composer-obj (make-instance 'query-composer)))
-  (write (compose-query2 composer-obj (query "SELECT name from city where id=1")
-                         :all-queries t
-                         :sort-table t))
-  (write (children (root (tree composer-obj)))))
+  (write (compose-query2 composer-obj (query "select continent.name from continent inner join country on continent.id = country.continentid where country.id=1")
+                         :sort-table t)))
 
 
 

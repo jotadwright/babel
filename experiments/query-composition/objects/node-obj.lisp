@@ -94,9 +94,9 @@
         (setf column (foreign-column ref-info))))
     ;(if outer-join
     ;  (setf join " FULL OUTER JOIN "))
-    (let* ((foreign-t (intern (concatenate 'string f-table "." f-column)))
-            (main-t (intern (concatenate 'string table "." column)))
-           (join-query (list join (intern f-table) :on (list := foreign-t main-t))))
+    (let* ((foreign-t (intern (string-upcase (concatenate 'string f-table "." f-column))))
+            (main-t (intern (string-upcase (concatenate 'string table "." column))))
+           (join-query (list join (intern (string-upcase f-table)) :on (list := foreign-t main-t))))
   (make-instance 'node
                  :id (make-id)
                  :parent node
@@ -107,13 +107,13 @@
                  :selection (append (q node) join-query)))))
 
 ;;OK
-(defun where-node (node attribute operator value)
+(defun where-node (node ref-table attribute operator value)
   "function that creates a node with the WHERE clause and returns the newly created node with its associated parent."
   (let* ((val-att (change-type value))
            (condition nil))
     (if (equal (length (ref-tbles node)) 1)
       (setf condition (list operator (intern (string-upcase (name attribute))) val-att))
-      (setf condition (list operator (intern (string-upcase (concatenate 'string (name (tble node)) "." (name attribute)))) val-att))) 
+      (setf condition (list operator (intern (string-upcase (concatenate 'string (name ref-table) "." (name attribute)))) val-att))) 
     (make-instance 'node
                                :id (make-id)
                                :parent node
@@ -126,7 +126,7 @@
                                :conditions condition)))
 
 ;;OK
-(defmethod and-node ((composer query-composer) node attribute operator value)
+(defmethod and-node ((composer query-composer) node ref-table attribute operator value)
   "function that creates a node with the AND clause and returns the newly created node with its associated parent."
   (let* ((val (change-type value))
           (and-condition nil)
@@ -134,7 +134,7 @@
           (permutation-query nil))
     (if (equal (length (ref-tbles node)) 1)
       (setf cdn (list operator (intern (string-upcase (name attribute))) val))
-      (setf cdn (list  operator (intern (string-upcase (concatenate 'string (name (tble node)) "." (name attribute)))) val)))
+      (setf cdn (list  operator (intern (string-upcase (concatenate 'string (name ref-table) "." (name attribute)))) val)))
     (setf and-condition (list :and (conditions node) cdn))
     ;Set the permutation query
     (setf permutation-query (append (selection node) (list :where (list :and cdn (conditions node)))))
@@ -151,7 +151,7 @@
                      :conditions and-condition))))
 
 ;;OK
-(defmethod or-node ((composer query-composer) node attribute operator value)
+(defmethod or-node ((composer query-composer) node ref-table attribute operator value)
   "function that creates a node with the OR clause and returns the newly created node with its associated parent."
   (let* ((val (change-type value))
           (or-condition nil)
@@ -159,7 +159,7 @@
           (permutation-query nil))
     (if (equal (length (ref-tbles node)) 1)
       (setf cdn (list operator (intern (string-upcase (name attribute))) val))
-      (setf cdn (list  operator (intern (string-upcase (concatenate 'string (name (tble node)) "." (name attribute)))) val)))
+      (setf cdn (list  operator (intern (string-upcase (concatenate 'string (name ref-table) "." (name attribute)))) val)))
     (setf or-condition (list :or (conditions node) cdn))
     ;Set the permutation query
     (setf permutation-query (append (selection node) (list :where (list :or cdn (conditions node)))))
@@ -173,7 +173,8 @@
                      :attrs (push-end attribute (attrs node))
                      :tble (tble node)
                      :selection (selection node)
-                     :conditions or-condition))))
+                     :conditions or-condition)
+      nil)))
 
 
 (defmethod node-test ((composer query-composer) q)
