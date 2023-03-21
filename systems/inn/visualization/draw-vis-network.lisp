@@ -37,7 +37,9 @@
   (vis-destroy-network)
   (let* ((options 
           (format nil "~a~%~a~%~a~%~a~%~a"
-                  (if interaction "interaction: { navigationButtons: true, keyboard: false }," "")
+                  (if interaction "interaction: { navigationButtons: true, 
+                                                  keyboard: false, 
+                                                  multiselect: true }," "")
                   "manipulation: {
                      enabled: false,
                      addEdge: function (edgeData, callback) {
@@ -69,7 +71,6 @@
                                       "javascript:network.addEdgeMode();"))
             "Add Edge"))
           ((td :id "deleteSelectionButton")))
-         ;
          ((tr :colspan "3")
           ((div :id "innpopup")))))
        ((div :id ,id) 

@@ -145,7 +145,6 @@
   bindings ;;  Bindings for variables used in the narrative question 
   irl-programs) ;; Possible  IRL programs in which the question may appear
 
-
 (export '(make-narrative-question
           make-open-narrative-question
           make-answered-narrative-question
