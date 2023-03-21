@@ -15,17 +15,96 @@
 
 (in-package :inn)
 
-(export '(inn-add-node 
-          inn-update-node
-          inn-add-nodes
-          inn-delete-node
-          inn-delete-nodes
-          inn-add-edge
-          inn-add-edges
-          inn-delete-edge
-          inn-delete-edges))
+(defmethod question-answered? ((graph integrative-narrative-network)
+                               (node t)
+                               &key &allow-other-keys)
+  (declare (ignore graph  node))
+  nil)
 
-(defgeneric inn-add-node (graph node &key &allow-other-keys))
+(defmethod question-answered? ((graph integrative-narrative-network)
+                               (question narrative-question)
+                               &key answered-by answer &allow-other-keys)
+  (if (and (eql :open-narrative-question (narrative-question-type question))
+           (> (length 
+               (graph-utils::neighbors graph (narrative-question-id question)))
+              1))
+    (inn-answer-question question 
+                         :answered-by answered-by
+                         :answer answer)))
+
+(defmethod question-answered? ((graph integrative-narrative-network)
+                               (question narrative-question)
+                               &key &allow-other-keys)
+  (if (and (eql :answered-narrative-question (narrative-question-type question))
+           (< (length 
+               (graph-utils::neighbors graph (narrative-question-id question)))
+              2))
+    (undo-inn-answer-question question)))
+
+(defmethod question-answered? ((graph integrative-narrative-network)
+                               (node-id integer)
+                               &key &allow-other-keys)
+  (let ((node (lookup-node graph node-id)))
+    (question-answered? graph node)))
+
+;; ----------------------------------------------------------------------------------
+;; 1. Edges
+;; ----------------------------------------------------------------------------------
+
+(defmethod inn-add-edge ((graph integrative-narrative-network)
+                         (node1 integer)
+                         (node2 integer)
+                         &key (weight 1) edge-type &allow-other-keys)
+  (unless (or (= node1 node2)
+              (graph-utils:edge-exists? graph node1 node2 :edge-type edge-type))
+    (let* ((edge-id-symbol (gensym "edge"))
+           (edge-id (format nil "~(~a~)" (symbol-name edge-id-symbol)))
+           (vis-edge (inn-format-edge node1 node2 :id edge-id)))
+      (setf (gethash (list node1 node2) (vis-edges graph)) vis-edge
+            (gethash (list node2 node1) (vis-edges graph)) vis-edge)
+      (wi:vis-add-edge vis-edge)
+      (graph-utils::add-edge graph node1 node2 :weight weight :edge-type edge-type))))
+
+(defmethod inn-add-edge ((graph integrative-narrative-network)
+                         (node1 inn-node)
+                         (node2 inn-node)
+                         &key (weight 1) edge-type &allow-other-keys)
+  (inn-add-edge graph (inn-node-id node1) (inn-node-id node2) :weight weight :edge-type edge-type))
+
+(defmethod inn-add-edges ((graph integrative-narrative-network)
+                          (edges list)
+                          &key (weight 1) edge-type &allow-other-keys)
+  (dolist (edge edges graph)
+    (inn-add-edge graph (first edge) (second edge)
+                  :weight weight 
+                  :edge-type edge-type)))
+
+(defmethod inn-delete-edge ((graph integrative-narrative-network)
+                            (n1 integer)
+                            (n2 integer)
+                            &optional edge-type)
+  (let ((vis-edge (or (gethash (list n1 n2) (vis-edges graph))
+                      (gethash (list n2 n1) (vis-edges graph)))))
+    (vis-remove-edge vis-edge)
+    (remhash (list n1 n2) (vis-edges graph))
+    (remhash (list n2 n1) (vis-edges graph))
+    (graph-utils::delete-edge graph n1 n2 edge-type)))
+
+(defmethod inn-delete-edge ((graph integrative-narrative-network)
+                            (node1 inn-node)
+                            (node2 inn-node)
+                            &optional edge-type)
+  (inn-delete-edge graph (inn-node-id node1) (inn-node-id node2) edge-type))
+
+(defmethod inn-delete-edges ((graph integrative-narrative-network)
+                             (edges list)
+                             &optional edge-type)
+  (dolist (edge edges graph)
+    (inn-delete-edge graph (first edge) (second edge) edge-type)))
+
+;; ----------------------------------------------------------------------------------
+;; 2. Nodes
+;; ----------------------------------------------------------------------------------
 
 (defun inn-update-node (graph node)
   ;; Update the vis network:
@@ -55,28 +134,28 @@
 	      (gethash id (graph-utils::ids graph)) node)
         id))))
 
-(defgeneric inn-add-nodes (inn list-of-nodes &key &allow-other-keys))
-
 (defmethod inn-add-nodes ((graph integrative-narrative-network)
                           (nodes list)
                           &key &allow-other-keys)
   (dolist (node nodes graph)
     (inn-add-node graph node)))
   
-(defgeneric inn-delete-node (graph node &key &allow-other-keys))
-
 (defmethod inn-delete-node ((graph integrative-narrative-network)
                             (id integer)
                             &key &allow-other-keys)
   (wi:vis-remove-node (inn:inn-format-node id))
-  (graph-utils::delete-node graph id))
+  (let ((neighbours (graph-utils::neighbors graph id))) ;; Get the id of the neighbours
+    (dolist (neighbour neighbours)
+      (let ((direction1 (list id neighbour))
+            (direction2 (list neighbour id)))
+        (remhash direction1 (vis-edges graph))
+        (remhash direction2 (vis-edges graph))))
+    (graph-utils::delete-node graph id)))
 
 (defmethod inn-delete-node ((graph integrative-narrative-network)
                             (node inn-node)
                              &key &allow-other-keys)
   (inn-delete-node graph (inn-node-id node)))
-
-(defgeneric inn-delete-nodes (graph nodes &key &allow-other-keys))
 
 (defmethod inn-delete-nodes ((graph integrative-narrative-network)
                              (nodes list)
@@ -84,59 +163,3 @@
   (dolist (node nodes graph)
     (inn-delete-node graph node)))
 
-(defgeneric inn-add-edge (graph node1 node2 &key weight edge-type &allow-other-keys))
-
-(defmethod inn-add-edge ((graph integrative-narrative-network)
-                         (node1 integer)
-                         (node2 integer)
-                         &key (weight 1) edge-type &allow-other-keys)
-  (unless (or (= node1 node2)
-              (graph-utils:edge-exists? graph node1 node2 :edge-type edge-type))
-    (let ((vis-edge (inn-format-edge node1 node2 :id (gensym "edge"))))
-      (setf (gethash (list node1 node2) (vis-edges graph)) vis-edge
-            (gethash (list node2 node1) (vis-edges graph)) vis-edge)
-      (wi:vis-add-edge vis-edge)
-      (graph-utils::add-edge graph node1 node2 :weight weight :edge-type edge-type))))
-
-(defmethod inn-add-edge ((graph integrative-narrative-network)
-                         (node1 inn-node)
-                         (node2 inn-node)
-                         &key (weight 1) edge-type &allow-other-keys)
-  (inn-add-edge graph (inn-node-id node1) (inn-node-id node2) :weight weight :edge-type edge-type))
-
-(defgeneric inn-add-edges (graph edges &key weight edge-type &allow-other-keys))
-
-(defmethod inn-add-edges ((graph integrative-narrative-network)
-                          (edges list)
-                          &key (weight 1) edge-type &allow-other-keys)
-  (dolist (edge edges graph)
-    (inn-add-edge graph (first edge) (second edge)
-                  :weight weight 
-                  :edge-type edge-type)))
-
-(defgeneric inn-delete-edge (graph node1 node2 &optional edge-type))
-
-(defmethod inn-delete-edge ((graph integrative-narrative-network)
-                            (n1 integer)
-                            (n2 integer)
-                            &optional edge-type)
-  (let ((vis-edge (or (gethash (list n1 n2) (vis-edges graph))
-                      (gethash (list n2 n1) (vis-edges graph)))))
-    (vis-remove-edge vis-edge)
-    (remhash (list n1 n2) (vis-edges graph))
-    (remhash (list n2 n1) (vis-edges graph))
-    (graph-utils::delete-edge graph n1 n2 edge-type)))
-
-(defmethod inn-delete-edge ((graph integrative-narrative-network)
-                            (node1 inn-node)
-                            (node2 inn-node)
-                            &optional edge-type)
-  (inn-delete-edge graph (inn-node-id node1) (inn-node-id node2) edge-type))
-
-(defgeneric inn-delete-edges (graph edges &optional edge-type))
-
-(defmethod inn-delete-edges ((graph integrative-narrative-network)
-                             (edges list)
-                             &optional edge-type)
-  (dolist (edge edges graph)
-    (inn-delete-edge graph (first edge) (second edge) edge-type)))

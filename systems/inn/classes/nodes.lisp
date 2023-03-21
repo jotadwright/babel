@@ -171,6 +171,19 @@
   `(make-narrative-question ,@parameters
                             :type :answered-narrative-question))
 
+(defun undo-inn-answer-question (narrative-question)
+  (setf (narrative-question-type narrative-question) 
+        :open-narrative-question
+        (narrative-question-shape narrative-question) 
+        (get-node-shape 
+         :open-narrative-question)
+        (narrative-question-color narrative-question) 
+        (get-node-color :open-narrative-question)
+        (narrative-question-answer narrative-question) nil
+        (narrative-question-answered-by narrative-question) nil)
+  (vis-update-node (inn-format-node narrative-question))
+  narrative-question)
+
 (defun inn-answer-question (narrative-question
                             &key answered-by answer)
   (setf (narrative-question-type narrative-question) :answered-narrative-question
@@ -238,24 +251,23 @@
      (format ,stream "~%~%(in-package :~(~a~))~%~%" ,package)
      (format ,stream "(defstruct (~(~a~) (:include ~a)" ',name ,include)
      (format ,stream "~%                  (:constructor make-~(~a~)-constructor))" ',name)
-     (format ,stream "~%  \"Type (~a):" ',(or type name))
+     (format ,stream "~%  \"Type (:~a):\"" ',(or type name))
      (format ,stream "~%  ~{~(~a~)~^ ~})~%~%" ',slots)
      (format ,stream "(defun make-~(~a~) (&rest parameters" ',name)
      (format ,stream "~%                         &key &allow-other-keys)")
      (format ,stream "~%  (destructuring-bind (&whole whole")
      (format ,stream "~%                              &key (constructor 'make-~(~a~)-constructor)" ',name)
-     (format ,stream "~%                                   (type '~(~a~))" ',(or type name))
+     (format ,stream "~%                                   (type :~(~a~))" ',(or type name))
      (format ,stream "~%                                   &allow-other-keys)")
      (format ,stream "~%      parameters")
      (format ,stream "~%    (dolist (indicator '(:constructor :type))")
      (format ,stream "~%      (remf whole indicator))")
      (format ,stream "~%    (apply 'make-inn-node `(:constructor ,constructor :type ,type ,@whole))))~%~%")
-     (format ,stream "(register-types '~a) ;; Please check and add types for this node~%~%" (list ',(or type name)))
      ,@(if color
-         `((format ,stream "(defmethod get-node-color ((type (eql '~(~a~))))" ',(or type name))
+         `((format ,stream "(defmethod get-node-color ((type (eql :~(~a~))))" ',(or type name))
            (format ,stream "~%  ~s)~%~%" ,color)))
      ,@(if shape
-         `((format ,stream "(defmethod get-node-shape ((type (eql '~(~a~))))" ',(or type name))
+         `((format ,stream "(defmethod get-node-shape ((type (eql :~(~a~))))" ',(or type name))
            (format ,stream "~%  ~s)~%~%" ,shape)))
      (format ,stream "(defmethod inn-format-node ((node ~a))" ',name)
      (format ,stream "~%  (call-next-method)) ;; please customize")))

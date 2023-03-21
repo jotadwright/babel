@@ -164,6 +164,71 @@
    } }")
 
 ;; -------------------------------------------------------------------------
+;; 2. Add Edge
+;; -------------------------------------------------------------------------
+
+(defun-ajax addedge (from to) (*ajax-processor*)
+  (replace-element-content 
+   "innpopup"
+   `((p) "Draw the edge from its initial node to its end node."))
+  (let ((from-id (parse-integer from))
+        (to-id (parse-integer to))
+        (inn (inn:get-current-inn)))
+    (inn::inn-add-edge inn from-id to-id)
+    ;; See if there were open questions that are now answered:
+    (inn:question-answered? inn from-id :answered-by to-id)
+    (inn:question-answered? inn to-id :answered-by from-id)
+    ;;    (replace-element-content "innpopup" "")
+    nil))
+
+;; -------------------------------------------------------------------------
+;; 3. Delete Selection
+;; -------------------------------------------------------------------------
+
+(defun-ajax deleteselection (element-id from-id to-id) (*ajax-processor*)
+  (format t "Delete ~a" element-id)
+  (let ((node-id (parse-integer element-id :junk-allowed t))
+        (formatted-element (format nil "{id: '~a'}" element-id))
+        (inn (inn:get-current-inn)))
+    ;; Delete in the browser
+    (if node-id ;; We have selected a node.
+      (progn
+        (vis-remove-node formatted-element)
+        (inn:inn-delete-node inn node-id))
+      ;; Or only an edge:
+      (progn
+        (vis-remove-edge formatted-element)
+        (inn::inn-delete-edge inn (parse-integer from-id) (parse-integer to-id))))
+    ;; Remove delete button
+    (removedeletebutton)))
+
+(defun-ajax removedeletebutton () (*ajax-processor*)
+  (replace-element-content "deleteSelectionButton" "")
+  nil)
+
+(defun-ajax nodeselected (node-id) (*ajax-processor*)
+  ;(format t "Selected node: ~a" node-id)
+  (replace-element-content "deleteSelectionButton"
+                           `((button :class "inn-button" :role "button"
+                                     :onclick ,(format nil
+                                                       "javascript:ajax_deleteselection('~a', 'nil', 'nil');"
+                                                       node-id))
+                             "Delete Selected Node"))
+  nil)
+
+(defun-ajax edgeselected (edge-id from-id to-id node-id) (*ajax-processor*)
+  (let ((node (parse-integer node-id :junk-allowed t)))
+    (format t "Edge connected with from ~a to ~a" from-id to-id)
+    (replace-element-content "deleteSelectionButton"
+                             `((button :class "inn-button" :role "button"
+                                       :onclick ,(format nil
+                                                         "javascript:ajax_deleteselection('~a', '~a', '~a');"
+                                                       (if node node-id edge-id)
+                                                       from-id to-id))
+                               ,(if node "Delete Selected Node" "Delete Selected Edge")))
+    nil))
+
+;; -------------------------------------------------------------------------
 ;; CSS
 ;; -------------------------------------------------------------------------
 

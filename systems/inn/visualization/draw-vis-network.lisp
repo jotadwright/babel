@@ -36,8 +36,14 @@
         (reset-web-interface t))
   (vis-destroy-network)
   (let* ((options 
-          (format nil "~a~%~a~%~a~%~a"
+          (format nil "~a~%~a~%~a~%~a~%~a"
                   (if interaction "interaction: { navigationButtons: true, keyboard: false }," "")
+                  "manipulation: {
+                     enabled: false,
+                     addEdge: function (edgeData, callback) {
+                         ajax_addedge(edgeData.from, edgeData.to);
+                         },
+                   },"
                   (format nil "height: '~a'," height)
                   (format nil "width: '~a'," width)
                   other-options))
@@ -54,16 +60,47 @@
         ((table)
          ((tr)
           ((td)
-           ((button :class "inn-button" :role "button" :onclick "javascript:ajax_addinnnode();") "Add Node"))
+           ((button :class "inn-button" :role "button" 
+                    :onclick "javascript:ajax_addinnnode();") 
+            "Add Node"))
           ((td)
-           ((button :class "inn-button" :role "button") "Add Edge"))
-          ((td)
-           ((button :class "inn-button" :role "button") "Delete Selection")))
+           ((button :class "inn-button" :role "button"
+                    :onclick ,(format nil
+                                      "javascript:network.addEdgeMode();"))
+            "Add Edge"))
+          ((td :id "deleteSelectionButton")))
+         ;
          ((tr :colspan "3")
           ((div :id "innpopup")))))
        ((div :id ,id) 
-        ,(wi::make-vis-network :element-id id
-                               :nodes formatted-nodes
-                               :edges edges
-                               :options options))))))
+        ,(wi::make-vis-network
+          :element-id id
+          :nodes formatted-nodes
+          :edges edges
+          :options options
+          :other (format nil
+                  "network.on(\"selectNode\", function (params) {
+                      var nodeId = params.nodes[0];
+                      javascript:ajax_nodeselected(nodeId); });
+
+                   network.on(\"selectEdge\", function (params) {
+                      var nodeId = params.nodes[0];
+                      var edgeId = params.edges[0];
+                      var connectedNodes = network.getConnectedNodes(edgeId);
+                      var fromId = connectedNodes[0];
+                      var toId = connectedNodes[1];
+                      javascript:ajax_edgeselected(edgeId, fromId, toId, nodeId); });
+
+                   network.on(\"deselectNode\", function (params) {
+                      javascript:ajax_removedeletebutton(); });
+
+                   network.on(\"deselectEdge\", function (params) {
+                      javascript:ajax_removedeletebutton(); });
+
+
+                  " id)))))))
 ;; (draw-inn-network-in-vis-js (make-instance 'integrative-narrative-network))
+;; (draw-inn-network-in-vis-js (get-current-inn))
+
+
+
