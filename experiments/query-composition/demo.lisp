@@ -4,17 +4,14 @@
 
 ;; setup create table and insert data into your database for corresponding to the experience
 ;; for this, replace the value of differents keys to yours connections options
-;(setup-database :dbname "lisp_db"
-;                           :username "admin"
-;                           :password "root"
-;                           :hostname "localhost")
+;(setup-database :dbname "lisp_db"   :username "admin"   :password "root" :hostname "localhost")
 
 ;Connect database
 (connect-toplevel "lisp_db" "admin" "root" "localhost")
 
 
 (let ((composer-obj (make-instance 'query-composer)))
-  (write (compose-query2 composer-obj (query "select continent.name from continent inner join country on continent.id = country.continentid where country.id=1")
+  (write (compose-query2 composer-obj (query "select * from continent")
                          :sort-table t)))
 
 

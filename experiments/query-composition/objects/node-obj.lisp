@@ -74,26 +74,17 @@
 
 ;;OK
 ;;REFACT
-(defun join-node (node ref-info table-obj &key foreign-ref outer-join)
+(defun join-node (node ref-info table-obj &key foreign-ref)
   "function that create a node with the ... INNER JOIN || OUTER JOIN ... ON ... =  ... clause and return the newly created node."
   (let* ((f-table "")
           (f-column "")
           (table "")
           (column "")
           (join :inner-join))
-    (if foreign-ref
-      (progn
         (setf f-table (foreign-table ref-info))
         (setf f-column (foreign-column ref-info))
         (setf table (table-name ref-info))
-        (setf column (column-name ref-info)))
-      (progn
-        (setf f-table (table-name ref-info))
-        (setf f-column (column-name ref-info))
-        (setf table (foreign-table ref-info))
-        (setf column (foreign-column ref-info))))
-    ;(if outer-join
-    ;  (setf join " FULL OUTER JOIN "))
+        (setf column (column-name ref-info))
     (let* ((foreign-t (intern (string-upcase (concatenate 'string f-table "." f-column))))
             (main-t (intern (string-upcase (concatenate 'string table "." column))))
            (join-query (list join (intern (string-upcase f-table)) :on (list := foreign-t main-t))))

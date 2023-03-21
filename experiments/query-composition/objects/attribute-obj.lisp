@@ -30,7 +30,8 @@
            (setf (type-att obj) 'integer)))
         ((or (equal (constraint obj) 'foreign) (equal (constraint obj) 'primary))
          (progn
-           (setf (operators obj) '(:!= :=))))
+           (setf (operators obj) '(:!= :=))
+           (setf (type-att obj) 'integer)))
         ((typep att 'boolean)
          (progn
            (setf (operators obj) '(:!= :=))
