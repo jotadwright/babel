@@ -247,7 +247,8 @@
           for name = (slot-value slot-descriptor 'structure::name)
           unless (member name the-ignorable)
             collect 
-              (list name (slot-value slot-descriptor 'structure::default)))))
+              (list name 
+                    (slot-value slot-descriptor 'structure::default)))))
                           
 ;; -------------------------------------------------------------------------
 ;; Helper Macro for writing customized inn-node-code.

@@ -70,8 +70,13 @@
                     :onclick ,(format nil
                                       "javascript:network.addEdgeMode();"))
             "Add Edge"))
+          ((td)
+           ((button :class "inn-button" :role "button"
+                    :onclick ,(format nil
+                                      "javascript:clusterSelected();"))
+            "Cluster Selected Nodes"))
           ((td :id "deleteSelectionButton")))
-         ((tr :colspan "3")
+         ((tr :colspan "4")
           ((div :id "innpopup")))))
        ((div :id ,id) 
         ,(wi::make-vis-network
@@ -82,7 +87,9 @@
           :other (format nil
                   "network.on(\"selectNode\", function (params) {
                       var nodeId = params.nodes[0];
-                      javascript:ajax_nodeselected(nodeId); });
+                      if (network.isCluster(nodeId) == true) {
+                           network.openCluster(nodeId); }
+                      else { javascript:ajax_nodeselected(nodeId); } });
 
                    network.on(\"selectEdge\", function (params) {
                       var nodeId = params.nodes[0];
@@ -98,10 +105,47 @@
                    network.on(\"deselectEdge\", function (params) {
                       javascript:ajax_removedeletebutton(); });
 
+                   function clusterByPid() {
+
+                   }
+
+                   function clusterSelected() {
+
+                      var selectedNodes = network.getSelectedNodes();
+                      var headNodeId = selectedNodes[0];
+                      var headNode = nodes.get(headNodeId);
+                      var clusterOptions = {
+                             joinCondition: function(nodeOptions) {
+                                var nodeId = nodeOptions.id;
+                                return selectedNodes.includes(nodeId);
+                             },
+                             clusterNodeProperties: {
+                                borderWidth: 3,
+                                shape: headNode.shape,
+                                label: headNode.label,
+                                color: headNode.color,
+                                image: headNode.image
+                             },
+                      };
+                      network.clustering.cluster(clusterOptions);
+                      network.selectNodes([]);
+                      network.selectEdges([]);
+                      ajax_removedeletebutton();
+                   }
 
                   " id)))))))
 ;; (draw-inn-network-in-vis-js (make-instance 'integrative-narrative-network))
 ;; (draw-inn-network-in-vis-js (get-current-inn))
+;; (wi::reset)
 
-
-
+;;; (add-element `((script :type "text/javascript")
+;;;                "var myNode = network.body.data.nodes.get('3');
+;;;                 var myNodeId = myNode.id;
+;;;                 var myOptions = { clusterNodeProperties: {
+;;;                                    borderWidth: 3,
+;;;                                    label: myNode.label,
+;;;                                    color: myNode.color,
+;;;                                    shape: myNode.shape,
+;;;                                    image: myNode.image,
+;;;                                    } }
+;;;                 network.clustering.clusterByConnection(myNodeId, myOptions)"))
