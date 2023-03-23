@@ -435,7 +435,8 @@
          (renamings (loop for var in unique-variables
                           for base-name = (get-base-name var)
                           collect (cons var (make-var base-name)))))
-    (substitute-bindings renamings predicates)))
+    (values (substitute-bindings renamings predicates)
+            renamings)))
 
 (defun variablify-form-constraints-with-constants (form-constraints-with-constants)
   (loop for form-constraint in form-constraints-with-constants
@@ -445,6 +446,10 @@
                         (string (list (variablify (second form-constraint))
                                       (third form-constraint)))
                         (meets (mapcar #'variablify (rest form-constraint)))))))
+
+(defun devariablify (var)
+  (intern (get-base-name var :remove-numeric-tail nil)))
+
 
 ;;;;;
 ;; Hash
@@ -481,17 +486,17 @@
   (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))
 
 (defun sort-cipns-by-coverage-and-nr-of-applied-cxns (cipn-1 cipn-2)
-  (cond ((< (length (form-predicates-in-root cipn-1))
-            (length (form-predicates-in-root cipn-2)))
-         cipn-1)
-        ((> (length (form-predicates-in-root cipn-1))
-            (length (form-predicates-in-root cipn-2)))
-         cipn-2)
-        ((>= (length (applied-constructions cipn-1))
-             (length (applied-constructions cipn-2)))
-         cipn-1)
-        (t
-         cipn-2)))
+  "Predicate should return true if and only if the first argument
+   is strictly less than the second (in some appropriate sense).
+   If the first argument is greater than or equal to the second
+   (in the appropriate sense), then the predicate should return false."
+  (let ((cipn-1-form-in-root (length (form-predicates-in-root cipn-1)))
+        (cipn-2-form-in-root (length (form-predicates-in-root cipn-2)))
+        (cipn-1-applied-cxns (length (applied-constructions cipn-1)))
+        (cipn-2-applied-cxns (length (applied-constructions cipn-2))))
+    (if (= cipn-1-form-in-root cipn-2-form-in-root)
+      (< cipn-1-applied-cxns cipn-2-applied-cxns)
+      (< cipn-1-form-in-root cipn-2-form-in-root))))
 
 (defun extract-args-from-resulting-unit (unit)
   (and (find 'form-args (rest unit) :key #'first))
@@ -583,6 +588,34 @@
           do (push next-predicate resulting-list)
           (setf next-predicate (find next-var meets-constraints :key #'second))
           finally (return (reverse resulting-list)))))
+
+(defun continuous-meets-p (form-constraints)
+  "check if within a holistic chunk, all form strings are connected"
+  (let* ((left-units
+          (loop for fc in form-constraints
+                when (equal 'meets (first fc))
+                  collect (second fc)))
+         (right-units
+          (loop for fc in form-constraints
+                when (equal 'meets (first fc))
+                  collect (third fc)))
+         (string-units
+          (loop for fc in form-constraints
+                when (equal 'string (first fc))
+                  collect (second fc)))
+         (left-most-diff (set-difference left-units right-units))
+         (right-most-diff (set-difference right-units left-units))
+         (all-units (remove-duplicates (append left-units right-units)))
+         (string-meets-diff (set-difference string-units all-units))
+         (meets-string-diff (set-difference all-units string-units)))
+    
+    (if (and left-most-diff right-most-diff)
+      (and (= 1 (length left-most-diff))
+           (= 1 (length right-most-diff))
+           (not string-meets-diff)
+           (not meets-string-diff)
+           (get-boundary-units form-constraints))
+      (get-boundary-units form-constraints))))
 
 ;;;;;
 ;; Input Processing

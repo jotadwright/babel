@@ -31,6 +31,8 @@
                   node
                   repair-name)
   "Apply the learned cxns and links, return the solution node."
+  (assert (notany #'null categorial-links))
+  (assert (notany #'null categories-to-add))
   (let ((learned-cxns
          (remove-if-not #'(lambda (cxn) (and (eql (attr-val cxn :label) 'fcg::routine)
                                              (not (attr-val cxn :learned-at))))
@@ -40,8 +42,10 @@
              (temp-categorial-network (copy-object (categorial-network (construction-inventory node)))))
         (add-categories categories-to-add temp-categorial-network :recompute-transitive-closure nil)
         (loop for categorial-link in categorial-links
-              do (add-categories (list (car categorial-link) (cdr categorial-link)) temp-categorial-network :recompute-transitive-closure nil)
-                 (add-link (car categorial-link) (cdr categorial-link) temp-categorial-network :recompute-transitive-closure nil)
+              do (add-categories (list (car categorial-link) (cdr categorial-link))
+                                 temp-categorial-network :recompute-transitive-closure nil)
+                 (add-link (car categorial-link) (cdr categorial-link)
+                           temp-categorial-network :recompute-transitive-closure nil)
               finally (set-categorial-network (construction-inventory node) temp-categorial-network))
         (let* ((processing-cxns-to-apply (mapcar #'get-processing-cxn cxns-to-apply))
                (sandbox-solution
