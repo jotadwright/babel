@@ -32,7 +32,7 @@
               ,(format nil "color: '~a', " (inn-node-color node))
               ,(format nil "shape: '~a', " (inn-node-shape node))
               ,(if cluster-ids
-                 (format nil "~{~a~^, ~}"
+                 (format nil "~{~(~a~)~^, ~}"
                          (loop for key-value in cluster-ids
                               collect (format nil "~a: '~a'"
                                               (first key-value)

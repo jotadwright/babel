@@ -87,9 +87,7 @@
           :other (format nil
                   "network.on(\"selectNode\", function (params) {
                       var nodeId = params.nodes[0];
-                      if (network.isCluster(nodeId) == true) {
-                           network.openCluster(nodeId); }
-                      else { javascript:ajax_nodeselected(nodeId); } });
+                      javascript:ajax_nodeselected(nodeId); });
 
                    network.on(\"selectEdge\", function (params) {
                       var nodeId = params.nodes[0];
@@ -105,9 +103,11 @@
                    network.on(\"deselectEdge\", function (params) {
                       javascript:ajax_removedeletebutton(); });
 
-                   function clusterByPid() {
-
-                   }
+                   network.on(\"doubleClick\", function (params) {
+                      var selectedNodes = network.getSelectedNodes();
+                      var selectedNodeId = selectedNodes[0];
+                      if (network.isCluster(selectedNodeId) == true) {
+                          network.openCluster(selectedNodeId); } });
 
                    function clusterSelected() {
 
@@ -136,7 +136,26 @@
                   " id)))))))
 ;; (draw-inn-network-in-vis-js (make-instance 'integrative-narrative-network))
 ;; (draw-inn-network-in-vis-js (get-current-inn))
-;; (wi::reset)
+
+;;; We could also cluster by some ID.
+;;; ----------------------------------------------
+;;;                       var selectedNode = network.body.data.nodes.get(selectedNodeId);
+;;;                       var myCid = selectedNode.cid;
+;;;                       var clusterOptionsByData = {
+;;;                               joinCondition: function (childOptions) {
+;;;                                    return childOptions.cid == myCid;
+;;;                                    },
+;;;                               clusterNodeProperties: {
+;;;                                    borderWidth: 3,
+;;;                                    shape: selectedNode.shape,
+;;;                                    image: selectedNode.image,
+;;;                                    color: selectedNode.color,
+;;;                                    label: selectedNode.label,
+;;;                                    },
+;;;                             };
+;;;                       if (myCid) { network.cluster(clusterOptionsByData); }
+;;;                       });
+
 
 ;;; (add-element `((script :type "text/javascript")
 ;;;                "var myNode = network.body.data.nodes.get('3');
