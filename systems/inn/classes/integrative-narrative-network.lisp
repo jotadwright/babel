@@ -46,3 +46,13 @@
 (defmacro make-integrative-narrative-network (&rest keys-and-values)
   `(make-instance 'integrative-narrative-network
                   ,@keys-and-values))
+
+(export '(get-current-inn set-current-inn))
+(let (current-inn)
+  (defun set-current-inn (inn)
+    (setf current-inn inn))
+  (defun get-current-inn ()
+    current-inn))
+
+(defmethod initialize-instance :after ((inn integrative-narrative-network) &key)
+  (set-current-inn inn))

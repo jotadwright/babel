@@ -177,7 +177,7 @@
                                   for answer = (answer clevr-question)
                                   for (irl-program cipn nil)
                                     = (multiple-value-list
-                                       (clevr-grammar::understand q))
+                                       (clevr-grammar-v2::understand q))
                                   for scene-var = (extract-scene-unit-variable cipn)
                                   for computed-answer = (compute-answer irl-program scene-var path-entity ontology)
                                   for result = (get-result cipn answer computed-answer)

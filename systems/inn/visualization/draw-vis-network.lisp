@@ -25,22 +25,146 @@
              (vis-edges inn))
     vis-edges))
 
-(defun draw-inn-network-in-vis-js (inn 
-                                   &key (destroy-network? t)
-                                   (id "integrativeNarrativeNetwork")
-                                   (options "interaction: { navigationButtons: true, keyboard: true }"))
-  (if destroy-network?
-    (vis-destroy-network))
-  (let* ((nodes (graph-utils::nodes inn))
+(defun draw-inn-network-in-vis-js 
+       (inn 
+        &key
+        (interaction t)
+        (id "integrativeNarrativeNetwork")
+        (height "80%")
+        (width "80%")
+        (other-options "")
+        (reset-web-interface t))
+  (vis-destroy-network)
+  (let* ((options 
+          (format nil "~a~%~a~%~a~%~a~%~a"
+                  (if interaction "interaction: { navigationButtons: true, 
+                                                  keyboard: false, 
+                                                  multiselect: true }," "")
+                  "manipulation: {
+                     enabled: false,
+                     addEdge: function (edgeData, callback) {
+                         ajax_addedge(edgeData.from, edgeData.to);
+                         },
+                   },"
+                  (format nil "height: '~a'," height)
+                  (format nil "width: '~a'," width)
+                  other-options))
+         (nodes (graph-utils::nodes inn))
          (inn-nodes (graph-utils::ids inn))
          (formatted-nodes (if nodes
-                            (loop for key being each hash-key of nodes
-                                    using (hash-value value)
+                            (loop for value being each hash-value of nodes
                                   collect (inn-format-node (gethash value inn-nodes)))))
          (edges (collect-vis-edges inn)))
-    (add-element 
-     `((div :id ,id) 
-       ,(wi::make-vis-network :element-id id
-                              :nodes formatted-nodes
-                              :edges edges
-                              :options options)))))
+    (if reset-web-interface (wi::reset))
+    (add-element
+     `((div :id "interactiveINN")
+       ((div :class "table")
+        ((table)
+         ((tr)
+          ((td)
+           ((button :class "inn-button" :role "button" 
+                    :onclick "javascript:ajax_addinnnode();") 
+            "Add Node"))
+          ((td)
+           ((button :class "inn-button" :role "button"
+                    :onclick ,(format nil
+                                      "javascript:network.addEdgeMode();"))
+            "Add Edge"))
+          ((td)
+           ((button :class "inn-button" :role "button"
+                    :onclick ,(format nil
+                                      "javascript:clusterSelected();"))
+            "Cluster Selected Nodes"))
+          ((td :id "deleteSelectionButton")))
+         ((tr :colspan "4")
+          ((div :id "innpopup")))))
+       ((div :id ,id) 
+        ,(wi::make-vis-network
+          :element-id id
+          :nodes formatted-nodes
+          :edges edges
+          :options options
+          :other (format nil
+                  "network.on(\"selectNode\", function (params) {
+                      var nodeId = params.nodes[0];
+                      javascript:ajax_nodeselected(nodeId); });
+
+                   network.on(\"selectEdge\", function (params) {
+                      var nodeId = params.nodes[0];
+                      var edgeId = params.edges[0];
+                      var connectedNodes = network.getConnectedNodes(edgeId);
+                      var fromId = connectedNodes[0];
+                      var toId = connectedNodes[1];
+                      javascript:ajax_edgeselected(edgeId, fromId, toId, nodeId); });
+
+                   network.on(\"deselectNode\", function (params) {
+                      javascript:ajax_removedeletebutton(); });
+
+                   network.on(\"deselectEdge\", function (params) {
+                      javascript:ajax_removedeletebutton(); });
+
+                   network.on(\"doubleClick\", function (params) {
+                      var selectedNodes = network.getSelectedNodes();
+                      var selectedNodeId = selectedNodes[0];
+                      if (network.isCluster(selectedNodeId) == true) {
+                          network.openCluster(selectedNodeId); } });
+
+                   function clusterSelected() {
+
+                      var selectedNodes = network.getSelectedNodes();
+                      var headNodeId = selectedNodes[0];
+                      var headNode = nodes.get(headNodeId);
+                      var clusterOptions = {
+                             joinCondition: function(nodeOptions) {
+                                var nodeId = nodeOptions.id;
+                                return selectedNodes.includes(nodeId);
+                             },
+                             clusterNodeProperties: {
+                                borderWidth: 3,
+                                shape: headNode.shape,
+                                label: headNode.label,
+                                color: headNode.color,
+                                image: headNode.image
+                             },
+                      };
+                      network.clustering.cluster(clusterOptions);
+                      network.selectNodes([]);
+                      network.selectEdges([]);
+                      ajax_removedeletebutton();
+                   }
+
+                  " id)))))))
+;; (draw-inn-network-in-vis-js (make-instance 'integrative-narrative-network))
+;; (draw-inn-network-in-vis-js (get-current-inn))
+
+;;; We could also cluster by some ID.
+;;; ----------------------------------------------
+;;;                       var selectedNode = network.body.data.nodes.get(selectedNodeId);
+;;;                       var myCid = selectedNode.cid;
+;;;                       var clusterOptionsByData = {
+;;;                               joinCondition: function (childOptions) {
+;;;                                    return childOptions.cid == myCid;
+;;;                                    },
+;;;                               clusterNodeProperties: {
+;;;                                    borderWidth: 3,
+;;;                                    shape: selectedNode.shape,
+;;;                                    image: selectedNode.image,
+;;;                                    color: selectedNode.color,
+;;;                                    label: selectedNode.label,
+;;;                                    },
+;;;                             };
+;;;                       if (myCid) { network.cluster(clusterOptionsByData); }
+;;;                       });
+
+
+;;; (add-element `((script :type "text/javascript")
+;;;                "var myNode = network.body.data.nodes.get('3');
+;;;                 var myNodeId = myNode.id;
+;;;                 var myOptions = { clusterNodeProperties: {
+;;;                                    borderWidth: 3,
+;;;                                    label: myNode.label,
+;;;                                    color: myNode.color,
+;;;                                    shape: myNode.shape,
+;;;                                    image: myNode.image,
+;;;                                    } }
+;;;                 network.clustering.clusterByConnection(myNodeId, myOptions)"))

@@ -1,7 +1,7 @@
 
 (in-package :propbank-grammar)
 
-(defun parameters-learn-comprehend-evaluate-grammar (parameters &optional (old-training-configuration *training-configuration-all*) (new-training-configuration *training-configuration-new*) (train-corpus *train-corpus*))
+(defun parameters-learn-comprehend-evaluate-grammar (parameters &optional (old-training-configuration training-configuration-all) (new-training-configuration training-configuration-new) (train-corpus *train-corpus*))
   "Learn and make predictions for a PropBank grammar using specified parameters, training configurations and corpus."  
   (let ((new-training-configuration (copy-list old-training-configuration)))
     (let ((comb-parameters (all-combinations-parameters parameters)))
@@ -109,7 +109,7 @@
                   (return f1-score))))
 
 ;; Brute force without evaluation of predictions
-(defun parameters-learn-comprehend-grammar (parameters &optional (old-training-configuration *training-configuration-all*) (new-training-configuration *training-configuration-new*) (train-corpus *train-corpus*))
+(defun parameters-learn-comprehend-grammar (parameters &optional (old-training-configuration training-configuration-all) (new-training-configuration training-configuration-new) (train-corpus *train-corpus*))
   "Learn and make predictions for a PropBank grammar using specified parameters, training configurations and corpus."  
   (let ((new-training-configuration (copy-list old-training-configuration)))
     (let ((comb-parameters (all-combinations-parameters parameters)))
@@ -158,7 +158,7 @@
         (cl-store:store predictions binary-stream)))
     predictions))
 
-(defun parameters-learn-grammar (parameters &optional (old-training-configuration *training-configuration-all*) (new-training-configuration *training-configuration-new*) (train-corpus *train-corpus*))
+(defun parameters-learn-grammar (parameters &optional (old-training-configuration training-configuration-all) (new-training-configuration training-configuration-new) (train-corpus *train-corpus*))
   "Learn PropBank grammar using specified parameters, training configurations and corpus."
   (let ((new-training-configuration (copy-list old-training-configuration)))
     (let ((comb-parameters (all-combinations-parameters parameters)))
@@ -252,7 +252,7 @@
                                                               ) filename-final random-number ".fcg"))))
     (cl-store:store grammar pathname)))
 
-(defun adjust-training-configuration (updated-parameters &optional (training-configuration *training-configuration-new*))
+(defun adjust-training-configuration (updated-parameters &optional (training-configuration training-configuration-new))
   "Adjusts the given training configuration with the updated parameters."
   (let ((updated-config (copy-list training-configuration)))
     (dolist (parameter updated-parameters)
@@ -274,7 +274,7 @@
                                 parameters-to-exclude)))))
              combinations))
 
-(defun all-combinations-parameters (parameters &optional (training-configuration *training-configuration-all*))
+(defun all-combinations-parameters (parameters &optional (training-configuration training-configuration-all))
   "Returns all possible combinations of values for the given 'parameter' from 'training-configuration'"
   (let ((hash-table-combinations (combinations-parameters parameters training-configuration)))
     (let ((list-of-all-combinations-parameters (make-combinations-from-ht hash-table-combinations)))
@@ -288,7 +288,7 @@
             collect (loop for i from 0 below (length keys)
                           collect (cons (nth i keys) (nth i values-combination)))))))
 
-(defun combinations-parameters (parameters &optional (training-configuration *training-configuration-all*))
+(defun combinations-parameters (parameters &optional (training-configuration training-configuration-all))
   "Returns all possible combinations of values for the given 'parameter' from 'training-configuration'"
   (let ((collected-parameters (collect-training-parameters parameters training-configuration)))
     (let ((hash-table-combinations-parameters (create-combinations-hash-table collected-parameters)))
@@ -321,14 +321,14 @@
         (maphash (lambda (k v) (push k result-list)) result)
         (sort (sort result-list #'(lambda (a b) (< (length a) (length b)))) #'(lambda (a b) (string< (prin1-to-string a) (prin1-to-string b))))))))
 
-(defun collect-training-parameters (training-parameters &optional (training-configuration *training-configuration-all*))
+(defun collect-training-parameters (training-parameters &optional (training-configuration training-configuration-all))
   "Collects multiple training parameters from a given training configuration."
   (let ((collected-parameters '()))
     (dolist (training-parameter training-parameters)
       (setf collected-parameters (append (collect-training-parameter training-parameter training-configuration) collected-parameters)))
     collected-parameters))
 
-(defun collect-training-parameter (training-parameter &optional (training-configuration *training-configuration-all*))
+(defun collect-training-parameter (training-parameter &optional (training-configuration training-configuration-all))
   "Collects the training parameter from a given training configuration."
   (loop for (key . value) in training-configuration
         when (eq key training-parameter)

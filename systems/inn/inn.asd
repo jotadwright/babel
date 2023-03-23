@@ -18,7 +18,7 @@
 (defsystem :inn
   :description "Interative Narrative Networks"
   :author "Remi van Trijp <remi.vantrijp@sony.com>" ;; Add your name if you co-develop :)
-  :version "0.1"
+  :version "0.4"
   :depends-on (:cl-store :fcg :irl :graph-utils #+:hunchentoot-available-on-this-platform :web-interface)
   :serial t
   :components ((:file "package")
@@ -27,11 +27,13 @@
                 :serial t
                 :components ((:file "integrative-narrative-network")
                              (:file "nodes")
-                             (:file "edges")))
+                             (:file "edges")
+                             (:file "generic-functions")))
                (:module "visualization"
                 :serial t
                 :components ((:file "format-nodes")
                              (:file "format-edges")
+                             (:file "ajax-css-javascript")
                              (:file "draw-vis-network")))
                (:module "network-management"
                 :serial t

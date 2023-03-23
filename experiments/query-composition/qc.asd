@@ -37,4 +37,5 @@
                 (:module "agents"
                  :serial t
                  :components ((:file "master-agent")))
+                (:file "html")
                 (:file "utils")))
