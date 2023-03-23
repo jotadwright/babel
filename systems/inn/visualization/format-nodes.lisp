@@ -23,26 +23,39 @@
 (defmethod inn-format-node ((id integer))
   (format nil "{ id: '~a'}" id))
 
+(defun format-cluster-ids (cluster-ids)
+  (if cluster-ids
+    (format nil ", ~{~(~a~)~^, ~} "
+                      (loop for key-value in cluster-ids
+                            collect (format nil "~a: '~a'"
+                                            (first key-value)
+                                            (second key-value))))
+    " "))
+
 (defmethod inn-format-node ((node inn-node))
-  (let ((label (inn-node-label node))
-        (cluster-ids (inn-node-cluster-ids node)))
-    (format nil "{ ~{~a~} }"
-            `(,(format nil "id: '~a', " (inn-node-id node))
-              ,(format nil "label: '~a', " label "")
-              ,(format nil "color: '~a', " (inn-node-color node))
-              ,(format nil "shape: '~a', " (inn-node-shape node))
-              ,(if cluster-ids
-                 (format nil "~{~(~a~)~^, ~}"
-                         (loop for key-value in cluster-ids
-                              collect (format nil "~a: '~a'"
-                                              (first key-value)
-                                              (second key-value))))
-                 "")))))
+    (format nil "{ id: '~a', label: '~a', color: '~a', shape: '~a'~a}"
+            (inn-node-id node)
+            (or (inn-node-label node) "")
+            (inn-node-color node)
+            (inn-node-shape node)
+            (format-cluster-ids (inn-node-cluster-ids node))))
 ;; (inn-format-node (make-inn-node))
-;; (inn-format-node (make-narrative-question))
+;; (inn-format-node (make-inn-node :cluster-ids '((cid "1")(pid "2"))))
 
 (defmethod inn-format-node ((node narrative-question))
   (call-next-method))
+;; (inn-format-node (make-narrative-question))
+
+(defmethod inn-format-node ((node inn-image))
+  (format nil "{ id: '~a', label: '~a', title: '~a', shape: '~a', image: '~a'~a}"
+          (inn-node-id node)
+          (or (inn-image-label node) "")
+          (or (inn-image-description node) (inn-image-label node) "")
+          (or (inn-image-shape node) "image")
+          (inn-image-url node)
+          (format-cluster-ids (inn-node-cluster-ids node))))
+;; (inn-format-node (make-inn-image))
+;; (inn-format-node (make-inn-image :cluster-ids '((cid "1")(pid "2"))))
 
 (defmethod inn-format-node ((node t))
   (error (format nil "The object of type ~a is not an inn-node." 
