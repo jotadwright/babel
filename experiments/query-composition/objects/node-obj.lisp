@@ -49,6 +49,8 @@
   (:documentation "Object representing a node of the tree. This object is represented by a set of attributes that allows it to obtain and store all the information necessary for its SQL query."))
 
 ;;OK
+;;changer pour l'ajout des fonctions
+;change bye using name attribute
 (defun init-node (node attributes table &key join)
   "function that create a node with the SELECT .. FROM .. clause and return the newly created node with its associated parent."
     (let* ((q '(:select))
@@ -56,10 +58,15 @@
       (dolist (att-n attributes)
           (if join
             (progn
-              (let ((att (intern (string-upcase (concatenate 'string (symbol-name table-name) "." att-n)))))
-                (setf q (push-end att q))))
+              (let ((att (intern (string-upcase (concatenate 'string (symbol-name table-name) "." (name (first att-n)))))))
+                (if (equal (length att-n) 2)
+                  (setf q (push-end (list (second att-n) att) q))
+                  (setf q (push-end att q)))))
             (progn
-               (setf q (push-end (intern (string-upcase att-n)) q)))))
+              (let ((att (intern (string-upcase (name (first att-n))))))
+                (if (equal (length att-n) 2)
+                  (setf q (push-end (list (second att-n) att) q))
+                  (setf q (push-end att q)))))))
       (setf q (push-end :from q))
       (setf q (push-end table-name q))
       (make-instance 'node
@@ -76,18 +83,10 @@
 ;;REFACT
 (defun join-node (node ref-info table-obj &key foreign-ref)
   "function that create a node with the ... INNER JOIN || OUTER JOIN ... ON ... =  ... clause and return the newly created node."
-  (let* ((f-table "")
-          (f-column "")
-          (table "")
-          (column "")
-          (join :inner-join))
-        (setf f-table (foreign-table ref-info))
-        (setf f-column (foreign-column ref-info))
-        (setf table (table-name ref-info))
-        (setf column (column-name ref-info))
-    (let* ((foreign-t (intern (string-upcase (concatenate 'string f-table "." f-column))))
-            (main-t (intern (string-upcase (concatenate 'string table "." column))))
-           (join-query (list join (intern (string-upcase f-table)) :on (list := foreign-t main-t))))
+  (let* ((join :inner-join))
+    (let* ((foreign-t (intern (string-upcase (concatenate 'string (foreign-table ref-info) "." (foreign-column ref-info)))))
+            (main-t (intern (string-upcase (concatenate 'string (table-name ref-info) "." (column-name ref-info)))))
+           (join-query (list join (intern (string-upcase (foreign-table ref-info))) :on (list := foreign-t main-t))))
   (make-instance 'node
                  :id (make-id)
                  :parent node
@@ -174,14 +173,4 @@
                   (return-from node-test t)))
               (queue composer)))
 
-(defun length-query (node)
-  (length (q node)))
-
-;;Take too much time
-;(defmethod node-test ((composer query-composer) depth q)
-;  (let* ((all-nodes-with-depth (find-all depth (queue composer) :key #'depth :test #'=))
-;          (all-nodes-with-length-q (find-all (length q) all-nodes-with-depth :key #'length-query :test #'=)))
-;    (loop for queue-node in all-nodes-with-length-q
-;             when (equal (q queue-node) q)
-;             return nil)))
               

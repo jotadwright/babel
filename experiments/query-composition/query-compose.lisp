@@ -38,34 +38,21 @@
 ;; KEYS
 ;; exclude-id: If true, that's exclude the id in the clause condition.
 ;; all-queries: If true, the program returns all queries that match the answer.
-(defmethod compose-query2 ((composer query-composer) answer &key sort-table star-shortcut exclude-constraint all-queries)
-  (let ((expand-lst '()))
-    (loop until (not (queue composer))
-          for parent = (pop (queue composer))
-          do
-            (if (not (equal (depth parent) 0))
-              (progn (if (goal-test answer parent)
-                       (progn (if all-queries
-                                (setf (queries composer) (push parent (queries composer)))
-                                (return-from compose-query2 parent))))))
-            (pushend parent expand-lst)
-            (if (not (queue composer))
-              (progn
-                (expand composer expand-lst answer
-                        :exclude-constraint exclude-constraint
-                        :sort-table sort-table
-                        :star-shortcut star-shortcut)
-                (setf expand-lst '()))))
-    (queries composer)))
+(defmethod compose-query3 ((composer query-composer) answer &key sort-table star-shortcut exclude-constraint all-queries)
+  (loop until (not (queue composer))
+           for parent = (pop (queue composer))
+           do
+           (if (not (equal (depth parent) 0))
+             (cond
+              ((and (goal-test answer parent) all-queries) (setf (queries composer) (push parent (queries composer))))
+              ((goal-test answer parent) (return-from compose-query3 parent))))
+          (expand2 composer answer parent :sort-table sort-table :star-shortcut star-shortcut :exclude-constraint exclude-constraint))
+  (queries composer))
 
-(defmethod expand ((composer query-composer) queue answer &key sort-table star-shortcut exclude-constraint)
-  (loop until (not queue)
-        for parent = (pop queue)
-        do
-          (if (equal (depth parent) 0)
-            (select-compose composer parent answer :sort-table sort-table :star-shortcut star-shortcut))
-          (if (not (equal (depth parent) 0))
-            (condition-compose composer parent :exclude-id exclude-constraint))))
+(defmethod expand2 ((composer query-composer) answer parent &key sort-table star-shortcut exclude-constraint)
+  (cond
+   ((equal (depth parent) 0) (select-compose composer parent answer :sort-table sort-table :star-shortcut star-shortcut))
+   ((not (equal (depth parent) 0)) (condition-compose composer parent :exclude-id exclude-constraint))))
 
 (defmethod condition-compose ((composer query-composer) parent &key exclude-id)
   (dolist (ref-table (ref-tbles parent))
@@ -74,7 +61,6 @@
       (if exclude-id
         (setf attrs (remove-if #'(lambda (item) (or (equal (constraint item) 'primary) (equal (constraint item) 'foreign))) (attributes ref-table)))
         (setf attrs (attributes ref-table)))
-      ;;this is an infinity loop
       (dolist (attr attrs)
         (if (not (attr-is-present parent attr))
           (progn
@@ -99,6 +85,7 @@
       (setf (children parent) nodes-lst)
       (setf (queue composer) (append (queue composer) nodes-lst)))))
 
+;;Change fonction permutations are ((func attr) (func attr))
 (defmethod select-compose ((composer query-composer) parent answer &key sort-table star-shortcut)
    (let ((join-nodes '())
           (tables nil))
@@ -107,19 +94,16 @@
        (setf tables (tables composer)))
      (dolist (tble tables)
        (let ((permutations nil))
-         (cond ((and (equal (length (attributes tble)) (length (first answer))) star-shortcut) (setf permutations '(("*"))))
+         (cond ((and (equal (length (attributes tble)) (length (first answer))) star-shortcut) (setf permutations '((("*")))))
                ((> (length (attributes tble)) (length (first answer))) (setf permutations (get-selection tble (first answer))))
                ((equal (length (attributes tble)) (length (first answer))) (setf permutations (get-selection tble (first answer)))))
-         (dolist (perm permutations)
-           (let* ((attributes-names '())
-                  (child-node nil))
-             (mapcar #'(lambda (x) (push (name x) attributes-names)) perm)
-             (setf child-node (init-node parent attributes-names tble))
+         (dolist (permutation permutations)
+           (let ((child-node nil))
+             (setf child-node (init-node parent permutation tble))
              (setf (children parent) (nconc (children parent) (list child-node)))
              (setf (queue composer) (nconc (queue composer) (list child-node)))
              ;;Join part
-             ;;create node that satisty constraint
-             (let ((select-node (init-node parent attributes-names tble :join t)))
+             (let ((select-node (init-node parent permutation tble :join t)))
                (setf join-nodes (append join-nodes (inner-outer-compose composer select-node))))
              ))))
      (setf (queue composer) (nconc (queue composer) join-nodes))
@@ -183,22 +167,28 @@
      (tables composer)
      tables)))
 
-
-;OK
-
-;;when all attributes he will found a duplicate all the time.
-(defmethod get-selection (table answer)
-  (let ((list-to-merge '()))
+;;PARAMS
+;;table: table object
+;;answer: target answer
+;;KEYS
+;;function?: key for using or not the function in select statement
+;;RETURN
+;;(List (List function attribute)) ea:((func attribute) (func attribute) (attribute))
+(defmethod get-selection (table answer &key function?)
+  (let ((list-to-merge '())
+         (list-of-function '(:avg :max :min)))
     (dolist (part answer)
       (let ((att-of-type '()))
       (if (typep part 'string)
         (mapcar #'(lambda (x)
                     (if (equal (type-att x) 'string)
-                      (push x att-of-type))) (attributes table)))
+                      (push (list x) att-of-type))) (attributes table)))
       (if (typep part 'integer)
         (mapcar #'(lambda (x)
-                    (if (equal (type-att x) 'integer)
-                      (push x att-of-type))) (attributes table)))
+                    (if (and (equal (type-att x) 'integer) function?)
+                      (dolist (func list-of-function)
+                        (push (list x func) att-of-type))
+                      (push (list x) att-of-type))) (attributes table)))
       (pushend att-of-type list-to-merge)))
     (let ((selection (apply #'combinations list-to-merge)))
         (mapcar #'(lambda (x) (if (duplicates? x) (setf selection (remove x selection)))) selection)
