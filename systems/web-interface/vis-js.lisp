@@ -44,7 +44,8 @@
 
 (defun make-vis-network (&key (element-id "visNetwork")
                               nodes
-                              edges (options ""))
+                              edges (options "")
+                              (other ""))
   "Returns a network, to be added with add-element."
   `((script :type "text/javascript")
     ,(format nil
@@ -60,11 +61,15 @@
               var options = { ~%~a
               };
              
-             var network = new vis.Network(container, data, options);"
+             var network = new vis.Network(container, data, options);
+
+             ~a"
              (if nodes (vis-format-many nodes) "")
              (if edges (vis-format-many edges) "")
              element-id
-             options)))
+             options
+             other)))
+
 
 ;;;;; -----------------------------------------------------------------------------------
 ;;;;; For dynamically controlling the network
@@ -275,5 +280,4 @@
 
 (add-element `((script :type "text/javascript")
                ,(predicate-network->vis-js *vis-js-predicate-network*)))
-
 |#

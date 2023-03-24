@@ -4,20 +4,15 @@
 
 ;; setup create table and insert data into your database for corresponding to the experience
 ;; for this, replace the value of differents keys to yours connections options
-;(setup-database :dbname "lisp_db"
-;                           :username "admin"
-;                           :password "root"
-;                           :hostname "localhost")
+;(setup-database :dbname "lisp_db"   :username "admin"   :password "root" :hostname "localhost")
 
 ;Connect database
 (connect-toplevel "lisp_db" "admin" "root" "localhost")
 
 
 (let ((composer-obj (make-instance 'query-composer)))
-  (write (compose-query2 composer-obj (query "SELECT name from city where id=1")
-                         :all-queries t
-                         :sort-table t))
-  (write (children (root (tree composer-obj)))))
+  (write (compose-query2 composer-obj (query "select name from country where id=1")
+                         :sort-table t)))
 
 
 
@@ -30,7 +25,8 @@
        (composer-obj-4 (make-instance 'query-composer))
        (start-time (get-internal-real-time))
        (node-found nil))
-  (write (query (query-associated quest)))
+  (write (query-associated quest))
+  (terpri)
   ;;All sort
  (setf node-found (compose-query2 composer-obj-1 (query (query-associated quest))
                          :exclude-constraint t
@@ -55,3 +51,15 @@
 
 ;Disconnect database
 (disconnect-toplevel)
+
+(defun get-node-with-function (func selection)
+  (let ((new-nodes '()))
+    (loop for select in selection do
+             (loop for att in select do
+                      (if (equal (type-att att) 'integer)
+                        )))))
+                                          
+(defun remplacer-element (liste element-a-remplacer nouvel-element)
+  (setf (nthcdr (position element-a-remplacer liste))
+        (cons nouvel-element (cdr (nthcdr (position element-a-remplacer liste)))))
+  liste)
