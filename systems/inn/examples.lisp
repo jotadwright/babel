@@ -70,21 +70,98 @@
 (draw-inn-network-in-vis-js *my-inn*)
 
 ;; -------------------------------------------------------------------------
-;; Example 2: Storing, Restoring, and Saving
+;; Example 2: Manipulating the network and adding custom nodes.
+;; -------------------------------------------------------------------------
+;; (a) Resetting the interface and network
+;; -------------------------------------------------------------------------
+(progn
+  (wi::reset)
+  (setf *my-inn* (make-instance 'integrative-narrative-network))
+  (inn-add-nodes *my-inn* (list (make-entity-node :label "INN-package")
+                                (make-open-narrative-question
+                                 :label "Author?")))
+  (inn-add-edge *my-inn* 0 1)
+  (draw-inn-network-in-vis-js *my-inn*))
+
+;; (b) Creating custom node types
+;; -------------------------------------------------------------------------
+;; We would like to add a new kind of node. We can use this helper
+;; macro to avoid compatability errors:
+(with-open-file (stream (babel-pathname :name "image-node"
+                                        :type "lisp")
+                        :direction :output
+                        :if-exists :supersede)
+  (define-inn-node my-image
+                   :stream stream
+                   :slots (url)
+                   :type :inn-image
+                   :shape "square"))
+
+;; (c) Manipulating the graph in the web interface
+;; -------------------------------------------------------------------------
+;; Let us first answer the question:
+(progn
+  (inn-add-node *my-inn* (make-inn-image
+                          :description "Remi van Trijp"
+                          :url "https://csl.sony.fr/wp-content/uploads/elementor/thumbs/remi-van-trijp-pwhtmlglh8mdlsqkxo0lxunj1gad8hlylx3oj7yey0.png"))
+  (inn-add-edge *my-inn* 1 2)
+  (inn-answer-question (lookup-node *my-inn* 1)))
+
+;; Now we manually edit the network:
+;; -------------------------------------------------------------------------
+;; 1. * In the web interface, click "add node"
+;;    * Select "narrative-question" in the first slot
+;;    * Provide "Works in?" as label
+;;    * Click "save"
+;;    -> the new node should now appear
+;;
+;; 2. * Click the button "add edge"
+;;    * Draw an edge from the new question to the image node
+;;      (or vice versa)
+;;
+;; 3. * Add an inn-image node. 
+;;    * Description: "Paris"
+;;    * URL: https://upload.wikimedia.org/wikipedia/commons/4/4b/La_Tour_Eiffel_vue_de_la_Tour_Saint-Jacques%2C_Paris_ao%C3%BBt_2014_%282%29.jpg
+;;
+;; 4. * Draw an edge from the red open question to the Paris node
+;;    * The open question (red) is now answered and becomes green
+;;
+;; 5. * Now select the picture node of "Remi van Trijp". 
+;;    * While keeping your command-buttonpressed, select the nodes "works in?" 
+;;      and the Paris node. 
+;;    * Now click on "cluster selected nodes" to make a cluster on the fly; 
+;;      => Note that it is possible to create clusters of clusters in this way.
+;;      => Note that the cluster will inherit its appearance from the first node that
+;;         you selected. You should therefore always start with the most representative
+;;         node of a cluster.
+;;
+;; 6. Double click the cluster to open up the cluster again.
+;;
+;; 7. Select either the Paris node or the edge that connects it
+;;    to the "works in" question. Now click the "delete" button  
+;;    that appears. The question is open again and becomes red.
+
+;; -------------------------------------------------------------------------
+;; Example 4: Storing, Restoring, and Saving
 ;; -------------------------------------------------------------------------
 ;;
 ;; You can save the vis-network as an image by right-clicking on it and 
 ;; selecting "copy image". You can now paste it into your favorite software.
 ;; You can also select "save as". It will be saved as a PNG file.
+;;
 
 (defparameter *stored-network* nil)
 
 ;; Let's call it a day:
 (progn
   (wi::reset)
-  (store-network *my-inn* (merge-pathnames "my-fabulous-network.lisp" (babel-pathname))))
+  (store-network *my-inn* 
+                 (merge-pathnames "my-fabulous-network.lisp" 
+                                  (babel-pathname))))
 
 ;; Let's get starting again
-(setf *stored-network* (restore-network (merge-pathnames "my-fabulous-network.lisp" (babel-pathname))))
-(draw-vis-network *stored-network*)
+(setf *stored-network* 
+      (restore-network (merge-pathnames "my-fabulous-network.lisp" 
+                                        (babel-pathname))))
+(draw-inn-network-in-vis-js *stored-network*)
 

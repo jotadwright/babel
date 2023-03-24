@@ -21,7 +21,7 @@
   (let* ((num-combinations (length list-of-combinations))
          (num-combinations-per-thread (floor (/ num-combinations num-threads)))
          (combinations-lists (split-list list-of-combinations num-threads))
-         (best-score 0.30)
+         (best-score 0.3)
          (f1-scores (list (cons initial-params best-score)))
          (init-temp temperature)
          (best-params initial-params)
@@ -39,6 +39,7 @@
                           (dolist (score (simulated-annealing-for-par (random-neighbour best-params combinations initial-params) combinations :temperature temperature :cooling-rate cooling-rate :steps steps :train-set train-set :dev-set dev-set :thread-nmb thread-nmb :test-batch-size test-batch-size))
                             (push score f1-scores))))))
           (push thread threads)
+          (sleep 5)
           ))
       (mapc #'bt:join-thread threads))
     (let ((sorted-f1-scores (sort f1-scores #'> :key #'cdr)))
@@ -51,7 +52,6 @@
         (format t "Total runtime all threads: ~f seconds~%" total-runtime)))
     (format t "All threads finished. Best score: ~a, Best parameters: ~a~%" best-score best-params)
     (list f1-scores)))
-
 
 
 ;; Activating spacy-api locally
@@ -72,11 +72,13 @@
 (defparameter *dev-corpus* (shuffle (append (dev-split *ontonotes-annotations*)
                                               (dev-split *ewt-annotations*))))
 
+(defparameter (subseq *dev-corpus* 0 17000))
+
 
 ;; Setting the globals
 ;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *training-configuration-all*
+(defparameter training-configuration-all
   `((:de-render-mode . :de-render-constituents-dependents)
     (:node-tests :check-double-role-assignment)
     (:parse-goal-tests :no-valid-children)
@@ -114,12 +116,43 @@
      :have.01 :have.02 :have.03 :have.04 :have.05 :have.06 :have.07 :have.08 :have.09 :have.10 :have.11
      :get.03 :get.06 :get.24)))))
 
-; (:excluded-rolesets
-;      :be.01 :be.02 :be.03
-;      :have.01 :have.02 :have.03 :have.04 :have.05 :have.06 :have.07 :have.08 :have.09 :have.10 :have.11
-;      :get.03 :get.06 :get.24)
+(defparameter training-configuration-new
+  `((:de-render-mode . :de-render-constituents-dependents)
+    (:node-tests :check-double-role-assignment)
+    (:parse-goal-tests :no-valid-children)
+    (:max-nr-of-nodes . 100)
 
-(defparameter training-configuration-new nil)
+    (:construction-inventory-processor-mode . :heuristic-search)
+    (:search-algorithm . :best-first)   
+    (:cxn-supplier-mode . :hashed-categorial-network)
+    
+    (:heuristics
+     ((:nr-of-applied-cxns
+     :nr-of-units-matched-x2))
+     ((:nr-of-applied-cxns
+     :nr-of-units-matched))
+     :argm-prediction ;; Don't forget to activate the text-to-role-classification server!!!!!
+     :edge-weight
+     :prefer-local-bindings
+     :frequency
+     )
+    (:heuristic-value-mode . :sum-heuristics-and-parent)
+    (:sort-cxns-before-application . nil)
+
+    (:node-expansion-mode . :full-expansion)
+    (:hash-mode . :hash-lemma)
+    
+    (:replace-when-equivalent . nil)
+    (:learning-modes
+     :core-roles
+     ((:argm-leaf
+     :argm-pp
+     :argm-sbar
+     :argm-phrase-with-string)))
+    (:excluded-rolesets
+     ((:be.01 :be.02 :be.03
+     :have.01 :have.02 :have.03 :have.04 :have.05 :have.06 :have.07 :have.08 :have.09 :have.10 :have.11
+     :get.03 :get.06 :get.24)))))
 
 (defparameter test-grammar nil)
     
@@ -134,7 +167,12 @@
                                          :parameters-to-exclude '((:FREQUENCY :EDGE-WEIGHT :PREFER-LOCAL-BINDINGS) (:nr-of-units-matched-x2 :nr-of-units-matched) (:FREQUENCY :EDGE-WEIGHT) (:FREQUENCY :PREFER-LOCAL-BINDINGS) (:EDGE-WEIGHT :PREFER-LOCAL-BINDINGS))
                                          :parameters-to-include '((:NR-OF-APPLIED-CXNS :CORE-ROLES))))
 
+;; remove the combination CORE-ROLES & ARGM-PREDICTION
+(setf filtered-combinations (filter-combinations combinations-parameters
+                                         :parameters-to-exclude '((:FREQUENCY :EDGE-WEIGHT :PREFER-LOCAL-BINDINGS) (:nr-of-units-matched-x2 :nr-of-units-matched) (:FREQUENCY :EDGE-WEIGHT) (:FREQUENCY :PREFER-LOCAL-BINDINGS) (:EDGE-WEIGHT :PREFER-LOCAL-BINDINGS) (:ARGM-PREDICTION :CORE-ROLES))
+                                         :parameters-to-include '((:NR-OF-APPLIED-CXNS :CORE-ROLES))))
+
 ;; use simulated annealing to explore the search space of the list of combinations. Steps indicate how many configurations it will learn and predict in every thread.
-(parallel-simulated-annealing-plots '((:HEURISTICS :NR-OF-APPLIED-CXNS) (:LEARNING-MODES :CORE-ROLES) (:EXCLUDED-ROLESETS)) filtered-combinations :num-threads 8 :steps 8 :test-batch-size 100)
+(parallel-simulated-annealing-plots '((:HEURISTICS :NR-OF-APPLIED-CXNS) (:LEARNING-MODES :CORE-ROLES) (:EXCLUDED-ROLESETS)) filtered-combinations :num-threads 4 :steps 16 :test-batch-size 100)
 
 

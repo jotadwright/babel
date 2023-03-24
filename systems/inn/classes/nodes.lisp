@@ -65,6 +65,9 @@
 (defmethod get-node-shape ((type (eql :predicate)))
   "triangle")
 
+(defmethod get-node-shape ((type (eql :inn-image)))
+  "image")
+
 (defmethod get-node-shape ((type t))
   "square")
 
@@ -72,8 +75,13 @@
 ;; 2. Struct definitions, associated methods, and Constructor Functions
 ;; -------------------------------------------------------------------------
 
+
+;; (a) INN-node
+;; -------------------------------------------------------------------------
+
 (export '(inn-node 
           make-inn-node
+          inn-node-cluster-ids
           inn-node-p
           inn-node-label inn-node-color inn-node-shape inn-node-description
           inn-node-type inn-node-attributes inn-node-id))
@@ -85,6 +93,7 @@
             (:include graph-utils::node))
   "Type (:entity, :predicate, T or other values):"
   (label "")
+  cluster-ids ; can be used for clustering nodes.
   color
   shape
   (description "No description available.")
@@ -119,6 +128,19 @@
                          ,@whole))))
 ;; (make-inn-node :type 'answered-narrative-question)
 
+(export '(make-entity-node make-predicate-node))
+
+(defmacro make-entity-node (&rest parameters)
+  `(make-inn-node ,@parameters
+                  :type :entity))
+
+(defmacro make-predicate-node (&rest parameters)
+  `(make-inn-node ,@parameters
+                  :type :predicate))
+
+;; (b) narrative-question
+;; -------------------------------------------------------------------------
+
 (export '(posed-by answered-by inn-answer
           narrative-question
           narrative-question-p
@@ -129,7 +151,10 @@
           narrative-question-color
           narrative-question-posed-by
           narrative-question-answered-by
-          narrative-question-answer))
+          narrative-question-answer
+          narrative-question-bindings
+          narrative-question-irl-programs
+          inn-answer-question undo-inn-answer-question))
 
 (defstruct (narrative-question 
             (:include inn-node)
@@ -137,7 +162,9 @@
   "Type (:open-narrative-question or :answered-narrative-question):"
   posed-by ;; The knowledge source or cognitive system that introduced a question
   answered-by ;; The knowledge source or system that answered a question
-  answer) ;; The ID of the node that represents the answer to the question.
+  answer ;; The ID of the node that represents the answer to the question.
+  bindings ;;  Bindings for variables used in the narrative question 
+  irl-programs) ;; Possible  IRL programs in which the question may appear
 
 (export '(make-narrative-question
           make-open-narrative-question
@@ -157,9 +184,7 @@
     ;; Now call the basic constructor function
     (apply 'make-inn-node 
            `(:constructor ,constructor
-             :type ,(if (member type '(:open-narrative-question :answered-narrative-question))
-                      type
-                      :open-narrative-question)
+             :type ,(if (keywordp type) type :open-narrative-question)
              ,@whole))))
 ;; (make-narrative-question)
 
@@ -171,25 +196,60 @@
   `(make-narrative-question ,@parameters
                             :type :answered-narrative-question))
 
+(defun undo-inn-answer-question (narrative-question)
+  (setf (narrative-question-type narrative-question) 
+        :open-narrative-question
+        (narrative-question-shape narrative-question) 
+        (get-node-shape 
+         :open-narrative-question)
+        (narrative-question-color narrative-question) 
+        (get-node-color :open-narrative-question)
+        (narrative-question-answer narrative-question) nil
+        (narrative-question-answered-by narrative-question) nil)
+  (vis-update-node (inn-format-node narrative-question))
+  narrative-question)
+
 (defun inn-answer-question (narrative-question
                             &key answered-by answer)
-  (setf (narrative-question-type narrative-question) :answered-narrative-question
-        (narrative-question-shape narrative-question) (get-node-shape :answered-narrative-question)
-        (narrative-question-color narrative-question) (get-node-color :answered-narrative-question)
+  (setf (narrative-question-type narrative-question) 
+        :answered-narrative-question
+        (narrative-question-shape narrative-question) 
+        (get-node-shape :answered-narrative-question)
+        (narrative-question-color narrative-question) 
+        (get-node-color :answered-narrative-question)
         (narrative-question-answer narrative-question) answer
         (narrative-question-answered-by narrative-question) answered-by)
   (vis-update-node (inn-format-node narrative-question))
   narrative-question)
 
-(export '(make-entity-node make-predicate-node))
+;; (c) inn-image
+;; -------------------------------------------------------------------------
 
-(defmacro make-entity-node (&rest parameters)
-  `(make-inn-node ,@parameters
-                  :type :entity))
+(export '(inn-image
+          inn-image-attributes inn-image-cluster-ids inn-image-color
+          inn-image-shape inn-image-url inn-image-p inn-image-id
+          inn-image-description inn-image-label inn-image-p
+          inn-image-type inn-image-value inn-image-weight
+          make-inn-image))
 
-(defmacro make-predicate-node (&rest parameters)
-  `(make-inn-node ,@parameters
-                  :type :predicate))
+(defstruct (inn-image (:include INN-NODE)
+                  (:constructor make-inn-image-constructor))
+  "Type (:INN-IMAGE):"
+  (url "http://via.placeholder.com/640x360.png")) ; Customized to have placeholder. 
+
+(defun make-inn-image (&rest parameters
+                         &key &allow-other-keys)
+  (destructuring-bind (&whole whole
+                              &key (constructor 'make-inn-image-constructor)
+                                   (type :inn-image)
+                                   &allow-other-keys)
+      parameters
+    (dolist (indicator '(:constructor :type))
+      (remf whole indicator))
+    (apply 'make-inn-node `(:constructor ,constructor 
+                            :type ,(if (keywordp type) type :inn-image)
+                            ,@whole))))
+;; (make-inn-image)
 
 (export '(inn-node-structures get-inn-node-constructor))
 
@@ -212,17 +272,22 @@
   (svref (get-structure-descriptor class) 13))
 ;; (get-inn-node-constructor 'inn-node)
 
-(defun get-inn-node-slot-descriptors (class 
-                                      &optional (the-ignorable '(graph-utils::value 
-                                                                 graph-utils::weight
-                                                                 graph-utils::id
-                                                                 type label description
-                                                                 color shape attributes)))
+(defun get-inn-node-slot-descriptors 
+       (class 
+        &optional (the-ignorable '(graph-utils::value 
+                                   graph-utils::weight
+                                   graph-utils::id
+                                   type label description
+                                   color shape attributes
+                                   cluster-ids)))
   (let ((slot-descriptors (svref (get-structure-descriptor class) 11)))
     (loop for slot-descriptor in slot-descriptors
           for name = (slot-value slot-descriptor 'structure::name)
           unless (member name the-ignorable)
-            collect (list name (slot-value slot-descriptor 'structure::default)))))
+            collect 
+              (list name 
+                    (slot-value slot-descriptor 'structure::default)))))
+
                           
 ;; -------------------------------------------------------------------------
 ;; Helper Macro for writing customized inn-node-code.
@@ -238,24 +303,23 @@
      (format ,stream "~%~%(in-package :~(~a~))~%~%" ,package)
      (format ,stream "(defstruct (~(~a~) (:include ~a)" ',name ,include)
      (format ,stream "~%                  (:constructor make-~(~a~)-constructor))" ',name)
-     (format ,stream "~%  \"Type (~a):" ',(or type name))
+     (format ,stream "~%  \"Type (:~a):\"" ',(or type name))
      (format ,stream "~%  ~{~(~a~)~^ ~})~%~%" ',slots)
      (format ,stream "(defun make-~(~a~) (&rest parameters" ',name)
      (format ,stream "~%                         &key &allow-other-keys)")
      (format ,stream "~%  (destructuring-bind (&whole whole")
      (format ,stream "~%                              &key (constructor 'make-~(~a~)-constructor)" ',name)
-     (format ,stream "~%                                   (type '~(~a~))" ',(or type name))
+     (format ,stream "~%                                   (type :~(~a~))" ',(or type name))
      (format ,stream "~%                                   &allow-other-keys)")
      (format ,stream "~%      parameters")
      (format ,stream "~%    (dolist (indicator '(:constructor :type))")
      (format ,stream "~%      (remf whole indicator))")
      (format ,stream "~%    (apply 'make-inn-node `(:constructor ,constructor :type ,type ,@whole))))~%~%")
-     (format ,stream "(register-types '~a) ;; Please check and add types for this node~%~%" (list ',(or type name)))
      ,@(if color
-         `((format ,stream "(defmethod get-node-color ((type (eql '~(~a~))))" ',(or type name))
+         `((format ,stream "(defmethod get-node-color ((type (eql :~(~a~))))" ',(or type name))
            (format ,stream "~%  ~s)~%~%" ,color)))
      ,@(if shape
-         `((format ,stream "(defmethod get-node-shape ((type (eql '~(~a~))))" ',(or type name))
+         `((format ,stream "(defmethod get-node-shape ((type (eql :~(~a~))))" ',(or type name))
            (format ,stream "~%  ~s)~%~%" ,shape)))
      (format ,stream "(defmethod inn-format-node ((node ~a))" ',name)
      (format ,stream "~%  (call-next-method)) ;; please customize")))
