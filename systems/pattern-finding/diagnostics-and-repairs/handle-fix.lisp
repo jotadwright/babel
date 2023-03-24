@@ -4,9 +4,14 @@
 (defclass add-cxns-and-categorial-links (repair)
   ())
 
+;; Generic function for repair
+(defgeneric do-repair (observation-form observation-meaning form-args meaning-args cxn-inventory node repair-type)
+  (:documentation "Run a repair of type repair-type."))
+
 ;; Events
 (define-event cxns-learned (cxns list))
 (define-event fix-applied (repair-name symbol) (form list) (learned-cxns list))
+
 
 ;; Apply fix result
 (defstruct (apply-fix-result (:conc-name afr-))

@@ -478,6 +478,26 @@
       ;; otherwise, take the primitive that holds the target var
       (first (find target-variable meaning-predicates :key #'second)))))
 
+(defun hash-observation (form-constraints meaning-predicates)
+  ;; extract string predicates + predicate names
+  (let ((meaning-predicates
+         (loop for meaning in meaning-predicates
+               collect (if (and (= 4 (length meaning))
+                                (eql 'bind (first meaning)))
+                         (fourth meaning)
+                         (first meaning))))
+        (form-predicates
+         (mapcar #'third (find-all 'string form-constraints :key #'first))))
+    (append form-predicates meaning-predicates)))
+                            
+(defun constructions-for-anti-unification-hashed (form-constraints meaning-predicates cxn-inventory)
+  (remove-duplicates
+   (mapcar #'original-cxn
+           (append
+            (loop for hash in (hash-observation form-constraints meaning-predicates)
+                  append (gethash hash (constructions-hash-table cxn-inventory)))
+            (gethash nil (constructions-hash-table cxn-inventory))))))
+
 ;;;;;
 ;; Partial Analysis
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -528,29 +548,55 @@
         (when compatible-cip-nodes
           (first (sort compatible-cip-nodes #'sort-cipns-by-coverage-and-nr-of-applied-cxns)))))))
 
-(defun get-best-partial-analysis-cipn (form-constraints gold-standard-meaning cxn-inventory)
-  ;; comprehend again using both routine and meta cxns but without categorial links
-  ;; select the node with the largest form coverage
+(defun best-partial-analysis-cipn-with-meta-cxns (form-constraints gold-standard-meaning cxn-inventory)
   (when (constructions-list cxn-inventory)
-    (let (best-routine-cipn best-meta-cipn)
-      ;; determine the best cipn using routine cxns
-      (disable-meta-layer-configuration cxn-inventory)
-      (set-configuration cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
-      (setf best-routine-cipn
-            (compatible-cipn-with-largest-coverage form-constraints gold-standard-meaning cxn-inventory))
-      (enable-meta-layer-configuration cxn-inventory)
-      ;; determine the best cipn using meta cxns
+    (let (best-cipn)
       (disable-meta-layer-configuration-item-based-first cxn-inventory)
-      (setf best-meta-cipn
-            (compatible-cipn-with-largest-coverage form-constraints gold-standard-meaning cxn-inventory))
+      (setf best-cipn (compatible-cipn-with-largest-coverage form-constraints gold-standard-meaning cxn-inventory))
       (enable-meta-layer-configuration-item-based-first cxn-inventory)
-      ;; determine the best cipn overall
-      (cond ((and best-routine-cipn best-meta-cipn)
-             (first (sort (list best-routine-cipn best-meta-cipn)
-                          #'sort-cipns-by-coverage-and-nr-of-applied-cxns)))
-            (best-routine-cipn best-routine-cipn)
-            (best-meta-cipn best-meta-cipn)
-            (t nil)))))
+      best-cipn)))
+
+(defun best-partial-analysis-cipn-with-routine-cxns (form-constraints gold-standard-meaning cxn-inventory)
+  (when (constructions-list cxn-inventory)
+    (let (best-cipn)
+      (disable-meta-layer-configuration cxn-inventory)
+      (setf best-cipn (compatible-cipn-with-largest-coverage form-constraints gold-standard-meaning cxn-inventory))
+      (enable-meta-layer-configuration cxn-inventory)
+      best-cipn)))
+
+(defun anti-unify-partial-analysis-with-observation (observation-form observation-meaning partial-analysis-cipn)
+  ;; the generalisation is identical to the meaning/form of the cipn,
+  ;; the pattern delta is empty
+  ;; and the source delta contains the material for the new cxn to be learned
+  (let* ((cipn-meaning (fcg-extract-meanings partial-analysis-cipn))
+         ;; cipn-form has the same variables as the observation-form
+         ;; --> these variables do not occur in the bindings of the anti-unification...
+         ;; --> make fresh variables and store the mappings from the original
+         ;;     constants to the fresh variables
+         (cipn-form-and-variable-renamings
+          (multiple-value-list
+           (fresh-variables
+            (variablify-form-constraints-with-constants
+             (loop for unit in (fcg-get-transient-unit-structure partial-analysis-cipn)
+                   unless (eql (unit-name unit) 'fcg::root)
+                     append (unit-feature-value unit 'form))))))
+         (cipn-form (first cipn-form-and-variable-renamings))
+         (form-const-renamings
+          (loop for (var . fresh-var) in (second cipn-form-and-variable-renamings)
+                collect (cons (devariablify var) fresh-var)))
+         (meaning-a-u (first (anti-unify-predicate-network cipn-meaning observation-meaning)))
+         (form-a-u (first (anti-unify-predicate-network cipn-form observation-form))))
+    (unless (or (null (source-delta meaning-a-u))
+                (null (source-delta form-a-u)))
+      ;; store the renamings in the cipn
+      (set-data partial-analysis-cipn :form-const-renamings form-const-renamings)
+      ;; nazi checks
+      (assert (and (null (pattern-delta meaning-a-u))
+                   (null (pattern-delta form-a-u))
+                   (equivalent-irl-programs? (generalisation meaning-a-u) cipn-meaning)
+                   (equivalent-irl-programs? (generalisation form-a-u) cipn-form)))
+      ;; return AU results
+      (values form-a-u meaning-a-u))))
 
 
 ;;;;;

@@ -6,7 +6,7 @@
   (deactivate-all-monitors)
   (activate-monitor display-metrics)
   (monitors::activate-monitor fcg::trace-fcg)
-  (activate-monitor pf::print-a-dot-for-each-interaction)
+  (monitors::activate-monitor pf::print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
   (activate-monitor show-type-hierarchy-after-n-interactions)
   (activate-monitor trace-interactions-in-wi)
@@ -23,18 +23,6 @@
 ;;;; For example: 'what-X-is-the-blue-Y-(XY)' for the 'color-cube-cxn' filling both the X and Y slots!
 ;;;; and 'what-X-is-the-Y-(X)' for the color-cxn + 'what-X-is-the-Y-(Y) for the blue-cube-cxn
 ;;;; and 'what-X-is-the-Y-Z-(Y)' for the blue-cxn + 'what-X-is-the-Y-Z-(Z)' for the cube-cxn
-
-;;;; Interaction 22; Is there a shiny block?
-;;;; Agent already knows is-there-a-?x-cxn and block-cxn
-;;;; Is it possible to learn shiny-?x-cxn that takes block-cxn
-;;;; as an argument and fills the ?x slot in the is-there-a-?x-cxn?
-;;;; For the moment no, due to number of form args and meaning args...
-;;;; or due to the order of the repairs? First anti-unify and then
-;;;; partial analysis??
-
-;;;; Break down repairs into smaller repairs?
-;;;; repair-anti-unify -> item-based->item-based--subst + holistic->item-based--subst/del/add
-;;;; repair-partial-analysis -> item-based->holistic + holistic->item-based
 
 
 (progn
@@ -57,7 +45,7 @@
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 22)
+(run-series *experiment* 4)
 
 ;;;; Showing the cxn inventory and categorial network
 
@@ -79,7 +67,7 @@
 ;;;; Time travel
 
 (go-back-n-interactions *experiment* 1)
-(remove-cxns-learned-at *experiment* 22)
+(remove-cxns-learned-at *experiment* 5)
 
 (defun go-back-n-interactions (experiment n)
   (setf (interactions experiment)
