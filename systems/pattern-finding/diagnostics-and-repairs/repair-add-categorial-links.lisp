@@ -23,28 +23,32 @@
 
 
 (defun create-categorial-links (problem node)
-  (do-create-categorial-links
+  (do-repair
    (get-data problem :utterance)
    (get-data problem :meaning)
    nil
    nil
    (construction-inventory node)
-   node))
+   node
+   'add-categorial-links))
 
 
-(defun do-create-categorial-links (form-constraints meaning form-args meaning-args cxn-inventory node)
-  "Return the categorial links and applied cxns from a comprehend with :category-linking-mode :path-exists instead of :neighbours"
+(defmethod do-repair (observation-form observation-meaning form-args meaning-args
+                                       (cxn-inventory construction-inventory)
+                                       node (repair-type (eql 'add-categorial-links)))
+  "Return the categorial links and applied cxns from a comprehend
+   with :category-linking-mode :path-exists instead of :neighbours"
   (declare (ignore form-args meaning-args))
   (disable-meta-layer-configuration cxn-inventory) 
   (with-disabled-monitor-notifications
     (multiple-value-bind (parsed-meanings solutions)
-        (comprehend-all form-constraints
+        (comprehend-all observation-form
                         :cxn-inventory (original-cxn-set cxn-inventory)
-                        :gold-standard-meaning meaning)
+                        :gold-standard-meaning observation-meaning)
       (declare (ignore parsed-meanings))
       (enable-meta-layer-configuration cxn-inventory)
       (let* ((required-top-lvl-args
-              (get-unconnected-vars meaning))
+              (get-unconnected-vars observation-meaning))
              (succeeded-nodes
               (loop for cipn in solutions
                     when (find 'fcg::succeeded (statuses cipn))
@@ -52,14 +56,14 @@
              (node-with-compatible-args
               (first
                (reject-solutions-with-incompatible-args
-                succeeded-nodes meaning required-top-lvl-args))))
+                succeeded-nodes observation-meaning required-top-lvl-args))))
         (when node-with-compatible-args
           (let* ((cxns-to-apply (reverse (original-applied-constructions node-with-compatible-args)))
                  (top-lvl-category (extract-lex-class-item-based-cxn (last-elt cxns-to-apply))))
             (when (> (length cxns-to-apply) 1)
               (apply-fix 
                ;; form constraints
-               form-constraints
+               observation-form
                ;; cxns to appply
                cxns-to-apply
                ;; categorial links
@@ -75,7 +79,7 @@
                ;; node
                node
                ;; repair name
-               'add-categorial-links))))))))
+               repair-type))))))))
 
 
 (defun gold-standard-consulted-p (cipn)
@@ -87,9 +91,9 @@
   (loop with frame-bindings = (irl::map-frame-bindings bindings)
         for elt in predicate
         for assoc-res = (assoc elt frame-bindings)
-        collect (if assoc-res
-                  (cdr assoc-res)
-                  elt)))
+        if assoc-res
+        collect (cdr assoc-res)
+        else collect elt))
 
 (defun get-top-level-ts-args (cip-node)
   (let* ((all-units (left-pole-structure (car-resulting-cfs (cipn-car cip-node))))

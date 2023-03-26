@@ -65,11 +65,18 @@
 (defmethod get-node-shape ((type (eql :predicate)))
   "triangle")
 
+(defmethod get-node-shape ((type (eql :inn-image)))
+  "image")
+
 (defmethod get-node-shape ((type t))
   "square")
 
 ;; -------------------------------------------------------------------------
 ;; 2. Struct definitions, associated methods, and Constructor Functions
+;; -------------------------------------------------------------------------
+
+
+;; (a) INN-node
 ;; -------------------------------------------------------------------------
 
 (export '(inn-node 
@@ -121,6 +128,19 @@
                          ,@whole))))
 ;; (make-inn-node :type 'answered-narrative-question)
 
+(export '(make-entity-node make-predicate-node))
+
+(defmacro make-entity-node (&rest parameters)
+  `(make-inn-node ,@parameters
+                  :type :entity))
+
+(defmacro make-predicate-node (&rest parameters)
+  `(make-inn-node ,@parameters
+                  :type :predicate))
+
+;; (b) narrative-question
+;; -------------------------------------------------------------------------
+
 (export '(posed-by answered-by inn-answer
           narrative-question
           narrative-question-p
@@ -133,7 +153,8 @@
           narrative-question-answered-by
           narrative-question-answer
           narrative-question-bindings
-          narrative-question-irl-programs))
+          narrative-question-irl-programs
+          inn-answer-question undo-inn-answer-question))
 
 (defstruct (narrative-question 
             (:include inn-node)
@@ -163,9 +184,7 @@
     ;; Now call the basic constructor function
     (apply 'make-inn-node 
            `(:constructor ,constructor
-             :type ,(if (member type '(:open-narrative-question :answered-narrative-question))
-                      type
-                      :open-narrative-question)
+             :type ,(if (keywordp type) type :open-narrative-question)
              ,@whole))))
 ;; (make-narrative-question)
 
@@ -203,15 +222,34 @@
   (vis-update-node (inn-format-node narrative-question))
   narrative-question)
 
-(export '(make-entity-node make-predicate-node))
+;; (c) inn-image
+;; -------------------------------------------------------------------------
 
-(defmacro make-entity-node (&rest parameters)
-  `(make-inn-node ,@parameters
-                  :type :entity))
+(export '(inn-image
+          inn-image-attributes inn-image-cluster-ids inn-image-color
+          inn-image-shape inn-image-url inn-image-p inn-image-id
+          inn-image-description inn-image-label inn-image-p
+          inn-image-type inn-image-value inn-image-weight
+          make-inn-image))
 
-(defmacro make-predicate-node (&rest parameters)
-  `(make-inn-node ,@parameters
-                  :type :predicate))
+(defstruct (inn-image (:include INN-NODE)
+                  (:constructor make-inn-image-constructor))
+  "Type (:INN-IMAGE):"
+  (url "http://via.placeholder.com/640x360.png")) ; Customized to have placeholder. 
+
+(defun make-inn-image (&rest parameters
+                         &key &allow-other-keys)
+  (destructuring-bind (&whole whole
+                              &key (constructor 'make-inn-image-constructor)
+                                   (type :inn-image)
+                                   &allow-other-keys)
+      parameters
+    (dolist (indicator '(:constructor :type))
+      (remf whole indicator))
+    (apply 'make-inn-node `(:constructor ,constructor 
+                            :type ,(if (keywordp type) type :inn-image)
+                            ,@whole))))
+;; (make-inn-image)
 
 (export '(inn-node-structures get-inn-node-constructor))
 
@@ -247,7 +285,9 @@
           for name = (slot-value slot-descriptor 'structure::name)
           unless (member name the-ignorable)
             collect 
-              (list name (slot-value slot-descriptor 'structure::default)))))
+              (list name 
+                    (slot-value slot-descriptor 'structure::default)))))
+
                           
 ;; -------------------------------------------------------------------------
 ;; Helper Macro for writing customized inn-node-code.

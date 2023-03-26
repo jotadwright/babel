@@ -70,8 +70,13 @@
                     :onclick ,(format nil
                                       "javascript:network.addEdgeMode();"))
             "Add Edge"))
+          ((td)
+           ((button :class "inn-button" :role "button"
+                    :onclick ,(format nil
+                                      "javascript:clusterSelected();"))
+            "Cluster Selected Nodes"))
           ((td :id "deleteSelectionButton")))
-         ((tr :colspan "3")
+         ((tr :colspan "4")
           ((div :id "innpopup")))))
        ((div :id ,id) 
         ,(wi::make-vis-network
@@ -98,10 +103,68 @@
                    network.on(\"deselectEdge\", function (params) {
                       javascript:ajax_removedeletebutton(); });
 
+                   network.on(\"doubleClick\", function (params) {
+                      var selectedNodes = network.getSelectedNodes();
+                      var selectedNodeId = selectedNodes[0];
+                      if (network.isCluster(selectedNodeId) == true) {
+                          network.openCluster(selectedNodeId); } });
+
+                   function clusterSelected() {
+
+                      var selectedNodes = network.getSelectedNodes();
+                      var headNodeId = selectedNodes[0];
+                      var headNode = nodes.get(headNodeId);
+                      var clusterOptions = {
+                             joinCondition: function(nodeOptions) {
+                                var nodeId = nodeOptions.id;
+                                return selectedNodes.includes(nodeId);
+                             },
+                             clusterNodeProperties: {
+                                borderWidth: 3,
+                                shape: headNode.shape,
+                                label: headNode.label,
+                                color: headNode.color,
+                                image: headNode.image
+                             },
+                      };
+                      network.clustering.cluster(clusterOptions);
+                      network.selectNodes([]);
+                      network.selectEdges([]);
+                      ajax_removedeletebutton();
+                   }
 
                   " id)))))))
 ;; (draw-inn-network-in-vis-js (make-instance 'integrative-narrative-network))
 ;; (draw-inn-network-in-vis-js (get-current-inn))
 
+;;; We could also cluster by some ID.
+;;; ----------------------------------------------
+;;;                       var selectedNode = network.body.data.nodes.get(selectedNodeId);
+;;;                       var myCid = selectedNode.cid;
+;;;                       var clusterOptionsByData = {
+;;;                               joinCondition: function (childOptions) {
+;;;                                    return childOptions.cid == myCid;
+;;;                                    },
+;;;                               clusterNodeProperties: {
+;;;                                    borderWidth: 3,
+;;;                                    shape: selectedNode.shape,
+;;;                                    image: selectedNode.image,
+;;;                                    color: selectedNode.color,
+;;;                                    label: selectedNode.label,
+;;;                                    },
+;;;                             };
+;;;                       if (myCid) { network.cluster(clusterOptionsByData); }
+;;;                       });
 
 
+;;; (add-element `((script :type "text/javascript")
+;;;                "var myNode = network.body.data.nodes.get('3');
+;;;                 var myNodeId = myNode.id;
+;;;                 var myOptions = { clusterNodeProperties: {
+;;;                                    borderWidth: 3,
+;;;                                    label: myNode.label,
+;;;                                    color: myNode.color,
+;;;                                    shape: myNode.shape,
+;;;                                    image: myNode.image,
+;;;                                    } }
+;;;                 network.clustering.clusterByConnection(myNodeId, myOptions)"))
