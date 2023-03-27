@@ -348,6 +348,9 @@ nil."
           (push '(()) lists)))
 
 (defun combinations-of-length (elements length)
+"Computes the subsets of length of a given list.
+   (combinations-of-length '(a b c) 2)
+   -> ((a b) (a c) (b c))"
   (declare (list elements) (fixnum length))
   (cond ((= 0 length) '(()))
         ((null elements) nil)        
@@ -358,7 +361,7 @@ nil."
             (combinations-of-length (rest elements) length)))))
 
 (defun set-partitions (list &key (min-length 1) max-length)
-  "computes a list of all partitions of a set:
+  "Computes a list of all partitions of a set:
    (set-partitions '(a b c))
    -> (((a b c)) ((a b) (c)) ((a c) (b)) ((a) (b c)) ((a) (b) (c)))
    algorithm from Michael Orlov (2002). Efficient Generation of Set Partitions."
