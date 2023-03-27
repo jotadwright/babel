@@ -390,7 +390,7 @@ nil."
         ((zerop (mod n 2)) (append (bin-list (/ n 2)) '(0)))
         (t (append (bin-list (floor (/ n 2))) '(1)))))
 
-(defun all-subsets (list &key (min-length 1))
+(defun all-subsets (list &key (min-length 1) max-length)
   "There are 2^n subsets of a list of length n.
    Iterate from 0 to (2^n)-1 and represent this number in binary format.
    The binary format has the same length as the list itself.
@@ -412,7 +412,9 @@ nil."
                    for idx from 0
                    if (= bit 1)
                    do (push (nth idx list) subset)
-                   finally (when (and subset (>= (length subset) min-length))
+                   finally (when (and subset
+                                      (>= (length subset) min-length)
+                                      (<= (length subset) max-length))
                              (push subset all-subsets)))
           finally (return all-subsets))))
 
