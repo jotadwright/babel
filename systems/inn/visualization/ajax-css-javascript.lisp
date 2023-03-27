@@ -115,7 +115,8 @@
   (let* ((inn-node-structures (let ((i -1))
                                 (loop for struct in (inn:inn-node-structures)
                                       collect (list (incf i) struct))))
-         (type-instruction (or (documentation (class-name (second (first inn-node-structures))) 'structure)
+         (type-instruction (or (documentation 
+                                (class-name (second (first inn-node-structures))) 'structure)
                                "Type:")))
     (replace-element-content 
      "innpopup"
@@ -194,9 +195,12 @@
     nil))
 
 ;; -------------------------------------------------------------------------
-;; 3. Cluster Nodes
+;; 3. Events
 ;; -------------------------------------------------------------------------
 
+(defun-ajax doubleclick (selection) (*ajax-processor*)
+  (inn::inn-double-click selection (inn:get-current-inn))
+  nil)
 
 ;; -------------------------------------------------------------------------
 ;; 4. Delete Selection
