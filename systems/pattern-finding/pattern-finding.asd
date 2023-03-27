@@ -30,8 +30,10 @@
                              (:file "problems-diagnostics")
                              (:file "repair-add-categorial-links")
                              (:file "repair-nothing-to-holophrase-cxn")
-                             (:file "repair-anti-unify")
-                             (:file "repair-partial-analysis")))
+                             (:file "repair-holistic-to-item-based")
+                             (:file "repair-item-based-to-item-based")
+                             (:file "repair-holistic-partial-analysis")
+                             (:file "repair-item-based-partial-analysis")))
                (:module experiment-setup
                 :serial t
                 :components ( (:file "run-helpers")
