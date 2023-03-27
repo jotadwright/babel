@@ -95,12 +95,14 @@
         for second-word-var = (third meets-constraint)
         unless (or (find first-word-var string-constraints :key #'second)
                    (find first-word-var new-string-constraints :key #'second))
-        do (progn (push `(string ,first-word-var ,(nth placeholder-index +placeholder-vars+)) new-string-constraints)
-             (incf placeholder-index))
+        do (push (list 'string first-word-var (nth placeholder-index +placeholder-vars+)) new-string-constraints)
+           (incf placeholder-index)
+        ;do (progn (push `(string ,first-word-var ,(nth placeholder-index +placeholder-vars+)) new-string-constraints)
+        ;     (incf placeholder-index))
         unless (or (find second-word-var string-constraints :key #'second)
                    (find second-word-var new-string-constraints :key #'second))
-        do (progn (push `(string ,second-word-var ,(nth placeholder-index +placeholder-vars+)) new-string-constraints)
-             (incf placeholder-index))
+        do (push (list 'string second-word-var (nth placeholder-index +placeholder-vars+)) new-string-constraints)
+           (incf placeholder-index)
         finally (return new-string-constraints)))
 
 (defgeneric make-cxn-name (thing cxn-inventory &key add-cxn-suffix add-numeric-tail))
@@ -492,11 +494,10 @@
                             
 (defun constructions-for-anti-unification-hashed (form-constraints meaning-predicates cxn-inventory)
   (remove-duplicates
-   (mapcar #'original-cxn
-           (append
-            (loop for hash in (hash-observation form-constraints meaning-predicates)
-                  append (gethash hash (constructions-hash-table cxn-inventory)))
-            (gethash nil (constructions-hash-table cxn-inventory))))))
+   (append
+    (loop for hash in (hash-observation form-constraints meaning-predicates)
+          append (gethash hash (constructions-hash-table cxn-inventory)))
+    (gethash nil (constructions-hash-table cxn-inventory)))))
 
 ;;;;;
 ;; Partial Analysis
@@ -623,6 +624,7 @@
         (list (second (first form-constraints))
               (second (first form-constraints)))))))
 
+
 (defun sort-meets-constraints (meets-constraints)
   "return the sorted list of meets constraints"
   (let* ((begin-var (first (get-boundary-units meets-constraints)))
@@ -634,6 +636,7 @@
           do (push next-predicate resulting-list)
           (setf next-predicate (find next-var meets-constraints :key #'second))
           finally (return (reverse resulting-list)))))
+
 
 (defun continuous-meets-p (form-constraints)
   "check if within a holistic chunk, all form strings are connected"

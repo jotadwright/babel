@@ -45,7 +45,7 @@
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 4)
+(run-series *experiment* 6)
 
 ;;;; Showing the cxn inventory and categorial network
 
@@ -67,7 +67,7 @@
 ;;;; Time travel
 
 (go-back-n-interactions *experiment* 1)
-(remove-cxns-learned-at *experiment* 5)
+(remove-cxns-learned-at *experiment* 7)
 
 (defun go-back-n-interactions (experiment n)
   (setf (interactions experiment)
