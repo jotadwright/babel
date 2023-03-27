@@ -43,9 +43,6 @@
 (defmethod get-node-color ((type (eql :predicate)))
   "purple")
 
-(defmethod get-node-color ((node inn-node))
-  (get-node-color (inn-node-type node)))
-
 (defmethod get-node-color ((type t))
   "gray")
 
@@ -70,9 +67,6 @@
 
 (defmethod get-node-shape ((type (eql :inn-image)))
   "image")
-
-(defmethod get-node-shape ((node inn-node))
-  (get-node-shape (inn-node-type node)))
 
 (defmethod get-node-shape ((type t))
   "square")
