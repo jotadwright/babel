@@ -202,6 +202,10 @@
   (inn::inn-double-click selection (inn:get-current-inn))
   nil)
 
+(defun-ajax innrightclick () (*ajax-processor*)
+  (inn:inn-right-click (inn:get-current-inn))
+  nil)
+
 ;; -------------------------------------------------------------------------
 ;; 4. Delete Selection
 ;; -------------------------------------------------------------------------
