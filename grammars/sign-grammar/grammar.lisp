@@ -54,103 +54,12 @@
 ;; Lexical Constructions ;;
 ;;-----------------------;;
 
-(def-fcg-cxn ball-cxn 
-             ((?ball-unit 
-               (referent ?b)
-               (syn-cat noun)
-               ;(sem-cat concept)
-               ;(ontological-class round-object)
-               (salient-movf ?movf-2)
-               ;(sign-var ?sign-1)
-               )
-              <- 
-              (?ball-unit 
-               (HASH meaning ((ball ?b)))
-               -- 
-               (HASH form ((SIGN ?SIGN-1)
-                           (NON-MANUAL ?SIGN-1 ?NM-1)
-                           (MOUTHPICTURE ?NM-1 "ball")
-                           (MANUAL ?SIGN-1 ?M-1)
-                           (SYMMETRY ?M-1 ?SYM-1)
-                           (HAMSYMMLR ?SYM-1 ?SYMF-1)
-                           (HANDSHAPE ?M-1 ?HS-1)
-                           (HAMFINGER2345 ?HS-1 ?HSF-1)
-                           (HAMBETWEEN ?HS-1 ?HSF-2)
-                           (HAMFLATHAND ?HS-1 ?HSF-3)
-                           (HAMMOD ?HSF-3 HAMFINGERBENDMOD)
-                           (EXTENDED-FINGER-DIRECTION ?M-1 ?EXT-1)
-                           (HAMEXTFINGEROL ?EXT-1 ?EXTF-1)
-                           (PALM-ORIENTATION ?M-1 ?ORI-1)
-                           (HAMPALMDL ?ORI-1 ?ORIF-1)
-                           (LOCATION ?M-1 ?LOC-1)
-                           (HAMTOUCH ?LOC-1 ?LOCF-1)
-                           (HAMSHOULDERS ?LOC-1 ?LOCF-2)
-                           (MOVEMENT ?M-1 ?MOV-1)
-                           (HAMPARBEGIN ?MOV-1 ?MOVF-1)
-                           (HAMMOVED ?MOV-1 ?MOVF-2)
-                           (HAMARCR ?MOV-1 ?MOVF-3)
-                           (HAMREPLACE ?MOV-1 ?MOVF-4)
-                           (PALM-ORIENTATION ?M-1 ?ORI-2)
-                           (HAMPALMU ?ORI-2 ?ORIF-2)
-                           (HAMPAREND ?ORI-2 ?ORIF-3)
-                           (LOCATION ?M-1 ?LOC-2)
-                           (HAMTOUCH ?LOC-2 ?LOCF-3)
-                           (MEETS ?SYMF-1 ?HSF-1)
-                           (MEETS ?HSF-1 ?HSF-2)
-                           (MEETS ?HSF-2 ?HSF-3)
-                           (MEETS ?HSF-3 ?EXTF-1)
-                           (MEETS ?EXTF-1 ?ORIF-1)
-                           (MEETS ?ORIF-1 ?LOCF-1)
-                           (MEETS ?LOCF-1 ?LOCF-2)
-                           (MEETS ?LOCF-2 ?MOVF-1)
-                           (MEETS ?MOVF-1 ?MOVF-2)
-                           (MEETS ?MOVF-2 ?MOVF-3)
-                           (MEETS ?MOVF-3 ?MOVF-4)
-                           (MEETS ?MOVF-4 ?ORIF-2)
-                           (MEETS ?ORIF-2 ?ORIF-3)
-                           (MEETS ?ORIF-3 ?LOCF-3))))))
-
-(def-fcg-cxn big-cxn 
-             ((?modifier-unit
-               (syn-cat adjective))
-              (?noun-unit
-               (subunits (?modifier-unit)))
-              <- 
-              (?noun-unit 
-               (referent ?r)
-               --
-               (syn-cat noun)
-               (salient-movf ?movf))
-              
-              (?modifier-unit
-               (HASH meaning ((mod ?r big)))
-               --
-               (HASH form ((hammod ?movf hamlargemod)))))) 
-
-; construction for modifier small
-(def-fcg-cxn small-cxn 
-             ((?modifier-unit
-               (syn-cat adjective))
-              (?noun-unit
-               (subunits (?modifier-unit)))
-              <- 
-              (?noun-unit 
-               (referent ?r)
-               --
-               (syn-cat noun)
-               (salient-movf ?movf))
-              
-              (?modifier-unit
-               (HASH meaning ((mod ?r small)))
-               --
-               (HASH form ((hammod ?movf hamsmallmod))))))
-
 (def-fcg-cxn car-cxn
              ((?car-unit
                (referent ?r)
                (ontological-class two-track-vehicle)
-               (sem-cat concept)
-               (syn-cat noun)
+               (category concept)
+               ;(syn-cat noun)
                (boundaries ((right-manual-boundary ?lm-1)
                             (left-manual-boundary ?h-1))))
                <-
@@ -213,8 +122,8 @@
              ((?child-unit
                (referent ?r)
                (ontological-class person)
-               (sem-cat concept)
-               (syn-cat noun)
+               (category concept)
+               ;(syn-cat noun)
                (boundaries ((right-manual-boundary ?lm-4)
                             (left-manual-boundary ?h-5))))
               <-
@@ -257,31 +166,32 @@
                       (overlaps ?eg-3 ?lm-4))))))
 
 (def-fcg-cxn vehicle-classifier-cxn
-             ((?identified-vehicle-unit
+             ((?referring-vehicle-unit
                (ontological-class two-track-vehicle)
-               (classifier-configurations ((handshape flat)
+               (classifier-configurations (
+                                           ;(handshape flat)
                                            (articulator ?hand)
                                            (handconfiguration ?hc-3)
                                            (x-direction ahead)
                                            (y-direction level)
-                                           (placement-bearing ?b-3) 
+                                           (orientation-reference ?b-3) 
                                            (movement-origin ?pl-2)
                                            (movement-end-point ?pl-3)))
                (subunits (?vehicle-unit ?classifier-unit))
                (boundaries ((left-manual-boundary ?h-5)
                             (right-manual-boundary ?h-4)))
-               (syn-cat identified-classifier))
-              (?classifier-unit
-               (boundaries ((left-manual-boundary ?h-3)
-                            (right-manual-boundary ?h-4)))
-               (syn-cat classifier))
+               (category referring-expression))
+              ;(?classifier-unit
+               ;(boundaries ((left-manual-boundary ?h-3)
+                            ;(right-manual-boundary ?h-4)))
+               ;(category classifier))
               <-
-              (?identified-vehicle-unit
+              (?referring-vehicle-unit
                (referent ?r)
                --
                )
               (?classifier-unit
-               (referent ?r)
+               ;(referent ?r)
                --
                (hash form ((hold ?h-3)
                            (articulator ?h-3 ?hand)
@@ -315,36 +225,36 @@
               (?vehicle-unit
                (ontological-class two-track-vehicle)
                (referent ?r)
-               (sem-cat concept)
+               (category concept)
                --
                (boundaries ((left-manual-boundary ?h-5)
                             (right-manual-boundary ?m-2)))
-               (syn-cat noun))))
+               ;(syn-cat noun)
+               )))
 
 (def-fcg-cxn person-classifier-cxn
-             ((?identified-person-unit
+             ((?referring-person-unit
                (classifier-configurations ((handconfiguration ?hc-6)
                                            (articulator ?hand)
                                            (x-direction ahead)
                                            (y-direction up)
-                                           (placement-bearing ?b-1) 
+                                           (orientation-reference ?b-1) 
                                            (movement-origin ?pl-7)
                                            (movement-end-point ?pl-5)))
-               (syn-cat identified-classifier)
+               (category referring-expression)
                (subunits (?person-unit ?classifier-unit))
                (boundaries ((left-manual-boundary ?h-5)
                             (right-manual-boundary ?h-7))))
-              (?classifier-unit
-               (boundaries ((left-manual-boundary ?h-6)
-                            (right-manual-boundary ?h-7)))
-               (syn-cat classifier))
+              ;(?classifier-unit
+               ;(boundaries ((left-manual-boundary ?h-6)
+                            ;(right-manual-boundary ?h-7)))
+               ;(category classifier))
               <-
-              (?identified-person-unit
+              (?referring-person-unit
                (referent ?r)
                --
                )
               (?classifier-unit
-               (referent ?r)
                --
                (hash form ((hold ?h-6)
                            (articulator ?h-6 ?hand)
@@ -377,37 +287,32 @@
                            (meets ?m-2 ?h-6 ))))
               (?person-unit
                (ontological-class person)
-               (sem-cat concept)
+               (category concept)
                (referent ?r)
                --
                (boundaries ((right-manual-boundary ?m-2)
                             (left-manual-boundary ?h-5)))
-               (syn-cat noun)
+               ;(syn-cat noun)
                )))
 
 (def-fcg-cxn x-approaches-y-cxn
-             ((?x-unit
+             ((?moving-entity-unit
                (referent ?x))
-              (?y-unit
+              (?destination-unit
                (referent ?y))
               (?approaches-unit
-               (subunits (?x-unit ?y-unit)))
-              (?x-classifier-unit
-               (referent ?x))
-              (?y-classifier-unit
-               (referent ?y))
+               (subunits (?moving-entity-unit ?destination-unit)))
               <-
-              (?x-unit
+              (?moving-entity-unit
                --
                (classifier-configurations ((handconfiguration ?hc-6)
                                            (articulator strong-hand)
                                            (x-direction ?x-dir)
                                            (y-direction ?y-dir)
-                                           (placement-bearing ?b-2)
+                                           (orientation-reference ?b-2)
                                            (movement-origin ?pl-1)
                                            (movement-end-point ?pl-2)))
-               (syn-cat identified-classifier)
-               (subunits (?x-noun-unit ?x-classifier-unit))
+               (category referring-expression)
                (boundaries ((left-manual-boundary ?h-11)
                             (right-manual-boundary ?h-10)))
                (hash form
@@ -421,10 +326,6 @@
                       (x-direction ?b-2 leftward)
                       (y-direction ?b-2 downward)
                       (z-distance ?pl-2 medial))))
-              (?x-classifier-unit
-               --
-               (boundaries ((left-manual-boundary ?h-12)))
-               (syn-cat classifier))
               (?approaches-unit
                (hash meaning
                      ((approach.01 ?a)
@@ -454,16 +355,15 @@
                       (overlaps ?eg-5 ?h-8)
                       (finishes ?h-8 ?h-9)
                       (meets ?h-10 ?pm-6)
-                      (during ?h-11 ?h-9)
-                      (during ?h-12 ?h-9))))
-              (?y-unit
+                      (during ?h-11 ?h-9))))
+              (?destination-unit
                --
                (classifier-configurations ((articulator weak-hand)
                                            (movement-origin ?pl-3)
-                                           (placement-bearing ?b-4)
+                                           (orientation-reference ?b-4)
                                            (movement-end-point ?pl-4)))
                (boundaries ((right-manual-boundary ?h-9)))
-               (syn-cat identified-classifier)
+               (category referring-expression)
                (hash form
                      ((bearing ?pl-3 ?b-3)
                       (x-direction ?b-3 ahead)
@@ -474,11 +374,7 @@
                       (focal-site ?b-4 ?pl-3)
                       (x-direction ?b-4 rightward)
                       (y-direction ?b-4 downward)
-                      (z-distance ?pl-4 medial)))
-               (subunits (?y-noun-unit ?y-classifier-unit)))
-              (?y-classifier-unit
-               --
-               (syn-cat classifier))
+                      (z-distance ?pl-4 medial))))
              ))
 
               
