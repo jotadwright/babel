@@ -55,7 +55,9 @@
 ;; 3. Events
 ;; ----------------------------------------------------------------------------------
 
-(export '(inn-double-click))
+(export '(inn-double-click
+          inn-right-click))
 
+;; Customize the event behaviors based on your network class.
 (defgeneric inn-double-click (selection network))
-;; Customize the double click behavior based on your network.
+(defgeneric inn-right-click (network))

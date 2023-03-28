@@ -24,3 +24,7 @@
                            if (network.isCluster(selectedNodeId) == true) {
                                 network.openCluster(selectedNodeId); }"
                           selection))))
+
+(defmethod inn-right-click ((network integrative-narrative-network))
+  (declare (ignore network))
+  nil)

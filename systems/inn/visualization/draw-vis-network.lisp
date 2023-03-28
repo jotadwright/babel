@@ -103,6 +103,9 @@
                    network.on(\"deselectEdge\", function (params) {
                       javascript:ajax_removedeletebutton(); });
 
+                   network.on(\"oncontext\", function (params) {
+                      javascript:ajax_rightclick(); });
+
                    network.on(\"doubleClick\", function (params) {
                       var selectedNodes = network.getSelectedNodes();
                       javascript:ajax_doubleclick(selectedNodes); });
