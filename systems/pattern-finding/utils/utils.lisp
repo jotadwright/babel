@@ -414,6 +414,11 @@
 ;; Unit Utils
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun get-child-units (units)
+  (loop for unit in units
+        when (member 'used-as-slot-filler (unit-feature-value unit 'fcg:footprints))
+        collect unit))
+
 (defun remove-child-units (units)
   (loop for unit in units
         unless (member 'pf::used-as-slot-filler (unit-feature-value unit 'fcg:footprints))
