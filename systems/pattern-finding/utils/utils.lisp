@@ -721,4 +721,53 @@
 
 (defmethod equivalent-meaning-networks (m1 m2  (mode (eql :geo)))
   (amr::equivalent-amr-predicate-networks m1 m2))
-          
+
+
+;;;;;
+;; Anti Unification Utils
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun renamingp (bindings-list)
+  "A bindings list is a renaming if the mappings are one to one"
+  (let ((renamingp t))
+    (loop for (binding . rest) on bindings-list
+          when (find (car binding) rest :key #'car :test #'equalp)
+          do (setf renamingp nil))
+    renamingp))
+
+(defmethod anti-unify-constructions-with-observation (observation-form observation-meaning constructions (cxn-inventory fcg-construction-set))
+  "Anti-unify the observation with the constructions.
+   For each cxn, keep the best au result on the form side and the meaning side.
+   Sum the cost and keep the cxn score."
+  (let ((au-results
+         (loop with max-au-cost = (get-configuration cxn-inventory :max-au-cost)
+               for cxn in constructions
+               for meaning-au-results
+                 = (fcg::anti-unify-predicate-network (fcg::extract-meaning-predicates cxn) observation-meaning)
+               for best-meaning-au-result = (first meaning-au-results)
+               for form-au-results
+                 = (fcg::anti-unify-predicate-network (fcg::extract-form-predicates cxn) observation-form)
+               for best-form-au-result = (first form-au-results)
+               when (and best-meaning-au-result best-form-au-result
+                         (<= (au-cost best-meaning-au-result) max-au-cost)
+                         (<= (au-cost best-form-au-result) max-au-cost))
+               collect (list best-form-au-result best-meaning-au-result 
+                             (+ (au-cost best-form-au-result)
+                                (au-cost best-meaning-au-result))
+                             (attr-val cxn :score)
+                             cxn))))
+    ;; take the anti-unification with the lowest summed cost (form + meaning)
+    ;; if multiple, take the one that anti-unified with the highest scoring cxn
+    ;; if multiple, take a random one    
+    (first (all-biggest #'fourth (all-smallest #'third au-results)))))
+
+(defmethod select-holistic-cxns-for-anti-unification (observation-form observation-meaning (cxn-inventory fcg-construction-set))
+  "Select holistic cxns from the routine set with a score greater than 0."
+  (declare (ignore observation-form observation-meaning))
+  (let* ((hash-compatible-cxns
+          (constructions-for-anti-unification-hashed observation-form observation-meaning cxn-inventory))
+         (holistic-routine-non-zero-cxns
+          (remove-if-not #'non-zero-cxn-p
+                         (remove-if-not #'holistic-cxn-p
+                                        (remove-if-not #'routine-cxn-p hash-compatible-cxns)))))
+    (sort holistic-routine-non-zero-cxns #'> :key #'get-cxn-score)))
