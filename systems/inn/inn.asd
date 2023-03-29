@@ -37,4 +37,5 @@
                              (:file "draw-vis-network")))
                (:module "network-management"
                 :serial t
-                :components ((:file "update-network")))))
+                :components ((:file "events")
+                             (:file "update-network")))))

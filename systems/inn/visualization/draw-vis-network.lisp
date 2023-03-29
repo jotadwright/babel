@@ -103,11 +103,12 @@
                    network.on(\"deselectEdge\", function (params) {
                       javascript:ajax_removedeletebutton(); });
 
+                   network.on(\"oncontext\", function (params) {
+                      javascript:ajax_rightclick(); });
+
                    network.on(\"doubleClick\", function (params) {
                       var selectedNodes = network.getSelectedNodes();
-                      var selectedNodeId = selectedNodes[0];
-                      if (network.isCluster(selectedNodeId) == true) {
-                          network.openCluster(selectedNodeId); } });
+                      javascript:ajax_doubleclick(selectedNodes); });
 
                    function clusterSelected() {
 
@@ -168,3 +169,9 @@
 ;;;                                    image: myNode.image,
 ;;;                                    } }
 ;;;                 network.clustering.clusterByConnection(myNodeId, myOptions)"))
+
+;;;                       var selectedNodeId = selectedNodes[0];
+;;;                       javascript:ajax_doubleclick(selectedNodeId,
+;;;                       if (network.isCluster(selectedNodeId) == true) {
+;;;                           network.openCluster(selectedNodeId); } });
+

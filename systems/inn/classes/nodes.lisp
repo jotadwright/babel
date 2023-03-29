@@ -140,7 +140,6 @@
 
 ;; (b) narrative-question
 ;; -------------------------------------------------------------------------
-
 (export '(posed-by answered-by inn-answer
           narrative-question
           narrative-question-p

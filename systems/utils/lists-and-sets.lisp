@@ -348,6 +348,9 @@ nil."
           (push '(()) lists)))
 
 (defun combinations-of-length (elements length)
+"Computes the subsets of length of a given list.
+   (combinations-of-length '(a b c) 2)
+   -> ((a b) (a c) (b c))"
   (declare (list elements) (fixnum length))
   (cond ((= 0 length) '(()))
         ((null elements) nil)        
@@ -358,7 +361,7 @@ nil."
             (combinations-of-length (rest elements) length)))))
 
 (defun set-partitions (list &key (min-length 1) max-length)
-  "computes a list of all partitions of a set:
+  "Computes a list of all partitions of a set:
    (set-partitions '(a b c))
    -> (((a b c)) ((a b) (c)) ((a c) (b)) ((a) (b c)) ((a) (b) (c)))
    algorithm from Michael Orlov (2002). Efficient Generation of Set Partitions."
@@ -390,7 +393,7 @@ nil."
         ((zerop (mod n 2)) (append (bin-list (/ n 2)) '(0)))
         (t (append (bin-list (floor (/ n 2))) '(1)))))
 
-(defun all-subsets (list &key (min-length 1))
+(defun all-subsets (list &key (min-length 1) max-length)
   "There are 2^n subsets of a list of length n.
    Iterate from 0 to (2^n)-1 and represent this number in binary format.
    The binary format has the same length as the list itself.
@@ -412,7 +415,9 @@ nil."
                    for idx from 0
                    if (= bit 1)
                    do (push (nth idx list) subset)
-                   finally (when (and subset (>= (length subset) min-length))
+                   finally (when (and subset
+                                      (>= (length subset) min-length)
+                                      (<= (length subset) max-length))
                              (push subset all-subsets)))
           finally (return all-subsets))))
 

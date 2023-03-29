@@ -19,16 +19,7 @@
 ;; See /systems/inn/network-management/update-network.lisp for the methods.
 ;; ---------------------------------------------------------------------------------
 
-(export '(inn-add-node 
-          inn-update-node
-          inn-add-nodes
-          inn-delete-node
-          inn-delete-nodes
-          inn-add-edge
-          inn-add-edges
-          inn-delete-edge
-          inn-delete-edges
-          question-answered?))
+(export '(question-answered?))
 
 (defgeneric question-answered? (graph question &key &allow-other-keys))
 
@@ -36,17 +27,37 @@
 ;; 1. Edges
 ;; ----------------------------------------------------------------------------------
 
+(export '(inn-add-edge
+          inn-add-edges
+          inn-delete-edge
+          inn-delete-edges))
+
 (defgeneric inn-add-edge (graph node1 node2 &key weight edge-type &allow-other-keys))
 (defgeneric inn-add-edges (graph edges &key weight edge-type &allow-other-keys))
 (defgeneric inn-delete-edge (graph node1 node2 &optional edge-type))
 (defgeneric inn-delete-edges (graph edges &optional edge-type))
 
-
 ;; ----------------------------------------------------------------------------------
 ;; 2. Nodes
 ;; ----------------------------------------------------------------------------------
+
+(export '(inn-add-node
+          inn-add-nodes
+          inn-delete-node
+          inn-delete-nodes))
 
 (defgeneric inn-add-node (graph node &key &allow-other-keys))
 (defgeneric inn-add-nodes (inn list-of-nodes &key &allow-other-keys))
 (defgeneric inn-delete-node (graph node &key &allow-other-keys))
 (defgeneric inn-delete-nodes (graph nodes &key &allow-other-keys))
+
+;; ----------------------------------------------------------------------------------
+;; 3. Events
+;; ----------------------------------------------------------------------------------
+
+(export '(inn-double-click
+          inn-right-click))
+
+;; Customize the event behaviors based on your network class.
+(defgeneric inn-double-click (selection network))
+(defgeneric inn-right-click (network))
