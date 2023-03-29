@@ -19,11 +19,6 @@
 ;;;; fcg-construction vs construction; construction-inventory vs fcg-construction-set;
 ;;;; units vs units??
 
-;;;; Change the way in which grammatical categories for slots are created
-;;;; For example: 'what-X-is-the-blue-Y-(XY)' for the 'color-cube-cxn' filling both the X and Y slots!
-;;;; and 'what-X-is-the-Y-(X)' for the color-cxn + 'what-X-is-the-Y-(Y) for the blue-cube-cxn
-;;;; and 'what-X-is-the-Y-Z-(Y)' for the blue-cxn + 'what-X-is-the-Y-Z-(Z)' for the cube-cxn
-
 
 (progn
   (wi::reset)
@@ -38,14 +33,14 @@
                               (:corpus-data-file . ,(make-pathname :directory '(:relative "train")
                                                                    :name "stage-1" :type "jsonl"))
                               (:number-of-samples . nil)
-                              (:shuffle-data-p . nil)
-                              (:sort-data-p . t)
+                              (:shuffle-data-p . t)
+                              (:sort-data-p . nil)
                               (:remove-duplicate-data-p . t)))))
 
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 6)
+(run-series *experiment* 21)
 
 ;;;; Showing the cxn inventory and categorial network
 
@@ -67,7 +62,7 @@
 ;;;; Time travel
 
 (go-back-n-interactions *experiment* 1)
-(remove-cxns-learned-at *experiment* 7)
+(remove-cxns-learned-at *experiment* 22)
 
 (defun go-back-n-interactions (experiment n)
   (setf (interactions experiment)
