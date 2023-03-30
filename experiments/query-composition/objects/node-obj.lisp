@@ -115,57 +115,24 @@
                                :selection (selection node)
                                :conditions condition)))
 
-;;OK
-(defmethod and-node ((composer query-composer) node ref-table attribute operator value)
-  "function that creates a node with the AND clause and returns the newly created node with its associated parent."
-  (let* ((val (change-type value))
-          (and-condition nil)
-          (cdn nil)
-          (permutation-query nil))
-    (if (equal (length (ref-tbles node)) 1)
-      (setf cdn (list operator (intern (string-upcase (name attribute))) val))
-      (setf cdn (list  operator (intern (string-upcase (concatenate 'string (name ref-table) "." (name attribute)))) val)))
-    (setf and-condition (list :and (conditions node) cdn))
-    ;Set the permutation query
-    (setf permutation-query (append (selection node) (list :where (list :and cdn (conditions node)))))
-    ;Testing the query
-    (if (not (node-test composer  permutation-query))
-      (make-instance 'node
-                     :id (make-id)
-                     :parent node
-                     :depth (+ (depth node) 1)
-                     :q (append (selection node) (list :where and-condition))
-                     :attrs (push-end attribute (attrs node))
-                     :tble (tble node)
-                     :selection (selection node)
-                     :conditions and-condition))))
-
-;;OK
-(defmethod or-node ((composer query-composer) node ref-table attribute operator value)
-  "function that creates a node with the OR clause and returns the newly created node with its associated parent."
-  (let* ((val (change-type value))
-          (or-condition nil)
-          (cbn nil)
-          (permutation-query nil))
-    (if (equal (length (ref-tbles node)) 1)
-      (setf cdn (list operator (intern (string-upcase (name attribute))) val))
-      (setf cdn (list  operator (intern (string-upcase (concatenate 'string (name ref-table) "." (name attribute)))) val)))
-    (setf or-condition (list :or (conditions node) cdn))
-    ;Set the permutation query
-    (setf permutation-query (append (selection node) (list :where (list :or cdn (conditions node)))))
-    ;Testing the query
-    (if (not (node-test composer permutation-query))
-      (make-instance 'node
-                     :id (make-id)
-                     :parent node
-                     :depth (+ (depth node) 1)
-                     :q (append (selection node) (list :where or-condition))
-                     :attrs (push-end attribute (attrs node))
-                     :tble (tble node)
-                     :selection (selection node)
-                     :conditions or-condition)
-      nil)))
-
+;OK
+(defmethod condition-node ((composer query-composer) parent ref-table attribute operator value condition-operator)
+  (let ((val (change-type value))
+         (condition nil))
+    (if (equal (length (ref-tbles parent)) 1)
+      (setf condition (list operator (intern (string-upcase (name attribute))) val))
+      (setf condition (list  operator (intern (string-upcase (concatenate 'string (name ref-table) "." (name attribute)))) val)))
+    (setf condition (list condition-operator (conditions parent) condition))
+    ;;instanciate node object
+    (make-instance 'node
+                   :id (make-id)
+                   :parent parent
+                   :depth (+ (depth parent) 1)
+                   :q (append (selection parent) (list :where condition))
+                   :attrs (push-end attribute (attrs parent))
+                   :tble (tble parent)
+                   :selection (selection parent)
+                   :conditions condition)))
 
 (defmethod node-test ((composer query-composer) q)
     (mapcar #'(lambda (x)
