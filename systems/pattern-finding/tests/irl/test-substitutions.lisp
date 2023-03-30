@@ -251,7 +251,7 @@
                                          (filter ?target-2 ?target-1 ?color-2)
                                          (bind size-category ?size-4 small)
                                          (query ?target-8 ?source-10 ?attribute-2)))
-    (test-repair-status 'item-based->holistic
+    (test-repair-status 'holistic->item-based
                         (second (multiple-value-list
                                  (comprehend "What is the material of the tiny gray object?"
                                              :cxn-inventory cxn-inventory

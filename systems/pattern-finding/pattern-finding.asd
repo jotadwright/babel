@@ -47,11 +47,13 @@
                                :components ( (:file "web-monitors")
                                              (:file "export-monitors")
                                              (:file "lisp-monitors")))))
-               ;(:module tests
-               ; :serial t
-               ; :components ((:file "utils")
-               ;              (:file "test-repairs")))
-               )
+               (:module tests
+                :serial t
+                :components ((:file "utils")
+                             (:module irl
+                              :serial t
+                              :components ((:file "test-substitutions")
+                                           (:file "test-additions"))))))
   :description "A Common Lisp package for learning construction grammars.")
 
 
