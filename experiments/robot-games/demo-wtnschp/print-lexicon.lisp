@@ -152,7 +152,7 @@
 \\begin{document}
 
 % HEADER
-\\parbox{\\linewidth}{\\centering\\LARGE\\bf{Parles-tu aux robots, \\name?}}
+\\parbox{\\linewidth}{\\centering\\LARGE\\bf{Parles-tu le robot, \\name?}}
 \\vspace{.4em}
 
 % MAIN
@@ -195,7 +195,7 @@
               (if chip2 "\\secondcolorchip" "") (if chip2-word1 "\\secondcolorfirstword" "") (if chip2-word2 "\\secondcolorsecondword" "")
               (if chip3 "\\thirdcolorchip" "") (if chip3-word1 "\\thirdcolorfirstword" "") (if chip3-word2 "\\thirdcolorsecondword" "")
               (if chip4 "\\fourthcolorchip" "") (if chip4-word1 "\\fourthcolorfirstword" "") (if chip4-word2 "\\fourthcolorsecondword" "")
-              (babel-pathname :directory '("systems" "printer-interface" "logos") :name "logo-unamur")
+              (babel-pathname :directory '("systems" "printer-interface" "logos") :name "unamur-beehaif")
               (babel-pathname :directory '("systems" "printer-interface" "logos") :name "logo-printemps")))
     (let ((output-directory  (string-append "-output-directory=" (babel-pathname :directory '(".tmp")))))
       (exec-and-return  "pdflatex" "-synctex=1" "-interaction=nonstopmode" output-directory path-to-tex))

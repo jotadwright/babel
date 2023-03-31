@@ -2,7 +2,8 @@
 
 ;-----------------------;
 ;core of the experiment:;
-;----the interaction----;
+;    the interaction    ;
+;-----------------------;
 
 (defclass ont-alignment-experiment (experiment)
   ())
@@ -31,6 +32,7 @@
       (progn
         (push (add-to-dictionary (first (qa-pair tutor)) (cdr (qa-pair tutor)) learner) (dictionary learner))
         (format t "The answer is of type ~d.~%" (type-of (cdr (qa-pair tutor))))
-        (try-queries-until-success (cdr (qa-pair tutor)))))))
+        ;(try-queries-until-success (cdr (qa-pair tutor)))
+        ))))
     ;5-the learner tries to reconstruct a query to get to the answer
      ;"SELECT value FROM actorsfilms WHERE value  = answer"
