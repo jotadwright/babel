@@ -156,12 +156,15 @@
             (eval `(def-fcg-constructions ,inventory-name
                      :cxn-inventory ,inventory-name
                      :hashed t
-                     :feature-types ((args sequence)
+                     :feature-types ((pf::form-args sequence)
+                                     (pf::meaning-args sequence)
                                      (form set-of-predicates)
                                      (meaning set-of-predicates)
                                      (subunits set)
                                      (footprints set))
-                     :fcg-configurations ((:node-tests :restrict-nr-of-nodes :restrict-search-depth :check-duplicate)
+                     :fcg-configurations ((:node-tests :restrict-nr-of-nodes
+                                                       :restrict-search-depth
+                                                       :check-duplicate)
                                           (:cxn-supplier-mode . ,cxn-supplier)
                                           (:parse-goal-tests :no-strings-in-root
                                                              :no-applicable-cxns

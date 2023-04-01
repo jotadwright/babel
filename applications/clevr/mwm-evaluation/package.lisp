@@ -11,7 +11,7 @@
         :fcg
         :irl
         :clevr-world
-        :clevr-grammar
+        :clevr-grammar-v2
         :mwm)
   (:import-from :cl-json
    :decode-json-from-string

@@ -30,8 +30,10 @@
                              (:file "problems-diagnostics")
                              (:file "repair-add-categorial-links")
                              (:file "repair-nothing-to-holophrase-cxn")
-                             (:file "repair-anti-unify")
-                             (:file "repair-partial-analysis")))
+                             (:file "repair-holistic-to-item-based")
+                             (:file "repair-item-based-to-item-based")
+                             (:file "repair-holistic-partial-analysis")
+                             (:file "repair-item-based-partial-analysis")))
                (:module experiment-setup
                 :serial t
                 :components ( (:file "run-helpers")
@@ -45,11 +47,13 @@
                                :components ( (:file "web-monitors")
                                              (:file "export-monitors")
                                              (:file "lisp-monitors")))))
-               ;(:module tests
-               ; :serial t
-               ; :components ((:file "utils")
-               ;              (:file "test-repairs")))
-               )
+               (:module tests
+                :serial t
+                :components ((:file "utils")
+                             (:module irl
+                              :serial t
+                              :components ((:file "test-substitutions")
+                                           (:file "test-additions"))))))
   :description "A Common Lisp package for learning construction grammars.")
 
 

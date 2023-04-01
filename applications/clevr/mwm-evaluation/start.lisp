@@ -4,22 +4,6 @@
 (in-package :mwm-evaluation)
 )
 
-#|(progn
-  (defparameter *extracted-concepts-path*
-  (babel-pathname :directory '("experiments""multidimensional-word-meanings"
-                               "store" "baseline-extracted-default-lexicon")))
-  (defparameter *extracted-scenes-path*
-  (merge-pathnames
-   (make-pathname :directory '(:relative "Frontiers-data" "CLEVR" "val"))
-   cl-user:*babel-corpora*))
-  (defparameter *config-entries*
-  '((:dot-interval . 100)
-    (:nr-of-scenes . nil)
-    (:nr-of-questions . nil)
-    (:data-split . "val")
-    (:world-type . :extracted)))
-  (evaluate-mwm-serie 10 *config-entries*))|#
-
 
 ;(activate-monitor trace-fcg)
 ;(activate-monitor trace-irl)
@@ -59,12 +43,12 @@
 
 ;(inspect *mwm-primitives*)
 
-#|
+
 ;; Test sentences (see "Babel/grammars/clevr-grammar/start.lisp" for more examples):
-(test-utterance-in-scene "What color is the object left of the large cube?"
-                           "CLEVR_val_000006" :simulated "serie-1")
+(test-utterance-in-scene " do the yellow object and the purple ball that is behind the gray block have the same size?"
+                           "CLEVR_val_000064" :simulated "serie-1")
 
-
+#|
 (draw-irl-program '((get-context ?context)(bind shape-category ?shape-1 sphere)(filter ?sphere-set ?context ?shape-1)(bind size-category ?size-1 small)(filter ?small-sphere-set ?sphere-set ?size-1)(unique ?small-sphere ?small-sphere-set)(bind attribute-category ?attribute-1 color)(query ?target ?small-sphere ?attribute-1)) :format "pdf")
 
 ;; Step 5
@@ -121,3 +105,18 @@
               (mwm::concept->s-dot (cl-store:restore "/Users/liesbetdevos/Projects/babel/experiments/multidimensional-word-meanings/thesis-main-results/simulated-concepts-history100/serie-1/cube-cxn.store"))
               :format "pdf" :open nil)
 |#
+#|(progn
+  (defparameter *extracted-concepts-path*
+  (babel-pathname :directory '("experiments""multidimensional-word-meanings"
+                               "store" "baseline-extracted-default-lexicon")))
+  (defparameter *extracted-scenes-path*
+  (merge-pathnames
+   (make-pathname :directory '(:relative "Frontiers-data" "CLEVR" "val"))
+   cl-user:*babel-corpora*))
+  (defparameter *config-entries*
+  '((:dot-interval . 100)
+    (:nr-of-scenes . nil)
+    (:nr-of-questions . nil)
+    (:data-split . "val")
+    (:world-type . :extracted)))
+  (evaluate-mwm-serie 10 *config-entries*))|#

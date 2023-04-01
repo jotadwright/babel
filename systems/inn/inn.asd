@@ -27,7 +27,8 @@
                 :serial t
                 :components ((:file "integrative-narrative-network")
                              (:file "nodes")
-                             (:file "edges")))
+                             (:file "edges")
+                             (:file "generic-functions")))
                (:module "visualization"
                 :serial t
                 :components ((:file "format-nodes")
@@ -36,4 +37,5 @@
                              (:file "draw-vis-network")))
                (:module "network-management"
                 :serial t
-                :components ((:file "update-network")))))
+                :components ((:file "events")
+                             (:file "update-network")))))

@@ -22,36 +22,32 @@
 
 
 (defun create-holistic-cxn (problem node)
-  (do-create-holistic-cxn
-   ;; form constraints
+  (do-repair
    (get-data problem :utterance)
-   ;; meaning
    (get-data problem :meaning)
-   ;; form args
    nil
-   ;; meaning args
    nil
-   ;; cxn inventory
    (construction-inventory node)
-   ;; node
-   node))
+   node
+   'nothing->holistic))
 
 
-(defun do-create-holistic-cxn (form-constraints meaning form-args meaning-args cxn-inventory node)
-  (let* ((cxn-inventory
-          (original-cxn-set cxn-inventory))
+(defmethod do-repair (observation-form observation-meaning form-args meaning-args
+                                       (cxn-inventory construction-inventory)
+                                       node (repair-type (eql 'nothing->holistic)))
+  (let* ((cxn-inventory (original-cxn-set cxn-inventory))
          (meaning-representation-formalism
           (get-configuration cxn-inventory :meaning-representation-formalism))
          ;; make the cxn name
          (cxn-name
-          (make-cxn-name form-constraints cxn-inventory :add-numeric-tail t))
+          (make-cxn-name observation-form cxn-inventory :add-numeric-tail t))
          (cxn-name-holistic-cxn-apply-last
           (intern (upcase (format nil "~a-apply-last" cxn-name))))
          (cxn-name-holistic-cxn-apply-first
           (intern (upcase (format nil "~a-apply-first" cxn-name))))
          ;; find an identical existing holistic cxn
          (existing-routine-holistic-cxn
-          (find-identical-holistic-cxn form-constraints meaning form-args meaning-args cxn-inventory))
+          (find-identical-holistic-cxn observation-form observation-meaning form-args meaning-args cxn-inventory))
          (existing-meta-holistic-cxn
           (when existing-routine-holistic-cxn
             (alter-ego-cxn existing-routine-holistic-cxn cxn-inventory)))
@@ -63,10 +59,10 @@
          ;; hash keys
          (hash-string
           (unless existing-routine-holistic-cxn
-            (form-predicates->hash-string form-constraints)))
+            (form-predicates->hash-string observation-form)))
          (hash-meaning
           (unless existing-routine-holistic-cxn
-            (meaning-predicates->hash-meaning meaning meaning-representation-formalism)))
+            (meaning-predicates->hash-meaning observation-meaning meaning-representation-formalism)))
          (cxn-inventory-copy
           (unless existing-routine-holistic-cxn
             (copy-object cxn-inventory)))
@@ -83,9 +79,9 @@
                                           (lex-class ,lex-class-holistic-cxn)))
                                 <-
                                 (?holistic-unit
-                                 (HASH meaning ,meaning)
+                                 (HASH meaning ,observation-meaning)
                                  --
-                                 (HASH form ,form-constraints)))
+                                 (HASH form ,observation-form)))
                                :attributes (:label fcg::routine
                                             :cxn-type holistic
                                             :is-holophrase ,(and node (get-configuration cxn-inventory :mark-holophrases))
@@ -104,12 +100,12 @@
                                (
                                 <-
                                 (?holistic-unit
-                                 (HASH meaning ,meaning)
+                                 (HASH meaning ,observation-meaning)
                                  (meaning-args ,meaning-args)
                                  (syn-cat (phrase-type holistic)
                                           (lex-class ,lex-class-holistic-cxn))
                                  --
-                                 (HASH form ,form-constraints)
+                                 (HASH form ,observation-form)
                                  (form-args ,form-args)
                                  (syn-cat (phrase-type holistic)
                                           (lex-class ,lex-class-holistic-cxn))))
@@ -128,7 +124,7 @@
 
     (apply-fix
      ;; form
-     form-constraints
+     observation-form
      ;; cxns to apply
      cxns-to-apply
      ;; categorial links
@@ -144,4 +140,4 @@
      ;; node
      node
      ;; repair name
-     'nothing->holistic)))
+     repair-type)))

@@ -33,6 +33,7 @@
   (cond ((string= "nodetype" input) :type)
         ((string= "nodelabel" input) :label)
         ((string= "nodedescription" input) :description)
+        ((string= "clusterids" input) :cluster-ids)
         (t
          (read-from-string (format nil ":~a" input)))))
 ;; (make-keyword-from-input "nodetype")
@@ -52,59 +53,74 @@
            (append (list key val)
                    (turn-split-inputs-into-keys-and-values (subseq inputs 2)))))))
 
-(defun-ajax makeinnnode (class-number inputs) (*ajax-processor*)
-  (let* ((class-name (class-name (nth (parse-integer class-number) (inn:inn-node-structures))))
+(defun-ajax makeinnnode (class-number inputs selected-node-id) (*ajax-processor*)
+  (let* ((from-node-id (parse-integer selected-node-id :junk-allowed t))
+         (class-name (class-name (nth (parse-integer class-number) (inn:inn-node-structures))))
          (split-inputs (split-sequence::split-sequence #\, inputs))
          (keys-and-values (turn-split-inputs-into-keys-and-values split-inputs))
          (package (package-name (symbol-package class-name)))
-         (constructor-fn (read-from-string (format nil "~a::make-~a" package class-name)))
+         (constructor-fn (read-from-string 
+                          (format nil "~a::make-~a" package class-name)))
          (inn (inn:get-current-inn)))
     (destructuring-bind (&whole whole
                                 &key (type t)
                                 (description "No description available.")
                                 (label "label")
+                                (cluster-ids nil)
                                 &allow-other-keys)
         keys-and-values
-      (dolist (indicator '(:type :description :label))
+      (dolist (indicator '(:type :description :label :cluster-ids))
         (remf whole indicator))
-      (inn::inn-add-node inn
-                         (apply constructor-fn `(:type ,(if (stringp type)
-                                                          (read-from-string type)
-                                                          type)
-                                                 :description ,description
-                                                 :label ,label
-                                                 ,@whole)))
-      (clearaddnode))))
+      (let ((target-node-id 
+             (inn::inn-add-node inn
+                                (apply constructor-fn `(:type ,(if (stringp type)
+                                                                 (read-from-string type)
+                                                                 type)
+                                                        :description ,description
+                                                        :label ,label
+                                                        :cluster-ids ,(if (stringp cluster-ids)
+                                                                        (if (string= cluster-ids "")
+                                                                          nil
+                                                                          (read-from-string cluster-ids))
+                                                                        nil)
+                                                        ,@whole)))))
+        (if from-node-id
+          (inn::inn-add-edge inn from-node-id target-node-id))
+        (clearaddnode)))))
 
 (defun-ajax expandaddnode (value) (*ajax-processor*)
-  (let* ((class-name (class-name (nth (parse-integer value) (inn:inn-node-structures))))
+  (let* ((class-name (class-name 
+                      (nth (parse-integer value) (inn:inn-node-structures))))
          (slot-descriptors (inn::get-inn-node-slot-descriptors class-name))
          (type-instruction (or (documentation class-name 'structure) "Type:")))
-    (replace-element-content "typeinstruction"
-                             `((th) ,type-instruction))
-    (replace-element-content "expandablerow"
-                             (if (null slot-descriptors)
-                               nil
-                               `((div)
-                                  ,@(loop for slot-descriptor in slot-descriptors
-                                          for th = (format nil "~a" (first slot-descriptor))
-                                          for default = (if (second slot-descriptor) 
-                                                          (format nil "~a" (second slot-descriptor))
-                                                          "")
-                                          collect `((tr)
-                                                    ((th) ,th)
-                                                    ((td :colspan "2")
-                                                     ((input :id ,th
-                                                             :type "text"
-                                                             :name "array[]"
-                                                             :value ,default))))))))
+    (replace-element-content 
+     "typeinstruction"
+     `((th) ,type-instruction))
+    (replace-element-content 
+     "expandablerow"
+     (if (null slot-descriptors)
+       nil
+       `((div)
+         ,@(loop for slot-descriptor in slot-descriptors
+                 for th = (format nil "~a" (first slot-descriptor))
+                 for default = (if (second slot-descriptor) 
+                                 (format nil "~a" (second slot-descriptor))
+                                 "")
+                 collect `((tr)
+                           ((th) ,th)
+                           ((td :colspan "2")
+                            ((input :id ,th
+                                    :type "text"
+                                    :name "array[]"
+                                    :value ,default))))))))
     nil))
 
 (defun-ajax addinnnode () (*ajax-processor*)
   (let* ((inn-node-structures (let ((i -1))
                                 (loop for struct in (inn:inn-node-structures)
                                       collect (list (incf i) struct))))
-         (type-instruction (or (documentation (class-name (second (first inn-node-structures))) 'structure)
+         (type-instruction (or (documentation 
+                                (class-name (second (first inn-node-structures))) 'structure)
                                "Type:")))
     (replace-element-content 
      "innpopup"
@@ -131,7 +147,12 @@
        ((tr)
         ((th) "description:")
         ((td :colspan "2")
-         ((input :type "text" :id "nodedescription" :value "No description available."))))
+         ((input :type "text" :id "nodedescription" 
+                 :value "No description available."))))
+       ((tr)
+        ((th) "cluster-ids:")
+        ((td :colspan "2")
+         ((input :type "text" :id "clusterids" :value ""))))
        ((tr :id "expandablerow"))
        ((tr)
         ((td :colspan "3")
@@ -150,6 +171,8 @@
    javascript:ajax_expandaddnode(value); } }")
 
 (define-js 'makeinnnode "{ function makeinnnode () {
+   var selectedNodes = network.getSelectedNodes();
+   var selectedNodeId = selectedNodes[0];
    var nodeclass = document.getElementById('selectnodeclass').value;
    var rest = [];
    var inputs = document.getElementsByTagName('input');
@@ -160,8 +183,81 @@
        var idvalue = [ id, value ];
        rest.push(idvalue); };       
 
-   javascript:ajax_makeinnnode(nodeclass, rest);
+   javascript:ajax_makeinnnode(nodeclass, rest, selectedNodeId);
    } }")
+
+;; -------------------------------------------------------------------------
+;; 2. Add Edge
+;; -------------------------------------------------------------------------
+
+(defun-ajax addedge (from to) (*ajax-processor*)
+  (let ((from-id (parse-integer from))
+        (to-id (parse-integer to))
+        (inn (inn:get-current-inn)))
+    (inn::inn-add-edge inn from-id to-id)
+    ;; See if there were open questions that are now answered:
+    (inn:question-answered? inn from-id :answered-by to-id)
+    (inn:question-answered? inn to-id :answered-by from-id)
+    nil))
+
+;; -------------------------------------------------------------------------
+;; 3. Events
+;; -------------------------------------------------------------------------
+
+(defun-ajax doubleclick (selection) (*ajax-processor*)
+  (inn::inn-double-click selection (inn:get-current-inn))
+  nil)
+
+(defun-ajax rightclick () (*ajax-processor*)
+  (inn:inn-right-click (inn:get-current-inn))
+  nil)
+
+;; -------------------------------------------------------------------------
+;; 4. Delete Selection
+;; -------------------------------------------------------------------------
+
+(defun-ajax deleteselection (element-id from-id to-id) (*ajax-processor*)
+  (format t "Delete ~a" element-id)
+  (let ((node-id (parse-integer element-id :junk-allowed t))
+        (formatted-element (format nil "{id: '~a'}" element-id))
+        (inn (inn:get-current-inn)))
+    ;; Delete in the browser
+    (if node-id ;; We have selected a node.
+      (progn
+        (vis-remove-node formatted-element)
+        (inn:inn-delete-node inn node-id))
+      ;; Or only an edge:
+      (progn
+        (vis-remove-edge formatted-element)
+        (inn::inn-delete-edge inn (parse-integer from-id) (parse-integer to-id))))
+    ;; Remove delete button
+    (removedeletebutton)))
+
+(defun-ajax removedeletebutton () (*ajax-processor*)
+  (replace-element-content "deleteSelectionButton" "")
+  nil)
+
+(defun-ajax nodeselected (node-id) (*ajax-processor*)
+  ;(format t "Selected node: ~a" node-id)
+  (replace-element-content "deleteSelectionButton"
+                           `((button :class "inn-button" :role "button"
+                                     :onclick ,(format nil
+                                                       "javascript:ajax_deleteselection('~a', 'nil', 'nil');"
+                                                       node-id))
+                             "Delete Selected Node"))
+  nil)
+
+(defun-ajax edgeselected (edge-id from-id to-id node-id) (*ajax-processor*)
+  (let ((node (parse-integer node-id :junk-allowed t)))
+    (format t "Edge connected with from ~a to ~a" from-id to-id)
+    (replace-element-content "deleteSelectionButton"
+                             `((button :class "inn-button" :role "button"
+                                       :onclick ,(format nil
+                                                         "javascript:ajax_deleteselection('~a', '~a', '~a');"
+                                                       (if node node-id edge-id)
+                                                       from-id to-id))
+                               ,(if node "Delete Selected Node" "Delete Selected Edge")))
+    nil))
 
 ;; -------------------------------------------------------------------------
 ;; CSS
@@ -186,7 +282,8 @@
   touch-action: manipulation;
 }
 
-.button-43:hover {
+
+.inn-button:active {
   background-image: linear-gradient(-180deg, #1D95C9 0%, #17759C 100%);
 }
 
@@ -195,3 +292,7 @@
     padding: 1rem 2rem;
   }
 }")
+
+;;; .inn-button:hover {
+;;;   background-image: linear-gradient(-180deg, #1D95C9 0%, #17759C 100%);
+;;; }

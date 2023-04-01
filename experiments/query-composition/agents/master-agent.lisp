@@ -13,9 +13,9 @@
              :initform ""
              :type string
              :documentation "Question in natural language.")
-   (query-associated :accessor q
-       :initarg :q
-       :initform ""
+   (query-associated :accessor query-associated 
+       :initarg :query-associated
+       :initform nil
        :type string
        :documentation "The query relative of the question in natural language")))
 
@@ -23,7 +23,7 @@
   (let ((questions (cl-csv:read-csv #P "./experiments/query-composition/question-generator/questions.csv"))
           (questions-obj '()))
     (dolist (question questions)
-      (push (make-instance 'question :question (first question) :q (car (last question))) questions-obj))
+      (push (make-instance 'question :question (first question) :query-associated (car (last question))) questions-obj))
     (setf (questions agent) questions-obj)))
 
 

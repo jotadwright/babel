@@ -6,7 +6,7 @@
   (deactivate-all-monitors)
   (activate-monitor display-metrics)
   (monitors::activate-monitor fcg::trace-fcg)
-  (activate-monitor pf::print-a-dot-for-each-interaction)
+  (monitors::activate-monitor pf::print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
   (activate-monitor show-type-hierarchy-after-n-interactions)
   (activate-monitor trace-interactions-in-wi)
@@ -19,10 +19,6 @@
 ;;;; fcg-construction vs construction; construction-inventory vs fcg-construction-set;
 ;;;; units vs units??
 
-;;;; Change the way in which grammatical categories for slots are created
-;;;; For example: 'what-X-is-the-blue-Y-(XY)' for the 'color-cube-cxn' filling both the X and Y slots!
-;;;; and 'what-X-is-the-Y-(X)' for the color-cxn + 'what-X-is-the-Y-(Y) for the blue-cube-cxn
-;;;; and 'what-X-is-the-Y-Z-(Y)' for the blue-cxn + 'what-X-is-the-Y-Z-(Z)' for the cube-cxn
 
 (progn
   (wi::reset)
@@ -37,17 +33,14 @@
                               (:corpus-data-file . ,(make-pathname :directory '(:relative "train")
                                                                    :name "stage-1" :type "jsonl"))
                               (:number-of-samples . nil)
-                              (:shuffle-data-p . nil)
-                              (:sort-data-p . t)
-                              (:remove-duplicate-data-p . nil)))))
+                              (:shuffle-data-p . t)
+                              (:sort-data-p . nil)
+                              (:remove-duplicate-data-p . t)))))
 
-(first (question-data *experiment*))
-
-
-;;;; Running interactions
+;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 8)
+(run-series *experiment* 21)
 
 ;;;; Showing the cxn inventory and categorial network
 
@@ -55,10 +48,21 @@
 (add-element (make-html *cxn-inventory*))
 (add-element (make-html (categorial-network (grammar (first (agents *experiment*))))))
 
+;;;; Manually trying out sentences
+
+(comprehend-all "Is there a blue block?"
+                :cxn-inventory *cxn-inventory*
+                :gold-standard-meaning '((get-context ?context)
+                                         (filter ?set-1 ?context ?shape-1)
+                                         (bind shape-category ?shape-1 cube)
+                                         (filter ?set-2 ?set-1 ?color-1)
+                                         (bind color-category ?color-1 blue)
+                                         (exist ?target ?set-2)))
+
 ;;;; Time travel
 
 (go-back-n-interactions *experiment* 1)
-(remove-cxns-learned-at *experiment* 6)
+(remove-cxns-learned-at *experiment* 22)
 
 (defun go-back-n-interactions (experiment n)
   (setf (interactions experiment)
@@ -75,6 +79,20 @@
           for alter-ego-cxn = (alter-ego-cxn cxn grammar)
           do (delete-cxn (name cxn) grammar :key #'name)
              (delete-cxn (name alter-ego-cxn) grammar :key #'name))))
+
+
+;;;; Changing the order of repairs on the fly
+
+(defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
+
+(loop for repair in (get-repairs *cxn-inventory*)
+      do (delete-repair *cxn-inventory* repair))
+
+(loop for repair-name in '(nothing->holistic
+                           anti-unify-partial-analysis 
+                           anti-unify-cxn-inventory
+                           add-categorial-links)
+      do (add-repair *cxn-inventory* repair-name))
 
 
 ;;;; Manual input
@@ -97,30 +115,69 @@
                                        (unique ?object-1 ?set-1)
                                        (query ?answer-1 ?object-1 ?attribute-1)
                                        (bind attribute ?attribute-1 color))))
-        ("What bli is the cube?" ,@(fresh-variables
-                                    '((get-context ?context)
-                                      (filter ?set-1 ?context ?bind)
-                                      (bind shape ?bind cube)
-                                      (unique ?object ?set-1)
-                                      (query ?answer ?object ?bli)
-                                      (bind bli-cat ?bli bli))))
-        ("What bli is the sphere?" ,@(fresh-variables
-                                      '((get-context ?context)
-                                        (filter ?set-1 ?context ?bind)
-                                        (bind shape ?bind sphere)
-                                        (unique ?object ?set-1)
-                                        (query ?answer ?object ?bli)
-                                        (bind bli-cat ?bli bli))))
+        ("Is there a cube?" ,@(fresh-variables
+                               '((get-context ?context)
+                                 (filter ?set-1 ?context ?bind)
+                                 (bind shape ?bind cube)
+                                 (exist ?target ?set-1))))
+        ("Is there a sphere?" ,@(fresh-variables
+                               '((get-context ?context)
+                                 (filter ?set-1 ?context ?bind)
+                                 (bind shape ?bind sphere)
+                                 (exist ?target ?set-1))))
         ("What color is the sphere?" ,@(fresh-variables
                                         '((get-context ?context)
                                           (filter ?set-1 ?context ?bind)
                                           (bind shape ?bind sphere)
                                           (unique ?object ?set-1)
                                           (query ?answer ?object ?attribute)
-                                          (bind attribute ?attribute color)))))) 
+                                          (bind attribute ?attribute color))))))
+
 (run-interaction *experiment*)
         
 
 ;; partial analysis repair with an item-based cxn
+
+(setf (question-data *experiment*)
+      `(("Is there a large blue cube" ,@(fresh-variables
+                                         '((get-context ?set-0)
+                                           (filter ?set-1 ?set-0 ?shape-1)
+                                           (bind shape ?shape-1 cube)
+                                           (filter ?set-2 ?set-1 ?color-1)
+                                           (bind color ?color-1 blue)
+                                           (filter ?set-3 ?set-2 ?size-1)
+                                           (bind size ?size-1 large)
+                                           (exist ?target ?set-3))))
+        ("Is there a small red ball" ,@(fresh-variables
+                                           '((get-context ?set-0)
+                                             (filter ?set-1 ?set-0 ?shape-1)
+                                             (bind shape ?shape-1 sphere)
+                                             (filter ?set-2 ?set-1 ?color-1)
+                                             (bind color ?color-1 red)
+                                             (filter ?set-3 ?set-2 ?size-1)
+                                             (bind size ?size-1 small)
+                                             (exist ?target ?set-3))))
+        ("large blue cylinder" ,@(fresh-variables
+                                  '((filter ?set-1 ?set-0 ?shape-1)
+                                    (bind shape ?shape-1 cylinder)
+                                    (filter ?set-2 ?set-1 ?color-1)
+                                    (bind color ?color-1 blue)
+                                    (filter ?set-3 ?set-2 ?size-1)
+                                    (bind size ?size-1 large))))
+        ("What is the large blue cylinder made of?" ,@(fresh-variables
+                                                       '((get-context ?set-0)
+                                                         (filter ?set-1 ?set-0 ?shape-1)
+                                                         (bind shape ?shape-1 cylinder)
+                                                         (filter ?set-2 ?set-1 ?color-1)
+                                                         (bind color ?color-1 blue)
+                                                         (filter ?set-3 ?set-2 ?size-1)
+                                                         (bind size ?size-1 large)
+                                                         (unique ?obj-1 ?set-3)
+                                                         (query ?target ?obj-1 ?attribute-1)
+                                                         (bind attribute ?attribute-1 material))))))
+
+(run-interaction *experiment*)
+                                                     
+
 ;; partial analysis repair with an item-based cxn + holistic
 

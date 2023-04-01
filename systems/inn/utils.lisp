@@ -53,6 +53,6 @@
     (cl-store::store inn path)))
 
 (defun restore-network (pathname)
-  (cl-store::restore pathname))
+  (set-current-inn (cl-store::restore pathname)))
 
 

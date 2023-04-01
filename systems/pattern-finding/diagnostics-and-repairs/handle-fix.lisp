@@ -4,9 +4,14 @@
 (defclass add-cxns-and-categorial-links (repair)
   ())
 
+;; Generic function for repair
+(defgeneric do-repair (observation-form observation-meaning form-args meaning-args cxn-inventory node repair-type)
+  (:documentation "Run a repair of type repair-type."))
+
 ;; Events
 (define-event cxns-learned (cxns list))
 (define-event fix-applied (repair-name symbol) (form list) (learned-cxns list))
+
 
 ;; Apply fix result
 (defstruct (apply-fix-result (:conc-name afr-))
@@ -31,6 +36,8 @@
                   node
                   repair-name)
   "Apply the learned cxns and links, return the solution node."
+  (assert (notany #'null categorial-links))
+  (assert (notany #'null categories-to-add))
   (let ((learned-cxns
          (remove-if-not #'(lambda (cxn) (and (eql (attr-val cxn :label) 'fcg::routine)
                                              (not (attr-val cxn :learned-at))))
@@ -40,8 +47,10 @@
              (temp-categorial-network (copy-object (categorial-network (construction-inventory node)))))
         (add-categories categories-to-add temp-categorial-network :recompute-transitive-closure nil)
         (loop for categorial-link in categorial-links
-              do (add-categories (list (car categorial-link) (cdr categorial-link)) temp-categorial-network :recompute-transitive-closure nil)
-                 (add-link (car categorial-link) (cdr categorial-link) temp-categorial-network :recompute-transitive-closure nil)
+              do (add-categories (list (car categorial-link) (cdr categorial-link))
+                                 temp-categorial-network :recompute-transitive-closure nil)
+                 (add-link (car categorial-link) (cdr categorial-link)
+                           temp-categorial-network :recompute-transitive-closure nil)
               finally (set-categorial-network (construction-inventory node) temp-categorial-network))
         (let* ((processing-cxns-to-apply (mapcar #'get-processing-cxn cxns-to-apply))
                (sandbox-solution
