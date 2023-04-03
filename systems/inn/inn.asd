@@ -18,7 +18,7 @@
 (defsystem :inn
   :description "Interative Narrative Networks"
   :author "Remi van Trijp <remi.vantrijp@sony.com>" ;; Add your name if you co-develop :)
-  :version "0.4"
+  :version "0.5"
   :depends-on (:cl-store :fcg :irl :graph-utils #+:hunchentoot-available-on-this-platform :web-interface)
   :serial t
   :components ((:file "package")
