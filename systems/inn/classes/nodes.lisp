@@ -75,9 +75,12 @@
 ;; 2. Struct definitions, associated methods, and Constructor Functions
 ;; -------------------------------------------------------------------------
 
-
 ;; (a) INN-node
 ;; -------------------------------------------------------------------------
+;;
+;; The defstruct inn-node is the base node "class" (actually a structure).
+;; A helper function #'make-inn-node is used for ensuring all the "subclasses"
+;; will call the correct methods for initializing a node's color and shape.
 
 (export '(inn-node 
           make-inn-node
@@ -89,16 +92,16 @@
 ;; Inn-nodes "inherit" from the node-struct from graph-utils.
 ;; They are therefore structs as well.
 (defstruct (inn-node
-            (:constructor make-inn-node-constructor)
-            (:include graph-utils::node))
+            (:constructor %make-inn-node)
+            (:include graph-utils::node (id (graph-utils::next-node-id))))
   "Type (:entity, :predicate, T or other values):"
   (label "")
-  cluster-ids ; can be used for clustering nodes.
+  cluster-ids ; Put here information relevant for clustering nodes.
   color
   shape
   (description "No description available.")
   (type t)
-  attributes)
+  attributes) ; Put here information that should not impact the visualization.
 
 (defmethod get-node-color ((node inn-node))
   (get-node-color (inn-node-type node)))
@@ -106,39 +109,55 @@
 (defmethod get-node-shape ((type inn-node))
   (get-node-shape (type-of type)))
 
-;; Customized constructor function.
-(defun make-inn-node (&rest parameters
-                            &key &allow-other-keys)
-  (destructuring-bind (&whole whole
-                              &key (constructor 'make-inn-node-constructor)
-                              (type t)
-                              (id (graph-utils::next-node-id))
-                              &allow-other-keys)
-      parameters
-    ;; Remove them from the parameters list, also remove color or shape
-    ;; (indeed: you CANNOT manually override color and shape. You need to 
-    ;;  use the dedicated defmethods for that!)
-    (dolist (indicator '(:constructor :id :type :color :shape))
-      (remf whole indicator))
-    ;; Now apply the constructor. It is impossible to 
-    (apply constructor `(:id ,id
-                         :type ,type
-                         :color ,(get-node-color type)
-                         :shape ,(get-node-shape type)
-                         ,@whole))))
-;; (make-inn-node :type 'answered-narrative-question)
+(defun make-inn-node (&rest parameters 
+                            &key (node-class 'inn-node) 
+                            &allow-other-keys)
+  "Supporting 'constructor' function"
+  (let* ((package (package-name (symbol-package node-class)))
+         (constructor-fn (read-from-string 
+                          (format nil "~a::%make-~a" package node-class))))
+    (remf parameters :node-class)
+    (let* ((node (apply constructor-fn parameters))
+           (type (inn-node-type node)))
+      (unless (member :color parameters)
+        (setf (inn-node-color node) (get-node-color type)))
+      (unless (member :shape parameters)
+        (setf (inn-node-shape node) (get-node-shape type)))
+      node)))
 
-(export '(make-entity-node make-predicate-node))
-
-(defmacro make-entity-node (&rest parameters)
-  `(make-inn-node ,@parameters
-                  :type :entity))
+(defun make-entity-node (&rest parameters)
+  (apply 'make-inn-node `(:type :entity
+                          ,@parameters)))
+;; (make-entity-node)
 
 (defmacro make-predicate-node (&rest parameters)
-  `(make-inn-node ,@parameters
-                  :type :predicate))
+  (apply 'make-inn-node `(:type :entity
+                          ,@parameters)))
+;; (make-predicate-node)
 
-;; (b) narrative-question
+;; (b) The DEF-INN-NODE macro
+;; -------------------------------------------------------------------------
+;;
+;; Used for defining new node "classes" that subclass from another inn-node.
+;; The macro will ensure that new kinds of nodes will be fully compatible 
+;; with the inn code.
+
+(export '(def-inn-node))
+
+(defmacro def-inn-node (name parent &rest body)
+  (let ((constructor-fn (read-from-string (format nil "%make-~a" name))))
+    `(progn
+       (defstruct (,name
+                   (:constructor ,constructor-fn)
+                   (:include ,@parent))
+         ,@body)
+
+       (defun ,(read-from-string (format nil "make-~a" name))
+              (&rest parameters)
+         (apply 'make-inn-node `(,@parameters
+                                 :node-class ,',name))))))
+
+;; (c) narrative-question
 ;; -------------------------------------------------------------------------
 (export '(posed-by answered-by inn-answer
           narrative-question
@@ -155,45 +174,29 @@
           narrative-question-irl-programs
           inn-answer-question undo-inn-answer-question))
 
-(defstruct (narrative-question 
-            (:include inn-node)
-            (:constructor make-narrative-question-constructor))
-  "Type (:open-narrative-question or :answered-narrative-question):"
-  posed-by ;; The knowledge source or cognitive system that introduced a question
-  answered-by ;; The knowledge source or system that answered a question
-  answer ;; The ID of the node that represents the answer to the question.
-  bindings ;;  Bindings for variables used in the narrative question 
-  irl-programs) ;; Possible  IRL programs in which the question may appear
+(def-inn-node narrative-question (inn-node 
+                                  (type :open-narrative-question))
+              "Type (:open-narrative-question or :answered-narrative-question):"
+              posed-by ;; The knowledge source or cognitive system that 
+                       ;; introduced a question
+              answered-by ;; The knowledge source or system that answered a question
+              answer ;; The ID of the node that represents the answer to the question.
+              bindings ;;  Bindings for variables used in the narrative question 
+              irl-programs) ;; Possible  IRL programs in which the question may appear
 
 (export '(make-narrative-question
           make-open-narrative-question
           make-answered-narrative-question
-          inn-answer-question))
+          inn-answer-question
+          undo-inn-answer-question))
 
-(defun make-narrative-question (&rest parameters
-                                      &key &allow-other-keys)
-  (destructuring-bind (&whole whole
-                              &key (constructor 'make-narrative-question-constructor)
-                              (type :open-narrative-question)
-                              &allow-other-keys)
-      parameters
-    ;; Remove the constructor and type from the parameters
-    (dolist (indicator '(:constructor :type))
-      (remf whole indicator))
-    ;; Now call the basic constructor function
-    (apply 'make-inn-node 
-           `(:constructor ,constructor
-             :type ,(if (keywordp type) type :open-narrative-question)
-             ,@whole))))
-;; (make-narrative-question)
+(defun make-open-narrative-question (&rest parameters)
+  (apply 'make-narrative-question parameters))
+;; (make-open-narrative-question)
 
-(defmacro make-open-narrative-question (&rest parameters)
-  `(make-narrative-question ,@parameters
-                            :type :open-narrative-question))
-
-(defmacro make-answered-narrative-question (&rest parameters)
-  `(make-narrative-question ,@parameters
-                            :type :answered-narrative-question))
+(defun make-answered-narrative-question (&rest parameters)
+  (apply 'make-narrative-question `(:type :answered-narrative-question
+                                    ,@parameters)))
 
 (defun undo-inn-answer-question (narrative-question)
   (setf (narrative-question-type narrative-question) 
@@ -221,7 +224,7 @@
   (vis-update-node (inn-format-node narrative-question))
   narrative-question)
 
-;; (c) inn-image
+;; (d) inn-image
 ;; -------------------------------------------------------------------------
 
 (export '(inn-image
@@ -231,37 +234,30 @@
           inn-image-type inn-image-value inn-image-weight
           make-inn-image))
 
-(defstruct (inn-image (:include INN-NODE)
-                  (:constructor make-inn-image-constructor))
-  "Type (:INN-IMAGE):"
-  (url "http://via.placeholder.com/640x360.png")) ; Customized to have placeholder. 
-
-(defun make-inn-image (&rest parameters
-                         &key &allow-other-keys)
-  (destructuring-bind (&whole whole
-                              &key (constructor 'make-inn-image-constructor)
-                                   (type :inn-image)
-                                   &allow-other-keys)
-      parameters
-    (dolist (indicator '(:constructor :type))
-      (remf whole indicator))
-    (apply 'make-inn-node `(:constructor ,constructor 
-                            :type ,(if (keywordp type) type :inn-image)
-                            ,@whole))))
-;; (make-inn-image)
+(def-inn-node inn-image (inn-node 
+                         (type :inn-image))
+              "Type (:INN-IMAGE):"
+              (url "http://via.placeholder.com/640x360.png"))
 
 (export '(inn-node-structures get-inn-node-constructor))
+
+;; (d) Getting an overview of which inn-node structures exist
+;; -------------------------------------------------------------------------
+;;
+;; These are helper functions mainly used for the web interface.
+
+(defun inn-get-all-subclasses (list-of-classes)
+  (if (null list-of-classes)
+    nil
+    (cons (first list-of-classes) 
+          (inn-get-all-subclasses
+           (append (rest list-of-classes)
+                   (clos:class-direct-subclasses (first list-of-classes)))))))
 
 (defun inn-node-structures ()
   "Return the list of inn-node structures."
   (let ((class (find-class 'inn-node)))
-    (labels ((inn-get-all-subclasses (list-of-classes)
-               (if (null list-of-classes)
-                 nil
-                 (cons (first list-of-classes)
-                       (append (clos:class-direct-subclasses (first list-of-classes))
-                               (inn-get-all-subclasses (rest list-of-classes)))))))
-      (inn-get-all-subclasses (list class)))))
+    (inn-get-all-subclasses (list class))))
 
 (defun get-structure-descriptor (class)
   (let ((the-class (if (symbolp class) (find-class class) class)))
@@ -287,41 +283,42 @@
               (list name 
                     (slot-value slot-descriptor 'structure::default)))))
 
-                          
-;; -------------------------------------------------------------------------
-;; Helper Macro for writing customized inn-node-code.
-;; -------------------------------------------------------------------------
-;;
-;; The following macro writes the necessary code (defstructs, constructor functions,
-;; and defmethods) for defining a custom inn-node with additional slots.
-;; --------------------------------------------------------------------------
-(export '(define-inn-node))
+;;; Deprecated: helper macro
+;;;
+;;; ;; -------------------------------------------------------------------------
+;;; ;; Helper Macro for writing customized inn-node-code.
+;;; ;; -------------------------------------------------------------------------
+;;; ;;
+;;; ;; The following macro writes the necessary code (defstructs, constructor functions,
+;;; ;; and defmethods) for defining a custom inn-node with additional slots.
+;;; ;; --------------------------------------------------------------------------
+;;; (export '(define-inn-node))
 
-(defmacro define-inn-node (name &key (include :inn-node) (stream t) (package :inn) slots type color shape)
-  `(progn
-     (format ,stream "~%~%(in-package :~(~a~))~%~%" ,package)
-     (format ,stream "(defstruct (~(~a~) (:include ~a)" ',name ,include)
-     (format ,stream "~%                  (:constructor make-~(~a~)-constructor))" ',name)
-     (format ,stream "~%  \"Type (:~a):\"" ',(or type name))
-     (format ,stream "~%  ~{~(~a~)~^ ~})~%~%" ',slots)
-     (format ,stream "(defun make-~(~a~) (&rest parameters" ',name)
-     (format ,stream "~%                         &key &allow-other-keys)")
-     (format ,stream "~%  (destructuring-bind (&whole whole")
-     (format ,stream "~%                              &key (constructor 'make-~(~a~)-constructor)" ',name)
-     (format ,stream "~%                                   (type :~(~a~))" ',(or type name))
-     (format ,stream "~%                                   &allow-other-keys)")
-     (format ,stream "~%      parameters")
-     (format ,stream "~%    (dolist (indicator '(:constructor :type))")
-     (format ,stream "~%      (remf whole indicator))")
-     (format ,stream "~%    (apply 'make-inn-node `(:constructor ,constructor :type ,type ,@whole))))~%~%")
-     ,@(if color
-         `((format ,stream "(defmethod get-node-color ((type (eql :~(~a~))))" ',(or type name))
-           (format ,stream "~%  ~s)~%~%" ,color)))
-     ,@(if shape
-         `((format ,stream "(defmethod get-node-shape ((type (eql :~(~a~))))" ',(or type name))
-           (format ,stream "~%  ~s)~%~%" ,shape)))
-     (format ,stream "(defmethod inn-format-node ((node ~a))" ',name)
-     (format ,stream "~%  (call-next-method)) ;; please customize")))
+;;; (defmacro define-inn-node (name &key (include :inn-node) (stream t) (package :inn) slots type color shape)
+;;;   `(progn
+;;;      (format ,stream "~%~%(in-package :~(~a~))~%~%" ,package)
+;;;      (format ,stream "(defstruct (~(~a~) (:include ~a)" ',name ,include)
+;;;      (format ,stream "~%                  (:constructor make-~(~a~)-constructor))" ',name)
+;;;      (format ,stream "~%  \"Type (:~a):\"" ',(or type name))
+;;;      (format ,stream "~%  ~{~(~a~)~^ ~})~%~%" ',slots)
+;;;      (format ,stream "(defun make-~(~a~) (&rest parameters" ',name)
+;;;      (format ,stream "~%                         &key &allow-other-keys)")
+;;;      (format ,stream "~%  (destructuring-bind (&whole whole")
+;;;      (format ,stream "~%                              &key (constructor 'make-~(~a~)-constructor)" ',name)
+;;;      (format ,stream "~%                                   (type :~(~a~))" ',(or type name))
+;;;      (format ,stream "~%                                   &allow-other-keys)")
+;;;      (format ,stream "~%      parameters")
+;;;      (format ,stream "~%    (dolist (indicator '(:constructor :type))")
+;;;      (format ,stream "~%      (remf whole indicator))")
+;;;      (format ,stream "~%    (apply 'make-inn-node `(:constructor ,constructor :type ,type ,@whole))))~%~%")
+;;;      ,@(if color
+;;;          `((format ,stream "(defmethod get-node-color ((type (eql :~(~a~))))" ',(or type name))
+;;;            (format ,stream "~%  ~s)~%~%" ,color)))
+;;;      ,@(if shape
+;;;          `((format ,stream "(defmethod get-node-shape ((type (eql :~(~a~))))" ',(or type name))
+;;;            (format ,stream "~%  ~s)~%~%" ,shape)))
+;;;      (format ,stream "(defmethod inn-format-node ((node ~a))" ',name)
+;;;      (format ,stream "~%  (call-next-method)) ;; please customize")))
 
 #|
 Example (check output buffer):

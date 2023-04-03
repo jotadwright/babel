@@ -67,7 +67,8 @@
                          (node1 inn-node)
                          (node2 inn-node)
                          &key (weight 1) edge-type &allow-other-keys)
-  (inn-add-edge graph (inn-node-id node1) (inn-node-id node2) :weight weight :edge-type edge-type))
+  (inn-add-edge graph (inn-node-id node1) (inn-node-id node2) 
+                :weight weight :edge-type edge-type))
 
 (defmethod inn-add-edges ((graph integrative-narrative-network)
                           (edges list)
