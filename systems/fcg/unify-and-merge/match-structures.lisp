@@ -281,6 +281,22 @@
 	     new-unit
 	     unit))))
 
+(defun recompute-sequence-in-source (tag-variable pattern-unit source-unit source bindings &key cxn-inventory)
+  (let ((new-root nil))    
+    ;; we construct a new-unit which will later be added to the resulting structure
+    (setq new-root (make-unit :name (unit-name pattern-unit)))
+    
+    ;; we loop over all features in source-unit and 'copy' all features
+    ;; that are not processed
+    (dolist (feature (unit-features source-unit))
+      (unless (equal (feature-name feature) 'form)
+	(push feature (unit-features new-root))))
+    ;; the new source is reconstructed by incorporating the new unit
+    (loop for unit in source collect
+            (if (equal (unit-name unit) (unit-name new-root))
+	     new-root
+	     unit))))
+
 (defun remove-tag-from-added (tag-variable pattern added bindings &key cxn-inventory)
   ;; should be non-destructive; needed for the cases in which a tag is first merged 
   ;; into a normal unit and then this tagged feature/value would be moved by means
@@ -460,7 +476,9 @@ HANDLE-J-UNITS. Returns a list of MERGE-RESULTs."
 	      ;; changed as side effect, for example while removing tag-values
 	      ;; from a unit:
 	      (setq source
-		(remove-tag-from-source e pattern-unit source-unit source (copy-tree bindings) :cxn-inventory cxn-inventory))
+                    (if (eql (get-configuration cxn-inventory :de-render-mode) :de-render-sequence)
+                      (recompute-sequence-in-source e pattern-unit source-unit source (copy-tree bindings) :cxn-inventory cxn-inventory)
+                      (remove-tag-from-source e pattern-unit source-unit source (copy-tree bindings) :cxn-inventory cxn-inventory)))
 	      (setq added
 		(remove-tag-from-added e pattern added bindings :cxn-inventory cxn-inventory))
 	      #+dbg
