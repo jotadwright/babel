@@ -282,14 +282,57 @@
 	     unit))))
 
 (defun recompute-sequence-in-source (tag-variable pattern-unit source-unit source bindings &key cxn-inventory)
-  (let ((new-root nil))    
+  (let ((new-root nil)
+        (processed-feature-names nil))    
     ;; we construct a new-unit which will later be added to the resulting structure
     (setq new-root (make-unit :name (unit-name pattern-unit)))
+
+    ;; for each feature in the pattern unit containing the tag
+    (dolist (feature (unit-features pattern-unit))
+      ;; if the feature happens to be a tag and contains the variable we want to remove
+      (when (and (tag-p feature)
+                 (find tag-variable (rest feature)))
+        ;; we add the feature name to the list of processed-feature-names
+        ;; (?unit (TAG ?tag (feature-name ...)))
+        (push (feature-name (third feature)) processed-feature-names)
+        (let ((original-feature (unit-feature source-unit 
+                                              (feature-name (third feature)))))
+	
+          (unless (atom (feature-value original-feature))
+            ;; we only keep feature-values that are not part of the binding for
+            ;; the tag-variable
+            (let ((feature-value nil))
+              (dolist (value-element
+			(remove-special-operators (feature-value original-feature) bindings))
+                (if (and (consp (feature-value (lookup tag-variable bindings)))
+			 (find value-element
+			       (feature-value (lookup tag-variable bindings))
+			       :test #'(lambda (x y)
+					 (or (equal x y)
+					     (unify x y (list bindings) :cxn-inventory cxn-inventory)))))
+		    (setf (feature-value (lookup tag-variable bindings))
+			  (remove value-element (feature-value (lookup tag-variable bindings))
+				  :test #'(lambda (x y)
+					    (or (equal x y)
+						(unify x y (list bindings) :cxn-inventory cxn-inventory)))
+				  :count 1))
+		    (push value-element feature-value)))
+              (when feature-value
+                ;; we add newly constructed feature to new-unit
+                (let ((new-feature (if (eq (feature-name original-feature) 'form)
+                                     (make-feature (feature-name original-feature)
+                                                   '((sequence "what is the " 0 12)
+                                                     (sequence " of the cube" 17 30)))
+                                     (make-feature (feature-name original-feature)
+                                                   feature-value))))
+                  (push new-feature
+                        (unit-features new-root)))))))))
+
     
     ;; we loop over all features in source-unit and 'copy' all features
     ;; that are not processed
     (dolist (feature (unit-features source-unit))
-      (unless (equal (feature-name feature) 'form)
+      (unless (find (feature-name feature) processed-feature-names)
 	(push feature (unit-features new-root))))
     ;; the new source is reconstructed by incorporating the new unit
     (loop for unit in source collect
