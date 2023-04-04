@@ -1,10 +1,11 @@
+(ql:quickload :bordeaux-threads)
 (ql:quickload :propbank-grammar)
 (in-package :propbank-grammar)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; (get-predictions-reports "/Users/ehai-guest/Projects/babel/grammars/propbank-grammar/cleaning-and-evaluation/parameter-evaluation/predictions-parameter""test-output.csv")
+;; (get-predictions-reports "/Users/ehai-guest/Projects/babel/grammars/propbank-grammar/cleaning-and-evaluation/parameter-evaluation/predictions-parameter" "test-output.csv")
 
 
 
@@ -83,35 +84,26 @@
           (gethash :recall-weighted-average evaluation-data)
           (gethash :f1-weighted-average evaluation-data)))
 
-(defun get-evaluation-report (predictions &key (core-roles-only nil) (include-word-sense t) (include-timed-out-sentences nil) (excluded-rolesets nil) (include-sentences-with-incomplete-role-constituent-mapping nil))
+(defun get-evaluation-report (predictions &key (core-roles-only nil) (include-word-sense t) (include-timed-out-sentences nil) (excluded-rolesets nil) (include-sentences-with-incomplete-role-constituent-mapping nil) (num-threads 4))
   "Computes precision, recall, and F1 score for each role set in unique-rolesets and returns a hash table."
   (let ((unique-rolesets (unique-labels predictions :core-roles-only core-roles-only
                                                        :include-word-sense include-word-sense
                                                        :include-timed-out-sentences include-timed-out-sentences
                                                        :excluded-rolesets excluded-rolesets
                                                        :include-sentences-with-incomplete-role-constituent-mapping include-sentences-with-incomplete-role-constituent-mapping))
-        (evaluation-data (make-hash-table :test 'equal)))
-    (dolist (roleset unique-rolesets)
-      (let ((roleset-evaluation (evaluate-predictions predictions
-                                                       :core-roles-only core-roles-only
-                                                       :selected-rolesets (list roleset)
-                                                       :include-word-sense include-word-sense
-                                                       :include-timed-out-sentences include-timed-out-sentences
-                                                       :excluded-rolesets excluded-rolesets
-                                                       :include-sentences-with-incomplete-role-constituent-mapping include-sentences-with-incomplete-role-constituent-mapping)))
-        (let ((frame-data (make-hash-table)))
-          (dolist (pair roleset-evaluation)
-            (setf (gethash (car pair) frame-data) (cdr pair)))
-          ;; Add support value
-          (let ((support (gethash :nr-of-gold-standard-predictions frame-data)))
-            (setf (gethash :support frame-data) support))
-          (let ((support (gethash :nr-of-predictions frame-data)))
-            (setf (gethash :nr-of-predictions frame-data) support))
-          (let ((support (gethash :nr-of-correct-predictions frame-data)))
-            (setf (gethash :nr-of-correct-predictions frame-data) support))
-          (setf (gethash roleset evaluation-data) frame-data))))
+        (evaluation-data (make-hash-table :test 'equal))
+        (threads (list))
+        (mutex (bt:make-lock)))
     
-    ;; Calculate averages
+    (dolist (roleset unique-rolesets)
+      (let ((thread (bt:make-thread
+                     (lambda ()
+                       (process-roleset roleset predictions core-roles-only (list roleset) include-word-sense include-timed-out-sentences excluded-rolesets include-sentences-with-incomplete-role-constituent-mapping evaluation-data mutex)))))
+        (push thread threads)))
+    
+    (mapc #'bt:join-thread threads)
+    
+     ;; Calculate averages
     (let ((precision-macro-average (macro-average evaluation-data :precision))
           (recall-macro-average (macro-average evaluation-data :recall))
           (f1-macro-average (macro-average evaluation-data :f1-score))
@@ -127,6 +119,28 @@
       (setf (gethash :f1-weighted-average evaluation-data) (or f1-weighted-average 0)))
     
     evaluation-data))
+
+(defun process-roleset (roleset predictions core-roles-only selected-rolesets include-word-sense include-timed-out-sentences excluded-rolesets include-sentences-with-incomplete-role-constituent-mapping evaluation-data mutex)
+  (let ((roleset-evaluation (evaluate-predictions predictions
+                                                 :core-roles-only core-roles-only
+                                                 :selected-rolesets selected-rolesets
+                                                 :include-word-sense include-word-sense
+                                                 :include-timed-out-sentences include-timed-out-sentences
+                                                 :excluded-rolesets excluded-rolesets
+                                                 :include-sentences-with-incomplete-role-constituent-mapping include-sentences-with-incomplete-role-constituent-mapping)))
+    (let ((frame-data (make-hash-table)))
+      (dolist (pair roleset-evaluation)
+        (setf (gethash (car pair) frame-data) (cdr pair)))
+      ;; Add support value
+      (let ((support (gethash :nr-of-gold-standard-predictions frame-data)))
+        (setf (gethash :support frame-data) support))
+      (let ((support (gethash :nr-of-predictions frame-data)))
+        (setf (gethash :nr-of-predictions frame-data) support))
+      (let ((support (gethash :nr-of-correct-predictions frame-data)))
+        (setf (gethash :nr-of-correct-predictions frame-data) support))
+      
+      (bt:with-lock-held (mutex)
+        (setf (gethash roleset evaluation-data) frame-data)))))
 
 (defun coerce-to-number (value)
   "Coerce value to a number. If value is NIL, return 0."
@@ -184,6 +198,10 @@
                (incf fp (gethash :false-positives val)))
              evaluation-data)
     (/ tp (+ tp fn fp))))
+
+(defun hash-table-keys (hash-table)
+  (loop for key being the hash-keys in hash-table
+        collect key))
 
 (defun unique-labels (predictions &key (core-roles-only nil) (include-word-sense t) (include-timed-out-sentences nil) (excluded-rolesets nil) (include-sentences-with-incomplete-role-constituent-mapping nil))
   "Extracts all unique labels from the given list of predictions and annotations."
