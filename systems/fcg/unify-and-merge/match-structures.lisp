@@ -320,9 +320,8 @@
               (when feature-value
                 ;; we add newly constructed feature to new-unit
                 (let ((new-feature (if (eq (feature-name original-feature) 'form)
-                                     (make-feature (feature-name original-feature)
-                                                   '((sequence "what is the " 0 12)
-                                                     (sequence " of the cube" 17 30)))
+                                     (make-feature 'form
+                                                   (sort (recompute-root-sequence-features-based-on-bindings feature-value bindings) #'< :key #'third))
                                      (make-feature (feature-name original-feature)
                                                    feature-value))))
                   (push new-feature
@@ -339,6 +338,40 @@
             (if (equal (unit-name unit) (unit-name new-root))
 	     new-root
 	     unit))))
+
+(defun recompute-root-sequence-features-based-on-bindings (sequence-features bindings)
+  "Makes new set of sequence predicates based on the indices that are present in the bindings."
+  (let* ((matched-positions (sort (loop for (var . value) in bindings
+                                        when (numberp value)
+                                          collect value) #'<))
+         (matched-positions-paired (loop for position on matched-positions by #'cddr
+                                         collect position)))
+    
+    (loop for (feature-name string start end) in sequence-features
+          for offset = (abs (- 0 start))
+          for left-source =  (- start offset) ;;0
+          for right-source = (- end offset) 
+          append (loop for (left-pattern right-pattern) in matched-positions-paired
+                       append
+                         (cond (;; pattern sequence covered source sequence entirely
+                                (and (= start left-pattern)
+                                     (= end right-pattern))
+                                nil)
+                               (;;left boundaries coincide
+                                (= start left-pattern)
+                                (list (list feature-name (subseq string (- right-pattern offset) right-source) right-pattern end)))
+                               (;;right boundaries coincide
+                                (= end right-pattern)
+                                (list (list feature-name (subseq string left-source (- left-pattern offset)) start left-pattern)))
+                               (;;pattern subsumed by source => split
+                                (and (< start left-pattern)
+                                     (> end right-pattern)) 
+                                (list (list feature-name (subseq string left-source (- left-pattern offset)) start left-pattern)
+                                      (list feature-name (subseq string (- right-pattern offset) right-source) right-pattern end)))
+                               (t
+                                (list (list feature-name string start end))))))))
+
+
 
 (defun remove-tag-from-added (tag-variable pattern added bindings &key cxn-inventory)
   ;; should be non-destructive; needed for the cases in which a tag is first merged 
