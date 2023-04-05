@@ -51,6 +51,7 @@
 (defgeneric inn-delete-node (graph node &key &allow-other-keys))
 (defgeneric inn-delete-nodes (graph nodes &key &allow-other-keys))
 
+
 ;; ----------------------------------------------------------------------------------
 ;; 3. Events
 ;; ----------------------------------------------------------------------------------
@@ -61,3 +62,33 @@
 ;; Customize the event behaviors based on your network class.
 (defgeneric inn-double-click (selection network))
 (defgeneric inn-right-click (network))
+
+;;
+;; 4. Find nodes by label and add edges
+;; ----------------------------------------------------------------------------------
+
+(defun find-node-by-label (network label)
+  (loop for node being each hash-value of (graph-utils::ids network)
+        when (string= label (inn-node-label node))
+          return node))
+; test
+; (inn-node-id (find-node-by-label (get-current-inn) "Who?"))
+
+(defun add-edges-to-node (from-node-label to-nodes-list)
+  "adds edges between a given starting node and a list of nodes"
+  (let* ((from-node-id (inn-node-id (find-node-by-label (get-current-inn) from-node-label)))
+         (network (get-current-inn))
+         (node-ids (loop for node in to-nodes-list
+                         collect (inn-add-node network node))))
+    (loop for to-node-id in node-ids
+          do (inn-add-edge network from-node-id to-node-id))))
+
+
+(defun add-edges-by-nodes-label (from-node-label to-node-label)
+  "add an edge between the labels of two nodes"
+    (let* ((network (get-current-inn))
+           (from-id (find-node-by-label network from-node-label))
+           (to-id (find-node-by-label network to-node-label)))
+  (inn-add-edge network from-id to-id)))
+
+;(add-edges-by-nodes-label "Material?" "Art Movement?")
