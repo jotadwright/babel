@@ -570,40 +570,6 @@
       (enable-meta-layer-configuration cxn-inventory)
       best-cipn)))
 
-(defun anti-unify-partial-analysis-with-observation (observation-form observation-meaning partial-analysis-cipn)
-  ;; the generalisation is identical to the meaning/form of the cipn,
-  ;; the pattern delta is empty
-  ;; and the source delta contains the material for the new cxn to be learned
-  (let* ((cipn-meaning (fcg-extract-meanings partial-analysis-cipn))
-         ;; cipn-form has the same variables as the observation-form
-         ;; --> these variables do not occur in the bindings of the anti-unification...
-         ;; --> make fresh variables and store the mappings from the original
-         ;;     constants to the fresh variables
-         (cipn-form-and-variable-renamings
-          (multiple-value-list
-           (fresh-variables
-            (variablify-form-constraints-with-constants
-             (loop for unit in (fcg-get-transient-unit-structure partial-analysis-cipn)
-                   unless (eql (unit-name unit) 'fcg::root)
-                     append (unit-feature-value unit 'form))))))
-         (cipn-form (first cipn-form-and-variable-renamings))
-         (form-const-renamings
-          (loop for (var . fresh-var) in (second cipn-form-and-variable-renamings)
-                collect (cons (devariablify var) fresh-var)))
-         (meaning-a-u (first (anti-unify-predicate-network cipn-meaning observation-meaning)))
-         (form-a-u (first (anti-unify-predicate-network cipn-form observation-form))))
-    (unless (or (null (source-delta meaning-a-u))
-                (null (source-delta form-a-u)))
-      ;; store the renamings in the cipn
-      (set-data partial-analysis-cipn :form-const-renamings form-const-renamings)
-      ;; nazi checks
-      (assert (and (null (pattern-delta meaning-a-u))
-                   (null (pattern-delta form-a-u))
-                   (equivalent-irl-programs? (generalisation meaning-a-u) cipn-meaning)
-                   (equivalent-irl-programs? (generalisation form-a-u) cipn-form)))
-      ;; return AU results
-      (values form-a-u meaning-a-u))))
-
 
 ;;;;;
 ;; Sort meets constraints
@@ -735,6 +701,17 @@
           do (setf renamingp nil))
     renamingp))
 
+(defmethod select-holistic-cxns-for-anti-unification (observation-form observation-meaning (cxn-inventory fcg-construction-set))
+  "Select holistic cxns from the routine set with a score greater than 0."
+  (declare (ignore observation-form observation-meaning))
+  (let* ((hash-compatible-cxns
+          (constructions-for-anti-unification-hashed observation-form observation-meaning cxn-inventory))
+         (holistic-routine-non-zero-cxns
+          (remove-if-not #'non-zero-cxn-p
+                         (remove-if-not #'holistic-cxn-p
+                                        (remove-if-not #'routine-cxn-p hash-compatible-cxns)))))
+    (sort holistic-routine-non-zero-cxns #'> :key #'get-cxn-score)))
+
 (defmethod anti-unify-constructions-with-observation (observation-form observation-meaning constructions (cxn-inventory fcg-construction-set))
   "Anti-unify the observation with the constructions.
    For each cxn, keep the best au result on the form side and the meaning side.
@@ -761,13 +738,36 @@
     ;; if multiple, take a random one    
     (first (all-biggest #'fourth (all-smallest #'third au-results)))))
 
-(defmethod select-holistic-cxns-for-anti-unification (observation-form observation-meaning (cxn-inventory fcg-construction-set))
-  "Select holistic cxns from the routine set with a score greater than 0."
-  (declare (ignore observation-form observation-meaning))
-  (let* ((hash-compatible-cxns
-          (constructions-for-anti-unification-hashed observation-form observation-meaning cxn-inventory))
-         (holistic-routine-non-zero-cxns
-          (remove-if-not #'non-zero-cxn-p
-                         (remove-if-not #'holistic-cxn-p
-                                        (remove-if-not #'routine-cxn-p hash-compatible-cxns)))))
-    (sort holistic-routine-non-zero-cxns #'> :key #'get-cxn-score)))
+(defun anti-unify-partial-analysis-with-observation (observation-form observation-meaning partial-analysis-cipn)
+  ;; the generalisation is identical to the meaning/form of the cipn,
+  ;; the pattern delta is empty
+  ;; and the source delta contains the material for the new cxn to be learned
+  (let* ((cipn-meaning (fcg-extract-meanings partial-analysis-cipn))
+         ;; cipn-form has the same variables as the observation-form
+         ;; --> these variables do not occur in the bindings of the anti-unification...
+         ;; --> make fresh variables and store the mappings from the original
+         ;;     constants to the fresh variables
+         (cipn-form-and-variable-renamings
+          (multiple-value-list
+           (fresh-variables
+            (variablify-form-constraints-with-constants
+             (loop for unit in (fcg-get-transient-unit-structure partial-analysis-cipn)
+                   unless (eql (unit-name unit) 'fcg::root)
+                     append (unit-feature-value unit 'form))))))
+         (cipn-form (first cipn-form-and-variable-renamings))
+         (form-const-renamings
+          (loop for (var . fresh-var) in (second cipn-form-and-variable-renamings)
+                collect (cons (devariablify var) fresh-var)))
+         (meaning-a-u (first (anti-unify-predicate-network cipn-meaning observation-meaning)))
+         (form-a-u (first (anti-unify-predicate-network cipn-form observation-form))))
+    (unless (or (null (source-delta meaning-a-u))
+                (null (source-delta form-a-u)))
+      ;; store the renamings in the cipn
+      (set-data partial-analysis-cipn :form-const-renamings form-const-renamings)
+      ;; nazi checks
+      (assert (and (null (pattern-delta meaning-a-u))
+                   (null (pattern-delta form-a-u))
+                   (equivalent-irl-programs? (generalisation meaning-a-u) cipn-meaning)
+                   (equivalent-irl-programs? (generalisation form-a-u) cipn-form)))
+      ;; return AU results
+      (values form-a-u meaning-a-u))))

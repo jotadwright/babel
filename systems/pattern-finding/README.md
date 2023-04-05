@@ -2,6 +2,8 @@
 
 ## Repairs
 
+Repairs are applied in the reverse order as reported here.
+
 ### **1. Nothing -> Holistic**
 
 Make a holistic construction of whatever form and meaning is left. `form-args` and `meaning-args` for the contributing part of the construction can be passed along from the recursion of repairs.
@@ -21,17 +23,17 @@ This repair covers the holistic->item-based substitution, addition and deletion 
 
 **Questions:**
 
-  - Always learn a construction with a single (possible discontinuous) slot? Or learn a construction with as many slots as there are discontinuous parts? For example, should the `what-?x-is-the-?y-?z-cxn` have one slot (`xyz`) or two slots (`x` and `yz`)? 
-  - Construction like the `the-?y-?x-object-is-what-shape-cxn` can have two adjacent slots because the anti-unification places all `meets` in the generalisation. This entails that there can only be exactly two fillers. Would it be beneficial to check for this and remove adjacent slots, such that we immediately learn the `the-?x-object-is-what-shape-cxn` where the `?x` slot can be filled by a variable length filler? Or will this construction be learned later on, e.g. using the item-based->item-based repair? *However*, this would then also need to be enforced on the meaning side, i.e. decoupling variables as well. How to know which variables??
-  - Now constructions use `form-args`. Switch to `boundaries`? What are benefits?
+  - Always learn a construction with a single (possible discontinuous) slot? Or learn a construction with as many slots as there are discontinuous parts? For example, should the `what-?x-is-the-?y-?z-cxn` have one slot (`xyz`) or two slots (`x` and `yz`)? **NO**, how to assign meaning to each slot??
+  - Construction like the `the-?y-?x-object-is-what-shape-cxn` can have two adjacent slots because the anti-unification places all `meets` in the generalisation. This entails that there are always exactly two fillers. Would it be beneficial to check for this and remove adjacent slots, such that we immediately learn the `the-?x-object-is-what-shape-cxn` where the `?x` slot can be filled by a variable length filler? Or will this construction be learned later on, e.g. using the item-based->item-based repair? **NO**, this would then also need to be enforced on the meaning side, i.e. decoupling variables as well. How to know which variables??
+  - Now constructions use `form-args`. Switch to `boundaries`? What are the downsides or benefits? Using `boundaries` corresponds to the current progress in form generalisation. 
 
 ### **3. Holistic Partial Analysis**
 
 Some construction(s) could apply. Anti-unify the observation with the partial analysis and learn an item-based construction from the result.
 
-  1. _Obtain the partial analysis._ Run comprehension with categorial links disabled and only constructions from the routine set. Select the cip node which covers most of the observation. This can be one or more holistic constructions, or an item-based construction with all its slots already filled in, or a combination of these two cases.
+  1. _Obtain the partial analysis._ Run comprehension with categorial links disabled and only constructions from the routine set. Select the cip node which covers as much as possible of the form of the observation. This can be one or more holistic constructions, or an item-based construction with all its slots already filled in, or a combination of these two cases.
   2. _Anti-unify the observation with the partial analysis._ On both the form side and the meaning side, only the anti-unification result with the lowest cost is considered. Here, there is no filter in terms of cost. When anti-unifying the observation with a partial analysis, the pattern delta is empty and the generalisation is identical to the partial analysis. A construction can thus be learned from the source delta. 
-  3. _Learn an item-based construction._ First, units from the transient structure are extracted. The item-based construction will have a slot for every unit in the TS. `form-args` and `meaning-args` are extracted from each unit in the TS and the corresponding variables for the `form-args` and `meaning-args` of the conditional units in the item-based construction are recovered via the bindings lists. The grammatical categories of the slots reflect which placeholders are filled by the slot, e.g. the `what-?x-is-the-?y-?z-cxn` can have the `what-?x-is-the-?y-?z-(x)` slot and the `what-?x-is-the-?y-?z-(yz)` slot. 
+  3. _Learn an item-based construction._ First, units from the transient structure are extracted. The item-based construction will have a slot for every unit in the TS. `form-args` and `meaning-args` are extracted from each unit in the TS and the corresponding variables for the `form-args` and `meaning-args` of the conditional units in the item-based construction are recovered via the bindings lists. The grammatical categories of the slots reflect which placeholders are filled by the slot, e.g. when the partial analysis of `"What color is the large cube?"`consists of the `color-cxn` and the `large-cube-cxn`, the `what-?x-is-the-?y-?z-cxn` will have the `what-?x-is-the-?y-?z-(x)` slot and the `what-?x-is-the-?y-?z-(yz)` slot.
   4. _Extract categorial links._ The newly created item-based construction and the applied constructions of the partial analysis are added to a sandbox construction inventory and comprehension is ran. From the result, the categorial links are extracted. This is because it is difficult/expensive/impossible to know from the units in the TS which construction(s) created these units and how to make links between these constructions and the slots of the newly created item-based construction.
 
 This repair is identical to the previous version.
@@ -90,3 +92,8 @@ Add categorial links between grammatical categories of constructions that alread
 **Questions:**
 
   - Step 2 is now only done on the meaning side. Should also be done on the form side. 
+
+## Computing args
+
+
+## Alignment
