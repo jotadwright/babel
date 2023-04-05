@@ -344,32 +344,34 @@
   (let* ((matched-positions (sort (loop for (var . value) in bindings
                                         when (numberp value)
                                           collect value) #'<))
-         (matched-positions-paired (loop for position on matched-positions by #'cddr
-                                         collect position)))
+         (matched-positions-paired (loop for (start end) on matched-positions by #'cddr
+                                         collect (list start end))))
     
+  
     (loop for (feature-name string start end) in sequence-features
           for offset = (abs (- 0 start))
           for left-source =  (- start offset) ;;0
-          for right-source = (- end offset) 
-          append (loop for (left-pattern right-pattern) in matched-positions-paired
-                       append
-                         (cond (;; pattern sequence covered source sequence entirely
-                                (and (= start left-pattern)
-                                     (= end right-pattern))
-                                nil)
-                               (;;left boundaries coincide
-                                (= start left-pattern)
-                                (list (list feature-name (subseq string (- right-pattern offset) right-source) right-pattern end)))
-                               (;;right boundaries coincide
-                                (= end right-pattern)
-                                (list (list feature-name (subseq string left-source (- left-pattern offset)) start left-pattern)))
-                               (;;pattern subsumed by source => split
-                                (and (< start left-pattern)
-                                     (> end right-pattern)) 
-                                (list (list feature-name (subseq string left-source (- left-pattern offset)) start left-pattern)
-                                      (list feature-name (subseq string (- right-pattern offset) right-source) right-pattern end)))
-                               (t
-                                (list (list feature-name string start end))))))))
+          for right-source = (- end offset)
+          for new-sequence-features = (loop for (left-pattern right-pattern) in matched-positions-paired
+                                            append (cond (;; pattern sequence covered source sequence entirely
+                                                           (and (= start left-pattern)
+                                                                (= end right-pattern))
+                                                           nil)
+                                                          (;;left boundaries coincide
+                                                           (= start left-pattern)
+                                                           (list (list feature-name (subseq string (- right-pattern offset) right-source) right-pattern end)))
+                                                          (;;right boundaries coincide
+                                                           (= end right-pattern)
+                                                           (list (list feature-name (subseq string left-source (- left-pattern offset)) start left-pattern)))
+                                                          (;;pattern subsumed by source => split
+                                                           (and (< start left-pattern)
+                                                                (> end right-pattern)) 
+                                                           (list (list feature-name (subseq string left-source (- left-pattern offset)) start left-pattern)
+                                                                 (list feature-name (subseq string (- right-pattern offset) right-source) right-pattern end)))))
+          if new-sequence-features
+            append new-sequence-features into recomputed-sequence-features
+          else collect `(sequence ,string ,start ,end) into recomputed-sequence-features
+          finally (return (remove nil recomputed-sequence-features)))))
 
 
 
