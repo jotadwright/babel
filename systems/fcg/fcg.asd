@@ -103,7 +103,7 @@
                  (:file "html")
                  (:file "web-monitor")
                  (:file "export-utils")))
-   
+   (:file "handling-sequences")
    (:module meta-layer
     :serial t
     :components ((:file "fcg-meta-layer-lib")))
