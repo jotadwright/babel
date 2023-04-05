@@ -92,3 +92,9 @@
   (inn-add-edge network from-id to-id)))
 
 ;(add-edges-by-nodes-label "Material?" "Art Movement?")
+
+(defun add-label-edge-from-nodes-label (from-node-label to-node-label edge-label)
+  (let* ((network (get-current-inn))
+         (from-id (find-node-by-label network from-node-label))
+         (to-id (find-node-by-label network to-node-label)))
+    (inn-add-edge network from-id to-id :label edge-label)))
