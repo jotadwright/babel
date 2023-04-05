@@ -318,4 +318,4 @@
                              (sequence " " ?vp-right ?object-np-left)))))))
 
 
-;(comprehend "the linguist the" :cxn-inventory *fcg-constructions-sequences*)
+;(comprehend-and-formulate "the linguist likes the mouse" :cxn-inventory *fcg-constructions-sequences*)
