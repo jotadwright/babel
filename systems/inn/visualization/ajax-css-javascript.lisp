@@ -63,7 +63,7 @@
                           (format nil "~a::make-~a" package class-name)))
          (inn (inn:get-current-inn)))
     (destructuring-bind (&whole whole
-                                &key (type t)
+                                &key (type nil)
                                 (description "No description available.")
                                 (label "label")
                                 (cluster-ids nil)
@@ -72,18 +72,22 @@
       (dolist (indicator '(:type :description :label :cluster-ids))
         (remf whole indicator))
       (let ((target-node-id 
-             (inn::inn-add-node inn
-                                (apply constructor-fn `(:type ,(if (stringp type)
-                                                                 (read-from-string type)
-                                                                 type)
-                                                        :description ,description
-                                                        :label ,label
-                                                        :cluster-ids ,(if (stringp cluster-ids)
-                                                                        (if (string= cluster-ids "")
-                                                                          nil
-                                                                          (read-from-string cluster-ids))
-                                                                        nil)
-                                                        ,@whole)))))
+             (inn::inn-add-node 
+              inn
+              (apply constructor-fn `(,@(if type
+                                          (let ((the-type (if (stringp type)
+                                                            (read-from-string type)
+                                                            type)))
+                                            (if (keywordp the-type)
+                                              `(:type ,the-type))))
+                                      :description ,description
+                                      :label ,label
+                                      :cluster-ids ,(if (stringp cluster-ids)
+                                                      (if (string= cluster-ids "")
+                                                        nil
+                                                        (read-from-string cluster-ids))
+                                                      nil)
+                                      ,@whole)))))
         (if from-node-id
           (inn::inn-add-edge inn from-node-id target-node-id))
         (clearaddnode)))))

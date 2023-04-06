@@ -281,6 +281,99 @@
 	     new-unit
 	     unit))))
 
+(defun recompute-sequence-in-source (tag-variable pattern-unit source-unit source bindings &key cxn-inventory)
+  (let ((new-root nil)
+        (processed-feature-names nil))    
+    ;; we construct a new-unit which will later be added to the resulting structure
+    (setq new-root (make-unit :name (unit-name pattern-unit)))
+
+    ;; for each feature in the pattern unit containing the tag
+    (dolist (feature (unit-features pattern-unit))
+      ;; if the feature happens to be a tag and contains the variable we want to remove
+      (when (and (tag-p feature)
+                 (find tag-variable (rest feature)))
+        ;; we add the feature name to the list of processed-feature-names
+        ;; (?unit (TAG ?tag (feature-name ...)))
+        (push (feature-name (third feature)) processed-feature-names)
+        (let ((original-feature (unit-feature source-unit 
+                                              (feature-name (third feature)))))
+	
+          (unless (atom (feature-value original-feature))
+            ;; we only keep feature-values that are not part of the binding for
+            ;; the tag-variable
+            (let ((feature-value nil))
+              (dolist (value-element
+			(remove-special-operators (feature-value original-feature) bindings))
+                (if (and (consp (feature-value (lookup tag-variable bindings)))
+			 (find value-element
+			       (feature-value (lookup tag-variable bindings))
+			       :test #'(lambda (x y)
+					 (or (equal x y)
+					     (unify x y (list bindings) :cxn-inventory cxn-inventory)))))
+		    (setf (feature-value (lookup tag-variable bindings))
+			  (remove value-element (feature-value (lookup tag-variable bindings))
+				  :test #'(lambda (x y)
+					    (or (equal x y)
+						(unify x y (list bindings) :cxn-inventory cxn-inventory)))
+				  :count 1))
+		    (push value-element feature-value)))
+              (when feature-value
+                ;; we add newly constructed feature to new-unit
+                (let ((new-feature (if (eq (feature-name original-feature) 'form)
+                                     (make-feature 'form
+                                                   (sort (recompute-root-sequence-features-based-on-bindings feature-value bindings) #'< :key #'third))
+                                     (make-feature (feature-name original-feature)
+                                                   feature-value))))
+                  (push new-feature
+                        (unit-features new-root)))))))))
+
+    
+    ;; we loop over all features in source-unit and 'copy' all features
+    ;; that are not processed
+    (dolist (feature (unit-features source-unit))
+      (unless (find (feature-name feature) processed-feature-names)
+	(push feature (unit-features new-root))))
+    ;; the new source is reconstructed by incorporating the new unit
+    (loop for unit in source collect
+            (if (equal (unit-name unit) (unit-name new-root))
+	     new-root
+	     unit))))
+
+(defun recompute-root-sequence-features-based-on-bindings (sequence-features bindings)
+  "Makes new set of sequence predicates based on the indices that are present in the bindings."
+  (let* ((matched-positions (sort (loop for (var . value) in bindings
+                                        when (numberp value)
+                                          collect value) #'<))
+         (matched-positions-paired (loop for (start end) on matched-positions by #'cddr
+                                         collect (list start end))))
+    
+    (loop for (feature-name string start end) in sequence-features
+          for offset = (abs (- 0 start))
+          for left-source =  (- start offset)
+          for right-source = (- end offset)
+          for new-sequence-features = (loop for (left-pattern right-pattern) in matched-positions-paired
+                                            append (cond (;; pattern sequence covers source sequence entirely
+                                                           (and (= start left-pattern)
+                                                                (= end right-pattern))
+                                                           nil)
+                                                          (;;left boundaries coincide
+                                                           (= start left-pattern)
+                                                           (list (list feature-name string right-pattern end)))
+                                                          (;;right boundaries coincide
+                                                           (= end right-pattern)
+                                                           (list (list feature-name string start left-pattern)))
+                                                          (;;pattern subsumed by source => split
+                                                           (and (< start left-pattern)
+                                                                (> end right-pattern))
+                                                           (list (list feature-name (subseq string left-source (- left-pattern offset)) start left-pattern)
+                                                                 (list feature-name (subseq string (- right-pattern offset) right-source) right-pattern end)))))
+          if new-sequence-features
+            append new-sequence-features into recomputed-sequence-features
+          else collect `(sequence ,string ,start ,end) into recomputed-sequence-features
+          finally (return (remove nil recomputed-sequence-features)))))
+
+
+
 (defun remove-tag-from-added (tag-variable pattern added bindings &key cxn-inventory)
   ;; should be non-destructive; needed for the cases in which a tag is first merged 
   ;; into a normal unit and then this tagged feature/value would be moved by means
@@ -460,7 +553,9 @@ HANDLE-J-UNITS. Returns a list of MERGE-RESULTs."
 	      ;; changed as side effect, for example while removing tag-values
 	      ;; from a unit:
 	      (setq source
-		(remove-tag-from-source e pattern-unit source-unit source (copy-tree bindings) :cxn-inventory cxn-inventory))
+                    (if (eql (get-configuration cxn-inventory :de-render-mode) :de-render-sequence)
+                      (recompute-sequence-in-source e pattern-unit source-unit source (copy-tree bindings) :cxn-inventory cxn-inventory)
+                      (remove-tag-from-source e pattern-unit source-unit source (copy-tree bindings) :cxn-inventory cxn-inventory)))
 	      (setq added
 		(remove-tag-from-added e pattern added bindings :cxn-inventory cxn-inventory))
 	      #+dbg
