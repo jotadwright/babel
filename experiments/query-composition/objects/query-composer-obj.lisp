@@ -31,7 +31,7 @@
     (setf (queue composer) (nodes tree))))
 
 ;; #########################################
-;; compose-query Basic one
+;; compose-query
 ;; --------------------------------------------------------------------
 
 (defmethod compose-query ((composer query-composer) answer &key sort-table star-shortcut exclude-constraint all-queries)
@@ -39,13 +39,14 @@
     (loop until (not (queue composer))
              for parent = (pop (queue composer))
              do
-             (if (not (equal (depth parent) 0))
-               (cond
-                ((and (goal-test answer parent) all-queries) (setf (queries composer) (push parent (queries composer))))
-                ((goal-test answer parent) (return-from compose-query parent))))
             (cond ((not (equal exclusion-list (attrs parent))) (setf exclusion-list (append exclusion-list (attrs parent)))))
             (setf exclusion-list (remove-duplicates exclusion-list))
-            (expand composer answer parent exclusion-list :sort-table sort-table :star-shortcut star-shortcut :exclude-constraint exclude-constraint))
+            (let ((result nil))
+              (if (equal (depth parent) 0)
+                (setf result (select-compose-alt composer parent answer :sort-table sort-table :star-shortcut star-shortcut))
+                (setf result (condition-compose composer parent answer exclusion-list :exclude-id exclude-constraint)))
+              (if result
+                (return-from compose-query result))))
     (queries composer)))
 
 ;; #########################################
@@ -58,62 +59,10 @@
    ((not (equal (depth parent) 0)) (condition-compose composer parent exclusion-list :exclude-id exclude-constraint))))
 
 ;; #########################################
-;; compose-query  "alternative"
-;; --------------------------------------------------------------------
-
-(defmethod compose-query-alt ((composer query-composer) answer &key sort-table star-shortcut exclude-constraint all-queries)
-  (let ((exclusion-list '())
-         (expand-parents '()))
-    (loop until (not (queue composer))
-             for parent = (pop (queue composer))
-             do
-             (if (not (equal (depth parent) 0))
-               (cond
-                ((and (goal-test answer parent) all-queries) (setf (queries composer) (push parent (queries composer))))
-                ((goal-test answer parent) (return-from compose-query-alt parent))))
-            (cond ((not (equal exclusion-list (attrs parent))) (setf exclusion-list (append exclusion-list (attrs parent)))))
-            (setf expand-parents (push-end parent expand-parents))
-            (setf exclusion-list (remove-duplicates exclusion-list))
-            (if (not (queue composer)) 
-              (expand-alt composer answer parent exclusion-list expand-parents :sort-table sort-table :star-shortcut star-shortcut :exclude-constraint exclude-constraint))
-    (queries composer))))
-
-;; #########################################
-;; expand "alternative"
-;; --------------------------------------------------------------------
-
-(defmethod expand-alt ((composer query-composer) answer parent exclusion-list expand-list &key sort-table star-shortcut exclude-constraint)
-  (loop until (not expand-list)
-           for parent = (pop expand-list)
-           do      
-          (cond
-           ((equal (depth parent) 0) (select-compose composer parent answer :sort-table sort-table :star-shortcut star-shortcut))
-           ((not (equal (depth parent) 0)) (condition-compose composer parent exclusion-list :exclude-id exclude-constraint)))))
-
-;; #########################################
-;; compose-query alternative 2
-;; --------------------------------------------------------------------
-
-(defmethod compose-query-2 ((composer query-composer) answer &key sort-table star-shortcut exclude-constraint all-queries)
-  (let ((exclusion-list '()))
-    (loop until (not (queue composer))
-             for parent = (pop (queue composer))
-             do
-            (cond ((not (equal exclusion-list (attrs parent))) (setf exclusion-list (append exclusion-list (attrs parent)))))
-            (setf exclusion-list (remove-duplicates exclusion-list))
-            (let ((result nil))
-              (if (equal (depth parent) 0)
-                (setf result (select-compose-alt composer parent answer :sort-table sort-table :star-shortcut star-shortcut))
-                (setf result (condition-compose-alt composer parent answer exclusion-list :exclude-id exclude-constraint)))
-              (if result
-                (return-from compose-query-2 result))))
-    (queries composer)))
-
-;; #########################################
 ;; condition-compose
 ;; --------------------------------------------------------------------
 
-(defmethod condition-compose ((composer query-composer) parent exclusion-list &key exclude-id)
+(defmethod condition-compose ((composer query-composer) parent answer exclusion-list &key exclude-id)
   (dolist (ref-table (ref-tbles parent))
     (let ((attrs '())
           (nodes-lst '()))
@@ -129,6 +78,7 @@
                   (if (equal (depth parent) 1)
                     (progn
                       (let ((child-node (where-node parent ref-table attr operator val)))
+                        (if (goal-test answer child-node) (return-from condition-compose child-node))
                         (setf nodes-lst (append nodes-lst (list child-node)))))
                     (progn
                       (let ((and-child (condition-node composer parent ref-table attr operator val ':and))
@@ -136,86 +86,24 @@
                         (if and-child
                           (progn
                             (if (not (equal (length (attrs and-child)) (length (attributes (tble parent)))))
-                              (setf nodes-lst (append nodes-lst (list and-child))))))
-                        (if or-child
-                          (progn
-                            (if (not (equal (length (attrs or-child)) (length (attributes (tble parent)))))
-                              (setf nodes-lst (append nodes-lst (list or-child)))))))))))))))
-      (setf (children parent) nodes-lst)
-      (setf (queue composer) (append (queue composer) nodes-lst)))))
-
-;; #########################################
-;; condition-compose alternative
-;; --------------------------------------------------------------------
-
-(defmethod condition-compose-alt ((composer query-composer) parent answer exclusion-list &key exclude-id)
-  (dolist (ref-table (ref-tbles parent))
-    (let ((attrs '())
-          (nodes-lst '()))
-      (if exclude-id
-        (setf attrs (remove-if #'(lambda (item) (or (equal (constraint item) 'primary) (equal (constraint item) 'foreign))) (attributes ref-table)))
-        (setf attrs (attributes ref-table)))
-      (dolist (attr attrs)
-        (if (or (not (attr-is-present parent attr)) (not (find attr exclusion-list)))
-          (progn
-            (let ((result (flatten (query (concatenate 'string "SELECT Distinct(" (name attr) ") FROM " (name ref-table))))))
-              (dolist (val result)
-                (dolist (operator (operators attr))
-                  (if (equal (depth parent) 1)
-                    (progn
-                      (let ((child-node (where-node parent ref-table attr operator val)))
-                        (if (goal-test answer child-node) (return-from condition-compose-alt child-node))
-                        (setf nodes-lst (append nodes-lst (list child-node)))
-                    (progn
-                      (let ((and-child (condition-node composer parent ref-table attr operator val ':and))
-                            (or-child (condition-node composer parent ref-table attr operator val ':or)))
-                        (if and-child
-                          (progn
-                            (if (not (equal (length (attrs and-child)) (length (attributes (tble parent)))))
                               (progn
-                                 (if (goal-test answer and-child) (return-from condition-compose-alt and-child))
+                                 (if (goal-test answer and-child) (return-from condition-compose and-child))
                                  (setf nodes-lst (append nodes-lst (list and-child)))))))
                         (if or-child
                           (progn
                             (if (not (equal (length (attrs or-child)) (length (attributes (tble parent)))))
                               (progn
-                                 (if (goal-test answer or-child) (return-from condition-compose-alt or-child))
-                                 (setf nodes-lst (append nodes-lst (list or-child))))))))))))))))))
+                                 (if (goal-test answer or-child) (return-from condition-compose or-child))
+                                 (setf nodes-lst (append nodes-lst (list or-child))))))))))))))))
       (setf (children parent) nodes-lst)
-      (setf (queue composer) (append (queue composer) nodes-lst)))))
- 
+      (setf (queue composer) (append (queue composer) nodes-lst))))
+  nil)
+
 ;; #########################################
 ;; select-compose
 ;; --------------------------------------------------------------------
 
 (defmethod select-compose ((composer query-composer) parent answer &key sort-table star-shortcut)
-   (let ((join-nodes '())
-          (tables nil))
-     (if sort-table
-       (setf tables (sort-table composer answer))
-       (setf tables (tables composer)))
-     (dolist (tble tables)
-       (let ((permutations nil))
-         (cond
-          ((and (equal (length (attributes tble)) (length (first answer))) star-shortcut) (setf permutations '((("*")))))
-          ((> (length (attributes tble)) (length (first answer))) (setf permutations (get-selection tble (first answer))))
-          ((and (equal (length (attributes tble)) (length (first answer))) (not star-shortcut)) (setf permutations (get-selection tble (first answer)))))
-         (dolist (permutation permutations)
-           (let ((child-node nil))
-             (setf child-node (init-node parent permutation tble))
-             (setf (children parent) (nconc (children parent) (list child-node)))
-             (setf (queue composer) (nconc (queue composer) (list child-node)))
-             ;;Join part
-             (let ((select-node (init-node parent permutation tble :join t)))
-               (setf join-nodes (append join-nodes (inner-outer-compose composer select-node))))
-             ))))
-     (setf (queue composer) (nconc (queue composer) join-nodes))))
-
-;; #########################################
-;; select-compose alternative
-;; --------------------------------------------------------------------
-
-(defmethod select-compose-alt ((composer query-composer) parent answer &key sort-table star-shortcut)
    (let ((nodes '())
           (tables nil))
      (if sort-table
@@ -238,9 +126,9 @@
              (dolist (child nodes)
                (if (goal-test answer child)
                  (progn
-                   (return-from select-compose-alt child))))
-     (setf (queue composer) (nconc (queue composer) nodes))))
-
+                   (return-from select-compose child))))
+     (setf (queue composer) (append (queue composer) nodes))
+     nil))
 
 ;; #########################################
 ;; inner-outer-compose
@@ -314,14 +202,14 @@
       (if (typep part 'string)
         (mapcar #'(lambda (x)
                     (if (equal (type-att x) 'string)
-                      (push (list x) att-of-type))) (attributes table)))
+                      (pushend (list x) att-of-type))) (attributes table)))
       (if (typep part 'integer)
         (mapcar #'(lambda (x)
                     (if (and (equal (type-att x) 'integer) function?)
                       (dolist (func list-of-function)
-                        (push (list x func) att-of-type))
-                      (push (list x) att-of-type))) (attributes table)))
-      (pushend att-of-type list-to-merge)))
+                        (pushend (list x func) att-of-type))
+                      (pushend (list x) att-of-type))) (attributes table)))
+      (push att-of-type list-to-merge)))
     (let ((selection (apply #'combinations list-to-merge)))
         (mapcar #'(lambda (x) (if (duplicates? x) (setf selection (remove x selection)))) selection)
         selection)))

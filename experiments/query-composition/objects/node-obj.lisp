@@ -68,8 +68,8 @@
               (setf att (intern (string-upcase (name (first att-n)))))
               (setf att (intern (string-upcase (first att-n)))))))
         (if (equal (length att-n) 2)
-          (setf q (push-end (list (second att-n) att) q))
-          (setf q (push-end att q))))
+          (setf q (pushend (list (second att-n) att) q))
+          (setf q (pushend att q))))
       (setf q (append q (list :from table-name)))
       (make-instance 'node
                      :id (make-id)
