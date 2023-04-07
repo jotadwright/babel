@@ -52,14 +52,14 @@
         (query-string (concatenate 'list select-clause from-clause eq-clause in-clause)))
     query-string))
 
-(defun generate-postmodern-query (query-list)
+(defun execute-postmodern-query (query-list)
   "Generates a query that postmodern library can process."
   (let* ((compiled-query (postmodern:sql-compile query-list))
         (result (postmodern:query compiled-query)))
     (print compiled-query)
     result))
 
-;(generate-postmodern-query (generate-query-list 'actorsfilms :column 'actor :where 'actor :eq "Gerard Depardieu"))
+;(execute-postmodern-query (generate-query-list 'actorsfilms :column 'film :where 'actor :eq "Gerard Depardieu"))
 
 ;(defvar *z* '(:select 'film :from 'actorsfilms :where (:= 'film "Perfect Combination")))
 ;(postmodern:query (postmodern:sql-compile *z*))
