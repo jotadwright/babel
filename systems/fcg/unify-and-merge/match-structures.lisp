@@ -321,8 +321,9 @@
                 ;; we add newly constructed feature to new-unit
                 (let ((new-feature (if (eq (feature-name original-feature) 'form)
                                      (make-feature 'form
-                                                   (sort (recompute-root-sequence-features-based-on-bindings (feature-value original-feature)
-                                                                                                             bindings) #'< :key #'third))
+                                                   (sort (recompute-root-sequence-features-based-on-bindings
+                                                          (feature-value original-feature)
+                                                          bindings) #'< :key #'third))
                                      (make-feature (feature-name original-feature)
                                                    feature-value))))
                   (push new-feature
@@ -358,7 +359,6 @@
 
 ;(calculate-index-list '((0 12) (17 30)))
 
-
 ;; (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30)
 ;; (2 3 4 21 22 23 24 25 26 27 28 29)
 ;;=> (0 2) (4 21) (29 30)
@@ -389,12 +389,22 @@
                    ;; er staan nog dingen in de root maar niet meer in de cxn sequences
                    ((and (null current-interval)
                          cxn-index-position
-                         ;; next cxn index interrupts sequence
                          (= (length cxn-indices) (+ cxn-index-position 1))
+                         ;;and no jump in the root
+                         (nth i root-indices)
+                         (= (abs (- (nth i root-indices)
+                                    (nth (- i 1) root-indices))) 1)
                          )
                     (setf current-interval (list index)))
                    ((and current-interval
                          cxn-index-position)
+                    (setf current-interval (append current-interval (list index)))
+                    (setf intervals (append intervals (list current-interval)))
+                    (setf current-interval nil))
+                   ((and current-interval ;;jump in root indices
+                         (> (length root-indices) i)
+                         (> (abs (- (nth i root-indices)
+                                    (nth (- i 1) root-indices))) 1) )
                     (setf current-interval (append current-interval (list index)))
                     (setf intervals (append intervals (list current-interval)))
                     (setf current-interval nil))
@@ -405,9 +415,8 @@
 
 
                  
-;(calculate-unmatched-intervals '((0 12) (17 25) (29 30)) '((0 30)))
-;(calculate-unmatched-intervals '((2 4) (21 29)) '((0 30)))
-;(calculate-unmatched-intervals '((2 4) (21 29)) '((0 4) (15 25) (28 35)))
+;(calculate-unmatched-intervals '((19 22))  '((0 4) (12 28))) ;; ((0 4) (12 19) (22 28))
+;(calculate-unmatched-intervals '((12 17)) '((12 17) (25 29))) ;; ((25 29))
 
 ;(calculate-unmatched-intervals '((12 17)) '((0 30)))                              ;; ((0 12) (17 30))
 ;(calculate-unmatched-intervals '((0 12) (17 25) (29 30)) '((0 30)))               ;; ((12 17) (25 29))
@@ -430,14 +439,17 @@
 
     ;;non-matched intervals moeten teruggezet worden in de root
     (if non-matched-intervals
-      (loop for (nil string start end) in root-sequence-features ;;(sequence "what is the color of the cube?" 0 30)
+      (loop for (feat-name string start end) in root-sequence-features ;;(sequence "what is the color of the cube?" 12 18)
+            for offset = (abs (- 0 start))
             append (loop for (left right) in non-matched-intervals
-                         unless (< end right)
-                           collect (let* ((offset (abs (- 0 start)))
-                                          (leftmost-index (- left offset))
-                                          (rightmost-index (- right offset))
-                                          (unmatched-substring (subseq string leftmost-index rightmost-index)))
-                                     `(sequence ,unmatched-substring ,left ,right)))))))
+                         
+                         for normalised-left = (- left offset)
+                         for normalised-right = (- right offset)
+                         if (overlapping-lr-pairs-p (list start end) (list left right))
+                         collect (progn
+                                  ; (setf non-matched-intervals (remove interval non-matched-intervals :test #'equalp))
+                                   (let ((unmatched-substring (subseq string normalised-left normalised-right)))
+                                     `(,feat-name ,unmatched-substring ,left ,right))))))))
 
 (defun remove-tag-from-added (tag-variable pattern added bindings &key cxn-inventory)
   ;; should be non-destructive; needed for the cases in which a tag is first merged 
