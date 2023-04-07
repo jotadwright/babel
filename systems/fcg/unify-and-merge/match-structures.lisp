@@ -355,10 +355,6 @@
         append (loop for i from start to end
                       collect i)))
 
-
-
-;(calculate-index-list '((0 12) (17 30)))
-
 ;; (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30)
 ;; (2 3 4 21 22 23 24 25 26 27 28 29)
 ;;=> (0 2) (4 21) (29 30)
@@ -413,17 +409,6 @@
                     (setf intervals (append intervals (list (list (first current-interval) index))))))
              finally (return intervals))))
 
-
-                 
-;(calculate-unmatched-intervals '((19 22))  '((0 4) (12 28))) ;; ((0 4) (12 19) (22 28))
-;(calculate-unmatched-intervals '((12 17)) '((12 17) (25 29))) ;; ((25 29))
-
-;(calculate-unmatched-intervals '((12 17)) '((0 30)))                              ;; ((0 12) (17 30))
-;(calculate-unmatched-intervals '((0 12) (17 25) (29 30)) '((0 30)))               ;; ((12 17) (25 29))
-;(calculate-unmatched-intervals '((0 12) (17 25)) '((0 30)))                         ;; ((12 17) (25 30))
-;(calculate-unmatched-intervals '((0 12) (17 25) (29 30)) '((0 12) (17 30)))   ;; ((25 29))
-;(calculate-unmatched-intervals '((0 12) (17 25) (29 30)) '((0 25) (29 30))) ;; ((12 17))
-;(calculate-unmatched-intervals '((2 12) (17 25) (29 30)) '((0 25) (29 30))) ;; ((0 2) (12 17))
 
 (defun recompute-root-sequence-features-based-on-bindings (root-sequence-features bindings)
   "Makes new set of sequence predicates based on the indices that are present in the bindings."
