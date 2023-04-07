@@ -55,8 +55,8 @@
   (:table-name river))
 
 ;(defclass country-river ()
-;  ((countryid :col-type integer :col-reference ((country id)) :initarg :country-id :accessor country-id)
-;   (riverid :col-type integer :col-reference ((river id)) :initarg :river-id :accessor river-id))
+;  ((countryid :col-type integer :primary-key t :col-reference ((country id)) :initarg :country-id :accessor country-id)
+;   (riverid :col-type integer :primary-key t :col-reference ((river id)) :initarg :river-id :accessor river-id))
 ;  (:documentation "Dao class for a splitting table record between River table and Country table from database")
 ;  (:metaclass dao-class)
 ;  (:table-name country_river))

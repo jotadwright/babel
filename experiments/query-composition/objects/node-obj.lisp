@@ -48,27 +48,29 @@
       :documentation "Query generated"))
   (:documentation "Object representing a node of the tree. This object is represented by a set of attributes that allows it to obtain and store all the information necessary for its SQL query."))
 
-;;OK
-;;changer pour l'ajout des fonctions
-;change bye using name attribute
+;; #########################################
+;; init-node
+;; --------------------------------------------------------------------
+
 (defun init-node (node attributes table &key join)
   "function that create a node with the SELECT .. FROM .. clause and return the newly created node with its associated parent."
     (let* ((q '(:select))
-            (table-name (intern (string-upcase (name table)))))
+            (table-name (intern (string-upcase (name table))))
+            (att nil))
       (dolist (att-n attributes)
-          (if join
-            (progn
-              (let ((att (intern (string-upcase (concatenate 'string (symbol-name table-name) "." (name (first att-n)))))))
-                (if (equal (length att-n) 2)
-                  (setf q (push-end (list (second att-n) att) q))
-                  (setf q (push-end att q)))))
-            (progn
-              (let ((att (intern (string-upcase (name (first att-n))))))
-                (if (equal (length att-n) 2)
-                  (setf q (push-end (list (second att-n) att) q))
-                  (setf q (push-end att q)))))))
-      (setf q (push-end :from q))
-      (setf q (push-end table-name q))
+        (if join
+          (progn
+            (if (typep (first att-n) 'attribute)
+              (setf att (intern (string-upcase (concatenate 'string (symbol-name table-name) "." (name (first att-n))))))
+              (setf att (intern (string-upcase (concatenate 'string (symbol-name table-name) "." (first att-n)))))))
+          (progn
+            (if (typep (first att-n) 'attribute)
+              (setf att (intern (string-upcase (name (first att-n)))))
+              (setf att (intern (string-upcase (first att-n)))))))
+        (if (equal (length att-n) 2)
+          (setf q (pushend (list (second att-n) att) q))
+          (setf q (pushend att q))))
+      (setf q (append q (list :from table-name)))
       (make-instance 'node
                      :id (make-id)
                      :parent node
@@ -79,8 +81,10 @@
                      :tble table
                      :ref-tbles (list table))))
 
-;;OK
-;;REFACT
+;; #########################################
+;; join-node
+;; --------------------------------------------------------------------
+
 (defun join-node (node ref-info table-obj &key foreign-ref)
   "function that create a node with the ... INNER JOIN || OUTER JOIN ... ON ... =  ... clause and return the newly created node."
   (let* ((join :inner-join))
@@ -96,7 +100,10 @@
                  :q (append (q node) join-query)
                  :selection (append (q node) join-query)))))
 
-;;OK
+;; #########################################
+;; where-node
+;; --------------------------------------------------------------------
+
 (defun where-node (node ref-table attribute operator value)
   "function that creates a node with the WHERE clause and returns the newly created node with its associated parent."
   (let* ((val-att (change-type value))
@@ -115,7 +122,10 @@
                                :selection (selection node)
                                :conditions condition)))
 
-;OK
+;; #########################################
+;; condition-node
+;; --------------------------------------------------------------------
+
 (defmethod condition-node ((composer query-composer) parent ref-table attribute operator value condition-operator)
   (let ((val (change-type value))
          (condition nil))
@@ -133,11 +143,4 @@
                    :tble (tble parent)
                    :selection (selection parent)
                    :conditions condition)))
-
-(defmethod node-test ((composer query-composer) q)
-    (mapcar #'(lambda (x)
-                (if (equal q (q x))
-                  (return-from node-test t)))
-              (queue composer)))
-
               
