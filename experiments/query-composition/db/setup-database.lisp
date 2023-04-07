@@ -78,7 +78,6 @@
     (query (:insert-rows-into 'river :columns 'flow 'size 'name
             :values data))))
 
-;;DEBUG NOT WORK
 (defun country-river-data ()
   (let ((data '())
         (id-countries (flatten (query "SELECT id FROM country ORDER BY id ASC")))
@@ -92,11 +91,10 @@
     (delete-duplicates data)
     ;;Drop and create table
     (execute "DROP TABLE IF EXISTS country_river")
-    (execute (dao-table-definition 'country-river))
+    (execute "CREATE TABLE country_river (countryid INT NOT NULL, riverid INT NOT NULL, PRIMARY KEY (countryid, riverid), CONSTRAINT country_country_river_FK FOREIGN KEY (countryid) REFERENCES country (id), CONSTRAINT country_river_river_FK FOREIGN KEY (riverid) REFERENCES river (id))")
     ;;insert data into Database
     (query (:insert-rows-into 'country-river :columns 'riverid 'countryid
             :values data))))
-        
 
 (defun setup-database (&key dbname username password hostname)
   (connect-toplevel dbname username password hostname)
@@ -105,6 +103,7 @@
   (city-data)
   (road-data)
   (river-data)
+  (country-river-data)
   (disconnect-toplevel))
 
 
