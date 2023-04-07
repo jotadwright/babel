@@ -340,6 +340,82 @@
 	     new-root
 	     unit))))
 
+(defun coinciding-lr-pairs-p (lr-pair-1 lr-pair-2)
+  (and (= (first lr-pair-1) (first lr-pair-2))
+       (= (second lr-pair-1) (second lr-pair-2))))
+
+(defun disjunct-lr-pairs-p (lr-pair-1 lr-pair-2)
+  (or (>= (first lr-pair-1) (second lr-pair-2))
+      (>= (first lr-pair-2) (second lr-pair-1))))
+
+
+(defun calculate-index-list (list-of-intervals)
+  (loop for (start end) in list-of-intervals
+        append (loop for i from start to end
+                      collect i)))
+
+
+
+;(calculate-index-list '((0 12) (17 30)))
+
+
+;; (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30)
+;; (2 3 4 21 22 23 24 25 26 27 28 29)
+;;=> (0 2) (4 21) (29 30)
+
+(defun calculate-unmatched-intervals (matched-intervals root-intervals)
+  ""
+  (let* ((root-indices (calculate-index-list (sort root-intervals #'< :key #'first)))
+         (cxn-indices (calculate-index-list (sort matched-intervals #'< :key #'first))))
+
+    (loop with intervals = nil
+          with current-interval = nil
+          for index in root-indices
+          for i from 1
+          for cxn-index-position = (when (find index cxn-indices)
+                                     (position (find index cxn-indices) cxn-indices))
+          do (cond ((and (null current-interval)
+                         (null cxn-index-position))
+                    (setf current-interval (list index)))
+                   ((and (null current-interval)
+                         cxn-index-position
+                         ;; next cxn index interrupts sequence
+                         (> (length cxn-indices) (+ cxn-index-position 1))
+                         (> (abs (- (nth (+ cxn-index-position 1) cxn-indices)
+                                    (nth cxn-index-position cxn-indices))) 1)
+                         (= (abs (- (nth i root-indices)
+                                    (nth (- i 1) root-indices))) 1))
+                    (setf current-interval (list index)))
+                   ;; er staan nog dingen in de root maar niet meer in de cxn sequences
+                   ((and (null current-interval)
+                         cxn-index-position
+                         ;; next cxn index interrupts sequence
+                         (= (length cxn-indices) (+ cxn-index-position 1))
+                         )
+                    (setf current-interval (list index)))
+                   ((and current-interval
+                         cxn-index-position)
+                    (setf current-interval (append current-interval (list index)))
+                    (setf intervals (append intervals (list current-interval)))
+                    (setf current-interval nil))
+                   ((and (= (length current-interval) 1)
+                         (= (length root-indices) i)) ;; we are at the end of the root index list
+                    (setf intervals (append intervals (list (list (first current-interval) index))))))
+             finally (return intervals))))
+
+
+                 
+;(calculate-unmatched-intervals '((0 12) (17 25) (29 30)) '((0 30)))
+;(calculate-unmatched-intervals '((2 4) (21 29)) '((0 30)))
+;(calculate-unmatched-intervals '((2 4) (21 29)) '((0 4) (15 25) (28 35)))
+
+;(calculate-unmatched-intervals '((12 17)) '((0 30)))                              ;; ((0 12) (17 30))
+;(calculate-unmatched-intervals '((0 12) (17 25) (29 30)) '((0 30)))               ;; ((12 17) (25 29))
+;(calculate-unmatched-intervals '((0 12) (17 25)) '((0 30)))                         ;; ((12 17) (25 30))
+;(calculate-unmatched-intervals '((0 12) (17 25) (29 30)) '((0 12) (17 30)))   ;; ((25 29))
+;(calculate-unmatched-intervals '((0 12) (17 25) (29 30)) '((0 25) (29 30))) ;; ((12 17))
+;(calculate-unmatched-intervals '((2 12) (17 25) (29 30)) '((0 25) (29 30))) ;; ((0 2) (12 17))
+
 (defun recompute-root-sequence-features-based-on-bindings (root-sequence-features bindings)
   "Makes new set of sequence predicates based on the indices that are present in the bindings."
   (let* ((matched-positions (sort (loop for (var . value) in bindings
@@ -347,17 +423,17 @@
                                           collect value) #'<))
          (matched-intervals (loop for (start end) on matched-positions by #'cddr
                                   collect (list start end)))
-         (non-matched-intervals (loop for (span-1 span-2) on matched-intervals by #'cdr
-                                      when span-2
-                                        collect (list (second span-1) (first span-2)))))
+         (non-matched-intervals (calculate-unmatched-intervals matched-intervals root-sequence-features)))
+
+
 
     ;;non-matched intervals moeten teruggezet worden in de root
-    #|(if non-matched-intervals
+    (if non-matched-intervals
       (loop for (feature-name string start end) in root-sequence-features ;;(sequence "what is the color of the cube?" 0 30)
             append (loop for (left right) in non-matched-intervals
                          unless (< end right)
-                         collect (let ((unmatched-substring (subseq string left right)))
-                                   `(sequence ,unmatched-substring ,left ,right))))|#
+                           collect (let ((unmatched-substring (subseq string left right)))
+                                     `(sequence ,unmatched-substring ,left ,right))))
       (loop for (feature-name string start end) in root-sequence-features
             for offset = (abs (- 0 start))
             for left-source =  (- start offset)
@@ -381,7 +457,7 @@
             if new-sequence-features
               append new-sequence-features into recomputed-sequence-features
             else collect `(sequence ,string ,start ,end) into recomputed-sequence-features
-            finally (return (remove nil recomputed-sequence-features)))))
+            finally (return (remove nil recomputed-sequence-features))))))
 
 (defun remove-tag-from-added (tag-variable pattern added bindings &key cxn-inventory)
   ;; should be non-destructive; needed for the cases in which a tag is first merged 
