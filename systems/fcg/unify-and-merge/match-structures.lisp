@@ -423,41 +423,21 @@
                                           collect value) #'<))
          (matched-intervals (loop for (start end) on matched-positions by #'cddr
                                   collect (list start end)))
-         (non-matched-intervals (calculate-unmatched-intervals matched-intervals root-sequence-features)))
-
-
+         (non-matched-intervals (calculate-unmatched-intervals matched-intervals
+                                                               (mapcar #'(lambda (feat)
+                                                                           (list (third feat) (fourth feat)))
+                                                                       root-sequence-features))))
 
     ;;non-matched intervals moeten teruggezet worden in de root
     (if non-matched-intervals
-      (loop for (feature-name string start end) in root-sequence-features ;;(sequence "what is the color of the cube?" 0 30)
+      (loop for (nil string start end) in root-sequence-features ;;(sequence "what is the color of the cube?" 0 30)
             append (loop for (left right) in non-matched-intervals
                          unless (< end right)
-                           collect (let ((unmatched-substring (subseq string left right)))
-                                     `(sequence ,unmatched-substring ,left ,right))))
-      (loop for (feature-name string start end) in root-sequence-features
-            for offset = (abs (- 0 start))
-            for left-source =  (- start offset)
-            for right-source = (- end offset)
-            for new-sequence-features = (loop for (left-pattern right-pattern) in matched-intervals
-                                              append (cond (;; pattern sequence covers source sequence entirely
-                                                            (and (= start left-pattern)
-                                                                 (= end right-pattern))
-                                                            nil)
-                                                           (;;left boundaries coincide
-                                                            (= start left-pattern)
-                                                            (list (list feature-name (subseq string (- right-pattern offset) right-source) right-pattern end)))
-                                                           (;;right boundaries coincide
-                                                            (= end right-pattern)
-                                                            (list (list feature-name (subseq string left-source (- left-pattern offset)) start left-pattern)))
-                                                           (;;pattern subsumed by source => split
-                                                            (and (< start left-pattern)
-                                                                 (> end right-pattern)) 
-                                                            (list (list feature-name (subseq string left-source (- left-pattern offset)) start left-pattern)
-                                                                  (list feature-name (subseq string (- right-pattern offset) right-source) right-pattern end)))))
-            if new-sequence-features
-              append new-sequence-features into recomputed-sequence-features
-            else collect `(sequence ,string ,start ,end) into recomputed-sequence-features
-            finally (return (remove nil recomputed-sequence-features))))))
+                           collect (let* ((offset (abs (- 0 start)))
+                                          (leftmost-index (- left offset))
+                                          (rightmost-index (- right offset))
+                                          (unmatched-substring (subseq string leftmost-index rightmost-index)))
+                                     `(sequence ,unmatched-substring ,left ,right)))))))
 
 (defun remove-tag-from-added (tag-variable pattern added bindings &key cxn-inventory)
   ;; should be non-destructive; needed for the cases in which a tag is first merged 
