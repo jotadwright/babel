@@ -9,7 +9,7 @@
   (monitors::activate-monitor pf::print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
   (activate-monitor show-type-hierarchy-after-n-interactions)
-  (activate-monitor trace-interactions-in-wi)
+  (monitors::activate-monitor trace-interactions-in-wi)
   )
 
 
@@ -35,12 +35,12 @@
                               (:number-of-samples . nil)
                               (:shuffle-data-p . t)
                               (:sort-data-p . nil)
-                              (:remove-duplicate-data-p . t)))))
+                              (:remove-duplicate-data-p . nil)))))
 
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 21)
+(run-series *experiment* 100)
 
 ;;;; Showing the cxn inventory and categorial network
 
