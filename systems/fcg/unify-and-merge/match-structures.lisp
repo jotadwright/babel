@@ -374,35 +374,40 @@
           with current-interval = nil
           for root-sequence-index in root-sequence-indices
           for i from 0
-          for root-sequence-index-matched-by-cxn = (find root-sequence-index cxn-sequence-indices)
-          for j = (position root-sequence-index-matched-by-cxn cxn-sequence-indices)
-          do (if root-sequence-index-matched-by-cxn
-
+          for cxn-sequence-index = (find root-sequence-index cxn-sequence-indices)
+          for j = (position cxn-sequence-index cxn-sequence-indices)
+          do ;; IF the applied cxn matched on the root's form feature
+            (if cxn-sequence-index
+               ;;  AND we are constructing an interval,
                (if current-interval
-                 (progn
-                   (setf current-interval (append current-interval (list root-sequence-index)))
-                   (setf intervals (append intervals (list current-interval)))
-                   (setf current-interval nil))
+                 ;; THEN close the current interval:
+                 (setf current-interval (append current-interval (list root-sequence-index))
+                       intervals (append intervals (list current-interval))
+                       current-interval nil)
+                 ;; IF we are not yet constructing an interval and there is no jump in indices 
+                 (when (and (null (index-jump-p root-sequence-index (nth (+ i 1) root-sequence-indices)))
+                            ;; AND there is either a jump in the cxn sequence indices OR we have exhausted the cxn sequence,
+                            (or (index-jump-p cxn-sequence-index (nth (+ j 1) cxn-sequence-indices))
+                                (= (length cxn-sequence-indices) (+ j 1))))
+                   ;; THEN start a new interval:
+                   (setf current-interval (list root-sequence-index))))
 
-                 (cond ((and (index-jump-p root-sequence-index-matched-by-cxn (nth (+ j 1) cxn-sequence-indices))
-                             (null (index-jump-p root-sequence-index (nth (+ i 1) root-sequence-indices))))
-                        (setf current-interval (list root-sequence-index)))
-                       
-                       ((and (= (length cxn-sequence-indices) (+ j 1))
-                             (null (index-jump-p root-sequence-index (nth (+ i 1) root-sequence-indices))))
-                        (setf current-interval (list root-sequence-index)))))
-
+               ;; IF the applied cxn did NOT match on the root's form feature
                (if current-interval
+                 ;;  AND we are constructing an interval,
                  (cond
+                  ;; IF there is an index jump in the root's sequence indices,
                   ((index-jump-p (nth i root-sequence-indices) (nth (+ i 1) root-sequence-indices))
-                        (setf current-interval (append current-interval (list root-sequence-index)))
-                        (setf intervals (append intervals (list current-interval)))
-                        (setf current-interval nil))
-                       ((and (= (length current-interval) 1)
-                             (= (length root-sequence-indices) (+ i 1)))
-                       (setf intervals (append intervals (list (list (first current-interval) root-sequence-index))))))
+                   ;; THEN close the current interval:
+                   (setf current-interval (append current-interval (list root-sequence-index))
+                         intervals (append intervals (list current-interval))
+                         current-interval nil))
+                  ;; IF we have exhausted the root sequence indices
+                  ((= (length root-sequence-indices) (+ i 1))
+                   ;; THEN close the current interval using the final root sequence index:
+                   (setf intervals (append intervals (list (list (first current-interval) root-sequence-index))))))
 
-                 ;; No current interval yet and root sequence index not handled by cxn sequences => start new untreated interval
+                 ;; IF we are not yet constructing an interval, THEN start a new interval
                  (setf current-interval (list root-sequence-index))))
             
              finally (return intervals))))
@@ -432,6 +437,7 @@
                          if (overlapping-lr-pairs-p (list start end) (list left right))
                            collect (let ((unmatched-substring (subseq string normalised-left normalised-right)))
                                      `(,feat-name ,unmatched-substring ,left ,right)))))))
+
 
 (defun remove-tag-from-added (tag-variable pattern added bindings &key cxn-inventory)
   ;; should be non-destructive; needed for the cases in which a tag is first merged 
