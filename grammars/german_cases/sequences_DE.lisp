@@ -143,7 +143,6 @@
                (HASH form ((sequence "Doktor" ?left ?right))))))
 
 
-
 (def-fcg-cxn Hund-cxn
              ((?dog-word
                (referent ?d)
@@ -178,7 +177,6 @@
                (HASH meaning ((cinema ?c)))                     
                --
                (HASH form ((sequence "Kino" ?left ?right))))))
-
 
 
 (def-fcg-cxn Frau-cxn
@@ -236,13 +234,45 @@
                (HASH form ((sequence "Mann" ?left ?right))))))
 
 
+(def-fcg-cxn Blumen-cxn
+             ((?flowers-word
+               (referent ?x)
+               (sequences ((sequence "Blumen" ?left ?right)));set of values
+               (syn-cat (lex-class noun)                   ;sure nominative and masculine
+                        (case ((?np - - - ?np)     
+                               (?ap - - - ?ap)      
+                               (?gp - - - ?gp)       
+                               (?dp - - - ?dp)
+                               (- - - - +))))
+              (sem-cat (animacy inanimate)))
+              <-
+              (?flowers-word
+               (HASH meaning ((flowers ?x)))                     
+               --
+               (HASH form ((sequence "Blumen" ?left ?right))))))
+
+
+(def-fcg-cxn schenkt-cxn
+             ((?gift-word                         
+               (syn-cat (lex-class verb)
+                        (aspect non-perfect)
+                        (type ditransitive))
+               (boundaries (?verb-left ?verb-right))
+               (referent ?g))  
+                        
+              <-
+              (?gift-word                           
+               (HASH meaning ((schenken-01 ?g)))                   
+               --
+               (HASH form ((sequence "schenkt" ?verb-left ?verb-right))))))
+
+
 (def-fcg-cxn sucht-cxn
              ((?search-word                         
                (syn-cat (lex-class verb)
                         (aspect non-perfect)
                         (type transitive))
                (boundaries (?verb-left ?verb-right))
-               ;(sequences ((sequence "sucht" ?left ?right)))
                (referent ?s))  
                         
               <-
@@ -404,9 +434,6 @@
                               (:arg1 ?v ?arg1)))                  
                --)))
 
-
-
-
 (def-fcg-cxn topic-arg0-arg1-information-structure-cxn
              (
               <-
@@ -450,6 +477,50 @@
               (syn-cat (syn-role direct-object))
               (boundaries (?leftmost-patient-unit ?rightmost-patient-unit)))))
 
+(def-fcg-cxn topic-arg1-arg0-information-structure-cxn
+             (
+              <-
+              (?argument-structure-unit
+               (subunits (?verb-unit ?agent-unit ?patient-unit))
+               (HASH meaning ((topicalized ?arg1 +)))  
+                          
+               --
+               (HASH form ((sequence " " ?rightmost-patient-unit ?verb-left)
+                             (sequence " " ?verb-right ?leftmost-agent-unit)))
+               
+               (subunits (?verb-unit ?agent-unit ?patient-unit)))
+              
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type transitive)
+                       (aspect ?aspect))
+              (boundaries (?verb-left ?verb-right))
+              (referent ?v)
+                --
+              (syn-cat (lex-class verb)
+                       (type transitive)
+                       (aspect ?aspect))
+              (boundaries (?verb-left ?verb-right))
+              (referent ?v))
+              
+              (?agent-unit
+               (referent ?arg0)
+               (syn-cat (syn-role subject))
+               (boundaries  (?leftmost-agent-unit ?rightmost-agent-unit))   ;from 
+                --
+              (referent ?arg0)
+              (syn-cat (syn-role subject))
+              (boundaries (?leftmost-agent-unit ?rightmost-agent-unit)))
+              
+              (?patient-unit
+               (referent ?arg1)
+               (syn-cat (syn-role direct-object))
+               (boundaries (?leftmost-patient-unit ?rightmost-patient-unit))
+                --
+              
+              (syn-cat (syn-role direct-object))
+              (boundaries (?leftmost-patient-unit ?rightmost-patient-unit)))))
+
 
 
 (def-fcg-cxn intransitive-argument-structure-cxn
@@ -486,7 +557,6 @@
                                (?as ?nm ?nf ?nn ?np))))
               (referent ?arg0))
               
-         
               (?location-unit
                (syn-cat (lex-class prep-phrase)
                    (case ((- - - - -) 
@@ -540,7 +610,7 @@
               (?agent-unit
                (referent ?arg0)
                (syn-cat (syn-role subject))
-               (boundaries  (?leftmost-agent-unit ?rightmost-agent-unit))   ;from 
+               (boundaries  (?leftmost-agent-unit ?rightmost-agent-unit))    
                 --
               (referent ?arg0)
               (syn-cat (syn-role subject))
@@ -555,11 +625,204 @@
               (boundaries (?leftmost-loc-unit ?rightmost-loc-unit)))))
 
 
+(def-fcg-cxn topic-arg4-arg0-information-structure-cxn
+             (
+              <-
+              (?argument-structure-unit
+               (subunits (?verb-unit ?agent-unit ?location-unit))
+               (HASH meaning ((topicalized ?arg4 +)))  
+                          
+               --
+               (HASH form ((sequence " " ?rightmost-loc-unit ?verb-left)
+                             (sequence " " ?verb-right ?leftmost-agent-unit)))
+               
+               (subunits (?verb-unit ?agent-unit ?location-unit)))
+              
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type intransitive)
+                       (aspect ?aspect))
+              (boundaries (?verb-left ?verb-right))
+              (referent ?v)
+                --
+              (syn-cat (lex-class verb)
+                       (type intransitive)
+                       (aspect ?aspect))
+              (boundaries (?verb-left ?verb-right))
+              (referent ?v))
+              
+              (?agent-unit
+               (referent ?arg0)
+               (syn-cat (syn-role subject))
+               (boundaries  (?leftmost-agent-unit ?rightmost-agent-unit))    
+                --
+              (referent ?arg0)
+              (syn-cat (syn-role subject))
+              (boundaries (?leftmost-agent-unit ?rightmost-agent-unit)))
+              
+              (?location-unit
+               (referent ?arg4)
+               (syn-cat (syn-role locative-complement))
+               (boundaries (?leftmost-loc-unit ?rightmost-loc-unit))
+                --
+              
+              (syn-cat (syn-role locative-complement))
+              (boundaries (?leftmost-loc-unit ?rightmost-loc-unit)))))
+
+
+(def-fcg-cxn ditransitive-argument-structure-cxn
+             ((?ditransitive-argument-structure-unit
+              (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
+              (?agent-unit
+               (syn-cat (syn-role subject)))
+              (?patient-unit
+               (syn-cat (syn-role direct-object)))
+              (?receiver-unit
+               (syn-cat (syn-role indirect-object)))
+              <-
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type ditransitive)
+                       (aspect non-perfect))
+               (referent ?v)
+                --
+              (syn-cat (lex-class verb)
+                       (type ditransitive))     
+              (referent ?v))
+              
+              (?agent-unit
+               (syn-cat 
+                (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))))
+               (sem-cat (animacy animate))
+               (referent ?arg0)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((+ ?nm ?nf ?nn ?np) 
+                               (- - - - -)         
+                               (- - - - -)        
+                               (- - - - -)
+                               (?as ?nm ?nf ?nn ?np))))
+                        (sem-cat (animacy animate))   
+              (referent ?arg0))
+              
+              (?patient-unit
+               (syn-cat 
+                        (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (- - - - -)         
+                               (- - - - -)
+                               (?ps ?am ?af ?an ?ap))))
+               (sem-cat (animacy inanimate))
+               (referent ?arg1)
+                --
+              (syn-cat (lex-class noun-phrase)
+                        (case ((- - - - -) 
+                               (+ ?am ?af ?an ?ap)         
+                               (- - - - -)         
+                               (- - - - -)
+                               (?ps ?am ?af ?an ?ap))))
+              (sem-cat (animacy inanimate))
+              (referent ?arg1))
+              
+              (?receiver-unit
+               (syn-cat 
+                (lex-class noun-phrase)
+                (case ((- - - - -) 
+                      (- - - - -)         
+                      (- - - - -)         
+                      (+ ?dm ?df ?dn ?dp)
+                      (?rs ?dm ?df ?dn ?dp))))
+               (sem-cat (animacy animate))
+               (referent ?arg2)
+                --
+              (syn-cat (lex-class noun-phrase)
+               (case ((- - - - -) 
+                      (- - - - -)         
+                      (- - - - -)         
+                      (+ ?dm ?df ?dn ?dp)
+                      (?rs ?dm ?df ?dn ?dp))))
+              (sem-cat (animacy animate))
+              (referent ?arg2))
+              
+              (?ditransitive-argument-structure-unit
+               (HASH meaning ((:arg0 ?v ?arg0)
+                              (:arg1 ?v ?arg1)
+                              (:arg2 ?v ?arg2)))                  
+               --)))
+
+
+(def-fcg-cxn topic-arg0-arg1-arg2-information-structure-cxn
+             (
+              <-
+              (?argument-structure-unit
+               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit))
+               (HASH meaning ((topicalized ?arg0 +)))  
+                          
+               --
+               (HASH form ((sequence " " ?rightmost-agent-unit ?verb-left)
+                             (sequence " " ?verb-right ?leftmost-receiver-unit)
+                             (sequence " " ?rightmost-receiver-unit ?leftmost-patient-unit)))
+               
+               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
+              
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type ditransitive)
+                       (aspect ?aspect))
+              (boundaries (?verb-left ?verb-right))
+              (referent ?v)
+                --
+              (syn-cat (lex-class verb)
+                       (type ditransitive)
+                       (aspect ?aspect))
+              (boundaries (?verb-left ?verb-right))
+              (referent ?v))
+              
+              (?agent-unit
+               (referent ?arg0)
+               (syn-cat (syn-role subject))
+               (boundaries  (?leftmost-agent-unit ?rightmost-agent-unit))
+                --
+              (referent ?arg0)
+              (syn-cat (syn-role subject))
+              (boundaries  (?leftmost-agent-unit ?rightmost-agent-unit)))
+              
+              (?patient-unit
+               (syn-cat (syn-role direct-object))
+               (boundaries  (?leftmost-patient-unit ?rightmost-patient-unit))
+                --
+              
+              (syn-cat (syn-role direct-object))
+              (boundaries  (?leftmost-patient-unit ?rightmost-patient-unit)))
+
+              (?receiver-unit
+               (syn-cat (syn-role indirect-object))
+               (boundaries  (?leftmost-receiver-unit ?rightmost-receiver-unit))
+                --
+              
+              (syn-cat (syn-role indirect-object))
+              (boundaries  (?leftmost-receiver-unit ?rightmost-receiver-unit)))))
+
+
+
+
+
 
 (comprehend "die Frau sucht den Hund")
 (comprehend "der Mann sucht den Hund")
-(comprehend "der Mann sucht die Frau")
+(comprehend "den Mann sucht der Hund")
 
 
 (comprehend "der Mann geht zum Doktor")
+(comprehend "zum Kino geht die Frau")
 (comprehend "die Frau geht zum Kino")
+
+(comprehend "die Frau schenkt dem Mann die Blumen")
+
+
