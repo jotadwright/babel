@@ -104,13 +104,16 @@
 (defun inn-answer-question-by-adding-edge-and-nodes (from-node-label nodes-labels-list source-type)
   "add an edge between the labels of the node and the list of nodes and mark the narrative quesiton as answered"
     (let* ((network (get-current-inn))
+           (from-id-detail (inn-find-node-by-label network from-node-label))
            (from-id (inn-node-id(inn-find-node-by-label network from-node-label)))
-            (target-ids (loop for detail in nodes-labels-list
+           (target-ids (loop for detail in nodes-labels-list
                           collect (inn-add-node network (make-inn-node :label detail :type source-type)))))
       (loop for target-id in target-ids
-            do (inn-add-edge network from-id target-id))
-       (loop for target-id in target-ids
-             do (inn-answer-question from-id :answer target-id))))
+            do (inn-add-edge network from-id target-id)
+               (inn-answer-question from-id-detail :answer target-id))))
+
+
+;(inn-answer-question-by-adding-edge-and-nodes "Where?" '("Venezia") :kb-wikidata)
 
 
 (defun inn-add-label-edge-from-nodes-label (from-node-label to-node-label edge-label)
