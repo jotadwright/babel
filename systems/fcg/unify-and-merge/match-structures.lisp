@@ -281,6 +281,164 @@
 	     new-unit
 	     unit))))
 
+(defun recompute-sequence-in-source (tag-variable pattern-unit source-unit source bindings &key cxn-inventory)
+  (let ((new-root nil)
+        (processed-feature-names nil))    
+    ;; we construct a new-unit which will later be added to the resulting structure
+    (setq new-root (make-unit :name (unit-name pattern-unit)))
+
+    ;; for each feature in the pattern unit containing the tag
+    (dolist (feature (unit-features pattern-unit))
+      ;; if the feature happens to be a tag and contains the variable we want to remove
+      (when (and (tag-p feature)
+                 (find tag-variable (rest feature)))
+        ;; we add the feature name to the list of processed-feature-names
+        ;; (?unit (TAG ?tag (feature-name ...)))
+        (push (feature-name (third feature)) processed-feature-names)
+        (let ((original-feature (unit-feature source-unit 
+                                              (feature-name (third feature)))))
+	
+          (unless (atom (feature-value original-feature))
+            ;; we only keep feature-values that are not part of the binding for
+            ;; the tag-variable
+            (let ((feature-value nil))
+              (dolist (value-element
+			(remove-special-operators (feature-value original-feature) bindings))
+                (if (and (consp (feature-value (lookup tag-variable bindings)))
+			 (find value-element
+			       (feature-value (lookup tag-variable bindings))
+			       :test #'(lambda (x y)
+					 (or (equal x y)
+					     (unify x y (list bindings) :cxn-inventory cxn-inventory)))))
+		    (setf (feature-value (lookup tag-variable bindings))
+			  (remove value-element (feature-value (lookup tag-variable bindings))
+				  :test #'(lambda (x y)
+					    (or (equal x y)
+						(unify x y (list bindings) :cxn-inventory cxn-inventory)))
+				  :count 1))
+		    (push value-element feature-value)))
+              (when feature-value
+                ;; we add newly constructed feature to new-unit
+                (let ((new-feature (if (eq (feature-name original-feature) 'form)
+                                     (make-feature 'form
+                                                   (sort (recompute-root-sequence-features-based-on-bindings
+                                                          (feature-value original-feature)
+                                                          bindings) #'< :key #'third))
+                                     (make-feature (feature-name original-feature)
+                                                   feature-value))))
+                  (push new-feature
+                        (unit-features new-root)))))))))
+
+    
+    ;; we loop over all features in source-unit and 'copy' all features
+    ;; that are not processed
+    (dolist (feature (unit-features source-unit))
+      (unless (find (feature-name feature) processed-feature-names)
+	(push feature (unit-features new-root))))
+    ;; the new source is reconstructed by incorporating the new unit
+    (loop for unit in source collect
+            (if (equal (unit-name unit) (unit-name new-root))
+	     new-root
+	     unit))))
+
+(defun coinciding-lr-pairs-p (lr-pair-1 lr-pair-2)
+  (and (= (first lr-pair-1) (first lr-pair-2))
+       (= (second lr-pair-1) (second lr-pair-2))))
+
+(defun disjunct-lr-pairs-p (lr-pair-1 lr-pair-2)
+  (or (>= (first lr-pair-1) (second lr-pair-2))
+      (>= (first lr-pair-2) (second lr-pair-1))))
+
+
+(defun calculate-index-list (list-of-intervals)
+  (loop for (start end) in list-of-intervals
+        append (loop for i from start to end
+                      collect i)))
+
+;; (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30)
+;; (2 3 4 21 22 23 24 25 26 27 28 29)
+;;=> (0 2) (4 21) (29 30)
+
+(defun index-jump-p (pos-1 pos-2)
+  (and pos-1
+       pos-2
+       (> (abs (- pos-1 pos-2))
+          1)))
+
+(defun calculate-unmatched-intervals (matched-intervals root-intervals)
+  "Calculates which spans in the root's form feature have not been matched by the current cxn application."
+  (let* ((root-sequence-indices (calculate-index-list (sort root-intervals #'< :key #'first)))
+         (cxn-sequence-indices (calculate-index-list (sort matched-intervals #'< :key #'first))))
+
+    (loop with intervals = nil
+          with current-interval = nil
+          for root-sequence-index in root-sequence-indices
+          for i from 0
+          for cxn-sequence-index = (find root-sequence-index cxn-sequence-indices)
+          for j = (position cxn-sequence-index cxn-sequence-indices)
+          do ;; IF the applied cxn matched on the root's form feature
+            (if cxn-sequence-index
+               ;;  AND we are constructing an interval,
+               (if current-interval
+                 ;; THEN close the current interval:
+                 (setf current-interval (append current-interval (list root-sequence-index))
+                       intervals (append intervals (list current-interval))
+                       current-interval nil)
+                 ;; IF we are not yet constructing an interval and there is no jump in indices 
+                 (when (and (null (index-jump-p root-sequence-index (nth (+ i 1) root-sequence-indices)))
+                            ;; AND there is either a jump in the cxn sequence indices OR we have exhausted the cxn sequence,
+                            (or (index-jump-p cxn-sequence-index (nth (+ j 1) cxn-sequence-indices))
+                                (= (length cxn-sequence-indices) (+ j 1))))
+                   ;; THEN start a new interval:
+                   (setf current-interval (list root-sequence-index))))
+
+               ;; IF the applied cxn did NOT match on the root's form feature
+               (if current-interval
+                 ;;  AND we are constructing an interval,
+                 (cond
+                  ;; IF there is an index jump in the root's sequence indices,
+                  ((index-jump-p (nth i root-sequence-indices) (nth (+ i 1) root-sequence-indices))
+                   ;; THEN close the current interval:
+                   (setf current-interval (append current-interval (list root-sequence-index))
+                         intervals (append intervals (list current-interval))
+                         current-interval nil))
+                  ;; IF we have exhausted the root sequence indices
+                  ((= (length root-sequence-indices) (+ i 1))
+                   ;; THEN close the current interval using the final root sequence index:
+                   (setf intervals (append intervals (list (list (first current-interval) root-sequence-index))))))
+
+                 ;; IF we are not yet constructing an interval, THEN start a new interval
+                 (setf current-interval (list root-sequence-index))))
+            
+             finally (return intervals))))
+
+;(test-calculate-unmatched-root-intervals)
+;;(calculate-unmatched-intervals '((19 22)) '((0 4) (12 28)))
+
+(defun recompute-root-sequence-features-based-on-bindings (root-sequence-features bindings)
+  "Makes new set of sequence predicates based on the indices that are present in the bindings."
+  (let* ((matched-positions (sort (loop for (nil . value) in bindings
+                                        when (numberp value)
+                                          collect value) #'<))
+         (matched-intervals (loop for interval on matched-positions by #'cddr
+                                  collect interval))
+         (non-matched-intervals
+          (calculate-unmatched-intervals matched-intervals (mapcar #'(lambda (feat)
+                                                                       (list (third feat) (fourth feat)))
+                                                                   root-sequence-features))))
+
+    ;; Based on the non-matched intervals (e.g. '((0 4) (12 28))), create sequence new features to add to the root
+    (when non-matched-intervals
+      (loop for (feat-name string start end) in root-sequence-features ;;(sequence "what is the color of the cube?" 12 18)
+            for offset = (abs (- 0 start))
+            append (loop for (left right) in non-matched-intervals
+                         for normalised-left = (- left offset)
+                         for normalised-right = (- right offset)
+                         if (overlapping-lr-pairs-p (list start end) (list left right))
+                           collect (let ((unmatched-substring (subseq string normalised-left normalised-right)))
+                                     `(,feat-name ,unmatched-substring ,left ,right)))))))
+
+
 (defun remove-tag-from-added (tag-variable pattern added bindings &key cxn-inventory)
   ;; should be non-destructive; needed for the cases in which a tag is first merged 
   ;; into a normal unit and then this tagged feature/value would be moved by means
@@ -460,7 +618,9 @@ HANDLE-J-UNITS. Returns a list of MERGE-RESULTs."
 	      ;; changed as side effect, for example while removing tag-values
 	      ;; from a unit:
 	      (setq source
-		(remove-tag-from-source e pattern-unit source-unit source (copy-tree bindings) :cxn-inventory cxn-inventory))
+                    (if (eql (get-configuration cxn-inventory :de-render-mode) :de-render-sequence)
+                      (recompute-sequence-in-source e pattern-unit source-unit source (copy-tree bindings) :cxn-inventory cxn-inventory)
+                      (remove-tag-from-source e pattern-unit source-unit source (copy-tree bindings) :cxn-inventory cxn-inventory)))
 	      (setq added
 		(remove-tag-from-added e pattern added bindings :cxn-inventory cxn-inventory))
 	      #+dbg

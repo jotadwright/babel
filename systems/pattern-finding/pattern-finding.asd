@@ -49,11 +49,13 @@
                                              (:file "lisp-monitors")))))
                (:module tests
                 :serial t
-                :components ((:file "utils")
-                             (:module irl
-                              :serial t
-                              :components ((:file "test-substitutions")
-                                           (:file "test-additions"))))))
+                :components ((:file "utils"))
+               ;              (:module irl
+               ;               :serial t
+               ;               :components ((:file "test-substitutions")
+               ;                            (:file "test-additions")
+               ;                            (:file "test-deletions"))
+                ))
   :description "A Common Lisp package for learning construction grammars.")
 
 

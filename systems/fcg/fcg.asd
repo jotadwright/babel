@@ -103,7 +103,7 @@
                  (:file "html")
                  (:file "web-monitor")
                  (:file "export-utils")))
-   
+   (:file "handling-sequences")
    (:module meta-layer
     :serial t
     :components ((:file "fcg-meta-layer-lib")))
@@ -147,4 +147,5 @@
                  (:file "test-structures")
                  (:file "test-anti-unification")
                  (:file "test-fcg-light")
-                 (:file "test-categorial-networks")))))
+                 (:file "test-categorial-networks")
+                 (:file "test-form-sequences")))))

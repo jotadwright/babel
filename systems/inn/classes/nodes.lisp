@@ -87,7 +87,8 @@
           inn-node-cluster-ids
           inn-node-p
           inn-node-label inn-node-color inn-node-shape inn-node-description
-          inn-node-type inn-node-attributes inn-node-id))
+          inn-node-type inn-node-attributes inn-node-id
+          get-inn-node-cluster-id get-inn-node-attribute-value))
 
 ;; Inn-nodes "inherit" from the node-struct from graph-utils.
 ;; They are therefore structs as well.
@@ -134,6 +135,14 @@
   (apply 'make-inn-node `(:type :entity
                           ,@parameters)))
 ;; (make-predicate-node)
+
+(defun get-inn-node-attribute-value (inn-node attribute)
+  (rest (assoc attribute (inn-node-attributes inn-node))))
+;; (get-inn-node-attribute-value (make-inn-node :attributes '((:attribute . value))) :attribute)
+
+(defun get-inn-node-cluster-id (inn-node cluster-id)
+  (rest (assoc cluster-id (inn-node-cluster-ids inn-node))))
+;; (get-inn-node-cluster-id (make-inn-node :cluster-ids '((:cid . 1))) :cid)
 
 ;; (b) The DEF-INN-NODE macro
 ;; -------------------------------------------------------------------------

@@ -15,19 +15,26 @@
 
 (in-package :inn)
 
+(export '(inn-format-edge))
+
 (defgeneric inn-format-edge (node1 node2 &key &allow-other-keys))
 
 (defmethod inn-format-edge ((node1 integer) 
                             (node2 integer)
-                            &key (id (gensym "edge")) &allow-other-keys)
-  (values (format nil "{ id: '~a', from: '~a', to: '~a' }"
-                  id node1 node2)
-          id (list node1 node2)))
+                            &key (id (gensym "edge")) label &allow-other-keys)
+  (let ((formatted-edge (if label
+                          (format nil "{ id: '~a', from: '~a', to: '~a', label: '~a' }"
+                                  id node1 node2 label)
+                          (format nil "{ id: '~a', from: '~a', to: '~a' }"
+                                  id node1 node2))))
+    (values formatted-edge (list node1 node2))))
 ;; (inn-format-edge 1 2)
+;; (inn-format-edge 1 2 :label "test")
 
 (defmethod inn-format-edge ((node1 inn-node)
                             (node2 inn-node)
-                            &key (id (gensym "edge")) &allow-other-keys)
+                            &key (id (gensym "edge")) label &allow-other-keys)
   (inn-format-edge (inn-node-id node1) (inn-node-id node2)
-                   :id id))
+                   :id id
+                   :label label))
 ;; (inn-format-edge (make-inn-node) (make-inn-node))
