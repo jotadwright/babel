@@ -359,82 +359,85 @@
 ;; (2 3 4 21 22 23 24 25 26 27 28 29)
 ;;=> (0 2) (4 21) (29 30)
 
+(defun index-jump-p (pos-1 pos-2)
+  (and pos-1
+       pos-2
+       (> (abs (- pos-1 pos-2))
+          1)))
+
 (defun calculate-unmatched-intervals (matched-intervals root-intervals)
-  ""
-  (let* ((root-indices (calculate-index-list (sort root-intervals #'< :key #'first)))
-         (cxn-indices (calculate-index-list (sort matched-intervals #'< :key #'first))))
+  "Calculates which spans in the root's form feature have not been matched by the current cxn application."
+  (let* ((root-sequence-indices (calculate-index-list (sort root-intervals #'< :key #'first)))
+         (cxn-sequence-indices (calculate-index-list (sort matched-intervals #'< :key #'first))))
 
     (loop with intervals = nil
           with current-interval = nil
-          for index in root-indices
-          for i from 1
-          for cxn-index-position = (when (find index cxn-indices)
-                                     (position (find index cxn-indices) cxn-indices))
-          do (cond ((and (null current-interval)
-                         (null cxn-index-position))
-                    (setf current-interval (list index)))
-                   ((and (null current-interval)
-                         cxn-index-position
-                         ;; next cxn index interrupts sequence
-                         (> (length cxn-indices) (+ cxn-index-position 1))
-                         (> (abs (- (nth (+ cxn-index-position 1) cxn-indices)
-                                    (nth cxn-index-position cxn-indices))) 1)
-                         (= (abs (- (nth i root-indices)
-                                    (nth (- i 1) root-indices))) 1))
-                    (setf current-interval (list index)))
-                   ;; er staan nog dingen in de root maar niet meer in de cxn sequences
-                   ((and (null current-interval)
-                         cxn-index-position
-                         (= (length cxn-indices) (+ cxn-index-position 1))
-                         ;;and no jump in the root
-                         (nth i root-indices)
-                         (= (abs (- (nth i root-indices)
-                                    (nth (- i 1) root-indices))) 1)
-                         )
-                    (setf current-interval (list index)))
-                   ((and current-interval
-                         cxn-index-position)
-                    (setf current-interval (append current-interval (list index)))
-                    (setf intervals (append intervals (list current-interval)))
-                    (setf current-interval nil))
-                   ((and current-interval ;;jump in root indices
-                         (> (length root-indices) i)
-                         (> (abs (- (nth i root-indices)
-                                    (nth (- i 1) root-indices))) 1) )
-                    (setf current-interval (append current-interval (list index)))
-                    (setf intervals (append intervals (list current-interval)))
-                    (setf current-interval nil))
-                   ((and (= (length current-interval) 1)
-                         (= (length root-indices) i)) ;; we are at the end of the root index list
-                    (setf intervals (append intervals (list (list (first current-interval) index))))))
+          for root-sequence-index in root-sequence-indices
+          for i from 0
+          for cxn-sequence-index = (find root-sequence-index cxn-sequence-indices)
+          for j = (position cxn-sequence-index cxn-sequence-indices)
+          do ;; IF the applied cxn matched on the root's form feature
+            (if cxn-sequence-index
+               ;;  AND we are constructing an interval,
+               (if current-interval
+                 ;; THEN close the current interval:
+                 (setf current-interval (append current-interval (list root-sequence-index))
+                       intervals (append intervals (list current-interval))
+                       current-interval nil)
+                 ;; IF we are not yet constructing an interval and there is no jump in indices 
+                 (when (and (null (index-jump-p root-sequence-index (nth (+ i 1) root-sequence-indices)))
+                            ;; AND there is either a jump in the cxn sequence indices OR we have exhausted the cxn sequence,
+                            (or (index-jump-p cxn-sequence-index (nth (+ j 1) cxn-sequence-indices))
+                                (= (length cxn-sequence-indices) (+ j 1))))
+                   ;; THEN start a new interval:
+                   (setf current-interval (list root-sequence-index))))
+
+               ;; IF the applied cxn did NOT match on the root's form feature
+               (if current-interval
+                 ;;  AND we are constructing an interval,
+                 (cond
+                  ;; IF there is an index jump in the root's sequence indices,
+                  ((index-jump-p (nth i root-sequence-indices) (nth (+ i 1) root-sequence-indices))
+                   ;; THEN close the current interval:
+                   (setf current-interval (append current-interval (list root-sequence-index))
+                         intervals (append intervals (list current-interval))
+                         current-interval nil))
+                  ;; IF we have exhausted the root sequence indices
+                  ((= (length root-sequence-indices) (+ i 1))
+                   ;; THEN close the current interval using the final root sequence index:
+                   (setf intervals (append intervals (list (list (first current-interval) root-sequence-index))))))
+
+                 ;; IF we are not yet constructing an interval, THEN start a new interval
+                 (setf current-interval (list root-sequence-index))))
+            
              finally (return intervals))))
 
+;(test-calculate-unmatched-root-intervals)
+;;(calculate-unmatched-intervals '((19 22)) '((0 4) (12 28)))
 
 (defun recompute-root-sequence-features-based-on-bindings (root-sequence-features bindings)
   "Makes new set of sequence predicates based on the indices that are present in the bindings."
-  (let* ((matched-positions (sort (loop for (var . value) in bindings
+  (let* ((matched-positions (sort (loop for (nil . value) in bindings
                                         when (numberp value)
                                           collect value) #'<))
-         (matched-intervals (loop for (start end) on matched-positions by #'cddr
-                                  collect (list start end)))
-         (non-matched-intervals (calculate-unmatched-intervals matched-intervals
-                                                               (mapcar #'(lambda (feat)
-                                                                           (list (third feat) (fourth feat)))
-                                                                       root-sequence-features))))
+         (matched-intervals (loop for interval on matched-positions by #'cddr
+                                  collect interval))
+         (non-matched-intervals
+          (calculate-unmatched-intervals matched-intervals (mapcar #'(lambda (feat)
+                                                                       (list (third feat) (fourth feat)))
+                                                                   root-sequence-features))))
 
-    ;;non-matched intervals moeten teruggezet worden in de root
-    (if non-matched-intervals
+    ;; Based on the non-matched intervals (e.g. '((0 4) (12 28))), create sequence new features to add to the root
+    (when non-matched-intervals
       (loop for (feat-name string start end) in root-sequence-features ;;(sequence "what is the color of the cube?" 12 18)
             for offset = (abs (- 0 start))
             append (loop for (left right) in non-matched-intervals
-                         
                          for normalised-left = (- left offset)
                          for normalised-right = (- right offset)
                          if (overlapping-lr-pairs-p (list start end) (list left right))
-                         collect (progn
-                                  ; (setf non-matched-intervals (remove interval non-matched-intervals :test #'equalp))
-                                   (let ((unmatched-substring (subseq string normalised-left normalised-right)))
-                                     `(,feat-name ,unmatched-substring ,left ,right))))))))
+                           collect (let ((unmatched-substring (subseq string normalised-left normalised-right)))
+                                     `(,feat-name ,unmatched-substring ,left ,right)))))))
+
 
 (defun remove-tag-from-added (tag-variable pattern added bindings &key cxn-inventory)
   ;; should be non-destructive; needed for the cases in which a tag is first merged 

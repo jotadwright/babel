@@ -147,4 +147,5 @@
                  (:file "test-structures")
                  (:file "test-anti-unification")
                  (:file "test-fcg-light")
-                 (:file "test-categorial-networks")))))
+                 (:file "test-categorial-networks")
+                 (:file "test-form-sequences")))))
