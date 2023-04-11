@@ -80,7 +80,7 @@
                (sem-cat (animacy animate)))
               <-
               (?dog-word
-               (HASH meaning ((dog ?g)))                     
+               (HASH meaning ((dog ?d)))                     
                --
                (HASH form ((sequence "Hund" ?left ?right))))))
 
@@ -109,14 +109,18 @@
                (syn-cat (lex-class verb)
                         (aspect non-perfect)
                         (type transitive))
-               (sequences ((sequence "sucht" ?left ?right)))
+               (boundaries (?verb-left ?verb-right))
+               ;(sequences ((sequence "sucht" ?left ?right)))
                (referent ?s))  
                         
               <-
               (?search-word                           
                (HASH meaning ((suchen-01 ?s)))                   
                --
-               (HASH form ((sequence "sucht" ?left ?right))))))
+               (HASH form ((sequence "sucht" ?verb-left ?verb-right))))))
+
+
+
 
 
 (def-fcg-cxn noun-phrase-cxn
@@ -139,6 +143,7 @@
                (syn-cat (lex-class article)
                         (case ?case))
                (sequences ((sequence ?article-string ?article-left ?article-right))))
+              
               (?noun
                (footprints (not determined))
                (referent ?x)
@@ -158,6 +163,8 @@
              :disable-automatic-footprints t)
 
 
+
+
 (def-fcg-cxn transitive-argument-structure-cxn                 
              ((?transitive-argument-structure-unit
               (subunits (?verb-unit ?agent-unit ?patient-unit)))
@@ -174,7 +181,7 @@
                 --
               (syn-cat (lex-class verb)
                         (aspect ?aspect)
-                        (type transitive))     
+                        (type transitive))
               (referent ?v))
               
               (?agent-unit
@@ -228,25 +235,28 @@
                (HASH meaning ((topicalized ?arg0 +)))  
                           
                --
-               (HASH form ((sequence " " ?rightmost-agent-unit ?verb-unit)
-                             (sequence " " ?verb-unit ?leftmost-patient-unit)))
+               (HASH form ((sequence " " ?rightmost-agent-unit ?verb-left)
+                             (sequence " " ?verb-right ?leftmost-patient-unit)))
+               
                (subunits (?verb-unit ?agent-unit ?patient-unit)))
               
               (?verb-unit
                (syn-cat (lex-class verb)
                        (type transitive)
-                       (aspect ?aspect))     
+                       (aspect ?aspect))
+              (boundaries (?verb-left ?verb-right))
               (referent ?v)
                 --
               (syn-cat (lex-class verb)
                        (type transitive)
-                       (aspect ?aspect))     
+                       (aspect ?aspect))
+              (boundaries (?verb-left ?verb-right))
               (referent ?v))
               
               (?agent-unit
                (referent ?arg0)
                (syn-cat (syn-role subject))
-               (boundaries  (?leftmost-agent-unit ?rightmost-agent-unit))
+               (boundaries  (?leftmost-agent-unit ?rightmost-agent-unit))   ;from 
                 --
               (referent ?arg0)
               (syn-cat (syn-role subject))
@@ -259,12 +269,8 @@
               
               (syn-cat (syn-role direct-object))
               (boundaries (?leftmost-patient-unit ?rightmost-patient-unit)))
-              
               ))
 
 
 
-
-
 (comprehend "die Frau sucht den Hund")
-
