@@ -13,13 +13,13 @@
   :fcg-configurations ((:parse-goal-tests :no-strings-in-root :connected-semantic-network)
                        (:de-render-mode . :de-render-string-meets-no-punct)
                        (:consolidate-repairs . t))
-  :diagnostics (lll::diagnose-unknown-utterance
-                ;lll::diagnose-partial-utterance
+  :diagnostics (dll::diagnose-unknown-utterance
+                ;dll::diagnose-partial-utterance
                 )
-  :repairs (lll::holophrase->item-based--substitution
-            lll::holophrase->item-based--addition
-            lll::holophrase->item-based--deletion
-            lll::add-holophrase
+  :repairs (dll::holophrase->item-based--substitution
+            dll::holophrase->item-based--addition
+            dll::holophrase->item-based--deletion
+            dll::add-holophrase
             ;gl::add-categorial-links
             ;gl::item-based->holistic
             ;gl::holophrase->item-based+holistic+holistic--substitution
@@ -29,7 +29,7 @@
             ;gl::nothing->holophrase
             )
   :visualization-configurations ((:show-constructional-dependencies . nil)
-                                 (:show-categorial-network . t))
+                                 (:show-categorial-network . t)))
 
 (defun detach-punctuation (word)
   "This function will check if the input string (word)
