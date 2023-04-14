@@ -1,5 +1,5 @@
 (defpackage duckie-language-learning
-  (:nicknames :lll)
+  (:nicknames :dll)
   (:use
    :cl
    :utils
@@ -10,12 +10,12 @@
    :irl
    :web-interface
    :fcg
-   :meta-layer-learning
-   :drakma
-   :dexador)
+   :meta-layer-learning)
   (:import-from :cl-json
    :decode-json-from-source
    :encode-json)
+  (:import-from :dexador
+   :post)
   (:shadowing-import-from :jonathan
    :to-json :parse)
   (:shadowing-import-from :fcg :size :attributes)
