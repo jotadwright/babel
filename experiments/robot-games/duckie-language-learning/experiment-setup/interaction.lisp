@@ -82,7 +82,8 @@
   (let ((correct-answer
          (downcase (capi:prompt-for-string "I'm afraid I didn't understand your question, what would the answer be?"))))
     (loop for fields in (data-fields (ontology agent))
-          when (find (downcase correct-answer) (cdr fields) :key #'value :test #'string=)
+          for answer =  (intern (upcase correct-answer))
+          when (find answer (cdr fields) :key #'id :test #'equal)
             return it)))
 
 (defun some-applied-repair-in-tree (node)
