@@ -3,14 +3,14 @@
 ;; + Agent Classes +
 ;; -----------------
 
-(defclass duckie-language-learning-agent (primitives ontology)
+(defclass duckie-language-learning-agent (agent)
   ((grammar :initarg :grammar :accessor grammar :initform (fcg::make-duckie-grammar-cxns)
             :type (or null fcg-construction-set)
             :documentation "The agent's grammar")
-   (ontology :initarg :ontology :accessor ontology :initform ontology
+   (ontology :initarg :ontology :accessor ontology :initform *ontology*
              :type blackboard
              :documentation "The ontology of the agent")
-   (primitive-inventory :initarg :primitive-inventory :accessor primitive-inventory :initform primitives
+   (primitive-inventory :initarg :primitive-inventory :accessor primitive-inventory :initform *duckie-primitives*
                         :type primitive-inventory
                         :documentation "The primitive inventory of the agent"))
   (:documentation "Base class for duckie agent"))
