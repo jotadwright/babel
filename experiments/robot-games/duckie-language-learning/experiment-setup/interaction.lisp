@@ -61,7 +61,7 @@
                 when (find (downcase correct-answer) (cdr fields)
                            :key #'value :test #'string=)
                   return it))
-         (intention (compose-program agent answer-category))
+         (intention (compose-program agent answer-category :partial-program '((scan-world ?world))))
          (holophrase-cxn (create-holophrase-cxn cipn intention)))
     (add-cxn holophrase-cxn (grammar agent))))
             
@@ -81,7 +81,7 @@
 (defun ask-correct-answer (agent)
   (let ((correct-answer
          (downcase (capi:prompt-for-string "I'm afraid I didn't understand your question, what would the answer be?"))))
-    (loop for fields in (data-fields (ontology agent))
+    (loop for fields in (reverse (data-fields (ontology agent))) ;; TODO: disgusting hack, NOT A SOLUTION
           for answer =  (intern (upcase correct-answer))
           when (find answer (cdr fields) :key #'id :test #'equal)
             return it)))
