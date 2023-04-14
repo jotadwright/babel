@@ -7,16 +7,26 @@
 ;; Finding the data
 (define-configuration-default-value :meaning-representation :irl)
 
+(define-configuration-default-value :observation-sample-mode :train) ; train, debug, development or evaluation
+(define-configuration-default-value :number-of-epochs 1) ; how many times the training data is concatenated in random variations
 (define-configuration-default-value :de-render-mode :de-render-string-meets)
 
 ;; Strategies and scores
 (define-configuration-default-value :initial-cxn-score 0.5)
+
+(define-configuration-default-value :cxn-incf-score 0.1)
+(define-configuration-default-value :cxn-decf-score 0.3)
+
+(define-configuration-default-value :evaluation-grammar nil)
+(define-configuration-default-value :alignment-strategy :lateral-inhibition)
 (define-configuration-default-value :remove-cxn-on-lower-bound nil)
 (define-configuration-default-value :categorial-network-export-interval 1)
 (define-configuration-default-value :initial-categorial-link-weight 0.0)
 
+(define-configuration-default-value :determine-interacting-agents-mode :hearer-only) ;; TODO (conflict with hearer in interaction.lisp if not set)
 (define-configuration-default-value :learner-cxn-supplier :hashed-and-scored)
 (define-configuration-default-value :category-linking-mode :neighbours)
+(define-configuration-default-value :learning-strategy :optimal-form-coverage) ;or: by-score
 
 
 ;; Misc
