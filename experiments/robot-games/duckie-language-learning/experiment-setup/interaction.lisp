@@ -18,7 +18,7 @@
     answer))))
 
 (defun confirm-answer (answer)
-  (capi:prompt-for-confirmation (format nil "I think the answer is: ~a" (value answer))))
+  (capi:prompt-for-confirmation (format nil "I think the answer is: ~a" (id answer))))
 
 
 (defmethod interact ((experiment duckie-language-learning-experiment)
@@ -43,8 +43,8 @@
       (let* ((answer (execute meaning (hearer interaction))))
         (setf fcg-solution? t)
         (setf answer-correct? (confirm-answer answer))
-        (setf correct-answer (if answer-correct? (value answer)
-                               (downcase (capi:prompt-for-string "Tell me the correct answer please?")))))
+        (setf correct-answer (if answer-correct? (id answer)
+                               (process-text-from-capi (downcase (capi:prompt-for-string "Tell me the correct answer please?"))))))
 
       (cond (answer-correct?
              ;; joepie, rewarden!
@@ -58,9 +58,10 @@
 (defun learn-through-intention-reading-and-pattern-finding (agent correct-answer cipn)
   (let* ((answer-category
           (loop for fields in (data-fields (ontology agent))
-                when (find (downcase correct-answer) (cdr fields)
-                           :key #'value :test #'string=)
-                  return it))
+                if (listp (cdr fields))
+                  when (find  correct-answer (cdr fields)
+                             :key #'id :test #'equal)
+                    return it))
          (intention (compose-program agent answer-category :partial-program '((scan-world ?world))))
          (holophrase-cxn (create-holophrase-cxn cipn intention)))
     (add-cxn holophrase-cxn (grammar agent))))
@@ -78,13 +79,24 @@
                (when (< (attr-val cxn :score) 0.0)
                  (delete-cxn cxn (grammar agent)))))))
 
+(defun process-text-from-capi (text)
+  ;; text from capi needs to be symbol to find in irl ontology, integers also need to be symbols
+  (intern
+   (upcase 
+    (if (numberp text)
+      (format nil "~r" text)
+      text))))
+
+ 
 (defun ask-correct-answer (agent)
   (let ((correct-answer
-         (downcase (capi:prompt-for-string "I'm afraid I didn't understand your question, what would the answer be?"))))
-    (loop for fields in (reverse (data-fields (ontology agent))) ;; TODO: disgusting hack, NOT A SOLUTION
-          for answer =  (intern (upcase correct-answer))
-          when (find answer (cdr fields) :key #'id :test #'equal)
-            return it)))
+         (process-text-from-capi
+          (downcase (capi:prompt-for-string "I'm afraid I didn't understand your question, what would the answer be?")))))
+    (loop for fields in (data-fields (ontology agent))
+          if (listp (cdr fields))
+            when (find correct-answer (cdr fields)
+                       :key #'id :test #'equal)
+              return it)))
 
 (defun some-applied-repair-in-tree (node)
   ;; some node in the tree can be added by a repair

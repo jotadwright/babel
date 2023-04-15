@@ -9,6 +9,8 @@
         (operators '(bigger smaller equal))
         (attributes '(color building-function rfid))
         (zones '(1 2 3 4))
+        (numbers (loop for i from 0 to 10
+                         collect i))
         (initial-ontology (make-blackboard)))
     (loop for color in colors
           for instance = (make-instance 'color-category
@@ -38,10 +40,16 @@
           for instance = (make-instance 'attribute-category
                                         :id attr :category attr)
           do (push-data initial-ontology 'attributes instance))
-    (loop for zone in zones
+    #|(loop for zone in zones
+          for zone-number = (internal-symb (upcase (format nil "~r" zone)))
           for instance = (make-instance 'zone-category
-                                        :id zone :category zone)
-          do (push-data initial-ontology 'zones instance))
+                                        :id zone-number :category zone-number)
+          do (push-data initial-ontology 'zones instance))|#
+    (loop for n in numbers
+          for num = (internal-symb (upcase n))
+          for instance = (make-instance 'number-category
+                                        :id num :category num)
+          do (push-data initial-ontology 'numbers instance))
     (set-data initial-ontology 'world nil)
    ; (push-data initial-ontology 'coordinates (make-instance 'coordinates-category :x-coordinate 0 :y-coordinate 0))
    ; (push-data initial-ontology 'coordinates (make-instance 'coordinates-category :x-coordinate 1 :y-coordinate 0))

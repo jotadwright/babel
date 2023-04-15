@@ -12,9 +12,6 @@
   `(((div :class "entity-detail")
      ,(format nil "~(~a~)" (category cat)))))
 
-(defmethod equal-entity ((cat-1 duckie-category) (cat-2 duckie-category))
-  (eql (category cat-1) (category cat-2)))
-
 ;; Subcategories
 (defclass color-category (duckie-category) ())
 
@@ -34,5 +31,10 @@
 
 (defclass zone-category (duckie-category)
   ((zone
-    :initarg :zone :accessor zone :initform nil :type number
+    :initarg :zone :accessor zone :initform nil :type symbol
     :documentation "the zone")))
+
+(defclass number-category (duckie-category)
+  ((number
+    :initarg :num :accessor num :initform nil :type symbol
+    :documentation "the numbers in the world")))
