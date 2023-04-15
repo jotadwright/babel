@@ -5,17 +5,19 @@
 (activate-monitor trace-fcg)
 
 ;;;; START DEMO
-
 (setf *ontology* (build-initial-ontology))
 
-(setf *server-address* "http://192.168.2.5:7000/")
+;;; demo in duckie world
 
 (defparameter *demo*
   (make-instance 'duckie-language-learning-experiment))
 
-(run-interaction *demo*)
+(run-interaction *demo*)$$
 
-;; symbolic evaluation
+;; demo in simulation
+(defparameter *demo*
+  (make-instance 'duckie-language-learning-simulation-experiment))
+
 (setf *duckie-world* (make-instance 'object-set
                                     :objects (list 
                                                    (make-instance 'duckie-building
@@ -31,6 +33,7 @@
 
 (set-data *ontology* 'world *duckie-world*)
 
+(run-interaction *demo*)
 
 ;;;;TESTING IRL PROGRAMS
 (evaluate-irl-program '((scan-world ?world)
@@ -40,19 +43,28 @@
                         (query ?answer ?unique ?attribute)
                         (bind attribute-category ?attribute color))
                       *ontology*
-                      :primitive-inventory *duckie-primitives*)
+                      :primitive-inventory *duckie-simulation-primitives*)
 
 (evaluate-irl-program '((scan-world ?world)
                         (filter ?out ?world ?red)
                         (bind color-category ?red red)
                         (count ?number ?out))
                       *ontology*
-                      :primitive-inventory *duckie-primitives*)
+                      :primitive-inventory *duckie-simulation-primitives*)
 
 
 (evaluate-irl-program '((scan-world ?world)
                         (count ?number ?world))
                       *ontology*
-                      :primitive-inventory *duckie-primitives*)
+                      :primitive-inventory *duckie-simulation-primitives*)
+
+(evaluate-irl-program '((scan-world ?world)
+                        (filter ?out ?world ?red)
+                        (bind color-category ?red red)
+                        (unique ?unique ?out)
+                        (get-zone ?location ?unique)
+                        (move-to ?location))
+                      *ontology*
+                      :primitive-inventory *duckie-simulation-primitives*)
 
 

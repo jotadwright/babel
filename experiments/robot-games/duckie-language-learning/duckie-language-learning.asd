@@ -48,7 +48,9 @@
                                (:file "utils")))
                 (:module primitives
                  :serial t
-                 :components ((:file "all")))
+                 :components ((:file "simulation-primitives")
+                              (:file "duckie-primitives")
+                              (:file "world-primitives")))
                 (:module utils
                  :serial t
                  :components ((:file "fcg-utils")

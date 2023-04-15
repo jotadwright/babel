@@ -9,10 +9,7 @@
             :documentation "The agent's grammar")
    (ontology :initarg :ontology :accessor ontology :initform *ontology*
              :type blackboard
-             :documentation "The ontology of the agent")
-   (primitive-inventory :initarg :primitive-inventory :accessor primitive-inventory :initform *duckie-primitives*
-                        :type primitive-inventory
-                        :documentation "The primitive inventory of the agent"))
+             :documentation "The ontology of the agent"))
   (:documentation "Base class for duckie agent"))
 
 
@@ -21,3 +18,19 @@
 
 (defmethod copy-object ((agent duckie-language-learning-agent))
   (make-instance 'duckie-language-learning-agent))
+
+
+(defclass duckie-language-learning-simulation-agent (duckie-language-learning-agent)
+  ((primitive-inventory :initarg :primitive-inventory :accessor primitive-inventory
+                        :initform  *duckie-simulation-primitives* 
+                        :type primitive-inventory
+                        :documentation "The primitive inventory of the agent"))
+  (:documentation "simulation agent with symbolic primitives"))
+
+
+(defclass duckie-language-learning-world-agent (duckie-language-learning-agent)
+  ((primitive-inventory :initarg :primitive-inventory :accessor primitive-inventory
+                        :initform  *duckie-world-primitives* 
+                        :type primitive-inventory
+                        :documentation "The primitive inventory of the agent"))
+  (:documentation "simulation agent with world primitives"))

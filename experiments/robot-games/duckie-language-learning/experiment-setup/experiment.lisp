@@ -41,10 +41,33 @@
   ()
   (:documentation "A duckiebot language learning experiment"))
 
-(defmethod initialize-instance :after ((experiment duckie-language-learning-experiment) &key)
+
+
+;; --------------
+;; + Experiment +
+;; --------------
+
+(defclass duckie-language-learning-simulation-experiment (duckie-language-learning-experiment)
+  ()
+  (:documentation "A duckiebot language learning experiment in simulation"))
+
+(defmethod initialize-instance :after ((experiment duckie-language-learning-simulation-experiment) &key)
   ;; set the population of the experiment
   (setf (population experiment)
-        (list (make-instance 'duckie-language-learning-agent))))
+        (list (make-instance 'duckie-language-learning-simulation-agent))))
+
+;; --------------
+;; + Experiment +
+;; --------------
+
+(defclass duckie-language-learning-world-experiment (duckie-language-learning-experiment)
+  ()
+  (:documentation "A duckiebot language learning experiment in simulation"))
+
+(defmethod initialize-instance :after ((experiment duckie-language-learning-world-experiment) &key)
+  ;; set the population of the experiment
+  (setf (population experiment)
+        (list (make-instance 'duckie-language-learning-world-agent))))
 
 
 ;; ---------------------------
