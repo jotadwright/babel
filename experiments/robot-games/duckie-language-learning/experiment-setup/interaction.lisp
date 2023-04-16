@@ -83,20 +83,34 @@
   ;; text from capi needs to be symbol to find in irl ontology, integers also need to be symbols
   (intern
    (upcase 
-    (if (numberp text)
-      (format nil "~r" text)
-      text))))
+    text)))
 
- 
+ ;; returns either the concept from the ontology or when the answer was "car-in zone-1" a car object with position zone-1.
 (defun ask-correct-answer (agent)
-  (let ((correct-answer
-         (process-text-from-capi
-          (downcase (capi:prompt-for-string "I'm afraid I didn't understand your question, what would the answer be?")))))
-    (loop for fields in (data-fields (ontology agent))
-          if (listp (cdr fields))
-            when (find correct-answer (cdr fields)
-                       :key #'id :test #'equal)
-              return it)))
+  (let* ((answer-string (downcase (capi:prompt-for-string "I'm afraid I didn't understand your question, what would the answer be?")))
+         (correct-answer
+          (process-text-from-capi
+           answer-string))
+         (answer (loop for fields in (data-fields (ontology agent))
+                       if (listp (cdr fields))
+                         when (find correct-answer (cdr fields)
+                                    :key #'id :test #'equal)
+                           return it)))
+    (if (string= (first (split-sequence:split-sequence  #\Space answer-string)) "car-in")
+      (let ((new-car (copy-object (get-data *ontology* 'agent-car))))
+        (setf (zone new-car)
+              (intern (upcase (second (split-sequence:split-sequence  #\Space answer-string)))))
+        new-car)
+      answer)))
+
+(defparameter *answer-categories*
+  (list 'numbers 'zones 'building-functions 'bools 'colors))
+
+(defun possible-answers ()
+  (loop for field in (data-fields *ontology*)
+        if (find (first field) *answer-categories*)
+          append (loop for el in (rest field)
+                          collect (id el))))
 
 (defun some-applied-repair-in-tree (node)
   ;; some node in the tree can be added by a repair

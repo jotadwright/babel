@@ -9,6 +9,7 @@
          (loop for object in (objects set)
                for object-value
                = (typecase category
+                   (zone-category (zone object))
                    (building-function-category (if (eql (type-of object) 'duckie-building)
                                                         (building-function object)))
                    (color-category (if (or (eql (type-of object) 'duckie-building )
@@ -190,12 +191,9 @@
                         (object duckie-object))
   ;;First case; given source set, compute target object
   ((object => zone)
-   (bind (zone 1.0 (make-instance 'zone-category
-                                  :id (zone object)
-                                  :zone (zone object)))))
+   (bind (zone 1.0 (find (zone object) (get-data *ontology* 'zones) :key #'category))))
   ;;Second case; enforce consistency of source set and target bool
   ((zone object =>)
-
      (equal-entity (zone zone) (zone object)))
 
   ;;Third case; target-bool known, source-set unknown

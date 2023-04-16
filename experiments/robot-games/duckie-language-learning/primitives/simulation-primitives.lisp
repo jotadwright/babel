@@ -19,8 +19,17 @@
 ;;;;;;;;;;; MOVE-TO ;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defprimitive move-to ((zone zone-category))
+(defprimitive move-to ((car duckie-car)
+                       (zone zone-category))
   ;;first case: object is bound
-  ((zone =>)
-   (equal 'teste 'teste))
+  ((zone => car)
+   ;;set location duckie-car from world to zone
+   (setf (zone (get-data *ontology* 'agent-car))
+         zone)
+   (bind (car 1.0 (get-data *ontology* 'agent-car))))
+
+  ((car zone => )
+   ;;set location duckie-car from world to zone
+   
+   (equal (zone car) (zone zone)))
   :primitive-inventory *duckie-simulation-primitives*)

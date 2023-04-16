@@ -50,11 +50,11 @@
           for instance = (make-instance 'attribute-category
                                         :id attr :category attr)
           do (push-data initial-ontology 'attributes instance))
-    #|(loop for zone in zones
-          for zone-number = (internal-symb (upcase (format nil "~r" zone)))
+    (loop for zone in zones
+          for zone-number = (internal-symb (upcase (format nil "zone-~a" zone)))
           for instance = (make-instance 'zone-category
                                         :id zone-number :category zone-number)
-          do (push-data initial-ontology 'zones instance))|#
+          do (push-data initial-ontology 'zones instance))
     (loop for n in numbers
           for num = (internal-symb (upcase n))
           for instance = (make-instance 'number-category
