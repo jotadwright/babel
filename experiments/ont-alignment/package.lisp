@@ -7,4 +7,5 @@
    :cl-user
    :experiment-framework
    :utils
+   :postmodern
    ))

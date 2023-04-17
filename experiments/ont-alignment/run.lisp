@@ -6,12 +6,16 @@
 
 (run-interaction *experiment*)
 
+;(type-of (execute-postmodern-query '(:select actor film :from actorsfilms)))
+
 ;(execute-postmodern-query '(:select (:count actor) (:avg year) :from actorsfilms))
 ;(execute-postmodern-query '(:select film :from actorsfilms :where (:in actor (:set "Gérard Depardieu" "Fred Astaire"))))
 ;(execute-postmodern-query '(:select film :from actorsfilms :where (:not (:in actor (:set "Gérard Depardieu" "Fred Astaire")))))
 ;(execute-postmodern-query '(:select actor (:count film) :from actorsfilms :group-by actor :having (:> (:count film) 100)))
-;(execute-postmodern-query '(:select film :from actorsfilms :where (:and (:= actor "Gerard Depardieu") (:<= rating 5))))
+;(execute-postmodern-query '(:select actor film :from actorsfilms :where (:and (:= actor "Gerard Depardieu") (:<= rating 2.5))))
 ;(execute-postmodern-query '(:select actor (:count film) :from actorsfilms :group-by actor :having (:between (:count film) 100 101)))
+
+(execute-postmodern-query '(:select actor_id :from actors :where (:in actor (:set "Gerard Depardieu" "Fred Astaire" "Brigitte Bardot"))))
 
 ;; '(:select actor film :from actorsfilms)
 '((comma ?columns ?column-1 ?column-2)
@@ -21,7 +25,7 @@
   (bind table ?table actorsfilms))
 
 ;; '(:select actor film year :from actorsfilms)
-'((comma ?fields ?column-1 ?column-2 ?column-3)
+'((comma ?columns ?column-1 ?column-2 ?column-3)
   (bind column ?column-1 actor)
   (bind column ?column-2 film)
   (bind column ?column-3 year)
@@ -29,15 +33,17 @@
   (bind table ?table actorsfilms))
 
 ;; '(:select (:count actor) :from actorsfilms)
-'((aggregate ?aggregate-clause ?aggregator ?field)
+'((aggregate ?aggregate-clause ?aggregator ?column)
   (bind aggregator ?aggregator count)
   (bind column ?column actor)
   (select ?result ?aggregate-clause ?column ?columns ?table ?where-clause ?group-by-clause ?inner-join-clause)
   (bind table ?table actorsfilms))
+;;max
+;;min
 
 ;; '(:select film :from actorsfilms :where (:= actor "Gerard Depardieu"))
 '((bind column ?column film)
-  (select ?result ?aggregate-clause ?column ?column ?table ?where-clause ?group-by-clause ?inner-join-clause)
+  (select ?result ?aggregate-clause ?column ?columns ?table ?where-clause ?group-by-clause ?inner-join-clause)
   (bind table ?table actorsfilms)
   (where ?where-clause ?filter-condition)
   (equals ?filter-condition ?column-2 ?comparator)
@@ -66,7 +72,7 @@
 
 
 ;; '(:select actor (:count film) :from actorsfilms :group-by actor :having (:> (:count film) 100))
-'((aggregate ?aggregate-clause ?aggregator ?field)
+'((aggregate ?aggregate-clause ?aggregator ?column)
   (bind aggregator ?aggregator count)
   (bind column ?column actor)
   (select ?result ?aggregate-clause ?column ?columns ?table ?where-clause ?group-by-clause ?inner-join-clause)
@@ -82,7 +88,7 @@
 
 
 ;; '(:select actor (:count film) :from actorsfilms :group-by actor :having (:between (:count film) 100 101))
-'((aggregate ?aggregate-clause ?aggregator ?field)
+'((aggregate ?aggregate-clause ?aggregator ?column)
   (bind aggregator ?aggregator count)
   (bind column ?column actor)
   (select ?result ?aggregate-clause ?column ?columns ?table ?where-clause ?group-by-clause ?inner-join-clause)
@@ -117,8 +123,8 @@
 ;; (execute-postmodern-query '(:select (:count film) :from films :inner-join actorfilm_relations :on (:= films.film_id actorfilm_relations.film_id) :inner-join actors :on (:= actorfilm_relations.actor_id actors.actor_id) :where (:= actors.actor "Gerard Depardieu")))
 '((aggregate ?aggregate-clause ?aggregator ?field)
   (bind aggregator ?aggregator count)
-  (bind field ?field film)
-  (select ?result ?aggregate-clause ?field ?fields ?table ?where-clause ?group-by-clause ?inner-join-clause)
+  (bind column ?column film)
+  (select ?result ?aggregate-clause ?column ?columns ?table ?where-clause ?group-by-clause ?inner-join-clause)
   (bind table ?table films)
   (inner-join-on ?inner-join-clause ?table-2 ?equal-fields ?inner-join-clause-2 ?where-clause)
   (bind table ?table-2 actorfilm_relations)
@@ -142,8 +148,8 @@
   
 
 ;; (execute-postmodern-query '(:select film :from films :inner-join actorfilm_relations :on (:= films.film_id actorfilm_relations.film_id) :inner-join actors :on (:= actorfilm_relations.actor_id actors.actor_id) :where (:and (:= actors.actor "Gerard Depardieu") (:= films.year 1996))))
-'((bind field ?field film)
-  (select ?result ?aggregate-clause ?field ?fields ?table ?where-clause ?group-by-clause ?inner-join-clause)
+'((bind column ?column film)
+  (select ?result ?aggregate-clause ?column ?columns ?table ?where-clause ?group-by-clause ?inner-join-clause)
   (bind table ?table films)
   (inner-join-on ?inner-join-clause ?table-2 ?equal-fields ?inner-join-clause-2 ?where-clause)
   (bind table ?table-2 actorfilm_relations)
@@ -172,8 +178,8 @@
 
 
 ;; (execute-postmodern-query '(:select film :from films :inner-join actorfilm_relations :on (:= films.film_id actorfilm_relations.film_id) :inner-join actors :on (:= actorfilm_relations.actor_id actors.actor_id) :where (:and (:like actors.actor "Jean%") (:> films.year 2020))))
-'((bind field ?field film)
-  (select ?result ?aggregate-clause ?field ?fields ?table ?where-clause ?group-by-clause ?inner-join-clause)
+'((bind column ?column film)
+  (select ?result ?aggregate-clause ?column ?columns ?table ?where-clause ?group-by-clause ?inner-join-clause)
   (bind table ?table films)
   (inner-join-on ?inner-join-clause ?table-2 ?fields ?inner-join-clause-2 ?where-clause)
   (bind table ?table-2 actorfilm_relations)
@@ -273,21 +279,10 @@
   (bind concept ?comparator-2 9))
 
 
-;;round
+;;round (select or having)
+;;sum (idem)
 
-
-;;max
-
-
-;;min
-
-
-;;sum
-
-
-;;null
-
-
+;;null 
 ;;not null
 
 

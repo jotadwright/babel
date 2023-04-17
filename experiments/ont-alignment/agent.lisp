@@ -30,9 +30,9 @@
     :accessor answer
     :type string
     :documentation "The answer in natural language")
-   (query
-    :initarg :query
-    :accessor query
+   (q
+    :initarg :q
+    :accessor q
     :documentation "The query in query language")
    ))
 
@@ -45,7 +45,7 @@
   (setf item (create-dictionary-item))
   (setf (question item) question)
   (setf (answer item) answer)
-  (setf (query item) nil)
+  (setf (q item) nil)
 )
 
 (defmethod make-ont-agents ((nb-of-agents integer)(experiment experiment))
