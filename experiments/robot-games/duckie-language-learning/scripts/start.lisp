@@ -9,7 +9,6 @@
 (add-element (make-html *ontology*))
 
 ;;; demo in duckie world
-
 (defparameter *demo*
   (make-instance 'duckie-language-learning-experiment))
 
@@ -91,10 +90,6 @@
                       *ontology*
                       :primitive-inventory *duckie-simulation-primitives*)
 
-
-
-
-
 ;;;; these are the possible answers:
 ("10" "9" "8" "7" "6" "5" "4" "3" "2" "1" "0" "ZONE-4" "ZONE-3" "ZONE-2" "ZONE-1" "BAKERY" "HOUSE" "RESTAURANT" "FALSE" "TRUE" "PURPLE" "YELLOW" "GREEN" "BLUE" "RED")
 ("car-in zone-1" "car-in zone-2" "car-in zone-3" "car-in zone-4")
@@ -103,7 +98,4 @@
 ;        collect (symbol-name a))
           
 ;  (capi:prompt-for-items-from-list (reverse (possible-answers)) "choose" :interaction :single-selection)
-
-
-
         

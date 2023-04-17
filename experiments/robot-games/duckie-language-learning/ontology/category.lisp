@@ -1,6 +1,8 @@
 (in-package :duckie-language-learning)
 
-;;categories in the world
+;; ---------------------------
+;; + Categories of the world +
+;; ---------------------------
 
 ;; General category
 (defclass duckie-category (entity)
@@ -26,8 +28,6 @@
 (defclass compare-category (duckie-category) ())
 
 (defclass attribute-category (duckie-category) ())
-
-
 
 (defclass zone-category (duckie-category)
   ((zone

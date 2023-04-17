@@ -1,5 +1,9 @@
 (in-package :duckie-language-learning)
 
+;; ---------------------
+;; + Intention reading +
+;; ---------------------
+
 (defun make-default-composer (agent target-category
                               &key partial-program)
   (let* ((target-category-type

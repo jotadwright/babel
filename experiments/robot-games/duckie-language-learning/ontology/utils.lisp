@@ -1,5 +1,9 @@
 (in-package :duckie-language-learning)
 
+;; ------------------
+;; + Util functions +
+;; ------------------
+
 (defmethod copy-object-content ((src duckie-object) (copy duckie-object))
   ;; for sets of objects, the id does not matter
   (setf (id copy) (id src) ;; make sure that copies have the same id!

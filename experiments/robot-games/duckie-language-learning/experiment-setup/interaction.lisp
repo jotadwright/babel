@@ -1,14 +1,11 @@
-;;;; interaction.lisp
-
 (in-package :duckie-language-learning)
-
 
 ;; ---------------
 ;; + Interaction +
 ;; ---------------
-              
 
 (defun execute (irl-program agent)
+  "Evaluates the IRL program and returns the answer."
   (let* ((solutions (evaluate-irl-program irl-program (ontology agent)
                                           :primitive-inventory (primitive-inventory agent)))) 
     (if (equal (length solutions) 1)
@@ -20,9 +17,9 @@
 (defun confirm-answer (answer)
   (capi:prompt-for-confirmation (format nil "I think the answer is: ~a" (id answer))))
 
-
 (defmethod interact ((experiment duckie-language-learning-experiment)
                      interaction &key)
+  "Runs an interaction in which the user is prompted to ask a question."
   (let ((answer-correct? nil)
         (correct-answer nil)
         (fcg-solution? nil)
@@ -56,6 +53,7 @@
              (learn-through-intention-reading-and-pattern-finding agent correct-answer cipn)))))))
 
 (defun learn-through-intention-reading-and-pattern-finding (agent correct-answer cipn)
+  "Learns a new holophrase from the given CIPN and the correct answer."
   (let* ((answer-category
           (loop for fields in (data-fields (ontology agent))
                 if (listp (cdr fields))
@@ -67,6 +65,7 @@
     (add-cxn holophrase-cxn (grammar agent))))
             
 (defun run-alignment (agent answer-correct? cipn)
+  "Aligns the applied constructions based on the correctness of the answer."
   (let ((applied-cxns (mapcar #'get-original-cxn
                               (applied-constructions cipn))))
     (loop for cxn in applied-cxns

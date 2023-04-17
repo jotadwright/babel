@@ -1,5 +1,9 @@
 (in-package :duckie-language-learning)
 
+;; --------------------
+;; + Applying repairs +
+;; --------------------
+
 (defclass duckie-learning-repair (repair)
   ((trigger :initform 'fcg::new-node))
   (:documentation "Base class for all repairs."))

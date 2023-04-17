@@ -1,5 +1,12 @@
 (in-package :duckie-language-learning)
 
+;; -----------------------------------------
+;; + Primitives for a physical environment +
+;; -----------------------------------------
+
+(def-irl-primitives duckie-primitive-inventory
+  :primitive-inventory *duckie-world-primitives*)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;; SCAN-WORLD ;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -35,7 +42,6 @@
      (equal-entity world observed-world)))))
   :primitive-inventory *duckie-world-primitives*)
 
-
 (defun json-to-world (json)
   (let ((zones (loop for zone in json
                      collect (intern (upcase
@@ -48,7 +54,6 @@
                    :zones zones
                    :duckie-car (make-instance 'duckie-car :zone 'zone-1)
                    :object-set objects)))
-                       
 
 (defun json-object-to-object (json-object)
   (let* ((object-type
@@ -80,7 +85,6 @@
     (if building-function
       (setf (building-function obj) building-function))
     object))
-    
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;; MOVE-TO ;;;;;;;;;;

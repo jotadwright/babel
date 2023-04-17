@@ -1,4 +1,5 @@
 (in-package :duckie-language-learning)
+
 ;; -----------------
 ;; + Agent Classes +
 ;; -----------------

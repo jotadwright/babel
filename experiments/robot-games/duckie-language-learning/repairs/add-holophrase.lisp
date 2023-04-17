@@ -1,7 +1,8 @@
 (in-package :duckie-language-learning)
 
-;;  ADD-HOLOPHRASE
-;; ----------------
+;; --------------------------
+;; + Repair: ADD-HOLOPHRASE +
+;; --------------------------
 
 (defclass add-holophrase (repair)
   ((trigger :initform 'fcg::new-node)))

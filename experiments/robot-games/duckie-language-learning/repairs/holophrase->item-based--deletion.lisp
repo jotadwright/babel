@@ -1,7 +1,8 @@
 (in-package :duckie-language-learning)
 
-;;  HOLOPRHASE -> ITEM-BASED W/ DELETION
-;; --------------------------------------
+;; -------------------------------------------------
+;; + Repair:  HOLOPRHASE -> ITEM-BASED W/ DELETION +
+;; -------------------------------------------------
 
 (defclass holophrase->item-based--deletion (duckie-learning-repair)
   ((trigger :initform 'fcg::new-node)))

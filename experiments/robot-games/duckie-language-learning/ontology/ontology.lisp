@@ -1,14 +1,8 @@
 (in-package :duckie-language-learning)
 
-;; Primitives are collected in a primitive inventory
-(def-irl-primitives duckie-primitive-inventory
-  :primitive-inventory *duckie-simulation-primitives*)
-
-(def-irl-primitives duckie-primitive-inventory
-  :primitive-inventory *duckie-world-primitives*)
-
-(def-irl-primitives duckie-primitive-inventory
-  :primitive-inventory *duckie-primitives*)
+;; ------------
+;; + Ontology +
+;; ------------
 
 (defun build-initial-ontology ()
   (let ((colors '(red blue green yellow purple))

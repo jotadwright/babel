@@ -1,7 +1,8 @@
 (in-package :duckie-language-learning)
 
-;;  HOLOPHRASE -> ITEM-BASED W/ ADDITION
-;; --------------------------------------
+;; ------------------------------------------------
+;; + Repair: HOLOPHRASE -> ITEM-BASED W/ ADDITION +
+;; ------------------------------------------------
 
 (defclass holophrase->item-based--addition (duckie-learning-repair)
   ((trigger :initform 'fcg::new-node)))

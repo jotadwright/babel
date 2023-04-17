@@ -1,8 +1,8 @@
 (in-package :duckie-language-learning)
+
 ;; -----------------------------
 ;; + Experiment Configurations +
 ;; -----------------------------
-
 
 ;; Finding the data
 (define-configuration-default-value :meaning-representation :irl)
@@ -28,25 +28,20 @@
 (define-configuration-default-value :category-linking-mode :neighbours)
 (define-configuration-default-value :learning-strategy :optimal-form-coverage) ;or: by-score
 
-
-;; Misc
+;; debug formatting
 (define-configuration-default-value :dot-interval 100)
 (define-configuration-default-value :result-display-interval 100)
 
 ;; --------------
 ;; + Experiment +
 ;; --------------
-
 (defclass duckie-language-learning-experiment (experiment)
   ()
   (:documentation "A duckiebot language learning experiment"))
 
-
-
 ;; --------------
 ;; + Experiment +
 ;; --------------
-
 (defclass duckie-language-learning-simulation-experiment (duckie-language-learning-experiment)
   ()
   (:documentation "A duckiebot language learning experiment in simulation"))
@@ -59,7 +54,6 @@
 ;; --------------
 ;; + Experiment +
 ;; --------------
-
 (defclass duckie-language-learning-world-experiment (duckie-language-learning-experiment)
   ()
   (:documentation "A duckiebot language learning experiment in simulation"))
@@ -69,11 +63,9 @@
   (setf (population experiment)
         (list (make-instance 'duckie-language-learning-world-agent))))
 
-
 ;; ---------------------------
 ;; + Interacting Agents Mode +
 ;; ---------------------------
-
 (defmethod determine-interacting-agents ((experiment duckie-language-learning-experiment)
                                          interaction (mode (eql :hearer-only)) &key)
   (let ((agent (first (population experiment))))

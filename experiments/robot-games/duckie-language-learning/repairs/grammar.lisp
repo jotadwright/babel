@@ -59,7 +59,6 @@
                       &key &allow-other-keys)
   (de-render utterance :de-render-string-meets))
 
-
 (defun remove-quotes+full-stops (utterance)
   (let ((words (split (remove-spurious-spaces utterance) #\space)))
     (loop for word in words
@@ -75,7 +74,6 @@
   (de-render utterance :de-render-string-meets))
 
 (in-package :grammar-learning)
-
 
 (defun empty-cxn-set (experiment)
   (let* ((grammar-name (make-const "duckie-learning-grammar"))
@@ -148,11 +146,9 @@
 ;;;;  COMPETITORS
 ;;;; -------------
 
-
 ;; punish abstract cxns too!
 ;; e.g. what ?X is the ?Y ?Z was not used, but what size is the ?X ?Y was used instead,
 ;; 
-
 (defmethod meaning-competitors-for-cxn-type ((cxn construction)
                                              (cxn-inventory hashed-fcg-construction-set)
                                              (cxn-type (eql 'gl::item-based))
@@ -196,7 +192,6 @@
 
 (defun placeholderp (str)
   (eql (char str 0) #\?))
-
 
 (defun get-meaning-competitors (agent applied-cxns utterance)
   "Get cxns with the same form as cxn"

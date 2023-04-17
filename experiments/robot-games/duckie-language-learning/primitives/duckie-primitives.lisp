@@ -1,5 +1,13 @@
 (in-package :duckie-language-learning)
 
+;; --------------
+;; + Primitives +
+;; --------------
+
+;; Primitives are collected in a primitive inventory
+(def-irl-primitives duckie-primitive-inventory
+  :primitive-inventory *duckie-primitives*)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;; FILTER ;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -181,8 +189,6 @@
    (equal-entity target-category (query-object-attribute source-object attribute *ontology*)))
   :primitive-inventory (*duckie-simulation-primitives* *duckie-world-primitives*))
 
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;; GET-ZONE ;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -199,4 +205,3 @@
   ;;Third case; target-bool known, source-set unknown
   ;;Unnecessary?
   :primitive-inventory (*duckie-simulation-primitives* *duckie-world-primitives*))
-

@@ -1,5 +1,12 @@
 (in-package :duckie-language-learning)
 
+;; ------------------------------------------
+;; + Primitives for a simulated environment +
+;; ------------------------------------------
+
+(def-irl-primitives duckie-primitive-inventory
+  :primitive-inventory *duckie-simulation-primitives*)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;; SCAN-WORLD ;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -13,7 +20,6 @@
   ((world =>)
    (equal-entity world (get-data *ontology* 'world)))
   :primitive-inventory *duckie-simulation-primitives*)
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;; MOVE-TO ;;;;;;;;;;

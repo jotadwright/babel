@@ -1,6 +1,10 @@
 
 (in-package :grammar-learning)
 
+;; ------------------
+;; + Util functions +
+;; ------------------
+
 (defun sort-cxns-by-form-string (cxns-to-sort utterance)
   "sorts lexical cxns by matching their form strings to the utterance. handles duplicate cxns in one utterance."
   ;; warning, this function depends on space separation without further punctuation!
@@ -122,7 +126,6 @@
         when (and (irl:equivalent-irl-programs? form (extract-form-predicates cxn))
                   (irl:equivalent-irl-programs? meaning (extract-meaning-predicates cxn)))
         return cxn))
-
 
 (defun initial-node-p (node)
   "return t if node is initial node"
@@ -267,8 +270,6 @@
     (intern (format nil "?~a" symbol))))
 
 ;; (variablify 'x)
-
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Finding possible alignments for predicate networks and form ;;

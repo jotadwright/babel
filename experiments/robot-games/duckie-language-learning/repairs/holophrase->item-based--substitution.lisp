@@ -1,7 +1,8 @@
 (in-package :duckie-language-learning)
 
-;;  HOLOPRHASE -> ITEM-BASED W/ SUBSTITUTION
-;; ------------------------------------------
+;; -----------------------------------------------------
+;; + Repair:  HOLOPRHASE -> ITEM-BASED W/ SUBSTITUTION +
+;; -----------------------------------------------------
 
 (defclass holophrase->item-based--substitution (duckie-learning-repair)
   ((trigger :initform 'fcg::new-node)))
