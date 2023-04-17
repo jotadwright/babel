@@ -40,17 +40,14 @@
   :primitive-inventory *duckie-world-primitives*)
 
 (defun json-to-world (json)
-  (let ((zones (loop for zone in json
+  (let (#|(zones (loop for zone in json
                      collect (intern (upcase
                                       (replace-char (first (rest zone))
-                                                    #\_ #\-)))))
+                                                    #\_ #\-)))))|#
         (objects (loop for zone in json
                        if (rest (rest zone))
                          collect (json-object-to-object (rest zone)))))
-    (make-instance 'duckie-world
-                   :zones zones
-                   :duckie-car (make-instance 'duckie-car :zone 'zone-1)
-                   :object-set objects)))
+    (make-instance 'object-set :objects objects)))
 
 (defun json-object-to-object (json-object)
   (let* ((object-type
@@ -68,20 +65,20 @@
          (color
           (intern (upcase (rest (assoc :color json-object)))))
          (rfid
-          (parse-integer
-           (rest (assoc :rfid json-object))))
-         (zone
+          (rest (assoc :rfid json-object)))
+         #|(zone
           (intern (upcase
                    (replace-char (first json-object)
-                                 #\_ #\-))))
+                                 #\_ #\-))))|#
          (obj
           (make-instance object-type
                          :color color
                          :rfid rfid
-                         :zone zone)))
+                         ;:zone zone
+                         )))
     (if building-function
       (setf (building-function obj) building-function))
-    object))
+    obj))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;; MOVE-TO ;;;;;;;;;;
