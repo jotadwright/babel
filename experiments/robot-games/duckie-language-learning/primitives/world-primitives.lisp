@@ -4,9 +4,6 @@
 ;; + Primitives for a physical environment +
 ;; -----------------------------------------
 
-(def-irl-primitives duckie-primitive-inventory
-  :primitive-inventory *duckie-world-primitives*)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;; SCAN-WORLD ;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -4,9 +4,6 @@
 ;; + Primitives for a simulated environment +
 ;; ------------------------------------------
 
-(def-irl-primitives duckie-primitive-inventory
-  :primitive-inventory *duckie-simulation-primitives*)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;; SCAN-WORLD ;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

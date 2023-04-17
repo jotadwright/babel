@@ -8,6 +8,14 @@
 (def-irl-primitives duckie-primitive-inventory
   :primitive-inventory *duckie-primitives*)
 
+;; simulation primitives
+(def-irl-primitives duckie-primitive-inventory
+  :primitive-inventory *duckie-simulation-primitives*)
+
+;; physical demo primitives
+(def-irl-primitives duckie-primitive-inventory
+  :primitive-inventory *duckie-world-primitives*)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;; FILTER ;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

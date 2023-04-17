@@ -48,8 +48,8 @@
                                (:file "utils")))
                 (:module primitives
                  :serial t
-                 :components ((:file "simulation-primitives")
-                              (:file "duckie-primitives")
+                 :components ((:file "duckie-primitives")
+                              (:file "simulation-primitives")
                               (:file "world-primitives")))
                 (:module utils
                  :serial t
