@@ -10,7 +10,7 @@
 
 ;;; demo in duckie world
 (defparameter *demo*
-  (make-instance 'duckie-language-learning-experiment))
+  (make-instance 'duckie-language-learning-world-experiment))
 
 (run-interaction *demo*)
 
