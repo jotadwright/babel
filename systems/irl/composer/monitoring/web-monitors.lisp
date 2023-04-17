@@ -1,9 +1,9 @@
 
 (in-package :irl)
 
-;; ============================================================================
-;; match-chunk
-;; ----------------------------------------------------------------------------
+;; ---------------
+;; + match-chunk +
+;; ---------------
 
 (define-event-handler (trace-irl-verbose match-chunk-started)
   (add-element '((hr)))
@@ -13,14 +13,14 @@
 
 (define-event-handler (trace-irl-verbose match-chunk-finished)
   (if matched-chunks
-      (add-element `((p) "matched-chunks: " ((br))
-                     ,@(loop for chunk in matched-chunks
-                          collect (make-html chunk :expand-initially t))))
-      (add-element `((p) ((b) "no results")))))
+    (add-element `((p) "matched-chunks: " ((br))
+                   ,@(loop for chunk in matched-chunks
+                           collect (make-html chunk :expand-initially t))))
+    (add-element `((p) ((b) "no results")))))
 
-;; ============================================================================
-;; chunk-composer
-;; ----------------------------------------------------------------------------
+;; ---------------
+;; + chunk-composer +
+;; ---------------
 
 (defparameter *composer-start-time* nil)
 
@@ -35,7 +35,6 @@
   (when (meaning composer)
     (add-element '((h3) "and partial meaning:"))
     (add-element `((div) ,(irl-program->svg (meaning composer))))))
-
 
 (define-event-handler ((trace-irl trace-irl-verbose)
                        chunk-composer-get-all-solutions-started)
@@ -79,8 +78,8 @@
         ((tr)
          ((td) ,(make-expand/collapse-all-link expand/collapse-all-id "All new nodes:"))
          ((td) ,@(loop for node in nodes
-                    collect (make-html node :draw-as-tree nil
-                                       :expand/collapse-all-id expand/collapse-all-id)))))))))
+                       collect (make-html node :draw-as-tree nil
+                                          :expand/collapse-all-id expand/collapse-all-id)))))))))
 
 (define-event-handler (trace-irl-verbose
                        chunk-composer-next-node)
