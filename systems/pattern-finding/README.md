@@ -23,9 +23,9 @@ This repair covers the holistic->item-based substitution, addition and deletion 
 
 **Questions:**
 
-  - Always learn a construction with a single (possible discontinuous) slot? Or learn a construction with as many slots as there are discontinuous parts? For example, should the `what-?x-is-the-?y-?z-cxn` have one slot (`xyz`) or two slots (`x` and `yz`)? **NO**, how to assign meaning to each slot??
+  - Always learn a construction with a single (possible noncontiguous) slot? Or learn a construction with as many slots as there are noncontiuguous parts? For example, should the `what-?x-is-the-?y-?z-cxn` have one slot (`xyz`) or two slots (`x` and `yz`)? **NO**, how to assign meaning to each slot??
   - Construction like the `the-?y-?x-object-is-what-shape-cxn` can have two adjacent slots because the anti-unification places all `meets` in the generalisation. This entails that there are always exactly two fillers. Would it be beneficial to check for this and remove adjacent slots, such that we immediately learn the `the-?x-object-is-what-shape-cxn` where the `?x` slot can be filled by a variable length filler? Or will this construction be learned later on, e.g. using the item-based->item-based repair? **NO**, this would then also need to be enforced on the meaning side, i.e. decoupling variables as well. How to know which variables??
-  - Now constructions use `form-args`. Switch to `boundaries`? What are the downsides or benefits? Using `boundaries` corresponds to the current progress in form generalisation. 
+  - Now constructions use `form-args`. Switch to `boundaries`? What are the downsides or benefits? Using `boundaries` corresponds to the current progress in form generalisation (Veronica), but `form-args` maybe corresponds better to the noncontiguous nature of the slots now?
 
 ### **3. Holistic Partial Analysis**
 
@@ -33,10 +33,15 @@ Some construction(s) could apply. Anti-unify the observation with the partial an
 
   1. _Obtain the partial analysis._ Run comprehension with categorial links disabled and only constructions from the routine set. Select the cip node which covers as much as possible of the form of the observation. This can be one or more holistic constructions, or an item-based construction with all its slots already filled in, or a combination of these two cases.
   2. _Anti-unify the observation with the partial analysis._ On both the form side and the meaning side, only the anti-unification result with the lowest cost is considered. Here, there is no filter in terms of cost. When anti-unifying the observation with a partial analysis, the pattern delta is empty and the generalisation is identical to the partial analysis. A construction can thus be learned from the source delta. 
-  3. _Learn an item-based construction._ First, units from the transient structure are extracted. The item-based construction will have a slot for every unit in the TS. `form-args` and `meaning-args` are extracted from each unit in the TS and the corresponding variables for the `form-args` and `meaning-args` of the conditional units in the item-based construction are recovered via the bindings lists. The grammatical categories of the slots reflect which placeholders are filled by the slot, e.g. when the partial analysis of `"What color is the large cube?"`consists of the `color-cxn` and the `large-cube-cxn`, the `what-?x-is-the-?y-?z-cxn` will have the `what-?x-is-the-?y-?z-(x)` slot and the `what-?x-is-the-?y-?z-(yz)` slot.
+  3. _Learn an item-based construction._ First, top-level units from the transient structure are extracted. The item-based construction will have a slot for every top-level unit in the TS. `form-args` and `meaning-args` are extracted from each unit in the TS and the corresponding variables for the `form-args` and `meaning-args` of the conditional units in the item-based construction are recovered via the bindings lists. The grammatical categories of the slots reflect which placeholders are filled by the slot, e.g. when the partial analysis of `"What color is the large cube?"`consists of the `color-cxn` and the `large-cube-cxn`, the `what-?x-is-the-?y-?z-cxn` will have the `what-?x-is-the-?y-?z-(x)` slot and the `what-?x-is-the-?y-?z-(yz)` slot.
   4. _Extract categorial links._ The newly created item-based construction and the applied constructions of the partial analysis are added to a sandbox construction inventory and comprehension is ran. From the result, the categorial links are extracted. This is because it is difficult/expensive/impossible to know from the units in the TS which construction(s) created these units and how to make links between these constructions and the slots of the newly created item-based construction.
 
 This repair is identical to the previous version.
+
+**Questions:**
+
+ - On the form side, no need to anti-unify in step 2? Just take whatever is left in the root of the cipn from step 1 and determine the `form-args` by taking the unconnected variables? **However**, can I still translate the `form-args` from the TS to the `form-args` for the item-based cxn?
+ - Why run comprehension again to obtain the partial analysis? Why not trigger the diagnostic in the leaf node? **Because** the comprehension in step 1 is ran without categorial links; this leads to more results than "regular" comprehension.
 
 ### **4. Item-based Partial Analysis**
 
@@ -48,11 +53,12 @@ Some construction(s) could apply. Anti-unify the observation with the partial an
   4. _Learn construction(s) that fill the slot._ The repairs are applied recursively to the form and meaning in the source delta's. The resulting construction(s) will fill the open slot. 
   5. _Extract categorial links._ The newly created construction(s) and the applied constructions of the partial analysis are added to a sandbox construction inventory and comprehension is ran. From the result, the categorial links are extracted. This is because it is difficult/expensive/impossible to know from the units in the TS which construction(s) created these units and how to make links between the slots of constructions and the the newly created construction(s).
 
-This repair extends the previous partial analysis repair in that the remaining meaning should not necessarily be connected and the remaining form should not necessarily be continuous in terms of meets constraints. 
+This repair extends the previous partial analysis repair in that the remaining meaning should not necessarily be connected and the remaining form should not necessarily be contiguous in terms of meets constraints. 
 
 **Questions:**
 
   - Can this repair be generalised further to learn multiple holistic constructions for multiple open slots? The assignment of form and meaning to the slots might happen via the bindings lists of the anti-unification results.
+  - On the form side, no need to anti-unify? Just take whatever is left in the root and determine the form-args by taking the unconnected variables?
 
 ### **5. Item-based -> Item-Based**
 
@@ -80,6 +86,7 @@ Anti-unify the observation with item-based constructions and learn constructions
   - Extend to additions and deletions? See holistic->item-based repair on how to handle empty delta's in the anti-unification results. 
   - Is the computation of the args in step 4 correct? Does it provide args for only the new slot, or does it also include variables for the already existing slots in the item-based constructions that are being anti-unified with each other?
   - Is it necessary to run the holistic partial analysis repair again to obtain the final item-based construction? Or can it be derived from the anti-unification results? Maybe it becomes to difficult to make the units for the slots?
+  - **!!!** This repair should be deleted and the holistic->item-based (with anti-unification) should be generalised to also anti-unify over item-based constructions. It can be renamed to the anti-unification repair and ran after the partial analysis repairs have been tried. To get the same effect as the item-based->item-based repair, also go in the recursion with the item-based part of the partial analysis repairs?
 
 ### **6. Add Categorial Links**
 
