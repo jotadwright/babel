@@ -2,17 +2,16 @@
 (in-package :duckie-language-learning)
 
 (monitors::activate-monitor irl::trace-irl)
-(activate-monitor trace-fcg)
+(monitors::activate-monitor trace-fcg)
 
 ;;;; START DEMO
 (setf *ontology* (build-initial-ontology))
 (add-element (make-html *ontology*))
 
 ;;; demo in duckie world
-(defparameter *demo*
-  (make-instance 'duckie-language-learning-world-experiment))
-
-(run-interaction *demo*)
+;(defparameter *demo*
+;  (make-instance 'duckie-language-learning-world-experiment))
+; (run-interaction *demo*)
 
 ;; demo in simulation
 (defparameter *demo*
@@ -34,10 +33,18 @@
 
 (setf *duckie-agent-car* (make-instance 'duckie-agent-car :zone 'zone-1))
 
+;; duckie-car also in ontology for move-to primitive
 (set-data *ontology* 'world *duckie-world*)
-(set-data *ontology* 'agent-car *duckie-agent-car*) ;; duckie-car also in ontology for move-to primitive
+(set-data *ontology* 'agent-car *duckie-agent-car*)
 
 (run-interaction *demo*)
+
+;; quick reset
+(progn
+  (wi::reset)
+  (defparameter *demo*
+    (make-instance 'duckie-language-learning-simulation-experiment))
+  (run-interaction *demo*))
 
 ;;;;TESTING IRL PROGRAMS
 (evaluate-irl-program '((scan-world ?world)
