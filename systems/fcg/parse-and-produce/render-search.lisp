@@ -32,7 +32,7 @@
 ;; arguments the arguments of the constraint + a list of string constraints. Ensure that the function returns t if the        ;;
 ;; list of string constraints satisfies the ordering constrint, nil otherwise. See below e.g. meets or precedes.              ;;
 ;;                                                                                                                            ;; 
-;; For efficiency reasons, try to to implement the constraint is such a way that it failes soon enougth. For example,         ;;
+;; For efficiency reasons, try to to implement the constraint in such a way that it failes soon enougth. For example,         ;;
 ;; consider (meets ?x ?y). When ?y is found in used-string-constraints and ?x not, the meets function can already safely      ;;
 ;; return nil, as it will never be a solution. No need to wait until both ?x and ?y have been found.                          ;;
 ;;                                                                                                                            ;;
@@ -82,7 +82,7 @@
     (loop while queue
           for current-state = (pop queue)
           for all-new-states = (generate-render-states current-state)
-          for valid-new-states = (test-render-states all-new-states)
+          for valid-new-states = (test-render-states all-new-states :ordering-constraints)
           if (find nil valid-new-states :key #'remaining-string-constraints)
           return (render (find nil valid-new-states :key #'remaining-string-constraints) :generate-and-test)
           else
@@ -96,22 +96,22 @@
 (defun generate-render-states (current-state)
   "Generates new render states adding an extra string constraint to used-string-constraints"
   (loop for rsc in (remaining-string-constraints current-state)
-                                 collect (make-instance 'render-state
-                                                        :used-string-constraints
-                                                        (append (used-string-constraints current-state) (list rsc))
-                                                        :remaining-string-constraints
-                                                        (remove rsc (remaining-string-constraints current-state) :test #'equal)
-                                                        :ordering-constraints
-                                                        (ordering-constraints current-state))))
+        collect (make-instance 'render-state
+                               :used-string-constraints
+                               (append (used-string-constraints current-state) (list rsc))
+                               :remaining-string-constraints
+                               (remove rsc (remaining-string-constraints current-state) :test #'equal)
+                               :ordering-constraints
+                               (ordering-constraints current-state))))
 
 
-(defun test-render-states (list-of-states)
+(defmethod test-render-states (list-of-states (mode (eql :ordering-constraints)))
   "Tests each state in list-of-states and returns a list of states that passed the test"
   (loop for state in list-of-states
-        when (test-render-state state)
+        when (test-render-state state mode)
         collect state))
 
-(defun test-render-state (state)
+(defmethod test-render-state (state (mode (eql :ordering-constraints)))
   "Tests the used-string-constraints of a state against the ordering-constraints and returns t if it passes"
   (let ((used-string-constraints (used-string-constraints state))
         (ordering-constraints (ordering-constraints state)))
@@ -191,3 +191,52 @@ string constraint with the variable ?Y."
 ;; (first-el '?cube-1  '((string ?the-1"the") (string ?red-1 "red") (string ?cube-1 "cube")))
 
 
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Render sequences                                                   ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod render ((cfs coupled-feature-structure) (mode (eql :render-sequences)) &key &allow-other-keys)
+  (render (extract-forms (left-pole-structure cfs)) :render-sequences))
+
+(defmethod render ((form-constraints list) (mode (eql :render-sequences)) &key &allow-other-keys)
+  "Returns a string satisfying the list-of-form-constraints"
+  (let* ((sequence-constraints (remove-if-not #'stringp form-constraints :key #'second))
+         (queue (list (make-instance 'render-state
+                                     :used-string-constraints nil
+                                     :remaining-string-constraints (shuffle sequence-constraints)))))
+    (loop while queue
+          for current-state = (pop queue)
+          for all-new-states = (generate-render-states current-state)
+          for valid-new-states = (test-render-states all-new-states :order-sequences)
+          if (find nil valid-new-states :key #'remaining-string-constraints)
+          return (render (find nil valid-new-states :key #'remaining-string-constraints) :render-sequences)
+          else
+          do
+          (setf queue (append valid-new-states queue)))))
+
+
+(defmethod test-render-states (list-of-states (mode (eql :order-sequences)))
+  "Tests each state in list-of-states and returns a list of states that passed the test"
+  (loop for state in list-of-states
+        when (test-render-state state mode)
+        collect state))
+
+(defmethod test-render-state (state (mode (eql :order-sequences)))
+  "Test whether render state does not contain an illegal chain of sequences"
+  (loop with solution = t
+        for sequence-predicate in (used-string-constraints state)
+        for left-1 = (third sequence-predicate)
+        for i from 1
+        for remaining-constraints = (subseq (used-string-constraints state) i)
+        do (loop for next-sequence-predicate in remaining-constraints
+                 for right-2 = (fourth next-sequence-predicate)
+                 when (eql right-2 left-1) ;; sequence chain interrupted
+                   do (setf solution nil))
+        finally (return solution)))
+
+
+(defmethod render ((state render-state) (mode (eql :render-sequences)) &key &allow-other-keys)
+  "Returns the list of strings represented in a render-state"
+  (mapcar #'second (used-string-constraints state)))

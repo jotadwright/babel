@@ -177,7 +177,8 @@
                   (dependents sequence)
                   (boundaries sequence)
                   (footprints set))
-  :fcg-configurations ((:de-render-mode . :de-render-sequence))
+  :fcg-configurations ((:de-render-mode . :de-render-sequence)
+                       (:render-mode . :render-sequences))
   :hierarchy-features (constituents dependents)
   
   ;; Lexical constructions
@@ -318,4 +319,4 @@
                              (sequence " " ?vp-right ?object-np-left)))))))
 
 
-;(comprehend-and-formulate "the linguist likes the mouse" :cxn-inventory *fcg-constructions-sequences*)
+;(comprehend-and-formulate "the linguist" :cxn-inventory *fcg-constructions-sequences*)
