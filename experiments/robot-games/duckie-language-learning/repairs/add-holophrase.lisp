@@ -79,11 +79,13 @@
   "Handle fix for the add-holophrase repair. Apply the holophrase
    to the initial node and add it to the cxn inventory."
   (push fix (fixes problem))
-  (with-disabled-monitor-notifications
-    (let* ((holophrase-cxn (restart-data fix))
-           (new-nodes
-            (apply-sequentially (gl::initial-node node)
-                                (list holophrase-cxn) node)))
+  
+  (let* ((holophrase-cxn (restart-data fix))
+         (form-constraints (gl::form-constraints-with-variables
+                            (cipn-utterance node)
+                            (get-configuration (original-cxn-set (construction-inventory node)) :de-render-mode))))
+    (let ((new-nodes (with-disabled-monitor-notifications (apply-sequentially (gl::initial-node node)
+                                                                              (list holophrase-cxn) node))))
       (set-data (car-resulting-cfs (cipn-car (first new-nodes)))
                 :fix-cxns (list holophrase-cxn))
       (setf (cxn-supplier (first new-nodes)) (cxn-supplier node))
@@ -92,6 +94,8 @@
       (set-data (gl::initial-node node) :some-repair-applied t)
       (loop for node in new-nodes
             do (push (type-of repair) (statuses node))
-            (push 'fcg::added-by-repair (statuses node)))
+               (push 'fcg::added-by-repair (statuses node)))
+      (notify fix-applied 'nothing->holistic form-constraints (list holophrase-cxn))
+      ; fix-applied (repair-name symbol) (form list) (learned-cxns list))
       (cip-enqueue (first new-nodes) (cip node)
                    (get-configuration node :queue-mode)))))

@@ -86,8 +86,8 @@
 
 (defun composer-solutions->html (solutions)
   (add-element
-   (html-hide-rest-of-long-list
-    solutions 3
-    #'(lambda (result)
-        `((div :class "cer-float")
-          ,(make-html result))))))
+   `((div :style "margin-left: 45px;") ,@(html-hide-rest-of-long-list
+                                          solutions 3
+                                          #'(lambda (result)
+                                              `((div :class "cer-float")
+                                                ,(make-html result)))))))
