@@ -23,7 +23,7 @@
                              (:file "interaction")))
                (:module utils
                 :serial t
-                :components (;(:file "web-monitors")
+                :components ((:file "web-monitors")
                              (:file "fcg-utils")
                              (:file "utils")))
                (:module irpf
