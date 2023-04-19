@@ -34,11 +34,11 @@
 (define-event-handler ((trace-irl trace-irl-verbose)
                        chunk-composer-configuration)
   (setf *composer-start-time* (get-universal-time))
-  (add-element `((p :style "margin-left: 45px;") ,(make-html composer)))
-  (add-element `((p :style "margin-left: 45px;") ,(make-html (ontology composer))))
+  (add-element `((div :class "indent-irpf") ,(make-html composer)))
+  (add-element `((div :class "indent-irpf") ,(make-html (ontology composer))))
   (when (meaning composer)
     (add-element '((h3) "Using partial meaning:"))
-    (add-element `((div :style "margin-left: 45px;") ,(irl-program->svg (meaning composer))))))
+    (add-element `((div :class "indent-irpf") ,(irl-program->svg (meaning composer))))))
 
 (define-event-handler ((trace-irl trace-irl-verbose)
                        chunk-composer-get-next-solutions-started)
@@ -105,7 +105,7 @@
     (add-element (make-html-for-composition-process composer))
     (add-element '((h3) "Composer queue:"))
     (add-element 
-     `((p :style "margin-left: 45px;") 
+     `((div :class "indent-irpf") 
        ,@(html-hide-rest-of-long-list (queue composer)
                                       3
                                       #'(lambda (n)
@@ -115,7 +115,7 @@
         (add-element `((h3) ,(format nil "Found ~a solutions:"
                                      (length solutions))))
         (composer-solutions->html solutions)
-        (add-element '((h2 :style "color:#040;") "There is an opportunity to learn!"))
+        (add-element '((h2 :style "color:#040;") "A meaning hypothesis has been found!"))
         )
       (add-element '((h3) "No solutions found.")))
     (when (and (solutions composer)

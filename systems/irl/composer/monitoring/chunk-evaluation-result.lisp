@@ -86,7 +86,7 @@
 
 (defun composer-solutions->html (solutions)
   (add-element
-   `((div :style "margin-left: 45px;") ,@(html-hide-rest-of-long-list
+   `((div :class "indent-irpf") ,@(html-hide-rest-of-long-list
                                           solutions 3
                                           #'(lambda (result)
                                               `((div :class "cer-float")

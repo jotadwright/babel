@@ -17,7 +17,7 @@
       ((h3) ((a ,@(make-expand/collapse-link-parameters
                    element-id t "composition process"))
              "Composition process"))
-      ((p :style "margin-left: 45px;") ((div :style "margin-top:-7px")
+      ((div :class "indent-irpf") ((div :style "margin-top:-7px")
                                         ,(make-html (top composer) :expand-initially nil
                                                     :solutions solutions))))))
 
@@ -29,7 +29,7 @@
       ((h3) ((a ,@(make-expand/collapse-link-parameters
                    element-id nil "composition process"))
              "Composition process"))
-      ((p :style "margin-left: 45px;") ((div :style "margin-top:-7px")
+      ((div :class "indent-irpf") ((div :style "margin-top:-7px")
                                         ,(make-html (top composer) :expand-initially t
                                                     :solutions solutions))))))
   

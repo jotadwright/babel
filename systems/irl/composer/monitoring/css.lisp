@@ -218,3 +218,5 @@ table.chunk-composer td.chunk-composer-details div.chunk-composer-detail:first-c
 	border-top: none;
 }
 ")
+
+(define-css 'indent-irpf "div.indent-irpf { margin-left: 45px; }")

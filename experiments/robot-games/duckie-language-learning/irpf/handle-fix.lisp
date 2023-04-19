@@ -36,7 +36,7 @@
                                repair-name
                                (render form :render-string-meets)
                                (mapcar #'(lambda (cxn) (name cxn)) learned-cxns))))
-  (add-element `((div :style "margin-left: 45px")
+  (add-element `((div :class "indent-irpf")
                  ,@(html-hide-rest-of-long-list 
                     learned-cxns 5
                     #'(lambda (construction) 
@@ -46,7 +46,7 @@
   (if new-links
     (progn
       (add-element '((h3) "New links are added to the type hierarchy:"))
-      (add-element `((div :style "margin-left: 45px") ,(s-dot->svg (new-th-links->s-dot th new-links))))))
+      (add-element `((div :class "indent-irpf") ,(s-dot->svg (new-th-links->s-dot th new-links))))))
   (add-element '((hr :style "border-top: 3px dashed #E65C00;background-color:#fff"))))
 
 (define-event-handler (trace-fcg fix-applied)
