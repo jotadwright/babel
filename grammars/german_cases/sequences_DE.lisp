@@ -17,7 +17,7 @@
                   (case sequence))
   :fcg-configurations ((:max-nr-of-nodes . 40000)
                        (:de-render-mode . :de-render-sequence)
-          
+                       (:render-mode . :render-sequences)
                        (:parse-goal-tests :no-applicable-cxns :no-strings-in-root :connected-semantic-network :connected-structure)
                        ;; to activate heuristic search
                        (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
@@ -123,7 +123,7 @@
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;;                                           ;;;;
-  ;;;; PREPOSITIONS CONSTRUCTIONS ;;;;
+  ;;;; PREPOSITIONS CONSTRUCTIONS                ;;;;
   ;;;;                                           ;;;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -154,57 +154,61 @@
                (footprints (not article))
                (syn-cat (lex-class contracted-preposition)
                         (type contracted)
-                        (polarity pos)
+                        (locative motion)
                         (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
                                (- - - - -)        ;masc, fem, neut, plural
                                (- - - - -)    ;genitive feminine
                                (+ - ?df - -)
                                (+ - ?df - -))))
                --
-               (HASH form ((sequence "zur" ?left ?right))))))
+               (HASH form ((sequence "zur" ?left ?right)))))
+              :disable-automatic-footprints t)
+
 
 (def-fcg-cxn zum-cxn
-             ((?to-word
+             ((?to-the-word
               (footprints (article))
               (sequences ((sequence "zum" ?left ?right))))
               <-
-              (?to-word
+              (?to-the-word
                (footprints (not article))
                (syn-cat (lex-class contracted-preposition) 
                         (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
                                (- - - - -)        ;masc, fem, neut, plural
                                (- - - - -)    ;genitive feminine
                                (+ ?dm - ?dn -)
-                               (+ ?dm - ?dn -))))
+                               (+ ?dm - ?dn -)))
+                        (type contracted)
+                        (locative motion))
                --
                (HASH form ((sequence "zum" ?left ?right)))))
              :disable-automatic-footprints t)
 
 
 (def-fcg-cxn beim-cxn
-             ((?at-word
+             ((?at-the-word
               (footprints (article))
               (sequences ((sequence "beim" ?left ?right))))
               <-
-              (?at-word
+              (?at-the-word
                (footprints (not article))
                (syn-cat (lex-class contracted-preposition) 
                         (case ((- - - - -)    ;nom, acc, gen, dat  (nom masculine)
                                (- - - - -)        ;masc, fem, neut, plural
                                (- - - - -)    ;genitive feminine
                                (+ ?dm - ?dn -)
-                               (+ ?dm - ?dn -))))
+                               (+ ?dm - ?dn -)))
+                        (type contracted)
+                        (locative static))
                --
-               (HASH form ((sequence "beim" ?left ?right))))))
-
-
+               (HASH form ((sequence "beim" ?left ?right)))))
+              :disable-automatic-footprints t)
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;;                                           ;;;;
-  ;;;; LEXICAL CONSTRUCTIONS ;;;;
+  ;;;; LEXICAL CONSTRUCTIONS                     ;;;;
   ;;;;                                           ;;;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 
 (def-fcg-cxn Doktor-cxn
@@ -367,15 +371,11 @@
                --
                (HASH form ((sequence "Blumen" ?left ?right))))))
 
-
-
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;;                                           ;;;;
-  ;;;; VERBS CONSTRUCTIONS ;;;;
+  ;;;; VERBS CONSTRUCTIONS                       ;;;;
   ;;;;                                           ;;;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
 
 (def-fcg-cxn schenkt-cxn
              ((?gift-word                         
@@ -492,7 +492,7 @@
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;;                                           ;;;;
-  ;;;; PHRASEAL CONSTRUCTIONS ;;;;
+  ;;;; PHRASEAL CONSTRUCTIONS                    ;;;;
   ;;;;                                           ;;;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -555,10 +555,8 @@
                (part-of-prep-phrase +))
               
               (?article
-               (referent ?x)
-               ;(part-of-noun-phrase +))
-               )
-
+               (referent ?x))
+              
               (?noun
                (footprints (determined)))
               <-
@@ -608,16 +606,14 @@
               ))
               :disable-automatic-footprints t)
 
-(comprehend "mit dem Hund")
-
-(comprehend "zur Arbeit")
 
 (def-fcg-cxn contracted-prep-phrase-cxn
              ((?contracted-prep-phrase
                (referent ?x)
                (syn-cat (lex-class prep-phrase)
                         (case ?case)
-                        (type contracted))
+                        (type contracted)
+                        (locative ?locative))
                (sem-cat (animacy ?animacy))
                (subunits (?contracted-prep ?noun))
                (boundaries (?contr-prep-left ?noun-right)))
@@ -632,15 +628,16 @@
               (?contracted-prep
                --
                (syn-cat (lex-class contracted-preposition)
-                        (case ?case))
+                        (type contracted)
+                        (case ?case)
+                        (locative ?locative))
                (sequences ((sequence ?contr-prep-string ?contr-prep-left ?contr-prep-right))))
               
               (?noun
                (footprints (not determined))
                (referent ?x)
                (syn-cat (lex-class noun)
-                        (case ?case)
-                        )
+                        (case ?case))
                (sem-cat (animacy ?animacy))
                --
                (footprints (not determined))
@@ -654,10 +651,9 @@
              :disable-automatic-footprints t)
 
 
-
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;;                                           ;;;;
-  ;;;; ARG AND INF CONSTRUCTIONS ;;;;
+  ;;;; ARG AND INF CONSTRUCTIONS                 ;;;;
   ;;;;                                           ;;;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -718,7 +714,8 @@
               (?transitive-argument-structure-unit
                (HASH meaning ((:arg0 ?v ?arg0)
                               (:arg1 ?v ?arg1)))                  
-               --)))
+               --
+               )))
 
 (def-fcg-cxn topic-arg0-arg1-information-structure-cxn
              (
@@ -851,7 +848,9 @@
                       (?acc ?am ?af ?an ?ap)         
                       (- - - - -)         
                       (?dat ?dm ?df ?dn ?dp)
-                      (?ls ?m ?f ?n ?lp))))
+                      (?ls ?m ?f ?n ?lp)))
+                   (type contracted)
+                   (locative motion))
                (referent ?arg4)
                 --
               (syn-cat (lex-class prep-phrase)
@@ -865,7 +864,8 @@
               (?intransitive-argument-structure-unit
                (HASH meaning ((:arg0 ?v ?arg0)
                               (:arg4 ?v ?arg4)))                  
-               --)))
+               --
+               )))
 
 
 
@@ -905,7 +905,8 @@
               (boundaries (?leftmost-agent-unit ?rightmost-agent-unit)))
               
               (?location-unit
-               (syn-cat (syn-role locative-complement))
+               (syn-cat (syn-role locative-complement)
+                        (locative ?locative))
                (boundaries (?leftmost-loc-unit ?rightmost-loc-unit))
                 --
               
@@ -1042,7 +1043,8 @@
                (HASH meaning ((:arg0 ?v ?arg0)
                               (:arg1 ?v ?arg1)
                               (:arg2 ?v ?arg2)))                  
-               --)))
+               --
+               )))
 
 
 (def-fcg-cxn topic-arg0-arg1-arg2-information-structure-cxn
@@ -1096,8 +1098,6 @@
               
               (syn-cat (syn-role indirect-object))
               (boundaries  (?leftmost-receiver-unit ?rightmost-receiver-unit)))))
-
-
 
 (def-fcg-cxn intransitive-extra-argument-arg1-structure-cxn
              ((?intransitive-extra-argument-arg1-structure-unit
@@ -1154,7 +1154,8 @@
                           (- - - - -)         
                           (?dat ?dm ?df ?dn ?dp)
                           (?ls ?dm ?df ?dn ?lp)))
-                   (type contracted))
+                   (type contracted)
+                   (locative motion))
                (referent ?arg1)
                 --
               (syn-cat (lex-class prep-phrase)
@@ -1162,8 +1163,7 @@
                               (- - - - -)         
                               (- - - - -)         
                               (?dat ?dm ?df ?dn ?dp)
-                              (?ls ?m ?f ?n ?lp)))
-                        (type contracted))
+                              (?ls ?m ?f ?n ?lp))))
               (referent ?arg1))
               
               (?intransitive-extra-argument-arg1-structure-unit
@@ -1225,8 +1225,7 @@
               (syn-cat (syn-role locative-complement)
                        (lex-class prep-phrase)
                        (type contracted))
-              (boundaries (?leftmost-location-unit ?rightmost-location-unit)))
-              ))
+              (boundaries (?leftmost-location-unit ?rightmost-location-unit)))))
 
 
 ;;verb in perfect with locative movement (arg4) der Mann ist zum Kino gefahren
@@ -1274,8 +1273,7 @@
                 --
               (syn-cat (syn-role locative-complement)
                        (lex-class prep-phrase))
-              (boundaries (?leftmost-location-unit ?rightmost-location-unit)))
-              ))
+              (boundaries (?leftmost-location-unit ?rightmost-location-unit)))))
 
 ;locative-copula verbs "die Frau ist beim Doktor"
 
@@ -1313,14 +1311,15 @@
                                (?as ?nm ?nf ?nn ?np))))
               (referent ?arg1))
               
-         
               (?location-unit
                (syn-cat (lex-class prep-phrase)
                    (case ((- - - - -) 
                       (?acc ?am ?af ?an ?ap)         
                       (- - - - -)         
                       (?dat ?dm ?df ?dn ?dp)
-                      (?ls ?m ?f ?n ?lp))))
+                      (?ls ?m ?f ?n ?lp)))
+                   (type contracted)
+                   (locative static))
                (referent ?arg2)
                 --
               (syn-cat (lex-class prep-phrase)
@@ -1345,8 +1344,8 @@
                (HASH meaning ((topicalized ?arg1 +)))  
                           
                --
-               (HASH form ((sequence " "  ?rightmost-agent-unit ?verb-left)
-                           (sequence " "  ?verb-right ?leftmost-location-unit)))
+               (HASH form ((sequence " " ?rightmost-agent-unit ?verb-left)
+                           (sequence " " ?verb-right ?leftmost-location-unit)))
                (subunits (?verb-unit ?agent-unit ?location-unit)))
               
               (?verb-unit
@@ -1362,26 +1361,22 @@
               (?agent-unit
                (referent ?arg1)
                (syn-cat (syn-role subject))
-               (boundaries (leftmost-unit ?leftmost-agent-unit)
-                          (rightmost-unit ?rightmost-agent-unit))
+               (boundaries (?leftmost-agent-unit ?rightmost-agent-unit))
                 --
               (referent ?arg1)
               (syn-cat (syn-role subject))
-              (boundaries (leftmost-unit ?leftmost-agent-unit)
-                          (rightmost-unit ?rightmost-agent-unit)))
+              (boundaries (?leftmost-agent-unit ?rightmost-agent-unit)))
               
               (?location-unit
                (syn-cat (syn-role locative-complement)
                         (lex-class prep-phrase))
-               (boundaries (leftmost-unit ?leftmost-location-unit)
-                          (rightmost-unit ?rightmost-location-unit))
+               (boundaries (?leftmost-location-unit ?rightmost-location-unit))
                 --
               
               (syn-cat (syn-role locative-complement)
                        (lex-class prep-phrase))
-              (boundaries (leftmost-unit ?leftmost-location-unit)
-                          (rightmost-unit ?rightmost-location-unit)))
-              ))
+              (boundaries (?leftmost-location-unit ?rightmost-location-unit)))))
+
 
 (def-fcg-cxn arg1-topic-arg2-information-structure-cxn
              (
@@ -1407,52 +1402,43 @@
               
               (?agent-unit
                (syn-cat (syn-role subject))
-               (boundaries (leftmost-unit ?leftmost-agent-unit)
-                          (rightmost-unit ?rightmost-agent-unit))
+               (boundaries (?leftmost-agent-unit ?rightmost-agent-unit))
                 --
               
               (syn-cat (syn-role subject))
-              (boundaries (leftmost-unit ?leftmost-agent-unit)
-                          (rightmost-unit ?rightmost-agent-unit)))
+              (boundaries (?leftmost-agent-unit ?rightmost-agent-unit)))
               
               (?location-unit
                (referent ?arg2)
                (syn-cat (syn-role locative-complement)
                         (lex-class prep-phrase))
-               (boundaries (leftmost-unit ?leftmost-location-unit)
-                          (rightmost-unit ?rightmost-location-unit))
+               (boundaries (?leftmost-location-unit ?rightmost-location-unit))
                 --
               (referent ?arg2)
               (syn-cat (syn-role locative-complement)
                        (lex-class prep-phrase))
-              (boundaries (leftmost-unit ?leftmost-location-unit)
-                          (rightmost-unit ?rightmost-location-unit)))
-              ))
+              (boundaries (?leftmost-location-unit ?rightmost-location-unit)))))
 
 
+;(comprehend-and-formulate "die Frau sucht den Hund")
+;(comprehend-and-formulate "der Mann sucht den Hund")
+;(comprehend-and-formulate "den Mann sucht der Hund")
 
+;(comprehend-and-formulate "der Mann geht zum Doktor")
+;(comprehend-and-formulate "zum Kino geht die Frau")
+;(comprehend-and-formulate "die Frau geht zum Kino")
 
-
-;(comprehend "die Frau sucht den Hund")
-;(comprehend "der Mann sucht den Hund")
-;(comprehend "den Mann sucht der Hund")
-
-
-;(comprehend "der Mann geht zum Doktor")
-;(comprehend "zum Kino geht die Frau")
-;(comprehend "die Frau geht zum Kino")
-
-;(comprehend "die Frau schenkt dem Mann die Blumen")
-;(comprehend "die Frau gibt dem Mann den Apfel")
-
+;(comprehend-and-formulate "die Frau schenkt dem Mann die Blumen")
+;(comprehend-and-formulate "die Frau gibt dem Mann den Apfel")
 
 ;(comprehend "der Mann fährt mit dem Fahrrad zur Arbeit")
 
-
 ;(comprehend "der Mann ist zum Kino gefahren")
 
-;(comprehend "die Frau ist beim Doktor")
+;(comprehend-and-formulate "die Frau ist beim Doktor")
 ;(comprehend "beim Doktor ist die Frau")
+;(comprehend-and-formulate "die Frau ist beim Doktor")
 
 
-(formulate '((FCG::DOCTOR #:?D-1553) (FCG::WOMAN #:?W-1337) (:ARG1 #:?S-4024 #:?W-1337) (:ARG2 #:?S-4024 #:?D-1553) (FCG::SEIN-01 #:?S-4024)))
+
+
