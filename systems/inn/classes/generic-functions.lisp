@@ -13,6 +13,7 @@
 ;; limitations under the License.
 ;;=========================================================================
 
+
 (in-package :inn)
 
 ;; ---------------------------------------------------------------------------------
@@ -144,4 +145,24 @@
           do (inn-add-edge art-network question-node-id target-id)))))
 
 ;(inn-add-narrative-question-and-answer "Why?" "Commissioned by?" '("Unknown") :kb-wikidata)
+
+
+;; open from csv
+;;----------------------
+
+; error: when evaluating the function, it says that relative-csv-path is not a string or path name - how can I say that it's a path name? 
+
+; (ql:quickload "cl-csv")
+
+;(defun inn-open-csv-and-add-inn-image-to-node (relative-csv-path node-label narrative-question)
+;  (let* ((csv-table (cl-csv:read-csv #Prelative-csv-path))
+;         (artwork-list (loop for line in csv-table collect (make-inn-image   :type :inn-image
+;                          :label (second line)
+;                          :description (second line)
+;                          :url (third line)))))
+;    (inn-add-narrative-question-and-answer node-label narrative-question artwork-list)))
+
+
+; query-art-same-subj-movement.csv "../LottoProject/query-art-same-subj-movement.csv"
+;(inn-open-csv-and-add-inn-image-to-node "../LottoProject/query-art-same-subj-movement.csv" "Subject?" "Artworks of the same movement with the same subject?")
 

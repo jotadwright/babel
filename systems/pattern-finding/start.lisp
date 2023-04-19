@@ -19,6 +19,13 @@
 ;;;; fcg-construction vs construction; construction-inventory vs fcg-construction-set;
 ;;;; units vs units??
 
+;;;; Merge the holistic->item-based and item-based->item-based repairs.
+;;;; This can become a general anti-unification repair.
+
+;;;; To get the same effect as the item-based->item-based repair,
+;;;; apply the repairs recursively to the generalisation part in
+;;;; the partial analysis repair.
+
 
 (progn
   (wi::reset)

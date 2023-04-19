@@ -43,9 +43,11 @@
             (setf exclusion-list (remove-duplicates exclusion-list))
             (let ((result nil))
               (if (equal (depth parent) 0)
-                (setf result (select-compose-alt composer parent answer :sort-table sort-table :star-shortcut star-shortcut))
+                (setf result (select-compose composer parent answer :sort-table sort-table :star-shortcut star-shortcut))
                 (setf result (condition-compose composer parent answer exclusion-list :exclude-id exclude-constraint)))
-              (if result
+              (if (and result all-queries)
+                (setf (queries composer) (append (queries composer result))))
+              (if (and result (not all-queries))
                 (return-from compose-query result))))
     (queries composer)))
 

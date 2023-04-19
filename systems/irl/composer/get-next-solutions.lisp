@@ -4,6 +4,8 @@
 ;; composer search
 ;; -----------------------------------------
 
+(define-event chunk-composer-configuration
+  (composer chunk-composer))
 (define-event chunk-composer-get-next-solutions-started
   (composer chunk-composer))
 (define-event chunk-composer-get-all-solutions-started
@@ -37,7 +39,9 @@
                  
 
 (defun get-next-solutions (composer &key silent)
-  (unless silent (notify chunk-composer-get-next-solutions-started composer))
+  (unless silent
+    (notify chunk-composer-configuration composer)
+    (notify chunk-composer-get-next-solutions-started composer))
   (when (queue composer)
     (loop
      with queue-mode = (get-configuration composer :queue-mode)
@@ -80,6 +84,7 @@
 
 (defun get-all-solutions (composer &key silent)
   (unless silent
+    (notify chunk-composer-configuration composer)
     (notify chunk-composer-get-all-solutions-started composer))
   (loop while (queue composer)
         do (get-next-solutions composer :silent silent))
@@ -89,6 +94,7 @@
 (defun get-solutions-until (composer &key (stop-criteria #'identity)
                                      silent)
   (unless silent
+    (notify chunk-composer-configuration composer)
     (notify chunk-composer-get-solutions-until-started composer))
   (sort
    (loop while (and (queue composer)

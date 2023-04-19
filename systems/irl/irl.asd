@@ -43,7 +43,11 @@
                  (:file "get-next-solutions")
                  (:module monitoring
                   :serial t
-                  :components ((:file "html")
+                  :components ((:file "chunk-composer-node")
+                               (:file "chunk-composer")
+                               (:file "chunk-evaluation-result")
+                               (:file "css")
+                               (:file "html")
                                (:file "web-monitors")))))
    (:module tests
     :serial t
