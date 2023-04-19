@@ -1,6 +1,11 @@
+;; April 2023, Veronica Schmalz 
+;; German grammar based on sequences of chars instead of words ( after introduction of form as set of sequence predicates)
+
+
 (ql:quickload :fcg)
 (in-package :fcg)
 (activate-monitor trace-fcg)
+
 
 (def-fcg-constructions german-case-grammar
   :feature-types ((args sequence)
@@ -29,6 +34,16 @@
                        (:production-goal-tests
                         :no-applicable-cxns :connected-structure
                         :no-meaning-in-root)))
+
+
+
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;;                                           ;;;;
+  ;;;; DETERMINERS CONSTRUCTIONS ;;;;
+  ;;;;                                           ;;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 
 (def-fcg-cxn die-cxn
@@ -105,6 +120,14 @@
                (HASH form ((sequence "dem" ?left ?right)))))
              :disable-automatic-footprints t)
 
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;;                                           ;;;;
+  ;;;; PREPOSITIONS CONSTRUCTIONS ;;;;
+  ;;;;                                           ;;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 (def-fcg-cxn mit-cxn
              ((?with-word
                (footprints (preposition))
@@ -175,6 +198,15 @@
                (HASH form ((sequence "beim" ?left ?right))))))
 
 
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;;                                           ;;;;
+  ;;;; LEXICAL CONSTRUCTIONS ;;;;
+  ;;;;                                           ;;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
 (def-fcg-cxn Doktor-cxn
              ((?doctor-word
                (referent ?d)
@@ -209,6 +241,24 @@
                (HASH meaning ((dog ?d)))                     
                --
                (HASH form ((sequence "Hund" ?left ?right))))))
+
+
+(def-fcg-cxn Apfel-cxn
+             ((?apple-word
+               (referent ?a)
+               (sequences ((sequence "Apfel" ?left ?right)))
+               (syn-cat (lex-class noun)         
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -))))
+               (sem-cat (animacy inanimate)))
+              <-
+              (?apple-word
+               (HASH meaning ((apple ?a)))                     
+               --
+               (HASH form ((sequence "Apfel" ?left ?right))))))
 
 
 (def-fcg-cxn Kino-cxn
@@ -318,6 +368,15 @@
                (HASH form ((sequence "Blumen" ?left ?right))))))
 
 
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;;                                           ;;;;
+  ;;;; VERBS CONSTRUCTIONS ;;;;
+  ;;;;                                           ;;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
 (def-fcg-cxn schenkt-cxn
              ((?gift-word                         
                (syn-cat (lex-class verb)
@@ -331,6 +390,22 @@
                (HASH meaning ((schenken-01 ?g)))                   
                --
                (HASH form ((sequence "schenkt" ?verb-left ?verb-right))))))
+
+
+(def-fcg-cxn gibt-cxn
+             ((?give-word                         
+               (syn-cat (lex-class verb)
+                        (aspect non-perfect)
+                        (type ditransitive))
+               (boundaries (?verb-left ?verb-right))
+               (referent ?g))  
+                        
+              <-
+              (?give-word                           
+               (HASH meaning ((geben-01 ?g)))                   
+               --
+               (HASH form ((sequence "gibt" ?verb-left ?verb-right))))))
+
 
 (def-fcg-cxn ist-gefahren-cxn
              ((?drove-word
@@ -412,6 +487,15 @@
                (HASH meaning ((sein-01 ?s)))                   
                --
                (HASH form ((sequence "ist" ?verb-left ?verb-right))))))
+
+
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;;                                           ;;;;
+  ;;;; PHRASEAL CONSTRUCTIONS ;;;;
+  ;;;;                                           ;;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 
 (def-fcg-cxn noun-phrase-cxn
@@ -568,6 +652,15 @@
                (HASH form ((sequence " " ?contr-prep-right ?noun-left)))
               ))
              :disable-automatic-footprints t)
+
+
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;;                                           ;;;;
+  ;;;; ARG AND INF CONSTRUCTIONS ;;;;
+  ;;;;                                           ;;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 (def-fcg-cxn transitive-argument-structure-cxn                 
              ((?transitive-argument-structure-unit
@@ -1005,6 +1098,7 @@
               (boundaries  (?leftmost-receiver-unit ?rightmost-receiver-unit)))))
 
 
+
 (def-fcg-cxn intransitive-extra-argument-arg1-structure-cxn
              ((?intransitive-extra-argument-arg1-structure-unit
               (subunits (?verb-unit ?agent-unit ?extra-info-unit ?location-unit)))
@@ -1135,7 +1229,7 @@
               ))
 
 
-;verb in perfect with locative movement (arg4) der Mann ist zum Kino gefahren
+;;verb in perfect with locative movement (arg4) der Mann ist zum Kino gefahren
 
 (def-fcg-cxn topic-arg0-arg4-perfect-information-structure-cxn
              (
@@ -1349,11 +1443,16 @@
 ;(comprehend "die Frau geht zum Kino")
 
 ;(comprehend "die Frau schenkt dem Mann die Blumen")
+;(comprehend "die Frau gibt dem Mann den Apfel")
+
 
 ;(comprehend "der Mann fährt mit dem Fahrrad zur Arbeit")
+
 
 ;(comprehend "der Mann ist zum Kino gefahren")
 
 ;(comprehend "die Frau ist beim Doktor")
 ;(comprehend "beim Doktor ist die Frau")
 
+
+(formulate '((FCG::DOCTOR #:?D-1553) (FCG::WOMAN #:?W-1337) (:ARG1 #:?S-4024 #:?W-1337) (:ARG2 #:?S-4024 #:?D-1553) (FCG::SEIN-01 #:?S-4024)))
