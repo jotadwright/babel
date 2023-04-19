@@ -85,4 +85,10 @@
                (push 'fcg::added-by-repair (statuses node)))
       (cip-enqueue (first new-nodes) (cip node)
                    (get-configuration node :queue-mode))
-      (notify fix-applied 'add-holophrase form-constraints (list holophrase-cxn) (cip node)))))
+      (notify fix-applied
+              'add-holophrase
+              form-constraints
+              (list holophrase-cxn)
+              (cip node)
+              (categorial-network (construction-inventory node))
+              nil))))

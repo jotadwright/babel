@@ -28,9 +28,9 @@
                      )))))
   (add-element `((h2) ((b :style "color:#E65C00") "Comprehension unsuccesful - jump to meta-layer"))))
 
-(define-event fix-applied (repair-name symbol) (form list) (learned-cxns list) (cip construction-inventory-processor))
+(define-event fix-applied (repair-name symbol) (form list) (learned-cxns list) (cip construction-inventory-processor) (th categorial-network) (new-links list))
 
-(defun fix-applied-func (repair-name form learned-cxns cip)
+(defun fix-applied-func (repair-name form learned-cxns cip th new-links)
   (add-element '((h2) "Meta-layer: Pattern Finding"))
   (add-element `((h3) ,(format nil "Applied repair: ~a with form: \"~{~a~^ ~}\" and learned:"
                                repair-name
@@ -43,10 +43,14 @@
                         (make-html construction :expand-initially nil
                                    :configuration (visualization-configuration (construction-inventory cip))
                                    :wrap-in-paragraph nil)))))
-  (add-element '((hr :style "border-top: 3px dashed #E65C00;background-color:#fff"))))
+  (if new-links
+    (progn
+      (add-element '((h3) "New links are added to the type hierarchy:"))
+      (add-element `((div) ,(s-dot->svg (new-th-links->s-dot th new-links))))
+      (add-element '((hr :style "border-top: 3px dashed #E65C00;background-color:#fff"))))))
 
 (define-event-handler (trace-fcg fix-applied)
-  (fix-applied-func repair-name form learned-cxns cip))
+  (fix-applied-func repair-name form learned-cxns cip th new-links))
 
 ;; --------------------
 ;; + Applying repairs +
@@ -110,7 +114,7 @@
       (set-data (car-resulting-cfs (cipn-car (first new-nodes)))
                 :fix-cxns (append new-cxns-to-apply other-new-cxns))
       (set-data (car-resulting-cfs (cipn-car (first new-nodes)))
-                :fix-th-links weighted-th-links)
+                :fix-categorial-links weighted-th-links)
       ;; write some message on the blackboard of the initial node
       ;; for more efficient diagnostics
       (set-data (gl::initial-node node) :some-repair-applied t)
@@ -124,6 +128,12 @@
                  (push 'fcg::added-by-repair (statuses node)))
       (cip-enqueue (first new-nodes) (cip node)
                    (get-configuration node :queue-mode))
-      (notify fix-applied (type-of (issued-by fix)) form-constraints (append new-cxns-to-apply other-new-cxns) (cip node)))))
+      (notify fix-applied
+              (type-of (issued-by fix))
+              form-constraints
+              (append new-cxns-to-apply other-new-cxns)
+              (cip node)
+              (categorial-network (construction-inventory node))
+              th-links))))
 
 
