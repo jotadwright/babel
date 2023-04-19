@@ -8,7 +8,7 @@
   "function to get a random element from a given list"
   (nth (random (length list)) list))
 
-(defun get-nth-element (lst n)
+(defun get-nth-elem (lst n)
   "Returns the nth element of list lst"
   (nth n lst))
 
@@ -24,7 +24,7 @@
   "Takes a list as entry and returns a set."
   (remove-duplicates lst :test #'equal))
 
-(defun most-frequent-element (lst)
+(defun most-frequent-elem (lst)
   "Takes a list as a paremeter and returns the most frequent element of that list."
   (let ((counter (make-hash-table)))
     (dolist (item lst)
@@ -40,19 +40,29 @@
       max-item)))
 
 (defun get-left (lst el)
+  "Get the left-most element of a list."
   (let ((idx (position el lst)))
     (when (and idx (/= idx 0))
       (nth (1- idx) lst))))
 
 (defun get-right (lst el)
+  "Get the right-most element of a list."
   (let ((idx (position el lst)))
     (when (and idx (< idx (1- (length lst))))
       (nth (1+ idx) lst))))
 
 (defun is-member (element list)
+  "Check if an element is part of a list."
   (if (member element list)
       t
       nil))
+
+(defun insert (new-element list position)
+  "Insert a new-element to a list at a chosen position."
+  (if (zerop position)
+    (push new-element list)
+    (push new-element (cdr (nthcdr (1- position) list))))
+  list)
 
 ;--------------------;
 ;strings manipulation;

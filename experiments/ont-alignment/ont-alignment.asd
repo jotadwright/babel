@@ -3,9 +3,9 @@
 (defsystem :ont-alignment
   :description "Language games for ontology alignment experiment"
   :depends-on (:experiment-framework
-               :utils :cl-json :postmodern :queues :queues.simple-queue :fcg 
+               :utils :cl-json :postmodern :fcg 
                :cl-postgres
-               :postmodern)
+               :postmodern :wi)
   :serial t 
   :components 
   ((:file "package")
