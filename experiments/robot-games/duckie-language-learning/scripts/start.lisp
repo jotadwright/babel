@@ -1,43 +1,69 @@
 (ql:quickload :duckie-language-learning)
 (in-package :duckie-language-learning)
 
+(deactivate-all-monitors)
 (monitors::activate-monitor irl::trace-irl)
-(activate-monitor trace-fcg)
+(monitors::activate-monitor fcg::trace-fcg)
 
-;;;; START DEMO
-(setf *ontology* (build-initial-ontology))
-(add-element (make-html *ontology*))
 
-;;; demo in duckie world
-(defparameter *demo*
-  (make-instance 'duckie-language-learning-world-experiment))
+(progn
+  ;;;; START DEMO
+  (setf *ontology* (build-initial-ontology))
+  (add-element (make-html *ontology*))
+
+  ;;; demo in duckie world
+;(defparameter *demo*
+;  (make-instance 'duckie-language-learning-world-experiment))
+; (run-interaction *demo*)
+
+  ;; demo in simulation
+  (defparameter *demo*
+    (make-instance 'duckie-language-learning-simulation-experiment))
+
+  (setf *duckie-world*
+        (make-instance 'object-set
+                       :objects (list 
+                                 (make-instance 'duckie-building
+                                                :zone 'zone-2
+                                                :building-function 'house
+                                                :color 'red
+                                                :rfid 2)
+                                 (make-instance 'duckie-car
+                                                :zone 'zone-3
+                                                :color 'red
+                                                :rfid 3)
+                                 (make-instance 'duckie-building
+                                                :zone 'zone-1
+                                                :building-function 'house
+                                                :color 'green
+                                                :rfid 1))))
+
+  (setf *duckie-agent-car* (make-instance 'duckie-agent-car :zone 'zone-1))
+
+  (symbolp (type-of (make-instance 'duckie-building
+                                   :zone 'zone-2
+                                   :building-function 'house
+                                   :color 'red
+                                   :rfid 2)))
+
+  ;; duckie-car also in ontology for move-to primitive
+  (set-data *ontology* 'world *duckie-world*)
+  (set-data *ontology* 'agent-car *duckie-agent-car*))
 
 (run-interaction *demo*)
 
-;; demo in simulation
-(defparameter *demo*
-  (make-instance 'duckie-language-learning-simulation-experiment))
-
-(setf *duckie-world*
-      (make-instance 'object-set
-                     :objects (list 
-                               (make-instance 'duckie-building
-                                              :zone 'zone-2
-                                              :building-function 'house
-                                              :color 'red
-                                              :rfid 2)
-                               (make-instance 'duckie-building
-                                              :zone 'zone-1
-                                              :building-function 'house
-                                              :color 'green
-                                              :rfid 1))))
-
-(setf *duckie-agent-car* (make-instance 'duckie-agent-car :zone 'zone-1))
-
-(set-data *ontology* 'world *duckie-world*)
-(set-data *ontology* 'agent-car *duckie-agent-car*) ;; duckie-car also in ontology for move-to primitive
+;; quick reset
+(progn
+  (wi::reset)
+  (defparameter *demo*
+    (make-instance 'duckie-language-learning-simulation-experiment))
+  (run-interaction *demo*))
 
 (run-interaction *demo*)
+
+(categorial-network *fcg-constructions*)
+
+(wi:add-element (make-html (categorial-network *fcg-constructions*) :weights? t :colored-edges-0-1 t))
 
 ;;;;TESTING IRL PROGRAMS
 (evaluate-irl-program '((scan-world ?world)

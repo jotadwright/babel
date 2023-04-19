@@ -38,7 +38,7 @@
                             target-category &key partial-program)
   (let* ((composer
           (make-default-composer agent target-category
-                                 :partial-program `((scan-world ?world))))
+                                 :partial-program `((scan-world ?world)))) ;; TODO: remove assumption?
          (solution (first (get-next-solutions composer))))
     (when solution 
       (append (irl::bind-statements solution)
