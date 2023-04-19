@@ -19,7 +19,7 @@
         (make-instance 'fcg::cxn-fix
                        :repair repair
                        :problem problem
-                       :restart-data constructions-and-th-links))))).
+                       :restart-data constructions-and-th-links)))))
 
 (defun create-item-based-cxn-deletion (problem node intention)
   (let* ((agent (find-data problem :owner))
