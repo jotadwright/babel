@@ -4,22 +4,6 @@
 ;Query functions;
 ;---------------;
 
-(defun get-all-tables ()
-  "Retrieves a list of sublists. In each sublist : a table of the db, its columns with their data types."
-  (let ((tables-list (list-tables t))
-        ;list-tables function retrieves all tables of a given database
-        ;if the strings-p arg is set to true the result is a list of strings
-        (column-names-list '()))
-        ;this variable is aimed to store an association list of each table and its columns
-    (format t "The different tables of the database are: ~a~%" tables-list)
-    (loop for table in tables-list
-          do (progn (push (cons table (list (list-columns-with-types table))) column-names-list)
-                (format t "The different columns of the table ~a are: ~a~%" table (list-columns table))))
-    column-names-list))
-
-;(get-all-tables)
-;'(("actorsfilms" (("actor" "varchar") ("actor_id" "varchar") ("film" "varchar") ("year" "int4") ("votes" "int4") ("rating" "float8") ("film_id" "varchar"))))
-
 (defun extract-answer-columns (column-names-list answer)
   "From a given answer, retrieves the possible columns the answer belongs to.
   This functions is only used when the answer is of datatype varchar, or list. "
@@ -201,10 +185,11 @@
               (if equality-test
                 (progn
                   (format t "Success")
+                  (print "ok")
                   (setf result 1))
                 (push node explored))))
     (when (null queue)
       (loop for node in explored
             do (expand node)))))
 
-(bfs (make-root-node) "La petite sirene")
+;(bfs (make-root-node) '("The Neon Demon" "The Dark Knight Rises" "TiMER" "Not Since You" "Life Is Hot in Cracktown" "Exit Speed" "Stories USA" "Three Way" "Wrong Turn" "Love Object" "We Were Soldiers" "Ghost Ship" "The Hole" "Riding in Cars with Boys" "My First Mister" "Boiler Room" "The Messenger: The Story of Joan of Arc"))

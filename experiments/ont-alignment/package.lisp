@@ -8,4 +8,5 @@
    :experiment-framework
    :utils
    :postmodern
+   :wi
    ))
