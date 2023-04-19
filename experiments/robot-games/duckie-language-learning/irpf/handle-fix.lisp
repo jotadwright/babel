@@ -46,8 +46,8 @@
   (if new-links
     (progn
       (add-element '((h3) "New links are added to the type hierarchy:"))
-      (add-element `((div) ,(s-dot->svg (new-th-links->s-dot th new-links))))
-      (add-element '((hr :style "border-top: 3px dashed #E65C00;background-color:#fff"))))))
+      (add-element `((div :style "margin-left: 45px") ,(s-dot->svg (new-th-links->s-dot th new-links))))))
+  (add-element '((hr :style "border-top: 3px dashed #E65C00;background-color:#fff"))))
 
 (define-event-handler (trace-fcg fix-applied)
   (fix-applied-func repair-name form learned-cxns cip th new-links))
@@ -98,23 +98,20 @@
                               (get-configuration (original-cxn-set (construction-inventory node)) :de-render-mode)))
            (orig-type-hierarchy (categorial-network (construction-inventory node)))
            (temp-type-hierarchy (copy-object (categorial-network (construction-inventory node))))
-           (weighted-th-links (loop for th-link in th-links
-                                    collect (list (car th-link) (cdr th-link)))) 
-           (th (loop for th-link in weighted-th-links
-                     do (add-categories (list (first th-link) (second th-link)) temp-type-hierarchy)
-                        (add-link (first th-link) (second th-link) temp-type-hierarchy
-                                  :recompute-transitive-closure nil)
+           (th (loop for (from . to) in th-links ;; th is never used, maybe refactor to get it out of the let
+                     do (add-categories (list from to) temp-type-hierarchy)
+                        (add-link from to temp-type-hierarchy :recompute-transitive-closure nil)
                      finally (set-categorial-network (construction-inventory node) temp-type-hierarchy)))
-           (new-nodes
-            (with-disabled-monitor-notifications (apply-sequentially (gl::initial-node node)
-                                                                     (append existing-cxns-to-apply new-cxns-to-apply)
-                                                                     node))))
+           (new-nodes (with-disabled-monitor-notifications
+                        (apply-sequentially (gl::initial-node node)
+                                            (append existing-cxns-to-apply new-cxns-to-apply)
+                                            node))))
       (declare (ignorable th))
-      (set-categorial-network (construction-inventory node) orig-type-hierarchy)
+      (set-categorial-network (construction-inventory node) orig-type-hierarchy) ;; TODO: why does this happen???
       (set-data (car-resulting-cfs (cipn-car (first new-nodes)))
                 :fix-cxns (append new-cxns-to-apply other-new-cxns))
       (set-data (car-resulting-cfs (cipn-car (first new-nodes)))
-                :fix-categorial-links weighted-th-links)
+                :fix-categorial-links th-links)
       ;; write some message on the blackboard of the initial node
       ;; for more efficient diagnostics
       (set-data (gl::initial-node node) :some-repair-applied t)
@@ -133,7 +130,7 @@
               form-constraints
               (append new-cxns-to-apply other-new-cxns)
               (cip node)
-              (categorial-network (construction-inventory node))
+              temp-type-hierarchy
               th-links))))
 
 
