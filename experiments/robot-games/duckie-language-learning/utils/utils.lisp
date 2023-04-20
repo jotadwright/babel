@@ -135,12 +135,9 @@
   (intern (string-append string "-CXN")))
 
 (defun make-lex-class (cat-name &key add-numeric-tail)
-  (intern
-   (symbol-name
-    (funcall (if add-numeric-tail #'make-const #'make-symbol)
-             (upcase
-              (if cat-name cat-name "CAT"))))
-   :type-hierarchies))
+  (intern (symbol-name (funcall (if add-numeric-tail #'make-const #'make-symbol)
+                                (upcase (if cat-name cat-name "CAT"))))
+          :fcg))
 
 (defgeneric make-cxn-name (thing cxn-inventory &key add-cxn-suffix))
 
