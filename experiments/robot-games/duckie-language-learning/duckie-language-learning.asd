@@ -20,31 +20,27 @@
                 :components ((:file "agent")
                              (:file "experiment")
                              (:file "interaction")))
-               (:module utils
-                :serial t
-                :components ((:file "web-monitors")
-                             (:file "unique-utils")
-                             (:file "gl-utils")
-                             (:file "fcg-utils")))
                (:module irpf
                 :serial t
                 :components ((:file "handle-fix")
-                             (:file "diagnostic-unknown")
-                             (:file "diagnostic-partial")
-                             (:file "diagnostic-failure")
-                             (:file "composer")))
-               (:module repairs
-                :serial t
-                :components ((:file "add-holophrase")
-                             (:file "add-categorial-links")
-                             (:file "holophrase-to-item-based--substitution")
-                             (:file "holophrase-to-item-based--addition")
-                             (:file "holophrase-to-item-based--deletion")
-                             (:file "item-based-to-lexical")
-                             (:file "lexical-to-item-based")
-                             (:file "grammar")
-                             (:file "utils")))
-                
+                             (:module diagnostics
+                              :serial t
+                              :components ((:file "diagnostic-unknown")
+                                           (:file "diagnostic-partial")
+                                           (:file "diagnostic-failure")))
+                             (:file "composer")
+                             (:module repairs
+                                :serial t
+                                :components ((:file "add-holophrase")
+                                             (:file "add-categorial-links")
+                                             (:file "holophrase-to-item-based--substitution")
+                                             (:file "holophrase-to-item-based--addition")
+                                             (:file "holophrase-to-item-based--deletion")
+                                             (:file "item-based-to-lexical")
+                                             (:file "lexical-to-item-based")
+                                             (:file "utils")))
+                              (:file "grammar")
+                              (:file "utils")))
                (:module ontology
                 :serial t
                 :components ((:file "category")

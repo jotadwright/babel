@@ -1,8 +1,51 @@
 (in-package :duckie-language-learning)
 
-;; --------------------------
-;; + Util functions for FCG +
-;; --------------------------
+;; ------------------
+;; + Util functions +
+;; ------------------
+
+(defun create-new-categorial-links (lex-classes-lex-cxns lex-classes-item-based-units categorial-network)
+  "Creates all CATEGORIAL-NETWORK links for matching lexical cxns using their original lex-class."
+  (loop for lex-cxn-lex-class in lex-classes-lex-cxns
+        for item-slot-lex-class in lex-classes-item-based-units
+        unless (neighbouring-categories-p lex-cxn-lex-class item-slot-lex-class categorial-network)
+          collect (cons lex-cxn-lex-class item-slot-lex-class)))
+
+(defun create-categorial-links (problem node)
+  "Return the CATEGORIAL-NETWORK links and applied cxns from a comprehend with :category-linking-mode :path-exists instead of :neighbours"
+  (let* ((utterance (random-elt (get-data problem :utterances)))
+         (gold-standard-meaning (random-elt (get-data problem :meanings)))
+         (cxn-inventory (construction-inventory node))
+         (orig-cxn-set (original-cxn-set cxn-inventory))
+         (categorial-network (categorial-network cxn-inventory)))
+    (disable-meta-layer-configuration cxn-inventory) ;(fcg::unify-atom
+    (with-disabled-monitor-notifications
+      (let* ((comprehension-result (multiple-value-list (comprehend utterance :cxn-inventory orig-cxn-set :gold-standard-meaning gold-standard-meaning)))
+             (meaning-network (first comprehension-result))
+             (cip-node (second comprehension-result))
+             (cip (third comprehension-result)))
+        (enable-meta-layer-configuration cxn-inventory)
+        ;;there is a solution with connected links in the CATEGORIAL-NETWORK
+        (when (member 'succeeded (statuses cip-node) :test #'string=)
+          (let* ((applied-cxns (applied-constructions cip-node))
+                 (lex-cxns (sort-cxns-by-form-string (filter-by-phrase-type 'lexical applied-cxns) utterance))
+                 (lex-classes-lex-cxns (when lex-cxns
+                                         (map 'list #'lex-class-cxn lex-cxns)))
+                 (item-based-cxn (first (filter-by-phrase-type 'item-based applied-cxns)))
+                 (lex-classes-item-based-units (when item-based-cxn
+                                                 (get-all-unit-lex-classes item-based-cxn)))
+                 (categorial-links (when (and lex-classes-lex-cxns lex-classes-item-based-units
+                                              (= (length lex-classes-lex-cxns) (length lex-classes-item-based-units)))
+                                     (create-new-categorial-links lex-classes-lex-cxns
+                                                                  lex-classes-item-based-units
+                                                                  categorial-network))))
+            (when (filter-by-phrase-type 'holophrase applied-cxns)
+              (format t "Something has gone horribly wrong!"))
+            (list applied-cxns categorial-links)))))))
+
+;; -------------------------
+;; + Util functions for GL +
+;; -------------------------
 
 (defun initial-node-p (node) ;; has duplicate in utils.lisp
   (find 'fcg::initial (fcg::statuses node)))
@@ -482,3 +525,56 @@
                   --)
           into conditional-units
         finally (return (values conditional-units contributing-units))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Extracting form and meaning from fcg-constructions ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defgeneric extract-meaning-predicates (object))
+
+(defmethod extract-meaning-predicates ((cxn fcg-construction))
+  (append (mappend #'extract-meaning-predicates (conditional-part cxn))
+          (mappend #'extract-meaning-predicates (contributing-part cxn))))
+
+(defmethod extract-meaning-predicates ((unit conditional-unit))
+  (append (extract-meaning-predicates (comprehension-lock unit))
+          (extract-meaning-predicates (formulation-lock unit))))
+
+(defmethod extract-meaning-predicates ((unit contributing-unit))
+  (extract-meaning-predicates (fcg::unit-structure unit)))
+
+(defmethod extract-meaning-predicates ((unit-body list))
+  (append (find-feature-value 'meaning unit-body)
+          (find-hashed-feature-value 'meaning unit-body)))
+
+;; (extract-meaning-predicates (first (constructions *fcg-constructions*)))
+
+(defgeneric extract-form-predicates (object))
+
+(defmethod extract-form-predicates ((cxn fcg-construction))
+  (append (mappend #'extract-form-predicates (conditional-part cxn))
+          (mappend #'extract-form-predicates (contributing-part cxn))))
+
+(defmethod extract-form-predicates ((unit conditional-unit))
+  (append (extract-form-predicates (comprehension-lock unit))
+          (extract-form-predicates (formulation-lock unit))))
+
+(defmethod extract-form-predicates ((unit contributing-unit))
+  (extract-form-predicates (fcg::unit-structure unit)))
+
+(defmethod extract-form-predicates ((unit-body list))
+  (append (find-feature-value 'form unit-body)
+          (find-hashed-feature-value 'form unit-body)))
+
+;; (extract-form-predicates (first (constructions *fcg-constructions*)))
+
+(defun find-feature-value (feature unit-body)
+  (loop for feature-value in unit-body
+        when (equal (feature-name feature-value) feature)
+        return  (second feature-value)))
+
+(defun find-hashed-feature-value (feature unit-body)
+  (loop for feature-value in unit-body
+        when (and (equal (first feature-value) 'HASH)
+                  (equal (second feature-value) feature))
+        return (third feature-value)))
