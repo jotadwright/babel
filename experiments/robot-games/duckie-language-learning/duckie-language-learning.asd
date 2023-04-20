@@ -37,11 +37,11 @@
                 :serial t
                 :components ((:file "add-holophrase")
                              (:file "add-categorial-links")
-                             (:file "holophrase->item-based--substitution")
-                             (:file "holophrase->item-based--addition")
-                             (:file "holophrase->item-based--deletion")
-                             (:file "item-based->lexical")
-                             (:file "lexical->item-based")
+                             (:file "holophrase-to-item-based--substitution")
+                             (:file "holophrase-to-item-based--addition")
+                             (:file "holophrase-to-item-based--deletion")
+                             (:file "item-based-to-lexical")
+                             (:file "lexical-to-item-based")
                              (:file "grammar")
                              (:file "utils")))
                 
