@@ -12,9 +12,9 @@
   (add-element (make-html *ontology*))
 
   ;;; demo in duckie world
-;(defparameter *demo*
-;  (make-instance 'duckie-language-learning-world-experiment))
-; (run-interaction *demo*)
+  ;(defparameter *demo*
+  ;  (make-instance 'duckie-language-learning-world-experiment))
+  ;(run-interaction *demo*)
 
   ;; demo in simulation
   (defparameter *demo*
@@ -58,6 +58,12 @@
   (defparameter *demo*
     (make-instance 'duckie-language-learning-simulation-experiment))
   (run-interaction *demo*))
+
+
+
+what is the color of the house
+what is the color of the car
+is the first object a house
 
 (run-interaction *demo*)
 

@@ -29,7 +29,9 @@
                (:module irpf
                 :serial t
                 :components ((:file "handle-fix")
-                             (:file "diagnostics-and-repairs")
+                             (:file "diagnostic-unknown")
+                             (:file "diagnostic-partial")
+                             (:file "diagnostic-failure")
                              (:file "composer")))
                (:module repairs
                 :serial t
