@@ -12,16 +12,18 @@
 (defclass diagnose-partial-utterance (diagnostic)
   ((trigger :initform 'fcg::new-node)))
 
-;; Every node that can have a possible 'partial utterance' diagnoses
-;; is pushed onto a list (stored in the initial node). This is because
-;; a solution may still appear later in the search tree and we want
-;; the agent to use routine processing as much as possible. When the
-;; search arrives back at the initial node, with all nodes expanded
-;; and still no solution, the diagnositcs are triggered manually
-;; over the candidate list until one of them succeeds. If all fail,
-;; the unknown-utterance diagnostic will take over.
+;; diagnose func
 (defmethod diagnose ((diagnostic diagnose-partial-utterance)
                      (node cip-node) &key &allow-other-keys)
+  "Every node that can have a possible 'partial utterance' diagnoses
+   is pushed onto a list (stored in the initial node).
+
+   This is because a solution may still appear later in the search tree and we want
+   the agent to use routine processing as much as possible. When the
+   search arrives back at the initial node, with all nodes expanded
+   and still no solution, the diagnositcs are triggered manually
+   over the candidate list until one of them succeeds. If all fail,
+   the unknown-utterance diagnostic will take over."
   (when (eql (direction (cip node)) '<-)
     (when (and (fully-expanded? node)
                (get-strings-from-root node)
@@ -64,27 +66,26 @@
 ;; helper functions
 
 (defun some-applied-repair-in-tree (node)
-  ;; some node in the tree can be added by a repair
-  ;; luckily, the handle-fix methods write this
-  ;; on the blackboard of the initial node, so
-  ;; we don't have to traverse the entire tree
+  "Some node in the tree can be added by a repair
+   luckily, the handle-fix methods write this
+   on the blackboard of the initial node, so
+   we don't have to traverse the entire tree."
   (multiple-value-bind (some-repair-applied-p foundp)
       (find-data (gl::initial-node node) :some-repair-applied)
     (when foundp some-repair-applied-p)))
 
 (defun push-candidate (node)
-  ;; push this node on the candidate list,
-  ;; stored in the initial node
+  "Pushes the node on the candidate list stored in the initial node."
   (push-data (gl::initial-node node) :candidates node))
 
 (defun get-candidates (node)
-  ;; get the candidate list from the
-  ;; initial node
+  "Gets the candidate list from the initial node."
   (find-data (gl::initial-node node) :candidates))
 
 (defun sort-candidates (candidates)
-  ;; sort the candidates on number of applied cxns
-  ;; and on the order in which they were created
+  "Sorts the candidates based on
+      1. number of applied cxns and
+      2. order of creation."
   (sort candidates
         #'(lambda (node-1 node-2)
             (cond ((length= (applied-constructions node-1)

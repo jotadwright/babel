@@ -12,7 +12,6 @@
   ((trigger :initform 'fcg::new-node)))
 
 ;; This repair is applied when a partial utterance was diagnosed.
-
 (defmethod repair ((repair lexical->item-based)
                    (problem partial-utterance-problem)
                    (node cip-node) &key
@@ -43,9 +42,8 @@
         (if composer-solution
           (let* ((new-irl-program (append (bind-statements composer-solution)
                                           (irl-program (chunk composer-solution))))
-                 (sorted-lex-cxns (sort-cxns-by-form-string
-                                   applied-lex-cxns
-                                   (remove-spurious-spaces (remove-punctuation utterance))))
+                 (sorted-lex-cxns (sort-cxns-by-form-string applied-lex-cxns
+                                                            (remove-spurious-spaces (remove-punctuation utterance))))
                  (var-form (form-constraints-with-variables utterance
                                                             (get-configuration
                                                              cxn-inventory

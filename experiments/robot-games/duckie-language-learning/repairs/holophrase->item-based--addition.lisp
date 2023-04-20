@@ -13,7 +13,7 @@
   "Repair by making a new item-based construction and lexical cxn"
   (when (gl::initial-node-p node)
     (let* ((reconstructed-intention (find-data problem :intention))
-           (constructions-and-categorial-links (create-item-based-cxn-addition problem node     reconstructed-intention)))
+           (constructions-and-categorial-links (create-item-based-cxn-addition problem node reconstructed-intention)))
       (when constructions-and-categorial-links
         (make-instance 'fcg::cxn-fix
                        :repair repair

@@ -12,7 +12,6 @@
   ((trigger :initform 'fcg::new-node)))
 
 ;; This repair is applied when a partial utterance was diagnosed.
-
 (defmethod repair ((repair item-based->lexical)
                    (problem partial-utterance-problem)
                    (node cip-node) &key
