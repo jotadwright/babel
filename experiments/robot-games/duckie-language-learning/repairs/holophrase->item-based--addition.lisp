@@ -13,12 +13,12 @@
   "Repair by making a new item-based construction and lexical cxn"
   (when (gl::initial-node-p node)
     (let* ((reconstructed-intention (find-data problem :intention))
-           (constructions-and-th-links (create-item-based-cxn-addition problem node reconstructed-intention)))
-      (when constructions-and-th-links
+           (constructions-and-categorial-links (create-item-based-cxn-addition problem node     reconstructed-intention)))
+      (when constructions-and-categorial-links
         (make-instance 'fcg::cxn-fix
                        :repair repair
                        :problem problem
-                       :restart-data constructions-and-th-links)))))
+                       :restart-data constructions-and-categorial-links)))))
 
 (defun create-item-based-cxn-addition (problem node intention)
   (let* ((agent (find-data problem :owner))
@@ -62,7 +62,7 @@
                                                      when lex-class return lex-class)
                                                (intern (symbol-name (make-const cxn-name-item-based-cxn)) :fcg)))
                    ;; type hierachy links
-                   (th-link-1 (cons lex-class-lex-cxn lex-class-item-based-cxn))
+                   (categorial-link-1 (cons lex-class-lex-cxn lex-class-item-based-cxn))
                    ;; args: 
                    (args-lex-cxn (third (first non-overlapping-meaning))) ;; third if bind
                    ;; cxns
@@ -120,5 +120,5 @@
               ;; returns 1. existing cxns to apply
               ;; 2. new cxns to apply
               ;; 3. other new cxns
-              ;; 4. th links
-              (list nil (list lex-cxn item-based-cxn) nil (list th-link-1)))))))))
+              ;; 4. categorial links
+              (list nil (list lex-cxn item-based-cxn) nil (list categorial-link-1)))))))))

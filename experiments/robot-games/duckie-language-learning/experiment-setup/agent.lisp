@@ -20,7 +20,6 @@
 (defmethod copy-object ((agent duckie-language-learning-agent))
   (make-instance 'duckie-language-learning-agent))
 
-
 (defclass duckie-language-learning-simulation-agent (duckie-language-learning-agent)
   ((primitive-inventory :initarg :primitive-inventory :accessor primitive-inventory
                         :initform  *duckie-simulation-primitives* 

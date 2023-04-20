@@ -15,14 +15,14 @@
    an item-based construction."
   (when (gl::initial-node-p node)
     (let* ((reconstructed-intention (find-data problem :intention))
-           (constructions-and-th-links (create-item-based-cxn-substitution problem
-                                                                           node
-                                                                           reconstructed-intention)))
-      (when constructions-and-th-links
+           (constructions-and-categorial-links (create-item-based-cxn-substitution problem
+                                                                                   node
+                                                                                   reconstructed-intention)))
+      (when constructions-and-categorial-links
         (make-instance 'fcg::cxn-fix
                        :repair repair
                        :problem problem
-                       :restart-data constructions-and-th-links)))))
+                       :restart-data constructions-and-categorial-links)))))
 
 (defun create-item-based-cxn-substitution (problem node intention)
   "Create an item-based construction and two lexical constructions
@@ -70,8 +70,8 @@
                                                      when lex-class return lex-class)
                                                (intern (symbol-name (make-const cxn-name-item-based-cxn)) :fcg)))
                    ;; Type hierachy links
-                   (th-link-1 (cons lex-class-lex-cxn-1 lex-class-item-based-cxn))
-                   (th-link-2 (cons lex-class-lex-cxn-2 lex-class-item-based-cxn))
+                   (categorial-link-1 (cons lex-class-lex-cxn-1 lex-class-item-based-cxn))
+                   (categorial-link-2 (cons lex-class-lex-cxn-2 lex-class-item-based-cxn))
                    ;; Args
                    (args-lex-cxn-1 (third (first non-overlapping-meaning-cxn))) ;; third if bind
                    (args-lex-cxn-2 (third (first non-overlapping-meaning-observation))) ;; third if bind
@@ -149,11 +149,12 @@
                                             :cxn-set non-holophrase)))))))
                   ;(add-composer-chunk agent overlapping-meaning-cxn)
                   ;(set-data interaction :applied-repair 'holophrase->item-based)
-              ;; returns 1. existing cxns to apply
+              ;; returns 
+              ;; 1. existing cxns to apply
               ;; 2. new cxns to apply
               ;; 3. other new cxns
-              ;; 4. th links
+              ;; 4. categorial links
               (list nil
                     (list new-lex-cxn-2 item-based-cxn)
                     (list new-lex-cxn-1)
-                    (list th-link-1 th-link-2)))))))))
+                    (list categorial-link-1 categorial-link-2)))))))))

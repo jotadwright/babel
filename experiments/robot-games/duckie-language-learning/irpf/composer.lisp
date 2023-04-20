@@ -4,7 +4,8 @@
 ;; + Intention reading +
 ;; ---------------------
 
-(defun make-default-composer (agent target-category
+(defun make-default-composer (agent
+                              target-category
                               &key partial-program)
   (let* ((target-category-type
           (type-of target-category))
@@ -35,7 +36,8 @@
                         )))))
 
 (defmethod compose-program ((agent duckie-language-learning-agent)
-                            target-category &key partial-program)
+                            target-category
+                            &key partial-program)
   (let* ((composer
           (make-default-composer agent target-category
                                  :partial-program `((scan-world ?world)))) ;; TODO: remove assumption?

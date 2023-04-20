@@ -6,8 +6,6 @@
   (node cip-node)
   (diagnostic diagnostic))
 
-
-
 (define-event-handler (trace-fcg diagnostic-trigger)
   (add-element '((hr)))
   
@@ -23,14 +21,14 @@
                      ((tr)
                       ((td) "application process")
                       ((td) ((div :id ,(mkstr (make-id 'subtree-id)))
-                                  ,(make-html-fcg-light node)))
+                             ,(make-html-fcg-light node)))
                       )
                      )))))
   (add-element `((h2) ((b :style "color:#E65C00") "Comprehension unsuccesful - jump to meta-layer"))))
 
-(define-event fix-applied (repair-name symbol) (form list) (learned-cxns list) (cip construction-inventory-processor) (th categorial-network) (new-links list))
+(define-event fix-applied (repair-name symbol) (form list) (learned-cxns list) (cip construction-inventory-processor) (categorial-network categorial-network) (new-links list))
 
-(defun fix-applied-func (repair-name form learned-cxns cip th new-links)
+(defun fix-applied-func (repair-name form learned-cxns cip categorial-network new-links)
   (add-element '((h2) "Meta-layer: Pattern Finding"))
   (add-element `((h3) ,(format nil "Applied repair: ~a with form: \"~{~a~^ ~}\" and learned:"
                                repair-name
@@ -45,12 +43,12 @@
                                    :wrap-in-paragraph nil)))))
   (if new-links
     (progn
-      (add-element '((h3) "New links are added to the type hierarchy:"))
-      (add-element `((div :class "indent-irpf") ,(s-dot->svg (new-th-links->s-dot th new-links))))))
+      (add-element '((h3) "New links are added to the categorial network:"))
+      (add-element `((div :class "indent-irpf") ,(s-dot->svg (new-categorial-links->s-dot categorial-network new-links))))))
   (add-element '((hr :style "border-top: 3px dashed #E65C00;background-color:#fff"))))
 
 (define-event-handler (trace-fcg fix-applied)
-  (fix-applied-func repair-name form learned-cxns cip th new-links))
+  (fix-applied-func repair-name form learned-cxns cip categorial-network new-links))
 
 ;; --------------------
 ;; + Applying repairs +
@@ -78,9 +76,9 @@
                                 (construction-inventory node)))
           for next-cipn = (when car (fcg::cip-add-child working-cipn car))
           when car
-          do (setf working-cipn next-cipn)
-          and collect next-cipn into new-cipns
-          ;; return the last node as first in the list!
+            do (setf working-cipn next-cipn)
+            and collect next-cipn into new-cipns
+            ;; return the last node as first in the list!
           finally (return (reverse new-cipns)))))
 
 ;; ---------------------------------
@@ -89,29 +87,29 @@
 (defmethod handle-fix ((fix fcg::cxn-fix) (repair duckie-learning-repair)
                        (problem problem) (node cip-node)
                        &key &allow-other-keys)
-  "Handle fix for all other repairs. Add the th-links, apply some constructions,
+  "Handle fix for all other repairs. Add the categorial-links, apply some constructions,
    and add some constructions to the inventory."
   (push fix (fixes problem))
-  (destructuring-bind (existing-cxns-to-apply new-cxns-to-apply other-new-cxns th-links) (restart-data fix)
+  (destructuring-bind (existing-cxns-to-apply new-cxns-to-apply other-new-cxns categorial-links) (restart-data fix)
     (let* ((form-constraints (gl::form-constraints-with-variables
                               (cipn-utterance node)
                               (get-configuration (original-cxn-set (construction-inventory node)) :de-render-mode)))
-           (orig-type-hierarchy (categorial-network (construction-inventory node)))
-           (temp-type-hierarchy (copy-object (categorial-network (construction-inventory node))))
-           (th (loop for (from . to) in th-links ;; th is never used, maybe refactor to get it out of the let
-                     do (add-categories (list from to) temp-type-hierarchy)
-                        (add-link from to temp-type-hierarchy :recompute-transitive-closure nil)
-                     finally (set-categorial-network (construction-inventory node) temp-type-hierarchy)))
+           (orig-categorial-network (categorial-network (construction-inventory node)))
+           (temp-categorial-network (copy-object (categorial-network (construction-inventory node))))
+           (categorial-network (loop for (from . to) in categorial-links ;; categorial-network is never used, maybe refactor to get it out of the let
+                                     do (add-categories (list from to) temp-categorial-network)
+                                        (add-link from to temp-categorial-network :recompute-transitive-closure nil)
+                                     finally (set-categorial-network (construction-inventory node) temp-categorial-network)))
            (new-nodes (with-disabled-monitor-notifications
                         (apply-sequentially (gl::initial-node node)
                                             (append existing-cxns-to-apply new-cxns-to-apply)
                                             node))))
-      (declare (ignorable th))
-      (set-categorial-network (construction-inventory node) orig-type-hierarchy) ;; TODO: why does this happen???
+      (declare (ignorable categorial-network))
+      (set-categorial-network (construction-inventory node) orig-categorial-network) ;; TODO: why does this happen???
       (set-data (car-resulting-cfs (cipn-car (first new-nodes)))
                 :fix-cxns (append new-cxns-to-apply other-new-cxns))
       (set-data (car-resulting-cfs (cipn-car (first new-nodes)))
-                :fix-categorial-links th-links)
+                :fix-categorial-links categorial-links)
       ;; write some message on the blackboard of the initial node
       ;; for more efficient diagnostics
       (set-data (gl::initial-node node) :some-repair-applied t)
@@ -130,7 +128,7 @@
               form-constraints
               (append new-cxns-to-apply other-new-cxns)
               (cip node)
-              temp-type-hierarchy
-              th-links))))
+              temp-categorial-network
+              categorial-links))))
 
 

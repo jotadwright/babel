@@ -74,4 +74,4 @@
     (setf (utterance agent) nil
           (communicated-successfully agent) nil)
   ;(notify interacting-agents-determined experiment interaction)
-  ))
+    ))
