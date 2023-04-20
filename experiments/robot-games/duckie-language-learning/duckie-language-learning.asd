@@ -34,10 +34,14 @@
                (:module repairs
                 :serial t
                 :components ((:file "add-holophrase")
+                             (:file "add-categorial-links")
                              (:file "holophrase->item-based--substitution")
                              (:file "holophrase->item-based--addition")
                              (:file "holophrase->item-based--deletion")
-                             (:file "grammar")))
+                             (:file "item-based->lexical")
+                             (:file "lexical->item-based")
+                             (:file "grammar")
+                             (:file "utils")))
                 
                (:module ontology
                 :serial t
