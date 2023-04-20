@@ -1,13 +1,11 @@
 (ql:quickload :duckie-language-learning)
 (in-package :duckie-language-learning)
 
-(deactivate-all-monitors)
-(monitors::activate-monitor irl::trace-irl)
-(monitors::activate-monitor fcg::trace-fcg)
-
-
 (progn
   ;;;; START DEMO
+  (deactivate-all-monitors)
+  (monitors::activate-monitor irl::trace-irl)
+  (monitors::activate-monitor fcg::trace-fcg)
   (setf *ontology* (build-initial-ontology))
   (add-element (make-html *ontology*))
 
@@ -59,8 +57,6 @@
     (make-instance 'duckie-language-learning-simulation-experiment))
   (run-interaction *demo*))
 
-
-
 what is the color of the house
 what is the color of the car
 is the first object a house
@@ -97,7 +93,6 @@ is the first object a house
                       *ontology*
                       :primitive-inventory *duckie-simulation-primitives*)
 
-
 (evaluate-irl-program '((scan-world ?world)
                         (count ?number ?world))
                       *ontology*
@@ -112,7 +107,6 @@ is the first object a house
                       *ontology*
                       :primitive-inventory *duckie-simulation-primitives*)
 
-
 ;;;; TESTING IN WORLD
 
 (evaluate-irl-program '((scan-world ?world)
@@ -123,7 +117,6 @@ is the first object a house
                         (move-to ?car ?location))
                       *ontology*
                       :primitive-inventory *duckie-simulation-primitives*)
-
 
 (evaluate-irl-program '((scan-world ?world))
                       *ontology*

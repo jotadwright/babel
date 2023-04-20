@@ -71,16 +71,16 @@
    on the blackboard of the initial node, so
    we don't have to traverse the entire tree."
   (multiple-value-bind (some-repair-applied-p foundp)
-      (find-data (gl::initial-node node) :some-repair-applied)
+      (find-data (initial-node node) :some-repair-applied)
     (when foundp some-repair-applied-p)))
 
 (defun push-candidate (node)
   "Pushes the node on the candidate list stored in the initial node."
-  (push-data (gl::initial-node node) :candidates node))
+  (push-data (initial-node node) :candidates node))
 
 (defun get-candidates (node)
   "Gets the candidate list from the initial node."
-  (find-data (gl::initial-node node) :candidates))
+  (find-data (initial-node node) :candidates))
 
 (defun sort-candidates (candidates)
   "Sorts the candidates based on

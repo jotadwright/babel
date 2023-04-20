@@ -36,8 +36,7 @@
                                                              applied-lex-cxns)))
              (composer-strategy (get-configuration agent :composer-strategy))
              (composer-solution (compose-program agent
-                                                 (topic agent)
-                                                 utterance composer-strategy
+                                                 utterance
                                                  :partial-program partial-program)))
         (if composer-solution
           (let* ((new-irl-program (append (bind-statements composer-solution)
@@ -49,11 +48,11 @@
                                                              cxn-inventory
                                                              :de-render-mode)))
                  (subunit-names-and-non-overlapping-form (multiple-value-list
-                                                          (gl::diff-non-overlapping-form var-form sorted-lex-cxns)))
+                                                          (diff-non-overlapping-form var-form sorted-lex-cxns)))
                  (subunit-names (first subunit-names-and-non-overlapping-form))
                  (non-overlapping-form (second subunit-names-and-non-overlapping-form))
                  (args-and-non-overlapping-meaning (multiple-value-list
-                                                    (gl::diff-non-overlapping-meaning new-irl-program sorted-lex-cxns)))
+                                                    (diff-non-overlapping-meaning new-irl-program sorted-lex-cxns)))
                  (args (first args-and-non-overlapping-meaning))
                  (non-overlapping-meaning (second args-and-non-overlapping-meaning)))
             (if (length= subunit-names args) ;; !!!
@@ -67,7 +66,7 @@
                      (categorial-links (if existing-item-based-cxn
                                          (mapcar #'cons (mapcar #'lex-class-cxn sorted-lex-cxns)
                                                  (get-all-unit-lex-classes existing-item-based-cxn))
-                                         (gl::create-categorial-network-links sorted-lex-cxns
+                                         (create-categorial-network-links sorted-lex-cxns
                                                                           (format nil "~{~a~^-~}" rendered-cxn-name-list)
                                                                           placeholder-list
                                                                           :item-based-numeric-tail t)))
@@ -88,7 +87,7 @@
                                             `(def-fcg-cxn
                                               ,cxn-name-item-based-cxn
                                               ((?item-based-unit
-                                                (syn-cat (gl::phrase-type item-based))
+                                                (syn-cat (phrase-type item-based))
                                                 (subunits ,subunit-names))
                                                ,@lex-cxn-contributing-units
                                                <-

@@ -64,7 +64,7 @@
    cip nodes."
   (let ((working-cipn starting-cipn))
     (loop for cxn in constructions
-          for cfs = (if (eq working-cipn (gl::initial-node working-cipn))
+          for cfs = (if (eq working-cipn (initial-node working-cipn))
                       (car-source-cfs (cipn-car working-cipn))
                       (car-resulting-cfs (cipn-car working-cipn)))
           for car = (first
@@ -91,7 +91,7 @@
    and add some constructions to the inventory."
   (push fix (fixes problem))
   (destructuring-bind (existing-cxns-to-apply new-cxns-to-apply other-new-cxns categorial-links) (restart-data fix)
-    (let* ((form-constraints (gl::form-constraints-with-variables
+    (let* ((form-constraints (form-constraints-with-variables
                               (cipn-utterance node)
                               (get-configuration (original-cxn-set (construction-inventory node)) :de-render-mode)))
            (orig-categorial-network (categorial-network (construction-inventory node)))
@@ -101,7 +101,7 @@
                                         (add-link from to temp-categorial-network :recompute-transitive-closure nil)
                                      finally (set-categorial-network (construction-inventory node) temp-categorial-network)))
            (new-nodes (with-disabled-monitor-notifications
-                        (apply-sequentially (gl::initial-node node)
+                        (apply-sequentially (initial-node node)
                                             (append existing-cxns-to-apply new-cxns-to-apply)
                                             node))))
       (declare (ignorable categorial-network))
@@ -112,7 +112,7 @@
                 :fix-categorial-links categorial-links)
       ;; write some message on the blackboard of the initial node
       ;; for more efficient diagnostics
-      (set-data (gl::initial-node node) :some-repair-applied t)
+      (set-data (initial-node node) :some-repair-applied t)
       (setf (cxn-supplier (first new-nodes)) (cxn-supplier node))
       (loop for node in new-nodes
             unless (or (is-subset (mapcar #'name (applied-constructions node))
@@ -130,5 +130,3 @@
               (cip node)
               temp-categorial-network
               categorial-links))))
-
-

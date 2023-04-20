@@ -11,7 +11,7 @@
                    (problem unknown-utterance-problem)
                    (node cip-node) &key &allow-other-keys)
   "Repair by making a new item-based construction and lexical cxn"
-  (when (gl::initial-node-p node)
+  (when (initial-node-p node)
     (let* ((reconstructed-intention (find-data problem :intention))
            (constructions-and-categorial-links (create-item-based-cxn-deletion problem
                                                                                node
@@ -25,13 +25,13 @@
 (defun create-item-based-cxn-deletion (problem node intention)
   (let* ((agent (find-data problem :owner))
          (cxn-inventory (original-cxn-set (construction-inventory node)))
-         (initial-transient-structure (gl::initial-transient-structure node))
+         (initial-transient-structure (initial-transient-structure node))
          (utterance (cipn-utterance node))
          (meaning intention))
     (multiple-value-bind (superset-holophrase-cxn
                           non-overlapping-form
                           non-overlapping-meaning)
-        (gl::find-superset-holophrase-cxn initial-transient-structure
+        (find-superset-holophrase-cxn initial-transient-structure
                                           cxn-inventory meaning
                                           utterance)
       (when superset-holophrase-cxn
@@ -50,9 +50,9 @@
                                                                            overlapping-meaning
                                                                            cxn-inventory)))
           (unless (and existing-lex-cxn existing-item-based-cxn)
-            (let* ((lex-cxn-name (make-const (gl::make-cxn-name non-overlapping-form
+            (let* ((lex-cxn-name (make-const (make-cxn-name non-overlapping-form
                                                                 cxn-inventory)))
-                   (cxn-name-item-based-cxn (gl::make-cxn-name overlapping-form
+                   (cxn-name-item-based-cxn (make-cxn-name overlapping-form
                                                                cxn-inventory
                                                                :add-cxn-suffix nil))
                    (unit-name-lex-cxn (second (find 'string
@@ -60,22 +60,22 @@
                                                     :key #'first)))
                    ;; lex-class
                    (lex-class-lex-cxn (if existing-lex-cxn
-                                        (gl::lex-class-cxn existing-lex-cxn)
+                                        (lex-class-cxn existing-lex-cxn)
                                         (intern (symbol-name (make-const unit-name-lex-cxn)) :fcg)))
                    (lex-class-item-based-cxn (if existing-item-based-cxn
                                                (loop for unit in (contributing-part existing-item-based-cxn)
-                                                     for lex-class = (gl::lex-class-item-based unit)
+                                                     for lex-class = (lex-class-item-based unit)
                                                      when lex-class return lex-class)
                                                (intern (symbol-name (make-const cxn-name-item-based-cxn)) :fcg)))
                    ;; type hierachy links
                    (categorial-link-1 (cons lex-class-lex-cxn lex-class-item-based-cxn))
                    ;; args: 
                    (args-lex-cxn (third (first non-overlapping-meaning))) ;; third if bind
-                   (holophrase-cxn-name (make-const (gl::make-cxn-name
+                   (holophrase-cxn-name (make-const (make-cxn-name
                                                      (remove-spurious-spaces
                                                       (remove-punctuation utterance))
                                                      cxn-inventory)))
-                   (form-constraints (gl::form-constraints-with-variables utterance
+                   (form-constraints (form-constraints-with-variables utterance
                                                                           (get-configuration cxn-inventory :de-render-mode)))
                    ;; cxns
                    (initial-cxn-score 0.5)
@@ -84,13 +84,13 @@
                                      (eval
                                       `(def-fcg-cxn ,holophrase-cxn-name
                                                     ((?holophrase-unit
-                                                      (syn-cat (gl::phrase-type holophrase)))
+                                                      (syn-cat (phrase-type holophrase)))
                                                      <-
                                                      (?holophrase-unit
                                                       (HASH meaning ,meaning)
                                                       --
                                                       (HASH form ,form-constraints)))
-                                                    :attributes (:cxn-type gl::holophrase
+                                                    :attributes (:cxn-type holophrase
                                                                  :repair holo->item
                                                                  :score ,initial-cxn-score
                                                                  :string ,(form-predicates->hash-string form-constraints)
@@ -106,14 +106,14 @@
                                    ,lex-cxn-name
                                    ((,unit-name-lex-cxn
                                      (args (,args-lex-cxn))
-                                     (syn-cat (gl::phrase-type lexical)
-                                              (gl::lex-class ,lex-class-lex-cxn)))
+                                     (syn-cat (phrase-type lexical)
+                                              (lex-class ,lex-class-lex-cxn)))
                                     <-
                                     (,unit-name-lex-cxn
                                      (HASH meaning ,non-overlapping-meaning)
                                      --
                                      (HASH form ,non-overlapping-form)))
-                                   :attributes (:cxn-type gl::lexical
+                                   :attributes (:cxn-type lexical
                                                 :repair holo->item
                                                 :score ,initial-cxn-score
                                                 :string ,(form-predicates->hash-string non-overlapping-form)
@@ -125,12 +125,12 @@
                                         (multiple-value-list
                                          (eval
                                           `(def-fcg-cxn
-                                            ,(make-const (gl::add-cxn-suffix cxn-name-item-based-cxn))
+                                            ,(make-const (add-cxn-suffix cxn-name-item-based-cxn))
                                             ((?item-based-unit
-                                              (syn-cat (gl::phrase-type item-based))
+                                              (syn-cat (phrase-type item-based))
                                               (subunits (,unit-name-lex-cxn)))
                                              (,unit-name-lex-cxn 
-                                              (syn-cat (gl::lex-class ,lex-class-item-based-cxn)))
+                                              (syn-cat (lex-class ,lex-class-item-based-cxn)))
                                              <-
                                              (?item-based-unit
                                               (HASH meaning ,overlapping-meaning)
@@ -139,7 +139,7 @@
                                              (,unit-name-lex-cxn
                                               (args (,args-lex-cxn))
                                               --))
-                                            :attributes (:cxn-type gl::item-based
+                                            :attributes (:cxn-type item-based
                                                          :repair holo->item
                                                          :score ,initial-cxn-score
                                                          :string ,(form-predicates->hash-string overlapping-form)

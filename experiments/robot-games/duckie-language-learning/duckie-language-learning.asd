@@ -11,7 +11,7 @@
                "test-framework"
                "plot-raw-data"
                "cl-json"
-               "grammar-learning"
+               "jonathan"
                "dexador")
   :serial t
   :components ((:file "package")
@@ -24,8 +24,8 @@
                 :serial t
                 :components ((:file "web-monitors")
                              (:file "unique-utils")
-                             (:file "fcg-utils")
-                             (:file "utils")))
+                             (:file "gl-utils")
+                             (:file "fcg-utils")))
                (:module irpf
                 :serial t
                 :components ((:file "handle-fix")

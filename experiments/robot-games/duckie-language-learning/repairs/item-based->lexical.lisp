@@ -39,9 +39,7 @@
       (let* ((meaning-predicates-observed (mapcan #'extract-meaning-predicates applied-cxns))
              (composer-strategy (get-configuration agent :composer-strategy))
              (composer-solution (compose-program agent
-                                                 (topic agent)
                                                  utterance
-                                                 composer-strategy
                                                  :partial-program meaning-predicates-observed)))
         (if composer-solution
           (let* ((meaning-predicates-gold (append (bind-statements composer-solution)
@@ -75,7 +73,7 @@
                                          `(def-fcg-cxn
                                            ,cxn-name
                                            ((,unit-name
-                                             (syn-cat (gl::phrase-type lexical)
+                                             (syn-cat (phrase-type lexical)
                                                       (fcg::lex-class ,lex-class))
                                              (args ,args))
                                             <-

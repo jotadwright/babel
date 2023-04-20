@@ -13,7 +13,7 @@
                    &allow-other-keys)
   "Repair the unknown utterance problem by making
    an item-based construction."
-  (when (gl::initial-node-p node)
+  (when (initial-node-p node)
     (let* ((reconstructed-intention (find-data problem :intention))
            (constructions-and-categorial-links (create-item-based-cxn-substitution problem
                                                                                    node
@@ -38,7 +38,7 @@
                           overlapping-meaning-cxn
                           overlapping-form-cxn
                           cxn)
-        (gl::select-cxn-for-making-item-based-cxn cxn-inventory utterance meaning)
+        (select-cxn-for-making-item-based-cxn cxn-inventory utterance meaning)
       (when cxn
         (let ((lex-cxn-1 (find-cxn-by-type-form-and-meaning 'lexical
                                                             non-overlapping-form-cxn
@@ -53,20 +53,20 @@
                                                                           overlapping-meaning-cxn
                                                                           cxn-inventory)))
           (unless (and lex-cxn-1 lex-cxn-2 existing-item-based-cxn)
-            (let* ((cxn-name-item-based-cxn (gl::make-cxn-name overlapping-form-cxn cxn-inventory :add-cxn-suffix nil))
+            (let* ((cxn-name-item-based-cxn (make-cxn-name overlapping-form-cxn cxn-inventory :add-cxn-suffix nil))
                    ;; unit names
                    (unit-name-lex-cxn-1 (second (find 'string non-overlapping-form-cxn :key #'first)))
                    (unit-name-lex-cxn-2 (second (find 'string non-overlapping-form-observation :key #'first)))
                    ;; args and syn-cat
                    (lex-class-lex-cxn-1 (if lex-cxn-1
-                                          (gl::lex-class-cxn lex-cxn-1)
+                                          (lex-class-cxn lex-cxn-1)
                                           (intern (symbol-name (make-const unit-name-lex-cxn-1)) :fcg)))
                    (lex-class-lex-cxn-2 (if lex-cxn-2
-                                          (gl::lex-class-cxn lex-cxn-2)
+                                          (lex-class-cxn lex-cxn-2)
                                           (intern (symbol-name (make-const unit-name-lex-cxn-2)) :fcg)))
                    (lex-class-item-based-cxn (if existing-item-based-cxn
                                                (loop for unit in (contributing-part existing-item-based-cxn)
-                                                     for lex-class = (gl::lex-class-item-based unit)
+                                                     for lex-class = (lex-class-item-based unit)
                                                      when lex-class return lex-class)
                                                (intern (symbol-name (make-const cxn-name-item-based-cxn)) :fcg)))
                    ;; Type hierachy links
@@ -82,17 +82,17 @@
                                        (multiple-value-list
                                         (eval
                                          `(def-fcg-cxn
-                                           ,(make-const (gl::make-cxn-name non-overlapping-form-cxn cxn-inventory))
+                                           ,(make-const (make-cxn-name non-overlapping-form-cxn cxn-inventory))
                                            ((,unit-name-lex-cxn-1
                                              (args (,args-lex-cxn-1))
-                                             (syn-cat (gl::phrase-type lexical)
-                                                      (gl::lex-class ,lex-class-lex-cxn-1)))
+                                             (syn-cat (phrase-type lexical)
+                                                      (lex-class ,lex-class-lex-cxn-1)))
                                             <-
                                             (,unit-name-lex-cxn-1
                                              (HASH meaning ,non-overlapping-meaning-cxn)
                                              --
                                              (HASH form ,non-overlapping-form-cxn)))
-                                           :attributes (:cxn-type gl::lexical
+                                           :attributes (:cxn-type lexical
                                                         :repair holo->item
                                                         :score ,initial-cxn-score
                                                         :string ,(form-predicates->hash-string non-overlapping-form-cxn)
@@ -104,17 +104,17 @@
                                        (multiple-value-list
                                         (eval
                                          `(def-fcg-cxn
-                                           ,(make-const (gl::make-cxn-name non-overlapping-form-observation cxn-inventory))
+                                           ,(make-const (make-cxn-name non-overlapping-form-observation cxn-inventory))
                                            ((,unit-name-lex-cxn-2
                                              (args (,args-lex-cxn-2))
-                                             (syn-cat (gl::phrase-type lexical)
-                                                      (gl::lex-class ,lex-class-lex-cxn-2)))
+                                             (syn-cat (phrase-type lexical)
+                                                      (lex-class ,lex-class-lex-cxn-2)))
                                             <-
                                             (,unit-name-lex-cxn-2
                                              (HASH meaning ,non-overlapping-meaning-observation)
                                              --
                                              (HASH form ,non-overlapping-form-observation)))
-                                           :attributes (:cxn-type gl::lexical
+                                           :attributes (:cxn-type lexical
                                                         :repair holo->item
                                                         :score ,initial-cxn-score
                                                         :string ,(form-predicates->hash-string non-overlapping-form-observation)
@@ -126,12 +126,12 @@
                                         (multiple-value-list
                                          (eval
                                           `(def-fcg-cxn
-                                            ,(make-const (gl::add-cxn-suffix cxn-name-item-based-cxn))
+                                            ,(make-const (add-cxn-suffix cxn-name-item-based-cxn))
                                             ((?item-based-unit
-                                              (syn-cat (gl::phrase-type item-based))
+                                              (syn-cat (phrase-type item-based))
                                               (subunits (,unit-name-lex-cxn-1)))
                                              (,unit-name-lex-cxn-1
-                                              (syn-cat (gl::lex-class ,lex-class-item-based-cxn)))
+                                              (syn-cat (lex-class ,lex-class-item-based-cxn)))
                                              <-
                                              (?item-based-unit
                                               (HASH meaning ,overlapping-meaning-cxn)
@@ -140,7 +140,7 @@
                                              (,unit-name-lex-cxn-1
                                               (args (,args-lex-cxn-1))
                                               --))
-                                            :attributes (:cxn-type gl::item-based
+                                            :attributes (:cxn-type item-based
                                                          :repair holo->item
                                                          :score ,initial-cxn-score
                                                          :string ,(form-predicates->hash-string overlapping-form-cxn)

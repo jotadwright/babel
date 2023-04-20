@@ -112,5 +112,5 @@
   ;; on the blackboard of the initial node, so
   ;; we don't have to traverse the entire tree
   (multiple-value-bind (some-repair-applied-p foundp)
-      (find-data (gl::initial-node node) :some-repair-applied)
+      (find-data (initial-node node) :some-repair-applied)
     (when foundp some-repair-applied-p)))

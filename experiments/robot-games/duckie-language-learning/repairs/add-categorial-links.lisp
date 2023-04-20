@@ -59,10 +59,8 @@
             (when categorial-links (set-data (current-interaction (experiment agent)) :applied-repair 'add-categorial-links)
               (list applied-cxns nil nil categorial-links))))))))
 
-
 ;; NO PATH REQUIRED
 ;; ----------------
-
 (defun get-strings-from-root-second-merge-failed (node)
   (form-predicates-with-variables
    (extract-string
