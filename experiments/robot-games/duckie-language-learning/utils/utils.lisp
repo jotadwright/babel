@@ -78,17 +78,17 @@
 
 (defun lex-class (unit)
   (let* ((syn-cat (find 'syn-cat (unit-body unit) :key #'first))
-         (lex-class (find 'lex-class (second syn-cat) :key #'first)))    
+         (lex-class (find 'fcg::lex-class (second syn-cat) :key #'first)))    
     (when lex-class
       (second lex-class))))
 
 (defun lex-class-item-based (unit)
   (let ((syn-cat (find 'syn-cat (fcg::unit-structure unit) :key #'first)))
-    (second (find 'lex-class (rest syn-cat) :key #'first))))
+    (second (find 'fcg::lex-class (rest syn-cat) :key #'first))))
 
 (defun lex-class-cxn (lexical-cxn)
   (let ((syn-cat (find 'syn-cat (fcg::unit-structure (first (contributing-part lexical-cxn))) :key #'feature-name)))
-    (second (find 'lex-class (rest syn-cat) :key #'first))))
+    (second (find 'fcg::lex-class (rest syn-cat) :key #'first))))
          
 
 (defun non-overlapping-meaning (meaning cxn &key (nom-cxn nil) (nom-observation nil))
@@ -352,12 +352,12 @@
 
 
 (defmethod irl::find-map-function ((v1 string) (v2 string) 
-                        &optional (frame (irl::make-map-frame))
-                        &key (extension-test #'irl::function-frame))
+                                   &optional (frame (irl::make-map-frame))
+                                   &key (extension-test #'irl::function-frame))
   "Adding case for strings, used when comparing predicate networks"
   (declare (ignore extension-test))
-      (when (string= v1 v2) 
-        frame))
+  (when (string= v1 v2) 
+    frame))
 
 (defun diff-superset-subset-form (superset-cxn utterance)
   (set-difference (extract-form-predicates superset-cxn)
@@ -451,7 +451,7 @@
 
 #|
 (defun diff-non-overlapping-meaning (gold-standard-meaning matching-lex-cxns)
-    "subtract all lexical meanings (bind statements) from the gold standard"
+  "subtract all lexical meanings (bind statements) from the gold standard"
   (let ((resulting-meaning gold-standard-meaning)
         (args nil))
     (loop for lex-cxn in matching-lex-cxns
@@ -535,7 +535,7 @@
         for categorial-link in categorial-links
         for lex-slot-lex-class = (cdr categorial-link)
         collect `(,lex-cxn-unit-name
-                  (syn-cat (gl::lex-class ,lex-slot-lex-class))) into contributing-units
+                  (syn-cat (fcg::lex-class ,lex-slot-lex-class))) into contributing-units
         collect `(,lex-cxn-unit-name
                   (args (,arg))
                   --) into conditional-units
