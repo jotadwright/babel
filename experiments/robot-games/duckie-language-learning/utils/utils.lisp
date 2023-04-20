@@ -334,30 +334,8 @@
                 (push assigned-predicates possible-alignments))))
     possible-alignments))
 
-#| 
-(length (all-possible-alignments (shuffle '((get-context ?source)
-                                            (bind attribute-category ?attribute color)
-                                            (bind shape-category ?shape cube)
-                                            (unique ?object ?cubes)
-                                            (filter ?cubes ?source ?shape)
-                                            (query ?response ?object ?attribute)))
-                                 (shuffle '((get-context ?source)
-                                            (bind attribute-category ?attribute color)
-                                            (bind shape-category ?shape sphere)
-                                            (unique ?object ?spheres)
-                                            (filter ?spheres ?source ?shape)
-                                            (query ?response ?object ?attribute)))
-                                 :nr-of-unpaired-predicates-allowed 2))
-|#
 
 
-(defmethod irl::find-map-function ((v1 string) (v2 string) 
-                                   &optional (frame (irl::make-map-frame))
-                                   &key (extension-test #'irl::function-frame))
-  "Adding case for strings, used when comparing predicate networks"
-  (declare (ignore extension-test))
-  (when (string= v1 v2) 
-    frame))
 
 (defun diff-superset-subset-form (superset-cxn utterance)
   (set-difference (extract-form-predicates superset-cxn)
@@ -427,53 +405,6 @@
                (search (third (first (extract-form-predicates x))) utterance)
                (search (third (first (extract-form-predicates y))) utterance))))))
 
-#|
-(defun diff-non-overlapping-form (observed-form matching-lex-cxns)
-  "subtract all lexical forms from the gold standard"
-  (let ((resulting-form observed-form)
-        (lex-unit-names nil))
-    (loop for lex-cxn in matching-lex-cxns
-          for lex-cxn-form = (extract-form-predicates lex-cxn)
-          do (let ((prev-res-form resulting-form))
-               (setf resulting-form
-                     (set-difference resulting-form lex-cxn-form
-                                     :test #'irl:unify-irl-programs))
-               (setf lex-unit-names
-                     (append lex-unit-names
-                             (list
-                              (second
-                               (find 'string
-                                     (set-difference prev-res-form resulting-form
-                                                     :test #'irl:unify-irl-programs)
-                                     :key #'first)))))))
-    (values lex-unit-names resulting-form)))
-|#
-
-#|
-(defun diff-non-overlapping-meaning (gold-standard-meaning matching-lex-cxns)
-  "subtract all lexical meanings (bind statements) from the gold standard"
-  (let ((resulting-meaning gold-standard-meaning)
-        (args nil))
-    (loop for lex-cxn in matching-lex-cxns
-          for lex-cxn-meaning = (first (extract-meaning-predicates lex-cxn))
-          do (let ((prev-res-meaning resulting-meaning))
-               ;; problem! set difference will remove both instances if there are identical meanings (e.g cylinder & cylinders)
-               ;; solution: take only one e.g with find and remove by index
-               ;(setf resulting-meaning (remove lex-cxn-meaning resulting-meaning :test #'equal :count 1))
-               (setf resulting-meaning
-                     (set-difference resulting-meaning (list lex-cxn-meaning)
-                                     :test #'irl:unify-irl-programs))
-               ;(setf args (append args (list (third lex-cxn-meaning))))))
-               (setf args
-                     (append args
-                             (list
-                              (third
-                               (find 'bind (set-difference prev-res-meaning resulting-meaning
-                                                           :test #'irl:unify-irl-programs)
-                                     :key #'first)))))))
-    (values args resulting-meaning)))
-|#
- 
 (defun diff-non-overlapping-form (observed-form matching-lex-cxns)
   "subtract all lexical forms from the gold standard,
    taking into account possible duplicates in the matching lex cxns
@@ -520,14 +451,6 @@
                  (push arg args))))
     (values (reverse args) resulting-meaning)))
  
-
-
-(defun subunit-names-for-lex-cxns (lex-cxns)
-  (loop for lex-cxn in lex-cxns
-        for lex-cxn-form = (extract-form-predicates lex-cxn)
-        for lex-cxn-unit-name = (second (find 'string lex-cxn-form :key #'first))
-        collect lex-cxn-unit-name))
-
 (defun subunit-blocks-for-lex-cxns (lex-cxns lex-subunit-names args categorial-links)
   (loop for lex-cxn in lex-cxns
         for arg in args
@@ -555,25 +478,6 @@
                                                   :add-numeric-tail item-based-numeric-tail)
         collect (cons lex-cxn-lex-class item-slot-lex-class)))
 
-(defun find-matching-lex-cxns-in-root (cxn-inventory root-strings)
-  (remove nil (loop for remaining-form in root-strings
-                    for root-string = (third remaining-form)
-                    collect (loop for cxn in (constructions cxn-inventory)
-                                  when (and (eql (phrase-type cxn) 'lexical)
-                                            (string= (third (first (extract-form-predicates cxn))) root-string))
-                                    return cxn))))
-
-(defun subtract-lex-cxn-meanings (lex-cxns gold-standard-meaning)
-  (let ((lex-cxn-meanings (map 'list #'extract-meaning-predicates lex-cxns)))
-    (loop for lex-cxn-meaning in lex-cxn-meanings
-          do (setf gold-standard-meaning (set-difference gold-standard-meaning lex-cxn-meaning :test #'irl:unify-irl-programs)))
-    gold-standard-meaning))
-
-(defun subtract-lex-cxn-forms (lex-cxns string-predicates-in-root)
-  (loop for lex-cxn in lex-cxns
-        for lex-form = (extract-form-predicates lex-cxn)
-        do (setf string-predicates-in-root (set-difference string-predicates-in-root lex-form :test #'irl:unify-irl-programs)))
-  string-predicates-in-root)
 
 (defun find-subset-holophrase-cxn (transient-structure cxn-inventory gold-standard-meaning utterance)
   (loop with ts-form-constraints = (transient-structure-form-constraints transient-structure)
@@ -599,7 +503,6 @@
                                  (find (first predicate) gold-standard-meaning :key #'first))))
           ;; needs to be a holophrase, the form constraints for string and precedes constraints need to be a subset of the cxn, the meaning constraints need to be a subset too (todo: see if this is really the case in IRL)
           return (values cxn superset-form non-overlapping-form non-overlapping-meaning)))
-
 
 (defun find-superset-holophrase-cxn (transient-structure cxn-inventory gold-standard-meaning utterance)
   ;; todo: there could also be more than one superset cxn!

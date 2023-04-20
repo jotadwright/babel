@@ -17,13 +17,13 @@
   :components ((:file "package")
                (:module experiment-setup
                 :serial t
-                :components ((:file "run-helpers")
-                             (:file "agent")
+                :components ((:file "agent")
                              (:file "experiment")
                              (:file "interaction")))
                (:module utils
                 :serial t
                 :components ((:file "web-monitors")
+                             (:file "unique-utils")
                              (:file "fcg-utils")
                              (:file "utils")))
                (:module irpf

@@ -75,7 +75,7 @@
                                          `(def-fcg-cxn
                                            ,cxn-name
                                            ((,unit-name
-                                             (syn-cat (phrase-type lexical)
+                                             (syn-cat (gl::phrase-type lexical)
                                                       (fcg::lex-class ,lex-class))
                                              (args ,args))
                                             <-
