@@ -22,8 +22,7 @@
 (defun create-item-based-cxn-addition (problem node)
   (let* (;; intention reading
          (agent (find-data problem :owner))
-         (answer (find-data problem :answer))
-         (meaning (compose-program agent answer))
+         (meaning (find-data problem :intention))
          ;; pattern finding
          (cxn-inventory (original-cxn-set (construction-inventory node)))
          (utterance (cipn-utterance node))

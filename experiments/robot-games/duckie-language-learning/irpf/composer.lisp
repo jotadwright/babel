@@ -28,8 +28,7 @@
                         :limit-irl-program-length
                         ;; no duplicates
                         :check-duplicate
-                        ;; no predicates with multiple times
-                        ;; the same variable
+                        ;; no predicates with multiple times the same variable
                         ;:no-circular-primitives
                         ;; meaning has to be fully connected
                         :fully-connected-meaning

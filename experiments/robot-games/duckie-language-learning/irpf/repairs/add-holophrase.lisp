@@ -26,8 +26,7 @@
   "Create a new holophrase construction from the reconstructed intention"
   (let* (;; intention reading
          (agent (find-data problem :owner))
-         (answer (find-data problem :answer))
-         (meaning-constraints (compose-program agent answer))
+         (meaning-constraints (find-data problem :intention))
          ;; pattern finding
          (cxn-inventory (original-cxn-set (construction-inventory node)))
          (utterance (cipn-utterance node))

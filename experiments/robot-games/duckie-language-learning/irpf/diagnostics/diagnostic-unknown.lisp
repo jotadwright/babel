@@ -28,6 +28,7 @@
         (push 'fcg::diagnostic-triggered (statuses node))
         (notify diagnostic-trigger node diagnostic)
         (let ((correct-answer (ask-correct-answer agent)))
+          (set-data problem :intention (compose-program agent correct-answer))
           (set-data problem :answer correct-answer))
         (set-data problem :owner agent)
         problem))))
