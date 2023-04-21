@@ -59,7 +59,7 @@
 
 what is the color of the house
 what is the color of the car
-is the first object a house
+what is the building-function of the house
 
 (run-interaction *demo*)
 
