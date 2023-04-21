@@ -1,12 +1,17 @@
 (in-package :fcg)
 
-(export '(extract-meaning-predicates extract-form-predicates
-          create-cxn-inventory-for-sandbox apply-in-sandbox comprehend-in-sandbox
-          ordered-fcg-apply))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Extracting form and meaning from fcg-constructions ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; ------------------------------
-;; + extract meaning predicates +
-;; ------------------------------
+(export '(extract-meaning-predicates
+          extract-form-predicates
+          ordered-fcg-apply
+          comprehend-in-sandbox
+          apply-in-sandbox
+          initial-node
+          cxn-score
+          create-cxn-inventory-for-sandbox))
 
 (defgeneric extract-meaning-predicates (object))
 
@@ -25,9 +30,7 @@
   (append (find-feature-value 'meaning unit-body)
           (find-hashed-feature-value 'meaning unit-body)))
 
-;; ---------------------------
-;; + extract form predicates +
-;; ---------------------------
+;; (extract-meaning-predicates (first (constructions *fcg-constructions*)))
 
 (defgeneric extract-form-predicates (object))
 
@@ -45,6 +48,29 @@
 (defmethod extract-form-predicates ((unit-body list))
   (append (find-feature-value 'form unit-body)
           (find-hashed-feature-value 'form unit-body)))
+
+;; (extract-form-predicates (first (constructions *fcg-constructions*)))
+
+(defun find-feature-value (feature unit-body)
+  (loop for feature-value in unit-body
+        when (equal (feature-name feature-value) feature)
+        return  (second feature-value)))
+
+(defun find-hashed-feature-value (feature unit-body)
+  (loop for feature-value in unit-body
+        when (and (equal (first feature-value) 'HASH)
+                  (equal (second feature-value) feature))
+        return (third feature-value)))
+
+(defun initial-node (node)
+  "returns the first node in the cip"
+  (if (all-parents node)
+    (last-elt (all-parents node))
+    node))
+
+(defun cxn-score (cxn)
+  (attr-val cxn :score))
+
 
 
 ;;
@@ -230,9 +256,9 @@
 
 
 (defmethod formulate (meaning &key
-                              (cxn-inventory *fcg-constructions*)
-                              (gold-standard-utterance nil)
-                              (silent nil))
+                            (cxn-inventory *fcg-constructions*)
+                            (gold-standard-utterance nil)
+                            (silent nil))
   (let ((initial-cfs (create-initial-structure meaning
                                                (get-configuration cxn-inventory :create-initial-structure-mode)))
         (processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))

@@ -240,3 +240,19 @@ string constraint with the variable ?Y."
 (defmethod render ((state render-state) (mode (eql :render-sequences)) &key &allow-other-keys)
   "Returns the list of strings represented in a render-state"
   (mapcar #'second (used-string-constraints state)))
+
+(defmethod render-all ((form-constraints list) (mode (eql :render-sequences)) &key &allow-other-keys)
+  (let* ((sequence-constraints (remove-if-not #'stringp form-constraints :key #'second))
+         (queue (list (make-instance 'render-state
+                                     :used-string-constraints nil
+                                     :remaining-string-constraints (shuffle sequence-constraints))))
+         (solutions nil))
+    (loop while queue
+          for current-state = (pop queue)
+          for all-new-states = (generate-render-states current-state)
+          for valid-new-states = (test-render-states all-new-states :order-sequences)
+          do (loop for valid-state in valid-new-states
+                   if (remaining-string-constraints valid-state)
+                   do (push valid-state queue)
+                   else do (push (render valid-state :render-sequences) solutions)))
+    solutions))

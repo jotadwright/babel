@@ -1,4 +1,4 @@
-(in-package :pattern-finding)
+(in-package :pattern-finding-old)
 
 (defun set-up-cxn-inventory-and-repairs ()
   (wi::reset)

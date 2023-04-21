@@ -1,5 +1,5 @@
-(ql:quickload :pattern-finding)
-(in-package :pattern-finding)
+(ql:quickload :pattern-finding-old)
+(in-package :pattern-finding-old)
 
 
 (progn
@@ -24,7 +24,8 @@
 
 ;;;; To get the same effect as the item-based->item-based repair,
 ;;;; apply the repairs recursively to the generalisation part in
-;;;; the partial analysis repair.
+;;;; the partial analysis repair. But how? Have to make sure that
+;;;; the learned item-based cxn has the correct amount of slots
 
 
 (progn
@@ -40,14 +41,14 @@
                               (:corpus-data-file . ,(make-pathname :directory '(:relative "train")
                                                                    :name "stage-1" :type "jsonl"))
                               (:number-of-samples . nil)
-                              (:shuffle-data-p . t)
-                              (:sort-data-p . nil)
-                              (:remove-duplicate-data-p . nil)))))
+                              (:shuffle-data-p . nil)
+                              (:sort-data-p . t)
+                              (:remove-duplicate-data-p . t)))))
 
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 100)
+(run-series *experiment* 10)
 
 ;;;; Showing the cxn inventory and categorial network
 

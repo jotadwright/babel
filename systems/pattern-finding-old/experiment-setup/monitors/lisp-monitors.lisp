@@ -1,6 +1,6 @@
 ;;;; monitors.lisp
 
-(in-package :pattern-finding)
+(in-package :pattern-finding-old)
 
 ;;;; Communicative success             
 (define-monitor record-communicative-success
