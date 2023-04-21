@@ -9,6 +9,7 @@
     (duplicate . "#520") (solution . "#050")
     (bad-evaluation-results . "#822")
     (match-chunk-failed . "#822")
+    (match-chunk-succeeded . "#822")
     (chunk-wrapper-failed . "#822")
     (no-evaluation-results . "#337")
     (expanded . "#480")
