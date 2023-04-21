@@ -29,3 +29,9 @@
       (push 'fcg::goal-test-failed (statuses node))
       (set-data (initial-node node) :some-interpretation-failed t))
     success))
+
+(defun get-target-value (irl-program list-of-bindings)
+  (let* ((target-variable (get-target-var irl-program))
+         (target-binding (find target-variable list-of-bindings :key #'var)))
+    (when target-binding
+      (value target-binding))))
