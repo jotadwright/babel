@@ -26,8 +26,7 @@
                              (:module diagnostics
                               :serial t
                               :components ((:file "diagnostic-unknown")
-                                           (:file "diagnostic-partial")
-                                           (:file "diagnostic-failure")))
+                                           (:file "diagnostic-partial")))
                              (:file "composer")
                              (:module repairs
                                 :serial t
@@ -40,8 +39,7 @@
                                              (:file "lexical-to-item-based")
                                              (:file "utils")))
                               (:file "grammar")
-                              (:file "utils")
-                              (:file "goal-tests")))
+                              (:file "utils")))
                (:module ontology
                 :serial t
                 :components ((:file "category")
