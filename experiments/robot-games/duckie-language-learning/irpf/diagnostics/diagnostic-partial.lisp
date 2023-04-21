@@ -30,8 +30,7 @@
                (not (some-applied-repair-in-tree node)))
       (cond ((applied-constructions node)
              ;; CASE 1: there are some applied constructions,
-             (if (and (null (queue (cip node)))
-                      (not (interpretation-failed-in-tree node)))
+             (if (null (queue (cip node)))
                ;; CASE 1A: queue is empty
                ;; -> diagnostic was called manually on an item from the candidate list
                ;; -> thus, create the actual problem object
@@ -66,7 +65,6 @@
                    when fixes return nil))))))
 
 ;; helper functions
-
 (defun some-applied-repair-in-tree (node)
   "Some node in the tree can be added by a repair
    luckily, the handle-fix methods write this
