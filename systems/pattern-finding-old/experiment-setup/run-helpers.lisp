@@ -1,4 +1,4 @@
-(in-package :pattern-finding)
+(in-package :pattern-finding-old)
 
 ;;;; UTILS FOR RUNNING GAMES
 ;;;; -----------------------

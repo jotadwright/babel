@@ -1,4 +1,4 @@
-(in-package :pattern-finding)
+(in-package :pattern-finding-old)
 
 ;;;;;
 ;; Accessors and Predicates
@@ -70,12 +70,6 @@
   (loop for node in cip-nodes
         unless (find 'fcg::initial (statuses node))
         collect node))
-
-(defun initial-node (node)
-  "returns the first node in the cip"
-  (if (all-parents node)
-    (last-elt (all-parents node))
-    node))
 
 
 ;;;;;
@@ -382,6 +376,11 @@
   (set-configuration cxn-inventory :consolidate-repairs nil))
 
 (defun enable-meta-layer-configuration (cxn-inventory)
+  (set-configuration cxn-inventory :parse-goal-tests '(:no-strings-in-root
+                                                       :no-applicable-cxns
+                                                       :connected-semantic-network
+                                                       :connected-structure
+                                                       :non-gold-standard-meaning))
   (set-configuration cxn-inventory :category-linking-mode :neighbours)
   (set-configuration cxn-inventory :update-categorial-links t)
   (set-configuration cxn-inventory :use-meta-layer t)

@@ -1,4 +1,4 @@
-(in-package :pattern-finding)
+(in-package :pattern-finding-old)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Repair Add Categorial links     ;;
@@ -37,7 +37,7 @@
                                        (cxn-inventory construction-inventory)
                                        node (repair-type (eql 'add-categorial-links)))
   "Return the categorial links and applied cxns from a comprehend
-   with :category-linking-mode :path-exists instead of :neighbours"
+   with :category-linking-mode :categories-exist instead of :neighbours"
   (declare (ignore form-args meaning-args))
   (disable-meta-layer-configuration cxn-inventory) 
   (with-disabled-monitor-notifications

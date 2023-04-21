@@ -1,4 +1,4 @@
-(in-package :pattern-finding)
+(in-package :pattern-finding-old)
 
 ;;;; This file collects utils function that are currently not used!
 

@@ -4,7 +4,7 @@
 (defclass add-cxns-and-categorial-links (repair)
   ())
 
-;; Generic function for repair
+;; Generic function for repairs
 (defgeneric do-repair (observation-form observation-meaning form-args meaning-args cxn-inventory node repair-type)
   (:documentation "Run a repair of type repair-type."))
 

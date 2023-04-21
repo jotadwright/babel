@@ -1,4 +1,4 @@
-(in-package :pattern-finding)
+(in-package :pattern-finding-old)
 
 
 (deftest test-substitution-repair-comprehension ()

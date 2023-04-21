@@ -86,7 +86,7 @@ Anti-unify the observation with item-based constructions and learn constructions
   - Extend to additions and deletions? See holistic->item-based repair on how to handle empty delta's in the anti-unification results. 
   - Is the computation of the args in step 4 correct? Does it provide args for only the new slot, or does it also include variables for the already existing slots in the item-based constructions that are being anti-unified with each other?
   - Is it necessary to run the holistic partial analysis repair again to obtain the final item-based construction? Or can it be derived from the anti-unification results? Maybe it becomes to difficult to make the units for the slots?
-  - **!!!** This repair should be deleted and the holistic->item-based (with anti-unification) should be generalised to also anti-unify over item-based constructions. It can be renamed to the anti-unification repair and ran after the partial analysis repairs have been tried. To get the same effect as the item-based->item-based repair, also go in the recursion with the item-based part of the partial analysis repairs?
+  - **!!!** This repair should be deleted and the holistic->item-based (with anti-unification) should be generalised to also anti-unify over item-based constructions. It can be renamed to the anti-unification repair and ran after the partial analysis repairs have been tried. To get the same effect as the item-based->item-based repair, also go in the recursion with the item-based part of the partial analysis repairs? **But how?** Have to make sure that the item-based cxn has the correct number of slots...
 
 ### **6. Add Categorial Links**
 
