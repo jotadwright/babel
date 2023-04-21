@@ -417,7 +417,7 @@ nil."
                    do (push (nth idx list) subset)
                    finally (when (and subset
                                       (>= (length subset) min-length)
-                                      (<= (length subset) max-length))
+                                      (<= (length subset) (or max-length list-len)))
                              (push subset all-subsets)))
           finally (return all-subsets))))
 
