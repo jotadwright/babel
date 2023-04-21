@@ -40,7 +40,8 @@
                                              (:file "lexical-to-item-based")
                                              (:file "utils")))
                               (:file "grammar")
-                              (:file "utils")))
+                              (:file "utils")
+                              (:file "goal-tests")))
                (:module ontology
                 :serial t
                 :components ((:file "category")

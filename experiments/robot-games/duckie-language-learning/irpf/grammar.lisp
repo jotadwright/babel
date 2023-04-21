@@ -10,7 +10,7 @@
                   (meaning set-of-predicates)
                   (subunits set)
                   (footprints set))
-  :fcg-configurations ((:parse-goal-tests :no-strings-in-root :connected-semantic-network)
+  :fcg-configurations ((:parse-goal-tests :no-strings-in-root :connected-semantic-network :correct-interpretation)
                        (:de-render-mode . :de-render-string-meets-no-punct)
                        (:consolidate-repairs . t))
   :diagnostics (dll::diagnose-failed-interpretation

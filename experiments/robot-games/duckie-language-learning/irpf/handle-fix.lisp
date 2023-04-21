@@ -1,7 +1,10 @@
 (in-package :duckie-language-learning)
 
-;; events
+;; --------------
+;; + Handle fix +
+;; --------------
 
+;; TODO move all web-monitor code to separate file
 (define-event diagnostic-trigger
   (node cip-node)
   (diagnostic diagnostic))
