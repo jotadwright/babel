@@ -1138,10 +1138,11 @@ added here. Preprocessing is only used in parsing currently."
     (loop for cxn in (get-data (car-resulting-cfs (cipn-car node)) :fix-cxns)
           unless (find-cxn cxn (original-cxn-set (construction-inventory node)) :key #'identity)
           do (add-cxn cxn (original-cxn-set (construction-inventory node)))))
-  ;; fix-th-links
+  ;; fix-categories
   (when (field? (car-resulting-cfs (cipn-car node)) :fix-categories)
     (add-categories (get-data (car-resulting-cfs (cipn-car node)) :fix-categories)
                              (original-cxn-set (construction-inventory node))))
+  ;; fix-categorial-links
   (when (field? (car-resulting-cfs (cipn-car node)) :fix-categorial-links)
     (loop for cat-link in (get-data (car-resulting-cfs (cipn-car node)) :fix-categorial-links)
           do (add-categories (list (car cat-link) (cdr cat-link))
