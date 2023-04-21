@@ -7,7 +7,6 @@
     :documentation "the function of the duckie building"))
   (:documentation "a duckie building in the world"))
 
-
 (defmethod equal-entity ((obj-1 duckie-building) (obj-2 duckie-building))
   "Objects are equal when their attributes are"
   (and 

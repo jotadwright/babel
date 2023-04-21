@@ -12,7 +12,6 @@
   ((trigger :initform 'fcg::new-node)))
 
 ;; This repair is applied when a partial utterance was diagnosed.
-
 (defmethod repair ((repair lexical->item-based)
                    (problem partial-utterance-problem)
                    (node cip-node) &key
@@ -25,27 +24,25 @@
                      :restart-data constructions-and-categorial-links))))
 
 (defun create-item-based-cxns-from-lex (problem node)
-  ;(notify lexical->item-based-repair-started)
-  (let* ((agent (find-data problem :owner))
+  (let* (;; intention reading
+         (agent (find-data problem :owner))
+         (answer (find-data problem :answer))
+         ;; pattern finding
          (cxn-inventory (original-cxn-set (construction-inventory node)))
          (utterance (cipn-utterance node))
+         ;; what cxns did apply?
          (applied-cxns (original-applied-constructions node))
          (applied-lex-cxns (find-all 'lexical applied-cxns :key #'get-cxn-type))
          (applied-item-based-cxn (find 'item-based applied-cxns :key #'get-cxn-type)))
     (when (and applied-lex-cxns (null applied-item-based-cxn))
-      (let* ((partial-program (deduplicate-variables (mapcan #'extract-meaning-predicates
-                                                             applied-lex-cxns)))
-             (composer-strategy (get-configuration agent :composer-strategy))
-             (composer-solution (compose-program agent
-                                                 (topic agent)
-                                                 utterance composer-strategy
-                                                 :partial-program partial-program)))
+      (let* ((partial-program (deduplicate-variables (mapcan #'extract-meaning-predicates applied-lex-cxns)))
+             (composer-solution (compose-program agent answer :partial-program partial-program)))
         (if composer-solution
           (let* ((new-irl-program (append (bind-statements composer-solution)
                                           (irl-program (chunk composer-solution))))
-                 (sorted-lex-cxns (sort-cxns-by-form-string
-                                   applied-lex-cxns
-                                   (remove-spurious-spaces (remove-punctuation utterance))))
+                 (sorted-lex-cxns (sort-cxns-by-form-string applied-lex-cxns
+                                                            (remove-spurious-spaces
+                                                             (remove-punctuation utterance))))
                  (var-form (form-constraints-with-variables utterance
                                                             (get-configuration
                                                              cxn-inventory
@@ -109,7 +106,7 @@
                                               :cxn-set non-holophrase)))))))
                 ;(add-composer-chunk agent non-overlapping-meaning)
                 (set-data interaction :applied-repair 'lexical->item-based)
-                ;; returns 
+                ;; returns
                 ;; 1. existing cxns to apply
                 ;; 2. new cxns to apply
                 ;; 3. other new cxns

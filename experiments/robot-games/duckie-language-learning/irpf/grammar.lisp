@@ -14,24 +14,22 @@
                        (:de-render-mode . :de-render-string-meets-no-punct)
                        (:consolidate-repairs . t))
   :diagnostics (dll::diagnose-unknown-utterance
-                ;;dll::diagnose-partial-utterance
-                )
-  :repairs (dll::holophrase->item-based--substitution
+                dll::diagnose-partial-utterance)
+  :repairs (dll::add-categorial-links
+            dll::item-based->lexical
+            dll::holophrase->item-based--substitution
             dll::holophrase->item-based--addition
             dll::holophrase->item-based--deletion
-            dll::add-holophrase
-            ;;dll::item-based->lexical
-            ;;dll::lexical->item-based
-            ;;dll::add-categorial-links
-            )
+            dll::lexical->item-based
+            dll::add-holophrase)
   :visualization-configurations ((:show-constructional-dependencies . nil)
                                  (:show-categorial-network . t)))
 
 (defun detach-punctuation (word)
   "This function will check if the input string (word)
-   has a punctuation at the end of it (e.g. it?)
-   and return a list of the word + the punctuation mark
-   (e.g. '('it' '?')"
+   has a punctuation at the end of it 
+   and return the word without the punctuation in a list
+   'bolima?' -> '(bolima)'"
   (let ((last-char (char word (1- (length word)))))
     (if (punctuation-p last-char)
       (if (eq last-char #\?)

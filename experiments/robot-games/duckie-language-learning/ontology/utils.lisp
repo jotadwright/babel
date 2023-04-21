@@ -37,3 +37,13 @@
         ;(coordinates copy) (coordinates src)
         ))
 
+(defmethod copy-object-content ((src number-category) (copy number-category))
+  (setf (id copy) (id src) ;; make sure that copies have the same id!
+        (num copy) (num src)))
+
+(defmethod copy-object-content ((src zone-category) (copy zone-category))
+  (setf (id copy) (id src) ;; make sure that copies have the same id!
+        (zone copy) (zone src)))
+
+(defmethod copy-object-content ((src duckie-category) (copy duckie-category))
+  (setf (category copy) (category src)))

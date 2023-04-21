@@ -1,7 +1,10 @@
 (in-package :duckie-language-learning)
 
-;; events
+;; --------------
+;; + Handle fix +
+;; --------------
 
+;; TODO move all web-monitor code to separate file
 (define-event diagnostic-trigger
   (node cip-node)
   (diagnostic diagnostic))
@@ -27,6 +30,40 @@
   (add-element `((h2) ((b :style "color:#E65C00") "Comprehension unsuccesful - jump to meta-layer"))))
 
 (define-event fix-applied (repair-name symbol) (form list) (learned-cxns list) (cip construction-inventory-processor) (categorial-network categorial-network) (new-links list))
+
+(defun new-categorial-links->s-dot (categorial-network new-links)
+  (let* ((g (fcg::graph categorial-network))
+         (graph-properties '((s-dot::fontcolor "#000000")
+                             (s-dot::fontsize "10.0")
+                             (s-dot::fontname "Helvetica")
+                             (s-dot::rankdir "LR")))
+         (all-node-names
+          (remove-duplicates
+           (loop for (from . to) in new-links
+                 append (list from to))))
+         (all-node-ids
+          (loop for node-name in all-node-names
+                for id = (gethash node-name (graph-utils::nodes g))
+                collect id))
+         (all-edges
+          (loop for (from . to) in new-links
+                collect (cons (gethash from (graph-utils::nodes g))
+                              (gethash to (graph-utils::nodes g)))))
+         (s-dot-nodes
+          (loop for node-name in all-node-names
+                for node-id in all-node-ids
+                collect (graph-utils::categorial-network-node->s-dot
+                         node-name node-id)))
+         (s-dot-edges
+          (loop for (from-id . to-id) in all-edges
+                for edge-weight = (graph-utils::edge-weight g from-id to-id)
+                collect (graph-utils::categorial-network-edge->s-dot
+                         from-id to-id
+                         :weight edge-weight :directedp nil
+                         :colored-edges-0-1 nil))))
+    `(s-dot::graph ,graph-properties
+                   ,@s-dot-nodes
+                   ,@s-dot-edges)))
 
 (defun fix-applied-func (repair-name form learned-cxns cip categorial-network new-links)
   (add-element '((h2) "Meta-layer: Pattern Finding"))
@@ -64,7 +101,7 @@
    cip nodes."
   (let ((working-cipn starting-cipn))
     (loop for cxn in constructions
-          for cfs = (if (eq working-cipn (gl::initial-node working-cipn))
+          for cfs = (if (eq working-cipn (initial-node working-cipn))
                       (car-source-cfs (cipn-car working-cipn))
                       (car-resulting-cfs (cipn-car working-cipn)))
           for car = (first
@@ -91,7 +128,7 @@
    and add some constructions to the inventory."
   (push fix (fixes problem))
   (destructuring-bind (existing-cxns-to-apply new-cxns-to-apply other-new-cxns categorial-links) (restart-data fix)
-    (let* ((form-constraints (gl::form-constraints-with-variables
+    (let* ((form-constraints (form-constraints-with-variables
                               (cipn-utterance node)
                               (get-configuration (original-cxn-set (construction-inventory node)) :de-render-mode)))
            (orig-categorial-network (categorial-network (construction-inventory node)))
@@ -101,7 +138,7 @@
                                         (add-link from to temp-categorial-network :recompute-transitive-closure nil)
                                      finally (set-categorial-network (construction-inventory node) temp-categorial-network)))
            (new-nodes (with-disabled-monitor-notifications
-                        (apply-sequentially (gl::initial-node node)
+                        (apply-sequentially (initial-node node)
                                             (append existing-cxns-to-apply new-cxns-to-apply)
                                             node))))
       (declare (ignorable categorial-network))
@@ -112,7 +149,7 @@
                 :fix-categorial-links categorial-links)
       ;; write some message on the blackboard of the initial node
       ;; for more efficient diagnostics
-      (set-data (gl::initial-node node) :some-repair-applied t)
+      (set-data (initial-node node) :some-repair-applied t)
       (setf (cxn-supplier (first new-nodes)) (cxn-supplier node))
       (loop for node in new-nodes
             unless (or (is-subset (mapcar #'name (applied-constructions node))
@@ -130,5 +167,3 @@
               (cip node)
               temp-categorial-network
               categorial-links))))
-
-

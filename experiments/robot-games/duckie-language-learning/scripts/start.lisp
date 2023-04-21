@@ -1,20 +1,18 @@
 (ql:quickload :duckie-language-learning)
 (in-package :duckie-language-learning)
 
-(deactivate-all-monitors)
-(monitors::activate-monitor irl::trace-irl)
-(monitors::activate-monitor fcg::trace-fcg)
-
-
 (progn
   ;;;; START DEMO
+  (deactivate-all-monitors)
+  (monitors::activate-monitor irl::trace-irl)
+  (monitors::activate-monitor fcg::trace-fcg)
   (setf *ontology* (build-initial-ontology))
   (add-element (make-html *ontology*))
 
   ;;; demo in duckie world
-;(defparameter *demo*
-;  (make-instance 'duckie-language-learning-world-experiment))
-; (run-interaction *demo*)
+  ;(defparameter *demo*
+  ;  (make-instance 'duckie-language-learning-world-experiment))
+  ;(run-interaction *demo*)
 
   ;; demo in simulation
   (defparameter *demo*
@@ -59,6 +57,10 @@
     (make-instance 'duckie-language-learning-simulation-experiment))
   (run-interaction *demo*))
 
+what is the color of the house
+what is the color of the car
+what is the building-function of the house
+
 (run-interaction *demo*)
 
 (categorial-network *fcg-constructions*)
@@ -91,7 +93,6 @@
                       *ontology*
                       :primitive-inventory *duckie-simulation-primitives*)
 
-
 (evaluate-irl-program '((scan-world ?world)
                         (count ?number ?world))
                       *ontology*
@@ -106,7 +107,6 @@
                       *ontology*
                       :primitive-inventory *duckie-simulation-primitives*)
 
-
 ;;;; TESTING IN WORLD
 
 (evaluate-irl-program '((scan-world ?world)
@@ -117,7 +117,6 @@
                         (move-to ?car ?location))
                       *ontology*
                       :primitive-inventory *duckie-simulation-primitives*)
-
 
 (evaluate-irl-program '((scan-world ?world))
                       *ontology*

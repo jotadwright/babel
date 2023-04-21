@@ -12,7 +12,6 @@
   ((trigger :initform 'fcg::new-node)))
 
 ;; This repair is applied when a partial utterance was diagnosed.
-
 (defmethod repair ((repair item-based->lexical)
                    (problem partial-utterance-problem)
                    (node cip-node) &key
@@ -26,9 +25,13 @@
 
 (defun create-lexical-cxn (problem node)
   ;(notify item-based->lexical-repair-started)
-  (let* ((agent (find-data problem :owner))
+  (let* (;; intention reading
+         (agent (find-data problem :owner))
+         (answer (find-data problem :answer))
+         ;; pattern finding
          (cxn-inventory (original-cxn-set (construction-inventory node)))
          (utterance (cipn-utterance node))
+         ;; what was able to apply?
          (applied-cxns (original-applied-constructions node))
          (applied-lex-cxns (find-all 'lexical applied-cxns :key #'get-cxn-type))
          (applied-item-based-cxn (find 'item-based applied-cxns :key #'get-cxn-type))
@@ -38,12 +41,7 @@
                (= (item-based-number-of-slots applied-item-based-cxn)
                   (1+ (length applied-lex-cxns))))
       (let* ((meaning-predicates-observed (mapcan #'extract-meaning-predicates applied-cxns))
-             (composer-strategy (get-configuration agent :composer-strategy))
-             (composer-solution (compose-program agent
-                                                 (topic agent)
-                                                 utterance
-                                                 composer-strategy
-                                                 :partial-program meaning-predicates-observed)))
+             (composer-solution (compose-program agent answer :partial-program meaning-predicates-observed)))
         (if composer-solution
           (let* ((meaning-predicates-gold (append (bind-statements composer-solution)
                                                   (irl-program (chunk composer-solution))))
@@ -113,7 +111,7 @@
                     ;(notify item-based->lexical-new-cxn-and-categorial-links new-lex-cxn
                     ;        (categorial-network cxn-inventory) categorial-links)
                     (set-data interaction :applied-repair 'item-based->lexical)
-                    ;; returns 
+                    ;; returns
                     ;; 1. existing cxns to apply
                     ;; 2. new cxns to apply
                     ;; 3. other new cxns
