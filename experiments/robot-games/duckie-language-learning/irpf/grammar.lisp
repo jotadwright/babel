@@ -16,13 +16,13 @@
   :diagnostics (dll::diagnose-failed-interpretation
                 dll::diagnose-unknown-utterance
                 dll::diagnose-partial-utterance)
-  :repairs (dll::holophrase->item-based--substitution
+  :repairs (dll::add-categorial-links
+            dll::item-based->lexical
+            dll::holophrase->item-based--substitution
             dll::holophrase->item-based--addition
             dll::holophrase->item-based--deletion
-            dll::add-holophrase
-            dll::item-based->lexical
             dll::lexical->item-based
-            dll::add-categorial-links)
+            dll::add-holophrase)
   :visualization-configurations ((:show-constructional-dependencies . nil)
                                  (:show-categorial-network . t)))
 
