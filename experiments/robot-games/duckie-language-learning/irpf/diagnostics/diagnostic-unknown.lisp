@@ -28,8 +28,7 @@
         (push 'fcg::diagnostic-triggered (statuses node))
         (notify diagnostic-trigger node diagnostic)
         (let ((correct-answer (ask-correct-answer agent)))
-          (notify irl::chunk-composer-started (mkstr (category correct-answer)))
-          (set-data problem :intention (compose-program agent correct-answer))) ;; compose program
+          (set-data problem :answer correct-answer))
         (set-data problem :owner agent)
         problem))))
 

@@ -14,23 +14,23 @@
   "Repair the unknown utterance problem by making
    an item-based construction."
   (when (initial-node-p node)
-    (let* ((reconstructed-intention (find-data problem :intention))
-           (constructions-and-categorial-links (create-item-based-cxn-substitution problem
-                                                                                   node
-                                                                                   reconstructed-intention)))
+    (let* ((constructions-and-categorial-links (create-item-based-cxn-substitution problem node)))
       (when constructions-and-categorial-links
         (make-instance 'fcg::cxn-fix
                        :repair repair
                        :problem problem
                        :restart-data constructions-and-categorial-links)))))
 
-(defun create-item-based-cxn-substitution (problem node intention)
+(defun create-item-based-cxn-substitution (problem node)
   "Create an item-based construction and two lexical constructions
    based on an existing holophrase construction with sufficient overlap."
-  (let* ((agent (find-data problem :owner))
+  (let* (;; intention reading
+         (agent (find-data problem :owner))
+         (answer (find-data problem :answer))
+         (meaning (compose-program agent answer))
+         ;; pattern finding
          (cxn-inventory (original-cxn-set (construction-inventory node)))
-         (utterance (cipn-utterance node))
-         (meaning intention))
+         (utterance (cipn-utterance node)))
     (multiple-value-bind (non-overlapping-meaning-observation
                           non-overlapping-meaning-cxn
                           non-overlapping-form-observation

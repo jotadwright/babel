@@ -20,16 +20,20 @@
   (make-instance 'fcg::cxn-fix
                  :repair repair
                  :problem problem
-                 :restart-data (create-holophrase-cxn node (find-data problem :intention))))
+                 :restart-data (create-holophrase-cxn problem node)))
 
-(defun create-holophrase-cxn (node intention)
+(defun create-holophrase-cxn (problem node)
   "Create a new holophrase construction from the reconstructed intention"
-  (let* ((cxn-inventory (original-cxn-set (construction-inventory node)))
+  (let* (;; intention reading
+         (agent (find-data problem :owner))
+         (answer (find-data problem :answer))
+         (meaning-constraints (compose-program agent answer))
+         ;; pattern finding
+         (cxn-inventory (original-cxn-set (construction-inventory node)))
          (utterance (cipn-utterance node))
          (holophrase-cxn-name (make-const (make-cxn-name (remove-spurious-spaces (remove-punctuation utterance))
-                                                             cxn-inventory)))
+                                                         cxn-inventory)))
          (form-constraints (form-constraints-with-variables utterance (get-configuration cxn-inventory :de-render-mode)))
-         (meaning-constraints intention)
          (initial-cxn-score 0.5)
          (existing-holophrase-cxn (find-cxn-by-type-form-and-meaning 'holophrase
                                                                      form-constraints
@@ -55,8 +59,6 @@
                                                                                    :string ,hash-string
                                                                                    :meaning ,hash-meaning)
                                                                       :cxn-set holophrase)))))))
-    ;(add-composer-chunk agent meaning-constraints)
-    ;(set-data interaction :applied-repair 'add-holophrase)
     holophrase-cxn))
 
 ;; -------------------------------

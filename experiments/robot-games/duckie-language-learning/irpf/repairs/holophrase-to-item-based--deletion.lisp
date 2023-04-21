@@ -12,28 +12,29 @@
                    (node cip-node) &key &allow-other-keys)
   "Repair by making a new item-based construction and lexical cxn"
   (when (initial-node-p node)
-    (let* ((reconstructed-intention (find-data problem :intention))
-           (constructions-and-categorial-links (create-item-based-cxn-deletion problem
-                                                                               node
-                                                                               reconstructed-intention)))
+    (let* ((constructions-and-categorial-links (create-item-based-cxn-deletion problem node)))
       (when constructions-and-categorial-links
         (make-instance 'fcg::cxn-fix
                        :repair repair
                        :problem problem
                        :restart-data constructions-and-categorial-links)))))
 
-(defun create-item-based-cxn-deletion (problem node intention)
-  (let* ((agent (find-data problem :owner))
+(defun create-item-based-cxn-deletion (problem node)
+  (let* (;; intention reading
+         (agent (find-data problem :owner))
+         (answer (find-data problem :answer))
+         (meaning (compose-program agent answer))
+         ;; pattern finding
          (cxn-inventory (original-cxn-set (construction-inventory node)))
          (initial-transient-structure (initial-transient-structure node))
-         (utterance (cipn-utterance node))
-         (meaning intention))
+         (utterance (cipn-utterance node)))
     (multiple-value-bind (superset-holophrase-cxn
                           non-overlapping-form
                           non-overlapping-meaning)
         (find-superset-holophrase-cxn initial-transient-structure
-                                          cxn-inventory meaning
-                                          utterance)
+                                      cxn-inventory
+                                      meaning
+                                      utterance)
       (when superset-holophrase-cxn
         (let* ((overlapping-form (set-difference (extract-form-predicates superset-holophrase-cxn)
                                                  non-overlapping-form
@@ -51,10 +52,10 @@
                                                                            cxn-inventory)))
           (unless (and existing-lex-cxn existing-item-based-cxn)
             (let* ((lex-cxn-name (make-const (make-cxn-name non-overlapping-form
-                                                                cxn-inventory)))
+                                                            cxn-inventory)))
                    (cxn-name-item-based-cxn (make-cxn-name overlapping-form
-                                                               cxn-inventory
-                                                               :add-cxn-suffix nil))
+                                                           cxn-inventory
+                                                           :add-cxn-suffix nil))
                    (unit-name-lex-cxn (second (find 'string
                                                     non-overlapping-form
                                                     :key #'first)))
@@ -76,7 +77,7 @@
                                                       (remove-punctuation utterance))
                                                      cxn-inventory)))
                    (form-constraints (form-constraints-with-variables utterance
-                                                                          (get-configuration cxn-inventory :de-render-mode)))
+                                                                      (get-configuration cxn-inventory :de-render-mode)))
                    ;; cxns
                    (initial-cxn-score 0.5)
                    (holophrase-cxn (second

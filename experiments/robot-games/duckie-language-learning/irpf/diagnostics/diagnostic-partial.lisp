@@ -40,6 +40,8 @@
                  (push (type-of problem) (statuses node))
                  (push 'fcg::diagnostic-triggered (statuses node))
                  (notify diagnostic-trigger node diagnostic)
+                 (let ((correct-answer (ask-correct-answer agent)))
+                   (set-data problem :answer correct-answer))
                  (set-data problem :owner agent)
                  problem)
                ;; CASE 1B: queue is not yet empty

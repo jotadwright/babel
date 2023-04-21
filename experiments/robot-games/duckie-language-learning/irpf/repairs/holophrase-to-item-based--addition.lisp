@@ -12,20 +12,22 @@
                    (node cip-node) &key &allow-other-keys)
   "Repair by making a new item-based construction and lexical cxn"
   (when (initial-node-p node)
-    (let* ((reconstructed-intention (find-data problem :intention))
-           (constructions-and-categorial-links (create-item-based-cxn-addition problem node reconstructed-intention)))
+    (let* ((constructions-and-categorial-links (create-item-based-cxn-addition problem node)))
       (when constructions-and-categorial-links
         (make-instance 'fcg::cxn-fix
                        :repair repair
                        :problem problem
                        :restart-data constructions-and-categorial-links)))))
 
-(defun create-item-based-cxn-addition (problem node intention)
-  (let* ((agent (find-data problem :owner))
+(defun create-item-based-cxn-addition (problem node)
+  (let* (;; intention reading
+         (agent (find-data problem :owner))
+         (answer (find-data problem :answer))
+         (meaning (compose-program agent answer))
+         ;; pattern finding
          (cxn-inventory (original-cxn-set (construction-inventory node)))
          (utterance (cipn-utterance node))
-         (initial-transient-structure (initial-transient-structure node))
-         (meaning intention))
+         (initial-transient-structure (initial-transient-structure node)))
     (multiple-value-bind (subset-holophrase-cxn
                           superset-form
                           non-overlapping-form
