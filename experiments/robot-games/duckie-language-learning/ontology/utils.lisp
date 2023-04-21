@@ -9,7 +9,7 @@
   (setf (id copy) (id src) ;; make sure that copies have the same id!
         (rfid copy) (rfid src)
         (color copy) (color src)
-        ;(coordinates copy) (coordinates src)
+        (zone copy) (zone src)
         ))
 
 (defmethod copy-object-content ((src object-set) (copy object-set))
@@ -19,14 +19,14 @@
 (defmethod copy-object-content ((src duckie-car) (copy duckie-car))
   (setf (id copy) (id src) ;; make sure that copies have the same id!
         (rfid copy) (rfid src)
-        ;(coordinates copy) (coordinates src)
+        (zone copy) (zone src)
         (color copy) (color src)))
 
 (defmethod copy-object-content ((src duckie-building) (copy duckie-building))
   (setf (id copy) (id src) ;; make sure that copies have the same id!
         (rfid copy) (rfid src)
         (color copy) (color src)
-       ; (coordinates copy) (coordinates src)
+        (zone copy) (zone src)
         (building-function copy) (building-function src)))
 
 (defmethod copy-object-content ((src duckie-home) (copy duckie-home))
@@ -34,7 +34,7 @@
         (building copy) (building src)
         (rfid copy) (rfid src)
         (color copy) (color src)
-        ;(coordinates copy) (coordinates src)
+        (zone copy) (zone src)
         ))
 
 (defmethod copy-object-content ((src number-category) (copy number-category))
