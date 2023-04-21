@@ -318,5 +318,11 @@
                  (HASH form ((sequence " " ?subject-np-right ?vp-left)
                              (sequence " " ?vp-right ?object-np-left)))))))
 
+(defun test-render-all ()
+  (multiple-value-bind (utterance cipn) (comprehend-and-formulate "the linguist the mouse" :cxn-inventory *fcg-constructions-sequences*)
+    (render-all (fcg-extract-selected-form-constraints (car-resulting-cfs (cipn-car cipn)) '(sequence))
+                :render-sequences)))
+;(test-render-all)
+
 
 ;(comprehend-and-formulate "the linguist" :cxn-inventory *fcg-constructions-sequences*)
