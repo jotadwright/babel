@@ -13,8 +13,7 @@
   :fcg-configurations ((:parse-goal-tests :no-strings-in-root :connected-semantic-network)
                        (:de-render-mode . :de-render-string-meets-no-punct)
                        (:consolidate-repairs . t))
-  :diagnostics (dll::diagnose-failed-interpretation
-                dll::diagnose-unknown-utterance
+  :diagnostics (dll::diagnose-unknown-utterance
                 dll::diagnose-partial-utterance)
   :repairs (dll::add-categorial-links
             dll::item-based->lexical
