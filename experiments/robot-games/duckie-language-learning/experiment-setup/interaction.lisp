@@ -26,13 +26,14 @@
         (cipn nil)
         (agent (hearer interaction))
         (meaning nil))
-    (setf (utterance (hearer interaction)) (downcase (capi:prompt-for-string "Enter your question:")))
+    (set-data (blackboard (grammar agent)) :ontology (ontology agent))
+    (set-data (blackboard (grammar agent)) :primitive-inventory (primitive-inventory agent))
+    (setf (utterance agent) (downcase (capi:prompt-for-string "Enter your question:")))
     (multiple-value-bind (resulting-meaning resulting-cipn)
         (comprehend (utterance (hearer interaction))
                     :cxn-inventory (grammar (hearer interaction)))
       (setf cipn resulting-cipn)
       (setf meaning resulting-meaning)
-
       ;; comprehension werkt zonder repairs
       ;; dus vragen aan de user of het juist is
       (when (and (find 'fcg::succeeded (statuses cipn))
@@ -41,8 +42,10 @@
           (setf fcg-solution? t)
           (setf answer-correct? (confirm-answer answer))
           (setf correct-answer (if answer-correct? (id answer)
-                                 (process-text-from-capi (downcase (capi:prompt-for-string "Tell me the correct answer please?"))))))
-
+                                 (process-text-from-capi (downcase
+                                                          (capi:prompt-for-string
+                                                           "Tell me the correct answer please?")))))
+          (set-data (blackboard (grammar agent)) :ground-truth-topic correct-answer))
         (cond (answer-correct?
                ;; joepie, rewarden!
                (run-alignment agent answer-correct? cipn))
