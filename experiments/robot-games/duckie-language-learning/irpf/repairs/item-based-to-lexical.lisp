@@ -43,9 +43,7 @@
       (let* ((meaning-predicates-observed (mapcan #'extract-meaning-predicates applied-cxns))
              (composer-solution (compose-program agent answer :partial-program meaning-predicates-observed)))
         (if composer-solution
-          (let* ((meaning-predicates-gold (append (bind-statements composer-solution)
-                                                  (irl-program (chunk composer-solution))))
-                 (meaning-predicates-lex-cxn (set-difference meaning-predicates-gold
+          (let* ((meaning-predicates-lex-cxn (set-difference composer-solution
                                                              meaning-predicates-observed
                                                              :test #'unify-irl-programs)))
             ;; we don't know what the composer will return

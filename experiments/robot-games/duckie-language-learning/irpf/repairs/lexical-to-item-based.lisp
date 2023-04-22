@@ -38,9 +38,7 @@
       (let* ((partial-program (deduplicate-variables (mapcan #'extract-meaning-predicates applied-lex-cxns)))
              (composer-solution (compose-program agent answer :partial-program partial-program)))
         (if composer-solution
-          (let* ((new-irl-program (append (bind-statements composer-solution)
-                                          (irl-program (chunk composer-solution))))
-                 (sorted-lex-cxns (sort-cxns-by-form-string applied-lex-cxns
+          (let* ((sorted-lex-cxns (sort-cxns-by-form-string applied-lex-cxns
                                                             (remove-spurious-spaces
                                                              (remove-punctuation utterance))))
                  (var-form (form-constraints-with-variables utterance
@@ -52,7 +50,7 @@
                  (subunit-names (first subunit-names-and-non-overlapping-form))
                  (non-overlapping-form (second subunit-names-and-non-overlapping-form))
                  (args-and-non-overlapping-meaning (multiple-value-list
-                                                    (diff-non-overlapping-meaning new-irl-program sorted-lex-cxns)))
+                                                    (diff-non-overlapping-meaning composer-solution sorted-lex-cxns)))
                  (args (first args-and-non-overlapping-meaning))
                  (non-overlapping-meaning (second args-and-non-overlapping-meaning)))
             (if (length= subunit-names args) ;; !!!
