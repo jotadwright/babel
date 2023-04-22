@@ -56,7 +56,8 @@
                                      (create-new-categorial-links lex-classes-lex-cxns
                                                                   lex-classes-item-based-units
                                                                   categorial-network))))
-            (when categorial-links (set-data (current-interaction (experiment agent)) :applied-repair 'add-categorial-links)
+            (when categorial-links 
+              ;(set-data (current-interaction (experiment agent)) :applied-repair 'add-categorial-links)
               (list applied-cxns nil nil categorial-links))))))))
 
 ;; NO PATH REQUIRED
@@ -100,6 +101,6 @@
                                                                          lex-classes-item-based
                                                                          (categorial-network cxn-inventory)))))
                    (when categorial-links
-                     (set-data (current-interaction (experiment agent)) :applied-repair 'add-categorial-links)
+                     ;(set-data (current-interaction (experiment agent)) :applied-repair 'add-categorial-links)
                      (return (list applied-cxns nil nil categorial-links))))))))
 

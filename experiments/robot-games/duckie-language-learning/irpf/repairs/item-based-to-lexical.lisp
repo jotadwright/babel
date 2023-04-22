@@ -63,8 +63,8 @@
                                   (intern (symbol-name (make-const unit-name)) :fcg)))
                      (args (mapcar #'third meaning-predicates-lex-cxn))
                      (initial-cxn-score (get-configuration agent :initial-cxn-score))
-                     (interaction (current-interaction (experiment agent)))
-                     (interaction-nr (interaction-number interaction))
+                     ;(interaction (current-interaction (experiment agent)))
+                     ;(interaction-nr (interaction-number interaction))
                      (new-lex-cxn (or existing-lex-cxn
                                       (second
                                        (multiple-value-list
@@ -85,7 +85,8 @@
                                                         :repair item->lex
                                                         :string ,(form-predicates->hash-string form-predicates-lex-cxn)
                                                         :meaning ,(meaning-predicates->hash-meaning meaning-predicates-lex-cxn)
-                                                        :added-at ,interaction-nr)
+                                                        ;:added-at ,interaction-nr
+                                                        )
                                            :cxn-inventory ,(copy-object cxn-inventory)
                                            :cxn-set non-holophrase))))))
                      ;; make a list of all cxns, sort them
@@ -108,7 +109,7 @@
                     ;(add-composer-chunk agent (irl-program (chunk composer-solution)))
                     ;(notify item-based->lexical-new-cxn-and-categorial-links new-lex-cxn
                     ;        (categorial-network cxn-inventory) categorial-links)
-                    (set-data interaction :applied-repair 'item-based->lexical)
+                    ;(set-data interaction :applied-repair 'item-based->lexical)
                     ;; returns
                     ;; 1. existing cxns to apply
                     ;; 2. new cxns to apply
