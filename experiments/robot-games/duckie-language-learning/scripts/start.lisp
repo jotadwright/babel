@@ -5,6 +5,7 @@
   ;;;; START DEMO
   (deactivate-all-monitors)
   (monitors::activate-monitor irl::trace-irl)
+  ;(monitors::activate-monitor irl::trace-irl-verbose)
   (monitors::activate-monitor fcg::trace-fcg)
   (setf *ontology* (build-initial-ontology))
   (add-element (make-html *ontology*))

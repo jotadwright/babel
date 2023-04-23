@@ -111,7 +111,13 @@
                 ;; 3. other new cxns
                 ;; 4. categorial links
                 (if existing-item-based-cxn
-                  (list (cons item-based-cxn applied-lex-cxns) nil nil categorial-links)
-                  (list applied-lex-cxns (list item-based-cxn) nil categorial-links)))
+                  (list (cons item-based-cxn applied-lex-cxns)
+                        nil
+                        nil
+                        categorial-links)
+                  (list applied-lex-cxns
+                        (list item-based-cxn)
+                        nil
+                        categorial-links)))
               (progn (push 'fcg::repair-failed (statuses node)) nil)))
           (progn (push 'fcg::repair-failed (statuses node)) nil))))))

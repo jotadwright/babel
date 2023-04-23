@@ -107,7 +107,7 @@
                                    ((,unit-name-lex-cxn
                                      (args (,args-lex-cxn))
                                      (syn-cat (phrase-type lexical)
-                                              (lex-class ,lex-class-lex-cxn)))
+                                              (fcg::lex-class ,lex-class-lex-cxn)))
                                     <-
                                     (,unit-name-lex-cxn
                                      (HASH meaning ,non-overlapping-meaning)
@@ -130,7 +130,7 @@
                                               (syn-cat (phrase-type item-based))
                                               (subunits (,unit-name-lex-cxn)))
                                              (,unit-name-lex-cxn 
-                                              (syn-cat (lex-class ,lex-class-item-based-cxn)))
+                                              (syn-cat (fcg::lex-class ,lex-class-item-based-cxn)))
                                              <-
                                              (?item-based-unit
                                               (HASH meaning ,overlapping-meaning)
