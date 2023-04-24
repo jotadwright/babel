@@ -37,7 +37,9 @@
 (defmethod compose-program ((agent duckie-language-learning-agent)
                             target-category
                             &key partial-program)
-  (notify irl::chunk-composer-started (mkstr (category target-category)))
+  (if (subtypep (type-of target-category) 'duckie-category)
+    (notify irl::chunk-composer-started (mkstr (category target-category)))
+    (notify irl::chunk-composer-started (mkstr (zone target-category)))) ;; special for MOVE-TO primitive
   (let* ((composer
           (make-default-composer agent target-category
                                  :partial-program `((scan-world ?world)))) ;; TODO: remove assumption?
