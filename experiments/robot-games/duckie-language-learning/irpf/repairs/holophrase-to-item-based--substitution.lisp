@@ -1,7 +1,7 @@
 (in-package :duckie-language-learning)
 
 ;; -----------------------------------------------------
-;; + Repair:  HOLOPRHASE -> ITEM-BASED W/ SUBSTITUTION +
+;; + Repair:  HOLOPHRASE -> ITEM-BASED W/ SUBSTITUTION +
 ;; -----------------------------------------------------
 
 (defclass holophrase->item-based--substitution (duckie-learning-repair)

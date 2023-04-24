@@ -1,7 +1,7 @@
 (in-package :duckie-language-learning)
 
 ;; -------------------------------------------------
-;; + Repair:  HOLOPRHASE -> ITEM-BASED W/ DELETION +
+;; + Repair:  HOLOPHRASE -> ITEM-BASED W/ DELETION +
 ;; -------------------------------------------------
 
 (defclass holophrase->item-based--deletion (duckie-learning-repair)
@@ -96,7 +96,7 @@
                                                                  :string ,(form-predicates->hash-string form-constraints)
                                                                  :meaning ,(meaning-predicates->hash-meaning meaning))
                                                     :cxn-inventory ,(copy-object cxn-inventory)
-                                                    :cxn-set holoprhase)))))
+                                                    :cxn-set holophrase)))))
                    (lex-cxn (if existing-lex-cxn
                               existing-lex-cxn
                               (second

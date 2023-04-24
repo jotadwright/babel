@@ -32,8 +32,8 @@
                           non-overlapping-form
                           non-overlapping-meaning)
         (find-subset-holophrase-cxn initial-transient-structure
-                                        cxn-inventory meaning
-                                        utterance)
+                                    cxn-inventory meaning
+                                    utterance)
       (when subset-holophrase-cxn
         (let* ((overlapping-form (set-difference superset-form
                                                  non-overlapping-form
