@@ -55,7 +55,7 @@
              (loop for candidate in (sort-candidates (get-candidates node)) ;; sorted by most-applied
                    for (problems fixes) = (multiple-value-list
                                            (notify-learning candidate :trigger 'fcg::new-node))
-                   when problems
+                   when (and problems (not fixes))
                      do (progn
                           (loop for problem in problems
                                 do (push (type-of problem) (statuses candidate)))
