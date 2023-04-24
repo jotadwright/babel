@@ -22,10 +22,17 @@
 ;;;;;;;;;;; MOVE-TO ;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defprimitive move-to ((zone zone-category))
+(defprimitive move-to ((car duckie-car)
+                       (zone zone-category))
   ;;first case: object is bound
-  ((zone => )
-   (setf (zone (get-data *ontology* 'agent-car)) zone)
+  ((zone => car)
+   ;;set location duckie-car from world to zone
+   (setf (zone (get-data *ontology* 'agent-car)) (zone zone))
+   (bind (car 1.0 (get-data *ontology* 'agent-car))))
+
+
+  ((car zone => )
+   (setf (zone (get-data *ontology* 'agent-car)) (zone zone))
    ;; return t to make IRL succeed the 'inconsistent' goal-test
-   (equal t t))
+   (equal (zone car) (zone zone)))
   :primitive-inventory *duckie-simulation-primitives*)
