@@ -24,15 +24,15 @@
      :ontology (ontology agent)
      :primitive-inventory (primitive-inventory agent)
      :configurations `((:max-irl-program-length . 5)
-                       (:check-node-modes ;; limit the length of the irl program
-                        :limit-irl-program-length
-                        ;; no duplicates
-                        :check-duplicate
-                        ;; no predicates with multiple times the same variable
-                        ;:no-circular-primitives
-                        ;; meaning has to be fully connected
-                        :fully-connected-meaning
-                        )))))
+                       (:chunk-node-tests :restrict-irl-program-length ;; limit the length of the irl program
+                                           :check-duplicate ;; no duplicates
+                                           ;:no-circular-primitives ;; no predicates with multiple times the same variable
+                                           ;:fully-connected-meaning ;; meaning has to be fully connected
+                        )
+                       ;; default expand mode
+                       (:chunk-expansion-modes :combine-program)
+                       ;; default node cost
+                       (:node-cost-mode . :short-programs-with-few-primitives-and-open-vars)))))
 
 (defmethod compose-program ((agent duckie-language-learning-agent)
                             target-category
