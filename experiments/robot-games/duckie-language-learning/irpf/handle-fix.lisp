@@ -24,7 +24,7 @@
                      ((tr)
                       ((td) "application process")
                       ((td) ((div :id ,(mkstr (make-id 'subtree-id)))
-                             ,(make-html-fcg-light node)))
+                             ,(make-html-fcg-light (top-node cip))))
                       )
                      )))))
   (add-element `((h2) ((b :style "color:#E65C00") "Comprehension unsuccesful - jump to meta-layer"))))
