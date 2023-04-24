@@ -9,9 +9,11 @@
         (building-functions '(restaurant house bakery))
         (bools '(true false))
         (object-types '(duckie-car duckie-building duckie-agent-car duckie-home))
-        (rfids '(a b c d e f))
+        (rfids (loop for i from 0 to 10 collect i))
         (operators '(bigger smaller equal))
         (attributes '(color building-function rfid zone))
+        (zones (loop for i from 0 to 10 collect i))
+        (numbers (loop for i from 0 to 10 collect i))
         (initial-ontology (make-blackboard)))
     (loop for color in colors
           for instance = (make-instance 'color-category
