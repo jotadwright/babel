@@ -11,10 +11,7 @@
         (object-types '(duckie-car duckie-building duckie-agent-car duckie-home))
         (rfids '(a b c d e f))
         (operators '(bigger smaller equal))
-        (attributes '(color building-function rfid))
-        (zones '(1 2 3 4))
-        (numbers (loop for i from 0 to 10
-                         collect i))
+        (attributes '(color building-function rfid zone))
         (initial-ontology (make-blackboard)))
     (loop for color in colors
           for instance = (make-instance 'color-category
