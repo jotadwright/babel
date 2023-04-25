@@ -66,6 +66,7 @@
                    ,@s-dot-edges)))
 
 (defun fix-applied-func (repair-name form learned-cxns cip categorial-network new-links)
+  (add-element '((hr :style "border-top: 3px dashed #E65C00;background-color:#fff")))
   (add-element '((h2) "Meta-layer: Pattern Finding"))
   (add-element `((h3) ,(format nil "Applied repair: ~a with form: \"~{~a~^ ~}\" and learned:"
                                repair-name
