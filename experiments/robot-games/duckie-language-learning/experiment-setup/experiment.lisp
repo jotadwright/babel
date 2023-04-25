@@ -73,6 +73,4 @@
     (setf (interacting-agents interaction) (list agent)
           (discourse-role agent) 'hearer)
     (setf (utterance agent) nil
-          (communicated-successfully agent) nil)
-  ;(notify interacting-agents-determined experiment interaction)
-    ))
+          (communicated-successfully agent) nil)))

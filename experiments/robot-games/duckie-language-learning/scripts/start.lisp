@@ -27,28 +27,11 @@
                                                 :building-function 'house
                                                 :color 'green
                                                 :rfid 1)
-                                 #|(make-instance 'duckie-building
-                                                :zone 'zone-2
-                                                :building-function 'house
-                                                :color 'red
-                                                :rfid 2)
                                  (make-instance 'duckie-building
                                                 :zone 'zone-3
-                                                :building-function 'house
-                                                :color 'red
-                                                :rfid 3)|#
-                                #| (make-instance 'duckie-car
-                                                :zone 'zone-4
-                                                :color 'red
-                                                :rfid 4)
-                                 (make-instance 'duckie-car
-                                                :zone 'zone-5
+                                                :building-function 'bakery
                                                 :color 'yellow
-                                                :rfid 5)
-                                 (make-instance 'duckie-car
-                                                :zone 'zone-6
-                                                :color 'purple
-                                                :rfid 6)|#
+                                                :rfid 2)
                                  (make-instance 'duckie-car
                                                 :zone 'zone-7
                                                 :color 'purple
@@ -74,9 +57,39 @@
 what is the color of the house
 what is the color of the car
 where is the car
-move to the car
+where is the bakery
+what is the color of the bakery
 
 (run-interaction *demo*)
+
+;;;;
+(progn
+  (setf *duckie-world*
+        (make-instance 'object-set
+                       :objects (list
+                                 (make-instance 'duckie-building
+                                                :zone 'zone-1
+                                                :building-function 'house
+                                                :color 'green
+                                                :rfid 1)
+                                 (make-instance 'duckie-building
+                                                :zone 'zone-3
+                                                :building-function 'bakery
+                                                :color 'blue
+                                                :rfid 2)
+                                 (make-instance 'duckie-car
+                                                :zone 'zone-7
+                                                :color 'purple
+                                                :rfid 7)
+                                 )))
+  (set-data *ontology* 'world *duckie-world*))
+
+
+
+
+;;;;;;;
+
+(first (agents *demo*))
 
 ;;;;;
 (evaluate-irl-program '(
@@ -125,6 +138,7 @@ what is the color of the house
 (run-interaction *demo*)
 
 (setf cn (categorial-network (grammar (first (agents *demo*)))))
+(add-element (make-html cn))
 
 (wi:add-element (make-html (categorial-network *fcg-constructions*) :weights? t :colored-edges-0-1 t))
 
