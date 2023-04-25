@@ -36,8 +36,8 @@
                ;; -> thus, create the actual problem object
                (let ((agent (find-data (blackboard (construction-inventory node)) :owner))
                      (problem (make-instance 'partial-utterance-problem)))
-                 (push (type-of problem) (statuses node))
-                 (push 'fcg::diagnostic-triggered (statuses node))
+                 (push (type-of problem) (fcg::statuses node))
+                 (push 'fcg::diagnostic-triggered (fcg::statuses node))
                  (notify diagnostic-trigger node diagnostic)
                  (let ((correct-answer (ask-correct-answer agent)))
                    (set-data problem :answer correct-answer))

@@ -73,7 +73,7 @@
                                            ,cxn-name
                                            ((,unit-name
                                              (syn-cat (phrase-type lexical)
-                                                      (fcg::lex-class ,lex-class))
+                                                      (lex-class ,lex-class))
                                              (args ,args))
                                             <-
                                             (,unit-name
@@ -118,6 +118,6 @@
                     (if existing-lex-cxn
                       (list (cons new-lex-cxn applied-cxns) nil nil categorial-links)
                       (list applied-cxns (list new-lex-cxn) nil categorial-links)))
-                  (progn (push 'fcg::repair-failed (statuses node)) nil)))
-              (progn (push 'fcg::repair-failed (statuses node)) nil)))
-          (progn (push 'fcg::repair-failed (statuses node)) nil))))))
+                  (progn (push 'fcg::repair-failed (fcg::statuses node)) nil)))
+              (progn (push 'fcg::repair-failed (fcg::statuses node)) nil)))
+          (progn (push 'fcg::repair-failed (fcg::statuses node)) nil))))))

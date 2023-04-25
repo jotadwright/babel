@@ -156,8 +156,8 @@
                                   existing-cxns-to-apply :key #'name)
                        (equal-sets (mapcar #'name (applied-constructions node))
                                    existing-cxns-to-apply :key #'name))
-              do (push (type-of repair) (statuses node))
-                 (push 'fcg::added-by-repair (statuses node)))
+              do (push (type-of repair) (fcg::statuses node))
+                 (push 'fcg::added-by-repair (fcg::statuses node)))
       (cip-enqueue (first new-nodes) (cip node)
                    (get-configuration node :queue-mode))
       (notify fix-applied

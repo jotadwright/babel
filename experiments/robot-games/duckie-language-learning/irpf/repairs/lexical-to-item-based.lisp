@@ -119,5 +119,5 @@
                         (list item-based-cxn)
                         nil
                         categorial-links)))
-              (progn (push 'fcg::repair-failed (statuses node)) nil)))
-          (progn (push 'fcg::repair-failed (statuses node)) nil))))))
+              (progn (push 'fcg::repair-failed (fcg::statuses node)) nil)))
+          (progn (push 'fcg::repair-failed (fcg::statuses node)) nil))))))
