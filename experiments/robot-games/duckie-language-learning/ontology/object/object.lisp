@@ -1,6 +1,9 @@
 (in-package :duckie-language-learning)
 
-;; objects in the world
+;; ----------
+;; + Object +
+;; ----------
+
 (defclass duckie-object (entity)
   ((zone
     :initarg :zone :accessor zone :initform nil :type cons

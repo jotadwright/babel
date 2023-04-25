@@ -1,6 +1,9 @@
 (in-package :duckie-language-learning)
 
-;;Buildings in the world 
+;; -------------------
+;; + Duckie-building +
+;; -------------------
+
 (defclass duckie-building (duckie-object)
   ((building-function
     :initarg :building-function :accessor building-function :initform nil :type symbol

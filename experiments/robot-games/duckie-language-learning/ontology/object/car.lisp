@@ -1,6 +1,9 @@
 (in-package :duckie-language-learning)
 
-;;Cars in the world (color moved to super-class)
+;; -------------------
+;; + Duckie-building +
+;; -------------------
+
 (defclass duckie-car (duckie-object)
   ( )
   (:documentation "a duckie car in the world"))
