@@ -27,12 +27,14 @@
   ;;first case: object is bound
   ((zone => car)
    ;;set location duckie-car from world to zone
-   (setf (zone (get-data *ontology* 'agent-car)) (zone zone))
-   (bind (car 1.0 (get-data *ontology* 'agent-car))))
-
-
+   (let ((new-car (copy-object (get-data *ontology* 'agent-car))))
+     (setf (zone new-car) (id zone))
+     (set-data *ontology* 'agent-car new-car)
+     (bind (car 1.0 new-car))))
   ((car zone => )
-   (setf (zone (get-data *ontology* 'agent-car)) (zone zone))
-   ;; return t to make IRL succeed the 'inconsistent' goal-test
-   (equal (zone car) (zone zone)))
+   (let ((new-car (copy-object (get-data *ontology* 'agent-car))))
+     (setf (zone new-car) (id zone))
+     (set-data *ontology* 'agent-car new-car)
+     ;; return t to make IRL succeed the 'inconsistent' goal-test
+     (equal (zone car) (id zone))))
   :primitive-inventory *duckie-simulation-primitives*)
