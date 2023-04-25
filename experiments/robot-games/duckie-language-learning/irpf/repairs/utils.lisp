@@ -505,7 +505,7 @@
         for categorial-link in categorial-links
         for lex-slot-lex-class = (cdr categorial-link)
         collect `(,lex-cxn-unit-name
-                  (syn-cat (lex-class ,lex-slot-lex-class))) into contributing-units
+                  (syn-cat (fcg::lex-class ,lex-slot-lex-class))) into contributing-units
         collect `(,lex-cxn-unit-name
                   (args (,arg))
                   --) into conditional-units
@@ -518,7 +518,7 @@
         for categorial-link in categorial-links
         for lex-slot-lex-class = (cdr categorial-link)
         collect `(,lex-cxn-unit-name
-                  (syn-cat (lex-class ,lex-slot-lex-class)))
+                  (syn-cat (fcg::lex-class ,lex-slot-lex-class)))
           into contributing-units
         collect `(,lex-cxn-unit-name
                   (args (,arg))
