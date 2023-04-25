@@ -1,7 +1,6 @@
 ;;;; grammar.lisp
 
-(in-package :fcg)
-(export '(make-duckie-grammar-cxns))
+(in-package :duckie-language-learning)
 
 (def-fcg-constructions duckie-grammar
   :hashed t
