@@ -19,31 +19,44 @@
   (defparameter *demo*
     (make-instance 'duckie-language-learning-simulation-experiment))
 
-  (setf *duckie-world*
+  (defparameter *duckie-world*
         (make-instance 'object-set
-                       :objects (list 
-                                 (make-instance 'duckie-building
-                                                :zone 'zone-2
-                                                :building-function 'house
-                                                :color 'red
-                                                :rfid 2)
-                                 (make-instance 'duckie-car
-                                                :zone 'zone-3
-                                                :color 'red
-                                                :rfid 3)
+                       :objects (list
                                  (make-instance 'duckie-building
                                                 :zone 'zone-1
                                                 :building-function 'house
                                                 :color 'green
-                                                :rfid 1))))
+                                                :rfid 1)
+                                 #|(make-instance 'duckie-building
+                                                :zone 'zone-2
+                                                :building-function 'house
+                                                :color 'red
+                                                :rfid 2)
+                                 (make-instance 'duckie-building
+                                                :zone 'zone-3
+                                                :building-function 'house
+                                                :color 'red
+                                                :rfid 3)|#
+                                #| (make-instance 'duckie-car
+                                                :zone 'zone-4
+                                                :color 'red
+                                                :rfid 4)
+                                 (make-instance 'duckie-car
+                                                :zone 'zone-5
+                                                :color 'yellow
+                                                :rfid 5)
+                                 (make-instance 'duckie-car
+                                                :zone 'zone-6
+                                                :color 'purple
+                                                :rfid 6)|#
+                                 (make-instance 'duckie-car
+                                                :zone 'zone-7
+                                                :color 'purple
+                                                :rfid 7)
+                                 )))
 
   (setf *duckie-agent-car* (make-instance 'duckie-agent-car :zone 'zone-1))
 
-  (symbolp (type-of (make-instance 'duckie-building
-                                   :zone 'zone-2
-                                   :building-function 'house
-                                   :color 'red
-                                   :rfid 2)))
 
   ;; duckie-car also in ontology for move-to primitive
   (set-data *ontology* 'world *duckie-world*)
@@ -60,11 +73,58 @@
 
 what is the color of the house
 what is the color of the car
-what is the building-function of the house
+where is the car
+move to the car
 
 (run-interaction *demo*)
 
-(categorial-network *fcg-constructions*)
+;;;;;
+(evaluate-irl-program '(
+                        (scan-world ?world)
+                        (filter ?out ?world ?cat)
+                        (bind object-type-category ?cat duckie-car)
+                        (unique ?unique ?out)
+                        (get-zone ?zone ?unique)
+                        (move-to ?duckie-car ?zone)
+                        )
+                      *ontology*
+                      :primitive-inventory *duckie-simulation-primitives*)
+
+(evaluate-irl-program '(
+                        (scan-world ?world)
+                        (filter ?out ?world ?color)
+                        (bind color-category ?color yellow)
+                        (unique ?unique ?out)
+                        (get-zone ?zone ?unique)
+                        (move-to ?zone)
+                        )
+                      *ontology*
+                      :primitive-inventory *duckie-simulation-primitives*)
+
+;;;
+
+(evaluate-irl-program '((scan-world ?world)
+                        (filter ?out ?world ?color)
+                        (bind color-category ?color yellow)
+                        (unique ?unique ?out)
+                        (query ?answer ?unique ?attribute)
+                        (bind attribute-category ?attribute color))
+                      *ontology*
+                      :primitive-inventory *duckie-simulation-primitives*)
+
+
+
+;;;;;
+what is the color of the green house
+what is the color of the car
+what is the building-function of the house
+where is the car
+where is the house
+what is the color of the house
+
+(run-interaction *demo*)
+
+(setf cn (categorial-network (grammar (first (agents *demo*)))))
 
 (wi:add-element (make-html (categorial-network *fcg-constructions*) :weights? t :colored-edges-0-1 t))
 
@@ -133,4 +193,41 @@ what is the building-function of the house
 ;        collect (symbol-name a))
           
 ;  (capi:prompt-for-items-from-list (reverse (possible-answers)) "choose" :interaction :single-selection)
-        
+
+
+;; addition and deleten examples
+
+(make-instance 'object-set
+                       :objects (list
+                                 (make-instance 'duckie-building
+                                                :zone 'zone-1
+                                                :building-function 'house
+                                                :color 'purple
+                                                :rfid 1)
+                                 (make-instance 'duckie-building
+                                                :zone 'zone-2
+                                                :building-function 'house
+                                                :color 'red
+                                                :rfid 2)
+                                 (make-instance 'duckie-building
+                                                :zone 'zone-3
+                                                :building-function 'house
+                                                :color 'red
+                                                :rfid 3)
+                                 (make-instance 'duckie-car
+                                                :zone 'zone-3
+                                                :color 'red
+                                                :rfid 4)
+                                 (make-instance 'duckie-car
+                                                :zone 'zone-6
+                                                :color 'purple
+                                                :rfid 5)
+                                 (make-instance 'duckie-car
+                                                :zone 'zone-10
+                                                :color 'purple
+                                                :rfid 6)
+                                 (make-instance 'duckie-car
+                                                :zone 'zone-3
+                                                :color 'purple
+                                                :rfid 7)
+                                 ))
