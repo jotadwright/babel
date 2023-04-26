@@ -28,7 +28,6 @@
 
 ;; PATH REQUIRED
 ;; -------------
-
 (defun create-categorial-links-with-path (problem node)
   (let* ((agent (find-data problem :owner))
          (cxn-inventory (original-cxn-set (construction-inventory node)))
@@ -57,7 +56,6 @@
                                                                   lex-classes-item-based-units
                                                                   categorial-network))))
             (when categorial-links 
-              ;(set-data (current-interaction (experiment agent)) :applied-repair 'add-categorial-links)
               (list applied-cxns nil nil categorial-links))))))))
 
 ;; NO PATH REQUIRED
@@ -101,6 +99,5 @@
                                                                          lex-classes-item-based
                                                                          (categorial-network cxn-inventory)))))
                    (when categorial-links
-                     ;(set-data (current-interaction (experiment agent)) :applied-repair 'add-categorial-links)
                      (return (list applied-cxns nil nil categorial-links))))))))
 

@@ -76,7 +76,7 @@
                    ;; Args
                    (args-lex-cxn-1 (third (first non-overlapping-meaning-cxn))) ;; third if bind
                    (args-lex-cxn-2 (third (first non-overlapping-meaning-observation))) ;; third if bind
-                   ;; CXNs
+                   ;; cxns
                    (initial-cxn-score 0.5)
                    (new-lex-cxn-1 (or lex-cxn-1
                                       (second
@@ -148,8 +148,6 @@
                                                          :meaning ,(meaning-predicates->hash-meaning overlapping-meaning-cxn))
                                             :cxn-inventory ,(copy-object cxn-inventory)
                                             :cxn-set non-holophrase)))))))
-                  ;(add-composer-chunk agent overlapping-meaning-cxn)
-                  ;(set-data interaction :applied-repair 'holophrase->item-based)
               ;; returns 
               ;; 1. existing cxns to apply
               ;; 2. new cxns to apply

@@ -1,8 +1,8 @@
 (in-package :duckie-language-learning)
 
-;; -------------------
-;; + Duckie-building +
-;; -------------------
+;; --------------
+;; + Duckie-car +
+;; --------------
 
 (defclass duckie-car (duckie-object)
   ( )

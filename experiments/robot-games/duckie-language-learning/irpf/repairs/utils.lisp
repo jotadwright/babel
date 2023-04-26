@@ -547,8 +547,6 @@
   (append (find-feature-value 'meaning unit-body)
           (find-hashed-feature-value 'meaning unit-body)))
 
-;; (extract-meaning-predicates (first (constructions *fcg-constructions*)))
-
 (defgeneric extract-form-predicates (object))
 
 (defmethod extract-form-predicates ((cxn fcg-construction))
@@ -565,8 +563,6 @@
 (defmethod extract-form-predicates ((unit-body list))
   (append (find-feature-value 'form unit-body)
           (find-hashed-feature-value 'form unit-body)))
-
-;; (extract-form-predicates (first (constructions *fcg-constructions*)))
 
 (defun find-feature-value (feature unit-body)
   (loop for feature-value in unit-body

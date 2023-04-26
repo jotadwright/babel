@@ -11,7 +11,6 @@
 
 (define-event-handler (trace-fcg diagnostic-trigger)
   (add-element '((hr)))
-  
   (let ((cip (cip node)))
     (add-element `((div)
                    ((table :class "two-col")
@@ -24,9 +23,7 @@
                      ((tr)
                       ((td) "application process")
                       ((td) ((div :id ,(mkstr (make-id 'subtree-id)))
-                             ,(make-html-fcg-light (top-node cip))))
-                      )
-                     )))))
+                             ,(make-html-fcg-light (top-node cip))))))))))
   (add-element `((h2) ((b :style "color:#E65C00") "Comprehension unsuccesful - jump to meta-layer"))))
 
 (define-event fix-applied (repair-name symbol) (form list) (learned-cxns list) (cip construction-inventory-processor) (categorial-network categorial-network) (new-links list))
@@ -65,7 +62,7 @@
                    ,@s-dot-nodes
                    ,@s-dot-edges)))
 
-(defun fix-applied-func (repair-name form learned-cxns cip categorial-network new-links)
+(define-event-handler (trace-fcg fix-applied)
   (add-element '((hr :style "border-top: 3px dashed #E65C00;background-color:#fff")))
   (add-element '((h2) "Meta-layer: Pattern Finding"))
   (add-element `((h3) ,(format nil "Applied repair: ~a with form: \"~{~a~^ ~}\" and learned:"
@@ -84,9 +81,6 @@
       (add-element '((h3) "New links are added to the categorial network:"))
       (add-element `((div :class "indent-irpf") ,(s-dot->svg (new-categorial-links->s-dot categorial-network new-links))))))
   (add-element '((hr :style "border-top: 3px dashed #E65C00;background-color:#fff"))))
-
-(define-event-handler (trace-fcg fix-applied)
-  (fix-applied-func repair-name form learned-cxns cip categorial-network new-links))
 
 ;; --------------------
 ;; + Applying repairs +

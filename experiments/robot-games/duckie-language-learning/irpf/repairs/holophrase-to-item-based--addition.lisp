@@ -116,9 +116,8 @@
                                                          :meaning ,(meaning-predicates->hash-meaning overlapping-meaning))
                                             :cxn-inventory ,(copy-object cxn-inventory)
                                             :cxn-set non-holophrase)))))))
-              ;(add-composer-chunk agent overlapping-meaning)
-              ;(set-data interaction :applied-repair 'holophrase->item-based)
-              ;; returns 1. existing cxns to apply
+              ;; returns 
+              ;; 1. existing cxns to apply
               ;; 2. new cxns to apply
               ;; 3. other new cxns
               ;; 4. categorial links

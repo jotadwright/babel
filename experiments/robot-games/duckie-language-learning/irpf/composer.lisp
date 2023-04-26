@@ -12,7 +12,6 @@
          ;; initial chunk
          (initial-chunk
           (make-instance 'chunk :id 'initial
-                         ;:irl-program `((scan-world ?world))
                          :target-var `(?answer . ,target-category-type)
                          :open-vars `((?answer . ,target-category-type)))))
     (make-chunk-composer

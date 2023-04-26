@@ -76,8 +76,6 @@
                      (lex-cxn-conditional-units (first lex-cxn-subunit-blocks))
                      (lex-cxn-contributing-units (second lex-cxn-subunit-blocks))
                      (initial-cxn-score (get-configuration agent :initial-cxn-score))
-                     ;(interaction (current-interaction (experiment agent)))
-                     ;(interaction-nr (interaction-number interaction))
                      (item-based-cxn (or existing-item-based-cxn
                                          (second
                                           (multiple-value-list
@@ -99,12 +97,9 @@
                                                            :score ,initial-cxn-score
                                                            :string ,(form-predicates->hash-string non-overlapping-form)
                                                            :meaning ,(meaning-predicates->hash-meaning non-overlapping-meaning)
-                                                           ;:added-at ,interaction-nr
                                                            )
                                               :cxn-inventory ,(copy-object cxn-inventory)
                                               :cxn-set non-holophrase)))))))
-                ;(add-composer-chunk agent non-overlapping-meaning)
-                ;(set-data interaction :applied-repair 'lexical->item-based)
                 ;; returns
                 ;; 1. existing cxns to apply
                 ;; 2. new cxns to apply
