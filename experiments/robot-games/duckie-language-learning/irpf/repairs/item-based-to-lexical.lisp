@@ -63,8 +63,6 @@
                                   (intern (symbol-name (make-const unit-name)) :fcg)))
                      (args (mapcar #'third meaning-predicates-lex-cxn))
                      (initial-cxn-score (get-configuration agent :initial-cxn-score))
-                     ;(interaction (current-interaction (experiment agent)))
-                     ;(interaction-nr (interaction-number interaction))
                      (new-lex-cxn (or existing-lex-cxn
                                       (second
                                        (multiple-value-list
@@ -73,7 +71,7 @@
                                            ,cxn-name
                                            ((,unit-name
                                              (syn-cat (phrase-type lexical)
-                                                      (fcg::lex-class ,lex-class))
+                                                      (lex-class ,lex-class))
                                              (args ,args))
                                             <-
                                             (,unit-name
@@ -84,9 +82,7 @@
                                                         :cxn-type lexical
                                                         :repair item->lex
                                                         :string ,(form-predicates->hash-string form-predicates-lex-cxn)
-                                                        :meaning ,(meaning-predicates->hash-meaning meaning-predicates-lex-cxn)
-                                                        ;:added-at ,interaction-nr
-                                                        )
+                                                        :meaning ,(meaning-predicates->hash-meaning meaning-predicates-lex-cxn))
                                            :cxn-inventory ,(copy-object cxn-inventory)
                                            :cxn-set non-holophrase))))))
                      ;; make a list of all cxns, sort them
@@ -103,21 +99,16 @@
                                          (create-new-categorial-links lex-classes-lex-cxns
                                                                       lex-classes-item-based-units
                                                                       categorial-network))))
-                ;; return
+                ;; returns
+                ;; 1. existing cxns to apply
+                ;; 2. new cxns to apply
+                ;; 3. other new cxns
+                ;; 4. categorial links
                 (if categorial-links
                   (progn
-                    ;(add-composer-chunk agent (irl-program (chunk composer-solution)))
-                    ;(notify item-based->lexical-new-cxn-and-categorial-links new-lex-cxn
-                    ;        (categorial-network cxn-inventory) categorial-links)
-                    ;(set-data interaction :applied-repair 'item-based->lexical)
-                    ;; returns
-                    ;; 1. existing cxns to apply
-                    ;; 2. new cxns to apply
-                    ;; 3. other new cxns
-                    ;; 4. categorial links
                     (if existing-lex-cxn
                       (list (cons new-lex-cxn applied-cxns) nil nil categorial-links)
                       (list applied-cxns (list new-lex-cxn) nil categorial-links)))
-                  (progn (push 'fcg::repair-failed (statuses node)) nil)))
-              (progn (push 'fcg::repair-failed (statuses node)) nil)))
-          (progn (push 'fcg::repair-failed (statuses node)) nil))))))
+                  (progn (push 'fcg::repair-failed (fcg::statuses node)) nil)))
+              (progn (push 'fcg::repair-failed (fcg::statuses node)) nil)))
+          (progn (push 'fcg::repair-failed (fcg::statuses node)) nil))))))

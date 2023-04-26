@@ -1,6 +1,9 @@
 (in-package :duckie-language-learning)
 
-;; sets of objects in the world
+;; --------------
+;; + Object-set +
+;; --------------
+
 (defclass object-set (entity)
   ((objects
     :initarg :objects :accessor objects :initform nil :type list

@@ -9,12 +9,11 @@
         (building-functions '(restaurant house bakery))
         (bools '(true false))
         (object-types '(duckie-car duckie-building duckie-agent-car duckie-home))
-        (rfids '(a b c d e f))
+        (rfids (loop for i from 0 to 10 collect i))
         (operators '(bigger smaller equal))
-        (attributes '(color building-function rfid))
-        (zones '(1 2 3 4))
-        (numbers (loop for i from 0 to 10
-                         collect i))
+        (attributes '(color building-function rfid zone))
+        (zones (loop for i from 0 to 10 collect i))
+        (numbers (loop for i from 0 to 10 collect i))
         (initial-ontology (make-blackboard)))
     (loop for color in colors
           for instance = (make-instance 'color-category
@@ -55,9 +54,4 @@
                                         :id num :category num)
           do (push-data initial-ontology 'numbers instance))
     (set-data initial-ontology 'world nil)
-   ; (push-data initial-ontology 'coordinates (make-instance 'coordinates-category :x-coordinate 0 :y-coordinate 0))
-   ; (push-data initial-ontology 'coordinates (make-instance 'coordinates-category :x-coordinate 1 :y-coordinate 0))
-   ; (push-data initial-ontology 'coordinates (make-instance 'coordinates-category :x-coordinate 1 :y-coordinate 1))
-   ; (push-data initial-ontology 'coordinates (make-instance 'coordinates-category :x-coordinate 1 :y-coordinate 2))
-    
     initial-ontology))

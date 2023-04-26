@@ -1,6 +1,9 @@
 (in-package :duckie-language-learning)
 
-;; objects in the world
+;; ----------
+;; + Object +
+;; ----------
+
 (defclass duckie-object (entity)
   ((zone
     :initarg :zone :accessor zone :initform nil :type cons
@@ -17,14 +20,13 @@
   "Objects are equal when their attributes are"
   (and 
        (eql (rfid obj-1) (rfid obj-2))
+       (eql (zone obj-1) (zone obj-2))
        (eql (color obj-1) (color obj-2))))
 
 (defmethod make-html-for-entity-details ((obj duckie-object) &key)
   "Draw the objects in the web interface"
   `(((div :class "entity-detail")
      ((table)
-      ((tr) ((td) "rfid:") ((td) ,(format nil "~(~a~)" (rfid obj))))
       ((tr) ((td) "zone:") ((td) ,(format nil "~(~a~)" (zone obj))))
-      ;((tr) ((td) "x-coordinate:") ((td) ,(format nil "~(~a~)" (x-coordinate (coordinates obj)))))
-      ;((tr) ((td) "y-coordinate:") ((td) ,(format nil "~(~a~)" (y-coordinate (coordinates obj)))))
+      ((tr) ((td) "color") ((td) ,(format nil "~(~a~)" (color obj))))
       ))))

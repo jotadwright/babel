@@ -1,6 +1,9 @@
 (in-package :duckie-language-learning)
 
-;;Cars in the world (color moved to super-class)
+;; --------------
+;; + Duckie-car +
+;; --------------
+
 (defclass duckie-car (duckie-object)
   ( )
   (:documentation "a duckie car in the world"))
@@ -13,15 +16,12 @@
   "Objects are equal when their attributes are"
   (and 
        (eql (color obj-1) (color obj-2))
+       (eql (zone obj-1) (zone obj-2))
        (eql (rfid obj-1) (rfid obj-2))))
 
 (defmethod make-html-for-entity-details ((obj duckie-car) &key)
   "Draw the objects in the web interface"
   `(((div :class "entity-detail")
      ((table)
-      ((tr) ((td) "rfid:") ((td) ,(format nil "~(~a~)" (rfid obj))))
       ((tr) ((td) "color") ((td) ,(format nil "~(~a~)" (color obj))))
-      ((tr) ((td) "zone") ((td) ,(format nil "~(~a~)" (zone obj))))
-     ; ((tr) ((td) "x-coordinate:") ((td) ,(format nil "~(~a~)" (x-coordinate (coordinates obj)))))
-     ; ((tr) ((td) "y-coordinate:") ((td) ,(format nil "~(~a~)" (y-coordinate (coordinates obj)))))
-      ))))
+      ((tr) ((td) "zone") ((td) ,(format nil "~(~a~)" (zone obj))))))))

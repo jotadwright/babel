@@ -27,6 +27,7 @@
 (define-configuration-default-value :learner-cxn-supplier :hashed-and-scored)
 (define-configuration-default-value :category-linking-mode :neighbours)
 (define-configuration-default-value :learning-strategy :optimal-form-coverage) ;or: by-score
+(define-configuration-default-value :categorial-link-repair-mode-comprehension :no-path-required)
 
 ;; debug formatting
 (define-configuration-default-value :dot-interval 100)
@@ -72,6 +73,4 @@
     (setf (interacting-agents interaction) (list agent)
           (discourse-role agent) 'hearer)
     (setf (utterance agent) nil
-          (communicated-successfully agent) nil)
-  ;(notify interacting-agents-determined experiment interaction)
-    ))
+          (communicated-successfully agent) nil)))

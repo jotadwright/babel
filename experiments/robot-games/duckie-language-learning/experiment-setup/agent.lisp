@@ -5,7 +5,7 @@
 ;; -----------------
 
 (defclass duckie-language-learning-agent (agent)
-  ((grammar :initarg :grammar :accessor grammar :initform (fcg::make-duckie-grammar-cxns)
+  ((grammar :initarg :grammar :accessor grammar :initform (make-duckie-grammar-cxns)
             :type (or null fcg-construction-set)
             :documentation "The agent's grammar")
    (ontology :initarg :ontology :accessor ontology :initform *ontology*
