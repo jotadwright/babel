@@ -36,8 +36,8 @@
                ;; -> thus, create the actual problem object
                (let ((agent (find-data (blackboard (construction-inventory node)) :owner))
                      (problem (make-instance 'partial-utterance-problem)))
-                 (push (type-of problem) (statuses node))
-                 (push 'fcg::diagnostic-triggered (statuses node))
+                 (push (type-of problem) (fcg::statuses node))
+                 (push 'fcg::diagnostic-triggered (fcg::statuses node))
                  (notify diagnostic-trigger node diagnostic)
                  (let ((correct-answer (ask-correct-answer agent)))
                    (set-data problem :answer correct-answer))
@@ -55,7 +55,7 @@
              (loop for candidate in (sort-candidates (get-candidates node)) ;; sorted by most-applied
                    for (problems fixes) = (multiple-value-list
                                            (notify-learning candidate :trigger 'fcg::new-node))
-                   when problems
+                   when (and problems (not fixes))
                      do (progn
                           (loop for problem in problems
                                 do (push (type-of problem) (statuses candidate)))

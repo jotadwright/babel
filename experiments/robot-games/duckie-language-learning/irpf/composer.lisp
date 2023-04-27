@@ -12,7 +12,6 @@
          ;; initial chunk
          (initial-chunk
           (make-instance 'chunk :id 'initial
-                         ;:irl-program `((scan-world ?world))
                          :target-var `(?answer . ,target-category-type)
                          :open-vars `((?answer . ,target-category-type)))))
     (make-chunk-composer
@@ -24,20 +23,22 @@
      :ontology (ontology agent)
      :primitive-inventory (primitive-inventory agent)
      :configurations `((:max-irl-program-length . 5)
-                       (:check-node-modes ;; limit the length of the irl program
-                        :limit-irl-program-length
-                        ;; no duplicates
-                        :check-duplicate
-                        ;; no predicates with multiple times the same variable
-                        ;:no-circular-primitives
-                        ;; meaning has to be fully connected
-                        :fully-connected-meaning
-                        )))))
+                       (:chunk-node-tests :restrict-irl-program-length ;; limit the length of the irl program
+                                           :check-duplicate ;; no duplicates
+                                           ;:no-circular-primitives ;; no predicates with multiple times the same variable
+                                           ;:fully-connected-meaning ;; meaning has to be fully connected
+                        )
+                       ;; default expand mode
+                       (:chunk-expansion-modes :combine-program)
+                       ;; default node cost
+                       (:node-cost-mode . :short-programs-with-few-primitives-and-open-vars)))))
 
 (defmethod compose-program ((agent duckie-language-learning-agent)
                             target-category
                             &key partial-program)
-  (notify irl::chunk-composer-started (mkstr (category target-category)))
+  (if (subtypep (type-of target-category) 'duckie-category)
+    (notify irl::chunk-composer-started (mkstr (category target-category)))
+    (notify irl::chunk-composer-started (mkstr (zone target-category)))) ;; special for MOVE-TO primitive
   (let* ((composer
           (make-default-composer agent target-category
                                  :partial-program `((scan-world ?world)))) ;; TODO: remove assumption?

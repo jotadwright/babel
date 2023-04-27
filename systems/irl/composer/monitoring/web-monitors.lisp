@@ -121,5 +121,4 @@
     (when (and (solutions composer)
                (not (length= (solutions composer) solutions)))
       (add-element '((h3) "All composer solutions so far"))
-      (composer-solutions->html (solutions composer))))
-  (add-element '((hr :style "border-top: 3px dashed #E65C00;background-color:#fff"))))
+      (composer-solutions->html (solutions composer)))))

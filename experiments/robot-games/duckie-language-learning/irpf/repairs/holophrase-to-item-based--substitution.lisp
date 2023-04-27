@@ -76,7 +76,7 @@
                    ;; Args
                    (args-lex-cxn-1 (third (first non-overlapping-meaning-cxn))) ;; third if bind
                    (args-lex-cxn-2 (third (first non-overlapping-meaning-observation))) ;; third if bind
-                   ;; CXNs
+                   ;; cxns
                    (initial-cxn-score 0.5)
                    (new-lex-cxn-1 (or lex-cxn-1
                                       (second
@@ -87,7 +87,7 @@
                                            ((,unit-name-lex-cxn-1
                                              (args (,args-lex-cxn-1))
                                              (syn-cat (phrase-type lexical)
-                                                      (fcg::lex-class ,lex-class-lex-cxn-1)))
+                                                      (lex-class ,lex-class-lex-cxn-1)))
                                             <-
                                             (,unit-name-lex-cxn-1
                                              (HASH meaning ,non-overlapping-meaning-cxn)
@@ -109,7 +109,7 @@
                                            ((,unit-name-lex-cxn-2
                                              (args (,args-lex-cxn-2))
                                              (syn-cat (phrase-type lexical)
-                                                      (fcg::lex-class ,lex-class-lex-cxn-2)))
+                                                      (lex-class ,lex-class-lex-cxn-2)))
                                             <-
                                             (,unit-name-lex-cxn-2
                                              (HASH meaning ,non-overlapping-meaning-observation)
@@ -132,7 +132,7 @@
                                               (syn-cat (phrase-type item-based))
                                               (subunits (,unit-name-lex-cxn-1)))
                                              (,unit-name-lex-cxn-1
-                                              (syn-cat (fcg::lex-class ,lex-class-item-based-cxn)))
+                                              (syn-cat (lex-class ,lex-class-item-based-cxn)))
                                              <-
                                              (?item-based-unit
                                               (HASH meaning ,overlapping-meaning-cxn)
@@ -148,8 +148,6 @@
                                                          :meaning ,(meaning-predicates->hash-meaning overlapping-meaning-cxn))
                                             :cxn-inventory ,(copy-object cxn-inventory)
                                             :cxn-set non-holophrase)))))))
-                  ;(add-composer-chunk agent overlapping-meaning-cxn)
-                  ;(set-data interaction :applied-repair 'holophrase->item-based)
               ;; returns 
               ;; 1. existing cxns to apply
               ;; 2. new cxns to apply

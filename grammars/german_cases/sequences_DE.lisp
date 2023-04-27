@@ -18,7 +18,7 @@
   :fcg-configurations ((:max-nr-of-nodes . 40000)
                        (:de-render-mode . :de-render-sequence)
                        (:render-mode . :render-sequences)
-                       (:parse-goal-tests :no-applicable-cxns :no-strings-in-root :connected-semantic-network :connected-structure)
+                       (:parse-goal-tests :no-applicable-cxns :no-strings-in-root :connected-semantic-network :connected-structure)   
                        ;; to activate heuristic search
                        (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
                        (:node-expansion-mode . :full-expansion) ;; always fully expands node immediately
@@ -40,7 +40,7 @@
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;;                                           ;;;;
-  ;;;; DETERMINERS CONSTRUCTIONS ;;;;
+  ;;;; DETERMINERS CONSTRUCTIONS                 ;;;;
   ;;;;                                           ;;;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -63,6 +63,26 @@
                --
                (HASH form ((sequence "die" ?left ?right)))))
              :disable-automatic-footprints t)
+
+
+(def-fcg-cxn das-cxn
+             ((?the-word
+               (footprints (article))
+               (sequences ((sequence "das" ?left ?right)))) 
+              <-
+              (?the-word
+               (footprints (not article))
+               (syn-cat (lex-class article)
+                        (case ((?nn - - ?nn -)     
+                               (?an - - ?an -)      
+                               (- - - - -)       
+                               (?dn - - ?dn -)
+                               (+ - - + -))))   ;sing, masc, fem, neut, plural
+               
+               --
+               (HASH form ((sequence "das" ?left ?right)))))
+             :disable-automatic-footprints t)
+
 
 (def-fcg-cxn den-cxn
              ((?the-word
@@ -144,6 +164,7 @@
                --
                (HASH form ((sequence "mit" ?left ?right)))))
              :disable-automatic-footprints t)
+
 
 (def-fcg-cxn zur-cxn
              ((?to-word
@@ -228,6 +249,57 @@
                --
                (HASH form ((sequence "Doktor" ?left ?right))))))
 
+(def-fcg-cxn Vater-cxn
+             ((?father-word
+               (referent ?f)
+               (sequences ((sequence "Vater" ?left ?right)))
+               (syn-cat (lex-class noun)         
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -))))
+               (sem-cat (animacy animate)))
+              <-
+              (?father-word
+               (HASH meaning ((father ?f)))                     
+               --
+               (HASH form ((sequence "Vater" ?left ?right))))))
+
+(def-fcg-cxn Sohn-cxn
+             ((?son-word
+               (referent ?s)
+               (sequences ((sequence "Sohn" ?left ?right)))
+               (syn-cat (lex-class noun)         
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -))))
+               (sem-cat (animacy animate)))
+              <-
+              (?son-word
+               (HASH meaning ((son ?s)))                     
+               --
+               (HASH form ((sequence "Sohn" ?left ?right))))))
+
+
+(def-fcg-cxn Clown-cxn
+             ((?clown-word
+               (referent ?c)
+               (sequences ((sequence "Clown" ?left ?right)))
+               (syn-cat (lex-class noun)         
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -))))
+               (sem-cat (animacy animate)))
+              <-
+              (?clown-word
+               (HASH meaning ((clown ?c)))                     
+               --
+               (HASH form ((sequence "Clown" ?left ?right))))))
 
 (def-fcg-cxn Hund-cxn
              ((?dog-word
@@ -282,6 +354,130 @@
                --
                (HASH form ((sequence "Kino" ?left ?right))))))
 
+(def-fcg-cxn Baecker-cxn
+             ((?baker-word
+               (referent ?b)
+               (sequences ((sequence "Baecker" ?left ?right)))
+               (syn-cat (lex-class noun)         
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -))))
+               (sem-cat (animacy animate)))
+              <-
+              (?baker-word
+               (HASH meaning ((baker ?b)))                     
+               --
+               (HASH form ((sequence "Baecker" ?left ?right))))))
+
+;(formulate-all '((baker ?b)))
+
+
+(def-fcg-cxn Polizist-cxn
+             ((?policeman-word
+               (referent ?p)
+               (sequences ((sequence "Polizist" ?left ?right)))
+               (syn-cat (lex-class noun)         
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -))))
+               (sem-cat (animacy animate)))
+              <-
+              (?policeman-word
+               (HASH meaning ((policeman ?p)))                     
+               --
+               (HASH form ((sequence "Polizist" ?left ?right))))))
+
+
+(def-fcg-cxn Jaeger-cxn
+             ((?hunter-word
+               (referent ?j)
+               (sequences ((sequence "Jaeger" ?left ?right)))
+               (syn-cat (lex-class noun)         
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -))))
+               (sem-cat (animacy animate)))
+              <-
+              (?hunter-word
+               (HASH meaning ((hunter ?j)))                     
+               --
+               (HASH form ((sequence "Jaeger" ?left ?right))))))
+
+
+(def-fcg-cxn Koenig-cxn
+             ((?king-word
+               (referent ?k)
+               (sequences ((sequence "Koenig" ?left ?right)))
+               (syn-cat (lex-class noun)         
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -))))
+               (sem-cat (animacy animate)))
+              <-
+              (?king-word
+               (HASH meaning ((king ?k)))                     
+               --
+               (HASH form ((sequence "Koenig" ?left ?right))))))
+
+(def-fcg-cxn Kellner-cxn
+             ((?waiter-word
+               (referent ?k)
+               (sequences ((sequence "Kellner" ?left ?right)))
+               (syn-cat (lex-class noun)         
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -))))
+               (sem-cat (animacy animate)))
+              <-
+              (?waiter-word
+               (HASH meaning ((waiter ?k)))                     
+               --
+               (HASH form ((sequence "Kellner" ?left ?right))))))
+
+(def-fcg-cxn Direktor-cxn
+             ((?director-word
+               (referent ?d)
+               (sequences ((sequence "Direktor" ?left ?right)))
+               (syn-cat (lex-class noun)         
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -))))
+               (sem-cat (animacy animate)))
+              <-
+              (?director-word
+               (HASH meaning ((principal ?d)))                     
+               --
+               (HASH form ((sequence "Direktor" ?left ?right))))))
+
+(def-fcg-cxn Tiger-cxn
+             ((?tiger-word
+               (referent ?t)
+               (sequences ((sequence "Tiger" ?left ?right)))
+               (syn-cat (lex-class noun)         
+                        (case ((?nm ?nm - - -)     
+                               (?am ?am - - -)      
+                               (- - - - -)       
+                               (?dm ?dm - - -)
+                               (+ + - - -))))
+               (sem-cat (animacy animate)))
+              <-
+              (?tiger-word
+               (HASH meaning ((tiger ?t)))                     
+               --
+               (HASH form ((sequence "Tiger" ?left ?right))))))
+
 
 (def-fcg-cxn Frau-cxn
              ((?woman-word                        
@@ -299,6 +495,24 @@
                (HASH meaning ((woman ?w)))                     
                --
                (HASH form ((sequence "Frau" ?left ?right))))))
+
+
+(def-fcg-cxn Lehrerin-cxn
+             ((?teacher-word                        
+               (referent ?t)
+               (sequences ((sequence "Lehrerin" ?left ?right)))
+               (syn-cat (lex-class noun)
+                        (case ((?nf - ?nf - -)     
+                               (?af - ?af - -)      
+                               (?gf - ?gf - -)       
+                               (?df - ?df - -)
+                               (+ - + - -))))
+               (sem-cat (animacy animate)))  
+              <-
+              (?teacher-word
+               (HASH meaning ((teacher ?t)))                     
+               --
+               (HASH form ((sequence "Lehrerin" ?left ?right))))))
 
 
 (def-fcg-cxn Arbeit-cxn
@@ -333,6 +547,40 @@
                (HASH meaning ((bike ?x)))                
                --
                (HASH form ((sequence "Fahrrad" ?left ?right))))))
+
+(def-fcg-cxn Maedchen-cxn
+             ((?girl-word                        
+               (referent ?g)
+               (sequences ((sequence "Maedchen" ?left ?right)))
+               (syn-cat (lex-class noun)
+                        (case ((?nn - - ?nn -)     
+                               (?an - - ?an -)      
+                               (- - - - -)       
+                               (?dn - - ?dn -)
+                               (+ - - + -))))
+               (sem-cat (animacy animate)))
+              <-
+              (?girl-word                            
+               (HASH meaning ((girl ?g)))                
+               --
+               (HASH form ((sequence "Maedchen" ?left ?right))))))
+
+
+(def-fcg-cxn Buch-cxn
+             ((?book-word                        
+               (referent ?b)
+               (sequences ((sequence "Buch" ?left ?right)))
+               (syn-cat (lex-class noun)
+                        (case ((?nn - - ?nn -)     
+                               (?an - - ?an -)      
+                               (- - - - -)       
+                               (?dn - - ?dn -)
+                               (+ - - + -)))))
+              <-
+              (?book-word                            
+               (HASH meaning ((book ?b)))                
+               --
+               (HASH form ((sequence "Buch" ?left ?right))))))
 
 
 (def-fcg-cxn Mann-cxn
@@ -371,10 +619,26 @@
                --
                (HASH form ((sequence "Blumen" ?left ?right))))))
 
+
+(def-fcg-cxn Brille-cxn
+             ((?glasses-word
+               (referent ?g)
+               (sequences ((sequence "Brille" ?left ?right)));set of values
+               (syn-cat (lex-class noun)                   ;sure nominative and masculine
+                        (case ((?np - - - ?np)     
+                               (?ap - - - ?ap)      
+                               (?gp - - - ?gp)       
+                               (?dp - - - ?dp)
+                               (- - - - +))))
+              (sem-cat (animacy inanimate)))
+              <-
+              (?glasses-word
+               (HASH meaning ((glasses ?g)))                     
+               --
+               (HASH form ((sequence "Brille" ?left ?right))))))
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;;;;                                           ;;;;
-  ;;;; VERBS CONSTRUCTIONS                       ;;;;
-  ;;;;                                           ;;;;
+  ;;;; DITRANSITIVE VERBS CXNS                   ;;;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def-fcg-cxn schenkt-cxn
@@ -391,7 +655,6 @@
                --
                (HASH form ((sequence "schenkt" ?verb-left ?verb-right))))))
 
-
 (def-fcg-cxn gibt-cxn
              ((?give-word                         
                (syn-cat (lex-class verb)
@@ -405,6 +668,44 @@
                (HASH meaning ((geben-01 ?g)))                   
                --
                (HASH form ((sequence "gibt" ?verb-left ?verb-right))))))
+
+
+(def-fcg-cxn zeigt-cxn
+             ((?show-word                         
+               (syn-cat (lex-class verb)
+                        (aspect non-perfect)
+                        (type ditransitive))
+               (boundaries (?verb-left ?verb-right))
+               (referent ?s))  
+                        
+              <-
+              (?show-word                           
+               (HASH meaning ((zeigen-01 ?s)))                   
+               --
+               (HASH form ((sequence "zeigt" ?verb-left ?verb-right))))))
+
+
+(def-fcg-cxn verkauft-cxn
+             ((?sell-word                         
+               (syn-cat (lex-class verb)
+                        (aspect non-perfect)
+                        (type ditransitive))
+               (boundaries (?verb-left ?verb-right))
+               (referent ?s))  
+                        
+              <-
+              (?sell-word                           
+               (HASH meaning ((verkaufen-01 ?s)))                   
+               --
+               (HASH form ((sequence "verkauft" ?verb-left ?verb-right))))))
+
+
+
+ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ ;;;;       MOTION VERBS CXNS                   ;;;;
+ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;INTRANSITIVES
 
 
 (def-fcg-cxn ist-gefahren-cxn
@@ -431,6 +732,7 @@
                --
                )))
 
+
 (def-fcg-cxn fährt-cxn
              ((?drive-word                         
                (syn-cat (lex-class verb)
@@ -444,6 +746,43 @@
                (HASH meaning ((fahren-01 ?f)))                   
                --
                (HASH form ((sequence "fährt" ?verb-left ?verb-right))))))
+
+
+(def-fcg-cxn geht-cxn
+             ((?go-word                         
+               (syn-cat (lex-class verb)
+                        (aspect non-perfect)
+                        (type intransitive))
+               (boundaries (?verb-left ?verb-right))
+               (referent ?g))  
+                        
+              <-
+              (?go-word                           
+               (HASH meaning ((gehen-01 ?g)))                   
+               --
+               (HASH form ((sequence "geht" ?verb-left ?verb-right))))))
+
+
+(def-fcg-cxn ist-cxn
+             ((?be-word                         
+               (syn-cat (lex-class verb)
+                        (aspect non-perfect)
+                        (type copula))
+               (boundaries (?verb-left ?verb-right))
+               (referent ?s))  
+                        
+              <-
+              (?be-word                           
+               (HASH meaning ((sein-01 ?s)))                   
+               --
+               (HASH form ((sequence "ist" ?verb-left ?verb-right))))))
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; TRANSITIVE VERBS CXNS         ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 (def-fcg-cxn sucht-cxn
@@ -460,33 +799,53 @@
                --
                (HASH form ((sequence "sucht" ?verb-left ?verb-right))))))
 
-(def-fcg-cxn geht-cxn
-             ((?go-word                         
-               (syn-cat (lex-class verb)
-                        (aspect non-perfect)
-                        (type intransitive))
-               (boundaries (?verb-left ?verb-right))
-               (referent ?g))  
-                        
-              <-
-              (?go-word                           
-               (HASH meaning ((gehen-01 ?g)))                   
-               --
-               (HASH form ((sequence "geht" ?verb-left ?verb-right))))))
 
-(def-fcg-cxn ist-cxn
-             ((?be-word                         
+(def-fcg-cxn verfolgt-cxn
+             ((?follow-word                         
                (syn-cat (lex-class verb)
                         (aspect non-perfect)
-                        (type copula))
+                        (type transitive))
                (boundaries (?verb-left ?verb-right))
-               (referent ?s))  
+               (referent ?f))  
                         
               <-
-              (?be-word                           
-               (HASH meaning ((sein-01 ?s)))                   
+              (?follow-word                           
+               (HASH meaning ((verfolgen-01 ?f)))                   
                --
-               (HASH form ((sequence "ist" ?verb-left ?verb-right))))))
+               (HASH form ((sequence "verfolgt" ?verb-left ?verb-right))))))
+
+
+(def-fcg-cxn toetet-cxn
+             ((?kill-word                         
+               (syn-cat (lex-class verb)
+                        (aspect non-perfect)
+                        (type transitive))
+               (boundaries (?verb-left ?verb-right))
+               (referent ?k))  
+                        
+              <-
+              (?kill-word                           
+               (HASH meaning ((toeten-01 ?k)))                   
+               --
+               (HASH form ((sequence "toetet" ?verb-left ?verb-right))))))
+
+
+(def-fcg-cxn ruft-cxn
+             ((?call-word                         
+               (syn-cat (lex-class verb)
+                        (aspect non-perfect)
+                        (type transitive))
+               (boundaries (?verb-left ?verb-right))
+               (referent ?r))  
+                        
+              <-
+              (?call-word                           
+               (HASH meaning ((rufen-01 ?r)))                   
+               --
+               (HASH form ((sequence "ruft" ?verb-left ?verb-right))))))
+
+
+
 
 
 
@@ -568,8 +927,10 @@
                                (?acc ?am ?af ?an ?ap)      
                                (?gen ?gm ?gf ?gn ?gp)       
                                (?dat ?dm ?df ?dn ?dp)
-                               (?s ?m ?f ?n ?p))))
+                               (?s ?m ?f ?n ?p)))
+                       )
                (sequences ((sequence ?prep-string ?prep-left ?prep-right))))
+              
               (?article
                --
                (syn-cat (lex-class article)
@@ -605,6 +966,7 @@
                            (sequence " " ?article-right ?noun-left)))
               ))
               :disable-automatic-footprints t)
+
 
 
 (def-fcg-cxn contracted-prep-phrase-cxn
@@ -849,8 +1211,7 @@
                       (- - - - -)         
                       (?dat ?dm ?df ?dn ?dp)
                       (?ls ?m ?f ?n ?lp)))
-                   (type contracted)
-                   (locative motion))
+                   (locative ?l))
                (referent ?arg4)
                 --
               (syn-cat (lex-class prep-phrase)
@@ -866,8 +1227,6 @@
                               (:arg4 ?v ?arg4)))                  
                --
                )))
-
-
 
 (def-fcg-cxn topic-arg0-arg4-information-structure-cxn
              (
@@ -1099,6 +1458,59 @@
               (syn-cat (syn-role indirect-object))
               (boundaries  (?leftmost-receiver-unit ?rightmost-receiver-unit)))))
 
+
+(def-fcg-cxn topic-arg2-arg0-arg1-information-structure-cxn
+             (
+              <-
+              (?argument-structure-unit
+               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit))
+               (HASH meaning ((topicalized ?arg2 +)))  
+                          
+               --
+               (HASH form ((sequence " " ?rightmost-receiver-unit ?verb-left)
+                             (sequence " " ?verb-right ?leftmost-agent-unit)
+                             (sequence " " ?rightmost-agent-unit ?leftmost-patient-unit)))
+               
+               (subunits (?verb-unit ?agent-unit ?patient-unit ?receiver-unit)))
+              
+              (?verb-unit
+               (syn-cat (lex-class verb)
+                       (type ditransitive)
+                       (aspect ?aspect))
+              (boundaries (?verb-left ?verb-right))
+              (referent ?v)
+                --
+              (syn-cat (lex-class verb)
+                       (type ditransitive)
+                       (aspect ?aspect))
+              (boundaries (?verb-left ?verb-right))
+              (referent ?v))
+              
+              (?agent-unit
+               (syn-cat (syn-role subject))
+               (boundaries  (?leftmost-agent-unit ?rightmost-agent-unit))
+                --
+              (syn-cat (syn-role subject))
+              (boundaries  (?leftmost-agent-unit ?rightmost-agent-unit)))
+              
+              (?patient-unit
+               (syn-cat (syn-role direct-object))
+               (boundaries  (?leftmost-patient-unit ?rightmost-patient-unit))
+                --
+              
+              (syn-cat (syn-role direct-object))
+              (boundaries  (?leftmost-patient-unit ?rightmost-patient-unit)))
+
+              (?receiver-unit
+               (referent ?arg2)
+               (syn-cat (syn-role indirect-object))
+               (boundaries  (?leftmost-receiver-unit ?rightmost-receiver-unit))
+                --
+              
+              (syn-cat (syn-role indirect-object))
+              (referent ?arg2)
+              (boundaries  (?leftmost-receiver-unit ?rightmost-receiver-unit)))))
+
 (def-fcg-cxn intransitive-extra-argument-arg1-structure-cxn
              ((?intransitive-extra-argument-arg1-structure-unit
               (subunits (?verb-unit ?agent-unit ?extra-info-unit ?location-unit)))
@@ -1238,9 +1650,9 @@
                (HASH meaning ((topicalized ?arg0 +)))  
                           
                --
-               (HASH form ((sequence " " ?rightmost-agent-unit ?aux-unit)
-                           (sequence " " ?aux-unit ?leftmost-location-unit)
-                           (sequence " " ?rightmost-location-unit ?participle-unit)))
+               (HASH form ((sequence " " ?rightmost-agent-unit ?verb-left)
+                           (sequence " " ?verb-left ?leftmost-location-unit)
+                           (sequence " " ?rightmost-location-unit ?verb-right)))
                (subunits (?verb-unit ?agent-unit ?location-unit)))
               
               (?verb-unit
@@ -1248,14 +1660,14 @@
                (syn-cat (lex-class verb)
                        (type intransitive)
                        (aspect perfect))
-               (boundaries (?aux-unit ?participle-unit))
+               (boundaries (?verb-left ?verb-right))
               
                 --
               (subunits (?aux-unit ?participle-unit))
               (syn-cat (lex-class verb)
                        (type intransitive)
                        (aspect perfect))
-              (boundaries (?aux-unit ?participle-unit)))
+              (boundaries (?verb-left ?verb-right)))
               
               (?agent-unit
                (referent ?arg0)
@@ -1420,24 +1832,53 @@
               (boundaries (?leftmost-location-unit ?rightmost-location-unit)))))
 
 
-;(comprehend-and-formulate "die Frau sucht den Hund")
-;(comprehend-and-formulate "der Mann sucht den Hund")
-;(comprehend-and-formulate "den Mann sucht der Hund")
 
+
+
+;;;;;;TRANSITIVE VERBS;;;;;;;
+
+;(comprehend-and-formulate "der Polizist sucht den Baecker")
+;(comprehend-and-formulate "der Koenig ruft den Kellner")
+;(comprehend-and-formulate "den Mann verfolgt der Hund")
+;(comprehend-and-formulate "den Jaeger toetet der Tiger")
+
+;;;FORMULATION
+;(formulate-all '((policeman p) (baker b) (suchen-01 s) (:arg0 s p) (:arg1 s b) (topicalized p +)))
+;(formulate '((policeman p) (baker b) (suchen-01 s) (:arg0 s p) (:arg1 s b) (topicalized b +)))
+
+
+;;;;;DITRANSITIVE VERBS;;;;;;
+;(comprehend-and-formulate "die Frau gibt dem Mann den Apfel")
+;(comprehend-and-formulate "der Clown verkauft dem Doktor das Buch")
+;(comprehend-and-formulate "die Lehrerin schenkt dem Direktor die Blumen")
+;(comprehend-and-formulate "dem Sohn zeigt der Vater die Brille")
+
+;;;;FORMULATION
+
+;(formulate '((woman w) (man m) (apple a) (geben-01 g) (:arg0 g m) (:arg1 g a) (:arg2 g w) (topicalized w +))) 
+;(formulate '((son s) (father f) (glasses g) (zeigen-01 z) (:arg0 z f) (:arg1 z g) (:arg2 z s) (topicalized f +)))
+
+
+
+;;;;;INTRANSITIVE VERBS;;;;;;
 ;(comprehend-and-formulate "der Mann geht zum Doktor")
 ;(comprehend-and-formulate "zum Kino geht die Frau")
-;(comprehend-and-formulate "die Frau geht zum Kino")
+;(comprehend-and-formulate "das Maedchen ist beim Baecker")
+;(comprehend-and-formulate "die Frau ist beim Doktor")
+;(comprehend-and-formulate "beim Baecker ist die Frau")
 
-;(comprehend-and-formulate "die Frau schenkt dem Mann die Blumen")
-;(comprehend-and-formulate "die Frau gibt dem Mann den Apfel")
 
+;;;;;INTRANSITIVE VERB WITH EXTRA ARGUMENT;;;;;;
 ;(comprehend "der Mann fährt mit dem Fahrrad zur Arbeit")
 
-;(comprehend "der Mann ist zum Kino gefahren")
 
-;(comprehend-and-formulate "die Frau ist beim Doktor")
-;(comprehend "beim Doktor ist die Frau")
-;(comprehend-and-formulate "die Frau ist beim Doktor")
+;;;;VERB IN PERFECT FORM
+;(comprehend-and-formulate "der Mann ist zum Kino gefahren")    ;error in formulation 
+
+
+
+
+
 
 
 

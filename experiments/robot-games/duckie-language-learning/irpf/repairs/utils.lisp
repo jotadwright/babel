@@ -26,7 +26,7 @@
              (cip (third comprehension-result)))
         (enable-meta-layer-configuration cxn-inventory)
         ;;there is a solution with connected links in the CATEGORIAL-NETWORK
-        (when (member 'succeeded (statuses cip-node) :test #'string=)
+        (when (member 'fcg::succeeded (statuses cip-node) :test #'string=)
           (let* ((applied-cxns (applied-constructions cip-node))
                  (lex-cxns (sort-cxns-by-form-string (filter-by-phrase-type 'lexical applied-cxns) utterance))
                  (lex-classes-lex-cxns (when lex-cxns
@@ -57,7 +57,7 @@
     node))
 
 (defun initial-transient-structure (node)
-  (if (find 'fcg::initial (statuses node))
+  (if (find 'fcg::initial (fcg::statuses node))
     (car-source-cfs (cipn-car node))
     (car-source-cfs (cipn-car (last-elt (all-parents node))))))
 
@@ -140,17 +140,17 @@
 ;;;;;
 (defun lex-class (unit)
   (let* ((syn-cat (find 'syn-cat (unit-body unit) :key #'first))
-         (lex-class (find 'fcg::lex-class (second syn-cat) :key #'first)))    
+         (lex-class (find 'lex-class (second syn-cat) :key #'first)))    
     (when lex-class
       (second lex-class))))
 
 (defun lex-class-item-based (unit)
   (let ((syn-cat (find 'syn-cat (fcg::unit-structure unit) :key #'first)))
-    (second (find 'fcg::lex-class (rest syn-cat) :key #'first))))
+    (second (find 'lex-class (rest syn-cat) :key #'first))))
 
 (defun lex-class-cxn (lexical-cxn)
   (let ((syn-cat (find 'syn-cat (fcg::unit-structure (first (contributing-part lexical-cxn))) :key #'feature-name)))
-    (second (find 'fcg::lex-class (rest syn-cat) :key #'first))))
+    (second (find 'lex-class (rest syn-cat) :key #'first))))
 
 (defun non-overlapping-meaning (meaning cxn &key (nom-cxn nil) (nom-observation nil))
   (when (and nom-cxn nom-observation) (error "only nom-cxn or nom-observeration can be true"))
@@ -390,7 +390,7 @@
         for categorial-link in categorial-links
         for lex-slot-lex-class = (cdr categorial-link)
         collect `(,lex-cxn-unit-name
-                  (syn-cat (fcg::lex-class ,lex-slot-lex-class))) into contributing-units
+                  (syn-cat (lex-class ,lex-slot-lex-class))) into contributing-units
         collect `(,lex-cxn-unit-name
                   (args (,arg))
                   --) into conditional-units
@@ -547,8 +547,6 @@
   (append (find-feature-value 'meaning unit-body)
           (find-hashed-feature-value 'meaning unit-body)))
 
-;; (extract-meaning-predicates (first (constructions *fcg-constructions*)))
-
 (defgeneric extract-form-predicates (object))
 
 (defmethod extract-form-predicates ((cxn fcg-construction))
@@ -565,8 +563,6 @@
 (defmethod extract-form-predicates ((unit-body list))
   (append (find-feature-value 'form unit-body)
           (find-hashed-feature-value 'form unit-body)))
-
-;; (extract-form-predicates (first (constructions *fcg-constructions*)))
 
 (defun find-feature-value (feature unit-body)
   (loop for feature-value in unit-body

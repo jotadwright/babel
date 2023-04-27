@@ -77,7 +77,7 @@
                                      ((,unit-name-lex-cxn
                                        (args (,args-lex-cxn))
                                        (syn-cat (phrase-type lexical)
-                                                (fcg::lex-class ,lex-class-lex-cxn)))
+                                                (lex-class ,lex-class-lex-cxn)))
                                       <-
                                       (,unit-name-lex-cxn
                                        (HASH meaning ,non-overlapping-meaning)
@@ -100,7 +100,7 @@
                                               (syn-cat (phrase-type item-based))
                                               (subunits (,unit-name-lex-cxn)))
                                              (,unit-name-lex-cxn
-                                              (syn-cat (fcg::lex-class ,lex-class-item-based-cxn)))
+                                              (syn-cat (lex-class ,lex-class-item-based-cxn)))
                                              <-
                                              (?item-based-unit
                                               (HASH meaning ,overlapping-meaning)
@@ -116,9 +116,8 @@
                                                          :meaning ,(meaning-predicates->hash-meaning overlapping-meaning))
                                             :cxn-inventory ,(copy-object cxn-inventory)
                                             :cxn-set non-holophrase)))))))
-              ;(add-composer-chunk agent overlapping-meaning)
-              ;(set-data interaction :applied-repair 'holophrase->item-based)
-              ;; returns 1. existing cxns to apply
+              ;; returns 
+              ;; 1. existing cxns to apply
               ;; 2. new cxns to apply
               ;; 3. other new cxns
               ;; 4. categorial links

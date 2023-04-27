@@ -10,7 +10,6 @@
 ;; This repair is applied when the utterance is completely unknown
 ;; or when all repairs using the partial utterance have failed
 ;; or when interpretation has failed.
-
 (defmethod repair ((repair add-holophrase)
                    (problem unknown-utterance-problem)
                    (node cip-node) &key
@@ -82,8 +81,8 @@
       ;; for more efficient diagnostics
       (set-data (initial-node node) :some-repair-applied t)
       (loop for node in new-nodes
-            do (push (type-of repair) (statuses node))
-               (push 'fcg::added-by-repair (statuses node)))
+            do (push (type-of repair) (fcg::statuses node))
+               (push 'fcg::added-by-repair (fcg::statuses node)))
       (cip-enqueue (first new-nodes) (cip node)
                    (get-configuration node :queue-mode))
       (notify fix-applied
