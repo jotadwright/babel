@@ -8,5 +8,5 @@
    :experiment-framework
    :utils
    :postmodern
-   :wi
+   :web-interface
    ))
