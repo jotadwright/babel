@@ -7,10 +7,6 @@
     (format t "The name of the database is ~d~%" (personal-db agent))
     (format t "The connection is established between ~d and the database.~%" agent)))
 
-(defclass db-representation ()
-  
-  )
-
 (defun get-all-tables ()
   "Retrieves a list of sublists. In each sublist : a table of the db, its columns with their data types."
   (let ((tables-list (list-tables t))
@@ -28,8 +24,4 @@
 ;(get-all-tables)
 ;'(("actorsfilms" (("actor" "varchar") ("actor_id" "varchar") ("film" "varchar") ("year" "int4") ("votes" "int4") ("rating" "float8") ("film_id" "varchar"))))
 
-(defvar tables (get-all-tables))
-(loop for i in tables
-      for columns-list = (cdr i)
-        append (loop for column in columns-list
-                       do (print column)))
+;(defvar tables (get-all-tables))
