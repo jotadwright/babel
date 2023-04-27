@@ -496,6 +496,7 @@
                --
                (HASH form ((sequence "Frau" ?left ?right))))))
 
+
 (def-fcg-cxn Lehrerin-cxn
              ((?teacher-word                        
                (referent ?t)
@@ -929,6 +930,7 @@
                                (?s ?m ?f ?n ?p)))
                        )
                (sequences ((sequence ?prep-string ?prep-left ?prep-right))))
+              
               (?article
                --
                (syn-cat (lex-class article)
@@ -1485,11 +1487,9 @@
               (referent ?v))
               
               (?agent-unit
-               (referent ?arg0)
                (syn-cat (syn-role subject))
                (boundaries  (?leftmost-agent-unit ?rightmost-agent-unit))
                 --
-              (referent ?arg0)
               (syn-cat (syn-role subject))
               (boundaries  (?leftmost-agent-unit ?rightmost-agent-unit)))
               
@@ -1842,12 +1842,22 @@
 ;(comprehend-and-formulate "den Mann verfolgt der Hund")
 ;(comprehend-and-formulate "den Jaeger toetet der Tiger")
 
+;;;FORMULATION
+;(formulate-all '((policeman p) (baker b) (suchen-01 s) (:arg0 s p) (:arg1 s b) (topicalized p +)))
+;(formulate '((policeman p) (baker b) (suchen-01 s) (:arg0 s p) (:arg1 s b) (topicalized b +)))
+
 
 ;;;;;DITRANSITIVE VERBS;;;;;;
 ;(comprehend-and-formulate "die Frau gibt dem Mann den Apfel")
 ;(comprehend-and-formulate "der Clown verkauft dem Doktor das Buch")
 ;(comprehend-and-formulate "die Lehrerin schenkt dem Direktor die Blumen")
 ;(comprehend-and-formulate "dem Sohn zeigt der Vater die Brille")
+
+;;;;FORMULATION
+
+;(formulate '((woman w) (man m) (apple a) (geben-01 g) (:arg0 g m) (:arg1 g a) (:arg2 g w) (topicalized w +))) 
+;(formulate '((son s) (father f) (glasses g) (zeigen-01 z) (:arg0 z f) (:arg1 z g) (:arg2 z s) (topicalized f +)))
+
 
 
 ;;;;;INTRANSITIVE VERBS;;;;;;
@@ -1863,7 +1873,6 @@
 
 
 ;;;;VERB IN PERFECT FORM
-
 ;(comprehend-and-formulate "der Mann ist zum Kino gefahren")    ;error in formulation 
 
 
