@@ -13,6 +13,7 @@
                   (meaning set-of-predicates)
                   (subunits set)
                   (boundaries sequence)
+                  (sequences set-of-predicates)
                   (footprints set)
                   (case sequence))
   :fcg-configurations ((:max-nr-of-nodes . 40000)
@@ -1848,7 +1849,7 @@
 
 
 ;;;;;DITRANSITIVE VERBS;;;;;;
-;(comprehend-and-formulate "die Frau gibt dem Mann den Apfel")
+;(comprehend "die Frau gibt dem Mann den Apfel")
 ;(comprehend-and-formulate "der Clown verkauft dem Doktor das Buch")
 ;(comprehend-and-formulate "die Lehrerin schenkt dem Direktor die Blumen")
 ;(comprehend-and-formulate "dem Sohn zeigt der Vater die Brille")
@@ -1872,8 +1873,8 @@
 ;(comprehend "der Mann fährt mit dem Fahrrad zur Arbeit")
 
 
-;;;;VERB IN PERFECT FORM
-;(comprehend-and-formulate "der Mann ist zum Kino gefahren")    ;error in formulation 
+;;;;VERB IN PERFECT FORM;;;;
+;(comprehend-and-formulate "der Mann ist zum Kino gefahren")   
 
 
 
