@@ -22,10 +22,10 @@
           do (setf (aref matrix r column) n)))
    matrix)
 
-(defgeneric needleman-wunsch (x y &key match mismatch gap)
+(defgeneric maximal-string-alignment (x y &key match mismatch gap)
   (:documentation "Computes the maximal alignment of two input strings x and y"))
 
-(defmethod needleman-wunsch ((x list) (y list) &key (match 1) (mismatch 1)  (gap 1))
+(defmethod maximal-string-alignment ((x list) (y list) &key (match 1) (mismatch 1)  (gap 1))
   (let* ((nx (length x))
          (ny (length y))
          (opt-score (make-array (list (+ nx 1) (+ ny 1)) :initial-element 0))
@@ -76,45 +76,58 @@
                       (decf j 1))))
       (values rx ry))))
 
-(defmethod needleman-wunsch ((x string) (y string) &key (match 1) (mismatch 1)  (gap 1))
-  (needleman-wunsch (coerce x 'list) (coerce y 'list)
-                    :match match :mismatch mismatch :gap gap))
+(defmethod maximal-string-alignment ((x string) (y string) &key (match 1) (mismatch 1)  (gap 1))
+  (maximal-string-alignment (coerce x 'list) (coerce y 'list)
+                            :match match :mismatch mismatch :gap gap))
 
 (defun anti-unify-aligned-strings (pattern source)
   "Takes Needleman-Wunsch ALIGNED sequences and outputs a generalisation with bindings (deltas)"
   (let (generalisation pattern-delta source-delta
         pattern-delta-temp source-delta-temp flag)
-    (loop for char-p in pattern  
-          for char-s in source  
-          if (eql char-p char-s)                 
-          do (progn
-               (when flag                        
-                 (let ((var (make-var)))       
-                   (push var generalisation)    
-                   (push (cons var (reverse pattern-delta-temp)) pattern-delta) 
-                   (setf pattern-delta-temp nil)                               
-                   (push (cons var (reverse source-delta-temp)) source-delta)  
-                   (setf source-delta-temp nil)
-                   (setf flag nil)))                                           
-               (unless (eql char-p #\_)                                      
-                 (push char-p generalisation)))                                 
-          else                                                                  
-          do (progn
-               (setf flag t)           
-               (unless (eql char-p #\_)                                    
-                 (push char-p pattern-delta-temp))                              
-               (unless (eql char-s #\_)
-                 (push char-s source-delta-temp)))                             
-          finally
-          (when flag              
-            (let ((var (make-var)))                                     
-              (push var generalisation)
-              (push (cons var (reverse pattern-delta-temp)) pattern-delta) 
-              (setf pattern-delta-temp nil)                                
-              (push (cons var (reverse source-delta-temp)) source-delta)
-              (setf source-delta-temp nil))))
+    (loop for char-p in pattern
+          for char-s in source
+          do (cond ((and (eql char-p char-s) flag)
+                    ;; same characters and flag is set
+                    ;; -> reached the end of a diff
+                    ;;    store the diff in the delta's
+                    ;;    add a var to the generalisation
+                    ;;    and clear the temp buffers
+                    (let ((var (make-var)))       
+                      (push var generalisation)    
+                      (push (cons var (reverse pattern-delta-temp)) pattern-delta)                               
+                      (push (cons var (reverse source-delta-temp)) source-delta)
+                      (setf pattern-delta-temp nil
+                            source-delta-temp nil
+                            flag nil)
+                      (unless (eql char-p #\_)                                      
+                        (push char-p generalisation))))
+                   ((eql char-p char-s)
+                    ;; same characters
+                    ;; -> add to the generalisation
+                    (unless (eql char-p #\_)                                      
+                      (push char-p generalisation)))
+                   (t
+                    ;; different characters
+                    ;; -> reached the start of a diff
+                    ;;    or still in a diff
+                    ;;    set the flag and push characters
+                    ;;    to temp buffers
+                    (setf flag t)           
+                    (unless (eql char-p #\_)                                    
+                      (push char-p pattern-delta-temp))                              
+                    (unless (eql char-s #\_)
+                      (push char-s source-delta-temp))))
+           finally
+           ;; handle trailing characters in the temp buffers
+           (when flag              
+             (let ((var (make-var)))                                     
+               (push var generalisation)
+               (push (cons var (reverse pattern-delta-temp)) pattern-delta)                                
+               (push (cons var (reverse source-delta-temp)) source-delta)
+               (setf pattern-delta-temp nil
+                     source-delta-temp nil
+                     flag nil))))
     (values (reverse generalisation)  pattern-delta  source-delta)))
-
 
 (defun generalisation-chars->strings (generalisation)
   (let (buffer result)
@@ -142,7 +155,7 @@
    and the anti-unification cost corresponds to the number of elements in
    the delta's."
   (multiple-value-bind (pattern-alignment source-alignment)
-      (needleman-wunsch pattern source)
+      (maximal-string-alignment pattern source)
     (multiple-value-bind (generalisation pattern-delta source-delta)
         (anti-unify-aligned-strings pattern-alignment source-alignment)
       (values (generalisation-chars->strings generalisation)
@@ -150,7 +163,7 @@
                     collect (cons var (coerce chars 'string)))
               (loop for (var . chars) in source-delta
                     collect (cons var (coerce chars 'string)))
-              ;; cost
+              ;; cost = sum of length of delta's
               (+ (length pattern-delta)
                  (length source-delta))))))
 
@@ -194,9 +207,11 @@
 (multiple-value-bind (gen pd sd cost)
     (anti-unify-strings "What is the color of the sphere?" "What is the size of the cube?")
   (string-anti-unification-result->sequence-predicates gen pd sd))
- 
-=> ((SEQUENCE "What is the " #:?LB-18 #:?RB-65) (SEQUENCE " of the " #:?RB-66 #:?RB-67) (SEQUENCE "e?" #:?RB-68 #:?RB-69)),
-   ((SEQUENCE "color" #:?RB-65 #:?RB-66) (SEQUENCE "spher" #:?RB-67 #:?RB-68)),
-   ((SEQUENCE "size" #:?RB-65 #:?RB-66) (SEQUENCE "cub" #:?RB-67 #:?RB-68))
+
+"What is the color of the sphere?"
+"What is the size of the cube?"
+=> Generalisation: ((SEQUENCE "What is the " #:?LB-18 #:?RB-65) (SEQUENCE " of the " #:?RB-66 #:?RB-67) (SEQUENCE "e?" #:?RB-68 #:?RB-69)),
+   Pattern delta: ((SEQUENCE "color" #:?RB-65 #:?RB-66) (SEQUENCE "spher" #:?RB-67 #:?RB-68)),
+   Source delta: ((SEQUENCE "size" #:?RB-65 #:?RB-66) (SEQUENCE "cub" #:?RB-67 #:?RB-68))
 
 |#
