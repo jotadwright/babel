@@ -241,6 +241,13 @@ string constraint with the variable ?Y."
   "Returns the list of strings represented in a render-state"
   (mapcar #'second (used-string-constraints state)))
 
+
+
+(export '(render-all))
+
+(defgeneric render-all (object mode &key &allow-other-keys)
+  (:documentation "Provides all possible renders of an utterance."))
+
 (defmethod render-all ((form-constraints list) (mode (eql :render-sequences)) &key &allow-other-keys)
   (let* ((sequence-constraints (remove-if-not #'stringp form-constraints :key #'second))
          (queue (list (make-instance 'render-state
