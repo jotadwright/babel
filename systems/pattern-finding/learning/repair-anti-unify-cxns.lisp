@@ -33,7 +33,8 @@
 (defmethod do-repair (observation-form observation-meaning form-args meaning-args
                                        (cxn-inventory construction-inventory)
                                        node (repair-type (eql 'anti-unify-cxns)))
-  (apply-fix ...))
+  ;; call to apply-fix in the end
+  )
 
 
 ;; TO DO
@@ -41,10 +42,15 @@
 ;; Find the best partial analysis node and try to learn from that one??
 ;; How to define "the best" partial analysis?
 
+;; Taking the lowest anti-unification cost with partial analyses is not
+;; a good solution, since the cost will be high instead of low! With
+;; partial analyses, the generalisation are the parts that are identical,
+;; while the rest is in the delta's. Often there will be more in the rest
+;; than in the overlap.
+
 
 (defun find-cxns-and-anti-unify (observation-form observation-meaning processing-direction cxn-inventory)
   ;; return new cxns and links
-  
   (let* (;; 1) select cxns by hasing the observation according to processing direction
          (hash-compatible-cxns
           (case processing-direction
@@ -64,20 +70,32 @@
          ;; 3) anti-unify each set of cxns with the observation and take the one with lowest cost
          ;;    pattern-matching requires string, so need to render the observation and the cxn forms
          ;;    but rendering can return multiple solutions, so try out all combinations
-         ;;    TO DO: pattern-matching does not assign costs to its results!
-         ;;     so cannot select the best one at this point...
-         (source-forms
+         (possible-source-forms
           (render-all observation-form :render-sequences))
-         (best-anti-unification-results
+         (best-form-anti-unification-result
           (loop for cxn-set in cxn-sets-for-anti-unification
-                for pattern-forms = (render-all
-                                     (loop for cxn in cxn-set
-                                           append (extract-form-predicates cxn))
-                                     :render-sequences)
-                for pattern-meaning = (loop for cxn in cxn-set
-                                            append (extract-meaning-predicates cxn))
-                for form-anti-unification-results = (loop for (pattern-form source-form) in (combinations source-forms pattern-forms)
-                                                          collect (multiple-value-list (generalise-strings pattern-form source-form))) 
-                for meaning-anti-unification-results = (fcg:anti-unify-predicate-network cxn-set-meaning observation-meaning)
+                for possible-pattern-forms
+                = (render-all
+                   (loop for cxn in cxn-set
+                         append (extract-form-predicates cxn))
+                   :render-sequences)
+                for form-anti-unification-results
+                = (loop for (pattern-form source-form) in (combinations possible-source-forms possible-pattern-forms)
+                        collect (multiple-value-list (fcg::anti-unify-strings pattern-form source-form)))
+                ;; sort by cost
+                return (first (sort form-anti-unification-results #'< :key #'fourth))))
+         (best-meaning-anti-unification-result
+          (loop for cxn-set in cxn-sets-for-anti-unification
+                for pattern-meaning
+                = (loop for cxn in cxn-set
+                        append (extract-meaning-predicates cxn))
+                for meaning-anti-unification-results
+                = (fcg:anti-unify-predicate-network pattern-meaning observation-meaning)
+                return (first (sort meaning-anti-unification-results #'< :key #'cost))))
+         ;; 4) learn cxn(s) from the anti-unification results
+         ;;    - no anti-unification results -> learn holistic
+         ;;    - yes anti-unification results -> learn cxns for generalisation and delta's
+         )
+    (values best-form-anti-unification-result best-meaning-anti-unification-result)))
         
         

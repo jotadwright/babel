@@ -17,6 +17,25 @@
                :cl-json)
   :serial t
   :components ((:file "package")
+               (:module utils
+                :serial t
+                :components ((:file "cxn-supplier")
+                             (:file "goal-tests")
+                             (:file "render-and-de-render")
+                             (:file "fcg-utils")
+                             (:file "utils")))
+               (:module experiment-setup
+                :serial t
+                :components ((:file "experiment")
+                             (:file "agent")
+                             (:file "alignment")
+                             (:file "interaction")))
+               (:module learning
+                :serial t
+                :components ((:file "problems-and-diagnostics")
+                             (:file "handle-fix")
+                             (:file "repair-add-categorial-links")
+                             (:file "repair-anti-unify-cxns")))
                )
   :description "A Common Lisp package for learning construction grammars.")
 
