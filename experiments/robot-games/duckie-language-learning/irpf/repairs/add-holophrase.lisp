@@ -10,7 +10,6 @@
 ;; This repair is applied when the utterance is completely unknown
 ;; or when all repairs using the partial utterance have failed
 ;; or when interpretation has failed.
-
 (defmethod repair ((repair add-holophrase)
                    (problem unknown-utterance-problem)
                    (node cip-node) &key

@@ -5,7 +5,7 @@
   :depends-on (:experiment-framework
                :utils :cl-json :postmodern :fcg 
                :cl-postgres
-               :postmodern :wi)
+               :postmodern :web-interface)
   :serial t 
   :components 
   ((:file "package")

@@ -54,9 +54,4 @@
                                         :id num :category num)
           do (push-data initial-ontology 'numbers instance))
     (set-data initial-ontology 'world nil)
-   ; (push-data initial-ontology 'coordinates (make-instance 'coordinates-category :x-coordinate 0 :y-coordinate 0))
-   ; (push-data initial-ontology 'coordinates (make-instance 'coordinates-category :x-coordinate 1 :y-coordinate 0))
-   ; (push-data initial-ontology 'coordinates (make-instance 'coordinates-category :x-coordinate 1 :y-coordinate 1))
-   ; (push-data initial-ontology 'coordinates (make-instance 'coordinates-category :x-coordinate 1 :y-coordinate 2))
-    
     initial-ontology))

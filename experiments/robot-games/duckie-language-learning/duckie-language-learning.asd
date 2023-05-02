@@ -22,7 +22,8 @@
                              (:file "interaction")))
                (:module irpf
                 :serial t
-                :components ((:file "handle-fix")
+                :components ((:file "web-monitors")
+                             (:file "handle-fix")
                              (:module diagnostics
                               :serial t
                               :components ((:file "diagnostic-unknown")
