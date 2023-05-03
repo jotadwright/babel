@@ -39,7 +39,15 @@
 ;; ################################
 
 (export '(clevr-object shape size color material relationships
-          coordinates 3d-coordinates rotation x-pos y-pos z-pos feature-values))
+          coordinates 3d-coordinates rotation x-pos y-pos z-pos feature-values
+          ;; import data
+          attr-area
+          attr-wh-ratio attr-nr-of-corners attr-nr-of-sides
+          attr-roughness
+          attr-r attr-g attr-b
+          attr-xpos attr-ypos attr-zpos 
+          attr-xpos-3d attr-ypos-3d attr-zpos-3d
+          ))
 
 (defclass clevr-object (entity)
   ((shape         :type symbol :initarg :shape         :accessor shape)
@@ -49,7 +57,22 @@
    (relationships :type list   :initarg :relationships :accessor relationships)
    (coordinates   :type list   :initarg :coordinates   :accessor coordinates)
    (3d-coordinates :type list  :initarg :3d-coordinates :accessor 3d-coordinates)
-   (rotation      :type number :initarg :rotation      :accessor rotation))
+   (rotation      :type number :initarg :rotation      :accessor rotation)
+   ;; import data
+   (attr-area     :type number :initarg :attr-area     :accessor attr-area)
+   (attr-wh-ratio :type number :initarg :attr-wh-ratio           :accessor attr-wh-ratio)
+   (attr-nr-of-corners :type number :initarg :attr-nr-of-corners :accessor attr-nr-of-corners)
+   (attr-nr-of-sides   :type number :initarg :attr-nr-of-sides   :accessor attr-nr-of-sides)
+   (attr-roughness     :type number :initarg :attr-roughness     :accessor attr-roughness)
+   (attr-r        :type number :initarg :attr-r        :accessor attr-r)
+   (attr-g        :type number :initarg :attr-g        :accessor attr-g)
+   (attr-b        :type number :initarg :attr-b        :accessor attr-b)
+   (attr-xpos     :type number :initarg :attr-xpos     :accessor attr-xpos)
+   (attr-ypos     :type number :initarg :attr-ypos     :accessor attr-ypos)
+   (attr-zpos     :type number :initarg :attr-zpos     :accessor attr-zpos)
+   (attr-xpos-3d  :type number :initarg :attr-xpos-3d  :accessor attr-xpos-3d)
+   (attr-ypos-3d  :type number :initarg :attr-ypos-3d  :accessor attr-ypos-3d)
+   (attr-zpos-3d  :type number :initarg :attr-zpos-3d  :accessor attr-zpos-3d))
   (:documentation "An object in the CLEVR world"))
 
 (defmethod x-pos ((object clevr-object))
@@ -89,7 +112,8 @@
   (let* ((relationships (loop for (relation . list-of-ids) in relationships
                               collect (cons relation
                                             (loop for id in list-of-ids
-                                                  collect (rest (assoc id id-dict)))))))
+                                                  collect (rest (assoc id id-dict))))))
+         (attributes (rest (assoc :attributes s-expr))))
     (make-instance 'clevr-object :id (cdr id-dict-entry)
                    :shape (key->symbol s-expr :shape)
                    :size (key->symbol s-expr :size)
@@ -98,7 +122,22 @@
                    :relationships relationships
                    :coordinates (rest (assoc :pixel--coords s-expr))
                    :3d-coordinates (rest (assoc :3d--coords s-expr))
-                   :rotation (rest (assoc :rotation s-expr)))))
+                   :rotation (rest (assoc :rotation s-expr))
+                   ;; import data
+                   :attr-area (rest (assoc :area attributes))
+                   :attr-wh-ratio (rest (assoc :wh-ratio attributes))
+                   :attr-nr-of-corners (rest (assoc :nr-of-corners attributes))
+                   :attr-nr-of-sides (rest (assoc :nr-of-sides attributes))
+                   :attr-roughness (rest (assoc :roughness attributes))
+                   :attr-r (rest (assoc :r attributes))
+                   :attr-g (rest (assoc :g attributes))
+                   :attr-b (rest (assoc :b attributes))
+                   :attr-xpos (rest (assoc :xpos attributes))
+                   :attr-ypos (rest (assoc :ypos attributes))
+                   :attr-zpos (rest (assoc :zpos attributes))
+                   :attr-xpos-3d (rest (assoc :xpos-3d attributes))
+                   :attr-ypos-3d (rest (assoc :ypos-3d attributes))
+                   :attr-zpos-3d (rest (assoc :zpos-3d attributes)))))
 
 (defmethod object->s-expr ((object clevr-object) &key)
   "Returns a clevr-object as an s-expr of the form
@@ -117,7 +156,22 @@
                  :relationships (copy-object (relationships obj))
                  :coordinates (copy-object (coordinates obj))
                  :3d-coordinates (copy-object (3d-coordinates obj))
-                 :rotation (copy-object (rotation obj))))
+                 :rotation (copy-object (rotation obj))
+                 ;; import data
+                 :attr-area (attr-area obj)
+                 :attr-wh-ratio (attr-wh-ratio obj)
+                 :attr-nr-of-corners (attr-nr-of-corners obj)
+                 :attr-nr-of-sides (attr-nr-of-sides obj)
+                 :attr-roughness (attr-roughness obj)
+                 :attr-r (attr-r obj)
+                 :attr-g (attr-g obj)
+                 :attr-b (attr-b obj)
+                 :attr-xpos (attr-xpos obj)
+                 :attr-ypos (attr-ypos obj)
+                 :attr-zpos (attr-zpos obj)
+                 :attr-xpos-3d (attr-xpos-3d obj)
+                 :attr-ypos-3d (attr-ypos-3d obj)
+                 :attr-zpos-3d (attr-zpos-3d obj)))
 
 (defmethod print-object ((object clevr-object) stream)
   (if *print-pretty*
