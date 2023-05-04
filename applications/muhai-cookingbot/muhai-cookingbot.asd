@@ -30,7 +30,7 @@
                              (:file "utils")
                              (:file "heuristics")))
                (:module evaluation
-                :serial nil
+                :serial t
                 :components ((:file "irl-helpers")
                              (:file "helpers")
                              (:file "solutions")
