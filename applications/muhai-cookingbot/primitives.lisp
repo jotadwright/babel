@@ -669,16 +669,21 @@
             (bind
              (covered-object 1.0 (make-instance 'failed-object) container-available-at)
              (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
-
+;
+;
+;
+;
+;
 (defprimitive cut ((cut-object transferable-container)
                    (kitchen-state-out kitchen-state)
                    (kitchen-state-in kitchen-state)
                    (object transferable-container)
                    (cut-pattern cutting-pattern)
-                   (cutting-tool can-cut))
-  
-  ;;Case 1: cutting tool not given (use a knife), cut-pattern given
-  ((kitchen-state-in object cut-pattern => cut-object kitchen-state-out cutting-tool)
+                   (cutting-tool can-cut)
+                   (cutting-surface can-be-cut-on))
+
+  ;;Case 1: cutting tool not given (use a knife), cut-pattern given, cutting-surface not given
+  ((kitchen-state-in object cut-pattern => cut-object kitchen-state-out cutting-tool cutting-surface)
    
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
           (new-container (find-object-by-persistent-id object new-kitchen-state))
@@ -692,26 +697,31 @@
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at) 
      
      ;; 1) find knife and place it on the countertop
-     (let ((new-knife (retrieve-concept-instance-and-bring-to-countertop 'knife new-kitchen-state)))
+     (let ((new-knife (retrieve-concept-instance-and-bring-to-countertop 'knife new-kitchen-state))
+           (new-cutting-board (retrieve-concept-instance-and-bring-to-countertop 'cutting-board new-kitchen-state)))
 
-        (cond ((and new-knife new-container)                       
-                ;; 2) cut everything in the container according to the cutting pattern
-               (loop for item in (contents new-container)
-                     do (setf (is-cut item) cut-pattern))
+       (cond ((and new-knife new-container new-cutting-board)
+              ;; 2) cut everything in the container according to the cutting pattern
+              (loop for item in (contents new-container)
+                    do (setf (is-cut item) cut-pattern))
                
-               (setf (used new-knife) t)
+              (setf (used new-knife) t)
+              (setf (used new-cutting-board) t)
 
-               (bind (cut-object 1.0 new-container container-available-at)
-                     (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-                     (cutting-tool 0.0 new-knife container-available-at)))
-              (t
-               (bind (cut-object 1.0 (make-instance 'failed-object) container-available-at)
-                     (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-                     (cutting-tool 0.0 (make-instance 'failed-object) container-available-at)))))))
+              (bind (cut-object 1.0 new-container container-available-at)
+                (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                (cutting-tool 0.0 new-knife container-available-at)
+                (cutting-surface 0.0 new-cutting-board container-available-at)))
+             (t
+              (bind (cut-object 1.0 (make-instance 'failed-object) container-available-at)
+                (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                (cutting-tool 0.0 (make-instance 'failed-object) container-available-at)
+                (cutting-surface 0.0 (make-instance 'failed-object) container-available-at)))))))
 
-  ;;Case 2: cutting tool given, cut-pattern given
-  ((kitchen-state-in object cut-pattern cutting-tool => cut-object kitchen-state-out)
-   
+
+   ;; case 3: cutting tool not given (use a knife), cut-pattern given, cutting-surface given
+((kitchen-state-in object cut-pattern cutting-surface => cut-object kitchen-state-out cutting-tool)
+
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
           (new-container (find-object-by-persistent-id object new-kitchen-state))
           (container-available-at (+ 60 (max (kitchen-time kitchen-state-in)
@@ -721,22 +731,96 @@
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+     ;; 1) find knife and place it on the countertop
+     (let ((new-knife (retrieve-concept-instance-and-bring-to-countertop 'knife new-kitchen-state))
+           (reused-cutting-board (find-object-by-persistent-id cutting-surface (counter-top new-kitchen-state))))
+
+       (cond ((and new-knife new-container reused-cutting-board)
+              ;; 2) cut everything in the container according to the cutting pattern
+              (loop for item in (contents new-container)
+                    do (setf (is-cut item) cut-pattern))
+
+              (setf (used new-knife) t)
+              (setf (used reused-cutting-board) t)
+
+              (bind (cut-object 1.0 new-container container-available-at)
+                (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                (cutting-tool 0.0 new-knife container-available-at)))
+             (t
+              (bind (cut-object 1.0 (make-instance 'failed-object) container-available-at)
+                (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                (cutting-tool 0.0 (make-instance 'failed-object) container-available-at)))))))
+
+  ;;Case 2: cutting tool given, cut-pattern given, cutting-surface not given
+  ((kitchen-state-in object cut-pattern cutting-tool => cut-object kitchen-state-out cutting-surface)
+   
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-container (find-object-by-persistent-id object new-kitchen-state))
+          (container-available-at (+ 60 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id object) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at)
+          (new-cutting-board (retrieve-concept-instance-and-bring-to-countertop 'cutting-board new-kitchen-state)))
+
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at) 
 
-     (cond (new-container
+     (cond ((and new-container new-cutting-board)
             ;; 1) find cutting tool
             (let ((new-cutting-tool (find-object-by-persistent-id cutting-tool (counter-top new-kitchen-state))))
 
               ;; 2) cut everything in the container according to the cutting pattern
               (loop for item in (contents new-container)
                     do (setf (is-cut item) cut-pattern))
+
               (setf (used new-cutting-tool) t)
+              (setf (used new-cutting-board) t)
 
               (bind (cut-object 1.0 new-container container-available-at)
-                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+                (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                (cutting-surface 1.0 new-cutting-board container-available-at))))
            (t
             (bind (cut-object 1.0 (make-instance 'failed-object) container-available-at)
-                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+              (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+              (cutting-surface 1.0 (make-instance 'failed-object) container-available-at))))))
+
+
+   ;; case 4: cutting tool given, cut-pattern given, cutting surface given
+   ((kitchen-state-in object cut-pattern cutting-tool cutting-surface => cut-object kitchen-state-out)
+
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (new-container (find-object-by-persistent-id object new-kitchen-state))
+          (container-available-at (+ 60 (max (kitchen-time kitchen-state-in)
+                                             (available-at (find (id object) binding-objects
+                                                                 :key #'(lambda (binding-object)
+                                                                          (and (value binding-object)
+                                                                               (id (value binding-object)))))))))
+          (kitchen-state-available-at container-available-at)
+          (reused-cutting-board (find-object-by-persistent-id cutting-surface (counter-top new-kitchen-state))))
+
+     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+
+     (cond ((and new-container reused-cutting-board)
+            ;; 1) find cutting tool
+            (let ((new-cutting-tool (find-object-by-persistent-id cutting-tool (counter-top new-kitchen-state))))
+
+              ;; 2) cut everything in the container according to the cutting pattern
+              (loop for item in (contents new-container)
+                    do (setf (is-cut item) cut-pattern))
+
+              (setf (used new-cutting-tool) t)
+              (setf (used reused-cutting-board) t)
+
+              (bind (cut-object 1.0 new-container container-available-at)
+                (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+           (t
+            (bind (cut-object 1.0 (make-instance 'failed-object) container-available-at)
+              (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+
+
 
 (defprimitive crack ((container-with-cracked-eggs transferable-container)
                      (kitchen-state-out kitchen-state)
@@ -4045,5 +4129,3 @@
   (find-if #'(lambda (object)
                (subtypep (type-of object) 'failed-object))
            objects))
-  
- 

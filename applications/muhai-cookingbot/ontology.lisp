@@ -164,6 +164,10 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying can-be-brushed-with objects."
   (setf (is-brushed-with copy) (copy-object (is-brushed-with can-be-brushed-with))))
 
+(defclass can-be-cut-on ()
+  ()
+  (:documentation "Surface that can be cut on"))
+
 (defclass can-be-lined-with (cooking-utensil)
   ((is-lining :type boolean :initarg :is-lining :accessor is-lining :initform nil))
   (:documentation "Something to cover the inner surface of something with."))
@@ -456,8 +460,8 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 
 (defclass pluckable (kitchen-entity)
   ((is-plucked :type boolean :initarg :is-plucked :accessor is-plucked :initform nil)
-   (plucked :type ingredient :initarg :plucked :accessor plucked :initform nil) ;;leaves
-   (pluckee :type ingredient :initarg :pluckee :accessor pluckee :initform nil)) ;;sprig
+   (plucked :type (or ingredient null) :initarg :plucked :accessor plucked :initform nil) ;;leaves
+   (pluckee :type (or ingredient null) :initarg :pluckee :accessor pluckee :initform nil)) ;;sprig
   (:documentation "For objects that can be plucked such as fresh herbs"))
 
 (defmethod copy-object-content ((pluckable pluckable) (copy pluckable))
@@ -606,7 +610,11 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "A tool to be used in the kitchen."))
 
-(defclass counter-top (container conceptualizable)
+(defclass cutting-board (can-be-cut-on reusable)
+  ()
+  (:documentation "Cutting board where ingredients can be cut on."))
+
+(defclass counter-top (container conceptualizable can-be-cut-on)
   ((arrangement :initform (make-instance 'side-to-side)))
   (:documentation "The counter-top. It's a container."))
 
@@ -1725,6 +1733,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
                          can-peel
                          can-seed
                          can-spread
+                         can-be-cut-on
                          coverable-container
                          fridge
                          kitchen-state
