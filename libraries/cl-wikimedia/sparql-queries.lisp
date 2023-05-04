@@ -38,20 +38,29 @@
 
 (defparameter *wikidata-sparql-endpoint* "https://query.wikidata.org/sparql")
 
-(defun cl-sparql-query (query
-                        &key
-                        (sparql-endpoint "http://www.sparql.org/sparql")
-                        (lisp-format :hash-table))
-  (wikimedia-action-api sparql-endpoint
-                        :query query
-                        :content-type "application/x-www-form-urlencoded"
-                        :lisp-format lisp-format))
+(defmacro cl-sparql-query (query &rest parameters
+                                 &key &allow-other-keys)
+  (destructuring-bind (&whole whole
+                              &key 
+                              (sparql-endpoint "http://www.sparql.org/sparql")
+                              (lisp-format :hash-table)
+                              (content-type "application/x-www-form-urlencoded")
+                              &allow-other-keys)
+      parameters
+    (dolist (indicator '(:sparql-endpoint :lisp-format :content-type))
+      (remf whole indicator))
+    `(wikimedia-action-api ,sparql-endpoint
+                           :query ,query
+                           :content-type ,content-type
+                           :lisp-format ,lisp-format
+                           ,@whole)))
 
-(defun wikidata-sparql-query (query &key (lisp-format :hash-table))
-  "Perform a sparql-query on wikidata."
-  (cl-sparql-query query
-                   :sparql-endpoint *wikidata-sparql-endpoint*
-                   :lisp-format lisp-format))
+(defmacro wikidata-sparql-query (query 
+                                 &rest parameters
+                                 &key &allow-other-keys)
+  `(cl-sparql-query ,query 
+                    :sparql-endpoint *wikidata-sparql-endpoint*
+                    ,@parameters))
 
 ;; ------------------------------------------------------------------------ 
 ;; Some help for composing sparql queries
@@ -134,8 +143,9 @@
                                   select select-distinct
                                   (where "")
                                   limit
+                                  group-by
                                   order-by)
-  (format nil "~a~%~a~%~a~%~a~%~a~%~a~%~a"
+  (format nil "~a~%~a~%~a~%~a~%~a~%~a~%~a~%~a"
           (if prefix (sparql-prefix prefix) "")
           (if with (sparql-with with) "")
           (cond (select (sparql-select select))
@@ -144,8 +154,9 @@
                  (error "Please specify which variables to select")))
           (if from (format nil "FROM <~a>" from) "") 
           (sparql-where where)
-          (if limit (format nil "LIMIT ~a" limit) "")
-          (if order-by (format nil "ORDER BY ~a" order-by) "")))
+          (if group-by (format nil "GROUP BY ~a" group-by) "")
+          (if order-by (format nil "ORDER BY ~a" order-by) "")
+          (if limit (format nil "LIMIT ~a" limit) "")))
 
 ;; Useful helpers:
 (defun service-wikibase (service &optional (default-languages "en"))
