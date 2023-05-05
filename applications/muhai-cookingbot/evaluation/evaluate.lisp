@@ -8,7 +8,7 @@
    - ouput should contain the path to a .csv file to which the results will be written
    - show-output is a boolean specifying whether the browser should be opened to visualize the simulation process
    - metrics can be any of all of the following values to indicate which evaluation metrics should be used: smatch-score, subgoals-ratio, dish-score, execution-time. Defaults to all metrics."
-  (let ((metrics (if metrics metrics (remove 'smatch-score *metrics*)))) ; default is everything except the smatch-score
+  (let ((metrics (if metrics metrics (remove 'smatch-score *all-metrics*)))) ; default is everything except the smatch-score
     (when show-output
       ; trace IRL execution
       (wi::start-web-interface :port 8000 :stream nil)
@@ -17,7 +17,7 @@
 
     ; evaluate the input
     (unless (and (find 'none metrics) (not show-output))
-      (let ((solutions (evaluate-solutions input metrics *simulation-environments* lib-dir)))
+      (let ((solutions (evaluate-solutions input *all-gold-standard-solutions* :metrics metrics)))
       ; write away the solutions to a csv file
         (unless (find 'none metrics)
           (write-solutions-to-csv solutions output metrics))

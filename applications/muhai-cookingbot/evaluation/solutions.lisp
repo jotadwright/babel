@@ -118,7 +118,7 @@
       (print "Warning: Specified file is not a CSV file"))
 
     ; remove unsupported metrics
-    (setf metrics (intersection (append (list 'none) *metrics*) metrics))
+    (setf metrics (intersection (append (list 'none) *all-metrics*) metrics))
     
     ; create all directories in the specified path if they do not exist yet
     (ensure-directories-exist filepath)
