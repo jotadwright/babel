@@ -31,10 +31,10 @@
 (defparameter *restored-grammar*
   (cl-store:restore
    #+sbcl (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
-                          :name "propbank-grammar-ontonotes-ewt-core-roles-no-aux-cleaned-sbcl"
+                          :name "propbank-grammar-ontonotes-ccl-10000"
                           :type "fcg")
    #+lispworks (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
-                               :name "propbank-grammar-ontonotes-ewt-core-roles-lw"
+                               :name "propbank-grammar-ontonotes-no-aux-lw"
                                :type "fcg")
    #+ccl (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
                          :name "propbank-grammar-ontonotes-ccl-10000"
@@ -45,7 +45,6 @@
 (export '(*restored-grammar*))
 
 ;; WEB SERVER
-
 
 (in-package :hunchentoot)
 

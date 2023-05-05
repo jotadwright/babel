@@ -31,13 +31,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-;(snooze:defroute ccxg-explorer-api (:post :application/json (op (eql 'by-schema)))
 (snooze:defroute by-schema (:post :application/json)
-  (let* ((json (handler-case
-                   (cl-json:decode-json-from-string
-                    (let ((res (snooze:payload-as-string)))
-                      (break)
-                      res))
+  (let* ((json (handler-case (cl-json:decode-json-from-string (snooze:payload-as-string))
                  (error (e)
                    (snooze:http-condition 400 "Malformed JSON (~a)!" e))))
          (missing-keys (keys-present-p json :schema :order-matters :max-n :corpus :allow-additional-roles))
@@ -46,7 +41,6 @@
          (max-n (rest (assoc :max-n json)))
          (corpus (rest (assoc :corpus json)))
          (allow-additional-roles (rest (assoc :allow-additional-roles json))))
-    (break)
     (when missing-keys
       (snooze:http-condition 400 "JSON missing key(s): ({~a~^, ~})" missing-keys))
     (when (and order-matters allow-additional-roles)
@@ -64,6 +58,13 @@
 (snooze:defroute by-schema(:options :text/*))
 
 
+
+;; A proper list:
+;; 0: (FCG:==1 (:ROLE-TYPE ARG0))
+;; 1: (FCG:==1 (:ROLE-TYPE V) (:ROLESET EXPLAIN.01))
+;; 2: (FCG:==1 (:ROLE-TYPE ARG2))
+;; 3: (FCG:==1 (:ROLE-TYPE ARG1))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;     ROUTE EXTRACT FRAMES         ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -74,8 +75,6 @@
               (error ()
                 (snooze:http-condition 400 "Malformed JSON!")))))
 
-;; (defun testfunc (json-input)
-;;   (cl-json:encode-json-alist-to-string json-input))
 
 (defun check-for-missing-keys (json-input required-keys)
   (let ((missing-keys (loop for key in required-keys
@@ -87,36 +86,26 @@ following missing key(s): ~{\'~(~a~)\'~^, ~}." missing-keys)))))
 
 
 (defun utterance-extract-frames (json-input)
-  (check-for-missing-keys json-input '(:utterance :package :grammar :timeout))
+  (check-for-missing-keys json-input '(:utterance :timeout))
   (let* ((utterance-raw (cdr (assoc :utterance json-input)))
          (utterance (if (and (stringp utterance-raw)
                              (not (string= "" utterance-raw)))
                         utterance-raw
                         (snooze:http-condition 400 (format nil
-                                                    "Utterance should be a non-empty string. Received a ~a."
-                                                    (type-of utterance-raw)))))
-         (package-raw (cdr (assoc :package json-input)))
-         (package (if (find-package (utils:make-kw package-raw))
-                      (find-package (utils:make-kw package-raw))
-                      (snooze:http-condition 400 (format nil "Package '~a' not found." package-raw))))
-         (grammar-raw (cdr (assoc :grammar json-input)))
-         (grammar (if (find-symbol (utils:upcase grammar-raw) package)
-                      (symbol-value (find-symbol (utils:upcase grammar-raw) package))
-                      (snooze:http-condition 400 (format nil
-                                                  "Grammar '~a' not found in package '~a'."
-                                                  grammar-raw package-raw))))
+                                                           "Utterance should be a non-empty string. Received a ~a."
+                                                           (type-of utterance-raw)))))
          (timeout-raw (cdr (assoc :timeout json-input)))
          (timeout (if (numberp timeout-raw)
                       timeout-raw
                       (snooze:http-condition 400 (format nil
-                                                  "Timeout should be of type number. Received '~a'."
-                                                  (type-of timeout-raw))))))
+                                                         "Timeout should be of type number. Received '~a'."
+                                                         (type-of timeout-raw))))))
     (handler-case
         (trivial-timeout:with-timeout (timeout)
           (multiple-value-bind (solution cipn frame-set)
               (handler-case (monitors:with-disabled-monitor-notifications
-                              (utils::with-package (package-name package)
-                                (propbank-grammar::comprehend-and-extract-frames utterance :cxn-inventory grammar :silent t)))
+                              (utils::with-package :propbank-grammar
+                                (propbank-grammar::comprehend-and-extract-frames utterance :cxn-inventory *restored-grammar* :silent t)))
                 (error (e)
                   (snooze:http-condition 400 (format nil "Error during the comprehension process: ~a" e))))
             (declare (ignore solution cipn))
@@ -152,12 +141,12 @@ following missing key(s): ~{\'~(~a~)\'~^, ~}." missing-keys)))))
                                      (list role-part role-value))
                                     ((eq role-part :pos)
                                      (list role-part
-                                     (append '(==) (mapcar #'intern (mapcar #'upcase role-value)))))
+                                           (append '(==) (mapcar #'intern (mapcar #'upcase role-value)))))
                                     (t
                                      (list role-part (intern (upcase role-value)))))
-                      into roles
+                        into roles
                       finally (return `(==1 ,@roles)))
-        into transformed-roles
+          into transformed-roles
         finally (return (cond (order-matters transformed-roles)
                               (allow-additional-roles (append (list '==) transformed-roles))
                               (t (append (list '==p) transformed-roles))))))
@@ -177,4 +166,4 @@ following missing key(s): ~{\'~(~a~)\'~^, ~}." missing-keys)))))
 
 ;; curl -H "Content-Type: application/json" -d '{"corpus" : "ontonotes", "maxN":"100", "orderMatters":"T", "allowAdditionalRoles":null, "schema": [{"roleType":"arg0"},{"roleType":"v","roleset":"explain.01"},{"roleType":"arg2"},{"roleType":"arg1"}]}' http://localhost:8500/by-schema
 
-;; curl http://localhost:8500/extract-frames -H "Content-Type: application/json" -d '{"utterance":"He told him a story", "package": "propbank-grammar", "grammar": "*restored-grammar*", "timeout": 100}'
+;; curl http://localhost:8500/extract-frames-route -H "Content-Type: application/json" -d '{"utterance":"He told him a story", "package": "propbank-grammar", "grammar": "*restored-grammar*", "timeout": 100}'
