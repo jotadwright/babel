@@ -40,11 +40,10 @@
                  (not (some-applied-repair-in-tree cipn)))
         (let* ((answer (execute meaning (hearer interaction))))
           (setf fcg-solution? t)
-          (setf answer-correct? (confirm-answer answer))
+          (when answer
+            (setf answer-correct? (confirm-answer answer)))
           (setf correct-answer (if answer-correct? (id answer)
-                                 (process-text-from-capi (downcase
-                                                          (capi:prompt-for-string
-                                                           "Tell me the correct answer please?")))))
+                                 (ask-correct-answer2 agent)))
           (set-data (blackboard (grammar agent)) :ground-truth-topic correct-answer))
         (cond (answer-correct?
                ;; joepie, rewarden!
@@ -57,13 +56,7 @@
 
 (defun learn-through-intention-reading-and-pattern-finding (agent correct-answer cipn)
   "Learns a new holophrase from the given CIPN and the correct answer."
-  (let* ((answer-category
-          (loop for fields in (data-fields (ontology agent))
-                if (listp (cdr fields))
-                  when (find  correct-answer (cdr fields)
-                              :key #'id :test #'equal)
-                    return it))
-         (intention (compose-program agent answer-category :partial-program '((scan-world ?world))))
+  (let* ((intention (compose-program agent correct-answer))
          (holophrase-cxn (create-holophrase-cxn cipn intention)))
     (add-cxn holophrase-cxn (grammar agent))))
             
@@ -81,24 +74,30 @@
                  (when (< (attr-val cxn :score) 0.0)
                    (delete-cxn cxn (grammar agent)))))))
 
-(defun process-text-from-capi (text)
+(defun process-text-from-capi (agent text)
   ;; text from capi needs to be symbol to find in irl ontology, integers also need to be symbols
-  (intern (upcase text)))
-
- ;; returns either the concept from the ontology or when the answer was "car-in zone-1" a car object with position zone-1.
-(defun ask-correct-answer (agent)
-  (let* ((answer-string (downcase (capi:prompt-for-string "I'm afraid I didn't understand your question, what would the answer be?")))
-         (correct-answer (process-text-from-capi answer-string))
+  (let* ((correct-answer (intern (upcase text)))
          (answer (loop for fields in (data-fields (ontology agent))
                        if (listp (cdr fields))
                          when (find correct-answer (cdr fields)
                                     :key #'id :test #'equal)
                            return it)))
-    (if (string= (first (split-sequence:split-sequence  #\Space answer-string)) "car-in")
+    (if (string= (first (split-sequence:split-sequence  #\Space text)) "car-in")
       (let ((new-car (copy-object (get-data *ontology* 'agent-car))))
-        (setf (zone new-car) (intern (upcase (second (split-sequence:split-sequence  #\Space answer-string)))))
+        (setf (zone new-car) (intern (upcase (second (split-sequence:split-sequence  #\Space text)))))
         new-car)
       answer)))
+
+(defun ask-correct-answer2 (agent)
+  (let* ((answer-string (downcase (capi:prompt-for-string "Tell me the correct answer please?")))
+         (answer (process-text-from-capi agent answer-string)))
+    answer))
+
+ ;; returns either the concept from the ontology or when the answer was "car-in zone-1" a car object with position zone-1.
+(defun ask-correct-answer (agent)
+  (let* ((answer-string (downcase (capi:prompt-for-string "I'm afraid I didn't understand your question, what would the answer be?")))
+         (answer (process-text-from-capi agent answer-string)))
+    answer))
 
 (defparameter *answer-categories*
   (list 'numbers 'zones 'building-functions 'bools 'colors))
