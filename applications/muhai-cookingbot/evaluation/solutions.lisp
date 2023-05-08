@@ -227,10 +227,7 @@
            (stream (pipe-input "python3" :args (list (namestring smatch) "-m"
                                                      (format nil "~s" L1)
                                                      (format nil "~s" L2))))
-           (output (read-line stream)))              
-           ;(output (first (exec-and-return "python3"
-           ;                                (namestring smatch)
-           ;                                "-m" L1 L2))))
+           (output (read-line stream)))
       (close stream)
       (if (search "F-score:" output)
         (read-from-string (second (split output #\:)))
