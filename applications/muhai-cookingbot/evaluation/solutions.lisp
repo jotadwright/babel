@@ -219,14 +219,19 @@
         (L2 (copy-list mn2)))
     (setf L1 (sort L1 #'string-lessp :key #'first))
     (setf L2 (sort L2 #'string-lessp :key #'first))
-    (setf L1 (format nil "'~{~a~^ ~}'" L1))
-    (setf L2 (format nil "'~{~a~^ ~}'" L2))
+    (setf L1 (format nil "~{~a~^ ~}" L1))
+    (setf L2 (format nil "~{~a~^ ~}" L2))
     (let* ((smatch (merge-pathnames
                     (make-pathname :name "smatch" :type "py")
                     smatch-dir))
-           (output (first (exec-and-return "python3"
-                                    (namestring smatch)
-                                    "-m" L1 L2))))
+           (stream (pipe-input "python3" :args (list (namestring smatch) "-m"
+                                                     (format nil "~s" L1)
+                                                     (format nil "~s" L2))))
+           (output (read-line stream)))              
+           ;(output (first (exec-and-return "python3"
+           ;                                (namestring smatch)
+           ;                                "-m" L1 L2))))
+      (close stream)
       (if (search "F-score:" output)
         (read-from-string (second (split output #\:)))
         (error "Error during the execution of smatch. Arguments where ~a"
