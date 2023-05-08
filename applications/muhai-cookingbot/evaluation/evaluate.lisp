@@ -1,4 +1,4 @@
-;(in-package :muhai-cookingbot)
+(in-package :muhai-cookingbot)
 
 (defvar *port* 8000)
 
