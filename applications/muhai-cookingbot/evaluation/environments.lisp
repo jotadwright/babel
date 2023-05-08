@@ -867,7 +867,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/almond-crescent-cookies.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "almond-crescent-cookies" :type "solution"))))
                  :primary-output-var
                  '?almond-crescent-cookies))
 
@@ -877,9 +882,13 @@
                  :kitchen-state
                  kitchen-state                                    
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/afghan-biscuits.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "afghan-biscuits" :type "solution"))))
                  :primary-output-var '?sprinkled-cookies))
-
 
 (defun best-brownies-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
@@ -887,7 +896,12 @@
                  :kitchen-state 
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/best-brownies.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "best-brownies" :type "solution"))))
                  :primary-output-var '?cut-brownie))
 
 (defun chocolate-fudge-cookies-gold-standard (&optional (kitchen-state *full-kitchen*))
@@ -896,7 +910,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/chocolate-fudge-cookies.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "chocolate-fudge-cookies" :type "solution"))))
                  :primary-output-var '?cooled-cookies))
 
 (defun easy-banana-bread-gold-standard (&optional (kitchen-state *full-kitchen*))
@@ -905,7 +924,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/easy-banana-bread.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "easy-banana-bread" :type "solution"))))
                  :primary-output-var '?baked-banana-bread))
 
 (defun easy-oatmeal-cookies-gold-standard (&optional (kitchen-state *full-kitchen*))
@@ -914,7 +938,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/easy-oatmeal-cookies.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "easy-oatmeal-cookies" :type "solution"))))
                  :primary-output-var '?baked-cookies))
 
 (defun whole-wheat-ginger-snaps-gold-standard (&optional (kitchen-state *full-kitchen*))
@@ -923,7 +952,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/whole-wheat-ginger-snaps.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "whole-wheat-ginger-snaps" :type "solution"))))
                  :primary-output-var '?cooled-snaps))
 
 (defun cucumber-slices-with-dill-gold-standard (&optional (kitchen-state *full-kitchen*))
@@ -932,7 +966,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/cucumber-slices-with-dill.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "cucumber-slices-with-dill" :type "solution"))))
                  :primary-output-var '?served-salad))
 
 (defun easy-cherry-tomato-corn-salad-gold-standard (&optional (kitchen-state *full-kitchen*))
@@ -941,7 +980,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/easy-cherry-tomato-corn-salad.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "easy-cherry-tomato-corn-salad" :type "solution"))))
                  :primary-output-var '?cooled-salad))
 
 (defun black-bean-and-sweet-potato-salad-gold-standard (&optional (kitchen-state *full-kitchen*))
@@ -950,7 +994,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/black-bean-salad-2.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "vegan-black-bean-and-sweet-potato-salad" :type "solution"))))
                  :primary-output-var '?salad))
 
 ; Extra Almond Crescent Cookies
@@ -960,7 +1009,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/almond-crescent-cookies-2.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "almond-crescent-cookies-2" :type "solution"))))
                  :primary-output-var
                  '?cooled-cookies))
 
@@ -972,7 +1026,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/almond-crescent-cookies-3.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "almond-crescent-cookies-3" :type "solution"))))
                  :primary-output-var
                  '?almond-crescent-cookies))
 
@@ -982,7 +1041,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/almond-crescent-cookies-4.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "almond-crescent-cookies-4" :type "solution"))))
                  :primary-output-var
                  '?baked-crescents))
 
@@ -992,7 +1056,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/almond-crescent-cookies-5.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "almond-crescent-cookies-5" :type "solution"))))
                  :primary-output-var
                  '?covered-cookies))
 
@@ -1004,7 +1073,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/coconut-tuiles.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "coconut-tuiles" :type "solution"))))
                  :primary-output-var
                  '?cooled-rounds))
 
@@ -1014,7 +1088,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/mexican-wedding-cookies.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "mexican-wedding-cookies" :type "solution"))))
                  :primary-output-var
                  '?mexican-wedding-cookies))
 
@@ -1024,7 +1103,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/bisquick-shortcake-biscuits.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "bisquick-shortcake-biscuits" :type "solution"))))
                  :primary-output-var
                  '?bisquick-shortcake-biscuits))
 
@@ -1034,7 +1118,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/chocolate-cream-cheese-cupcakes.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "chocolate-cream-cheese-cupcakes" :type "solution"))))
                  :primary-output-var
                  '?baked-cupcakes))
 
@@ -1045,7 +1134,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/black-bean-salad-2.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "black-bean-salad-2" :type "solution"))))
                  :primary-output-var
                  '?served-salad))
 
@@ -1055,7 +1149,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/black-bean-salad-3.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "black-bean-salad-3" :type "solution"))))
                  :primary-output-var
                  '?cooled-salad))
 
@@ -1065,7 +1164,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/black-bean-salad-4.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "black-bean-salad-4" :type "solution"))))
                  :primary-output-var
                  '?seasoned-salad))
 
@@ -1075,7 +1179,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/black-bean-salad-5.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "black-bean-salad-5" :type "solution"))))
                  :primary-output-var
                  '?black-bean-salad))
 
@@ -1085,7 +1194,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/classic-greek-salad.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "classic-greek-salad" :type "solution"))))
                  :primary-output-var
                  '?greek-salad))
 
@@ -1095,7 +1209,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/classic-potato-salad.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "classic-potato-salad" :type "solution"))))
                  :primary-output-var
                        '?potato-salad))
 
@@ -1105,9 +1224,14 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/cole-slaw.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "cole-slaw" :type "solution"))))
                  :primary-output-var
-                       '?cole-slaw))
+                 '?cole-slaw))
 
 (defun cranberry-fluff-salad-gold-standard (&optional (kitchen-state *full-kitchen*))
   (make-instance 'simulation-environment
@@ -1115,7 +1239,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/cranberry-fluff-salad.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "cranberry-fluff-salad" :type "solution"))))
                  :primary-output-var
                  '?cranberry-fluff-salad))
 
@@ -1125,7 +1254,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/avocado-chicken-salad.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "avocado-chicken-salad" :type "solution"))))
                  :primary-output-var
                  '?cooled-salad))
 
@@ -1135,7 +1269,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/basic-chicken-salad.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "basic-chicken-salad" :type "solution"))))
                  :primary-output-var
                  '?basic-chicken-salad))
 
@@ -1145,7 +1284,12 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/broccoli-salad.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "broccoli-salad" :type "solution"))))
                  :primary-output-var
                  '?proportioned-broccoli))
 
@@ -1155,6 +1299,43 @@
                  :kitchen-state
                  kitchen-state
                  :meaning-network
-                 (meaning-network (car (muhai-cookingbot::parse-solutions-file "./recipe-execution-benchmark/data/gold-standard-solutions/meaning-only/croutons-vinegar-salad.solution")))
+                 (meaning-network
+                  (first
+                   (parse-solutions-file
+                    (babel-pathname :directory '("applications" "muhai-cookingbot" "recipe-execution-benchmark" "data"
+                                                 "gold-standard-solutions" "meaning-only")
+                                    :name "croutons-vinegar-salad" :type "solution"))))
                  :primary-output-var
                  '?croutons-vinegar-salad))
+
+(defparameter *all-gold-standard-solutions*
+  (list (almond-crescent-cookies-gold-standard)
+        (afghan-biscuits-gold-standard)
+        (best-brownies-gold-standard)
+        (chocolate-fudge-cookies-gold-standard)
+        (easy-banana-bread-gold-standard)
+        (easy-oatmeal-cookies-gold-standard)
+        (whole-wheat-ginger-snaps-gold-standard)
+        (cucumber-slices-with-dill-gold-standard)
+        (easy-cherry-tomato-corn-salad-gold-standard)
+        (black-bean-and-sweet-potato-salad-gold-standard)
+        (almond-crescent-cookies-2-gold-standard)
+        (almond-crescent-cookies-3-gold-standard)
+        (almond-crescent-cookies-4-gold-standard)
+        (almond-crescent-cookies-5-gold-standard)
+        (coconut-tuiles-gold-standard)
+        (mexican-wedding-cookies-gold-standard)
+        (bisquick-shortcake-biscuits-gold-standard)
+        (chocolate-cream-cheese-cupcakes-gold-standard)
+        (black-bean-salad-2-gold-standard)
+        (black-bean-salad-3-gold-standard)
+        (black-bean-salad-4-gold-standard)
+        (black-bean-salad-5-gold-standard)
+        (classic-greek-salad-gold-standard)
+        (classic-potato-salad-gold-standard)
+        (cole-slaw-gold-standard)
+        (cranberry-fluff-salad-gold-standard)
+        (avocado-chicken-salad-gold-standard)
+        (basic-chicken-salad-gold-standard)
+        (broccoli-salad-gold-standard)
+        (croutons-vinegar-salad-gold-standard)))
