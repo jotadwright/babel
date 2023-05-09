@@ -1,5 +1,6 @@
 (in-package :fcg)
 
+;; (ql:quickload :fcg)
 
 (def-fcg-constructions grammar-1
   :feature-types ((form set-of-predicates :handle-regex-sequences)
@@ -184,4 +185,35 @@
                  --
                 (HASH form ((sequence " " ?right-1 ?left-2)))
                 ))))) |#
+
+
+
+
+
+
+
+(defparameter *o-1* '((:form . "What is the color of the cube")
+                      (:meaning . ((get-context ?context)
+                                   (filter ?set-1 ?context ?shape-1)
+                                   (bind shape-category ?shape-1 cube)
+                                   (unique ?object-1 ?set-1)
+                                   (query ?target ?object-1 ?attribute-1)
+                                   (bind attribute-category ?attribute-1 color)))))
+
+(defparameter *o-2* '((:form . "What is the size of the cube")
+                      (:meaning . ((get-context ?context)
+                                   (filter ?set-1 ?context ?shape-1)
+                                   (bind shape-category ?shape-1 cube)
+                                   (unique ?object-1 ?set-1)
+                                   (query ?target ?object-1 ?attribute-1)
+                                   (bind attribute-category ?attribute-1 size)))))
+
+
+(defun form (ex) (cdr (assoc :form ex)))
+(defun meaning (ex) (cdr (assoc :meaning ex)))
+
+
+
+
+(anti-unify-predicate-network (meaning *o-1*) (meaning *o-2*))
 
