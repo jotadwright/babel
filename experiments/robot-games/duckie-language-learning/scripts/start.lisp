@@ -20,23 +20,28 @@
     (make-instance 'duckie-language-learning-simulation-experiment))
 
   (defparameter *duckie-world*
-        (make-instance 'object-set
-                       :objects (list
-                                 (make-instance 'duckie-building
-                                                :zone 'zone-1
-                                                :building-function 'house
-                                                :color 'green
-                                                :rfid 1)
-                                 (make-instance 'duckie-building
-                                                :zone 'zone-3
-                                                :building-function 'bakery
-                                                :color 'yellow
-                                                :rfid 2)
-                                 (make-instance 'duckie-car
-                                                :zone 'zone-7
-                                                :color 'purple
-                                                :rfid 7)
-                                 )))
+    (make-instance 'object-set
+                   :objects (list
+                             (make-instance 'duckie-building
+                                            :zone 'zone-1
+                                            :building-function 'bakery
+                                            :color 'yellow
+                                            :rfid 1)
+                             (make-instance 'duckie-building
+                                            :zone 'zone-2
+                                            :building-function 'restaurant
+                                            :color 'blue
+                                            :rfid 2)
+                             (make-instance 'duckie-building
+                                            :zone 'zone-3
+                                            :building-function 'bakery
+                                            :color 'green
+                                            :rfid 3)
+                             (make-instance 'duckie-car
+                                            :zone 'zone-4
+                                            :color 'pink
+                                            :rfid 4)
+                             )))
 
   (setf *duckie-agent-car* (make-instance 'duckie-agent-car :zone 'zone-1))
 
@@ -69,22 +74,22 @@ what is the color of the bakery
                        :objects (list
                                  (make-instance 'duckie-building
                                                 :zone 'zone-1
-                                                :building-function 'house
-                                                :color 'green
-                                                :rfid 1)
-                                 (make-instance 'duckie-building
-                                                :zone 'zone-3
                                                 :building-function 'bakery
-                                                :color 'blue
-                                                :rfid 2)
+                                                :color 'yellow
+                                                :rfid 1)
                                  (make-instance 'duckie-car
-                                                :zone 'zone-7
-                                                :color 'purple
-                                                :rfid 7)
+                                                :zone 'zone-2
+                                                :color 'green
+                                                :rfid 5)
+                                 (make-instance 'duckie-car
+                                                :zone 'zone-3
+                                                :color 'pink
+                                                :rfid 4)
                                  )))
+  ;; duckie-car also in ontology for move-to primitive
   (set-data *ontology* 'world *duckie-world*))
 
-
+(run-interaction *demo*)
 
 
 ;;;;;;;

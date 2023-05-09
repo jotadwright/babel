@@ -24,9 +24,9 @@
      :primitive-inventory (primitive-inventory agent)
      :configurations `((:max-irl-program-length . 5)
                        (:chunk-node-tests :restrict-irl-program-length ;; limit the length of the irl program
-                                           :check-duplicate ;; no duplicates
-                                           ;:no-circular-primitives ;; no predicates with multiple times the same variable
-                                           ;:fully-connected-meaning ;; meaning has to be fully connected
+                                          :check-duplicate ;; no duplicates
+                                          ;:no-circular-primitives ;; no predicates with multiple times the same variable
+                                          ;:fully-connected-meaning ;; meaning has to be fully connected
                         )
                        ;; default expand mode
                        (:chunk-expansion-modes :combine-program)
@@ -39,9 +39,9 @@
   (if (subtypep (type-of target-category) 'duckie-category)
     (notify irl::chunk-composer-started (mkstr (category target-category)))
     (notify irl::chunk-composer-started (mkstr (zone target-category)))) ;; special for MOVE-TO primitive
-  (let* ((composer
-          (make-default-composer agent target-category
-                                 :partial-program `((scan-world ?world)))) ;; TODO: remove assumption?
+  (let* ((composer (make-default-composer agent
+                                          target-category
+                                          :partial-program partial-program)) ;; TODO: remove assumption?
          (solution (first (get-next-solutions composer))))
     (when solution 
       (append (irl::bind-statements solution)
