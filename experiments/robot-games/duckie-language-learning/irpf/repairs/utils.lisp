@@ -448,9 +448,6 @@
           ;; needs to be a holophrase, the form constraints for string and precedes constraints need to be a subset of the cxn, the meaning constraints need to be a subset too (todo: see if this is really the case in IRL)
           return (values cxn superset-form non-overlapping-form non-overlapping-meaning)))
 
-
-
-
 ;; holo deletion
 (defun find-superset-holophrase-cxn (transient-structure cxn-inventory gold-standard-meaning utterance)
   ;; todo: there could also be more than one superset cxn!

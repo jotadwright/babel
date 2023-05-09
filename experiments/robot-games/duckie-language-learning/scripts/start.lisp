@@ -40,8 +40,7 @@
                              (make-instance 'duckie-car
                                             :zone 'zone-4
                                             :color 'pink
-                                            :rfid 4)
-                             )))
+                                            :rfid 4))))
 
   (setf *duckie-agent-car* (make-instance 'duckie-agent-car :zone 'zone-1))
 
@@ -83,6 +82,29 @@ what is the color of the bakery
                                                 :rfid 5)
                                  (make-instance 'duckie-car
                                                 :zone 'zone-3
+                                                :color 'pink
+                                                :rfid 4)
+                                 )))
+  ;; duckie-car also in ontology for move-to primitive
+  (set-data *ontology* 'world *duckie-world*))
+
+(run-interaction *demo*)
+
+(progn
+  (setf *duckie-world*
+        (make-instance 'object-set
+                       :objects (list
+                                 (make-instance 'duckie-building
+                                                :zone 'zone-1
+                                                :building-function 'bakery
+                                                :color 'yellow
+                                                :rfid 1)
+                                 (make-instance 'duckie-car
+                                                :zone 'zone-2
+                                                :color 'green
+                                                :rfid 5)
+                                 (make-instance 'duckie-car
+                                                :zone 'zone-7
                                                 :color 'pink
                                                 :rfid 4)
                                  )))

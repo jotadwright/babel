@@ -19,6 +19,8 @@
                 :serial t
                 :components ((:file "agent")
                              (:file "experiment")
+                             (:file "score")
+                             (:file "alignment")
                              (:file "interaction")))
                (:module irpf
                 :serial t

@@ -15,11 +15,12 @@
 (define-configuration-default-value :initial-cxn-score 0.5)
 
 (define-configuration-default-value :cxn-incf-score 0.1)
-(define-configuration-default-value :cxn-decf-score 0.3)
+(define-configuration-default-value :cxn-decf-score 0.4)
+(define-configuration-default-value :cxn-inhibit-score 0.1)
 
 (define-configuration-default-value :evaluation-grammar nil)
 (define-configuration-default-value :alignment-strategy :lateral-inhibition)
-(define-configuration-default-value :remove-cxn-on-lower-bound nil)
+(define-configuration-default-value :remove-cxn-on-lower-bound t)
 (define-configuration-default-value :categorial-network-export-interval 1)
 (define-configuration-default-value :initial-categorial-link-weight 0.0)
 
@@ -28,6 +29,7 @@
 (define-configuration-default-value :category-linking-mode :neighbours)
 (define-configuration-default-value :learning-strategy :optimal-form-coverage) ;or: by-score
 (define-configuration-default-value :categorial-link-repair-mode-comprehension :no-path-required)
+(define-configuration-default-value :composer-past-scenes-window 100)
 
 ;; debug formatting
 (define-configuration-default-value :dot-interval 100)
@@ -57,7 +59,7 @@
 ;; --------------
 (defclass duckie-language-learning-world-experiment (duckie-language-learning-experiment)
   ()
-  (:documentation "A duckiebot language learning experiment in simulation"))
+  (:documentation "A duckiebot language learning experiment in a physical environment"))
 
 (defmethod initialize-instance :after ((experiment duckie-language-learning-world-experiment) &key)
   ;; set the population of the experiment

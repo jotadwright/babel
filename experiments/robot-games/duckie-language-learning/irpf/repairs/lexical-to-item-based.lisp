@@ -36,7 +36,7 @@
          (applied-item-based-cxn (find 'item-based applied-cxns :key #'get-cxn-type)))
     (when (and applied-lex-cxns (null applied-item-based-cxn))
       (let* ((partial-program (deduplicate-variables (mapcan #'extract-meaning-predicates applied-lex-cxns)))
-             (composer-solution (compose-program agent answer :partial-program partial-program)))
+             (composer-solution (compose-program agent answer utterance :partial-program partial-program)))
         (if composer-solution
           (let* ((sorted-lex-cxns (sort-cxns-by-form-string applied-lex-cxns
                                                             (remove-spurious-spaces

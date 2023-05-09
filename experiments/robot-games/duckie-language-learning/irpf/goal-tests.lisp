@@ -16,12 +16,13 @@
            (owner (find-data (blackboard (construction-inventory node)) :owner))
            (solutions (evaluate-irl-program irl-program
                                             ontology
+                                            :silent t
                                             :primitive-inventory primitive-inventory)))
       (set-data (blackboard (grammar owner)) :fcg-solution? t)
       (cond ((length= solutions 1)
              (let* ((computed-topic (get-target-value irl-program (first solutions)))
                     (answer-correct? (confirm-answer computed-topic))
-                    (correct-answer (if answer-correct? (id computed-topic) (ask-correct-answer2 owner))))
+                    (correct-answer (if answer-correct? (id computed-topic) (ask-correct-answer owner))))
                (set-data (blackboard (grammar owner)) :answer-correct? answer-correct?)
                (if answer-correct?
                  t
@@ -30,10 +31,9 @@
                    (set-data (initial-node node) :some-interpretation-failed t)
                    nil))))
             (t
-             (let ((correct-answer (ask-correct-answer2 owner)))
+             (let ((correct-answer (ask-correct-answer owner)))
                (push 'fcg::goal-test-failed (statuses node))
                (set-data (initial-node node) :some-interpretation-failed t)
-               (set-data (blackboard (grammar owner)) :ground-truth-topic correct-answer)
                nil))))))
 
 (defun get-target-value (irl-program list-of-bindings)
