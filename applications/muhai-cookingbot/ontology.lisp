@@ -1113,7 +1113,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Green chili pepper."))
 
-(defclass green-onion (ingredient cuttable)
+(defclass green-onion (ingredient cuttable peelable)
   ()
   (:documentation "Green onion (scallion)."))
 
@@ -1259,7 +1259,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Olive oil."))
 
-(defclass onion (ingredient cuttable)
+(defclass onion (ingredient cuttable peelable)
   ()
   (:documentation "Onion."))
 
@@ -1300,7 +1300,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Red hot chili pepper."))
 
-(defclass red-onion (ingredient cuttable)
+(defclass red-onion (ingredient cuttable peelable)
   ()
   (:documentation "Red Onion."))
 
