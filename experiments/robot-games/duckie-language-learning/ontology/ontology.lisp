@@ -5,7 +5,7 @@
 ;; ------------
 
 (defun build-initial-ontology ()
-  (let ((colors '(red blue green yellow purple))
+  (let ((colors '(red blue green yellow purple pink))
         (building-functions '(restaurant house bakery))
         (bools '(true false))
         (object-types '(duckie-car duckie-building duckie-agent-car duckie-home))
@@ -46,7 +46,9 @@
     (loop for zone in zones
           for zone-number = (internal-symb (upcase (format nil "zone-~a" zone)))
           for instance = (make-instance 'zone-category
-                                        :id zone-number :category zone-number)
+                                        :id zone-number 
+                                        :category zone-number
+                                        :zone zone)
           do (push-data initial-ontology 'zones instance))
     (loop for n in numbers
           for num = (internal-symb (upcase n))

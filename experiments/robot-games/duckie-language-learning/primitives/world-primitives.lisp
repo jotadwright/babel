@@ -15,8 +15,9 @@
      (if world
        (bind (world 1.0 world))
        (let* ((response 
-               (dex:get "http://192.168.2.5:7000/scan-world"
+               (dex:get (concatenate 'string *server-url* "scan-world")
                         :read-timeout 300))
+              (printlijn (progn (pprint (cl-json:decode-json-from-string response))))
               (world-json
                (cl-json:decode-json-from-string response))
               (world
@@ -30,13 +31,13 @@
      (if w
        (equal-entity world w)
        (let* ((response 
-          (dex:get "http://192.168.2.5:7000/scan-world"
-                   :read-timeout 300))
-          (world-json
-           (cl-json::decode-json-from-string response))
-          (observed-world
-           (json-to-world world-json)))
-     (equal-entity world observed-world)))))
+               (dex:get (concatenate 'string *server-url* "scan-world")
+                        :read-timeout 300))
+              (world-json
+               (cl-json::decode-json-from-string response))
+              (observed-world
+               (json-to-world world-json)))
+         (equal-entity world observed-world)))))
   :primitive-inventory *duckie-world-primitives*)
 
 (defun json-to-world (json)
@@ -56,12 +57,15 @@
             (replace-char
              (rest (assoc :object--type json-object))
              #\_ #\-))))
+         (building-fun
+          (rest (assoc :building--function json-object)))
          (building-function
-          (intern
-           (upcase
-            (replace-char
-             (rest (assoc :building--function json-object))
-             #\_ #\-))))
+          (if building-fun
+            (intern
+             (upcase
+              (replace-char
+               building-fun
+               #\_ #\-)))))
          (color
           (intern (upcase (rest (assoc :color json-object)))))
          (rfid
@@ -88,8 +92,8 @@
                        (zone zone-category))
   ;;first case: object is bound
   ((zone => car)
-   (dex:get (format nil "http://192.168.2.5:7000/move-to/~a" (id zone))
-                        :read-timeout 300)
+   (dex:get (format nil "http://192.168.1.2:7000/move-to/~a" (id zone))
+            :read-timeout 300)
    (setf (zone (get-data *ontology* 'agent-car))
          zone)
    (bind (car 1.0 (get-data *ontology* 'agent-car))))
