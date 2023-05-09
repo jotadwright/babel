@@ -17,48 +17,33 @@
 (defun confirm-answer (answer)
   (capi:prompt-for-confirmation (format nil "I think the answer is: ~a" (id answer))))
 
+(defmethod interact :before ((experiment duckie-language-learning-experiment)
+                             interaction &key)
+  (let ((agent (hearer interaction)))
+    (set-data (blackboard (grammar agent)) :fcg-solution nil)
+    (set-data (blackboard (grammar agent)) :answer-correct? nil)
+    (set-data (blackboard (grammar agent)) :ontology (ontology agent))
+    (set-data (blackboard (grammar agent)) :primitive-inventory (primitive-inventory agent))))
+
 (defmethod interact ((experiment duckie-language-learning-experiment)
                      interaction &key)
   "Runs an interaction in which the user is prompted to ask a question."
-  (let ((answer-correct? nil)
-        (correct-answer nil)
-        (fcg-solution? nil)
-        (cipn nil)
-        (agent (hearer interaction))
-        (meaning nil))
-    (set-data (blackboard (grammar agent)) :ontology (ontology agent))
-    (set-data (blackboard (grammar agent)) :primitive-inventory (primitive-inventory agent))
+  (let ((agent (hearer interaction)))
+    ;; Step 1: prompt the question
     (setf (utterance agent) (downcase (capi:prompt-for-string "Enter your question:")))
+    ;; Step 2: comprehend using the cxn-inventory
     (multiple-value-bind (resulting-meaning resulting-cipn)
-        (comprehend (utterance (hearer interaction))
-                    :cxn-inventory (grammar (hearer interaction)))
-      (setf cipn resulting-cipn)
-      (setf meaning resulting-meaning)
-      ;; comprehension werkt zonder repairs
-      ;; dus vragen aan de user of het juist is
-      (when (and (find 'fcg::succeeded (statuses cipn))
-                 (not (some-applied-repair-in-tree cipn)))
-        (let* ((answer (execute meaning (hearer interaction))))
-          (setf fcg-solution? t)
-          (when answer
-            (setf answer-correct? (confirm-answer answer)))
-          (setf correct-answer (if answer-correct? (id answer)
-                                 (ask-correct-answer2 agent)))
-          (set-data (blackboard (grammar agent)) :ground-truth-topic correct-answer))
+        (comprehend (utterance (hearer interaction)) :cxn-inventory (grammar agent))
+      ;; retrieve success of comprehension
+      (let* ((answer-correct? (find-data (blackboard (grammar agent)) :answer-correct?))
+             (fcg-solution? (find-data (blackboard (grammar agent)) :fcg-solution?)))
+        ;; TODO: not correct
         (cond (answer-correct?
-               ;; joepie, rewarden!
-               (run-alignment agent answer-correct? cipn))
+               ;; Reward!
+               (run-alignment agent answer-correct? resulting-cipn))
               (fcg-solution?
-               ;; spijtig, punishen!
-               (run-alignment agent answer-correct? cipn)
-               ;; en nieuwe holophrase leren
-               (learn-through-intention-reading-and-pattern-finding agent correct-answer cipn)))))))
-
-(defun learn-through-intention-reading-and-pattern-finding (agent correct-answer cipn)
-  "Learns a new holophrase from the given CIPN and the correct answer."
-  (let* ((intention (compose-program agent correct-answer))
-         (holophrase-cxn (create-holophrase-cxn cipn intention)))
-    (add-cxn holophrase-cxn (grammar agent))))
+               ;; Punish!
+               (run-alignment agent answer-correct? resulting-cipn)))))))
             
 (defun run-alignment (agent answer-correct? cipn)
   "Aligns the applied constructions based on the correctness of the answer."

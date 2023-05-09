@@ -9,10 +9,13 @@
                   (meaning set-of-predicates)
                   (subunits set)
                   (footprints set))
-  :fcg-configurations ((:parse-goal-tests :no-strings-in-root :connected-semantic-network)
+  :fcg-configurations ((:parse-goal-tests :no-strings-in-root
+                                          :connected-semantic-network
+                                          :correct-interpretation)
                        (:de-render-mode . :de-render-string-meets-no-punct)
                        (:consolidate-repairs . t))
-  :diagnostics (dll::diagnose-unknown-utterance
+  :diagnostics (dll::diagnose-failed-interpretation
+                dll::diagnose-unknown-utterance
                 dll::diagnose-partial-utterance)
   :repairs (dll::add-categorial-links
             dll::item-based->lexical

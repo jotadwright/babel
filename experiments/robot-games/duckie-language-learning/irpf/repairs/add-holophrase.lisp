@@ -21,6 +21,17 @@
                  :problem problem
                  :restart-data (create-holophrase-cxn problem node)))
 
+(defmethod repair ((repair add-holophrase)
+                   (problem failed-interpretation-problem)
+                   (node cip-node) &key
+                   &allow-other-keys)
+  "Repair by making a new holophrase, when the utterance
+   is partially unknown and all other repairs have failed."
+  (make-instance 'fcg::cxn-fix
+                 :repair repair
+                 :problem problem
+                 :restart-data (create-holophrase-cxn problem node)))
+
 (defun create-holophrase-cxn (problem node)
   "Create a new holophrase construction from the reconstructed intention"
   (let* (;; intention reading
