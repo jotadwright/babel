@@ -23,25 +23,21 @@
   (defparameter *duckie-world*
     (make-instance 'object-set
                    :objects (list
-                             (make-instance 'duckie-building
-                                            :zone 'zone-1
-                                            :building-function 'bakery
-                                            :color 'yellow
-                                            :rfid 1)
-                             (make-instance 'duckie-building
-                                            :zone 'zone-2
-                                            :building-function 'restaurant
-                                            :color 'blue
-                                            :rfid 2)
-                             (make-instance 'duckie-building
-                                            :zone 'zone-3
-                                            :building-function 'bakery
-                                            :color 'green
-                                            :rfid 3)
-                             (make-instance 'duckie-car
-                                            :zone 'zone-4
-                                            :color 'pink
-                                            :rfid 4))))
+                                 (make-instance 'duckie-building
+                                                :zone 'zone-1
+                                                :building-function 'house
+                                                :color 'green
+                                                :rfid 1)
+                                 (make-instance 'duckie-building
+                                                :zone 'zone-3
+                                                :building-function 'bakery
+                                                :color 'yellow
+                                                :rfid 2)
+                                 (make-instance 'duckie-car
+                                                :zone 'zone-7
+                                                :color 'purple
+                                                :rfid 7)
+                                 )))
 
   (setf *duckie-agent-car* (make-instance 'duckie-agent-car :zone 'zone-1))
 
@@ -166,7 +162,9 @@ what is the color of the house
 (run-interaction *demo*)
 
 (setf cn (categorial-network (grammar (first (agents *demo*)))))
-(add-element (make-html cn))
+(add-element (make-html cn :weights? t :render-program "circo"))
+(add-element (make-html cn :weights? t :render-program "dot"))
+(add-element (make-html cn :weights? t :render-program "circo"))
 
 (wi:add-element (make-html (categorial-network *fcg-constructions*) :weights? t :colored-edges-0-1 t))
 
@@ -273,3 +271,27 @@ what is the color of the house
                                                 :color 'purple
                                                 :rfid 7)
                                  ))
+
+#|(list
+                             (make-instance 'duckie-building
+                                            :zone 'zone-1
+                                            :building-function 'bakery
+                                            :color 'yellow
+                                            :rfid 1)
+                             (make-instance 'duckie-building
+                                            :zone 'zone-2
+                                            :building-function 'restaurant
+                                            :color 'blue
+                                            :rfid 2)
+                             (make-instance 'duckie-building
+                                            :zone 'zone-3
+                                            :building-function 'bakery
+                                            :color 'green
+                                            :rfid 3)
+                             (make-instance 'duckie-car
+                                            :zone 'zone-4
+                                            :color 'pink
+                                            :rfid 4)
+                             
+
+                             )|#
