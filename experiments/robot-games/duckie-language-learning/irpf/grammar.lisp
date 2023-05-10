@@ -9,7 +9,8 @@
                   (meaning set-of-predicates)
                   (subunits set)
                   (footprints set))
-  :fcg-configurations ((:parse-goal-tests :no-strings-in-root
+  :fcg-configurations ((:cxn-supplier-mode . :hashed-and-scored)
+                       (:parse-goal-tests :no-strings-in-root
                                           :connected-semantic-network
                                           :correct-interpretation)
                        (:de-render-mode . :de-render-string-meets-no-punct)
