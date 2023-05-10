@@ -15,7 +15,9 @@
                                           :correct-interpretation)
                        (:de-render-mode . :de-render-string-meets-no-punct)
                        ;(:shuffle-cxns-before-application . t)
-                       (:consolidate-repairs . t))
+                       (:consolidate-repairs . t)
+                       (:update-categorial-links . t)
+                       (:initial-categorial-link-weight . 0.1))
   :diagnostics (diagnose-failed-interpretation
                 diagnose-unknown-utterance
                 diagnose-partial-utterance)
@@ -27,6 +29,7 @@
             lexical->item-based
             add-holophrase)
   :visualization-configurations ((:show-constructional-dependencies . nil)
+                                 (:hide-attributes . t)
                                  (:show-categorial-network . t)))
 
 (defun detach-punctuation (word)

@@ -49,7 +49,9 @@
            (temp-categorial-network (copy-object (categorial-network (construction-inventory node))))
            (categorial-network (loop for (from . to) in categorial-links ;; categorial-network is never used, maybe refactor to get it out of the let
                                      do (add-categories (list from to) temp-categorial-network)
-                                        (add-link from to temp-categorial-network :recompute-transitive-closure nil)
+                                        (add-link from to temp-categorial-network 
+                                                  :recompute-transitive-closure t
+                                                  :weight (get-configuration node :initial-categorial-link-weight))
                                      finally (set-categorial-network (construction-inventory node) temp-categorial-network)))
            (new-nodes (with-disabled-monitor-notifications
                         (apply-sequentially (initial-node node)
