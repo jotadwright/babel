@@ -23,7 +23,8 @@
       (if (find-data (blackboard (grammar owner)) :answer-correct?)
         (set-data (blackboard (grammar owner)) :fcg-solution? t)
         (cond ((length= solutions 1)
-               (if (not (find-data (blackboard (grammar owner)) :guessed))
+               (if (and (not (find-data (blackboard (grammar owner)) :guessed))
+                        (not (find-data (blackboard (grammar owner)) :ground-truth-topic)))
                  ;; CASE 1: agent has not guessed yet
                  (let* ((computed-topic (get-target-value irl-program (first solutions)))
                         (answer-correct? (confirm-answer computed-topic))
