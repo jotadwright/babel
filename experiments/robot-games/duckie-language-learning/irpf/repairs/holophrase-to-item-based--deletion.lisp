@@ -151,6 +151,7 @@
               ;; 2. new cxns to apply
               ;; 3. other new cxns
               ;; 4. categorial links
-              (list nil (list holophrase-cxn)
+              (list nil 
+                    (list holophrase-cxn)
                     (list lex-cxn item-based-cxn)
                     (list categorial-link-1)))))))))
