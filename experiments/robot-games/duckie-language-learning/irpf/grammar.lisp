@@ -14,6 +14,7 @@
                                           :connected-semantic-network
                                           :correct-interpretation)
                        (:de-render-mode . :de-render-string-meets-no-punct)
+                       ;(:shuffle-cxns-before-application . t)
                        (:consolidate-repairs . t))
   :diagnostics (dll::diagnose-failed-interpretation
                 dll::diagnose-unknown-utterance
