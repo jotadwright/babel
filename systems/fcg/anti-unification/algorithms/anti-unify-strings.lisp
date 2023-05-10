@@ -111,6 +111,10 @@
 (mapcar #'print-string-alignments
         (maximal-string-alignments "What color is the blue cube?"
                                    "What color is the red cube?" :mismatch -5))
+(mapcar #'print-string-alignments
+        (maximal-string-alignments "What is the color of the sphere?"
+                                   "What is the size of the cube?"
+                                   :mismatch -5))
 |#
 
 
@@ -138,8 +142,16 @@
                                     collect (cons var (coerce chars 'string)))
                               ;; cost = sum of length of delta's
                               (+ (length pattern-delta)
-                                 (length source-delta))))))
-    (sort anti-unification-results #'< :key #'fourth)))
+                                 (length source-delta)))))
+         (unique-anti-unification-results
+          ;; remove duplicate anti-unification results
+          ;; (when all delta's are the same)
+          (remove-duplicates anti-unification-results
+                             :test #'(lambda (au-1 au-2)
+                                       (loop for (nil . pd) in (second au-1)
+                                             for (nil . sd) in (second au-2)
+                                             always (string= pd sd))))))
+    (sort unique-anti-unification-results #'< :key #'fourth)))
 
 
 (defun anti-unify-aligned-strings (pattern source)
@@ -214,6 +226,7 @@
 
 ;(anti-unify-strings "GCATGCG" "GATTACA")
 ;(anti-unify-strings "What size is the cube?" "What size is the red cube?")
+;(anti-unify-strings "What size is the blue cube?" "What size is the red cube?")
 ;(anti-unify-strings "What is the color of the sphere?" "What is the size of the cube?")
 
 
