@@ -65,7 +65,7 @@
                             (length pattern) (length source)))
         while queue
         for state = (pop queue)
-        do (with-slots (aligned-pattern aligned-source i j status score) state
+        do (with-slots (aligned-pattern aligned-source i j score) state
              (if (null (aref pointers i j))
                (push state solutions)
                (loop for pointer in (aref pointers i j)
@@ -124,7 +124,7 @@
    and place the rest in delta's. The results are converted back to strings
    and the anti-unification cost corresponds to the number of elements in
    the delta's. Solutions are returned sorted by cost."
-  (let* ((maximal-alignments (maximal-string-alignments pattern source))
+  (let* ((maximal-alignments (maximal-string-alignments pattern source :mismatch -5))
          (anti-unification-results
           (loop for alignment in maximal-alignments
                 for (generalisation pattern-delta source-delta)
