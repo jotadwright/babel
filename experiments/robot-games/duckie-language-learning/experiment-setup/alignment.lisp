@@ -55,10 +55,10 @@
     (set-difference all-cxns applied-cxns :key #'name)))
 
 (defun all-cipn-statuses (cipn)
-  (find 'fcg::added-by-repair (flatten
-                               (traverse-depth-first
-                                (initial-node cipn)
-                                :collect-fn #'statuses))))
+  (flatten
+   (traverse-depth-first
+    (initial-node cipn)
+    :collect-fn #'statuses)))
 
 (defun find-last-node (cipn)
   "There can be multiple goal-test-failed nodes.
