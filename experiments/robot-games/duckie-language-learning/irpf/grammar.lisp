@@ -16,16 +16,16 @@
                        (:de-render-mode . :de-render-string-meets-no-punct)
                        ;(:shuffle-cxns-before-application . t)
                        (:consolidate-repairs . t))
-  :diagnostics (dll::diagnose-failed-interpretation
-                dll::diagnose-unknown-utterance
-                dll::diagnose-partial-utterance)
-  :repairs (dll::add-categorial-links
-            dll::item-based->lexical
-            dll::holophrase->item-based--substitution
-            dll::holophrase->item-based--addition
-            dll::holophrase->item-based--deletion
-            dll::lexical->item-based
-            dll::add-holophrase)
+  :diagnostics (diagnose-failed-interpretation
+                diagnose-unknown-utterance
+                diagnose-partial-utterance)
+  :repairs (add-categorial-links
+            item-based->lexical
+            holophrase->item-based--substitution
+            holophrase->item-based--addition
+            holophrase->item-based--deletion
+            lexical->item-based
+            add-holophrase)
   :visualization-configurations ((:show-constructional-dependencies . nil)
                                  (:show-categorial-network . t)))
 
