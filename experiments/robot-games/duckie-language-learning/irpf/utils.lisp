@@ -74,6 +74,15 @@
       (find-data (initial-node node) :some-repair-applied)
     (when foundp some-repair-applied-p)))
 
+(defun some-regular-repair-in-tree (node)
+  "Some node in the tree can be added by a repair
+   luckily, the handle-fix methods write this
+   on the blackboard of the initial node, so
+   we don't have to traverse the entire tree."
+  (multiple-value-bind (some-repair-applied-p foundp)
+      (find-data (initial-node node) :some-regular-repair-applied)
+    (when foundp some-repair-applied-p)))
+
 ;; Process input from user
 (defun process-text-from-capi (agent text)
   ;; text from capi needs to be symbol to find in irl ontology, integers also need to be symbols

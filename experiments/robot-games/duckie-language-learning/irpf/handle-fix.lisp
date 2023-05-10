@@ -63,7 +63,17 @@
                 :fix-categorial-links categorial-links)
       ;; write some message on the blackboard of the initial node
       ;; for more efficient diagnostics
+      ;; set to true if a repair has occured
       (set-data (initial-node node) :some-repair-applied t)
+      ;; set to true if a repair (that is not 'add-categorial-links) has occurred
+      ;; TODO: this is a 'quick fix', 
+      ;;       because we don't want to count add-categorial-links as a repair
+      ;;       when dealing with the failed-interpretation goal test
+      ;;       Thus, should fix this in the future with more robust logic ;;'
+      ;;       -> (specifically in the goal-tests.lisp logic)
+      (when (not (eq (type-of repair) 'add-categorial-links))
+        (set-data (initial-node node) :some-regular-repair-applied t))
+      ;; set the construction supplier
       (setf (cxn-supplier (first new-nodes)) (cxn-supplier node))
       (loop for node in new-nodes
             unless (or (is-subset (mapcar #'name (applied-constructions node))

@@ -7,7 +7,7 @@
 (defmethod interact :before ((experiment duckie-language-learning-experiment)
                              interaction &key)
   (let ((agent (hearer interaction)))
-    (set-data (blackboard (grammar agent)) :fcg-solution nil)
+    (set-data (blackboard (grammar agent)) :guessed nil)
     (set-data (blackboard (grammar agent)) :answer-correct? nil)
     (set-data (blackboard (grammar agent)) :ontology (ontology agent))
     (set-data (blackboard (grammar agent)) :primitive-inventory (primitive-inventory agent))))
