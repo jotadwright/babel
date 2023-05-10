@@ -13,6 +13,7 @@
 
 ;; Strategies and scores
 (define-configuration-default-value :initial-cxn-score 0.5)
+(define-configuration-default-value :initial-categorial-link-weight 0.1)
 
 (define-configuration-default-value :cxn-incf-score 0.1)
 (define-configuration-default-value :cxn-decf-score 0.4)
@@ -22,7 +23,6 @@
 (define-configuration-default-value :alignment-strategy :lateral-inhibition)
 (define-configuration-default-value :remove-cxn-on-lower-bound t)
 (define-configuration-default-value :categorial-network-export-interval 1)
-(define-configuration-default-value :initial-categorial-link-weight 0.0)
 
 (define-configuration-default-value :determine-interacting-agents-mode :hearer-only) ;; TODO (conflict with hearer in interaction.lisp if not set)
 (define-configuration-default-value :learner-cxn-supplier :hashed-and-scored)
