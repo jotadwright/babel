@@ -59,11 +59,11 @@
   (when (<= (attr-val cxn :score) lower-bound)
     (if remove-on-lower-bound
       (with-disabled-monitor-notifications
-        (delete-cxn-and-th-node cxn agent))
+        (delete-cxn-and-categorial-node cxn agent))
       (setf (attr-val cxn :score) lower-bound)))
   (grammar agent))
 
-(defun delete-cxn-and-th-node (cxn agent)
+(defun delete-cxn-and-categorial-node (cxn agent)
   "Delete the cxn from the cxn inventory
    and remove ALL associated categories
    from the categorial network."
