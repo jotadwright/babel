@@ -8,7 +8,6 @@
 (define-event alignment-started)
 (define-event cxns-rewarded (cxns list))
 (define-event cxns-punished (cxns list))
-(define-event lexicon-changed)
 
 (defun lateral-inhibition (agent cxns success)
   "Performs lateral inhibition.
@@ -50,7 +49,8 @@
   cxn)
 
 (defun dec-cxn-score (agent cxn
-                            &key (delta 0.1)
+                            &key 
+                            (delta 0.1)
                             (lower-bound 0.0)
                             (remove-on-lower-bound t))
   "decrease the score of the cxn.
@@ -58,9 +58,8 @@
   (decf (attr-val cxn :score) delta)
   (when (<= (attr-val cxn :score) lower-bound)
     (if remove-on-lower-bound
-      (progn (notify lexicon-changed)
-        (with-disabled-monitor-notifications
-         (delete-cxn-and-th-node cxn agent)))
+      (with-disabled-monitor-notifications
+        (delete-cxn-and-th-node cxn agent))
       (setf (attr-val cxn :score) lower-bound)))
   (grammar agent))
 
@@ -74,5 +73,4 @@
         (type-hierarchy (categorial-network (grammar agent))))
     (when lex-classes
       (remove-categories lex-classes type-hierarchy))
-    (delete-cxn cxn (grammar agent))    
-    (notify lexicon-changed)))
+    (delete-cxn cxn (grammar agent))))

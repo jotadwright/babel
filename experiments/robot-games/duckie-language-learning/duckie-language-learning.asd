@@ -22,7 +22,8 @@
                              (:file "score")
                              (:file "alignment")
                              (:file "interaction")
-                             (:file "competitors")))
+                             (:file "competitors")
+                             (:file "web-monitors")))
                (:module irpf
                 :serial t
                 :components ((:file "web-monitors")

@@ -26,6 +26,4 @@
       (add-past-scene (hearer interaction)))))
 
 (defmethod interact :after ((experiment duckie-language-learning-experiment)
-                     interaction &key)
-  
-  )
+                     interaction &key))
