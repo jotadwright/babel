@@ -21,7 +21,7 @@
    This is because a solution may still appear later in the search tree and we want
    the agent to use routine processing as much as possible. When the
    search arrives back at the initial node, with all nodes expanded
-   and still no solution, the diagnositcs are triggered manually
+   and still no solution, the diagnostics are triggered manually
    over the candidate list until one of them succeeds. If all fail,
    the unknown-utterance diagnostic will take over."
   (when (eql (direction (cip node)) '<-)
