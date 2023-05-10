@@ -24,19 +24,19 @@
   (let ((filtered-objects
          (loop for object in (objects set)
                for object-value
-               = (typecase category
-                   (zone-category (zone object))
-                   (building-function-category (if (eql (type-of object) 'duckie-building)
-                                                        (building-function object)))
-                   (color-category (if (or (eql (type-of object) 'duckie-building )
-                                           (eql (type-of object) 'duckie-car ))
+                 = (typecase category
+                     (zone-category (zone object))
+                     (building-function-category (if (eql (type-of object) 'duckie-building)
+                                                   (building-function object)))
+                     (color-category (if (or (eql (type-of object) 'duckie-building )
+                                             (eql (type-of object) 'duckie-car ))
                                        (color object)))
-                  ;;  (rfid-category (if (or (eql (type-of object) 'duckie-building )
-                  ;;                         (eql (type-of object) 'duckie-car ))
-                  ;;                      (rfid object)))
-                   (object-type-category (type-of object)))
+                     ;;  (rfid-category (if (or (eql (type-of object) 'duckie-building )
+                     ;;                         (eql (type-of object) 'duckie-car ))
+                     ;;                      (rfid object)))
+                     (object-type-category (type-of object)))
                when (eql object-value (category category))
-               collect object)))
+                 collect object)))
     (if filtered-objects
       (make-instance 'object-set :objects filtered-objects)
       (make-instance 'object-set :id (make-id 'empty-set)))))
@@ -61,13 +61,13 @@
      (loop for cat in categories
            for computed-set = (filter-by-category source-set cat)
            if computed-set
-           do (bind (category 1.0 cat)
-                    (target-set 1.0 computed-set))
+             do (bind (category 1.0 cat)
+                      (target-set 1.0 computed-set))
            else
-           do (bind (category 1.0 cat)
-                    (target-set 1.0 (make-instance 'object-set
-                                                   :id (make-id 'empty-set)))))))
- :primitive-inventory (*duckie-simulation-primitives* *duckie-world-primitives*))
+             do (bind (category 1.0 cat)
+                      (target-set 1.0 (make-instance 'object-set
+                                                     :id (make-id 'empty-set)))))))
+  :primitive-inventory (*duckie-simulation-primitives* *duckie-world-primitives*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;; UNIQUE ;;;;;;;;;;;
@@ -188,8 +188,8 @@
    (loop for attr in (get-data *ontology* 'attributes)
          for target-cat = (query-object-attribute source-object attr *ontology*)
          when target-cat
-         do (bind (attribute 1.0 attr)
-                  (target-category 1.0 target-cat))))
+           do (bind (attribute 1.0 attr)
+                    (target-category 1.0 target-cat))))
 
   ;; fourth case; if given source-object, attribute and target-category, check
   ;; for consistency
@@ -208,8 +208,59 @@
    (bind (zone 1.0 (find (zone object) (get-data *ontology* 'zones) :key #'category))))
   ;;Second case; enforce consistency of source set and target bool
   ((zone object =>)
-     (equal-entity (zone zone) (zone object)))
+   (equal-entity (zone zone) (zone object)))
 
   ;;Third case; target-bool known, source-set unknown
   ;;Unnecessary?
+  :primitive-inventory (*duckie-simulation-primitives* *duckie-world-primitives*))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;; FIND-NEAREST ;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun distance-formula (zone1 zone2)
+  (let* ((total_zones (length (get-data *ontology* 'zones))))
+    (if (< zone1 zone2)
+      (- zone2 zone1)
+      (+ (- total zone1) zone2))
+    ))
+
+(defprimitive find-nearest ((nearest-object duckie-object)
+                            (source-object duckie-object)
+                            (source-set object-set))
+  ;;first case, given a source object, calculate nearest object from set
+  ((source-object source-set => nearest-object)
+   (let* ((min-distance 10000)
+          (min-object NIL)
+          (source-zone (zone (zone source-object))))
+     (loop for object in (objects source-set)
+           do
+             (let*
+                 ((object-zone (zone (zone object)))
+                  (distance (distance-formula source-zone object-zone)))
+               (when (< distance min-distance)
+                 (setf min-distance distance)
+                 (setf min-object object)
+                 )))
+     (bind (nearest-object 1.0 min-object))))
+  :primitive-inventory (*duckie-simulation-primitives* *duckie-world-primitives*))
+
+(defprimitive find-furthest ((furthest-object duckie-object)
+                             (source-object duckie-object)
+                             (source-set object-set))
+  ;;first case, given a source object, calculate nearest object from set
+  ((source-object source-set => furthest-object)
+   (let* ((max-distance -1)
+          (max-object NIL)
+          (source-zone (zone source-object)))
+     (loop for object in (objects source-set)
+           do
+             (let*
+                 ((object-zone (zone object))
+                  (distance (distance-formula source-zone object-zone)))
+               (when (> distance max-distance)
+                 (setf max-distance distance)
+                 (setf max-object object)
+                 )))
+     (bind (furthest-object 1.0 max-object))))
   :primitive-inventory (*duckie-simulation-primitives* *duckie-world-primitives*))

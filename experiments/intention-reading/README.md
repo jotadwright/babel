@@ -2,6 +2,12 @@
 
 An tutor-learner experiment for learning the CLEVR grammar.
 
+## Update 10/05/2023
+
+ - Disclaimer: the naming convention for particular functions/configs in `systems/` has changed considerably.
+	For example, `th` was renamed to `categorial`.
+	Therefore, we recommend to revert to an earlier commit where `systems/` was in sync. 
+
 ## Technical issues
 
  - (DONE) Find a solution against hopeless composer searches?

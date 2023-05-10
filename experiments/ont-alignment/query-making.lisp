@@ -61,11 +61,6 @@
 ;Initializing the search tree;
 ;----------------------------;
 
-;;after Valentin's code;;
-;;---------------------;;
-
-;;---------------------;;
-
 (defclass node (tree-node)
   ((parent
     :accessor parent

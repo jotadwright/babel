@@ -4,11 +4,6 @@
 ;; + make html for composition process +
 ;; -------------------------------------
 
-
-(add-element `((h3) ((a ,@(make-expand/collapse-link-parameters
-                            0 t "composition process"))
-                      "Composition process")))
-
 (defun make-collapsed-html-for-composition-process (composer element-id)
   (let ((solutions
          (when (solutions composer)
