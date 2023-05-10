@@ -20,39 +20,42 @@
                                             ontology
                                             :silent t
                                             :primitive-inventory primitive-inventory)))
-      (if (find-data (blackboard (grammar owner)) :answer-correct?)
-        (set-data (blackboard (grammar owner)) :fcg-solution? t)
-        (cond ((length= solutions 1)
-               (if (and (not (find-data (blackboard (grammar owner)) :guessed))
-                        (not (find-data (blackboard (grammar owner)) :ground-truth-topic)))
-                 ;; CASE 1: agent has not guessed yet
-                 (let* ((computed-topic (get-target-value irl-program (first solutions)))
-                        (answer-correct? (confirm-answer computed-topic))
-                        (correct-answer (if answer-correct? (id computed-topic) (ask-correct-answer owner))))
-                   (set-data (blackboard (grammar owner)) :guessed t)
-                   (set-data (blackboard (grammar owner)) :answer-correct? answer-correct?)
-                   (if answer-correct?
-                     t
-                     (progn
-                       (push 'fcg::goal-test-failed (statuses node))
-                       (set-data (initial-node node) :some-interpretation-failed t)
-                       nil)))
-                 ;; CASE 2: agent has already guessed, don't try again
-                 (let* ((computed-topic (get-target-value irl-program (first solutions)))
-                        (correct-answer (find-data (blackboard (construction-inventory node)) :ground-truth-topic))
-                        (answer-correct? (equal-entity computed-topic correct-answer)))
-                   (set-data (blackboard (grammar owner)) :answer-correct? answer-correct?)
-                   (if answer-correct?
-                     t
-                     (progn
-                       (push 'fcg::goal-test-failed (statuses node))
-                       (set-data (initial-node node) :some-interpretation-failed t)
-                       nil)))))
-              (t
-               (let ((correct-answer (ask-correct-answer owner)))
-                 (push 'fcg::goal-test-failed (statuses node))
-                 (set-data (initial-node node) :some-interpretation-failed t)
-                 nil)))))))
+      ;; check if answer-correct already has been set
+      (cond ((length= solutions 1)
+             ;; CASE 2.1: found 1 solution
+             (if (and (not (find-data (blackboard (grammar owner)) :guessed))
+                      (not (find-data (blackboard (grammar owner)) :ground-truth-topic)))
+               ;; CASE 2.1.1: agent has not guessed yet and the answer was never provided by the user
+               (let* ((computed-topic (get-target-value irl-program (first solutions)))
+                      (answer-correct? (confirm-answer computed-topic))
+                      (correct-answer (if answer-correct? (id computed-topic) (ask-correct-answer owner))))
+                 (set-data (blackboard (grammar owner)) :guessed t)
+                 (set-data (blackboard (grammar owner)) :answer-correct? answer-correct?)
+                 (if answer-correct?
+                   ;; if correct -> succeed, otherwise fail
+                   t
+                   (progn
+                     (push 'fcg::goal-test-failed (statuses node))
+                     (set-data (initial-node node) :some-interpretation-failed t)
+                     nil)))
+               ;; CASE 2.1.2: answer was provided or agent has already guessed, don't try again
+               (let* ((computed-topic (get-target-value irl-program (first solutions)))
+                      (correct-answer (find-data (blackboard (construction-inventory node)) :ground-truth-topic))
+                      (answer-correct? (equal-entity computed-topic correct-answer)))
+                 (set-data (blackboard (grammar owner)) :answer-correct? answer-correct?)
+                 (if answer-correct?
+                   ;; if correct -> succeed, otherwise fail
+                   t
+                   (progn
+                     (push 'fcg::goal-test-failed (statuses node))
+                     (set-data (initial-node node) :some-interpretation-failed t)
+                     nil)))))
+            ;; CASE 2.2: found 0 or more solutions -> then fail the goal test
+            (t
+             (let ((correct-answer (ask-correct-answer owner)))
+               (push 'fcg::goal-test-failed (statuses node))
+               (set-data (initial-node node) :some-interpretation-failed t)
+               nil))))))
 
 (defun get-target-value (irl-program list-of-bindings)
   (let* ((target-variable (get-target-var irl-program))
