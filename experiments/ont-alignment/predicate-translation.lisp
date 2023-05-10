@@ -79,29 +79,6 @@
 
 ;(print (type-of (get-nth-element *random-list* 1)))
 
-
-
-;(execute-postmodern-query '(:select (:count actor) (:avg year) :from actorsfilms))
-
-;; '(:select actor film :from actorsfilms)
-'((comma ?columns ?first-column ?second-column)
-  (bind column ?first-column actor)
-  (bind column ?second-column film)
-  (select ?result ?columns ?table ?where-clause)
-  (bind table ?table actorsfilms))
-
-;; '(:select (:count actor) :from actorsfilms)
-'((aggregate ?aggregate-clause ?aggregator ?column)
-  (bind aggregator ?aggregator count)
-  (bind column ?column actor)
-  (select ?result ?aggregate-clause ?table ?where-clause)
-  (bind table ?table actorsfilms))
-
-;; '(:select film :from actorsfilms :where (:= actor "Gerard Depardieu"))
-  '((bind column ?column film)
-    (select ?result ?column ?table ?where-clause)
-    (bind table ?table actorsfilms)
-    (where ?where-clause ?filter-condition)
-    (equals ?filter-condition ?column-2 ?comparator)
-    (bind column ?column-2 actor)
-    (bind concept ?comparator "Gerard Depardieu"))
+(defun sql-to-predicates (list-query)
+  (let ((predicate-network '()))
+    return predicate-network))

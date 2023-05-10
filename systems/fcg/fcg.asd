@@ -23,7 +23,8 @@
                #+:hunchentoot-available-on-this-platform :web-interface
                :network
                :s-dot
-               :cl-json)
+               :cl-json
+               :array-operations)
   :serial t
   :components 
   ((:file "package")
@@ -116,7 +117,8 @@
                                (:file "anti-unify-fcg")
                                (:file "anti-unify-fcg-specialise")
                                (:file "pro-unification")
-                               (:file "anti-unify-set-of-predicates")))
+                               (:file "anti-unify-set-of-predicates")
+                               (:file "anti-unify-strings")))
                  (:file "calculate-source-patterns")
                  (:file "anti-unification-cost")
                  (:file "robust-matching")))
