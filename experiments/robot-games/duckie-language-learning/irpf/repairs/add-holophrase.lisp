@@ -91,6 +91,7 @@
       ;; write some message on the blackboard of the initial node
       ;; for more efficient diagnostics
       (set-data (initial-node node) :some-repair-applied t)
+      (set-data (initial-node node) :some-regular-repair-applied t)
       (loop for node in new-nodes
             do (push (type-of repair) (fcg::statuses node))
                (push 'fcg::added-by-repair (fcg::statuses node)))
