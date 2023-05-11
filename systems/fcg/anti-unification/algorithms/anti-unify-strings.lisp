@@ -110,8 +110,8 @@
         (maximal-string-alignments "What size is the cube?"
                                    "What size is the red cube?"))
 (mapcar #'print-string-alignments
-        (maximal-string-alignments "What color is the blue cube?"
-                                   "What color is the red cube?"))
+        (maximal-string-alignments "What size is the blue cube?"
+                                   "What size is the red cube?"))
 (mapcar #'print-string-alignments
         (maximal-string-alignments "What is the color of the sphere?"
                                    "What is the size of the cube?"))
@@ -122,6 +122,24 @@
 ;; Anti-unify strings ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defclass string-anti-unification-result ()
+  ((generalisation
+    :initarg :generalisation :accessor generalisation :initform nil :type list)
+   (pattern-delta
+    :initarg :pattern-delta :accessor pattern-delta :initform nil :type list)
+   (source-delta
+    :initarg :source-delta :accessor source-delta :initform nil :type list)
+   (cost
+    :initarg :cost :accessor cost :initform 0 :type number)))
+
+(defun duplicate-string-anti-unification-results (au-1 au-2)
+  (and (loop for (nil . pd-1) in (pattern-delta au-1)
+             for (nil . pd-2) in (pattern-delta au-2)
+             always (string= pd-1 pd-2))
+       (loop for (nil . sd-1) in (source-delta au-1)
+             for (nil . sd-2) in (source-delta au-2)
+             always (string= sd-1 sd-2))))
+  
 (defun anti-unify-strings (pattern source)
   "Anti-unify strings by (1) using needleman-wunsch to compute the
    maximal alignments, (2) make generalisations of overlapping characters
@@ -135,26 +153,20 @@
                   = (multiple-value-list
                      (anti-unify-aligned-strings (aligned-pattern alignment)
                                                  (aligned-source alignment)))
-                collect (list (generalisation-chars->strings generalisation)
-                              (loop for (var . chars) in pattern-delta
-                                    collect (cons var (coerce chars 'string)))
-                              (loop for (var . chars) in source-delta
-                                    collect (cons var (coerce chars 'string)))
-                              ;; cost = sum of length of delta's
-                              (+ (length pattern-delta)
-                                 (length source-delta)))))
+                collect (make-instance 'string-anti-unification-result
+                                       :generalisation (generalisation-chars->strings generalisation)
+                                       :pattern-delta (loop for (var . chars) in pattern-delta
+                                                            collect (cons var (coerce chars 'string)))
+                                       :source-delta (loop for (var . chars) in source-delta
+                                                           collect (cons var (coerce chars 'string)))
+                                       :cost (+ (length pattern-delta)
+                                                (length source-delta)))))
          (unique-anti-unification-results
           ;; remove duplicate anti-unification results
           ;; (when all delta's are the same)
           (remove-duplicates anti-unification-results
-                             :test #'(lambda (au-1 au-2)
-                                       (and (loop for (nil . pd-1) in (second au-1)
-                                                  for (nil . pd-2) in (second au-2)
-                                                  always (string= pd-1 pd-2))
-                                            (loop for (nil . sd-1) in (third au-1)
-                                                  for (nil . sd-2) in (third au-2)
-                                                  always (string= sd-1 sd-2)))))))
-    (sort unique-anti-unification-results #'< :key #'fourth)))
+                             :test #'duplicate-string-anti-unification-results)))
+    (sort unique-anti-unification-results #'< :key #'cost)))
 
 
 (defun anti-unify-aligned-strings (pattern source)
@@ -224,9 +236,6 @@
       (push (coerce (reverse buffer) 'string) result))
     (reverse result)))
 
-
-;; TO DO; add keyword arguments for setting the match/mismatch/gap scores
-
 ;(anti-unify-strings "GCATGCG" "GATTACA")
 ;(anti-unify-strings "What size is the cube?" "What size is the red cube?")
 ;(anti-unify-strings "What size is the blue cube?" "What size is the red cube?")
@@ -238,50 +247,55 @@
 ;; Sequence predicates ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun string-anti-unification-result->sequence-predicates (generalisation pattern-delta source-delta)
+(defun string-anti-unification-result->sequence-predicates (string-anti-unification-result)
   "Convert the string anti-unification result to sequence predicates.
    Left and right boundaries are set such that the combination of the
    pattern/source delta and the generalisation is identical to the
    original pattern/source."
-  (let (generalisation-predicates
-        pattern-delta-predicates
-        source-delta-predicates
-        prev-was-variable-p)
-    (dolist (elem generalisation)
-      (cond ((stringp elem)
-             (if prev-was-variable-p
-               (let ((left-boundary (fourth (first pattern-delta-predicates))))
-                 (push `(sequence ,elem ,left-boundary ,(make-var 'rb))
-                       generalisation-predicates)
-                 (setf prev-was-variable-p nil))
-               (push `(sequence ,elem ,(make-var 'lb) ,(make-var 'rb))
-                     generalisation-predicates)))
-            ((variable-p elem)
-             (let ((left-boundary (or (fourth (first generalisation-predicates))
-                                      (make-var 'lb)))
-                   (right-boundary (make-var 'rb))
-                   (pattern-string (rest (assoc elem pattern-delta)))
-                   (source-string (rest (assoc elem source-delta))))
-               (push `(sequence ,pattern-string ,left-boundary ,right-boundary)
-                     pattern-delta-predicates)
-               (push `(sequence ,source-string ,left-boundary ,right-boundary)
-                     source-delta-predicates)
-               (setf prev-was-variable-p t)))))
-    (values (reverse generalisation-predicates)
+  (with-slots (generalisation pattern-delta source-delta cost)
+      string-anti-unification-result
+    (declare (ignore cost))
+    (let (generalisation-predicates
+          pattern-delta-predicates
+          source-delta-predicates
+          prev-was-variable-p)
+      (dolist (elem generalisation)
+        (cond ((stringp elem)
+               (if prev-was-variable-p
+                 (let ((left-boundary (fourth (first pattern-delta-predicates))))
+                   (push `(sequence ,elem ,left-boundary ,(make-var 'rb))
+                         generalisation-predicates)
+                   (setf prev-was-variable-p nil))
+                 (push `(sequence ,elem ,(make-var 'lb) ,(make-var 'rb))
+                       generalisation-predicates)))
+              ((variable-p elem)
+               (let ((left-boundary (or (fourth (first generalisation-predicates))
+                                        (make-var 'lb)))
+                     (right-boundary (make-var 'rb))
+                     (pattern-string (rest (assoc elem pattern-delta)))
+                     (source-string (rest (assoc elem source-delta))))
+                 (push `(sequence ,pattern-string ,left-boundary ,right-boundary)
+                       pattern-delta-predicates)
+                 (push `(sequence ,source-string ,left-boundary ,right-boundary)
+                       source-delta-predicates)
+                 (setf prev-was-variable-p t)))))
+      (list (reverse generalisation-predicates)
             (reverse pattern-delta-predicates)
-            (reverse source-delta-predicates))))
+            (reverse source-delta-predicates)))))
 
 
 #|
 
-(multiple-value-bind (gen pd sd cost)
-    (anti-unify-strings "What is the color of the sphere?" "What is the size of the cube?")
-  (string-anti-unification-result->sequence-predicates gen pd sd))
+(mapcar #'string-anti-unification-result->sequence-predicates
+        (anti-unify-strings "GCATGCG" "GATTACA"))
 
-"What is the color of the sphere?"
-"What is the size of the cube?"
-=> Generalisation: ((SEQUENCE "What is the " #:?LB-18 #:?RB-65) (SEQUENCE " of the " #:?RB-66 #:?RB-67) (SEQUENCE "e?" #:?RB-68 #:?RB-69)),
-   Pattern delta: ((SEQUENCE "color" #:?RB-65 #:?RB-66) (SEQUENCE "spher" #:?RB-67 #:?RB-68)),
-   Source delta: ((SEQUENCE "size" #:?RB-65 #:?RB-66) (SEQUENCE "cub" #:?RB-67 #:?RB-68))
+(mapcar #'string-anti-unification-result->sequence-predicates
+        (anti-unify-strings "What size is the cube?" "What size is the red cube?"))
 
+(mapcar #'string-anti-unification-result->sequence-predicates
+        (anti-unify-strings "What size is the blue cube?" "What size is the red cube?"))
+
+(mapcar #'string-anti-unification-result->sequence-predicates
+        (anti-unify-strings "What is the color of the sphere?" "What is the size of the cube?"))
+  
 |#
