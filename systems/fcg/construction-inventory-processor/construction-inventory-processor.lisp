@@ -739,8 +739,10 @@ solution."
          (notify-learning node :trigger 'new-node)
        (when new-problems
          (loop for problem in new-problems
-               do (push (type-of problem) (statuses node)))
-         (push 'diagnostic-triggered (statuses node)))
+               if (not (find (type-of problem) (statuses node))) ;; check if it hasn't already been added
+                 do (push (type-of problem) (statuses node)))
+         (if (not (find 'diagnostic-triggered (statuses node)))
+           (push 'diagnostic-triggered (statuses node))))
        ;; Loop through the new-fixes (they should have a list of construction-application-results in
        ;; their data-field 'fixed-cars), make nodes of them, add them as children, and enqueue them
        ;; Note: fixes don't need to have this field, they may also directly affect the CIP
@@ -1136,10 +1138,11 @@ added here. Preprocessing is only used in parsing currently."
     (loop for cxn in (get-data (car-resulting-cfs (cipn-car node)) :fix-cxns)
           unless (find-cxn cxn (original-cxn-set (construction-inventory node)) :key #'identity)
           do (add-cxn cxn (original-cxn-set (construction-inventory node)))))
-  ;; fix-th-links
+  ;; fix-categories
   (when (field? (car-resulting-cfs (cipn-car node)) :fix-categories)
     (add-categories (get-data (car-resulting-cfs (cipn-car node)) :fix-categories)
                              (original-cxn-set (construction-inventory node))))
+  ;; fix-categorial-links
   (when (field? (car-resulting-cfs (cipn-car node)) :fix-categorial-links)
     (loop for cat-link in (get-data (car-resulting-cfs (cipn-car node)) :fix-categorial-links)
           do (add-categories (list (car cat-link) (cdr cat-link))

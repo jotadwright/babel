@@ -18,4 +18,5 @@
 
 (in-package :cl-wikimedia)
 
-(defparameter *user-agent* nil "Set this parameter to your e-mail address.")
+(defparameter *user-agent* "your.name@your.address" 
+  "Set this parameter to your e-mail address or user agent.")

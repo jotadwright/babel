@@ -2,7 +2,8 @@
 
 ;-----------------------;
 ;core of the experiment:;
-;----the interaction----;
+;    the interaction    ;
+;-----------------------;
 
 (defclass ont-alignment-experiment (experiment)
   ())
@@ -21,6 +22,8 @@
       (connecting-to-db learner "db2" "db2_actors_films_simple_table.db"))
     ;2-the tutor chooses a random question-answer pair
     (setf (qa-pair tutor) (pick-random-elem (read-json-data "experiments/ont-alignment/data/question_answer_pairs.json")))
+    (print (qa-pair tutor))
+    (print (cdr (qa-pair tutor)))
     (format t "The tutor is ~d and the learner is ~d.~%" tutor learner)
     (format t "The tutor chose the following question : ~d and gave it to the learner.~%" (first (qa-pair tutor)))
     ;3-the tutor asks the question to the learner and the learner checks whether it already knows the answer
@@ -29,6 +32,7 @@
       (progn
         (push (add-to-dictionary (first (qa-pair tutor)) (cdr (qa-pair tutor)) learner) (dictionary learner))
         (format t "The answer is of type ~d.~%" (type-of (cdr (qa-pair tutor))))
-        (try-queries-until-success (cdr (qa-pair tutor)))))))
+        ;(try-queries-until-success (cdr (qa-pair tutor)))
+        ))))
     ;5-the learner tries to reconstruct a query to get to the answer
      ;"SELECT value FROM actorsfilms WHERE value  = answer"

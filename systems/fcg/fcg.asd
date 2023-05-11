@@ -23,7 +23,8 @@
                #+:hunchentoot-available-on-this-platform :web-interface
                :network
                :s-dot
-               :cl-json)
+               :cl-json
+               :array-operations)
   :serial t
   :components 
   ((:file "package")
@@ -103,7 +104,7 @@
                  (:file "html")
                  (:file "web-monitor")
                  (:file "export-utils")))
-   
+   (:file "handling-sequences")
    (:module meta-layer
     :serial t
     :components ((:file "fcg-meta-layer-lib")))
@@ -116,7 +117,8 @@
                                (:file "anti-unify-fcg")
                                (:file "anti-unify-fcg-specialise")
                                (:file "pro-unification")
-                               (:file "anti-unify-set-of-predicates")))
+                               (:file "anti-unify-set-of-predicates")
+                               (:file "anti-unify-strings")))
                  (:file "calculate-source-patterns")
                  (:file "anti-unification-cost")
                  (:file "robust-matching")))
@@ -147,4 +149,5 @@
                  (:file "test-structures")
                  (:file "test-anti-unification")
                  (:file "test-fcg-light")
-                 (:file "test-categorial-networks")))))
+                 (:file "test-categorial-networks")
+                 (:file "test-form-sequences")))))

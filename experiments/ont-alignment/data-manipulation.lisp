@@ -1,14 +1,14 @@
 (in-package :ont-alignment)
 
-;----------------------;
-;functions to work with;
-;---------lists--------;
+;------------------;
+;lists manipulation;
+;------------------;
 
 (defun pick-random-elem (list)
   "function to get a random element from a given list"
   (nth (random (length list)) list))
 
-(defun get-nth-element (lst n)
+(defun get-nth-elem (lst n)
   "Returns the nth element of list lst"
   (nth n lst))
 
@@ -24,7 +24,7 @@
   "Takes a list as entry and returns a set."
   (remove-duplicates lst :test #'equal))
 
-(defun most-frequent-element (lst)
+(defun most-frequent-elem (lst)
   "Takes a list as a paremeter and returns the most frequent element of that list."
   (let ((counter (make-hash-table)))
     (dolist (item lst)
@@ -39,9 +39,34 @@
                counter)
       max-item)))
 
-;----------------------;
-;functions to work with;
-;--------strings-------;
+(defun get-left (lst el)
+  "Get the left-most element of a list."
+  (let ((idx (position el lst)))
+    (when (and idx (/= idx 0))
+      (nth (1- idx) lst))))
+
+(defun get-right (lst el)
+  "Get the right-most element of a list."
+  (let ((idx (position el lst)))
+    (when (and idx (< idx (1- (length lst))))
+      (nth (1+ idx) lst))))
+
+(defun is-member (element list)
+  "Check if an element is part of a list."
+  (if (member element list)
+      t
+      nil))
+
+(defun insert (new-element list position)
+  "Insert a new-element to a list at a chosen position."
+  (if (zerop position)
+    (push new-element list)
+    (push new-element (cdr (nthcdr (1- position) list))))
+  list)
+
+;--------------------;
+;strings manipulation;
+;--------------------;
 
 (defun is-substring (substring string)
   "Check if a substring is part of a string."
@@ -50,9 +75,14 @@
       (format t "~a is a substring of ~a~%" substring string)
       (format t "~a is not a substring of ~a~%" substring string))))
 
-;-----------------------;
-;functions to parse json;
-;-----------------------;
+
+(defun split-string (str)
+  "Splits a string using whitespace as the delimiter."
+  (split-sequence:SPLIT-SEQUENCE #\Space str))
+
+;------------;
+;json parsing;
+;------------;
 
 (defun read-json-data (json-file)
   "function to read data from json file"

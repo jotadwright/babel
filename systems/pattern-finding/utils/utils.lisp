@@ -49,6 +49,13 @@
                      (non-zero-cxn-p cxn)))
             (constructions grammar)))
 
+(defun set-cxn-last-used (agent cxn)
+  (let ((current-interaction-nr
+         (interaction-number
+          (current-interaction
+           (experiment agent)))))
+    (setf (attr-val cxn :last-used) current-interaction-nr)))
+
 
 ;;;;;
 ;; Search tree utils
@@ -95,12 +102,14 @@
         for second-word-var = (third meets-constraint)
         unless (or (find first-word-var string-constraints :key #'second)
                    (find first-word-var new-string-constraints :key #'second))
-        do (progn (push `(string ,first-word-var ,(nth placeholder-index +placeholder-vars+)) new-string-constraints)
-             (incf placeholder-index))
+        do (push (list 'string first-word-var (nth placeholder-index +placeholder-vars+)) new-string-constraints)
+           (incf placeholder-index)
+        ;do (progn (push `(string ,first-word-var ,(nth placeholder-index +placeholder-vars+)) new-string-constraints)
+        ;     (incf placeholder-index))
         unless (or (find second-word-var string-constraints :key #'second)
                    (find second-word-var new-string-constraints :key #'second))
-        do (progn (push `(string ,second-word-var ,(nth placeholder-index +placeholder-vars+)) new-string-constraints)
-             (incf placeholder-index))
+        do (push (list 'string second-word-var (nth placeholder-index +placeholder-vars+)) new-string-constraints)
+           (incf placeholder-index)
         finally (return new-string-constraints)))
 
 (defgeneric make-cxn-name (thing cxn-inventory &key add-cxn-suffix add-numeric-tail))
@@ -174,7 +183,7 @@
         (if add-numeric-tail #'make-const #'make-symbol)
         (upcase
          (if cat-name cat-name "CAT")))))
-     :pattern-finding)))
+     :pattern-finding-old)))
 
 
 ;;;;;
@@ -374,11 +383,6 @@
   (set-configuration cxn-inventory :consolidate-repairs nil))
 
 (defun enable-meta-layer-configuration (cxn-inventory)
-  (set-configuration cxn-inventory :parse-goal-tests '(:no-strings-in-root
-                                                       :no-applicable-cxns
-                                                       :connected-semantic-network
-                                                       :connected-structure
-                                                       :non-gold-standard-meaning))
   (set-configuration cxn-inventory :category-linking-mode :neighbours)
   (set-configuration cxn-inventory :update-categorial-links t)
   (set-configuration cxn-inventory :use-meta-layer t)
@@ -411,6 +415,11 @@
 ;;;;;
 ;; Unit Utils
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun get-child-units (units)
+  (loop for unit in units
+        when (member 'used-as-slot-filler (unit-feature-value unit 'fcg:footprints))
+        collect unit))
 
 (defun remove-child-units (units)
   (loop for unit in units
@@ -479,24 +488,24 @@
       (first (find target-variable meaning-predicates :key #'second)))))
 
 (defun hash-observation (form-constraints meaning-predicates)
-  ;; extract string predicates + predicate names
-  (let ((meaning-predicates
+  ;; meaning hash keys = predicate names and bind values
+  ;; form hash keys = strings in sequence predicates
+  (let ((meaning-keys
          (loop for meaning in meaning-predicates
                collect (if (and (= 4 (length meaning))
                                 (eql 'bind (first meaning)))
                          (fourth meaning)
                          (first meaning))))
-        (form-predicates
-         (mapcar #'third (find-all 'string form-constraints :key #'first))))
-    (append form-predicates meaning-predicates)))
+        (form-keys
+         (mapcar #'second (find-all 'sequence form-constraints :key #'first))))
+    (append form-keys meaning-keys)))
                             
 (defun constructions-for-anti-unification-hashed (form-constraints meaning-predicates cxn-inventory)
   (remove-duplicates
-   (mapcar #'original-cxn
-           (append
-            (loop for hash in (hash-observation form-constraints meaning-predicates)
-                  append (gethash hash (constructions-hash-table cxn-inventory)))
-            (gethash nil (constructions-hash-table cxn-inventory))))))
+   (append
+    (loop for hash in (hash-observation form-constraints meaning-predicates)
+          append (gethash hash (constructions-hash-table cxn-inventory)))
+    (gethash nil (constructions-hash-table cxn-inventory)))))
 
 ;;;;;
 ;; Partial Analysis
@@ -564,40 +573,6 @@
       (enable-meta-layer-configuration cxn-inventory)
       best-cipn)))
 
-(defun anti-unify-partial-analysis-with-observation (observation-form observation-meaning partial-analysis-cipn)
-  ;; the generalisation is identical to the meaning/form of the cipn,
-  ;; the pattern delta is empty
-  ;; and the source delta contains the material for the new cxn to be learned
-  (let* ((cipn-meaning (fcg-extract-meanings partial-analysis-cipn))
-         ;; cipn-form has the same variables as the observation-form
-         ;; --> these variables do not occur in the bindings of the anti-unification...
-         ;; --> make fresh variables and store the mappings from the original
-         ;;     constants to the fresh variables
-         (cipn-form-and-variable-renamings
-          (multiple-value-list
-           (fresh-variables
-            (variablify-form-constraints-with-constants
-             (loop for unit in (fcg-get-transient-unit-structure partial-analysis-cipn)
-                   unless (eql (unit-name unit) 'fcg::root)
-                     append (unit-feature-value unit 'form))))))
-         (cipn-form (first cipn-form-and-variable-renamings))
-         (form-const-renamings
-          (loop for (var . fresh-var) in (second cipn-form-and-variable-renamings)
-                collect (cons (devariablify var) fresh-var)))
-         (meaning-a-u (first (anti-unify-predicate-network cipn-meaning observation-meaning)))
-         (form-a-u (first (anti-unify-predicate-network cipn-form observation-form))))
-    (unless (or (null (source-delta meaning-a-u))
-                (null (source-delta form-a-u)))
-      ;; store the renamings in the cipn
-      (set-data partial-analysis-cipn :form-const-renamings form-const-renamings)
-      ;; nazi checks
-      (assert (and (null (pattern-delta meaning-a-u))
-                   (null (pattern-delta form-a-u))
-                   (equivalent-irl-programs? (generalisation meaning-a-u) cipn-meaning)
-                   (equivalent-irl-programs? (generalisation form-a-u) cipn-form)))
-      ;; return AU results
-      (values form-a-u meaning-a-u))))
-
 
 ;;;;;
 ;; Sort meets constraints
@@ -623,6 +598,7 @@
         (list (second (first form-constraints))
               (second (first form-constraints)))))))
 
+
 (defun sort-meets-constraints (meets-constraints)
   "return the sorted list of meets constraints"
   (let* ((begin-var (first (get-boundary-units meets-constraints)))
@@ -634,6 +610,7 @@
           do (push next-predicate resulting-list)
           (setf next-predicate (find next-var meets-constraints :key #'second))
           finally (return (reverse resulting-list)))))
+
 
 (defun continuous-meets-p (form-constraints)
   "check if within a holistic chunk, all form strings are connected"
@@ -713,4 +690,87 @@
 
 (defmethod equivalent-meaning-networks (m1 m2  (mode (eql :geo)))
   (amr::equivalent-amr-predicate-networks m1 m2))
-          
+
+
+;;;;;
+;; Anti Unification Utils
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun renamingp (bindings-list)
+  "A bindings list is a renaming if the mappings are one to one"
+  (let ((renamingp t))
+    (loop for (binding . rest) on bindings-list
+          when (find (car binding) rest :key #'car :test #'equalp)
+          do (setf renamingp nil))
+    renamingp))
+
+(defmethod select-holistic-cxns-for-anti-unification (observation-form observation-meaning (cxn-inventory fcg-construction-set))
+  "Select holistic cxns from the routine set with a score greater than 0."
+  (declare (ignore observation-form observation-meaning))
+  (let* ((hash-compatible-cxns
+          (constructions-for-anti-unification-hashed observation-form observation-meaning cxn-inventory))
+         (holistic-routine-non-zero-cxns
+          (remove-if-not #'non-zero-cxn-p
+                         (remove-if-not #'holistic-cxn-p
+                                        (remove-if-not #'routine-cxn-p hash-compatible-cxns)))))
+    (sort holistic-routine-non-zero-cxns #'> :key #'get-cxn-score)))
+
+(defmethod anti-unify-constructions-with-observation (observation-form observation-meaning constructions (cxn-inventory fcg-construction-set))
+  "Anti-unify the observation with the constructions.
+   For each cxn, keep the best au result on the form side and the meaning side.
+   Sum the cost and keep the cxn score."
+  (let ((au-results
+         (loop with max-au-cost = (get-configuration cxn-inventory :max-au-cost)
+               for cxn in constructions
+               for meaning-au-results
+                 = (fcg::anti-unify-predicate-network (fcg::extract-meaning-predicates cxn) observation-meaning)
+               for best-meaning-au-result = (first meaning-au-results)
+               for form-au-results
+                 = (fcg::anti-unify-predicate-network (fcg::extract-form-predicates cxn) observation-form)
+               for best-form-au-result = (first form-au-results)
+               when (and best-meaning-au-result best-form-au-result
+                         (<= (au-cost best-meaning-au-result) max-au-cost)
+                         (<= (au-cost best-form-au-result) max-au-cost))
+               collect (list best-form-au-result best-meaning-au-result 
+                             (+ (au-cost best-form-au-result)
+                                (au-cost best-meaning-au-result))
+                             (attr-val cxn :score)
+                             cxn))))
+    ;; take the anti-unification with the lowest summed cost (form + meaning)
+    ;; if multiple, take the one that anti-unified with the highest scoring cxn
+    ;; if multiple, take a random one    
+    (first (all-biggest #'fourth (all-smallest #'third au-results)))))
+
+(defun anti-unify-partial-analysis-with-observation (observation-form observation-meaning partial-analysis-cipn)
+  ;; the generalisation is identical to the meaning/form of the cipn,
+  ;; the pattern delta is empty
+  ;; and the source delta contains the material for the new cxn to be learned
+  (let* ((cipn-meaning (fcg-extract-meanings partial-analysis-cipn))
+         ;; cipn-form has the same variables as the observation-form
+         ;; --> these variables do not occur in the bindings of the anti-unification...
+         ;; --> make fresh variables and store the mappings from the original
+         ;;     constants to the fresh variables
+         (cipn-form-and-variable-renamings
+          (multiple-value-list
+           (fresh-variables
+            (variablify-form-constraints-with-constants
+             (loop for unit in (fcg-get-transient-unit-structure partial-analysis-cipn)
+                   unless (eql (unit-name unit) 'fcg::root)
+                     append (unit-feature-value unit 'form))))))
+         (cipn-form (first cipn-form-and-variable-renamings))
+         (form-const-renamings
+          (loop for (var . fresh-var) in (second cipn-form-and-variable-renamings)
+                collect (cons (devariablify var) fresh-var)))
+         (meaning-a-u (first (anti-unify-predicate-network cipn-meaning observation-meaning)))
+         (form-a-u (first (anti-unify-predicate-network cipn-form observation-form))))
+    (unless (or (null (source-delta meaning-a-u))
+                (null (source-delta form-a-u)))
+      ;; store the renamings in the cipn
+      (set-data partial-analysis-cipn :form-const-renamings form-const-renamings)
+      ;; nazi checks
+      (assert (and (null (pattern-delta meaning-a-u))
+                   (null (pattern-delta form-a-u))
+                   (equivalent-irl-programs? (generalisation meaning-a-u) cipn-meaning)
+                   (equivalent-irl-programs? (generalisation form-a-u) cipn-form)))
+      ;; return AU results
+      (values form-a-u meaning-a-u))))

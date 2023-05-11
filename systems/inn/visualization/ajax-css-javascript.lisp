@@ -53,8 +53,9 @@
            (append (list key val)
                    (turn-split-inputs-into-keys-and-values (subseq inputs 2)))))))
 
-(defun-ajax makeinnnode (class-number inputs) (*ajax-processor*)
-  (let* ((class-name (class-name (nth (parse-integer class-number) (inn:inn-node-structures))))
+(defun-ajax makeinnnode (class-number inputs selected-node-id) (*ajax-processor*)
+  (let* ((from-node-id (parse-integer selected-node-id :junk-allowed t))
+         (class-name (class-name (nth (parse-integer class-number) (inn:inn-node-structures))))
          (split-inputs (split-sequence::split-sequence #\, inputs))
          (keys-and-values (turn-split-inputs-into-keys-and-values split-inputs))
          (package (package-name (symbol-package class-name)))
@@ -62,7 +63,7 @@
                           (format nil "~a::make-~a" package class-name)))
          (inn (inn:get-current-inn)))
     (destructuring-bind (&whole whole
-                                &key (type t)
+                                &key (type nil)
                                 (description "No description available.")
                                 (label "label")
                                 (cluster-ids nil)
@@ -70,19 +71,26 @@
         keys-and-values
       (dolist (indicator '(:type :description :label :cluster-ids))
         (remf whole indicator))
-      (inn::inn-add-node inn
-                         (apply constructor-fn `(:type ,(if (stringp type)
-                                                          (read-from-string type)
-                                                          type)
-                                                 :description ,description
-                                                 :label ,label
-                                                 :cluster-ids ,(if (stringp cluster-ids)
-                                                                 (if (string= cluster-ids "")
-                                                                   nil
-                                                                   (read-from-string cluster-ids))
-                                                                 nil)
-                                                 ,@whole)))
-      (clearaddnode))))
+      (let ((target-node-id 
+             (inn::inn-add-node 
+              inn
+              (apply constructor-fn `(,@(if type
+                                          (let ((the-type (if (stringp type)
+                                                            (read-from-string type)
+                                                            type)))
+                                            (if (keywordp the-type)
+                                              `(:type ,the-type))))
+                                      :description ,description
+                                      :label ,label
+                                      :cluster-ids ,(if (stringp cluster-ids)
+                                                      (if (string= cluster-ids "")
+                                                        nil
+                                                        (read-from-string cluster-ids))
+                                                      nil)
+                                      ,@whole)))))
+        (if from-node-id
+          (inn::inn-add-edge inn from-node-id target-node-id))
+        (clearaddnode)))))
 
 (defun-ajax expandaddnode (value) (*ajax-processor*)
   (let* ((class-name (class-name 
@@ -167,6 +175,8 @@
    javascript:ajax_expandaddnode(value); } }")
 
 (define-js 'makeinnnode "{ function makeinnnode () {
+   var selectedNodes = network.getSelectedNodes();
+   var selectedNodeId = selectedNodes[0];
    var nodeclass = document.getElementById('selectnodeclass').value;
    var rest = [];
    var inputs = document.getElementsByTagName('input');
@@ -177,7 +187,7 @@
        var idvalue = [ id, value ];
        rest.push(idvalue); };       
 
-   javascript:ajax_makeinnnode(nodeclass, rest);
+   javascript:ajax_makeinnnode(nodeclass, rest, selectedNodeId);
    } }")
 
 ;; -------------------------------------------------------------------------
@@ -202,7 +212,7 @@
   (inn::inn-double-click selection (inn:get-current-inn))
   nil)
 
-(defun-ajax innrightclick () (*ajax-processor*)
+(defun-ajax rightclick () (*ajax-processor*)
   (inn:inn-right-click (inn:get-current-inn))
   nil)
 

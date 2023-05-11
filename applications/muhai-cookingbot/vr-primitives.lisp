@@ -70,9 +70,8 @@
       root
       (when (slot-exists-p root 'contents)
         (loop for child in (contents root)
-              for found = (sim-find-object-by-name name child)
-              when found
-                return found))))
+              when (sim-find-object-by-name name child)
+                return it))))
 
 
 ;;  TODO DEPRECATE AND USE REQUEST-GET-LOCATION
@@ -84,9 +83,8 @@
                  (progn node)
                  (when (slot-exists-p node 'contents)
                    (loop for child in (contents node)
-                         for found = (traverse type child)
-                         when found
-                           return found)))))
+                         when (traverse type child)
+                           return it)))))
 
     (traverse type kitchen-state)))
 

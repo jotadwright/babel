@@ -83,29 +83,63 @@
   (inn-add-edge *my-inn* 0 1)
   (draw-inn-network-in-vis-js *my-inn*))
 
-;; (b) Creating custom node types
+;; (b) Creating custom node classes
 ;; -------------------------------------------------------------------------
-;; We would like to add a new kind of node. We can use this helper
-;; macro to avoid compatability errors:
-(with-open-file (stream (babel-pathname :name "image-node"
-                                        :type "lisp")
-                        :direction :output
-                        :if-exists :supersede)
-  (define-inn-node my-image
-                   :stream stream
-                   :slots (url)
-                   :type :inn-image
-                   :shape "square"))
+;; The node class "image-node" displays nodes as square images. Imagine 
+;; we now want to have a node that visualizes nodes as circular images.
+;; 
+;; The easiest way to do so is to create a new "type" of inn-image. All
+;; we have to do is to customize the helper methods that take care of the
+;; visual identity of a node as follows:
+;;
+(defmethod get-node-shape ((type (eql :circular-image)))
+  (declare (ignore type))
+  "circularImage")
 
-;; (c) Manipulating the graph in the web interface
-;; -------------------------------------------------------------------------
-;; Let us first answer the question:
+;; Let us now test to add such a circular image as the answer to
+;; our question:
 (progn
   (inn-add-node *my-inn* (make-inn-image
+                          :type :circular-image
                           :description "Remi van Trijp"
                           :url "https://csl.sony.fr/wp-content/uploads/elementor/thumbs/remi-van-trijp-pwhtmlglh8mdlsqkxo0lxunj1gad8hlylx3oj7yey0.png"))
   (inn-add-edge *my-inn* 1 2)
   (inn-answer-question (lookup-node *my-inn* 1)))
+
+;; However, suppose I want to create my own node "class" because this in 
+;; turn will automatically create convenient helper functions. We 
+;; can use the following macro:
+;;
+;; (def-inn-node name (parent)
+;;      "Write a description function that mentions which TYPES are
+;;       associated with this kind of inn-node."
+;;      body)
+;;
+;; If you want to have default values that are different from those
+;; of the "parent", you can do so as follows (similar to defstruct syntax):
+;; (def-inn-node name (parent (keyword default-value))
+;;      "description"
+;;      body)
+;;
+;; Example:
+(def-inn-node circular-image (inn-image
+                              (type :circular-image))
+              "Type (:my-inn-node):") ; This description is used by the web interface
+
+;; If necessary, we should define helper methods GET-NODE-SHAPE and 
+;; INN-FORMAT-NODE to ensure that the node is displayed correctly in 
+;; the web interface, but in this case we have already methods for INN-NODE
+;; of type :circular-image that would do the trick.
+;;
+;; Let us test it:
+(progn
+  (inn-add-node *my-inn* (make-circular-image
+                          :description "Remi van Trijp"
+                          :url "https://csl.sony.fr/wp-content/uploads/elementor/thumbs/remi-van-trijp-pwhtmlglh8mdlsqkxo0lxunj1gad8hlylx3oj7yey0.png"))
+  (inn-add-edge *my-inn* 1 3))
+;;
+;; Let us delete the latter node because we have a duplicate now:
+(inn-delete-node *my-inn* 3)
 
 ;; Now we manually edit the network:
 ;; -------------------------------------------------------------------------

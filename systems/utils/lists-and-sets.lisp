@@ -417,7 +417,7 @@ nil."
                    do (push (nth idx list) subset)
                    finally (when (and subset
                                       (>= (length subset) min-length)
-                                      (<= (length subset) max-length))
+                                      (<= (length subset) (or max-length list-len)))
                              (push subset all-subsets)))
           finally (return all-subsets))))
 
@@ -818,7 +818,8 @@ element for which the sought value satisfies the test"
           find-all-anywhere-if
           member-of-tree
           replace-by-variable
-          deep-reverse))
+          deep-reverse
+          count-anywhere))
 
 (defun get-duplicate-elements (lst)
   (cond ((null lst) '())
@@ -902,6 +903,14 @@ element for which the sought value satisfies the test"
   (if (atom tree)
     tree
     (mapcar #'deep-reverse (reverse tree))))
+
+(defun count-anywhere (item tree &key (test #'eq) (key #'identity))
+  (declare (function test))
+  (cond ((atom tree)
+         (if (funcall test item tree) 1 0))
+        ((consp tree)
+         (+ (count-anywhere item (car tree) :test test :key key)
+            (count-anywhere item (cdr tree) :test test :key key)))))
 
 ;; ############################################################################
 ;; tree utilities:

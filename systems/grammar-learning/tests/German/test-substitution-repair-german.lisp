@@ -42,4 +42,34 @@
                                              )))))))
 
 
+
+(defun test-substitution-repair-comprehension-german ()
+  (let* ((experiment (set-up-cxn-inventory-and-repairs-german))
+         (cxn-inventory (grammar (first (agents experiment)))))
+    (comprehend "Der Doktor verkauft der Frau das Buch"
+                    :cxn-inventory cxn-inventory
+                    :gold-standard-meaning '(((verkaufen-01 ?v)
+                                              (doctor ?d)
+                                              (woman ?w)
+                                              (book ?b)
+                                              (arg0 ?v ?d)
+                                              (arg1 ?v ?b)
+                                              (arg2 ?v ?w)
+                                              (topicalized ?d))
+                                             ))
+    
+    (test-repair-status 'holistic->item-based--substitution
+                        (second (multiple-value-list
+                                 (comprehend "Der Doktor verkauft dem Clown das Buch"
+                    :cxn-inventory cxn-inventory
+                    :gold-standard-meaning '(((verkaufen-01 ?v)
+                                              (doctor ?d)
+                                              (clown ?c)
+                                              (book ?b)
+                                              (arg0 ?v ?d)
+                                              (arg1 ?v ?b)
+                                              (arg2 ?v ?c)
+                                              (topicalized ?d))
+                                             )))))))
+
 (test-substitution-repair-comprehension-german)
