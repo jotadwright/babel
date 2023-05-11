@@ -103,18 +103,18 @@
   (format t "~%~s" (coerce (aligned-source string-alignment) 'string))
   (format t "~%Score: ~a" (score string-alignment)))
 
-#|
-;; do we want to avoid mismatches as much as possible?
- 
+#| 
 (mapcar #'print-string-alignments
-        (maximal-string-alignments "GATTACA" "GCATGCG" :mismatch -5))
+        (maximal-string-alignments "GATTACA" "GCATGCG"))
+(mapcar #'print-string-alignments
+        (maximal-string-alignments "What size is the cube?"
+                                   "What size is the red cube?"))
 (mapcar #'print-string-alignments
         (maximal-string-alignments "What color is the blue cube?"
-                                   "What color is the red cube?" :mismatch -5))
+                                   "What color is the red cube?"))
 (mapcar #'print-string-alignments
         (maximal-string-alignments "What is the color of the sphere?"
-                                   "What is the size of the cube?"
-                                   :mismatch -5))
+                                   "What is the size of the cube?"))
 |#
 
 
@@ -128,7 +128,7 @@
    and place the rest in delta's. The results are converted back to strings
    and the anti-unification cost corresponds to the number of elements in
    the delta's. Solutions are returned sorted by cost."
-  (let* ((maximal-alignments (maximal-string-alignments pattern source :mismatch -5))
+  (let* ((maximal-alignments (maximal-string-alignments pattern source))
          (anti-unification-results
           (loop for alignment in maximal-alignments
                 for (generalisation pattern-delta source-delta)
@@ -148,9 +148,12 @@
           ;; (when all delta's are the same)
           (remove-duplicates anti-unification-results
                              :test #'(lambda (au-1 au-2)
-                                       (loop for (nil . pd) in (second au-1)
-                                             for (nil . sd) in (second au-2)
-                                             always (string= pd sd))))))
+                                       (and (loop for (nil . pd-1) in (second au-1)
+                                                  for (nil . pd-2) in (second au-2)
+                                                  always (string= pd-1 pd-2))
+                                            (loop for (nil . sd-1) in (third au-1)
+                                                  for (nil . sd-2) in (third au-2)
+                                                  always (string= sd-1 sd-2)))))))
     (sort unique-anti-unification-results #'< :key #'fourth)))
 
 
