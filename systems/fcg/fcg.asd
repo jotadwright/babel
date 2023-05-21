@@ -23,8 +23,7 @@
                #+:hunchentoot-available-on-this-platform :web-interface
                :network
                :s-dot
-               :cl-json
-               :array-operations)
+               :cl-json)
   :serial t
   :components 
   ((:file "package")
