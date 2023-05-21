@@ -3,8 +3,8 @@
 ;; --------------------
 ;; + Interaction flow +
 ;; --------------------
-(defmethod interact ((experiment cle-experiment) interaction &key (scene nil))
-  (before-interaction experiment :scene scene)
+(defmethod interact ((experiment cle-experiment) interaction &key scene agents)
+  (before-interaction experiment :scene scene :agents agents)
   (do-interaction experiment)
   (after-interaction experiment))
 

@@ -6,7 +6,7 @@
 
 (define-event invention-finished (cxn cxn))
 
-(defmethod invent (agent)
+(defmethod invent ((agent cle-agent))
   (let* ((meaning (attributes (get-data agent 'topic)))
          (form (make-new-word))
          (new-cxn (make-cxn agent meaning form)))

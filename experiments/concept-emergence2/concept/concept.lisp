@@ -9,16 +9,14 @@
     :documentation "Id of the concept."))
   (:documentation "Abstract class for concepts."))
 
-
 (defclass concept-distribution (concept)
   ((prototypes
     :initarg :prototypes :accessor prototypes :initform nil :type list))
   (:documentation "Concept representation using prototypes."))
  
-
 (defmethod make-concept (agent object (mode (eql :distribution)))
   (make-instance 'concept-distribution
-                 :prototypes (loop for (channel . exemplar) in (feature-channels object)
+                 :prototypes (loop for (channel . exemplar) in object
                                    for initial-weight = (get-configuration agent :initial-weight)
                                    for distribution = (make-distribution agent
                                                                          exemplar

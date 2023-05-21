@@ -16,7 +16,6 @@
                       (mean distribution2)
                       (st-dev distribution2)))
 
-
 ;; --------------------
 ;; + Helper functions +
 ;; --------------------

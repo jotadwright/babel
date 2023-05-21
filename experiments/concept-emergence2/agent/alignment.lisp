@@ -6,27 +6,19 @@
 
 ;; events
 (define-event alignment-started (agent cle-agent))
-(define-event adopt-cxn-started (form string))
-(define-event scores-updated (cxn cxn) (rewarded-attrs list) (punished-attrs list))
+(define-event adoption-started (form string))
+(define-event entrenchment-update (cxn cxn) (rewarded-attrs list) (punished-attrs list))
 
 (defmethod align ((agent cle-agent))
-  ;; notify alignment
-  (notify alignment-started agent)
   (case (discourse-role agent)
     (speaker (speaker-alignment agent))
-    (hearer (hearer-alignment agent (get-configuration agent :hearer-alignment)))))
+    (hearer (hearer-alignment agent))))
 
 ;; -----------------
 ;; + Align speaker +
 ;; -----------------
 (defmethod speaker-alignment ((agent cle-agent))
-  "Speaker alignment.
-
-  If communication was successful,
-       1. entrench and shift concept to topic
-       2. punish competing duplicate concepts.
-  Otherwise,
-       1. entrench the concept negatively."
+  "Speaker alignment."
   (let ((topic (find-data agent 'topic))
         (applied-cxn (find-data agent 'applied-cxn)))
     (when (not (invented-or-adopted agent))
@@ -35,54 +27,42 @@
         ;; if success,
         (progn
           ;;  1. entrench applied-cxn
-          (update-score-concept agent applied-cxn)
+          (update-score-cxn agent applied-cxn)
           ;;  2. shift concept of applied-cxn to topic
-          (shift-concept agent topic applied-cxn)
-          ;;  3. punish competing duplicate cxns
-          (punish-competitors agent topic applied-cxn))
+          (shift-concept agent topic (meaning applied-cxn))
+          ;;  3. punish competing similar cxns
+          (loop for other-cxn in (find-data agent 'meaning-competitors)
+                 do (update-score-cxn agent other-cxn (get-configuration agent :entrenchment-li)))
         ;; otherwise, entrench used cxn negatively
-        (update-score-concept agent applied-cxn)))))
+        (update-score-cxn agent applied-cxn)))))
 
 ;; ----------------
 ;; + Align hearer +
 ;; ----------------
-(defgeneric hearer-alignment (agent mode)
-  (:documentation "Hearer alignment."))
-
-(defmethod hearer-alignment ((agent cle-agent) (mode (eql :shift-when-successful)))
-  "Speaker alignment.
-
-  If communication was successful,
-       1. entrench and shift concept to topic
-       2. punish competing duplicate concepts.
-  Otherwise,
-       1. entrench concept negatively, but do shift it!"
+(defmethod hearer-alignment ((agent cle-agent))
+  "Hearer alignment."
   (let ((topic (get-data agent 'topic))
-        (concept (find-data agent 'applied-concept)))
-    (when (utterance agent)
-      ;; if speaker has uttered something
-      (case concept
-        ;; did not recognize the word
-        ((nil) 
+        (applied-cxn (find-data agent 'applied-cxn)))
+    (case applied-cxn
+      ;; CASE A: hearer did not recognize the word
+      ((nil) 
+       (adopt agent topic (utterance agent)))
+      ;; CASE B: hearer did recognize the word
+      (otherwise 
+       (if (communicated-successfully agent)
+         ;; CASE A: recognized + communication was successful!
          (progn
-           ;(notify adopt-concept-started (utterance agent))
-           (adopt-concept agent topic (utterance agent))))
-        ;; recognized the word
-        (otherwise 
-         (if (communicated-successfully agent)
-           ;; recognized the word and successful usage!
+           ;; 1. entrench applied-cxn
+           (update-score-cxn agent applied-cxn (get-configuration agent :entrenchment-incf))
+           ;; 2. shift concept of applied-cxn to topic
+           (shift-concept agent topic (meaning applied-cxn))
+           ;; 3. find and punish meaning competitors
+           (decide-competitors-hearer agent applied-cxn)
+           (loop for other-cxn in (find-data agent 'meaning-competitors)
+                 do (update-score-cxn agent other-cxn (get-configuration agent :entrenchment-li)))
+           ;; CASE B: recognized but did not point to correct word
            (progn
              ;; 1. entrench applied-cxn
              (update-score-cxn agent applied-cxn)
              ;; 2. shift concept of applied-cxn to topic
-             (shift-concept agent topic applied-cxn)
-             ;; 3. punish competitors
-             (decide-competitors-hearer agent concept)
-             (punish-competitors agent topic concept (get-configuration agent :punish-strategy)))
-           ;; recognized but did not point to correct word
-           ;; then, entrench cxn and shift concept to topic
-           (progn
-             ;; 1. entrench applied-cxn
-             (update-score-cxn agent applied-cxn)
-             ;; 2. shift concept of applied-cxn to topic
-             (shift-concept agent topic applied-cxn))))))))
+             (shift-concept agent topic (meaning applied-cxn)))))))))

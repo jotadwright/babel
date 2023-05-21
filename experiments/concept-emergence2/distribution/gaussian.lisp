@@ -30,7 +30,7 @@
   (:documentation "Gaussian distribution using Welford's online algorithm"))
 
 ;; Constructor
-(defmethod make-distribution (agent  exemplar (mode (eql :gaussian-welford)))
+(defmethod make-distribution (agent exemplar (mode (eql :gaussian-welford)))
   (let* ((M2 (get-configuration agent :M2))
          (nr-of-samples 1)
          (st-dev (sqrt (/ M2 nr-of-samples)))
@@ -70,4 +70,3 @@
                         ~:_ mean: ~a,~:_ st-dev: ~a~:_"
             (mean distribution) (st-dev distribution))
     (format stream ">")))
-          

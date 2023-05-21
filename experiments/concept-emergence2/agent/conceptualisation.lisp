@@ -10,7 +10,7 @@
 (define-event conceptualisation-finished
   (agent cle-agent)
   (discriminating-concepts list)
-  (duplicate-sets list)
+  (similar-sets list)
   (unique-concepts list)
   (applied-concept list))
 
@@ -29,55 +29,52 @@
 ;; + Conceptualise +
 ;; -----------------
 
-(defgeneric conceptualise (agent)
-  (:documentation "Run conceptualisation"))
-
-(defmethod conceptualise (agent)
+(defmethod conceptualise ((agent cle-agent))
   ;; notify
   (notify conceptualisation-start agent)
   ;; conceptualise
   (case (discourse-role agent)
-    (speaker (speaker-conceptualise agent (get-configuration agent :conceptualisation-strategy)))
-    (hearer (hearer-conceptualise agent (get-configuration agent :conceptualisation-strategy)))))
+    (speaker (speaker-conceptualise agent))
+    (hearer (hearer-conceptualise agent))))
 
 ;; -----------------------------
 ;; + General conceptualisation +
 ;; -----------------------------
-(defmethod speaker-conceptualise ((agent cle-agent) (mode (eql :standard)))
+(defmethod speaker-conceptualise ((agent cle-agent))
   "Conceptualise the topic of the interaction."
   (if (length= (lexicon agent) 0)
     nil
-    (let* ((discriminating-concepts (search-concepts agent))
-           (duplicate-sets (find-duplicate-concept-sets discriminating-concepts 
-                                                        :activation (get-configuration agent :concept-similarity-activation)))
-           (unique-concepts (loop for set in duplicate-sets
+    (let* (;; step 1 - find the discriminating concepts
+           (discriminating-concepts (search-concepts agent))
+           ;; step 2 - find similar concepts and sort them into sets where concepts are similar
+           (similar-sets (find-similar-concepts-into-sets discriminating-concepts 
+                                                          :activation (get-configuration agent :concept-similarity-activation)))
+           ;; step 3 - find the best entrenched concept in each set
+           (unique-concepts (loop for set in similar-sets
                                   collect (select-best-entrenched-concept set)))
-           (applied-concept (select-best-concept unique-concepts
-                                                 (get-configuration agent :concept-selection-strategy)
-                                                 :weights (get-configuration agent :concept-selection-weights))))
+           ;; step 4 - find the concept with the most discriminative power
+           (applied-concept (select-most-discriminating-concept unique-concepts)))
       ;; decides which concepts are considered during alignment
-      (decide-competitors agent
-                          discriminating-concepts ;; phase 1
-                          duplicate-sets unique-concepts ;; phase 2a and 2b
-                          applied-concept ;; chosen concept
-                          (get-configuration agent :competitor-strategy))
+      (decide-competitors-speaker agent
+                                  discriminating-concepts ;; phase 1
+                                  similar-sets ;; phase 2a
+                                  unique-concepts ;; phase 2b
+                                  applied-concept ;; phase 3: most-discriminating -> applied
+                                  )
       (set-data agent 'applied-concept applied-concept)
-      (notify conceptualisation-finished agent discriminating-concepts duplicate-sets unique-concepts (list applied-concept)) ;; notify
+      (notify conceptualisation-finished agent discriminating-concepts similar-sets unique-concepts (list applied-concept)) ;; notify
       applied-concept)))
 
-(defmethod hearer-conceptualise ((agent cle-agent) (mode (eql :standard)))
+(defmethod hearer-conceptualise ((agent cle-agent))
   (if (length= (lexicon agent) 0)
     nil
     (let* ((discriminating-concepts (search-concepts agent))
-           (duplicate-sets (find-duplicate-concept-sets discriminating-concepts
-                                                        :activation (get-configuration agent :concept-similarity-activation)))
-           (unique-concepts (loop for set in duplicate-sets
+           (similar-sets (find-similar-concepts-into-sets discriminating-concepts
+                                                          :activation (get-configuration agent :concept-similarity-activation)))
+           (unique-concepts (loop for set in similar-sets
                                   collect (select-best-entrenched-concept set)))
-           (applied-concept (select-best-concept unique-concepts
-                                                 (get-configuration agent :concept-selection-strategy)
-                                                 :weights (get-configuration agent :concept-selection-weights))))
+           (applied-concept (select-most-discriminating-concept unique-concepts)))
       applied-concept)))
-
 
 ;; ----------------------------------
 ;; + Search discriminative concepts +
@@ -87,12 +84,13 @@
   (let ((topic (get-data agent 'topic))
         (context (objects (get-data agent 'context)))
         (discriminating-concepts '()))
-    (loop for concept in (lexicon agent)
+    (loop for construction in (lexicon agent)
+          for concept = (meaning construction)
           for topic-similarity = (weighted-similarity topic concept)
           for best-other-similarity = (loop for object in (remove topic context)
                                             maximize (weighted-similarity object concept))
           when (> topic-similarity best-other-similarity)
-            do (setf discriminating-concepts (cons (list (cons :concept concept)
+            do (setf discriminating-concepts (cons (list (cons :construction construction)
                                                          (cons :topic-sim topic-similarity)
                                                          (cons :best-other-sim best-other-similarity))
                                                    discriminating-concepts)))
@@ -101,60 +99,15 @@
 ;; ------------------------------------------
 ;; + Deciding priority of selected concepts +
 ;; ------------------------------------------
-(defgeneric select-best-concept (concepts mode &key &allow-other-keys)
-  (:documentation "Strategy to select the final conceptualised concept from a set of concepts."))
-
-(defmethod select-best-concept (concepts (mode (eql :waterfall)) &key (weights nil))
-  "Waterfall strategy: first highest entrenched, them highest topic similarity, then random."
-  (let* ((highest-entrenched-concepts (all-biggest
-                                       (lambda (x) (score (assqv :concept x)))
-                                       concepts))
-         (highest-topic-sim (all-biggest
-                             (lambda (x) (assqv :topic-sim x))
-                             highest-entrenched-concepts))
-         (best-concept (random-elt highest-topic-sim)))
-    (if best-concept
-      (assqv :concept best-concept)
-      nil)))
-
-(defmethod select-best-concept (concepts (mode (eql :weighted-average)) &key
-                                         (weights (list (cons :entrenchment-weight  1/3)
-                                                        (cons :topic-similarity-weight 1/3)
-                                                        (cons :similarity-distance-weight 1/3)))) ;; discriminative-power
-  "Weighted average of
-        1. the entrenchment score, [-1, 1]
-        2. absolute topic-similarity [-inf, 1]
-        3. discriminative-power [0, inf]." 
-  (let ((best-score -1)
-        (best-concept nil))
-    (loop with w1 = (assqv :entrenchment-weight weights)
-          with w2 = (assqv :topic-similarity-weight weights)
-          with w3 = (assqv :similarity-distance-weight weights)
-          for tuple in concepts
-          for entrenchment = (score (assqv :concept tuple))
-          for topic-sim = (sigmoid (assqv :topic-sim tuple))
-          for best-other-sim = (sigmoid (assqv :best-other-sim tuple))
-          for score = (+ (* entrenchment w1)
-                         (* topic-sim w2)
-                         (* (abs (- topic-sim best-other-sim)) w3))
-          when (> score best-score)
-            do (progn
-                 (setf best-score score)
-                 (setf best-concept (assqv :concept tuple))))
-    best-concept))
-
-(defmethod select-best-concept (concepts (mode (eql :times)) &key (weights nil)) ;; discriminative-power
-  "Choose concept that maximises power * entrenchment"
+(defmethod select-most-discriminating-concept (concepts)
+   "Selects the concept with the most discriminative-power [0, inf]." 
   (let ((best-score -1)
         (best-concept nil))
     (loop for tuple in concepts
-          for form = (form (assqv :concept tuple))
-          for entrenchment = (score (assqv :concept tuple))
-          for topic-sim = (sigmoid (assqv :topic-sim tuple))
-          for best-other-sim = (sigmoid (assqv :best-other-sim tuple))
+          for topic-sim = (sigmoid (assqv :topic-sim tuple)) ;; sigmoid-ed!
+          for best-other-sim = (sigmoid (assqv :best-other-sim tuple)) ;; sigmoid-ed!
           for discriminative-power = (abs (- topic-sim best-other-sim))
-          for score = (* entrenchment discriminative-power)
-          when (> score best-score)
+          when (> discriminative-power best-score)
             do (progn
                  (setf best-score score)
                  (setf best-concept (assqv :concept tuple))))

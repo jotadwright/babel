@@ -7,7 +7,7 @@
 ;;;; events
 (define-event new-cxn-added (cxn cxn))
 
-(defmethod adopt (agent meaning form)
+(defmethod adopt ((agent cle-agent) meaning form)
   (let ((new-cxn (make-cxn agent meaning form)))
     ;; push the new construction
     (push new-cxn (lexicon agent))

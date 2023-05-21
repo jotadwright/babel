@@ -56,4 +56,3 @@
     (:material . ,(material object))
     (:xpos . ,(if (> (x-pos object) 240) 'right 'left))
     (:zpos . ,(if (> (z-pos object) 11) 'behind 'front))))
-

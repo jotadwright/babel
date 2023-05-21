@@ -11,10 +11,10 @@
 ;; + Script +
 ;; ----------
 
-(defmethod before-interaction ((experiment cle-experiment) &key scene)
+(defmethod before-interaction ((experiment cle-experiment) &key scene agents)
   ;; 1. reset agents
   (determine-interacting-agents experiment
-                                  interaction
+                                  (current-interaction experiment)
                                   (get-configuration experiment :interacting-agents-strategy)
                                   :agents agents)
   (loop for agent in (interacting-agents experiment)
@@ -27,5 +27,3 @@
   (sample-topic experiment (get-configuration experiment :topic-sampling))
   ;; notify web-interface
   (notify context-determined experiment))
-          
-
