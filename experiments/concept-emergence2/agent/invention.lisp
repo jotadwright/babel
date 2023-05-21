@@ -4,8 +4,6 @@
 ;; + Invention of concepts +
 ;; ------------------------
 
-(define-event invention-finished (cxn cxn))
-
 (defmethod invent ((agent cle-agent))
   (let* ((meaning (attributes (get-data agent 'topic)))
          (form (make-new-word))
@@ -14,7 +12,5 @@
     (push new-cxn (lexicon agent))
     ;; update monitor
     (setf (invented-or-adopted agent) t)
-    ;; notify web-interface
-    (notify invention-finished new-cxn)
     ;; return created construction
     new-cxn))

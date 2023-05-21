@@ -4,11 +4,6 @@
 ;; + Alignment +
 ;; -------------
 
-;; events
-(define-event alignment-started (agent cle-agent))
-(define-event adoption-started (form string))
-(define-event entrenchment-update (cxn cxn) (rewarded-attrs list) (punished-attrs list))
-
 (defmethod align ((agent cle-agent))
   (case (discourse-role agent)
     (speaker (speaker-alignment agent))

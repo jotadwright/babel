@@ -20,8 +20,6 @@
                                                           1))))
     ;; 1. push new interaction
     (push interaction (interactions experiment))
-    ;; 2. notify web interface
-    (notify interaction-started experiment interaction (interaction-number interaction))
     ;; 3. run interaction script
     (interact experiment interaction :scene scene :agents agents)
     ;; 4. determine outcome
@@ -36,9 +34,6 @@
           (or 
            (= (mod (interaction-number interaction)
                    (get-configuration experiment :record-every-x-interactions)) 0)
-           (= (interaction-number interaction) 1))
-        (notify interaction-finished experiment interaction (interaction-number interaction)))
-      ;; if you do not set such a configuration, notify will always be notified
-      (notify interaction-finished experiment interaction (interaction-number interaction)))
+           (= (interaction-number interaction) 1))))
     ;; ???
     (values interaction experiment)))

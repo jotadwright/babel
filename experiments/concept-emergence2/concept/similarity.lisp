@@ -55,9 +55,9 @@
 ;; ----------------------------------
 
 ;; main algorithm - TODO fix readability
-(defun find-similar-concepts-into-sets (concepts &key activation)
+(defun find-similar-concepts-into-sets (cxns &key activation)
   "Filters a list of concepts based on similarity and entrenchement."
-  (let* ((clean-concepts (loop for concept in concepts collect (assqv :concept concept)))
+  (let* ((clean-concepts (loop for cxn in cxns collect (assqv :cxn cxn)))
          ;; find the tuples
          (found-sets (multiple-value-bind
                               (uniques similar-tuples)
@@ -69,7 +69,7 @@
          (res (loop for set in found-sets
                     for new-set = (loop for el in set collect (find el
                                                                     concepts
-                                                                    :test #'(lambda (x other) (equal x (assqv :concept other)))))
+                                                                    :test #'(lambda (x other) (equal x (assqv :cxn other)))))
                     collect new-set)))
     res))
 
@@ -126,7 +126,7 @@
   (loop with best-val = -1
         with best-triple = nil
         for triple in similar-set
-        for concept = (assqv :concept triple)
+        for concept = (assqv :cxn triple)
         do (when (or (not best-triple) (< best-val (score concept)))
              (setf best-val (score concept)
                    best-triple triple))

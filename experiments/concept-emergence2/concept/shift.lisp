@@ -53,10 +53,6 @@
 ;; + Utils for alignment +
 ;; -----------------------
 
-;; events
-(define-event found-discriminating-attributes (attributes list))
-(define-event found-subset-to-reward (subset list))
-
 ;; --------------------
 ;; + Similarity table +
 ;; --------------------

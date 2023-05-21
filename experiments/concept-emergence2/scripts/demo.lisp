@@ -78,7 +78,6 @@
                 (:punish-strategy . :punish-found-concepts)
                 )))
   (defparameter *experiment* (make-instance 'cle-experiment :configuration *baseline-simulated*))
-  (notify reset-monitors)
   (wi::reset))
 
 (progn

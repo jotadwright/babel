@@ -1,15 +1,8 @@
 (in-package :cle)
 
 ;; ---------------------------------
-;; + Setup scene, topic and agents +
+;; + Setup agents, scene and topic +
 ;; ---------------------------------
-
-;; events
-(define-event context-determined (experiment cle-experiment))
-
-;; ----------
-;; + Script +
-;; ----------
 
 (defmethod before-interaction ((experiment cle-experiment) &key scene agents)
   ;; 1. reset agents
@@ -24,6 +17,4 @@
     (set-scene experiment scene)
     (sample-scene experiment (get-configuration experiment :scene-sampling)))
   ;; 3. pick a topic
-  (sample-topic experiment (get-configuration experiment :topic-sampling))
-  ;; notify web-interface
-  (notify context-determined experiment))
+  (sample-topic experiment (get-configuration experiment :topic-sampling)))

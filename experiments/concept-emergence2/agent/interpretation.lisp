@@ -4,8 +4,6 @@
 ;; + Interpretation +
 ;; ------------------
 
-(define-event interpretation-finished (agent cle-agent))
-
 (defmethod interpret ((agent cle-agent))
   "Computes the weighted similarity between
      1. the parsed-meaning
@@ -27,7 +25,6 @@
                            1)))
       (set-data agent 'interpreted-topic
                 (unless similar-p maybe-topic))))
-  (notify interpretation-finished agent) ;; notify
   (find-data agent 'interpreted-topic))
 
 (defmethod reentrance (context cxn)
