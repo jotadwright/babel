@@ -9,5 +9,5 @@
   (:documentation "Finalize the interaction."))
 
 (defmethod after-interaction ((experiment cle-experiment))
-  (alignment (speaker experiment))
-  (alignment (hearer experiment)))
+  (align (speaker experiment))
+  (align (hearer experiment)))

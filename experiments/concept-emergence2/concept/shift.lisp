@@ -12,7 +12,7 @@
   ;; 1. update the prototypical values
   (loop for prototype in (prototypes concept) ;; assumes prototype
         for interaction-number = (interaction-number (current-interaction (experiment agent)))
-        do (update-prototype interaction-number prototype topic (get-configuration agent :prototype-update-strategy)))
+        do (update-prototype interaction-number prototype topic (get-configuration agent :distribution)))
   ;; 2. determine which attributes should get an increase
   ;;    in weight, and which should get a decrease.
   (let* ((similarity-table (make-similarity-table agent concept))
@@ -47,8 +47,7 @@
                  (update-weight concept
                                 (attribute prototype)
                                 (get-configuration agent :weight-decf)
-                                (get-configuration agent :weight-update-strategy)))
-          finally (notify scores-updated concept rewarded-attributes punished-attributes))))
+                                (get-configuration agent :weight-update-strategy))))))
 
 ;; -----------------------
 ;; + Utils for alignment +
@@ -74,7 +73,7 @@
         for objects-hash
           = (loop with hash = (make-hash-table)
                   for object in (objects (get-data agent 'context))
-                  for exemplar = (get-attr-val object (attribute prototype))
+                  for exemplar = (get-channel-val object (attribute prototype))
                   for s = (exemplar-similarity exemplar prototype)
                   for ws = (* (weight prototype) s)
                   do (setf (gethash (id object) hash) (cons s ws))
@@ -105,7 +104,7 @@
                     (> topic-similarity best-other-similarity))
             do (push attribute discriminating-attributes)
           finally
-            (progn (notify found-discriminating-attributes discriminating-attributes)
+            (progn
               (return discriminating-attributes)))))
 
 (defmethod filter-subsets (all-subsets discriminating-attributes)
@@ -152,5 +151,5 @@
               (setf best-subset subset
                     largest-diff diff
                     best-similarity topic-similarity))))))
-    (notify found-subset-to-reward best-subset)
     best-subset))
+

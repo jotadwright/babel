@@ -7,7 +7,7 @@
 (defmethod weighted-similarity ((object cle-object) (concept concept))
   "Compute the weighted similarity between an object and a concept."
   (loop for prototype in (prototypes concept)
-        for exemplar = (get-attr-val object (channel prototype))
+        for exemplar = (get-channel-val object (channel prototype))
         for similarity = (exemplar-similarity exemplar prototype)
         collect (* (weight prototype) similarity) into weighted-similarities
         finally (return (average weighted-similarities))))
@@ -44,9 +44,9 @@
         for proto1 in (meaning concept1)
         for proto2 in (meaning concept2)
         for avg-weight = (/ (+ (/ (weight proto1) concept1-weight-sum)
-                                  (/ (weight proto2) concept2-weight-sum))
-                               2)
-        for prototype-similarity = (- 1 (prototype-distance proto1 proto2 mode))
+                               (/ (weight proto2) concept2-weight-sum))
+                            2)
+        for prototype-similarity = (- 1 (f-divergence (distribution proto1) (distribution proto2) mode))
         for sim-score = (* avg-weight prototype-similarity)
         sum sim-score))
 

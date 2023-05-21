@@ -32,7 +32,7 @@
           (shift-concept agent topic (meaning applied-cxn))
           ;;  3. punish competing similar cxns
           (loop for other-cxn in (find-data agent 'meaning-competitors)
-                 do (update-score-cxn agent other-cxn (get-configuration agent :entrenchment-li)))
+                 do (update-score-cxn agent other-cxn (get-configuration agent :entrenchment-li))))
         ;; otherwise, entrench used cxn negatively
         (update-score-cxn agent applied-cxn)))))
 

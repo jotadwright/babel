@@ -66,7 +66,7 @@
                 (:M2 . 0.0001)
 
                 ;; prototype weight inits
-                (:weight-update-strategy :standard)
+                (:weight-update-strategy . :standard)
                 (:initial-weight . 0)
                 (:weight-incf . 1/10)
                 (:weight-decf . -1/10)
