@@ -20,7 +20,7 @@
                                                                     concept
                                                                     topic
                                                                     similarity-table))
-         (all-attribute-subsets (all-subsets concept))
+         (all-attribute-subsets (all-subsets (prototypes concept)))
          (subsets-to-consider (filter-subsets all-attribute-subsets discriminating-attributes))
          (best-subset (find-most-discriminating-subset agent
                                                        subsets-to-consider
@@ -29,23 +29,23 @@
     (when (null best-subset)
       ;; when best-subset returns NIL
       ;; reward all attributes...
-      (setf best-subset (meaning concept)))
+      (setf best-subset (prototypes concept)))
     ;; 3. actually update the weight scores
     (loop with rewarded-attributes = nil
           with punished-attributes = nil
-          for prototype in (meaning concept)
+          for prototype in (prototypes concept)
           ;; if part of the contributing prototypes -> reward
-          if (member (attribute prototype) best-subset :key #'attribute)
-            do (progn (push (attribute prototype) rewarded-attributes)
+          if (member (channel prototype) best-subset :key #'channel)
+            do (progn (push (channel prototype) rewarded-attributes)
                  (update-weight concept
-                                (attribute prototype)
+                                (channel prototype)
                                 (get-configuration agent :weight-incf)
                                 (get-configuration agent :weight-update-strategy)))
             ;; otherwise -> punish
           else
-            do (progn (push (attribute prototype) punished-attributes)
+            do (progn (push (channel prototype) punished-attributes)
                  (update-weight concept
-                                (attribute prototype)
+                                (channel prototype)
                                 (get-configuration agent :weight-decf)
                                 (get-configuration agent :weight-update-strategy))))))
 
@@ -64,41 +64,40 @@
                    
    Saves tons in computation by only calculating it only once."
   (loop with attribute-hash = (make-hash-table)
-        for prototype in (meaning concept)
-        for attribute = (attribute prototype)
-        for objects-hash
-          = (loop with hash = (make-hash-table)
-                  for object in (objects (get-data agent 'context))
-                  for exemplar = (get-channel-val object (attribute prototype))
-                  for s = (exemplar-similarity exemplar prototype)
-                  for ws = (* (weight prototype) s)
-                  do (setf (gethash (id object) hash) (cons s ws))
-                  finally (return hash))
-        do (setf (gethash attribute attribute-hash) objects-hash)
+        for prototype in (prototypes concept)
+        for channel = (channel prototype)
+        for objects-hash = (loop with hash = (make-hash-table)
+                                 for object in (objects (get-data agent 'context))
+                                 for exemplar = (get-channel-val object (channel prototype))
+                                 for s = (exemplar-similarity exemplar prototype)
+                                 for ws = (* (weight prototype) s)
+                                 do (setf (gethash (id object) hash) (cons s ws))
+                                 finally (return hash))
+        do (setf (gethash channel attribute-hash) objects-hash)
         finally (return attribute-hash)))
 
-(defun get-s (object attribute table)
+(defun get-s (object channel table)
   "Retrieve the similarity for the given object-attribute combination."
-  (first (gethash (id object) (gethash attribute table))))
+  (first (gethash (id object) (gethash channel table))))
 
-(defun get-ws (object attribute table)
+(defun get-ws (object channel table)
   "Retrieve the weighted similarity for the given object-attribute combination."
-  (rest (gethash (id object) (gethash attribute table))))
+  (rest (gethash (id object) (gethash channel table))))
 
 (defun find-discriminating-attributes (agent concept topic similarity-table)
   "Find all attributes that are discriminating for the topic."
   (let ((context (remove topic (objects (get-data agent 'context)))))
     (loop with discriminating-attributes = nil
-          for prototype in (meaning concept)
-          for attribute = (attribute prototype)
-          for topic-similarity = (get-s topic attribute similarity-table)
+          for prototype in (prototypes concept)
+          for channel = (channel prototype)
+          for topic-similarity = (get-s topic channel similarity-table)
           for best-other-similarity
             = (when (> topic-similarity 0)
                 (loop for object in context
-                      maximize (get-s object attribute similarity-table)))
+                      maximize (get-s object channel similarity-table)))
           when (and topic-similarity best-other-similarity
                     (> topic-similarity best-other-similarity))
-            do (push attribute discriminating-attributes)
+            do (push channel discriminating-attributes)
           finally
             (progn
               (return discriminating-attributes)))))
@@ -108,7 +107,7 @@
    keeping those subsets where all discriminating attributes occur in."
   (loop with applicable-subsets = nil
         for subset in all-subsets
-        for subset-attributes = (mapcar #'attribute subset)
+        for subset-attributes = (mapcar #'channel subset)
         when (null (set-difference discriminating-attributes subset-attributes))
           do (push subset applicable-subsets)
         finally
@@ -119,8 +118,8 @@
 ;; -----------------------------
 (defun weighted-similarity-with-table (object list-of-prototypes table)
   (loop for prototype in list-of-prototypes
-        for attribute = (attribute prototype)
-        for ws = (get-ws object attribute table)
+        for channel = (channel prototype)
+        for ws = (get-ws object channel table)
         collect ws into weighted-similarities
         finally (return (average weighted-similarities))))
 

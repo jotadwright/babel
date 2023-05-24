@@ -21,7 +21,10 @@
   ;; similarity measure between [-inf,1]
   (let* ((distribution (distribution prototype))
          (st-dev (st-dev distribution))
-         (z-score (abs (/ (- exemplar (mean distribution)) st-dev)))
+         (diff (- exemplar (mean distribution)))
+         (z-score (if (not (eq diff 0))
+                    (abs (/ diff st-dev))
+                    0))
          (max-z-score 2)
          (sim (/ (- max-z-score z-score) max-z-score)))
     sim))
@@ -39,10 +42,10 @@
     (>= similarity-score activation)))
 
 (defmethod similar-concepts ((concept1 concept) (concept2 concept) (mode (eql :hellinger)) &key &allow-other-keys)
-  (loop with concept1-weight-sum = (loop for proto in (meaning concept1) sum (weight proto))
-        with concept2-weight-sum = (loop for proto in (meaning concept2) sum (weight proto))
-        for proto1 in (meaning concept1)
-        for proto2 in (meaning concept2)
+  (loop with concept1-weight-sum = (loop for proto in (prototypes concept1) sum (weight proto))
+        with concept2-weight-sum = (loop for proto in (prototypes concept2) sum (weight proto))
+        for proto1 in (prototypes concept1)
+        for proto2 in (prototypes concept2)
         for avg-weight = (/ (+ (/ (weight proto1) concept1-weight-sum)
                                (/ (weight proto2) concept2-weight-sum))
                             2)
@@ -68,7 +71,7 @@
          ;; add previous removed info back to set information
          (res (loop for set in found-sets
                     for new-set = (loop for el in set collect (find el
-                                                                    concepts
+                                                                    cxns
                                                                     :test #'(lambda (x other) (equal x (assqv :cxn other)))))
                     collect new-set)))
     res))
@@ -82,7 +85,7 @@
     (let* ((first (first lst))
            (rest (rest lst))
            (unique-p (loop for second in rest
-                           if (similar-concepts-p first second :hellinger :activation activation)
+                           if (similar-concepts-p (meaning first) (meaning second) :hellinger :activation activation)
                              do (progn
                                   (setf flagged (cons (cons first second) flagged))
                                   (return nil))

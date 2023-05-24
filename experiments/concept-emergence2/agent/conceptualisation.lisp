@@ -29,10 +29,10 @@
            (applied-cxn (select-most-discriminating-concept unique-concepts)))
       ;; decides which concepts are considered during alignment
       (decide-competitors-speaker agent
+                                  applied-cxn ;; phase 3: most-discriminating -> applied
                                   discriminating-concepts ;; phase 1
                                   similar-sets ;; phase 2a
                                   unique-concepts ;; phase 2b
-                                  applied-cxn ;; phase 3: most-discriminating -> applied
                                   )
       (set-data agent 'applied-cxn applied-cxn)
       applied-cxn)))
@@ -70,7 +70,7 @@
             do (setf discriminating-cxns (cons (list (cons :cxn cxn)
                                                      (cons :topic-sim topic-similarity)
                                                      (cons :best-other-sim best-other-similarity))
-                                               discriminating-concepts)))
+                                               discriminating-cxns)))
     discriminating-cxns))
 
 ;; ------------------------------------------
@@ -86,9 +86,12 @@
           for discriminative-power = (abs (- topic-sim best-other-sim))
           when (> discriminative-power best-score)
             do (progn
-                 (setf best-score score)
+                 (setf best-score discriminative-power)
                  (setf best-cxn (assqv :cxn tuple))))
     best-cxn))
+
+(defun sigmoid (x)
+  (/ 1 (+ 1 (exp (* -1 x)))))
 
 ;; ---------------------
 ;; + Lexicon coherence +

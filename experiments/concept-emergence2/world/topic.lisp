@@ -35,7 +35,7 @@
          (candidate-topics (filter-discriminative-topics (objects cle-context))))
     (if candidate-topics
       (let ((cle-topic (random-elt candidate-topics)))
-        (set-data interaction 'attribute-type (get-symbolic-discriminative-feature cle-topic cle-context))
+        (set-data interaction 'channel-type (get-symbolic-discriminative-feature cle-topic cle-context))
         (loop for agent in (interacting-agents experiment)
               do (set-data agent 'topic cle-topic)))
       (progn
@@ -49,7 +49,7 @@
   "Returns which symbolic features of the topic are discriminative."
   (let ((other-objects (remove topic (objects context))))
     (loop for (attr . val) in (description topic)
-          for available = (is-attribute-available attr (attributes topic))
+          for available = (is-channel-available attr (attributes topic))
           for discriminative = (loop for other-object in other-objects
                                      for other-val = (assqv attr (description other-object))
                                      always (not (equal val other-val)))
@@ -63,16 +63,16 @@
         collect object))
 
 (defun is-discriminative (object other-objects)
-  "Checks if the object has a single attribute dimension that is different from all other objects."
+  "Checks if the object has a single channel dimension that is different from all other objects."
   (loop for (attr . val) in (description object)
-        do (when (is-attribute-available attr (attributes object))
+        do (when (is-channel-available attr (attributes object))
              (let ((discriminative (loop for other-object in other-objects
                                          for other-val = (assqv attr (description other-object))
                                          always (not (equal val other-val)))))
                (when discriminative
                  (return t))))))
 
-(defun is-attribute-available (symbolic-attribute raw-attributes)
+(defun is-channel-available (symbolic-attribute raw-attributes)
   (let ((continuous-attributes (mapcar 'first raw-attributes)))
     (case symbolic-attribute
       (:COLOR (or (if (member 'R continuous-attributes) t nil)

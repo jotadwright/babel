@@ -24,4 +24,4 @@
   (make-instance 'cxn
                  :form form
                  :meaning (make-concept agent object (get-configuration agent :concept-representation))
-                 :score (get-configuration agent :initial-cxn-score)))
+                 :score (get-configuration agent :initial-cxn-entrenchement)))

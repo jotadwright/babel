@@ -22,14 +22,14 @@
         ;; if success,
         (progn
           ;;  1. entrench applied-cxn
-          (update-score-cxn agent applied-cxn)
+          (update-score-cxn agent applied-cxn (get-configuration agent :entrenchment-incf))
           ;;  2. shift concept of applied-cxn to topic
           (shift-concept agent topic (meaning applied-cxn))
           ;;  3. punish competing similar cxns
           (loop for other-cxn in (find-data agent 'meaning-competitors)
                  do (update-score-cxn agent other-cxn (get-configuration agent :entrenchment-li))))
         ;; otherwise, entrench used cxn negatively
-        (update-score-cxn agent applied-cxn)))))
+        (update-score-cxn agent applied-cxn (get-configuration agent :entrenchment-decf))))))
 
 ;; ----------------
 ;; + Align hearer +
@@ -52,12 +52,12 @@
            ;; 2. shift concept of applied-cxn to topic
            (shift-concept agent topic (meaning applied-cxn))
            ;; 3. find and punish meaning competitors
-           (decide-competitors-hearer agent applied-cxn)
+           (decide-competitors-hearer agent applied-cxn :activation (get-configuration agent :concept-similarity-activation))
            (loop for other-cxn in (find-data agent 'meaning-competitors)
                  do (update-score-cxn agent other-cxn (get-configuration agent :entrenchment-li)))
            ;; CASE B: recognized but did not point to correct word
            (progn
-             ;; 1. entrench applied-cxn
-             (update-score-cxn agent applied-cxn)
+             ;; 1. entrench applied-cxn negatively
+             (update-score-cxn agent applied-cxn (get-configuration agent :entrenchment-decf))
              ;; 2. shift concept of applied-cxn to topic
              (shift-concept agent topic (meaning applied-cxn)))))))))

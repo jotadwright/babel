@@ -54,12 +54,12 @@
   (incf (nr-of-samples distribution))
   ;; Step 2: Update
   (let* ((delta-1 (- new-observation (mean distribution)))
-         (new-mean (+ (mean prototype) (/ delta-1 (nr-of-samples distribution))))
+         (new-mean (+ (mean distribution) (/ delta-1 (nr-of-samples distribution))))
          (delta-2 (- new-observation new-mean))
-         (new-M2 (+ (M2 prototype) (* delta-1 delta-2))))
-    (setf (mean prototype) new-mean
+         (new-M2 (+ (M2 distribution) (* delta-1 delta-2))))
+    (setf (mean distribution) new-mean
           (st-dev distribution) (sqrt (/ new-M2 (nr-of-samples distribution)))
-          (M2 prototype) new-M2)))
+          (M2 distribution) new-M2)))
 
 ;; --------------------
 ;; + Helper functions +

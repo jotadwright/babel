@@ -67,7 +67,7 @@
 
                 ;; prototype weight inits
                 (:weight-update-strategy . :standard)
-                (:initial-weight . 0)
+                (:initial-weight . 1/2)
                 (:weight-incf . 1/10)
                 (:weight-decf . -1/10)
                 
@@ -87,7 +87,8 @@
   ;(activate-monitor display-communicative-success)
   (deactivate-all-monitors))
 
-(run-interaction *experiment*)
+(loop for i from 1 to 100
+      do (run-interaction *experiment*))
 
 ;; 1. run then show last
 (run-then-show-last *experiment* (* *subset-size* 800) :show t :display t)
