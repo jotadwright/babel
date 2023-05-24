@@ -11,7 +11,6 @@
     (loop for agent in (interacting-agents experiment)
           do (set-data agent 'context cle-context))))
 
-
 ;; ------------------
 ;; + Scene sampling +
 ;; ------------------

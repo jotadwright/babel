@@ -54,7 +54,7 @@
                 :components ((:file "construction")
                              (:file "competitors")
                              (:file "update")))
-               (:module "distributions"
+               (:module "distribution"
                 :serial t
                 :components ((:file "gaussian")
                              (:file "divergence")

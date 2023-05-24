@@ -11,11 +11,10 @@
                          (mode (eql :hellinger))
                          &key
                          &allow-other-keys)
-  (hellinger-distance (mean distribution1)
-                      (st-dev distribution1)
-                      (mean distribution2)
-                      (st-dev distribution2)))
-
+  (hellinger (mean distribution1)
+             (st-dev distribution1)
+             (mean distribution2)
+             (st-dev distribution2)))
 
 ;; --------------------
 ;; + Helper functions +

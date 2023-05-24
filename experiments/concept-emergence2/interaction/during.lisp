@@ -23,12 +23,12 @@
       (invent speaker)
       (conceptualise speaker))
     ;; speaker utters the form
-    (produce speaker)
+    (production speaker)
     ;; hearer hears the utterance
     (setf (utterance hearer) (utterance speaker))
     ;; success if
     (when (and ;; 1. the hearer recognises it,
-               (parse hearer)
+               (parsing hearer)
                ;; 2. can interpret it, and
                (interpret hearer)
                ;; 3. it matches the topic

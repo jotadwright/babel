@@ -17,16 +17,11 @@
     :initarg :score :accessor score :initform nil :type number))
   (:documentation "A construction is a mapping between a form and a meaning."))
 
-(defgeneric make-cxn (agent object)
+(defgeneric make-cxn (agent object form)
   (:documentation "Creates a new construction."))
   
 (defmethod make-cxn (agent object form)
   (make-instance 'cxn
                  :form form
                  :meaning (make-concept agent object (get-configuration agent :concept-representation))
-                 :score (get-configuration agent :initial-cxn-score)))
-
-
-                                                                       
-                                                                       
-
+                 :score (get-configuration agent :initial-cxn-entrenchement)))

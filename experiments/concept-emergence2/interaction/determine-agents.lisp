@@ -14,9 +14,7 @@
   ;; set discourse-role
   (loop for a in (interacting-agents interaction)
         for d in '(speaker hearer)
-        do (setf (discourse-role a) d))
-  ;; notify web-interface
-  (notify interacting-agents-determined experiment interaction))
+        do (setf (discourse-role a) d)))
 
 (defmethod determine-interacting-agents (experiment interaction (mode (eql :random))
                                                     &key (agents nil)
@@ -29,6 +27,4 @@
   ;; set discourse-role
   (loop for a in (interacting-agents interaction)
         for d in '(speaker hearer)
-        do (setf (discourse-role a) d))
-  ;; notify web-interface
-  (notify interacting-agents-determined experiment interaction))
+        do (setf (discourse-role a) d)))
