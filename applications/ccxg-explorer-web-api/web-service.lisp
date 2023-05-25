@@ -49,7 +49,7 @@
                                                  (transform-schema schema order-matters allow-additional-roles)
                                                  :max-n (parse-integer max-n))
                        (error (e)
-                         (snooze:http-condition 500 "Error in construction explorer API!" e)))))
+                         (snooze:http-condition 500 "Error in construction explorer API: ~a" e)))))
       (cl-json:encode-json-alist-to-string
        (transform-results results)))))
 
