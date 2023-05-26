@@ -61,6 +61,8 @@
           (st-dev distribution) (sqrt (/ new-M2 (nr-of-samples distribution)))
           (M2 distribution) new-M2)))
 
+
+
 ;; --------------------
 ;; + Helper functions +
 ;; --------------------
@@ -70,3 +72,17 @@
                         ~:_ mean: ~a,~:_ st-dev: ~a~:_"
             (mean distribution) (st-dev distribution))
     (format stream ">")))
+
+(defmethod copy-object ((distribution gaussian))
+  (make-instance 'gaussian
+                 :mean (copy-object (mean distribution))
+                 :st-dev (copy-object (st-dev distribution))
+                 :history (copy-object (history distribution))))
+
+(defmethod copy-object ((distribution gaussian-welford))
+  (make-instance 'gaussian-welford
+                 :mean (copy-object (mean distribution))
+                 :st-dev (copy-object (st-dev distribution))
+                 :history (copy-object (history distribution))
+                 :nr-of-samples (copy-object (nr-of-samples distribution))
+                 :M2 (copy-object (M2 distribution))))

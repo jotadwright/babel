@@ -66,4 +66,15 @@
                              (:file "before")
                              (:file "during")
                              (:file "after")
-                             (:file "run")))))
+                             (:file "run")))
+               (:module "utils"
+                :serial t
+                :components ((:file "utils")))
+               (:module "web"
+                :serial t
+                :components ((:file "html")
+                             (:file "s-dot")
+                             (:file "s-dot-diff")
+                             (:file "utils")
+                             (:file "web-monitor")
+                             (:file "monitors")))))

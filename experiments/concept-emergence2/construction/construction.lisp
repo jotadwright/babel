@@ -25,3 +25,10 @@
                  :form form
                  :meaning (make-concept agent object (get-configuration agent :concept-representation))
                  :score (get-configuration agent :initial-cxn-entrenchement)))
+
+(defmethod copy-object ((cxn cxn))
+  (make-instance 'cxn
+                 :id (id cxn)
+                 :form (copy-object (form cxn))
+                 :meaning (copy-object (meaning cxn))
+                 :score (copy-object (score cxn))))

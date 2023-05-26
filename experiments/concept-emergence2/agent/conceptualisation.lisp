@@ -4,8 +4,25 @@
 ;; + Conceptualise +
 ;; -----------------
 
+;; events - test
+(define-event event-conceptualisation-start (agent cle-agent))
+(define-event event-conceptualisation-end
+  (agent cle-agent)
+  (discriminating-cxns list)
+  (similar-sets list)
+  (best-entrenched-cxns list)
+  (applied-cxn list))
+(define-event event-coherence-p
+  (experiment cle-experiment)
+  (coherence symbol)
+  (speaker-cxn t)
+  (hearer-cxn t))
+
+
 (defmethod conceptualise ((agent cle-agent))
-  ;; conceptualise
+  ;; notify
+  (notify event-conceptualisation-start agent)
+  ;; conceptualise ifo the role
   (case (discourse-role agent)
     (speaker (speaker-conceptualise agent))
     (hearer (hearer-conceptualise agent))))
@@ -18,39 +35,46 @@
   (if (length= (lexicon agent) 0)
     nil
     (let* (;; step 1 - find the discriminating concepts
-           (discriminating-concepts (search-discriminative-concepts agent))
-           ;; step 2 - find similar concepts and sort them into sets where concepts are similar
-           (similar-sets (find-similar-concepts-into-sets discriminating-concepts 
-                                                          :activation (get-configuration agent :concept-similarity-activation)))
+           (discriminating-cxns (search-discriminative-concepts agent))
+           ;; step 2 - find similar concepts and sort them into sets in which concepts are similar
+           (similar-sets (find-similar-concepts-into-sets
+                          discriminating-cxns
+                          :activation (get-configuration agent :concept-similarity-activation)))
            ;; step 3 - find the best entrenched concept in each set
-           (unique-concepts (loop for set in similar-sets
+           (best-entrenched-cxns (loop for set in similar-sets
                                   collect (select-best-entrenched-concept set)))
            ;; step 4 - find the concept with the most discriminative power
-           (applied-cxn (select-most-discriminating-concept unique-concepts)))
+           (applied-cxn (select-most-discriminating-concept best-entrenched-cxns)))
       ;; decides which concepts are considered during alignment
       (decide-competitors-speaker agent
                                   applied-cxn ;; phase 3: most-discriminating -> applied
-                                  discriminating-concepts ;; phase 1
                                   similar-sets ;; phase 2a
-                                  unique-concepts ;; phase 2b
                                   )
+      ;; set the applied-cxn slot
       (set-data agent 'applied-cxn applied-cxn)
+      ;; notify
+      (notify event-conceptualisation-end
+              agent
+              discriminating-cxns
+              similar-sets
+              best-entrenched-cxns
+              (list applied-cxn))
       applied-cxn)))
 
 (defmethod hearer-conceptualise ((agent cle-agent))
   (if (length= (lexicon agent) 0)
     nil
     (let* (;; step 1 - find the discriminating concepts
-           (discriminating-concepts (search-discriminative-concepts agent))
+           (discriminating-cxns (search-discriminative-concepts agent))
            ;; step 2 - find similar concepts and sort them into sets where concepts are similar
-           (similar-sets (find-similar-concepts-into-sets discriminating-concepts
+           (similar-sets (find-similar-concepts-into-sets discriminating-cxns
                                                           :activation (get-configuration agent :concept-similarity-activation)))
            
            ;; step 3 - find the best entrenched concept in each set
-           (unique-concepts (loop for set in similar-sets
+           (best-entrenched-cxns (loop for set in similar-sets
                                   collect (select-best-entrenched-concept set)))
            ;; step 4 - find the concept with the most discriminative power
-           (applied-cxn (select-most-discriminating-concept unique-concepts)))
+           (applied-cxn (select-most-discriminating-concept best-entrenched-cxns)))
       applied-cxn)))
 
 ;; ----------------------------------
@@ -107,4 +131,5 @@
          (coherence (if (and speaker-cxn hearer-cxn)
                       (string= (form speaker-cxn) (form hearer-cxn))
                       nil)))
+    (notify event-coherence-p experiment coherence speaker-cxn hearer-cxn)
     coherence))
