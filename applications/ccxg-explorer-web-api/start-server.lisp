@@ -4,28 +4,32 @@
 (in-package :propbank-grammar)
 
 
-;; LOAD ANNOTATIONS
+;; Restore corpus annotations
 (load (babel-pathname :directory
                      '("applications" "ccxg-explorer-web-api")
                      :name "annotations"
                      :type "lisp"))
 
+(restore-annotations)
+
+
+;; Load function to search in corpus
 (load (babel-pathname :directory
                       '("applications" "ccxg-explorer-web-api")
                       :name "search" :type "lisp"))
 
+
+;; Load web service routes
 (load (babel-pathname :directory
                       '("applications" "ccxg-explorer-web-api")
                       :name "web-service" :type "lisp"))
 
-;; LOAD FRAME EXTRACTOR CONSTRUCTIONS
-;(restore-annotations)
+;; Load constructions for frame extracting
 (defun add-array-locks! (construction-inventory)
   (let ((matrix-names '(nil gram-sense lex-sense lex-gram))
         (matrix (graph-utils::matrix (fcg::graph (categorial-network construction-inventory)))))
     (loop for name in matrix-names
           do  (setf (graph-utils::array-lock (gethash name matrix)) (bordeaux-threads:make-recursive-lock)))))
-
 
 
 (defparameter *restored-grammar*
@@ -37,14 +41,16 @@
                                :name "propbank-grammar-ontonotes-no-aux-lw"
                                :type "fcg")
    #+ccl (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
-                         :name "propbank-grammar-ontonotes-ccl-10000"
+                         :name "propbank-grammar-ontonotes-ccl-full-no-heur"
                          :type "fcg")))
 
 #+ccl (add-array-locks! *restored-grammar*)
 
 (export '(*restored-grammar*))
 
-;; WEB SERVER
+;;;;;;;;;;;;;;;;;;;;;
+;;   WEB SERVER    ;;
+;;;;;;;;;;;;;;;;;;;;;
 
 (in-package :hunchentoot)
 

@@ -6,33 +6,36 @@
 ;; Anti-unify strings ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
   
-(defun anti-unify-strings (pattern source)
+(defun anti-unify-strings (pattern source &key to-sequence-predicates-p)
   "Anti-unify strings by (1) using needleman-wunsch to compute the
    maximal alignments, (2) make generalisations of overlapping characters
    and place the rest in delta's. The results are converted back to strings
    and the anti-unification cost corresponds to the number of elements in
    the delta's. Solutions are returned sorted by cost."
-  (loop with possible-alignments = (maximal-string-alignments pattern source)
-        for alignment in possible-alignments
-        for pattern-in-alignment = (aligned-pattern alignment)
-        for source-in-alignment = (aligned-source alignment)
-        collect (multiple-value-bind (resulting-generalisation
-                                      resulting-pattern-delta
-                                      resulting-source-delta)
-                    (anti-unify-aligned-strings pattern-in-alignment source-in-alignment)
-                  (make-instance 'anti-unification-result
-                                 :generalisation (generalisation-chars->strings resulting-generalisation)
-                                 :pattern-delta (loop for (var . chars) in resulting-pattern-delta
-                                                      collect (cons var (coerce chars 'string)))
-                                 :source-delta (loop for (var . chars) in resulting-source-delta
-                                                     collect (cons var (coerce chars 'string)))
-                                 :cost (+ (length resulting-pattern-delta)
-                                          (length resulting-source-delta))))
-          into results
-        finally
-          (return
-           (sort (remove-duplicates results :test #'duplicate-string-anti-unification-results)
-                 #'< :key #'cost))))
+  (let* ((all-anti-unification-results 
+          (loop with possible-alignments = (maximal-string-alignments pattern source)
+                for alignment in possible-alignments
+                for pattern-in-alignment = (aligned-pattern alignment)
+                for source-in-alignment = (aligned-source alignment)
+                collect (multiple-value-bind (resulting-generalisation
+                                              resulting-pattern-delta
+                                              resulting-source-delta)
+                            (anti-unify-aligned-strings pattern-in-alignment source-in-alignment)
+                          (make-instance 'anti-unification-result
+                                         :generalisation (generalisation-chars->strings resulting-generalisation)
+                                         :pattern-delta (loop for (var . chars) in resulting-pattern-delta
+                                                              collect (cons var (coerce chars 'string)))
+                                         :source-delta (loop for (var . chars) in resulting-source-delta
+                                                             collect (cons var (coerce chars 'string)))
+                                         :cost (+ (length resulting-pattern-delta)
+                                                  (length resulting-source-delta))))))
+         (unique-sorted-results
+          (sort (remove-duplicates all-anti-unification-results
+                                   :test #'duplicate-string-anti-unification-results)
+                #'< :key #'cost)))
+    (if to-sequence-predicates-p
+      (mapcar #'string-anti-unification-result->sequence-predicates unique-sorted-results)
+      unique-sorted-results)))
 
 
 (defun anti-unify-aligned-strings (pattern source)
@@ -47,7 +50,7 @@
                     ;;    store the diff in the delta's
                     ;;    add a var to the generalisation
                     ;;    and clear the temp buffers
-                    (let ((var (make-var)))       
+                    (let ((var (make-var (next-au-var))))       
                       (push var generalisation)    
                       (push (cons var (reverse pattern-delta-temp)) pattern-delta)                               
                       (push (cons var (reverse source-delta-temp)) source-delta)
@@ -75,7 +78,7 @@
            finally
            ;; handle trailing characters in the temp buffers
            (when flag              
-             (let ((var (make-var)))                                     
+             (let ((var (make-var (next-au-var))))                                     
                (push var generalisation)
                (push (cons var (reverse pattern-delta-temp)) pattern-delta)                                
                (push (cons var (reverse source-delta-temp)) source-delta)
@@ -253,54 +256,90 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun string-anti-unification-result->sequence-predicates (string-anti-unification-result)
-  "Convert the string anti-unification result to sequence predicates.
-   Left and right boundaries are set such that the combination of the
-   pattern/source delta and the generalisation is identical to the
-   original pattern/source."
   (with-slots (generalisation pattern-delta source-delta cost)
       string-anti-unification-result
-    (declare (ignore cost))
-    (let (generalisation-predicates
-          pattern-delta-predicates
-          source-delta-predicates
-          prev-was-variable-p)
-      (dolist (elem generalisation)
-        (cond ((stringp elem)
-               (if prev-was-variable-p
-                 (let ((left-boundary (fourth (first pattern-delta-predicates))))
-                   (push `(sequence ,elem ,left-boundary ,(make-var 'rb))
-                         generalisation-predicates)
-                   (setf prev-was-variable-p nil))
-                 (push `(sequence ,elem ,(make-var 'lb) ,(make-var 'rb))
-                       generalisation-predicates)))
-              ((variable-p elem)
-               (let ((left-boundary (or (fourth (first generalisation-predicates))
-                                        (make-var 'lb)))
-                     (right-boundary (make-var 'rb))
-                     (pattern-string (rest (assoc elem pattern-delta)))
-                     (source-string (rest (assoc elem source-delta))))
-                 (push `(sequence ,pattern-string ,left-boundary ,right-boundary)
-                       pattern-delta-predicates)
-                 (push `(sequence ,source-string ,left-boundary ,right-boundary)
-                       source-delta-predicates)
-                 (setf prev-was-variable-p t)))))
-      (list (reverse generalisation-predicates)
-            (reverse pattern-delta-predicates)
-            (reverse source-delta-predicates)))))
-
+    (let (;; make seq predicaes for the generalisation and
+          ;; insert NIL placeholders for where the delta's are
+          (generalisation-predicates
+           (loop for elem in generalisation
+                 when (stringp elem)
+                 collect `(sequence ,elem ,(make-var (next-au-var)) ,(make-var (next-au-var)))
+                 else collect nil))
+          pattern-delta-predicates source-delta-predicates
+          pattern-bindings source-bindings)
+      ;; loop over the elements in the pattern delta
+      ;; find the neighbouring seq predicates in the generalisation
+      ;; add the variable renamings to the bindings list
+      ;; when the delta contains the empty string,
+      ;; connect the seq predicates from the generalisation directly
+      (loop for (pattern-var . pattern-elem) in pattern-delta
+            for pos-in-gen = (position pattern-var generalisation)
+            for left-neighbour = (unless (= pos-in-gen 0)
+                                   (nth (- pos-in-gen 1) generalisation-predicates))
+            for right-neighbour = (unless (= pos-in-gen (- (length generalisation) 1))
+                                    (nth (+ pos-in-gen 1) generalisation-predicates))
+            if (and (string= pattern-elem "") left-neighbour right-neighbour)
+            do (let ((fresh-var (make-var (next-au-var))))
+                 (push (cons fresh-var (third right-neighbour)) pattern-bindings)
+                 (push (cons fresh-var (fourth left-neighbour)) pattern-bindings))
+            else
+            do (let ((pattern-left-boundary (make-var (next-au-var)))
+                     (pattern-right-boundary (make-var (next-au-var))))
+                 (push `(sequence ,pattern-elem ,pattern-left-boundary ,pattern-right-boundary) pattern-delta-predicates)
+                 (when right-neighbour
+                   (push (cons pattern-right-boundary (third right-neighbour)) pattern-bindings))
+                 (when left-neighbour
+                   (push (cons pattern-left-boundary (fourth left-neighbour)) pattern-bindings))))
+      ;; loop over the elements in the source delta
+      ;; find the neighbouring seq predicates in the generalisation
+      ;; add the variable renamings to the bindings list
+      ;; when the delta contains the empty string,
+      ;; connect the seq predicates from the generalisation directly
+      (loop for (source-var . source-elem) in source-delta
+            for pos-in-gen = (position source-var generalisation)
+            for left-neighbour = (unless (= pos-in-gen 0)
+                                   (nth (- pos-in-gen 1) generalisation-predicates))
+            for right-neighbour = (unless (= pos-in-gen (- (length generalisation) 1))
+                                    (nth (+ pos-in-gen 1) generalisation-predicates))
+            if (and (string= source-elem "") left-neighbour right-neighbour)
+            do (let ((fresh-var (make-var (next-au-var))))
+                 (push (cons fresh-var (third right-neighbour)) source-bindings)
+                 (push (cons fresh-var (fourth left-neighbour)) source-bindings))
+            else
+            do (let ((source-left-boundary (make-var (next-au-var)))
+                     (source-right-boundary (make-var (next-au-var))))
+                 (push `(sequence ,source-elem ,source-left-boundary ,source-right-boundary) source-delta-predicates)
+                 (when right-neighbour
+                   (push (cons source-right-boundary (third right-neighbour)) source-bindings))
+                 (when left-neighbour
+                   (push (cons source-left-boundary (fourth left-neighbour)) source-bindings))))
+      ;; make an anti-unification result
+      ;; remove the NIL placeholders
+      (make-instance 'anti-unification-result
+                     :generalisation (remove nil generalisation-predicates)
+                     :pattern-bindings pattern-bindings
+                     :source-bindings source-bindings
+                     :pattern-delta pattern-delta-predicates
+                     :source-delta source-delta-predicates
+                     :cost cost))))
 
 #|
 
-(mapcar #'string-anti-unification-result->sequence-predicates
-        (anti-unify-strings "GCATGCG" "GATTACA"))
+(setf *test* (anti-unify-strings "GCATGCG" "GATTACA" :to-sequence-predicates-p t))
 
-(mapcar #'string-anti-unification-result->sequence-predicates
-        (anti-unify-strings "What size is the cube?" "What size is the red cube?"))
+;; check that the anti-unification results have the same structure as on the meaning side
+;; bindings in the same order? (first gen-var, then delta-var)
+;; what about decoupled vars?
 
-(mapcar #'string-anti-unification-result->sequence-predicates
-        (anti-unify-strings "What size is the blue cube?" "What size is the red cube?"))
+(setf *test*
+      (anti-unify-strings "What size is the blue cube?" "What size is the red cube?"
+                          :to-sequence-predicates-p t))
 
-(mapcar #'string-anti-unification-result->sequence-predicates
-        (anti-unify-strings "What is the color of the sphere?" "What is the size of the cube?"))
+(setf *test*
+      (anti-unify-strings "What size is the cube?" "What size is the red cube?"
+                          :to-sequence-predicates-p t))
+
+(anti-unify-strings "What is the color of the sphere?" "What is the size of the cube?"
+                    :to-sequence-predicates-p t)
   
 |#

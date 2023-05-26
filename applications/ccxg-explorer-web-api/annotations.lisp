@@ -24,7 +24,6 @@
                         (pathname-directory (or *load-truename*
                                                 *compile-file-truename*
                                                 (babel-pathname :directory '("applications" "ccxg-explorer-web-api"))))
-
                         :name
                         "annotations"
                         :type
