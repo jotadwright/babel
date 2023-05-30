@@ -154,13 +154,16 @@
   (loop for cxn in discriminating-cxns and idx from 0
         for form = (form (assqv :cxn cxn))
         for entrenchment = (score (assqv :cxn cxn))
+        
         for discriminative-power = (abs (- (sigmoid (assqv :topic-sim cxn)) (sigmoid (assqv :best-other-sim cxn))))
-        do (add-element `((h4) ,(format nil " -> ~a: (~a, ~a, ~,3f) => SCORE = ~,3f"
+        do (add-element `((h4) ,(format nil " -> ~a: (~a, ~a, [~,3f and ~,3f => ~,3f]) => SCORE = ~,3f"
                                         idx
                                         (downcase (mkstr form))
-                                        (downcase (mkstr entrenchment))
-                                        (downcase (mkstr discriminative-power))
-                                        (downcase (mkstr (* entrenchment discriminative-power)))))))
+                                        entrenchment
+                                        (sigmoid (assqv :topic-sim cxn))
+                                        (sigmoid (assqv :best-other-sim cxn))
+                                        discriminative-power
+                                        (* entrenchment discriminative-power)))))
   (add-element `((h3) ,(format nil " === PHASE 2 : SELECT BASED ON OVERALL SCORE ===")))
   (if (car applied-cxn)
     (add-element `((h3) ,(format nil " == RESULT: (~a, ~a) == "
@@ -233,14 +236,14 @@
     (if hearer-cxn
       (progn
         (add-element `((h2) ,(format nil "~a: ~a"
-                                   (id (hearer interaction))
-                                   (form hearer-cxn))))
+                                     (id (hearer interaction))
+                                     (form hearer-cxn))))
         (add-cxn-to-interface hearer-cxn))
       (add-element `((h2) ,(format nil "~a could not conceptualise!"
                                    (id (hearer interaction))))))
-      )
-      (add-element '((hr)))
-      )
+    )
+  (add-element `((h2) ,(format nil " ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")))
+  (add-element '((hr))))
 
 ;; -------------
 ;; + Alignment +
