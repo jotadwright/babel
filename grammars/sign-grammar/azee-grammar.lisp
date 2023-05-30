@@ -4,22 +4,15 @@
 ;; Grammar configurations ;;
 ;;------------------------;;
 
-(def-fcg-constructions sign-grammar-v2
+(def-fcg-constructions azee-sign-grammar
+  :cxn-inventory *azee-sign-grammar*
   :feature-types ((subunits set)
                   (args set)
                   (footprints set)
                   (form set-of-predicates)
                   (meaning set-of-predicates)
                   (holds set-of-predicates)
-                  (boundaries set-of-predicates)
-                  (noun-boundaries set-of-predicates)
-                  (classifier-boundaries set-of-predicates)
-                  (classifier-configurations set-of-predicates)
-                  (noun-configurations set-of-predicates)
-                  (handconfiguration set-of-predicates)
-                  (location-params set-of-predicates)
-                  
-                  )
+                  (boundaries set-of-predicates))
   :hierarchy-features (subunits)
   :diagnostics ()
   :repairs ()
@@ -47,9 +40,9 @@
                                  (:hide-features . nil)
                                  (:hierarchy-features subunits)
                                  (:selected-hierarchy . subunits)
-                                 (:select-subfeatures . nil)))
+                                 (:select-subfeatures . nil))
 
-;; île
+;; ile
 
 (def-fcg-cxn island-cxn
              ((?island-unit
@@ -62,7 +55,7 @@
                 --
                 (hash form
                       ((az-block ?block-1)                  
-                       (az-expr ?block-1 :île)
+                       (az-expr ?block-1 ile)
                        (duration ?block-1 1))))))
 
 (def-fcg-cxn indonesia-cxn
@@ -76,7 +69,7 @@
                 --
                 (hash form
                       ((az-block ?block-1)
-                       (az-expr ?block-1 :Indonésie)
+                       (az-expr ?block-1 indonesie)
                        (duration ?block-1 1))))))
 
 (def-fcg-cxn info-about-cxn
@@ -97,7 +90,7 @@
               (category concept)
               (az-block ?block-1)
               (hash form ((az-block block-3)
-                          (az-expr block-3 ^chin-up-no-focus)
+                          (az-expr block-3 chin-up-no-focus)
                           (duration block-3 1)
                           (orient block-3 ori-1)
                           (bone ori-1 head)
@@ -119,4 +112,5 @@
                           (reference-start block-2)
                           (value sync-3 .1))))))
 
+)
 
