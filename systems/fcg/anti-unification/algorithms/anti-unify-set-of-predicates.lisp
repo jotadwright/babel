@@ -1,8 +1,12 @@
 (in-package :fcg)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Anti-unifying sets of predicates constructions ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(export '(anti-unify-predicate-network
+          generalisation pattern-bindings source-bindings
+          pattern-delta source-delta cost))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Anti-unifying sets of predicates ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defconstant +alphabet+ "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 (defparameter *alphabet-index* 0)
@@ -13,45 +17,21 @@
       (setf *alphabet-index* 0))
     c))
 
-
-#|
-
- (ql:quickload :fcg)
- 
- (print-anti-unification-results
-  (anti-unify-predicate-network '((get-context ?context)
-                                  (filter ?set-1 ?context ?shape-1)
-                                  (bind shape-category ?shape-1 cube)
-                                  (filter ?set-2 ?set-1 ?X)
-                                  (count ?target ?set-2))
-                                '((get-context ?c)
-                                  (filter ?s1 ?c ?b1)
-                                  (bind shape-category ?b1 sphere)
-                                  (filter ?s2 ?s1 ?Y)
-                                  (count ?t ?s2))
-                                :allow-generalisation-over-constants nil))
- |#
-
-(export '(anti-unify-predicate-network
-          generalisation
-          pattern-bindings source-bindings
-          pattern-delta source-delta
-          au-cost))
-
-
-(defclass au-result ()
+(defclass anti-unification-result ()
   ((generalisation
-    :accessor generalisation :initarg :generalisation :initform nil)
+    :accessor generalisation :initarg :generalisation :type list :initform nil)
    (pattern-bindings
-    :accessor pattern-bindings :initarg :pattern-bindings :initform nil)
+    :accessor pattern-bindings :initarg :pattern-bindings :type list :initform nil)
    (source-bindings
-    :accessor source-bindings :initarg :source-bindings :initform nil)
+    :accessor source-bindings :initarg :source-bindings :type list :initform nil)
    (pattern-delta
-    :accessor pattern-delta :initarg :pattern-delta :initform nil)
+    :accessor pattern-delta :initarg :pattern-delta :type list :initform nil)
    (source-delta
-    :accessor source-delta :initarg :source-delta :initform nil)
-   (au-cost
-    :accessor au-cost :initarg :au-cost :initform 0)))
+    :accessor source-delta :initarg :source-delta :type list :initform nil)
+   (cost
+    :accessor cost :initarg :cost :type number :initform 0))
+  (:documentation "Result of anti-unification consists of a generalisation,
+                   delta's, bindings lists, and a cost."))
 
 (defun anti-unify-predicate-network (pattern source &key allow-generalisation-over-constants)
   "Anti-unifies pattern with source. Returns 5 values:
@@ -70,22 +50,25 @@
         for source-in-alignment = (source-predicates alignment)
         for pattern-delta = (pattern-delta alignment)
         for source-delta = (source-delta alignment)
-        collect (multiple-value-bind (resulting-generalisation resulting-pattern-bindings resulting-source-bindings resulting-pattern-delta resulting-source-delta)
+        collect (multiple-value-bind (resulting-generalisation
+                                      resulting-pattern-bindings
+                                      resulting-source-bindings
+                                      resulting-pattern-delta
+                                      resulting-source-delta)
                     (anti-unify-predicate-sequence pattern-in-alignment source-in-alignment nil nil nil pattern-delta source-delta)
-                  ;; make the au-result into a struct/class?
-                  (make-instance 'au-result
+                  (make-instance 'anti-unification-result
                                  :generalisation resulting-generalisation
                                  :pattern-bindings resulting-pattern-bindings
                                  :source-bindings resulting-source-bindings
                                  :pattern-delta resulting-pattern-delta
                                  :source-delta resulting-source-delta
-                                 :au-cost (anti-unification-cost resulting-pattern-bindings
+                                 :cost (anti-unification-cost resulting-pattern-bindings
                                                               resulting-source-bindings
                                                               resulting-pattern-delta
                                                               resulting-source-delta)))
-        into results
+          into results
         ;; Sort results based on increasing cost.
-        finally (return (sort results #'< :key #'au-cost))))
+        finally (return (sort results #'< :key #'cost))))
   
 (defun anti-unify-predicate (pattern
                              source
@@ -151,9 +134,14 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
             source-bindings
             pattern-delta
             source-delta))
-   ;; Recursive case: still elements left, anti-unify first and then rest, every time passing the new bindings and deltas, accumulating the generalisation
+   ;; Recursive case: still elements left, anti-unify first and then rest,
+   ;; every time passing the new bindings and deltas, accumulating the generalisation
    (t
-    (multiple-value-bind (resulting-generalisation resulting-pattern-bindings resulting-source-bindings resulting-pattern-delta resulting-source-delta)
+    (multiple-value-bind (resulting-generalisation
+                          resulting-pattern-bindings
+                          resulting-source-bindings
+                          resulting-pattern-delta
+                          resulting-source-delta)
         (anti-unify-predicate (first pattern) (first source) pattern-bindings source-bindings pattern-delta source-delta)
       (anti-unify-predicate-sequence (rest pattern)
                                      (rest source)
@@ -166,8 +154,26 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
 ; (anti-unify-predicate-sequence '(a b c) '(a d c))
 ; (anti-unify-predicate-sequence '(a b c b) '(a d c e))
 
+(defun anti-unification-cost (pattern-bindings source-bindings pattern-delta source-delta)
+  "The anti-unification cost is the sum of the number of predicates in the deltas and the number of variables that have
+   been bound to more than 1 variable in the generalisation."
+  (let ((nr-of-predicates-in-pattern-delta (length pattern-delta))
+        (nr-of-predicates-in-source-delta (length source-delta))
+        (nr-of-bindings-to-multiple-vars-in-pattern (loop for (binding . rest) on  pattern-bindings
+                                                          count (find (car binding) rest :key #'car :test #'equalp)))
+        (nr-of-bindings-to-multiple-vars-in-source (loop for (binding . rest) on  source-bindings
+                                                         count (find (car binding) rest :key #'car :test #'equalp))))
+    (+ nr-of-predicates-in-pattern-delta
+       nr-of-predicates-in-source-delta
+       nr-of-bindings-to-multiple-vars-in-pattern
+       nr-of-bindings-to-multiple-vars-in-source)))
 
-(defclass alignment-state ()
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Identify possible alignments ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defclass predicate-alignment-state ()
   ((pattern-predicates
     :accessor pattern-predicates :initarg :pattern-predicates :initform nil)
    (source-predicates
@@ -181,11 +187,11 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
    (source-remaining
     :accessor source-remaining :initarg :source-remaining :initform nil)))
 
+
 (defun make-initial-alignment-state (pattern source)
-  (make-instance 'alignment-state
+  (make-instance 'predicate-alignment-state
                  :pattern-remaining pattern
                  :source-remaining source))
-
 
 
 (defun identify-possible-alignments (pattern source &key allow-generalisation-over-constants)
@@ -195,14 +201,16 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
         with queue = (list (make-initial-alignment-state pattern source))
         while queue
         for state = (pop queue)
-        do (with-slots (pattern-predicates source-predicates pattern-delta source-delta pattern-remaining source-remaining) state
+        do (with-slots (pattern-predicates source-predicates
+                        pattern-delta source-delta
+                        pattern-remaining source-remaining) state
              (cond ; no predicates remaining in pattern and source: we have a solution!
               ((and (null pattern-remaining) (null source-remaining))
                (push state solutions))
               
               ; no pattern-predicates remaining: rest of source goes to source-delta
               ((null pattern-remaining)
-               (push (make-instance 'alignment-state
+               (push (make-instance 'predicate-alignment-state
                                     :pattern-predicates pattern-predicates
                                     :source-predicates source-predicates
                                     :pattern-delta pattern-delta
@@ -211,7 +219,7 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
             
               ; no source-predicates remaining: rest of pattern goes to pattern-delta
               ((null source-remaining)
-               (push (make-instance 'alignment-state
+               (push (make-instance 'predicate-alignment-state
                                     :pattern-predicates pattern-predicates
                                     :source-predicates source-predicates
                                     :pattern-delta (append pattern-delta pattern-remaining)
@@ -230,7 +238,7 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
                                                               allow-generalisation-over-constants)))))
                  (when matching-source-predicates
                    (loop for matching-source-predicate in matching-source-predicates
-                         do (push (make-instance 'alignment-state
+                         do (push (make-instance 'predicate-alignment-state
                                                  :pattern-predicates (append pattern-predicates (list first-pattern-predicate))
                                                  :source-predicates (append source-predicates (list matching-source-predicate))
                                                  :pattern-delta pattern-delta
@@ -245,7 +253,7 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
                                                                              :allow-generalisation-over-constants
                                                                              allow-generalisation-over-constants))))
                               (length matching-source-predicates)))
-                   (push (make-instance 'alignment-state
+                   (push (make-instance 'predicate-alignment-state
                                         :pattern-predicates pattern-predicates
                                         :source-predicates source-predicates
                                         :pattern-delta (append pattern-delta (list first-pattern-predicate))
@@ -286,6 +294,10 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
 ;; (matching-predicates '(p ?a b ?c) '(p ?x c ?y) :allow-generalisation-over-constants nil)
 ;; (matching-predicates '(p ?a b ?c) '(f ?x b ?y) :allow-generalisation-over-constants nil)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Print anti-unification results ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defun print-anti-unification-results (list-of-anti-unification-results &optional (stream t))
   "Prints a list of anti-unification results."
 
@@ -309,8 +321,8 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
   (format stream "------------------------------------------------------------~%~%")
   (loop for a-u-result in list-of-anti-unification-results
         for i from 1 upto (length list-of-anti-unification-results)
-        do (with-slots (generalisation pattern-bindings source-bindings pattern-delta source-delta au-cost) a-u-result
-             (format stream "--- Result ~a (cost: ~a) ---~%~%" i au-cost)
+        do (with-slots (generalisation pattern-bindings source-bindings pattern-delta source-delta cost) a-u-result
+             (format stream "--- Result ~a (cost: ~a) ---~%~%" i cost)
              (format stream "- Generalisation:~%~%")
              (let ((*print-pretty* t))
                (format stream "~(~a~)~%~%" generalisation))
@@ -327,20 +339,9 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
              (let ((*print-pretty* t))
                (format stream "~(~a~)~%~%~%" source-delta)))))
 
-
-(defun anti-unification-cost (pattern-bindings source-bindings pattern-delta source-delta)
-  "The anti-unification cost is the sum of the number of predicates in the deltas and the number of variables that have
-   been bound to more than 1 variable in the generalisation."
-  (let ((nr-of-predicates-in-pattern-delta (length pattern-delta))
-        (nr-of-predicates-in-source-delta (length source-delta))
-        (nr-of-bindings-to-multiple-vars-in-pattern (loop for (binding . rest) on  pattern-bindings
-                                                          count (find (car binding) rest :key #'car :test #'equalp)))
-        (nr-of-bindings-to-multiple-vars-in-source (loop for (binding . rest) on  source-bindings
-                                                         count (find (car binding) rest :key #'car :test #'equalp))))
-    (+ nr-of-predicates-in-pattern-delta
-       nr-of-predicates-in-source-delta
-       nr-of-bindings-to-multiple-vars-in-pattern
-       nr-of-bindings-to-multiple-vars-in-source)))
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Reversibility check ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun compute-network-from-anti-unification-result (au-result pattern-or-source)
   "Returns original network based on generalisation, bindings-list and delta."  
@@ -356,13 +357,13 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
     (append (substitute-bindings (reverse-bindings bindings-list) generalisation)
             delta)))
 
-(defmethod copy-object-content ((au-result au-result) (copy au-result))
+(defmethod copy-object-content ((au-result anti-unification-result) (copy anti-unification-result))
   ;; shallow copy
   (setf (generalisation copy) (generalisation au-result)
         (pattern-bindings copy) (pattern-bindings au-result)
         (source-bindings copy) (source-bindings au-result)
         (pattern-delta copy) (pattern-delta au-result)
         (source-delta copy) (source-delta au-result)
-        (au-cost copy) (au-cost au-result)))
+        (cost copy) (cost au-result)))
                             
     

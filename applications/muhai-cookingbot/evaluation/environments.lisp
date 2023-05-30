@@ -1308,8 +1308,8 @@
                  :primary-output-var
                  '?croutons-vinegar-salad))
 
-(defparameter *all-gold-standard-solutions*
-  (list (almond-crescent-cookies-gold-standard)
+(defparameter *all-gold-standard-solutions* nil)
+  #|(list (almond-crescent-cookies-gold-standard)
         (afghan-biscuits-gold-standard)
         (best-brownies-gold-standard)
         (chocolate-fudge-cookies-gold-standard)
@@ -1338,4 +1338,5 @@
         (avocado-chicken-salad-gold-standard)
         (basic-chicken-salad-gold-standard)
         (broccoli-salad-gold-standard)
-        (croutons-vinegar-salad-gold-standard)))
+        (croutons-vinegar-salad-gold-standard))
+|#

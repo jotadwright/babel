@@ -283,7 +283,7 @@
   (remove-categories categories (categorial-network cxn-inventory) :recompute-transitive-closure recompute-transitive-closure))
 
 
-(defgeneric add-link (category-1 category-2 categorial-network &key weight link-type recompute-transitive-closure))
+(defgeneric add-link (category-1 category-2 thing &key weight link-type recompute-transitive-closure))
 
 (defmethod add-link ((category-1 symbol) (category-2 symbol) (categorial-network categorial-network) &key (weight 0.5) link-type (recompute-transitive-closure t))
   "add link to categorial-network"

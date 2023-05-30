@@ -31,6 +31,8 @@
                       (correct-answer (if answer-correct? (id computed-topic) (ask-correct-answer owner))))
                  (set-data (blackboard (grammar owner)) :guessed t)
                  (set-data (blackboard (grammar owner)) :answer-correct? answer-correct?)
+                 ;; evaluate again without mental simulation
+                 (run-program-without-mental-simulation irl-program ontology primitive-inventory)
                  (if answer-correct?
                    ;; if correct -> succeed, otherwise fail
                    t
@@ -56,6 +58,14 @@
                (push 'fcg::goal-test-failed (statuses node))
                (set-data (initial-node node) :some-interpretation-failed t)
                nil))))))
+
+(defun run-program-without-mental-simulation (irl-program ontology primitive-inventory)
+  (setf *MENTAL-SIMULATION* nil)
+  (evaluate-irl-program irl-program
+                        ontology
+                        :silent t
+                        :primitive-inventory primitive-inventory)
+  (setf *MENTAL-SIMULATION* t))
 
 (defun get-target-value (irl-program list-of-bindings)
   (let* ((target-variable (get-target-var irl-program))
