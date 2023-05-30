@@ -23,7 +23,7 @@
     (run-interaction experiment)))
 
 (progn
-  (setf *scene-ids* (read-scene-ids "area.lisp"))
+  (setf *scene-ids* (read-scene-ids "color.lisp"))
   (setf *subset-size* (length *scene-ids*)) ;; (length *scene-ids*)
   (defparameter *baseline-simulated*
     (make-configuration
@@ -36,7 +36,8 @@
                 (:scene-sampling . :deterministic)
                 (:topic-sampling . :english-concepts)
                 (:clevr-channels
-                 ,'area ;; size
+                 ;; ,'area ;; size
+                 ,'color ;; color
                  )
                 (:scene-ids . ,(first-n *subset-size* *scene-ids*))
                 (:current-scene-idx . 0)
@@ -76,6 +77,7 @@
 (progn
   (wi::reset)
   (deactivate-all-monitors)
+  (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor trace-interaction-in-web-interface)
   (run-interaction *experiment*))
 
@@ -87,13 +89,33 @@
   (wi::reset)
   (deactivate-all-monitors)
   (activate-monitor display-communicative-success)
+  (activate-monitor print-a-dot-for-each-interaction)
   ;(activate-monitor trace-interaction-in-web-interface)
-  (loop for i from 1 to 10000
+  (loop for i from 1 to 30000
       do (run-interaction *experiment*)))
 
 
 (run-then-show-last *experiment* (* *subset-size* 100) :show t :display t)
 
 (run-then-show-last *experiment* 1 :show t :display t)
+
+;;;
+
+;; test
+
+(setf test-cases (list
+                  (list 2
+
+(defmethod similar-concepts ((concept1 concept) (concept2 concept) (mode (eql :times)) &key &allow-other-keys)
+  (loop with concept1-weight-sum = (loop for proto in (prototypes concept1) sum (weight proto))
+        with concept2-weight-sum = (loop for proto in (prototypes concept2) sum (weight proto))
+        for proto1 in (prototypes concept1)
+        for proto2 in (prototypes concept2)
+        for avg-weight = (/ (+ (/ (weight proto1) concept1-weight-sum)
+                               (/ (weight proto2) concept2-weight-sum))
+                            2)
+        for prototype-similarity = (- 1 (f-divergence (distribution proto1) (distribution proto2) :hellinger))
+        for sim-score = (* avg-weight prototype-similarity)
+        sum sim-score))
 
 
