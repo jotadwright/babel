@@ -13,19 +13,18 @@
 (defun run-then-show-last (experiment interactions-count &key (show nil) (display nil))
   (when display
     (deactivate-all-monitors)
-    ;(activate-monitor display-communicative-success)
+    (activate-monitor display-communicative-success)
     (activate-monitor print-a-dot-for-each-interaction)
-    ;(activate-monitor export-attribute-type)
     )
   (loop for i from 1 to (- interactions-count 1)
         do (run-interaction experiment))
   (when show
-    ;(activate-monitor trace-interaction-in-web-interface)
+    (activate-monitor trace-interaction-in-web-interface)
     (run-interaction experiment)))
 
 (progn
   (setf *scene-ids* (read-scene-ids "area.lisp"))
-  (setf *subset-size* 100) ;; (length *scene-ids*)
+  (setf *subset-size* (length *scene-ids*)) ;; (length *scene-ids*)
   (defparameter *baseline-simulated*
     (make-configuration
      :entries `(;; monitoring
@@ -41,6 +40,8 @@
                  )
                 (:scene-ids . ,(first-n *subset-size* *scene-ids*))
                 (:current-scene-idx . 0)
+                ;; general strategy (:standard or :times)
+                (:strategy . :times)
 
                  ;; entrenchment of constructions
                 (:initial-cxn-entrenchement . 1/2)
@@ -60,22 +61,15 @@
                 (:weight-decf . -1/10)
                 
                 ;; conceptualisation
-                (:concept-similarity-activation . 0.9)
+                (:concept-similarity-activation . 0.4)
                 
                 ;; alignment strategy
                 (:punish-strategy . :punish-found-concepts)
                 )))
-  (defparameter *experiment* (make-instance 'cle-experiment :configuration *baseline-simulated*))
+  (setf *experiment* (make-instance 'cle-experiment :configuration *baseline-simulated*))
+  (notify reset-monitors)
   (wi::reset))
 
-(progn
-  (wi::reset)
-  (deactivate-all-monitors))
-
-
-
-(loop for i from 1 to 100
-      do (run-interaction *experiment*))
 
 ;; 1. run then show last
 
@@ -84,6 +78,18 @@
   (deactivate-all-monitors)
   (activate-monitor trace-interaction-in-web-interface)
   (run-interaction *experiment*))
+
+(loop for i from 1 to 50
+      do (run-interaction *experiment*))
+
+
+(progn
+  (wi::reset)
+  (deactivate-all-monitors)
+  (activate-monitor display-communicative-success)
+  ;(activate-monitor trace-interaction-in-web-interface)
+  (loop for i from 1 to 10000
+      do (run-interaction *experiment*)))
 
 
 (run-then-show-last *experiment* (* *subset-size* 100) :show t :display t)
