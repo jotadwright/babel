@@ -26,6 +26,8 @@
     (production speaker)
     ;; hearer hears the utterance
     (setf (utterance hearer) (utterance speaker))
+    ;; check lexicon coherence
+    (set-data (current-interaction experiment) 'lexicon-coherence (lexicon-coherence-p experiment speaker hearer))
     ;; success if
     (when (and ;; 1. the hearer recognises it,
                (parsing hearer)
