@@ -58,16 +58,16 @@
             do (push record g))
     ;; edges between cxn node and feature-channels
     (loop for prototype in (prototypes (meaning cxn))
-          for previous-prototype in (meaning previous-copy)
-          for delta = (- (weight prototype) (certainty previous-prototype))
-          when (> (certainty previous-prototype) 0.1)
+          for previous-prototype in (prototypes (meaning previous-copy))
+          for delta = (- (weight prototype) (weight previous-prototype))
+          when (> (weight previous-prototype) 0.1)
             do (push
                 `(s-dot::edge
                   ((s-dot::from ,(mkdotstr (id (meaning cxn))))
                    (s-dot::to ,(mkdotstr (downcase (channel prototype))))
                    (s-dot::label ,(format nil "~,2f~a" (float (weight prototype)) (cond ((> delta 0) (format nil " (+~,2f)" (float delta)))
-                                                                                           ((< delta 0) (format nil " (~,2f)" (float delta)))
-                                                                                           (t ""))))
+                                                                                        ((< delta 0) (format nil " (~,2f)" (float delta)))
+                                                                                        (t ""))))
                    (s-dot::labelfontname #+(or :win32 :windows) "Sans"
                                          #-(or :win32 :windows) "Arial")
                    (s-dot::fontcolor ,(cond ((> delta 0) *green*)
