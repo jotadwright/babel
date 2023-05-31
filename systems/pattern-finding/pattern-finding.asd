@@ -35,8 +35,8 @@
                 :components ((:file "problems-and-diagnostics")
                              (:file "handle-fix")
                              (:file "repair-add-categorial-links")
-                             (:file "repair-anti-unify-cxns")))
-               )
+                             (:file "cxn-skeletons")
+                             (:file "repair-anti-unify-cxns"))))
   :description "A Common Lisp package for learning construction grammars.")
 
 

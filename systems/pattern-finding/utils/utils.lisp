@@ -106,27 +106,33 @@
         do (incf placeholder-index)
         finally (return new-seq-predicates)))
 
-(defgeneric make-cxn-name (thing cxn-inventory &key add-cxn-suffix add-numeric-tail))
+(defgeneric make-cxn-name (thing cxn-inventory
+                                 &key holistic-suffix item-based-suffix numeric-suffix))
 
 (defmethod make-cxn-name ((string string) (cxn-inventory fcg-construction-set)
-                          &key (add-cxn-suffix t) (add-numeric-tail nil))
+                          &key holistic-suffix item-based-suffix numeric-suffix)
   "Transform an utterance into a suitable construction name"
   (declare (ignore cxn-inventory))
+  (when (and holistic-suffix item-based-suffix)
+    (error "Cannot specify both holistic and item-based suffix"))
   (let ((name-string (upcase (substitute #\- #\Space string))))
-    (when add-cxn-suffix
-      (setf name-string (string-append name-string "-cxn")))
-    (if add-numeric-tail
+    (when holistic-suffix
+      (setf name-string (string-append name-string "-HOLISTIC-CXN")))
+    (when item-based-suffix
+      (setf name-string (string-append name-string "-ITEM-BASED-CXN")))
+    (if numeric-suffix
       (make-id name-string)
       (intern name-string))))
 
+
 (defmethod make-cxn-name ((form-constraints list) (cxn-inventory fcg-construction-set)
-                          &key (add-cxn-suffix t) (add-numeric-tail nil))
+                          &key holistic-suffix item-based-suffix numeric-suffix)
   "Transform a list of form constraints into a suitable construction name"
-  (let ((new-form-constraints (variablify-missing-strings form-constraints)))
-    (make-cxn-name (format nil "~{~a~^-~}"
-                           (render (append form-constraints new-form-constraints)
-                                   (get-configuration cxn-inventory :render-mode)))
-                   cxn-inventory :add-cxn-suffix add-cxn-suffix :add-numeric-tail add-numeric-tail)))
+  ;(let ((new-form-constraints (variablify-missing-strings form-constraints)))
+  (make-cxn-name (format nil "~{~a~^-~}" (render form-constraints (get-configuration cxn-inventory :render-mode)))
+                 cxn-inventory :holistic-suffix holistic-suffix
+                 :item-based-suffix item-based-suffix
+                 :numeric-suffix numeric-suffix))
 
 ;;;;;
 ;; Make unit name
@@ -138,16 +144,15 @@
   "Transform an utterance into a suitable construction name"
   (declare (ignore cxn-inventory))
   (when trim-cxn-suffix
-    (setf string (string-replace string "-cxn" "")))
+    (setf string (string-replace string "-holistic-cxn" ""))
+    (setf string (string-replace string "-item-based-cxn" "")))
   (variablify (intern (string-append (upcase string) "-UNIT"))))
 
 (defmethod make-unit-name ((form-constraints list) (cxn-inventory fcg-construction-set) &key trim-cxn-suffix)
   "Transform a list of form constraints into a suitable construction name"
-  (let ((new-string-constraints (variablify-missing-form-strings form-constraints)))
-    (make-unit-name (format nil "~{~a~^-~}"
-                           (render (append form-constraints new-string-constraints)
-                                   (get-configuration cxn-inventory :render-mode)))
-                    cxn-inventory :trim-cxn-suffix trim-cxn-suffix)))
+  ;(let ((new-string-constraints (variablify-missing-form-strings form-constraints)))
+  (make-unit-name (format nil "~{~a~^-~}" (render form-constraints (get-configuration cxn-inventory :render-mode)))
+                  cxn-inventory :trim-cxn-suffix trim-cxn-suffix))
 
 
 ;;;;;
@@ -159,7 +164,7 @@
     (string-append "-" string)
     string))
  
-(defun make-lex-class (cat-name &key add-numeric-tail trim-cxn-suffix)
+(defun make-lex-class (cat-name &key numeric-suffix trim-cxn-suffix slotp)
   (let* ((name-string
           (replace-special-initial-chars
            (string-downcase
@@ -167,10 +172,13 @@
              (symbol-name cat-name)
              cat-name)))))
     (when trim-cxn-suffix
-      (setf name-string
-            (string-replace name-string "-cxn" "")))
-    (setf name-string (upcase name-string))
-    (if add-numeric-tail
+      (setf name-string (string-replace name-string "-holistic-cxn" ""))
+      (setf name-string (string-replace name-string "-item-based-cxn" "")))
+    (setf name-string
+          (upcase (if slotp
+                    (string-append name-string "-slot-cat")
+                    (string-append name-string "-cat"))))
+    (if numeric-suffix
       (setf name-string (make-const name-string))
       (setf name-string (make-symbol name-string)))
     (intern (string-downcase (symbol-name name-string)) :pattern-finding)))
@@ -442,6 +450,8 @@
         for constraint = (first form-constraint)
         collect (cons constraint
                       (case constraint
+                        (sequence (cons (second form-constraint)
+                                        (mapcar #'variablify (cddr form-constraint))))
                         (string (list (variablify (second form-constraint))
                                       (third form-constraint)))
                         (meets (mapcar #'variablify (rest form-constraint)))))))
@@ -455,11 +465,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun form-predicates->hash-string (form-predicates)
-  ;; the last string predicate
-  (third
-   (last-elt
-    (find-all 'string form-predicates
-              :key #'first))))
+  (mapcar #'second (find-all 'sequence form-predicates :key #'first)))
 
 (defgeneric meaning-predicates->hash-meaning (meaning-predicates meaning-representation))
 
@@ -491,11 +497,17 @@
     (append form-keys meaning-keys)))
                             
 (defun constructions-for-anti-unification-hashed (form-constraints meaning-predicates cxn-inventory)
-  (remove-duplicates
-   (append
-    (loop for hash in (hash-observation form-constraints meaning-predicates)
-          append (gethash hash (constructions-hash-table cxn-inventory)))
-    (gethash nil (constructions-hash-table cxn-inventory)))))
+  (let ((observation-hashes (hash-observation form-constraints meaning-predicates)))
+    (remove-duplicates
+     (append
+      (loop for cxn-hash being the hash-keys of (constructions-hash-table cxn-inventory)
+            using (hash-value cxns)
+            when (and (stringp cxn-hash)
+                      (loop for observation-hash in observation-hashes
+                            thereis (or (search cxn-hash observation-hash)
+                                        (search observation-hash cxn-hash))))
+            append cxns)
+      (gethash nil (constructions-hash-table cxn-inventory))))))
 
 ;;;;;
 ;; Partial Analysis
@@ -637,10 +649,9 @@
 (defun form-constraints-with-variables (utterance de-render-mode)
   "Extract form constraints from utterance in the format they would appear in a construction."
   (let ((form-constraints-with-constants
-         (remove 'sequence
-                 (extract-forms (left-pole-structure
-                                 (de-render utterance de-render-mode)))
-                 :key #'first)))
+         (extract-forms
+          (left-pole-structure
+           (de-render utterance de-render-mode)))))
     (variablify-form-constraints-with-constants form-constraints-with-constants)))
 
 (defgeneric meaning-predicates-with-variables (meaning mode))
