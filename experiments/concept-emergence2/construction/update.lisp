@@ -1,4 +1,4 @@
-(in-package :ecl)
+(in-package :cle)
 
 ;; -----------------
 ;; + Update scores +

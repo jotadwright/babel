@@ -30,7 +30,7 @@
   (:documentation "Gaussian distribution using Welford's online algorithm"))
 
 ;; Constructor
-(defmethod make-distribution (agent  exemplar (mode (eql :gaussian-welford)))
+(defmethod make-distribution (agent exemplar (mode (eql :gaussian-welford)))
   (let* ((M2 (get-configuration agent :M2))
          (nr-of-samples 1)
          (st-dev (sqrt (/ M2 nr-of-samples)))
@@ -54,12 +54,14 @@
   (incf (nr-of-samples distribution))
   ;; Step 2: Update
   (let* ((delta-1 (- new-observation (mean distribution)))
-         (new-mean (+ (mean prototype) (/ delta-1 (nr-of-samples distribution))))
+         (new-mean (+ (mean distribution) (/ delta-1 (nr-of-samples distribution))))
          (delta-2 (- new-observation new-mean))
-         (new-M2 (+ (M2 prototype) (* delta-1 delta-2))))
-    (setf (mean prototype) new-mean
+         (new-M2 (+ (M2 distribution) (* delta-1 delta-2))))
+    (setf (mean distribution) new-mean
           (st-dev distribution) (sqrt (/ new-M2 (nr-of-samples distribution)))
-          (M2 prototype) new-M2)))
+          (M2 distribution) new-M2)))
+
+
 
 ;; --------------------
 ;; + Helper functions +
@@ -70,4 +72,17 @@
                         ~:_ mean: ~a,~:_ st-dev: ~a~:_"
             (mean distribution) (st-dev distribution))
     (format stream ">")))
-          
+
+(defmethod copy-object ((distribution gaussian))
+  (make-instance 'gaussian
+                 :mean (copy-object (mean distribution))
+                 :st-dev (copy-object (st-dev distribution))
+                 :history (copy-object (history distribution))))
+
+(defmethod copy-object ((distribution gaussian-welford))
+  (make-instance 'gaussian-welford
+                 :mean (copy-object (mean distribution))
+                 :st-dev (copy-object (st-dev distribution))
+                 :history (copy-object (history distribution))
+                 :nr-of-samples (copy-object (nr-of-samples distribution))
+                 :M2 (copy-object (M2 distribution))))

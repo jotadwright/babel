@@ -40,10 +40,10 @@
                  :description (object->alist object)))
 
 ;; helper functions
-(defmethod get-attr-val ((object cle-object) attr)
+(defmethod get-channel-val ((object cle-object) attr)
   (rest (assoc attr (attributes object))))
 
-(defmethod set-attr-val ((object cle-object) attr val)
+(defmethod set-channel-val ((object cle-object) attr val)
   (if (assoc attr (attributes object))
     (setf (rest (assoc attr (attributes object))) val)
     (push (cons attr val) (attributes object)))
@@ -56,4 +56,3 @@
     (:material . ,(material object))
     (:xpos . ,(if (> (x-pos object) 240) 'right 'left))
     (:zpos . ,(if (> (z-pos object) 11) 'behind 'front))))
-

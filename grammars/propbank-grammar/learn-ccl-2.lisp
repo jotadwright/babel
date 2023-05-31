@@ -36,7 +36,7 @@
     (:heuristics
      :nr-of-applied-cxns
      :nr-of-units-matched-x2 ;;nr-of-units-matched
-     :argm-prediction ;; Don't forget to activate the text-to-role-classification server!!!!!
+     ;:argm-prediction ;; Don't forget to activate the text-to-role-classification server!!!!!
      :edge-weight)
     ;;Additional heuristics: :prefer-local-bindings :frequency
     (:heuristic-value-mode . :sum-heuristics-and-parent)
