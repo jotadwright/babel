@@ -12,7 +12,7 @@
 
 
 (defun store-annotations ()
-  (store *CCxG-explorer-annotations* (make-pathname :directory (pathname-directory (or *load-truename*
+  (cl-store:store *CCxG-explorer-annotations* (make-pathname :directory (pathname-directory (or *load-truename*
                                                                                        *compile-file-truename*))
                                                     :name "annotations" :type "store")))
 
@@ -20,12 +20,16 @@
 (defun restore-annotations ()
   (setf *CCxG-explorer-annotations*
         (cl-store:restore
-         (make-pathname :directory (pathname-directory (or *load-truename*
-                                                                                       *compile-file-truename*))
-                                                            :name "annotations" :type "store"))))
+         (make-pathname :directory
+                        (pathname-directory (or *load-truename*
+                                                *compile-file-truename*
+                                                (babel-pathname :directory '("applications" "ccxg-explorer-web-api"))))
 
+                        :name
+                        "annotations"
+                        :type
+                        "store"))))
 
-(restore-annotations)
 
 (defun make-ccxg-explorer-annotations-for-propbank-sentences (corpus-name list-of-propbank-sentences)
   "Makes ccxg explorer annotations for list-of-propbank-sentences and populates *CCxG-explorer-annotations*."

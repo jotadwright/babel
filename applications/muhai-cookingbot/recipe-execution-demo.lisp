@@ -11,7 +11,6 @@
 (activate-monitor trace-irl)
 
 ;; Show the execution of the gold standard annotation of a recipe:
-
 (almond-crescent-cookies-gold-standard)
 (afghan-biscuits-gold-standard)
 (best-brownies-gold-standard)

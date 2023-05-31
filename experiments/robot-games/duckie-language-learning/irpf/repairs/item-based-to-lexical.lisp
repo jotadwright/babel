@@ -41,7 +41,7 @@
                (= (item-based-number-of-slots applied-item-based-cxn)
                   (1+ (length applied-lex-cxns))))
       (let* ((meaning-predicates-observed (mapcan #'extract-meaning-predicates applied-cxns))
-             (composer-solution (compose-program agent answer :partial-program meaning-predicates-observed)))
+             (composer-solution (compose-program agent answer utterance :partial-program meaning-predicates-observed)))
         (if composer-solution
           (let* ((meaning-predicates-lex-cxn (set-difference composer-solution
                                                              meaning-predicates-observed

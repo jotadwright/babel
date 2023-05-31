@@ -33,6 +33,7 @@
    (:file "streams")
    (:file "make-file-name-with")
    (:file "progress-bar")
+   (:file "arrays")
    (:module tests
     :depends-on ("lists-and-sets" "configuration" "tree" "relation")
     :components 

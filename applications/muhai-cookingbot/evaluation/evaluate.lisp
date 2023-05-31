@@ -8,7 +8,7 @@
    - ouput should contain the path to a .csv file to which the results will be written
    - show-output is a boolean specifying whether the browser should be opened to visualize the simulation process
    - metrics can be any of all of the following values to indicate which evaluation metrics should be used: smatch-score, subgoals-ratio, dish-score, execution-time. Defaults to all metrics."
-  (let ((metrics (if metrics metrics (remove 'smatch-score *metrics*)))) ; default is everything except the smatch-score
+  (let ((metrics (if metrics metrics (remove 'smatch-score *all-metrics*)))) ; default is everything except the smatch-score
     (when show-output
       ; trace IRL execution
       (wi::start-web-interface :port 8000 :stream nil)
@@ -17,7 +17,7 @@
 
     ; evaluate the input
     (unless (and (find 'none metrics) (not show-output))
-      (let ((solutions (evaluate-solutions input metrics *simulation-environments* lib-dir)))
+      (let ((solutions (evaluate-solutions input *all-gold-standard-solutions* :metrics metrics)))
       ; write away the solutions to a csv file
         (unless (find 'none metrics)
           (write-solutions-to-csv solutions output metrics))
@@ -26,23 +26,29 @@
     (cond (show-output
     ; open the browser to show the output
            (print (format nil "The simulation process has finished. It can be investigated by opening http://localhost:~d in your browser. We recommend using Chrome." *port*))
-           (sys:open-url (format nil "http://localhost:~d" *port*))) ; (open-browser (format nil "http://localhost:~d" *port*)) can be used for non-LispWorks support
+           #+lispworks (sys:open-url (format nil "http://localhost:~d" *port*))) ; for Lispworks
+           #+ccl       (open-browser (format nil "http://localhost:~d" *port*)) ;can be used for non-LispWorks support
           (t
            (print "The simulation process has finished.")))))
+
+
+#+lispworks
 
 (defun evaluate ()
   ; perform evaluation inside the muhai-cookingbot package
   (in-package :muhai-cookingbot)
 
   ; set some path variables needed for web visualization
-  (setf (lispworks:environment-variable "PATH") 
+  (setf #+lispworks (lispworks:environment-variable "PATH")
+        #+ccl (setenv "PATH")
         (concatenate 'string
                      #+macosx "/usr/local/bin:/sw/bin:/opt/homebrew/bin:"
                      #+mswindows "C:\\Program Files\\gnuplot\\bin;C:\\Program Files\\Graphviz\\bin;"
-                     (lispworks:environment-variable "PATH")))
+                     #+lispworks (lispworks:environment-variable "PATH")
+                     #+ccl (getenv "PATH")))
 
    ; use 128K instead of the default 16K stack during evaluation
-  (setf sys:*sg-default-size* 128000)
+  #+lispworks (setf sys:*sg-default-size* 128000)
 
   ; gather the command line arguments and use them for the internal-evaluate call
   (let ((input '())
@@ -50,7 +56,8 @@
         (show-output '())
         (metrics '())
         (lib-dir '())
-        (line-args (rest sys:*line-arguments-list*)))
+        (line-args #+lispworks (rest sys:*line-arguments-list*)
+                   #+ccl (rest *command-line-argument-list*)))
 
     (loop while line-args
           do
@@ -82,10 +89,12 @@
            (internal-evaluate input output :show-output show-output :metrics metrics :lib-dir lib-dir))
           ;  (when (hcl:delivered-image-p) (lw:quit)))
           (t
-           (unless (<= (length sys:*line-arguments-list*) 1)
+           (unless (<= (length #+ lispworks sys:*line-arguments-list*
+                               #+ ccl *command-line-argument-list*) 1)
              (print "No -input and -output parameters provided. Opening GUI for parameter specification."))
            (let ((evaluation-init (make-instance 'init-panel)))
              (capi:display evaluation-init))))))
+#+lispworks
 
 ;; CAPI panels
 (defun select-input (item choice)
@@ -95,7 +104,7 @@
        (input-viewer choice) #'(setf capi:display-pane-text)
        (list (namestring selected-file)) (input-viewer choice))
       (activate-start-button choice))))
-
+#+lispworks
 (defun select-output (item choice)
   (let ((selected-dir (capi:prompt-for-directory "please select a directory")))
     (when selected-dir
@@ -103,7 +112,7 @@
        (output-viewer choice) #'(setf capi:display-pane-text)
        (list (namestring selected-dir)) (output-viewer choice))
       (activate-start-button choice))))
-
+#+lispworks
 (defun select-lib (item choice)
   (let ((selected-dir (capi:prompt-for-directory "please select a directory")))
     (when selected-dir
@@ -111,7 +120,7 @@
        (lib-viewer choice) #'(setf capi:display-pane-text)
        (list (namestring selected-dir)) (lib-viewer choice))
       (activate-start-button choice))))
-
+#+lispworks
 (defun activate-start-button (choice)
   (if (and (listp (capi:display-pane-text (input-viewer choice)))
            (listp (capi:display-pane-text (output-viewer choice)))
@@ -121,7 +130,7 @@
      (start-button choice) #'(setf capi:button-enabled) t (start-button choice))
     (capi:apply-in-pane-process
      (start-button choice) #'(setf capi:button-enabled) nil (start-button choice))))
-
+#+lispworks
 (defun metric-selection-callback (item choice)
   (when (string-equal item "Smatch Score")
     (capi:apply-in-pane-process
@@ -129,7 +138,7 @@
     (capi:apply-in-pane-process
      (lib-viewer choice) #'(setf capi:simple-pane-enabled) t (lib-viewer choice))
     (activate-start-button choice)))
-
+#+lispworks
 (defun metric-retraction-callback (item choice)
   (when (string-equal item "Smatch Score")
     (capi:apply-in-pane-process
@@ -137,7 +146,7 @@
     (capi:apply-in-pane-process
      (lib-viewer choice) #'(setf capi:simple-pane-enabled) nil (lib-viewer choice))
     (activate-start-button choice)))
-
+#+lispworks
 (defun start-evaluation (item choice)
   (let ((input (first (capi:display-pane-text (input-viewer choice))))
         (output (concatenate 'string (first (capi:display-pane-text (output-viewer choice)))
@@ -164,7 +173,7 @@
 
     (internal-evaluate input output :show-output show-output :metrics metrics :lib-dir lib-dir)))
     ;(when (hcl:delivered-image-p) (lw:quit)))) ; we can close the console line if we want
-                    
+ #+lispworks
 (capi:define-interface init-panel ()
   ()
   (:panes

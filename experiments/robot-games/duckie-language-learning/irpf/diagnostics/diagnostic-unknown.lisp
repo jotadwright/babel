@@ -23,12 +23,13 @@
       ;;     holophrase -> item-based (all variants) and
       ;;     add-holophrase.
       (let* ((agent (find-data (blackboard (construction-inventory node)) :owner))
-             (problem (make-instance 'unknown-utterance-problem)))
+             (problem (make-instance 'unknown-utterance-problem))
+             (utterance (cipn-utterance node)))
         (push (type-of problem) (fcg::statuses node))
         (push 'fcg::diagnostic-triggered (fcg::statuses node))
         (notify diagnostic-trigger node diagnostic)
-        (let ((correct-answer (ask-correct-answer agent)))
-          (set-data problem :intention (compose-program agent correct-answer))
+        (let ((correct-answer (ask-answer agent)))
+          (set-data problem :intention (compose-program agent correct-answer utterance))
           (set-data problem :answer correct-answer))
         (set-data problem :owner agent)
         problem))))

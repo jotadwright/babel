@@ -21,7 +21,7 @@
    This is because a solution may still appear later in the search tree and we want
    the agent to use routine processing as much as possible. When the
    search arrives back at the initial node, with all nodes expanded
-   and still no solution, the diagnositcs are triggered manually
+   and still no solution, the diagnostics are triggered manually
    over the candidate list until one of them succeeds. If all fail,
    the unknown-utterance diagnostic will take over."
   (when (eql (direction (cip node)) '<-)
@@ -39,7 +39,7 @@
                  (push (type-of problem) (fcg::statuses node))
                  (push 'fcg::diagnostic-triggered (fcg::statuses node))
                  (notify diagnostic-trigger node diagnostic)
-                 (let ((correct-answer (ask-correct-answer agent)))
+                 (let ((correct-answer (ask-answer agent)))
                    (set-data problem :answer correct-answer))
                  (set-data problem :owner agent)
                  problem)
@@ -65,15 +65,6 @@
                    when fixes return nil))))))
 
 ;; helper functions
-(defun some-applied-repair-in-tree (node)
-  "Some node in the tree can be added by a repair
-   luckily, the handle-fix methods write this
-   on the blackboard of the initial node, so
-   we don't have to traverse the entire tree."
-  (multiple-value-bind (some-repair-applied-p foundp)
-      (find-data (initial-node node) :some-repair-applied)
-    (when foundp some-repair-applied-p)))
-
 (defun push-candidate (node)
   "Pushes the node on the candidate list stored in the initial node."
   (push-data (initial-node node) :candidates node))

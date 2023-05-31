@@ -62,7 +62,8 @@
     (let ((response-stream (drakma:http-request api-endpoint
                                                 :user-agent user-agent
                                                 :method method
-                                                :parameters (handle-parameters (append whole (list :format "json")))
+                                                :parameters (handle-parameters 
+                                                             (append whole (list :format "json")))
                                                 :content-type content-type
                                                 :want-stream t)))
       ;; Format and parse the response stream:

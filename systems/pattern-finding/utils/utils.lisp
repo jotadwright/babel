@@ -49,6 +49,13 @@
                      (non-zero-cxn-p cxn)))
             (constructions grammar)))
 
+(defun set-cxn-last-used (agent cxn)
+  (let ((current-interaction-nr
+         (interaction-number
+          (current-interaction
+           (experiment agent)))))
+    (setf (attr-val cxn :last-used) current-interaction-nr)))
+
 
 ;;;;;
 ;; Search tree utils
@@ -70,12 +77,6 @@
   (loop for node in cip-nodes
         unless (find 'fcg::initial (statuses node))
         collect node))
-
-(defun initial-node (node)
-  "returns the first node in the cip"
-  (if (all-parents node)
-    (last-elt (all-parents node))
-    node))
 
 
 ;;;;;
@@ -487,16 +488,17 @@
       (first (find target-variable meaning-predicates :key #'second)))))
 
 (defun hash-observation (form-constraints meaning-predicates)
-  ;; extract string predicates + predicate names
-  (let ((meaning-predicates
+  ;; meaning hash keys = predicate names and bind values
+  ;; form hash keys = strings in sequence predicates
+  (let ((meaning-keys
          (loop for meaning in meaning-predicates
                collect (if (and (= 4 (length meaning))
                                 (eql 'bind (first meaning)))
                          (fourth meaning)
                          (first meaning))))
-        (form-predicates
-         (mapcar #'third (find-all 'string form-constraints :key #'first))))
-    (append form-predicates meaning-predicates)))
+        (form-keys
+         (mapcar #'second (find-all 'sequence form-constraints :key #'first))))
+    (append form-keys meaning-keys)))
                             
 (defun constructions-for-anti-unification-hashed (form-constraints meaning-predicates cxn-inventory)
   (remove-duplicates

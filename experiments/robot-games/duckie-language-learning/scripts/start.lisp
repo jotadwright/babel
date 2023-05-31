@@ -5,6 +5,7 @@
   ;;;; START DEMO
   (deactivate-all-monitors)
   (monitors::activate-monitor irl::trace-irl)
+  (monitors::activate-monitor trace-interactions-in-wi)
   ;(monitors::activate-monitor irl::trace-irl-verbose)
   (monitors::activate-monitor fcg::trace-fcg)
   (setf *ontology* (build-initial-ontology))
@@ -20,8 +21,8 @@
     (make-instance 'duckie-language-learning-simulation-experiment))
 
   (defparameter *duckie-world*
-        (make-instance 'object-set
-                       :objects (list
+    (make-instance 'object-set
+                   :objects (list
                                  (make-instance 'duckie-building
                                                 :zone 'zone-1
                                                 :building-function 'house
@@ -69,22 +70,45 @@ what is the color of the bakery
                        :objects (list
                                  (make-instance 'duckie-building
                                                 :zone 'zone-1
-                                                :building-function 'house
-                                                :color 'green
-                                                :rfid 1)
-                                 (make-instance 'duckie-building
-                                                :zone 'zone-3
                                                 :building-function 'bakery
-                                                :color 'blue
-                                                :rfid 2)
+                                                :color 'yellow
+                                                :rfid 1)
                                  (make-instance 'duckie-car
-                                                :zone 'zone-7
-                                                :color 'purple
-                                                :rfid 7)
+                                                :zone 'zone-2
+                                                :color 'green
+                                                :rfid 5)
+                                 (make-instance 'duckie-car
+                                                :zone 'zone-3
+                                                :color 'pink
+                                                :rfid 4)
                                  )))
+  ;; duckie-car also in ontology for move-to primitive
   (set-data *ontology* 'world *duckie-world*))
 
+(run-interaction *demo*)
 
+(progn
+  (setf *duckie-world*
+        (make-instance 'object-set
+                       :objects (list
+                                 (make-instance 'duckie-building
+                                                :zone 'zone-1
+                                                :building-function 'bakery
+                                                :color 'yellow
+                                                :rfid 1)
+                                 (make-instance 'duckie-car
+                                                :zone 'zone-2
+                                                :color 'green
+                                                :rfid 5)
+                                 (make-instance 'duckie-car
+                                                :zone 'zone-7
+                                                :color 'pink
+                                                :rfid 4)
+                                 )))
+  ;; duckie-car also in ontology for move-to primitive
+  (set-data *ontology* 'world *duckie-world*))
+
+(run-interaction *demo*)
 
 
 ;;;;;;;
@@ -138,7 +162,9 @@ what is the color of the house
 (run-interaction *demo*)
 
 (setf cn (categorial-network (grammar (first (agents *demo*)))))
-(add-element (make-html cn))
+(add-element (make-html cn :weights? t :render-program "circo"))
+(add-element (make-html cn :weights? t :render-program "dot"))
+(add-element (make-html cn :weights? t :render-program "circo"))
 
 (wi:add-element (make-html (categorial-network *fcg-constructions*) :weights? t :colored-edges-0-1 t))
 
@@ -245,3 +271,27 @@ what is the color of the house
                                                 :color 'purple
                                                 :rfid 7)
                                  ))
+
+#|(list
+                             (make-instance 'duckie-building
+                                            :zone 'zone-1
+                                            :building-function 'bakery
+                                            :color 'yellow
+                                            :rfid 1)
+                             (make-instance 'duckie-building
+                                            :zone 'zone-2
+                                            :building-function 'restaurant
+                                            :color 'blue
+                                            :rfid 2)
+                             (make-instance 'duckie-building
+                                            :zone 'zone-3
+                                            :building-function 'bakery
+                                            :color 'green
+                                            :rfid 3)
+                             (make-instance 'duckie-car
+                                            :zone 'zone-4
+                                            :color 'pink
+                                            :rfid 4)
+                             
+
+                             )|#

@@ -227,19 +227,32 @@ string constraint with the variable ?Y."
   "Test whether render state does not contain an illegal chain of sequences"
   (loop with solution = t
         for sequence-predicate in (used-string-constraints state)
-        for left-1 = (third sequence-predicate)
         for i from 1
         for remaining-constraints = (subseq (used-string-constraints state) i)
+        when remaining-constraints
         do (loop for next-sequence-predicate in remaining-constraints
-                 for right-2 = (fourth next-sequence-predicate)
-                 when (eql right-2 left-1) ;; sequence chain interrupted
-                   do (setf solution nil))
+                   for j from i
+                   for left-1 = (third sequence-predicate)
+                   for right-1 = (fourth sequence-predicate)
+                   for left-2 = (third next-sequence-predicate)
+                   for right-2 = (fourth next-sequence-predicate)
+                   when (or (eql left-1 right-2) ;; sequence chain interrupted
+                            (and (eql right-1 left-2)
+                                 (not (= i j))))
+                     do (setf solution nil))
         finally (return solution)))
 
 
 (defmethod render ((state render-state) (mode (eql :render-sequences)) &key &allow-other-keys)
   "Returns the list of strings represented in a render-state"
   (mapcar #'second (used-string-constraints state)))
+
+
+
+(export '(render-all))
+
+(defgeneric render-all (object mode &key &allow-other-keys)
+  (:documentation "Provides all possible renders of an utterance."))
 
 (defmethod render-all ((form-constraints list) (mode (eql :render-sequences)) &key &allow-other-keys)
   (let* ((sequence-constraints (remove-if-not #'stringp form-constraints :key #'second))

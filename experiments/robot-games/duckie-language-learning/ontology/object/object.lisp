@@ -19,9 +19,9 @@
 (defmethod equal-entity ((obj-1 duckie-object) (obj-2 duckie-object))
   "Objects are equal when their attributes are"
   (and 
-       (eql (rfid obj-1) (rfid obj-2))
-       (eql (zone obj-1) (zone obj-2))
-       (eql (color obj-1) (color obj-2))))
+   (eql (rfid obj-1) (rfid obj-2))
+   (eql (zone obj-1) (zone obj-2))
+   (eql (color obj-1) (color obj-2))))
 
 (defmethod make-html-for-entity-details ((obj duckie-object) &key)
   "Draw the objects in the web interface"

@@ -4,6 +4,23 @@
           create-cxn-inventory-for-sandbox apply-in-sandbox comprehend-in-sandbox
           ordered-fcg-apply))
 
+(defun initial-node (node)
+  "returns the first node in the cip"
+  (if (all-parents node)
+    (last-elt (all-parents node))
+    node))
+
+(defun find-feature-value (feature unit-body)
+  (loop for feature-value in unit-body
+        when (equal (feature-name feature-value) feature)
+        return  (second feature-value)))
+
+(defun find-hashed-feature-value (feature unit-body)
+  (loop for feature-value in unit-body
+        when (and (equal (first feature-value) 'HASH)
+                  (equal (second feature-value) feature))
+        return (third feature-value)))
+
 ;; ------------------------------
 ;; + extract meaning predicates +
 ;; ------------------------------
