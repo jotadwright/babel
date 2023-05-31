@@ -2,22 +2,6 @@
 
 (in-package :cle)
 
-;; ---------------------------
-;; + Web monitor experiments +
-;; ---------------------------
-(defun run-then-show-last (experiment interactions-count &key (show nil) (display nil))
-  (when display
-    (deactivate-all-monitors)
-    ;(activate-monitor display-communicative-success)
-    (activate-monitor print-a-dot-for-each-interaction)
-    ;(activate-monitor export-attribute-type)
-    )
-  (loop for i from 1 to (- interactions-count 1)
-        do (run-interaction experiment))
-  (when show
-    ;(activate-monitor trace-interaction-in-web-interface)
-    (run-interaction experiment)))
-
 (defun run-and-show-interactions (experiment interactions-count)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor trace-interaction-in-web-interface)
@@ -26,33 +10,39 @@
         do (run-interaction experiment))
   (run-interaction experiment))
 
-(defun read-scene-ids (fname)
-  (let* ((base-dir "~/Projects/babel/experiments/concept-emergence2/data/")
-         (fpath (concatenate 'string base-dir fname))
-         (raw (uiop:read-file-lines fpath))
-         (scene-ids (map 'list #'parse-integer raw)))
-    scene-ids))
-
-(defun first-n (n list)
-  "Returns the first N elements of the LIST."
-  (butlast list (max (- (list-length list) n) 0)))
+(defun run-then-show-last (experiment interactions-count &key (show nil) (display nil))
+  (when display
+    (deactivate-all-monitors)
+    (activate-monitor display-communicative-success)
+    (activate-monitor print-a-dot-for-each-interaction)
+    )
+  (loop for i from 1 to (- interactions-count 1)
+        do (run-interaction experiment))
+  (when show
+    (activate-monitor trace-interaction-in-web-interface)
+    (run-interaction experiment)))
 
 (progn
-  (setf *scene-ids* (read-scene-ids "area.lisp"))
-  (setf *subset-size* 100) ;; (length *scene-ids*)
+  (setf *scene-ids* (read-scene-ids "color.lisp"))
+  (setf *subset-size* (length *scene-ids*)) ;; (length *scene-ids*)
   (defparameter *baseline-simulated*
     (make-configuration
-     :entries `(;; setup interacting agents
+     :entries `(;; monitoring
+                (:dot-interval . 1000)
+                ;; setup interacting agents
                 (:interacting-agents-strategy . :random)
                 (:population-size . 10)
                 ;; setup scene
                 (:scene-sampling . :deterministic)
                 (:topic-sampling . :english-concepts)
                 (:clevr-channels
-                 ,'area ;; size
+                 ;; ,'area ;; size
+                 ,'color ;; color
                  )
                 (:scene-ids . ,(first-n *subset-size* *scene-ids*))
                 (:current-scene-idx . 0)
+                ;; general strategy (:standard or :times)
+                (:strategy . :times)
 
                  ;; entrenchment of constructions
                 (:initial-cxn-entrenchement . 1/2)
@@ -72,81 +62,60 @@
                 (:weight-decf . -1/10)
                 
                 ;; conceptualisation
-                (:concept-similarity-activation . 0.9)
+                (:concept-similarity-activation . 0.4)
                 
                 ;; alignment strategy
                 (:punish-strategy . :punish-found-concepts)
                 )))
-  (defparameter *experiment* (make-instance 'cle-experiment :configuration *baseline-simulated*))
+  (setf *experiment* (make-instance 'cle-experiment :configuration *baseline-simulated*))
+  (notify reset-monitors)
   (wi::reset))
+
+
+;; 1. run then show last
 
 (progn
   (wi::reset)
-  ;;(activate-monitor trace-interaction-in-web-interface)
+  (deactivate-all-monitors)
   (activate-monitor print-a-dot-for-each-interaction)
-  ;(activate-monitor display-communicative-success)
-  (deactivate-all-monitors))
+  (activate-monitor trace-interaction-in-web-interface)
+  (run-interaction *experiment*))
 
-(loop for i from 1 to 100
+(loop for i from 1 to 50
       do (run-interaction *experiment*))
 
-;; 1. run then show last
-(run-then-show-last *experiment* (* *subset-size* 800) :show t :display t)
 
-`((:determine-interacting-agents-mode :baseline)
-                (:experiment-type . :baseline)
-                (:reset-usage-count . 1000)
-                (:dot-interval . 1000)
-                ;; world config
-                (:world-type . :simulated)
-                (:normalise-channels . t)
-                (:data-distribution . :gaussian)
-                (:clevr-channels
-                 ;,'xpos ,'ypos ,'zpos ;; position
-                 ,'area ;; size
-                 ;,'wh-ratio ;; shape
-                 ;,'sides-and-corners ;; shape
-                 ;,'color ;; color
-                 ;,'roughness ;; material
-                 ;,'xpos-3d ,'ypos-3d ,'zpos-3d ;; 3d-position
-                 )
-                (:population-size . 10)
-                (:alignment-filter . :all) ; :none - :at-least-one - :all
-                (:scene-sampling . :deterministic) ; deterministic, random-scene, :context-size
-                (:import-data . t)
-                ;(:context-size . 3)
-                (:scene-ids . ,(first-n *subset-size* *scene-ids*))
-                (:current-scene-idx . 0)
-                (:topic-sampling . :english-concepts) ; english-concepts, deterministic, random-topic
-                ;(:topic-ids . '(1 2 3))
-                ;(:current-topic-idx . 0)
-                 ;; concept search
-                (:conceptualisation-strategy . :standard) ; standard, times !!!!
-                (:concept-selection-strategy . :weighted-average) ; waterfall, weighted-average, times !!!
-                (:concept-selection-weights
-                 (:entrenchment-weight . 0)
-                 (:topic-similarity-weight . 0)
-                 (:similarity-distance-weight . 1))
-                ;; concept similarity
-                (:concept-similarity-activation . 0.99)
-                (:M2 . 0.0001) ;; initial distribution ;; 0.0001 -> 0.01
-                ;; certainty
-                (:certainty-strategy . :fixed) ; fixed, saliency
-                (:initial-certainty . 1/2)
-                (:certainty-update-strategy . :standard) ; standard,  interpolation, j-interpolation
-                (:certainty-incf . 1/100)
-                (:certainty-decf . -1/100)
-                ;; entrenchment
-                (:initial-entrenchment . 1/2)
-                (:entrenchment-incf . 1/10)
-                (:entrenchment-decf . -1/10)
-                (:punish-decf . -1/10) ;; punish entrenchment of duplicates
-                ;; alignment and competitors
-                (:hearer-alignment . :shift-when-successful)
-                (:punish-strategy . :punish-found-concepts) ;; :punish-found-concepts, :punish-found-concepts-and-shift [DOES NOT WORK]
-                (:competitor-strategy . :punish-duplicates) ;; :punish-duplicates, times !!!
-                (:competitor-strategy-hearer . :punish-duplicates) ;; punish-duplicates, times !!!
-                (:forget-concepts . nil)
-                (:prototype-update-strategy . :welford) ; welford, replay-buffer
-                (:replay-buffer-size . 100)
-                )
+(progn
+  (wi::reset)
+  (deactivate-all-monitors)
+  (activate-monitor display-communicative-success)
+  (activate-monitor print-a-dot-for-each-interaction)
+  ;(activate-monitor trace-interaction-in-web-interface)
+  (loop for i from 1 to 30000
+      do (run-interaction *experiment*)))
+
+
+(run-then-show-last *experiment* (* *subset-size* 100) :show t :display t)
+
+(run-then-show-last *experiment* 1 :show t :display t)
+
+;;;
+
+;; test
+
+(setf test-cases (list
+                  (list 2
+
+(defmethod similar-concepts ((concept1 concept) (concept2 concept) (mode (eql :times)) &key &allow-other-keys)
+  (loop with concept1-weight-sum = (loop for proto in (prototypes concept1) sum (weight proto))
+        with concept2-weight-sum = (loop for proto in (prototypes concept2) sum (weight proto))
+        for proto1 in (prototypes concept1)
+        for proto2 in (prototypes concept2)
+        for avg-weight = (/ (+ (/ (weight proto1) concept1-weight-sum)
+                               (/ (weight proto2) concept2-weight-sum))
+                            2)
+        for prototype-similarity = (- 1 (f-divergence (distribution proto1) (distribution proto2) :hellinger))
+        for sim-score = (* avg-weight prototype-similarity)
+        sum sim-score))
+
+

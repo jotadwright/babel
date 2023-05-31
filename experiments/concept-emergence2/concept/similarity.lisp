@@ -33,15 +33,16 @@
 ;; + Similarity between CONCEPTS +
 ;; -------------------------------
 
-(defmethod similar-concepts-p ((concept1 concept) (concept2 concept) (mode (eql :hellinger))
+(defmethod similar-concepts-p ((concept1 concept) (concept2 concept) (mode (eql :standard))
                                &key
                                activation
                                &allow-other-keys)
   "True iff if the average pair-wise similarity between prototypes is higher than some threshold."
-  (let ((similarity-score (similar-concepts concept1 concept2 :hellinger)))
+  (let ((similarity-score (similar-concepts concept1 concept2 :standard)))
     (>= similarity-score activation)))
 
-(defmethod similar-concepts ((concept1 concept) (concept2 concept) (mode (eql :hellinger)) &key &allow-other-keys)
+(defmethod similar-concepts ((concept1 concept) (concept2 concept) (mode (eql :standard)) &key &allow-other-keys)
+  "Pairwise similarity of two concepts using prototypes."
   (loop with concept1-weight-sum = (loop for proto in (prototypes concept1) sum (weight proto))
         with concept2-weight-sum = (loop for proto in (prototypes concept2) sum (weight proto))
         for proto1 in (prototypes concept1)
@@ -49,7 +50,7 @@
         for avg-weight = (/ (+ (/ (weight proto1) concept1-weight-sum)
                                (/ (weight proto2) concept2-weight-sum))
                             2)
-        for prototype-similarity = (- 1 (f-divergence (distribution proto1) (distribution proto2) mode))
+        for prototype-similarity = (- 1 (f-divergence (distribution proto1) (distribution proto2) :hellinger))
         for sim-score = (* avg-weight prototype-similarity)
         sum sim-score))
 
@@ -85,7 +86,7 @@
     (let* ((first (first lst))
            (rest (rest lst))
            (unique-p (loop for second in rest
-                           if (similar-concepts-p (meaning first) (meaning second) :hellinger :activation activation)
+                           if (similar-concepts-p (meaning first) (meaning second) :standard :activation activation)
                              do (progn
                                   (setf flagged (cons (cons first second) flagged))
                                   (return nil))
@@ -135,3 +136,17 @@
                    best-triple triple))
         finally
           (return best-triple)))
+
+;; Alternative
+
+(defmethod similar-concepts ((concept1 concept) (concept2 concept) (mode (eql :times)) &key &allow-other-keys)
+  (loop with concept1-weight-sum = (loop for proto in (prototypes concept1) sum (weight proto))
+        with concept2-weight-sum = (loop for proto in (prototypes concept2) sum (weight proto))
+        for proto1 in (prototypes concept1)
+        for proto2 in (prototypes concept2)
+        for avg-weight = (/ (+ (/ (weight proto1) concept1-weight-sum)
+                               (/ (weight proto2) concept2-weight-sum))
+                            2)
+        for prototype-similarity = (- 1 (f-divergence (distribution proto1) (distribution proto2) :hellinger))
+        for sim-score = (* avg-weight prototype-similarity)
+        sum sim-score))

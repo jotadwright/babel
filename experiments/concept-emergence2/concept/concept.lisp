@@ -26,3 +26,8 @@
                                                                       :weight initial-weight
                                                                       :distribution distribution)
                                    collect new-prototype)))
+
+(defmethod copy-object ((concept concept-distribution))
+  (make-instance 'concept-distribution
+                 :id (id concept)
+                 :prototypes (copy-object (prototypes concept))))

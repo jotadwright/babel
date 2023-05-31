@@ -53,6 +53,10 @@
 ;; + Utils for alignment +
 ;; -----------------------
 
+;; events
+(define-event event-found-discriminating-attributes (attributes list))
+(define-event event-found-subset-to-reward (subset list))
+
 ;; --------------------
 ;; + Similarity table +
 ;; --------------------
@@ -100,6 +104,7 @@
             do (push channel discriminating-attributes)
           finally
             (progn
+              (notify event-found-discriminating-attributes discriminating-attributes)
               (return discriminating-attributes)))))
 
 (defmethod filter-subsets (all-subsets discriminating-attributes)
@@ -146,5 +151,6 @@
               (setf best-subset subset
                     largest-diff diff
                     best-similarity topic-similarity))))))
+    (notify event-found-subset-to-reward best-subset)
     best-subset))
 

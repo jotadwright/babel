@@ -3,7 +3,7 @@
 (defsystem :ont-alignment
   :description "Language games for ontology alignment experiment"
   :depends-on (:experiment-framework
-               :utils :cl-json :postmodern :fcg 
+               :utils :cl-json :fcg 
                :cl-postgres
                :postmodern :web-interface)
   :serial t 
