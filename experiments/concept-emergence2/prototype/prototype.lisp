@@ -20,3 +20,9 @@
                  :weight (copy-object (weight-val prototype))
                  :weight-mode (copy-object (weight-mode prototype))
                  :distribution (copy-object (distribution prototype))))
+
+(defmethod weight ((prototype prototype))
+  (case (weight-mode prototype)
+    (:standard (weight-val prototype))
+    (:j-interpolation (sigmoid (weight-val prototype)))))
+
