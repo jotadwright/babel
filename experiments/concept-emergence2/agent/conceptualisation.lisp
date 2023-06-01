@@ -177,8 +177,71 @@
 
 (defmethod select-most-discriminating-concept (cxns (mode (eql :times)))
   "Selets the concept that maximises power * entrenchment."
-  (let ((best-score -1)
-        (best-cxn nil))
+  (let* ((best-score -1)
+         (best-cxn nil)
+         (ledger (loop for tuple in cxns
+                       ;; discriminative-power
+                       for topic-sim = (sigmoid (assqv :topic-sim tuple)) ;; sigmoid-ed!
+                       for best-other-sim = (sigmoid (assqv :best-other-sim tuple)) ;; sigmoid-ed!
+                       sum (abs (- topic-sim best-other-sim)))))
+    (loop for tuple in cxns
+          ;; discriminative-power
+          for topic-sim = (sigmoid (assqv :topic-sim tuple)) ;; sigmoid-ed!
+          for best-other-sim = (sigmoid (assqv :best-other-sim tuple)) ;; sigmoid-ed!
+          for discriminative-power = (/ (abs (- topic-sim best-other-sim)) ledger)
+          ;; entrenchment
+          for entrenchment = (score (assqv :cxn tuple))
+          ;; combine both
+          for score = (* discriminative-power entrenchment)
+          when (> score best-score)
+            do (progn
+                 (setf best-score score)
+                 (setf best-cxn (assqv :cxn tuple))))
+    best-cxn))
+
+;;;;; ALTERNATIVES
+
+(defmethod speaker-conceptualise ((agent cle-agent) (mode (eql :jens)))
+  "Conceptualise the topic of the interaction.
+      speaker:
+	does not use negative entrenched concepts to conceptualise (can still become positive due to hearer positive use)
+	conceptualise: discr > 0, maximise then (of maximise and check if > 0)
+      hearer:
+	can use negative entrenched concepts to parse."
+  (if (length= (lexicon agent) 0)
+    nil
+    (let* (;; step 1 - find the discriminating concepts
+           (discriminating-cxns (search-discriminative-concepts agent))
+           ;; step 4 - find the concept that maximises entrenchment * discriminative power
+           (applied-cxn (select-most-discriminating-concept discriminating-cxns mode)))
+      ;; decides which concepts are considered during alignment
+      (decide-competitors-speaker agent
+                                  applied-cxn
+                                  discriminating-cxns
+                                  mode)
+      ;; set the applied-cxn slot
+      (set-data agent 'applied-cxn applied-cxn)
+      ;; notify
+      (notify event-conceptualisation-end2
+              agent
+              discriminating-cxns
+              (list applied-cxn))
+      applied-cxn)))
+
+;; JENS
+
+(defmethod hearer-conceptualise ((agent cle-agent) (mode (eql :jens)))
+  (if (length= (lexicon agent) 0)
+    nil
+    (let* (;; step 1 - find the discriminating concepts
+           (discriminating-cxns (search-discriminative-concepts agent))
+           ;; step 4 - find the concept that maximises entrenchment * discriminative power
+           (applied-cxn (select-most-discriminating-concept discriminating-cxns mode)))
+      applied-cxn)))
+
+(defmethod select-most-discriminating-concept (cxns (mode (eql :jens)))
+  (let* ((best-score -1)
+         (best-cxn nil))
     (loop for tuple in cxns
           ;; discriminative-power
           for topic-sim = (sigmoid (assqv :topic-sim tuple)) ;; sigmoid-ed!
@@ -187,8 +250,9 @@
           ;; entrenchment
           for entrenchment = (score (assqv :cxn tuple))
           ;; combine both
-          for score = (* entrenchment discriminative-power)
-          when (> score best-score)
+          when (and
+                (> entrenchment 0)
+                (> discriminative-power best-score))
             do (progn
                  (setf best-score score)
                  (setf best-cxn (assqv :cxn tuple))))
