@@ -30,7 +30,7 @@
 ;; -----------------------------
 ;; + General conceptualisation +
 ;; -----------------------------
-(defmethod speaker-conceptualise ((agent cle-agent) (mode (eql :standard)))
+#|(defmethod speaker-conceptualise ((agent cle-agent) (mode (eql :standard)))
   "Conceptualise the topic of the interaction."
   (if (length= (lexicon agent) 0)
     nil
@@ -76,7 +76,7 @@
                                   collect (select-best-entrenched-concept set)))
            ;; step 4 - find the concept with the most discriminative power
            (applied-cxn (select-most-discriminating-concept best-entrenched-cxns mode)))
-      applied-cxn)))
+      applied-cxn)))|#
 
 ;; ----------------------------------
 ;; + Search discriminative concepts +
@@ -101,7 +101,7 @@
 ;; ------------------------------------------
 ;; + Deciding priority of selected concepts +
 ;; ------------------------------------------
-(defmethod select-most-discriminating-concept (cxns (mode (eql :standard)))
+#|(defmethod select-most-discriminating-concept (cxns (mode (eql :standard)))
    "Selects the concept with the most discriminative-power [0, inf]." 
   (let ((best-score -1)
         (best-cxn nil))
@@ -113,7 +113,7 @@
             do (progn
                  (setf best-score discriminative-power)
                  (setf best-cxn (assqv :cxn tuple))))
-    best-cxn))
+    best-cxn))|#
 
 (defun sigmoid (x)
   (/ 1 (+ 1 (exp (* -1 x)))))
