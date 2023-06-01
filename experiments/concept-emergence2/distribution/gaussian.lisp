@@ -35,11 +35,11 @@
          (nr-of-samples 1)
          (st-dev (sqrt (/ M2 nr-of-samples)))
          (mean exemplar)
-         (history (list
+         (history (list (list
                    (interaction-number (current-interaction (experiment agent)))
                    exemplar
                    mean
-                   st-dev)))
+                   st-dev))))
     (make-instance 'gaussian-welford
                    :mean mean
                    :st-dev st-dev
