@@ -26,3 +26,9 @@
     (:standard (weight-val prototype))
     (:j-interpolation (sigmoid (weight-val prototype)))))
 
+(defmethod print-object ((prototype prototype) stream)
+  (pprint-logical-block (stream nil)
+    (format stream "<Prototype:~
+                        ~:_ channel: ~a,~:_ weight ~a~:_"
+            (channel prototype) (weight prototype))
+    (format stream ">")))
