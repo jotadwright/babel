@@ -129,7 +129,7 @@
            ;; 2. shift concept of applied-cxn to topic
            (shift-concept agent topic (meaning applied-cxn))
            ;; 3. find and punish meaning competitors
-           (decide-competitors-hearer agent applied-cxn mode :activation (get-configuration agent :concept-similarity-activation))
+           (decide-competitors-hearer agent applied-cxn mode)
            (loop for other-cxn in (find-data agent 'meaning-competitors)
                  for similarity = (similar-concepts (meaning applied-cxn) (meaning other-cxn) mode)
                  for delta = (* similarity (get-configuration agent :entrenchment-li))
