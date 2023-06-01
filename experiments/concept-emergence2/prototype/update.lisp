@@ -29,15 +29,15 @@
   "Standard update with a delta value."
   (let ((prototype (find channel (prototypes concept) :key #'channel)))
     ;; update the weight
-    (setf (weight prototype) (+ (weight prototype) delta))
+    (setf (weight-val prototype) (+ (weight-val prototype) delta))
     ;; check the boundaries
-    (when (> (weight prototype) upper-bound)
-      (setf (weight prototype) upper-bound))
+    (when (> (weight-val prototype) upper-bound)
+      (setf (weight-val prototype) upper-bound))
     (when (<= (weight prototype) lower-bound)
-      (setf (weight prototype) lower-bound))))
+      (setf (weight-val prototype) lower-bound))))
 
 (defmethod update-weight (concept channel reward (mode (eql :j-interpolation)) &key)
   "Apply the j-interpolation update rule to the weight of a specified channel of a given concept."
   (let* ((prototype (find channel (prototypes concept) :key #'channel))
-         (old-value (weight prototype)))
-    (setf (weight prototype) (+ old-value reward))))
+         (old-value (weight-val prototype)))
+    (setf (weight-val prototype) (+ old-value reward))))
