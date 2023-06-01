@@ -7,9 +7,9 @@
 ;; ----------------------------------------------------------------------------
 
 (export '(blackboard make-blackboard data-fields fields data
-	  field?  add-data-field find-data get-data
+	  field? add-data-field find-data get-data
           set-data append-data push-data remove-data
-	  merge-data-fields with-data))
+	  merge-data-fields append-data-fields with-data))
 
 (defclass blackboard ()
   ((data :initarg :data-fields
@@ -225,6 +225,17 @@
 (defmethod merge-data-fields ((source list) (destination blackboard))
   (loop for field in source
         do (set-data destination (first field) (rest field))))
+
+(defgeneric append-data-fields (&rest blackboards))
+
+(defmethod append-data-fields (&rest blackboards)
+  (let ((result (copy-object (pop blackboards))))
+    (loop for blackboard in blackboards
+          do (loop for (label . data) in (data-fields blackboard)
+                   if (find-data result label)
+                   do (append-data result label data)
+                   else do (set-data result label data)))
+    result))
 
 (defmethod print-object ((blackboard blackboard) stream)
   (if *print-pretty*

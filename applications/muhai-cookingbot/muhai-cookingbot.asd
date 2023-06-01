@@ -14,7 +14,7 @@
                :dexador)
   :serial t
   :components ((:file "package")
-               (:file "ontology")
+               (:file "ontology-generated")
                (:file "vr-primitives")
                (:file "primitives")
                (:file "vr-requests")
