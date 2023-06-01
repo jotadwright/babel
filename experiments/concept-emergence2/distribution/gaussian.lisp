@@ -61,7 +61,19 @@
           (st-dev distribution) (sqrt (/ new-M2 (nr-of-samples distribution)))
           (M2 distribution) new-M2)))
 
-
+;; ------------------------------
+;; + Updating prototype history +
+;; ------------------------------
+(defmethod update-prototype-history ((interaction-number number)
+                                     (new-observation number)
+                                     (distribution gaussian-welford)
+                                     &key &allow-other-keys)
+  "Update the distribution history."
+  (setf (history distribution) (cons (list interaction-number
+                                           new-observation
+                                           (mean distribution)
+                                           (st-dev distribution))
+                                     (history distribution))))
 
 ;; --------------------
 ;; + Helper functions +

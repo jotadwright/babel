@@ -13,7 +13,8 @@
 
   (let ((new-observation (get-channel-val object (channel prototype)))
         (distribution (distribution prototype)))
-    (welford-update new-observation distribution)))
+    (welford-update new-observation distribution)
+    (update-prototype-history interaction-number new-observation distribution)))
 
 ;; ------------------
 ;; + Update weights +
