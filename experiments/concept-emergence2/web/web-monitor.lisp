@@ -151,26 +151,41 @@
 (define-event-handler (trace-interaction-in-web-interface event-conceptualisation-end2)
   (add-element `((h2) ,(format nil " === CONCEPTUALISATION ===")))
   (add-element `((h3) ,(format nil " === PHASE 1 : CHOSE CONSTRUCTIONS WITH POSITIVE DISCRIMINATING POWER === ")))
-  (loop for cxn in discriminating-cxns and idx from 0
+  (loop with ledger = (loop for tuple in discriminating-cxns
+                            ;; discriminative-power
+                            for topic-sim = (sigmoid (assqv :topic-sim tuple)) ;; sigmoid-ed!
+                            for best-other-sim = (sigmoid (assqv :best-other-sim tuple)) ;; sigmoid-ed!
+                            sum (abs (- topic-sim best-other-sim)))
+        for cxn in discriminating-cxns and idx from 0
         for form = (form (assqv :cxn cxn))
         for entrenchment = (score (assqv :cxn cxn))
         
         for discriminative-power = (abs (- (sigmoid (assqv :topic-sim cxn)) (sigmoid (assqv :best-other-sim cxn))))
-        do (add-element `((h4) ,(format nil " -> ~a: (~a, ~a, [~,3f and ~,3f => ~,3f]) => SCORE = ~,3f"
+        #|do (add-element `((h4) ,(format nil " -> ~a: (~a, ~,3f, [~,3f and ~,3f => ~,3f]) => SCORE = ~,3f"
                                         idx
                                         (downcase (mkstr form))
                                         entrenchment
                                         (sigmoid (assqv :topic-sim cxn))
                                         (sigmoid (assqv :best-other-sim cxn))
                                         discriminative-power
-                                        (* entrenchment discriminative-power)))))
+                                        (* entrenchment discriminative-power))))|#
+        do (add-element `((h4) ,(format nil " -> ~a: (~a, ~,3f, [~,3f/~,3f => ~,3f]) => SCORE = ~,3f"
+                                        idx
+                                        (downcase (mkstr form))
+                                        entrenchment
+                                        discriminative-power
+                                        ledger
+                                        (/ discriminative-power ledger)
+                                        (* entrenchment (/ discriminative-power ledger)))))
+
+
+        )
   (add-element `((h3) ,(format nil " === PHASE 2 : SELECT BASED ON OVERALL SCORE ===")))
   (if (car applied-cxn)
     (add-element `((h3) ,(format nil " == RESULT: (~a, ~a) == "
                                  (downcase (mkstr (form (car applied-cxn))))
                                  (downcase (mkstr (score (car applied-cxn)))))))
     (add-element `((h4) ,(format nil " == RESULT: 'nil' ==")))))
-
 
 ;; -------------
 ;; + Invention +
@@ -224,7 +239,8 @@
 ;; -------------
 ;; + Coherence +
 ;; -------------
-(define-event-handler (trace-interaction-in-web-interface event-coherence-p)
+
+(defun tester (experiment coherence speaker-cxn hearer-cxn)
   (let* ((interaction (current-interaction experiment)))
     (add-element `((h2) ,(format nil " ^^^ check for coherence: ~a ^^^ "
                                  (if coherence "True" "False"))))
@@ -241,7 +257,10 @@
         (add-cxn-to-interface hearer-cxn))
       (add-element `((h2) ,(format nil "~a could not conceptualise!"
                                    (id (hearer interaction))))))
-    )
+    ))
+
+(define-event-handler (trace-interaction-in-web-interface event-coherence-p)
+  (tester experiment coherence speaker-cxn hearer-cxn)
   (add-element `((h2) ,(format nil " ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")))
   (add-element '((hr))))
 
