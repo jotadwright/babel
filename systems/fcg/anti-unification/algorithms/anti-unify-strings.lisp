@@ -278,10 +278,12 @@
                                    (nth (- pos-in-gen 1) generalisation-predicates))
             for right-neighbour = (unless (= pos-in-gen (- (length generalisation) 1))
                                     (nth (+ pos-in-gen 1) generalisation-predicates))
-            if (and (string= pattern-elem "") left-neighbour right-neighbour)
+            if (string= pattern-elem "")
             do (let ((fresh-var (make-var (next-au-var))))
-                 (push (cons fresh-var (third right-neighbour)) pattern-bindings)
-                 (push (cons fresh-var (fourth left-neighbour)) pattern-bindings))
+                 (when right-neighbour
+                   (push (cons fresh-var (third right-neighbour)) pattern-bindings))
+                 (when left-neighbour
+                   (push (cons fresh-var (fourth left-neighbour)) pattern-bindings)))
             else
             do (let ((pattern-left-boundary (make-var (next-au-var)))
                      (pattern-right-boundary (make-var (next-au-var))))
@@ -321,7 +323,8 @@
                      :source-bindings source-bindings
                      :pattern-delta pattern-delta-predicates
                      :source-delta source-delta-predicates
-                     :cost cost))))
+                     :cost (+ (length pattern-delta-predicates)
+                              (length source-delta-predicates))))))
 
 #|
 

@@ -54,8 +54,7 @@
       (enable-meta-layer-configuration cxn-inventory)
       (let* ((solution-nodes
               (remove-if-not
-               #'(lambda (cipn)
-                   (find 'fcg::succeeded (statuses cipn)))
+               #'(lambda (cipn) (find 'fcg::succeeded (statuses cipn)))
                cipns))
              (best-solution-node
               (the-biggest

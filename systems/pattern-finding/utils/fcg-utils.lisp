@@ -73,7 +73,7 @@
                                  (gold-standard-meaning nil)
                                  (silent nil))
   (let* ((de-render-mode (get-configuration cxn-inventory :de-render-mode))
-         (meaning-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
+         (meaning-formalism (get-configuration cxn-inventory :meaning-representation))
          (initial-cfs (de-render utterance de-render-mode :cxn-inventory cxn-inventory))
          (processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
     ;; Add utterance and meaning to blackboard
@@ -103,7 +103,7 @@
                                      (silent nil) (n nil))
   "comprehend the input utterance with a given FCG grammar, obtaining all possible combinations"
   (let* ((de-render-mode (get-configuration cxn-inventory :de-render-mode))
-         (meaning-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
+         (meaning-formalism (get-configuration cxn-inventory :meaning-representation))
          (initial-cfs (de-render utterance de-render-mode :cxn-inventory cxn-inventory))
          (processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
     
