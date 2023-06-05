@@ -23,32 +23,33 @@
     (run-interaction experiment)))
 
 (progn
-  (setf *scene-ids* (read-scene-ids "color.lisp"))
-  (setf *subset-size* (length *scene-ids*)) ;; (length *scene-ids*)
+  (setf *scene-ids* (read-scene-ids "color-area-roughness.lisp"))
+  (setf *subset-size* (length *scene-ids*))
   (defparameter *baseline-simulated*
     (make-configuration
      :entries `(;; monitoring
                 (:dot-interval . 1000)
                 ;; setup interacting agents
-                (:interacting-agents-strategy . :standard) ;; i.e. random
+                (:interacting-agents-strategy . :standard)
                 (:population-size . 10)
                 ;; setup scene
                 (:scene-sampling . :deterministic)
                 (:topic-sampling . :english-concepts)
                 (:clevr-channels
-                 ;; ,'area ;; size
+                 ,'area ;; size
                  ,'color ;; color
+                 ,'roughness
                  )
                 (:scene-ids . ,(first-n *subset-size* *scene-ids*))
                 (:current-scene-idx . 0)
-                ;; general strategy (:standard or :times)
+                ;; general strategy
                 (:strategy . :times)
 
                  ;; entrenchment of constructions
                 (:initial-cxn-entrenchement . 1/2)
                 (:entrenchment-incf . 1/10)
                 (:entrenchment-decf . -1/10)
-                (:entrenchment-li . -1/100) ;; lateral inhibition
+                (:entrenchment-li . -1/50) ;; lateral inhibition
                 
                 ;; concept representations
                 (:concept-representation . :distribution)
@@ -61,9 +62,6 @@
                 (:weight-incf . 1)
                 (:weight-decf . -1)
                 
-                ;; conceptualisation
-                ;(:concept-similarity-activation . 0.4)
-                
                 ;; alignment strategy
                 (:punish-strategy . :punish-found-concepts)
                 )))
@@ -72,8 +70,19 @@
   (wi::reset))
 
 
-;; 1. run then show last
+0.05
 
+;; 1. run x interactions
+(progn
+  (wi::reset)
+  (deactivate-all-monitors)
+  (activate-monitor display-communicative-success)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (loop for i from 1 to 35000
+        do (run-interaction *experiment*)))
+
+
+;; 2. run 1 interaction
 (progn
   (wi::reset)
   (deactivate-all-monitors)
@@ -81,16 +90,17 @@
   (activate-monitor trace-interaction-in-web-interface)
   (run-interaction *experiment*))
 
-(loop for i from 1 to 50
-     do (run-interaction *experiment*))
+(defmethod after-interaction ((experiment cle-experiment))
+  #|(align (speaker experiment))
+  (align (hearer experiment))|#
+  )
 
-(progn
-  (wi::reset)
-  (deactivate-all-monitors)
-  (activate-monitor display-communicative-success)
-  (activate-monitor print-a-dot-for-each-interaction)
-  (loop for i from 1 to 50000
-        do (run-interaction *experiment*)))
+(defmethod after-interaction ((experiment cle-experiment))
+  (align (speaker experiment))
+  (align (hearer experiment))
+  )
+
+
 
 (progn
   (wi::reset)
@@ -102,35 +112,43 @@
         for hearer = (hearer (first (interactions *experiment*)))
         if (not lex-coherence)
           do (progn
-               (format t "~%~a: ~a [~a, ~a]" i (index (current-scene (world *experiment*))) (id speaker) (id hearer))
-               (return t))
+               (return (format nil "~a: ~a [~a, ~a]" i (index (current-scene (world *experiment*))) (id speaker) (id hearer))))
         else
           do (run-interaction *experiment*)))
 
-(progn
-  (wi::reset)
-  (deactivate-all-monitors)
-  (activate-monitor trace-interaction-in-web-interface)
-  (run-interaction *experiment*
-                   :scene (index (current-scene (world *experiment*)))
-                   :agents (interacting-agents (first (interactions *experiment*))))
-  (run-interaction *experiment*
-                   :scene (index (current-scene (world *experiment*)))
-                   :agents (reverse (interacting-agents (first (interactions *experiment*))))))
+=> "1: 13397 [AGENT-173, AGENT-179]"
 
-(setf saved-agents (interacting-agents (first (interactions *experiment*))))
+(setf saved-agents (interacting-agents (current-interaction *experiment*)))
+(setf saved-scene  (index (current-scene (world *experiment*))))
 
 (progn
   (wi::reset)
   (deactivate-all-monitors)
   (activate-monitor trace-interaction-in-web-interface)
   (run-interaction *experiment*
-                   :scene 2404
+                   :scene saved-scene
                    :agents saved-agents)
   (run-interaction *experiment*
-                   :scene 2404
+                   :scene saved-scene
                    :agents (reverse saved-agents)))
 
+(display-lexicon (find-agent 237))
+;; fiwezo and vobuwi
+
+(progn
+  (wi::reset)
+  (deactivate-all-monitors)
+  (activate-monitor trace-interaction-in-web-interface)
+  (run-interaction *experiment*
+                   :scene saved-scene
+                   :agents saved-agents)
+  (run-interaction *experiment*
+                   :scene saved-scene
+                   :agents (reverse saved-agents)))
+
+(add-cxn-to-interface (find-form-in-lexicon (lexicon (find-agent 27)) "kanatu"))
+(add-cxn-to-interface (find-form-in-lexicon (lexicon (find-agent 32)) "rafime"))
+(add-cxn-to-interface (find-form-in-lexicon (lexicon (find-agent 32)) "mofufe"))
 
 
 (defun how-would-the-population-conceptualise (context topic)
@@ -153,7 +171,7 @@
                      
                    do (add-element `((h4) ,(format nil "~a - punished by ~,4f [similarity: ~,2f]" (form other-cxn) delta similarity)))))
           
-        do (let ((applied-cxn (hearer-conceptualise agent :times)))
+        #|do (let ((applied-cxn (hearer-conceptualise agent :times)))
              (add-element `((h3) ,(format nil "As a hearer applied: ~a" (form applied-cxn))))
              (add-element `((h3) ,(format nil " with competitors:")))
              (decide-competitors-hearer agent applied-cxn :times)
@@ -161,10 +179,27 @@
                    for similarity = (similar-concepts (meaning applied-cxn) (meaning other-cxn) :times)
                    for delta = (* similarity (get-configuration agent :entrenchment-li))
                      
-                   do (add-element `((h4) ,(format nil "~a - punished by ~,4f [similarity: ~,2f]" (form other-cxn) delta similarity)))))
+                   do (add-element `((h4) ,(format nil "~a - punished by ~,4f [similarity: ~,2f]" (form other-cxn) delta similarity)))))|#
            ))
 
-(defun how-would-the-population-conceptualise2 (context topic)
+(defun add-raw-powers (agent discriminating-cxns form ledger)
+  (let* ((cxn (find (find-form-in-lexicon (lexicon agent) form) discriminating-cxns :key #'(lambda (tuple) (assqv :cxn tuple))))
+         (power (if cxn
+                  (abs (- (sigmoid (assqv :topic-sim cxn)) (sigmoid (assqv :best-other-sim cxn))))
+                  nil)))
+    (if cxn
+      (add-element `((h3) ,(format nil "~a: ent: ~,3f - power: ~,3f [~,3f/~,3f] => ~,3f"
+                                   form
+                                   (score (assqv :cxn cxn))
+                                   (/ power ledger)
+                                   power
+                                   ledger
+                                   (* (/ power ledger) (score (assqv :cxn cxn)))
+                                   )))
+      (add-element `((h3) ,(format nil "~a: no entry"
+                                   form))))))
+
+(defun how-would-the-population-conceptualise2 (context topic options)
   (wi::reset)
   (deactivate-all-monitors)
   (activate-monitor trace-interaction-in-web-interface)
@@ -179,26 +214,15 @@
                                 for topic-sim = (sigmoid (assqv :topic-sim tuple)) ;; sigmoid-ed!
                                 for best-other-sim = (sigmoid (assqv :best-other-sim tuple)) ;; sigmoid-ed!
                                 sum (abs (- topic-sim best-other-sim))))
-                  (pomiwu (find (find-form-in-lexicon (lexicon agent) "pomiwu") discriminating-cxns :key #'(lambda (tuple) (assqv :cxn tuple))))
-                  (vodixo (find (find-form-in-lexicon (lexicon agent) "vodixo") discriminating-cxns :key #'(lambda (tuple) (assqv :cxn tuple))))
-                  (pomiwu-power (abs (- (sigmoid (assqv :topic-sim pomiwu)) (sigmoid (assqv :best-other-sim pomiwu)))))
-                  (vodixo-power (abs (- (sigmoid (assqv :topic-sim vodixo)) (sigmoid (assqv :best-other-sim vodixo)))))
                   (applied-cxn (hearer-conceptualise agent :times)))
              (add-element `((h2) ,(format nil "Agent ~a: ~a with ~,3f" (id agent) (form applied-cxn) (score applied-cxn))))
-             (add-element `((h3) ,(format nil "pomiwu: ent: ~,3f - power: ~,3f [~,3f/~,3f] => ~,3f"
-                                          (score (assqv :cxn pomiwu))
-                                          (/ pomiwu-power ledger)
-                                          pomiwu-power
-                                          ledger
-                                          (* (/ pomiwu-power ledger) (score (assqv :cxn pomiwu)))
-                                          )))
-             (add-element `((h3) ,(format nil "vodixo: ent: ~,3f - power: ~,3f [~,3f/~,3f] => ~,3f"
-                                          (score (assqv :cxn vodixo))
-                                          (/ vodixo-power ledger)
-                                          vodixo-power
-                                          ledger
-                                          (* (/ vodixo-power ledger) (score (assqv :cxn vodixo)))
-                                          )))
+             (loop for option in options
+                   do (add-raw-powers agent discriminating-cxns option ledger))
+             (loop for option in options
+                   for search = (find (find-form-in-lexicon (lexicon agent) option) discriminating-cxns :key #'(lambda (tuple) (assqv :cxn tuple)))
+                   if search
+                     do (add-cxn-to-interface (assqv :cxn search)))
+             
              )))
 
 
@@ -212,21 +236,50 @@
 ;; 
 
 
+(weighted-similarity (find-data (first saved-agents) 'topic) (meaning (find-form-in-lexicon (lexicon (find-agent 23)) "fiwezo")))
+(weighted-similarity (find-data (first saved-agents) 'topic) (meaning (find-form-in-lexicon (lexicon (find-agent 23)) "vobuwi")))
+
+
+(loop for tuple in (search-discriminative-concepts (find-agent 23))
+      for topic-sim = (assqv :topic-sim tuple )
+      for best-other-sim = (assqv :best-other-sim tuple )
+      collect (list (cons :cxn (assqv :cxn tuple))
+                    (cons :topic-sim topic-sim)
+                    (cons :topic-sim-sigmoid (sigmoid (assqv :topic-sim tuple )))
+                    (cons :best-other-sim best-other-sim)
+                    (cons :best-other-sim-sigmoid (sigmoid (assqv :best-other-sim tuple)))
+                    (cons :diff (abs (- topic-sim best-other-sim)))
+                    (cons :diff-sigmoid (abs (- (sigmoid (assqv :topic-sim tuple)) (sigmoid (assqv :best-other-sim tuple)))))
+                    ))
+
 
 
 (how-would-the-population-conceptualise (find-data (first saved-agents) 'context)
-                                        (find-data (first saved-agents) 'topic))
+                                        (second (objects (find-data (first saved-agents) 'context)))
+                                        ;(find-data (first saved-agents) 'topic)
+                                        )
 
 (how-would-the-population-conceptualise2 (find-data (first saved-agents) 'context)
-                                         (find-data (first saved-agents) 'topic))
+                                         (second (objects (find-data (first saved-agents) 'context)))
+                                         ;(find-data (first saved-agents) 'topic)
+                                         (list "sulamo" "razifu" "zizisu"))
+
+(loop for form in (list "sulamo" "razifu" "zizisu")
+      do (add-cxn-to-interface (find-form-in-lexicon (lexicon (find-agent 43)) form)))
+
+(objects (find-data (first saved-agents) 'context))
+
+
+(display-lexicon (find-agent 43) :sort t)
 
 (add-cxn-to-interface (find-form-in-lexicon (lexicon (find-agent 37)) "pomiwu"))
-(add-cxn-to-interface (find-form-in-lexicon (lexicon (find-agent 40)) "pomiwu"))
-(add-cxn-to-interface (find-form-in-lexicon (lexicon (find-agent 40)) "vodixo"))
+(add-cxn-to-interface (find-form-in-lexicon (lexicon (find-agent 23))  "fiwezo"))
+(add-cxn-to-interface (find-form-in-lexicon (lexicon (find-agent 23)) "vobuwi"))
+(add-cxn-to-interface (find-form-in-lexicon (lexicon (find-agent 23)) "rewunu"))
            
-(setf pomiwu (find-form-in-lexicon (lexicon (find-agent 40)) "pomiwu"))
-(loop for el in (reverse (history (distribution (second (prototypes (meaning pomiwu))))))
-      do (format t "~%~a" (if (eq (type-of el) 'cons) (second el) el)))
+(setf pefudi (find-form-in-lexicon (lexicon (find-agent 179)) "pefudi"))
+(loop for el in (reverse (history (distribution (second (prototypes (meaning pefudi))))))
+      do (format t "~%~a" (second el)))
 
 (first (history (distribution (second (prototypes (meaning pomiwu))))))
 
@@ -238,7 +291,6 @@
 (cons (average bingbong) (stdev bingbong)) ;; => (0.7995723 . 0.09013091)
 (cons (average (append bingbong bingbong bingbong bingbong))
       (stdev (append bingbong bingbong bingbong bingbong))) ;; => (0.80880666 . 0.054536745) => (0.8132242 . 0.021056204)
-
 
 (defun update-with-n-samples (concept nr-of-samples new-observation)
   (let* ((data (cons (second (reverse (history (distribution (second (prototypes concept))))))
