@@ -47,7 +47,7 @@
           for record = (prototype->s-dot prototype
                                          :green (member (channel prototype) highlight-green)
                                          :red (member (channel prototype) highlight-red))
-          when (> (weight prototype) 0.1)
+          when (>= (weight prototype) 0.1)
             do (push record g))
     ;; edges between cxn node and feature-channels
     (loop for prototype in (prototypes (meaning cxn))
