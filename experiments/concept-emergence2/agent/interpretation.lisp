@@ -33,21 +33,3 @@
   ;; returns nil or the value set
   (find-data agent 'interpreted-topic))
 
-(defmethod reentrance (context cxn)
-  "Interpret a given concept in the context."
-  (let* ((objects-with-similarity
-          (loop for object in (objects context)
-                for sim = (weighted-similarity object (meaning cxn))
-                collect (cons object sim)))
-         ;; if two objects have exactly the same
-         ;; maximum similarity, interpretation fails
-         (highest-pair (the-biggest #'cdr objects-with-similarity))
-         (maybe-topic (first highest-pair))
-         (similar-p (> (count (rest highest-pair)
-                                objects-with-similarity
-                                :key #'cdr :test #'=)
-                         1)))
-    (if (not similar-p)
-      maybe-topic
-      nil)))
-

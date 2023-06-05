@@ -21,7 +21,7 @@
 ;; -----------------
 ;; + Align speaker +
 ;; -----------------
-(defmethod speaker-alignment ((agent cle-agent) (mode (eql :standard)))
+#|(defmethod speaker-alignment ((agent cle-agent) (mode (eql :standard)))
   "Speaker alignment."
   (let* ((topic (find-data agent 'topic))
          (applied-cxn (find-data agent 'applied-cxn))
@@ -43,12 +43,12 @@
         ;; otherwise, entrench used cxn negatively
         (progn
           (update-score-cxn agent applied-cxn (get-configuration agent :entrenchment-decf))
-          (notify event-align-cxn "Punish (due to failure)" applied-cxn previous-copy))))))
+          (notify event-align-cxn "Punish (due to failure)" applied-cxn previous-copy))))))|#
 
 ;; ----------------
 ;; + Align hearer +
 ;; ----------------
-(defmethod hearer-alignment ((agent cle-agent) (mode (eql :standard)))
+#|(defmethod hearer-alignment ((agent cle-agent) (mode (eql :standard)))
   "Hearer alignment."
   (let* ((topic (get-data agent 'topic))
          (applied-cxn (find-data agent 'applied-cxn))
@@ -78,7 +78,7 @@
            (update-score-cxn agent applied-cxn (get-configuration agent :entrenchment-decf))
            ;; 2. shift concept of applied-cxn to topic
            (shift-concept agent topic (meaning applied-cxn))
-           (notify event-align-cxn "Punish (due to failure) and shift" applied-cxn previous-copy)))))))
+           (notify event-align-cxn "Punish (due to failure) and shift" applied-cxn previous-copy)))))))|#
 
 ;; ----------------
 ;; + Alternatives +

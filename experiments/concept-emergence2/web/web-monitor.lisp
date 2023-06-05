@@ -111,7 +111,7 @@
    `((h2) ,(format nil "Step 1: Conceptualising as the ~a..." (discourse-role agent)))))
 
 
-(define-event-handler (trace-interaction-in-web-interface event-conceptualisation-end)
+#|(define-event-handler (trace-interaction-in-web-interface event-conceptualisation-end)
   (add-element `((h2) ,(format nil " === CONCEPTUALISATION ===")))
   (add-element `((h3) ,(format nil " === PHASE 1 : CHOSE CONSTRUCTIONS WITH POSITIVE DISCRIMINATING POWER === ")))
   (loop for cxn in discriminating-cxns and idx from 0
@@ -146,7 +146,7 @@
     (add-element `((h3) ,(format nil " == RESULT: (~a, ~a) == "
                                  (downcase (mkstr (form (car applied-cxn))))
                                  (downcase (mkstr (score (car applied-cxn)))))))
-    (add-element `((h4) ,(format nil " == RESULT: 'nil' ==")))))
+    (add-element `((h4) ,(format nil " == RESULT: 'nil' ==")))))|#
 
 (define-event-handler (trace-interaction-in-web-interface event-conceptualisation-end2)
   (add-element `((h2) ,(format nil " === CONCEPTUALISATION ===")))

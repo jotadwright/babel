@@ -33,15 +33,15 @@
 ;; + Similarity between CONCEPTS +
 ;; -------------------------------
 
-(defmethod similar-concepts-p ((concept1 concept) (concept2 concept) (mode (eql :standard))
+#|(defmethod similar-concepts-p ((concept1 concept) (concept2 concept) (mode (eql :standard))
                                &key
                                activation
                                &allow-other-keys)
   "True iff if the average pair-wise similarity between prototypes is higher than some threshold."
   (let ((similarity-score (similar-concepts concept1 concept2 :standard)))
-    (>= similarity-score activation)))
+    (>= similarity-score activation)))|#
 
-(defmethod similar-concepts ((concept1 concept) (concept2 concept) (mode (eql :standard)) &key &allow-other-keys)
+#|(defmethod similar-concepts ((concept1 concept) (concept2 concept) (mode (eql :standard)) &key &allow-other-keys)
   "Pairwise similarity of two concepts using prototypes."
   (loop with concept1-weight-sum = (loop for proto in (prototypes concept1) sum (weight proto))
         with concept2-weight-sum = (loop for proto in (prototypes concept2) sum (weight proto))
@@ -52,13 +52,13 @@
                             2)
         for prototype-similarity = (- 1 (f-divergence (distribution proto1) (distribution proto2) :hellinger))
         for sim-score = (* avg-weight prototype-similarity)
-        sum sim-score))
+        sum sim-score))|#
 
 ;; ----------------------------------
 ;; + Comparing CONCEPT <-> CONCEPT  +
 ;; ----------------------------------
 
-;; main algorithm - TODO fix readability
+#|;; main algorithm - TODO fix readability
 (defun find-similar-concepts-into-sets (cxns &key activation)
   "Filters a list of concepts based on similarity and entrenchement."
   (let* ((clean-concepts (loop for cxn in cxns collect (assqv :cxn cxn)))
@@ -135,7 +135,7 @@
              (setf best-val (score concept)
                    best-triple triple))
         finally
-          (return best-triple)))
+          (return best-triple)))|#
 
 ;; Alternative
 

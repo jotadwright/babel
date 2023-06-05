@@ -118,6 +118,9 @@
 (defun sigmoid (x)
   (/ 1 (+ 1 (exp (* -1 x)))))
 
+(defmethod calculcate-discriminative-power (topic-sim best-other-sim)
+  (abs (- (sigmoid topic-sim) (sigmoid best-other-sim))))
+
 ;; ---------------------
 ;; + Lexicon coherence +
 ;; ---------------------
@@ -188,7 +191,7 @@
           ;; discriminative-power
           for topic-sim = (sigmoid (assqv :topic-sim tuple)) ;; sigmoid-ed!
           for best-other-sim = (sigmoid (assqv :best-other-sim tuple)) ;; sigmoid-ed!
-          for discriminative-power = (/ (abs (- topic-sim best-other-sim)) ledger)
+          for discriminative-power = (/ (abs (- topic-sim best-other-sim)) (if (not (eq ledger 0.0)) ledger 1e-4))
           ;; entrenchment
           for entrenchment = (score (assqv :cxn tuple))
           ;; combine both
@@ -201,7 +204,7 @@
 
 ;;;;; ALTERNATIVES
 
-(defmethod speaker-conceptualise ((agent cle-agent) (mode (eql :jens)))
+#|(defmethod speaker-conceptualise ((agent cle-agent) (mode (eql :jens)))
   "Conceptualise the topic of the interaction.
       speaker:
 	does not use negative entrenched concepts to conceptualise (can still become positive due to hearer positive use)
@@ -254,6 +257,6 @@
                 (> entrenchment 0)
                 (> discriminative-power best-score))
             do (progn
-                 (setf best-score score)
+                 (setf best-score discriminative-power)
                  (setf best-cxn (assqv :cxn tuple))))
-    best-cxn))
+    best-cxn))|#
