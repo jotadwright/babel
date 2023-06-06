@@ -42,7 +42,7 @@
 (setf all-scenes (find-scenes-with-size 3))
 (length all-scenes)
 
-(setf res (find-scenes-with-discriminative-topics all-scenes (list 'color)))
+(setf res (find-scenes-with-discriminative-topics all-scenes (list 'color 'area 'roughness)))
 (length res)
 (setf scene-ids (loop for (scene-id . candidate-topics) in res collect scene-id))
 

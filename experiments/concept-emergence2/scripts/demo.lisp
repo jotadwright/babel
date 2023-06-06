@@ -23,7 +23,7 @@
     (run-interaction experiment)))
 
 (progn
-  (setf *scene-ids* (read-scene-ids "color-area-roughness.lisp"))
+  (setf *scene-ids* (read-scene-ids "color.lisp"))
   (setf *subset-size* (length *scene-ids*))
   (defparameter *baseline-simulated*
     (make-configuration
@@ -36,9 +36,9 @@
                 (:scene-sampling . :deterministic)
                 (:topic-sampling . :english-concepts)
                 (:clevr-channels
-                 ,'area ;; size
+                 ;,'area ;; size
                  ,'color ;; color
-                 ,'roughness
+                 ;,'roughness
                  )
                 (:scene-ids . ,(first-n *subset-size* *scene-ids*))
                 (:current-scene-idx . 0)
@@ -70,8 +70,6 @@
   (wi::reset))
 
 
-0.05
-
 ;; 1. run x interactions
 (progn
   (wi::reset)
@@ -88,7 +86,8 @@
   (deactivate-all-monitors)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor trace-interaction-in-web-interface)
-  (run-interaction *experiment*))
+  (loop for idx from 1 to 10
+        do (run-interaction *experiment*)))
 
 (defmethod after-interaction ((experiment cle-experiment))
   #|(align (speaker experiment))
@@ -135,21 +134,21 @@
 (display-lexicon (find-agent 237))
 ;; fiwezo and vobuwi
 
-(progn
-  (wi::reset)
-  (deactivate-all-monitors)
-  (activate-monitor trace-interaction-in-web-interface)
-  (run-interaction *experiment*
-                   :scene saved-scene
-                   :agents saved-agents)
-  (run-interaction *experiment*
-                   :scene saved-scene
-                   :agents (reverse saved-agents)))
 
-(add-cxn-to-interface (find-form-in-lexicon (lexicon (find-agent 27)) "kanatu"))
+(add-cxn-to-interface (find-form-in-lexicon (lexicon (find-agent 23)) "vereko"))
 (add-cxn-to-interface (find-form-in-lexicon (lexicon (find-agent 32)) "rafime"))
 (add-cxn-to-interface (find-form-in-lexicon (lexicon (find-agent 32)) "mofufe"))
 
+
+(setf vereko (find-form-in-lexicon (lexicon (find-agent 23)) "vereko"))
+
+
+(let* ((copy-distrib (copy-object (distribution (third (prototypes (meaning vereko)))))))
+  (format t "~%0: ~a" copy-distrib)
+  ;(setf (nr-of-samples copy-distrib) 100)
+  (loop for idx from 0 to 20
+        do (welford-update 0.295 copy-distrib)
+        do (format t "~%~a: ~a" idx copy-distrib)))
 
 (defun how-would-the-population-conceptualise (context topic)
   (wi::reset)
@@ -170,16 +169,6 @@
                    for delta = (* similarity (get-configuration agent :entrenchment-li))
                      
                    do (add-element `((h4) ,(format nil "~a - punished by ~,4f [similarity: ~,2f]" (form other-cxn) delta similarity)))))
-          
-        #|do (let ((applied-cxn (hearer-conceptualise agent :times)))
-             (add-element `((h3) ,(format nil "As a hearer applied: ~a" (form applied-cxn))))
-             (add-element `((h3) ,(format nil " with competitors:")))
-             (decide-competitors-hearer agent applied-cxn :times)
-             (loop for other-cxn in (find-data agent 'meaning-competitors)
-                   for similarity = (similar-concepts (meaning applied-cxn) (meaning other-cxn) :times)
-                   for delta = (* similarity (get-configuration agent :entrenchment-li))
-                     
-                   do (add-element `((h4) ,(format nil "~a - punished by ~,4f [similarity: ~,2f]" (form other-cxn) delta similarity)))))|#
            ))
 
 (defun add-raw-powers (agent discriminating-cxns form ledger)
@@ -253,7 +242,7 @@
                     ))
 
 
-
+(lexicon (first (agents *experiment*)))
 (how-would-the-population-conceptualise (find-data (first saved-agents) 'context)
                                         (second (objects (find-data (first saved-agents) 'context)))
                                         ;(find-data (first saved-agents) 'topic)
@@ -262,7 +251,7 @@
 (how-would-the-population-conceptualise2 (find-data (first saved-agents) 'context)
                                          (second (objects (find-data (first saved-agents) 'context)))
                                          ;(find-data (first saved-agents) 'topic)
-                                         (list "sulamo" "razifu" "zizisu"))
+                                         (list "vereko" "pexiba" "xusabi"))
 
 (loop for form in (list "sulamo" "razifu" "zizisu")
       do (add-cxn-to-interface (find-form-in-lexicon (lexicon (find-agent 43)) form)))
@@ -277,9 +266,9 @@
 (add-cxn-to-interface (find-form-in-lexicon (lexicon (find-agent 23)) "vobuwi"))
 (add-cxn-to-interface (find-form-in-lexicon (lexicon (find-agent 23)) "rewunu"))
            
-(setf pefudi (find-form-in-lexicon (lexicon (find-agent 179)) "pefudi"))
-(loop for el in (reverse (history (distribution (second (prototypes (meaning pefudi))))))
-      do (format t "~%~a" (second el)))
+(setf pefudi (find-form-in-lexicon (lexicon (find-agent 23)) "vereko"))
+(loop for el in (reverse (history (distribution (third (prototypes (meaning pefudi))))))
+      do (format t "~%~,3f" (second el)))
 
 (first (history (distribution (second (prototypes (meaning pomiwu))))))
 
