@@ -1132,8 +1132,16 @@ destroy the original lists"
      while item
      collect item))
 
+(export '(nth1 first-n))
+
 (defun nth1 (orig-n orig-list)
   "Nth element starting to count from 1."
   (nth (- orig-n 1) orig-list))
+
+(defun first-n (n sequence)
+  "Returns the first N elements of the sequence.
+   When the sequence is shorter than N, return the
+   entire sequence."
+  (butlast sequence (max (- (list-length sequence) n) 0)))
 
 
