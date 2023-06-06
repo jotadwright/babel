@@ -8,12 +8,10 @@
 (defmethod update-prototype ((interaction-number number)
                              (prototype prototype)
                              (object cle-object)
-                             (mode (eql :gaussian-welford))
                              &key &allow-other-keys)
-
   (let ((new-observation (get-channel-val object (channel prototype)))
         (distribution (distribution prototype)))
-    (welford-update new-observation distribution)
+    (update-distribution new-observation distribution)
     (update-prototype-history interaction-number new-observation distribution)))
 
 ;; ------------------
