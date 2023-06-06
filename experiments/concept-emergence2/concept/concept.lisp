@@ -24,7 +24,9 @@
                                    for new-prototype = (make-instance 'prototype
                                                                       :channel channel
                                                                       :weight initial-weight
-                                                                      :distribution distribution)
+                                                                      :weight-mode (get-configuration agent :weight-update-strategy)
+                                                                      :distribution distribution
+                                                                      )
                                    collect new-prototype)))
 
 (defmethod copy-object ((concept concept-distribution))

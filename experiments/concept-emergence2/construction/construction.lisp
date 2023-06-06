@@ -32,3 +32,10 @@
                  :form (copy-object (form cxn))
                  :meaning (copy-object (meaning cxn))
                  :score (copy-object (score cxn))))
+
+(defmethod print-object ((cxn cxn) stream)
+  (pprint-logical-block (stream nil)
+    (format stream "<CXN:~
+                        ~:_ form: ~a,~:_ score: ~a~:_"
+            (form cxn) (score cxn))
+    (format stream ">")))

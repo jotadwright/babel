@@ -110,67 +110,36 @@
   (add-element
    `((h2) ,(format nil "Step 1: Conceptualising as the ~a..." (discourse-role agent)))))
 
-
-(define-event-handler (trace-interaction-in-web-interface event-conceptualisation-end)
-  (add-element `((h2) ,(format nil " === CONCEPTUALISATION ===")))
-  (add-element `((h3) ,(format nil " === PHASE 1 : CHOSE CONSTRUCTIONS WITH POSITIVE DISCRIMINATING POWER === ")))
-  (loop for cxn in discriminating-cxns and idx from 0
-        do (add-element `((h4) ,(format nil " -> ~a: (~a, ~a)"
-                                        idx
-                                        (downcase (mkstr (form (assqv :cxn cxn))))
-                                        (downcase (mkstr (score (assqv :cxn cxn))))))))
-  (add-element `((h3) ,(format nil " === PHASE 2 === IDENTIFYING SIMILAR SETS")))
-  (loop for set in similar-sets and idx from 1
-        for count = 1
-        do (add-element `((h4) ,(format nil " === SET ~a WITH length ~a ==="
-                                        (downcase (mkstr idx)) (downcase (mkstr (length set))))))
-        do (loop for cxn in set
-                 do (add-element `((h4) ,(format nil " -> ~a.~a: (~a, ~a) ==> (~,3f ~,3f)"
-                                                 idx
-                                                 count
-                                                 (downcase (mkstr (form (assqv :cxn cxn))))
-                                                 (downcase (mkstr (score (assqv :cxn cxn))))
-                                                 (assqv :topic-sim cxn)
-                                                 (assqv :best-other-sim cxn))))))
-           
-  (add-element `((h3) ,(format nil " === PHASE 3 : BEST ENTRENCHED OUT OF EACH SET ===")))
-  (loop for cxn in best-entrenched-cxns and idx from 1
-        do (add-element `((h4) ,(format nil " === SET ~a ===" (downcase (mkstr idx)))))
-        do (add-element `((h4) ,(format nil " -> ~a: (~a, ~a) ==> Power: ~,3f"
-                                        (downcase (mkstr (form (assqv :cxn cxn))))
-                                        (downcase (mkstr (score (assqv :cxn cxn))))
-                                        (mkstr (id (assqv :cxn cxn)))
-                                        (/ (abs (- (sigmoid (assqv :topic-sim cxn)) (sigmoid (assqv :best-other-sim cxn)))) (sigmoid 1))))))
-  (add-element `((h3) ,(format nil " === PHASE 4 : SELECT BASED ON DISCRIMINATIVE-POWER ===")))
-  (if (car applied-cxn)
-    (add-element `((h3) ,(format nil " == RESULT: (~a, ~a) == "
-                                 (downcase (mkstr (form (car applied-cxn))))
-                                 (downcase (mkstr (score (car applied-cxn)))))))
-    (add-element `((h4) ,(format nil " == RESULT: 'nil' ==")))))
-
 (define-event-handler (trace-interaction-in-web-interface event-conceptualisation-end2)
   (add-element `((h2) ,(format nil " === CONCEPTUALISATION ===")))
   (add-element `((h3) ,(format nil " === PHASE 1 : CHOSE CONSTRUCTIONS WITH POSITIVE DISCRIMINATING POWER === ")))
-  (loop for cxn in discriminating-cxns and idx from 0
+  (loop with ledger = (loop for tuple in discriminating-cxns
+                            ;; discriminative-power
+                            for topic-sim = (sigmoid (assqv :topic-sim tuple)) ;; sigmoid-ed!
+                            for best-other-sim = (sigmoid (assqv :best-other-sim tuple)) ;; sigmoid-ed!
+                            sum (abs (- topic-sim best-other-sim)))
+        for cxn in discriminating-cxns and idx from 0
         for form = (form (assqv :cxn cxn))
         for entrenchment = (score (assqv :cxn cxn))
         
         for discriminative-power = (abs (- (sigmoid (assqv :topic-sim cxn)) (sigmoid (assqv :best-other-sim cxn))))
-        do (add-element `((h4) ,(format nil " -> ~a: (~a, ~a, [~,3f and ~,3f => ~,3f]) => SCORE = ~,3f"
+        do (add-element `((h4) ,(format nil " -> ~a: (~a, ~,3f, [~,3f/~,3f => ~,3f]) => SCORE = ~,3f"
                                         idx
                                         (downcase (mkstr form))
                                         entrenchment
-                                        (sigmoid (assqv :topic-sim cxn))
-                                        (sigmoid (assqv :best-other-sim cxn))
                                         discriminative-power
-                                        (* entrenchment discriminative-power)))))
+                                        ledger
+                                        (/ discriminative-power ledger)
+                                        (* entrenchment (/ discriminative-power ledger)))))
+
+
+        )
   (add-element `((h3) ,(format nil " === PHASE 2 : SELECT BASED ON OVERALL SCORE ===")))
   (if (car applied-cxn)
     (add-element `((h3) ,(format nil " == RESULT: (~a, ~a) == "
                                  (downcase (mkstr (form (car applied-cxn))))
                                  (downcase (mkstr (score (car applied-cxn)))))))
     (add-element `((h4) ,(format nil " == RESULT: 'nil' ==")))))
-
 
 ;; -------------
 ;; + Invention +
@@ -224,15 +193,9 @@
 ;; -------------
 ;; + Coherence +
 ;; -------------
+
 (define-event-handler (trace-interaction-in-web-interface event-coherence-p)
   (let* ((interaction (current-interaction experiment)))
-    (add-element `((h2) ,(format nil " ^^^ check for coherence: ~a ^^^ "
-                                 (if coherence "True" "False"))))
-    (when speaker-cxn
-      (add-element `((h2) ,(format nil "~a: ~a"
-                                   (id (speaker interaction))
-                                   (form speaker-cxn))))
-      (add-cxn-to-interface speaker-cxn))
     (if hearer-cxn
       (progn
         (add-element `((h2) ,(format nil "~a: ~a"
@@ -241,6 +204,8 @@
         (add-cxn-to-interface hearer-cxn))
       (add-element `((h2) ,(format nil "~a could not conceptualise!"
                                    (id (hearer interaction))))))
+    (add-element `((h2) ,(format nil " ^^^ check for coherence: ~a ^^^ "
+                                 (if coherence "True" "False"))))
     )
   (add-element `((h2) ,(format nil " ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")))
   (add-element '((hr))))

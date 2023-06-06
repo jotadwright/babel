@@ -35,11 +35,11 @@
          (nr-of-samples 1)
          (st-dev (sqrt (/ M2 nr-of-samples)))
          (mean exemplar)
-         (history (list
+         (history (list (list
                    (interaction-number (current-interaction (experiment agent)))
                    exemplar
                    mean
-                   st-dev)))
+                   st-dev))))
     (make-instance 'gaussian-welford
                    :mean mean
                    :st-dev st-dev
@@ -61,7 +61,19 @@
           (st-dev distribution) (sqrt (/ new-M2 (nr-of-samples distribution)))
           (M2 distribution) new-M2)))
 
-
+;; ------------------------------
+;; + Updating prototype history +
+;; ------------------------------
+(defmethod update-prototype-history ((interaction-number number)
+                                     (new-observation number)
+                                     (distribution gaussian-welford)
+                                     &key &allow-other-keys)
+  "Update the distribution history."
+  (setf (history distribution) (cons (list interaction-number
+                                           new-observation
+                                           (mean distribution)
+                                           (st-dev distribution))
+                                     (history distribution))))
 
 ;; --------------------
 ;; + Helper functions +
@@ -69,7 +81,7 @@
 (defmethod print-object ((distribution gaussian) stream)
   (pprint-logical-block (stream nil)
     (format stream "<Gaussian:~
-                        ~:_ mean: ~a,~:_ st-dev: ~a~:_"
+                        ~:_ mean: ~,3f,~:_ st-dev: ~,3f~:_"
             (mean distribution) (st-dev distribution))
     (format stream ">")))
 
