@@ -151,7 +151,7 @@
         (filename-length (length filename-string))
         (filename-cutoff (min filename-length 240))
         (filename-final (subseq filename-string 0 filename-cutoff))
-        (output-file (format nil (format nil "~a~a-prd~a~a" (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "predictions-parameter")
+        (output-file (format nil (format nil "~a~a-prd~a~a" (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "config-evaluation" "predictions-config-eval")
                                                               ) filename-final random-number ".store"))))
     (with-open-file (out-stream output-file :direction :output :if-does-not-exist :create :if-exists :append)
       (let ((binary-stream (flexi-streams:make-flexi-stream out-stream :element-type '(unsigned-byte 8))))
@@ -248,7 +248,7 @@
          (filename-length (length filename-string))
          (filename-cutoff (min filename-length 240))
          (filename-final (subseq filename-string 0 filename-cutoff))
-         (pathname (format nil (format nil "~a~a-gr~a~a" (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "grammars-parameter")
+         (pathname (format nil (format nil "~a~a-gr~a~a" (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "config-evaluation" "grammars-config-eval")
                                                               ) filename-final random-number ".fcg"))))
     (cl-store:store grammar pathname)))
 

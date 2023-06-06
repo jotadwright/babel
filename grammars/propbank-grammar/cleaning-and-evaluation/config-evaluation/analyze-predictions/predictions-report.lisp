@@ -2,16 +2,28 @@
 (ql:quickload :propbank-grammar)
 (in-package :propbank-grammar)
 
+(load (babel-pathname :directory
+                      '("grammars" "propbank-grammar" "cleaning-and-evaluation" "config-evaluation" "analyze-predictions")
+                      :name "restore-predictions-evaluate" :type "lisp"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; (get-predictions-reports "/Users/ehai-guest/Projects/babel/grammars/propbank-grammar/cleaning-and-evaluation/parameter-evaluation/predictions-parameter" "test-output.csv")
+;; (get-predictions-reports "/Users/ehai-guest/Projects/babel/grammars/propbank-grammar/cleaning-and-evaluation/config-evaluation/predictions-config-eval" "/Users/ehai-guest/Projects/babel/grammars/propbank-grammar/cleaning-and-evaluation/config-evaluation/grammars-config-eval" "test-output.csv")
+
+;; (get-predictions-reports "/Users/ehai-guest/Projects/babel/grammars/propbank-grammar/cleaning-and-evaluation/config-evaluation/analyze-predictions/exp-full-train-4000-predictions-32-comb/predictions-full-train-4000-predictions-32-comb" "/Users/ehai-guest/Projects/babel/grammars/propbank-grammar/cleaning-and-evaluation/config-evaluation/analyze-predictions/exp-full-train-4000-predictions-32-comb/grammars-full-train-4000-predictions-32-comb" "frame_prediction_data.csv")
 
 
+(defun get-predictions-reports (predictions-directory-path grammars-directory-path output-file-report &key (core-roles-only nil) (include-word-sense t) (include-timed-out-sentences nil) (excluded-rolesets nil) (include-sentences-with-incomplete-role-constituent-mapping nil))
+   "Process all prediction files in a directory, generate evaluation reports for each file, and save the results to a specified CSV file.
 
-(defun get-predictions-reports (directory-path output-file-report &key (core-roles-only nil) (include-word-sense t) (include-timed-out-sentences t) (excluded-rolesets nil) (include-sentences-with-incomplete-role-constituent-mapping t))
-  "Process all files in a directory using a specified function and perform another action on the results."
-  (let ((directory (uiop:directory-files directory-path))
+This function iterates over all prediction files in the specified directory, processes each file, and generates an evaluation report based on various evaluation parameters. The results of the evaluations are then written to a specified CSV output file.
+
+Arguments:
+- predictions-directory-path (string): The path to the directory containing prediction files to be processed.
+- grammars-directory-path (string): The path to the directory containing grammar files.
+- output-file-report (string): The path to the output CSV file where evaluation results will be saved."
+
+  (let ((directory (uiop:directory-files predictions-directory-path))
         (results '()))
     (dolist (file directory)
       (let ((file-path-string (namestring file))
@@ -20,9 +32,11 @@
         (cl-ppcre:register-groups-bind (config-number-string)
             ("(\\d{4})\\.store" file-path-string)
           (setq predictions-number (parse-integer config-number-string)))
-        ;; Evaluate predictions and save results
-        (let ((predictions (restore-predictions file)))
-          (let ((evaluation-report (get-evaluation-report predictions :core-roles-only core-roles-only :include-word-sense include-word-sense :include-timed-out-sentences include-timed-out-sentences :excluded-rolesets excluded-rolesets :include-sentences-with-incomplete-role-constituent-mapping include-sentences-with-incomplete-role-constituent-mapping)))
+        ; Evaluate predictions and save results
+        (let ((predictions (restore-predictions file))
+              (current-excluded-rolesets (generate-excluded-rolesets predictions-number grammars-directory-path))
+              (current-learning-modes (generate-core-roles-only predictions-number grammars-directory-path)))
+          (let ((evaluation-report (get-evaluation-report predictions :core-roles-only current-learning-modes :include-word-sense include-word-sense :include-timed-out-sentences include-timed-out-sentences :excluded-rolesets current-excluded-rolesets :include-sentences-with-incomplete-role-constituent-mapping include-sentences-with-incomplete-role-constituent-mapping)))
             (write-evaluation-report-to-csv predictions-number evaluation-report output-file-report)))))))
 
 (defun write-evaluation-report-to-csv (prediction-nr evaluation-data filename)
@@ -140,7 +154,8 @@
         (setf (gethash :nr-of-correct-predictions frame-data) support))
       
       (bt:with-lock-held (mutex)
-        (setf (gethash roleset evaluation-data) frame-data)))))
+        (setf (gethash roleset evaluation-data) frame-data)))))  
+
 
 (defun coerce-to-number (value)
   "Coerce value to a number. If value is NIL, return 0."

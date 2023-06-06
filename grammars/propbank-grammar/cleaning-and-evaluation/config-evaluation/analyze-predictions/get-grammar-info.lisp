@@ -3,9 +3,13 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; (restore-grammars-and-save-configs "/Users/ehai-guest/Projects/babel/grammars/propbank-grammar/cleaning-and-evaluation/parameter-evaluation/grammars-parameter" "grammars-info.csv")
+;; (restore-grammars-and-save-configs "/Users/ehai-guest/Projects/babel/grammars/propbank-grammar/cleaning-and-evaluation/config-evaluation/grammars-config-eval" "grammars-info.csv")
 
 (defun restore-grammars-and-save-configs (directory-path output-csv-path)
+  "Restores grammars from files in the specified directory and saves their configuration data to a CSV file.
+   Arguments:
+   - DIRECTORY-PATH: The directory containing the grammar files.
+   - OUTPUT-CSV-PATH: The file path for the output CSV file."
   (let ((directory (uiop:directory-files directory-path)))
     ;; Write the header to the output CSV file
     (with-open-file (stream output-csv-path :direction :output
@@ -20,6 +24,9 @@
             (save-config-to-csv config-data output-csv-path)))))))
 
 (defun restore-grammar-and-get-config (file-path)
+  "Restores a grammar from a file and returns its configuration data.
+   Argument:
+   - FILE-PATH: The file path of the grammar."
   (let ((file-path-string (namestring file-path)))
     (cl-ppcre:register-groups-bind (config-number-string)
         ("(\\d{4})\\.fcg" file-path-string)
@@ -40,6 +47,10 @@
               all-configs)))))))
 
 (defun save-config-to-csv (config-data file-path)
+  "Saves configuration data to a CSV file.
+   Arguments:
+   - CONFIG-DATA: A list of configuration data to save. Should include :config-number, :grammar-size, :heuristics, :learning-modes, and :excluded-rolesets.
+   - FILE-PATH: The file path for the output CSV file."
   (with-open-file (stream file-path :direction :output
                                        :if-exists :append
                                        :if-does-not-exist :create)

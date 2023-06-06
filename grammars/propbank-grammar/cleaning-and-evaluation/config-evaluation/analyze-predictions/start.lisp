@@ -4,23 +4,28 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (load (babel-pathname :directory
-                      '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "analyze-predictions")
+                      '("grammars" "propbank-grammar" "cleaning-and-evaluation" "config-evaluation" "analyze-predictions")
                       :name "get-grammar-info" :type "lisp"))
 
 (load (babel-pathname :directory
-                      '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "analyze-predictions")
+                      '("grammars" "propbank-grammar" "cleaning-and-evaluation" "config-evaluation" "analyze-predictions")
                       :name "restore-predictions-evaluate" :type "lisp"))
 
 (load (babel-pathname :directory
-                      '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "analyze-predictions")
+                      '("grammars" "propbank-grammar" "cleaning-and-evaluation" "config-evaluation" "analyze-predictions")
                       :name "predictions-report" :type "lisp"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Functions to generate statistics from the predictions and grammars used to make the grammar objects in the python script.
-(restore-grammars-and-save-configs "/Users/ehai-guest/Projects/babel/grammars/propbank-grammar/cleaning-and-evaluation/parameter-evaluation/analyze-predictions/exp-full-train-4000-predictions-32-comb/grammars-full-train-4000-predictions-32-comb" "grammar_data.csv")
+;; Functions to generate statistics and get data from the predictions and grammars. They are stored in four .csv files, used to make the grammar objects in the python project.
+;; Note that the grammars and predictions should have a four digit identifier number in their name, e.g. "grammar_0001.fcg" and "predictions_0001.store".
+(restore-grammars-and-save-configs "grammars-path" "grammar_data.csv")
 
-(generate-predictions-files "/Users/ehai-guest/Projects/babel/grammars/propbank-grammar/cleaning-and-evaluation/parameter-evaluation/analyze-predictions/exp-full-train-4000-predictions-32-comb/predictions-full-train-4000-predictions-32-comb" "/Users/ehai-guest/Projects/babel/grammars/propbank-grammar/cleaning-and-evaluation/parameter-evaluation/analyze-predictions/exp-full-train-4000-predictions-32-comb/grammars-full-train-4000-predictions-32-comb" "micro_evaluation_data.csv" "macro_evaluation_data.csv" "frame_prediction_data.csv" :core-roles-only nil :include-timed-out-sentences nil)
+;;(defparameter *corpus-experiment* (cl-store:restore "path-to-corpus-exp.store"))
+
+(save-corpus-to-csv *corpus-experiment* "corpus_data.csv")
+
+(generate-predictions-files "predictions-path" "grammars-path" "micro_evaluation_data.csv" "macro_evaluation_data.csv" "frame_prediction_data.csv")
 
 (defun generate-predictions-files (predictions-directory-path grammars-directory-path output-file-micro output-file-macro output-file-report
                               &key (batch-size 1)
@@ -38,7 +43,7 @@
                                                         :include-timed-out-sentences include-timed-out-sentences
                                                         :excluded-rolesets excluded-rolesets
                                                         :include-sentences-with-incomplete-role-constituent-mapping include-sentences-with-incomplete-role-constituent-mapping)
-  (get-predictions-reports predictions-directory-path output-file-report
+  (get-predictions-reports predictions-directory-path grammars-directory-path output-file-report
                                                         :core-roles-only core-roles-only
                                                         :include-word-sense include-word-sense
                                                         :include-timed-out-sentences include-timed-out-sentences

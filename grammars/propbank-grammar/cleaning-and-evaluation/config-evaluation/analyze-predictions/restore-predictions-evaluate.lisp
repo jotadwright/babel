@@ -2,11 +2,11 @@
 (in-package :propbank-grammar)
 
 (load (babel-pathname :directory
-                      '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "analyze-predictions")
+                      '("grammars" "propbank-grammar" "cleaning-and-evaluation" "config-evaluation" "analyze-predictions")
                       :name "get-corpus-info" :type "lisp"))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;(get-predictions-info "/Users/ehai-guest/Projects/babel/grammars/propbank-grammar/cleaning-and-evaluation/parameter-evaluation/predictions-parameter" "/Users/ehai-guest/Projects/babel/grammars/propbank-grammar/cleaning-and-evaluation/parameter-evaluation/grammars-parameter" "sentence_predictions_info.csv" "test-macro-predictions-info.csv")
+;;(get-predictions-info "/Users/ehai-guest/Projects/babel/grammars/propbank-grammar/cleaning-and-evaluation/config-evaluation/predictions-config-eval" "/Users/ehai-guest/Projects/babel/grammars/propbank-grammar/cleaning-and-evaluation/config-evaluation/grammars-config-eval" "sentence_predictions_info.csv" "test-macro-predictions-info.csv")
 
 (defun get-predictions-info (predictions-directory-path grammars-directory-path output-file-micro output-file-macro
                               &key (batch-size 1)
@@ -53,7 +53,7 @@
       (let* ((prediction-nr (sentence-evaluation-result-prediction-nr result))
              (sentence-stats (sentence-evaluation-result-sentence-stats result))
              (evaluation-result (sentence-evaluation-result-evaluation-result result))
-             (sentence-stats-csv (prepare-sentence-stats-for-csv sentence-stats)) ; <-- Change this line
+             (sentence-stats-csv (prepare-sentence-stats-for-csv sentence-stats))
              (evaluation-result-csv (prepare-evaluation-result-for-csv evaluation-result)))
         (format out "~A,~A,~A~%" prediction-nr sentence-stats-csv evaluation-result-csv)))))
 
@@ -133,7 +133,7 @@
   (let* ((grammar-name (caar batch-results))
          (output-strings '())
          (file-name (format nil "f1-scores-batches-all-grammars"))
-         (file-path (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "predictions-parameter")
+         (file-path (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "config-evaluation" "predictions-config-eval")
                                     :name file-name
                                     :type "txt")))
     ;; loop over each batch result and format it as a string
@@ -271,9 +271,7 @@
   (let ((role-type (fe-role role)) ; Changed to fe-role
         (role-indices (indices role))
         (role-string (fe-string role))) ; Changed to fe-string
-    (format nil "~A [~{~A~^ | ~}]: ~A" role-type role-indices (remove-punctuation role-string))))
-
-
+    (format nil "~A [~{~A~^ | ~}]: ~A" role-type role-indices (replace-commas role-string))))
 
 (defun unique-source-files (predictions)
   (let ((source-files (make-hash-table :test 'equal)))

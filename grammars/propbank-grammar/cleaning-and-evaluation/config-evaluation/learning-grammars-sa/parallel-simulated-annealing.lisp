@@ -99,7 +99,7 @@
                          :evolution-f1 evolution-f1
                          :list-of-comb list-of-comb)))
     (let ((file-name (format nil "info-test-params-thread-~A-temp~A-cool~A-steps~A-train~A-dev~A" thread-nmb initial-temperature cooling-rate steps train-set-size dev-set-size)))
-      (with-open-file (stream (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "predictions-parameter")
+      (with-open-file (stream (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "config-evaluation" "predictions-config-eval")
                                           :name file-name
                                           :type "txt")
                        :direction :output
@@ -120,7 +120,7 @@
   Appends the information for new batches and does not overwrite."
   (let* ((output-string (format nil "~a,~{~A~^,~}~%" current-combination f1-scores))
          (file-name (format nil "f1-scores-batches-~a-tbsize" test-batch-size))
-         (file-path (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "predictions-parameter")
+         (file-path (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "config-evaluation" "predictions-config-eval")
                                           :name file-name
                                           :type "txt")))
     (with-open-file (out-stream file-path :direction :output :if-does-not-exist :create :if-exists :append)
@@ -131,7 +131,7 @@
   Appends the information for new batches and does not overwrite."
   (let* ((output-string (format nil "~a,~{~A~^,~}~%" current-combination f1-scores))
          (file-name (format nil "f1-scores-batches-~a-tbsize-loose" test-batch-size))
-         (file-path (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "predictions-parameter")
+         (file-path (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "config-evaluation" "predictions-config-eval")
                                           :name file-name
                                           :type "txt")))
     (with-open-file (out-stream file-path :direction :output :if-does-not-exist :create :if-exists :append)
@@ -140,10 +140,10 @@
 (defun store-f1-params-for-par (f1-scores-params temperature cooling-rate steps train-set-size test-set-size &optional (thread-nmb "all"))
   (let ((file-name (format nil "thread-~A-f1-scores-params-temp~A-cool~A-steps~A-train~A-dev~A" thread-nmb temperature cooling-rate steps train-set-size test-set-size)))
         (cl-store:store f1-scores-params
-                    (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "predictions-parameter")
+                    (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "config-evaluation" "predictions-config-eval")
                                     :name file-name
                                     :type "store"))
-    (with-open-file (stream (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "predictions-parameter")
+    (with-open-file (stream (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "config-evaluation" "predictions-config-eval")
                                           :name file-name
                                           :type "csv")
                          :direction :output
