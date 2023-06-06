@@ -81,7 +81,7 @@
 (defmethod print-object ((distribution gaussian) stream)
   (pprint-logical-block (stream nil)
     (format stream "<Gaussian:~
-                        ~:_ mean: ~a,~:_ st-dev: ~a~:_"
+                        ~:_ mean: ~,3f,~:_ st-dev: ~,3f~:_"
             (mean distribution) (st-dev distribution))
     (format stream ">")))
 
