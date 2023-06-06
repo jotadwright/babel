@@ -57,6 +57,8 @@
                (:module "distribution"
                 :serial t
                 :components ((:file "gaussian")
+                             (:file "replay")
+                             (:file "welford")
                              (:file "divergence")
                              ))
                (:module "interaction"
