@@ -69,11 +69,10 @@
     (notify event-coherence-p experiment coherence speaker-cxn hearer-cxn)
     coherence))
 
-;; -------------------------
-;; + Alternative algorithm +
-;; -------------------------
-
-(define-event event-conceptualisation-end2
+;; -------------
+;; + Algorithm +
+;; -------------
+(define-event event-conceptualisation-end
   (agent cle-agent)
   (discriminating-cxns list)
   (applied-cxn list))
@@ -94,7 +93,7 @@
       ;; set the applied-cxn slot
       (set-data agent 'applied-cxn applied-cxn)
       ;; notify
-      (notify event-conceptualisation-end2
+      (notify event-conceptualisation-end
               agent
               discriminating-cxns
               (list applied-cxn))

@@ -18,10 +18,9 @@
     (speaker (speaker-alignment agent :times))
     (hearer (hearer-alignment agent :times))))
 
-;; ----------------
-;; + Alternatives +
-;; ----------------
-
+;; ---------------------
+;; + Speaker Alignment +
+;; ---------------------
 (defmethod speaker-alignment ((agent cle-agent) (mode (eql :times)))
   "Speaker alignment."
   (let* ((topic (find-data agent 'topic))
@@ -48,6 +47,9 @@
           (update-score-cxn agent applied-cxn (get-configuration agent :entrenchment-decf))
           (notify event-align-cxn "Punish (due to failure)" applied-cxn previous-copy))))))
 
+;; --------------------
+;; + Hearer Alignment +
+;; --------------------
 (defmethod hearer-alignment ((agent cle-agent) (mode (eql :times)))
   "Hearer alignment."
   (let* ((topic (get-data agent 'topic))

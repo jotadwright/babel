@@ -110,7 +110,7 @@
   (add-element
    `((h2) ,(format nil "Step 1: Conceptualising as the ~a..." (discourse-role agent)))))
 
-(define-event-handler (trace-interaction-in-web-interface event-conceptualisation-end2)
+(define-event-handler (trace-interaction-in-web-interface event-conceptualisation-end)
   (add-element `((h2) ,(format nil " === CONCEPTUALISATION ===")))
   (add-element `((h3) ,(format nil " === PHASE 1 : CHOSE CONSTRUCTIONS WITH POSITIVE DISCRIMINATING POWER === ")))
   (loop with ledger = (loop for tuple in discriminating-cxns
