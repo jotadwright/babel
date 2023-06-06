@@ -18,7 +18,6 @@
   (speaker-cxn t)
   (hearer-cxn t))
 
-
 (defmethod conceptualise ((agent cle-agent))
   ;; notify
   (notify event-conceptualisation-start agent)
@@ -26,57 +25,6 @@
   (case (discourse-role agent)
     (speaker (speaker-conceptualise agent (get-configuration agent :strategy)))
     (hearer (hearer-conceptualise agent (get-configuration agent :strategy)))))
-
-;; -----------------------------
-;; + General conceptualisation +
-;; -----------------------------
-#|(defmethod speaker-conceptualise ((agent cle-agent) (mode (eql :standard)))
-  "Conceptualise the topic of the interaction."
-  (if (length= (lexicon agent) 0)
-    nil
-    (let* (;; step 1 - find the discriminating concepts
-           (discriminating-cxns (search-discriminative-concepts agent))
-           ;; step 2 - find similar concepts and sort them into sets in which concepts are similar
-           (similar-sets (find-similar-concepts-into-sets
-                          discriminating-cxns
-                          :activation (get-configuration agent :concept-similarity-activation)))
-           ;; step 3 - find the best entrenched concept in each set
-           (best-entrenched-cxns (loop for set in similar-sets
-                                       collect (select-best-entrenched-concept set)))
-           ;; step 4 - find the concept with the most discriminative power
-           (applied-cxn (select-most-discriminating-concept best-entrenched-cxns mode)))
-      ;; decides which concepts are considered during alignment
-      (decide-competitors-speaker agent
-                                  applied-cxn ;; phase 4
-                                  similar-sets ;; phase 2
-                                  mode
-                                  )
-      ;; set the applied-cxn slot
-      (set-data agent 'applied-cxn applied-cxn)
-      ;; notify
-      (notify event-conceptualisation-end
-              agent
-              discriminating-cxns
-              similar-sets
-              best-entrenched-cxns
-              (list applied-cxn))
-      applied-cxn)))
-
-(defmethod hearer-conceptualise ((agent cle-agent) (mode (eql :standard)))
-  (if (length= (lexicon agent) 0)
-    nil
-    (let* (;; step 1 - find the discriminating concepts
-           (discriminating-cxns (search-discriminative-concepts agent))
-           ;; step 2 - find similar concepts and sort them into sets where concepts are similar
-           (similar-sets (find-similar-concepts-into-sets discriminating-cxns
-                                                          :activation (get-configuration agent :concept-similarity-activation)))
-           
-           ;; step 3 - find the best entrenched concept in each set
-           (best-entrenched-cxns (loop for set in similar-sets
-                                  collect (select-best-entrenched-concept set)))
-           ;; step 4 - find the concept with the most discriminative power
-           (applied-cxn (select-most-discriminating-concept best-entrenched-cxns mode)))
-      applied-cxn)))|#
 
 ;; ----------------------------------
 ;; + Search discriminative concepts +
@@ -98,28 +46,11 @@
                                                discriminating-cxns)))
     discriminating-cxns))
 
-;; ------------------------------------------
-;; + Deciding priority of selected concepts +
-;; ------------------------------------------
-#|(defmethod select-most-discriminating-concept (cxns (mode (eql :standard)))
-   "Selects the concept with the most discriminative-power [0, inf]." 
-  (let ((best-score -1)
-        (best-cxn nil))
-    (loop for tuple in cxns
-          for topic-sim = (sigmoid (assqv :topic-sim tuple)) ;; sigmoid-ed!
-          for best-other-sim = (sigmoid (assqv :best-other-sim tuple)) ;; sigmoid-ed!
-          for discriminative-power = (abs (- topic-sim best-other-sim))
-          when (> discriminative-power best-score)
-            do (progn
-                 (setf best-score discriminative-power)
-                 (setf best-cxn (assqv :cxn tuple))))
-    best-cxn))|#
-
-(defun sigmoid (x)
-  (/ 1 (+ 1 (exp (* -1 x)))))
-
-(defmethod calculcate-discriminative-power (topic-sim best-other-sim)
-  (abs (- (sigmoid topic-sim) (sigmoid best-other-sim))))
+(defun sigmoid (x &key (c -1/2))
+  "Sigmoid function where c changes the slope of the function. 
+  
+    When c is a fraction the slope is less steep, when c is a larger the slope is steeper."
+  (/ 1 (+ 1 (exp (* c x)))))
 
 ;; ---------------------
 ;; + Lexicon coherence +
@@ -202,61 +133,4 @@
                  (setf best-cxn (assqv :cxn tuple))))
     best-cxn))
 
-;;;;; ALTERNATIVES
 
-#|(defmethod speaker-conceptualise ((agent cle-agent) (mode (eql :jens)))
-  "Conceptualise the topic of the interaction.
-      speaker:
-	does not use negative entrenched concepts to conceptualise (can still become positive due to hearer positive use)
-	conceptualise: discr > 0, maximise then (of maximise and check if > 0)
-      hearer:
-	can use negative entrenched concepts to parse."
-  (if (length= (lexicon agent) 0)
-    nil
-    (let* (;; step 1 - find the discriminating concepts
-           (discriminating-cxns (search-discriminative-concepts agent))
-           ;; step 4 - find the concept that maximises entrenchment * discriminative power
-           (applied-cxn (select-most-discriminating-concept discriminating-cxns mode)))
-      ;; decides which concepts are considered during alignment
-      (decide-competitors-speaker agent
-                                  applied-cxn
-                                  discriminating-cxns
-                                  mode)
-      ;; set the applied-cxn slot
-      (set-data agent 'applied-cxn applied-cxn)
-      ;; notify
-      (notify event-conceptualisation-end2
-              agent
-              discriminating-cxns
-              (list applied-cxn))
-      applied-cxn)))
-
-;; JENS
-
-(defmethod hearer-conceptualise ((agent cle-agent) (mode (eql :jens)))
-  (if (length= (lexicon agent) 0)
-    nil
-    (let* (;; step 1 - find the discriminating concepts
-           (discriminating-cxns (search-discriminative-concepts agent))
-           ;; step 4 - find the concept that maximises entrenchment * discriminative power
-           (applied-cxn (select-most-discriminating-concept discriminating-cxns mode)))
-      applied-cxn)))
-
-(defmethod select-most-discriminating-concept (cxns (mode (eql :jens)))
-  (let* ((best-score -1)
-         (best-cxn nil))
-    (loop for tuple in cxns
-          ;; discriminative-power
-          for topic-sim = (sigmoid (assqv :topic-sim tuple)) ;; sigmoid-ed!
-          for best-other-sim = (sigmoid (assqv :best-other-sim tuple)) ;; sigmoid-ed!
-          for discriminative-power = (abs (- topic-sim best-other-sim))
-          ;; entrenchment
-          for entrenchment = (score (assqv :cxn tuple))
-          ;; combine both
-          when (and
-                (> entrenchment 0)
-                (> discriminative-power best-score))
-            do (progn
-                 (setf best-score discriminative-power)
-                 (setf best-cxn (assqv :cxn tuple))))
-    best-cxn))|#
