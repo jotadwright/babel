@@ -7,7 +7,7 @@
 ;; events
 (define-event event-context-determined (experiment cle-experiment))
 
-(defmethod before-interaction ((experiment cle-experiment) &key scene agents)
+(defmethod before-interaction ((experiment cle-experiment) &key scene topic agents)
   ;; 1. reset agents
   (determine-interacting-agents experiment
                                   (current-interaction experiment)
@@ -20,7 +20,9 @@
     (set-scene experiment scene)
     (sample-scene experiment (get-configuration experiment :scene-sampling)))
   ;; 3. pick a topic
-  (sample-topic experiment (get-configuration experiment :topic-sampling))
+  (if topic
+    (set-topic experiment topic)
+    (sample-topic experiment (get-configuration experiment :topic-sampling)))
   ;; notify
   (notify interaction-started experiment (current-interaction experiment) (interaction-number (current-interaction experiment)))
   (notify event-context-determined experiment))

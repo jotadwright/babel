@@ -3,13 +3,13 @@
 ;; --------------------
 ;; + Interaction flow +
 ;; --------------------
-(defmethod interact ((experiment cle-experiment) interaction &key scene agents)
-  (before-interaction experiment :scene scene :agents agents)
+(defmethod interact ((experiment cle-experiment) interaction &key scene topic agents)
+  (before-interaction experiment :scene scene :topic topic :agents agents)
   (do-interaction experiment)
   (after-interaction experiment))
 
 (defmethod run-interaction ((experiment cle-experiment)
-                            &key (scene nil) (agents nil)
+                            &key (scene nil) (topic nil) (agents nil)
                             &allow-other-keys)
   "runs an interaction by increasing the interaction number"
   (let ((interaction (make-instance 'interaction
@@ -21,7 +21,7 @@
     ;; 1. push new interaction
     (push interaction (interactions experiment))
     ;; 2. run interaction script
-    (interact experiment interaction :scene scene :agents agents)
+    (interact experiment interaction :scene scene :topic topic :agents agents)
     ;; 3. determine outcome
     (setf (communicated-successfully interaction)
           (loop for agent in (interacting-agents interaction)

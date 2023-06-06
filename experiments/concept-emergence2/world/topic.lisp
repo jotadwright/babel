@@ -1,5 +1,13 @@
 (in-package :cle)
 
+;; ------------------------
+;; + Set a scene manually +
+;; ------------------------
+(defmethod set-topic (experiment cle-object)
+  "Set a topic manually."
+  (loop for agent in (interacting-agents experiment)
+        do (set-data agent 'topic cle-object)))
+
 ;; ------------------
 ;; + Topic sampling +
 ;; ------------------
