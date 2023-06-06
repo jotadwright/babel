@@ -137,44 +137,44 @@
                                          (categories-to-add nil)
                                          (categorial-links-to-add nil)
                                          (category-linking-mode :categories-exist))
-  (with-configurations ((cxn-supplier :learner-cxn-supplier)
+  (with-configurations ((cxn-supplier :cxn-supplier-mode)
                         (de-render-mode :de-render-mode)
-                        (meaning-representation :meaning-representation)
-                        (initial-link-weight :initial-categorial-link-weight))
+                        (meaning-representation :meaning-representation))
       original-cxn-inventory
     (let* ((inventory-name (gensym))
            (temp-cxn-inventory
             (eval `(def-fcg-constructions ,inventory-name
                      :cxn-inventory ,inventory-name
                      :hashed t
-                     :feature-types ((pf::form-args sequence)
-                                     (pf::meaning-args sequence)
-                                     (form set-of-predicates)
+                     :feature-types ((form set-of-predicates :handle-regex-sequences)
                                      (meaning set-of-predicates)
+                                     (form-args sequence)
+                                     (meaning-args sequence)
                                      (subunits set)
                                      (footprints set))
-                     :fcg-configurations ((:node-tests :restrict-nr-of-nodes
-                                                       :restrict-search-depth
-                                                       :check-duplicate)
-                                          (:cxn-supplier-mode . ,cxn-supplier)
-                                          (:parse-goal-tests :no-strings-in-root
-                                                             :no-applicable-cxns
-                                                             :connected-semantic-network
-                                                             :connected-structure
-                                                             :non-gold-standard-meaning)
-                                          (:de-render-mode . ,de-render-mode)
+                     :fcg-configurations ((:construction-inventory-processor-mode . :heuristic-search)
+                                          (:search-algorithm . :best-first)
+                                          (:heuristics :nr-of-applied-cxns :nr-of-units-matched) 
+                                          (:heuristic-value-mode . :sum-heuristics-and-parent)
+                                          (:node-expansion-mode . :full-expansion)
+                                          
                                           (:parse-order routine)
-                                          (:max-nr-of-nodes . 250)
                                           (:production-order routine)
-                                          (:meaning-representation-formalism . ,meaning-representation)
-                                          (:render-mode . :generate-and-test)
+                                          (:max-nr-of-nodes . 250)
+                                          (:cxn-supplier-mode . ,cxn-supplier)
+
+                                          (:de-render-mode . ,de-render-mode)
+                                          (:render-mode . :render-sequences)
+                                          
                                           (:category-linking-mode . ,category-linking-mode)
+                                          
+                                          (:parse-goal-tests :no-applicable-cxns :connected-semantic-network :non-gold-standard-meaning)
+
+                                          (:meaning-representation . ,meaning-representation)
                                           (:update-categorial-links . nil)
                                           (:consolidate-repairs . nil)
                                           (:use-meta-layer . nil)
-                                          (:initial-categorial-link-weight . ,initial-link-weight)
-                                          (:ignore-transitive-closure . t)
-                                          (:hash-mode . :hash-string-meaning))))))
+                                          (:ignore-transitive-closure . t))))))
       (add-categories categories-to-add (categorial-network temp-cxn-inventory)
                       :recompute-transitive-closure nil)
       (dolist (categorial-link categorial-links-to-add)

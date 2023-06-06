@@ -78,6 +78,8 @@
              (query ?target ?object-1 ?attribute-1)
              (bind attribute-category ?attribute-1 size)))
 ;; => what-SLOT-is-the-ball-cxn + size-cxn + color-cxn
+
 ;; => what-SLOT1-is-the-SLOT2-cxn + size-cxn + color-cxn
+;; need partial analysis
 
 

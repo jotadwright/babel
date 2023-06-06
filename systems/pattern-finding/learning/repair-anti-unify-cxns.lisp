@@ -33,14 +33,14 @@
 (defmethod do-repair (observation-form observation-meaning form-args meaning-args
                                        (cxn-inventory construction-inventory)
                                        node (repair-type (eql 'anti-unify-cxns)))
-  (multiple-value-bind (cxns-to-apply cxns-to-consolidate cats-to-add links-to-add)
+  (destructuring-bind (cxns-to-apply cxns-to-consolidate cats-to-add links-to-add)
       (find-cxns-and-anti-unify observation-form observation-meaning (original-cxn-set cxn-inventory))
     (apply-fix observation-form
                cxns-to-apply
                links-to-add
                cxns-to-consolidate
                cats-to-add
-               (extract-lex-class-item-based-cxn (last-elt cxns-to-apply))
+               (extract-contributing-lex-class (last-elt cxns-to-apply))
                t
                node
                repair-type)))
@@ -71,6 +71,18 @@
    on the form side."
   ;; anti-unify-string requires string, so need to render the observation and the cxn forms
   ;; but rendering can return multiple solutions, so try out all combinations
+  
+  ;; !!! TO DO
+  ;; Introduce variables in the rendering of ihe sequence predicates of item-based cxns
+  ;; - How to know how many variables? Variables on the edges?
+  ;;   => count the number of form-args, divided by 2, but does not work for slots on the edges...
+  ;;   For example: ((sequence "what" ?lb1 ?rb1) (sequence "are there" ?lb2 ?rb2))
+  ;;   => "?SLOT1 what ?SLOT2 are there ?SLOT3"
+  ;;      "?SLOT1 what ?SLOT2 are there"
+  ;;      "what ?SLOT2 are there ?SLOT3"
+  ;;      "what ?SLOT2 are there"
+  ;; - Does string-anti-unification work properly with variables included?
+  
   (let* ((possible-source-forms
           (mapcar #'(lambda (lst) (list-of-strings->string lst :separator ""))
                   (render-all observation :render-sequences)))
@@ -159,7 +171,9 @@
                   for best-meaning-anti-unification-result
                     = (anti-unify-meaning observation-meaning set-of-cxns)
                   when (and best-form-anti-unification-result
-                            best-meaning-anti-unification-result)
+                            best-meaning-anti-unification-result
+                            (<= (cost best-form-anti-unification-result) 5)
+                            (<= (cost best-meaning-anti-unification-result) 5))
                   collect (list set-of-cxns
                                 best-form-anti-unification-result
                                 best-meaning-anti-unification-result)
