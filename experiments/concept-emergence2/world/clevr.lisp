@@ -56,3 +56,10 @@
     (:material . ,(material object))
     (:xpos . ,(if (> (x-pos object) 240) 'right 'left))
     (:zpos . ,(if (> (z-pos object) 11) 'behind 'front))))
+
+(defmethod print-object ((cle-object cle-object) stream)
+  (pprint-logical-block (stream nil)
+    (format stream "<cle-object:~
+                        ~:_ attributes: ~{~,2f~^, ~}"
+            (reverse (attributes cle-object)))
+    (format stream ">")))
