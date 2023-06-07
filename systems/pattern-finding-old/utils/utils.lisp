@@ -441,13 +441,13 @@
 ;; Variablify
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun fresh-variables (predicates)
-  (let* ((all-variables (find-all-anywhere-if #'variable-p predicates))
+(defun fresh-variables (set-of-predicates)
+  (let* ((all-variables (find-all-anywhere-if #'variable-p set-of-predicates))
          (unique-variables (remove-duplicates all-variables))
          (renamings (loop for var in unique-variables
                           for base-name = (get-base-name var)
                           collect (cons var (make-var base-name)))))
-    (values (substitute-bindings renamings predicates)
+    (values (substitute-bindings renamings set-of-predicates)
             renamings)))
 
 (defun variablify-form-constraints-with-constants (form-constraints-with-constants)
