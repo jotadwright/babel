@@ -28,25 +28,27 @@
                 :serial t
                 :components ((:file "handle-fix")
                              (:file "problems-diagnostics")
+                             (:file "cxn-skeletons")
+                             (:file "handle-potential-holistic-cxn")
+                             (:file "compute-args")
                              (:file "repair-add-categorial-links")
                              (:file "repair-nothing-to-holophrase-cxn")
-                             (:file "repair-holistic-to-item-based")
-                             (:file "repair-item-based-to-item-based")
+                             (:file "repair-anti-unify-cxns")
                              (:file "repair-holistic-partial-analysis")
                              (:file "repair-item-based-partial-analysis")))
                (:module experiment-setup
                 :serial t
                 :components ( (:file "run-helpers")
-                              (:file "grammar")
                               (:file "agent")
                               (:file "alignment")
                               (:file "experiment")
                               (:file "interaction")
                               (:module monitors
                                :serial t
-                               :components ( (:file "web-monitors")
-                                             (:file "export-monitors")
-                                             (:file "lisp-monitors")))))
+                               :components ((:file "utils")
+                                            (:file "web-monitors")
+                                            (:file "export-monitors")
+                                            (:file "lisp-monitors")))))
                (:module tests
                 :serial t
                 :components ((:file "utils"))

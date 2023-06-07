@@ -1,31 +1,45 @@
 (ql:quickload :pattern-finding-old)
 (in-package :pattern-finding-old)
 
+(progn
+  (deactivate-all-monitors)
+  (activate-monitor trace-fcg)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor trace-interactions-in-wi))
+
 
 (progn
   (deactivate-all-monitors)
   (activate-monitor display-metrics)
-  (monitors::activate-monitor fcg::trace-fcg)
-  (monitors::activate-monitor pf::print-a-dot-for-each-interaction)
+  (activate-monitor trace-fcg)
+  (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
   (activate-monitor show-type-hierarchy-after-n-interactions)
-  (monitors::activate-monitor trace-interactions-in-wi)
-  )
+  (activate-monitor trace-interactions-in-wi))
 
 
 ;;;; TO DO
 
 ;;;; Turn many functions into methods, especially for dealing with
-;;;; fcg-construction vs construction; construction-inventory vs fcg-construction-set;
+;;;; fcg-construction vs construction;
+;;;; construction-inventory vs fcg-construction-set;
 ;;;; units vs units??
-
-;;;; Merge the holistic->item-based and item-based->item-based repairs.
-;;;; This can become a general anti-unification repair.
 
 ;;;; To get the same effect as the item-based->item-based repair,
 ;;;; apply the repairs recursively to the generalisation part in
 ;;;; the partial analysis repair. But how? Have to make sure that
 ;;;; the learned item-based cxn has the correct amount of slots
+
+;;;; When anti-unifying with an item-based cxn, the cxn that is
+;;;; learned from the pattern delta should also be an item-based
+;;;; cxn with a slot that takes the same elements as the original
+;;;; item-based cxn.
+;;;; observation: what shape is the brown shiny thing
+;;;; cxns: what-color-is-the-x-cxn + cylinder-cxn + small-ball-cxn
+;;;; learned cxns: what-y-is-the-x-cxn + shape-brown-shiny-thing-cxn
+;;;;               + color-x-cxn (that takes cylinder-cxn and small-ball-cxn)
+
+;;;; Include args in the anti-unification process!
 
 
 (progn
@@ -33,22 +47,22 @@
   (notify reset-monitors)
   (reset-id-counters)
   (defparameter *experiment*
-    (make-instance 'pattern-finding-experiment
-                   :entries `((:meaning-representation . :irl) 
-                              (:corpus-files-root . ,(merge-pathnames
-                                                      (make-pathname :directory '(:relative "clevr-grammar-learning"))
-                                                      cl-user:*babel-corpora*))
-                              (:corpus-data-file . ,(make-pathname :directory '(:relative "train")
-                                                                   :name "stage-1" :type "jsonl"))
-                              (:number-of-samples . nil)
-                              (:shuffle-data-p . nil)
-                              (:sort-data-p . t)
-                              (:remove-duplicate-data-p . t)))))
+    (make-instance 'pattern-finding-experiment)))
 
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
 (run-series *experiment* 10)
+
+;; observation: what is the shape of the big brown shiny thing
+;; cxns: what is the color of the ?X + cylinder-cxn + small-sphere-cxn
+;; => what is the ?Y of the ?X + color-cylinder-cxn + color-small-sphere-cxn + shape-big-brown-shiny-thing-cxn
+;; => what is the ?Y of the ?X + (color-X-cxn + cylinder-cxn + small-sphere-cxn) + shape-big-brown-shiny-thing-cxn
+
+;; add args to anti-unifcation or something like that
+;; observation: string, meets
+;; cxn: string, meets, arg
+;; => when args in delta, pattern-delta-cxn must be item-based
 
 ;;;; Showing the cxn inventory and categorial network
 
@@ -70,7 +84,7 @@
 ;;;; Time travel
 
 (go-back-n-interactions *experiment* 1)
-(remove-cxns-learned-at *experiment* 22)
+(remove-cxns-learned-at *experiment* 4)
 
 (defun go-back-n-interactions (experiment n)
   (setf (interactions experiment)
@@ -105,17 +119,87 @@
 
 ;;;; Manual input
 
+(progn
+  (wi::reset)
+  (notify reset-monitors)
+  (reset-id-counters)
+  (defparameter *experiment*
+    (make-instance 'pattern-finding-experiment
+                   :entries '((:mode . :testing)))))
+
+(setf (corpus *experiment*)
+      `(("How many large cubes are there?"
+         ,@(fresh-variables
+            '((get-context ?context)
+              (filter ?set1 ?context ?shape1)
+              (bind shape ?shape1 cube)
+              (filter ?set2 ?set1 ?size1)
+              (bind size ?size1 large)
+              (count ?target ?set2))))
+        ("How many small balls are there?"
+         ,@(fresh-variables
+            '((get-context ?context)
+              (filter ?set1 ?context ?shape1)
+              (bind shape ?shape1 sphere)
+              (filter ?set2 ?set1 ?size1)
+              (bind size ?size1 small)
+              (count ?target ?set2))))))
+(run-interaction *experiment*)
+
+(setf (corpus *experiment*)
+      `(("How many large cubes are there?"
+         ,@(fresh-variables
+            '((get-context ?context)
+              (filter ?set-1 ?context ?shape-1)
+              (bind shape ?shape-1 cube)
+              (filter ?set-2 ?set-1 ?size-1)
+              (bind size ?size-1 large)
+              (count ?target ?set-2))))
+        ("How many blue small balls are there?"
+         ,@(fresh-variables
+            '((get-context ?context)
+              (filter ?set-1 ?context ?shape-1)
+              (bind shape ?shape-1 sphere)
+              (filter ?set-2 ?set-1 ?size-1)
+              (bind size ?size-1 small)
+              (filter ?set-3 ?set-2 ?color-1)
+              (bind color ?color-1 blue)
+              (count ?target ?set-3))))))
+(run-interaction *experiment*)
+
+(setf (corpus *experiment*)
+      `(("How many blue small balls are there?"
+         ,@(fresh-variables
+            '((get-context ?context)
+              (filter ?set-1 ?context ?shape-1)
+              (bind shape ?shape-1 sphere)
+              (filter ?set-2 ?set-1 ?size-1)
+              (bind size ?size-1 small)
+              (filter ?set-3 ?set-2 ?color-1)
+              (bind color ?color-1 blue)
+              (count ?target ?set-3))))
+        ("How many large cubes are there?"
+         ,@(fresh-variables
+            '((get-context ?context)
+              (filter ?set-1 ?context ?shape-1)
+              (bind shape ?shape-1 cube)
+              (filter ?set-2 ?set-1 ?size-1)
+              (bind size ?size-1 large)
+              (count ?target ?set-2))))))
+(run-interaction *experiment*)
+
 ;; test cases;
 ;; partial analysis repair with 2 holistic parts
 
 (setf (question-data *experiment*)
-      `(("What shape is the bla?" ,@(fresh-variables
-                                     '((get-context ?context-1)
-                                       (filter ?set-1 ?context-1 ?bind-1)
-                                       (bind bla-cat ?bind-1 bla)
-                                       (unique ?object-1 ?set-1)
-                                       (query ?answer-1 ?object-1 ?attribute-1)
-                                       (bind attribute ?attribute-1 shape))))
+      `(("What shape is the bla?"
+         ,@(fresh-variables
+            '((get-context ?context-1)
+              (filter ?set-1 ?context-1 ?bind-1)
+              (bind bla-cat ?bind-1 bla)
+              (unique ?object-1 ?set-1)
+              (query ?answer-1 ?object-1 ?attribute-1)
+              (bind attribute ?attribute-1 shape))))
         ("What color is the bla?" ,@(fresh-variables
                                      '((get-context ?context-1)
                                        (filter ?set-1 ?context-1 ?bind-1)

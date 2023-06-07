@@ -76,6 +76,7 @@
 ;; Make cxn name
 ;;;;;;;;;;;;;;;;;;;;
 
+#|
 (defconstant +placeholder-vars+
   '("?X" "?Y" "?Z" "?A" "?B" "?C"
     "?D" "?E" "?F" "?G" "?H" "?I"
@@ -97,57 +98,61 @@
                    (find first-word-var new-string-constraints :key #'second))
         do (push (list 'string first-word-var (nth placeholder-index +placeholder-vars+)) new-string-constraints)
            (incf placeholder-index)
-        ;do (progn (push `(string ,first-word-var ,(nth placeholder-index +placeholder-vars+)) new-string-constraints)
-        ;     (incf placeholder-index))
         unless (or (find second-word-var string-constraints :key #'second)
                    (find second-word-var new-string-constraints :key #'second))
         do (push (list 'string second-word-var (nth placeholder-index +placeholder-vars+)) new-string-constraints)
            (incf placeholder-index)
         finally (return new-string-constraints)))
+|#
 
-(defgeneric make-cxn-name (thing cxn-inventory &key add-cxn-suffix add-numeric-tail))
+(defgeneric make-cxn-name (thing cxn-inventory
+                                 &key holistic-suffix item-based-suffix numeric-suffix))
 
 (defmethod make-cxn-name ((string string) (cxn-inventory fcg-construction-set)
-                          &key (add-cxn-suffix t) (add-numeric-tail nil))
+                          &key holistic-suffix item-based-suffix numeric-suffix)
   "Transform an utterance into a suitable construction name"
   (declare (ignore cxn-inventory))
-  (let ((name-string
-         (substitute #\- #\Space
-                     (upcase
-                      (if add-cxn-suffix
-                        (string-append string "-cxn")
-                        string)))))
-    (if add-numeric-tail
+  (when (and holistic-suffix item-based-suffix)
+    (error "Cannot specify both holistic and item-based suffix"))
+  (let ((name-string (upcase (substitute #\- #\Space string))))
+    (when holistic-suffix
+      (setf name-string (string-append name-string "-HOLISTIC-CXN")))
+    (when item-based-suffix
+      (setf name-string (string-append name-string "-ITEM-BASED-CXN")))
+    (if numeric-suffix
       (make-id name-string)
       (intern name-string))))
 
+
 (defmethod make-cxn-name ((form-constraints list) (cxn-inventory fcg-construction-set)
-                          &key (add-cxn-suffix t) (add-numeric-tail nil))
+                          &key holistic-suffix item-based-suffix numeric-suffix)
   "Transform a list of form constraints into a suitable construction name"
-  (let ((new-string-constraints (variablify-missing-form-strings form-constraints)))
-    (make-cxn-name (format nil "~{~a~^-~}"
-                           (render (append form-constraints new-string-constraints)
-                                   (get-configuration cxn-inventory :render-mode)))
-                   cxn-inventory :add-cxn-suffix add-cxn-suffix :add-numeric-tail add-numeric-tail)))
+  (make-cxn-name (format nil "~{~a~^-~}" (render form-constraints (get-configuration cxn-inventory :render-mode)))
+                 cxn-inventory :holistic-suffix holistic-suffix
+                 :item-based-suffix item-based-suffix
+                 :numeric-suffix numeric-suffix))
 
 ;;;;;
 ;; Make unit name
 ;;;;;;;;;;;;;;;;;;;;
 
-(defgeneric make-unit-name (thing cxn-inventory))
+(defgeneric make-unit-name (thing cxn-inventory &key trim-cxn-suffix))
 
-(defmethod make-unit-name ((string string) (cxn-inventory fcg-construction-set))
+(defmethod make-unit-name ((symbol symbol) (cxn-inventory fcg-construction-set) &key trim-cxn-suffix)
+  (make-unit-name (mkstr symbol) cxn-inventory :trim-cxn-suffix trim-cxn-suffix))
+
+(defmethod make-unit-name ((string string) (cxn-inventory fcg-construction-set) &key trim-cxn-suffix)
   "Transform an utterance into a suitable construction name"
   (declare (ignore cxn-inventory))
+  (when trim-cxn-suffix
+    (setf string (string-replace string "-holistic-cxn" ""))
+    (setf string (string-replace string "-item-based-cxn" "")))
   (variablify (intern (string-append (upcase string) "-UNIT"))))
 
-(defmethod make-unit-name ((form-constraints list) (cxn-inventory fcg-construction-set))
+(defmethod make-unit-name ((form-constraints list) (cxn-inventory fcg-construction-set) &key trim-cxn-suffix)
   "Transform a list of form constraints into a suitable construction name"
-  (let ((new-string-constraints (variablify-missing-form-strings form-constraints)))
-    (make-unit-name (format nil "~{~a~^-~}"
-                           (render (append form-constraints new-string-constraints)
-                                   (get-configuration cxn-inventory :render-mode)))
-                   cxn-inventory)))
+  (make-unit-name (format nil "~{~a~^-~}" (render form-constraints (get-configuration cxn-inventory :render-mode)))
+                  cxn-inventory :trim-cxn-suffix trim-cxn-suffix))
 
 
 ;;;;;
@@ -155,28 +160,28 @@
 ;;;;;;;;;;;;;;;;;;;;
 
 (defun replace-special-initial-chars (string)
-  (if (member (subseq string 0 1) '("?" "!" "\"") :test #'string=)
+  (if (member (char string 0) '(#\? #\! #\\))
     (string-append "-" string)
     string))
  
-(defun make-lex-class (cat-name &key add-numeric-tail trim-cxn-suffix)
+(defun make-lex-class (cat-name &key numeric-suffix trim-cxn-suffix slotp)
   (let* ((name-string
           (replace-special-initial-chars
-           (if (equal (type-of cat-name) 'SYMBOL)
-             (string-downcase (symbol-name cat-name))
-             (string-downcase cat-name))))
-         (cat-name
-          (if trim-cxn-suffix
-            (fcg::replace-all name-string "-cxn" "")
-            name-string)))
-    (intern
-     (string-downcase
-      (symbol-name
-       (funcall
-        (if add-numeric-tail #'make-const #'make-symbol)
-        (upcase
-         (if cat-name cat-name "CAT")))))
-     :pattern-finding-old)))
+           (string-downcase
+            (if (equal (type-of cat-name) 'SYMBOL)
+             (symbol-name cat-name)
+             cat-name)))))
+    (when trim-cxn-suffix
+      (setf name-string (string-replace name-string "-holistic-cxn" ""))
+      (setf name-string (string-replace name-string "-item-based-cxn" "")))
+    (setf name-string
+          (upcase (if slotp
+                    (string-append name-string "-slot-cat")
+                    (string-append name-string "-cat"))))
+    (if numeric-suffix
+      (setf name-string (make-const name-string))
+      (setf name-string (make-symbol name-string)))
+    (intern (string-downcase (symbol-name name-string)) :pattern-finding-old)))
 
 
 ;;;;;
@@ -463,21 +468,17 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun form-predicates->hash-string (form-predicates)
-  ;; the last string predicate
+  ;; the first and the last string predicate
   (third
-   (last-elt
-    (find-all 'string form-predicates
-              :key #'first))))
+   (first
+    (find-all 'string form-predicates :key #'first))))
 
 (defgeneric meaning-predicates->hash-meaning (meaning-predicates meaning-representation))
 
 (defmethod meaning-predicates->hash-meaning (meaning-predicates (meaning-representation (eql :irl)))
-  (let* ((all-primitives
-          (mapcar #'first meaning-predicates))
-         (all-primitives-but-bind
-          (remove 'bind all-primitives))
-         (target-variable
-          (get-target-var meaning-predicates)))
+  (let* ((all-primitives (mapcar #'first meaning-predicates))
+         (all-primitives-but-bind (remove 'bind all-primitives))
+         (target-variable (get-target-var meaning-predicates)))
     ;; if there are only bind statements
     (if (null all-primitives-but-bind)
       ;; take the last element of the first binding

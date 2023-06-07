@@ -1,9 +1,8 @@
 (in-package :pattern-finding-old)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Repair Add Categorial links     ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Repair Add Categorial links ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defclass add-categorial-links (add-cxns-and-categorial-links) 
   ((trigger :initform 'fcg::new-node)))
@@ -32,6 +31,14 @@
    node
    'add-categorial-links))
 
+;;;; QUESTION
+;;;; Jonas filtered the cipns for 'compatible-args', i.e.
+;;;; do the args in the top-most unit of the transient structure
+;;;; correspond to the unconnected variables in the observed meaning.
+;;;; Why is this?
+;;;; Is this relevant for applying this repair in the recursion?
+;;;; To make sure that the result of this repair clicks together with
+;;;; the repair higher up in the recursion?
 
 (defmethod do-repair (observation-form observation-meaning form-args meaning-args
                                        (cxn-inventory construction-inventory)

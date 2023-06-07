@@ -5,11 +5,11 @@
 ;; -----------------------------
 
 ;; Finding the data
-(define-configuration-default-value :corpus-files-root
+(define-configuration-default-value :corpus-directory
                                     (merge-pathnames
                                      (make-pathname :directory '(:relative "clevr-grammar-learning"))
                                      cl-user:*babel-corpora*))
-(define-configuration-default-value :corpus-data-file
+(define-configuration-default-value :corpus-file
                                     (make-pathname :directory '(:relative "train")
                                                    :name "stage-1" :type "jsonl"))
 
@@ -34,10 +34,9 @@
 ;; Learning Operators
 (define-configuration-default-value :repairs 
                                     '(add-categorial-links
-                                      item-based->item-based
-                                      item-based-partial-analysis ; learns holistic cxn
-                                      holistic-partial-analysis ; learns item-based cxn
-                                      holistic->item-based                                   
+                                      ;item-based-partial-analysis ; learns holistic cxn
+                                      ;holistic-partial-analysis ; learns item-based cxn
+                                      anti-unify-cxns                                   
                                       nothing->holistic))
 
 ;; Strategies and scores
@@ -50,7 +49,7 @@
 (define-configuration-default-value :max-au-cost 10)
 
 (define-configuration-default-value :categorial-network-export-interval 1000)
-(define-configuration-default-value :comprehend-all-n 2)
+(define-configuration-default-value :comprehend-all-n nil)
 (define-configuration-default-value :determine-interacting-agents-mode :corpus-learner)
 (define-configuration-default-value :learning-strategy :optimal-form-coverage)
 
@@ -64,21 +63,9 @@
 ;; --------------
 
 (defclass pattern-finding-experiment (experiment)
-  ((question-data :initarg :question-data :initform nil 
-                   :accessor question-data :type list
-                   :documentation "A list of samples for the current challenge level")
-   (failed-question-data :initarg :failed-question-data :initform nil 
-                   :accessor failed-question-data :type list
-                   :documentation "A list of unsuccessful observations")
-   (confidence-buffer :initarg :confidence-buffer :initform nil
-                      :accessor confidence-buffer :type list
-                      :documentation "A buffer to keep track of outcomes of games")
-   (success-buffer :initarg :success-buffer :initform nil
-                      :accessor success-buffer :type list
-                      :documentation "A buffer to keep track of communicative success")
-   (repair-buffer :initarg :repair-buffer :initform nil
-                      :accessor repair-buffer :type list
-                      :documentation "A buffer to keep track of all used repairs"))
+  ((corpus :initarg :corpus :initform nil 
+           :accessor corpus :type list
+           :documentation "A list of samples for the current challenge level"))
   (:documentation "A grammar learning experiment"))
 
 (defmethod initialize-instance :after ((experiment pattern-finding-experiment) &key)
@@ -86,8 +73,7 @@
                         (mode :mode)) experiment
     ;; set the utterances/gold standard meanings of the experiment
     (unless (eql mode :testing)
-      (setf (question-data experiment)
-            (load-utterances experiment)))
+      (setf (corpus experiment) (load-corpus experiment)))
     ;; set the population of the experiment
     (setf (population experiment)
           (list (make-pattern-finding-agent experiment)))
@@ -95,10 +81,13 @@
     (when evaluation-grammar
       (setf (grammar (first (agents experiment))) evaluation-grammar))
     (when (eql mode :evaluation)
-      (set-configuration (grammar (first (agents experiment))) :update-th-links nil)
-      ;(set-configuration (grammar (first (agents experiment))) :use-meta-layer nil)
+      (set-configuration (grammar (first (agents experiment))) :update-categorial-links nil)
+      (set-configuration (grammar (first (agents experiment))) :use-meta-layer nil)
       (set-configuration (grammar (first (agents experiment))) :consolidate-repairs nil))))
 
+;; ---------------
+;; + Load Corpus +
+;; ---------------
 
 (define-event corpus-utterances-loaded)
 
@@ -117,9 +106,9 @@
       parsed-meaning
       (amr:penman->predicates parsed-meaning))))
 
-(defun load-utterances (experiment)
-  (with-configurations ((file :corpus-data-file)
-                        (root-dir :corpus-files-root)
+(defun load-corpus (experiment)
+  (with-configurations ((file :corpus-file)
+                        (root-dir :corpus-directory)
                         (num-epochs :number-of-epochs)
                         (num-samples :number-of-samples)
                         (shufflep :shuffle-data-p)
