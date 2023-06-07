@@ -75,12 +75,12 @@
   ;; !!! TO DO
   ;; Introduce variables in the rendering of ihe sequence predicates of item-based cxns
   ;; - How to know how many variables? Variables on the edges?
-  ;;   => count the number of form-args, divided by 2, but does not work for slots on the edges...
   ;;   For example: ((sequence "what" ?lb1 ?rb1) (sequence "are there" ?lb2 ?rb2))
   ;;   => "?SLOT1 what ?SLOT2 are there ?SLOT3"
   ;;      "?SLOT1 what ?SLOT2 are there"
   ;;      "what ?SLOT2 are there ?SLOT3"
   ;;      "what ?SLOT2 are there"
+  ;;   => can be solved by looking at the form args
   ;; - Does string-anti-unification work properly with variables included?
   
   (let* ((possible-source-forms
