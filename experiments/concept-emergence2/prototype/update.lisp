@@ -7,11 +7,13 @@
 (defmethod update-prototype ((interaction-number number)
                              (prototype prototype)
                              (object cle-object)
-                             &key &allow-other-keys)
+                             &key (save-distribution-history t)
+                             &allow-other-keys)
   (let ((new-observation (get-channel-val object (channel prototype)))
         (distribution (distribution prototype)))
     (update-distribution new-observation distribution)
-    (update-distribution-history interaction-number new-observation distribution)))
+    (when save-distribution-history
+      (update-distribution-history interaction-number new-observation distribution))))
 
 ;; ------------------
 ;; + Update weights +

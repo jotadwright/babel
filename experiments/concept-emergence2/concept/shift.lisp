@@ -12,7 +12,7 @@
   ;; 1. update the prototypical values
   (loop for prototype in (prototypes concept) ;; assumes prototype
         for interaction-number = (interaction-number (current-interaction (experiment agent)))
-        do (update-prototype interaction-number prototype topic))
+        do (update-prototype interaction-number prototype topic :save-distribution-history (get-configuration agent :save-distribution-history)))
   ;; 2. determine which attributes should get an increase
   ;;    in weight, and which should get a decrease.
   (let* ((similarity-table (make-similarity-table agent concept))

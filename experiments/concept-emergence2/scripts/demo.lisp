@@ -2,36 +2,16 @@
 
 (in-package :cle)
 
-(defun run-and-show-interactions (experiment interactions-count)
-  (activate-monitor print-a-dot-for-each-interaction)
-  (activate-monitor trace-interaction-in-web-interface)
-  (activate-monitor display-communicative-success)
-  (loop for i from 1 to interactions-count
-        do (run-interaction experiment))
-  (run-interaction experiment))
-
-(defun run-then-show-last (experiment interactions-count &key (show nil) (display nil))
-  (when display
-    (deactivate-all-monitors)
-    (activate-monitor display-communicative-success)
-    (activate-monitor print-a-dot-for-each-interaction)
-    )
-  (loop for i from 1 to (- interactions-count 1)
-        do (run-interaction experiment))
-  (when show
-    (activate-monitor trace-interaction-in-web-interface)
-    (run-interaction experiment)))
-
 
 ;; experiments with entrenchment values - keep the same
-
 (progn
-  (setf *scene-ids* (read-scene-ids "color.lisp"))
+  (setf *scene-ids* (read-scene-ids "color-area-roughness.lisp"))
   (setf *subset-size* (length *scene-ids*))
   (defparameter *baseline-simulated*
     (make-configuration
      :entries `(;; monitoring
                 (:dot-interval . 1000)
+                (:save-distribution-history . nil)
                 ;; setup interacting agents
                 (:interacting-agents-strategy . :standard)
                 (:population-size . 10)
@@ -39,9 +19,9 @@
                 (:scene-sampling . :deterministic)
                 (:topic-sampling . :english-concepts)
                 (:clevr-channels
-                 ;,'area ;; size
+                 ,'area ;; size
                  ,'color ;; color
-                 ;,'roughness
+                 ,'roughness
                  )
                 (:scene-ids . ,(first-n *subset-size* *scene-ids*))
                 (:current-scene-idx . 0)
@@ -56,7 +36,8 @@
                 
                 ;; concept representations
                 (:concept-representation . :distribution)
-                (:distribution . :gaussian-replay)
+                (:distribution . :gaussian-welford)
+                ;(:run-fast . t)
                 (:M2 . 0.0001) ;; only for gaussian-welford
 
                 ;; prototype weight inits
@@ -78,9 +59,10 @@
 (progn
   (wi::reset)
   (deactivate-all-monitors)
-  (activate-monitor display-communicative-success)
+  (activate-monitor export-communicative-success)
+  (activate-monitor export-lexicon-coherence)
   (activate-monitor print-a-dot-for-each-interaction)
-  (loop for i from 1 to 100000
+  (loop for i from 1 to 10000
         do (run-interaction *experiment*)))
 
 
@@ -301,3 +283,23 @@
 (float 121/125)
 
 (monitors::get-values (monitors::get-monitor 'record-lexicon-coherence))
+
+(defun run-and-show-interactions (experiment interactions-count)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor trace-interaction-in-web-interface)
+  (activate-monitor display-communicative-success)
+  (loop for i from 1 to interactions-count
+        do (run-interaction experiment))
+  (run-interaction experiment))
+
+(defun run-then-show-last (experiment interactions-count &key (show nil) (display nil))
+  (when display
+    (deactivate-all-monitors)
+    (activate-monitor display-communicative-success)
+    (activate-monitor print-a-dot-for-each-interaction)
+    )
+  (loop for i from 1 to (- interactions-count 1)
+        do (run-interaction experiment))
+  (when show
+    (activate-monitor trace-interaction-in-web-interface)
+    (run-interaction experiment)))

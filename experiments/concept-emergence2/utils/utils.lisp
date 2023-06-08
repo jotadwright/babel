@@ -16,7 +16,7 @@
   (butlast list (max (- (list-length list) n) 0)))
 
 ;; ---------------------
-;; + Utility fucntions +
+;; + Utility functions +
 ;; ---------------------
 
 (defun find-scenes-with-size (context-size)
@@ -37,6 +37,18 @@
                                          collect (cons idx (get-symbolic-discriminative-feature candidate ecl-context)))
           if candidate-topics
             collect (cons (index symbolic-scene) candidate-topics)))
+
+;;;
+
+(defun calculate-amount-of-variations (parameters)
+  "Generate a set of experiments. Specify which parameters are variable
+   and what their possible values can be. Optionally specify an a-list
+   of shared configurations."
+  (let* ((pairs (loop for (key . values) in parameters
+                      collect (loop for value in values
+                                    collect (cons key value))))
+         (configurations (apply #'combinations pairs)))
+    (length configurations)))
 
 #|
  
