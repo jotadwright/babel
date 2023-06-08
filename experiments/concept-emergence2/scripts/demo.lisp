@@ -36,7 +36,7 @@
                 
                 ;; concept representations
                 (:concept-representation . :distribution)
-                (:distribution . :gaussian-welford)
+                (:distribution . :gaussian-replay)
                 ;(:run-fast . t)
                 (:M2 . 0.0001) ;; only for gaussian-welford
 
@@ -62,7 +62,8 @@
   (activate-monitor export-communicative-success)
   (activate-monitor export-lexicon-coherence)
   (activate-monitor print-a-dot-for-each-interaction)
-  (loop for i from 1 to 10000
+  (format t "~%---------- NEW GAME ----------~%")
+  (loop for i from 1 to 200000
         do (run-interaction *experiment*)))
 
 
@@ -94,7 +95,8 @@
         else
           do (run-interaction *experiment*)))
 
-=> "7: 5862 [AGENT-91, AGENT-83] -> topic: <cle-object: attributes: (R . 0.177), (G . 0.289), (B . 0.822)>"
+=> "9: 561 [AGENT-62, AGENT-60] -> topic: <cle-object: attributes: (AREA . 0.707), (R . 0.342), (G . 0.36200002), (B . 0.34500003), (ROUGHNESS . 0.80200005)>"
+
 (progn
   (setf saved-agents (interacting-agents (current-interaction *experiment*)))
   (setf saved-scene  (index (current-scene (world *experiment*))))
