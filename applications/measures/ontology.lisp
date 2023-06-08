@@ -420,7 +420,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying spreadable objects."
   (setf (spread copy) (copy-object (spread  spreadable))))
 
-(defclass sprinkable (kitchen-entity)
+(defclass sprinklable (kitchen-entity)
   ()
   (:documentation "Something that can be sprinkled over something."))
 
@@ -623,7 +623,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Almond extract."))
 
-(defclass almond-flakes (ingredient sprinkable)
+(defclass almond-flakes (ingredient sprinklable)
   ()
   (:documentation "Almond flakes."))
 
@@ -850,7 +850,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
                   ; cuttable mashable meltable
                    mixable ;can-be-sprinkled-with
                    ;siftable
-                   ;sprinkable
+                   ;sprinklable
                    bakeable
                    shapeable
                    ;dippable
@@ -896,7 +896,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Peach-juice."))
 
-(defclass powdered-white-sugar (sugar sprinkable ;can-be-dipped-in
+(defclass powdered-white-sugar (sugar sprinklable ;can-be-dipped-in
                                       )
   ()
   (:documentation "Powdered white sugar."))
