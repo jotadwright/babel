@@ -9,8 +9,6 @@
 ;(disconnect-toplevel)
 ;(connect-toplevel "db2_actors_films_simple_table.db" "postgres" "postgres" "localhost")
 
-;(type-of (execute-postmodern-query '(:select actor film :from actorsfilms)))
-
 ;(execute-postmodern-query '(:select (:count film) :from actorsfilms :where (:= actor "Gerard Depardieu")))
 ;(execute-postmodern-query '(:select (:count actor) (:avg year) :from actorsfilms))
 ;(execute-postmodern-query '(:select film :from actorsfilms :where (:in actor (:set "Gérard Depardieu" "Fred Astaire"))))
@@ -24,7 +22,6 @@
 '((bind ?select-clause actor)
   (select ?result ?select-clause ?from-clause ?join-clause-1 ?where-clause ?group-by-clause)
   (bind table ?from-clause actorsfilms))
-
 
 ;; '(:select actor film :from actorsfilms)
 (defparameter *first-test*

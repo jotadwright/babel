@@ -5,7 +5,7 @@
       :initarg :id
       :accessor id
       :initform nil)
-  (persistent-id :type symbol
+   (persistent-id :type symbol
       :initarg :persistent-id
       :accessor persistent-id
       :initform nil))
@@ -16,7 +16,7 @@
     (setf (persistent-id orig) persistent-id)
     (setf (id orig) (make-id persistent-id))))
 
-(defmethod copy-object-content (original kitchen-entity) (copy kitchen-entity)
+(defmethod copy-object-content ((original kitchen-entity) (copy kitchen-entity))
   (setf (id copy) (make-id (id original)))
   (setf (persistent-id copy) (persistent-id original)))
 
@@ -28,7 +28,7 @@
       :initform nil))
   (:documentation "An object that can be used to stand for its class as a whole."))
 
-(defmethod copy-object-content (original conceptualizable) (copy conceptualizable)
+(defmethod copy-object-content ((original conceptualizable) (copy conceptualizable))
   (setf (is-concept copy) (is-concept original)))
 
 
@@ -36,7 +36,7 @@
   ((is-concept :initform T))
   (:documentation "A geometric pattern, such as that of an arrangement."))
 
-(defmethod copy-object-content (original pattern) (copy pattern)
+(defmethod copy-object-content ((original pattern) (copy pattern))
   (setf (is-concept copy) (is-concept original)))
 
 
@@ -44,7 +44,7 @@
   ((is-concept :initform T))
   (:documentation "A geometric shape, such as that of a clump of dough."))
 
-(defmethod copy-object-content (original shape) (copy shape)
+(defmethod copy-object-content ((original shape) (copy shape))
   (setf (is-concept copy) (is-concept original)))
 
 
@@ -79,13 +79,13 @@
 
 
 (defclass arrangeable (kitchen-entity)
-  ((arrangement :type 
+  ((arrangement 
       :initarg :arrangement
       :accessor arrangement
       :initform nil))
   (:documentation "An object with a convention on how to arrange items contained/supported by the object."))
 
-(defmethod copy-object-content (original arrangeable) (copy arrangeable)
+(defmethod copy-object-content ((original arrangeable) (copy arrangeable))
   (setf (arrangement copy) (copy-object (arrangement original))))
 
 
@@ -95,13 +95,13 @@
 
 
 (defclass container (arrangeable)
-  ((contents :type list
+  ((contents 
       :initarg :contents
       :accessor contents
       :initform nil))
   (:documentation "An object that can have contents; this is understood here somewhat loosely in that the contents are located at the containing object, even if the kinematic constraints between container and containees are weak."))
 
-(defmethod copy-object-content (original container) (copy container)
+(defmethod copy-object-content ((original container) (copy container))
   (setf (contents copy) (loop for item in (contents original) collect (copy-object item))))
 
 
@@ -112,20 +112,27 @@
       :initform nil))
   (:documentation "A container that can be carried from place to place."))
 
-(defmethod copy-object-content (original transferable-container) (copy transferable-container)
+(defmethod copy-object-content ((original transferable-container) (copy transferable-container))
   (setf (used copy) (used original)))
 
 
-(defclass cooking-utensil (fetchable)
+(defclass cooking-utensil (fetchable conceptualizable)
   ()
   (:documentation "A manipulable, carriable object used as an instrument in cooking tasks."))
 
 
-(defclass kitchen-state (container)
+(defclass kitchen-state (container has-temperature)
   ((kitchen-time :type integer
       :initarg :kitchen-time
       :accessor kitchen-time
-      :initform 0))
+      :initform 0)
+   (temperature 
+      :initarg :temperature
+      :accessor temperature
+      :initform (make-instance 'amount
+                               :unit (make-instance 'degrees-celsius)
+                               :quantity (make-instance 'quantity
+                                                        :value 18))))
   (:documentation "Representation of the state of the kitchen."))
 
 (defmethod initialize-instance :after ((orig kitchen-state) &key)
@@ -137,15 +144,16 @@
   (when (null (find 'oven (contents orig) :test (lambda (x y) (eq x (type-of y))))) (setf (contents orig) (cons (make-instance 'oven) (contents orig))))
   (when (null (find 'counter-top (contents orig) :test (lambda (x y) (eq x (type-of y))))) (setf (contents orig) (cons (make-instance 'counter-top) (contents orig)))))
 
-(defmethod copy-object-content (original kitchen-state) (copy kitchen-state)
+(defmethod copy-object-content ((original kitchen-state) (copy kitchen-state))
   (setf (kitchen-time copy) (kitchen-time original))
   (setf (arrangement copy) (copy-object (arrangement original)))
-  (setf (contents copy) (loop for item in (contents original) collect (copy-object item))))
+  (setf (contents copy) (loop for item in (contents original) collect (copy-object item)))
+  (setf (temperature copy) (copy-object (temperature original))))
 
 
 (defclass vr-kitchen-state (container)
   ()
-  (:documentation "Representation of the Abe_sim kitchen state."))
+  (:documentation "Representation of the Abe-sim kitchen state."))
 
 
 (defclass aggregate (kitchen-entity)
@@ -154,13 +162,13 @@
 
 
 (defclass has-temperature (kitchen-entity)
-  ((temperature :type integer
+  ((temperature 
       :initarg :temperature
       :accessor temperature
       :initform nil))
   (:documentation "An object that has a temperature quality."))
 
-(defmethod copy-object-content (original has-temperature) (copy has-temperature)
+(defmethod copy-object-content ((original has-temperature) (copy has-temperature))
   (setf (temperature copy) (temperature original)))
 
 
@@ -171,7 +179,7 @@
       :initform nil))
   (:documentation "An object that can transform via a baking process."))
 
-(defmethod copy-object-content (original bakeable) (copy bakeable)
+(defmethod copy-object-content ((original bakeable) (copy bakeable))
   (setf (baked copy) (baked original)))
 
 
@@ -182,7 +190,7 @@
       :initform nil))
   (:documentation "An object that can be subjected to boiling."))
 
-(defmethod copy-object-content (original boilable) (copy boilable)
+(defmethod copy-object-content ((original boilable) (copy boilable))
   (setf (boiled copy) (boiled original)))
 
 
@@ -193,7 +201,7 @@
       :initform nil))
   (:documentation "An object that can be subjected to mixing by beating it with e.g. a whisk."))
 
-(defmethod copy-object-content (original beatable) (copy beatable)
+(defmethod copy-object-content ((original beatable) (copy beatable))
   (setf (beaten copy) (beaten original)))
 
 
@@ -203,13 +211,13 @@
 
 
 (defclass brushable (kitchen-entity)
-  ((brushed-with :type list
+  ((brushed-with 
       :initarg :brushed-with
       :accessor brushed-with
       :initform nil))
   (:documentation "An object with an inner surface upon which something else could be brushed."))
 
-(defmethod copy-object-content (original brushable) (copy brushable)
+(defmethod copy-object-content ((original brushable) (copy brushable))
   (setf (brushed-with copy) (loop for item in (brushed-with original) collect (copy-object item))))
 
 
@@ -225,7 +233,7 @@
       :initform nil))
   (:documentation "An object, usually a substance, that can be applied via brushing to some other object."))
 
-(defmethod copy-object-content (original can-be-brushed-with) (copy can-be-brushed-with)
+(defmethod copy-object-content ((original can-be-brushed-with) (copy can-be-brushed-with))
   (setf (is-brushed-with copy) (is-brushed-with original)))
 
 
@@ -236,7 +244,7 @@
       :initform nil))
   (:documentation "An object that can be applied onto another object's surface to cover or protect it."))
 
-(defmethod copy-object-content (original can-be-lined-with) (copy can-be-lined-with)
+(defmethod copy-object-content ((original can-be-lined-with) (copy can-be-lined-with))
   (setf (is-lining copy) (is-lining original)))
 
 
@@ -245,14 +253,19 @@
   (:documentation "An object into which things can be dipped."))
 
 
+(defclass microwave (container has-temperature)
+  ()
+  (:documentation "The microwave. It's a container."))
+
+
 (defclass can-have-on-top (kitchen-entity)
-  ((has-on-top :type list
+  ((has-on-top 
       :initarg :has-on-top
       :accessor has-on-top
       :initform nil))
   (:documentation "An object that, as part of a dish or food item, can have other ingredients on top of itself."))
 
-(defmethod copy-object-content (original can-have-on-top) (copy can-have-on-top)
+(defmethod copy-object-content ((original can-have-on-top) (copy can-have-on-top))
   (setf (has-on-top copy) (loop for item in (has-on-top original) collect (copy-object item))))
 
 
@@ -263,7 +276,7 @@
       :initform nil))
   (:documentation "An object that can be spread upon others."))
 
-(defmethod copy-object-content (original can-be-spread-upon) (copy can-be-spread-upon)
+(defmethod copy-object-content ((original can-be-spread-upon) (copy can-be-spread-upon))
   (setf (spread-with copy) (spread-with original)))
 
 
@@ -274,7 +287,7 @@
       :initform nil))
   (:documentation "An object that can be sprinkled upon others."))
 
-(defmethod copy-object-content (original can-be-sprinkled-with) (copy can-be-sprinkled-with)
+(defmethod copy-object-content ((original can-be-sprinkled-with) (copy can-be-sprinkled-with))
   (setf (sprinkled-with copy) (sprinkled-with original)))
 
 
@@ -284,14 +297,14 @@
 
 
 (defclass can-cover (cooking-utensil)
-  ((covered-container :type boolean
-      :initarg :covered-container
-      :accessor covered-container
+  ((is-covering :type boolean
+      :initarg :is-covering
+      :accessor is-covering
       :initform nil))
   (:documentation "An object that can be used to cover a coverable container."))
 
-(defmethod copy-object-content (original can-cover) (copy can-cover)
-  (setf (covered-container copy) (covered-container original)))
+(defmethod copy-object-content ((original can-cover) (copy can-cover))
+  (setf (is-covering copy) (is-covering original)))
 
 
 (defclass can-brush (cooking-utensil)
@@ -344,20 +357,31 @@
   (:documentation "A tool that can be used for sifting."))
 
 
+(defclass liquefiable ()
+  ((is-liquid :type boolean
+      :initarg :is-liquid
+      :accessor is-liquid
+      :initform nil))
+  (:documentation "An ingredient that can be liquefied."))
+
+(defmethod copy-object-content ((original liquefiable) (copy liquefiable))
+  (setf (is-liquid copy) (is-liquid original)))
+
+
 (defclass can-spread (cooking-utensil)
   ()
   (:documentation "A tool that can be used for spreading."))
 
 
 (defclass coverable-container (container)
-  ((cover :type can-cover
-      :initarg :cover
-      :accessor cover
+  ((covered-with 
+      :initarg :covered-with
+      :accessor covered-with
       :initform nil))
   (:documentation "A (loose) container that can also be covered."))
 
-(defmethod copy-object-content (original coverable-container) (copy coverable-container)
-  (setf (cover copy) (copy-object (cover original))))
+(defmethod copy-object-content ((original coverable-container) (copy coverable-container))
+  (setf (covered-with copy) (copy-object (covered-with original))))
 
 
 (defclass crackable (kitchen-entity)
@@ -367,7 +391,7 @@
       :initform nil))
   (:documentation "An object that can be cracked, e.g. by impact, in particular one whose contents become accessible through cracking."))
 
-(defmethod copy-object-content (original crackable) (copy crackable)
+(defmethod copy-object-content ((original crackable) (copy crackable))
   (setf (cracked copy) (cracked original)))
 
 
@@ -378,7 +402,7 @@
       :initform nil))
   (:documentation "An object that can be cut into several pieces."))
 
-(defmethod copy-object-content (original cuttable) (copy cuttable)
+(defmethod copy-object-content ((original cuttable) (copy cuttable))
   (setf (is-cut copy) (is-cut original)))
 
 
@@ -389,7 +413,7 @@
       :initform nil))
   (:documentation "An object that can be dipped into something."))
 
-(defmethod copy-object-content (original dippable) (copy dippable)
+(defmethod copy-object-content ((original dippable) (copy dippable))
   (setf (dipped-in copy) (copy-object (dipped-in original))))
 
 
@@ -405,13 +429,24 @@
       :initform nil))
   (:documentation "An object that can be deformed, in particular flattened, by applying pressure to it."))
 
-(defmethod copy-object-content (original flattenable) (copy flattenable)
+(defmethod copy-object-content ((original flattenable) (copy flattenable))
   (setf (flattened copy) (flattened original)))
 
 
-(defclass mixture (ingredient beatable mashable mixable can-be-sprinkled-with siftable dippable spreadable can-be-sprinkled-on can-be-spread-upon has-temperature shakeable)
+(defclass sprinklable (kitchen-entity)
   ()
+  (:documentation "Something that can be sprinkled over something."))
+
+
+(defclass mixture (ingredient beatable cuttable mashable meltable mixable can-be-sprinkled-with siftable sprinklable bakeable shapeable dippable spreadable boilable liquefiable can-be-sprinkled-on can-be-spread-upon has-temperature shakeable)
+  ((components 
+      :initarg :components
+      :accessor components
+      :initform nil))
   (:documentation "An object that is a mixture of ingredients."))
+
+(defmethod copy-object-content ((original mixture) (copy mixture))
+  (setf (components copy) (loop for item in (components original) collect (copy-object item))))
 
 
 (defclass homogeneous-mixture (mixture flattenable)
@@ -426,7 +461,7 @@
       :initform nil))
   (:documentation "An object that can be drained -- separated from some other object of a different consistency (a solid separated from liquids being a typical example)."))
 
-(defmethod copy-object-content (original drainable) (copy drainable)
+(defmethod copy-object-content ((original drainable) (copy drainable))
   (setf (drained copy) (drained original)))
 
 
@@ -439,10 +474,10 @@
   ((amount :type amount
       :initarg :amount
       :accessor amount
-      :initform nil))
+      :initform (make-instance 'amount)))
   (:documentation "An object that is an ingredient in a recipe, and associated to an amount."))
 
-(defmethod copy-object-content (original ingredient) (copy ingredient)
+(defmethod copy-object-content ((original ingredient) (copy ingredient))
   (setf (amount copy) (copy-object (amount original))))
 
 
@@ -453,7 +488,7 @@
       :initform nil))
   (:documentation "Auxiliary type to store a list of kitchen entities."))
 
-(defmethod copy-object-content (original list-of-kitchen-entities) (copy list-of-kitchen-entities)
+(defmethod copy-object-content ((original list-of-kitchen-entities) (copy list-of-kitchen-entities))
   (setf (items copy) (loop for item in (items original) collect (copy-object item))))
 
 
@@ -462,13 +497,13 @@
       :initarg :keep-frozen
       :accessor keep-frozen
       :initform nil)
-  (keep-refrigerated :type boolean
+   (keep-refrigerated :type boolean
       :initarg :keep-refrigerated
       :accessor keep-refrigerated
       :initform nil))
   (:documentation "An object that is perishable and may need to be refrigerated for storage."))
 
-(defmethod copy-object-content (original perishable) (copy perishable)
+(defmethod copy-object-content ((original perishable) (copy perishable))
   (setf (keep-frozen copy) (keep-frozen original))
   (setf (keep-refrigerated copy) (keep-refrigerated original)))
 
@@ -478,13 +513,13 @@
       :initarg :quantity
       :accessor quantity
       :initform (make-instance 'quantity))
-  (unit :type unit
+   (unit :type unit
       :initarg :unit
       :accessor unit
       :initform (make-instance 'piece)))
   (:documentation "A reified description including a quantity and a unit of measurement."))
 
-(defmethod copy-object-content (original amount) (copy amount)
+(defmethod copy-object-content ((original amount) (copy amount))
   (setf (quantity copy) (copy-object (quantity original)))
   (setf (unit copy) (copy-object (unit original))))
 
@@ -496,7 +531,7 @@
       :initform 1))
   (:documentation "Stores a value."))
 
-(defmethod copy-object-content (original quantity) (copy quantity)
+(defmethod copy-object-content ((original quantity) (copy quantity))
   (setf (value copy) (value original)))
 
 
@@ -504,7 +539,7 @@
   ((is-concept :initform T))
   (:documentation "A unit of measurement."))
 
-(defmethod copy-object-content (original unit) (copy unit)
+(defmethod copy-object-content ((original unit) (copy unit))
   (setf (is-concept copy) (is-concept original)))
 
 
@@ -514,13 +549,13 @@
 
 
 (defclass lineable (kitchen-entity)
-  ((lined-with :type can-be-lined-with
+  ((lined-with 
       :initarg :lined-with
       :accessor lined-with
       :initform nil))
   (:documentation "An object with an inner surface that can be lined -- i.e. covered in close contact -- with something."))
 
-(defmethod copy-object-content (original lineable) (copy lineable)
+(defmethod copy-object-content ((original lineable) (copy lineable))
   (setf (lined-with copy) (copy-object (lined-with original))))
 
 
@@ -531,7 +566,7 @@
       :initform nil))
   (:documentation "An object that can be mashed."))
 
-(defmethod copy-object-content (original mashable) (copy mashable)
+(defmethod copy-object-content ((original mashable) (copy mashable))
   (setf (mashed copy) (mashed original)))
 
 
@@ -542,7 +577,7 @@
       :initform nil))
   (:documentation "An object that can melt when brought to a high enough temperature."))
 
-(defmethod copy-object-content (original meltable) (copy meltable)
+(defmethod copy-object-content ((original meltable) (copy meltable))
   (setf (melted copy) (melted original)))
 
 
@@ -553,7 +588,7 @@
       :initform nil))
   (:documentation "An object that can be mixed."))
 
-(defmethod copy-object-content (original mixable) (copy mixable)
+(defmethod copy-object-content ((original mixable) (copy mixable))
   (setf (mixed copy) (mixed original)))
 
 
@@ -564,7 +599,7 @@
       :initform nil))
   (:documentation "An object that can be peeled."))
 
-(defmethod copy-object-content (original peelable) (copy peelable)
+(defmethod copy-object-content ((original peelable) (copy peelable))
   (setf (peeled copy) (peeled original)))
 
 
@@ -573,17 +608,17 @@
       :initarg :is-plucked
       :accessor is-plucked
       :initform nil)
-  (plucked :type ingredient
+   (plucked :type (or ingredient null)
       :initarg :plucked
       :accessor plucked
       :initform nil)
-  (pluckee :type ingredient
+   (pluckee :type (or ingredient null)
       :initarg :pluckee
       :accessor pluckee
       :initform nil))
   (:documentation "An object that can be plucked such as fresh herbs."))
 
-(defmethod copy-object-content (original pluckable) (copy pluckable)
+(defmethod copy-object-content ((original pluckable) (copy pluckable))
   (setf (is-plucked copy) (is-plucked original))
   (setf (plucked copy) (copy-object (plucked original)))
   (setf (pluckee copy) (copy-object (pluckee original))))
@@ -596,7 +631,7 @@
       :initform nil))
   (:documentation "An object that can be reused; reuse may involve cleaning."))
 
-(defmethod copy-object-content (original reusable) (copy reusable)
+(defmethod copy-object-content ((original reusable) (copy reusable))
   (setf (used copy) (used original)))
 
 
@@ -607,7 +642,7 @@
       :initform nil))
   (:documentation "A fruit with seeds that can be removed."))
 
-(defmethod copy-object-content (original seedable) (copy seedable)
+(defmethod copy-object-content ((original seedable) (copy seedable))
   (setf (seeded copy) (seeded original)))
 
 
@@ -618,7 +653,7 @@
       :initform nil))
   (:documentation "An object that can be mixed in a particular way, by shaking."))
 
-(defmethod copy-object-content (original shakeable) (copy shakeable)
+(defmethod copy-object-content ((original shakeable) (copy shakeable))
   (setf (shaken copy) (shaken original)))
 
 
@@ -629,7 +664,7 @@
       :initform nil))
   (:documentation "An object that can be shaped through manipulation."))
 
-(defmethod copy-object-content (original shapeable) (copy shapeable)
+(defmethod copy-object-content ((original shapeable) (copy shapeable))
   (setf (current-shape copy) (copy-object (current-shape original))))
 
 
@@ -640,7 +675,7 @@
       :initform nil))
   (:documentation "An object that can be separated into various components, or separated from some powdery substance, by sifting."))
 
-(defmethod copy-object-content (original siftable) (copy siftable)
+(defmethod copy-object-content ((original siftable) (copy siftable))
   (setf (sifted copy) (sifted original)))
 
 
@@ -651,7 +686,7 @@
       :initform nil))
   (:documentation "An object providing a surface upon which something can be spread."))
 
-(defmethod copy-object-content (original spreadable) (copy spreadable)
+(defmethod copy-object-content ((original spreadable) (copy spreadable))
   (setf (spread copy) (spread original)))
 
 
@@ -696,10 +731,13 @@
 
 
 (defclass counter-top (container conceptualizable)
-  ((arrangement :initform (make-instance 'side-to-side)))
+  ((arrangement 
+      :initarg :arrangement
+      :accessor arrangement
+      :initform (make-instance 'side-to-side)))
   (:documentation "The countertop where various food preparation tasks will take place."))
 
-(defmethod copy-object-content (original counter-top) (copy counter-top)
+(defmethod copy-object-content ((original counter-top) (copy counter-top))
   (setf (arrangement copy) (copy-object (arrangement original))))
 
 
@@ -709,18 +747,24 @@
 
 
 (defclass freezer (container)
-  ((arrangement :initform (make-instance 'shelved)))
+  ((arrangement 
+      :initarg :arrangement
+      :accessor arrangement
+      :initform (make-instance 'shelved)))
   (:documentation "A freezer in which various items can be stored at sub-zero temperatures."))
 
-(defmethod copy-object-content (original freezer) (copy freezer)
+(defmethod copy-object-content ((original freezer) (copy freezer))
   (setf (arrangement copy) (copy-object (arrangement original))))
 
 
 (defclass fridge (container)
-  ((arrangement :initform (make-instance 'shelved)))
+  ((arrangement 
+      :initarg :arrangement
+      :accessor arrangement
+      :initform (make-instance 'shelved)))
   (:documentation "A fridge in which various items can be stored at cooler, though not sub-zero, temperatures."))
 
-(defmethod copy-object-content (original fridge) (copy fridge)
+(defmethod copy-object-content ((original fridge) (copy fridge))
   (setf (arrangement copy) (copy-object (arrangement original))))
 
 
@@ -735,10 +779,13 @@
 
 
 (defclass kitchen-cabinet (container)
-  ((arrangement :initform (make-instance 'shelved)))
+  ((arrangement 
+      :initarg :arrangement
+      :accessor arrangement
+      :initform (make-instance 'shelved)))
   (:documentation "The kitchen cabinet, where several utensils are stored."))
 
-(defmethod copy-object-content (original kitchen-cabinet) (copy kitchen-cabinet)
+(defmethod copy-object-content ((original kitchen-cabinet) (copy kitchen-cabinet))
   (setf (arrangement copy) (copy-object (arrangement original))))
 
 
@@ -768,10 +815,13 @@
 
 
 (defclass oven (container has-temperature)
-  ((arrangement :initform (make-instance 'shelved)))
+  ((arrangement 
+      :initarg :arrangement
+      :accessor arrangement
+      :initform (make-instance 'shelved)))
   (:documentation "An oven to bake stuff in."))
 
-(defmethod copy-object-content (original oven) (copy oven)
+(defmethod copy-object-content ((original oven) (copy oven))
   (setf (arrangement copy) (copy-object (arrangement original))))
 
 
@@ -781,10 +831,13 @@
 
 
 (defclass pantry (container)
-  ((arrangement :initform (make-instance 'shelved)))
+  ((arrangement 
+      :initarg :arrangement
+      :accessor arrangement
+      :initform (make-instance 'shelved)))
   (:documentation "A pantry to store ingredients that do not need refrigeration."))
 
-(defmethod copy-object-content (original pantry) (copy pantry)
+(defmethod copy-object-content ((original pantry) (copy pantry))
   (setf (arrangement copy) (copy-object (arrangement original))))
 
 
@@ -819,10 +872,13 @@
 
 
 (defclass stove (container)
-  ((arrangement :initform (make-instance 'side-to-side)))
+  ((arrangement 
+      :initarg :arrangement
+      :accessor arrangement
+      :initform (make-instance 'side-to-side)))
   (:documentation "A stove to cook on."))
 
-(defmethod copy-object-content (original stove) (copy stove)
+(defmethod copy-object-content ((original stove) (copy stove))
   (setf (arrangement copy) (copy-object (arrangement original))))
 
 
@@ -847,29 +903,26 @@
 
 
 (defclass conserved-ingredient (ingredient drainable)
-  ((fluid-parts :type list
+  ((fluid-parts :type (list ingredient)
       :initarg :fluid-parts
       :accessor fluid-parts
       :initform nil)
-  (solid-parts :type list
+   (solid-parts :type (list ingredient)
       :initarg :solid-parts
       :accessor solid-parts
       :initform nil))
   (:documentation "A canned ingredient that consists of a solid part and a liquid that is there to preserve the solid against alteration."))
 
-(defmethod copy-object-content (original conserved-ingredient) (copy conserved-ingredient)
+(defmethod copy-object-content ((original conserved-ingredient) (copy conserved-ingredient))
   (setf (fluid-parts copy) (loop for item in (fluid-parts original) collect (copy-object item)))
   (setf (solid-parts copy) (loop for item in (solid-parts original) collect (copy-object item))))
 
 
 (defclass heterogeneous-mixture (mixture)
-  ((components :type list
-      :initarg :components
-      :accessor components
-      :initform nil))
+  ()
   (:documentation "A mixture in which components are distinguishable from one another."))
 
-(defmethod copy-object-content (original heterogeneous-mixture) (copy heterogeneous-mixture)
+(defmethod copy-object-content ((original heterogeneous-mixture) (copy heterogeneous-mixture))
   (setf (components copy) (loop for item in (components original) collect (copy-object item))))
 
 
@@ -972,7 +1025,7 @@
   ((keep-refrigerated :initform T))
   (:documentation "Butter."))
 
-(defmethod copy-object-content (original butter) (copy butter)
+(defmethod copy-object-content ((original butter) (copy butter))
   (setf (keep-refrigerated copy) (keep-refrigerated original)))
 
 
@@ -985,7 +1038,7 @@
   ((keep-refrigerated :initform T))
   (:documentation "Celery."))
 
-(defmethod copy-object-content (original celery) (copy celery)
+(defmethod copy-object-content ((original celery) (copy celery))
   (setf (keep-refrigerated copy) (keep-refrigerated original)))
 
 
@@ -993,7 +1046,7 @@
   ((keep-refrigerated :initform T))
   (:documentation "Cherry tomato."))
 
-(defmethod copy-object-content (original cherry-tomato) (copy cherry-tomato)
+(defmethod copy-object-content ((original cherry-tomato) (copy cherry-tomato))
   (setf (keep-refrigerated copy) (keep-refrigerated original)))
 
 
@@ -1106,7 +1159,7 @@
   ((keep-refrigerated :initform T))
   (:documentation "Cucumber."))
 
-(defmethod copy-object-content (original cucumber) (copy cucumber)
+(defmethod copy-object-content ((original cucumber) (copy cucumber))
   (setf (keep-refrigerated copy) (keep-refrigerated original)))
 
 
@@ -1129,7 +1182,7 @@
   ((keep-refrigerated :initform T))
   (:documentation "Egg (whole and with shell)."))
 
-(defmethod copy-object-content (original egg) (copy egg)
+(defmethod copy-object-content ((original egg) (copy egg))
   (setf (keep-refrigerated copy) (keep-refrigerated original)))
 
 
@@ -1178,14 +1231,34 @@
   (:documentation "Cream cheese."))
 
 
+(defclass syrup (ingredient liquid)
+  ()
+  (:documentation "Syrup."))
+
+
+(defclass crushed-pineapple (ingredient)
+  ()
+  (:documentation "Crushed-pineapple."))
+
+
 (defclass crushed-pineapple-in-syrup (ingredient)
-  ((components :type list
+  ((components 
       :initarg :components
       :accessor components
-      :initform nil))
+      :initform (list (make-instance 'crushed-pineapple 
+:amount (make-instance 'amount
+                                                      :quantity (make-instance 'quantity
+                                                                               :value 0)
+                                                      :unit (make-instance 'percent
+                                                                           )))(make-instance 'syrup 
+:amount (make-instance 'amount
+                                                      :quantity (make-instance 'quantity
+                                                                               :value 0)
+                                                      :unit (make-instance 'percent
+                                                                           ))))))
   (:documentation "Crushed-pineapple in sryup."))
 
-(defmethod copy-object-content (original crushed-pineapple-in-syrup) (copy crushed-pineapple-in-syrup)
+(defmethod copy-object-content ((original crushed-pineapple-in-syrup) (copy crushed-pineapple-in-syrup))
   (setf (components copy) (loop for item in (components original) collect (copy-object item))))
 
 
@@ -1243,7 +1316,7 @@
   ((keep-frozen :initform T))
   (:documentation "Frozen corn."))
 
-(defmethod copy-object-content (original frozen-corn) (copy frozen-corn)
+(defmethod copy-object-content ((original frozen-corn) (copy frozen-corn))
   (setf (keep-frozen copy) (keep-frozen original)))
 
 
@@ -1351,7 +1424,7 @@
   ((keep-refrigerated :initform T))
   (:documentation "Jalapeno pepper."))
 
-(defmethod copy-object-content (original jalapeno) (copy jalapeno)
+(defmethod copy-object-content ((original jalapeno) (copy jalapeno))
   (setf (keep-refrigerated copy) (keep-refrigerated original)))
 
 
@@ -1404,7 +1477,7 @@
   ((keep-refrigerated :initform T))
   (:documentation "Milk."))
 
-(defmethod copy-object-content (original milk) (copy milk)
+(defmethod copy-object-content ((original milk) (copy milk))
   (setf (keep-refrigerated copy) (keep-refrigerated original)))
 
 
@@ -1415,7 +1488,7 @@
       :initform nil))
   (:documentation "For objects that can be washed."))
 
-(defmethod copy-object-content (original washable) (copy washable)
+(defmethod copy-object-content ((original washable) (copy washable))
   (setf (washed copy) (copy-object (washed original))))
 
 
@@ -1529,9 +1602,29 @@
   (:documentation "Celery seed."))
 
 
+(defclass oil (ingredient liquid)
+  ()
+  (:documentation "Cooking oil."))
+
+
 (defclass coarse-salt (salt)
   ()
   (:documentation "Coarse salt."))
+
+
+(defclass shredded (cutting-pattern)
+  ()
+  (:documentation "A shredded pattern."))
+
+
+(defclass finely-chopped (cutting-pattern)
+  ()
+  (:documentation "A chopped pattern."))
+
+
+(defclass fine-slices (cutting-pattern)
+  ()
+  (:documentation "A finely sliced pattern."))
 
 
 (defclass cider-vinegar (vinegar)
@@ -1657,6 +1750,26 @@
 (defclass two-inch-apart (arrangement-pattern)
   ()
   (:documentation "Items are arranged to be two inches apart from each other."))
+
+
+(defclass squares (cutting-pattern)
+  ()
+  (:documentation "A squares pattern."))
+
+
+(defclass two-cm-cubes (cutting-pattern)
+  ()
+  (:documentation "A pattern for cutting objects into 2 cm cubes "))
+
+
+(defclass slices (cutting-pattern)
+  ()
+  (:documentation "A sliced pattern."))
+
+
+(defclass 5-cm-apart (arrangement-pattern)
+  ()
+  (:documentation "A pattern in which objects are arranged with a distance of 5 cm."))
 
 
 (defclass cutting-pattern (pattern)
@@ -1824,3 +1937,39 @@
   (:documentation "Evaluation"))
 
 
+
+(defmethod find-in-kitchen-state-contents ((kitchen-state kitchen-state) (classname symbol))
+  (labels ((traverse (root classname)
+             (if (eq (type-of root) classname)
+                 root
+                 (when (slot-exists-p root 'contents)
+                   (loop for child in (slot-value root 'contents)
+                         for found = (traverse child classname)
+                         when found
+                           return found)))))
+    (traverse kitchen-state classname)))
+
+
+(defmethod counter-top ((kitchen-state kitchen-state))
+  (find-in-kitchen-state-contents kitchen-state 'counter-top))
+
+(defmethod pantry ((kitchen-state kitchen-state))
+  (find-in-kitchen-state-contents kitchen-state 'pantry))
+
+(defmethod fridge ((kitchen-state kitchen-state))
+  (find-in-kitchen-state-contents kitchen-state 'fridge))
+
+(defmethod freezer ((kitchen-state kitchen-state))
+  (find-in-kitchen-state-contents kitchen-state 'freezer))
+
+(defmethod oven ((kitchen-state kitchen-state))
+  (find-in-kitchen-state-contents kitchen-state 'oven))
+
+(defmethod microwave ((kitchen-state kitchen-state))
+  (find-in-kitchen-state-contents kitchen-state 'microwave))
+
+(defmethod kitchen-cabinet ((kitchen-state kitchen-state))
+  (find-in-kitchen-state-contents kitchen-state 'kitchen-cabinet))
+
+(defmethod stove ((kitchen-state kitchen-state))
+  (find-in-kitchen-state-contents kitchen-state 'stove))

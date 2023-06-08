@@ -405,6 +405,8 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying lineable objects."
   (setf (lined-with copy) (copy-object (lined-with lineable))))
 
+
+;; TODO no superclasses is this correct?
 (defclass liquefiable ()
   ((is-liquid :type boolean :initarg :is-liquid :accessor is-liquid :initform nil))
   (:documentation "An ingredient that can be liquefied."))
@@ -542,7 +544,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   "Copying spreadable objects."
   (setf (spread copy) (copy-object (spread  spreadable))))
 
-(defclass sprinkable (kitchen-entity)
+(defclass sprinklable (kitchen-entity)
   ()
   (:documentation "Something that can be sprinkled over something."))
 
@@ -826,7 +828,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   ()
   (:documentation "Almond extract."))
 
-(defclass almond-flakes (ingredient sprinkable)
+(defclass almond-flakes (ingredient sprinklable)
   ()
   (:documentation "Almond flakes."))
 
@@ -1210,7 +1212,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated milk))))
 
 (defclass mixture (ingredient beatable cuttable mashable meltable mixable can-be-sprinkled-with siftable
-                              sprinkable bakeable shapeable dippable spreadable boilable liquefiable
+                              sprinklable bakeable shapeable dippable spreadable boilable liquefiable
                               can-be-sprinkled-on can-be-spread-upon has-temperature shakeable)
   ((components :type list :initarg :components :accessor components :initform '()))
   (:documentation "An abstract class for a mixture of ingredients."))
@@ -1238,7 +1240,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 (defclass mixed-greens (ingredient cuttable washable)
   ()
   (:documentation "Mixed greens."))
-
+l
 (defclass molasses (ingredient)
   ()
   (:documentation "Molasses."))
@@ -1272,7 +1274,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
   (:documentation "Paprika powder"))
 
 ; also called icing sugar
-(defclass powdered-white-sugar (sugar sprinkable can-be-dipped-in)
+(defclass powdered-white-sugar (sugar sprinklable can-be-dipped-in)
   ()
   (:documentation "Powdered white sugar."))
 

@@ -398,18 +398,18 @@
                      (kitchen-state-out kitchen-state)
                      (kitchen-state-in kitchen-state)
                      (portion kitchen-entity)
-                     (baking-tray kitchen-entity)
+                     (container kitchen-entity)
                      (shape shape))
 
   ((kitchen-state-in
     portion
-    baking-tray
+    container
     shape
     =>
     shaped-portions
     kitchen-state-out)
 
-   (let* ((res (request-to-shape (slot-value portion 'sim-identifier) (slot-value baking-tray 'sim-identifier) (symbolic-to-vr-kitchen kitchen-state-in)))
+   (let* ((res (request-to-shape (slot-value portion 'sim-identifier) (slot-value container 'sim-identifier) (symbolic-to-vr-kitchen kitchen-state-in)))
           (shaped-portions-available-at (request-to-get-time))
           (kitchen-state-available-at shaped-portions-available-at)
           (list-of-new-portion-names (cdr (assoc :shaped-portions res)))
@@ -420,11 +420,12 @@
           ;;                        collect (sim-find-object-by-name name new-kitchen-state)))
           ;;(new-portions (make-instance 'list-of-kitchen-entities :items list-of-portions)))
           ;; NOTE convert lisp to camel case because find object by name does lisp to camel to find in jsondata
-          (baking-tray-camel-name (lisp-to-camel-case (symbol-name (slot-value baking-tray 'sim-identifier))))
-          (tray-with-new-portions (sim-find-object-by-name baking-tray-camel-name new-kitchen-state)))
+          (container-camel-name (lisp-to-camel-case (symbol-name (slot-value container 'sim-identifier))))
+          (container-with-new-portions (sim-find-object-by-name container-camel-name new-kitchen-state)))
 
-     (bind (shaped-portions 1.0 tray-with-new-portions shaped-portions-available-at)
+     (bind (shaped-portions 1.0 container-with-new-portions shaped-portions-available-at)
        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+
   :primitive-inventory *vr-primitives*)
 
 
