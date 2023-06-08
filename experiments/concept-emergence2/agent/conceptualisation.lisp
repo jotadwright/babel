@@ -121,7 +121,7 @@
           ;; discriminative-power
           for topic-sim = (sigmoid (assqv :topic-sim tuple)) ;; sigmoid-ed!
           for best-other-sim = (sigmoid (assqv :best-other-sim tuple)) ;; sigmoid-ed!
-          for discriminative-power = (/ (abs (- topic-sim best-other-sim)) (if (not (eq ledger 0.0)) ledger 1e-4))
+          for discriminative-power = (/ (abs (- topic-sim best-other-sim)) (if (not (zerop ledger)) ledger 1e-4))
           ;; entrenchment
           for entrenchment = (score (assqv :cxn tuple))
           ;; combine both

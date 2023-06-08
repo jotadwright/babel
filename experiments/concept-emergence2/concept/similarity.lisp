@@ -21,7 +21,7 @@
   ;; similarity measure between [-inf,1]
   (let* ((distribution (distribution prototype))
          (st-dev (st-dev distribution))
-         (z-score (if (not (eq st-dev 0.0))
+         (z-score (if (not (zerop st-dev))
                     ;; z-score formula + absolute value
                     (abs (/ (- exemplar (mean distribution)) st-dev))
                     0))
