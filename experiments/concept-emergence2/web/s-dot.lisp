@@ -114,7 +114,7 @@
                                            ;(first (first (history (distribution prototype))))
                                            )))))))
 
-(defmethod get-hex-color (cxn &key (threshold 0.3))
+(defmethod get-hex-color (cxn &key (threshold 0.9))
   "Calculate the prototypical color of a cxn."
   (let ((r (loop for prototype in (prototypes (meaning cxn))
                  when (equal (channel prototype) 'R)
@@ -125,7 +125,7 @@
         (b (loop for prototype in (prototypes (meaning cxn))
                  when (equal (channel prototype) 'B)
                    return (cons (round (* 255 (mean (distribution prototype)))) (weight prototype)))))
-    (if (> (average (list (rest r) (rest g) (rest b))) threshold)
+    (if (and (> (rest r) threshold) (> (rest g) threshold) (> (rest b) threshold))
       (rgb->rgbhex (list (first r) (first g) (first b)))
       (rgb->rgbhex (list 255 255 255)))))
 
