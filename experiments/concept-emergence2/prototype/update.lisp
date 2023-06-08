@@ -1,6 +1,5 @@
 (in-package :cle)
 
-
 ;; -----------------------
 ;; + Update distribution +
 ;; -----------------------
@@ -12,12 +11,11 @@
   (let ((new-observation (get-channel-val object (channel prototype)))
         (distribution (distribution prototype)))
     (update-distribution new-observation distribution)
-    (update-prototype-history interaction-number new-observation distribution)))
+    (update-distribution-history interaction-number new-observation distribution)))
 
 ;; ------------------
 ;; + Update weights +
 ;; ------------------
-
 (defgeneric update-weight (concept channel delta mode &key &allow-other-keys)
   (:documentation "Method by which to adjust the weight of a feature channel."))
 

@@ -1,8 +1,8 @@
 (in-package :cle)
 
-;; --------------------
+;; ----------------
 ;; + cxn -> s-dot +
-;; --------------------
+;; ----------------
 
 (defgeneric cxn->s-dot (cxn &key highlight-green highlight-red certainty-threshold)
   (:documentation "Display a cxn using s-dot."))
@@ -110,7 +110,7 @@
                                            (downcase (mkdotstr (channel prototype)))
                                            (mean (distribution prototype))
                                            st-dev
-                                           (nr-of-samples (distribution prototype))
+                                           "not stored";(nr-of-samples (distribution prototype))
                                            ;(first (first (history (distribution prototype))))
                                            )))))))
 

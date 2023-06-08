@@ -3,6 +3,7 @@
 ;; --------------------
 ;; + Interaction flow +
 ;; --------------------
+
 (defmethod interact ((experiment cle-experiment) interaction &key scene topic agents)
   (before-interaction experiment :scene scene :topic topic :agents agents)
   (do-interaction experiment)

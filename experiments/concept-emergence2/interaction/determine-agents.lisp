@@ -4,7 +4,6 @@
 ;; + Determine interacting agents +
 ;; --------------------------------
 
-
 (defmethod determine-interacting-agents (experiment (interaction interaction) (mode (eql :standard))
                                                     &key (agents nil)
                                                     &allow-other-keys)

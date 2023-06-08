@@ -1,8 +1,8 @@
 (in-package :cle)
 
-;; --------------------
-;; + CXN -> s-dot +
-;; --------------------
+;; ----------------
+;; + cxn -> s-dot +
+;; ----------------
 
 (defparameter *white* "#FFFFFF")
 (defparameter *red* "#E32D2D")

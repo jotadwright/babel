@@ -3,6 +3,7 @@
 ;; ------------------------
 ;; + Set a scene manually +
 ;; ------------------------
+
 (defmethod set-scene (experiment scene-id)
   "Set a scene manually."
   (let* ((channels-in-play (get-configuration experiment :clevr-channels))

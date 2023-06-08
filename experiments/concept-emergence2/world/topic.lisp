@@ -3,6 +3,7 @@
 ;; ------------------------
 ;; + Set a scene manually +
 ;; ------------------------
+
 (defmethod set-topic (experiment cle-object)
   "Set a topic manually."
   (loop for agent in (interacting-agents experiment)

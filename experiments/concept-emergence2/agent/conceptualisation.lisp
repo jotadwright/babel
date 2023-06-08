@@ -83,7 +83,7 @@
     nil
     (let* (;; step 1 - find the discriminating concepts
            (discriminating-cxns (search-discriminative-concepts agent))
-           ;; step 4 - find the concept that maximises entrenchment * discriminative power
+           ;; step 2 - find the concept that maximises entrenchment * discriminative power
            (applied-cxn (select-most-discriminating-concept discriminating-cxns mode)))
       ;; decides which concepts are considered during alignment
       (decide-competitors-speaker agent
@@ -104,7 +104,7 @@
     nil
     (let* (;; step 1 - find the discriminating concepts
            (discriminating-cxns (search-discriminative-concepts agent))
-           ;; step 4 - find the concept that maximises entrenchment * discriminative power
+           ;; step 2 - find the concept that maximises entrenchment * discriminative power
            (applied-cxn (select-most-discriminating-concept discriminating-cxns mode)))
       applied-cxn)))
 

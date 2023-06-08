@@ -3,6 +3,7 @@
 ;; -----------
 ;; + Concept +
 ;; -----------
+
 (defclass concept ()
   ((id
     :initarg :id :accessor id :initform (make-id "CONCEPT") :type symbol

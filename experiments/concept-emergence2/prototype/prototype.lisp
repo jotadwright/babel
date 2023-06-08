@@ -3,6 +3,7 @@
 ;; -------------
 ;; + Prototype +
 ;; -------------
+
 (defclass prototype ()
   ((channel
     :initarg :channel :accessor channel :initform nil :type symbol)

@@ -3,6 +3,7 @@
 ;; ----------------
 ;; + F-Divergence +
 ;; ----------------
+
 (defgeneric f-divergence (distribution1 distribution2 mode &key &allow-other-keys)
   (:documentation "Returns the f-divergence between two distributions."))
 

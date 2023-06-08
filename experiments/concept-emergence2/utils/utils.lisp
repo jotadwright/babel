@@ -3,6 +3,7 @@
 ;; ---------------------------
 ;; + Web monitor experiments +
 ;; ---------------------------
+
 (defun read-scene-ids (fname)
   (let* ((base-dir "~/Projects/babel/experiments/concept-emergence2/data/")
          (fpath (concatenate 'string base-dir fname))
@@ -15,7 +16,7 @@
   (butlast list (max (- (list-length list) n) 0)))
 
 ;; ---------------------
-;; + UTILITY FUNCTIONS +
+;; + Utility fucntions +
 ;; ---------------------
 
 (defun find-scenes-with-size (context-size)
