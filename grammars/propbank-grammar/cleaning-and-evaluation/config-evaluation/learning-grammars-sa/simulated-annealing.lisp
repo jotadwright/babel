@@ -62,7 +62,7 @@
                          :evolution-f1 evolution-f1
                          :list-of-comb list-of-comb)))
     (let ((file-name (format nil "info-test-params-temp~A-cool~A-steps~A-train~A-dev~A" initial-temperature cooling-rate steps train-set-size dev-set-size)))
-      (with-open-file (stream (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "predictions-parameter")
+      (with-open-file (stream (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "config-evaluation" "predictions-config-eval")
                                           :name file-name
                                           :type "txt")
                        :direction :output
@@ -82,10 +82,10 @@
 (defun store-f1-params (f1-scores-params temperature cooling-rate steps train-set-size test-set-size)
   (let ((file-name (format nil "f1-scores-params-temp~A-cool~A-steps~A-train~A-dev~A" temperature cooling-rate steps train-set-size test-set-size)))
         (cl-store:store f1-scores-params
-                    (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "predictions-parameter")
+                    (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "config-evaluation" "predictions-config-eval")
                                     :name file-name
                                     :type "store"))
-    (with-open-file (stream (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "parameter-evaluation" "predictions-parameter")
+    (with-open-file (stream (babel-pathname :directory '("grammars" "propbank-grammar" "cleaning-and-evaluation" "config-evaluation" "predictions-config-eval")
                                           :name file-name
                                           :type "csv")
                          :direction :output
