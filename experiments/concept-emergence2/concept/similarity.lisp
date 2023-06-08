@@ -7,8 +7,8 @@
 (defmethod weighted-similarity ((object cle-object) (concept concept))
   "Compute the weighted similarity between an object and a concept."
   (loop for prototype in (prototypes concept)
-        for exemplar = (get-channel-val object (channel prototype))
-        for similarity = (exemplar-similarity exemplar prototype)
+        for observation = (get-channel-val object (channel prototype))
+        for similarity = (observation-similarity observation prototype)
         collect (* (weight prototype) similarity) into weighted-similarities
         finally (return (average weighted-similarities))))
 
@@ -16,14 +16,14 @@
 ;; + Comparing OBJECT <-> PROTOTYPE +
 ;; ----------------------------------
 
-(defmethod exemplar-similarity ((exemplar number) (prototype prototype) &key (max-z-score 1)) ;; TODO: MAJOR QUESTION (see obsidian)
+(defmethod observation-similarity ((observation number) (prototype prototype) &key (max-z-score 1)) ;; TODO: MAJOR QUESTION (see obsidian)
   "Similarity on the level of a single prototype."
   ;; similarity measure between [-inf,1]
   (let* ((distribution (distribution prototype))
          (st-dev (st-dev distribution))
          (z-score (if (not (zerop st-dev))
                     ;; z-score formula + absolute value
-                    (abs (/ (- exemplar (mean distribution)) st-dev))
+                    (abs (/ (- observation (mean distribution)) st-dev))
                     0))
          (sim (/ (- max-z-score z-score) max-z-score)))
     sim))

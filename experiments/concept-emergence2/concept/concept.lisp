@@ -17,10 +17,10 @@
  
 (defmethod make-concept ((agent cle-agent) (object cle-object) (mode (eql :distribution)))
   (make-instance 'concept-distribution
-                 :prototypes (loop for (channel . exemplar) in (attributes object)
+                 :prototypes (loop for (channel . observation) in (attributes object)
                                    for initial-weight = (get-configuration agent :initial-weight)
                                    for distribution = (make-distribution agent
-                                                                         exemplar
+                                                                         observation
                                                                          (get-configuration agent :distribution))
                                    for new-prototype = (make-instance 'prototype
                                                                       :channel channel
