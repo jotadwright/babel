@@ -18,11 +18,10 @@
                  (get-configuration experiment :dot-interval)) 0)
          (multiple-value-bind (h m s) (seconds-to-hours-minutes-seconds (- (get-universal-time) *start-time*))
            (format t
-                   ;". (~a / ~,vf% / ~,vf% / ~ah ~am ~as)~%"
-                   ". (~a / ~ah ~am ~as)~%"
+                   ". (~a / ~,vf% / ~,vf% / ~ah ~am ~as)~%"
                    (interaction-number interaction)
-                   ;1 0.0 ;; 1 denotes the decimal rounding
-                   ;1 0.0 ;; 1 denotes the decimal rounding
+                   1 (* 100 (float (caaar (monitors::get-average-values (monitors::get-monitor 'record-communicative-success)))))
+                   1 (* 100 (float (caaar (monitors::get-average-values (monitors::get-monitor 'record-lexicon-coherence)))))
                    h m s))
          (setf *start-time* (get-universal-time)))))
 
