@@ -22,6 +22,9 @@
     (activate-monitor trace-interaction-in-web-interface)
     (run-interaction experiment)))
 
+
+;; experiments with entrenchment values - keep the same
+
 (progn
   (setf *scene-ids* (read-scene-ids "color.lisp"))
   (setf *subset-size* (length *scene-ids*))
@@ -53,17 +56,14 @@
                 
                 ;; concept representations
                 (:concept-representation . :distribution)
-                (:distribution . :gaussian-welford)
-                (:M2 . 0.0001)
+                (:distribution . :gaussian-replay)
+                (:M2 . 0.0001) ;; only for gaussian-welford
 
                 ;; prototype weight inits
                 (:weight-update-strategy . :j-interpolation)
                 (:initial-weight . 0)
                 (:weight-incf . 1)
                 (:weight-decf . -1)
-                
-                ;; alignment strategy
-                (:punish-strategy . :punish-found-concepts)
                 )))
   (setf *experiment* (make-instance 'cle-experiment :configuration *baseline-simulated*))
   (notify reset-monitors)
@@ -90,7 +90,7 @@
   (deactivate-all-monitors)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor trace-interaction-in-web-interface)
-  (loop for idx from 1 to 10
+  (loop for idx from 1 to 2
         do (run-interaction *experiment*)))
 
 (defmethod after-interaction ((experiment cle-experiment))
@@ -112,8 +112,7 @@
         else
           do (run-interaction *experiment*)))
 
-=> "1: 13398 [AGENT-26, AGENT-25] -> topic: <cle-object: attributes: (R . 0.492), (G . 0.27800003), (B . 0.079)>"
-
+=> "7: 5862 [AGENT-91, AGENT-83] -> topic: <cle-object: attributes: (R . 0.177), (G . 0.289), (B . 0.822)>"
 (progn
   (setf saved-agents (interacting-agents (current-interaction *experiment*)))
   (setf saved-scene  (index (current-scene (world *experiment*))))
@@ -133,20 +132,41 @@
                    :agents (reverse saved-agents)))
 
 ;; experiment with a specific cxn
-(add-cxn-to-interface (find-form-in-lexicon (lexicon (find-agent 23)) "vereko"))
+(add-cxn-to-interface (find-form-in-lexicon (lexicon (find-agent 83)) "fimomu"))
 (setf cxn-test (find-form-in-lexicon (lexicon (find-agent 23)) "vereko"))
+
+(string-equal "ragifa" (form (first (lexicon (car (agents *experiment*))))))
+
+(loop for agent in (agents *experiment*)
+
+      for cxn in (lexicon agent)
+      collect cxn)
+        
+(find-form-in-lexicon (lexicon agent) "revuno")
+
+
 
 ;; conceptualise a scene/topic combo with all agents
 (how-would-the-population-conceptualise (find-data (first saved-agents) 'context)
-                                        (first (objects (find-data (first saved-agents) 'context)))
+                                        (third (objects (find-data (first saved-agents) 'context)))
                                         ;(find-data (first saved-agents) 'topic)
                                         )
 
 ;; same as previous, but only show a given list
 (how-would-the-population-conceptualise2 (find-data (first saved-agents) 'context)
-                                         (second (objects (find-data (first saved-agents) 'context)))
+                                         (third (objects (find-data (first saved-agents) 'context)))
                                          ;(find-data (first saved-agents) 'topic)
-                                         (list "vereko" "pexiba" "xusabi"))
+                                         ;(list)
+                                         ;(list "gelowo" "fimomu")
+                                         (list "deweti" "revuno")
+                                         )
+
+(let ((applied-cxn (find-form-in-lexicon (lexicon (first (last (agents *experiment*)))) "xiseto"))
+      (other-cxn (find-form-in-lexicon (lexicon (first (last (agents *experiment*)))) "lopete")))
+  (similar-concepts (meaning applied-cxn) (meaning other-cxn) :times))
+
+
+(display-lexicon (first (last (agents *experiment*))) :sort t)
 
 
 
@@ -188,8 +208,9 @@
 (add-cxn-to-interface (find-form-in-lexicon (lexicon (find-agent 23)) "vobuwi"))
 (add-cxn-to-interface (find-form-in-lexicon (lexicon (find-agent 23)) "rewunu"))
            
-(setf pefudi (find-form-in-lexicon (lexicon (find-agent 23)) "vereko"))
-(loop for el in (reverse (history (distribution (third (prototypes (meaning pefudi))))))
+(setf pefudi (find-form-in-lexicon (lexicon (find-agent 89)) "revuno"))
+(setf prototype-b (first (prototypes (meaning pefudi))))
+(loop for el in (reverse (history (distribution (first (prototypes (meaning pefudi))))))
       do (format t "~%~,3f" (second el)))
 
 (first (history (distribution (second (prototypes (meaning pomiwu))))))
@@ -265,3 +286,18 @@
 (z-scorer 1 0 2 :max-z-score 2)
 (z-scorer 2 0 2 :max-z-score 2)
 
+;;;;
+
+(cl-store:store *experiment*
+                (babel-pathname :directory '("experiments"
+                                             "concept-emergence2")
+                                :name "2023-06-07-exp-colors"
+                                :type "store"))
+
+
+
+(monitors::print-all-monitors)
+
+(float 121/125)
+
+(monitors::get-values (monitors::get-monitor 'record-lexicon-coherence))
