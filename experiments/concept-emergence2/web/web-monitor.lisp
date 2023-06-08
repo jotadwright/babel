@@ -113,27 +113,17 @@
 (define-event-handler (trace-interaction-in-web-interface event-conceptualisation-end)
   (add-element `((h2) ,(format nil " === CONCEPTUALISATION ===")))
   (add-element `((h3) ,(format nil " === PHASE 1 : CHOSE CONSTRUCTIONS WITH POSITIVE DISCRIMINATING POWER === ")))
-  (loop with ledger = (loop for tuple in discriminating-cxns
-                            ;; discriminative-power
-                            for topic-sim = (sigmoid (assqv :topic-sim tuple)) ;; sigmoid-ed!
-                            for best-other-sim = (sigmoid (assqv :best-other-sim tuple)) ;; sigmoid-ed!
-                            sum (abs (- topic-sim best-other-sim)))
-        for cxn in discriminating-cxns and idx from 0
+  (loop for cxn in discriminating-cxns and idx from 0
         for form = (form (assqv :cxn cxn))
         for entrenchment = (score (assqv :cxn cxn))
         
         for discriminative-power = (abs (- (sigmoid (assqv :topic-sim cxn)) (sigmoid (assqv :best-other-sim cxn))))
-        do (add-element `((h4) ,(format nil " -> ~a: (~a, ~,3f, [~,3f/~,3f => ~,3f]) => SCORE = ~,3f"
+        do (add-element `((h4) ,(format nil " -> ~a - ~a: (~,3f, ~,3f]) => SCORE = ~,3f"
                                         idx
                                         (downcase (mkstr form))
                                         entrenchment
                                         discriminative-power
-                                        ledger
-                                        (/ discriminative-power ledger)
-                                        (* entrenchment (/ discriminative-power ledger)))))
-
-
-        )
+                                        (* entrenchment discriminative-power)))))
   (add-element `((h3) ,(format nil " === PHASE 2 : SELECT BASED ON OVERALL SCORE ===")))
   (if (car applied-cxn)
     (add-element `((h3) ,(format nil " == RESULT: (~a, ~a) == "

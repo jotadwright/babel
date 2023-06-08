@@ -9,8 +9,6 @@
 (define-event event-conceptualisation-end
   (agent cle-agent)
   (discriminating-cxns list)
-  (similar-sets list)
-  (best-entrenched-cxns list)
   (applied-cxn list))
 (define-event event-coherence-p
   (experiment cle-experiment)
@@ -55,7 +53,6 @@
 ;; ---------------------
 ;; + Lexicon coherence +
 ;; ---------------------
-
 (defun lexicon-coherence-p (experiment speaker hearer)
   "Records how coherent the lexicons of the interactings agents are for the topic.
 
@@ -72,11 +69,6 @@
 ;; -------------
 ;; + Algorithm +
 ;; -------------
-(define-event event-conceptualisation-end
-  (agent cle-agent)
-  (discriminating-cxns list)
-  (applied-cxn list))
-
 (defmethod speaker-conceptualise ((agent cle-agent) (mode (eql :times)))
   "Conceptualise the topic of the interaction."
   (if (length= (lexicon agent) 0)
@@ -111,17 +103,12 @@
 (defmethod select-most-discriminating-concept (cxns (mode (eql :times)))
   "Selets the concept that maximises power * entrenchment."
   (let* ((best-score -1)
-         (best-cxn nil)
-         (ledger (loop for tuple in cxns
-                       ;; discriminative-power
-                       for topic-sim = (sigmoid (assqv :topic-sim tuple)) ;; sigmoid-ed!
-                       for best-other-sim = (sigmoid (assqv :best-other-sim tuple)) ;; sigmoid-ed!
-                       sum (abs (- topic-sim best-other-sim)))))
+         (best-cxn nil))
     (loop for tuple in cxns
           ;; discriminative-power
           for topic-sim = (sigmoid (assqv :topic-sim tuple)) ;; sigmoid-ed!
           for best-other-sim = (sigmoid (assqv :best-other-sim tuple)) ;; sigmoid-ed!
-          for discriminative-power = (/ (abs (- topic-sim best-other-sim)) (if (not (zerop ledger)) ledger 1e-4))
+          for discriminative-power = (abs (- topic-sim best-other-sim))
           ;; entrenchment
           for entrenchment = (score (assqv :cxn tuple))
           ;; combine both
@@ -131,5 +118,3 @@
                  (setf best-score score)
                  (setf best-cxn (assqv :cxn tuple))))
     best-cxn))
-
-
