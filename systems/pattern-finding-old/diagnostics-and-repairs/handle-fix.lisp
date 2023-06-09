@@ -5,7 +5,7 @@
   ())
 
 ;; Generic function for repair
-(defgeneric do-repair (observation-form observation-meaning form-args meaning-args cxn-inventory node repair-type)
+(defgeneric do-repair (observation-form observation-meaning args cxn-inventory node repair-type)
   (:documentation "Run a repair of type repair-type."))
 
 ;; Events
@@ -68,7 +68,7 @@
                       finally (return current-node))))
           ;; reset categorial network
           (set-categorial-network (construction-inventory node) orig-categorial-network)
-          (when (find 'SUCCEEDED (statuses sandbox-solution) :test #'string=)
+          (when (find 'fcg::succeeded (statuses sandbox-solution))
             (notify fix-applied repair-name form-constraints learned-cxns)
             (make-apply-fix-result
              :orig-cxns-to-apply cxns-to-apply

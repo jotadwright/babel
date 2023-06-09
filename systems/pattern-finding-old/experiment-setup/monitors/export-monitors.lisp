@@ -9,75 +9,28 @@
                 :documentation "Prints a '.' for each interaction
                  and prints the number after :dot-interval")
 
-(defun first-n (n list)
-  "Returns the first N elements of the LIST."
-  (butlast list (max (- (list-length list) n) 0)))
-
 (define-event-handler (print-a-dot-for-each-interaction interaction-finished)
-  (let* ((symbol-to-print
-          (first (repair-buffer experiment)))
-         (buffer-size
-          (get-configuration experiment :buffer-size))
-         (windowed-success
-          (* 100 (float (average (first-n buffer-size (success-buffer experiment))))))
-         (agent-grammar
-          (grammar (first (interacting-agents experiment))))
-         (grammar-size
-          (count-if #'non-zero-cxn-p (constructions agent-grammar)))
-         (non-zero-holistic-cxns
-          (count-non-zero-holophrases agent-grammar)))
-    (cond ((= (interaction-number interaction) 1)
-           (setf *start-time* (get-universal-time))
-           (format t "~%~a" symbol-to-print))
+  (let ((symbol-to-print (get-data interaction :applied-repair)))
+    
+    (when (= (interaction-number interaction) 1)
+      (setf *start-time* (get-universal-time)))
           
-          ((or (= (mod (interaction-number interaction)
-                       (/ (length (question-data experiment))
-                          (get-configuration experiment :number-of-epochs)))
-                  0)
-               (= (mod (interaction-number interaction)
-                       (get-configuration experiment :dot-interval)) 0))
-           (multiple-value-bind (h m s) (seconds-to-hours-minutes-seconds (- (get-universal-time) *start-time*))
-             (format t "~a (~a / ~,vf% / ~a cxns w. ~a hol. /~ah ~am ~as)~%"
-                     symbol-to-print (interaction-number interaction)
-                     1 windowed-success grammar-size non-zero-holistic-cxns h m s))
-           (setf *start-time* (get-universal-time)))
-          
-          (t (format t "~a" symbol-to-print)))))
-
-;;;; export failed sentences and applied cxns
-(define-monitor log-interactions)
-
-(defvar *log-file* nil)
-
-(define-event-handler (log-interactions log-parsing-finished)
-  (unless *log-file*
-    (setf *log-file*
-          (babel-pathname :directory '("experiments" "clevr-grammar-learning" "raw-data")
-                          :name (format nil "log-~a" (make-random-string 5))
-                          :type "txt")))
-  (let ((succeededp
-         (when (rest (assoc 'cipn process-result-data))
-           (find 'fcg::succeeded
-                 (fcg::statuses
-                  (rest (assoc 'cipn process-result-data)))))))
-    (unless succeededp
-      (let* ((interaction-nr
-              (interaction-number (current-interaction (experiment agent))))
-             (applied-cxns
-              (when (rest (assoc 'applied-cxns process-result-data))
-                (mapcar (compose #'downcase #'mkstr #'name)
-                        (rest (assoc 'applied-cxns process-result-data)))))
-             (utterance (utterance agent)))
-        (with-open-file (stream *log-file* :direction :output
-                                :if-exists :append
-                                :if-does-not-exist :create)
-          (write-line
-           (format nil "~%Interaction ~a - Parsing failed - \"~a\" - ~{~a~^, ~}"
-                   interaction-nr
-                   utterance
-                   (if applied-cxns
-                     applied-cxns '(nil)))
-           stream))))))
+    (if (or (= (mod (interaction-number interaction)
+                    (/ (length (corpus experiment))
+                       (get-configuration experiment :number-of-epochs)))
+               0)
+            (= (mod (interaction-number interaction)
+                    (get-configuration experiment :dot-interval)) 0))
+      (let* ((windowed-success (get-windowed-success experiment))
+             (grammar (grammar (first (interacting-agents experiment))))
+             (grammar-size (count-if #'non-zero-cxn-p (constructions grammar)))
+             (non-zero-holistic-cxns (count-non-zero-holophrases grammar)))
+        (multiple-value-bind (h m s) (seconds-to-hours-minutes-seconds (- (get-universal-time) *start-time*))
+          (format t "~a (~a / ~,2f% / ~a cxns w. ~a hol. /~ah ~am ~as)~%"
+                  symbol-to-print (interaction-number interaction)
+                  windowed-success grammar-size non-zero-holistic-cxns h m s))
+        (setf *start-time* (get-universal-time)))
+      (format t "~a" symbol-to-print))))
 
 
 ;;;; export grammar after series

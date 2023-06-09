@@ -11,53 +11,62 @@
 (defun make-pattern-finding-agent (experiment)
   (make-instance 'pattern-finding-agent
                  :experiment experiment
-                 :grammar (empty-cxn-set experiment)))
+                 :grammar (make-agent-cxn-set experiment)))
 
-(define-event constructions-chosen (constructions list))
-(define-event cipn-statuses (cipn-statuses list))
-(define-event log-parsing-finished
-  (agent pattern-finding-agent)
-  (process-result-data list))
-
-(defun set-cxn-last-used (agent cxn)
-  (let ((current-interaction-nr
-         (interaction-number
-          (current-interaction
-           (experiment agent)))))
-    (setf (attr-val cxn :last-used) current-interaction-nr)))
-
-(defgeneric run-learner-comprehension-task (agent)
-  (:documentation "Entry point for the learner's comprehension task"))
-
-(defmethod run-learner-comprehension-task (agent)
-  ;; set the current interaction number of the blackboard of the grammar
-  (set-data (blackboard (grammar agent))
-            :current-interaction-nr (interaction-number (current-interaction (experiment agent))))
-  ;; run comprehension
-  (multiple-value-bind (meanings cipns)
-      (comprehend-all (utterance agent)
-                      :cxn-inventory (grammar agent)
-                      :gold-standard-meaning (meaning agent)
-                      :n (get-configuration (experiment agent) :comprehend-all-n))
-    (declare (ignore meanings))
-    (let* ((solution-cipn (first cipns))
-           (competing-cipns (rest cipns))
-           (applied-cxns (original-applied-constructions solution-cipn)))
-      ;; notify the logging monitor
-      ;; notify which cxns will be used
-      (notify constructions-chosen applied-cxns)
-      (notify cipn-statuses (statuses solution-cipn))
-
-      ;; do alignment
-      (run-alignment agent solution-cipn competing-cipns
-                     (get-configuration (experiment agent) :alignment-strategy))
-      ;(notify-learning process-result :trigger 'alignment-finished)
-      
-      ;; update the :last-used property of the cxns
-      (loop for cxn in applied-cxns
-            do (set-cxn-last-used agent cxn))
-      
-    solution-cipn)))
+(defun make-agent-cxn-set (experiment)
+  (with-configurations ((cxn-supplier-mode :learner-cxn-supplier)
+                        (de-render-mode :de-render-mode)
+                        (max-nr-of-nodes :max-number-of-nodes)
+                        (mark-holophrases :mark-holophrases)
+                        (meaning-representation :meaning-representation)
+                        (category-linking-mode :category-linking-mode)
+                        (initial-cxn-score :initial-cxn-score)
+                        (initial-link-weight :initial-categorial-link-weight)
+                        (repairs :repairs)
+                        (max-au-cost :max-au-cost)) experiment
+    (let* ((grammar-name (make-const "pattern-finding-grammar"))
+           (cxn-inventory
+            (eval `(def-fcg-constructions ,grammar-name
+                     :cxn-inventory ,grammar-name
+                     :hashed t
+                     :feature-types ((form-args sequence)
+                                     (meaning-args sequence)
+                                     (form set-of-predicates)
+                                     (meaning set-of-predicates)
+                                     (subunits set)
+                                     (footprints set))
+                     :fcg-configurations ((:cxn-supplier-mode . ,cxn-supplier-mode)
+                                          (:parse-order routine)
+                                          (:production-order routine)
+                                          (:hash-mode . :hash-string-meaning)
+                                          (:node-tests :restrict-nr-of-nodes
+                                                       :restrict-search-depth
+                                                       :check-duplicate)
+                                          (:parse-goal-tests :no-strings-in-root
+                                                             :no-applicable-cxns
+                                                             :connected-semantic-network
+                                                             :connected-structure
+                                                             :non-gold-standard-meaning)
+                                          (:de-render-mode . ,de-render-mode)
+                                          (:max-nr-of-nodes . ,max-nr-of-nodes)
+                                          (:original-max-nr-of-nodes . ,max-nr-of-nodes)
+                                          (:mark-holophrases . ,mark-holophrases)
+                                          (:meaning-representation-formalism . ,meaning-representation)
+                                          (:render-mode . :generate-and-test)
+                                          (:category-linking-mode . ,category-linking-mode)
+                                          (:update-categorial-links . t)
+                                          (:consolidate-repairs . t)
+                                          (:use-meta-layer . t)
+                                          (:initial-cxn-score . ,initial-cxn-score)
+                                          (:initial-categorial-link-weight . ,initial-link-weight)
+                                          (:ignore-transitive-closure . t)
+                                          (:max-au-cost . ,max-au-cost))
+                     :diagnostics (pf::diagnose-non-gold-standard-meaning
+                                   pf::diagnose-non-gold-standard-utterance)
+                     :repairs ,repairs
+                     :visualization-configurations ((:show-constructional-dependencies . nil)
+                                                    (:show-categorial-network . t))))))
+      cxn-inventory)))
      
 
 

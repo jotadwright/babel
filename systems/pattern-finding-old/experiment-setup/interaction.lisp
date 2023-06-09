@@ -14,10 +14,10 @@
 
 (defun get-interaction-data (interaction)
   "retrieve the nth utterance and gold standard meaning from the dataset"
-  (let* ((interaction-data (nth (- (interaction-number interaction) 1)
-                                (question-data (experiment interaction))))
-         (utterance (first interaction-data))
-         (gold-standard-meaning (cdr interaction-data)))
+  (let* ((sample (nth (- (interaction-number interaction) 1)
+                      (corpus (experiment interaction))))
+         (utterance (car sample))
+         (gold-standard-meaning (cdr sample)))
     (values utterance gold-standard-meaning)))
 
 (define-event interaction-before-finished
@@ -29,6 +29,8 @@
       (get-interaction-data interaction)
     (loop for agent in (interacting-agents experiment)
           do (initialize-agent agent utterance gold-standard-meaning))
+    (set-data interaction :utterance utterance)
+    (set-data interaction :gold-standard-meaning gold-standard-meaning)
     (notify interaction-before-finished utterance gold-standard-meaning)))
 
 ;; ---------------
@@ -47,29 +49,48 @@
   (let ((all-node-statuses (mappend #'statuses (cons cipn (all-parents cipn)))))
     (if (not (find 'added-by-repair all-node-statuses))
       (if success? "." "x") ; return a dot or x in processing mode
-      (cond ((find 'add-categorial-links all-node-statuses) "1")
-            ((find 'item-based->item-based all-node-statuses) "2")
-            ((find 'item-based-partial-analysis all-node-statuses) "3")
-            ((find 'holistic->item-based all-node-statuses) "4")
-            ((find 'holistic-partial-analysis all-node-statuses) "5")
-            ((find 'nothing->holistic all-node-statuses) "6")
-            (t (error "Did not find any repair node statuses and no solution was found!"))))))
+      (cond ((member 'nothing->holistic all-node-statuses) "h")
+            ((member 'anti-unify-cxns all-node-statuses) "a")
+            ((member 'add-categorial-links all-node-statuses) "l")))))
+
+(defun set-cxn-last-used (agent cxn)
+  (let ((current-interaction-nr
+         (interaction-number
+          (current-interaction
+           (experiment agent)))))
+    (setf (attr-val cxn :last-used) current-interaction-nr)))
+
+(define-event constructions-chosen (constructions list))
+(define-event cipn-statuses (cipn-statuses list))
 
 (defmethod interact ((experiment pattern-finding-experiment)
                      interaction &key)
-  "the learner attempts to comprehend the utterance with its grammar, and applies any repairs if necessary"
-  (let* ((cipn (run-learner-comprehension-task (learner experiment)))
-         (success? (determine-communicative-success cipn)))
-    ;; add success to the front of the success buffer
-    ;; add last repair to the front of the repair buffer
-    (push (if success? 1 0) (success-buffer experiment))
-    (push (get-last-repair-symbol cipn success?) (repair-buffer experiment))
-    ;; when no success, store the example
-    (unless success?
-      (push (list (utterance (first (agents experiment)))
-                  (meaning (first (agents experiment))))
-            (failed-question-data experiment)))
-    (loop for agent in (population experiment)
-          do (setf (communicated-successfully agent) success?))))
-
-    
+  "the learner attempts to comprehend the utterance with its grammar,
+   and applies repairs if necessary"
+  (let ((agent (first (population experiment))))
+    ;; set the current interaction number in the blackboard of the grammar
+    (set-data (blackboard (grammar agent))
+              :current-interaction-nr (interaction-number interaction))
+    ;; run comprehension
+    (multiple-value-bind (meanings cipns)
+        (comprehend-all (utterance agent)
+                        :cxn-inventory (grammar agent)
+                        :gold-standard-meaning (meaning agent))
+      (declare (ignore meanings))
+      (let* ((solution-cipn (first cipns))
+             (competing-cipns (rest cipns))
+             (applied-cxns (original-applied-constructions solution-cipn))
+             (successp (determine-communicative-success solution-cipn)))
+        ;; notify
+        (notify constructions-chosen applied-cxns)
+        (notify cipn-statuses (statuses solution-cipn))
+        ;; run alignment
+        (run-alignment agent solution-cipn competing-cipns
+                       (get-configuration agent :alignment-strategy))
+        ;; update the :last-used property of the cxns
+        (dolist (cxn applied-cxns)
+          (set-cxn-last-used agent cxn))
+        ;; store applied repair
+        (set-data interaction :applied-repair (get-last-repair-symbol solution-cipn successp))
+        ;; set the success of the agent
+        (setf (communicated-successfully agent) successp)))))
