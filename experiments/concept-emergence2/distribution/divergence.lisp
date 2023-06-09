@@ -3,6 +3,7 @@
 ;; ----------------
 ;; + F-Divergence +
 ;; ----------------
+
 (defgeneric f-divergence (distribution1 distribution2 mode &key &allow-other-keys)
   (:documentation "Returns the f-divergence between two distributions."))
 
@@ -26,8 +27,8 @@
      over a given probability space. Maximum distance 1 is achieved when P
      assigns probability zero to every set to which Q assigns a positive
      probability, and vice versa."
-  (if (and (eq sigma1 0.0)
-           (eq sigma2 0.0))
+  (if (and (zerop sigma1)
+           (zerop sigma2))
     ;; if both distributions are Dirac distributions with zero sigma, return maximal distance of 1
     1.0
     ;; otherwise perform distance calculation

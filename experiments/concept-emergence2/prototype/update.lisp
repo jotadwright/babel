@@ -1,6 +1,5 @@
 (in-package :cle)
 
-
 ;; -----------------------
 ;; + Update distribution +
 ;; -----------------------
@@ -8,18 +7,17 @@
 (defmethod update-prototype ((interaction-number number)
                              (prototype prototype)
                              (object cle-object)
-                             (mode (eql :gaussian-welford))
-                             &key &allow-other-keys)
-
+                             &key (save-distribution-history t)
+                             &allow-other-keys)
   (let ((new-observation (get-channel-val object (channel prototype)))
         (distribution (distribution prototype)))
-    (welford-update new-observation distribution)
-    (update-prototype-history interaction-number new-observation distribution)))
+    (update-distribution new-observation distribution)
+    (when save-distribution-history
+      (update-distribution-history interaction-number new-observation distribution))))
 
 ;; ------------------
 ;; + Update weights +
 ;; ------------------
-
 (defgeneric update-weight (concept channel delta mode &key &allow-other-keys)
   (:documentation "Method by which to adjust the weight of a feature channel."))
 

@@ -14,6 +14,5 @@
   (setf (population experiment)
         (loop for i from 1 to (get-configuration experiment :population-size)
               collect (make-instance 'cle-agent :experiment experiment)))
-  
   ;; 2. load clevr scenes
   (setf (world experiment) (make-instance 'clevr-world :data-sets (list "t-val"))))

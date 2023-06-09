@@ -3,6 +3,7 @@
 ;; ----------------
 ;; + Construction +
 ;; ----------------
+
 (defclass cxn ()
   ((id
     :initarg :id :accessor id :initform (make-id "CXN") :type symbol

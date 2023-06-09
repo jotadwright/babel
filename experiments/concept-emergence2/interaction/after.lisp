@@ -10,5 +10,4 @@
 
 (defmethod after-interaction ((experiment cle-experiment))
   (align (speaker experiment))
-  (align (hearer experiment))
-  )
+  (align (hearer experiment)))
