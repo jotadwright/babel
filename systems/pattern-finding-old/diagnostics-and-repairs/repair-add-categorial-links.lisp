@@ -25,8 +25,7 @@
   (do-repair
    (get-data problem :utterance)
    (get-data problem :meaning)
-   nil
-   nil
+   (make-blackboard)
    (construction-inventory node)
    node
    'add-categorial-links))
@@ -40,12 +39,10 @@
 ;;;; To make sure that the result of this repair clicks together with
 ;;;; the repair higher up in the recursion?
 
-(defmethod do-repair (observation-form observation-meaning form-args meaning-args
-                                       (cxn-inventory construction-inventory)
-                                       node (repair-type (eql 'add-categorial-links)))
+(defmethod do-repair (observation-form observation-meaning (args blackboard) (cxn-inventory construction-inventory) node (repair-type (eql 'add-categorial-links)))
   "Return the categorial links and applied cxns from a comprehend
    with :category-linking-mode :categories-exist instead of :neighbours"
-  (declare (ignore form-args meaning-args))
+  (declare (ignore args))
   (disable-meta-layer-configuration cxn-inventory) 
   (with-disabled-monitor-notifications
     (multiple-value-bind (parsed-meanings solutions)

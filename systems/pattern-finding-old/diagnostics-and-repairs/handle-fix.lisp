@@ -5,7 +5,7 @@
   ())
 
 ;; Generic function for repair
-(defgeneric do-repair (observation-form observation-meaning form-args meaning-args cxn-inventory node repair-type)
+(defgeneric do-repair (observation-form observation-meaning args cxn-inventory node repair-type)
   (:documentation "Run a repair of type repair-type."))
 
 ;; Events

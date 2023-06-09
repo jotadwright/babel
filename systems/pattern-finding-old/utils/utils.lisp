@@ -267,7 +267,7 @@
             (loop for unit in (conditional-part cxn)
                   for meaning-args = (second (find 'meaning-args (formulation-lock unit) :key #'first))
                   for form-args = (second (find 'form-args (comprehension-lock unit) :key #'first))
-                  when (and meaning-args form-args)
+                  when (or meaning-args form-args)
                     append form-args into all-form-args
                     and append meaning-args into all-meaning-args
                   finally (return (list all-form-args all-meaning-args))))
@@ -275,7 +275,7 @@
             (loop for unit in (contributing-part cxn)
                   for meaning-args = (second (find 'meaning-args (fcg::unit-structure unit) :key #'first))
                   for form-args = (second (find 'form-args (fcg::unit-structure unit) :key #'first))
-                  when (and form-args meaning-args)
+                  when (or form-args meaning-args)
                     return (list form-args meaning-args))))
       (list top-lvl-args slot-args))
     (let ((slot-args
@@ -292,6 +292,27 @@
                  return (list (second (find 'form-args unit-structure :key #'first))
                               (second (find 'meaning-args unit-structure :key #'first))))))
       (list top-lvl-args slot-args))))
+
+(defun extract-top-lvl-args (cxn)
+  (if (holistic-cxn-p cxn)
+    (extract-args-holistic-cxn cxn)
+    (first (extract-args-item-based-cxn cxn))))
+
+(defun extract-slot-args (cxn)
+  (unless (holistic-cxn-p cxn)
+    (second (extract-args-item-based-cxn cxn))))
+
+(defun extract-top-lvl-form-args (cxn)
+  (first (extract-top-lvl-args cxn)))
+
+(defun extract-top-lvl-meaning-args (cxn)
+  (second (extract-top-lvl-args cxn)))
+
+(defun extract-slot-form-args (cxn)
+  (first (extract-slot-args cxn)))
+
+(defun extract-slot-meaning-args (cxn)
+  (second (extract-slot-args cxn)))
 
 
 ;;;;;

@@ -33,9 +33,7 @@
                              (:file "compute-args")
                              (:file "repair-add-categorial-links")
                              (:file "repair-nothing-to-holophrase-cxn")
-                             (:file "repair-anti-unify-cxns")
-                             (:file "repair-holistic-partial-analysis")
-                             (:file "repair-item-based-partial-analysis")))
+                             (:file "repair-anti-unify-cxns")))
                (:module experiment-setup
                 :serial t
                 :components ( (:file "run-helpers")

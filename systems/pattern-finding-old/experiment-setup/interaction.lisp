@@ -49,7 +49,9 @@
   (let ((all-node-statuses (mappend #'statuses (cons cipn (all-parents cipn)))))
     (if (not (find 'added-by-repair all-node-statuses))
       (if success? "." "x") ; return a dot or x in processing mode
-      "!")))
+      (cond ((member 'nothing->holistic all-node-statuses) "h")
+            ((member 'anti-unify-cxns all-node-statuses) "a")
+            ((member 'add-categorial-links all-node-statuses) "l")))))
 
 (defun set-cxn-last-used (agent cxn)
   (let ((current-interaction-nr

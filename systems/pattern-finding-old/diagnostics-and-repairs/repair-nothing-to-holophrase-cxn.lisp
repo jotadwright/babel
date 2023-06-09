@@ -25,16 +25,13 @@
   (do-repair
    (get-data problem :utterance)
    (get-data problem :meaning)
-   nil
-   nil
+   (make-blackboard)
    (construction-inventory node)
    node
    'nothing->holistic))
 
 
-(defmethod do-repair (observation-form observation-meaning form-args meaning-args
-                                       (cxn-inventory construction-inventory)
-                                       node (repair-type (eql 'nothing->holistic)))
+(defmethod do-repair (observation-form observation-meaning (args blackboard) (cxn-inventory construction-inventory) node (repair-type (eql 'nothing->holistic)))
   (let* ((cxn-inventory (original-cxn-set cxn-inventory))
          ;; make the cxn name
          (cxn-name
@@ -45,12 +42,14 @@
           (intern (upcase (format nil "~a-apply-last" cxn-name))))
          (cxn-name-apply-first
           (intern (upcase (format nil "~a-apply-first" cxn-name))))
-         ;; make the unit name
-         (unit-name
-          (make-unit-name cxn-name cxn-inventory :trim-cxn-suffix t)) 
+         ;; top lvl args
+         (cxn-form-args (or (find-data args :top-lvl-form-args)
+                            (get-unconnected-vars observation-form)))
+         (cxn-meaning-args (or (find-data args :top-lvl-meaning-args)
+                               (get-unconnected-vars observation-meaning)))
          ;; find an identical existing holistic cxn
          (existing-routine-holistic-cxn
-          (find-identical-holistic-cxn observation-form observation-meaning form-args meaning-args cxn-inventory))
+          (find-identical-holistic-cxn observation-form observation-meaning cxn-form-args cxn-meaning-args cxn-inventory))
          (existing-meta-holistic-cxn
           (when existing-routine-holistic-cxn
             (alter-ego-cxn existing-routine-holistic-cxn cxn-inventory)))
@@ -66,19 +65,17 @@
          ;; new cxns
          (holistic-cxn-apply-first
           (or existing-routine-holistic-cxn
-              (holistic-cxn-apply-first-skeleton cxn-name cxn-name-apply-first
-                                                 unit-name lex-class
+              (holistic-cxn-apply-first-skeleton cxn-name cxn-name-apply-first lex-class
                                                  observation-form observation-meaning
-                                                 form-args meaning-args
+                                                 cxn-form-args cxn-meaning-args
                                                  (get-configuration cxn-inventory :initial-cxn-score)
                                                  (and node (get-configuration cxn-inventory :mark-holophrases))
                                                  cxn-inventory-copy)))
          (holistic-cxn-apply-last
           (or existing-meta-holistic-cxn
-              (holistic-cxn-apply-last-skeleton cxn-name cxn-name-apply-last
-                                                unit-name lex-class
+              (holistic-cxn-apply-last-skeleton cxn-name cxn-name-apply-last lex-class
                                                 observation-form observation-meaning
-                                                form-args meaning-args
+                                                cxn-form-args cxn-meaning-args
                                                 (get-configuration cxn-inventory :initial-cxn-score)
                                                 (and node (get-configuration cxn-inventory :mark-holophrases))
                                                 cxn-inventory-copy)))

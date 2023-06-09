@@ -27,8 +27,12 @@
 ;; + trace-interactions-in-wi handlers +
 ;; -------------------------------------
   
-(define-event-handler (trace-interactions-in-wi corpus-utterances-loaded)
-  (add-element `((h1) ,(format nil "Corpus utterances loaded"))))
+(define-event-handler (trace-interactions-in-wi loading-corpus-started)
+  (add-element `((h1) ,(format nil "Loading corpus..."))))
+
+(define-event-handler (trace-interactions-in-wi loading-corpus-finished)
+  (add-element `((h1) ,(format nil "Corpus loaded!")))
+  (add-element '((hr))))
 
 (define-event-handler (trace-interactions-in-wi interaction-started)
   (add-element `((h1) ,(format nil "Observation ~a" (interaction-number interaction)))))

@@ -25,21 +25,10 @@
 ;;;; construction-inventory vs fcg-construction-set;
 ;;;; units vs units??
 
-;;;; To get the same effect as the item-based->item-based repair,
-;;;; apply the repairs recursively to the generalisation part in
-;;;; the partial analysis repair. But how? Have to make sure that
-;;;; the learned item-based cxn has the correct amount of slots
-
-;;;; When anti-unifying with an item-based cxn, the cxn that is
-;;;; learned from the pattern delta should also be an item-based
-;;;; cxn with a slot that takes the same elements as the original
-;;;; item-based cxn.
-;;;; observation: what shape is the brown shiny thing
-;;;; cxns: what-color-is-the-x-cxn + cylinder-cxn + small-ball-cxn
-;;;; learned cxns: what-y-is-the-x-cxn + shape-brown-shiny-thing-cxn
-;;;;               + color-x-cxn (that takes cylinder-cxn and small-ball-cxn)
-
-;;;; Include args in the anti-unification process!
+;;;; Partial analysis by handling anti-unification cases where the
+;;;; pattern delta is empty. Maybe the inclusion of args in anti-unification 
+;;;; can also help to check if the generalisation is indeed identical to the
+;;;; cxn that was used for anti-unification
 
 
 (progn
@@ -53,16 +42,6 @@
 
 (run-interaction *experiment*)
 (run-series *experiment* 10)
-
-;; observation: what is the shape of the big brown shiny thing
-;; cxns: what is the color of the ?X + cylinder-cxn + small-sphere-cxn
-;; => what is the ?Y of the ?X + color-cylinder-cxn + color-small-sphere-cxn + shape-big-brown-shiny-thing-cxn
-;; => what is the ?Y of the ?X + (color-X-cxn + cylinder-cxn + small-sphere-cxn) + shape-big-brown-shiny-thing-cxn
-
-;; add args to anti-unifcation or something like that
-;; observation: string, meets
-;; cxn: string, meets, arg
-;; => when args in delta, pattern-delta-cxn must be item-based
 
 ;;;; Showing the cxn inventory and categorial network
 
@@ -126,6 +105,64 @@
   (defparameter *experiment*
     (make-instance 'pattern-finding-experiment
                    :entries '((:mode . :testing)))))
+
+(setf (corpus *experiment*)
+      `(("What color is the large metal cube?"
+         ,@(fresh-variables
+            '((get-context ?context)
+              (filter ?set-1 ?context ?shape-1)
+              (bind shape ?shape-1 cube)
+              (filter ?set-2 ?set-1 ?material-1)
+              (bind material ?material-1 metal)
+              (filter ?set-3 ?set-2 ?size-1)
+              (bind size ?size-1 large)
+              (unique ?obj-1 ?set-3)
+              (query ?tgt ?obj-1 ?attr-1)
+              (bind attribute ?attr-1 color))))
+        ("What color is the small rubber ball?"
+         ,@(fresh-variables
+            '((get-context ?context)
+              (filter ?set-1 ?context ?shape-1)
+              (bind shape ?shape-1 ball)
+              (filter ?set-2 ?set-1 ?material-1)
+              (bind material ?material-1 rubber)
+              (filter ?set-3 ?set-2 ?size-1)
+              (bind size ?size-1 small)
+              (unique ?obj-1 ?set-3)
+              (query ?tgt ?obj-1 ?attr-1)
+              (bind attribute ?attr-1 color))))
+        ("What size is the tiny matte cylinder?"
+         ,@(fresh-variables
+            '((get-context ?context)
+              (filter ?set-1 ?context ?shape-1)
+              (bind shape ?shape-1 cylinder)
+              (filter ?set-2 ?set-1 ?material-1)
+              (bind material ?material-1 rubber)
+              (filter ?set-3 ?set-2 ?size-1)
+              (bind size ?size-1 small)
+              (unique ?obj-1 ?set-3)
+              (query ?tgt ?obj-1 ?attr-1)
+              (bind attribute ?attr-1 size))))))
+(run-interaction *experiment*)
+(remove-cxns-learned-at *experiment* 1)
+;; what color is the X Y Z cxn + large metal cube cxn + small rubber ball cxn
+
+;; what A is the X Y Z cxn + size-tiny-matte-cylinder-cxn
+;; + color X Y Z cxn + links to large-metal-cube and small-rubber-ball
+(comprehend-all "What color is the small rubber ball?"
+                :cxn-inventory *cxn-inventory*
+                :gold-standard-meaning
+                (fresh-variables
+                 '((get-context ?context)
+                   (filter ?set-1 ?context ?shape-1)
+                   (bind shape ?shape-1 ball)
+                   (filter ?set-2 ?set-1 ?material-1)
+                   (bind material ?material-1 rubber)
+                   (filter ?set-3 ?set-2 ?size-1)
+                   (bind size ?size-1 small)
+                   (unique ?obj-1 ?set-3)
+                   (query ?tgt ?obj-1 ?attr-1)
+                   (bind attribute ?attr-1 color))))
 
 (setf (corpus *experiment*)
       `(("How many large cubes are there?"

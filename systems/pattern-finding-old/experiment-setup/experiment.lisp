@@ -89,7 +89,8 @@
 ;; + Load Corpus +
 ;; ---------------
 
-(define-event corpus-utterances-loaded)
+(define-event loading-corpus-started)
+(define-event loading-corpus-finished)
 
 (defgeneric pre-process-meaning-data (meaning mode))
 
@@ -107,6 +108,7 @@
       (amr:penman->predicates parsed-meaning))))
 
 (defun load-corpus (experiment)
+  (notify loading-corpus-started)
   (with-configurations ((file :corpus-file)
                         (root-dir :corpus-directory)
                         (num-epochs :number-of-epochs)
@@ -137,7 +139,7 @@
         (setf file-data (subseq file-data 0 num-samples)))
       (when num-epochs
         (setf file-data (loop repeat num-epochs append file-data)))
-      (notify corpus-utterances-loaded)
+      (notify loading-corpus-finished)
       file-data)))
 
 
