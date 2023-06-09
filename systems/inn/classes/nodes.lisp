@@ -255,12 +255,6 @@
 ;;
 ;; These are helper functions mainly used for the web interface.
 
-(defun make-struct-by-name (name &rest args)
-  (apply (symbol-function (intern (concatenate 'string "MAKE-"
-                                               (symbol-name name))))
-         args))
-
-
 (defun inn-get-all-subclasses (list-of-classes)
   (if (null list-of-classes)
     nil
