@@ -101,7 +101,7 @@
                          (return agent)))))
     agent))
 
-#|
+
 
 
 
@@ -110,20 +110,21 @@
 
 ;; test
 
-(defun similarity (weights-c1 weights-c2 distances &key &allow-other-keys)
+
+
+
+(defun similarity-option1 (weights-c1 weights-c2 distances &key &allow-other-keys)
   (loop with concept1-weight-sum = (loop for weight in weights-c1 sum weight)
         with concept2-weight-sum = (loop for weight in weights-c2 sum weight)
         for w1 in weights-c1
         for w2 in weights-c2
         for sim in distances
-        for avg-weight = (/ (+ (/ w1 concept1-weight-sum)
-                               (/ w2 concept2-weight-sum))
-                            2)
+        for avg-weight = (/ (+ (/ w1 concept1-weight-sum) (/ w2 concept2-weight-sum)) 2)
         for prototype-similarity = sim
         for sim-score = (* avg-weight prototype-similarity)
         sum sim-score))
 
-(defun similarity (weights-c1 weights-c2 distances &key &allow-other-keys)
+(defun similarity-option2 (weights-c1 weights-c2 distances &key &allow-other-keys)
   (loop for w1 in weights-c1
         for w2 in weights-c2
         for sim in distances
@@ -132,18 +133,22 @@
         for sim-score = (* avg-weight prototype-similarity)
         sum sim-score))
 
-(defun determine-similarity-with-weights (weight1 weight2 prototype-similarity)
-  "Euclidian distance to max-similarity."
-  (let* ((avg-weights (/ (+ weight1 weight2) 2)) ;; (w1 + w2)/2
-         (weight-similarity (- 1 (abs (- weight1 weight2))))) ; (1 - |w1 - w2|)
-    ;; distance between our scores and max score (1,1),
-    ;; then normalize,
-    ;; and subtract from 1 to get again a sim score between 0 and 1
-    (- 1
-       (/ (euclidian-distance (list avg-weights weight-similarity prototype-similarity)
-                              (list 1 1 1))
-          (euclidian-distance (list 1 1 0)
-                              (list 1 1 1))))))
+(defun similarity-option3 (weights-c1 weights-c2 distances &key &allow-other-keys)
+  (loop for w1 in weights-c1
+        for w2 in weights-c2
+        for sim in distances
+        for avg-weight = (/ (/ (+ w1 w2) 2) (length distances))
+        for weight-similarity = (- 1 (abs (- weight1 weight2)))
+        for prototype-similarity = sim
+        for sim-score = (- 1
+                           (/ (euclidian-distance (list avg-weights weight-similarity prototype-similarity)
+                                                  (list 1 1 1))
+                              (euclidian-distance (list 1 1 0)
+                                                  (list 1 1 1))))
+        sum sim-score))
+
+
+(euclidean 0 0)
 
 (defun euclidian-distance (point1 point2)
   "Euclidian distance between two points in n-dimensional space."
@@ -267,4 +272,4 @@
       for weights-c1 = (nth 0 test)
       for weights-c2 = (nth 1 test)
       for distances = (nth 2 test)
-      collect (similarity weights-c1 weights-c2 distances))|#
+      collect (similarity weights-c1 weights-c2 distances))
