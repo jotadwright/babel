@@ -51,7 +51,7 @@
             do (push record g))
     ;; edges between cxn node and feature-channels
     (loop for prototype in (prototypes (meaning cxn))
-          when (> (weight prototype) 0.1)
+          when (>= (weight prototype) 0.1)
             do (push
                 `(s-dot::edge
                   ((s-dot::from ,(mkdotstr (id (meaning cxn))))
