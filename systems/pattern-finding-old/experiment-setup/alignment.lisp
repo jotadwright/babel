@@ -6,6 +6,36 @@
 (define-event cxns-rewarded (cxns list))
 (define-event cxns-punished (cxns list))
 
+
+(defun delete-grammatical-categories (cxn cxn-inventory)
+  "Delete the grammatical categories that occur in cxn"
+  nil)
+
+
+(defun inc-cxn-score (agent cxn &key (delta 0.1))
+  "increase the score of the cxn"
+  (let* ((alter-ego-cxn (alter-ego-cxn cxn (grammar agent)))
+         (current-score (attr-val cxn :score))
+         (new-score (+ current-score delta)))
+    (setf (attr-val cxn :score) new-score)
+    (setf (attr-val alter-ego-cxn :score) new-score)
+    cxn))
+
+
+(defun dec-cxn-score (agent cxn &key (delta 0.1) (lower-bound 0.0))
+  "decrease the score of the cxn."
+  (let* ((alter-ego-cxn (alter-ego-cxn cxn (grammar agent)))
+         (current-score (attr-val cxn :score))
+         (new-score (- current-score delta)))
+  (setf (attr-val cxn :score) new-score)
+  (setf (attr-val alter-ego-cxn :score) new-score)
+  (when (and (get-configuration (experiment agent) :remove-cxn-on-lower-bound)
+             (<= (attr-val cxn :score) lower-bound))
+    (delete-grammatical-categories cxn (grammar agent))
+    (delete-cxn (name cxn) (grammar agent) :key #'name)
+    (delete-cxn (name alter-ego-cxn) (grammar agent)) :key #'name)))
+
+
 (defmethod run-alignment ((agent pattern-finding-agent) solution-cipn competing-cipns (strategy (eql :lateral-inhibition)))
   (notify alignment-started)
   

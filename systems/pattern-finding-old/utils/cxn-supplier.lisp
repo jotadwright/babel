@@ -34,5 +34,3 @@
          :remaining-labels (cdr labels)
          :remaining-constructions all-constructions-of-current-label-with-positive-scores
          :all-constructions-of-current-label all-constructions-of-current-label-with-positive-scores)))))
-
-;; uses next-cxn of the superclass

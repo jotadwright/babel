@@ -24,8 +24,7 @@
 
 (defun get-slot-names (clos-object)
   "Retrieve the slot names associated with the class of a clos-object."
-  (mapcar #'harlequin-common-lisp:slot-definition-name
-          (harlequin-common-lisp:class-slots (class-of clos-object))))
+  (mapcar #'closer-mop:slot-definition-name (closer-mop:class-direct-slots (class-of clos-object))))
 
 (export '(inn-object-id))
 
