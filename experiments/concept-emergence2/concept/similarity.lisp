@@ -15,7 +15,6 @@
 ;; ----------------------------------
 ;; + Comparing OBJECT <-> PROTOTYPE +
 ;; ----------------------------------
-
 (defmethod observation-similarity ((observation number) (prototype prototype) &key (max-z-score 1)) ;; TODO: MAJOR QUESTION (see obsidian)
   "Similarity on the level of a single prototype."
   ;; similarity measure between [-inf,1]
@@ -39,6 +38,7 @@
         for avg-weight = (/ (+ (/ (weight proto1) concept1-weight-sum)
                                (/ (weight proto2) concept2-weight-sum))
                             2)
+        for weight-similarity = (- 1 (abs (- (weight proto1) (weight proto2))))
         for prototype-similarity = (- 1 (f-divergence (distribution proto1) (distribution proto2) :hellinger))
-        for sim-score = (* avg-weight prototype-similarity)
+        for sim-score = (* avg-weight prototype-similarity weight-similarity)
         sum sim-score))
