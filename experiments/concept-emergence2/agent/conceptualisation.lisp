@@ -112,7 +112,7 @@
           ;; entrenchment
           for entrenchment = (score (assqv :cxn tuple))
           ;; combine both
-          for score = (/ (+ discriminative-power entrenchment) 2)
+          for score = (* discriminative-power entrenchment)
           when (> score best-score)
             do (progn
                  (setf best-score score)
