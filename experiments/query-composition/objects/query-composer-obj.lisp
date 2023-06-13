@@ -109,7 +109,7 @@
    (let ((nodes '())
           (tables nil))
      (if sort-table
-       (setf tables (sort-table composer answer))
+       (setf tables (sort-table-2 composer answer))
        (setf tables (tables composer)))
      (dolist (tble tables)
        (let ((permutations nil))
@@ -127,8 +127,7 @@
                (setf nodes (append nodes (inner-outer-compose composer select-node))))))))
              (dolist (child nodes)
                (if (goal-test answer child)
-                 (progn
-                   (return-from select-compose child))))
+                 (return-from select-compose child)))
      (setf (queue composer) (append (queue composer) nodes))
      nil))
 
@@ -151,7 +150,7 @@
                (if is-referenced
                  (progn
                    (dolist (ref is-referenced)
-                     (let* ((ref-obj (init-reference-info ref)))
+                     (let ((ref-obj (init-reference-info ref)))
                        (if (not (is-table-present (foreign-table ref-obj) (ref-tbles parent)))
                          (progn
                            (setf inner-node (join-node parent ref-obj (is-table-present (foreign-table ref-obj) (tables composer) :get-obj t)))
@@ -174,23 +173,46 @@
 ;; sort-table
 ;; --------------------------------------------------------------------
 
-(defmethod sort-table ((composer query-composer) answer)
+(defmethod sort-table-2 ((composer query-composer) answer)
   (let ((row (first answer))
-         (tables  '()))
+        (tables '()))
     (dolist (value row)
-      (dolist (table (tables composer)) 
+      (dolist (table (tables composer))
         (dolist (att (attributes table))
+          ;; Check if the type of attribute is string
           (if (and (typep value (type-att att)) (equal (type-att att) 'string))
             (let ((result (query (concatenate 'string "SELECT " (name att) " FROM " (name table) " WHERE " (name att) " = '" (change-type value) "'"))))
-              (if (notempty result)
-                (return-from sort-table (list table)))))
-          (if (and (typep value (type-att att)) (not (equal (type-att att) 'string)))
-            (let ((result (query (concatenate 'string "SELECT " (name att) " FROM " (name table) " WHERE " (name att) " = '" (change-type value) "'"))))
               (if result
-                (setf tables (push table tables))))))))
-   (if (empty tables)
-     (tables composer)
-     tables)))
+                (return-from sort-table-2 (list table)))))
+          ;;Check if the type of attribute is boolean
+          (if (and (typep value (type-att att)) (equal (type-att att) 'boolean))
+            (progn
+              (let ((result nil))
+                (if value
+                  (setf result (query (concatenate 'string "SELECT " (name att) " FROM " (name table) " WHERE " (name att) " = '"true "'")))
+                  (setf result (query (concatenate 'string "SELECT " (name att) " FROM " (name table) " WHERE " (name att) " = '"false "'"))))
+                (if result                                                                                                                           
+                  (if (and result (not-in table tables))
+                    (setf tables (push table tables)))))))
+          ;; Check if the type of attribute is integer
+          (if (and (typep value (type-att att)) (equal (type-att att) 'integer))
+            (if (and (not (equal (constraint att) 'primary)) (not (equal (constraint att) 'foreign)))
+              (progn
+                (let ((result (query (concatenate 'string "SELECT " (name att) " FROM " (name table) " WHERE " (name att) " = '" (change-type value) "'"))))
+                  (if (and result (not-in table tables))
+                    (setf tables (push table tables))))))))))
+    (if (empty? tables)
+      (tables composer)
+      tables)))
+                         
+                              
+(defun not-in (item lst)
+  (dolist (i lst)
+    (if (equal item i)
+      (return-from not-in nil)))
+  t)
+
+
 
 ;; #########################################
 ;; get-selection
@@ -198,7 +220,7 @@
 
 (defmethod get-selection (table answer &key function?)
   (let ((list-to-merge '())
-         (list-of-function '(:avg :max :min)))
+         (list-of-function '(:avg :max :min :sum)))
     (dolist (part answer)
       (let ((att-of-type '()))
       (if (typep part 'string)
