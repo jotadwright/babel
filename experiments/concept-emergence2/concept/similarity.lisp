@@ -40,5 +40,5 @@
                             2)
         for weight-similarity = (- 1 (abs (- (weight proto1) (weight proto2))))
         for prototype-similarity = (- 1 (f-divergence (distribution proto1) (distribution proto2) :hellinger))
-        for sim-score = (* avg-weight prototype-similarity weight-similarity)
+        for sim-score = (* avg-weight weight-similarity prototype-similarity)
         sum sim-score))
