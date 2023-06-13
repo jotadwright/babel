@@ -106,14 +106,11 @@
 
 
 (defclass transferable-container (container fetchable conceptualizable)
-  ((used :type boolean
-      :initarg :used
-      :accessor used
-      :initform nil))
+  ((arrangement :initform nil))
   (:documentation "A container that can be carried from place to place."))
 
 (defmethod copy-object-content ((original transferable-container) (copy transferable-container))
-  (setf (used copy) (copy-object (used original))))
+  (setf (arrangement copy) (copy-object (arrangement original))))
 
 
 (defclass microwave (container has-temperature)
@@ -148,7 +145,8 @@
   (when (null (find 'freezer (contents orig) :test (lambda (x y) (eq x (type-of y))))) (setf (contents orig) (cons (make-instance 'freezer) (contents orig))))
   (when (null (find 'oven (contents orig) :test (lambda (x y) (eq x (type-of y))))) (setf (contents orig) (cons (make-instance 'oven) (contents orig))))
   (when (null (find 'counter-top (contents orig) :test (lambda (x y) (eq x (type-of y))))) (setf (contents orig) (cons (make-instance 'counter-top) (contents orig))))
-  (when (null (find 'microwave (contents orig) :test (lambda (x y) (eq x (type-of y))))) (setf (contents orig) (cons (make-instance 'microwave) (contents orig)))))
+  (when (null (find 'microwave (contents orig) :test (lambda (x y) (eq x (type-of y))))) (setf (contents orig) (cons (make-instance 'microwave) (contents orig))))
+  (when (null (find 'stove (contents orig) :test (lambda (x y) (eq x (type-of y))))) (setf (contents orig) (cons (make-instance 'stove) (contents orig)))))
 
 (defmethod copy-object-content ((original kitchen-state) (copy kitchen-state))
   (setf (kitchen-time copy) (copy-object (kitchen-time original)))
@@ -214,6 +212,11 @@
 
 (defmethod copy-object-content ((original beatable) (copy beatable))
   (setf (beaten copy) (copy-object (beaten original))))
+
+
+(defclass uncut (cutting-pattern)
+  ()
+  (:documentation "An uncut pattern."))
 
 
 (defclass can-beat (cooking-utensil)
@@ -407,10 +410,10 @@
 
 
 (defclass cuttable (kitchen-entity)
-  ((is-cut :type boolean
+  ((is-cut :type cutting-pattern
       :initarg :is-cut
       :accessor is-cut
-      :initform nil))
+      :initform (make-instance 'uncut)))
   (:documentation "An object that can be cut into several pieces."))
 
 (defmethod copy-object-content ((original cuttable) (copy cuttable))
@@ -763,7 +766,7 @@
   (setf (arrangement copy) (copy-object (arrangement original))))
 
 
-(defclass fork (can-beat can-mash can-mix reusable)
+(defclass fork (can-mix can-beat can-mash reusable can-mingle)
   ()
   (:documentation "A fork; can be used for mixing, beating, mashing."))
 
@@ -920,15 +923,9 @@
   (:documentation "A spatula that can be used to flip items over or spread ingredients."))
 
 
-(defclass stove (container)
-  ((arrangement 
-      :initarg :arrangement
-      :accessor arrangement
-      :initform (make-instance 'side-to-side)))
+(defclass stove (container has-temperature)
+  ()
   (:documentation "A stove to cook on."))
-
-(defmethod copy-object-content ((original stove) (copy stove))
-  (setf (arrangement copy) (copy-object (arrangement original))))
 
 
 (defclass table-spoon (can-spread reusable)
@@ -936,7 +933,7 @@
   (:documentation "A table spoon, used for eating liquid or mostly liquid food, but can also be used for other purposes such as spreading jam."))
 
 
-(defclass whisk (can-beat can-mix reusable)
+(defclass whisk (can-mix can-beat can-mingle reusable)
   ()
   (:documentation "A whisk, which is a tool for beating and mixing."))
 
@@ -1026,7 +1023,7 @@
   (:documentation "Avocado."))
 
 
-(defclass apple (ingredient mashable cuttable seedable peelable)
+(defclass apple (ingredient cuttable seedable peelable)
   ()
   (:documentation "Apple fruit."))
 
@@ -1061,11 +1058,6 @@
   (:documentation "Brown lentils."))
 
 
-(defclass brown-sugar (sugar)
-  ()
-  (:documentation "Plain brown sugar."))
-
-
 (defclass coconut-oil (ingredient liquid)
   ()
   (:documentation "Coconut oil."))
@@ -1087,11 +1079,6 @@
 
 (defmethod copy-object-content ((original butter) (copy butter))
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated original))))
-
-
-(defclass caster-sugar (sugar)
-  ()
-  (:documentation "Finely granulated sugar."))
 
 
 (defclass celery (ingredient cuttable)
@@ -1192,8 +1179,15 @@
 
 
 (defclass muffin-tins-12 (muffin-tins)
-  ()
+  ((number-of-tins :type quantity
+      :initarg :number-of-tins
+      :accessor number-of-tins
+      :initform (make-instance 'quantity 
+:value 12)))
   (:documentation "Muffin tins with 12 places for muffins."))
+
+(defmethod copy-object-content ((original muffin-tins-12) (copy muffin-tins-12))
+  (setf (number-of-tins copy) (copy-object (number-of-tins original))))
 
 
 (defclass food-processor (can-mix can-beat can-grind reusable)
@@ -1429,7 +1423,7 @@
   (:documentation "Trader Joe's cilantro salad dressing."))
 
 
-(defclass turmeric-powder (ingredient)
+(defclass turmeric-powder (spice)
   ()
   (:documentation "Turmeric powder."))
 
@@ -1445,8 +1439,14 @@
 
 
 (defclass ground-spice (spice siftable)
-  ()
+  ((ground :type boolean
+      :initarg :ground
+      :accessor ground
+      :initform T))
   (:documentation "Ground spice."))
+
+(defmethod copy-object-content ((original ground-spice) (copy ground-spice))
+  (setf (ground copy) (copy-object (ground original))))
 
 
 (defclass ground-black-pepper (ground-spice)
@@ -1489,11 +1489,6 @@
   (:documentation "Heavy cream."))
 
 
-(defclass icing-sugar (sugar)
-  ()
-  (:documentation "Icing sugar."))
-
-
 (defclass jalapeno (ingredient cuttable seedable)
   ((keep-refrigerated :initform T))
   (:documentation "Jalapeno pepper."))
@@ -1517,7 +1512,7 @@
   (:documentation "Some kind of lentil."))
 
 
-(defclass lime-juice (juice)
+(defclass lime-juice (ingredient)
   ()
   (:documentation "Lime juice."))
 
@@ -1596,11 +1591,6 @@
   (:documentation "Pancetta."))
 
 
-(defclass powdered-white-sugar (sugar sprinklable can-be-dipped-in)
-  ()
-  (:documentation "Powdered white sugar."))
-
-
 (defclass raisin (ingredient)
   ()
   (:documentation "Rain(s)."))
@@ -1611,7 +1601,7 @@
   (:documentation "Red bell pepper."))
 
 
-(defclass red-chili-pepper (ingredient)
+(defclass red-chili-pepper (ingredient cuttable)
   ()
   (:documentation "Red hot chili pepper."))
 
@@ -1637,8 +1627,11 @@
 
 
 (defclass salted-butter (ingredient mixable beatable meltable has-temperature can-be-brushed-with spreadable can-have-on-top)
-  ()
+  ((keep-refrigerated :initform T))
   (:documentation "Salted butter."))
+
+(defmethod copy-object-content ((original salted-butter) (copy salted-butter))
+  (setf (keep-refrigerated copy) (copy-object (keep-refrigerated original))))
 
 
 (defclass shredded-coconut (ingredient has-temperature)
@@ -1686,6 +1679,11 @@
   (:documentation "Coarse salt."))
 
 
+(defclass cubes (cutting-pattern)
+  ()
+  (:documentation "A pattern for cutting objects into cubes."))
+
+
 (defclass shredded (cutting-pattern)
   ()
   (:documentation "A shredded pattern."))
@@ -1711,7 +1709,7 @@
   (:documentation "Extra-virgin olive oil."))
 
 
-(defclass semisweet-chocolate-chips (ingredient)
+(defclass semisweet-chocolate-chips (chocolate-chips)
   ()
   (:documentation "Semisweet chocolate chips."))
 
@@ -1726,14 +1724,34 @@
   (:documentation "Spice."))
 
 
-(defclass sugar (ingredient mixable beatable)
+(defclass sugar (spice ingredient mixable)
   ()
   (:documentation "Sugar."))
+
+
+(defclass brown-sugar (sugar)
+  ()
+  (:documentation "Plain brown sugar."))
 
 
 (defclass sweet-potato (ingredient cuttable peelable)
   ()
   (:documentation "Sweet potato."))
+
+
+(defclass caster-sugar (sugar)
+  ()
+  (:documentation "Finely granulated sugar."))
+
+
+(defclass icing-sugar (sugar)
+  ()
+  (:documentation "Icing sugar."))
+
+
+(defclass powdered-white-sugar (sugar sprinklable can-be-dipped-in)
+  ()
+  (:documentation "Powdered white sugar."))
 
 
 (defclass toast (ingredient spreadable bakeable can-have-on-top)
@@ -1746,7 +1764,7 @@
   (:documentation "Vanilla."))
 
 
-(defclass vanilla-extract (flavoring-extract vanilla)
+(defclass vanilla-extract (flavoring-extract)
   ()
   (:documentation "Vanilla extract."))
 
@@ -1756,12 +1774,12 @@
   (:documentation "Vegetable oil."))
 
 
-(defclass vinegar (fluid)
+(defclass vinegar (ingredient liquid)
   ()
   (:documentation "Vinegar."))
 
 
-(defclass water (fluid has-temperature)
+(defclass water (fluid has-temperature liquid)
   ()
   (:documentation "Water."))
 
@@ -2006,7 +2024,7 @@
   (:documentation "Unit: degrees Celsius."))
 
 
-(defclass failed-object (arrangement-pattern can-cover can-cut can-mash can-mingle can-mix can-peel can-seed can-spread can-be-cut-on coverable-container fridge kitchen-state lineable list-of-kitchen-entities oven quantity shape sift time-unit transferable-container)
+(defclass failed-object (arrangement-pattern can-cover can-cut can-mash can-mingle can-mix can-peel can-seed can-spread can-be-cut-on can-drain coverable-container fridge kitchen-state lineable list-of-kitchen-entities oven stove quantity shape sift time-unit transferable-container)
   ()
   (:documentation "Evaluation"))
 

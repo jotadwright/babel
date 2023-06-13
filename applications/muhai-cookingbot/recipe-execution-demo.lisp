@@ -23,7 +23,7 @@
 (black-bean-and-sweet-potato-salad-gold-standard)
 (almond-crescent-cookies-2-gold-standard)
 (almond-crescent-cookies-3-gold-standard)
-(almond-crescent-cookies-4-gold-standard) ;; TODO fixme (probably in primitives file)
+(almond-crescent-cookies-4-gold-standard)
 (almond-crescent-cookies-5-gold-standard)
 (coconut-tuiles-gold-standard)
 (mexican-wedding-cookies-gold-standard)

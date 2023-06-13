@@ -1721,7 +1721,7 @@ l
 
 (defclass sugar-shaker (transferable-container coverable-container reusable)
   ()
-  (:documentation "The stove door."))
+  (:documentation "A sugar shaker."))
 
 ;; Failed Output  ;;
 ;;;;;;;;;;;;;;;;;;;;
