@@ -23,7 +23,7 @@ Currently, the following configurations are accepted:
  - :node-tests (default '(no-duplicate-solutions))
  - :check-irl-program-before-evaluation (default T)
  - :shuffle-primitives-before-evaluation (default T)
- - :search-algorithm (defaul: :best-first)
+ - :search-algorithm (default :best-first)
  - :heuristics (default '(:nr-of-evaluated-primitives))
  - :heuristic-value-mode (default :sum-heuristics-and-parent)
  - :primitive-supplier-mode (default :simple-queue)
