@@ -112,9 +112,77 @@
           ;; entrenchment
           for entrenchment = (score (assqv :cxn tuple))
           ;; combine both
-          for score = (* discriminative-power entrenchment)
+          for score = (/ (+ discriminative-power entrenchment) 2)
           when (> score best-score)
             do (progn
                  (setf best-score score)
                  (setf best-cxn (assqv :cxn tuple))))
     best-cxn))
+
+;;; top coherence
+
+#|(define-event event-coherence-p-top
+  (experiment cle-experiment)
+  (coherence symbol)
+  (speaker-cxn t)
+  (hearer-cxns list)
+  (similarity number))
+
+(defun lexicon-coherence-p-top (experiment speaker hearer)
+  "Records how coherent the lexicons of the interactings agents are for the topic.
+
+   Coherence is measured by inspecting whether the hearer would produce
+   the same utterance for the given topic inside the context (must be measured before alignment!)."
+  (let* ((speaker-cxn (find-data speaker 'applied-cxn))
+         (hearer-cxns (hearer-conceptualise-top-n hearer :times))
+         (coherence (when (and speaker-cxn hearer-cxns)
+                      (loop for cxn in hearer-cxns
+                            if (string= (form speaker-cxn) (form cxn))
+                              do (return t))))
+         (similarity (if (length> hearer-cxns 1)
+                       (similar-concepts (meaning (first hearer-cxns))
+                                         (meaning (second hearer-cxns)) :times)
+                       -1)))
+    (notify event-coherence-p-top experiment coherence speaker-cxn hearer-cxns similarity)
+    coherence))
+
+(defmethod hearer-conceptualise-top-n ((agent cle-agent) (mode (eql :times)))
+  (if (length= (lexicon agent) 0)
+    nil
+    (let* (;; step 1 - find the discriminating concepts
+           (cxns (search-discriminative-concepts agent))
+           ;; step 2 - find the concept that maximises entrenchment * discriminative power
+           (scored-cxns  (loop for tuple in cxns
+                               ;; discriminative-power
+                               for topic-sim = (sigmoid (assqv :topic-sim tuple)) ;; sigmoid-ed!
+                               for best-other-sim = (sigmoid (assqv :best-other-sim tuple)) ;; sigmoid-ed!
+                               for discriminative-power = (abs (- topic-sim best-other-sim))
+                               ;; entrenchment
+                               for entrenchment = (score (assqv :cxn tuple))
+                               ;; combine both
+                               for score = (* discriminative-power entrenchment)
+                               collect (cons (assqv :cxn tuple) score)))
+           (applied-cxns (mapcar #'car (the-x-highest scored-cxns 2 :key #'cdr))))
+      applied-cxns)))
+
+;; 
+
+(define-event-handler (trace-interaction-in-web-interface event-coherence-p-top)
+  (let* ((interaction (current-interaction experiment)))
+    (if hearer-cxns
+      (loop for hearer-cxn in hearer-cxns
+            do (add-element `((h2) ,(format nil "~a: ~a"
+                                            (id (hearer interaction))
+                                            (form hearer-cxn))))
+            do (add-cxn-to-interface hearer-cxn))
+      (add-element `((h2) ,(format nil "~a could not conceptualise!"
+                                   (id (hearer interaction))))))
+    )
+  (add-element `((h2) ,(format nil " ^^^ hearer cxn similarities: ~,3f ^^^ "
+                               similarity)))
+  (add-element `((h2) ,(format nil " ^^^ check for coherence: ~a ^^^ "
+                               (if coherence "True" "False"))))
+  (add-element `((h2) ,(format nil " ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")))
+  (add-element '((hr))))
+
+|#
