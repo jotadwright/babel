@@ -6,8 +6,13 @@
 
 (defmethod set-topic (experiment cle-object)
   "Set a topic manually."
-  (loop for agent in (interacting-agents experiment)
-        do (set-data agent 'topic cle-object)))
+  (let* ((interaction (current-interaction experiment))
+         (agent (first (interacting-agents experiment)))
+         (cle-context (find-data agent 'context))
+         (cle-topic (find cle-object (objects cle-context)
+                          :test (lambda (x el) (equal (description x) (description el))))))
+    (loop for agent in (interacting-agents experiment)
+          do (set-data agent 'topic cle-topic))))
 
 ;; ------------------
 ;; + Topic sampling +

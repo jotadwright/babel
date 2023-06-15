@@ -41,6 +41,11 @@
                 :initform nil
                 :accessor time-result
                 :documentation "Execution time of the query.")
+   (group-by-clause :type list
+                    :initarg :group-by-clause
+                    :initform nil
+                    :accessor group-by-clause
+                    :documentation "Goup-by list correspond to clause, list is not null if a function are present in the selection part")
    (q :type list
       :initarg :q
       :initform nil
@@ -56,21 +61,41 @@
   "function that create a node with the SELECT .. FROM .. clause and return the newly created node with its associated parent."
     (let* ((q '(:select))
             (table-name (intern (string-upcase (name table))))
-            (att nil))
+            (att nil)
+            (group-by nil)
+            (function? nil))
       (dolist (att-n attributes)
-        (if join
+        (if (equal (length att-n) 2)
+          (setf function? t)))
+      (dolist (att-n attributes)            
           (progn
             (if (typep (first att-n) 'attribute)
-              (setf att (intern (string-upcase (concatenate 'string (symbol-name table-name) "." (name (first att-n))))))
+                (setf att (intern (string-upcase (concatenate 'string (symbol-name table-name) "." (name (first att-n))))))
               (setf att (intern (string-upcase (concatenate 'string (symbol-name table-name) "." (first att-n)))))))
           (progn
             (if (typep (first att-n) 'attribute)
               (setf att (intern (string-upcase (name (first att-n)))))
               (setf att (intern (string-upcase (first att-n)))))))
         (if (equal (length att-n) 2)
-          (setf q (pushend (list (second att-n) att) q))
-          (setf q (pushend att q))))
+          ;; function
+          (progn
+            (setf q (pushend (list (second att-n) att) q))
+            (setf function? t))
+          ;; not a function
+          (progn
+            (if function?
+              (progn
+                (if group-by
+                  (progn
+                    (setf group-by (pushend att group-by))
+                    (setf q (pushend att q)))
+                  (setf group-by (list :group-by att)))
+                (setf q (pushend att q)))
+              
+              (setf q (pushend att q))))))
       (setf q (append q (list :from table-name)))
+      (if (not function?)
+        (setf group-by nil))
       (make-instance 'node
                      :id (make-id)
                      :parent node
@@ -79,6 +104,7 @@
                      :selection q
                      :attributes-selected attributes
                      :tble table
+                     :group-by-clause group-by
                      :ref-tbles (list table))))
 
 ;; #########################################
@@ -107,15 +133,19 @@
 (defun where-node (node ref-table attribute operator value)
   "function that creates a node with the WHERE clause and returns the newly created node with its associated parent."
   (let* ((val-att (change-type value))
-           (condition nil))
+           (condition nil)
+           (q nil))
     (if (equal (length (ref-tbles node)) 1)
       (setf condition (list operator (intern (string-upcase (name attribute))) val-att))
-      (setf condition (list operator (intern (string-upcase (concatenate 'string (name ref-table) "." (name attribute)))) val-att))) 
+      (setf condition (list operator (intern (string-upcase (concatenate 'string (name ref-table) "." (name attribute)))) val-att)))
+    (if (group-by-clause node)
+      (setf q (append (append (q node) (list :where condition)) (group-by-clause node)))
+      (setf q (append (q node) (list :where condition))))
     (make-instance 'node
                                :id (make-id)
                                :parent node
                                :depth (+ (depth node) 1)
-                               :q (append (q node) (list :where condition))
+                               :q q
                                :attrs (list attribute)
                                :tble (tble node)
                                :ref-tbles (ref-tbles node)
@@ -134,11 +164,14 @@
       (setf condition (list  operator (intern (string-upcase (concatenate 'string (name ref-table) "." (name attribute)))) val)))
     (setf condition (list condition-operator (conditions parent) condition))
     ;;instanciate node object
+    (if (group-by-clause node)
+      (setf q (append (append (q node) (list :where condition)) (group-by-clause node)))
+      (setf q (append (q node) (list :where condition))))
     (make-instance 'node
                    :id (make-id)
                    :parent parent
                    :depth (+ (depth parent) 1)
-                   :q (append (selection parent) (list :where condition))
+                   :q q
                    :attrs (push-end attribute (attrs parent))
                    :tble (tble parent)
                    :selection (selection parent)

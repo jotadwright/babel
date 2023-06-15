@@ -1740,7 +1740,7 @@ in the cookingbot ontology should subclass of kitchen-entity."))
 
 (defclass sugar-shaker (transferable-container coverable-container reusable)
   ()
-  (:documentation "The stove door."))
+  (:documentation "A sugar shaker."))
 
 ;; Failed Output  ;;
 ;;;;;;;;;;;;;;;;;;;;

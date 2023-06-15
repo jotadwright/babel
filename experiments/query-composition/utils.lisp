@@ -59,6 +59,8 @@
 (defun goal-test (answer node)
   (let ((start-time (get-internal-real-time))
          (res-of nil))
+    (if (group-by-clause node)
+      (setf (q node) (append (q node) (group-by-clause node))))
     (setf res-of (query (sql-compile (q node))))
     (let ((end-time (get-internal-real-time)))
       (if (equal answer res-of)
