@@ -100,8 +100,8 @@
          (best-cxn nil))
     (loop for tuple in cxns
           ;; discriminative-power
-          for topic-sim = (sigmoid (assqv :topic-sim tuple)) ;; sigmoid-ed!
-          for best-other-sim = (sigmoid (assqv :best-other-sim tuple)) ;; sigmoid-ed!
+          for topic-sim = (assqv :topic-sim tuple) ;; sigmoid-ed!
+          for best-other-sim = (assqv :best-other-sim tuple) ;; sigmoid-ed!
           for discriminative-power = (abs (- topic-sim best-other-sim))
           ;; entrenchment
           for entrenchment = (score (assqv :cxn tuple))

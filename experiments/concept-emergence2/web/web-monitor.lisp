@@ -117,7 +117,7 @@
         for form = (form (assqv :cxn cxn))
         for entrenchment = (score (assqv :cxn cxn))
         
-        for discriminative-power = (abs (- (sigmoid (assqv :topic-sim cxn)) (sigmoid (assqv :best-other-sim cxn))))
+        for discriminative-power = (abs (- (assqv :topic-sim cxn) (assqv :best-other-sim cxn)))
         do (add-element `((h4) ,(format nil " -> ~a - ~a: (~,3f, ~,3f]) => SCORE = ~,3f"
                                         idx
                                         (downcase (mkstr form))

@@ -21,19 +21,17 @@
                    do (add-element `((h4) ,(format nil "~a - punished by ~,4f [similarity: ~,2f]" (form other-cxn) delta similarity)))))
            ))
 
-(defun add-raw-powers (agent discriminating-cxns form ledger)
+(defun add-raw-powers (agent discriminating-cxns form)
   (let* ((cxn (find (find-form-in-lexicon (lexicon agent) form) discriminating-cxns :key #'(lambda (tuple) (assqv :cxn tuple))))
          (power (if cxn
                   (abs (- (sigmoid (assqv :topic-sim cxn)) (sigmoid (assqv :best-other-sim cxn))))
                   nil)))
     (if cxn
-      (add-element `((h3) ,(format nil "~a: ent: ~,3f - power: ~,3f [~,3f/~,3f] => ~,3f"
+      (add-element `((h3) ,(format nil "~a: ent: ~,3f - power: ~,3f => ~,3f"
                                    form
                                    (score (assqv :cxn cxn))
-                                   (/ power ledger)
                                    power
-                                   ledger
-                                   (* (/ power ledger) (score (assqv :cxn cxn)))
+                                   (* power (score (assqv :cxn cxn)))
                                    )))
       (add-element `((h3) ,(format nil "~a: no entry"
                                    form))))))
@@ -48,15 +46,10 @@
         do (set-data agent 'context context)
         do (set-data agent 'topic topic)
         do (let* ((discriminating-cxns (search-discriminative-concepts agent))
-                  (ledger (loop for tuple in discriminating-cxns
-                                ;; discriminative-power
-                                for topic-sim = (sigmoid (assqv :topic-sim tuple)) ;; sigmoid-ed!
-                                for best-other-sim = (sigmoid (assqv :best-other-sim tuple)) ;; sigmoid-ed!
-                                sum (abs (- topic-sim best-other-sim))))
                   (applied-cxn (hearer-conceptualise agent :times)))
              (add-element `((h2) ,(format nil "Agent ~a: ~a with ~,3f" (id agent) (form applied-cxn) (score applied-cxn))))
              (loop for option in options
-                   do (add-raw-powers agent discriminating-cxns option ledger))
+                   do (add-raw-powers agent discriminating-cxns option))
              (loop for option in options
                    for search = (find (find-form-in-lexicon (lexicon agent) option) discriminating-cxns :key #'(lambda (tuple) (assqv :cxn tuple)))
                    if search
