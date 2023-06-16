@@ -2136,7 +2136,7 @@
                       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
   ;;Case 2: Mixing tool specified
-  ((kitchen-state-in container-with-input-ingredients mixing-tool => kitchen-state-out container-with-mixture )
+  ((kitchen-state-in container-with-input-ingredients mixing-tool => kitchen-state-out container-with-mixture)
    
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
           (new-container-with-ingredients-to-mix (find-object-by-persistent-id container-with-input-ingredients (counter-top new-kitchen-state)))

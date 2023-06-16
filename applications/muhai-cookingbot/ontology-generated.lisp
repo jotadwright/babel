@@ -275,7 +275,7 @@
   (:documentation "An object that, as part of a dish or food item, can have other ingredients on top of itself."))
 
 (defmethod copy-object-content ((original can-have-on-top) (copy can-have-on-top))
-  (setf (has-on-top copy) (loop for item in (has-on-top original) collect (copy-object item))))
+  (setf (has-on-top copy) (copy-object (has-on-top original))))
 
 
 (defclass can-be-spread-upon (kitchen-entity)
@@ -738,6 +738,26 @@
 (defclass bowl-lid (can-cover reusable)
   ()
   (:documentation "A bowl lid."))
+
+
+(defclass plate (transferable-container reusable can-cover lineable can-have-on-top can-be-sprinkled-on)
+  ()
+  (:documentation "A plate. It's a container."))
+
+
+(defclass small-plate (plate)
+  ()
+  (:documentation "A small plate. It's a plate."))
+
+
+(defclass medium-plate (plate)
+  ()
+  (:documentation "A medium plate. It's a plate."))
+
+
+(defclass large-plate (plate)
+  ()
+  (:documentation "A large plate. It's a plate."))
 
 
 (defclass brush (reusable can-brush)
@@ -1616,7 +1636,7 @@
   (:documentation "Red pepper flakes."))
 
 
-(defclass romaine-lettuce (ingredient cuttable washable)
+(defclass romaine-lettuce (ingredient cuttable washable can-be-lined-with)
   ()
   (:documentation "Romaine lettuce."))
 
