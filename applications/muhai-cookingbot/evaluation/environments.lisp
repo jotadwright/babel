@@ -784,6 +784,9 @@
                                                                                                                          :value 1000)))))))
          (make-instance 'kitchen-cabinet
                         :contents (append
+                                   (loop repeat 5 collect (make-instance 'small-plate))
+                                   (loop repeat 5 collect (make-instance 'medium-plate))
+                                   (loop repeat 5 collect (make-instance 'large-plate)) 
                                    (loop repeat 9 collect (make-instance 'small-bowl))
                                    (loop repeat 18 collect (make-instance 'medium-bowl))
                                    (loop repeat 9 collect (make-instance 'large-bowl))

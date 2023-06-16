@@ -43,7 +43,7 @@
 (define-configuration-default-value :remove-cxn-on-lower-bound t)
 (define-configuration-default-value :mark-holophrases t)
 (define-configuration-default-value :categorial-network-export-interval 1000)
-(define-configuration-default-value :max-nr-of-nodes 1000)
+(define-configuration-default-value :max-nodes 1000)
 (define-configuration-default-value :initial-categorial-link-weight 0.0)
 (define-configuration-default-value :comprehend-n 2)
 
@@ -104,25 +104,17 @@
   ;(format t "~a" meaning)
   (read-from-string meaning))
 
-(defun inc-var-id (var)
-  (let ((name (format nil "~a" (get-base-name var)))
-        (id (parse-integer (last-elt (split-string (format nil "~a" var) "-")))))
-    (if (gethash name  utils::*nid-table*)
-      (when (>= id (gethash name utils::*nid-table*))
-        (incf (gethash name utils::*nid-table*)))
-      (setf (gethash name  utils::*nid-table*) id))))
-    
-
-(defun inc-var-ids (meaning-network)
-  (loop for predicate in meaning-network
-        do (loop for el in predicate
-                      do (when (variable-p el)
-                                (inc-var-id el))))
-  meaning-network)
-                                
+(defun fresh-variables (predicates)
+  (let* ((all-variables (find-all-anywhere-if #'variable-p predicates))
+         (unique-variables (remove-duplicates all-variables))
+         (renamings (loop for var in unique-variables
+                          for base-name = (get-base-name var)
+                          collect (cons var (make-var base-name)))))
+    (values (substitute-bindings renamings predicates)
+            renamings)))                                
 
 (defmethod pre-process-meaning-data (meaning (mode (eql :irl)))
-  (inc-var-ids (remove-duplicates (read-from-string meaning) :test #'equal)))
+  (fresh-variables (read-from-string meaning)))
 
 (defmethod pre-process-meaning-data (meaning (mode (eql :amr)))
   (let ((*package* (find-package "GL-DATA"))

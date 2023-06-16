@@ -1727,115 +1727,185 @@
             (bind (container-with-ingredients-at-temperature 1.0 (make-instance 'failed-object) container-available-at)
                   (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
-(defprimitive line ((lined-baking-tray lineable)
+(defprimitive line ((lined-thing t) ;; something lineable or a list-of-kitchen-entities
                     (kitchen-state-out kitchen-state)
                     (kitchen-state-in kitchen-state)
-                    (baking-tray lineable)
-                    (baking-paper can-be-lined-with))
+                    (thing-to-be-lined t) ;; something lineable or a list-of-kitchen-entities where the elements are lineable
+                    (lining t)) ;; something can-be-lined-with or a bowl with an ingredient that can-be-lined-with
 
   ;; Case 1; baking paper to line with is not given
-  ((kitchen-state-in baking-tray => baking-paper kitchen-state-out lined-baking-tray)
-   
+  ((kitchen-state-in thing-to-be-lined => lining kitchen-state-out lined-thing)
+
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
-          (target-tray (if (is-concept baking-tray)
-                         (retrieve-concept-instance-and-bring-to-countertop (type-of baking-tray) new-kitchen-state)
-                         (find-object-by-persistent-id baking-tray (counter-top new-kitchen-state))))
-          (tray-available-at (+ 150 (kitchen-time kitchen-state-in)))
-          (kitchen-state-available-at tray-available-at))
+          (target-available-at (+ 150 (kitchen-time kitchen-state-in)))
+          (kitchen-state-available-at target-available-at))
 
-     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
-     
-     ;; find baking paper and bring it to the countertop
-     (let ((target-paper-instance (retrieve-concept-instance-and-bring-to-countertop 'baking-paper new-kitchen-state)))
-       (cond ((and
-               target-tray
-               target-paper-instance)
+     (cond
+      ;; thing to be lined is something lineable
+      ;; take baking paper as default lining
+      ((subtypep (class-of thing-to-be-lined) 'lineable)
+       
+       (let ((target-lineable
+              (if (is-concept thing-to-be-lined)
+                (retrieve-concept-instance-and-bring-to-countertop (type-of thing-to-be-lined) new-kitchen-state)
+                (find-object-by-persistent-id thing-to-be-lined (counter-top new-kitchen-state)))))
+         
+         (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+         
+         ;; find baking paper and bring it to the countertop
+         (let ((target-lining-instance (retrieve-concept-instance-and-bring-to-countertop 'baking-paper new-kitchen-state)))
+           (cond ((and target-lineable target-lining-instance)
+                  
+                  (setf (lined-with target-lineable) target-lining-instance) ;;do the lining
+                  (setf (is-lining target-lining-instance) t)
+                  
+                  (setf (used target-lineable) t)
+                  (setf (used target-lining-instance) t)
+                  
+                  (setf (contents (counter-top new-kitchen-state)) ;;remove the paper from the countertop
+                        (remove target-lining-instance (contents (counter-top new-kitchen-state))))              
+                  
+                  (bind (lined-thing 1.0 target-lineable target-available-at)
+                        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                        (lining 0.0 target-lining-instance nil)))
+                 (t
+                  (bind (lined-thing 1.0 (make-instance 'failed-object) target-available-at)
+                        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                        (lining 0.0 (make-instance 'failed-object) nil)))))))
 
-              (setf (lined-with target-tray) target-paper-instance) ;;do the lining
-              (setf (is-lining target-paper-instance) t)
+      ;; thing to be lined is a list of kitchen entities where every element
+      ;; is lineable
+      ;; take baking paper as default lining for each element
+      ((and (subtypep (class-of thing-to-be-lined) 'list-of-kitchen-entities)
+            (loop for elem in (items thing-to-be-lined)
+                  always (subtypep (class-of elem) 'lineable)))
 
-              (setf (used target-tray) t)
-              (setf (used target-paper-instance) t)
+       (let ((target-lineable (find-kitchen-entities thing-to-be-lined (counter-top new-kitchen-state))))
+         (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+         (let ((target-lining-instances
+                (loop repeat (length (items thing-to-be-lined))
+                      collect (retrieve-concept-instance-and-bring-to-countertop 'baking-paper new-kitchen-state))))
+           (cond ((and target-lineable target-lining-instances)
+                  (loop for elem in (items target-lineable)
+                        for lining in target-lining-instances
+                        do (setf (lined-with elem) lining)
+                           (setf (is-lining lining) t)
+                           (setf (used elem) t)
+                           (setf (used lining) t))
+                  (bind (lined-thing 1.0 target-lineable target-available-at)
+                        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                        (lining 1.0 target-lining-instances nil)))
+                 (t (bind (lined-thing 1.0 (make-instance 'failed-object) target-available-at)
+                          (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                          (lining 0.0 (make-instance 'failed-object) nil)))))))
 
-              (setf (contents (counter-top new-kitchen-state)) ;;remove the paper from the countertop
-                    (remove target-paper-instance (contents (counter-top new-kitchen-state))))              
-
-              (bind (lined-baking-tray 1.0 target-tray tray-available-at)
-                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-                    (baking-paper 0.0 target-paper-instance nil)))
-             (t
-              (bind (lined-baking-tray 1.0 (make-instance 'failed-object) tray-available-at)
-                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-                    (baking-paper 0.0 (make-instance 'failed-object) nil)))))))
+      (t (bind (lined-thing 1.0 (make-instance 'failed-object) target-available-at)
+               (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+               (lining 0.0 (make-instance 'failed-object) nil))))))
               
 
-  ;; Case 2; baking paper to line with is given
-  ((kitchen-state-in baking-tray baking-paper => kitchen-state-out lined-baking-tray)
-   
+  ;; Case 2; thing to be lined and lining are given
+  ((kitchen-state-in thing-to-be-lined lining => kitchen-state-out lined-thing)
+
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
-          (target-tray (if (is-concept baking-tray)
-                         (retrieve-concept-instance-and-bring-to-countertop (type-of baking-tray) new-kitchen-state)
-                         (find-object-by-persistent-id baking-tray (counter-top new-kitchen-state))))
-          (target-paper-instance (if (is-concept baking-paper)
-                                   nil ; will be set later, dependent on the concept's class
-                                   (find-object-by-persistent-id baking-paper new-kitchen-state)))
-          (tray-available-at (+ 150 (kitchen-time kitchen-state-in)))
-          (kitchen-state-available-at tray-available-at))
-     
-     (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
-     
-     (when target-tray
-       (cond ((and (subtypep (type-of baking-tray) 'muffin-tins)
-                   (eql (type-of baking-paper) 'paper-baking-cups))
-              (let ((remaining-tins (value (number-of-tins baking-tray)))
-                    (retrieved-paper-baking-cups (make-instance 'paper-baking-cups))
-                    (current-cups '()))
+          (target-available-at (+ 150 (kitchen-time kitchen-state-in)))
+          (kitchen-state-available-at target-available-at))
 
-                (loop do
-                     (setf current-cups
-                           (retrieve-concept-instance-and-bring-to-countertop (type-of baking-paper) new-kitchen-state))
+   (cond
+    ;; thing to be lined is something lineable
+    ;; and lining is something that can be lined with
+    ((and (subtypep (class-of thing-to-be-lined) 'lineable)
+          (subtypep (class-of lining) 'can-be-lined-with))
+   
+     (let* ((target-lineable (if (is-concept thing-to-be-lined)
+                               (retrieve-concept-instance-and-bring-to-countertop (type-of thing-to-be-lined) new-kitchen-state)
+                               (find-object-by-persistent-id thing-to-be-lined (counter-top new-kitchen-state))))
+            (target-lining-instance (if (is-concept lining)
+                                      nil ; will be set later, dependent on the concept's class
+                                      (find-object-by-persistent-id lining new-kitchen-state))))
+          
+       (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+       
+       (when target-lineable
+         (cond ((and (subtypep (type-of thing-to-be-lined) 'muffin-tins)
+                     (eql (type-of lining) 'paper-baking-cups))
+                (let ((remaining-tins (value (number-of-tins thing-to-be-lined)))
+                      (retrieved-paper-baking-cups (make-instance 'paper-baking-cups))
+                      (current-cups '()))
 
-                     (loop while (and (> remaining-tins 0)
-                                      (items current-cups))
-                           do
-                           (push (first (items current-cups)) (items retrieved-paper-baking-cups))
-                           (setf (items current-cups) (rest (items current-cups)))
-                           (setf remaining-tins (- remaining-tins 1)))
+                  (loop do
+                       (setf current-cups
+                             (retrieve-concept-instance-and-bring-to-countertop (type-of lining) new-kitchen-state))
 
-                     (unless (items current-cups)
-                       (setf (contents (counter-top new-kitchen-state)) (remove current-cups (contents (counter-top new-kitchen-state)))))
+                       (loop while (and (> remaining-tins 0) (items current-cups))
+                             do
+                               (push (first (items current-cups)) (items retrieved-paper-baking-cups))
+                               (setf (items current-cups) (rest (items current-cups)))
+                               (setf remaining-tins (- remaining-tins 1)))
+
+                       (unless (items current-cups)
+                         (setf (contents (counter-top new-kitchen-state))
+                               (remove current-cups (contents (counter-top new-kitchen-state)))))
                      
-                   while (and (> remaining-tins 0)
-                              current-cups))
+                     while (and (> remaining-tins 0)
+                                current-cups))
                 
-                  (setf target-paper-instance retrieved-paper-baking-cups)))
-             (t
-              (setf target-paper-instance (retrieve-concept-instance-and-bring-to-countertop 'baking-paper new-kitchen-state)))))
+                  (setf target-lining-instance retrieved-paper-baking-cups)))
+               (t
+                (setf target-lining-instance (retrieve-concept-instance-and-bring-to-countertop 'baking-paper new-kitchen-state)))))
   
-     (cond ((and
-             target-tray
-             target-paper-instance
-             (if (eql (type-of target-paper-instance) 'paper-baking-cups) (items target-paper-instance) t))
+       (cond ((and target-lineable target-lining-instance
+                   (if (eql (type-of target-lining-instance) 'paper-baking-cups) (items target-lining-instance) t))
                    
-            (setf (lined-with target-tray) target-paper-instance) ;;do the lining
-            (setf (is-lining target-paper-instance) t)
+              (setf (lined-with target-lineable) target-lining-instance) ;;do the lining
+              (setf (is-lining target-lining-instance) t)
 
-            (setf (used target-tray) t)
-            (setf (used target-paper-instance) t)
+              (setf (used target-lineable) t)
+              (setf (used target-lining-instance) t)
 
-            (when (eql (type-of target-paper-instance) 'paper-baking-cups)
-              (loop for cup in (items target-paper-instance)
-                    do (setf (used cup) t)))
+              (when (eql (type-of target-lining-instance) 'paper-baking-cups)
+                (loop for cup in (items target-lining-instance)
+                      do (setf (used cup) t)))
 
-            (setf (contents (counter-top new-kitchen-state)) ;;remove the paper from the countertop
-                  (remove target-paper-instance (contents (counter-top new-kitchen-state))))
+              (setf (contents (counter-top new-kitchen-state)) ;;remove the paper from the countertop
+                    (remove target-lining-instance (contents (counter-top new-kitchen-state))))
 
-            (bind (lined-baking-tray 1.0 target-tray tray-available-at)
-                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))
-           (t
+              (bind (lined-thing 1.0 target-lineable target-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))
+             
+             (t
+              (bind (lined-thing 1.0 (make-instance 'failed-object) target-available-at)
+                    (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))
 
-            (bind (lined-baking-tray 1.0 (make-instance 'failed-object) tray-available-at)
-                  (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+    ;; thing to be lined is a list of kitchen entities where
+    ;; each element is lineable
+    ;; and lining is a transferable container with contents
+    ;; that can be used for lining
+    ((and (subtypep (class-of thing-to-be-lined) 'list-of-kitchen-entities)
+          (subtypep (class-of lining) 'transferable-container)
+          (loop for elem in (items thing-to-be-lined)
+                always (subtypep (class-of elem) 'lineable))
+          (loop for elem in (contents lining)
+                always (subtypep (class-of elem) 'can-be-lined-with)))
+
+     (let ((target-lineable (find-kitchen-entities thing-to-be-lined (counter-top new-kitchen-state)))
+           (target-lining (find-object-by-persistent-id lining new-kitchen-state)))
+       (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+       (loop for elem in (items target-lineable)
+             for lining in (loop repeat (length (items target-lineable))
+                                 collect (copy-object (first (contents target-lining))))
+             do (setf (lined-with elem) lining)
+                (setf (is-lining lining) t)
+                (setf (used elem) t))
+       (bind (lined-thing 1.0 target-lineable target-available-at)
+             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+     
+    (t
+     (bind (lined-thing 1.0 (make-instance 'failed-object) target-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
+     
+     
+
 
 (defprimitive mash ((mashed-ingredient transferable-container)
                     (kitchen-state-out kitchen-state)
@@ -2066,7 +2136,7 @@
                       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))
 
   ;;Case 2: Mixing tool specified
-  ((kitchen-state-in container-with-input-ingredients mixing-tool => kitchen-state-out container-with-mixture )
+  ((kitchen-state-in container-with-input-ingredients mixing-tool => kitchen-state-out container-with-mixture)
    
    (let* ((new-kitchen-state (copy-object kitchen-state-in))
           (new-container-with-ingredients-to-mix (find-object-by-persistent-id container-with-input-ingredients (counter-top new-kitchen-state)))
@@ -3296,6 +3366,150 @@
                          (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))))))
 
 
+(defprimitive top-with ((topped-object t) ; transferable container or list-of-kitchen-entities
+                        (kitchen-state-out kitchen-state)
+                        (kitchen-state-in kitchen-state)
+                        (thing-to-be-topped t) ; transferable-container or list-of-kitchen-entities
+                        (container-with-topping transferable-container)
+                        (topping-quantity quantity)
+                        (topping-unit unit))
+
+  ;; case 1; topping-quantity and -unit are not given
+  ;; determine quantity by dividing the container-with-topping
+  ;; over the amount of items in thing-to-be-topped and take
+  ;; the same unit as the container-with-topping
+  ((kitchen-state-in thing-to-be-topped container-with-topping =>
+                     topped-object kitchen-state-out topping-quantity topping-unit)
+
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (topped-object-available-at
+           (+ (max (kitchen-time kitchen-state-in)
+                   (available-at (find (id thing-to-be-topped) binding-objects
+                                       :key #'(lambda (binding-object)
+                                                (and (value binding-object)
+                                                     (id (value binding-object)))))))
+              50))
+          (kitchen-state-available-at topped-object-available-at))
+
+     (if (or (and (subtypep (type-of thing-to-be-topped) 'transferable-container)
+                  (loop for contents in (contents thing-to-be-topped)
+                        always (subtypep (type-of contents) 'can-have-on-top)))
+             (and (subtypep (type-of thing-to-be-topped) 'list-of-kitchen-entities)
+                  (loop for elem in (items thing-to-be-topped)
+                        always (subtypep (type-of elem) 'can-have-on-top))))
+       
+       (let ((new-thing-to-be-topped
+              (typecase thing-to-be-topped
+                (list-of-kitchen-entities (find-kitchen-entities thing-to-be-topped (counter-top new-kitchen-state)))
+                (transferable-container (find-object-by-persistent-id thing-to-be-topped (counter-top new-kitchen-state)))))
+             (new-topping-container (find-object-by-persistent-id container-with-topping (counter-top new-kitchen-state))))
+         (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+         (cond ((and new-thing-to-be-topped new-topping-container)
+                (let* ((topping (first (contents new-topping-container)))
+                       (total-topping-weight-in-grams (convert-to-g topping))
+                       (amount-of-topping-portions
+                        (typecase new-thing-to-be-topped
+                          (transferable-container (length (contents new-thing-to-be-topped)))
+                          (list-of-kitchen-entities (length (items new-thing-to-be-topped)))))
+                       (topping-weight-per-portion
+                        (/ (value (quantity (amount total-topping-weight-in-grams)))
+                           amount-of-topping-portions))
+                       (topping-amount-per-portion
+                        (make-instance 'amount
+                                       :quantity (make-instance 'quantity :value topping-weight-per-portion)
+                                       :unit (make-instance 'g))))
+                  
+                  (loop with portions
+                          = (typecase new-thing-to-be-topped
+                              (transferable-container (contents new-thing-to-be-topped))
+                              (list-of-kitchen-entities (items new-thing-to-be-topped)))
+                        for portion in portions
+                        for topping = (copy-object (first (contents new-topping-container)))
+                        do (setf (amount topping) topping-amount-per-portion)
+                           (setf (has-on-top portion) topping))
+                  
+                  (setf (contents new-topping-container) nil)     
+                  
+                  (bind (topped-object 1.0 new-thing-to-be-topped topped-object-available-at)
+                        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+                        (topping-quantity 1.0 (quantity topping-amount-per-portion))
+                        (topping-unit 1.0 (unit topping-amount-per-portion)))))))
+       
+       (bind (topped-object 1.0 (make-instance 'failed-object) topped-object-available-at)
+             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+             (topping-quantity 1.0 (make-instance 'failed-object) topped-object-available-at)
+             (topping-unit 1.0 (make-instance 'failed-object) topped-object-available-at)))))
+   
+  ;; case 2; topping quantity and unit are given
+  ((kitchen-state-in thing-to-be-topped container-with-topping topping-quantity topping-unit =>
+                     topped-object kitchen-state-out)
+
+   (let* ((new-kitchen-state (copy-object kitchen-state-in))
+          (topped-object-available-at
+           (+ (max (kitchen-time kitchen-state-in)
+                   (available-at (find (id thing-to-be-topped) binding-objects
+                                       :key #'(lambda (binding-object)
+                                                (and (value binding-object)
+                                                     (id (value binding-object)))))))
+              50))
+          (kitchen-state-available-at topped-object-available-at))
+     
+     (if (or (and (subtypep (type-of thing-to-be-topped) 'transferable-container)
+                  (loop for contents in (contents thing-to-be-topped)
+                        always (subtypep (type-of contents) 'can-have-on-top)))
+             (and (subtypep (type-of thing-to-be-topped) 'list-of-kitchen-entities)
+                  (loop for elem in (items thing-to-be-topped)
+                        always (subtypep (type-of elem) 'can-have-on-top))))
+       
+       (let ((new-thing-to-be-topped
+              (typecase thing-to-be-topped
+                (transferable-container (find-object-by-persistent-id thing-to-be-topped (counter-top new-kitchen-state)))
+                (list-of-kitchen-entities (find-kitchen-entities thing-to-be-topped (counter-top new-kitchen-state)))))
+             (new-topping-container (find-object-by-persistent-id container-with-topping (counter-top new-kitchen-state))))
+         (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
+         (cond ((and new-thing-to-be-topped new-topping-container)
+                (let* ((topping (first (contents new-topping-container)))
+                       (topping-value-to-transfer (value (quantity (amount topping))))
+                       (topping-portion-amount (make-instance 'amount :quantity topping-quantity :unit topping-unit))
+                       (topping-left-to-transfer (copy-object topping-value-to-transfer))
+                       (topping-portions (make-instance 'list-of-kitchen-entities))
+                       (portions
+                        (typecase new-thing-to-be-topped
+                          (transferable-container (contents new-thing-to-be-topped))
+                          (list-of-kitchen-entities (items new-thing-to-be-topped)))))
+                  
+                  ; convert the portion amount to grams
+                  (when (not (eq (type-of topping-unit) 'g))
+                    (let ((conversion-ingredient (copy-object topping)))
+                      (setf (amount conversion-ingredient) topping-portion-amount)
+                      (setf topping-portion-amount (amount (convert-to-g conversion-ingredient)))))
+                  
+                  (loop while (> topping-left-to-transfer 0)
+                        for portion in portions
+                        for new-topping-portion = (copy-object topping)
+                        do (push new-topping-portion (items topping-portions))
+                           (setf (has-on-top portion) new-topping-portion)
+                        if (> topping-left-to-transfer (value (quantity topping-portion-amount)))
+                          do (setf (amount new-topping-portion) topping-portion-amount
+                                   topping-left-to-transfer (- topping-left-to-transfer
+                                                               (value (quantity topping-portion-amount))))
+                        else
+                          do (setf (amount new-topping-portion)
+                                   (make-instance 'amount
+                                                  :quantity (make-instance 'quantity :value topping-left-to-transfer)
+                                                  :unit (make-instance 'g))
+                                   topping-left-to-transfer 0)
+                        finally 
+                          (setf (contents new-topping-container) nil)) 
+                  
+                  (bind (topped-object 1.0 new-thing-to-be-topped topped-object-available-at)
+                        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+               (t (bind (topped-object 1.0 (make-instance 'failed-object) topped-object-available-at)
+                        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))))
+       (bind (topped-object 1.0 (make-instance 'failed-object) topped-object-available-at)
+             (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))
+
+
 (defprimitive transfer-contents ((container-with-all-ingredients transferable-container)
                                  (container-with-rest transferable-container)
                                  (kitchen-state-out kitchen-state)
@@ -3829,6 +4043,7 @@
                          (found-item (if contents-current-item (find-object-by-persistent-id object item))))
                     (when found-item (return found-item)))))))
 
+#|
 ;; find all kitchen entities in the list that are on the countertop
 (defun find-kitchen-entities (list-of-kitchen-entities countertop)
   (if (subtypep (type-of list-of-kitchen-entities) 'failed-object)
@@ -3846,6 +4061,31 @@
             when (eq (persistent-id item) (persistent-id thing))
               do (push thing (items new-list-of-kitchen-entities))
             finally (return new-list-of-kitchen-entities)))))
+|#
+
+(defun find-kitchen-entities (list-of-kitchen-entities countertop)
+  "Find all kitchen entities in the list that are on the countertop"
+  (unless (subtypep (type-of list-of-kitchen-entities) 'failed-object)
+    (let ((new-list-of-kitchen-entities (copy-object list-of-kitchen-entities))
+          (first-item (first (items list-of-kitchen-entities)))
+          (unique-persistent-ids
+           (remove-duplicates (mapcar #'persistent-id (items list-of-kitchen-entities))))
+          (countertop-contents (contents countertop)))
+      (setf (items new-list-of-kitchen-entities) nil)
+      (cond ((= (length unique-persistent-ids) 1)
+             (loop until (eq (persistent-id first-item) (persistent-id (first countertop-contents)))
+                   do (setf countertop-contents (rest countertop-contents)))
+             (loop for list-item in (items list-of-kitchen-entities)
+                   for countertop-item in countertop-contents
+                   when (eq (persistent-id list-item) (persistent-id countertop-item))
+                     do (push list-item (items new-list-of-kitchen-entities))))
+            ((= (length unique-persistent-ids) (length (items list-of-kitchen-entities)))
+             (loop for list-item in (items list-of-kitchen-entities)
+                   for countertop-item = (find (persistent-id list-item) countertop-contents
+                                               :key #'persistent-id :test #'eq)
+                   when countertop-item
+                     do (push list-item (items new-list-of-kitchen-entities)))))
+      new-list-of-kitchen-entities)))
 
 (defun create-homogeneous-mixture (ingredients &optional (mixing-operation 'mixed))
   (let* ((total-value (loop for ingredient in ingredients
@@ -3947,7 +4187,7 @@
     (setf (gethash 'dried-dill-weed conversion-table)
           (acons 'teaspoon 5 '()))    
     (setf (gethash 'egg conversion-table)
-          (acons 'piece 50 '()))
+          (acons 'piece 50 (acons 'teaspoon 5.1 '())))
     (setf (gethash 'extra-virgin-olive-oil conversion-table)
           (acons 'teaspoon 4.5 (acons 'l 920 '())))
     (setf (gethash 'fresh-cilantro conversion-table)
@@ -4047,7 +4287,11 @@
     (setf (gethash 'whole-egg conversion-table)
 	  (acons 'piece 50 (acons 'teaspoon 5.5 '())))
     (setf (gethash 'yellow-mustard conversion-table)
-	  (acons 'teaspoon 5 (acons 'l 1010 '()))) 
+	  (acons 'teaspoon 5 (acons 'l 1010 '())))
+    (setf (gethash 'semisweet-chocolate-chips conversion-table)
+          (acons 'teaspoon 3.33 '()))
+    (setf (gethash 'cream-cheese conversion-table)
+          (acons 'teaspoon 4.69 '()))
     conversion-table))
 
 ;; define conversion table as a global parameter
