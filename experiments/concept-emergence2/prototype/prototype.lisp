@@ -27,6 +27,12 @@
     (:standard (weight-val prototype))
     (:j-interpolation (sigmoid (weight-val prototype)))))
 
+(defun sigmoid (x &key (c -1/2))
+  "Sigmoid function where c changes the slope of the function. 
+  
+    When c is a fraction the slope is less steep, when c is a larger the slope is steeper."
+  (/ 1 (+ 1 (exp (* c x)))))
+
 (defmethod print-object ((prototype prototype) stream)
   (pprint-logical-block (stream nil)
     (format stream "<Prototype:~
