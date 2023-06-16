@@ -10,6 +10,15 @@
   (activate-monitor show-type-hierarchy-after-n-interactions)
   (activate-monitor trace-interactions-in-wi))
 
+;; 200 g butter
+;; (fetch-and-prop) + (bind butter) + (bind 100) + (bind g)
+
+;; mix butter and sugar
+;; (transfer-contents) + (bind medium-bowl) + (bind medium-bowl)
+
+;; beat butter and sugar
+;; (beat) + (bind medium-bowl) + (bind medium-bowl)
+
 (progn
   (wi::reset)
   (notify reset-monitors)
@@ -22,8 +31,58 @@
                               (:corpus-data-file . ,(make-pathname :name "benchmark-recipes" :type "jsonl"))))))
 
 (defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
+;(length (question-data *experiment*))
 ;(run-interaction *experiment*)
-;(run-series *experiment* 300)
+;(run-series *experiment* 100)
+
+(comprehend "200 grams salt" :cxn-inventory *cxn-inventory*
+            :gold-standard-meaning '((fetch-and-proportion ?proportioned-salt ?ks-out ?ks-in ?container ?ingredient ?quantity ?unit)
+                                     (bind ingredient ?ingredient salt)
+                                     (bind quantity ?quantity 200)
+                                     (bind unit ?unit g)))
+
+(comprehend "200 grams sugar" :cxn-inventory *cxn-inventory*
+            :gold-standard-meaning '((fetch-and-proportion ?proportioned-salt ?ks-out ?ks-in ?container ?ingredient ?quantity ?unit)
+                                     (bind ingredient ?ingredient sugar)
+                                     (bind quantity ?quantity 200)
+                                     (bind unit ?unit g)))
+
+(comprehend "the red cube" :cxn-inventory *cxn-inventory*
+            :gold-standard-meaning '((get-context ?context)
+                                     (filter ?set ?context ?shape)
+                                     (bind shape ?shape cube)
+                                     (filter ?set2 ?set ?color)
+                                     (bind color ?color red)
+                                     (unique ?obj ?set2)))
+
+(comprehend "the red sphere" :cxn-inventory *cxn-inventory*
+            :gold-standard-meaning '((get-context ?context)
+                                     (filter ?set ?context ?shape)
+                                     (bind shape ?shape sphere)
+                                     (filter ?set2 ?set ?color)
+                                     (bind color ?color red)
+                                     (unique ?obj ?set2)))
+
+(comprehend "the red metal cube" :cxn-inventory *cxn-inventory*
+            :gold-standard-meaning '((get-context ?context)
+                                     (filter ?set1 ?context ?shape)
+                                     (bind shape ?shape cube)
+                                     (filter ?set2 ?set1 ?material)
+                                     (bind material ?material metal)
+                                     (filter ?set3 ?set2 ?color)
+                                     (bind color ?color red)
+                                     (unique ?obj ?set3)))
+
+(comprehend "the yellow metal sphere" :cxn-inventory *cxn-inventory*
+            :gold-standard-meaning '((get-context ?context)
+                                     (filter ?set1 ?context ?shape)
+                                     (bind shape ?shape sphere)
+                                     (filter ?set2 ?set1 ?material)
+                                     (bind material ?material metal)
+                                     (filter ?set3 ?set2 ?color)
+                                     (bind color ?color yellow)
+                                     (unique ?obj ?set3)))
+
 
         
 (defun run-training ()

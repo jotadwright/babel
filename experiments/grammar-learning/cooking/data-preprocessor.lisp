@@ -13,7 +13,7 @@
 (defparameter *output-file*
   (babel-pathname
    :directory '("experiments" "grammar-learning" "cooking" "data")
-   :name "benchmark-recipes" :type "jsonl"))
+   :name "benchmark-instructions" :type "jsonl"))
 
 ;(all-recipe-xml-files->json *input-files* *output-file*)
 
@@ -28,8 +28,10 @@
                      (xmls:parse stream)))
          (ingredients (xml-get-children-with-tag xml-tree "ingredients"))
          (instructions (xml-get-children-with-tag xml-tree "instructions"))
-         (jsonl-data (append (xml-nodes->json ingredients)
-                             (xml-nodes->json instructions))))
+         ;(jsonl-data (append (xml-nodes->json ingredients)
+         ;                    (xml-nodes->json instructions)))
+         (jsonl-data (xml-nodes->json instructions))
+         )
     (loop for line in jsonl-data
           do (write-line (cl-json:encode-json-alist-to-string line) output-stream))))
 
