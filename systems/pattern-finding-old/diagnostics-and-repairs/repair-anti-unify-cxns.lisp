@@ -129,10 +129,9 @@
   ;; valid when all parts are filled in
   ;; or when the pattern delta is empty (excluding args)
   ;; and the pattern bindings is a renaming
-  ;(or
+  (or
    (au-all-parts-present-p au-result)
-  ; (au-partial-analysis-p au-result))
-  )
+   (au-partial-analysis-p au-result)))
 
 (defun add-form-arg-predicates-from-cxn (set-of-predicates cxn)
   (loop for arg in (remove-duplicates (extract-top-lvl-form-args cxn))
@@ -203,12 +202,11 @@
 (defun valid-au-combination-p (au-combination)
   ;; valid when both au results have both parts filled in
   ;; or both au results have both empty pattern delta's
-  ;(or
+  (or
    (and (au-all-parts-present-p (first au-combination))
         (au-all-parts-present-p (second au-combination)))
-   ;(and (au-partial-analysis-p (first au-combination))
-   ;     (au-partial-analysis-p (second au-combination)))))
-   )
+   (and (au-partial-analysis-p (first au-combination))
+        (au-partial-analysis-p (second au-combination)))))
 
 (defun sort-anti-unification-combinations (list-of-anti-unification-combinations)
   "Sort the anti-unifcation results based on cost (of both form- and
