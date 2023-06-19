@@ -132,32 +132,55 @@
     (deactivate-all-monitors)
     ;; run to find a scene without lex coherence
     (loop with saved = '()
+          with not-solvable = '()
+          with not-solvable-and-coh-fail = '()
           for i from 1 to 5000
           for lex-coherence = (find-data (current-interaction *experiment*) 'lexicon-coherence)
           for speaker = (speaker (first (interactions *experiment*)))
           for hearer = (hearer (first (interactions *experiment*)))
-          if (not lex-coherence)
+          if (and (not lex-coherence)
+                  (is-discriminative-strict (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
+                                            (remove (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
+                                                    (objects (find-data (first (interacting-agents (current-interaction *experiment*))) 'context)))))
             do (progn
-                 (setf saved (cons (list (interacting-agents (current-interaction *experiment*))
-                                         (index (current-scene (world *experiment*)))
-                                         (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic))
-                                   saved
-                                   ))
-                 (run-interaction *experiment*)
-                 )
-          else
-            do (progn
-                 ;(format t "~a " i)
+                 (setf not-solvable-and-coh-fail (cons (list (interacting-agents (current-interaction *experiment*))
+                                                             (index (current-scene (world *experiment*)))
+                                                             (objects (find-data (first (interacting-agents (current-interaction *experiment*))) 'context)))
+                                                       not-solvable-and-coh-fail
+                                                       ))
                  (run-interaction *experiment*))
+          else if (is-discriminative-strict (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
+                                            (remove (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
+                                                    (objects (find-data (first (interacting-agents (current-interaction *experiment*))) 'context))))
+                 do (progn
+                      (setf not-solvable (cons (list (interacting-agents (current-interaction *experiment*))
+                                                                  (index (current-scene (world *experiment*)))
+                                                                  (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic))
+                                                            not-solvable
+                                                            ))
+                      (run-interaction *experiment*))
+            else if (not lex-coherence)
+                   do (progn
+                        (setf saved (cons (list (interacting-agents (current-interaction *experiment*))
+                                                (index (current-scene (world *experiment*)))
+                                                (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic))
+                                          saved
+                                          ))
+                        (run-interaction *experiment*)
+                        )
+                 else
+                   do (progn
+                 ;(format t "~a " i)
+                        (run-interaction *experiment*))
           finally (return saved))))
 
-(defun testi2 (agent form)
+(defun testi2 (agent form interactions)
   (progn
     (wi::reset)
     (deactivate-all-monitors)
     ;; run to find a scene without lex coherence
     (loop with saved = '()
-          for i from 1 to 5000
+          for i from 1 to interactions
           for lex-coherence = (find-data (current-interaction *experiment*) 'lexicon-coherence)
           for speaker = (speaker (first (interactions *experiment*)))
           for hearer = (hearer (first (interactions *experiment*)))

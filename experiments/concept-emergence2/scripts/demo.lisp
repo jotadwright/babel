@@ -5,7 +5,7 @@
 
 ;; experiments with entrenchment values - keep the same
 (progn
-  (setf *scene-ids* (read-scene-ids "3-color-area-roughness.lisp"))
+  (setf *scene-ids* (read-scene-ids "10-all.lisp"))
   (setf *subset-size* (length *scene-ids*))
   (defparameter *baseline-simulated*
     (make-configuration
@@ -24,6 +24,11 @@
                  ,'area ;; size
                  ,'color ;; color
                  ,'roughness
+                 ,'sides-and-corners
+                 ,'wh-ratio
+                 ,'xpos
+                 ,'ypos
+                 ,'zpos
                  )
                 (:scene-ids . ,(first-n *subset-size* *scene-ids*))
                 (:current-scene-idx . 0)
@@ -68,6 +73,9 @@
   (loop for i from 1 to 500000
         do (run-interaction *experiment*)))
 
+
+(display-lexicon (first (agents *experiment*)) :sort t)
+
 #|(progn
   (wi::reset)
   (run-interaction *experiment*))
@@ -110,10 +118,6 @@
 
 
 
-(run-interaction *experiment*
-                 :scene saved-scene
-                 :agents saved-agents
-                 :topic saved-topic)
 (progn
   (set-scene *experiment* 13459)
   (sample-topic *experiment* :english-concepts)
@@ -127,11 +131,26 @@
   (setf saved-topic (find-data (first saved-agents) 'topic)))
 
 
-(let ((index 31))
+(let ((index 3))
   (setf saved-agents (first (nth index saved)))
   (setf saved-scene  (second (nth index saved)))
   (setf saved-topic (third (nth index saved))))
-        
+
+(progn
+  (wi::reset)
+  (deactivate-all-monitors)
+  (activate-monitor trace-interaction-in-web-interface)
+  (run-interaction *experiment*
+                   :scene 3818
+                   :agents saved-agents)
+  (format t "~% ~a - coherence: ~a, and success: ~a"
+          saved-scene
+          (find-data (current-interaction *experiment*) 'lexicon-coherence)
+          (communicated-successfully (current-interaction *experiment*)))
+  #|(run-interaction *experiment*
+                   :scene saved-scene
+                   :agents (reverse saved-agents))|#
+  )
 
 ;; run the saved scene agent
 (progn
@@ -215,11 +234,14 @@
             (float (/ (- 5000 (length saved)) 5000))
             (float (/ (- 5000 (- (length saved) not-possible-amount)) 5000)))))
 
-(string-equal 
+
+
 
 (progn
-  (setf saved (testi2 (find-agent 23) "rapiva"))
+  (setf saved (testi2 (find-agent 31) "duzise" 100000))
   (float (/ (- 5000 (length saved)) 5000)))
+
+(inspect (find-agent 31))
 
 (length saved)
 
@@ -227,6 +249,25 @@
   (setf saved-agents (first (nth index saved)))
   (setf saved-scene  (second (nth index saved)))
   (setf saved-topic (third (nth index saved))))
+
+
+
+(let* ((agent (find-agent 31))
+       (cxn (find-form-in-lexicon (lexicon agent) "duzise"))
+       (context (find-data agent 'context))
+       (topic (find-data agent 'topic)))
+  (loop for object in (objects context)
+        
+        collect (list (id object) (weighted-similarity object (meaning cxn)))))
+
+=> ((#:OBJ-1897755 0.7423133) ;; topic
+    (#:OBJ-1897756 0.034696862)
+    (#:OBJ-1897757 0.50630695))
+
+
+(- 0.7423133 0.50630695)
+
+
 
 (progn
   (wi::reset)
@@ -265,7 +306,7 @@
 
        
 
-(display-lexicon (find-agent 23) :sort t)
+(display-lexicon (find-agent 31) :sort t)
 
 
 
@@ -326,7 +367,7 @@
 
 ;; => ((CLE::ROUGHNESS . 0.99753345) (UTILS:B . 0.0) (CLE::G . 0.0024665243) (CLE::R . 0.0) (CLE::AREA . 0.0))
 
-(setf lezemu (find-form-in-lexicon (lexicon (first (agents *experiment*))) "lezemu"))
+(setf lezemu (find-form-in-lexicon (lexicon (find-agent 31)) "duzise"))
 (setf positive (loop for cxn in (lexicon (second (agents *experiment*)))
                      if (> (score cxn) 0.1)
                        collect cxn))
@@ -345,7 +386,7 @@
 (add-cxn-to-interface (nth 13 (lexicon (first (agents *experiment*)))))
 
 
-(display-lexicon (find-agent 29) :sort t)
+(display-lexicon (find-agent 32) :sort t)
 
 
 ;;;;
