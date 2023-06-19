@@ -44,12 +44,6 @@
                                                discriminating-cxns)))
     discriminating-cxns))
 
-(defun sigmoid (x &key (c -1/2))
-  "Sigmoid function where c changes the slope of the function. 
-  
-    When c is a fraction the slope is less steep, when c is a larger the slope is steeper."
-  (/ 1 (+ 1 (exp (* c x)))))
-
 ;; ---------------------
 ;; + Lexicon coherence +
 ;; ---------------------
@@ -106,8 +100,8 @@
          (best-cxn nil))
     (loop for tuple in cxns
           ;; discriminative-power
-          for topic-sim = (sigmoid (assqv :topic-sim tuple)) ;; sigmoid-ed!
-          for best-other-sim = (sigmoid (assqv :best-other-sim tuple)) ;; sigmoid-ed!
+          for topic-sim = (assqv :topic-sim tuple) ;; sigmoid-ed!
+          for best-other-sim = (assqv :best-other-sim tuple) ;; sigmoid-ed!
           for discriminative-power = (abs (- topic-sim best-other-sim))
           ;; entrenchment
           for entrenchment = (score (assqv :cxn tuple))

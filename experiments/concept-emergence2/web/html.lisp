@@ -6,7 +6,8 @@
 
 ;; make html of cle-object
 (defmethod make-html-for-entity-details ((object cle-object) &key topic)
-  (let ((title-font (if (equal topic (id object)) "font-weight:bold;" "")))
+  (let ((title-font (if (equal topic (id object)) "font-weight:bold;" ""))
+        (attributes (reverse (attributes object))))
     (append 
      (loop for (attr . val) in (description object)
            if (symbolic-attribute-available-p attr object)
@@ -14,11 +15,11 @@
                      ,(format nil "~a = ~,2f" attr val))))
      `(((hr :style ,(format nil "margin: 0px;"))))
      `(((hr :style ,(format nil "margin: 0px;"))))
-     (let* ((attr (caar (attributes object)))
-            (val (cdar (attributes object))))
+     (let* ((attr (caar attributes))
+            (val (cdar attributes)))
        `(((div :class "entity-detail" :style ,(format nil "border-top: 0px dashed #563; ~a" title-font))
           ,(format nil "~a = ~,2f" attr val))))
-     (loop for (attr . val) in (rest (attributes object))
+     (loop for (attr . val) in (rest attributes)
            append `(((div :class "entity-detail" :style ,(format nil "~a" title-font))
                      ,(format nil "~a = ~,2f" attr val)))))))
 

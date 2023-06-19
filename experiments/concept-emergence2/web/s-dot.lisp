@@ -25,8 +25,10 @@
                          #-(or :win32 :windows) "Arial")
         (s-dot::height "0.01"))
        (s-dot::node ((s-dot::id ,(mkdotstr (id (meaning cxn))))
-                     (s-dot::label ,(format nil "~a"
-                                            (mkdotstr (id (meaning cxn)))))
+                     (s-dot::label ,(format nil "~a [n: ~a, l: ~a]"
+                                            (mkdotstr (id (meaning cxn)))
+                                            (length (history cxn))
+                                            (first (history cxn))))
                      (s-dot::fontcolor "#AA0000"))))
      g)
     ;; form node
@@ -43,7 +45,7 @@
                      (s-dot::fontcolor "#AA0000"))))
      g)
     ;; feature-channels nodes
-    (loop for prototype in (prototypes (meaning cxn))
+    (loop for prototype in (reverse (prototypes (meaning cxn)))
           for record = (prototype->s-dot prototype
                                          :green (member (channel prototype) highlight-green)
                                          :red (member (channel prototype) highlight-red))
@@ -87,8 +89,6 @@
 
 (defmethod prototype->s-dot ((prototype prototype) &key green red)
   (let* ((st-dev (st-dev (distribution prototype)))
-         ;(lower-bound (- (mean (distribution prototype)) (* 3 st-dev)))
-         ;(upper-bound (+ (mean (distribution prototype)) (* 3 st-dev)))
          (record-properties
           (cond (green '((s-dot::style "filled")
                          (s-dot::fillcolor "#AAFFAA")))
@@ -106,13 +106,10 @@
                  (s-dot::fontcolor "#000000")
                  (s-dot::height "0.01")))
       (s-dot::node ((s-dot::id ,(downcase (mkdotstr (channel prototype))))
-                    (s-dot::label ,(format nil "~a: ~,3f ~~ ~,3f [n = ~a, l-int = ]"
+                    (s-dot::label ,(format nil "~a: ~,3f ~~ ~,3f"
                                            (downcase (mkdotstr (channel prototype)))
                                            (mean (distribution prototype))
-                                           st-dev
-                                           "not stored";(nr-of-samples (distribution prototype))
-                                           ;(first (first (history (distribution prototype))))
-                                           )))))))
+                                           st-dev)))))))
 
 (defmethod get-hex-color (cxn &key (threshold 0.9))
   "Calculate the prototypical color of a cxn."

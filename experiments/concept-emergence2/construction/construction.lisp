@@ -15,24 +15,26 @@
     :initarg :meaning :accessor meaning :initform nil :type concept
     :documentation "Meaning of the construction.")
    (score
-    :initarg :score :accessor score :initform nil :type number))
+    :initarg :score :accessor score :initform nil :type number)
+   (history
+    :initarg :history :accessor history :initform '() :type list))
   (:documentation "A construction is a mapping between a form and a meaning."))
-
-(defgeneric make-cxn (agent object form)
-  (:documentation "Creates a new construction."))
   
 (defmethod make-cxn (agent object form)
+  "Creates a new construction."
   (make-instance 'cxn
                  :form form
                  :meaning (make-concept agent object (get-configuration agent :concept-representation))
-                 :score (get-configuration agent :initial-cxn-entrenchement)))
+                 :score (get-configuration agent :initial-cxn-entrenchement)
+                 :history (list (interaction-number (current-interaction (experiment agent))))))
 
 (defmethod copy-object ((cxn cxn))
   (make-instance 'cxn
                  :id (id cxn)
                  :form (copy-object (form cxn))
                  :meaning (copy-object (meaning cxn))
-                 :score (copy-object (score cxn))))
+                 :score (copy-object (score cxn))
+                 :history (copy-object (history cxn))))
 
 (defmethod print-object ((cxn cxn) stream)
   (pprint-logical-block (stream nil)
