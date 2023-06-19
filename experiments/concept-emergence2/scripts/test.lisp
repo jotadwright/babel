@@ -93,3 +93,75 @@
                        do (when (equal (mkstr id) found-id)
                          (return agent)))))
     agent))
+
+(defun count-cxn-usage (cxn last-interaction window)
+  (let ((history (history cxn))
+        (stop-condition (- last-interaction window)))
+    (loop with counter = 0
+          for el in history
+          if (> el stop-condition)
+            do (incf counter)
+          else
+            do (return counter))))
+
+
+(progn
+  
+  (defun is-discriminative (object other-objects)
+    "Checks if the object has a single channel dimension that is different from all other objects."
+    (loop with found = nil
+          for (attr . val) in (description object)
+          if (and (is-channel-available attr (attributes object))
+                  (loop for other-object in other-objects
+                        for other-val = (assqv attr (description other-object))
+                        always (not (equal val other-val))))
+            do (if found
+                 (return nil)
+                 (setf found t))
+          finally (return t)))
+
+  (length saved)
+
+  (setf possible-scenes (loop for tuple in saved
+                              for saved-agent = (first tuple)
+                              for saved-scene = (second tuple)
+                              for saved-topic = (third tuple)
+                              for channels-in-play = (get-configuration *experiment* :clevr-channels)
+                              for symbolic-clevr-context = (get-scene-by-index (world *experiment*) saved-scene)
+                              for cle-context = (clevr->simulated symbolic-clevr-context channels-in-play)
+                              for cle-topic = (find saved-topic (objects cle-context)
+                                                    :test (lambda (x el) (equal (description x) (description el))))
+                              for possible = (is-discriminative cle-topic (remove cle-topic (objects cle-context)))
+                              if possible
+                                collect (cons saved-scene possible)))
+
+
+  (length saved)
+  (setf not-possible-amount (- (length saved) (length possible-scenes)))
+
+
+
+  (let ((x (length saved)))
+    (format nil "~a vs ~a"
+            (float (/ (- 5000 (length saved)) 5000))
+            (float (/ (- 5000 (- (length saved) not-possible-amount)) 5000)))))
+
+(defun run-and-show-interactions (experiment interactions-count)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor trace-interaction-in-web-interface)
+  (activate-monitor display-communicative-success)
+  (loop for i from 1 to interactions-count
+        do (run-interaction experiment))
+  (run-interaction experiment))
+
+(defun run-then-show-last (experiment interactions-count &key (show nil) (display nil))
+  (when display
+    (deactivate-all-monitors)
+    (activate-monitor display-communicative-success)
+    (activate-monitor print-a-dot-for-each-interaction)
+    )
+  (loop for i from 1 to (- interactions-count 1)
+        do (run-interaction experiment))
+  (when show
+    (activate-monitor trace-interaction-in-web-interface)
+    (run-interaction experiment)))

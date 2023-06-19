@@ -27,6 +27,11 @@
                                   collect scene)))
     filtered-scenes))
 
+(defun get-all-scenes ()
+  (let* ((world (make-instance 'clevr-world :data-sets (list "t-val")))
+         (scenes (all-scenes world)))
+    scenes))
+
 (defun find-scenes-with-discriminative-topics (scenes feature-channels)
     (loop for symbolic-scene in scenes
           for ecl-context = (clevr->simulated symbolic-scene
@@ -52,12 +57,16 @@
 
 #|
  
-(setf all-scenes (find-scenes-with-size 3))
+(setf all-scenes (find-scenes-with-size ))
+(setf all-scenes (get-all-scenes))
 (length all-scenes)
 
 (setf res (find-scenes-with-discriminative-topics all-scenes (list 'color 'area 'roughness)))
+(setf res (find-scenes-with-discriminative-topics all-scenes (list 'color 'area 'roughness 'sides-and-corners 'wh-ratio 'xpos 'ypos 'zpos)))
 (length res)
 (setf scene-ids (loop for (scene-id . candidate-topics) in res collect scene-id))
+
+(setf scene-ids (loop for scene in all-scenes collect (index scene)))
 
 (setf test (loop for (scene-id . candidate-topics) in res
       for scenes = (loop for candidate-topic in candidate-topics
