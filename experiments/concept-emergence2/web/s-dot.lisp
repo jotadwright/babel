@@ -87,8 +87,6 @@
 
 (defmethod prototype->s-dot ((prototype prototype) &key green red)
   (let* ((st-dev (st-dev (distribution prototype)))
-         ;(lower-bound (- (mean (distribution prototype)) (* 3 st-dev)))
-         ;(upper-bound (+ (mean (distribution prototype)) (* 3 st-dev)))
          (record-properties
           (cond (green '((s-dot::style "filled")
                          (s-dot::fillcolor "#AAFFAA")))
