@@ -111,7 +111,10 @@
                           for base-name = (get-base-name var)
                           collect (cons var (make-var base-name)))))
     (values (substitute-bindings renamings predicates)
-            renamings)))                                
+            renamings))) 
+
+(defmethod pre-process-meaning-data (meaning (mode (eql :cooking)))
+  (fresh-variables (read-from-string meaning)))                               
 
 (defmethod pre-process-meaning-data (meaning (mode (eql :irl)))
   (fresh-variables (read-from-string meaning)))

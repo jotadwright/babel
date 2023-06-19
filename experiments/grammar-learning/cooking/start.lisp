@@ -25,64 +25,20 @@
   (defparameter *experiment*
     (make-instance 'grammar-learning-experiment
                    :entries `((:observation-sample-mode . :train)
-                              (:meaning-representation . :irl)
+                              (:meaning-representation . :cooking)
                               (:de-render-mode . :de-render-string-meets-no-punct)
+                              ;(:number-of-epochs . 3)
                               (:corpus-files-root . ,(babel-pathname :directory '("experiments" "grammar-learning" "cooking" "data")))
-                              (:corpus-data-file . ,(make-pathname :name "benchmark-recipes" :type "jsonl"))))))
+                              (:corpus-data-file . ,(make-pathname :name "benchmark-ingredients" :type "jsonl"))))))
 
 (defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
 ;(length (question-data *experiment*))
+
 ;(run-interaction *experiment*)
-;(run-series *experiment* 100)
+;(run-series *experiment* 10)
 
-(comprehend "200 grams salt" :cxn-inventory *cxn-inventory*
-            :gold-standard-meaning '((fetch-and-proportion ?proportioned-salt ?ks-out ?ks-in ?container ?ingredient ?quantity ?unit)
-                                     (bind ingredient ?ingredient salt)
-                                     (bind quantity ?quantity 200)
-                                     (bind unit ?unit g)))
-
-(comprehend "200 grams sugar" :cxn-inventory *cxn-inventory*
-            :gold-standard-meaning '((fetch-and-proportion ?proportioned-salt ?ks-out ?ks-in ?container ?ingredient ?quantity ?unit)
-                                     (bind ingredient ?ingredient sugar)
-                                     (bind quantity ?quantity 200)
-                                     (bind unit ?unit g)))
-
-(comprehend "the red cube" :cxn-inventory *cxn-inventory*
-            :gold-standard-meaning '((get-context ?context)
-                                     (filter ?set ?context ?shape)
-                                     (bind shape ?shape cube)
-                                     (filter ?set2 ?set ?color)
-                                     (bind color ?color red)
-                                     (unique ?obj ?set2)))
-
-(comprehend "the red sphere" :cxn-inventory *cxn-inventory*
-            :gold-standard-meaning '((get-context ?context)
-                                     (filter ?set ?context ?shape)
-                                     (bind shape ?shape sphere)
-                                     (filter ?set2 ?set ?color)
-                                     (bind color ?color red)
-                                     (unique ?obj ?set2)))
-
-(comprehend "the red metal cube" :cxn-inventory *cxn-inventory*
-            :gold-standard-meaning '((get-context ?context)
-                                     (filter ?set1 ?context ?shape)
-                                     (bind shape ?shape cube)
-                                     (filter ?set2 ?set1 ?material)
-                                     (bind material ?material metal)
-                                     (filter ?set3 ?set2 ?color)
-                                     (bind color ?color red)
-                                     (unique ?obj ?set3)))
-
-(comprehend "the yellow metal sphere" :cxn-inventory *cxn-inventory*
-            :gold-standard-meaning '((get-context ?context)
-                                     (filter ?set1 ?context ?shape)
-                                     (bind shape ?shape sphere)
-                                     (filter ?set2 ?set1 ?material)
-                                     (bind material ?material metal)
-                                     (filter ?set3 ?set2 ?color)
-                                     (bind color ?color yellow)
-                                     (unique ?obj ?set3)))
-
+;(add-element (make-html *cxn-inventory* :sort-by-type-and-score t :routine-only t))
+;(add-element (make-html (categorial-network *cxn-inventory*) :weights t :render-program "fdp"))
 
         
 (defun run-training ()

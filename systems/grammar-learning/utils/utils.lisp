@@ -601,12 +601,14 @@
 
 (defmethod meaning-predicates-with-variables (meaning (mode (eql :irl)))
   "Transform meaning network with constants to meaning network with variables."
-  (loop for predicate in meaning
-        collect (cons (first predicate)
-                      (loop for elem in (rest predicate)
-                            if (search "?" (mkstr elem))
-                            collect (variablify elem)
-                            else collect elem))))
+    (loop for predicate in meaning
+          collect (if (equal (first predicate) 'bind)
+                    (list (first predicate)
+                          (second predicate)
+                          (variablify (third predicate))
+                          (fourth predicate))
+                    (cons (first predicate)
+                          (mapcar #'variablify (rest predicate))))))
 
 (defmethod meaning-predicates-with-variables (meaning (mode (eql :geo)))
   "Transform meaning network with constants to meaning network with variables."
@@ -617,6 +619,14 @@
 (defmethod meaning-predicates-with-variables (meaning (mode (eql :amr)))
     "Transform meaning network with constants to meaning network with variables."
     (amr:variablify-amr-network meaning))
+
+(defmethod meaning-predicates-with-variables (meaning (mode (eql :cooking)))
+  (loop for predicate in meaning
+        collect (cons (first predicate)
+                      (loop for elem in (rest predicate)
+                            if (search "?" (mkstr elem))
+                            collect (variablify elem)
+                            else collect elem))))
         
 
  ;; (meaning-predicates-with-variables '((get-context source) (bind attribute-category attribute color) (bind shape-category shape cube) (unique object cubes) (filter cubes source shape) (query response object attribute)))
@@ -877,28 +887,40 @@
               (check-meets-continuity non-overlapping-form-cxn)))
         ((equal meaning-representation-formalism :irl)
          (and (not overlapping-meaning-observation)
-          (not overlapping-form-observation)
-          (> (length non-overlapping-meaning-observation) 0)
-          (> (length non-overlapping-form-observation) 0)
-          (> (length non-overlapping-meaning-cxn) 0)
-          (> (length non-overlapping-form-cxn) 0)
-          (> (length overlapping-meaning-cxn) 0)
-          (> (length overlapping-form-cxn) 0)
-          (extract-form-predicate-by-type overlapping-form-cxn 'string)
-          (connected-semantic-network non-overlapping-meaning-cxn)
-          (check-meets-continuity non-overlapping-form-cxn)))
+              (not overlapping-form-observation)
+              (> (length non-overlapping-meaning-observation) 0)
+              (> (length non-overlapping-form-observation) 0)
+              (> (length non-overlapping-meaning-cxn) 0)
+              (> (length non-overlapping-form-cxn) 0)
+              (> (length overlapping-meaning-cxn) 0)
+              (> (length overlapping-form-cxn) 0)
+              (extract-form-predicate-by-type overlapping-form-cxn 'string)
+              (connected-semantic-network non-overlapping-meaning-cxn)
+              (check-meets-continuity non-overlapping-form-cxn)))
         ((equal meaning-representation-formalism :amr)
          (and (not overlapping-meaning-observation)
-          (not overlapping-form-observation)
-          (> (length non-overlapping-meaning-observation) 0)
-          (> (length non-overlapping-form-observation) 0)
-          (> (length non-overlapping-meaning-cxn) 0)
-          (> (length non-overlapping-form-cxn) 0)
-          (> (length overlapping-meaning-cxn) 0)
-          (> (length overlapping-form-cxn) 0)
-          (extract-form-predicate-by-type overlapping-form-cxn 'string)
-          (connected-semantic-network non-overlapping-meaning-cxn)
-          (check-meets-continuity non-overlapping-form-cxn)))
+              (not overlapping-form-observation)
+              (> (length non-overlapping-meaning-observation) 0)
+              (> (length non-overlapping-form-observation) 0)
+              (> (length non-overlapping-meaning-cxn) 0)
+              (> (length non-overlapping-form-cxn) 0)
+              (> (length overlapping-meaning-cxn) 0)
+              (> (length overlapping-form-cxn) 0)
+              (extract-form-predicate-by-type overlapping-form-cxn 'string)
+              (connected-semantic-network non-overlapping-meaning-cxn)
+              (check-meets-continuity non-overlapping-form-cxn)))
+        ((equal meaning-representation-formalism :cooking)
+         (and (not overlapping-meaning-observation)
+              (not overlapping-form-observation)
+              (> (length non-overlapping-meaning-observation) 0)
+              (> (length non-overlapping-form-observation) 0)
+              (> (length non-overlapping-meaning-cxn) 0)
+              (> (length non-overlapping-form-cxn) 0)
+              (> (length overlapping-meaning-cxn) 0)
+              (> (length overlapping-form-cxn) 0)
+              (extract-form-predicate-by-type overlapping-form-cxn 'string)
+              (connected-semantic-network non-overlapping-meaning-cxn)
+              (check-meets-continuity non-overlapping-form-cxn)))
          
         (t (error "no deletion conditions implemented for this meaning representation"))))
 
@@ -1108,6 +1130,9 @@
 (defmethod equivalent-meaning-networks (m1 m2  (mode (eql :geo)))
   (amr::equivalent-amr-predicate-networks m1 m2))
 
+(defmethod equivalent-meaning-networks (m1 m2 (mode (eql :cooking)))
+  (equivalent-irl-programs? m1 m2))
+
 
 
 ;;;modified version with longer first 
@@ -1258,6 +1283,9 @@
                                              (find el (apply 'concatenate 'list parent-meaning)))
                                    collect el)
     (extract-open-vars child-meaning))))
+
+(defmethod extract-args-from-meaning-networks (child-meaning parent-meaning (mode (eql :cooking)))
+  (extract-args-from-meaning-networks child-meaning parent-meaning :amr))
 
 (defun extract-open-vars (meaning-network)
   "Get all variables which are used only once in the same network. Loop through all unique vars (?a ?b ?c), subtract them once from the list of all vars (?a ?a ?b ?c), the remaining vars are the reused ones (?a). Then take the set-diff of the unique vars and the reused ones to find the open vars (?b ?c)."
