@@ -31,25 +31,19 @@
       ;; reward all attributes...
       (setf best-subset (prototypes concept)))
     ;; 3. actually update the weight scores
-    (loop with rewarded-attributes = nil
-          with punished-attributes = nil
-          for prototype in (prototypes concept)
+    (loop for prototype in (prototypes concept)
           ;; if part of the contributing prototypes -> reward
           if (member (channel prototype) best-subset :key #'channel)
-            do (progn
-                 (push (channel prototype) rewarded-attributes)
-                 (update-weight concept
-                                (channel prototype)
-                                (get-configuration agent :weight-incf)
-                                (get-configuration agent :weight-update-strategy)))
+            do (update-weight concept
+                              (channel prototype)
+                              (get-configuration agent :weight-incf)
+                              (get-configuration agent :weight-update-strategy))
             ;; otherwise -> punish
           else
-            do (progn
-                 (push (channel prototype) punished-attributes)
-                 (update-weight concept
-                                (channel prototype)
-                                (get-configuration agent :weight-decf)
-                                (get-configuration agent :weight-update-strategy))))))
+            do (update-weight concept
+                              (channel prototype)
+                              (get-configuration agent :weight-decf)
+                              (get-configuration agent :weight-update-strategy)))))
 
 ;; -----------------------
 ;; + Utils for alignment +
