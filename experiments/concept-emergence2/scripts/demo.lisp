@@ -5,7 +5,7 @@
 
 ;; experiments with entrenchment values - keep the same
 (progn
-  (setf *scene-ids* (read-scene-ids "color-area-roughness.lisp"))
+  (setf *scene-ids* (read-scene-ids "3-color-area-roughness.lisp"))
   (setf *subset-size* (length *scene-ids*))
   (defparameter *baseline-simulated*
     (make-configuration
@@ -29,6 +29,7 @@
                 (:current-scene-idx . 0)
                 ;; general strategy
                 (:strategy . :times)
+                (:similarity-threshold . 0.2)
 
                 ;; entrenchment of constructions
                 (:initial-cxn-entrenchement . 1/2)
@@ -67,7 +68,7 @@
   (loop for i from 1 to 500000
         do (run-interaction *experiment*)))
 
-(progn
+#|(progn
   (wi::reset)
   (run-interaction *experiment*))
 
@@ -84,7 +85,7 @@
 (loop for form in (list "bivexi" "vekudi" "gixaka" "nerota")
       for cxn = (find-form-in-lexicon (lexicon (find-agent 41)) form)
       for history = (history cxn)
-      do (format t "~%~a: ~a" (form cxn) (first-n 10 history)))
+      do (format t "~%~a: ~a" (form cxn) (first-n 10 history)))|#
 
 
 ;; 2. run x interactions with tiiw
@@ -101,39 +102,13 @@
   (align (hearer experiment))|#
   )
 
-(defun testi ()
-  (progn
-    (wi::reset)
-    (deactivate-all-monitors)
-    ;; run to find a scene without lex coherence
-    (loop with saved = '()
-          for i from 1 to 5000
-          for lex-coherence = (find-data (current-interaction *experiment*) 'lexicon-coherence)
-          for speaker = (speaker (first (interactions *experiment*)))
-          for hearer = (hearer (first (interactions *experiment*)))
-          if (not lex-coherence)
-            do (progn
-                 (setf saved (cons (list (interacting-agents (current-interaction *experiment*))
-                                         (index (current-scene (world *experiment*)))
-                                         (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic))
-                                   saved
-                                   ))
-                 (run-interaction *experiment*)
-                 )
-          else
-            do (progn
-                 ;(format t "~a " i)
-                 (run-interaction *experiment*))
-          finally (return saved))))
+
 
 (progn
   (setf saved (testi))
-  (length saved))
+  (float (/ (- 5000 (length saved)) 5000)))
 
-bivexi: ((475459 . 13459) (468024 . 14614) (455309 . 3834) 
-vekudi: ((480250 . 6018) 
-gixaka: ((485189 . 500)  (474004 . 2040) (471148 . 9144))
-nerota: ((485041 . 14410)  (457620 . 6990) (453294 . 2927) (448527 . 10199)  (436662 . 6004))
+
 
 (run-interaction *experiment*
                  :scene saved-scene
@@ -152,7 +127,7 @@ nerota: ((485041 . 14410)  (457620 . 6990) (453294 . 2927) (448527 . 10199)  (43
   (setf saved-topic (find-data (first saved-agents) 'topic)))
 
 
-(let ((index 7))
+(let ((index 31))
   (setf saved-agents (first (nth index saved)))
   (setf saved-scene  (second (nth index saved)))
   (setf saved-topic (third (nth index saved))))
@@ -221,22 +196,101 @@ nerota: ((485041 . 14410)  (457620 . 6990) (453294 . 2927) (448527 . 10199)  (43
       for lex = (lexicon agent)
       for cxn = (find-form-in-lexicon lex "kemuba")
       for history = (history cxn)
-      collect (cons (id agent) (mapcar #'cdr (remove-duplicates (first-n 200 history) :key #'cdr)))
+      collect (cons (id agent) (mapcar #'cdr (remove-duplicates (first-n 200 history) :key #'cdr))))
 
-(in-which-context-does-agent-use-cxn (find-agent 41) "kemuba")
+(in-which-context-does-agent-use-cxn (find-agent 23) "rapiva")
 
-(defun in-which-context-does-agent-use-cxn (agent cxn)
+;;;;
+(progn
+  (setf possible-scenes (find-possible-scenes saved))
+
+
+  (length saved)
+  (setf not-possible-amount (- (length saved) (length possible-scenes)))
+
+
+
+  (let ((x (length saved)))
+    (format nil "~a vs ~a"
+            (float (/ (- 5000 (length saved)) 5000))
+            (float (/ (- 5000 (- (length saved) not-possible-amount)) 5000)))))
+
+(string-equal 
+
+(progn
+  (setf saved (testi2 (find-agent 23) "rapiva"))
+  (float (/ (- 5000 (length saved)) 5000)))
+
+(length saved)
+
+(let ((index 0))
+  (setf saved-agents (first (nth index saved)))
+  (setf saved-scene  (second (nth index saved)))
+  (setf saved-topic (third (nth index saved))))
+
+(progn
   (wi::reset)
   (deactivate-all-monitors)
   (activate-monitor trace-interaction-in-web-interface)
-  (loop for tuple in saved 
+  (add-element `((h3) ,(format nil "Topic ~a" (description saved-topic))))
+  (run-interaction *experiment*
+                   :scene saved-scene
+                   :agents saved-agents
+                   :topic saved-topic)
+  (format t "~% ~a - coherence: ~a, and success: ~a"
+          saved-scene
+          (find-data (current-interaction *experiment*) 'lexicon-coherence)
+          (communicated-successfully (current-interaction *experiment*)))
+  #|(run-interaction *experiment*
+                   :scene saved-scene
+                   :agents (reverse saved-agents))|#
+  )
+
+
+
+
+(loop for tuple in saved
+      for saved-scene-id = (second tuple)
+      for saved-topic = (third tuple)
+      for channels-in-play  = (get-configuration *experiment* :clevr-channels)
+      for symbolic-clevr-context =  (get-scene-by-index (world *experiment*) saved-scene-id)
+      for cle-context = (clevr->simulated symbolic-clevr-context channels-in-play)
+      for cle-topic = (find saved-topic (objects cle-context)
+                            :test (lambda (x el) (equal (description x) (description el))))
+      do (show-scene cle-context cle-topic)
+      do (format t "~%~a | ~a -> ~a" (is-discriminative-strict cle-topic (remove cle-topic (objects cle-context)))
+                                                        saved-scene-id (description cle-topic)))
+
+
+
+       
+
+(display-lexicon (find-agent 23) :sort t)
+
+
+
+#|(defun in-which-context-does-agent-use-cxn (agent form)
+  (wi::reset)
+  (deactivate-all-monitors)
+  ;(activate-monitor trace-interaction-in-web-interface)
+  (loop with saved-saved = '()
+        for tuple in saved 
         for saved-agents = (first tuple)
         for saved-scene = (second tuple)
         for saved-topic = (third tuple)
         do (run-interaction *experiment*
                             :scene saved-scene
                             :agents saved-agents
-                            :topic saved-topic)))
+                            :topic saved-topic)
+        if (and
+            (eq agent (first (interacting-agents (current-interaction *experiment*))))
+            (eq form
+                (form (get-data (first (interacting-agents (current-interaction *experiment*))) 'applied-cxn))))
+          do (setf saved-saved (cons (list (interacting-agents (current-interaction *experiment*))
+                                           (index (current-scene (world *experiment*)))
+                                           (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic))
+                                     saved-saved
+                                     ))))|#
 
 ;; conceptualise a scene/topic combo with all agents
 (how-would-the-population-conceptualise (find-data (first saved-agents) 'context)
@@ -249,11 +303,13 @@ nerota: ((485041 . 14410)  (457620 . 6990) (453294 . 2927) (448527 . 10199)  (43
 (how-would-the-population-conceptualise2 (find-data (first saved-agents) 'context)
                                          (find-data (first saved-agents) 'topic)
                                          ;(find-data (first saved-agents) 'topic)
-                                         (list "sififo" "kemuba" )
+                                         (list "rapiva" "masuvu" )
                                          ;(list "nowite" "boworu")
                                          ;(list "gelowo" "fimomu")
                                          ;(list "deweti" "revuno")
                                          )
+
+(setf rapiva (find-form-in-lexicon (lexicon (find-agent 23)) "rapiva"))
 
 (let ((applied-cxn (find-form-in-lexicon (lexicon (first (agents *experiment*))) "serudo"))
       (other-cxn (find-form-in-lexicon (lexicon (first (agents *experiment*))) "fuvoki")))
@@ -289,7 +345,7 @@ nerota: ((485041 . 14410)  (457620 . 6990) (453294 . 2927) (448527 . 10199)  (43
 (add-cxn-to-interface (nth 13 (lexicon (first (agents *experiment*)))))
 
 
-(display-lexicon (find-agent 30) :sort t)
+(display-lexicon (find-agent 29) :sort t)
 
 
 ;;;;
@@ -297,15 +353,14 @@ nerota: ((485041 . 14410)  (457620 . 6990) (453294 . 2927) (448527 . 10199)  (43
 (cl-store:store *experiment*
                 (babel-pathname :directory '("experiments"
                                              "concept-emergence2")
-                                :name "2023-06-19-area-roughness-color-421k"
+                                :name "2023-06-19-3-area-roughness-color-500k"
                                 :type "store"))
         
-(setf *experiment*
+(setf *experiment2*
       (cl-store:restore (babel-pathname :directory '("experiments"
-                                                     "concept-emergence"
-                                                     "logging"
-                                                     "stored_experiments")
-                                        :name "2023-03-21-exp22"
+                                                     "concept-emergence2"
+                                                     "logging")
+                                        :name "2023-06-19-3-area-roughness-color-500k"
                                         :type "store")))
 
 

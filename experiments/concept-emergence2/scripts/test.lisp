@@ -24,7 +24,7 @@
 (defun add-raw-powers (agent discriminating-cxns form)
   (let* ((cxn (find (find-form-in-lexicon (lexicon agent) form) discriminating-cxns :key #'(lambda (tuple) (assqv :cxn tuple))))
          (power (if cxn
-                  (abs (- (sigmoid (assqv :topic-sim cxn)) (sigmoid (assqv :best-other-sim cxn))))
+                  (abs (- (assqv :topic-sim cxn) (assqv :best-other-sim cxn)))
                   nil)))
     (if cxn
       (add-element `((h3) ,(format nil "~a: ent: ~,3f - power: ~,3f => ~,3f"
@@ -70,12 +70,6 @@
     (setf (st-dev (distribution (second (prototypes new-concept)))) (stdev new-data))
     new-concept))
 
-(defun discriminative-power (concept topic context)
-  (abs (- (sigmoid (weighted-similarity topic concept))
-          (sigmoid (loop for object in (remove topic (objects context))
-                         maximize (weighted-similarity object concept))))))
-
-
 
 (defun find-form-in-lexicon (lexicon form)
   "Given a lexicon and a form in underscore-notation, returns the associated cxn of the form."
@@ -104,10 +98,7 @@
           else
             do (return counter))))
 
-
-(progn
-  
-  (defun is-discriminative (object other-objects)
+(defun is-discriminative-strict (object other-objects)
     "Checks if the object has a single channel dimension that is different from all other objects."
     (loop with found = nil
           for (attr . val) in (description object)
@@ -118,33 +109,78 @@
             do (if found
                  (return nil)
                  (setf found t))
-          finally (return t)))
+          finally (return found)))
 
-  (length saved)
+(defun find-possible-scenes (saved)
+  (loop for tuple in saved
+        for saved-agent = (first tuple)
+        for saved-scene = (second tuple)
+        for saved-topic = (third tuple)
+        for channels-in-play = (get-configuration *experiment* :clevr-channels)
+        for symbolic-clevr-context = (get-scene-by-index (world *experiment*) saved-scene)
+        for cle-context = (clevr->simulated symbolic-clevr-context channels-in-play)
+        for cle-topic = (find saved-topic (objects cle-context)
+                              :test (lambda (x el) (equal (description x) (description el))))
+        if cle-topic
+          do (setf possible (is-discriminative-strict cle-topic (remove cle-topic (objects cle-context))))
+        if possible
+          collect (cons saved-scene possible)))
 
-  (setf possible-scenes (loop for tuple in saved
-                              for saved-agent = (first tuple)
-                              for saved-scene = (second tuple)
-                              for saved-topic = (third tuple)
-                              for channels-in-play = (get-configuration *experiment* :clevr-channels)
-                              for symbolic-clevr-context = (get-scene-by-index (world *experiment*) saved-scene)
-                              for cle-context = (clevr->simulated symbolic-clevr-context channels-in-play)
-                              for cle-topic = (find saved-topic (objects cle-context)
-                                                    :test (lambda (x el) (equal (description x) (description el))))
-                              for possible = (is-discriminative cle-topic (remove cle-topic (objects cle-context)))
-                              if possible
-                                collect (cons saved-scene possible)))
+(defun testi ()
+  (progn
+    (wi::reset)
+    (deactivate-all-monitors)
+    ;; run to find a scene without lex coherence
+    (loop with saved = '()
+          for i from 1 to 5000
+          for lex-coherence = (find-data (current-interaction *experiment*) 'lexicon-coherence)
+          for speaker = (speaker (first (interactions *experiment*)))
+          for hearer = (hearer (first (interactions *experiment*)))
+          if (not lex-coherence)
+            do (progn
+                 (setf saved (cons (list (interacting-agents (current-interaction *experiment*))
+                                         (index (current-scene (world *experiment*)))
+                                         (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic))
+                                   saved
+                                   ))
+                 (run-interaction *experiment*)
+                 )
+          else
+            do (progn
+                 ;(format t "~a " i)
+                 (run-interaction *experiment*))
+          finally (return saved))))
+
+(defun testi2 (agent form)
+  (progn
+    (wi::reset)
+    (deactivate-all-monitors)
+    ;; run to find a scene without lex coherence
+    (loop with saved = '()
+          for i from 1 to 5000
+          for lex-coherence = (find-data (current-interaction *experiment*) 'lexicon-coherence)
+          for speaker = (speaker (first (interactions *experiment*)))
+          for hearer = (hearer (first (interactions *experiment*)))
+          if (and (not lex-coherence)
+                  (eq agent (first (interacting-agents (current-interaction *experiment*))))
+                  (string-equal form
+                                (form (get-data (first (interacting-agents (current-interaction *experiment*))) 'applied-cxn))))
+            do (progn
+                 (setf saved (cons (list (interacting-agents (current-interaction *experiment*))
+                                         (index (current-scene (world *experiment*)))
+                                         (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic))
+                                   saved
+                                   ))
+                 (run-interaction *experiment*)
+                 )
+          else
+            do (progn
+                 ;(format t "~a " i)
+                 (run-interaction *experiment*))
+          finally (return saved))))
 
 
-  (length saved)
-  (setf not-possible-amount (- (length saved) (length possible-scenes)))
 
-
-
-  (let ((x (length saved)))
-    (format nil "~a vs ~a"
-            (float (/ (- 5000 (length saved)) 5000))
-            (float (/ (- 5000 (- (length saved) not-possible-amount)) 5000)))))
 
 (defun run-and-show-interactions (experiment interactions-count)
   (activate-monitor print-a-dot-for-each-interaction)
