@@ -15,6 +15,12 @@
    :directory '("experiments" "grammar-learning" "cooking" "data")
    :name "benchmark-instructions" :type "jsonl"))
 
+;; execute the steps of each recipe
+;; extract accessible entities (except kitchen states)
+;; and add bind statements
+;; The last element of the bind statement should not be
+;; the instance, but the class name of the instance.
+
 ;(all-recipe-xml-files->json *input-files* *output-file*)
 
 (defun all-recipe-xml-files->json (list-of-paths output-file)
