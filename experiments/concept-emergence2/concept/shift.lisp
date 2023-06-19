@@ -13,6 +13,7 @@
   (loop for prototype in (prototypes concept) ;; assumes prototype
         for interaction-number = (interaction-number (current-interaction (experiment agent)))
         do (update-prototype interaction-number prototype topic :save-distribution-history (get-configuration agent :save-distribution-history)))
+  
   ;; 2. determine which attributes should get an increase
   ;;    in weight, and which should get a decrease.
   (let* ((similarity-table (make-similarity-table agent concept))
@@ -34,16 +35,18 @@
     (loop for prototype in (prototypes concept)
           ;; if part of the contributing prototypes -> reward
           if (member (channel prototype) best-subset :key #'channel)
-            do (update-weight concept
-                              (channel prototype)
-                              (get-configuration agent :weight-incf)
-                              (get-configuration agent :weight-update-strategy))
+            do (progn
+                 ;(update-history-weight agent prototype (get-configuration agent :weight-incf))        
+                 (update-weight prototype
+                                (get-configuration agent :weight-incf)
+                                (get-configuration agent :weight-update-strategy)))
             ;; otherwise -> punish
           else
-            do (update-weight concept
-                              (channel prototype)
-                              (get-configuration agent :weight-decf)
-                              (get-configuration agent :weight-update-strategy)))))
+            do (progn
+                 ;(update-history-weight agent prototype (get-configuration agent :weight-decf))        
+                 (update-weight prototype
+                                (get-configuration agent :weight-decf)
+                                (get-configuration agent :weight-update-strategy))))))
 
 ;; -----------------------
 ;; + Utils for alignment +

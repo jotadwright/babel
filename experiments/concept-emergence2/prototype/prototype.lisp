@@ -12,7 +12,9 @@
    (weight-mode
     :accessor weight-mode :initarg :weight-mode :type keyword)
    (distribution
-    :initarg :distribution :accessor distribution :initform nil :type distribution))
+    :initarg :distribution :accessor distribution :initform nil :type distribution)
+   (history
+    :initarg :history :accessor history :initform '() :type list))
   (:documentation "A prototype is a mapping between a feature channel and a distribution."))
 
 (defmethod copy-object ((prototype prototype))
@@ -20,7 +22,8 @@
                  :channel (channel prototype)
                  :weight (copy-object (weight-val prototype))
                  :weight-mode (copy-object (weight-mode prototype))
-                 :distribution (copy-object (distribution prototype))))
+                 :distribution (copy-object (distribution prototype))
+                 :history (copy-object (history prototype))))
 
 (defmethod weight ((prototype prototype))
   (case (weight-mode prototype)
