@@ -601,12 +601,14 @@
 
 (defmethod meaning-predicates-with-variables (meaning (mode (eql :irl)))
   "Transform meaning network with constants to meaning network with variables."
-  (loop for predicate in meaning
-        collect (cons (first predicate)
-                      (loop for elem in (rest predicate)
-                            if (search "?" (mkstr elem))
-                            collect (variablify elem)
-                            else collect elem))))
+    (loop for predicate in meaning
+          collect (if (equal (first predicate) 'bind)
+                    (list (first predicate)
+                          (second predicate)
+                          (variablify (third predicate))
+                          (fourth predicate))
+                    (cons (first predicate)
+                          (mapcar #'variablify (rest predicate))))))
 
 (defmethod meaning-predicates-with-variables (meaning (mode (eql :geo)))
   "Transform meaning network with constants to meaning network with variables."
