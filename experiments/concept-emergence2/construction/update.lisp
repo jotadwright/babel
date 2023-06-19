@@ -19,3 +19,9 @@
     (setf (score cxn) lower-bound)
     (when forget-cxns
       (setf (lexicon agent) (remove cxn (lexicon agent))))))
+
+(defmethod update-history (agent cxn)
+  "Keeps track how many times and when the cxn is used."
+  (let ((scene-idx (index (current-scene (world (experiment agent)))))
+        (interaction-number (interaction-number (current-interaction (experiment agent)))))
+    (setf (history cxn) (cons (cons interaction-number scene-idx) (history cxn)))))

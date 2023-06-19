@@ -25,8 +25,10 @@
                          #-(or :win32 :windows) "Arial")
         (s-dot::height "0.01"))
        (s-dot::node ((s-dot::id ,(mkdotstr (id (meaning cxn))))
-                     (s-dot::label ,(format nil "~a"
-                                            (mkdotstr (id (meaning cxn)))))
+                     (s-dot::label ,(format nil "~a [n: ~a, l: ~a]"
+                                            (mkdotstr (id (meaning cxn)))
+                                            (length (history cxn))
+                                            (first (history cxn))))
                      (s-dot::fontcolor "#AA0000"))))
      g)
     ;; form node
