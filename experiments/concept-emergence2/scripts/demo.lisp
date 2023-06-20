@@ -5,7 +5,7 @@
 
 ;; experiments with entrenchment values - keep the same
 (progn
-  (setf *scene-ids* (read-scene-ids "10-all.lisp"))
+  (setf *scene-ids* (read-scene-ids "3-color-area-roughness.lisp"))
   (setf *subset-size* (length *scene-ids*))
   (defparameter *baseline-simulated*
     (make-configuration
@@ -24,11 +24,11 @@
                  ,'area ;; size
                  ,'color ;; color
                  ,'roughness
-                 ,'sides-and-corners
-                 ,'wh-ratio
-                 ,'xpos
-                 ,'ypos
-                 ,'zpos
+                 ;,'sides-and-corners
+                 ;,'wh-ratio
+                 ;,'xpos
+                 ;,'ypos
+                 ;,'zpos
                  )
                 (:scene-ids . ,(first-n *subset-size* *scene-ids*))
                 (:current-scene-idx . 0)
@@ -66,8 +66,8 @@
 (progn
   (wi::reset)
   (deactivate-all-monitors)
-  ;(activate-monitor export-communicative-success)
-  ;(activate-monitor export-lexicon-coherence)
+  (activate-monitor export-communicative-success)
+  (activate-monitor export-lexicon-coherence)
   (activate-monitor print-a-dot-for-each-interaction)
   (format t "~%---------- NEW GAME ----------~%")
   (loop for i from 1 to 500000
@@ -131,12 +131,12 @@
   (setf saved-topic (find-data (first saved-agents) 'topic)))
 
 
-(let ((index 3))
+(let ((index 1))
   (setf saved-agents (first (nth index saved)))
   (setf saved-scene  (second (nth index saved)))
   (setf saved-topic (third (nth index saved))))
 
-(progn
+#|(progn
   (wi::reset)
   (deactivate-all-monitors)
   (activate-monitor trace-interaction-in-web-interface)
@@ -150,7 +150,7 @@
   #|(run-interaction *experiment*
                    :scene saved-scene
                    :agents (reverse saved-agents))|#
-  )
+  )|#
 
 ;; run the saved scene agent
 (progn
