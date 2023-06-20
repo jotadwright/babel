@@ -28,7 +28,12 @@
 (defmethod weight ((prototype prototype))
   (case (weight-mode prototype)
     (:standard (weight-val prototype))
-    (:j-interpolation (sigmoid (weight-val prototype)))))
+    (:j-interpolation (j-interpolation (weight-val prototype)))))
+
+(defun j-interpolation (value)
+  (cond ((< value -15) 0)
+        ((> value  15) 1)
+        (t (sigmoid value))))
 
 (defun sigmoid (x &key (c -1/2))
   "Sigmoid function where c changes the slope of the function. 
