@@ -13,6 +13,7 @@
   (loop for prototype in (prototypes concept) ;; assumes prototype
         for interaction-number = (interaction-number (current-interaction (experiment agent)))
         do (update-prototype interaction-number prototype topic :save-distribution-history (get-configuration agent :save-distribution-history)))
+  
   ;; 2. determine which attributes should get an increase
   ;;    in weight, and which should get a decrease.
   (let* ((similarity-table (make-similarity-table agent concept))
@@ -31,23 +32,19 @@
       ;; reward all attributes...
       (setf best-subset (prototypes concept)))
     ;; 3. actually update the weight scores
-    (loop with rewarded-attributes = nil
-          with punished-attributes = nil
-          for prototype in (prototypes concept)
+    (loop for prototype in (prototypes concept)
           ;; if part of the contributing prototypes -> reward
           if (member (channel prototype) best-subset :key #'channel)
             do (progn
-                 (push (channel prototype) rewarded-attributes)
-                 (update-weight concept
-                                (channel prototype)
+                 ;(update-history-weight agent prototype (get-configuration agent :weight-incf))        
+                 (update-weight prototype
                                 (get-configuration agent :weight-incf)
                                 (get-configuration agent :weight-update-strategy)))
             ;; otherwise -> punish
           else
             do (progn
-                 (push (channel prototype) punished-attributes)
-                 (update-weight concept
-                                (channel prototype)
+                 ;(update-history-weight agent prototype (get-configuration agent :weight-decf))        
+                 (update-weight prototype
                                 (get-configuration agent :weight-decf)
                                 (get-configuration agent :weight-update-strategy))))))
 
