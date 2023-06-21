@@ -90,5 +90,21 @@
                  (set-data interaction 'attribute-type (get-symbolic-discriminative-feature ecl-topic ecl-context))
                  (loop for agent in (interacting-agents experiment)
                        do (set-data agent 'topic ecl-topic))))))|#
-            
+
+(defun find-experiment-dir (base-dir exp-number)
+  "Finds the path to the directory of an experiment." 
+  (let* ((experiment-directories (uiop:subdirectories (asdf:system-relative-pathname "cle" (format nil "logging/~a/experiments/" "similarity"))))
+         (exp-dir (loop for exp-dir in experiment-directories
+                        for found-exp-number = (parse-integer (last-elt (split-sequence:split-sequence #\- (last-elt (pathname-directory exp-dir)))))
+                        when (equal exp-number found-exp-number)
+                          do (loop-finish)
+                        finally
+                          (return exp-dir))))
+    exp-dir))
+
+(defun load-experiment (store-dir &key (name "history"))
+  "Loads and returns the store object in the given directory." 
+  (let ((store-path (merge-pathnames (make-pathname :name name :type "store")
+                                     store-dir)))
+    (cl-store:restore store-path)))     
           
