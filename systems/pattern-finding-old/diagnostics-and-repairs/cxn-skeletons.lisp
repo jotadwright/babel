@@ -121,4 +121,101 @@
                                 :meaning ,(meaning-predicates->hash-meaning meaning (get-configuration cxn-inventory :meaning-representation-formalism)))
                    :score ,initial-cxn-score 
                    :cxn-inventory ,cxn-inventory)))))
+
+(defun contributing-units-apply-last-skeleton (number-of-units)
+  (loop repeat number-of-units
+        for unit-serial-number from 1
+        for unit-name = (intern (upcase (format nil "?slot-unit-~a" unit-serial-number)))
+        collect `(,unit-name
+                  (footprints (used-as-slot-filler)))))
+
+(defun conditional-units-apply-last-skeleton (form-arg-groups meaning-arg-groups
+                                              lex-classes-slot)
+  (loop for lex-class in lex-classes-slot
+        for form-arg-group in form-arg-groups
+        for unit-serial-number from 1
+        for unit-name = (intern (upcase (format nil "?slot-unit-~a" unit-serial-number)))
+        for group-id = (first form-arg-group)
+        for meaning-arg-group = (find group-id meaning-arg-groups :key #'first)
+        collect `(,unit-name
+                  (meaning-args ,(rest meaning-arg-group))
+                  (syn-cat (lex-class ,lex-class))
+                  (footprints (NOT used-as-slot-filler))
+                  --
+                  (footprints (NOT used-as-slot-filler))
+                  (syn-cat (lex-class ,lex-class))
+                  (form-args ,(rest form-arg-group)))))
+
+(defun contributing-units-apply-first-skeleton (form-arg-groups meaning-arg-groups
+                                                lex-classes-slot)
+  (loop for lex-class in lex-classes-slot
+        for form-arg-group in form-arg-groups
+        for unit-serial-number from 1
+        for unit-name = (intern (upcase (format nil "?slot-unit-~a" unit-serial-number)))
+        for group-id = (first form-arg-group)
+        for meaning-arg-group = (find group-id meaning-arg-groups :key #'first)
+        collect `(,unit-name
+                  (footprints (used-as-slot-filler))
+                  (syn-cat (lex-class ,lex-class))
+                  (meaning-args ,(rest meaning-arg-group))
+                  (form-args ,(rest form-arg-group)))))
+
+(defun item-based-cxn-apply-last-from-units-skeleton (bare-cxn-name cxn-name lex-class-item-based
+                                                      form meaning top-lvl-form-args top-lvl-meaning-args
+                                                      initial-cxn-score cxn-inventory
+                                                      contributing-slot-units conditional-slot-units slot-unit-names)
+  (second
+   (multiple-value-list
+    (eval
+     `(def-fcg-cxn ,cxn-name
+                   ((?item-based-unit
+                     (syn-cat (phrase-type item-based)
+                              (lex-class ,lex-class-item-based))
+                     (meaning-args ,top-lvl-meaning-args)
+                     (form-args ,top-lvl-form-args)
+                     (subunits ,slot-unit-names))
+                    ,@contributing-slot-units
+                    <-
+                    (?item-based-unit
+                     (HASH meaning ,meaning)
+                     --
+                     (HASH form ,form))
+                    ,@conditional-slot-units)
+                   :attributes (:label fcg::routine
+                                :cxn-type item-based
+                                :bare-cxn-name ,bare-cxn-name
+                                :string ,(form-predicates->hash-string form)
+                                :meaning ,(meaning-predicates->hash-meaning meaning (get-configuration cxn-inventory :meaning-representation-formalism)))
+                   :score ,initial-cxn-score 
+                   :cxn-inventory ,cxn-inventory)))))
+
+(defun item-based-cxn-apply-first-from-units-skeleton (bare-cxn-name cxn-name lex-class-item-based
+                                                       form meaning top-lvl-form-args top-lvl-meaning-args
+                                                       initial-cxn-score cxn-inventory
+                                                       contributing-slot-units slot-unit-names)
+  (second
+   (multiple-value-list
+    (eval
+     `(def-fcg-cxn ,cxn-name
+                   ((?item-based-unit
+                     (syn-cat (phrase-type item-based)
+                              (lex-class ,lex-class-item-based))
+                     (meaning-args ,top-lvl-meaning-args)
+                     (form-args ,top-lvl-form-args)
+                     (subunits ,slot-unit-names))
+                    ,@contributing-slot-units
+                    <-
+                    (?item-based-unit
+                     (HASH meaning ,meaning)
+                     --
+                     (HASH form ,form)))
+                   :attributes (:label fcg::meta-only
+                                :cxn-type item-based
+                                :bare-cxn-name ,bare-cxn-name
+                                :string ,(form-predicates->hash-string form)
+                                :meaning ,(meaning-predicates->hash-meaning meaning (get-configuration cxn-inventory :meaning-representation-formalism)))
+                   :score ,initial-cxn-score 
+                   :cxn-inventory ,cxn-inventory)))))
+        
+        
     

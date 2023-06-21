@@ -34,6 +34,9 @@
 ;;;; Include partial analyses!!! Get the top-args and slot-args from
 ;;;; the final transient structure before anti-unifying???
 ;;;; Anti-unify unit per unit to keep cxns with single slot???
+;;;; Or make the anti-unification with item-based cxn independant
+;;;; of the number of slots; and re-use the partial analysis repairs
+;;;; from before?
 
 ;;;; Add recursion!
 
@@ -43,12 +46,16 @@
   (notify reset-monitors)
   (reset-id-counters)
   (defparameter *experiment*
-    (make-instance 'pattern-finding-experiment)))
+    (make-instance 'pattern-finding-experiment
+                   :entries `((:corpus-directory . ,(babel-pathname :directory '("experiments" "grammar-learning" "cooking" "data")))
+                              (:corpus-file . ,(make-pathname :name "benchmark-ingredients-uniform" :type "jsonl"))))))
+
+(length (corpus *experiment*))
 
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 10)
+(run-series *experiment* 262)
 
 ;;;; Showing the cxn inventory and categorial network
 
@@ -112,6 +119,84 @@
   (defparameter *experiment*
     (make-instance 'pattern-finding-experiment
                    :entries '((:mode . :testing)))))
+
+;;; Domonstrate anti-unification with an item-based cxn
+;;; with more than one slot!
+(def-fcg-cxn what-color-is-the-x-y-z-cxn
+             ((?item-based-unit
+               (syn-cat (phrase-type item-based)
+                        (lex-class what-color-is-the-cat-1))
+               (meaning-args (?target))
+               (form-args nil)
+               (subunits (?x-slot ?y-slot ?z-slot)))
+              <-
+              (?item-based-unit
+               (HASH meaning ((get-context ?context)
+                              (filter ?set-1 ?context ?z-marg)
+                              (filter ?set-2 ?set-1 ?y-marg)
+                              (filter ?set-3 ?set-2 ?x-marg)
+                              (unique ?obj-1 ?set-3)
+                              (query ?target ?obj-1 ?attr-1)
+                              (bind attribute ?attr-1 color)))
+               --
+               (HASH form ((string ?what "what")
+                           (string ?color "color")
+                           (string ?is "is")
+                           (string ?the "the")
+                           (meets ?what ?color)
+                           (meets ?color ?is)
+                           (meets ?is ?the)
+                           (meets ?the ?x-farg)
+                           (meets ?x-farg ?y-farg)
+                           (meets ?y-farg ?z-farg))))
+              (?x-slot
+               (meaning-args (?x-marg))
+               (syn-cat (lex-class what-color-is-the-slot-cat-1))
+               --
+               (form-args (?x-farg))
+               (syn-cat (lex-class what-color-is-the-slot-cat-1)))
+              (?y-slot
+               (meaning-args (?y-marg))
+               (syn-cat (lex-class what-color-is-the-slot-cat-2))
+               --
+               (form-args (?y-farg))
+               (syn-cat (lex-class what-color-is-the-slot-cat-2)))
+              (?z-slot
+               (meaning-args (?z-marg))
+               (syn-cat (lex-class what-color-is-the-slot-cat-3))
+               --
+               (form-args (?z-farg))
+               (syn-cat (lex-class what-color-is-the-slot-cat-3))))
+             :attributes (:label fcg::routine
+                          :cxn-type item-based
+                          :string "what"
+                          :meaning query)
+             :score 0.5 
+             :cxn-inventory *cxn-inventory*)
+(add-categories '(what-color-is-the-cat-1
+                  what-color-is-the-slot-cat-1
+                  what-color-is-the-slot-cat-2
+                  what-color-is-the-slot-cat-3
+                  large-cat-1 metal-cat-1 cube-cat-1)
+                (categorial-network *cxn-inventory*))
+(add-link 'what-color-is-the-slot-cat-1 'large-cat-1 (categorial-network *cxn-inventory*))
+(add-link 'what-color-is-the-slot-cat-2 'metal-cat-1 (categorial-network *cxn-inventory*))
+(add-link 'what-color-is-the-slot-cat-3 'cube-cat-1 (categorial-network *cxn-inventory*))
+
+(setf (corpus *experiment*)
+      `(("What size is the tiny matte cylinder?"
+         ,@(fresh-variables
+            '((get-context ?context)
+              (filter ?set-1 ?context ?shape-1)
+              (bind shape ?shape-1 cylinder)
+              (filter ?set-2 ?set-1 ?material-1)
+              (bind material ?material-1 rubber)
+              (filter ?set-3 ?set-2 ?size-1)
+              (bind size ?size-1 small)
+              (unique ?obj-1 ?set-3)
+              (query ?tgt ?obj-1 ?attr-1)
+              (bind attribute ?attr-1 size))))))
+(run-interaction *experiment*)
 
 ;;;; Demonstrate anti-unification with an item-based cxn
 (setf (corpus *experiment*)
