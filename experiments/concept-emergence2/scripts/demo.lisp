@@ -11,8 +11,6 @@
     (make-configuration
      :entries `(;; monitoring
                 (:dot-interval . 1000)
-                (:log-interval . 50000)
-                (:log-duration . 2000)
                 (:save-distribution-history . nil)
                 ;; setup interacting agents
                 (:interacting-agents-strategy . :standard)
@@ -34,7 +32,7 @@
                 (:current-scene-idx . 0)
                 ;; general strategy
                 (:strategy . :times)
-                (:similarity-threshold . 0.2)
+                (:similarity-threshold . 0.1)
 
                 ;; entrenchment of constructions
                 (:initial-cxn-entrenchement . 1/2)
@@ -49,7 +47,7 @@
 
                 ;; prototype weight inits
                 (:weight-update-strategy . :j-interpolation)
-                (:initial-weight . 0)
+                (:initial-weight . 35)
                 (:weight-incf . 1)
                 (:weight-decf . -1)
                 )))
@@ -70,7 +68,7 @@
   (activate-monitor export-lexicon-coherence)
   (activate-monitor print-a-dot-for-each-interaction)
   (format t "~%---------- NEW GAME ----------~%")
-  (loop for i from 1 to 500000
+  (loop for i from 1 to 2000
         do (run-interaction *experiment*)))
 
 
