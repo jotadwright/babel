@@ -183,6 +183,29 @@
       (setf name-string (make-symbol name-string)))
     (intern (string-downcase (symbol-name name-string)) :pattern-finding-old)))
 
+;;;;
+;; Extracting lex class from units
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun extract-lex-class-unit (unit)
+  (let ((syn-cat (fcg-unit-feature-value unit 'syn-cat)))
+    (second (find 'lex-class syn-cat :key #'first))))
+
+;;;;;
+;; Extracting units from cxns
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun extract-item-based-slot-units (cxn)
+  (unless (holistic-cxn-p cxn)
+    (if (routine-cxn-p cxn)
+      (loop for unit in (conditional-part cxn)
+            when (and (fcg-unit-feature unit 'meaning-args)
+                      (fcg-unit-feature unit 'form-args))
+            collect unit)
+      (loop for unit in (contributing-part cxn)
+            unless (fcg-unit-feature unit 'subunits)
+            collect unit))))
+
 
 ;;;;;
 ;; Extracting lex classes from cxns
@@ -193,34 +216,26 @@
    Works for both routine and meta cxns."
   (let* ((unit-to-search
           (if (routine-cxn-p cxn)
-            (fcg::unit-structure (first (contributing-part cxn)))
-            (comprehension-lock (first (conditional-part cxn)))))
-         (syn-cat (find 'syn-cat unit-to-search :key #'first)))
-    (second (find 'lex-class (rest syn-cat) :key #'first))))
+            (first (contributing-part cxn))
+            (first (conditional-part cxn))))
+         (syn-cat (fcg-unit-feature-value unit-to-search 'syn-cat)))
+    (second (find 'lex-class syn-cat :key #'first))))
 
 (defun extract-lex-class-slot-item-based-cxn (cxn)
   "Extracts the lex classes from the slots of an item-based cxn.
    Works for both routine and meta cxns."
-  (let* ((units-to-search
-          (if (routine-cxn-p cxn)
-            (loop for unit in (conditional-part cxn)
-                  when (find 'syn-cat (comprehension-lock unit) :key #'first)
-                  collect (comprehension-lock unit))
-            (loop for unit in (contributing-part cxn)
-                  unless (find 'subunits (fcg::unit-structure unit) :key #'first)
-                  collect (fcg::unit-structure unit)))))
-    (loop for unit in units-to-search
-          for syn-cat = (find 'syn-cat unit :key #'first)
-          for lex-class = (second (find 'lex-class (rest syn-cat) :key #'first))
-          collect lex-class)))
+  (loop for unit in (extract-item-based-slot-units cxn)
+        for syn-cat = (fcg-unit-feature-value unit 'syn-cat)
+        for lex-class = (second (find 'lex-class syn-cat :key #'first))
+        collect lex-class))
 
 (defun extract-lex-class-item-based-cxn (cxn)
   (let* ((unit-to-search
           (loop for unit in (contributing-part cxn)
                 when (find 'subunits (fcg::unit-structure unit) :key #'first)
-                return (fcg::unit-structure unit)))
-         (syn-cat (find 'syn-cat unit-to-search :key #'first)))
-    (second (find 'lex-class (rest syn-cat) :key #'first))))
+                return unit))
+         (syn-cat (fcg-unit-feature-value unit-to-search 'syn-cat)))
+    (second (find 'lex-class syn-cat :key #'first))))
 
 (defun lex-class (unit)
   (let* ((syn-cat (find 'syn-cat (unit-body unit) :key #'first))
