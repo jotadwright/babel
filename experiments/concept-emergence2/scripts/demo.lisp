@@ -5,14 +5,12 @@
 
 ;; experiments with entrenchment values - keep the same
 (progn
-  (setf *scene-ids* (read-scene-ids "10-all.lisp"))
+  (setf *scene-ids* (read-scene-ids "3-color-area-roughness.lisp"))
   (setf *subset-size* (length *scene-ids*))
   (defparameter *baseline-simulated*
     (make-configuration
      :entries `(;; monitoring
                 (:dot-interval . 1000)
-                (:log-interval . 50000)
-                (:log-duration . 2000)
                 (:save-distribution-history . nil)
                 ;; setup interacting agents
                 (:interacting-agents-strategy . :standard)
@@ -24,17 +22,17 @@
                  ,'area ;; size
                  ,'color ;; color
                  ,'roughness
-                 ,'sides-and-corners
-                 ,'wh-ratio
-                 ,'xpos
-                 ,'ypos
-                 ,'zpos
+                 ;,'sides-and-corners
+                 ;,'wh-ratio
+                 ;,'xpos
+                 ;,'ypos
+                 ;,'zpos
                  )
                 (:scene-ids . ,(first-n *subset-size* *scene-ids*))
                 (:current-scene-idx . 0)
                 ;; general strategy
                 (:strategy . :times)
-                (:similarity-threshold . 0.2)
+                (:similarity-threshold . 0)
 
                 ;; entrenchment of constructions
                 (:initial-cxn-entrenchement . 1/2)
@@ -49,7 +47,7 @@
 
                 ;; prototype weight inits
                 (:weight-update-strategy . :j-interpolation)
-                (:initial-weight . 0)
+                (:initial-weight . 35)
                 (:weight-incf . 1)
                 (:weight-decf . -1)
                 )))
@@ -116,6 +114,7 @@
   (setf saved (testi))
   (float (/ (- 5000 (length saved)) 5000)))
 
+(length saved)
 
 
 (progn
@@ -131,12 +130,12 @@
   (setf saved-topic (find-data (first saved-agents) 'topic)))
 
 
-(let ((index 3))
+(let ((index 0))
   (setf saved-agents (first (nth index saved)))
   (setf saved-scene  (second (nth index saved)))
   (setf saved-topic (third (nth index saved))))
 
-(progn
+#|(progn
   (wi::reset)
   (deactivate-all-monitors)
   (activate-monitor trace-interaction-in-web-interface)
@@ -150,7 +149,25 @@
   #|(run-interaction *experiment*
                    :scene saved-scene
                    :agents (reverse saved-agents))|#
-  )
+  )|#
+
+(progn
+  (wi::reset)
+  (deactivate-all-monitors)
+  (activate-monitor trace-interaction-in-web-interface)
+  (loop for tuple in saved
+        for saved-agents = (first tuple)
+        for saved-scene =  (second tuple)
+        for saved-topic = (third tuple)
+        do (add-element `((h3) ,(format nil "Topic ~a" (description saved-topic))))
+           (run-interaction *experiment*
+                            :scene saved-scene
+                            :agents saved-agents
+                            :topic saved-topic)))
+         
+          
+       
+
 
 ;; run the saved scene agent
 (progn
@@ -287,7 +304,10 @@
                    :agents (reverse saved-agents))|#
   )
 
-
+(let ((total1 (sum (list 155 131 128 76 118 116 82 96 49 54)))
+      (total2 (sum (list 3 3))))
+  (float (/ total1 (+ total1 total2))))
+;; 99.41%
 
 
 (loop for tuple in saved
@@ -306,7 +326,7 @@
 
        
 
-(display-lexicon (find-agent 31) :sort t)
+(display-lexicon (find-agent 42) :sort t)
 
 
 
@@ -394,14 +414,14 @@
 (cl-store:store *experiment*
                 (babel-pathname :directory '("experiments"
                                              "concept-emergence2")
-                                :name "2023-06-19-3-area-roughness-color-500k"
+                                :name "2023-06-21-3-area-roughness-color-500k"
                                 :type "store"))
         
 (setf *experiment2*
       (cl-store:restore (babel-pathname :directory '("experiments"
                                                      "concept-emergence2"
                                                      "logging")
-                                        :name "2023-06-19-3-area-roughness-color-500k"
+                                        :name "2023-06-21-3-area-roughness-color-500k"
                                         :type "store")))
 
 
