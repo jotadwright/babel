@@ -8,6 +8,14 @@
    (persistent-id :type symbol
       :initarg :persistent-id
       :accessor persistent-id
+      :initform nil)
+   (sim-arguments :type list
+      :initarg :sim-arguments
+      :accessor sim-arguments
+      :initform nil)
+   (sim-identifier :type symbol
+      :initarg :sim-identifier
+      :accessor sim-identifier
       :initform nil))
   (:documentation "Abstract class for all kitchen entities. All items in the cookingbot ontology should subclass of kitchen-entity."))
 
@@ -18,7 +26,14 @@
 
 (defmethod copy-object-content ((original kitchen-entity) (copy kitchen-entity))
   (setf (id copy) (make-id (id original)))
-  (setf (persistent-id copy) (persistent-id original)))
+  (setf (persistent-id copy) (persistent-id original))
+  (setf (sim-arguments copy) (copy-object (sim-arguments original)))
+  (setf (sim-identifier copy) (copy-object (sim-identifier original))))
+
+
+(defclass agent (kitchen-entity)
+  ()
+  (:documentation "The cook."))
 
 
 (defclass conceptualizable (kitchen-entity)
@@ -124,7 +139,11 @@
 
 
 (defclass kitchen-state (container has-temperature)
-  ((kitchen-time :type integer
+  ((constraints :type list
+      :initarg :constraints
+      :accessor constraints
+      :initform nil)
+   (kitchen-time :type integer
       :initarg :kitchen-time
       :accessor kitchen-time
       :initform 0)
@@ -149,6 +168,7 @@
   (when (null (find 'stove (contents orig) :test (lambda (x y) (eq x (type-of y))))) (setf (contents orig) (cons (make-instance 'stove) (contents orig)))))
 
 (defmethod copy-object-content ((original kitchen-state) (copy kitchen-state))
+  (setf (constraints copy) (copy-object (loop for item in (constraints original) collect item)))
   (setf (kitchen-time copy) (copy-object (kitchen-time original)))
   (setf (arrangement copy) (copy-object (arrangement original)))
   (setf (contents copy) (loop for item in (contents original) collect (copy-object item)))
@@ -839,6 +859,11 @@
   (:documentation "A jar lid. Used to cover/close a jar."))
 
 
+(defclass kitchen-floor (kitchen-entity)
+  ()
+  (:documentation "The floor."))
+
+
 (defclass kitchen-cabinet (container)
   ((arrangement 
       :initarg :arrangement
@@ -1099,6 +1124,11 @@
 
 (defmethod copy-object-content ((original butter) (copy butter))
   (setf (keep-refrigerated copy) (copy-object (keep-refrigerated original))))
+
+
+(defclass butter-particle (butter)
+  ()
+  (:documentation "A particle of butter."))
 
 
 (defclass celery (ingredient cuttable)
