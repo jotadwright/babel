@@ -24,8 +24,7 @@
 
 ;; TODO: A way in VR kitchen to search for 'sugar' and it returns the container with 'sugar' in it
 ;; TODO: Type names in the VR kitchen should be ontology with the yaml ontology so this mapping can be removed.
-(defvar *type-mapping* '((mediumbowl             . medium-bowl)
-                         (sugar-bag              . sugar)
+(defvar *type-mapping* '((sugar-bag              . sugar)
                          (butter-bag             . butter)
                          (vanilla-extract-bag    . vanilla-extract)
                          (almond-extract-bag     . almond-extract)
@@ -35,11 +34,10 @@
                          (almondflourparticle    . almond-flour-particle)
                          (vanillaextractparticle . vanilla-extract-particle)
                          (almondextractparticle  . almond-extract-particle)
-                         (kitchencabinet         . kitchen-cabinet)
-                         (countertop             . counter-top)
-                         (bakingtray             . baking-tray)
-                         (bakingsheet            . baking-paper)
+                         (kitchen-cabinet        . kitchen-cabinet)
+                         (baking-sheet           . baking-paper)
                          (kitchenstove           . oven)
+                         (kitchen-counter        . counter-top)
                          (spoon                  . wooden-spoon)
                          (shaker                 . sugar-shaker)
                          (sugar-bag              . white-sugar)
@@ -50,6 +48,7 @@
                          (kitchenstovedoor       . kitchen-stove-door)
                          (freezerdoor            . freezer-door)
                          (doughclump             . dough)
+                         (abe                    . agent)
                          (powdered-white-sugar   . sugar)))
 
 
@@ -64,7 +63,7 @@
 
 
 (defun sim-find-object-by-name (name root)
-  (if (string= (lisp-to-camel-case (symbol-name (sim-identifier root))) name)
+  (if (string= (sim-identifier root) name)
       root
       (when (slot-exists-p root 'contents)
         (loop for child in (contents root)
@@ -96,14 +95,16 @@
   (loop for slot in (closer-mop:class-slots (class-of object))
         for slot-name = (closer-mop:slot-definition-name slot)
         for slot-key-accessor = (car (closer-mop:slot-definition-initargs slot))
-        when (and (member slot-key-accessor alist :key #'car) (member slot-name list-of-slots-to-set))
-          do (setf (slot-value object slot-name) (intern (cdr (assoc slot-key-accessor alist))))))
+        when (and (member slot-key-accessor alist :key #'car)
+                  (member slot-name list-of-slots-to-set))
+          do (setf (slot-value object slot-name)
+                   (intern (cdr (assoc slot-key-accessor alist))))))
 
 (defun make-object (type sim-arguments sim-identifier)
   (if type
       (let* ((custom-state-variables (cdr (assoc :custom-state-variables sim-arguments)))
              (substance (cdr (assoc :substance custom-state-variables)))
-             (object (make-instance (map-type (read-from-string (camel-case-to-lisp (or substance type))))
+             (object (make-instance (map-type (read-from-string (simplified-camel-case-to-lisp (or substance type))))
                                     :sim-arguments sim-arguments
                                     :sim-identifier sim-identifier)))
         (set-object-slots object custom-state-variables '(persistent-id))
@@ -115,9 +116,11 @@
   (labels ((triple-name     (x) (car x))
            (triple-parent   (x) (cadr x))
            (triple-object   (x) (caddr x))
+           (constraint?     (x) (string= "kcon" (cdr (assoc :simtype x))))
+           (object?         (x) (string= "ktree" (cdr (assoc :simtype  x))))
            (triple-children (node edge-list)
              (loop for triple in edge-list
-                   if (and (triple-parent triple) (eq (triple-name node) (triple-parent triple)))
+                   if (and (triple-parent triple) (string= (triple-name node) (triple-parent triple)))
                      collect triple))
            (dfs-traverse (visited edge-list node)
              (if (not (gethash (triple-name node) visited))
@@ -129,24 +132,25 @@
                           (triple-object node))))))
 
     ;; Find the correct keys and values in the JSON to construct the classes
-    (let ((object-list (loop for (name . properties) in lst
-                             for type            = (cdr (assoc :type (cdr (assoc :custom-state-variables properties))))
-                             for parent-string   = (cdr (assoc :at properties))
-                             for parent          = (if parent-string (intern (camel-case-to-lisp parent-string) :keyword))
-                             for object-instance = (make-object type properties name)
-                             when object-instance collect (list name parent object-instance))))
+    (let ((objects (loop for (key . properties) in lst
+                         for type     = (cdr (assoc :type properties))
+                         for parent   = (cdr (assoc :at properties))
+                         for name     = (cdr (assoc :name properties))
+                         for object   = (if (object? properties) (make-object type properties name))
+                         when object collect (list name parent object)))
+          (constraints (loop for item in lst when (constraint? (cdr item)) collect item)))
 
       (make-instance 'kitchen-state
-                     :contents (loop for triple in object-list
+                     :contents (loop for triple in objects
                                      unless (triple-parent triple)
-                                       collect (dfs-traverse (make-hash-table) object-list triple))))))
+                                       collect (dfs-traverse (make-hash-table) objects triple))
+                     :constraints constraints))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                          ;;
 ;;               TO VR                                      ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 (defun slots-to-alist (object)
   (let ((alist-vr-properties (sim-arguments object))
@@ -173,14 +177,18 @@
              (let ((curr-edges '()))
                (if (has-contents root)
                    (dolist (child  (contents root))
-                     (setf curr-edges (append curr-edges (list (list root child)) (sim-my-traverse child)))))
+                     (setf curr-edges (append curr-edges
+                                              (list (list root child))
+                                              (sim-my-traverse child)))))
                curr-edges))
            (sim-transform (edge-tuple)
              (let ((object (cadr edge-tuple)))
-             `( ,(intern (string-upcase (sim-identifier object)) :keyword)
-                .
-                ,(slots-to-alist object)))))
-    (map 'list #'sim-transform (sim-my-traverse kitchen))))
+               `( ,(intern (string-upcase (sim-identifier object)) :keyword)
+                  .
+                  ,(slots-to-alist object)))))
+
+    (append (map 'list #'sim-transform (remove-if-not (lambda (x) (equal x '(:nil)))  (sim-my-traverse kitchen)))
+            (constraints kitchen))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -296,7 +304,7 @@
     kitchen-state-out
     quantity
     unit)
-   ;;
+
    (let* ((total-amount nil)
           (new-kitchen-state nil)
           (unused-container (find-unused-kitchen-entity-vr 'medium-bowl kitchen-state-in))
@@ -332,6 +340,7 @@
     kitchen-state-out
     quantity
     unit)
+
    (let* ((res (request-to-transfer (sim-identifier container-with-input-ingredients)
                                     (sim-identifier target-container)
                                     (symbolic-to-vr-kitchen kitchen-state-in)))
@@ -422,10 +431,10 @@
 
 
 (defprimitive beat ((container-with-mixture transferable-container)
-                   (kitchen-state-out kitchen-state)
-                   (kitchen-state-in kitchen-state)
-                   (container-with-input-ingredients transferable-container)
-                   (beating-tool can-beat))
+                    (kitchen-state-out kitchen-state)
+                    (kitchen-state-in kitchen-state)
+                    (container-with-input-ingredients transferable-container)
+                    (beating-tool can-beat))
 
   ;;Case 1: Mixing tool not specified, use a spoon
   ((kitchen-state-in
@@ -492,64 +501,64 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defprimitive line ((lined-baking-tray lineable)
+(defprimitive line ((lined-thing lineable)
                     (kitchen-state-out kitchen-state)
                     (kitchen-state-in kitchen-state)
-                    (baking-tray lineable)
-                    (baking-paper can-be-lined-with))
+                    (thing-to-be-lined lineable)
+                    (lining-material can-be-lined-with))
 
   ;; Case 1: baking paper to line with is not given
   ((kitchen-state-in
     thing-to-be-lined
     =>
-    lining
+    lining-material
     kitchen-state-out
     lined-thing)
 
-   (let* ((res (request-to-line (slot-value baking-tray 'sim-identifier)
+   (let* ((res (request-to-line (slot-value thing-to-be-lined 'sim-identifier)
                                 'baking-paper
                                 (symbolic-to-vr-kitchen kitchen-state-in)))
           (container-available-at (request-to-get-time))
           (kitchen-state-available-at container-available-at)
-          (lined-baking-tray-name (cdr (assoc :lined-baking-tray res)))
+          (lined-thing-name (cdr (assoc :lined-baking-tray res)))
           (kitchen-state-alist (cdr (assoc :kitchen-state-out res)))
           (new-kitchen-state (vr-to-symbolic-kitchen kitchen-state-alist))
-          (target-tray (sim-find-object-by-name lined-baking-tray-name new-kitchen-state))
-          (new-baking-paper (sim-find-object-by-name "baking-paper" new-kitchen-state)))
+          (target-tray (sim-find-object-by-name lined-thing-name new-kitchen-state))
+          (new-baking-paper (sim-find-object-by-name "baking-paper" new-kitchen-state))) ;; default: baking-paper
 
      ;; TODO: This can be set in the VR kitchen for consistency
-     (setf (slot-value target-tray 'used) t)
-     (setf (slot-value target-tray 'lined-with) new-baking-paper)
+     (setf (slot-value thing-to-be-lined 'used) t)
+     (setf (slot-value thing-to-be-lined 'lined-with) new-baking-paper)
 
-     (bind (lined-baking-tray 1.0 target-tray container-available-at)
+     (bind (lining-material 1.0 new-baking-paper kitchen-state-available-at)
        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-       (lined-thing 1.0 new-baking-paper kitchen-state-available-at))))
+       (lined-thing 1.0 target-tray container-available-at))))
 
 
   ;; Case 1
   ((kitchen-state-in
-    baking-tray
-    baking-paper
+    lining-material
+    thing-to-be-lined
     =>
     kitchen-state-out
-    lined-baking-tray)
+    lined-thing)
 
-   (let* ((res (request-to-line (slot-value baking-tray 'sim-identifier)
-                                (slot-value baking-paper 'sim-identifier)
+   (let* ((res (request-to-line (slot-value thing-to-be-lined 'sim-identifier)
+                                (slot-value lining-material 'sim-identifier)
                                 (symbolic-to-vr-kitchen kitchen-state-in)))
           (container-available-at (request-to-get-time))
           (kitchen-state-available-at container-available-at)
-          (lined-baking-tray-name (cdr (assoc :lined-baking-tray res)))
+          (lined-thing-name (cdr (assoc :lined-baking-tray res)))
           (kitchen-state-alist (cdr (assoc :kitchen-state-out res)))
           (new-kitchen-state (vr-to-symbolic-kitchen kitchen-state-alist))
-          (target-tray (sim-find-object-by-name lined-baking-tray-name new-kitchen-state)))
+          (target-thing-to-be-lined (sim-find-object-by-name lined-thing-name new-kitchen-state)))
 
      ;; TODO: This can be set in the VR kitchen for consistency
      (setf (slot-value target-tray 'used) t)
-     (setf (slot-value target-tray 'lined-with) baking-paper)
+     (setf (slot-value target-tray 'lined-with) lining-material)
 
-     (bind (lined-baking-tray 1.0 target-tray container-available-at)
-           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+     (bind (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+       (lined-thing 1.0 target-thing-to-be-lined container-available-at))))
 
   :primitive-inventory *vr-primitives*)
 
@@ -799,7 +808,7 @@
           (cutting-tool-instance (sim-find-object-by-name (slot-value cuttin-tool 'sim-identifier) new-kitchen-state)))
 
      (bind (cut-object 1.0 cut-object-instance cut-object-available-at)
-           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
 
   :primitive-inventory *vr-primitives*)
 

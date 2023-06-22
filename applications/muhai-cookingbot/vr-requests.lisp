@@ -43,8 +43,7 @@
 (defun request-set-kitchen (kitchen-state-in)
   (cdr (assoc  :response
                (send-request "/abe-sim-command/to-set-kitchen"
-                             (progn ;(break)
-                               (cl-json:encode-json-to-string `((:kitchen-state-in . ,kitchen-state-in))))))))
+                               (cl-json:encode-json-to-string `((:kitchen-state-in . ,kitchen-state-in)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-get-time ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun request-to-get-time ()
