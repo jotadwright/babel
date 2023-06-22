@@ -138,7 +138,8 @@
       (when num-samples
         (setf file-data (subseq file-data 0 num-samples)))
       (when num-epochs
-        (setf file-data (loop repeat num-epochs append file-data)))
+        (setf file-data (loop repeat num-epochs
+                              append (if shufflep (shuffle file-data) file-data))))
       (notify loading-corpus-finished)
       file-data)))
 

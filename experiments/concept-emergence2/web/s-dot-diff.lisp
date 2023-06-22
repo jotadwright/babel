@@ -48,7 +48,7 @@
      g)
 
     ;; feature-channels nodes
-    (loop for prototype in (prototypes (meaning cxn))
+    (loop for prototype in (reverse (prototypes (meaning cxn)))
           for previous-prototype in (prototypes (meaning previous-copy))
           for record = (prototype->s-dot-diff prototype
                                               previous-prototype
@@ -59,15 +59,16 @@
     ;; edges between cxn node and feature-channels
     (loop for prototype in (prototypes (meaning cxn))
           for previous-prototype in (prototypes (meaning previous-copy))
-          for delta = (- (weight prototype) (weight previous-prototype))
+          for delta = (- (weight-val prototype) (weight-val previous-prototype))
           when (> (weight previous-prototype) 0.1)
             do (push
                 `(s-dot::edge
                   ((s-dot::from ,(mkdotstr (id (meaning cxn))))
                    (s-dot::to ,(mkdotstr (downcase (channel prototype))))
-                   (s-dot::label ,(format nil "~,2f~a" (float (weight prototype)) (cond ((> delta 0) (format nil " (+~,2f)" (float delta)))
-                                                                                        ((< delta 0) (format nil " (~,2f)" (float delta)))
-                                                                                        (t ""))))
+                   (s-dot::label ,(format nil "~,2f" (float (weight prototype))
+                                          #|(cond ((> delta 0) (format nil " (+~,2f)" (float delta)))
+                                                ((< delta 0) (format nil " (~,2f)" (float delta)))
+                                                (t ""))|#))
                    (s-dot::labelfontname #+(or :win32 :windows) "Sans"
                                          #-(or :win32 :windows) "Arial")
                    (s-dot::fontcolor ,(cond ((> delta 0) *green*)
@@ -121,7 +122,8 @@
                     (s-dot::label ,(format nil "~a: ~,3f~a ~~ ~,3f~a"
                                            (downcase (mkdotstr (channel prototype)))
                                            (mean (distribution prototype))
-                                           (let ((delta (- (mean (distribution prototype)) (mean (distribution previous-prototype)))))
+                                           (let ((delta (- (mean (distribution prototype))
+                                                           (mean (distribution previous-prototype)))))
                                              (cond ((> delta 0) (format nil " (+~,3f)" (float delta)))
                                                    ((< delta 0) (format nil " (~,3f)" (float delta)))
                                                    (t " (+0.000)")))

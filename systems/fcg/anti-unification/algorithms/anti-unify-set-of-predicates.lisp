@@ -8,7 +8,7 @@
 ;; Anti-unifying sets of predicates ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defconstant +alphabet+ "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+(defparameter *alphabet* "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 (defparameter *alphabet-index* 0)
 (defun next-au-var ()
   (let ((c (mkstr (char +alphabet+ *alphabet-index*))))

@@ -26,8 +26,7 @@
                                                                       :channel channel
                                                                       :weight initial-weight
                                                                       :weight-mode (get-configuration agent :weight-update-strategy)
-                                                                      :distribution distribution
-                                                                      )
+                                                                      :distribution distribution)
                                    collect new-prototype)))
 
 (defmethod copy-object ((concept concept-distribution))

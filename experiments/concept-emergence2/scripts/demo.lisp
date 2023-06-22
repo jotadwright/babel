@@ -5,14 +5,12 @@
 
 ;; experiments with entrenchment values - keep the same
 (progn
-  (setf *scene-ids* (read-scene-ids "color-area-roughness.lisp"))
+  (setf *scene-ids* (read-scene-ids "3-color-area-roughness.lisp"))
   (setf *subset-size* (length *scene-ids*))
   (defparameter *baseline-simulated*
     (make-configuration
      :entries `(;; monitoring
                 (:dot-interval . 1000)
-                (:log-interval . 50000)
-                (:log-duration . 2000)
                 (:save-distribution-history . nil)
                 ;; setup interacting agents
                 (:interacting-agents-strategy . :standard)
@@ -24,11 +22,17 @@
                  ,'area ;; size
                  ,'color ;; color
                  ,'roughness
+                 ;,'sides-and-corners
+                 ;,'wh-ratio
+                 ;,'xpos
+                 ;,'ypos
+                 ;,'zpos
                  )
                 (:scene-ids . ,(first-n *subset-size* *scene-ids*))
                 (:current-scene-idx . 0)
                 ;; general strategy
                 (:strategy . :times)
+                (:similarity-threshold . 0)
 
                 ;; entrenchment of constructions
                 (:initial-cxn-entrenchement . 1/2)
@@ -43,7 +47,7 @@
 
                 ;; prototype weight inits
                 (:weight-update-strategy . :j-interpolation)
-                (:initial-weight . 0)
+                (:initial-weight . 35)
                 (:weight-incf . 1)
                 (:weight-decf . -1)
                 )))
@@ -60,20 +64,42 @@
 (progn
   (wi::reset)
   (deactivate-all-monitors)
-  (activate-monitor export-communicative-success)
-  (activate-monitor export-lexicon-coherence)
+  ;(activate-monitor export-communicative-success)
+  ;(activate-monitor export-lexicon-coherence)
   (activate-monitor print-a-dot-for-each-interaction)
   (format t "~%---------- NEW GAME ----------~%")
-  (loop for i from 1 to 20000
+  (loop for i from 1 to 500000
         do (run-interaction *experiment*)))
+
+
+(display-lexicon (first (agents *experiment*)) :sort t)
+
+#|(progn
+  (wi::reset)
+  (run-interaction *experiment*))
+
+(length (lexicon (first (agents *experiment*))))
+
+(display-lexicon (find-agent 41) :sort t)
+
+(setf agent41 (find-agent 41))
+
+((find-data agent41 'context)
+
+(index (current-scene (world (experiment agent41))))
+
+(loop for form in (list "bivexi" "vekudi" "gixaka" "nerota")
+      for cxn = (find-form-in-lexicon (lexicon (find-agent 41)) form)
+      for history = (history cxn)
+      do (format t "~%~a: ~a" (form cxn) (first-n 10 history)))|#
 
 
 ;; 2. run x interactions with tiiw
 (progn
   (wi::reset)
   (deactivate-all-monitors)
-  (activate-monitor print-a-dot-for-each-interaction)
-  (activate-monitor trace-interaction-in-web-interface)
+  ;(activate-monitor print-a-dot-for-each-interaction)
+  ;(activate-monitor trace-interaction-in-web-interface)
   (loop for idx from 1 to 25
         do (run-interaction *experiment*)))
 
@@ -84,39 +110,17 @@
 
 
 
-
-(defun testi ()
-  (progn
-    (wi::reset)
-    (deactivate-all-monitors)
-    ;; run to find a scene without lex coherence
-    (loop with saved = '()
-          for i from 1 to 5000
-          for lex-coherence = (find-data (current-interaction *experiment*) 'lexicon-coherence)
-          for speaker = (speaker (first (interactions *experiment*)))
-          for hearer = (hearer (first (interactions *experiment*)))
-          if (not lex-coherence)
-            do (progn
-                 ;(setf saved (cons (format nil "% ~a: ~a [~a, ~a] -> topic: ~a" i (index (current-scene (world *experiment*))) (id speaker) (id hearer) (find-data speaker 'topic)) saved))
-                 (setf saved (cons (list (interacting-agents (current-interaction *experiment*))
-                                         (index (current-scene (world *experiment*)))
-                                         (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic))
-                                   saved
-                                   ))
-                 (run-interaction *experiment*)
-                 )
-          else
-            do (progn
-                 ;(format t "~% ~a: ~a [~a, ~a] -> topic: ~a" i (index (current-scene (world *experiment*))) (id speaker) (id hearer) (find-data speaker 'topic))
-                 (run-interaction *experiment*))
-          finally (return saved))))
-
-(setf saved (testi))
+(progn
+  (setf saved (testi))
+  (float (/ (- 5000 (length saved)) 5000)))
 
 (length saved)
 
-(let ((x (length saved)))
-  (float (/ (- 5000 x) 5000)))
+
+(progn
+  (set-scene *experiment* 13459)
+  (sample-topic *experiment* :english-concepts)
+  (show-scene (find-data (find-agent 41) 'context) (find-data (find-agent 41) 'topic)))
 
 => "6: 970 [AGENT-28, AGENT-23] -> topic: <cle-object: attributes: (AREA . 0.708), (R . 0.48700002), (G . 0.298), (B . 0.07), (ROUGHNESS . 0.80100006)>"
 
@@ -126,22 +130,43 @@
   (setf saved-topic (find-data (first saved-agents) 'topic)))
 
 
-(let ((index 1))
+(let ((index 0))
   (setf saved-agents (first (nth index saved)))
   (setf saved-scene  (second (nth index saved)))
   (setf saved-topic (third (nth index saved))))
 
+#|(progn
+  (wi::reset)
+  (deactivate-all-monitors)
+  (activate-monitor trace-interaction-in-web-interface)
+  (run-interaction *experiment*
+                   :scene 3818
+                   :agents saved-agents)
+  (format t "~% ~a - coherence: ~a, and success: ~a"
+          saved-scene
+          (find-data (current-interaction *experiment*) 'lexicon-coherence)
+          (communicated-successfully (current-interaction *experiment*)))
+  #|(run-interaction *experiment*
+                   :scene saved-scene
+                   :agents (reverse saved-agents))|#
+  )|#
 
-
-
-
-(find saved-topic (objects (find-data (first saved-agents) 'context)) :test (lambda (x el) (equal (description x) (description el))))
-
-(loop for object in (objects (find-data (first saved-agents) 'context))
-      when (di)
-
-
-saved-topic
+(progn
+  (wi::reset)
+  (deactivate-all-monitors)
+  (activate-monitor trace-interaction-in-web-interface)
+  (loop for tuple in saved
+        for saved-agents = (first tuple)
+        for saved-scene =  (second tuple)
+        for saved-topic = (third tuple)
+        do (add-element `((h3) ,(format nil "Topic ~a" (description saved-topic))))
+           (run-interaction *experiment*
+                            :scene saved-scene
+                            :agents saved-agents
+                            :topic saved-topic)))
+         
+          
+       
 
 
 ;; run the saved scene agent
@@ -164,54 +189,188 @@ saved-topic
   )
 
 ;; experiment with a specific cxn
-(add-cxn-to-interface (find-form-in-lexicon (lexicon (find-agent 83)) "fimomu"))
-(setf cxn-test (find-form-in-lexicon (lexicon (find-agent 23)) "vereko"))
+(loop for form in (list "giteru" "kavife" "gupaka")
+      do (add-cxn-to-interface (find-form-in-lexicon (lexicon (find-agent 30)) form)))
 
-(string-equal "ragifa" (form (first (lexicon (car (agents *experiment*))))))
+
+(add-cxn-to-interface (find-form-in-lexicon (lexicon (find-agent 30)) "zazoni")
+                      :certainty-threshold 0.00001)
+
+
+(let* ((agent (find-agent 23))
+       (cxn-color (find-form-in-lexicon (lexicon agent) "gupaka"))
+       (cxn-area (find-form-in-lexicon (lexicon agent) "kavife"))
+       (cxn-roughness (find-form-in-lexicon (lexicon agent) "giteru"))
+       (context (find-data agent 'context))
+       (topic (find-data agent 'topic)))
+  (loop for object in (objects context)
+        collect (list (weighted-similarity object (meaning cxn-color))
+                      (weighted-similarity object (meaning cxn-area))
+                      (weighted-similarity object (meaning cxn-roughness)))))
+
+(objects (find-data (find-agent 23) 'context))
+(find-data (find-agent 23) 'topic)
+
+  
+(let* ((agent (find-agent 23))
+       (cxn-color (find-form-in-lexicon (lexicon agent) "gupaka"))
+       (cxn-area (find-form-in-lexicon (lexicon agent) "kavife"))
+       (cxn-roughness (find-form-in-lexicon (lexicon agent) "giteru"))
+       (context (find-data agent 'context))
+       (topic (find-data agent 'topic)))
+  (list (weighted-similarity topic (meaning cxn-color))
+        (weighted-similarity topic (meaning cxn-area))
+        (weighted-similarity topic (meaning cxn-roughness))))
+
+   cxn1   cxn2   cxn3
+(-0.817 -4.703 -7.472) ;; obj1
+( 0.251  0.153  0.162) ;; obj2 topic
+(-1.290 -4.929 -7.371) ;; obj3
+
 
 (loop for agent in (agents *experiment*)
+      for lex = (lexicon agent)
+      for cxn = (find-form-in-lexicon lex "kemuba")
+      for history = (history cxn)
+      collect (cons (id agent) (mapcar #'cdr (remove-duplicates (first-n 200 history) :key #'cdr))))
 
-      for cxn in (lexicon agent)
-      collect cxn)
+(in-which-context-does-agent-use-cxn (find-agent 23) "rapiva")
+
+;;;;
+(progn
+  (setf possible-scenes (find-possible-scenes saved))
+
+
+  (length saved)
+  (setf not-possible-amount (- (length saved) (length possible-scenes)))
+
+
+
+  (let ((x (length saved)))
+    (format nil "~a vs ~a"
+            (float (/ (- 5000 (length saved)) 5000))
+            (float (/ (- 5000 (- (length saved) not-possible-amount)) 5000)))))
+
+
+
+
+(progn
+  (setf saved (testi2 (find-agent 31) "duzise" 100000))
+  (float (/ (- 5000 (length saved)) 5000)))
+
+(inspect (find-agent 31))
+
+(length saved)
+
+(let ((index 0))
+  (setf saved-agents (first (nth index saved)))
+  (setf saved-scene  (second (nth index saved)))
+  (setf saved-topic (third (nth index saved))))
+
+
+
+(let* ((agent (find-agent 31))
+       (cxn (find-form-in-lexicon (lexicon agent) "duzise"))
+       (context (find-data agent 'context))
+       (topic (find-data agent 'topic)))
+  (loop for object in (objects context)
         
-(find-form-in-lexicon (lexicon agent) "revuno")
+        collect (list (id object) (weighted-similarity object (meaning cxn)))))
 
-(in-which-context-does-agent-use-cxn (find-agent 41) "vexune")
+=> ((#:OBJ-1897755 0.7423133) ;; topic
+    (#:OBJ-1897756 0.034696862)
+    (#:OBJ-1897757 0.50630695))
 
-(defun in-which-context-does-agent-use-cxn (agent cxn)
+
+(- 0.7423133 0.50630695)
+
+
+
+(progn
   (wi::reset)
   (deactivate-all-monitors)
   (activate-monitor trace-interaction-in-web-interface)
-  (loop for tuple in saved 
+  (add-element `((h3) ,(format nil "Topic ~a" (description saved-topic))))
+  (run-interaction *experiment*
+                   :scene saved-scene
+                   :agents saved-agents
+                   :topic saved-topic)
+  (format t "~% ~a - coherence: ~a, and success: ~a"
+          saved-scene
+          (find-data (current-interaction *experiment*) 'lexicon-coherence)
+          (communicated-successfully (current-interaction *experiment*)))
+  #|(run-interaction *experiment*
+                   :scene saved-scene
+                   :agents (reverse saved-agents))|#
+  )
+
+(let ((total1 (sum (list 155 131 128 76 118 116 82 96 49 54)))
+      (total2 (sum (list 3 3))))
+  (float (/ total1 (+ total1 total2))))
+;; 99.41%
+
+
+(loop for tuple in saved
+      for saved-scene-id = (second tuple)
+      for saved-topic = (third tuple)
+      for channels-in-play  = (get-configuration *experiment* :clevr-channels)
+      for symbolic-clevr-context =  (get-scene-by-index (world *experiment*) saved-scene-id)
+      for cle-context = (clevr->simulated symbolic-clevr-context channels-in-play)
+      for cle-topic = (find saved-topic (objects cle-context)
+                            :test (lambda (x el) (equal (description x) (description el))))
+      do (show-scene cle-context cle-topic)
+      do (format t "~%~a | ~a -> ~a" (is-discriminative-strict cle-topic (remove cle-topic (objects cle-context)))
+                                                        saved-scene-id (description cle-topic)))
+
+
+
+       
+
+(display-lexicon (find-agent 42) :sort t)
+
+
+
+#|(defun in-which-context-does-agent-use-cxn (agent form)
+  (wi::reset)
+  (deactivate-all-monitors)
+  ;(activate-monitor trace-interaction-in-web-interface)
+  (loop with saved-saved = '()
+        for tuple in saved 
         for saved-agents = (first tuple)
         for saved-scene = (second tuple)
         for saved-topic = (third tuple)
         do (run-interaction *experiment*
                             :scene saved-scene
                             :agents saved-agents
-                            :topic saved-topic)))
-
-  
-
-
-
-
+                            :topic saved-topic)
+        if (and
+            (eq agent (first (interacting-agents (current-interaction *experiment*))))
+            (eq form
+                (form (get-data (first (interacting-agents (current-interaction *experiment*))) 'applied-cxn))))
+          do (setf saved-saved (cons (list (interacting-agents (current-interaction *experiment*))
+                                           (index (current-scene (world *experiment*)))
+                                           (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic))
+                                     saved-saved
+                                     ))))|#
 
 ;; conceptualise a scene/topic combo with all agents
 (how-would-the-population-conceptualise (find-data (first saved-agents) 'context)
-                                        (third (objects (find-data (first saved-agents) 'context)))
+                                        (find-data (first saved-agents) 'topic)
+                                        ;(third (objects (find-data (first saved-agents) 'context)))
                                         ;(find-data (first saved-agents) 'topic)
                                         )
 
 ;; same as previous, but only show a given list
 (how-would-the-population-conceptualise2 (find-data (first saved-agents) 'context)
-                                         (third (objects (find-data (first saved-agents) 'context)))
+                                         (find-data (first saved-agents) 'topic)
                                          ;(find-data (first saved-agents) 'topic)
-                                         (list "bowopi" "piwowu")
+                                         (list "rapiva" "masuvu" )
                                          ;(list "nowite" "boworu")
                                          ;(list "gelowo" "fimomu")
                                          ;(list "deweti" "revuno")
                                          )
+
+(setf rapiva (find-form-in-lexicon (lexicon (find-agent 23)) "rapiva"))
 
 (let ((applied-cxn (find-form-in-lexicon (lexicon (first (agents *experiment*))) "serudo"))
       (other-cxn (find-form-in-lexicon (lexicon (first (agents *experiment*))) "fuvoki")))
@@ -228,41 +387,11 @@ saved-topic
 
 ;; => ((CLE::ROUGHNESS . 0.99753345) (UTILS:B . 0.0) (CLE::G . 0.0024665243) (CLE::R . 0.0) (CLE::AREA . 0.0))
 
-
-(defmethod similar-concepts2 ((concept1 concept) (concept2 concept) (mode (eql :times)) &key &allow-other-keys)
-  (loop with concept1-weight-sum = (loop for proto in (prototypes concept1) sum (weight proto))
-        with concept2-weight-sum = (loop for proto in (prototypes concept2) sum (weight proto))
-        for proto1 in (prototypes concept1)
-        for proto2 in (prototypes concept2)
-        for avg-weight = (/ (+ (/ (weight proto1) concept1-weight-sum)
-                               (/ (weight proto2) concept2-weight-sum))
-                            2)
-        for weight-similarity = (- 1 (abs (- (weight proto1) (weight proto2))))
-        for prototype-similarity = (- 1 (f-divergence (distribution proto1) (distribution proto2) :hellinger))
-        for sim-score = (* avg-weight prototype-similarity weight-similarity)
-        ;sum sim-score))
-        collect (cons (channel proto1) sim-score)))
-
-=> ((CLE::ROUGHNESS . 0.062145736)
-     (UTILS:B . 0.0)
-     (CLE::G . 0.001204835)
-     (CLE::R . 0.0)
-     (CLE::AREA . 0.10917586))
-
-=> ((CLE::ROUGHNESS . 0.0) (UTILS:B . 0.06408119) (CLE::G . 0.25138766) (CLE::R . 0.24252478) (CLE::AREA . 0.0))
-
-(setf lezemu (find-form-in-lexicon (lexicon (first (agents *experiment*))) "lezemu"))
-
-
-
+(setf lezemu (find-form-in-lexicon (lexicon (find-agent 31)) "duzise"))
 (setf positive (loop for cxn in (lexicon (second (agents *experiment*)))
                      if (> (score cxn) 0.1)
                        collect cxn))
 
-(setf abba (loop for cxn in positive
-                 for similarity = (loop for other-cxn in positive
-                                        collect (format nil "~,2f" (similar-concepts (meaning cxn) (meaning other-cxn) :times)))
-                 collect (cons (form cxn) similarity)))
 
 (setf abba (loop for cxn in positive
                  for similarity = (loop for other-cxn in positive
@@ -277,10 +406,7 @@ saved-topic
 (add-cxn-to-interface (nth 13 (lexicon (first (agents *experiment*)))))
 
 
-(display-lexicon (first (agents *experiment*)) :sort t)
-
-
-
+(display-lexicon (find-agent 32) :sort t)
 
 
 ;;;;
@@ -288,27 +414,15 @@ saved-topic
 (cl-store:store *experiment*
                 (babel-pathname :directory '("experiments"
                                              "concept-emergence2")
-                                :name "2023-06-09-area-roughness-color-720k"
+                                :name "2023-06-21-3-area-roughness-color-500k"
                                 :type "store"))
+        
+(setf *experiment2*
+      (cl-store:restore (babel-pathname :directory '("experiments"
+                                                     "concept-emergence2"
+                                                     "logging")
+                                        :name "2023-06-21-3-area-roughness-color-500k"
+                                        :type "store")))
 
 
 
-(defun run-and-show-interactions (experiment interactions-count)
-  (activate-monitor print-a-dot-for-each-interaction)
-  (activate-monitor trace-interaction-in-web-interface)
-  (activate-monitor display-communicative-success)
-  (loop for i from 1 to interactions-count
-        do (run-interaction experiment))
-  (run-interaction experiment))
-
-(defun run-then-show-last (experiment interactions-count &key (show nil) (display nil))
-  (when display
-    (deactivate-all-monitors)
-    (activate-monitor display-communicative-success)
-    (activate-monitor print-a-dot-for-each-interaction)
-    )
-  (loop for i from 1 to (- interactions-count 1)
-        do (run-interaction experiment))
-  (when show
-    (activate-monitor trace-interaction-in-web-interface)
-    (run-interaction experiment)))

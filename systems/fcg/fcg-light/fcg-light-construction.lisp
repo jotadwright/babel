@@ -162,15 +162,16 @@
                       (setq found (rest feature))))))
     found))
 
+
 (defmethod fcg-unit-feature-value ((unit contributing-unit) name)
   (let ((found (fcg-unit-feature unit name)))
     (when found
-      (first (rest found)))))
+      (rest found))))
 
 (defmethod fcg-unit-feature-value ((unit conditional-unit) name)
   (let ((found (fcg-unit-feature unit name)))
     (when found
-      (first (rest found)))))
+      (rest found))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Processing Construction    ;;

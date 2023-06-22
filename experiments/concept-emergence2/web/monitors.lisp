@@ -107,7 +107,7 @@
                 :documentation "Exports adoption rate."
                 :data-sources '(record-invention-rate)
                 :file-name (babel-pathname :name "adoption-rate" :type "lisp"
-                                           :directory '("experiments" "concept-emergence" "logging"))
+                                           :directory '("experiments" "concept-emergence2" "logging"))
                 :add-time-and-experiment-to-file-name nil
                 :column-separator " "
                 :comment-string "#")
@@ -145,23 +145,23 @@
 ;; + Export CONFIG +
 ;; -----------------
 ;;;; Export the configurations of the experiment at the end of the first series
-#|(define-monitor export-experiment-configurations)|#
-#|(define-event-handler (export-experiment-configurations run-series-finished)
+(define-monitor export-experiment-configurations)
+(define-event-handler (export-experiment-configurations run-series-finished)
                       (when (= (series-number experiment) 1)
                         (let* ((experiment-name (get-configuration experiment :experiment-name))
                                (output-dir (get-configuration experiment :output-dir))
                                (path (babel-pathname
-                                      :directory `("experiments" "concept-emergence" "logging" ,(downcase output-dir) ,(downcase experiment-name))
+                                      :directory `("experiments" "concept-emergence2" "logging" ,(downcase output-dir) ,(downcase experiment-name))
                                       :name "experiment-configurations" :type "lisp"))
                                (config (append (entries experiment)  (list (cons :HASH (first (exec-and-return "git" "rev-parse" "HEAD")))))))
                           (ensure-directories-exist path)
                           (with-open-file (stream path :direction :output
                                                   :if-exists :overwrite
                                                   :if-does-not-exist :create)
-                            (write config :stream stream)))))|#
+                            (write config :stream stream)))))
 
-#|(define-monitor export-experiment-store)|#
-#|(define-event-handler (export-experiment-store run-series-finished)
+(define-monitor export-experiment-store)
+(define-event-handler (export-experiment-store run-series-finished)
                       (when (= (series-number experiment) 1)
                         (let* ((experiment-name (get-configuration experiment :experiment-name))
                                (output-dir (get-configuration experiment :output-dir))
@@ -169,7 +169,7 @@
                                       :directory `("experiments" "concept-emergence2" "logging" ,(downcase output-dir) ,(downcase experiment-name))
                                       :name "history" :type "store")))
                           (ensure-directories-exist path)
-                          (cl-store:store experiment path))))|#
+                          (cl-store:store experiment path))))
 
 ;; ------------------
 ;; + Question Types +
