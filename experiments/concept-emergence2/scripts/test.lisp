@@ -131,48 +131,60 @@
     (wi::reset)
     (deactivate-all-monitors)
     ;; run to find a scene without lex coherence
-    (loop with saved = '()
-          with not-solvable = '()
-          with not-solvable-and-coh-fail = '()
+    (loop with not-coherent = '()
+          with not-solvable+coherent = '()
+          with not-solvable+not-coherent = '()
+          with scenes-with-coherence = '()
           for i from 1 to 5000
-          for lex-coherence = (find-data (current-interaction *experiment*) 'lexicon-coherence)
           for speaker = (speaker (first (interactions *experiment*)))
           for hearer = (hearer (first (interactions *experiment*)))
+          for lex-coherence = (find-data (current-interaction *experiment*) 'lexicon-coherence)
+          for comm-success = (communicated-successfully (first (interactions *experiment*)))
           if (and (not lex-coherence)
-                  (is-discriminative-strict (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
-                                            (remove (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
-                                                    (objects (find-data (first (interacting-agents (current-interaction *experiment*))) 'context)))))
+                  (not (is-discriminative-strict (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
+                                                 (remove (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
+                                                         (objects (find-data (first (interacting-agents (current-interaction *experiment*))) 'context))))))
             do (progn
-                 (setf not-solvable-and-coh-fail (cons (list (interacting-agents (current-interaction *experiment*))
+                 (setf not-solvable+not-coherent (cons (list (interacting-agents (current-interaction *experiment*))
                                                              (index (current-scene (world *experiment*)))
-                                                             (objects (find-data (first (interacting-agents (current-interaction *experiment*))) 'context)))
-                                                       not-solvable-and-coh-fail
+                                                             (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
+                                                             comm-success)
+                                                       not-solvable+not-coherent
                                                        ))
                  (run-interaction *experiment*))
-          else if (is-discriminative-strict (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
-                                            (remove (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
-                                                    (objects (find-data (first (interacting-agents (current-interaction *experiment*))) 'context))))
+          else if (not (is-discriminative-strict (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
+                                                 (remove (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
+                                                         (objects (find-data (first (interacting-agents (current-interaction *experiment*))) 'context)))))
                  do (progn
-                      (setf not-solvable (cons (list (interacting-agents (current-interaction *experiment*))
-                                                                  (index (current-scene (world *experiment*)))
-                                                                  (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic))
-                                                            not-solvable
-                                                            ))
+                      (setf not-solvable+coherent (cons (list (interacting-agents (current-interaction *experiment*))
+                                                              (index (current-scene (world *experiment*)))
+                                                              (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
+                                                              comm-success)
+                                                        not-solvable+coherent
+                                                        ))
                       (run-interaction *experiment*))
             else if (not lex-coherence)
                    do (progn
-                        (setf saved (cons (list (interacting-agents (current-interaction *experiment*))
-                                                (index (current-scene (world *experiment*)))
-                                                (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic))
-                                          saved
-                                          ))
+                        (setf not-coherent (cons (list (interacting-agents (current-interaction *experiment*))
+                                                       (index (current-scene (world *experiment*)))
+                                                       (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
+                                                       comm-success)
+                                                 not-coherent
+                                                 ))
                         (run-interaction *experiment*)
                         )
                  else
                    do (progn
-                 ;(format t "~a " i)
+                        (setf scenes-with-coherence (cons (list (interacting-agents (current-interaction *experiment*))
+                                                                (index (current-scene (world *experiment*)))
+                                                                (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
+                                                                comm-success)
+                                                          scenes-with-coherence
+                                                          ))
+                        (format t "~a " i)
                         (run-interaction *experiment*))
-          finally (return saved))))
+          finally (return (list not-coherent not-solvable+coherent not-solvable+not-coherent scenes-with-coherence)))))
+
 
 (defun testi2 (agent form interactions)
   (progn
@@ -200,7 +212,7 @@
             do (progn
                  ;(format t "~a " i)
                  (run-interaction *experiment*))
-          finally (return saved))))
+          finally (return saved ))))
 
 
 
