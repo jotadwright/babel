@@ -116,17 +116,23 @@
 (define-event-handler (trace-interaction-in-web-interface event-conceptualisation-end)
   (add-element `((h2) ,(format nil " === CONCEPTUALISATION ===")))
   (add-element `((h3) ,(format nil " === PHASE 1 : CHOSE CONSTRUCTIONS WITH POSITIVE DISCRIMINATING POWER === ")))
-  (loop for cxn in discriminating-cxns and idx from 0
+  (loop with hidden = 0
+        for cxn in discriminating-cxns and idx from 0
         for form = (form (assqv :cxn cxn))
         for entrenchment = (score (assqv :cxn cxn))
         
         for discriminative-power = (abs (- (assqv :topic-sim cxn) (assqv :best-other-sim cxn)))
-        do (add-element `((h4) ,(format nil " -> ~a - ~a: (~,3f, ~,3f]) => SCORE = ~,3f"
-                                        idx
-                                        (downcase (mkstr form))
-                                        entrenchment
-                                        discriminative-power
-                                        (* entrenchment discriminative-power)))))
+        if (> (* entrenchment discriminative-power) 0.001)
+          do (add-element `((h4) ,(format nil " -> ~a - ~a: (~,3f, ~,3f]) => SCORE = ~,3f"
+                                          idx
+                                          (downcase (mkstr form))
+                                          entrenchment
+                                          discriminative-power
+                                          (* entrenchment discriminative-power))))
+        else
+          do (incf hidden)
+        finally (add-element `((h3) ,(format nil " == Hidden ~a concepts w/ score smaller than 0.001 == " hidden))))
+  
   (add-element `((h3) ,(format nil " === PHASE 2 : SELECT BASED ON OVERALL SCORE ===")))
   (if (car applied-cxn)
     (add-element `((h3) ,(format nil " == RESULT: (~a, ~a) == "
