@@ -153,12 +153,13 @@
                                (path (babel-pathname
                                       :directory `("experiments" "concept-emergence2" "logging" ,(downcase output-dir) ,(downcase experiment-name))
                                       :name "experiment-configurations" :type "lisp"))
-                               (config (append (entries experiment)  (list (cons :HASH (first (exec-and-return "git" "rev-parse" "HEAD")))))))
+                               (config (append (entries experiment)  (list (cons :HASH (first (exec-and-return "git" "rev-parse" "HEAD"))))))
+                               (clean-config (remove :CURRENT-SCENE-IDX (remove :SCENE-IDS config :key #'car) :key #'car)))
                           (ensure-directories-exist path)
                           (with-open-file (stream path :direction :output
                                                   :if-exists :overwrite
                                                   :if-does-not-exist :create)
-                            (write config :stream stream)))))
+                            (write clean-config :stream stream)))))
 
 (define-monitor export-experiment-store)
 (define-event-handler (export-experiment-store run-series-finished)
