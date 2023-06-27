@@ -11,7 +11,7 @@
 (defparameter *alphabet* "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 (defparameter *alphabet-index* 0)
 (defun next-au-var ()
-  (let ((c (mkstr (char +alphabet+ *alphabet-index*))))
+  (let ((c (mkstr (char *alphabet* *alphabet-index*))))
     (incf *alphabet-index*)
     (when (= *alphabet-index* 26)
       (setf *alphabet-index* 0))
