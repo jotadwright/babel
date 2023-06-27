@@ -31,9 +31,12 @@
                              (:file "cxn-skeletons")
                              (:file "handle-potential-holistic-cxn")
                              (:file "compute-args")
+                             (:file "anti-unify-utils")
+                             (:file "make-cxns")
                              (:file "repair-add-categorial-links")
                              (:file "repair-nothing-to-holophrase-cxn")
-                             (:file "repair-anti-unify-cxns")))
+                             (:file "repair-anti-unify-cxns")
+                             (:file "repair-anti-unify-ts")))
                (:module experiment-setup
                 :serial t
                 :components ( (:file "run-helpers")

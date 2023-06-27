@@ -10,7 +10,7 @@
                                      (make-pathname :directory '(:relative "clevr-grammar-learning"))
                                      cl-user:*babel-corpora*))
 (define-configuration-default-value :corpus-file
-                                    (make-pathname :directory '(:relative "train")
+                                    (make-pathname :directory '(:relative "val")
                                                    :name "stage-1" :type "jsonl"))
 
 ; mode = learning or evaluation or testing
@@ -34,8 +34,7 @@
 ;; Learning Operators
 (define-configuration-default-value :repairs 
                                     '(add-categorial-links
-                                      ;item-based-partial-analysis ; learns holistic cxn
-                                      ;holistic-partial-analysis ; learns item-based cxn
+                                      anti-unify-ts
                                       anti-unify-cxns                                   
                                       nothing->holistic))
 

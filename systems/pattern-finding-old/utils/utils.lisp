@@ -195,7 +195,7 @@
 ;; Extracting units from cxns
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun extract-item-based-slot-units (cxn)
+(defun extract-slot-units (cxn)
   (unless (holistic-cxn-p cxn)
     (if (routine-cxn-p cxn)
       (loop for unit in (conditional-part cxn)
@@ -205,7 +205,6 @@
       (loop for unit in (contributing-part cxn)
             unless (fcg-unit-feature unit 'subunits)
             collect unit))))
-
 
 ;;;;;
 ;; Extracting lex classes from cxns
@@ -493,7 +492,11 @@
                       (case constraint
                         (string (list (variablify (second form-constraint))
                                       (third form-constraint)))
-                        (meets (mapcar #'variablify (rest form-constraint)))))))
+                        (meets (mapcar #'variablify (rest form-constraint)))
+                        (top-arg (list (variablify (second form-constraint))
+                                       (third form-constraint)))
+                        (slot-arg (list (variablify (second form-constraint))
+                                        (third form-constraint)))))))
 
 (defun devariablify (var)
   (intern (get-base-name var :remove-numeric-tail nil)))
@@ -548,70 +551,50 @@
 (defun form-predicates-in-root (cipn)
   (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))
 
-(defun sort-cipns-by-coverage-and-nr-of-applied-cxns (cipn-1 cipn-2)
-  "Predicate should return true if and only if the first argument
-   is strictly less than the second (in some appropriate sense).
-   If the first argument is greater than or equal to the second
-   (in the appropriate sense), then the predicate should return false."
-  (let ((cipn-1-form-in-root (length (form-predicates-in-root cipn-1)))
-        (cipn-2-form-in-root (length (form-predicates-in-root cipn-2)))
-        (cipn-1-applied-cxns (length (applied-constructions cipn-1)))
-        (cipn-2-applied-cxns (length (applied-constructions cipn-2))))
-    (if (= cipn-1-form-in-root cipn-2-form-in-root)
-      (< cipn-1-applied-cxns cipn-2-applied-cxns)
-      (< cipn-1-form-in-root cipn-2-form-in-root))))
+(defun sort-cipns-by-coverage-and-nr-of-applied-cxns (list-of-cipns)
+  (sort list-of-cipns
+        #'(lambda (cipn-1 cipn-2)
+            (let ((cipn-1-form-in-root (length (form-predicates-in-root cipn-1)))
+                  (cipn-2-form-in-root (length (form-predicates-in-root cipn-2)))
+                  (cipn-1-applied-cxns (length (applied-constructions cipn-1)))
+                  (cipn-2-applied-cxns (length (applied-constructions cipn-2))))
+              (if (= cipn-1-form-in-root cipn-2-form-in-root)
+                (< cipn-1-applied-cxns cipn-2-applied-cxns)
+                (< cipn-1-form-in-root cipn-2-form-in-root))))))
 
-(defun extract-args-from-resulting-unit (unit)
-  (and (find 'form-args (rest unit) :key #'first))
-       (find 'meaning-args (rest unit) :key #'first))
-
-(defun discard-cipns-with-incompatible-meanings-and-args (cipns meanings gold-standard-meaning)
-  (loop for cipn in cipns
-        for candidate-meaning in meanings
-        for ts-units = (left-pole-structure (car-resulting-cfs (cipn-car cipn)))
-        for root-unit = (get-root ts-units)
-        for top-lvl-units = (remove-child-units (remove root-unit ts-units))
-        for bindings = (irl::embedding candidate-meaning gold-standard-meaning)
-        when (and bindings
-                  ;; why is this???
-                  (loop for unit in top-lvl-units
-                        always (extract-args-from-resulting-unit unit)))
-        collect cipn))
-
-(defun compatible-cipn-with-largest-coverage (form-constraints gold-standard-meaning cxn-inventory)
+(defun compatible-cipns (form-constraints gold-standard-meaning cxn-inventory)
   (with-disabled-monitor-notifications
     (multiple-value-bind (meanings cip-nodes) (comprehend-all form-constraints :cxn-inventory cxn-inventory)
-      (let* ((cip-nodes-with-meaning
-              (loop for meaning in meanings
-                    for cipn in cip-nodes
-                    when meaning collect cipn))
-             (compatible-cip-nodes
-              (discard-cipns-with-incompatible-meanings-and-args cip-nodes-with-meaning
-                                                                 meanings gold-standard-meaning)))
-        (when compatible-cip-nodes
-          (first (sort compatible-cip-nodes #'sort-cipns-by-coverage-and-nr-of-applied-cxns)))))))
+      (loop for meaning in meanings
+            for cipn in cip-nodes
+            when (and meaning ; meaning should be non-nil
+                      (form-predicates-in-root cipn) ; some form left in root
+                      (irl::embedding meaning gold-standard-meaning) ; partial meaning should be compatible with gold standard
+                      )
+            collect cipn))))
 
-(defun best-partial-analysis-cipn-with-meta-cxns (form-constraints gold-standard-meaning cxn-inventory)
-  (when (constructions-list cxn-inventory)
-    (let (best-cipn)
-      (disable-meta-layer-configuration-item-based-first cxn-inventory)
-      (setf best-cipn (compatible-cipn-with-largest-coverage form-constraints gold-standard-meaning cxn-inventory))
-      (enable-meta-layer-configuration-item-based-first cxn-inventory)
-      best-cipn)))
-
-(defun best-partial-analysis-cipn-with-routine-cxns (form-constraints gold-standard-meaning cxn-inventory)
-  (when (constructions-list cxn-inventory)
-    (let (best-cipn)
+(defun compatible-cipns-with-routine-cxns (form-constraints gold-standard-meaning cxn-inventory)
+  (when (constructions cxn-inventory)
+    (let (compatible-cipns)
       (disable-meta-layer-configuration cxn-inventory)
-      (setf best-cipn (compatible-cipn-with-largest-coverage form-constraints gold-standard-meaning cxn-inventory))
+      (setf compatible-cipns (compatible-cipns form-constraints gold-standard-meaning cxn-inventory))
       (enable-meta-layer-configuration cxn-inventory)
-      best-cipn)))
+      compatible-cipns)))
+
+(defun compatible-cipns-with-meta-cxns (form-constraints gold-standard-meaning cxn-inventory)
+  (when (constructions cxn-inventory)
+    (let (compatible-cipns)
+      (disable-meta-layer-configuration-item-based-first cxn-inventory)
+      (setf compatible-cipns (compatible-cipns form-constraints gold-standard-meaning cxn-inventory))
+      (enable-meta-layer-configuration-item-based-first cxn-inventory)
+      compatible-cipns)))
 
 
 ;;;;;
 ;; Sort meets constraints
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+#|
 (defun get-boundary-units (form-constraints)
   "returns the leftmost and rightmost unit
    based on meets constraints"
@@ -673,6 +656,7 @@
            (not meets-string-diff)
            (get-boundary-units form-constraints))
       (get-boundary-units form-constraints))))
+|#
 
 ;;;;;
 ;; Input Processing
@@ -712,7 +696,7 @@
 
 ;;;;;
 ;; Equivalent Meaning Networks
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defgeneric equivalent-meaning-networks (m1 m2 mode))
 
@@ -730,14 +714,7 @@
 ;; Anti Unification Utils
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun renamingp (bindings-list)
-  "A bindings list is a renaming if the mappings are one to one"
-  (let ((renamingp t))
-    (loop for (binding . rest) on bindings-list
-          when (find (car binding) rest :key #'car :test #'equalp)
-          do (setf renamingp nil))
-    renamingp))
-
+#|
 (defmethod select-holistic-cxns-for-anti-unification (observation-form observation-meaning (cxn-inventory fcg-construction-set))
   "Select holistic cxns from the routine set with a score greater than 0."
   (declare (ignore observation-form observation-meaning))
@@ -808,3 +785,4 @@
                    (equivalent-irl-programs? (generalisation form-a-u) cipn-form)))
       ;; return AU results
       (values form-a-u meaning-a-u))))
+|#

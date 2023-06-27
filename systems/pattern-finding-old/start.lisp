@@ -26,17 +26,22 @@
 ;;;; units vs units??
 
 ;;;; Handle anti-unification cases where the pattern delta is empty.
-
-;;;; Handle the above cases differently from the "regular" cases?
+;;;; Handle these cases differently from the "regular" cases?
 ;;;; Do we want the highest cost solution in this case? Do we want the
 ;;;; solution with the highest scoring cxn in this case?
 
-;;;; Include partial analyses!!! Get the top-args and slot-args from
-;;;; the final transient structure before anti-unifying???
-;;;; Anti-unify unit per unit to keep cxns with single slot???
-;;;; Or make the anti-unification with item-based cxn independant
-;;;; of the number of slots; and re-use the partial analysis repairs
-;;;; from before?
+;;;; Partial analysis
+;;;; Add lex-class to top-arg predicates as well, and make as many
+;;;; holistic cxns as there are arg-groups in the delta; this generalises
+;;;; the item-based partial analysis repair to N open slots!
+
+;;;; top-arg/slot-arg predicates
+;;;; Now, lex-class (a constant) is added as the last argument in these
+;;;; predicates. This will (likely) break down when applying repairs recursively.
+;;;; However, we need these constants to find out which args on the form side
+;;;; and the meaning side belong together. Another way to fix this would be to
+;;;; run 'fresh-variables' on the form side and meaning side simultenously, or
+;;;; to keep some variables unchanged...
 
 ;;;; Add recursion!
 
@@ -46,16 +51,14 @@
   (notify reset-monitors)
   (reset-id-counters)
   (defparameter *experiment*
-    (make-instance 'pattern-finding-experiment
-                   :entries `((:corpus-directory . ,(babel-pathname :directory '("experiments" "grammar-learning" "cooking" "data")))
-                              (:corpus-file . ,(make-pathname :name "benchmark-ingredients-uniform" :type "jsonl"))))))
+    (make-instance 'pattern-finding-experiment)))
 
 (length (corpus *experiment*))
 
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 262)
+(run-series *experiment* 10)
 
 ;;;; Showing the cxn inventory and categorial network
 

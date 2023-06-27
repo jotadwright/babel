@@ -1,5 +1,9 @@
 (in-package :pattern-finding-old)
 
+;;;;;;;;;;;;;;;;;;;
+;; cxn skeletons ;;
+;;;;;;;;;;;;;;;;;;;
+
 (defun holistic-cxn-apply-first-skeleton (bare-cxn-name cxn-name lex-class
                                           form meaning form-args meaning-args
                                           initial-cxn-score holophrasep cxn-inventory)
