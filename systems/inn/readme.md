@@ -221,7 +221,20 @@ The macro `def-inn-node` will automatically create constructor functions followi
 All slots can be accessed and set using the defstruct convention of Common Lisp *you-node-name*-*slot-name*, e.g. `#'my-inn-node-slot-1`.<br>
 
 <a name="inn-edges"></a>
+<br>
+<br>
+
 ### 3.3. INN-Edges
+
+The `:inn` package currently does not have a custom edge type and simply uses edges as they are defined in the `:graph-utils` library. You should therefore never instantiate edges yourself, but simply use the generic function `inn-add-edge`, explained in section 6, which takes care of everything. This generic function can also be customized for manipulating the visual appearance of an edge, such as its color.
+
+In principle, edges are unlabeled (though the code allows you to add a label if necessary): instead of relating two nodes through a labeled edge, the label of the edge is considered to be a *narrative question* about a source node, with the target node as an answer to that question. The following screenshot illustrates this approach: instead of linking the nodes "INN-package" and the image node through a labeled edge ("Author"), the narrative question "Author?" is represented as a node itself. Here, the question has been answered because there is a target node (the image node).
+<br>
+<br>
+<p align="left">
+	<img src="docs/inn-edge.png" width="300" </img>
+</p>
+
 
 <a name="visual-identity"></a>
 ## 4. Visual Identity
@@ -302,8 +315,32 @@ This generic function is used for representing a node in vis.js (and how it is d
             (format-cluster-ids (inn-node-cluster-ids node))))
 ```
 
+<a name="visual-nodes"></a>
+### 5.2. Edges
+
+The visual identity of edges is handled automatically by the vis.js library that visualizes the network in Babel's web interface. If you want to control the visual appearance of an edge, you need to write a custom `inn-add-edge` method, as explained in section 6.
+
+
 <a name="network-management"></a>
 ## 6. Maintaining and Updating the Network
+
+This section explains how to maintain and update a network *programmatically*. The next section shows how you can also update the network *interactively* through the web interface.
+
+### 6.1. Nodes
+
+#### <i>generic function</i>               **inn-add-node**
+<hr>
+**Arguments:**<br>
+*graph*              In `interactive-narrative-network`<br>
+*node*               An `inn-node`.<br>
+*&key &allow-other-keys*
+<br>
+<br>
+**Returns the node-id**
+
+### 6.2. Edges
+
+
 
 <a name="interface"></a>
 ## 7. Advanced Interface Options

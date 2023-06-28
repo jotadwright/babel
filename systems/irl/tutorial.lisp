@@ -71,7 +71,7 @@
 
 (defmethod equal-entity ((set1 object-set) (set2 object-set))
   (permutation-of? (objects set1) (objects set2) :test #'equal-entity))
-
+;make-html
 
 ;; Drawing entities in IRL
 ;; Overload the method make-html-for-entity-details
