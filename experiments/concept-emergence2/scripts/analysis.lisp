@@ -3,36 +3,38 @@
 (in-package :cle)
 
 
-(ql:quickload :ecl)
-(in-package :ecl)
-
 ;; ------------------
 ;; + Graph creation +
 ;; ------------------
-(graph-batch-experiments "big-bench4"
-                         `(
-                         (:prototype-update-strategy :replay-buffer :welford)
-                         (:population-size 3 10)
-                         )
+(graph-batch-experiments "big-bench5"
+                         "10-all-random"
+                         `((:similarity-threshold 0.0 0.01 0.05 0.1 0.2)
+                           (:initial-weight 0 35)
+                           )
                          
                          `(
-                         (:prototype-update-strategy :welford)
-                         )
-                         ;:plot :communicative-success
+                           (:initial-weight 0 35)
+                           )
+                         :plot :communicative-success
                          ;:plot :lexicon-coherence
-                         ;:y-min 0.9
+                         :y-min 0.98
                          ;:plot :lexicon-size
                          ;:y-max 10
+                         :start 950000
+                         :end  1000000
                          )
 
-(get-statistics "big-bench4"
-                       `(
-                         (:prototype-update-strategy :replay-buffer :welford)
-                         (:population-size 3 10)
-                         )
-                       `(
-                         (:prototype-update-strategy :welford)
-                         ))
+(get-statistics "big-bench5"
+                "3-all"
+                `((:similarity-threshold 0.0 0.01 0.05 0.1 0.2)
+                  (:initial-weight 0 35)
+                  )
+                `(
+                  (:initial-weight 0)
+                  ))
+
+
+;(list (length exp-names) title exp-names captions)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

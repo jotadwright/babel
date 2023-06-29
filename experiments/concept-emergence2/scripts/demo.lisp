@@ -99,15 +99,19 @@
   )
 
 (progn
-(setf p-money (testi))
-1)
+  (setf p-money (testi))
+  1)
+
+
 (progn
   
 
   (setf not-coherent (first p-money))
-  (setf not-solvable+coherent (second p-money))
-  (setf not-solvable+not-coherent (third p-money))
-  (setf coherent (fourth p-money))
+  (setf not-solvable+coherent-0 (second p-money))
+  (setf not-solvable+coherent-2 (third p-money))
+  (setf not-solvable+not-coherent-0 (fourth p-money))
+  (setf not-solvable+not-coherent-2 (fifth p-money))
+  (setf coherent (sixth p-money))
   1
   )
 
@@ -115,31 +119,34 @@
 
 
   
-;; not-coherent not-solvable+coherent not-solvable-and-coh-fail scenes-with-coherence
-;; => lex coherenc (0.0248    0.7334 0.0616    0.1802)
-(mapcar (lambda (x) (float (/ x (sum (mapcar #'length p-money))))) (mapcar #'length p-money))
-;; => comm success (0.8145161 1.0    0.8961039 1.0)
-(mapcar (lambda (lst)
-          (float (/ (sum (mapcar (lambda (x) (if (fourth x) 1 0)) lst)) (length lst))))
-        p-money)
-;; => general comm success 0.989
-(/ (sum (mapcar (lambda (lst) (float (sum (mapcar (lambda (x) (if (fourth x) 1 0)) lst)))) p-money))
-   (sum (mapcar #'length p-money)))
-;; => general lex coherence 0.914
-(float (/ (+ (length not-solvable+coherent)
-             (length coherent))
-          (sum (mapcar #'length p-money))))
+  ;; not-coherent not-solvable+coherent-0 not-solvable+coherent-2 not-solvable+not-coherent-0 not-solvable+not-coherent-2 scenes-with-coherence
+  (mapcar (lambda (x) (float (/ x (sum (mapcar #'length p-money))))) (mapcar #'length p-money))
+  ;; => (0.0182 0.5592 0.0404 0.3822)
+  ;; => (0.0184 0.3594 0.1952 0.031 0.0136 0.3824)
+  (mapcar (lambda (lst)
+            (float (/ (sum (mapcar (lambda (x) (if (fourth x) 1 0)) lst)) (length lst))))
+          p-money)
+  ;; => (0.98913044 1.0 1.0 0.8516129 1.0 1.0)
+
+  ;; => (0.989011 1.0 0.9158416 1.0)
+  (/ (sum (mapcar (lambda (lst) (float (sum (mapcar (lambda (x) (if (fourth x) 1 0)) lst)))) p-money))
+     (sum (mapcar #'length p-money)))
+  ;; => 0.9964
+  (float (/ (+ (length not-solvable+coherent)
+               (length coherent))
+            (sum (mapcar #'length p-money))))
+  ;; => 0.9414
 
 
-(mapcar #'length p-money)
+  (mapcar #'length p-money)
 
-(display-lexicon (first (agents *experiment*)) :sort t)
-(display-lexicon  (first (agents *experiment*)) :sort t :entrenchment-threshold 0.1)
+  (display-lexicon (first (agents *experiment*)) :sort t)
+  (display-lexicon  (first (agents *experiment*)) :sort t :entrenchment-threshold 0.1)
 
-(loop for cxn in (lexicon (first (agents *experiment*)))
-      if (> (length (history cxn)) 1)
-        do (add-cxn-to-interface cxn))
-        collect (length (history cxn)))
+  (loop for cxn in (lexicon (first (agents *experiment*)))
+        if (> (length (history cxn)) 1)
+          do (add-cxn-to-interface cxn))
+  collect (length (history cxn)))
 
 (setf abba (first (lexicon (first (agents *experiment*)))))
 
@@ -150,7 +157,7 @@
   (wi::reset)
   (deactivate-all-monitors)
   (activate-monitor trace-interaction-in-web-interface)
-  (loop for tuple in (first-n 5 not-coherent)
+  (loop for tuple in (first-n 100 not-coherent);(list (nth 4 not-solvable+not-coherent-0))
         for saved-agents = (first tuple)
         for saved-scene =  (second tuple)
         for saved-topic = (third tuple)
@@ -160,11 +167,13 @@
                             :agents saved-agents
                             :topic saved-topic)))
 
+(display-lexicon (caar (nth 4 not-solvable+not-coherent-0)) :sort t)
+
 ;; => (0.0216 0.7202 0.0626 0.1956)
 ;; not-coherent not-solvable+coherent not-solvable-and-coh-fail scenes-with-coherence
 
 
-
+is-discriminative
 (progn
   (set-scene *experiment* 13459)
   (sample-topic *experiment* :english-concepts)
@@ -465,12 +474,36 @@
                                 :name "2023-06-21-3-area-roughness-color-500k"
                                 :type "store"))
         
-(setf *experiment2*
+(setf *experiment*
       (cl-store:restore (babel-pathname :directory '("experiments"
                                                      "concept-emergence2"
-                                                     "logging")
-                                        :name "2023-06-21-3-area-roughness-color-500k"
+                                                     "logging"
+                                                     "big-bench5"
+                                                     "10-all-random"
+                                                     "experiments"
+                                                     "2023-06-26_16h35m10s-exp-0")
+                                        :name "history"
                                         :type "store")))
+
+(display-lexicon (first (agents *experiment*)) :sort t) :entrenchment-threshold 0.00)
+
+
+(float (/ (loop for agent in (agents *experiment*)
+      collect (length (lexicon agent)))
+   (length (agents *experiment*))))
+(length (lexicon (first (agents *experiment*))))
+
+(defun length-entrenched-lexicon (agent)
+  (let ((lexicon (sort (lexicon agent) #'(lambda (x y) (> (score x) (score y))))))
+    (length (loop for cxn in lexicon and idx from 0
+                  when (>= (score cxn) 0.5)
+                    collect cxn))))
+
+(/
+ (loop for agent in (agents *experiment*)
+       sum (length-entrenched-lexicon agent))
+ (length (agents *experiment*)))
+
 
 
 

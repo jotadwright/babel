@@ -98,18 +98,36 @@
           else
             do (return counter))))
 
+
+(defun is-discriminative-cases (object other-objects)
+  "Checks if the object has a single channel dimension that is different from all other objects."
+  (loop with found = nil
+        for (attr . val) in (description object)
+        if (and (is-channel-available attr (attributes object))
+                (loop for other-object in other-objects
+                      for other-val = (assqv attr (description other-object))
+                      always (not (equal val other-val))))
+          do (if found
+               (return 2) ;; returns nil if more than once you find a duplicate attribute
+               (setf found t))
+          ;; returns nil if there is no discriminative channel
+        finally (return (if found 1 0))))
+
 (defun is-discriminative-strict (object other-objects)
-    "Checks if the object has a single channel dimension that is different from all other objects."
-    (loop with found = nil
-          for (attr . val) in (description object)
-          if (and (is-channel-available attr (attributes object))
-                  (loop for other-object in other-objects
-                        for other-val = (assqv attr (description other-object))
-                        always (not (equal val other-val))))
-            do (if found
-                 (return nil)
-                 (setf found t))
-          finally (return found)))
+  "Checks if the object has a single channel dimension that is different from all other objects."
+  (loop with found = nil
+        for (attr . val) in (description object)
+        if (and (is-channel-available attr (attributes object))
+                (loop for other-object in other-objects
+                      for other-val = (assqv attr (description other-object))
+                      always (not (equal val other-val))))
+          do (if found
+               ;; returns nil if more than once you find a duplicate attribute
+               (return nil)
+               ;; set found to true (for the first match)
+               (setf found t))
+          ;; returns nil if there is no discriminative channel
+        finally (return found)))
 
 (defun find-possible-scenes (saved)
   (loop for tuple in saved
@@ -132,8 +150,10 @@
     (deactivate-all-monitors)
     ;; run to find a scene without lex coherence
     (loop with not-coherent = '()
-          with not-solvable+coherent = '()
-          with not-solvable+not-coherent = '()
+          with not-solvable+coherent-0 = '()
+          with not-solvable+not-coherent-0 = '()
+          with not-solvable+coherent-2 = '()
+          with not-solvable+not-coherent-2 = '()
           with scenes-with-coherence = '()
           for i from 1 to 5000
           for speaker = (speaker (first (interactions *experiment*)))
@@ -141,49 +161,81 @@
           for lex-coherence = (find-data (current-interaction *experiment*) 'lexicon-coherence)
           for comm-success = (communicated-successfully (first (interactions *experiment*)))
           if (and (not lex-coherence)
-                  (not (is-discriminative-strict (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
-                                                 (remove (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
-                                                         (objects (find-data (first (interacting-agents (current-interaction *experiment*))) 'context))))))
+                  (eq (is-discriminative-cases (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
+                                               (remove (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
+                                                       (objects (find-data (first (interacting-agents (current-interaction *experiment*))) 'context))))
+                      0)
+                  )
             do (progn
-                 (setf not-solvable+not-coherent (cons (list (interacting-agents (current-interaction *experiment*))
-                                                             (index (current-scene (world *experiment*)))
-                                                             (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
-                                                             comm-success)
-                                                       not-solvable+not-coherent
-                                                       ))
+                 (setf not-solvable+not-coherent-0 (cons (list (interacting-agents (current-interaction *experiment*))
+                                                               (index (current-scene (world *experiment*)))
+                                                               (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
+                                                               comm-success)
+                                                         not-solvable+not-coherent-0
+                                                         ))
                  (run-interaction *experiment*))
-          else if (not (is-discriminative-strict (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
-                                                 (remove (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
-                                                         (objects (find-data (first (interacting-agents (current-interaction *experiment*))) 'context)))))
+          else if (and (not lex-coherence)
+                       (eq (is-discriminative-cases (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
+                                                    (remove (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
+                                                            (objects (find-data (first (interacting-agents (current-interaction *experiment*))) 'context))))
+                           2)
+                       )
                  do (progn
-                      (setf not-solvable+coherent (cons (list (interacting-agents (current-interaction *experiment*))
+                      (setf not-solvable+not-coherent-2 (cons (list (interacting-agents (current-interaction *experiment*))
+                                                                    (index (current-scene (world *experiment*)))
+                                                                    (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
+                                                                    comm-success)
+                                                              not-solvable+not-coherent-2
+                                                              ))
+                      (run-interaction *experiment*))
+            else if (eq (is-discriminative-cases (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
+                                                  (remove (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
+                                                          (objects (find-data (first (interacting-agents (current-interaction *experiment*))) 'context))))
+                        0)
+                   do (progn
+                        (setf not-solvable+coherent-0 (cons (list (interacting-agents (current-interaction *experiment*))
+                                                                  (index (current-scene (world *experiment*)))
+                                                                  (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
+                                                                  comm-success)
+                                                            not-solvable+coherent-0
+                                                            ))
+                        (run-interaction *experiment*))
+                 else if (eq (is-discriminative-cases (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
+                                                       (remove (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
+                                                               (objects (find-data (first (interacting-agents (current-interaction *experiment*))) 'context))))
+                             2)
+                        do (progn
+                             (setf not-solvable+coherent-2 (cons (list (interacting-agents (current-interaction *experiment*))
+                                                                       (index (current-scene (world *experiment*)))
+                                                                       (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
+                                                                       comm-success)
+                                                                 not-solvable+coherent-2
+                                                                 ))
+                             (run-interaction *experiment*))
+                   else if (not lex-coherence)
+                          do (progn
+                               (setf not-coherent (cons (list (interacting-agents (current-interaction *experiment*))
                                                               (index (current-scene (world *experiment*)))
                                                               (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
                                                               comm-success)
-                                                        not-solvable+coherent
+                                                        not-coherent
                                                         ))
-                      (run-interaction *experiment*))
-            else if (not lex-coherence)
-                   do (progn
-                        (setf not-coherent (cons (list (interacting-agents (current-interaction *experiment*))
-                                                       (index (current-scene (world *experiment*)))
-                                                       (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
-                                                       comm-success)
-                                                 not-coherent
-                                                 ))
-                        (run-interaction *experiment*)
-                        )
-                 else
-                   do (progn
-                        (setf scenes-with-coherence (cons (list (interacting-agents (current-interaction *experiment*))
-                                                                (index (current-scene (world *experiment*)))
-                                                                (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
-                                                                comm-success)
-                                                          scenes-with-coherence
-                                                          ))
-                        (format t "~a " i)
-                        (run-interaction *experiment*))
-          finally (return (list not-coherent not-solvable+coherent not-solvable+not-coherent scenes-with-coherence)))))
+                               (run-interaction *experiment*)
+                               )
+                        else
+                          do (progn
+                               (setf scenes-with-coherence (cons (list (interacting-agents (current-interaction *experiment*))
+                                                                       (index (current-scene (world *experiment*)))
+                                                                       (find-data (first (interacting-agents (current-interaction *experiment*))) 'topic)
+                                                                       comm-success)
+                                                                 scenes-with-coherence
+                                                                 ))
+                               (format t "~a " i)
+                               (run-interaction *experiment*))
+          finally (return (list not-coherent
+                                not-solvable+coherent-0 not-solvable+coherent-2
+                                not-solvable+not-coherent-0 not-solvable+not-coherent-2
+                                scenes-with-coherence)))))
 
 
 (defun testi2 (agent form interactions)
