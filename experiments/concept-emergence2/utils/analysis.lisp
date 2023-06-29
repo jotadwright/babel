@@ -3,60 +3,52 @@
 ;; -------------------
 ;; + Generate Graphs +
 ;; -------------------
-(defun get-statistics (base-dir raw-parameters filters)
+(defun get-statistics (top-dir exp-dir raw-parameters filters)
   "Helper function to find experiment names with particular filters." 
-  (let* ((exp-dir-path (asdf:system-relative-pathname "ecl" (format nil "logging/~a/experiments/" base-dir)))
+  (let* ((exp-dir-path (asdf:system-relative-pathname "cle" (format nil "logging/~a/~a/experiments/" top-dir exp-dir)))
          (all-configs (sort (get-configurations exp-dir-path) (lambda (x y) (< (first x) (first y)))))
          (configs (filter-experiments all-configs filters)) ; (loop for (index . config) in (filter-experiments all-configs filters) collect config))
          (exp-names (loop for (index . config) in configs collect (downcase (assqv :EXPERIMENT-NAME config))))
          (captions (generate-captions configs raw-parameters filters))
-         (title (generate-title base-dir filters)))
+         (title (generate-title exp-dir filters)))
     (list (length exp-names) title exp-names captions)))
 
-(defun graph-batch-experiments (base-dir raw-parameters filters &key (plot :all) (y-max 100) (y-min 0))
+(defun graph-batch-experiments (top-dir exp-dir raw-parameters filters &key (start nil) (end nil) (plot :all) (y-max 100) (y-min 0))
   "Plot a batch of experiments."
-  (let* ((exp-dir-path (asdf:system-relative-pathname "ecl" (format nil "logging/~a/experiments/" base-dir)))
+  (let* ((exp-dir-path (asdf:system-relative-pathname "cle" (format nil "logging/~a/~a/experiments/" top-dir exp-dir)))
          (all-configs (sort (get-configurations exp-dir-path) (lambda (x y) (< (first x) (first y)))))
          (configs (filter-experiments all-configs filters))
          (exp-names (loop for (index . config) in configs collect (downcase (assqv :EXPERIMENT-NAME config))))
          (captions (generate-captions configs raw-parameters filters))
-         (title (generate-title base-dir filters)))
+         (title (generate-title exp-dir filters)))
     (when (or (eq plot :all) (eq plot :communicative-success))
       (create-graph-comparing-strategies
-       :base-dir base-dir
+       :base-dir (format nil "~a/~a" top-dir exp-dir)
        :title title
        :experiment-names exp-names
        :measure-name "communicative-success"
        :y1-label "Communicative success"
        :y-min y-min
        :y-max 1
-       :average-windows 200
+       :start start
+       :end end
+       :average-windows 1000
        :plot-file-name (format nil "~{~a~^-~}" (list title "comm-success"))
        :captions captions
        ))
     (when (or (eq plot :all) (eq plot :lexicon-coherence))
       (create-graph-comparing-strategies
-       :base-dir base-dir
+       :base-dir (format nil "~a/~a" top-dir exp-dir)
        :title title
        :experiment-names exp-names
        :measure-name "lexicon-coherence"
        :y1-label "Lexicon coherence"
        :y-min y-min
        :y-max 1
-       :average-windows 500
+       :start start
+       :end end
+       :average-windows 1000
        :plot-file-name (format nil "~{~a~^-~}" (list title "lex-coherence"))
-       :captions captions
-       ))
-    (when (or (eq plot :all) (eq plot :lexicon-size))
-      (create-graph-comparing-strategies
-       :base-dir base-dir
-       :title title
-       :experiment-names exp-names
-       :measure-name "lexicon-size"
-       :y1-label "lexicon size"
-       :y-max y-max
-       :average-windows 100
-       :plot-file-name (format nil "~{~a~^-~}" (list title "lex-size"))
        :captions captions
        ))
     ))
