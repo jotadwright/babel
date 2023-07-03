@@ -96,6 +96,9 @@
             do (progn
                  (setf best-score score)
                  (setf best-cxn (assqv :cxn tuple))))
+    (when (zerop best-score)
+      (setf best-cxn (assqv :cxn (the-biggest (lambda (x) (abs (- (assqv :topic-sim x) (assqv :best-other-sim x))))
+                                              cxns))))                   
     best-cxn))
 
 ;; ---------------------

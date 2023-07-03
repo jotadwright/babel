@@ -5,34 +5,24 @@
 
 ;; experiments with entrenchment values - keep the same
 (progn
-  (setf *scene-ids* (read-scene-ids "3-color-area-roughness.lisp"))
-  (setf *subset-size* (length *scene-ids*))
+  ;(setf *scene-ids* (read-scene-ids "3-all.lisp"))
+  ;(setf *subset-size* (length *scene-ids*))
   (defparameter *baseline-simulated*
     (make-configuration
-     :entries `(;; monitoring
+     :entries `(
+                               ;; monitoring
                 (:dot-interval . 1000)
                 (:save-distribution-history . nil)
                 ;; setup interacting agents
                 (:interacting-agents-strategy . :standard)
                 (:population-size . 10)
-                ;; setup scene
+                ;; setup data scene
+                (:data-fname . "10-all.lisp")
                 (:scene-sampling . :deterministic)
-                (:topic-sampling . :english-concepts)
-                (:clevr-channels
-                 ,'area ;; size
-                 ,'color ;; color
-                 ,'roughness
-                 ;,'sides-and-corners
-                 ;,'wh-ratio
-                 ;,'xpos
-                 ;,'ypos
-                 ;,'zpos
-                 )
-                (:scene-ids . ,(first-n *subset-size* *scene-ids*))
-                (:current-scene-idx . 0)
+                (:topic-sampling . :random-topic)
                 ;; general strategy
                 (:strategy . :times)
-                (:similarity-threshold . 0)
+                (:similarity-threshold . 0.2)
 
                 ;; entrenchment of constructions
                 (:initial-cxn-entrenchement . 1/2)
@@ -64,8 +54,8 @@
 (progn
   (wi::reset)
   (deactivate-all-monitors)
-  ;(activate-monitor export-communicative-success)
-  ;(activate-monitor export-lexicon-coherence)
+  (activate-monitor export-communicative-success)
+  (activate-monitor export-lexicon-coherence)
   (activate-monitor print-a-dot-for-each-interaction)
   (format t "~%---------- NEW GAME ----------~%")
   (loop for i from 1 to 500000
@@ -99,7 +89,7 @@
   (wi::reset)
   (deactivate-all-monitors)
   ;(activate-monitor print-a-dot-for-each-interaction)
-  ;(activate-monitor trace-interaction-in-web-interface)
+  (activate-monitor trace-interaction-in-web-interface)
   (loop for idx from 1 to 25
         do (run-interaction *experiment*)))
 
@@ -108,15 +98,82 @@
   (align (hearer experiment))|#
   )
 
+(progn
+  (setf p-money (testi))
+  1)
 
 
 (progn
-  (setf saved (testi))
-  (float (/ (- 5000 (length saved)) 5000)))
+  
 
-(length saved)
+  (setf not-coherent (first p-money))
+  (setf not-solvable+coherent-0 (second p-money))
+  (setf not-solvable+coherent-2 (third p-money))
+  (setf not-solvable+not-coherent-0 (fourth p-money))
+  (setf not-solvable+not-coherent-2 (fifth p-money))
+  (setf coherent (sixth p-money))
+  1
+  )
+
+(defun testpp ()
 
 
+  
+  ;; not-coherent not-solvable+coherent-0 not-solvable+coherent-2 not-solvable+not-coherent-0 not-solvable+not-coherent-2 scenes-with-coherence
+  (mapcar (lambda (x) (float (/ x (sum (mapcar #'length p-money))))) (mapcar #'length p-money))
+  ;; => (0.0182 0.5592 0.0404 0.3822)
+  ;; => (0.0184 0.3594 0.1952 0.031 0.0136 0.3824)
+  (mapcar (lambda (lst)
+            (float (/ (sum (mapcar (lambda (x) (if (fourth x) 1 0)) lst)) (length lst))))
+          p-money)
+  ;; => (0.98913044 1.0 1.0 0.8516129 1.0 1.0)
+
+  ;; => (0.989011 1.0 0.9158416 1.0)
+  (/ (sum (mapcar (lambda (lst) (float (sum (mapcar (lambda (x) (if (fourth x) 1 0)) lst)))) p-money))
+     (sum (mapcar #'length p-money)))
+  ;; => 0.9964
+  (float (/ (+ (length not-solvable+coherent)
+               (length coherent))
+            (sum (mapcar #'length p-money))))
+  ;; => 0.9414
+
+
+  (mapcar #'length p-money)
+
+  (display-lexicon (first (agents *experiment*)) :sort t)
+  (display-lexicon  (first (agents *experiment*)) :sort t :entrenchment-threshold 0.1)
+
+  (loop for cxn in (lexicon (first (agents *experiment*)))
+        if (> (length (history cxn)) 1)
+          do (add-cxn-to-interface cxn))
+  collect (length (history cxn)))
+
+(setf abba (first (lexicon (first (agents *experiment*)))))
+
+
+(history (first (first not-solvable+not-coherent)))
+
+(progn
+  (wi::reset)
+  (deactivate-all-monitors)
+  (activate-monitor trace-interaction-in-web-interface)
+  (loop for tuple in (first-n 100 not-coherent);(list (nth 4 not-solvable+not-coherent-0))
+        for saved-agents = (first tuple)
+        for saved-scene =  (second tuple)
+        for saved-topic = (third tuple)
+        do (add-element `((h3) ,(format nil "Topic ~a" (description saved-topic))))
+           (run-interaction *experiment*
+                            :scene saved-scene
+                            :agents saved-agents
+                            :topic saved-topic)))
+
+(display-lexicon (caar (nth 4 not-solvable+not-coherent-0)) :sort t)
+
+;; => (0.0216 0.7202 0.0626 0.1956)
+;; not-coherent not-solvable+coherent not-solvable-and-coh-fail scenes-with-coherence
+
+
+is-discriminative
 (progn
   (set-scene *experiment* 13459)
   (sample-topic *experiment* :english-concepts)
@@ -417,12 +474,36 @@
                                 :name "2023-06-21-3-area-roughness-color-500k"
                                 :type "store"))
         
-(setf *experiment2*
+(setf *experiment*
       (cl-store:restore (babel-pathname :directory '("experiments"
                                                      "concept-emergence2"
-                                                     "logging")
-                                        :name "2023-06-21-3-area-roughness-color-500k"
+                                                     "logging"
+                                                     "big-bench5"
+                                                     "10-all-random"
+                                                     "experiments"
+                                                     "2023-06-26_16h35m10s-exp-0")
+                                        :name "history"
                                         :type "store")))
+
+(display-lexicon (first (agents *experiment*)) :sort t) :entrenchment-threshold 0.00)
+
+
+(float (/ (loop for agent in (agents *experiment*)
+      collect (length (lexicon agent)))
+   (length (agents *experiment*))))
+(length (lexicon (first (agents *experiment*))))
+
+(defun length-entrenched-lexicon (agent)
+  (let ((lexicon (sort (lexicon agent) #'(lambda (x y) (> (score x) (score y))))))
+    (length (loop for cxn in lexicon and idx from 0
+                  when (>= (score cxn) 0.5)
+                    collect cxn))))
+
+(/
+ (loop for agent in (agents *experiment*)
+       sum (length-entrenched-lexicon agent))
+ (length (agents *experiment*)))
+
 
 
 

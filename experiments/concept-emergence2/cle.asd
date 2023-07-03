@@ -71,7 +71,9 @@
                              (:file "run")))
                (:module "utils"
                 :serial t
-                :components ((:file "utils")))
+                :components ((:file "analysis")
+                             (:file "graph")
+                             (:file "utils")))
                (:module "web"
                 :serial t
                 :components ((:file "html")
