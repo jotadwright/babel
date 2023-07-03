@@ -23,7 +23,7 @@
     (push (make-new-object-with-attributes (id second-unique-binding) attribute-second-unique-variable-list second-unique-attention) new-object-list)
     (push (make-new-object-with-attributes (id first-unique-binding) attribute-first-unique-variable-list first-unique-attention) new-object-list)
 
-    (setf new-world-modelz
+    (setf new-world-model
           (make-instance 'world-model
                          :id 'conversation-memory
                          :set-items (list
