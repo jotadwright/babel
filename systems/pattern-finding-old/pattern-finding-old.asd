@@ -36,7 +36,7 @@
                              (:file "repair-add-categorial-links")
                              (:file "repair-nothing-to-holophrase-cxn")
                              (:file "repair-anti-unify-cxns")
-                             (:file "repair-anti-unify-ts")))
+                             (:file "repair-anti-unify-cipn")))
                (:module experiment-setup
                 :serial t
                 :components ( (:file "run-helpers")

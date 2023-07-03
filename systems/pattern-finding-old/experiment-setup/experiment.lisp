@@ -34,7 +34,7 @@
 ;; Learning Operators
 (define-configuration-default-value :repairs 
                                     '(add-categorial-links
-                                      anti-unify-ts
+                                      anti-unify-cipn
                                       anti-unify-cxns                                   
                                       nothing->holistic))
 

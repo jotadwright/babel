@@ -99,24 +99,6 @@
 ;; make cxns from generalisation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun group-slot-args-into-units (predicates)
-  (let* ((slot-arg-predicates (find-all 'slot-arg predicates :key #'first))
-         (unique-lex-classes (remove-duplicates (mapcar #'third slot-arg-predicates))))
-    (loop for lex-class in unique-lex-classes
-          collect (cons lex-class
-                        (loop for predicate in slot-arg-predicates
-                              when (eql (last-elt predicate) lex-class)
-                              collect (second predicate))))))
-
-(defun group-top-args-into-units (predicates)
-  (let* ((top-arg-predicates (find-all 'top-arg predicates :key #'first))
-         (unique-lex-classes (remove-duplicates (mapcar #'third top-arg-predicates))))
-    (loop for lex-class in unique-lex-classes
-          collect (cons lex-class
-                        (loop for predicate in top-arg-predicates
-                              when (eql (last-elt predicate) lex-class)
-                              collect (second predicate))))))
-
 (defun make-cxns-from-generalisations (anti-unification-results cxn-inventory)
   (destructuring-bind (anti-unified-cxn
                        form-anti-unification
@@ -129,10 +111,10 @@
            (generalisation-cxns-and-categories
             (make-generalisation-cxn (remove-arg-predicates (generalisation form-anti-unification))
                                      (remove-arg-predicates (generalisation meaning-anti-unification))
-                                     (get-data form-args :generalisation-top-lvl-args)
-                                     (get-data meaning-args :generalisation-top-lvl-args)
-                                     (get-data form-args :generalisation-slot-args)
-                                     (get-data meaning-args :generalisation-slot-args)
+                                     (find-data form-args :generalisation-top-lvl-args)
+                                     (find-data meaning-args :generalisation-top-lvl-args)
+                                     (find-data form-args :generalisation-slot-args)
+                                     (find-data meaning-args :generalisation-slot-args)
                                      cxn-inventory))
            ;; for learning cxns from delta's;
            ;; if there are slot-arg predicates in the delta
@@ -143,32 +125,36 @@
            (source-delta-cxns-and-categories
             (make-holistic-cxn (remove-arg-predicates (source-delta form-anti-unification))
                                (remove-arg-predicates (source-delta meaning-anti-unification))
-                               (get-data form-args :source-top-lvl-args)
-                               (get-data meaning-args :source-top-lvl-args)
+                               (find-data form-args :source-top-lvl-args)
+                               (find-data meaning-args :source-top-lvl-args)
                                cxn-inventory))
 
            (pattern-delta-form-arg-groups
-            (group-slot-args-into-units (pattern-delta form-anti-unification)))
+            (loop with groups = (group-slot-args-into-units (pattern-delta form-anti-unification))
+                  for group in groups
+                  collect (cons (first group) (reverse (rest group)))))
            (pattern-delta-meaning-arg-groups
-            (group-slot-args-into-units (pattern-delta meaning-anti-unification)))
+            (loop with groups = (group-slot-args-into-units (pattern-delta meaning-anti-unification))
+                  for group in groups
+                  collect (cons (first group) (reverse (rest group)))))
            (pattern-delta-cxns-and-categories
-            (cond ((and (find 'slot-arg (pattern-delta form-anti-unification) :key #'first)
-                        (find 'slot-arg (pattern-delta meaning-anti-unification) :key #'first))
+            (cond ((or (find 'slot-arg (pattern-delta form-anti-unification) :key #'first)
+                       (find 'slot-arg (pattern-delta meaning-anti-unification) :key #'first))
                    (make-generalisation-cxn-with-n-units (remove-arg-predicates (pattern-delta form-anti-unification))
                                                          (remove-arg-predicates (pattern-delta meaning-anti-unification))
-                                                         (get-data form-args :pattern-top-lvl-args)
-                                                         (get-data meaning-args :pattern-top-lvl-args)
-                                                         (get-data form-args :pattern-slot-args)
-                                                         (get-data meaning-args :pattern-slot-args)
+                                                         (find-data form-args :pattern-top-lvl-args)
+                                                         (find-data meaning-args :pattern-top-lvl-args)
+                                                         (find-data form-args :pattern-slot-args)
+                                                         (find-data meaning-args :pattern-slot-args)
                                                          pattern-delta-form-arg-groups
                                                          pattern-delta-meaning-arg-groups
                                                          cxn-inventory))
-                  ((and (find 'top-arg (pattern-delta form-anti-unification) :key #'first)
-                        (find 'top-arg (pattern-delta meaning-anti-unification) :key #'first))
+                  ((or (find 'top-arg (pattern-delta form-anti-unification) :key #'first)
+                       (find 'top-arg (pattern-delta meaning-anti-unification) :key #'first))
                    (make-holistic-cxn (remove-arg-predicates (pattern-delta form-anti-unification))
                                       (remove-arg-predicates (pattern-delta meaning-anti-unification))
-                                      (get-data form-args :pattern-top-lvl-args)
-                                      (get-data meaning-args :pattern-top-lvl-args)
+                                      (find-data form-args :pattern-top-lvl-args)
+                                      (find-data meaning-args :pattern-top-lvl-args)
                                       cxn-inventory))))
            ;; make holistic cxn
            ;; => holistic-cxn-apply-first, holistic-cxn-apply-last, lex-class

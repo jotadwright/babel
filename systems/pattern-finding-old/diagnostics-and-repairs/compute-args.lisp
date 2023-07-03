@@ -40,16 +40,16 @@
             for source-var = (first (rassoc var source-bindings))
             for pattern-predicates = (find-all pattern-var pattern-delta :test #'member)
             for source-predicates = (find-all source-var source-delta :test #'member)
+            when (member 'slot-arg pattern-predicates :key #'first)
+            do (push-data connecting-vars :pattern-slot-args pattern-var)
+            when (member 'slot-arg source-predicates :key #'first)
+            do (push-data connecting-vars :source-slot-args source-var)
             when (and pattern-var source-var
-                      (find-anywhere pattern-var pattern-delta)
-                      (find-anywhere source-var source-delta))
+                      (find-anywhere pattern-var (remove-arg-predicates pattern-delta))
+                      (find-anywhere source-var (remove-arg-predicates source-delta)))
             do (push-data connecting-vars :generalisation-slot-args var)
                (push-data connecting-vars :pattern-top-lvl-args  pattern-var)
-               (push-data connecting-vars :source-top-lvl-args source-var)
-               (when (member 'slot-arg pattern-predicates :key #'first)
-                 (push-data connecting-vars :pattern-slot-args pattern-var))
-               (when (member 'slot-arg source-predicates :key #'first)
-                 (push-data connecting-vars :source-slot-args source-var)))
+               (push-data connecting-vars :source-top-lvl-args source-var))
       connecting-vars)))
 
 (defun handle-decoupled-vars (anti-unification-result previous-vars)
@@ -91,9 +91,9 @@
                        for z in vars-in-other-delta
                        for predicates-longest-delta = (find-all x longest-delta :test #'member)
                        for predicates-other-delta = (find-all z other-delta :test #'member)
-                       unless (and (member x (get-data previous-vars longest-delta-key))
-                                   (member y (get-data previous-vars :generalisation-slot-args))
-                                   (member z (get-data previous-vars other-delta-key)))
+                       unless (and (member x (find-data previous-vars longest-delta-key))
+                                   (member y (find-data previous-vars :generalisation-slot-args))
+                                   (member z (find-data previous-vars other-delta-key)))
                        do (push-data decoupled-link-vars longest-delta-key x)
                           (push-data decoupled-link-vars :generalisation-slot-args y)
                           (push-data decoupled-link-vars other-delta-key z)
@@ -113,18 +113,30 @@
                source-bindings
                pattern-delta
                source-delta) anti-unification-result    
-    (let* ((pattern-delta-vars
+    (let* ((raw-pattern-delta (remove-arg-predicates pattern-delta))
+           (raw-source-delta (remove-arg-predicates source-delta))
+           (pattern-delta-vars
             (remove-duplicates
-             (find-all-anywhere-if #'variable-p  ;; !!
-                                   (remove-arg-predicates pattern-delta))))
+             (find-all-anywhere-if #'variable-p raw-pattern-delta)))
            (source-delta-vars
             (remove-duplicates
-             (find-all-anywhere-if #'variable-p  ;; !!
-                                   (remove-arg-predicates source-delta))))
+             (find-all-anywhere-if #'variable-p raw-source-delta)))
+           (available-pattern-vars
+            (set-difference pattern-delta-vars
+                            (append (find-data previous-vars :pattern-top-lvl-args)
+                                    (find-data previous-vars :pattern-slot-args))))
+           (available-source-vars
+            (set-difference source-delta-vars
+                            (append (find-data previous-vars :source-top-lvl-args)
+                                    (find-data previous-vars :source-slot-args))))
            (singleton-pattern-vars
-            (set-difference pattern-delta-vars (get-data previous-vars :pattern-top-lvl-args)))
+            (loop for var in available-pattern-vars
+                  when (= (count-anywhere var raw-pattern-delta) 1)
+                  collect var))
            (singleton-source-vars
-            (set-difference source-delta-vars (get-data previous-vars :source-top-lvl-args)))
+            (loop for var in available-source-vars
+                  when (= (count-anywhere var raw-source-delta) 1)
+                  collect var))
            (singleton-args (make-blackboard)))
       (multiple-value-bind (longest-delta-key other-delta-key
                             longest-var-list other-var-list
@@ -180,6 +192,6 @@
               (if (find 'top-arg (generalisation anti-unification-result) :key #'first)
                 (mapcar #'second (find-all 'top-arg (generalisation anti-unification-result) :key #'first))
                 (let ((unconnected-vars (get-unconnected-vars (generalisation anti-unification-result)))
-                      (slot-args (get-data slot-args :generalisation-slot-args)))
+                      (slot-args (find-data slot-args :generalisation-slot-args)))
                   (set-difference unconnected-vars (intersection unconnected-vars slot-args)))))
     top-lvl-args))

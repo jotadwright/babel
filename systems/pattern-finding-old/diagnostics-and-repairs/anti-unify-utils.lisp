@@ -27,15 +27,15 @@
                        valid-anti-unification-results)))
     (sort valid-anti-unification-results #'< :key #'fcg::cost)))
 
-(defmethod anti-unify-form (source-form (ts coupled-feature-structure) (args blackboard) &optional max-au-cost)
+(defmethod anti-unify-form (source-form (cipn cip-node) (args blackboard) &optional max-au-cost)
   ;; before anti unifying, top-args and slot-args are added to the
   ;; source-form and pattern-form! This makes the learning of cxns
   ;; easier later on
   (let* ((pattern-form
-          (loop for unit in (fcg-get-transient-unit-structure ts)
+          (loop for unit in (fcg-get-transient-unit-structure cipn)
                 unless (eql (unit-name unit) 'fcg::root)
                 append (unit-feature-value unit 'form)))
-         (pattern-form-with-args (add-form-arg-predicates pattern-form ts))
+         (pattern-form-with-args (add-form-arg-predicates pattern-form cipn))
          (source-form-with-args (add-form-arg-predicates source-form args))
          (anti-unification-results
           (anti-unify-predicate-network
@@ -84,9 +84,9 @@
         do (push (list 'slot-arg arg) set-of-predicates))
   set-of-predicates)
 
-(defmethod add-form-arg-predicates (set-of-predicates (ts coupled-feature-structure))
+(defmethod add-form-arg-predicates (set-of-predicates (cipn cip-node))
   ;; top-args = args from slot-units that do not have 'form' and 'meaning' feature
-  (let* ((ts-units (fcg-get-transient-unit-structure ts))
+  (let* ((ts-units (fcg-get-transient-unit-structure cipn))
          (root-unit (get-root ts-units))
          (all-slot-units (get-child-units (remove root-unit ts-units)))
          (open-slot-units
@@ -94,21 +94,23 @@
                 unless (and (unit-feature unit 'form) (unit-feature unit 'meaning))
                 collect unit)))
     (loop for unit in open-slot-units
-          for form-args = (remove-duplicates (first (fcg-unit-feature-value unit 'form-args)))
+          for form-args = (remove-duplicates (unit-feature-value unit 'form-args))
           for lex-class = (extract-lex-class-unit unit)
           when (and form-args lex-class)
           do (loop for arg in form-args
                    do (push (list 'top-arg arg lex-class) set-of-predicates))))
   ;; slots-args = args from all top level units
-  (let* ((ts-units (fcg-get-transient-unit-structure ts))
+  (let* ((ts-units (fcg-get-transient-unit-structure cipn))
          (root-unit (get-root ts-units))
          (top-lvl-units (remove-child-units (remove root-unit ts-units))))
     (loop for unit in top-lvl-units
-          for form-args = (remove-duplicates (first (fcg-unit-feature-value unit 'form-args)))
+          for form-args = (remove-duplicates (unit-feature-value unit 'form-args))
           for lex-class = (extract-lex-class-unit unit)
           when (and form-args lex-class)
           do (loop for arg in form-args
-                   do (push (list 'slot-arg arg lex-class) set-of-predicates)))))
+                   do (push (list 'slot-arg arg lex-class) set-of-predicates))))
+  ;; return set of predicates
+  set-of-predicates)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;; anti-unify meaning ;;
@@ -137,12 +139,12 @@
                        valid-anti-unification-results)))
     (sort valid-anti-unification-results #'< :key #'fcg::cost)))
 
-(defmethod anti-unify-meaning (source-meaning (ts coupled-feature-structure) (args blackboard) &optional max-au-cost)
+(defmethod anti-unify-meaning (source-meaning (cipn cip-node) (args blackboard) &optional max-au-cost)
   ;; before anti unifying, top-args and slot-args are added to the
   ;; source-meaning and pattern-meaning! This makes the learning of cxns
   ;; easier later on
-  (let* ((pattern-meaning (fcg-extract-meanings ts))
-         (pattern-meaning-with-args (add-meaning-arg-predicates pattern-meaning ts))
+  (let* ((pattern-meaning (fcg-extract-meanings cipn))
+         (pattern-meaning-with-args (add-meaning-arg-predicates pattern-meaning cipn))
          (source-meaning-with-args (add-meaning-arg-predicates source-meaning args))
          (anti-unification-results
           (anti-unify-predicate-network (fresh-variables pattern-meaning-with-args) source-meaning-with-args))
@@ -188,9 +190,9 @@
         do (push (list 'slot-arg arg) set-of-predicates))
   set-of-predicates)
 
-(defmethod add-meaning-arg-predicates (set-of-predicates (ts coupled-feature-structure))
+(defmethod add-meaning-arg-predicates (set-of-predicates (cipn cip-node))
   ;; top-args = args from slot-units that do not have 'form' and 'meaning' feature
-  (let* ((ts-units (fcg-get-transient-unit-structure ts))
+  (let* ((ts-units (fcg-get-transient-unit-structure cipn))
          (root-unit (get-root ts-units))
          (all-slot-units (get-child-units (remove root-unit ts-units)))
          (open-slot-units
@@ -198,21 +200,23 @@
                 unless (and (unit-feature unit 'form) (unit-feature unit 'meaning))
                 collect unit)))
     (loop for unit in open-slot-units
-          for meaning-args = (remove-duplicates (first (fcg-unit-feature-value unit 'meaning-args)))
+          for meaning-args = (remove-duplicates (unit-feature-value unit 'meaning-args))
           for lex-class = (extract-lex-class-unit unit)
           when (and meaning-args lex-class)
           do (loop for arg in meaning-args
                    do (push (list 'top-arg arg lex-class) set-of-predicates))))
   ;; slots-args = args from all top level units
-  (let* ((ts-units (fcg-get-transient-unit-structure ts))
+  (let* ((ts-units (fcg-get-transient-unit-structure cipn))
          (root-unit (get-root ts-units))
          (top-lvl-units (remove-child-units (remove root-unit ts-units))))
     (loop for unit in top-lvl-units
-          for meaning-args = (remove-duplicates (first (fcg-unit-feature-value unit 'meaning-args)))
+          for meaning-args = (remove-duplicates (unit-feature-value unit 'meaning-args))
           for lex-class = (extract-lex-class-unit unit)
           when (and meaning-args lex-class)
           do (loop for arg in meaning-args
-                   do (push (list 'slot-arg arg lex-class) set-of-predicates)))))
+                   do (push (list 'slot-arg arg lex-class) set-of-predicates))))
+  ;; return set of predicates
+  set-of-predicates)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;
@@ -290,3 +294,33 @@
               (if (= combined-cost-1 combined-cost-2)
                 (> cxn-score-1 cxn-score-2)
                 (< combined-cost-1 combined-cost-2))))))
+
+
+(defun copy-arg-predicates (anti-unification-result)
+  (let* ((top-arg-predicates (find-all 'top-arg (pattern-delta anti-unification-result) :key #'first))
+         (slot-arg-predicates (find-all 'slot-arg (pattern-delta anti-unification-result) :key #'first)))
+    (loop for predicate in (append top-arg-predicates slot-arg-predicates)
+          for var = (second predicate)
+          for gen-var = (rest (assoc var (pattern-bindings anti-unification-result)))
+          for source-var = (first (rassoc gen-var (source-bindings anti-unification-result)))
+          when source-var
+          do (push (list (first predicate) source-var (third predicate))
+                   (source-delta anti-unification-result)))))
+
+(defun group-slot-args-into-units (predicates)
+  (let* ((slot-arg-predicates (find-all 'slot-arg predicates :key #'first))
+         (unique-lex-classes (remove-duplicates (mapcar #'third slot-arg-predicates))))
+    (loop for lex-class in unique-lex-classes
+          collect (cons lex-class
+                        (loop for predicate in slot-arg-predicates
+                              when (eql (last-elt predicate) lex-class)
+                                collect (second predicate))))))
+
+(defun group-top-args-into-units (predicates)
+  (let* ((top-arg-predicates (find-all 'top-arg predicates :key #'first))
+         (unique-lex-classes (remove-duplicates (mapcar #'third top-arg-predicates))))
+    (loop for lex-class in unique-lex-classes
+          collect (cons lex-class
+                        (loop for predicate in top-arg-predicates
+                              when (eql (last-elt predicate) lex-class)
+                                collect (second predicate))))))

@@ -187,8 +187,19 @@
 ;; Extracting lex class from units
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun extract-lex-class-unit (unit)
+(defgeneric extract-lex-class-unit (unit)
+  (:documentation "extract the lex class from a unit"))
+  
+(defmethod extract-lex-class-unit ((unit contributing-unit))
   (let ((syn-cat (fcg-unit-feature-value unit 'syn-cat)))
+    (second (find 'lex-class syn-cat :key #'first))))
+
+(defmethod extract-lex-class-unit ((unit conditional-unit))
+  (let ((syn-cat (fcg-unit-feature-value unit 'syn-cat)))
+    (second (find 'lex-class syn-cat :key #'first))))
+
+(defmethod extract-lex-class-unit ((unit list))
+  (let ((syn-cat (unit-feature-value unit 'syn-cat)))
     (second (find 'lex-class syn-cat :key #'first))))
 
 ;;;;;
@@ -223,7 +234,7 @@
 (defun extract-lex-class-slot-item-based-cxn (cxn)
   "Extracts the lex classes from the slots of an item-based cxn.
    Works for both routine and meta cxns."
-  (loop for unit in (extract-item-based-slot-units cxn)
+  (loop for unit in (extract-slot-units cxn)
         for syn-cat = (fcg-unit-feature-value unit 'syn-cat)
         for lex-class = (second (find 'lex-class syn-cat :key #'first))
         collect lex-class))
