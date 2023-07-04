@@ -60,7 +60,8 @@
                                           (:initial-cxn-score . ,initial-cxn-score)
                                           (:initial-categorial-link-weight . ,initial-link-weight)
                                           (:ignore-transitive-closure . t)
-                                          (:max-au-cost . ,max-au-cost))
+                                          (:max-au-cost . ,max-au-cost)
+                                          (:ignore-nil-hashes . nil))
                      :diagnostics (pf::diagnose-non-gold-standard-meaning
                                    pf::diagnose-non-gold-standard-utterance)
                      :repairs ,repairs

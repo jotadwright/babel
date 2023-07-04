@@ -438,6 +438,7 @@
   (set-configuration cxn-inventory :consolidate-repairs t))
 
 (defun disable-meta-layer-configuration-item-based-first (cxn-inventory)
+  (set-configuration cxn-inventory :ignore-nil-hashes t)
   (set-configuration cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
   (set-configuration cxn-inventory :parse-order '(meta-only))
   (set-configuration cxn-inventory :category-linking-mode :categories-exist)
@@ -448,6 +449,7 @@
   (set-configuration cxn-inventory :consolidate-repairs nil))
 
 (defun enable-meta-layer-configuration-item-based-first (cxn-inventory)
+  (set-configuration cxn-inventory :ignore-nil-hashes nil)
   (set-configuration cxn-inventory :parse-goal-tests '(:no-strings-in-root
                                                        :no-applicable-cxns
                                                        :connected-semantic-network
