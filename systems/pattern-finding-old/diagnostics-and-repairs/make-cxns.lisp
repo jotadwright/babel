@@ -60,26 +60,41 @@
           do (setf set-of-predicates next-set-of-predicates))
     set-of-predicates))
 
-(defun make-n-holistic-cxns (form meaning form-args meaning-args form-arg-groups meaning-arg-groups cxn-inventory)
-  (loop for form-arg-group in form-arg-groups
-        for lex-class = (first form-arg-group)
-        for meaning-arg-group = (find lex-class meaning-arg-groups :key #'first)
-        for holistic-cxn-form = (gather-predicates-from-initial-variables (rest form-arg-group) form)
-        for holistic-cxn-meaning = (gather-predicates-from-initial-variables (rest meaning-arg-group) meaning)
-        for holistic-cxn-form-args = (loop for arg in form-args
-                                           when (find-anywhere arg holistic-cxn-form)
-                                           collect arg)
-        for holistic-cxn-meaning-args = (loop for arg in meaning-args
-                                              when (find-anywhere arg holistic-cxn-meaning)
-                                              collect arg)
-        for (holistic-cxn-apply-first holistic-cxn-apply-last lex-class-holistic-cxn)
-          = (make-holistic-cxn holistic-cxn-form holistic-cxn-meaning holistic-cxn-form-args holistic-cxn-meaning-args cxn-inventory)
-        collect holistic-cxn-apply-first into holistic-cxns-apply-first
-        collect holistic-cxn-apply-last into holistic-cxns-apply-last
-        collect lex-class-holistic-cxn into lex-classes-holistic-cxns
-        finally (return (list holistic-cxns-apply-first
-                              holistic-cxns-apply-last
-                              lex-classes-holistic-cxns))))
+(defun make-n-holistic-cxns (form meaning form-args meaning-args form-arg-groups meaning-arg-groups cxn-inventory)  
+  (let* ((holistic-cxns-forms-and-meanings
+          (loop for form-arg-group in form-arg-groups
+                for lex-class = (first form-arg-group)
+                for meaning-arg-group = (find lex-class meaning-arg-groups :key #'first)
+                for holistic-cxn-form = (gather-predicates-from-initial-variables (rest form-arg-group) form)
+                for holistic-cxn-meaning = (gather-predicates-from-initial-variables (rest meaning-arg-group) meaning)
+                collect (list holistic-cxn-form holistic-cxn-meaning)))
+         (leftover-form
+          (set-difference form (mappend #'first holistic-cxns-forms-and-meanings) :test #'equal))
+         (leftover-meaning
+          (set-difference meaning (mappend #'second holistic-cxns-forms-and-meanings) :test #'equal)))
+    ;; when there is leftover form or meaning
+    ;; simply add it to the first holistic cxn
+    (when (or leftover-form leftover-meaning)
+      (setf (first (first holistic-cxns-forms-and-meanings))
+            (append (first (first holistic-cxns-forms-and-meanings)) leftover-form))
+      (setf (second (first holistic-cxns-forms-and-meanings))
+            (append (second (first holistic-cxns-forms-and-meanings)) leftover-meaning)))
+    ;; actually make the holistic cxns
+    (loop for (holistic-cxn-form holistic-cxn-meaning) in holistic-cxns-forms-and-meanings
+          for holistic-cxn-form-args = (loop for arg in form-args
+                                             when (find-anywhere arg holistic-cxn-form)
+                                               collect arg)
+          for holistic-cxn-meaning-args = (loop for arg in meaning-args
+                                                when (find-anywhere arg holistic-cxn-meaning)
+                                                  collect arg)
+          for (holistic-cxn-apply-first holistic-cxn-apply-last lex-class-holistic-cxn)
+            = (make-holistic-cxn holistic-cxn-form holistic-cxn-meaning holistic-cxn-form-args holistic-cxn-meaning-args cxn-inventory)
+          collect holistic-cxn-apply-first into holistic-cxns-apply-first
+          collect holistic-cxn-apply-last into holistic-cxns-apply-last
+          collect lex-class-holistic-cxn into lex-classes-holistic-cxns
+          finally (return (list holistic-cxns-apply-first
+                                holistic-cxns-apply-last
+                                lex-classes-holistic-cxns)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; make generalisation cxn ;;
