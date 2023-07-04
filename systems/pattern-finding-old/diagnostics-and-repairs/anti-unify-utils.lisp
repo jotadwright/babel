@@ -232,6 +232,8 @@
     predicates))
 
 (defun correct-au-cost (anti-unification-result)
+  "Remove the cost of the top-arg and slot-arg predicates from
+   the total anti-unification cost"
   (with-slots (g pb sb pattern-delta source-delta cost) anti-unification-result
     (declare (ignore g pb sb))
     (- cost (+ (count 'top-arg pattern-delta :key #'first)
@@ -297,6 +299,9 @@
 
 
 (defun copy-arg-predicates (anti-unification-result)
+  "Copy arg predicates from the pattern delta to the source delta;
+   only copy predicates that include variables that can be found in
+   the source bindings"
   (let* ((top-arg-predicates (find-all 'top-arg (pattern-delta anti-unification-result) :key #'first))
          (slot-arg-predicates (find-all 'slot-arg (pattern-delta anti-unification-result) :key #'first)))
     (loop for predicate in (append top-arg-predicates slot-arg-predicates)
@@ -308,6 +313,8 @@
                    (source-delta anti-unification-result)))))
 
 (defun group-slot-args-into-units (predicates)
+  "Group slot-arg predicates that have the same lex-class as their
+   third argument. This will be used to make units in the resulting cxn"
   (let* ((slot-arg-predicates (find-all 'slot-arg predicates :key #'first))
          (unique-lex-classes (remove-duplicates (mapcar #'third slot-arg-predicates))))
     (loop for lex-class in unique-lex-classes
@@ -317,6 +324,8 @@
                                 collect (second predicate))))))
 
 (defun group-top-args-into-units (predicates)
+  "Group top-arg predicates that have the same lex-class as their
+   third argument. This will be used to make units in the resulting cxn"
   (let* ((top-arg-predicates (find-all 'top-arg predicates :key #'first))
          (unique-lex-classes (remove-duplicates (mapcar #'third top-arg-predicates))))
     (loop for lex-class in unique-lex-classes

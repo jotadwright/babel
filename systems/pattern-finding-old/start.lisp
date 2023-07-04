@@ -35,10 +35,14 @@
 ;;;; predicates. This will (likely) break down when applying repairs recursively.
 ;;;; However, we need these constants to find out which args on the form side
 ;;;; and the meaning side belong together. Another way to fix this would be to
-;;;; run 'fresh-variables' on the form side and meaning side simultenously, or
+;;;; run 'fresh-variables' on the form side and meaning side simultaneously, or
 ;;;; to keep some variables unchanged...
 
 ;;;; Add recursion!
+
+;;;; ???
+;;;; Is it a constraint that there should always be some strings left on the form side?
+;;;; Otherwise, item-based cxns with only meets predicates are being created...
 
 
 (progn
@@ -46,7 +50,8 @@
   (notify reset-monitors)
   (reset-id-counters)
   (defparameter *experiment*
-    (make-instance 'pattern-finding-experiment)))
+    (make-instance 'pattern-finding-experiment
+                   :entries '((:comprehend-all-n . 2)))))
 
 (length (corpus *experiment*))
 
