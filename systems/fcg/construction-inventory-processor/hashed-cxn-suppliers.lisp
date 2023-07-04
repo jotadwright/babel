@@ -365,14 +365,15 @@
          :remaining-constructions all-constructions-of-current-label
          :all-constructions-of-current-label all-constructions-of-current-label)))))
 
-(defun all-constructions-of-label-by-hash-and-score (node label)
+(defun all-constructions-of-label-by-hash-and-score (node label &key ignore-nil)
   "returns all constructions that of label 'label'"
   (let ((constructions
          (loop for cxn in (remove-duplicates
                            (append
                             (loop for hash in (hash node (get-configuration node :hash-mode))
                                   append (gethash hash (constructions-hash-table (construction-inventory node))))
-                            (gethash nil (constructions-hash-table (construction-inventory node)))))
+                            (unless ignore-nil
+                              (gethash nil (constructions-hash-table (construction-inventory node))))))
                for cxn-label = (attr-val cxn :label)
                when (or (and (symbolp cxn-label) (equalp (symbol-name label) (symbol-name cxn-label)))
                         (and (listp cxn-label) (member label cxn-label)))
