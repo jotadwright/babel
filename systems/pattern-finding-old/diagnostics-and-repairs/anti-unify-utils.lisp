@@ -287,8 +287,8 @@
    meaning-anti-unification) and avg cxn score as a tie breaker."
   (sort list-of-anti-unification-combinations
         #'(lambda (combo-1 combo-2)
-            (let ((combined-cost-1 (+ (cost (second combo-1)) (cost (third combo-1))))
-                  (combined-cost-2 (+ (cost (second combo-2)) (cost (third combo-2))))
+            (let ((combined-cost-1 (+ (fcg::cost (second combo-1)) (fcg::cost (third combo-1))))
+                  (combined-cost-2 (+ (fcg::cost (second combo-2)) (fcg::cost (third combo-2))))
                   (cxn-score-1 (get-cxn-score (first combo-1)))
                   (cxn-score-2 (get-cxn-score (first combo-2))))
               (if (= combined-cost-1 combined-cost-2)
