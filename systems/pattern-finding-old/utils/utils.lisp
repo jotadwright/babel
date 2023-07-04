@@ -442,7 +442,6 @@
   (set-configuration cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
   (set-configuration cxn-inventory :parse-order '(meta-only))
   (set-configuration cxn-inventory :category-linking-mode :categories-exist)
-  (set-configuration cxn-inventory :hash-mode :hash-string-meaning-lex-id) ; excludes nil hashed cxns (e.g. ?x-?y)
   (set-configuration cxn-inventory :max-nr-of-nodes 250)
   (set-configuration cxn-inventory :update-categorial-links nil)
   (set-configuration cxn-inventory :use-meta-layer nil)
@@ -455,7 +454,6 @@
                                                        :connected-semantic-network
                                                        :connected-structure
                                                        :non-gold-standard-meaning))
-  (set-configuration cxn-inventory :hash-mode :hash-string-meaning)
   (set-configuration cxn-inventory :parse-order '(routine))
   (set-configuration cxn-inventory :max-nr-of-nodes (get-configuration cxn-inventory :original-max-nr-of-nodes))
   (set-configuration cxn-inventory :category-linking-mode :neighbours)
@@ -531,12 +529,20 @@
   (let* ((all-primitives (mapcar #'first meaning-predicates))
          (all-primitives-but-bind (remove 'bind all-primitives))
          (target-variable (get-target-var meaning-predicates)))
-    ;; if there are only bind statements
-    (if (null all-primitives-but-bind)
-      ;; take the last element of the first binding
-      (last-elt (first (find-all 'bind meaning-predicates :key #'first)))
-      ;; otherwise, take the primitive that holds the target var
-      (first (find target-variable meaning-predicates :key #'second)))))
+    (cond (; if there are only bind statements
+           (null all-primitives-but-bind)
+           ; take the last element of the first binding
+           (last-elt (first (find-all 'bind meaning-predicates :key #'first))))
+          (; if there is a target variable
+           target-variable
+           ; take the primitive that has it
+           (first (find target-variable meaning-predicates :key #'second)))
+          (t ;otherwise
+           ; take a random primitive that has an open variable on the second position
+           (let* ((open-vars (get-unconnected-vars meaning-predicates))
+                  (target-vars (intersection open-vars (mapcar #'second meaning-predicates)))
+                  (a-target-var (random-elt target-vars)))
+             (first (find a-target-var meaning-predicates :key #'second)))))))
 
 (defun hash-observation (form-constraints meaning-predicates)
   ;; extract string predicates + predicate names
