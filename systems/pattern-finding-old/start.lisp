@@ -40,10 +40,6 @@
 
 ;;;; Add recursion!
 
-;;;; ???
-;;;; Is it a constraint that there should always be some strings left on the form side?
-;;;; Otherwise, item-based cxns with only meets predicates are being created...
-
 
 (progn
   (wi::reset)
@@ -51,20 +47,21 @@
   (reset-id-counters)
   (defparameter *experiment*
     (make-instance 'pattern-finding-experiment
-                   :entries '((:comprehend-all-n . 2)))))
+                   :entries '((:comprehend-all-n . 2)
+                              (:shuffle-data-p . nil)))))
 
 (length (corpus *experiment*))
 
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 10)
+(run-series *experiment* 8)
 
 ;;;; Showing the cxn inventory and categorial network
 
 (defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
 (add-element (make-html *cxn-inventory*))
-(add-element (make-html (categorial-network (grammar (first (agents *experiment*))))))
+(add-element (make-html (categorial-network *cxn-inventory*)))
 
 ;;;; Manually trying out sentences
 
@@ -80,7 +77,7 @@
 ;;;; Time travel
 
 (go-back-n-interactions *experiment* 1)
-(remove-cxns-learned-at *experiment* 4)
+(remove-cxns-learned-at *experiment* 9)
 
 (defun go-back-n-interactions (experiment n)
   (setf (interactions experiment)
