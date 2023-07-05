@@ -445,7 +445,9 @@
   (set-configuration cxn-inventory :max-nr-of-nodes 250)
   (set-configuration cxn-inventory :update-categorial-links nil)
   (set-configuration cxn-inventory :use-meta-layer nil)
-  (set-configuration cxn-inventory :consolidate-repairs nil))
+  (set-configuration cxn-inventory :consolidate-repairs nil)
+  (set-configuration cxn-inventory :node-tests '(:restrict-nr-of-nodes
+                                                 :restrict-search-depth)))
 
 (defun enable-meta-layer-configuration-item-based-first (cxn-inventory)
   (set-configuration cxn-inventory :ignore-nil-hashes nil)
@@ -459,7 +461,10 @@
   (set-configuration cxn-inventory :category-linking-mode :neighbours)
   (set-configuration cxn-inventory :update-categorial-links t)
   (set-configuration cxn-inventory :use-meta-layer t)
-  (set-configuration cxn-inventory :consolidate-repairs t))
+  (set-configuration cxn-inventory :consolidate-repairs t)
+  (set-configuration cxn-inventory :node-tests '(:restrict-nr-of-nodes
+                                                 :restrict-search-depth
+                                                 :check-duplicate)))
                  
 ;;;;;
 ;; Unit Utils
