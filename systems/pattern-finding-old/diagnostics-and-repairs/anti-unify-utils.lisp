@@ -308,9 +308,10 @@
           for var = (second predicate)
           for gen-var = (rest (assoc var (pattern-bindings anti-unification-result)))
           for source-var = (first (rassoc gen-var (source-bindings anti-unification-result)))
-          when source-var
-          do (push (list (first predicate) source-var (third predicate))
+          ;when source-var
+          do (push (list (first predicate) (or source-var var) (third predicate))
                    (source-delta anti-unification-result)))))
+
 
 (defun group-slot-args-into-units (predicates)
   "Group slot-arg predicates that have the same lex-class as their
