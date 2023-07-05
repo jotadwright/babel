@@ -4,7 +4,7 @@
 ;; compute args ;;
 ;;;;;;;;;;;;;;;;;;
 
-(defun compute-args (anti-unification-result)
+(defun compute-args (anti-unification-result side-mode)
   (let* ((connecting-vars
           ;; find args that connect the delta back to the generalisation
           (handle-connecting-vars anti-unification-result))
@@ -16,7 +16,7 @@
          (singleton-vars
           ;; find free variables in the delta that should be passed
           ;; along in the item-based cxn
-          (handle-singleton-vars anti-unification-result args-to-far))
+          (handle-singleton-vars anti-unification-result args-to-far side-mode))
          (all-slot-args
           ;; combine them
           (append-data-fields args-to-far singleton-vars))
@@ -107,7 +107,7 @@
                               (push-data decoupled-link-vars :source-slot-args z))))))
       decoupled-link-vars)))
 
-(defun handle-singleton-vars (anti-unification-result previous-vars)
+(defun handle-singleton-vars (anti-unification-result previous-vars side-mode)
   (with-slots (generalisation
                pattern-bindings
                source-bindings
@@ -130,13 +130,29 @@
                             (append (find-data previous-vars :source-top-lvl-args)
                                     (find-data previous-vars :source-slot-args))))
            (singleton-pattern-vars
-            (loop for var in available-pattern-vars
-                  when (= (count-anywhere var raw-pattern-delta) 1)
-                  collect var))
+            (case side-mode
+              (form (loop for var in available-pattern-vars
+                          for predicates-with-var = (find-all var raw-pattern-delta :test #'member)
+                          for var-count = (count-anywhere var raw-pattern-delta)
+                          when (or (= var-count 1)
+                                   (and (= var-count 2)
+                                        (permutation-of? (mapcar #'first predicates-with-var) '(string meets))))
+                          collect var))
+              (meaning (loop for var in available-pattern-vars
+                             when (= (count-anywhere var raw-pattern-delta) 1)
+                             collect var))))
            (singleton-source-vars
-            (loop for var in available-source-vars
-                  when (= (count-anywhere var raw-source-delta) 1)
-                  collect var))
+            (case side-mode
+              (form (loop for var in available-source-vars
+                          for predicates-with-var = (find-all var raw-source-delta :test #'member)
+                          for var-count = (count-anywhere var raw-source-delta)
+                          when (or (= var-count 1)
+                                   (and (= var-count 2)
+                                        (permutation-of? (mapcar #'first predicates-with-var) '(string meets))))
+                          collect var))
+              (meaning (loop for var in available-source-vars
+                             when (= (count-anywhere var raw-source-delta) 1)
+                             collect var))))
            (singleton-args (make-blackboard)))
       (multiple-value-bind (longest-delta-key other-delta-key
                             longest-var-list other-var-list

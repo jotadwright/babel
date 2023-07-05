@@ -104,8 +104,8 @@
                        form-anti-unification
                        meaning-anti-unification) anti-unification-results
     (let* (;; all form-args and meaning-args
-           (form-args (compute-args form-anti-unification))
-           (meaning-args (compute-args meaning-anti-unification))
+           (form-args (compute-args form-anti-unification 'form))
+           (meaning-args (compute-args meaning-anti-unification 'meaning))
            ;; dispatch to helper functions to make generalisation-cxn and delta cxns
            ;; generalisation cxn is always item-based!
            (generalisation-cxns-and-categories

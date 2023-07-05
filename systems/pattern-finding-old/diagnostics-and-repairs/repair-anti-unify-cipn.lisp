@@ -83,8 +83,8 @@
             (copy-arg-predicates form-anti-unification)
             (copy-arg-predicates meaning-anti-unification)
             (let (;; all form-args and meaning-args
-                  (form-args (compute-args form-anti-unification))
-                  (meaning-args (compute-args meaning-anti-unification)))
+                  (form-args (compute-args form-anti-unification 'form))
+                  (meaning-args (compute-args meaning-anti-unification 'meaning)))
               (cond ((and (find 'top-arg (pattern-delta form-anti-unification) :key #'first)
                           (find 'top-arg (pattern-delta meaning-anti-unification) :key #'first)
                           ;(find 'slot-arg (pattern-delta form-anti-unification) :key #'first)
