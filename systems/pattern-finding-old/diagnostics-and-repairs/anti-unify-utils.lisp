@@ -94,7 +94,7 @@
                 unless (and (unit-feature unit 'form) (unit-feature unit 'meaning))
                 collect unit)))
     (loop for unit in open-slot-units
-          for form-args = (remove-duplicates (unit-feature-value unit 'form-args))
+          for form-args = (unit-feature-value unit 'form-args)
           for lex-class = (extract-lex-class-unit unit)
           when (and form-args lex-class)
           do (loop for arg in form-args
@@ -104,7 +104,7 @@
          (root-unit (get-root ts-units))
          (top-lvl-units (remove-child-units (remove root-unit ts-units))))
     (loop for unit in top-lvl-units
-          for form-args = (remove-duplicates (unit-feature-value unit 'form-args))
+          for form-args = (unit-feature-value unit 'form-args)
           for lex-class = (extract-lex-class-unit unit)
           when (and form-args lex-class)
           do (loop for arg in form-args
@@ -200,7 +200,7 @@
                 unless (and (unit-feature unit 'form) (unit-feature unit 'meaning))
                 collect unit)))
     (loop for unit in open-slot-units
-          for meaning-args = (remove-duplicates (unit-feature-value unit 'meaning-args))
+          for meaning-args = (unit-feature-value unit 'meaning-args)
           for lex-class = (extract-lex-class-unit unit)
           when (and meaning-args lex-class)
           do (loop for arg in meaning-args
@@ -210,7 +210,7 @@
          (root-unit (get-root ts-units))
          (top-lvl-units (remove-child-units (remove root-unit ts-units))))
     (loop for unit in top-lvl-units
-          for meaning-args = (remove-duplicates (unit-feature-value unit 'meaning-args))
+          for meaning-args = (unit-feature-value unit 'meaning-args)
           for lex-class = (extract-lex-class-unit unit)
           when (and meaning-args lex-class)
           do (loop for arg in meaning-args
