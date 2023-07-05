@@ -68,32 +68,32 @@
               (remove-if-not #'valid-au-combination-p
                              (combinations meaning-anti-unification-results
                                            form-anti-unification-results)))
+             (all-partial-analyses
+              (loop for combo in all-anti-unification-combinations
+                    collect (cons partial-analysis-cipn combo)))
              ;; how to sort AU results??
-             (best-anti-unification-combination
-              (first (sort-anti-unification-combinations all-anti-unification-combinations)))
-             (best-anti-unification-result
-              (when best-anti-unification-combination
-                (cons partial-analysis-cipn best-anti-unification-combination))))
+             (best-partial-analysis
+              (first (sort-anti-unification-combinations all-partial-analyses))))
         ;; 3) when there are anti-unification results, learn cxns from them!
-        (when best-anti-unification-result
+        (when best-partial-analysis
           (destructuring-bind (anti-unified-cipn
                                form-anti-unification
-                               meaning-anti-unification) best-anti-unification-result
+                               meaning-anti-unification) best-partial-analysis
             (declare (ignore anti-unified-cipn))
             (copy-arg-predicates form-anti-unification)
             (copy-arg-predicates meaning-anti-unification)
             (let (;; all form-args and meaning-args
                   (form-args (compute-args form-anti-unification 'form))
                   (meaning-args (compute-args meaning-anti-unification 'meaning)))
-              (cond ((and (find 'top-arg (pattern-delta form-anti-unification) :key #'first)
-                          (find 'top-arg (pattern-delta meaning-anti-unification) :key #'first)
-                          ;(find 'slot-arg (pattern-delta form-anti-unification) :key #'first)
-                          (find 'slot-arg (pattern-delta meaning-anti-unification) :key #'first))
-                     (make-holistic-cxns-from-partial-analysis best-anti-unification-result observation-form observation-meaning
+              (cond ((and (find 'top-arg (source-delta form-anti-unification) :key #'first)
+                          (find 'top-arg (source-delta meaning-anti-unification) :key #'first)
+                          ;(find 'slot-arg (source-delta form-anti-unification) :key #'first)
+                          (find 'slot-arg (source-delta meaning-anti-unification) :key #'first))
+                     (make-holistic-cxns-from-partial-analysis best-partial-analysis observation-form observation-meaning
                                                                form-args meaning-args cxn-inventory))
                     ((and (find 'slot-arg (pattern-delta form-anti-unification) :key #'first)
                           (find 'slot-arg (pattern-delta meaning-anti-unification) :key #'first))
-                     (make-item-based-cxn-from-partial-analysis best-anti-unification-result observation-form observation-meaning
+                     (make-item-based-cxn-from-partial-analysis best-partial-analysis observation-form observation-meaning
                                                                 form-args meaning-args cxn-inventory))))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
