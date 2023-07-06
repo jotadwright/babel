@@ -15,12 +15,12 @@
   "Returns the first N elements of the LIST."
   (butlast list (max (- (list-length list) n) 0)))
 
-;; ---------------------
-;; + Utility functions +
-;; ---------------------
+;; -----------------------------------------
+;; + Utility functions for CLEVR simulated +
+;; -----------------------------------------
 
 (defun find-scenes-with-size (context-size)
-  (let* ((world (make-instance 'clevr-world :data-sets (list "t-val")))
+  (let* ((world (make-instance 'clevr-world :data-sets (list "val")))
          (scenes (all-scenes world))
          (filtered-scenes (loop for scene in scenes
                                 if (length= (objects scene) context-size)
@@ -28,7 +28,7 @@
     filtered-scenes))
 
 (defun get-all-scenes ()
-  (let* ((world (make-instance 'clevr-world :data-sets (list "t-val")))
+  (let* ((world (make-instance 'clevr-world :data-sets (list "val")))
          (scenes (all-scenes world)))
     scenes))
 
@@ -57,7 +57,7 @@
 
 #|
  
-(setf all-scenes (find-scenes-with-size ))
+(setf all-scenes (find-scenes-with-size))
 (setf all-scenes (get-all-scenes))
 (length all-scenes)
 
@@ -107,4 +107,3 @@
   (let ((store-path (merge-pathnames (make-pathname :name name :type "store")
                                      store-dir)))
     (cl-store:restore store-path)))     
-          
