@@ -49,17 +49,25 @@
   (add-element `((h4) ,(format nil "~{~a~^, ~}" args))))
 
 (defun show-scene (context topic)
-  (add-element `((h2) ,(format nil "Scene: ~a" (file-namestring (image context)))))
+  (add-element `((h2) ,(format nil "Scene: ~a" (file-namestring (get-image-fpath context)))))
   (add-element `((div :class "image" :style ,(format nil "margin-left: 50px; margin-bottom: 20px; width: fit-content; border-radius: 8px; overflow: hidden; border: 1px; border-color: #000000; box-shadow: 8px 8px 12px 1px rgb(0 0 0 / 10%);"))
                  ((img :src ,(string-append
                               cl-user::*localhost-user-dir*
                               (concatenate 'string
                                            "val/"
-                                           (file-namestring (image context))))))))
+                                           (file-namestring (get-image-fpath context))))))))
   (add-element `((table :style ,(format nil "margin-left: 50px;"))
                  ((tr) ((td) ,(make-html context
                                          :topic (id topic)
                                          :expand-initially t))))))
+
+(defun get-image-fpath (scene)
+  (let ((dataset (dataset scene))
+        (dataset-split (dataset-split scene))
+        (image-fname (image-fname scene)))
+    (merge-pathnames (merge-pathnames (make-pathname :directory `(:relative ,dataset "scenes" ,dataset-split))
+                                      cl-user:*babel-corpora*)
+                     image-fname)))
 
 ;; ---------
 ;; + TIIWI +

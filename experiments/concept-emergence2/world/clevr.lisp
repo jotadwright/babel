@@ -1,65 +1,66 @@
 (in-package :cle)
 
 ;; ------------------
-;; + CLE object set +
+;; + Topic sampling +
 ;; ------------------
-(defclass cle-context (entity)
-  ((objects
-    :documentation "The objects in the set."
-    :type list :accessor objects :initarg :objects
-    :initform nil)
-   (image
-    :documentation "Path of the image of this set."
-    :type pathname :accessor image :initarg :image))
-  (:documentation "A set of cle-objects."))
 
-;; constructor
-(defmethod clevr->simulated ((scene clevr-scene) feature-channels &key)
-  "Transforms a symbolic clevr scene to a list of simulated cle-objects."
-  (make-instance 'cle-context :id (id scene)
-                 :image (image scene)
-                 :objects (loop for obj in (objects scene)
-                                collect (clevr->simulated obj feature-channels))))
+(defmethod sample-topic (experiment (mode (eql :english-concepts)))
+  "Only objects that can be distinguished using a single metadata dimension can serve as topic."
+  (let* ((interaction (current-interaction experiment))
+         (agent (first (interacting-agents experiment)))
+         (cle-scene (find-data agent 'context))
+         (candidate-topics (filter-discriminative-topics (objects cle-scene))))
+    (if candidate-topics
+      (let ((cle-topic (random-elt candidate-topics)))
+        (set-data interaction 'channel-type (get-symbolic-discriminative-feature cle-topic cle-scene))
+        (loop for agent in (interacting-agents experiment)
+              do (set-data agent 'topic cle-topic)))
+      (progn
+        (sample-scene experiment (get-configuration experiment :scene-sampling))
+        (sample-topic experiment (get-configuration experiment :topic-sampling))))))
 
-;; --------------
-;; + CLE-Object +
-;; --------------
-(defclass cle-object (entity)
-  ((attributes
-    :documentation "The attributes of the object (a-list)."
-    :type list :accessor attributes :initarg :attributes)
-   (description
-    :documentation "Symbolic description of the original clevr object."
-    :type list :accessor description :initarg :description))
-  (:documentation "A continuous-valued CLEVR object."))
+;; --------------------
+;; + Helper functions +
+;; --------------------
+(defun get-symbolic-discriminative-feature (topic context)
+  "Returns which symbolic features of the topic are discriminative."
+  (let ((other-objects (remove topic (objects context))))
+    (loop for (attr . val) in (description topic)
+          for available = (is-channel-available attr (attributes topic))
+          for discriminative = (loop for other-object in other-objects
+                                     for other-val = (assqv attr (description other-object))
+                                     always (not (equal val other-val)))
+          if (and available discriminative)
+            collect (cons attr val))))
 
-;; constructor
-(defmethod clevr->simulated ((object clevr-object) feature-channels &key)
-  (make-instance 'cle-object :id (id object)
-                 :attributes (get-mapped-attributes object feature-channels)
-                 :description (object->alist object)))
+(defun filter-discriminative-topics (context)
+  "Determines which objects in the context are discriminative."
+  (loop for object in context
+        when (is-discriminative object (remove object context))
+        collect object))
 
-;; helper functions
-(defmethod get-channel-val ((object cle-object) attr)
-  (rest (assoc attr (attributes object))))
+(defun is-discriminative (object other-objects)
+  "Checks if the object has a single channel dimension that is different from all other objects."
+  (loop for (attr . val) in (description object)
+        do (when (is-channel-available attr (attributes object))
+             (let ((discriminative (loop for other-object in other-objects
+                                         for other-val = (assqv attr (description other-object))
+                                         always (not (equal val other-val)))))
+               (when discriminative
+                 (return t))))))
 
-(defmethod set-channel-val ((object cle-object) attr val)
-  (if (assoc attr (attributes object))
-    (setf (rest (assoc attr (attributes object))) val)
-    (push (cons attr val) (attributes object)))
-  nil)
-
-(defmethod object->alist ((object clevr-object))
-  `((:color . ,(color object))
-    (:size . ,(clevr-world::size object))
-    (:shape . ,(shape object))
-    (:material . ,(material object))
-    (:xpos . ,(if (> (x-pos object) 240) 'right 'left))
-    (:zpos . ,(if (> (z-pos object) 11) 'behind 'front))))
-
-(defmethod print-object ((cle-object cle-object) stream)
-  (pprint-logical-block (stream nil)
-    (format stream "<cle-object:~
-                        ~:_ attributes: ~{~,2f~^, ~}"
-            (reverse (attributes cle-object)))
-    (format stream ">")))
+(defun is-channel-available (symbolic-attribute raw-attributes)
+  (let ((continuous-attributes (mapcar 'first raw-attributes)))
+    (case symbolic-attribute
+      (:COLOR (or (if (member 'R continuous-attributes) t nil)
+                  (if (member 'G continuous-attributes) t nil)
+                  (if (member 'B continuous-attributes) t nil)))
+      (:SIZE (if (member 'AREA continuous-attributes) t nil))
+      (:SHAPE (or (if (member 'NR-OF-CORNERS continuous-attributes) t nil)
+                  (if (member 'NR-OF-SIDES continuous-attributes) t nil)
+                  (if (member 'WH-RATIO continuous-attributes) t nil)))
+      (:MATERIAL (if (member 'ROUGHNESS continuous-attributes) t nil))
+      (:XPOS (or (if (member 'XPOS continuous-attributes) t nil)
+                 (if (member 'YPOS continuous-attributes) t nil)))
+      (:ZPOS (or (if (member 'ZPOS continuous-attributes) t nil)
+                 (if (member 'YPOS continuous-attributes) t nil))))))
