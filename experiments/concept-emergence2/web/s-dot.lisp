@@ -17,8 +17,8 @@
     (push
      `(s-dot::record  
        ((s-dot::style "filled")
-        (s-dot::fillcolor ,(get-hex-color cxn))
-        ;(s-dot::fillcolor "#FFFFFF")
+        ;(s-dot::fillcolor ,(get-hex-color cxn))
+        (s-dot::fillcolor "#FFFFFF")
         (s-dot::fontcolor ,*black*)
         (s-dot::fontsize "9.5")
         (s-dot::fontname #+(or :win32 :windows) "Sans"
