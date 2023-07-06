@@ -51,6 +51,7 @@
       (if success? "." "x") ; return a dot or x in processing mode
       (cond ((member 'nothing->holistic all-node-statuses) "h")
             ((member 'anti-unify-cxns all-node-statuses) "a")
+            ((member 'anti-unify-cipn all-node-statuses) "p")
             ((member 'add-categorial-links all-node-statuses) "l")))))
 
 (defun set-cxn-last-used (agent cxn)
@@ -75,7 +76,8 @@
     (multiple-value-bind (meanings cipns)
         (comprehend-all (utterance agent)
                         :cxn-inventory (grammar agent)
-                        :gold-standard-meaning (meaning agent))
+                        :gold-standard-meaning (meaning agent)
+                        :n (get-configuration experiment :comprehend-all-n))
       (declare (ignore meanings))
       (let* ((solution-cipn (first cipns))
              (competing-cipns (rest cipns))

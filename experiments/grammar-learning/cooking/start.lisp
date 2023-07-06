@@ -43,28 +43,24 @@
         
 (defun run-training ()
   (wi::reset)
-  (let ((experiment-name 'training-stage-1))
+  (let ((experiment-name 'cooking-grammar-ingredients))
     (run-experiments `(
                        (,experiment-name
                         ((:determine-interacting-agents-mode . :corpus-learner)
                          (:observation-sample-mode . :train)
-                         (:meaning-representation . :irl)
+                         (:meaning-representation . :cooking)
                          (:de-render-mode . :de-render-string-meets-no-punct)
-                         (:corpus-files-root . ,(merge-pathnames
-                                     (make-pathname :directory '(:relative "clevr-grammar-learning"))
-                                     cl-user:*babel-corpora*))
-                         (:corpus-data-file . ,(make-pathname :directory '(:relative "train")
-                                                   :name "stage-1" :type "jsonl"))
+                         (:corpus-files-root . ,(babel-pathname :directory '("experiments" "grammar-learning" "cooking" "data")))
+                         (:corpus-data-file . ,(make-pathname :name "benchmark-ingredients" :type "jsonl"))
                          (:number-of-epochs . 1)
                          ))
                        )
-                     :number-of-interactions 47134
+                     :number-of-interactions 5
                      :number-of-series 1
                      :monitors (append '("print-a-dot-for-each-interaction"
                                          "summarize-results-after-n-interactions")
                                        (get-all-export-monitors)
-                                       (get-all-lisp-monitors)
-                                       (get-all-csv-monitors)))))
+                                       (get-all-lisp-monitors)))))
 
 ;(run-training)
 
