@@ -60,14 +60,14 @@
           do (setf set-of-predicates next-set-of-predicates))
     set-of-predicates))
 
-(defun make-n-holistic-cxns (form meaning form-args meaning-args form-arg-groups meaning-arg-groups cxn-inventory)  
+(defun make-n-holistic-cxns (form meaning form-arg-groups meaning-arg-groups cxn-inventory)  
   (let* ((holistic-cxns-forms-and-meanings
           (loop for form-arg-group in form-arg-groups
                 for lex-class = (first form-arg-group)
                 for meaning-arg-group = (find lex-class meaning-arg-groups :key #'first)
                 for holistic-cxn-form = (gather-predicates-from-initial-variables (rest form-arg-group) form)
                 for holistic-cxn-meaning = (gather-predicates-from-initial-variables (rest meaning-arg-group) meaning)
-                collect (list holistic-cxn-form holistic-cxn-meaning)))
+                collect (list holistic-cxn-form holistic-cxn-meaning lex-class)))
          (leftover-form
           (set-difference form (mappend #'first holistic-cxns-forms-and-meanings) :test #'equal))
          (leftover-meaning
@@ -80,13 +80,9 @@
       (setf (second (first holistic-cxns-forms-and-meanings))
             (append (second (first holistic-cxns-forms-and-meanings)) leftover-meaning)))
     ;; actually make the holistic cxns
-    (loop for (holistic-cxn-form holistic-cxn-meaning) in holistic-cxns-forms-and-meanings
-          for holistic-cxn-form-args = (loop for arg in form-args
-                                             when (find-anywhere arg holistic-cxn-form)
-                                               collect arg)
-          for holistic-cxn-meaning-args = (loop for arg in meaning-args
-                                                when (find-anywhere arg holistic-cxn-meaning)
-                                                  collect arg)
+    (loop for (holistic-cxn-form holistic-cxn-meaning lex-class) in holistic-cxns-forms-and-meanings
+          for holistic-cxn-form-args = (rest (find lex-class form-arg-groups :key #'first))
+          for holistic-cxn-meaning-args = (rest (find lex-class meaning-arg-groups :key #'first))
           for (holistic-cxn-apply-first holistic-cxn-apply-last lex-class-holistic-cxn)
             = (make-holistic-cxn holistic-cxn-form holistic-cxn-meaning holistic-cxn-form-args holistic-cxn-meaning-args cxn-inventory)
           collect holistic-cxn-apply-first into holistic-cxns-apply-first

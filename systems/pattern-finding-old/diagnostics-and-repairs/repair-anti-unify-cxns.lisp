@@ -104,8 +104,8 @@
                        form-anti-unification
                        meaning-anti-unification) anti-unification-results
     (let* (;; all form-args and meaning-args
-           (form-args (compute-args form-anti-unification 'form))
-           (meaning-args (compute-args meaning-anti-unification 'meaning))
+           (form-args (compute-args form-anti-unification))
+           (meaning-args (compute-args meaning-anti-unification))
            ;; dispatch to helper functions to make generalisation-cxn and delta cxns
            ;; generalisation cxn is always item-based!
            (generalisation-cxns-and-categories
@@ -149,8 +149,9 @@
                                                          pattern-delta-form-arg-groups
                                                          pattern-delta-meaning-arg-groups
                                                          cxn-inventory))
-                  ((or (find 'top-arg (pattern-delta form-anti-unification) :key #'first)
-                       (find 'top-arg (pattern-delta meaning-anti-unification) :key #'first))
+                  (t
+                   ;(or (find 'top-arg (pattern-delta form-anti-unification) :key #'first)
+                   ;    (find 'top-arg (pattern-delta meaning-anti-unification) :key #'first))
                    (make-holistic-cxn (remove-arg-predicates (pattern-delta form-anti-unification))
                                       (remove-arg-predicates (pattern-delta meaning-anti-unification))
                                       (find-data form-args :pattern-top-lvl-args)
