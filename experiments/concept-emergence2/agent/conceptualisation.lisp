@@ -96,9 +96,10 @@
             do (progn
                  (setf best-score score)
                  (setf best-cxn (assqv :cxn tuple))))
+    ;; if best-score is zero, base choice solely on discriminative power
     (when (zerop best-score)
       (setf best-cxn (assqv :cxn (the-biggest (lambda (x) (abs (- (assqv :topic-sim x) (assqv :best-other-sim x))))
-                                              cxns))))                   
+                                              cxns))))               
     best-cxn))
 
 ;; ---------------------
