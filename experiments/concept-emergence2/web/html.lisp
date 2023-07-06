@@ -25,7 +25,7 @@
 
 
 ;; make html of object set
-(defmethod make-html-for-entity-details ((set cle-context) &key topic)
+(defmethod make-html-for-entity-details ((set cle-scene) &key topic)
   `(((div :class "entity-detail")
      ,@(loop for object in (objects set)
              collect (make-html object :topic topic :expand-initially t)))))

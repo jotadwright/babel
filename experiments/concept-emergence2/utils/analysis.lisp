@@ -13,7 +13,7 @@
          (title (generate-title exp-dir filters)))
     (list (length exp-names) title exp-names captions)))
 
-(defun graph-batch-experiments (top-dir exp-dir raw-parameters filters &key (start nil) (end nil) (plot :all) (y-max 100) (y-min 0))
+(defun graph-batch-experiments (top-dir exp-dir raw-parameters filters &key (start nil) (end nil) (plot :all) (y-max 100) (y-min 0) (average-windows 1000))
   "Plot a batch of experiments."
   (let* ((exp-dir-path (asdf:system-relative-pathname "cle" (format nil "logging/~a/~a/experiments/" top-dir exp-dir)))
          (all-configs (sort (get-configurations exp-dir-path) (lambda (x y) (< (first x) (first y)))))
@@ -32,7 +32,7 @@
        :y-max 1
        :start start
        :end end
-       :average-windows 1000
+       :average-windows average-windows
        :plot-file-name (format nil "~{~a~^-~}" (list title "comm-success"))
        :captions captions
        ))
@@ -47,7 +47,7 @@
        :y-max 1
        :start start
        :end end
-       :average-windows 1000
+       :average-windows average-windows
        :plot-file-name (format nil "~{~a~^-~}" (list title "lex-coherence"))
        :captions captions
        ))

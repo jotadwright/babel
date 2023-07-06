@@ -11,7 +11,7 @@
         :test-framework
         :irl
         :fcg
-        :clevr-world)
+        :cl-jonathan)
   (:import-from :cl-mop
                 :slot-names
                 :map-slots)

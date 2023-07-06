@@ -24,9 +24,9 @@
   "Quantifies the hellinger distance between two probability distributions.
 
    It forms a bounded metric on the space of probability distributions
-     over a given probability space. Maximum distance 1 is achieved when P
-     assigns probability zero to every set to which Q assigns a positive
-     probability, and vice versa."
+     over a given probability space. Maximum distance 1 is achieved when
+     P assigns probability zero to every set to which Q assigns a positive probability,
+     and vice versa."
   (if (and (zerop sigma1)
            (zerop sigma2))
     ;; if both distributions are Dirac distributions with zero sigma, return maximal distance of 1

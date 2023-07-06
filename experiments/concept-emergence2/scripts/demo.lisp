@@ -10,19 +10,31 @@
   (defparameter *baseline-simulated*
     (make-configuration
      :entries `(
-                               ;; monitoring
-                (:dot-interval . 1000)
+                ;; monitoring
+                (:dot-interval . 10)
                 (:save-distribution-history . nil)
                 ;; setup interacting agents
                 (:interacting-agents-strategy . :standard)
                 (:population-size . 10)
                 ;; setup data scene
-                (:data-fname . "10-all.lisp")
+                (:dataset . "clevr-simulated")
+                (:dataset-split . "val")
+                (:data-fname . "10_all.lisp")
+                (:available-channels
+                 ,'xpos ,'ypos ,'zpos ;; position
+                 ,'area ;; size
+                 ,'wh-ratio ;; shape
+                 ,'nr-of-sides ,'nr-of-corners ;; shape
+                 ,'r ,'g ,'b ;; color
+                 ,'roughness ;; material
+                 #|,'xpos-3d ,'ypos-3d ,'zpos-3d ;; 3d-position
+                 ,'rotation ;; rotation|#
+                 )
                 (:scene-sampling . :deterministic)
                 (:topic-sampling . :random-topic)
                 ;; general strategy
                 (:strategy . :times)
-                (:similarity-threshold . 0.2)
+                (:similarity-threshold . 0.0)
 
                 ;; entrenchment of constructions
                 (:initial-cxn-entrenchement . 1/2)
@@ -90,7 +102,7 @@
   (deactivate-all-monitors)
   ;(activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor trace-interaction-in-web-interface)
-  (loop for idx from 1 to 25
+  (loop for idx from 1 to 5
         do (run-interaction *experiment*)))
 
 (defmethod after-interaction ((experiment cle-experiment))
@@ -123,6 +135,7 @@
   (mapcar (lambda (x) (float (/ x (sum (mapcar #'length p-money))))) (mapcar #'length p-money))
   ;; => (0.0182 0.5592 0.0404 0.3822)
   ;; => (0.0184 0.3594 0.1952 0.031 0.0136 0.3824)
+  ;; => (0.022 0.3506 0.1896 0.0348 0.0072 0.3958)
   (mapcar (lambda (lst)
             (float (/ (sum (mapcar (lambda (x) (if (fourth x) 1 0)) lst)) (length lst))))
           p-money)
@@ -132,10 +145,16 @@
   (/ (sum (mapcar (lambda (lst) (float (sum (mapcar (lambda (x) (if (fourth x) 1 0)) lst)))) p-money))
      (sum (mapcar #'length p-money)))
   ;; => 0.9964
-  (float (/ (+ (length not-solvable+coherent)
+  (float (/ (+ (length not-solvable+coherent-0)
+               (length not-solvable+coherent-2)
                (length coherent))
             (sum (mapcar #'length p-money))))
   ;; => 0.9414
+
+(loop for el in (fourth p-money)
+      for comm-success = (fourth el)
+      if (not comm-success)
+        collect el)
 
 
   (mapcar #'length p-money)
@@ -157,7 +176,7 @@
   (wi::reset)
   (deactivate-all-monitors)
   (activate-monitor trace-interaction-in-web-interface)
-  (loop for tuple in (first-n 100 not-coherent);(list (nth 4 not-solvable+not-coherent-0))
+  (loop for tuple in (first-n 100 not-solvable+not-coherent-0);(list (nth 4 not-solvable+not-coherent-0))
         for saved-agents = (first tuple)
         for saved-scene =  (second tuple)
         for saved-topic = (third tuple)
@@ -370,13 +389,13 @@ is-discriminative
 (loop for tuple in saved
       for saved-scene-id = (second tuple)
       for saved-topic = (third tuple)
-      for channels-in-play  = (get-configuration *experiment* :clevr-channels)
+      for channels-in-play  = (get-configuration *experiment* :channels)
       for symbolic-clevr-context =  (get-scene-by-index (world *experiment*) saved-scene-id)
-      for cle-context = (clevr->simulated symbolic-clevr-context channels-in-play)
-      for cle-topic = (find saved-topic (objects cle-context)
+      for cle-scene = (clevr->simulated symbolic-clevr-context channels-in-play)
+      for cle-topic = (find saved-topic (objects cle-scene)
                             :test (lambda (x el) (equal (description x) (description el))))
-      do (show-scene cle-context cle-topic)
-      do (format t "~%~a | ~a -> ~a" (is-discriminative-strict cle-topic (remove cle-topic (objects cle-context)))
+      do (show-scene cle-scene cle-topic)
+      do (format t "~%~a | ~a -> ~a" (is-discriminative-strict cle-topic (remove cle-topic (objects cle-scene)))
                                                         saved-scene-id (description cle-topic)))
 
 
@@ -485,7 +504,7 @@ is-discriminative
                                         :name "history"
                                         :type "store")))
 
-(display-lexicon (first (agents *experiment*)) :sort t) :entrenchment-threshold 0.00)
+(display-lexicon (first (agents *experiment*)) :sort t :entrenchment-threshold 0.00)
 
 
 (float (/ (loop for agent in (agents *experiment*)

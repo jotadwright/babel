@@ -16,18 +16,20 @@
                :test-framework
                :meta-layer-learning
                :irl
-               :fcg 
-               :clevr-world
+               :fcg
                :cl-mop
-               :cl-json)
+               :cl-json
+               :cl-jonathan)
   :serial t
   :components ((:file "package")
                (:module "world"
                 :serial t
-                :components ((:file "clevr")
-                             (:file "import")
+                :components ((:file "world")
+                             (:file "object")
                              (:file "scene")
                              (:file "topic")
+                             (:file "utils")
+                             (:file "clevr")
                              ))
                (:module "agent"
                 :serial t

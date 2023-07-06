@@ -134,13 +134,13 @@
         for saved-agent = (first tuple)
         for saved-scene = (second tuple)
         for saved-topic = (third tuple)
-        for channels-in-play = (get-configuration *experiment* :clevr-channels)
+        for channels-in-play = (get-configuration *experiment* :channels)
         for symbolic-clevr-context = (get-scene-by-index (world *experiment*) saved-scene)
-        for cle-context = (clevr->simulated symbolic-clevr-context channels-in-play)
-        for cle-topic = (find saved-topic (objects cle-context)
+        for cle-scene = (clevr->simulated symbolic-clevr-context channels-in-play)
+        for cle-topic = (find saved-topic (objects cle-scene)
                               :test (lambda (x el) (equal (description x) (description el))))
         if cle-topic
-          do (setf possible (is-discriminative-strict cle-topic (remove cle-topic (objects cle-context))))
+          do (setf possible (is-discriminative-strict cle-topic (remove cle-topic (objects cle-scene))))
         if possible
           collect (cons saved-scene possible)))
 
