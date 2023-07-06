@@ -7,13 +7,15 @@
 ;; + Graph creation +
 ;; ------------------
 (graph-batch-experiments "big-bench5"
-                         "10-all-random"
+                         "compare"
                          `((:similarity-threshold 0.0 0.01 0.05 0.1 0.2)
                            (:initial-weight 0 35)
+                           (:topic-sampling :english-concepts :random-topic)
                            )
                          
                          `(
-                           (:initial-weight 0 35)
+                           (:similarity-threshold 0.05)
+                           (:initial-weight 0)
                            )
                          :plot :communicative-success
                          ;:plot :lexicon-coherence
@@ -25,13 +27,17 @@
                          )
 
 (get-statistics "big-bench5"
-                "3-all"
+                "compare"
                 `((:similarity-threshold 0.0 0.01 0.05 0.1 0.2)
-                  (:initial-weight 0 35)
-                  )
+                           (:initial-weight 0 35)
+                           (:topic-sampling :english-concepts :random-topic)
+                           )
                 `(
-                  (:initial-weight 0)
-                  ))
+                  (:similarity-threshold 0.05)
+                  (:initial-weight 35)
+                  ;(:topic-sampling :english-concepts)
+                  )
+                )
 
 
 ;(list (length exp-names) title exp-names captions)
@@ -109,8 +115,8 @@
 (setf an-experiment (cl-store:restore (babel-pathname :directory `("experiments"
                                                                    "concept-emergence2"
                                                                    "logging"
-                                                                   "10-all-channels"
-                                                                   "weird-s02-2023-06-21_12h8m29s-exp-0")
+                                                                   "10-all-random-bugfix"
+                                                                   "2023-06-29_18h51m17s-exp-0")
                                                       :name "history"
                                                       :type "store")))
 
@@ -180,7 +186,7 @@
   (loop for dir-path in dir-paths
         for dir-name = (first (last (pathname-directory dir-path)))
         for config = (read-config dir-name)
-        for clevr-channels = (assqv :CLEVR-CHANNELS config)
+        for clevr-channels = (assqv :CHANNELS config)
         do (format t "~% ~a" (cons dir-name (list-of-strings->string (mapcar #'mkstr clevr-channels) :separator "-")))))
 
 
