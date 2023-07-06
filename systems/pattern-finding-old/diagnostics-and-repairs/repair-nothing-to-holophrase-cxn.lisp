@@ -43,10 +43,8 @@
          (cxn-name-apply-first
           (intern (upcase (format nil "~a-apply-first" cxn-name))))
          ;; top lvl args
-         (cxn-form-args (or (find-data args :top-lvl-form-args)
-                            (get-unconnected-vars observation-form)))
-         (cxn-meaning-args (or (find-data args :top-lvl-meaning-args)
-                               (get-unconnected-vars observation-meaning)))
+         (cxn-form-args (find-data args :top-lvl-form-args))
+         (cxn-meaning-args (find-data args :top-lvl-meaning-args))
          ;; find an identical existing holistic cxn
          (existing-routine-holistic-cxn
           (find-identical-holistic-cxn observation-form observation-meaning cxn-form-args cxn-meaning-args cxn-inventory))

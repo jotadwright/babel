@@ -82,25 +82,18 @@
             (declare (ignore anti-unified-cipn))
             (copy-arg-predicates form-anti-unification)
             (copy-arg-predicates meaning-anti-unification)
-            (let (;; all form-args and meaning-args
-                  (form-args (compute-args form-anti-unification 'form))
-                  (meaning-args (compute-args meaning-anti-unification 'meaning)))
-              (cond ((and (find 'top-arg (source-delta form-anti-unification) :key #'first)
-                          (find 'top-arg (source-delta meaning-anti-unification) :key #'first)
-                          ;(find 'slot-arg (source-delta form-anti-unification) :key #'first)
-                          (find 'slot-arg (source-delta meaning-anti-unification) :key #'first))
-                     (make-holistic-cxns-from-partial-analysis best-partial-analysis observation-form observation-meaning
-                                                               form-args meaning-args cxn-inventory))
-                    ((and (find 'slot-arg (pattern-delta form-anti-unification) :key #'first)
-                          (find 'slot-arg (pattern-delta meaning-anti-unification) :key #'first))
-                     (make-item-based-cxn-from-partial-analysis best-partial-analysis observation-form observation-meaning
-                                                                form-args meaning-args cxn-inventory))))))))))
+            (cond ((and (find 'top-arg (source-delta form-anti-unification) :key #'first)
+                        (find 'top-arg (source-delta meaning-anti-unification) :key #'first))
+                   (make-holistic-cxns-from-partial-analysis best-partial-analysis observation-form observation-meaning cxn-inventory))
+                  ((and (find 'slot-arg (pattern-delta form-anti-unification) :key #'first)
+                        (find 'slot-arg (pattern-delta meaning-anti-unification) :key #'first))
+                   (make-item-based-cxn-from-partial-analysis best-partial-analysis observation-form observation-meaning cxn-inventory)))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; make cxns from partial analysis ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun make-item-based-cxn-from-partial-analysis (anti-unification-results observation-form observation-meaning form-args meaning-args cxn-inventory)
+(defun make-item-based-cxn-from-partial-analysis (anti-unification-results observation-form observation-meaning cxn-inventory)
   (destructuring-bind (anti-unified-cipn
                        form-anti-unification
                        meaning-anti-unification) anti-unification-results
@@ -108,14 +101,18 @@
             (group-slot-args-into-units (source-delta form-anti-unification)))
            (source-delta-meaning-arg-groups
             (group-slot-args-into-units (source-delta meaning-anti-unification)))
+           (top-lvl-form-args
+            (mapcar #'second (find-all 'top-arg (source-delta form-anti-unification) :key #'first)))
+           (top-lvl-meaning-args
+            (mapcar #'second (find-all 'top-arg (source-delta meaning-anti-unification) :key #'first)))
            ;; learn cxns from source delta
            (source-delta-cxns-and-categories
             (make-generalisation-cxn-with-n-units (remove-arg-predicates (source-delta form-anti-unification))
                                                   (remove-arg-predicates (source-delta meaning-anti-unification))
-                                                  (find-data form-args :source-top-lvl-args)
-                                                  (find-data meaning-args :source-top-lvl-args)
-                                                  (find-data form-args :source-slot-args)
-                                                  (find-data meaning-args :source-slot-args)
+                                                  top-lvl-form-args
+                                                  top-lvl-meaning-args
+                                                  (mappend #'rest source-delta-form-arg-groups)
+                                                  (mappend #'rest source-delta-meaning-arg-groups)
                                                   source-delta-form-arg-groups
                                                   source-delta-meaning-arg-groups
                                                   cxn-inventory))
@@ -145,7 +142,7 @@
       ;; done!
       (list cxns-to-apply cxns-to-consolidate categories-to-add links-to-add))))
 
-(defun make-holistic-cxns-from-partial-analysis (anti-unification-results observation-form observation-meaning form-args meaning-args cxn-inventory)
+(defun make-holistic-cxns-from-partial-analysis (anti-unification-results observation-form observation-meaning cxn-inventory)
   (destructuring-bind (anti-unified-cipn
                        form-anti-unification
                        meaning-anti-unification) anti-unification-results
@@ -157,8 +154,6 @@
            (source-delta-cxns-and-categories
             (make-n-holistic-cxns (remove-arg-predicates (source-delta form-anti-unification))
                                   (remove-arg-predicates (source-delta meaning-anti-unification))
-                                  (find-data form-args :source-top-lvl-args)
-                                  (find-data meaning-args :source-top-lvl-args)
                                   source-delta-form-arg-groups
                                   source-delta-meaning-arg-groups
                                   cxn-inventory))

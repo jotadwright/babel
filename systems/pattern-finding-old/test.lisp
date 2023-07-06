@@ -7,6 +7,18 @@
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor trace-interactions-in-wi))
 
+(defun remove-cxns-learned-at (experiment at)
+  (let ((learned-at-cxns
+         (find-all-if #'(lambda (cxn)
+                          (string= (format nil "@~a" at)
+                                   (attr-val cxn :learned-at)))
+                      (constructions (grammar (learner experiment))))))
+    (loop with grammar = (grammar (learner experiment))
+          for cxn in learned-at-cxns
+          for alter-ego-cxn = (alter-ego-cxn cxn grammar)
+          do (delete-cxn (name cxn) grammar :key #'name)
+             (delete-cxn (name alter-ego-cxn) grammar :key #'name))))
+
 (defun setup-test-case ()
   (wi::reset)
   (notify reset-monitors)
