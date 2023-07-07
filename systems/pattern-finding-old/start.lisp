@@ -47,15 +47,17 @@
   (reset-id-counters)
   (defparameter *experiment*
     (make-instance 'pattern-finding-experiment
-                   :entries '((:comprehend-all-n . 2)
-                              (:shuffle-data-p . nil)))))
+                   :entries `((:comprehend-all-n . 2)
+                              (:shuffle-data-p . nil)
+                              (:corpus-file . ,(make-pathname :directory '(:relative "val")
+                                                              :name "stage-1" :type "jsonl"))))))
 
 (length (corpus *experiment*))
 
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 8)
+(run-series *experiment* 10)
 
 ;;;; Showing the cxn inventory and categorial network
 
