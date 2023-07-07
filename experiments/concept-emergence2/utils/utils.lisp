@@ -19,7 +19,7 @@
 ;; + Utility functions for CLEVR simulated +
 ;; -----------------------------------------
 
-(defun find-scenes-with-size (context-size)
+#|(defun find-scenes-with-size (context-size)
   (let* ((world (make-instance 'clevr-world :data-sets (list "val")))
          (scenes (all-scenes world))
          (filtered-scenes (loop for scene in scenes
@@ -41,7 +41,7 @@
                                        when (is-discriminative candidate other-objects)
                                          collect (cons idx (get-symbolic-discriminative-feature candidate ecl-context)))
           if candidate-topics
-            collect (cons (index symbolic-scene) candidate-topics)))
+            collect (cons (index symbolic-scene) candidate-topics)))|#
 
 ;;;
 
