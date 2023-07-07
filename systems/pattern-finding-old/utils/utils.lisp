@@ -586,30 +586,34 @@
                 (< cipn-1-applied-cxns cipn-2-applied-cxns)
                 (< cipn-1-form-in-root cipn-2-form-in-root))))))
 
-(defun compatible-cipns (form-constraints gold-standard-meaning cxn-inventory)
-  (with-disabled-monitor-notifications
-    (multiple-value-bind (meanings cip-nodes) (comprehend-all form-constraints :cxn-inventory cxn-inventory)
-      (loop for meaning in meanings
-            for cipn in cip-nodes
-            when (and meaning ; meaning should be non-nil
-                      (form-predicates-in-root cipn) ; some form left in root
-                      (irl::embedding meaning gold-standard-meaning) ; partial meaning should be compatible with gold standard
-                      )
-            collect cipn))))
-
 (defun compatible-cipns-with-routine-cxns (form-constraints gold-standard-meaning cxn-inventory)
   (when (constructions cxn-inventory)
-    (let (compatible-cipns)
-      (disable-meta-layer-configuration cxn-inventory)
-      (setf compatible-cipns (compatible-cipns form-constraints gold-standard-meaning cxn-inventory))
+    (disable-meta-layer-configuration cxn-inventory)
+    (let ((compatible-cipns
+           (with-disabled-monitor-notifications
+             (multiple-value-bind (meanings cip-nodes) (comprehend-all form-constraints :cxn-inventory cxn-inventory)
+               (loop for meaning in meanings
+                     for cipn in cip-nodes
+                     when (and meaning ; meaning should be non-nil
+                               (form-predicates-in-root cipn) ; some form left in root
+                               (irl::embedding meaning gold-standard-meaning)) ; partial meaning should be compatible with gold standard
+                     collect cipn)))))
       (enable-meta-layer-configuration cxn-inventory)
       compatible-cipns)))
 
 (defun compatible-cipns-with-meta-cxns (form-constraints gold-standard-meaning cxn-inventory)
   (when (constructions cxn-inventory)
-    (let (compatible-cipns)
-      (disable-meta-layer-configuration-item-based-first cxn-inventory)
-      (setf compatible-cipns (compatible-cipns form-constraints gold-standard-meaning cxn-inventory))
+    (disable-meta-layer-configuration-item-based-first cxn-inventory)
+    (let ((compatible-cipns
+           (with-disabled-monitor-notifications
+             (multiple-value-bind (meanings cip-nodes) (comprehend-all form-constraints :cxn-inventory cxn-inventory)
+               (loop for meaning in meanings
+                     for cipn in cip-nodes
+                     when (and meaning ; meaning should be non-nil
+                               (form-predicates-in-root cipn) ; some form left in root
+                               (irl::embedding meaning gold-standard-meaning) ; partial meaning should be compatible with gold standard
+                               (fcg::connected-syntactic-structure (fcg-get-transient-unit-structure cipn))) ; connected structure in TS 
+                     collect cipn)))))
       (enable-meta-layer-configuration-item-based-first cxn-inventory)
       compatible-cipns)))
 

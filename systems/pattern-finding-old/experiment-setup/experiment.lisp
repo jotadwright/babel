@@ -10,7 +10,7 @@
                                      (make-pathname :directory '(:relative "clevr-grammar-learning"))
                                      cl-user:*babel-corpora*))
 (define-configuration-default-value :corpus-file
-                                    (make-pathname :directory '(:relative "val")
+                                    (make-pathname :directory '(:relative "train")
                                                    :name "stage-1" :type "jsonl"))
 
 ; mode = learning or evaluation or testing

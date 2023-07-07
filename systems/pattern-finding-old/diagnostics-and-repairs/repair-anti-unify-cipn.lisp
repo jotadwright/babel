@@ -42,52 +42,62 @@
                      node
                      repair-type))))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; find ts and anti-unify ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; find cipn and anti-unify ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;; QUESTIONS FOR PARTIAL ANALYSIS
+;;;; - do we want the same max cost??
+;;;; - when are these AU results valid/invalid??
+;;;; - how to sort AU results??
 
 (defmethod find-cipn-and-anti-unify (observation-form observation-meaning (args blackboard) (cxn-inventory fcg-construction-set))
   "Given form and meaning of an observation and a cxn inventory,
    find the best transient structure that partially covers the observation
    and learn new cxn(s) from the remainder"
-  (let* (;; 1) run comprehension (routine and meta set) and select the best compatible partial analysis
+  (let* (;; 1) run comprehension (routine and meta set)
+         ;;    and obtain partial analyses
          (cipns-with-routine-cxns (compatible-cipns-with-routine-cxns observation-form observation-meaning cxn-inventory))
          (cipns-with-meta-cxns (compatible-cipns-with-meta-cxns observation-form observation-meaning cxn-inventory))
-         (all-partial-analysis-cipns (append cipns-with-routine-cxns cipns-with-meta-cxns))
-         (partial-analysis-cipn (first (sort-cipns-by-coverage-and-nr-of-applied-cxns all-partial-analysis-cipns))))
-    ;; 2) anti-unify the transient structure with the observation!
-    (when partial-analysis-cipn
-      (let* (;; do we want the same max cost??
-             (max-au-cost (get-configuration cxn-inventory :max-au-cost))
-             ;; when are these AU results valid/invalid??
-             (form-anti-unification-results
-              (anti-unify-form observation-form partial-analysis-cipn args max-au-cost))
-             (meaning-anti-unification-results
-              (anti-unify-meaning observation-meaning partial-analysis-cipn args max-au-cost))
-             (all-anti-unification-combinations
-              (remove-if-not #'valid-au-combination-p
-                             (combinations meaning-anti-unification-results
-                                           form-anti-unification-results)))
-             (all-partial-analyses
-              (loop for combo in all-anti-unification-combinations
-                    collect (cons partial-analysis-cipn combo)))
-             ;; how to sort AU results??
-             (best-partial-analysis
-              (first (sort-anti-unification-combinations all-partial-analyses))))
-        ;; 3) when there are anti-unification results, learn cxns from them!
-        (when best-partial-analysis
-          (destructuring-bind (anti-unified-cipn
-                               form-anti-unification
-                               meaning-anti-unification) best-partial-analysis
-            (declare (ignore anti-unified-cipn))
-            (copy-arg-predicates form-anti-unification)
-            (copy-arg-predicates meaning-anti-unification)
-            (cond ((and (find 'top-arg (source-delta form-anti-unification) :key #'first)
-                        (find 'top-arg (source-delta meaning-anti-unification) :key #'first))
-                   (make-holistic-cxns-from-partial-analysis best-partial-analysis observation-form observation-meaning cxn-inventory))
-                  ((and (find 'slot-arg (pattern-delta form-anti-unification) :key #'first)
-                        (find 'slot-arg (pattern-delta meaning-anti-unification) :key #'first))
-                   (make-item-based-cxn-from-partial-analysis best-partial-analysis observation-form observation-meaning cxn-inventory)))))))))
+         (partial-analysis-cipns (append cipns-with-routine-cxns cipns-with-meta-cxns))
+         ;; 2) find the least general generalisation through anti-unification
+         (least-general-generalisation
+          (loop with max-au-cost = (get-configuration cxn-inventory :max-au-cost)
+                for cipn in partial-analysis-cipns
+                ;; returns all valid form anti unification results
+                for form-anti-unification-results
+                  = (anti-unify-form observation-form cipn args max-au-cost)
+                ;; returns all valid meaning anti unification results
+                for meaning-anti-unification-results
+                  = (anti-unify-meaning observation-meaning cipn args max-au-cost)
+                ;; make all combinations and filter for valid combinations
+                for all-anti-unification-combinations
+                  = (remove-if-not #'valid-au-combination-p
+                                   (combinations meaning-anti-unification-results
+                                                 form-anti-unification-results))
+                when all-anti-unification-combinations
+                ;; store all valid combinations with the cxn used for anti unification
+                append (loop for combo in all-anti-unification-combinations
+                             collect (cons cipn combo))
+                into anti-unification-results
+                ;; return the best anti unification combination (costs and cxn score)
+                finally (return (first (sort-anti-unification-combinations anti-unification-results))))))
+    ;; 3) when there are anti-unification results, learn cxns from them!
+    (when least-general-generalisation
+      (destructuring-bind (anti-unified-cipn
+                           form-anti-unification
+                           meaning-anti-unification) least-general-generalisation
+        (declare (ignore anti-unified-cipn))
+        (copy-arg-predicates form-anti-unification)
+        (copy-arg-predicates meaning-anti-unification)
+        (cond ((and (find 'top-arg (source-delta form-anti-unification) :key #'first)
+                    (find 'top-arg (source-delta meaning-anti-unification) :key #'first))
+               (make-holistic-cxns-from-partial-analysis
+                least-general-generalisation observation-form observation-meaning cxn-inventory))
+              ((and (find 'slot-arg (pattern-delta form-anti-unification) :key #'first)
+                    (find 'slot-arg (pattern-delta meaning-anti-unification) :key #'first))
+               (make-item-based-cxn-from-partial-analysis
+                least-general-generalisation observation-form observation-meaning cxn-inventory)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; make cxns from partial analysis ;;
@@ -141,6 +151,7 @@
            (links-to-add (extract-used-categorial-links sandbox-cipn)))
       ;; done!
       (list cxns-to-apply cxns-to-consolidate categories-to-add links-to-add))))
+
 
 (defun make-holistic-cxns-from-partial-analysis (anti-unification-results observation-form observation-meaning cxn-inventory)
   (destructuring-bind (anti-unified-cipn
