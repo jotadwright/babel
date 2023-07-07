@@ -21,8 +21,7 @@
                                                                     concept
                                                                     topic
                                                                     similarity-table))
-         (all-attribute-subsets (all-subsets (prototypes concept)))
-         (subsets-to-consider (filter-subsets all-attribute-subsets discriminating-attributes))
+         (subsets-to-consider (get-all-subsets (prototypes concept) discriminating-attributes))
          (best-subset (find-most-discriminating-subset agent
                                                        subsets-to-consider
                                                        topic
@@ -79,6 +78,25 @@
         do (setf (gethash (channel prototype) attribute-hash) objects-hash)
         finally (return attribute-hash)))
 
+(defun get-all-subsets (all-attr subset-attr)
+  "Given a set of attributes and a subset of that set, returns all
+   subsets of the complete set that contain the subset."
+  
+  (let* ((rest-attr (loop for el in all-attr
+                          if (not (find (channel el) subset-attr))
+                            collect el)))
+    (if (length> rest-attr 6)
+      (list (loop for el in all-attr
+                  if (find (channel el) subset-attr)
+                    collect el))
+      (let* ((all-subsets-of-rest (cons '() (all-subsets rest-attr)))
+             (subset-attr-values (loop for el in all-attr
+                                       if (find (channel el) subset-attr)
+                                         collect el))
+             (all-subsets (loop for el in all-subsets-of-rest
+                                collect (append subset-attr-values el))))
+        all-subsets))))
+
 (defun get-s (object channel table)
   "Retrieve the similarity for the given object-attribute combination."
   (first (gethash (id object) (gethash channel table))))
@@ -104,16 +122,6 @@
             (notify event-found-discriminating-attributes discriminating-attributes)
             (return discriminating-attributes))))
 
-(defmethod filter-subsets (all-subsets discriminating-attributes)
-  "Filter all subsets with the discriminating attributes, only
-   keeping those subsets where all discriminating attributes occur in."
-  (loop with applicable-subsets = nil
-        for subset in all-subsets
-        for subset-attributes = (mapcar #'channel subset)
-        when (null (set-difference discriminating-attributes subset-attributes))
-          do (push subset applicable-subsets)
-        finally
-          (return applicable-subsets)))
 
 ;; -----------------------------
 ;; + Weighted Similarity table +
