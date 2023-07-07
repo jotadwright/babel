@@ -1,5 +1,50 @@
 (in-package :cle)
 
+;; ----------------------
+;; + Available channels +
+;; ----------------------
+
+(defmethod get-all-channels ((mode (eql :clevr-simulated)))
+  (reverse `(
+             ,'xpos ,'ypos ,'zpos ;; position
+             ,'area ;; size
+             ,'wh-ratio ;; shape
+             ,'nr-of-sides ,'nr-of-corners ;; shape
+             ,'r ,'g ,'b ;; color
+             ,'roughness ;; material
+             ,'xpos-3d ,'ypos-3d ,'zpos-3d ;; 3d-position
+             ,'rotation ;; rotation
+             )))
+
+(defmethod get-all-channels ((mode (eql :clevr-extracted)))
+  (reverse `(
+             ,'xpos ,'ypos
+             ,'width ,'height
+             ,'angle
+             ,'corners
+             ,'area ,'relative-area
+             ,'bb-area ,'bb-area-ratio
+             ,'wh-ratio
+             ,'circle-distance
+             ,'white-level ,'black-level
+             ,'color-mean-l ,'color-mean-a ,'color-mean-b
+             ,'color-std-l ,'color-std-a ,'color-std-b
+             )))
+
+#|(defmethod get-all-channels ((mode (eql :winery)))
+    (reverse `(
+               ,'fixed-acidity
+               ,'volatile-acidity
+               ,'citric-acid
+               ,'residual-sugar
+               ,'chlorides
+               ,'free-sulfur-dioxide
+               ,'total-sulfur-dioxide
+               ,'density
+               ,'pH
+               ,'sulphates
+               ,'alcohol)))|#
+
 ;; ------------------
 ;; + Topic sampling +
 ;; ------------------

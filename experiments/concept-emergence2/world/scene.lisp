@@ -13,7 +13,7 @@
 ;; ------------------
 ;; + Scene sampling +
 ;; ------------------
-(defmethod sample-scene (experiment (mode (eql :random-scene)))
+(defmethod sample-scene (experiment (mode (eql :random)))
   "Sample a random scene and assign to experiment."
   (loop with scene = (random-scene (world experiment))
         for agent in (interacting-agents experiment)

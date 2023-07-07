@@ -2,7 +2,6 @@
 
 (in-package :cle)
 
-
 ;; experiments with entrenchment values - keep the same
 (progn
   ;(setf *scene-ids* (read-scene-ids "3-all.lisp"))
@@ -17,21 +16,12 @@
                 (:interacting-agents-strategy . :standard)
                 (:population-size . 10)
                 ;; setup data scene
-                (:dataset . "clevr-simulated")
+                (:dataset . "clevr-extracted")
                 (:dataset-split . "val")
-                (:data-fname . "10_all.lisp")
-                (:available-channels
-                 ,'xpos ,'ypos ,'zpos ;; position
-                 ,'area ;; size
-                 ,'wh-ratio ;; shape
-                 ,'nr-of-sides ,'nr-of-corners ;; shape
-                 ,'r ,'g ,'b ;; color
-                 ,'roughness ;; material
-                 #|,'xpos-3d ,'ypos-3d ,'zpos-3d ;; 3d-position
-                 ,'rotation ;; rotation|#
-                 )
-                (:scene-sampling . :deterministic)
-                (:topic-sampling . :random-topic)
+                ;(:data-fname . "10_all.lisp")
+                (:available-channels ,@(get-all-channels :clevr-extracted))
+                (:scene-sampling . :random)
+                (:topic-sampling . :random)
                 ;; general strategy
                 (:strategy . :times)
                 (:similarity-threshold . 0.0)
@@ -73,6 +63,14 @@
   (loop for i from 1 to 500000
         do (run-interaction *experiment*)))
 
+(progn
+  (wi::reset)
+  (deactivate-all-monitors)
+  ;(activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor trace-interaction-in-web-interface)
+  (loop for idx from 1 to 5
+        do (run-interaction *experiment*)))
+
 
 (display-lexicon (first (agents *experiment*)) :sort t)
 
@@ -97,13 +95,7 @@
 
 
 ;; 2. run x interactions with tiiw
-(progn
-  (wi::reset)
-  (deactivate-all-monitors)
-  ;(activate-monitor print-a-dot-for-each-interaction)
-  (activate-monitor trace-interaction-in-web-interface)
-  (loop for idx from 1 to 5
-        do (run-interaction *experiment*)))
+
 
 (defmethod after-interaction ((experiment cle-experiment))
   #|(align (speaker experiment))

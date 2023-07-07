@@ -17,10 +17,11 @@
          (available-channels (get-configuration experiment :available-channels))
          (fpath (mkstr (make-pathname :directory `(:relative ,dataset)
                                       :name fname))))
-    ;; load the scene ids
-    (set-configuration experiment :scene-ids (read-scene-ids fpath))
-    ;; set the current scene to the first
-    (set-configuration experiment :current-scene-idx 0)
+    (when fname
+      ;; load the scene ids
+      (set-configuration experiment :scene-ids (read-scene-ids fpath))
+      ;; set the current scene to the first
+      (set-configuration experiment :current-scene-idx 0))
     ;; initialise the population
     (setf (agents experiment)
           (loop for i from 1 to (get-configuration experiment :population-size)

@@ -29,12 +29,14 @@
                                (:interacting-agents-strategy . :standard)
                                (:population-size . 10)
                                ;; setup data scene
-                               (:data-fname . "10-all.lisp")
-                               (:scene-sampling . :deterministic)
-                               (:topic-sampling . :random-topic)
+                               (:dataset . "clevr-extracted")
+                               (:dataset-split . "val")
+                               (:available-channels ,@(get-all-channels :clevr-extracted))
+                               (:scene-sampling . :random)
+                               (:topic-sampling . :random)
                                ;; general strategy
                                (:strategy . :times)
-                               ;(:similarity-threshold . 0.2)
+                               (:similarity-threshold . 0.0)
 
                                ;; entrenchment of constructions
                                (:initial-cxn-entrenchement . 1/2)
@@ -54,7 +56,7 @@
                                (:weight-decf . -1)
                                )
        ;; configurations
-       :configurations `((:similarity-threshold 0.0 0.01 0.05 0.1 0.2)
+       :configurations `(;(:similarity-threshold 0.0 0.01 0.05 0.1 0.2)
                          (:initial-weight 0 35)
                          )
        ;; output directory
@@ -62,7 +64,7 @@
        :heap-size 12248))
 
 #|
-(calculate-amount-of-variations `((:similarity-threshold 0.0 0.01 0.05 0.1 0.2)
+(calculate-amount-of-variations `(;(:similarity-threshold 0.0 0.01 0.05 0.1 0.2)
                                   (:initial-weight 0 35)
                                   ))
 |#

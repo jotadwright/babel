@@ -20,7 +20,7 @@
 (defgeneric sample-topic (experiment mode)
   (:documentation "Sample and assign a topic from the chosen scene."))
 
-(defmethod sample-topic (experiment (mode (eql :random-topic)))
+(defmethod sample-topic (experiment (mode (eql :random)))
   "Any object can serve as topic."
   (let* ((interaction (current-interaction experiment))
          (agent (first (interacting-agents experiment)))
