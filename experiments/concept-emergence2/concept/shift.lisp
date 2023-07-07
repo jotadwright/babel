@@ -89,22 +89,20 @@
 
 (defun find-discriminating-attributes (agent concept topic similarity-table)
   "Find all attributes that are discriminating for the topic."
-  (let ((context (remove topic (objects (get-data agent 'context)))))
-    (loop with discriminating-attributes = nil
-          for prototype in (prototypes concept)
-          for channel = (channel prototype)
-          for topic-similarity = (get-s topic channel similarity-table)
-          for best-other-similarity
-            = (when (> topic-similarity 0)
-                (loop for object in context
-                      maximize (get-s object channel similarity-table)))
-          when (and topic-similarity best-other-similarity
-                    (> topic-similarity best-other-similarity))
-            do (push channel discriminating-attributes)
-          finally
-            (progn
-              (notify event-found-discriminating-attributes discriminating-attributes)
-              (return discriminating-attributes)))))
+  (loop with context = (remove topic (objects (get-data agent 'context)))
+        with threshold = (get-configuration agent :similarity-threshold)
+        with discriminating-attributes = nil
+        for prototype in (prototypes concept)
+        for channel = (channel prototype)
+        for topic-similarity = (get-s topic channel similarity-table)
+        for best-other-similarity = (loop for object in context
+                                          maximize (get-s object channel similarity-table))
+        when (> topic-similarity (+ best-other-similarity threshold))
+          do (push channel discriminating-attributes)
+        finally
+          (progn
+            (notify event-found-discriminating-attributes discriminating-attributes)
+            (return discriminating-attributes))))
 
 (defmethod filter-subsets (all-subsets discriminating-attributes)
   "Filter all subsets with the discriminating attributes, only
