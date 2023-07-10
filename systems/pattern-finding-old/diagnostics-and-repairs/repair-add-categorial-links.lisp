@@ -13,22 +13,19 @@
                    (node cip-node)
                    &key &allow-other-keys)
   "Repair by adding new th links for existing nodes that were not previously connected."
-  (let ((cxns-and-categorial-links (create-categorial-links problem node)))
+  (let ((cxns-and-categorial-links
+         (do-repair
+          (get-data problem :utterance)
+          (get-data problem :meaning)
+          (make-blackboard)
+          (construction-inventory node)
+          node
+          'add-categorial-links)))
     (when cxns-and-categorial-links
       (make-instance 'fcg::cxn-fix
                      :repair repair
                      :problem problem
                      :restart-data cxns-and-categorial-links))))
-
-
-(defun create-categorial-links (problem node)
-  (do-repair
-   (get-data problem :utterance)
-   (get-data problem :meaning)
-   (make-blackboard)
-   (construction-inventory node)
-   node
-   'add-categorial-links))
 
 ;;;; QUESTION
 ;;;; Jonas filtered the cipns for 'compatible-args', i.e.
@@ -45,45 +42,42 @@
   (declare (ignore args))
   (disable-meta-layer-configuration cxn-inventory) 
   (with-disabled-monitor-notifications
-    (multiple-value-bind (parsed-meanings solutions)
+    (multiple-value-bind (meanings cipns)
         (comprehend-all observation-form
                         :cxn-inventory (original-cxn-set cxn-inventory)
                         :gold-standard-meaning observation-meaning)
-      (declare (ignore parsed-meanings))
       (enable-meta-layer-configuration cxn-inventory)
-      (let* ((required-top-lvl-args
-              (get-unconnected-vars observation-meaning))
-             (succeeded-nodes
-              (loop for cipn in solutions
-                    when (find 'fcg::succeeded (statuses cipn))
-                    collect cipn))
-             (node-with-compatible-args
-              (first
-               (reject-solutions-with-incompatible-args
-                succeeded-nodes observation-meaning required-top-lvl-args))))
-        (when node-with-compatible-args
-          (let* ((cxns-to-apply (reverse (original-applied-constructions node-with-compatible-args)))
+      (let ((solution
+             (first
+              (loop for cipn in cipns
+                    for meaning in meanings
+                    when (and (find 'fcg::succeeded (statuses cipn))
+                              (> (length (applied-constructions cipn)) 1)
+                              (equivalent-meaning-networks meaning observation-meaning
+                                                           (get-configuration cxn-inventory :meaning-representation-formalism)))
+                      collect cipn))))
+        (when solution
+          (let* ((cxns-to-apply (reverse (original-applied-constructions solution)))
                  (top-lvl-category (extract-lex-class-item-based-cxn (last-elt cxns-to-apply))))
-            (when (> (length cxns-to-apply) 1)
-              (apply-fix 
-               ;; form constraints
-               observation-form
-               ;; cxns to appply
-               cxns-to-apply
-               ;; categorial links
-               (extract-used-categorial-links node-with-compatible-args)
-               ;; original cxns to consolidate
-               nil
-               ;; categories to add
-               nil
-               ;; top level category
-               top-lvl-category
-               ;; gold standard consulted p
-               (gold-standard-consulted-p node-with-compatible-args)
-               ;; node
-               node
-               ;; repair name
-               repair-type))))))))
+            (apply-fix 
+             ;; form constraints
+             observation-form
+             ;; cxns to appply
+             cxns-to-apply
+             ;; categorial links
+             (extract-used-categorial-links solution)
+             ;; original cxns to consolidate
+             nil
+             ;; categories to add
+             nil
+             ;; top level category
+             top-lvl-category
+             ;; gold standard consulted p
+             (gold-standard-consulted-p solution)
+             ;; node
+             node
+             ;; repair name
+             repair-type)))))))
 
 
 (defun gold-standard-consulted-p (cipn)

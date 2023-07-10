@@ -15,21 +15,18 @@
   "Repair by making a new holophrase construction."
   (when (and (initial-node-p node)
              (get-data problem :utterance))
-    (make-instance 'fcg::cxn-fix
-                   :repair repair
-                   :problem problem
-                   :restart-data (create-holistic-cxn problem node))))
-
-
-(defun create-holistic-cxn (problem node)
-  (do-repair
-   (get-data problem :utterance)
-   (get-data problem :meaning)
-   (make-blackboard)
-   (construction-inventory node)
-   node
-   'nothing->holistic))
-
+    (let ((cxns-and-categorial-links
+           (do-repair
+            (get-data problem :utterance)
+            (get-data problem :meaning)
+            (make-blackboard)
+            (construction-inventory node)
+            node
+            'nothing->holistic)))
+      (make-instance 'fcg::cxn-fix
+                     :repair repair
+                     :problem problem
+                     :restart-data cxns-and-categorial-links))))
 
 (defmethod do-repair (observation-form observation-meaning (args blackboard) (cxn-inventory construction-inventory) node (repair-type (eql 'nothing->holistic)))
   (let* ((cxn-inventory (original-cxn-set cxn-inventory))

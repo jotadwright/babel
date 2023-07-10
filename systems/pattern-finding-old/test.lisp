@@ -33,6 +33,16 @@
 (defun test-anti-unification-with-item-based-cxn ()
   (multiple-value-bind (*experiment* *cxn-inventory*) (setup-test-case)
     ;;;; Demonstrate anti-unification with an item-based cxn
+    ;;;; When anti-unifying with an item-based cxn X,
+    ;;;; the pattern delta also becomes an item-based cxn
+    ;;;; with as many slots as the original cxn X and
+    ;;;; categorial links are added such that these slots
+    ;;;; take the same fillers
+
+    ;;;; What-color-is-the-X-cxn + small-rubber-ball-cxn + large-metal-cube-cxn
+    ;;;; => anti-unify 'what size is the tiny matte cylinder' with this item-based cxn
+    ;;;; => what-X-is-the-Y-cxn + size-tiny-matte-cylinder-cxn + color-X-cxn
+    ;;;;    and color-X-cxn takes small-rubber-ball-cxn and large-metal-cube-cxn
     (setf (corpus *experiment*)
           `(("What color is the large metal cube?"
              ,@(fresh-variables
@@ -92,6 +102,8 @@
 
 (defun test-anti-unification-with-item-based-cxn-with-multiple-slots ()
   (multiple-value-bind (*experiment* *cxn-inventory*) (setup-test-case)
+    ;;;; Same idea as previous test case, but now anti-unifying with
+    ;;;; an item-based cxn that has 3 slots!
     (def-fcg-cxn metal-cxn
                  ((?holistic-unit
                    (form-args (?metal))
