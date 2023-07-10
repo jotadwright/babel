@@ -21,8 +21,7 @@
                                                                     concept
                                                                     topic
                                                                     similarity-table))
-         (all-attribute-subsets (all-subsets (prototypes concept)))
-         (subsets-to-consider (filter-subsets all-attribute-subsets discriminating-attributes))
+         (subsets-to-consider (get-all-subsets (prototypes concept) discriminating-attributes))
          (best-subset (find-most-discriminating-subset agent
                                                        subsets-to-consider
                                                        topic
@@ -68,16 +67,35 @@
    Saves tons in computation by only calculating it only once."
   (loop with attribute-hash = (make-hash-table)
         for prototype in (prototypes concept)
-        for channel = (channel prototype)
+        for ledger = (loop for prototype in (prototypes concept) sum (weight prototype))
         for objects-hash = (loop with hash = (make-hash-table)
                                  for object in (objects (get-data agent 'context))
                                  for observation = (get-channel-val object (channel prototype))
-                                 for s = (observation-similarity observation prototype)
-                                 for ws = (* (weight prototype) s)
-                                 do (setf (gethash (id object) hash) (cons s ws))
+                                 for similarity = (observation-similarity observation prototype)
+                                 for weighted-similarity = (* (/ (weight prototype) ledger) similarity)
+                                 do (setf (gethash (id object) hash) (cons similarity weighted-similarity))
                                  finally (return hash))
-        do (setf (gethash channel attribute-hash) objects-hash)
+        do (setf (gethash (channel prototype) attribute-hash) objects-hash)
         finally (return attribute-hash)))
+
+(defun get-all-subsets (all-attr subset-attr)
+  "Given a set of attributes and a subset of that set, returns all
+   subsets of the complete set that contain the subset."
+  
+  (let* ((rest-attr (loop for el in all-attr
+                          if (not (find (channel el) subset-attr))
+                            collect el)))
+    (if (length> rest-attr 6)
+      (list (loop for el in all-attr
+                  if (find (channel el) subset-attr)
+                    collect el))
+      (let* ((all-subsets-of-rest (cons '() (all-subsets rest-attr)))
+             (subset-attr-values (loop for el in all-attr
+                                       if (find (channel el) subset-attr)
+                                         collect el))
+             (all-subsets (loop for el in all-subsets-of-rest
+                                collect (append subset-attr-values el))))
+        all-subsets))))
 
 (defun get-s (object channel table)
   "Retrieve the similarity for the given object-attribute combination."
@@ -89,33 +107,21 @@
 
 (defun find-discriminating-attributes (agent concept topic similarity-table)
   "Find all attributes that are discriminating for the topic."
-  (let ((context (remove topic (objects (get-data agent 'context)))))
-    (loop with discriminating-attributes = nil
-          for prototype in (prototypes concept)
-          for channel = (channel prototype)
-          for topic-similarity = (get-s topic channel similarity-table)
-          for best-other-similarity
-            = (when (> topic-similarity 0)
-                (loop for object in context
-                      maximize (get-s object channel similarity-table)))
-          when (and topic-similarity best-other-similarity
-                    (> topic-similarity best-other-similarity))
-            do (push channel discriminating-attributes)
-          finally
-            (progn
-              (notify event-found-discriminating-attributes discriminating-attributes)
-              (return discriminating-attributes)))))
-
-(defmethod filter-subsets (all-subsets discriminating-attributes)
-  "Filter all subsets with the discriminating attributes, only
-   keeping those subsets where all discriminating attributes occur in."
-  (loop with applicable-subsets = nil
-        for subset in all-subsets
-        for subset-attributes = (mapcar #'channel subset)
-        when (null (set-difference discriminating-attributes subset-attributes))
-          do (push subset applicable-subsets)
+  (loop with context = (remove topic (objects (get-data agent 'context)))
+        with threshold = (get-configuration agent :similarity-threshold)
+        with discriminating-attributes = nil
+        for prototype in (prototypes concept)
+        for channel = (channel prototype)
+        for topic-similarity = (get-s topic channel similarity-table)
+        for best-other-similarity = (loop for object in context
+                                          maximize (get-s object channel similarity-table))
+        when (> topic-similarity (+ best-other-similarity threshold))
+          do (push channel discriminating-attributes)
         finally
-          (return applicable-subsets)))
+          (progn
+            (notify event-found-discriminating-attributes discriminating-attributes)
+            (return discriminating-attributes))))
+
 
 ;; -----------------------------
 ;; + Weighted Similarity table +
