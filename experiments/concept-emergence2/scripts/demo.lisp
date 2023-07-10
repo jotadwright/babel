@@ -10,18 +10,28 @@
     (make-configuration
      :entries `(
                 ;; monitoring
-                (:dot-interval . 10)
+                (:dot-interval . 1000)
                 (:save-distribution-history . nil)
                 ;; setup interacting agents
                 (:interacting-agents-strategy . :standard)
                 (:population-size . 10)
                 ;; setup data scene
-                (:dataset . "clevr-extracted")
+                (:dataset . "clevr-simulated")
                 (:dataset-split . "val")
-                ;(:data-fname . "10_all.lisp")
-                (:available-channels ,@(get-all-channels :clevr-extracted))
-                (:scene-sampling . :random)
-                (:topic-sampling . :random)
+                (:data-fname . "10-color_area_roughness.lisp")
+                ;(:available-channels ,@(get-all-channels :clevr-simulated))
+                (:available-channels 
+                 ;,'xpos ,'ypos ,'zpos ;; position
+                 ,'area ;; size
+                 ;,'wh-ratio ;; shape
+                 ;,'nr-of-sides ,'nr-of-corners ;; shape
+                 ,'r ,'g ,'b ;; color
+                 ,'roughness ;; material
+                 ;,'xpos-3d ,'ypos-3d ,'zpos-3d ;; 3d-position
+                 ;,'rotation ;; rotation
+                 )
+                (:scene-sampling . :deterministic)
+                (:topic-sampling . :discriminative)
                 ;; general strategy
                 (:strategy . :times)
                 (:similarity-threshold . 0.0)
@@ -31,6 +41,7 @@
                 (:entrenchment-incf . 1/10)
                 (:entrenchment-decf . -1/10)
                 (:entrenchment-li . -1/50) ;; lateral inhibition
+                (:trash-concepts . nil)
                 
                 ;; concept representations
                 (:concept-representation . :distribution)
@@ -39,7 +50,7 @@
 
                 ;; prototype weight inits
                 (:weight-update-strategy . :j-interpolation)
-                (:initial-weight . 35)
+                (:initial-weight . 0)
                 (:weight-incf . 1)
                 (:weight-decf . -1)
                 )))
@@ -47,10 +58,29 @@
   (notify reset-monitors)
   (wi::reset))
 
+
+(setf channel-bobs `(
+                 ,'xpos ,'ypos ,'zpos ;; position
+                 ,'area ;; size
+                 ,'wh-ratio ;; shape
+                 ,'nr-of-sides ,'nr-of-corners ;; shape
+                 ,'r ,'g ,'b ;; color
+                 ,'roughness ;; material
+                 ,'xpos-3d ,'ypos-3d ,'zpos-3d ;; 3d-position
+                 ,'rotation ;; rotation
+                 ))
+
+(length channel-bobs)
+(random-elt 
+
+
+
 (defmethod after-interaction ((experiment cle-experiment))
   (align (speaker experiment))
   (align (hearer experiment))
   )
+
+(setf ag1 (first (agents *experiment*)))
 
 ;; 1. run x interactions
 (progn
@@ -63,44 +93,84 @@
   (loop for i from 1 to 500000
         do (run-interaction *experiment*)))
 
+;; display lexicon
+(display-lexicon (first (agents *experiment*)) :sort t :entrenchment-threshold 0.5)
+
+;; types of constructions
+(format-count-entries (count-entries (fourth (agents *experiment*))))
+
 (progn
   (wi::reset)
   (deactivate-all-monitors)
   ;(activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor trace-interaction-in-web-interface)
-  (loop for idx from 1 to 5
+  (loop for idx from 1 to 10
         do (run-interaction *experiment*)))
 
 
-(display-lexicon (first (agents *experiment*)) :sort t)
-
-#|(progn
-  (wi::reset)
-  (run-interaction *experiment*))
-
-(length (lexicon (first (agents *experiment*))))
-
-(display-lexicon (find-agent 41) :sort t)
-
-(setf agent41 (find-agent 41))
-
-((find-data agent41 'context)
-
-(index (current-scene (world (experiment agent41))))
-
-(loop for form in (list "bivexi" "vekudi" "gixaka" "nerota")
-      for cxn = (find-form-in-lexicon (lexicon (find-agent 41)) form)
-      for history = (history cxn)
-      do (format t "~%~a: ~a" (form cxn) (first-n 10 history)))|#
-
 
 ;; 2. run x interactions with tiiw
-
-
 (defmethod after-interaction ((experiment cle-experiment))
   #|(align (speaker experiment))
   (align (hearer experiment))|#
   )
+
+
+(setf tuples (list (list
+                    (interacting-agents (first (interactions *experiment*)))
+                    (index (find-data (first (interacting-agents (first (interactions *experiment*)))) 'context))
+                   
+                    (find-data (first (interacting-agents (first (interactions *experiment*)))) 'topic))))
+
+(loop for tuple in tuples
+      for saved-agents = (first tuple)
+      for saved-scene =  (second tuple)
+      for saved-topic = (third tuple)
+      do (add-element `((h3) ,(format nil "Topic ~a" (attributes saved-topic))))
+         (run-interaction *experiment*
+                          :scene saved-scene
+                          :agents saved-agents
+                          :topic saved-topic))
+
+(loop for cxn in (lexicon agent)
+      for concept = (meaning cxn)
+      for topic-similarity = (weighted-similarity topic concept)
+      for best-other-similarity = (loop for object in (remove topic context)
+                                        maximize (weighted-similarity object concept))
+      when (> topic-similarity (+ best-other-similarity threshold))
+        do (setf discriminating-cxns (cons (list (cons :cxn cxn)
+                                                 (cons :topic-sim topic-similarity)
+                                                 (cons :best-other-sim best-other-similarity))
+                                           discriminating-cxns)))
+
+(defmethod weighted-similarity ((object cle-object) (concept concept))
+  "Compute the weighted similarity between an object and a concept."
+  (loop with ledger = (loop for prototype in (prototypes concept) sum (weight prototype))
+        for prototype in (prototypes concept)
+        for observation = (get-channel-val object (channel prototype))
+        for similarity = (observation-similarity observation prototype)
+        sum (* (/ (weight prototype) ledger) similarity)))
+
+
+
+
+;;;
+(progn
+  (wi::reset)
+  (deactivate-all-monitors)
+  (activate-monitor trace-interaction-in-web-interface)
+  (loop for tuple in (first-n 100 not-solvable+not-coherent-0);(list (nth 4 not-solvable+not-coherent-0))
+        for saved-agents = (first tuple)
+        for saved-scene =  (second tuple)
+        for saved-topic = (third tuple)
+        do (add-element `((h3) ,(format nil "Topic ~a" (description saved-topic))))
+           (run-interaction *experiment*
+                            :scene saved-scene
+                            :agents saved-agents
+                            :topic saved-topic)))
+
+
+
 
 (progn
   (setf p-money (testi))
@@ -482,7 +552,7 @@ is-discriminative
 (cl-store:store *experiment*
                 (babel-pathname :directory '("experiments"
                                              "concept-emergence2")
-                                :name "2023-06-21-3-area-roughness-color-500k"
+                                :name "very-special181k"
                                 :type "store"))
         
 (setf *experiment*
