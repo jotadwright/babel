@@ -238,6 +238,8 @@
                                 scenes-with-coherence)))))
 
 
+
+
 (defun testi2 (agent form interactions)
   (progn
     (wi::reset)
@@ -269,6 +271,7 @@
 
 
 
+
 (defun run-and-show-interactions (experiment interactions-count)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor trace-interaction-in-web-interface)
@@ -288,3 +291,35 @@
   (when show
     (activate-monitor trace-interaction-in-web-interface)
     (run-interaction experiment)))
+
+
+(defun count-entries (agent)
+  (loop with options = (loop for cxn in (lexicon agent)
+                             for channels = (loop for prototype in (prototypes (meaning cxn))
+                                                  for channel = (channel prototype)
+                                                  for weight = (weight prototype)
+                                                  if (> weight 0.9)
+                                                    collect channel)
+                             if (> (score cxn) 0.5)
+                               collect channels)
+        with counter = (make-hash-table)
+        with keys = (mapcar (lambda (lst)
+                              (list-of-strings->string (mapcar (lambda (x) (mkstr x)) lst)
+                                                       :separator "-"))
+                            options)
+        for raw-key in keys
+        for key = (intern raw-key)
+
+          
+        if (gethash key counter)
+          do (setf (gethash key counter) (1+ (gethash key counter)))
+        else
+          do (setf (gethash key counter) 1)
+        finally (return counter)))
+
+(defun format-count-entries (counter)
+  (loop with all-keys = (mapcar #'mkstr (hash-keys counter))
+        with sorted-keys = (sort all-keys #'string<)
+        for key in sorted-keys
+        for value = (gethash (intern key) counter)
+        do (format t "The value associated with the key ~S is ~S~%" key value)))

@@ -15,6 +15,9 @@
   "Returns the first N elements of the LIST."
   (butlast list (max (- (list-length list) n) 0)))
 
+(defun parse-keyword (string)
+  (intern (string-upcase (string-left-trim ":" string)) :keyword))
+
 ;; -----------------------------------------
 ;; + Utility functions for CLEVR simulated +
 ;; -----------------------------------------

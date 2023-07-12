@@ -29,7 +29,12 @@
       (add-element `((h3) ,(format nil "Lexicon:")))
       (loop for cxn in lexicon and idx from 0
             do (add-element
-                `((h4) ,(format nil "CXN ~a w score ~a" idx (score cxn))))
+                `((h4) ,(format nil "CXN ~a w score ~a [n: ~a, l: ~a]"
+                                idx
+                                (score cxn)
+                                (length (history cxn))
+                                (first (history cxn))
+                                )))
             when (>= (score cxn) entrenchment-threshold)
               do (add-cxn-to-interface cxn :certainty-threshold certainty-threshold)))))
 
