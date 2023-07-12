@@ -68,10 +68,10 @@
           (anti-unify-predicate-network (fresh-variables pattern-form-with-args) source-form-with-args))
          (valid-anti-unification-results
           (remove-if-not #'valid-au-result-p anti-unification-results)))
+    (loop for au-result in valid-anti-unification-results
+          do (setf (fcg::cost au-result)
+                   (correct-au-cost au-result)))
     (when max-au-cost
-      (loop for au-result in valid-anti-unification-results
-            do (setf (fcg::cost au-result)
-                     (correct-au-cost au-result)))
       (setf valid-anti-unification-results
             (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
                        valid-anti-unification-results)))
@@ -95,10 +95,10 @@
          ;; when are AU results valid/invalid in the case of partial analysis?
          (valid-anti-unification-results
           (remove-if-not #'valid-au-result-p anti-unification-results)))
+    (loop for au-result in valid-anti-unification-results
+          do (setf (fcg::cost au-result)
+                   (correct-au-cost au-result)))
     (when max-au-cost
-      (loop for au-result in valid-anti-unification-results
-            do (setf (fcg::cost au-result)
-                     (correct-au-cost au-result)))
       (setf valid-anti-unification-results
             (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
                        valid-anti-unification-results)))
@@ -180,10 +180,10 @@
           (anti-unify-predicate-network (fresh-variables pattern-meaning-with-args) source-meaning-with-args))
          (valid-anti-unification-results
           (remove-if-not #'valid-au-result-p anti-unification-results)))
+    (loop for au-result in valid-anti-unification-results
+          do (setf (fcg::cost au-result)
+                   (correct-au-cost au-result)))
     (when max-au-cost
-      (loop for au-result in valid-anti-unification-results
-            do (setf (fcg::cost au-result)
-                     (correct-au-cost au-result)))
       (setf valid-anti-unification-results
             (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
                        valid-anti-unification-results)))
@@ -201,10 +201,10 @@
          ;; when are AU results valid/invalid in the case of partial analysis?
          (valid-anti-unification-results
           (remove-if-not #'valid-au-result-p anti-unification-results)))
+    (loop for au-result in valid-anti-unification-results
+          do (setf (fcg::cost au-result)
+                   (correct-au-cost au-result)))
     (when max-au-cost
-      (loop for au-result in valid-anti-unification-results
-            do (setf (fcg::cost au-result)
-                     (correct-au-cost au-result)))
       (setf valid-anti-unification-results
             (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
                        valid-anti-unification-results)))
