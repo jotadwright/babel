@@ -172,7 +172,8 @@
                             (fourth source-delta-cxns-and-categories))))
            (links-to-add (extract-used-categorial-links sandbox-cipn)))
       ;; done!
-      (list cxns-to-apply cxns-to-consolidate categories-to-add links-to-add))))
+      (when (and sandbox-cipn (succeeded-cipn-p sandbox-cipn))
+        (list cxns-to-apply cxns-to-consolidate categories-to-add links-to-add)))))
 
 
 (defun make-holistic-cxns-from-partial-analysis (anti-unification-results observation-form observation-meaning cxn-inventory)
@@ -211,4 +212,5 @@
            (categories-to-add (third source-delta-cxns-and-categories))
            (links-to-add (extract-used-categorial-links sandbox-cipn)))
       ;; done!
-      (list cxns-to-apply cxns-to-consolidate categories-to-add links-to-add))))
+      (when (and sandbox-cipn (succeeded-cipn-p sandbox-cipn))
+        (list cxns-to-apply cxns-to-consolidate categories-to-add links-to-add)))))
