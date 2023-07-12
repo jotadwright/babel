@@ -14,8 +14,7 @@
                    ((?holistic-unit
                      (form-args ,form-args)
                      (meaning-args ,meaning-args)
-                     (syn-cat (phrase-type holistic)
-                              (lex-class ,lex-class)))
+                     (syn-cat (lex-class ,lex-class)))
                     <-
                     (?holistic-unit
                      (HASH meaning ,meaning)
@@ -41,13 +40,11 @@
                       (?holistic-unit
                        (HASH meaning ,meaning)
                        (meaning-args ,meaning-args)
-                       (syn-cat (phrase-type holistic)
-                                (lex-class ,lex-class))
+                       (syn-cat (lex-class ,lex-class))
                        --
                        (HASH form ,form)
                        (form-args ,form-args)
-                       (syn-cat (phrase-type holistic)
-                                (lex-class ,lex-class))))
+                       (syn-cat (lex-class ,lex-class))))
                      :attributes (:label fcg::meta-only
                                   :cxn-type holistic
                                   :bare-cxn-name ,bare-cxn-name
@@ -66,8 +63,7 @@
     (eval
      `(def-fcg-cxn ,cxn-name
                    ((?item-based-unit
-                     (syn-cat (phrase-type item-based)
-                              (lex-class ,lex-class-item-based))
+                     (syn-cat (lex-class ,lex-class-item-based))
                      (meaning-args ,top-lvl-meaning-args)
                      (form-args ,top-lvl-form-args)
                      (subunits (?slot-unit)))
@@ -103,8 +99,7 @@
     (eval
      `(def-fcg-cxn ,cxn-name
                    ((?item-based-unit
-                     (syn-cat (phrase-type item-based)
-                              (lex-class ,lex-class-item-based))
+                     (syn-cat (lex-class ,lex-class-item-based))
                      (meaning-args ,top-lvl-meaning-args)
                      (form-args ,top-lvl-form-args)
                      (subunits (?slot-unit)))
@@ -173,8 +168,7 @@
     (eval
      `(def-fcg-cxn ,cxn-name
                    ((?item-based-unit
-                     (syn-cat (phrase-type item-based)
-                              (lex-class ,lex-class-item-based))
+                     (syn-cat (lex-class ,lex-class-item-based))
                      (meaning-args ,top-lvl-meaning-args)
                      (form-args ,top-lvl-form-args)
                      (subunits ,slot-unit-names))
@@ -202,8 +196,7 @@
     (eval
      `(def-fcg-cxn ,cxn-name
                    ((?item-based-unit
-                     (syn-cat (phrase-type item-based)
-                              (lex-class ,lex-class-item-based))
+                     (syn-cat (lex-class ,lex-class-item-based))
                      (meaning-args ,top-lvl-meaning-args)
                      (form-args ,top-lvl-form-args)
                      (subunits ,slot-unit-names))
