@@ -23,10 +23,10 @@
                        (:render-mode . :render-sequences)
                        (:category-linking-mode . :neighbours)
                        (:parse-goal-tests :no-applicable-cxns :connected-semantic-network)))
-
+(progn
 (def-fcg-cxn what-color-is-the-cube?-cxn-1
              ((?holistic-unit
-               (category what-color-is-the-cube?-1)
+               (category what-color-is-the-cube?-cxn-cat-1)
                (meaning-args (?target))
                (form-args (?left-1 ?right-1)))
               <-
@@ -43,9 +43,10 @@
 
 (def-fcg-cxn what-slot-1-is-the-cube?-cxn-1
              ((?item-based-unit
-               (category what-slot-1-is-the-cube?-cat-1)
+               (category what-slot-1-is-the-cube?-cxn-cat-1)
                (meaning-args (?target))
-               (form-args (?left-1 ?right-2)))
+               (form-args (?left-1 ?right-2))
+               (subunits (?slot-1)))
               <-
               (?item-based-unit
                (HASH meaning ((get-context ?context)
@@ -57,16 +58,16 @@
                (HASH form ((sequence "what " ?left-1 ?right-1)
                            (sequence " is the cube?" ?left-2 ?right-2))))
               (?slot-1
-               (category what-slot-1-is-the-cube?-cat-1-1)
+               (category what-slot-1-is-the-cube?-slot-1-cat-1)
                (meaning-args (?attribute-1))
                --
                (form-args (?right-1 ?left-2))
-               (category what-slot-1-is-the-cube?-cat-1-1))))
+               (category what-slot-1-is-the-cube?-slot-1-cat-1))))
 
  
 (def-fcg-cxn color-cxn-1
              ((?holistic-unit
-               (category color-1)
+               (category color-cxn-cat-1)
                (form-args (?left-1 ?right-1))
                (meaning-args (?attribute-1)))
               <-
@@ -75,33 +76,9 @@
                --
                (HASH form ((sequence "color" ?left-1 ?right-1))))))
 
-
-(def-fcg-cxn what-color-is-the-slot-1?-cxn-1
-             ((?item-based-unit
-               (category what-color-is-the-slot-1?-1)
-               (meaning-args (?target))
-               (form-args (?left-1 ?right-2)))
-              <-
-              (?item-based-unit
-               (HASH meaning ((get-context ?context)
-                              (filter ?set-1 ?context ?shape-1)
-                              (unique ?object-1 ?set-1)
-                              (query ?target ?object-1 ?attribute-1)
-                              (bind attribute-category ?attribute-1 color)))
-               --
-               (HASH form ((sequence "what color is the " ?left-1 ?right-1)
-                           (sequence "?" ?left-2 ?right-2))))
-              (?slot-1
-               (category what-color-is-the-slot-1?-slot-1-1)
-               (meaning-args (?shape-1))
-               --
-               (form-args (?right-1 ?left-2))
-               (category what-color-is-the-slot-1?-slot-1-1))))
-
-
-(def-fcg-cxn cube-cxn
+(def-fcg-cxn cube-cxn-1
                ((?holistic-unit
-                 (category cube-1)
+                 (category cube-cxn-cat-1)
                  (form-args (?left-1 ?right-1))
                  (meaning-args (?shape-1)))
                 <-
@@ -110,32 +87,16 @@
                  --
                  (HASH form ((sequence "cube" ?left-1 ?right-1))))))
 
-
-(add-categories '(what-color-is-the-cube?-1
-                  what-slot-1-is-the-cube?-cat-1
-                  what-slot-1-is-the-cube?-cat-1-1
-                  what-color-is-the-slot-1?-1
-                  what-color-is-the-slot-1?-slot-1-1
-                  color-1
-                  cube-1) *fcg-constructions*)
-
-(add-link 'color-1 'what-slot-1-is-the-cube?-cat-1-1 *fcg-constructions*)
-(add-link 'cube-1 'what-color-is-the-slot-1?-slot-1-1 *fcg-constructions*)
-
-;; (activate-monitor trace-fcg)
-;; (comprehend-all "what color is the cube?")
-
-
-
-(def-fcg-cxn what-color-is-the-slot-1?-cxn-2
+(def-fcg-cxn what-color-is-the-slot-1?-cxn-1
              ((?item-based-unit
-               (category what-color-is-the-slot-1?-1)
-               (meaning-args (?target ?context))
-               (form-args (?left-1 ?right-2)))
+               (category what-color-is-the-slot-1?-cxn-cat-1)
+               (meaning-args (?target))
+               (form-args (?left-1 ?right-2))
+               (subunits (?slot-1)))
               <-
               (?item-based-unit
-               (HASH meaning ((get-context ?context)
-                              (filter ?set-1 ?input-set ?shape-1)
+               (HASH meaning ((get-context ?context) ;;werkt direct op de context
+                              (filter ?set-1 ?context ?shape-1)
                               (unique ?object-1 ?set-1)
                               (query ?target ?object-1 ?attribute-1)
                               (bind attribute-category ?attribute-1 color)))
@@ -143,19 +104,39 @@
                (HASH form ((sequence "what color is the " ?left-1 ?right-1)
                            (sequence "?" ?left-2 ?right-2))))
               (?slot-1
-               (category what-color-is-the-slot-1?-slot-1-1)
-               (meaning-args (?shape-1 ?input-set))
+               (category what-color-is-the-slot-1?-slot-1-cat-1)
+               (meaning-args (?shape-1))
                --
                (form-args (?right-1 ?left-2))
-               (category what-color-is-the-slot-1?-slot-1-1))))
-  
-
-  
+               (category what-color-is-the-slot-1?-slot-1-cat-1))))
 
 
-(def-fcg-cxn red-cxn
+(def-fcg-cxn what-color-is-the-slot-1?-cxn-2 
+             ((?item-based-unit
+               (category what-color-is-the-slot-1?-cxn-cat-2)
+               (meaning-args (?target ?context))
+               (form-args (?left-1 ?right-2))
+               (subunits (?slot-1)))
+              <-
+              (?item-based-unit
+               (HASH meaning ((get-context ?input-set)
+                              ;(filter ?set-1 ?input-set ?shape-1) ;;alternatief, werkt op input set, doorgegeven via slot
+                              (unique ?object-1 ?output-set)
+                              (query ?target ?object-1 ?attribute-1)
+                              (bind attribute-category ?attribute-1 color)))
+               --
+               (HASH form ((sequence "what color is the " ?left-1 ?right-1)
+                           (sequence "?" ?left-2 ?right-2))))
+              (?slot-1
+               (category what-color-is-the-slot-1?-slot-1-cat-2)
+               (meaning-args (?output-set ?input-set))
+               --
+               (form-args (?right-1 ?left-2))
+               (category what-color-is-the-slot-1?-slot-1-cat-2))))
+
+(def-fcg-cxn red-cxn-1
              ((?holistic-unit
-               (category red-1)
+               (category red-cxn-cat-1)
                (form-args (?left-1 ?right-1))
                (meaning-args (?color-1)))
               <-
@@ -164,27 +145,71 @@
                --
                (HASH form ((sequence "red" ?left-1 ?right-1))))))
 
-#|(def-fcg-cxn slot-1-slot-2-cxn-1
+(def-fcg-cxn slot-1-slot-2-cxn-1 ;;red cube
                ((?item-based-unit
-                 )
+                 (category slot-1-slot-2-cxn-cat-1)
+                 (meaning-args (?output-set ?input-set))
+                 (form-args (?left-1 ?right-2))
+                 (subunits (?slot-1 ?slot-2)))
                 <-
                 (?slot-1
                  (meaning-args (?slot-1-arg-1))
-                 (category slot-1-slot-2-slot-1-1)
+                 (category slot-1-slot-2-slot-1-cat-1)
                  --
                  (form-args (?left-1 ?right-1))
-                 (category slot-1-slot-2-slot-1-1))
+                 (category slot-1-slot-2-slot-1-cat-1))
                 (?slot-2
                  (meaning-args (?slot-2-arg-1))
-                 (category slot-1-slot-2-slot-2-1)
+                 (category slot-1-slot-2-slot-2-cat-1)
                  --
                  (form-args (?left-2 ?right-2))
-                 (category slot-1-slot-2-slot-2-1))
+                 (category slot-1-slot-2-slot-2-cat-1))
                 (?item-based-unit
-                 (HASH meaning ((filter ?output-set ?input-set ?slot-2-arg-1)
-                 --
-                (HASH form ((sequence " " ?right-1 ?left-2)))
-                ))))) |#
+                 (HASH meaning ((filter ?slot-2-filtered-set ?input-set ?slot-2-arg-1)
+                                (filter ?output-set ?slot-2-filtered-set ?slot-1-arg-1)))
+                  --
+                  (HASH form ((sequence " " ?right-1 ?left-2))))))
+
+)
+
+(add-categories '(what-color-is-the-cube?-cxn-cat-1
+                  what-slot-1-is-the-cube?-cxn-cat-1
+                  what-slot-1-is-the-cube?-slot-1-cat-1
+                  what-color-is-the-slot-1?-cxn-cat-1
+                  what-color-is-the-slot-1?-slot-1-cat-1
+                  color-cxn-cat-1
+                  cube-cxn-cat-1
+                  red-cxn-cat-1
+                  what-color-is-the-slot-1?-cxn-cat-2
+                  what-color-is-the-slot-1?-slot-1-cat-2
+                  slot-1-slot-2-cxn-cat-1
+                  slot-1-slot-2-slot-1-cat-1
+                  slot-1-slot-2-slot-2-cat-1) *fcg-constructions*)
+
+(progn
+(add-link 'color-cxn-cat-1 'what-slot-1-is-the-cube?-slot-1-cat-1 *fcg-constructions*)
+(add-link 'cube-cxn-cat-1 'what-color-is-the-slot-1?-slot-1-cat-1 *fcg-constructions*)
+(add-link 'red-cxn-cat-1 'slot-1-slot-2-slot-1-cat-1 *fcg-constructions*)
+(add-link 'cube-cxn-cat-1 'slot-1-slot-2-slot-2-cat-1 *fcg-constructions*)
+(add-link 'slot-1-slot-2-cxn-cat-1 'what-color-is-the-slot-1?-slot-1-cat-2 *fcg-constructions*)
+)
+;; (activate-monitor trace-fcg)
+;; (comprehend-all "what color is the cube?")
+
+(comprehend "red cube")
+;;(comprehend "what color is the red cube?")
+
+
+
+
+  
+
+  
+
+
+
+
+#| |#
 
 
 
