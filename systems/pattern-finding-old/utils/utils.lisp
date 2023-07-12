@@ -590,29 +590,32 @@
 (defun form-predicates-in-root (cipn)
   (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))
 
-(defun sort-cipns-by-coverage-and-nr-of-applied-cxns (list-of-cipns)
-  (sort list-of-cipns
-        #'(lambda (cipn-1 cipn-2)
-            (let ((cipn-1-form-in-root (length (form-predicates-in-root cipn-1)))
-                  (cipn-2-form-in-root (length (form-predicates-in-root cipn-2)))
-                  (cipn-1-applied-cxns (length (applied-constructions cipn-1)))
-                  (cipn-2-applied-cxns (length (applied-constructions cipn-2))))
-              (if (= cipn-1-form-in-root cipn-2-form-in-root)
-                (< cipn-1-applied-cxns cipn-2-applied-cxns)
-                (< cipn-1-form-in-root cipn-2-form-in-root))))))
+(defun all-cip-nodes (cip)
+  (remove nil
+          (traverse-depth-first
+           (top-node cip)
+           :collect-fn #'(lambda (node)
+                           (unless (or (find 'fcg::duplicate (fcg::statuses node))
+                                       (find 'fcg::second-merge-failed (fcg::statuses node)))
+                             node)))))
 
 (defun compatible-cipns-with-routine-cxns (form-constraints gold-standard-meaning cxn-inventory)
   (when (constructions cxn-inventory)
     (disable-meta-layer-configuration cxn-inventory)
     (let ((compatible-cipns
            (with-disabled-monitor-notifications
-             (multiple-value-bind (meanings cip-nodes) (comprehend-all form-constraints :cxn-inventory cxn-inventory)
-               (loop for meaning in meanings
-                     for cipn in cip-nodes
-                     when (and meaning ; meaning should be non-nil
-                               (form-predicates-in-root cipn) ; some form left in root
-                               (irl::embedding meaning gold-standard-meaning)) ; partial meaning should be compatible with gold standard
-                     collect cipn)))))
+             (multiple-value-bind (_meanings _cipns cip) (comprehend-all form-constraints :cxn-inventory cxn-inventory)
+               (declare (ignore _meanings _cipns))
+               (let ((cip-nodes (all-cip-nodes cip)))
+                 (loop for cip-node in cip-nodes
+                       for meaning = (extract-meanings
+                                      (left-pole-structure
+                                       (car-resulting-cfs
+                                        (cipn-car cip-node))))
+                       when (and meaning ; meaning should be non-nil
+                                 (form-predicates-in-root cip-node) ; some form left in root
+                                 (irl::embedding meaning gold-standard-meaning)) ; partial meaning should be compatible with gold standard
+                       collect cip-node))))))
       (enable-meta-layer-configuration cxn-inventory)
       compatible-cipns)))
 
@@ -621,14 +624,19 @@
     (disable-meta-layer-configuration-item-based-first cxn-inventory)
     (let ((compatible-cipns
            (with-disabled-monitor-notifications
-             (multiple-value-bind (meanings cip-nodes) (comprehend-all form-constraints :cxn-inventory cxn-inventory)
-               (loop for meaning in meanings
-                     for cipn in cip-nodes
-                     when (and meaning ; meaning should be non-nil
-                               (form-predicates-in-root cipn) ; some form left in root
-                               (irl::embedding meaning gold-standard-meaning) ; partial meaning should be compatible with gold standard
-                               (fcg::connected-syntactic-structure (fcg-get-transient-unit-structure cipn))) ; connected structure in TS 
-                     collect cipn)))))
+             (multiple-value-bind (_meanings _cipns cip) (comprehend-all form-constraints :cxn-inventory cxn-inventory)
+               (declare (ignore _meanings _cipns))
+               (let ((cip-nodes (all-cip-nodes cip)))
+                 (loop for cip-node in cip-nodes
+                       for meaning = (extract-meanings
+                                      (left-pole-structure
+                                       (car-resulting-cfs
+                                        (cipn-car cip-node))))
+                       when (and meaning ; meaning should be non-nil
+                                 (form-predicates-in-root cip-node) ; some form left in root
+                                 (irl::embedding meaning gold-standard-meaning) ; partial meaning should be compatible with gold standard
+                                 (fcg::connected-syntactic-structure (fcg-get-transient-unit-structure cip-node))) ; connected structure in TS 
+                       collect cip-node))))))
       (enable-meta-layer-configuration-item-based-first cxn-inventory)
       compatible-cipns)))
 
