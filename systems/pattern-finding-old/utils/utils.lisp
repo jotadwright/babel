@@ -512,7 +512,9 @@
                         (top-arg (list (variablify (second form-constraint))
                                        (third form-constraint)))
                         (slot-arg (list (variablify (second form-constraint))
-                                        (third form-constraint)))))))
+                                        (third form-constraint)))
+                        (sequence (cons (second form-constraint)
+                                        (mapcar #'variablify (cddr form-constraint))))))))
 
 (defun devariablify (var)
   (intern (get-base-name var :remove-numeric-tail nil)))
@@ -522,13 +524,18 @@
 ;; Hash
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun form-predicates->hash-string (form-predicates)
-  ;; the first and the last string predicate
-  (third
-   (first
-    (find-all 'string form-predicates :key #'first))))
+(defgeneric form-predicates->hash-string (form-predicates form-representation)
+  (:documentation "Generate a hash key for the form predicates according to the form-representation"))
 
-(defgeneric meaning-predicates->hash-meaning (meaning-predicates meaning-representation))
+(defmethod form-predicates->hash-string (form-predicates (form-representation (eql :string+meets)))
+  ;; a list of all string predicates
+  (mapcar #'third (find-all 'string form-predicates :key #'first)))
+
+(defmethod form-predicates->hash-string (form-predicates (form-representation (eql :sequences)))
+  nil)
+
+(defgeneric meaning-predicates->hash-meaning (meaning-predicates meaning-representation)
+  (:documentation "Generate a hash key for the meaning predicates according to the meaning-representation"))
 
 (defmethod meaning-predicates->hash-meaning (meaning-predicates (meaning-representation (eql :irl)))
   (let* ((all-primitives (mapcar #'first meaning-predicates))
@@ -562,11 +569,16 @@
     (append form-predicates meaning-predicates)))
                             
 (defun constructions-for-anti-unification-hashed (form-constraints meaning-predicates cxn-inventory)
-  (remove-duplicates
-   (append
-    (loop for hash in (hash-observation form-constraints meaning-predicates)
-          append (gethash hash (constructions-hash-table cxn-inventory)))
-    (gethash nil (constructions-hash-table cxn-inventory)))))
+  (case (get-configuration cxn-inventory :form-representation-formalism)
+    (:string+meets
+     (remove-duplicates
+      (append
+       (loop for hash in (hash-observation form-constraints meaning-predicates)
+             append (gethash hash (constructions-hash-table cxn-inventory)))
+       (gethash nil (constructions-hash-table cxn-inventory)))))
+    ;; when using sequences, there is no hashing
+    ;; so just return all cxns!
+    (:sequences (constructions cxn-inventory))))
 
 ;;;;;
 ;; Partial Analysis
@@ -690,13 +702,22 @@
 ;; Input Processing
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun form-constraints-with-variables (utterance de-render-mode)
-  "Extract form constraints from utterance in the format they would appear in a construction."
+(defgeneric form-constraints-with-variables (utterance de-render-mode mode)
+  (:documentation "Extract form constraints from utterance in the format they would appear in a construction."))
+
+(defmethod form-constraints-with-variables (utterance de-render-mode (mode (eql :string+meets)))
   (let ((form-constraints-with-constants
          (remove 'sequence
                  (extract-forms (left-pole-structure
                                  (de-render utterance de-render-mode)))
                  :key #'first)))
+    (variablify-form-constraints-with-constants form-constraints-with-constants)))
+
+(defmethod form-constraints-with-variables (utterance de-render-mode (mode (eql :sequences)))
+  (let ((form-constraints-with-constants
+         (extract-forms
+          (left-pole-structure
+           (de-render utterance de-render-mode)))))
     (variablify-form-constraints-with-constants form-constraints-with-constants)))
 
 (defgeneric meaning-predicates-with-variables (meaning mode))

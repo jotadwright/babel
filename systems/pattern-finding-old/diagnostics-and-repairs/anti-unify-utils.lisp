@@ -4,10 +4,60 @@
 ;; anti-unify form ;;
 ;;;;;;;;;;;;;;;;;;;;;
 
-(defgeneric anti-unify-form (source-form thing args &optional max-au-cost)
+(defun anti-unify-form (source-form thing args form-representation &key max-au-cost)
+  (case form-representation
+    (:string+meets (anti-unify-form-string-meets source-form thing args :max-au-cost max-au-cost))
+    (:sequences (anti-unify-form-sequences source-form thing args :max-au-cost max-au-cost))))
+
+(defgeneric anti-unify-form-sequences (source-form thing args &key max-au-cost)
   (:documentation "Anti-unify the observation with the given thing on the form side."))
 
-(defmethod anti-unify-form (source-form (cxn fcg-construction) (args blackboard) &optional max-au-cost)
+(defmethod anti-unify-form-sequences (source-form (cxn fcg-construction) (args blackboard) &key max-au-cost)
+  (let* ((possible-source-forms
+          (mapcar #'(lambda (lst) (list-of-strings->string lst :separator ""))
+                  (render-all source-form :render-sequences)))
+         (cxn-form (extract-form-predicates cxn))
+         (possible-pattern-forms
+          (mapcar #'(lambda (lst) (list-of-strings->string lst :separator ""))
+                  (render-all cxn-form :render-sequences)))
+         (anti-unification-results
+          (loop for (pattern-form source-form) in (combinations possible-source-forms possible-pattern-forms)
+                append (fcg::anti-unify-strings pattern-form source-form :to-sequence-predicates-p t)))
+         (valid-anti-unification-results
+          (remove-if-not #'valid-au-result-p anti-unification-results)))
+    (when max-au-cost
+      (setf valid-anti-unification-results
+            (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
+                       valid-anti-unification-results)))
+    (sort valid-anti-unification-results #'< :key #'fcg::cost)))
+
+(defmethod anti-unify-form-sequences (source-form (cipn cip-node) (args blackboard) &key max-au-cost)
+  (let* ((possible-source-forms
+          (mapcar #'(lambda (lst) (list-of-strings->string lst :separator ""))
+                  (render-all source-form :render-sequences)))
+         (ts-form
+          (loop for unit in (fcg-get-transient-unit-structure cipn)
+                unless (eql (unit-name unit) 'fcg::root)
+                append (unit-feature-value unit 'form)))
+         (possible-pattern-forms
+          (mapcar #'(lambda (lst) (list-of-strings->string lst :separator ""))
+                  (render-all ts-form :render-sequences)))
+         (anti-unification-results
+          (loop for (pattern-form source-form) in (combinations possible-source-forms possible-pattern-forms)
+                append (fcg::anti-unify-strings pattern-form source-form :to-sequence-predicates-p t)))
+         (valid-anti-unification-results
+          (remove-if-not #'valid-au-result-p anti-unification-results)))
+    (when max-au-cost
+      (setf valid-anti-unification-results
+            (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
+                       valid-anti-unification-results)))
+    (sort valid-anti-unification-results #'< :key #'fcg::cost)))
+          
+
+(defgeneric anti-unify-form-string-meets (source-form thing args &key max-au-cost)
+  (:documentation "Anti-unify the observation with the given thing on the form side."))
+
+(defmethod anti-unify-form-string-meets (source-form (cxn fcg-construction) (args blackboard) &key max-au-cost)
   ;; before anti unifying, top-args and slot-args are added to the
   ;; source-form and pattern-form! This makes the learning of cxns
   ;; easier later on
@@ -27,7 +77,7 @@
                        valid-anti-unification-results)))
     (sort valid-anti-unification-results #'< :key #'fcg::cost)))
 
-(defmethod anti-unify-form (source-form (cipn cip-node) (args blackboard) &optional max-au-cost)
+(defmethod anti-unify-form-string-meets (source-form (cipn cip-node) (args blackboard) &key max-au-cost)
   ;; before anti unifying, top-args and slot-args are added to the
   ;; source-form and pattern-form! This makes the learning of cxns
   ;; easier later on
@@ -116,10 +166,10 @@
 ;; anti-unify meaning ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defgeneric anti-unify-meaning (source-meaning thing args &optional max-au-cost)
+(defgeneric anti-unify-meaning (source-meaning thing args &key max-au-cost)
   (:documentation "Anti-unify the observation with the given cxn on the meaning side."))
 
-(defmethod anti-unify-meaning (source-meaning (cxn fcg-construction) (args blackboard) &optional max-au-cost)
+(defmethod anti-unify-meaning (source-meaning (cxn fcg-construction) (args blackboard) &key max-au-cost)
   ;; before anti unifying, top-args and slot-args are added to the
   ;; source-meaning and pattern-meaning! This makes the learning of cxns
   ;; easier later on
@@ -139,7 +189,7 @@
                        valid-anti-unification-results)))
     (sort valid-anti-unification-results #'< :key #'fcg::cost)))
 
-(defmethod anti-unify-meaning (source-meaning (cipn cip-node) (args blackboard) &optional max-au-cost)
+(defmethod anti-unify-meaning (source-meaning (cipn cip-node) (args blackboard) &key max-au-cost)
   ;; before anti unifying, top-args and slot-args are added to the
   ;; source-meaning and pattern-meaning! This makes the learning of cxns
   ;; easier later on
@@ -254,7 +304,7 @@
    (i.e. generalisation and both delta's)
    are non-empty!"
   (and (generalisation au-result)
-       (source-delta au-result)
+       (remove-arg-predicates (source-delta au-result))
        (remove-arg-predicates (pattern-delta au-result))))
 
 (defun au-partial-analysis-p (au-result)

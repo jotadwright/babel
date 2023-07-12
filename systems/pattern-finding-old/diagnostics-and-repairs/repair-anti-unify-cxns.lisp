@@ -62,16 +62,18 @@
                                         hash-compatible-cxns)))
            
          ;; 3) find the least general generalisation through anti-unification
-         (least-general-generalisation
-          (loop with sorted-cxns = (sort filtered-hash-compatible-cxns #'> :key #'get-cxn-score)
-                with max-au-cost = (get-configuration cxn-inventory :max-au-cost)
-                for cxn in sorted-cxns
+         (least-general-generalisations
+          (loop with max-au-cost = (get-configuration cxn-inventory :max-au-cost)
+                with form-representation = (get-configuration cxn-inventory :form-representation-formalism)
+                for cxn in filtered-hash-compatible-cxns
                 ;; returns all valid form anti unification results
                 for form-anti-unification-results
-                  = (anti-unify-form observation-form cxn args max-au-cost)
+                  = (anti-unify-form observation-form cxn args form-representation
+                                     :max-au-cost max-au-cost)
                 ;; returns all valid meaning anti unification results
                 for meaning-anti-unification-results
-                  = (anti-unify-meaning observation-meaning cxn args max-au-cost)
+                  = (anti-unify-meaning observation-meaning cxn args
+                                        :max-au-cost max-au-cost)
                 ;; make all combinations and filter for valid combinations
                 for all-anti-unification-combinations
                   = (remove-if-not #'valid-au-combination-p

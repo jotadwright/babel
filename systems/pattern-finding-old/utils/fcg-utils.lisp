@@ -83,11 +83,12 @@
                                  (silent nil))
   (let* ((de-render-mode (get-configuration cxn-inventory :de-render-mode))
          (meaning-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
+         (form-formalism (get-configuration cxn-inventory :form-representation-formalism))
          (initial-cfs (de-render utterance de-render-mode :cxn-inventory cxn-inventory))
          (processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
     ;; Add utterance and meaning to blackboard
     (set-data initial-cfs :utterance
-              (pf::form-constraints-with-variables utterance de-render-mode))
+              (pf::form-constraints-with-variables utterance de-render-mode form-formalism))
     (set-data initial-cfs :meaning
               (pf::meaning-predicates-with-variables gold-standard-meaning meaning-formalism))
     ;; Notification
@@ -113,12 +114,13 @@
   "comprehend the input utterance with a given FCG grammar, obtaining all possible combinations"
   (let* ((de-render-mode (get-configuration cxn-inventory :de-render-mode))
          (meaning-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
+         (form-formalism (get-configuration cxn-inventory :form-representation-formalism))
          (initial-cfs (de-render utterance de-render-mode :cxn-inventory cxn-inventory))
          (processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
     
     ;; Add utterance and meaning to blackboard
     (set-data initial-cfs :utterance
-              (pf::form-constraints-with-variables utterance de-render-mode))
+              (pf::form-constraints-with-variables utterance de-render-mode form-formalism))
     (set-data initial-cfs :meaning
               (pf::meaning-predicates-with-variables gold-standard-meaning meaning-formalism))
     ;; Notification
@@ -146,37 +148,48 @@
                                          (categories-to-add nil)
                                          (categorial-links-to-add nil)
                                          (category-linking-mode :categories-exist))
-  (with-configurations ((cxn-supplier :learner-cxn-supplier)
-                        (de-render-mode :de-render-mode)
-                        (meaning-representation :meaning-representation)
+  (with-configurations ((meaning-representation :meaning-representation)
+                        (form-representation :form-representation)
                         (initial-link-weight :initial-categorial-link-weight))
       original-cxn-inventory
     (let* ((inventory-name (gensym))
            (temp-cxn-inventory
             (eval `(def-fcg-constructions ,inventory-name
                      :cxn-inventory ,inventory-name
-                     :hashed t
-                     :feature-types ((pf::form-args sequence)
-                                     (pf::meaning-args sequence)
-                                     (form set-of-predicates)
+                     :hashed ,(case form-representation
+                                (:string+meets t)
+                                (:sequences nil))
+                     :feature-types (,(case form-representation
+                                        (:string+meets '(form set-of-predicates))
+                                        (:sequences '(form set-of-predicates :handle-regex-sequences)))
                                      (meaning set-of-predicates)
+                                     (pf::form-args sequence)
+                                     (pf::meaning-args sequence)
                                      (subunits set)
                                      (footprints set))
-                     :fcg-configurations ((:node-tests :restrict-nr-of-nodes
-                                                       :restrict-search-depth
-                                                       :check-duplicate)
-                                          (:cxn-supplier-mode . ,cxn-supplier)
+                     :fcg-configurations ((:de-render-mode . ,(case form-representation
+                                                                (:string+meets :de-render-string-meets-no-punct)
+                                                                (:sequences :de-render-sequence)))
+                                          (:render-mode . ,(case form-representation
+                                                             (:string+meets :generate-and-test)
+                                                             (:sequences :render-sequences)))
+                                          (:cxn-supplier-mode . ,(case form-representation
+                                                                   (:string+meets :hashed-labeled-positive-scores)
+                                                                   (:sequences :ordered-by-label-and-score)))
+                                          (:meaning-representation-formalism . ,meaning-representation)
+                                          (:form-representation-formalism . ,form-representation)
+                                          
                                           (:parse-goal-tests :no-strings-in-root
                                                              :no-applicable-cxns
                                                              :connected-semantic-network
                                                              :connected-structure
                                                              :non-gold-standard-meaning)
-                                          (:de-render-mode . ,de-render-mode)
+                                          (:node-tests :restrict-nr-of-nodes
+                                                       :restrict-search-depth
+                                                       :check-duplicate)
                                           (:parse-order routine)
                                           (:max-nr-of-nodes . 250)
                                           (:production-order routine)
-                                          (:meaning-representation-formalism . ,meaning-representation)
-                                          (:render-mode . :generate-and-test)
                                           (:category-linking-mode . ,category-linking-mode)
                                           (:update-categorial-links . nil)
                                           (:consolidate-repairs . nil)

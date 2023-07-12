@@ -14,11 +14,10 @@
                  :grammar (make-agent-cxn-set experiment)))
 
 (defun make-agent-cxn-set (experiment)
-  (with-configurations ((cxn-supplier-mode :learner-cxn-supplier)
-                        (de-render-mode :de-render-mode)
+  (with-configurations ((meaning-representation :meaning-representation)
+                        (form-representation :form-representation)
                         (max-nr-of-nodes :max-number-of-nodes)
                         (mark-holophrases :mark-holophrases)
-                        (meaning-representation :meaning-representation)
                         (category-linking-mode :category-linking-mode)
                         (initial-cxn-score :initial-cxn-score)
                         (initial-link-weight :initial-categorial-link-weight)
@@ -28,14 +27,30 @@
            (cxn-inventory
             (eval `(def-fcg-constructions ,grammar-name
                      :cxn-inventory ,grammar-name
-                     :hashed t
-                     :feature-types ((form-args sequence)
-                                     (meaning-args sequence)
-                                     (form set-of-predicates)
+                     :hashed ,(case form-representation
+                                (:string+meets t)
+                                (:sequences nil))
+                     :feature-types (,(case form-representation
+                                        (:string+meets '(form set-of-predicates))
+                                        (:sequences '(form set-of-predicates :handle-regex-sequences)))
                                      (meaning set-of-predicates)
+                                     (form-args sequence)
+                                     (meaning-args sequence)
                                      (subunits set)
                                      (footprints set))
-                     :fcg-configurations ((:cxn-supplier-mode . ,cxn-supplier-mode)
+                     :fcg-configurations ((:de-render-mode . ,(case form-representation
+                                                                (:string+meets :de-render-string-meets-no-punct)
+                                                                (:sequences :de-render-sequence)))
+                                          (:render-mode . ,(case form-representation
+                                                             (:string+meets :generate-and-test)
+                                                             (:sequences :render-sequences)))
+                                          (:cxn-supplier-mode . ,(case form-representation
+                                                                   (:string+meets :hashed-labeled-positive-scores)
+                                                                   (:sequences :ordered-by-label-and-score)))
+
+                                          (:meaning-representation-formalism . ,meaning-representation)
+                                          (:form-representation-formalism . ,form-representation)
+
                                           (:parse-order routine)
                                           (:production-order routine)
                                           (:hash-mode . :hash-string-meaning)
@@ -47,12 +62,9 @@
                                                              :connected-semantic-network
                                                              :connected-structure
                                                              :non-gold-standard-meaning)
-                                          (:de-render-mode . ,de-render-mode)
                                           (:max-nr-of-nodes . ,max-nr-of-nodes)
                                           (:original-max-nr-of-nodes . ,max-nr-of-nodes)
                                           (:mark-holophrases . ,mark-holophrases)
-                                          (:meaning-representation-formalism . ,meaning-representation)
-                                          (:render-mode . :generate-and-test)
                                           (:category-linking-mode . ,category-linking-mode)
                                           (:update-categorial-links . t)
                                           (:consolidate-repairs . t)

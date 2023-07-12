@@ -23,12 +23,11 @@
 (define-configuration-default-value :remove-duplicate-data-p nil)
 
 ;; FCG Configurations
-(define-configuration-default-value :meaning-representation :irl)
-(define-configuration-default-value :de-render-mode :de-render-string-meets-no-punct)
+(define-configuration-default-value :meaning-representation :irl)  ; :irl or :amr or :geo or ...
+(define-configuration-default-value :form-representation :string+meets)  ; :string+meets or :sequences
 (define-configuration-default-value :mark-holophrases t)
 (define-configuration-default-value :max-number-of-nodes 1000)
 (define-configuration-default-value :initial-categorial-link-weight 0.0)
-(define-configuration-default-value :learner-cxn-supplier :hashed-labeled-positive-scores)
 (define-configuration-default-value :category-linking-mode :neighbours)
 
 ;; Learning Operators
@@ -46,13 +45,11 @@
 (define-configuration-default-value :alignment-strategy :lateral-inhibition)
 (define-configuration-default-value :remove-cxn-on-lower-bound nil)
 (define-configuration-default-value :max-au-cost 10)
-
-(define-configuration-default-value :categorial-network-export-interval 1000)
 (define-configuration-default-value :comprehend-all-n nil)
 (define-configuration-default-value :determine-interacting-agents-mode :corpus-learner)
-(define-configuration-default-value :learning-strategy :optimal-form-coverage)
 
 ;; Misc
+(define-configuration-default-value :categorial-network-export-interval 1000)
 (define-configuration-default-value :dot-interval 100)
 (define-configuration-default-value :result-display-interval 100)
 (define-configuration-default-value :buffer-size 100)

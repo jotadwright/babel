@@ -25,7 +25,7 @@
                                 :cxn-type holistic
                                 :bare-cxn-name ,bare-cxn-name
                                 :is-holophrase ,holophrasep
-                                :string ,(form-predicates->hash-string form)
+                                :string ,(form-predicates->hash-string form (get-configuration cxn-inventory :form-representation-formalism))
                                 :meaning ,(meaning-predicates->hash-meaning meaning (get-configuration cxn-inventory :meaning-representation-formalism)))
                    :score ,initial-cxn-score
                    :cxn-inventory ,cxn-inventory)))))
@@ -52,7 +52,7 @@
                                   :cxn-type holistic
                                   :bare-cxn-name ,bare-cxn-name
                                   :is-holophrase ,holophrasep
-                                  :string ,(form-predicates->hash-string form)
+                                  :string ,(form-predicates->hash-string form (get-configuration cxn-inventory :form-representation-formalism))
                                   :meaning ,(meaning-predicates->hash-meaning meaning (get-configuration cxn-inventory :meaning-representation-formalism)))
                      :score ,initial-cxn-score
                      :cxn-inventory ,cxn-inventory)))))
@@ -89,7 +89,7 @@
                    :attributes (:label fcg::routine
                                 :cxn-type item-based
                                 :bare-cxn-name ,bare-cxn-name
-                                :string ,(form-predicates->hash-string form)
+                                :string ,(form-predicates->hash-string form (get-configuration cxn-inventory :form-representation-formalism))
                                 :meaning ,(meaning-predicates->hash-meaning meaning (get-configuration cxn-inventory :meaning-representation-formalism)))
                    :score ,initial-cxn-score 
                    :cxn-inventory ,cxn-inventory)))))
@@ -121,7 +121,7 @@
                    :attributes (:label fcg::meta-only
                                 :cxn-type item-based
                                 :bare-cxn-name ,bare-cxn-name
-                                :string ,(form-predicates->hash-string form)
+                                :string ,(form-predicates->hash-string form (get-configuration cxn-inventory :form-representation-formalism))
                                 :meaning ,(meaning-predicates->hash-meaning meaning (get-configuration cxn-inventory :meaning-representation-formalism)))
                    :score ,initial-cxn-score 
                    :cxn-inventory ,cxn-inventory)))))
@@ -188,7 +188,7 @@
                    :attributes (:label fcg::routine
                                 :cxn-type item-based
                                 :bare-cxn-name ,bare-cxn-name
-                                :string ,(form-predicates->hash-string form)
+                                :string ,(form-predicates->hash-string form (get-configuration cxn-inventory :form-representation-formalism))
                                 :meaning ,(meaning-predicates->hash-meaning meaning (get-configuration cxn-inventory :meaning-representation-formalism)))
                    :score ,initial-cxn-score 
                    :cxn-inventory ,cxn-inventory)))))
@@ -216,7 +216,7 @@
                    :attributes (:label fcg::meta-only
                                 :cxn-type item-based
                                 :bare-cxn-name ,bare-cxn-name
-                                :string ,(form-predicates->hash-string form)
+                                :string ,(form-predicates->hash-string form (get-configuration cxn-inventory :form-representation-formalism))
                                 :meaning ,(meaning-predicates->hash-meaning meaning (get-configuration cxn-inventory :meaning-representation-formalism)))
                    :score ,initial-cxn-score 
                    :cxn-inventory ,cxn-inventory)))))
