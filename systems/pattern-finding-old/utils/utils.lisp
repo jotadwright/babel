@@ -49,6 +49,9 @@
                      (non-zero-cxn-p cxn)))
             (constructions grammar)))
 
+(defmethod succeeded-cipn-p ((node cip-node))
+  (find 'fcg::succeeded (statuses node)))
+
 
 ;;;;;
 ;; Search tree utils

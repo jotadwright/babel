@@ -68,7 +68,8 @@
                       finally (return current-node))))
           ;; reset categorial network
           (set-categorial-network (construction-inventory node) orig-categorial-network)
-          (when (find 'fcg::succeeded (statuses sandbox-solution))
+          (when (succeeded-cipn-p sandbox-solution)
+          ;(when (find 'fcg::succeeded (statuses sandbox-solution))
             (notify fix-applied repair-name form-constraints learned-cxns)
             (make-apply-fix-result
              :orig-cxns-to-apply cxns-to-apply
