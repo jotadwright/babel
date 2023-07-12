@@ -82,9 +82,29 @@
                              collect (cons cipn combo))
                 into anti-unification-results
                 ;; return the best anti unification combination (costs and cxn score)
-                finally (return (first (sort-anti-unification-combinations anti-unification-results))))))
+                finally (return (sort-anti-unification-combinations anti-unification-results)))))
+    
     ;; 3) when there are anti-unification results, learn cxns from them!
-    (when least-general-generalisation
+    (when least-general-generalisations
+      (dolist (generalisation least-general-generalisations)
+        (let ((form-anti-unification (second generalisation))
+              (meaning-anti-unification (third generalisation))
+              (new-cxns-and-links nil))
+          (copy-arg-predicates form-anti-unification)
+          (copy-arg-predicates meaning-anti-unification)
+          (setf new-cxns-and-links
+                (cond ((and (find 'top-arg (source-delta form-anti-unification) :key #'first)
+                            (find 'top-arg (source-delta meaning-anti-unification) :key #'first))
+                       (make-holistic-cxns-from-partial-analysis
+                        generalisation observation-form observation-meaning cxn-inventory))
+                      ((and (find 'slot-arg (source-delta form-anti-unification) :key #'first)
+                            (find 'slot-arg (source-delta meaning-anti-unification) :key #'first))
+                       (make-item-based-cxn-from-partial-analysis
+                        generalisation observation-form observation-meaning cxn-inventory))))
+          (when new-cxns-and-links
+            (return new-cxns-and-links)))))))
+
+#|
       (destructuring-bind (anti-unified-cipn
                            form-anti-unification
                            meaning-anti-unification) least-general-generalisation

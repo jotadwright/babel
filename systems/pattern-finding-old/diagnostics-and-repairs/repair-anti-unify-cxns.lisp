@@ -85,17 +85,25 @@
                              collect (cons cxn combo))
                 into anti-unification-results
                 ;; return the best anti unification combination (costs and cxn score)
-                finally (return (first (sort-anti-unification-combinations anti-unification-results))))))
+                finally (return (sort-anti-unification-combinations anti-unification-results)))))
     
     ;; 4) learn cxn(s) from the anti-unification results
-    (when least-general-generalisation
-      (cond ((and (au-all-parts-present-p (second least-general-generalisation))
-                  (au-all-parts-present-p (third least-general-generalisation)))
-             (make-cxns-from-generalisations least-general-generalisation cxn-inventory))
-            ((and (au-partial-analysis-p (second least-general-generalisation))
-                  (au-partial-analysis-p (third least-general-generalisation)))
-             (break) ;; TODO
-             )))))
+    (when least-general-generalisations
+      (dolist (generalisation least-general-generalisations)
+        (let* ((form-anti-unification (second generalisation))
+               (meaning-anti-unification (third generalisation))
+               (new-cxns-and-links 
+                (cond ((and (au-all-parts-present-p form-anti-unification)
+                            (au-all-parts-present-p meaning-anti-unification))
+                       (make-cxns-from-generalisations generalisation cxn-inventory))
+                      ((and (au-partial-analysis-p form-anti-unification)
+                            (au-partial-analysis-p meaning-anti-unification))
+                       ;; when arriving here, the generalisation is identical to an already existing cxn
+                       ;; however, a different number of args may be required!
+                       ;; learn cxns as before, but ignore the pattern delta (as it is empty)
+                       (make-cxns-from-generalisations generalisation cxn-inventory)))))
+          (when new-cxns-and-links
+            (return new-cxns-and-links)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; make cxns from generalisation ;;

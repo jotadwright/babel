@@ -356,15 +356,17 @@
   "Copy arg predicates from the pattern delta to the source delta;
    only copy predicates that include variables that can be found in
    the source bindings"
-  (let* ((top-arg-predicates (find-all 'top-arg (pattern-delta anti-unification-result) :key #'first))
-         (slot-arg-predicates (find-all 'slot-arg (pattern-delta anti-unification-result) :key #'first)))
-    (loop for predicate in (append top-arg-predicates slot-arg-predicates)
-          for var = (second predicate)
-          for gen-var = (rest (assoc var (pattern-bindings anti-unification-result)))
-          for source-var = (first (rassoc gen-var (source-bindings anti-unification-result)))
-          ;when source-var
-          do (push (list (first predicate) (or source-var var) (third predicate))
-                   (source-delta anti-unification-result)))))
+  ;; this unless clause might be dangerous when adding recursion...
+  (unless (or (find 'top-arg (source-delta anti-unification-result) :key #'first)
+              (find 'slot-arg (source-delta anti-unification-result) :key #'first))
+    (let* ((top-arg-predicates (find-all 'top-arg (pattern-delta anti-unification-result) :key #'first))
+           (slot-arg-predicates (find-all 'slot-arg (pattern-delta anti-unification-result) :key #'first)))
+      (loop for predicate in (append top-arg-predicates slot-arg-predicates)
+            for var = (second predicate)
+            for gen-var = (rest (assoc var (pattern-bindings anti-unification-result)))
+            for source-var = (first (rassoc gen-var (source-bindings anti-unification-result)))
+            do (push (list (first predicate) (or source-var var) (third predicate))
+                     (source-delta anti-unification-result))))))
 
 
 (defun group-slot-args-into-units (predicates)
