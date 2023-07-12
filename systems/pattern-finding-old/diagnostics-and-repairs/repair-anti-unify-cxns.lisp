@@ -37,7 +37,7 @@
                      cat-links-to-add
                      cxns-to-consolidate
                      cats-to-add
-                     (extract-contributing-lex-class (last-elt cxns-to-apply))
+                     (extract-contributing-category (last-elt cxns-to-apply))
                      t
                      node
                      repair-type))))))
@@ -243,15 +243,15 @@
 
 (defun links-to-neighbouring-categories (arg-groups new-cxn cxn-inventory)
   (loop for arg-group in arg-groups
-        for lex-class-anti-unified-cxn = (first arg-group)
+        for category-anti-unified-cxn = (first arg-group)
         for args = (rest arg-group)
         for fillers-anti-unified-cxn-slots
-          = (neighbouring-categories lex-class-anti-unified-cxn (categorial-network cxn-inventory))
+          = (neighbouring-categories category-anti-unified-cxn (categorial-network cxn-inventory))
         for unit = (loop for unit in (conditional-part new-cxn)
                          when (or (equal args (first (fcg-unit-feature-value unit 'meaning-args)))
                                   (equal args (first (fcg-unit-feature-value unit 'form-args))))
                            return unit)
-        for unit-lex-class = (extract-lex-class-unit unit)
+        for unit-category = (extract-category-unit unit)
         append (loop for filler in fillers-anti-unified-cxn-slots
-                     collect (cons filler unit-lex-class))))
+                     collect (cons filler unit-category))))
 

@@ -26,7 +26,7 @@
 ;;;; solution with the highest scoring cxn in this case?
 
 ;;;; top-arg/slot-arg predicates
-;;;; Now, lex-class (a constant) is added as the last argument in these
+;;;; Now, grammatical category (a constant) is added as the last argument in these
 ;;;; predicates. This will (likely) break down when applying repairs recursively.
 ;;;; However, we need these constants to find out which args on the form side
 ;;;; and the meaning side belong together. Another way to fix this would be to

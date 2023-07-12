@@ -58,7 +58,7 @@
                       collect cipn))))
         (when solution
           (let* ((cxns-to-apply (reverse (original-applied-constructions solution)))
-                 (top-lvl-category (extract-lex-class-item-based-cxn (last-elt cxns-to-apply))))
+                 (top-lvl-category (extract-top-category-item-based-cxn (last-elt cxns-to-apply))))
             (apply-fix 
              ;; form constraints
              observation-form
@@ -119,7 +119,7 @@
 
 
 (defun extract-used-categorial-links (solution-cipn)
-  "For a given solution-cipn, extracts categorial links that were used (based on lex-class)."
+  "For a given solution-cipn, extracts categorial links that were used (based on category)."
   (loop for cipn in (ignore-initial-nodes (reverse (cons solution-cipn (all-parents solution-cipn))))
         append (let* ((processing-cxn
                        (car-applied-cxn (cipn-car cipn)))
@@ -131,16 +131,15 @@
                                                   (constructions-list (construction-inventory cipn))
                                                   :key #'(lambda (cxn) (attr-val cxn :bare-cxn-name)))
                                         :key #'name))))                               
-                      (units-matching-lex-class
+                      (units-matching-category
                        (loop for unit in (right-pole-structure processing-cxn)
-                             for syn-cat = (rest (unit-feature-value unit 'syn-cat))
-                             for lex-class = (second (find 'lex-class syn-cat :key #'first))
-                             when lex-class
-                             collect (cons (first unit) lex-class))))
-                 (loop for (cxn-unit-name . cxn-lex-class) in units-matching-lex-class
+                             for category = (unit-feature-value unit 'category)
+                             when category
+                             collect (cons (first unit) category))))
+                 (loop for (cxn-unit-name . cxn-category) in units-matching-category
                        for ts-unit-name = (cdr (find cxn-unit-name (car-second-merge-bindings (cipn-car cipn)) :key #'first))
                        for ts-unit = (find ts-unit-name (left-pole-structure (car-source-cfs (cipn-car cipn))):key #'first)
-                       for ts-lex-class = (second (find 'lex-class (second (find 'syn-cat (rest ts-unit) :key #'first)) :key #'first))
-                       when (and cxn-lex-class ts-lex-class)
-                       collect (cons ts-lex-class cxn-lex-class)))))
+                       for ts-category = (second (find 'category (rest ts-unit) :key #'first))
+                       when (and cxn-category ts-category)
+                       collect (cons ts-category cxn-category)))))
             

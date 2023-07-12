@@ -113,16 +113,17 @@
   ;; top-args = args from contributing unit
   (loop for unit in (contributing-part cxn)
         for form-args = (remove-duplicates (first (fcg-unit-feature-value unit 'form-args)))
-        for lex-class = (extract-lex-class-unit unit)
-        when (and form-args lex-class)
+        for category = (extract-category-unit unit)
+        when (and form-args category)
         do (loop for arg in form-args
-                 do (push (list 'top-arg arg lex-class) set-of-predicates)))
+                 do (push (list 'top-arg arg category) set-of-predicates)))
   ;; slot-args = args from units that represent slots
   (loop for unit in (extract-slot-units cxn)
         for form-args = (remove-duplicates (first (fcg-unit-feature-value unit 'form-args)))
-        for lex-class = (extract-lex-class-unit unit)
+        for category = (extract-category-unit unit)
+        when (and form-args category)
         do (loop for arg in form-args
-                 do (push (list 'slot-arg arg lex-class) set-of-predicates)))
+                 do (push (list 'slot-arg arg category) set-of-predicates)))
   set-of-predicates)
 
 (defmethod add-form-arg-predicates (set-of-predicates (args blackboard))
@@ -145,20 +146,20 @@
                 collect unit)))
     (loop for unit in open-slot-units
           for form-args = (unit-feature-value unit 'form-args)
-          for lex-class = (extract-lex-class-unit unit)
-          when (and form-args lex-class)
+          for category = (extract-category-unit unit)
+          when (and form-args category)
           do (loop for arg in form-args
-                   do (push (list 'top-arg arg lex-class) set-of-predicates))))
+                   do (push (list 'top-arg arg category) set-of-predicates))))
   ;; slots-args = args from all top level units
   (let* ((ts-units (fcg-get-transient-unit-structure cipn))
          (root-unit (get-root ts-units))
          (top-lvl-units (remove-child-units (remove root-unit ts-units))))
     (loop for unit in top-lvl-units
           for form-args = (unit-feature-value unit 'form-args)
-          for lex-class = (extract-lex-class-unit unit)
-          when (and form-args lex-class)
+          for category = (extract-category-unit unit)
+          when (and form-args category)
           do (loop for arg in form-args
-                   do (push (list 'slot-arg arg lex-class) set-of-predicates))))
+                   do (push (list 'slot-arg arg category) set-of-predicates))))
   ;; return set of predicates
   set-of-predicates)
 
@@ -219,16 +220,17 @@
   ;; top-args = args from contributing unit
   (loop for unit in (contributing-part cxn)
         for meaning-args = (remove-duplicates (first (fcg-unit-feature-value unit 'meaning-args)))
-        for lex-class = (extract-lex-class-unit unit)
-        when (and meaning-args lex-class)
+        for category = (extract-category-unit unit)
+        when (and meaning-args category)
         do (loop for arg in meaning-args
-                 do (push (list 'top-arg arg lex-class) set-of-predicates)))
+                 do (push (list 'top-arg arg category) set-of-predicates)))
   ;; slot-args = args from units that represent slots
   (loop for unit in (extract-slot-units cxn)
         for meaning-args = (remove-duplicates (first (fcg-unit-feature-value unit 'meaning-args)))
-        for lex-class = (extract-lex-class-unit unit)
+        for category = (extract-category-unit unit)
+        when (and meaning-args category)
         do (loop for arg in meaning-args
-                 do (push (list 'slot-arg arg lex-class) set-of-predicates)))
+                 do (push (list 'slot-arg arg category) set-of-predicates)))
   set-of-predicates)
 
 (defmethod add-meaning-arg-predicates (set-of-predicates (args blackboard))
@@ -251,20 +253,20 @@
                 collect unit)))
     (loop for unit in open-slot-units
           for meaning-args = (unit-feature-value unit 'meaning-args)
-          for lex-class = (extract-lex-class-unit unit)
-          when (and meaning-args lex-class)
+          for category = (extract-category-unit unit)
+          when (and meaning-args category)
           do (loop for arg in meaning-args
-                   do (push (list 'top-arg arg lex-class) set-of-predicates))))
+                   do (push (list 'top-arg arg category) set-of-predicates))))
   ;; slots-args = args from all top level units
   (let* ((ts-units (fcg-get-transient-unit-structure cipn))
          (root-unit (get-root ts-units))
          (top-lvl-units (remove-child-units (remove root-unit ts-units))))
     (loop for unit in top-lvl-units
           for meaning-args = (unit-feature-value unit 'meaning-args)
-          for lex-class = (extract-lex-class-unit unit)
-          when (and meaning-args lex-class)
+          for category = (extract-category-unit unit)
+          when (and meaning-args category)
           do (loop for arg in meaning-args
-                   do (push (list 'slot-arg arg lex-class) set-of-predicates))))
+                   do (push (list 'slot-arg arg category) set-of-predicates))))
   ;; return set of predicates
   set-of-predicates)
 
@@ -370,23 +372,23 @@
 
 
 (defun group-slot-args-into-units (predicates)
-  "Group slot-arg predicates that have the same lex-class as their
+  "Group slot-arg predicates that have the same category as their
    third argument. This will be used to make units in the resulting cxn"
   (let* ((slot-arg-predicates (find-all 'slot-arg predicates :key #'first))
-         (unique-lex-classes (remove-duplicates (mapcar #'third slot-arg-predicates))))
-    (loop for lex-class in unique-lex-classes
-          collect (cons lex-class
+         (unique-categories (remove-duplicates (mapcar #'third slot-arg-predicates))))
+    (loop for category in unique-categories
+          collect (cons category
                         (loop for predicate in slot-arg-predicates
-                              when (eql (last-elt predicate) lex-class)
+                              when (eql (last-elt predicate) category)
                                 collect (second predicate))))))
 
 (defun group-top-args-into-units (predicates)
-  "Group top-arg predicates that have the same lex-class as their
+  "Group top-arg predicates that have the same category as their
    third argument. This will be used to make units in the resulting cxn"
   (let* ((top-arg-predicates (find-all 'top-arg predicates :key #'first))
-         (unique-lex-classes (remove-duplicates (mapcar #'third top-arg-predicates))))
-    (loop for lex-class in unique-lex-classes
-          collect (cons lex-class
+         (unique-categories (remove-duplicates (mapcar #'third top-arg-predicates))))
+    (loop for category in unique-categories
+          collect (cons category
                         (loop for predicate in top-arg-predicates
-                              when (eql (last-elt predicate) lex-class)
+                              when (eql (last-elt predicate) category)
                                 collect (second predicate))))))

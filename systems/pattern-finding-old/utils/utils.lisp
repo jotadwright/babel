@@ -79,35 +79,6 @@
 ;; Make cxn name
 ;;;;;;;;;;;;;;;;;;;;
 
-#|
-(defconstant +placeholder-vars+
-  '("?X" "?Y" "?Z" "?A" "?B" "?C"
-    "?D" "?E" "?F" "?G" "?H" "?I"
-    "?J" "?K" "?L" "?M" "?N" "?O"
-    "?P" "?Q" "?R" "?S" "?T" "?U"
-    "?V" "?W"))
-
-(defun variablify-missing-form-strings (form-constraints)
-  "create X Y Z etc variables by checking which strings are missing in meets constraints.
-   return a list of placeholder bindings in the form of string predicates"
-  (loop with string-constraints = (find-all 'string form-constraints :key #'first)
-        with new-string-constraints = nil
-        with meets-constraints = (set-difference form-constraints string-constraints)
-        with placeholder-index = 0
-        for meets-constraint in meets-constraints
-        for first-word-var = (second meets-constraint)
-        for second-word-var = (third meets-constraint)
-        unless (or (find first-word-var string-constraints :key #'second)
-                   (find first-word-var new-string-constraints :key #'second))
-        do (push (list 'string first-word-var (nth placeholder-index +placeholder-vars+)) new-string-constraints)
-           (incf placeholder-index)
-        unless (or (find second-word-var string-constraints :key #'second)
-                   (find second-word-var new-string-constraints :key #'second))
-        do (push (list 'string second-word-var (nth placeholder-index +placeholder-vars+)) new-string-constraints)
-           (incf placeholder-index)
-        finally (return new-string-constraints)))
-|#
-
 (defgeneric make-cxn-name (thing cxn-inventory
                                  &key holistic-suffix item-based-suffix numeric-suffix))
 
@@ -159,7 +130,7 @@
 
 
 ;;;;;
-;; Make lex class
+;; Make grammatical category
 ;;;;;;;;;;;;;;;;;;;;
 
 (defun replace-special-initial-chars (string)
@@ -167,7 +138,7 @@
     (string-append "-" string)
     string))
  
-(defun make-lex-class (cat-name &key numeric-suffix trim-cxn-suffix slotp)
+(defun make-grammatical-category (cat-name &key numeric-suffix trim-cxn-suffix slotp)
   (let* ((name-string
           (replace-special-initial-chars
            (string-downcase
@@ -187,23 +158,20 @@
     (intern (string-downcase (symbol-name name-string)) :pattern-finding-old)))
 
 ;;;;
-;; Extracting lex class from units
+;; Extracting categories from units
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defgeneric extract-lex-class-unit (unit)
+(defgeneric extract-category-unit (unit)
   (:documentation "extract the lex class from a unit"))
   
-(defmethod extract-lex-class-unit ((unit contributing-unit))
-  (let ((syn-cat (fcg-unit-feature-value unit 'syn-cat)))
-    (second (find 'lex-class syn-cat :key #'first))))
+(defmethod extract-category-unit ((unit contributing-unit))
+  (first (fcg-unit-feature-value unit 'category)))
 
-(defmethod extract-lex-class-unit ((unit conditional-unit))
-  (let ((syn-cat (fcg-unit-feature-value unit 'syn-cat)))
-    (second (find 'lex-class syn-cat :key #'first))))
+(defmethod extract-category-unit ((unit conditional-unit))
+  (first (fcg-unit-feature-value unit 'category)))
 
-(defmethod extract-lex-class-unit ((unit list))
-  (let ((syn-cat (unit-feature-value unit 'syn-cat)))
-    (second (find 'lex-class syn-cat :key #'first))))
+(defmethod extract-category-unit ((unit list))
+  (unit-feature-value unit 'category))
 
 ;;;;;
 ;; Extracting units from cxns
@@ -221,53 +189,47 @@
             collect unit))))
 
 ;;;;;
-;; Extracting lex classes from cxns
+;; Extracting categories from cxns
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun extract-lex-class-holistic-cxn (cxn)
+(defun extract-top-category-holistic-cxn (cxn)
   "Extract the lex class from a holistic cxn.
    Works for both routine and meta cxns."
-  (let* ((unit-to-search
-          (if (routine-cxn-p cxn)
-            (first (contributing-part cxn))
-            (first (conditional-part cxn))))
-         (syn-cat (fcg-unit-feature-value unit-to-search 'syn-cat)))
-    (second (find 'lex-class syn-cat :key #'first))))
+  (let ((unit-to-search
+         (if (routine-cxn-p cxn)
+           (first (contributing-part cxn))
+           (first (conditional-part cxn)))))
+    (first (fcg-unit-feature-value unit-to-search 'category))))
 
-(defun extract-lex-class-slot-item-based-cxn (cxn)
+(defun extract-slot-categories-item-based-cxn (cxn)
   "Extracts the lex classes from the slots of an item-based cxn.
    Works for both routine and meta cxns."
   (loop for unit in (extract-slot-units cxn)
-        for syn-cat = (fcg-unit-feature-value unit 'syn-cat)
-        for lex-class = (second (find 'lex-class syn-cat :key #'first))
-        collect lex-class))
+        for category = (first (fcg-unit-feature-value unit 'category))
+        collect category))
 
-(defun extract-lex-class-item-based-cxn (cxn)
-  (let* ((unit-to-search
-          (loop for unit in (contributing-part cxn)
-                when (find 'subunits (fcg::unit-structure unit) :key #'first)
-                return unit))
-         (syn-cat (fcg-unit-feature-value unit-to-search 'syn-cat)))
-    (second (find 'lex-class syn-cat :key #'first))))
+(defun extract-top-category-item-based-cxn (cxn)
+  (let ((unit-to-search
+         (loop for unit in (contributing-part cxn)
+               when (find 'subunits (fcg::unit-structure unit) :key #'first)
+                 return unit)))
+    (first (fcg-unit-feature-value unit-to-search 'category))))
 
-(defun lex-class (unit)
-  (let* ((syn-cat (find 'syn-cat (unit-body unit) :key #'first))
-         (lex-class (find 'lex-class (second syn-cat) :key #'first)))    
-    (when lex-class
-      (second lex-class))))
+(defun category (unit)
+  (unit-feature-value unit 'category))
 
-(defun extract-contributing-lex-class (cxn)
-  "return the lex-class on the contributing part of a cxn
+(defun extract-contributing-category (cxn)
+  "return the category on the contributing part of a cxn
    works for both holistic and item-based cxns"
   (if (holistic-cxn-p cxn)
-    (extract-lex-class-holistic-cxn cxn)
-    (extract-lex-class-item-based-cxn cxn)))
+    (extract-top-category-holistic-cxn cxn)
+    (extract-top-category-item-based-cxn cxn)))
 
-(defun extract-conditional-lex-classes (cxn)
-  "return the lex classes on the conditional part of a cxn
+(defun extract-conditional-categories (cxn)
+  "return the categories on the conditional part of a cxn
    works only for item-based cxns"
   (unless (holistic-cxn-p cxn)
-    (extract-lex-class-slot-item-based-cxn cxn)))
+    (extract-slot-categories-item-based-cxn cxn)))
 
 ;;;;;
 ;; Extracting args from cxns

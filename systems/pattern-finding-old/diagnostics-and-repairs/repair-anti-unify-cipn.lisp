@@ -37,7 +37,7 @@
                      cat-links-to-add
                      cxns-to-consolidate
                      cats-to-add
-                     (extract-contributing-lex-class (last-elt cxns-to-apply))
+                     (extract-contributing-category (last-elt cxns-to-apply))
                      t
                      node
                      repair-type))))))
@@ -104,23 +104,6 @@
           (when new-cxns-and-links
             (return new-cxns-and-links)))))))
 
-#|
-      (destructuring-bind (anti-unified-cipn
-                           form-anti-unification
-                           meaning-anti-unification) least-general-generalisation
-        (declare (ignore anti-unified-cipn))
-        (copy-arg-predicates form-anti-unification)
-        (copy-arg-predicates meaning-anti-unification)
-        (cond ((and (find 'top-arg (source-delta form-anti-unification) :key #'first)
-                    (find 'top-arg (source-delta meaning-anti-unification) :key #'first))
-               (make-holistic-cxns-from-partial-analysis
-                least-general-generalisation observation-form observation-meaning cxn-inventory))
-              ((and (find 'slot-arg (source-delta form-anti-unification) :key #'first)
-                    (find 'slot-arg (source-delta meaning-anti-unification) :key #'first))
-               (make-item-based-cxn-from-partial-analysis
-                least-general-generalisation observation-form observation-meaning cxn-inventory)))))))
-|#
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; make cxns from partial analysis ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -156,8 +139,8 @@
            (sandbox-cxns
             (cons (first source-delta-cxns-and-categories) applied-cxns))
            (sandbox-categories
-            (append (mappend #'extract-conditional-lex-classes sandbox-cxns)
-                    (mapcar #'extract-contributing-lex-class sandbox-cxns)))
+            (append (mappend #'extract-conditional-categories sandbox-cxns)
+                    (mapcar #'extract-contributing-category sandbox-cxns)))
            (sandbox-cipn
             (comprehend-in-sandbox observation-form cxn-inventory
                                    :gold-standard-meaning observation-meaning
@@ -199,8 +182,8 @@
            (sandbox-cxns
             (append (first source-delta-cxns-and-categories) applied-cxns))
            (sandbox-categories
-            (append (mappend #'extract-conditional-lex-classes sandbox-cxns)
-                    (mapcar #'extract-contributing-lex-class sandbox-cxns)))
+            (append (mappend #'extract-conditional-categories sandbox-cxns)
+                    (mapcar #'extract-contributing-category sandbox-cxns)))
            (sandbox-cipn
             (comprehend-in-sandbox observation-form cxn-inventory
                                    :gold-standard-meaning observation-meaning
