@@ -189,7 +189,8 @@
    The cxn from the generalisation fills the slot of both the source delta cxn
    and the pattern delta cxn.
    Also add links such that the pattern delta cxn fills the same slots as
-   the original holistic cxn used for anti-unification!"
+   the original holistic cxn used for anti-unification! This ensures that
+   the previous observations are now also covered with these new cxns."
   (destructuring-bind (anti-unified-cxn
                        form-anti-unification
                        meaning-anti-unification) anti-unification-results
@@ -282,7 +283,9 @@
    3) an item-based cxn from the pattern delta (can be empty!)
    The cxns from both delta's fill the slot of the cxn from the generalisation.
    Also add links such that the slots of the pattern delta cxn take the same
-   fillers as the slots of the original item-based cxn used for anti-unification!"
+   fillers as the slots of the original item-based cxn used for anti-unification!
+   This ensures that the previous observations are now also covered with these
+   new cxns."
   (destructuring-bind (anti-unified-cxn
                        form-anti-unification
                        meaning-anti-unification) anti-unification-results
