@@ -13,9 +13,9 @@
          (new-cxn (make-cxn agent meaning form)))
     ;; push the new construction
     (push new-cxn (lexicon agent))
+    ;; set the applied-cxn slot
+    (set-data agent 'applied-cxn new-cxn)
     ;; update monitor
     (setf (invented-or-adopted agent) t)
     ;; notify
-    (notify event-invention-end new-cxn)
-    ;; return created construction
-    new-cxn))
+    (notify event-invention-end new-cxn)))

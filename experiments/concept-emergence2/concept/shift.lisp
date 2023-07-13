@@ -12,7 +12,11 @@
   ;; 1. update the prototypical values
   (loop for prototype in (prototypes concept) ;; assumes prototype
         for interaction-number = (interaction-number (current-interaction (experiment agent)))
-        do (update-prototype interaction-number prototype topic :save-distribution-history (get-configuration agent :save-distribution-history)))
+        for new-observation = (perceive-object-val agent topic (channel prototype))
+        do (update-prototype new-observation
+                             interaction-number
+                             prototype
+                             :save-distribution-history (get-configuration agent :save-distribution-history)))
   
   ;; 2. determine which attributes should get an increase
   ;;    in weight, and which should get a decrease.
@@ -68,14 +72,15 @@
   (loop with attribute-hash = (make-hash-table)
         for prototype in (prototypes concept)
         for ledger = (loop for prototype in (prototypes concept) sum (weight prototype))
+        for channel = (channel prototype)
         for objects-hash = (loop with hash = (make-hash-table)
                                  for object in (objects (get-data agent 'context))
-                                 for observation = (get-channel-val object (channel prototype))
+                                 for observation = (perceive-object-val agent object channel)
                                  for similarity = (observation-similarity observation prototype)
                                  for weighted-similarity = (* (/ (weight prototype) ledger) similarity)
                                  do (setf (gethash (id object) hash) (cons similarity weighted-similarity))
                                  finally (return hash))
-        do (setf (gethash (channel prototype) attribute-hash) objects-hash)
+        do (setf (gethash channel attribute-hash) objects-hash)
         finally (return attribute-hash)))
 
 (defun get-all-subsets (all-attr subset-attr)

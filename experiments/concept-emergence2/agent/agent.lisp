@@ -11,10 +11,19 @@
    (trash
     :documentation "The lexicon trash."
     :type list :accessor trash :initform nil)
+   (disabled-channels
+    :documentation "Disabled channels in agent."
+    :type list :accessor disabled-channels :initarg :disabled-channels :initform nil)
+   (noise-in-each-sensor
+    :documentation "Fixed noise on each channel"
+    :type list :accessor noise-in-each-sensor :initarg :noise-in-each-sensor :initform nil)
+   (noise-in-each-observation
+    :documentation "Noise on each channel at every observation"
+    :type list :accessor noise-in-each-observation :initarg :noise-in-each-observation :initform nil)
    (invented-or-adopted
     :documentation "Whether the agent invented or adopted during the interaction."
     :type boolean :accessor invented-or-adopted :initform nil)))
-
+  
 (defmethod clear-agent ((agent cle-agent))
   "Clear the slots of the agent for the next interaction."
   (setf (blackboard agent) nil
@@ -28,3 +37,63 @@
     (if result
       result
       (find form (trash agent) :key #'form :test #'string=))))
+
+;; ---------
+;; + NOISE +
+;; ---------
+
+(defmethod perceive-object-val ((agent cle-agent) (object cle-object) attr)
+  (let ((raw-observation-val (rest (assoc attr (attributes object))))
+        (sensor-noise (noise-in-sensor agent attr (get-configuration agent :sensor-noise)))
+        (observation-noise (noise-in-observation agent attr (get-configuration agent :observation-noise))))
+    (+ raw-observation-val sensor-noise observation-noise)))
+
+;; -------------------
+;; + noise-in-sensor +
+;; -------------------
+
+(defmethod determine-noise-in-sensor (experiment disabled-channels (mode (eql :none)))
+  "Sets the fixed shift for each sensor to zero."
+  (loop with remaining-channels = (set-difference (get-configuration experiment :available-channels) disabled-channels)
+        for channel in remaining-channels
+        collect (cons channel 0)))
+
+(defmethod determine-noise-in-sensor (experiment disabled-channels (mode (eql :shift)))
+  "Determines a fixed shift for each sensor."
+  (loop with remaining-channels = (set-difference (get-configuration experiment :available-channels) disabled-channels)
+        for channel in remaining-channels
+        for shift = (random-gaussian 0 (get-configuration experiment :sensor-std))
+        collect (cons channel shift)))
+
+(defmethod noise-in-sensor ((agent cle-agent) (attr symbol) (mode (eql :none)))
+  0)
+
+(defmethod noise-in-sensor ((agent cle-agent) (attr symbol) (mode (eql :shift)))
+  (assqv attr (noise-in-each-sensor agent)))
+
+;; ------------------------
+;; + noise-in-observation +
+;; ------------------------
+
+(defmethod determine-noise-in-observation (experiment disabled-channels (mode (eql :none)))
+  "Sets the observation noise for each sensor to zero."
+  (loop with remaining-channels = (set-difference (get-configuration experiment :available-channels) disabled-channels)
+        for channel in remaining-channels
+        collect (cons channel 0)))
+
+(defmethod determine-noise-in-observation (experiment disabled-channels (mode (eql :shift)))
+  "Determines a standard deviation for each sensor at each observation."
+  (loop with remaining-channels = (set-difference (get-configuration experiment :available-channels) disabled-channels)
+        for channel in remaining-channels
+        for shift = (random-gaussian 0 (get-configuration experiment :observation-std))
+        collect (cons channel shift)))
+
+(defmethod noise-in-observation ((agent cle-agent) (attr symbol) (mode (eql :none)))
+  0)
+
+(defmethod noise-in-observation ((agent cle-agent) (attr symbol) (mode (eql :shift)))
+  (random-gaussian 0 (assqv attr (noise-in-each-observation agent))))
+
+;; helper function
+(defun random-gaussian (mean st-dev)
+  (distributions:from-standard-normal (distributions:draw-standard-normal) mean st-dev))

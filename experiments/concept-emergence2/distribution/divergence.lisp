@@ -32,9 +32,9 @@
     ;; if both distributions are Dirac distributions with zero sigma, return maximal distance of 1
     1.0
     ;; otherwise perform distance calculation
-    (sqrt (- 1
+    (realpart (sqrt (- 1
              (sqrt (*
                     (/ (* 2 sigma1 sigma2)
                        (+ (expt sigma1 2) (expt sigma2 2)))
                     (exp (* -1/2 (/ (expt (- mu1 mu2) 2)
-                                    (+ (expt sigma1 2) (expt sigma2 2)))))))))))
+                                    (+ (expt sigma1 2) (expt sigma2 2))))))))))))

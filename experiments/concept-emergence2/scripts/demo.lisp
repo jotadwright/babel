@@ -4,23 +4,21 @@
 
 ;; experiments with entrenchment values - keep the same
 (progn
-  ;(setf *scene-ids* (read-scene-ids "3-all.lisp"))
-  ;(setf *subset-size* (length *scene-ids*))
   (defparameter *baseline-simulated*
     (make-configuration
      :entries `(
                 ;; monitoring
-                (:dot-interval . 1000)
+                (:dot-interval . 10)
                 (:save-distribution-history . nil)
                 ;; setup interacting agents
                 (:interacting-agents-strategy . :standard)
                 (:population-size . 10)
                 ;; setup data scene
-                (:dataset . "clevr-simulated")
-                (:dataset-split . "val")
-                (:data-fname . "10-color_area_roughness.lisp")
-                ;(:available-channels ,@(get-all-channels :clevr-simulated))
-                (:available-channels 
+                (:dataset . "winery")
+                (:dataset-split . "train")
+                ;(:data-fname . "10-color_area_roughness.lisp")
+                (:available-channels ,@(get-all-channels :winery))
+                #|(:available-channels 
                  ;,'xpos ,'ypos ,'zpos ;; position
                  ,'area ;; size
                  ;,'wh-ratio ;; shape
@@ -29,9 +27,18 @@
                  ,'roughness ;; material
                  ;,'xpos-3d ,'ypos-3d ,'zpos-3d ;; 3d-position
                  ;,'rotation ;; rotation
-                 )
-                (:scene-sampling . :deterministic)
-                (:topic-sampling . :discriminative)
+                 )|#
+                ;; disable channels
+                (:disable-channels . :random)
+                (:amount-disabled-channels . 1)
+                ;; noised channels
+                (:sensor-noise . :shift)
+                (:sensor-std . 0.05)
+                (:observation-noise . :shift)
+                (:observation-std . 0.01)
+                ;; scene sampling
+                (:scene-sampling . :random)
+                (:topic-sampling . :random)
                 ;; general strategy
                 (:strategy . :times)
                 (:similarity-threshold . 0.0)
@@ -71,7 +78,6 @@
                  ))
 
 (length channel-bobs)
-(random-elt 
 
 
 
@@ -93,8 +99,26 @@
   (loop for i from 1 to 500000
         do (run-interaction *experiment*)))
 
+(+ 1 2)
 ;; display lexicon
 (display-lexicon (first (agents *experiment*)) :sort t :entrenchment-threshold 0.5)
+(display-lexicon (second (agents *experiment*)) :sort t :entrenchment-threshold 0.5)
+
+
+(let ((ag1 (first (agents *experiment*)))
+      (ag2 (second (agents *experiment*)))
+      (ag1-cxn (first (sort (lexicon ag1) #'(lambda (x y) (> (score x) (score y))))))
+      (ag2-cxn (find-in-lexicon ag2 (form ag1-cxn))))
+  (add-cxn-to-interface ag1-cxn)
+  (add-cxn-to-interface ag2-cxn))
+
+
+(type-of (type-of #C(-0.00963151126481214D0 5.531869077461537D-11)))
+
+(first (sort (lexicon (first (agents *experiment*))) #'(lambda (x y) (> (score x) (score y)))))
+
+
+(disabled-channels (first (agents *experiment*)))
 
 ;; types of constructions
 (format-count-entries (count-entries (fourth (agents *experiment*))))
@@ -143,13 +167,6 @@
                                                  (cons :best-other-sim best-other-similarity))
                                            discriminating-cxns)))
 
-(defmethod weighted-similarity ((object cle-object) (concept concept))
-  "Compute the weighted similarity between an object and a concept."
-  (loop with ledger = (loop for prototype in (prototypes concept) sum (weight prototype))
-        for prototype in (prototypes concept)
-        for observation = (get-channel-val object (channel prototype))
-        for similarity = (observation-similarity observation prototype)
-        sum (* (/ (weight prototype) ledger) similarity)))
 
 
 

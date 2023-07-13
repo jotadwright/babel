@@ -66,10 +66,6 @@
   (loop for channel in available-channels
         collect (assoc channel object)))
 
-;; helper functions
-(defmethod get-channel-val ((object cle-object) attr)
-  (rest (assoc attr (attributes object))))
-
 (defmethod print-object ((cle-object cle-object) stream)
   (pprint-logical-block (stream nil)
     (format stream "<cle-object:~

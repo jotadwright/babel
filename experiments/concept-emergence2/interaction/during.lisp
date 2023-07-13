@@ -20,8 +20,8 @@
     (when (not (conceptualise speaker))
       ;; when speaker could not conceptualise
       ;; invent and conceptualise again
-      (invent speaker)
-      (conceptualise speaker))
+      (invent speaker))
+    
     ;; speaker utters the form
     (production speaker)
     ;; hearer hears the utterance
