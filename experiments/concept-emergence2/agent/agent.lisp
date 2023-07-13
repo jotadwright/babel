@@ -14,6 +14,9 @@
    (disabled-channels
     :documentation "Disabled channels in agent."
     :type list :accessor disabled-channels :initarg :disabled-channels :initform nil)
+   (noise-shifts
+    :documentation "Noise on each channel"
+    :type list :accessor noise-shifts :initarg :noise-shifts :initform nil) 
    (invented-or-adopted
     :documentation "Whether the agent invented or adopted during the interaction."
     :type boolean :accessor invented-or-adopted :initform nil)))
@@ -31,3 +34,8 @@
     (if result
       result
       (find form (trash agent) :key #'form :test #'string=))))
+
+(defmethod perceive-object-val ((agent cle-agent) (object cle-object) attr)
+  (let ((val (rest (assoc attr (attributes object))))
+        (shift (assqv attr (noise-shifts agent)))) ;; possibly zero
+    (+ val shift)))

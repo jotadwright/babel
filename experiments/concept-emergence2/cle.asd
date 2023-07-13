@@ -19,7 +19,8 @@
                :fcg
                :cl-mop
                :cl-json
-               :cl-jonathan)
+               :cl-jonathan
+               :distributions)
   :serial t
   :components ((:file "package")
                (:module "world"

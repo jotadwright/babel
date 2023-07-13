@@ -16,7 +16,7 @@
     (let* ((objects-with-similarity
             (loop with applied-cxn = (find-data agent 'applied-cxn)
                   for object in (objects (get-data agent 'context))
-                  for sim = (weighted-similarity object (meaning applied-cxn))
+                  for sim = (weighted-similarity agent object (meaning applied-cxn))
                   collect (cons object sim)))
            ;; if two objects have exactly the same
            ;; maximum similarity, interpretation fails

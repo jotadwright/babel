@@ -4,16 +4,16 @@
 ;; + Update distribution +
 ;; -----------------------
 
-(defmethod update-prototype ((interaction-number number)
+(defmethod update-prototype ((new-observation number)
+                             (interaction-number number)
                              (prototype prototype)
-                             (object cle-object)
                              &key (save-distribution-history t)
                              &allow-other-keys)
-  (let ((new-observation (get-channel-val object (channel prototype)))
-        (distribution (distribution prototype)))
-    (update-distribution new-observation distribution)
-    (when save-distribution-history
-      (update-distribution-history interaction-number new-observation distribution))))
+  (update-distribution new-observation (distribution prototype))
+  (when save-distribution-history
+    (update-distribution-history interaction-number
+                                 new-observation
+                                 (distribution prototype))))
 
 ;; ------------------
 ;; + Update weights +

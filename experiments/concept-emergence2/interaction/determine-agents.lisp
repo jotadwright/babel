@@ -54,3 +54,23 @@
                                               (/ (+ population-size 1) 2))
                             collect group2)))
     (append repeated-g1 repeated-g2)))
+
+;; --------------------------
+;; + Determine noise shifts +
+;; --------------------------
+
+(defmethod determine-noise-shift (experiment disabled-channels (mode (eql :none)))
+  "Sets the fixed shift for each sensor to zero."
+  (loop with remaining-channels = (set-difference (get-configuration experiment :available-channels) disabled-channels)
+        for channel in remaining-channels
+        collect (cons channel 0)))
+
+(defmethod determine-noise-shift (experiment disabled-channels (mode (eql :shift)))
+  "Determines a fixed shift for each sensor."
+  (loop with remaining-channels = (set-difference (get-configuration experiment :available-channels) disabled-channels)
+        for channel in remaining-channels
+        for shift = (random-gaussian 0 (get-configuration experiment :noise-channel-std))
+        collect (cons channel shift)))
+
+(defun random-gaussian (mean st-dev)
+  (distributions:from-standard-normal (distributions:draw-standard-normal) mean st-dev))
