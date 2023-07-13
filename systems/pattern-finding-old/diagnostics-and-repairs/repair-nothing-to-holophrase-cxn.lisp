@@ -15,21 +15,18 @@
   "Repair by making a new holophrase construction."
   (when (and (initial-node-p node)
              (get-data problem :utterance))
-    (make-instance 'fcg::cxn-fix
-                   :repair repair
-                   :problem problem
-                   :restart-data (create-holistic-cxn problem node))))
-
-
-(defun create-holistic-cxn (problem node)
-  (do-repair
-   (get-data problem :utterance)
-   (get-data problem :meaning)
-   (make-blackboard)
-   (construction-inventory node)
-   node
-   'nothing->holistic))
-
+    (let ((cxns-and-categorial-links
+           (do-repair
+            (get-data problem :utterance)
+            (get-data problem :meaning)
+            (make-blackboard)
+            (construction-inventory node)
+            node
+            'nothing->holistic)))
+      (make-instance 'fcg::cxn-fix
+                     :repair repair
+                     :problem problem
+                     :restart-data cxns-and-categorial-links))))
 
 (defmethod do-repair (observation-form observation-meaning (args blackboard) (cxn-inventory construction-inventory) node (repair-type (eql 'nothing->holistic)))
   (let* ((cxn-inventory (original-cxn-set cxn-inventory))
@@ -51,11 +48,11 @@
          (existing-meta-holistic-cxn
           (when existing-routine-holistic-cxn
             (alter-ego-cxn existing-routine-holistic-cxn cxn-inventory)))
-         ;; lex class
-         (lex-class
+         ;; grammatical categories
+         (category
           (if existing-routine-holistic-cxn
-            (extract-lex-class-holistic-cxn existing-routine-holistic-cxn)
-            (make-lex-class cxn-name :trim-cxn-suffix t :numeric-suffix t)))
+            (extract-top-category-holistic-cxn existing-routine-holistic-cxn)
+            (make-grammatical-category cxn-name :trim-cxn-suffix t :numeric-suffix t)))
          ;; cxn inventory
          (cxn-inventory-copy
           (unless existing-routine-holistic-cxn
@@ -63,7 +60,7 @@
          ;; new cxns
          (holistic-cxn-apply-first
           (or existing-routine-holistic-cxn
-              (holistic-cxn-apply-first-skeleton cxn-name cxn-name-apply-first lex-class
+              (holistic-cxn-apply-first-skeleton cxn-name cxn-name-apply-first category
                                                  observation-form observation-meaning
                                                  cxn-form-args cxn-meaning-args
                                                  (get-configuration cxn-inventory :initial-cxn-score)
@@ -71,7 +68,7 @@
                                                  cxn-inventory-copy)))
          (holistic-cxn-apply-last
           (or existing-meta-holistic-cxn
-              (holistic-cxn-apply-last-skeleton cxn-name cxn-name-apply-last lex-class
+              (holistic-cxn-apply-last-skeleton cxn-name cxn-name-apply-last category
                                                 observation-form observation-meaning
                                                 cxn-form-args cxn-meaning-args
                                                 (get-configuration cxn-inventory :initial-cxn-score)
@@ -80,7 +77,7 @@
          ;; build results
          (cxns-to-apply (list holistic-cxn-apply-first))
          (cxns-to-consolidate (list holistic-cxn-apply-last))
-         (cats-to-add (list lex-class)))
+         (cats-to-add (list category)))
 
     (apply-fix
      ;; form
@@ -94,7 +91,7 @@
      ;; categories to add
      cats-to-add
      ;; top level category
-     lex-class
+     category
      ;; gold standard consulted p
      t
      ;; node

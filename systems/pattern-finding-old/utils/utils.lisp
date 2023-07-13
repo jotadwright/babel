@@ -49,6 +49,9 @@
                      (non-zero-cxn-p cxn)))
             (constructions grammar)))
 
+(defmethod succeeded-cipn-p ((node cip-node))
+  (find 'fcg::succeeded (statuses node)))
+
 
 ;;;;;
 ;; Search tree utils
@@ -75,35 +78,6 @@
 ;;;;;
 ;; Make cxn name
 ;;;;;;;;;;;;;;;;;;;;
-
-#|
-(defconstant +placeholder-vars+
-  '("?X" "?Y" "?Z" "?A" "?B" "?C"
-    "?D" "?E" "?F" "?G" "?H" "?I"
-    "?J" "?K" "?L" "?M" "?N" "?O"
-    "?P" "?Q" "?R" "?S" "?T" "?U"
-    "?V" "?W"))
-
-(defun variablify-missing-form-strings (form-constraints)
-  "create X Y Z etc variables by checking which strings are missing in meets constraints.
-   return a list of placeholder bindings in the form of string predicates"
-  (loop with string-constraints = (find-all 'string form-constraints :key #'first)
-        with new-string-constraints = nil
-        with meets-constraints = (set-difference form-constraints string-constraints)
-        with placeholder-index = 0
-        for meets-constraint in meets-constraints
-        for first-word-var = (second meets-constraint)
-        for second-word-var = (third meets-constraint)
-        unless (or (find first-word-var string-constraints :key #'second)
-                   (find first-word-var new-string-constraints :key #'second))
-        do (push (list 'string first-word-var (nth placeholder-index +placeholder-vars+)) new-string-constraints)
-           (incf placeholder-index)
-        unless (or (find second-word-var string-constraints :key #'second)
-                   (find second-word-var new-string-constraints :key #'second))
-        do (push (list 'string second-word-var (nth placeholder-index +placeholder-vars+)) new-string-constraints)
-           (incf placeholder-index)
-        finally (return new-string-constraints)))
-|#
 
 (defgeneric make-cxn-name (thing cxn-inventory
                                  &key holistic-suffix item-based-suffix numeric-suffix))
@@ -156,7 +130,7 @@
 
 
 ;;;;;
-;; Make lex class
+;; Make grammatical category
 ;;;;;;;;;;;;;;;;;;;;
 
 (defun replace-special-initial-chars (string)
@@ -164,7 +138,7 @@
     (string-append "-" string)
     string))
  
-(defun make-lex-class (cat-name &key numeric-suffix trim-cxn-suffix slotp)
+(defun make-grammatical-category (cat-name &key numeric-suffix trim-cxn-suffix slotp)
   (let* ((name-string
           (replace-special-initial-chars
            (string-downcase
@@ -184,23 +158,20 @@
     (intern (string-downcase (symbol-name name-string)) :pattern-finding-old)))
 
 ;;;;
-;; Extracting lex class from units
+;; Extracting categories from units
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defgeneric extract-lex-class-unit (unit)
+(defgeneric extract-category-unit (unit)
   (:documentation "extract the lex class from a unit"))
   
-(defmethod extract-lex-class-unit ((unit contributing-unit))
-  (let ((syn-cat (fcg-unit-feature-value unit 'syn-cat)))
-    (second (find 'lex-class syn-cat :key #'first))))
+(defmethod extract-category-unit ((unit contributing-unit))
+  (first (fcg-unit-feature-value unit 'category)))
 
-(defmethod extract-lex-class-unit ((unit conditional-unit))
-  (let ((syn-cat (fcg-unit-feature-value unit 'syn-cat)))
-    (second (find 'lex-class syn-cat :key #'first))))
+(defmethod extract-category-unit ((unit conditional-unit))
+  (first (fcg-unit-feature-value unit 'category)))
 
-(defmethod extract-lex-class-unit ((unit list))
-  (let ((syn-cat (unit-feature-value unit 'syn-cat)))
-    (second (find 'lex-class syn-cat :key #'first))))
+(defmethod extract-category-unit ((unit list))
+  (unit-feature-value unit 'category))
 
 ;;;;;
 ;; Extracting units from cxns
@@ -218,53 +189,47 @@
             collect unit))))
 
 ;;;;;
-;; Extracting lex classes from cxns
+;; Extracting categories from cxns
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun extract-lex-class-holistic-cxn (cxn)
+(defun extract-top-category-holistic-cxn (cxn)
   "Extract the lex class from a holistic cxn.
    Works for both routine and meta cxns."
-  (let* ((unit-to-search
-          (if (routine-cxn-p cxn)
-            (first (contributing-part cxn))
-            (first (conditional-part cxn))))
-         (syn-cat (fcg-unit-feature-value unit-to-search 'syn-cat)))
-    (second (find 'lex-class syn-cat :key #'first))))
+  (let ((unit-to-search
+         (if (routine-cxn-p cxn)
+           (first (contributing-part cxn))
+           (first (conditional-part cxn)))))
+    (first (fcg-unit-feature-value unit-to-search 'category))))
 
-(defun extract-lex-class-slot-item-based-cxn (cxn)
+(defun extract-slot-categories-item-based-cxn (cxn)
   "Extracts the lex classes from the slots of an item-based cxn.
    Works for both routine and meta cxns."
   (loop for unit in (extract-slot-units cxn)
-        for syn-cat = (fcg-unit-feature-value unit 'syn-cat)
-        for lex-class = (second (find 'lex-class syn-cat :key #'first))
-        collect lex-class))
+        for category = (first (fcg-unit-feature-value unit 'category))
+        collect category))
 
-(defun extract-lex-class-item-based-cxn (cxn)
-  (let* ((unit-to-search
-          (loop for unit in (contributing-part cxn)
-                when (find 'subunits (fcg::unit-structure unit) :key #'first)
-                return unit))
-         (syn-cat (fcg-unit-feature-value unit-to-search 'syn-cat)))
-    (second (find 'lex-class syn-cat :key #'first))))
+(defun extract-top-category-item-based-cxn (cxn)
+  (let ((unit-to-search
+         (loop for unit in (contributing-part cxn)
+               when (find 'subunits (fcg::unit-structure unit) :key #'first)
+                 return unit)))
+    (first (fcg-unit-feature-value unit-to-search 'category))))
 
-(defun lex-class (unit)
-  (let* ((syn-cat (find 'syn-cat (unit-body unit) :key #'first))
-         (lex-class (find 'lex-class (second syn-cat) :key #'first)))    
-    (when lex-class
-      (second lex-class))))
+(defun category (unit)
+  (unit-feature-value unit 'category))
 
-(defun extract-contributing-lex-class (cxn)
-  "return the lex-class on the contributing part of a cxn
+(defun extract-contributing-category (cxn)
+  "return the category on the contributing part of a cxn
    works for both holistic and item-based cxns"
   (if (holistic-cxn-p cxn)
-    (extract-lex-class-holistic-cxn cxn)
-    (extract-lex-class-item-based-cxn cxn)))
+    (extract-top-category-holistic-cxn cxn)
+    (extract-top-category-item-based-cxn cxn)))
 
-(defun extract-conditional-lex-classes (cxn)
-  "return the lex classes on the conditional part of a cxn
+(defun extract-conditional-categories (cxn)
+  "return the categories on the conditional part of a cxn
    works only for item-based cxns"
   (unless (holistic-cxn-p cxn)
-    (extract-lex-class-slot-item-based-cxn cxn)))
+    (extract-slot-categories-item-based-cxn cxn)))
 
 ;;;;;
 ;; Extracting args from cxns
@@ -512,7 +477,9 @@
                         (top-arg (list (variablify (second form-constraint))
                                        (third form-constraint)))
                         (slot-arg (list (variablify (second form-constraint))
-                                        (third form-constraint)))))))
+                                        (third form-constraint)))
+                        (sequence (cons (second form-constraint)
+                                        (mapcar #'variablify (cddr form-constraint))))))))
 
 (defun devariablify (var)
   (intern (get-base-name var :remove-numeric-tail nil)))
@@ -522,13 +489,18 @@
 ;; Hash
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun form-predicates->hash-string (form-predicates)
-  ;; the first and the last string predicate
-  (third
-   (first
-    (find-all 'string form-predicates :key #'first))))
+(defgeneric form-predicates->hash-string (form-predicates form-representation)
+  (:documentation "Generate a hash key for the form predicates according to the form-representation"))
 
-(defgeneric meaning-predicates->hash-meaning (meaning-predicates meaning-representation))
+(defmethod form-predicates->hash-string (form-predicates (form-representation (eql :string+meets)))
+  ;; a list of all string predicates
+  (mapcar #'third (find-all 'string form-predicates :key #'first)))
+
+(defmethod form-predicates->hash-string (form-predicates (form-representation (eql :sequences)))
+  nil)
+
+(defgeneric meaning-predicates->hash-meaning (meaning-predicates meaning-representation)
+  (:documentation "Generate a hash key for the meaning predicates according to the meaning-representation"))
 
 (defmethod meaning-predicates->hash-meaning (meaning-predicates (meaning-representation (eql :irl)))
   (let* ((all-primitives (mapcar #'first meaning-predicates))
@@ -562,11 +534,16 @@
     (append form-predicates meaning-predicates)))
                             
 (defun constructions-for-anti-unification-hashed (form-constraints meaning-predicates cxn-inventory)
-  (remove-duplicates
-   (append
-    (loop for hash in (hash-observation form-constraints meaning-predicates)
-          append (gethash hash (constructions-hash-table cxn-inventory)))
-    (gethash nil (constructions-hash-table cxn-inventory)))))
+  (case (get-configuration cxn-inventory :form-representation-formalism)
+    (:string+meets
+     (remove-duplicates
+      (append
+       (loop for hash in (hash-observation form-constraints meaning-predicates)
+             append (gethash hash (constructions-hash-table cxn-inventory)))
+       (gethash nil (constructions-hash-table cxn-inventory)))))
+    ;; when using sequences, there is no hashing
+    ;; so just return all cxns!
+    (:sequences (constructions cxn-inventory))))
 
 ;;;;;
 ;; Partial Analysis
@@ -575,29 +552,32 @@
 (defun form-predicates-in-root (cipn)
   (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))
 
-(defun sort-cipns-by-coverage-and-nr-of-applied-cxns (list-of-cipns)
-  (sort list-of-cipns
-        #'(lambda (cipn-1 cipn-2)
-            (let ((cipn-1-form-in-root (length (form-predicates-in-root cipn-1)))
-                  (cipn-2-form-in-root (length (form-predicates-in-root cipn-2)))
-                  (cipn-1-applied-cxns (length (applied-constructions cipn-1)))
-                  (cipn-2-applied-cxns (length (applied-constructions cipn-2))))
-              (if (= cipn-1-form-in-root cipn-2-form-in-root)
-                (< cipn-1-applied-cxns cipn-2-applied-cxns)
-                (< cipn-1-form-in-root cipn-2-form-in-root))))))
+(defun all-cip-nodes (cip)
+  (remove nil
+          (traverse-depth-first
+           (top-node cip)
+           :collect-fn #'(lambda (node)
+                           (unless (or (find 'fcg::duplicate (fcg::statuses node))
+                                       (find 'fcg::second-merge-failed (fcg::statuses node)))
+                             node)))))
 
 (defun compatible-cipns-with-routine-cxns (form-constraints gold-standard-meaning cxn-inventory)
   (when (constructions cxn-inventory)
     (disable-meta-layer-configuration cxn-inventory)
     (let ((compatible-cipns
            (with-disabled-monitor-notifications
-             (multiple-value-bind (meanings cip-nodes) (comprehend-all form-constraints :cxn-inventory cxn-inventory)
-               (loop for meaning in meanings
-                     for cipn in cip-nodes
-                     when (and meaning ; meaning should be non-nil
-                               (form-predicates-in-root cipn) ; some form left in root
-                               (irl::embedding meaning gold-standard-meaning)) ; partial meaning should be compatible with gold standard
-                     collect cipn)))))
+             (multiple-value-bind (_meanings _cipns cip) (comprehend-all form-constraints :cxn-inventory cxn-inventory)
+               (declare (ignore _meanings _cipns))
+               (let ((cip-nodes (all-cip-nodes cip)))
+                 (loop for cip-node in cip-nodes
+                       for meaning = (extract-meanings
+                                      (left-pole-structure
+                                       (car-resulting-cfs
+                                        (cipn-car cip-node))))
+                       when (and meaning ; meaning should be non-nil
+                                 (form-predicates-in-root cip-node) ; some form left in root
+                                 (irl::embedding meaning gold-standard-meaning)) ; partial meaning should be compatible with gold standard
+                       collect cip-node))))))
       (enable-meta-layer-configuration cxn-inventory)
       compatible-cipns)))
 
@@ -606,14 +586,19 @@
     (disable-meta-layer-configuration-item-based-first cxn-inventory)
     (let ((compatible-cipns
            (with-disabled-monitor-notifications
-             (multiple-value-bind (meanings cip-nodes) (comprehend-all form-constraints :cxn-inventory cxn-inventory)
-               (loop for meaning in meanings
-                     for cipn in cip-nodes
-                     when (and meaning ; meaning should be non-nil
-                               (form-predicates-in-root cipn) ; some form left in root
-                               (irl::embedding meaning gold-standard-meaning) ; partial meaning should be compatible with gold standard
-                               (fcg::connected-syntactic-structure (fcg-get-transient-unit-structure cipn))) ; connected structure in TS 
-                     collect cipn)))))
+             (multiple-value-bind (_meanings _cipns cip) (comprehend-all form-constraints :cxn-inventory cxn-inventory)
+               (declare (ignore _meanings _cipns))
+               (let ((cip-nodes (all-cip-nodes cip)))
+                 (loop for cip-node in cip-nodes
+                       for meaning = (extract-meanings
+                                      (left-pole-structure
+                                       (car-resulting-cfs
+                                        (cipn-car cip-node))))
+                       when (and meaning ; meaning should be non-nil
+                                 (form-predicates-in-root cip-node) ; some form left in root
+                                 (irl::embedding meaning gold-standard-meaning) ; partial meaning should be compatible with gold standard
+                                 (fcg::connected-syntactic-structure (fcg-get-transient-unit-structure cip-node))) ; connected structure in TS 
+                       collect cip-node))))))
       (enable-meta-layer-configuration-item-based-first cxn-inventory)
       compatible-cipns)))
 
@@ -690,13 +675,22 @@
 ;; Input Processing
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun form-constraints-with-variables (utterance de-render-mode)
-  "Extract form constraints from utterance in the format they would appear in a construction."
+(defgeneric form-constraints-with-variables (utterance de-render-mode mode)
+  (:documentation "Extract form constraints from utterance in the format they would appear in a construction."))
+
+(defmethod form-constraints-with-variables (utterance de-render-mode (mode (eql :string+meets)))
   (let ((form-constraints-with-constants
          (remove 'sequence
                  (extract-forms (left-pole-structure
                                  (de-render utterance de-render-mode)))
                  :key #'first)))
+    (variablify-form-constraints-with-constants form-constraints-with-constants)))
+
+(defmethod form-constraints-with-variables (utterance de-render-mode (mode (eql :sequences)))
+  (let ((form-constraints-with-constants
+         (extract-forms
+          (left-pole-structure
+           (de-render utterance de-render-mode)))))
     (variablify-form-constraints-with-constants form-constraints-with-constants)))
 
 (defgeneric meaning-predicates-with-variables (meaning mode))

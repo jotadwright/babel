@@ -20,18 +20,13 @@
 
 ;;;; TO DO
 
-;;;; Turn many functions into methods, especially for dealing with
-;;;; fcg-construction vs construction;
-;;;; construction-inventory vs fcg-construction-set;
-;;;; units vs units??
-
 ;;;; Handle anti-unification cases where the pattern delta is empty.
 ;;;; Handle these cases differently from the "regular" cases?
 ;;;; Do we want the highest cost solution in this case? Do we want the
 ;;;; solution with the highest scoring cxn in this case?
 
 ;;;; top-arg/slot-arg predicates
-;;;; Now, lex-class (a constant) is added as the last argument in these
+;;;; Now, grammatical category (a constant) is added as the last argument in these
 ;;;; predicates. This will (likely) break down when applying repairs recursively.
 ;;;; However, we need these constants to find out which args on the form side
 ;;;; and the meaning side belong together. Another way to fix this would be to
@@ -52,12 +47,24 @@
                               (:corpus-file . ,(make-pathname :directory '(:relative "val")
                                                               :name "stage-1" :type "jsonl"))))))
 
+(progn
+  (wi::reset)
+  (notify reset-monitors)
+  (reset-id-counters)
+  (defparameter *experiment*
+    (make-instance 'pattern-finding-experiment
+                   :entries `((:comprehend-all-n . 2)
+                              (:shuffle-data-p . nil)
+                              (:corpus-directory . ,(babel-pathname :directory '("experiments" "grammar-learning"
+                                                                                 "cooking" "data")))
+                              (:corpus-file . ,(make-pathname :name "benchmark-ingredients-uniform" :type "jsonl"))))))
+
 (length (corpus *experiment*))
 
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 10)
+(run-series *experiment* 18)
 
 ;;;; Showing the cxn inventory and categorial network
 
@@ -79,7 +86,7 @@
 ;;;; Time travel
 
 (go-back-n-interactions *experiment* 1)
-(remove-cxns-learned-at *experiment* 9)
+(remove-cxns-learned-at *experiment* 19)
 
 (defun go-back-n-interactions (experiment n)
   (setf (interactions experiment)

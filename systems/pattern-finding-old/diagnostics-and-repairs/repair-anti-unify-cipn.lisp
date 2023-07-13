@@ -37,7 +37,7 @@
                      cat-links-to-add
                      cxns-to-consolidate
                      cats-to-add
-                     (extract-contributing-lex-class (last-elt cxns-to-apply))
+                     (extract-contributing-category (last-elt cxns-to-apply))
                      t
                      node
                      repair-type))))))
@@ -48,7 +48,7 @@
 
 ;;;; QUESTIONS FOR PARTIAL ANALYSIS
 ;;;; - do we want the same max cost??
-;;;; - when are these AU results valid/invalid??
+;;;; - when are the CIPNs compatible (especially with meta cxns)??
 ;;;; - how to sort AU results??
 
 (defmethod find-cipn-and-anti-unify (observation-form observation-meaning (args blackboard) (cxn-inventory fcg-construction-set))
@@ -60,16 +60,17 @@
          (cipns-with-routine-cxns (compatible-cipns-with-routine-cxns observation-form observation-meaning cxn-inventory))
          (cipns-with-meta-cxns (compatible-cipns-with-meta-cxns observation-form observation-meaning cxn-inventory))
          (partial-analysis-cipns (append cipns-with-routine-cxns cipns-with-meta-cxns))
-         ;; 2) find the least general generalisation through anti-unification
-         (least-general-generalisation
-          (loop with max-au-cost = (get-configuration cxn-inventory :max-au-cost)
+         
+         ;; 2) find the least general generalisations through anti-unification
+         (least-general-generalisations
+          (loop with form-representation = (get-configuration cxn-inventory :form-representation-formalism)
                 for cipn in partial-analysis-cipns
                 ;; returns all valid form anti unification results
                 for form-anti-unification-results
-                  = (anti-unify-form observation-form cipn args max-au-cost)
+                  = (anti-unify-form observation-form cipn args form-representation)
                 ;; returns all valid meaning anti unification results
                 for meaning-anti-unification-results
-                  = (anti-unify-meaning observation-meaning cipn args max-au-cost)
+                  = (anti-unify-meaning observation-meaning cipn args)
                 ;; make all combinations and filter for valid combinations
                 for all-anti-unification-combinations
                   = (remove-if-not #'valid-au-combination-p
@@ -81,23 +82,27 @@
                              collect (cons cipn combo))
                 into anti-unification-results
                 ;; return the best anti unification combination (costs and cxn score)
-                finally (return (first (sort-anti-unification-combinations anti-unification-results))))))
+                finally (return (sort-anti-unification-combinations anti-unification-results)))))
+    
     ;; 3) when there are anti-unification results, learn cxns from them!
-    (when least-general-generalisation
-      (destructuring-bind (anti-unified-cipn
-                           form-anti-unification
-                           meaning-anti-unification) least-general-generalisation
-        (declare (ignore anti-unified-cipn))
-        (copy-arg-predicates form-anti-unification)
-        (copy-arg-predicates meaning-anti-unification)
-        (cond ((and (find 'top-arg (source-delta form-anti-unification) :key #'first)
-                    (find 'top-arg (source-delta meaning-anti-unification) :key #'first))
-               (make-holistic-cxns-from-partial-analysis
-                least-general-generalisation observation-form observation-meaning cxn-inventory))
-              ((and (find 'slot-arg (pattern-delta form-anti-unification) :key #'first)
-                    (find 'slot-arg (pattern-delta meaning-anti-unification) :key #'first))
-               (make-item-based-cxn-from-partial-analysis
-                least-general-generalisation observation-form observation-meaning cxn-inventory)))))))
+    (when least-general-generalisations
+      (dolist (generalisation least-general-generalisations)
+        (let ((form-anti-unification (second generalisation))
+              (meaning-anti-unification (third generalisation))
+              (new-cxns-and-links nil))
+          (copy-arg-predicates form-anti-unification)
+          (copy-arg-predicates meaning-anti-unification)
+          (setf new-cxns-and-links
+                (cond ((and (find 'top-arg (source-delta form-anti-unification) :key #'first)
+                            (find 'top-arg (source-delta meaning-anti-unification) :key #'first))
+                       (make-holistic-cxns-from-partial-analysis
+                        generalisation observation-form observation-meaning cxn-inventory))
+                      ((and (find 'slot-arg (source-delta form-anti-unification) :key #'first)
+                            (find 'slot-arg (source-delta meaning-anti-unification) :key #'first))
+                       (make-item-based-cxn-from-partial-analysis
+                        generalisation observation-form observation-meaning cxn-inventory))))
+          (when new-cxns-and-links
+            (return new-cxns-and-links)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; make cxns from partial analysis ;;
@@ -134,8 +139,8 @@
            (sandbox-cxns
             (cons (first source-delta-cxns-and-categories) applied-cxns))
            (sandbox-categories
-            (append (mappend #'extract-conditional-lex-classes sandbox-cxns)
-                    (mapcar #'extract-contributing-lex-class sandbox-cxns)))
+            (append (mappend #'extract-conditional-categories sandbox-cxns)
+                    (mapcar #'extract-contributing-category sandbox-cxns)))
            (sandbox-cipn
             (comprehend-in-sandbox observation-form cxn-inventory
                                    :gold-standard-meaning observation-meaning
@@ -150,7 +155,8 @@
                             (fourth source-delta-cxns-and-categories))))
            (links-to-add (extract-used-categorial-links sandbox-cipn)))
       ;; done!
-      (list cxns-to-apply cxns-to-consolidate categories-to-add links-to-add))))
+      (when (and sandbox-cipn (succeeded-cipn-p sandbox-cipn))
+        (list cxns-to-apply cxns-to-consolidate categories-to-add links-to-add)))))
 
 
 (defun make-holistic-cxns-from-partial-analysis (anti-unification-results observation-form observation-meaning cxn-inventory)
@@ -176,8 +182,8 @@
            (sandbox-cxns
             (append (first source-delta-cxns-and-categories) applied-cxns))
            (sandbox-categories
-            (append (mappend #'extract-conditional-lex-classes sandbox-cxns)
-                    (mapcar #'extract-contributing-lex-class sandbox-cxns)))
+            (append (mappend #'extract-conditional-categories sandbox-cxns)
+                    (mapcar #'extract-contributing-category sandbox-cxns)))
            (sandbox-cipn
             (comprehend-in-sandbox observation-form cxn-inventory
                                    :gold-standard-meaning observation-meaning
@@ -189,4 +195,5 @@
            (categories-to-add (third source-delta-cxns-and-categories))
            (links-to-add (extract-used-categorial-links sandbox-cipn)))
       ;; done!
-      (list cxns-to-apply cxns-to-consolidate categories-to-add links-to-add))))
+      (when (and sandbox-cipn (succeeded-cipn-p sandbox-cipn))
+        (list cxns-to-apply cxns-to-consolidate categories-to-add links-to-add)))))

@@ -38,7 +38,7 @@
 ;; ---------------
 
 (defun determine-communicative-success (cipn)
-  (assert (find 'fcg::succeeded (statuses cipn)))
+  (assert (succeeded-cipn-p cipn)) ;(find 'fcg::succeeded (statuses cipn)))
   (let ((all-node-statuses (mappend #'statuses (cons cipn (all-parents cipn))))
         (communicative-success t))
     (when (find 'gold-standard-consulted all-node-statuses)

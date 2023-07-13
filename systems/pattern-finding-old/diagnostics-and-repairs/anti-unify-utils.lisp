@@ -4,10 +4,60 @@
 ;; anti-unify form ;;
 ;;;;;;;;;;;;;;;;;;;;;
 
-(defgeneric anti-unify-form (source-form thing args &optional max-au-cost)
+(defun anti-unify-form (source-form thing args form-representation &key max-au-cost)
+  (case form-representation
+    (:string+meets (anti-unify-form-string-meets source-form thing args :max-au-cost max-au-cost))
+    (:sequences (anti-unify-form-sequences source-form thing args :max-au-cost max-au-cost))))
+
+(defgeneric anti-unify-form-sequences (source-form thing args &key max-au-cost)
   (:documentation "Anti-unify the observation with the given thing on the form side."))
 
-(defmethod anti-unify-form (source-form (cxn fcg-construction) (args blackboard) &optional max-au-cost)
+(defmethod anti-unify-form-sequences (source-form (cxn fcg-construction) (args blackboard) &key max-au-cost)
+  (let* ((possible-source-forms
+          (mapcar #'(lambda (lst) (list-of-strings->string lst :separator ""))
+                  (render-all source-form :render-sequences)))
+         (cxn-form (extract-form-predicates cxn))
+         (possible-pattern-forms
+          (mapcar #'(lambda (lst) (list-of-strings->string lst :separator ""))
+                  (render-all cxn-form :render-sequences)))
+         (anti-unification-results
+          (loop for (pattern-form source-form) in (combinations possible-source-forms possible-pattern-forms)
+                append (fcg::anti-unify-strings pattern-form source-form :to-sequence-predicates-p t)))
+         (valid-anti-unification-results
+          (remove-if-not #'valid-au-result-p anti-unification-results)))
+    (when max-au-cost
+      (setf valid-anti-unification-results
+            (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
+                       valid-anti-unification-results)))
+    (sort valid-anti-unification-results #'< :key #'fcg::cost)))
+
+(defmethod anti-unify-form-sequences (source-form (cipn cip-node) (args blackboard) &key max-au-cost)
+  (let* ((possible-source-forms
+          (mapcar #'(lambda (lst) (list-of-strings->string lst :separator ""))
+                  (render-all source-form :render-sequences)))
+         (ts-form
+          (loop for unit in (fcg-get-transient-unit-structure cipn)
+                unless (eql (unit-name unit) 'fcg::root)
+                append (unit-feature-value unit 'form)))
+         (possible-pattern-forms
+          (mapcar #'(lambda (lst) (list-of-strings->string lst :separator ""))
+                  (render-all ts-form :render-sequences)))
+         (anti-unification-results
+          (loop for (pattern-form source-form) in (combinations possible-source-forms possible-pattern-forms)
+                append (fcg::anti-unify-strings pattern-form source-form :to-sequence-predicates-p t)))
+         (valid-anti-unification-results
+          (remove-if-not #'valid-au-result-p anti-unification-results)))
+    (when max-au-cost
+      (setf valid-anti-unification-results
+            (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
+                       valid-anti-unification-results)))
+    (sort valid-anti-unification-results #'< :key #'fcg::cost)))
+          
+
+(defgeneric anti-unify-form-string-meets (source-form thing args &key max-au-cost)
+  (:documentation "Anti-unify the observation with the given thing on the form side."))
+
+(defmethod anti-unify-form-string-meets (source-form (cxn fcg-construction) (args blackboard) &key max-au-cost)
   ;; before anti unifying, top-args and slot-args are added to the
   ;; source-form and pattern-form! This makes the learning of cxns
   ;; easier later on
@@ -18,16 +68,16 @@
           (anti-unify-predicate-network (fresh-variables pattern-form-with-args) source-form-with-args))
          (valid-anti-unification-results
           (remove-if-not #'valid-au-result-p anti-unification-results)))
+    (loop for au-result in valid-anti-unification-results
+          do (setf (fcg::cost au-result)
+                   (correct-au-cost au-result)))
     (when max-au-cost
-      (loop for au-result in valid-anti-unification-results
-            do (setf (fcg::cost au-result)
-                     (correct-au-cost au-result)))
       (setf valid-anti-unification-results
             (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
                        valid-anti-unification-results)))
     (sort valid-anti-unification-results #'< :key #'fcg::cost)))
 
-(defmethod anti-unify-form (source-form (cipn cip-node) (args blackboard) &optional max-au-cost)
+(defmethod anti-unify-form-string-meets (source-form (cipn cip-node) (args blackboard) &key max-au-cost)
   ;; before anti unifying, top-args and slot-args are added to the
   ;; source-form and pattern-form! This makes the learning of cxns
   ;; easier later on
@@ -45,10 +95,10 @@
          ;; when are AU results valid/invalid in the case of partial analysis?
          (valid-anti-unification-results
           (remove-if-not #'valid-au-result-p anti-unification-results)))
+    (loop for au-result in valid-anti-unification-results
+          do (setf (fcg::cost au-result)
+                   (correct-au-cost au-result)))
     (when max-au-cost
-      (loop for au-result in valid-anti-unification-results
-            do (setf (fcg::cost au-result)
-                     (correct-au-cost au-result)))
       (setf valid-anti-unification-results
             (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
                        valid-anti-unification-results)))
@@ -63,16 +113,17 @@
   ;; top-args = args from contributing unit
   (loop for unit in (contributing-part cxn)
         for form-args = (remove-duplicates (first (fcg-unit-feature-value unit 'form-args)))
-        for lex-class = (extract-lex-class-unit unit)
-        when (and form-args lex-class)
+        for category = (extract-category-unit unit)
+        when (and form-args category)
         do (loop for arg in form-args
-                 do (push (list 'top-arg arg lex-class) set-of-predicates)))
+                 do (push (list 'top-arg arg category) set-of-predicates)))
   ;; slot-args = args from units that represent slots
   (loop for unit in (extract-slot-units cxn)
         for form-args = (remove-duplicates (first (fcg-unit-feature-value unit 'form-args)))
-        for lex-class = (extract-lex-class-unit unit)
+        for category = (extract-category-unit unit)
+        when (and form-args category)
         do (loop for arg in form-args
-                 do (push (list 'slot-arg arg lex-class) set-of-predicates)))
+                 do (push (list 'slot-arg arg category) set-of-predicates)))
   set-of-predicates)
 
 (defmethod add-form-arg-predicates (set-of-predicates (args blackboard))
@@ -95,20 +146,20 @@
                 collect unit)))
     (loop for unit in open-slot-units
           for form-args = (unit-feature-value unit 'form-args)
-          for lex-class = (extract-lex-class-unit unit)
-          when (and form-args lex-class)
+          for category = (extract-category-unit unit)
+          when (and form-args category)
           do (loop for arg in form-args
-                   do (push (list 'top-arg arg lex-class) set-of-predicates))))
+                   do (push (list 'top-arg arg category) set-of-predicates))))
   ;; slots-args = args from all top level units
   (let* ((ts-units (fcg-get-transient-unit-structure cipn))
          (root-unit (get-root ts-units))
          (top-lvl-units (remove-child-units (remove root-unit ts-units))))
     (loop for unit in top-lvl-units
           for form-args = (unit-feature-value unit 'form-args)
-          for lex-class = (extract-lex-class-unit unit)
-          when (and form-args lex-class)
+          for category = (extract-category-unit unit)
+          when (and form-args category)
           do (loop for arg in form-args
-                   do (push (list 'slot-arg arg lex-class) set-of-predicates))))
+                   do (push (list 'slot-arg arg category) set-of-predicates))))
   ;; return set of predicates
   set-of-predicates)
 
@@ -116,10 +167,10 @@
 ;; anti-unify meaning ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defgeneric anti-unify-meaning (source-meaning thing args &optional max-au-cost)
+(defgeneric anti-unify-meaning (source-meaning thing args &key max-au-cost)
   (:documentation "Anti-unify the observation with the given cxn on the meaning side."))
 
-(defmethod anti-unify-meaning (source-meaning (cxn fcg-construction) (args blackboard) &optional max-au-cost)
+(defmethod anti-unify-meaning (source-meaning (cxn fcg-construction) (args blackboard) &key max-au-cost)
   ;; before anti unifying, top-args and slot-args are added to the
   ;; source-meaning and pattern-meaning! This makes the learning of cxns
   ;; easier later on
@@ -130,16 +181,16 @@
           (anti-unify-predicate-network (fresh-variables pattern-meaning-with-args) source-meaning-with-args))
          (valid-anti-unification-results
           (remove-if-not #'valid-au-result-p anti-unification-results)))
+    (loop for au-result in valid-anti-unification-results
+          do (setf (fcg::cost au-result)
+                   (correct-au-cost au-result)))
     (when max-au-cost
-      (loop for au-result in valid-anti-unification-results
-            do (setf (fcg::cost au-result)
-                     (correct-au-cost au-result)))
       (setf valid-anti-unification-results
             (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
                        valid-anti-unification-results)))
     (sort valid-anti-unification-results #'< :key #'fcg::cost)))
 
-(defmethod anti-unify-meaning (source-meaning (cipn cip-node) (args blackboard) &optional max-au-cost)
+(defmethod anti-unify-meaning (source-meaning (cipn cip-node) (args blackboard) &key max-au-cost)
   ;; before anti unifying, top-args and slot-args are added to the
   ;; source-meaning and pattern-meaning! This makes the learning of cxns
   ;; easier later on
@@ -151,10 +202,10 @@
          ;; when are AU results valid/invalid in the case of partial analysis?
          (valid-anti-unification-results
           (remove-if-not #'valid-au-result-p anti-unification-results)))
+    (loop for au-result in valid-anti-unification-results
+          do (setf (fcg::cost au-result)
+                   (correct-au-cost au-result)))
     (when max-au-cost
-      (loop for au-result in valid-anti-unification-results
-            do (setf (fcg::cost au-result)
-                     (correct-au-cost au-result)))
       (setf valid-anti-unification-results
             (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
                        valid-anti-unification-results)))
@@ -169,16 +220,17 @@
   ;; top-args = args from contributing unit
   (loop for unit in (contributing-part cxn)
         for meaning-args = (remove-duplicates (first (fcg-unit-feature-value unit 'meaning-args)))
-        for lex-class = (extract-lex-class-unit unit)
-        when (and meaning-args lex-class)
+        for category = (extract-category-unit unit)
+        when (and meaning-args category)
         do (loop for arg in meaning-args
-                 do (push (list 'top-arg arg lex-class) set-of-predicates)))
+                 do (push (list 'top-arg arg category) set-of-predicates)))
   ;; slot-args = args from units that represent slots
   (loop for unit in (extract-slot-units cxn)
         for meaning-args = (remove-duplicates (first (fcg-unit-feature-value unit 'meaning-args)))
-        for lex-class = (extract-lex-class-unit unit)
+        for category = (extract-category-unit unit)
+        when (and meaning-args category)
         do (loop for arg in meaning-args
-                 do (push (list 'slot-arg arg lex-class) set-of-predicates)))
+                 do (push (list 'slot-arg arg category) set-of-predicates)))
   set-of-predicates)
 
 (defmethod add-meaning-arg-predicates (set-of-predicates (args blackboard))
@@ -201,20 +253,20 @@
                 collect unit)))
     (loop for unit in open-slot-units
           for meaning-args = (unit-feature-value unit 'meaning-args)
-          for lex-class = (extract-lex-class-unit unit)
-          when (and meaning-args lex-class)
+          for category = (extract-category-unit unit)
+          when (and meaning-args category)
           do (loop for arg in meaning-args
-                   do (push (list 'top-arg arg lex-class) set-of-predicates))))
+                   do (push (list 'top-arg arg category) set-of-predicates))))
   ;; slots-args = args from all top level units
   (let* ((ts-units (fcg-get-transient-unit-structure cipn))
          (root-unit (get-root ts-units))
          (top-lvl-units (remove-child-units (remove root-unit ts-units))))
     (loop for unit in top-lvl-units
           for meaning-args = (unit-feature-value unit 'meaning-args)
-          for lex-class = (extract-lex-class-unit unit)
-          when (and meaning-args lex-class)
+          for category = (extract-category-unit unit)
+          when (and meaning-args category)
           do (loop for arg in meaning-args
-                   do (push (list 'slot-arg arg lex-class) set-of-predicates))))
+                   do (push (list 'slot-arg arg category) set-of-predicates))))
   ;; return set of predicates
   set-of-predicates)
 
@@ -254,7 +306,7 @@
    (i.e. generalisation and both delta's)
    are non-empty!"
   (and (generalisation au-result)
-       (source-delta au-result)
+       (remove-arg-predicates (source-delta au-result))
        (remove-arg-predicates (pattern-delta au-result))))
 
 (defun au-partial-analysis-p (au-result)
@@ -306,35 +358,37 @@
   "Copy arg predicates from the pattern delta to the source delta;
    only copy predicates that include variables that can be found in
    the source bindings"
-  (let* ((top-arg-predicates (find-all 'top-arg (pattern-delta anti-unification-result) :key #'first))
-         (slot-arg-predicates (find-all 'slot-arg (pattern-delta anti-unification-result) :key #'first)))
-    (loop for predicate in (append top-arg-predicates slot-arg-predicates)
-          for var = (second predicate)
-          for gen-var = (rest (assoc var (pattern-bindings anti-unification-result)))
-          for source-var = (first (rassoc gen-var (source-bindings anti-unification-result)))
-          ;when source-var
-          do (push (list (first predicate) (or source-var var) (third predicate))
-                   (source-delta anti-unification-result)))))
+  ;; this unless clause might be dangerous when adding recursion...
+  (unless (or (find 'top-arg (source-delta anti-unification-result) :key #'first)
+              (find 'slot-arg (source-delta anti-unification-result) :key #'first))
+    (let* ((top-arg-predicates (find-all 'top-arg (pattern-delta anti-unification-result) :key #'first))
+           (slot-arg-predicates (find-all 'slot-arg (pattern-delta anti-unification-result) :key #'first)))
+      (loop for predicate in (append top-arg-predicates slot-arg-predicates)
+            for var = (second predicate)
+            for gen-var = (rest (assoc var (pattern-bindings anti-unification-result)))
+            for source-var = (first (rassoc gen-var (source-bindings anti-unification-result)))
+            do (push (list (first predicate) (or source-var var) (third predicate))
+                     (source-delta anti-unification-result))))))
 
 
 (defun group-slot-args-into-units (predicates)
-  "Group slot-arg predicates that have the same lex-class as their
+  "Group slot-arg predicates that have the same category as their
    third argument. This will be used to make units in the resulting cxn"
   (let* ((slot-arg-predicates (find-all 'slot-arg predicates :key #'first))
-         (unique-lex-classes (remove-duplicates (mapcar #'third slot-arg-predicates))))
-    (loop for lex-class in unique-lex-classes
-          collect (cons lex-class
+         (unique-categories (remove-duplicates (mapcar #'third slot-arg-predicates))))
+    (loop for category in unique-categories
+          collect (cons category
                         (loop for predicate in slot-arg-predicates
-                              when (eql (last-elt predicate) lex-class)
+                              when (eql (last-elt predicate) category)
                                 collect (second predicate))))))
 
 (defun group-top-args-into-units (predicates)
-  "Group top-arg predicates that have the same lex-class as their
+  "Group top-arg predicates that have the same category as their
    third argument. This will be used to make units in the resulting cxn"
   (let* ((top-arg-predicates (find-all 'top-arg predicates :key #'first))
-         (unique-lex-classes (remove-duplicates (mapcar #'third top-arg-predicates))))
-    (loop for lex-class in unique-lex-classes
-          collect (cons lex-class
+         (unique-categories (remove-duplicates (mapcar #'third top-arg-predicates))))
+    (loop for category in unique-categories
+          collect (cons category
                         (loop for predicate in top-arg-predicates
-                              when (eql (last-elt predicate) lex-class)
+                              when (eql (last-elt predicate) category)
                                 collect (second predicate))))))

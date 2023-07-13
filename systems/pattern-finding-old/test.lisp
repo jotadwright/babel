@@ -33,6 +33,16 @@
 (defun test-anti-unification-with-item-based-cxn ()
   (multiple-value-bind (*experiment* *cxn-inventory*) (setup-test-case)
     ;;;; Demonstrate anti-unification with an item-based cxn
+    ;;;; When anti-unifying with an item-based cxn X,
+    ;;;; the pattern delta also becomes an item-based cxn
+    ;;;; with as many slots as the original cxn X and
+    ;;;; categorial links are added such that these slots
+    ;;;; take the same fillers
+
+    ;;;; What-color-is-the-X-cxn + small-rubber-ball-cxn + large-metal-cube-cxn
+    ;;;; => anti-unify 'what size is the tiny matte cylinder' with this item-based cxn
+    ;;;; => what-X-is-the-Y-cxn + size-tiny-matte-cylinder-cxn + color-X-cxn
+    ;;;;    and color-X-cxn takes small-rubber-ball-cxn and large-metal-cube-cxn
     (setf (corpus *experiment*)
           `(("What color is the large metal cube?"
              ,@(fresh-variables
@@ -92,12 +102,13 @@
 
 (defun test-anti-unification-with-item-based-cxn-with-multiple-slots ()
   (multiple-value-bind (*experiment* *cxn-inventory*) (setup-test-case)
+    ;;;; Same idea as previous test case, but now anti-unifying with
+    ;;;; an item-based cxn that has 3 slots!
     (def-fcg-cxn metal-cxn
                  ((?holistic-unit
                    (form-args (?metal))
                    (meaning-args (?material-1))
-                   (syn-cat (lex-class metal-cat-1)
-                            (phrase-type holistic)))
+                   (category metal-cat-1))
                   <-
                   (?holistic-unit
                    (HASH meaning ((bind material ?material-1 metal)))
@@ -114,8 +125,7 @@
                  ((?holistic-unit
                    (form-args (?large))
                    (meaning-args (?size-1))
-                   (syn-cat (lex-class large-cat-1)
-                            (phrase-type holistic)))
+                   (category large-cat-1))
                   <-
                   (?holistic-unit
                    (HASH meaning ((bind size ?size-1 large)))
@@ -132,8 +142,7 @@
                  ((?holistic-unit
                    (form-args (?cube-1))
                    (meaning-args (?shape-1))
-                   (syn-cat (lex-class cube-cat-1)
-                            (phrase-type holistic)))
+                   (category cube-cat-1))
                   <-
                   (?holistic-unit
                    (HASH meaning ((bind shape ?shape-1 cube)))
@@ -148,8 +157,7 @@
     
     (def-fcg-cxn what-color-is-the-x-y-z-cxn
                  ((?item-based-unit
-                   (syn-cat (phrase-type item-based)
-                            (lex-class what-color-is-the-cat-1))
+                   (category what-color-is-the-cat-1)
                    (meaning-args (?target))
                    (form-args nil)
                    (subunits (?x-slot ?y-slot ?z-slot)))
@@ -175,22 +183,22 @@
                                (meets ?y-farg ?z-farg))))
                   (?x-slot
                    (meaning-args (?x-marg))
-                   (syn-cat (lex-class what-color-is-the-slot-cat-1))
+                   (category what-color-is-the-slot-cat-1)
                    --
                    (form-args (?x-farg))
-                   (syn-cat (lex-class what-color-is-the-slot-cat-1)))
+                   (category what-color-is-the-slot-cat-1))
                   (?y-slot
                    (meaning-args (?y-marg))
-                   (syn-cat (lex-class what-color-is-the-slot-cat-2))
+                   (category what-color-is-the-slot-cat-2)
                    --
                    (form-args (?y-farg))
-                   (syn-cat (lex-class what-color-is-the-slot-cat-2)))
+                   (category what-color-is-the-slot-cat-2))
                   (?z-slot
                    (meaning-args (?z-marg))
-                   (syn-cat (lex-class what-color-is-the-slot-cat-3))
+                   (category what-color-is-the-slot-cat-3)
                    --
                    (form-args (?z-farg))
-                   (syn-cat (lex-class what-color-is-the-slot-cat-3))))
+                   (category what-color-is-the-slot-cat-3)))
                  :attributes (:label fcg::routine
                               :cxn-type item-based
                               :string "what"
@@ -248,8 +256,7 @@
                  ((?holistic-unit
                    (form-args (?color))
                    (meaning-args (?attr-1))
-                   (syn-cat (lex-class color-cat-1)
-                            (phrase-type holistic)))
+                   (category color-cat-1))
                   <-
                   (?holistic-unit
                    (HASH meaning ((bind attribute ?attr-1 color)))
@@ -266,8 +273,7 @@
                  ((?holistic-unit
                    (form-args (?large))
                    (meaning-args (?size-1))
-                   (syn-cat (lex-class large-cat-1)
-                            (phrase-type holistic)))
+                   (category large-cat-1))
                   <-
                   (?holistic-unit
                    (HASH meaning ((bind size ?size-1 large)))
@@ -320,8 +326,7 @@
                  ((?holistic-unit
                    (form-args (?cube-1))
                    (meaning-args (?shape-1))
-                   (syn-cat (lex-class cube-cat-1)
-                            (phrase-type holistic)))
+                   (category cube-cat-1))
                   <-
                   (?holistic-unit
                    (HASH meaning ((bind shape ?shape-1 cube)))
@@ -336,8 +341,7 @@
     
     (def-fcg-cxn large-x-cxn
                  ((?item-based-unit
-                   (syn-cat (phrase-type item-based)
-                            (lex-class large-x-1-cat-1))
+                   (category large-x-1-cat-1)
                    (meaning-args (?shape-1 ?size-1))
                    (form-args (?cube-1 ?large-1))
                    (subunits (?slot-unit)))
@@ -350,11 +354,11 @@
                    (HASH form ((string ?large-1 "large"))))
                   (?slot-unit
                    (meaning-args (?shape-1))
-                   (syn-cat (lex-class large-x-1-slot-cat-1))
+                   (category large-x-1-slot-cat-1)
                    (footprints (NOT used-as-slot-filler))
                    --
                    (footprints (NOT used-as-slot-filler))
-                   (syn-cat (lex-class large-x-1-slot-cat-1))
+                   (category large-x-1-slot-cat-1)
                    (form-args (?cube-1))))
                  :attributes (:label fcg::routine
                               :cxn-type item-based
@@ -403,8 +407,7 @@
     ;;;; should learn the color-cxn (holistic)
     (def-fcg-cxn what-x-is-the-large-cube-cxn-apply-last
                  ((?item-based-unit
-                   (syn-cat (phrase-type item-based)
-                            (lex-class what-is-the-large-cube-1-cat-1))
+                   (category what-is-the-large-cube-1-cat-1)
                    (meaning-args (?target))
                    (form-args ())
                    (subunits (?slot-unit)))
@@ -427,11 +430,11 @@
                                (meets ?the ?large) (meets ?large ?cube))))
                   (?slot-unit
                    (meaning-args (?attr-1))
-                   (syn-cat (lex-class what-is-the-large-cube-1-slot-cat-1))
+                   (category what-is-the-large-cube-1-slot-cat-1)
                    (footprints (NOT used-as-slot-filler))
                    --
                    (footprints (NOT used-as-slot-filler))
-                   (syn-cat (lex-class what-is-the-large-cube-1-slot-cat-1))
+                   (category what-is-the-large-cube-1-slot-cat-1)
                    (form-args (?color))))
                  :attributes (:label fcg::routine
                               :cxn-type item-based
@@ -443,15 +446,14 @@
     
     (def-fcg-cxn what-x-is-the-large-cube-cxn-apply-first
                  ((?item-based-unit
-                   (syn-cat (phrase-type item-based)
-                            (lex-class what-is-the-large-cube-1-cat-1))
+                   (category what-is-the-large-cube-1-cat-1)
                    (meaning-args (?target))
                    (form-args ())
                    (subunits (?slot-unit)))
                   (?slot-unit
                    (meaning-args (?attr-1))
                    (form-args (?color))
-                   (syn-cat (lex-class what-is-the-large-cube-1-slot-cat-1))
+                   (category what-is-the-large-cube-1-slot-cat-1)
                    (footprints (used-as-slot-filler)))
                   <-
                   (?item-based-unit
@@ -514,8 +516,7 @@
     ;;;; should learn the color-cxn and cube-cxn!
     (def-fcg-cxn what-x-is-the-y-cube-cxn-apply-last
                  ((?item-based-unit
-                   (syn-cat (phrase-type item-based)
-                            (lex-class what-is-the-cube-1-cat-1))
+                   (category what-is-the-cube-1-cat-1)
                    (meaning-args (?target))
                    (form-args ())
                    (subunits (?slot-unit-1 ?slot-unit-2)))
@@ -538,19 +539,19 @@
                                (meets ?the ?large) (meets ?large ?cube))))
                   (?slot-unit-1
                    (meaning-args (?attr-1))
-                   (syn-cat (lex-class what-is-the-cube-1-slot-cat-1))
+                   (category what-is-the-cube-1-slot-cat-1)
                    (footprints (NOT used-as-slot-filler))
                    --
                    (footprints (NOT used-as-slot-filler))
-                   (syn-cat (lex-class what-is-the-cube-1-slot-cat-1))
+                   (category what-is-the-cube-1-slot-cat-1)
                    (form-args (?color)))
                   (?slot-unit-2
                    (meaning-args (?size-1))
-                   (syn-cat (lex-class what-is-the-cube-1-slot-cat-2))
+                   (category what-is-the-cube-1-slot-cat-2)
                    (footprints (NOT used-as-slot-filler))
                    --
                    (footprints (NOT used-as-slot-filler))
-                   (syn-cat (lex-class what-is-the-cube-1-slot-cat-2))
+                   (category what-is-the-cube-1-slot-cat-2)
                    (form-args (?large))))
                  :attributes (:label fcg::routine
                               :cxn-type item-based
@@ -562,20 +563,19 @@
     
     (def-fcg-cxn what-x-is-the-y-cube-cxn-apply-first
                  ((?item-based-unit
-                   (syn-cat (phrase-type item-based)
-                            (lex-class what-is-the-cube-1-cat-1))
+                   (category what-is-the-cube-1-cat-1)
                    (meaning-args (?target))
                    (form-args ())
                    (subunits (?slot-unit-1 ?slot-unit-2)))
                   (?slot-unit-1
                    (meaning-args (?attr-1))
                    (form-args (?color))
-                   (syn-cat (lex-class what-is-the-cube-1-slot-cat-1))
+                   (category what-is-the-cube-1-slot-cat-1)
                    (footprints (used-as-slot-filler)))
                   (?slot-unit-2
                    (meaning-args (?size-1))
                    (form-args (?large))
-                   (syn-cat (lex-class what-is-the-cube-1-slot-cat-2))
+                   (category what-is-the-cube-1-slot-cat-2)
                    (footprints (used-as-slot-filler)))
                   <-
                   (?item-based-unit

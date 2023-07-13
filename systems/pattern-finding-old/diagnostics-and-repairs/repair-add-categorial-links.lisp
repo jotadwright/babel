@@ -13,22 +13,19 @@
                    (node cip-node)
                    &key &allow-other-keys)
   "Repair by adding new th links for existing nodes that were not previously connected."
-  (let ((cxns-and-categorial-links (create-categorial-links problem node)))
+  (let ((cxns-and-categorial-links
+         (do-repair
+          (get-data problem :utterance)
+          (get-data problem :meaning)
+          (make-blackboard)
+          (construction-inventory node)
+          node
+          'add-categorial-links)))
     (when cxns-and-categorial-links
       (make-instance 'fcg::cxn-fix
                      :repair repair
                      :problem problem
                      :restart-data cxns-and-categorial-links))))
-
-
-(defun create-categorial-links (problem node)
-  (do-repair
-   (get-data problem :utterance)
-   (get-data problem :meaning)
-   (make-blackboard)
-   (construction-inventory node)
-   node
-   'add-categorial-links))
 
 ;;;; QUESTION
 ;;;; Jonas filtered the cipns for 'compatible-args', i.e.
@@ -45,45 +42,42 @@
   (declare (ignore args))
   (disable-meta-layer-configuration cxn-inventory) 
   (with-disabled-monitor-notifications
-    (multiple-value-bind (parsed-meanings solutions)
+    (multiple-value-bind (meanings cipns)
         (comprehend-all observation-form
                         :cxn-inventory (original-cxn-set cxn-inventory)
                         :gold-standard-meaning observation-meaning)
-      (declare (ignore parsed-meanings))
       (enable-meta-layer-configuration cxn-inventory)
-      (let* ((required-top-lvl-args
-              (get-unconnected-vars observation-meaning))
-             (succeeded-nodes
-              (loop for cipn in solutions
-                    when (find 'fcg::succeeded (statuses cipn))
-                    collect cipn))
-             (node-with-compatible-args
-              (first
-               (reject-solutions-with-incompatible-args
-                succeeded-nodes observation-meaning required-top-lvl-args))))
-        (when node-with-compatible-args
-          (let* ((cxns-to-apply (reverse (original-applied-constructions node-with-compatible-args)))
-                 (top-lvl-category (extract-lex-class-item-based-cxn (last-elt cxns-to-apply))))
-            (when (> (length cxns-to-apply) 1)
-              (apply-fix 
-               ;; form constraints
-               observation-form
-               ;; cxns to appply
-               cxns-to-apply
-               ;; categorial links
-               (extract-used-categorial-links node-with-compatible-args)
-               ;; original cxns to consolidate
-               nil
-               ;; categories to add
-               nil
-               ;; top level category
-               top-lvl-category
-               ;; gold standard consulted p
-               (gold-standard-consulted-p node-with-compatible-args)
-               ;; node
-               node
-               ;; repair name
-               repair-type))))))))
+      (let ((solution
+             (first
+              (loop for cipn in cipns
+                    for meaning in meanings
+                    when (and (succeeded-cipn-p cipn) ;(find 'fcg::succeeded (statuses cipn))
+                              (> (length (applied-constructions cipn)) 1)
+                              (equivalent-meaning-networks meaning observation-meaning
+                                                           (get-configuration cxn-inventory :meaning-representation-formalism)))
+                      collect cipn))))
+        (when solution
+          (let* ((cxns-to-apply (reverse (original-applied-constructions solution)))
+                 (top-lvl-category (extract-top-category-item-based-cxn (last-elt cxns-to-apply))))
+            (apply-fix 
+             ;; form constraints
+             observation-form
+             ;; cxns to appply
+             cxns-to-apply
+             ;; categorial links
+             (extract-used-categorial-links solution)
+             ;; original cxns to consolidate
+             nil
+             ;; categories to add
+             nil
+             ;; top level category
+             top-lvl-category
+             ;; gold standard consulted p
+             (gold-standard-consulted-p solution)
+             ;; node
+             node
+             ;; repair name
+             repair-type)))))))
 
 
 (defun gold-standard-consulted-p (cipn)
@@ -125,7 +119,7 @@
 
 
 (defun extract-used-categorial-links (solution-cipn)
-  "For a given solution-cipn, extracts categorial links that were used (based on lex-class)."
+  "For a given solution-cipn, extracts categorial links that were used (based on category)."
   (loop for cipn in (ignore-initial-nodes (reverse (cons solution-cipn (all-parents solution-cipn))))
         append (let* ((processing-cxn
                        (car-applied-cxn (cipn-car cipn)))
@@ -137,16 +131,15 @@
                                                   (constructions-list (construction-inventory cipn))
                                                   :key #'(lambda (cxn) (attr-val cxn :bare-cxn-name)))
                                         :key #'name))))                               
-                      (units-matching-lex-class
+                      (units-matching-category
                        (loop for unit in (right-pole-structure processing-cxn)
-                             for syn-cat = (rest (unit-feature-value unit 'syn-cat))
-                             for lex-class = (second (find 'lex-class syn-cat :key #'first))
-                             when lex-class
-                             collect (cons (first unit) lex-class))))
-                 (loop for (cxn-unit-name . cxn-lex-class) in units-matching-lex-class
+                             for category = (unit-feature-value unit 'category)
+                             when category
+                             collect (cons (first unit) category))))
+                 (loop for (cxn-unit-name . cxn-category) in units-matching-category
                        for ts-unit-name = (cdr (find cxn-unit-name (car-second-merge-bindings (cipn-car cipn)) :key #'first))
                        for ts-unit = (find ts-unit-name (left-pole-structure (car-source-cfs (cipn-car cipn))):key #'first)
-                       for ts-lex-class = (second (find 'lex-class (second (find 'syn-cat (rest ts-unit) :key #'first)) :key #'first))
-                       when (and cxn-lex-class ts-lex-class)
-                       collect (cons ts-lex-class cxn-lex-class)))))
+                       for ts-category = (second (find 'category (rest ts-unit) :key #'first))
+                       when (and cxn-category ts-category)
+                       collect (cons ts-category cxn-category)))))
             

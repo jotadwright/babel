@@ -89,8 +89,10 @@
   (when (or (attr-val construction :string)
             (attr-val construction :meaning))
     (remove-duplicates
-     (list (attr-val construction :string)
-           (attr-val construction :meaning)))))
+     (append (listify (attr-val construction :string))
+             (listify (attr-val construction :meaning))))))
+     ;(list (attr-val construction :string)
+     ;      (attr-val construction :meaning)))))
           
 
 
