@@ -16,6 +16,9 @@
 (defun routine-cxn-p (cxn)
   (eql (attr-val cxn :label) 'fcg::routine))
 
+(defun item-based-cxn-p (cxn)
+  (eql (attr-val cxn :cxn-type) 'item-based))
+
 (defun holistic-cxn-p (cxn)
   (eql (attr-val cxn :cxn-type) 'holistic))
 
