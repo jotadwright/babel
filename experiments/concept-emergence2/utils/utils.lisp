@@ -23,28 +23,35 @@
 ;; -----------------------------------------
 
 #|(defun find-scenes-with-size (context-size)
-  (let* ((world (make-instance 'clevr-world :data-sets (list "val")))
+  (let* ((world (make-instance 'dataset-world
+                               :dataset "clevr-extracted"
+                               :dataset-split "val"
+                               :available-channels (get-all-channels :clevr-extracted)))
          (scenes (all-scenes world))
          (filtered-scenes (loop for scene in scenes
                                 if (length= (objects scene) context-size)
                                   collect scene)))
-    filtered-scenes))
+    filtered-scenes))|#
 
+#|
 (defun get-all-scenes ()
-  (let* ((world (make-instance 'clevr-world :data-sets (list "val")))
-         (scenes (all-scenes world)))
-    scenes))
+  (let* ((world (make-instance 'dataset-world
+                               :dataset "cogenta-extracted"
+                               :dataset-split "val"
+                               :available-channels (get-all-channels :clevr-extracted))))
+    (scenes world)))
 
-(defun find-scenes-with-discriminative-topics (scenes feature-channels)
-    (loop for symbolic-scene in scenes
-          for ecl-context = (clevr->simulated symbolic-scene
-                                              feature-channels)
-          for candidate-topics = (loop for candidate in (objects ecl-context) and idx from 0
-                                       for other-objects = (remove candidate (objects ecl-context))
-                                       when (is-discriminative candidate other-objects)
-                                         collect (cons idx (get-symbolic-discriminative-feature candidate ecl-context)))
+(defun find-scenes-with-discriminative-topics (dataset scenes channels)
+    (loop for fpath in scenes
+          for cle-scene = (load-scene fpath channels)
+          for candidate-topics = (filter-discriminative-topics dataset (objects cle-scene))
           if candidate-topics
-            collect (cons (index symbolic-scene) candidate-topics)))|#
+            collect (cons (index cle-scene) candidate-topics)))
+
+(progn
+  (setf disc-scenes (find-scenes-with-discriminative-topics :clevr-extracted all-scenes (get-all-channels :clevr-extracted)))
+  1)
+|#
 
 ;;;
 
