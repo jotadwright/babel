@@ -112,7 +112,7 @@
 (defmethod add-form-arg-predicates (set-of-predicates (cxn fcg-construction))
   ;; top-args = args from contributing unit
   (loop for unit in (contributing-part cxn)
-        for form-args = (remove-duplicates (first (fcg-unit-feature-value unit 'form-args)))
+        for form-args = (first (fcg-unit-feature-value unit 'form-args))
         for category = (extract-category-unit unit)
         when (and form-args category)
         do (loop for arg in form-args
@@ -219,7 +219,7 @@
 (defmethod add-meaning-arg-predicates (set-of-predicates (cxn fcg-construction))
   ;; top-args = args from contributing unit
   (loop for unit in (contributing-part cxn)
-        for meaning-args = (remove-duplicates (first (fcg-unit-feature-value unit 'meaning-args)))
+        for meaning-args = (first (fcg-unit-feature-value unit 'meaning-args))
         for category = (extract-category-unit unit)
         when (and meaning-args category)
         do (loop for arg in meaning-args
