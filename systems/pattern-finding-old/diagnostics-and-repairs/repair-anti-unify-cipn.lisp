@@ -46,11 +46,6 @@
 ;; find cipn and anti-unify ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;; QUESTIONS FOR PARTIAL ANALYSIS
-;;;; - do we want the same max cost??
-;;;; - when are the CIPNs compatible (especially with meta cxns)??
-;;;; - how to sort AU results??
-
 (defmethod find-cipn-and-anti-unify (observation-form observation-meaning (args blackboard) (cxn-inventory fcg-construction-set))
   "Given form and meaning of an observation and a cxn inventory,
    find the best transient structure that partially covers the observation
@@ -104,9 +99,9 @@
           (when new-cxns-and-links
             (return new-cxns-and-links)))))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; make cxns from partial analysis ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; make item-based cxn from partial analysis ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun make-item-based-cxn-from-partial-analysis (anti-unification-results observation-form observation-meaning cxn-inventory)
   (destructuring-bind (anti-unified-cipn
@@ -158,6 +153,9 @@
       (when (and sandbox-cipn (succeeded-cipn-p sandbox-cipn))
         (list cxns-to-apply cxns-to-consolidate categories-to-add links-to-add)))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; make holistic cxns from partial analysis ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun make-holistic-cxns-from-partial-analysis (anti-unification-results observation-form observation-meaning cxn-inventory)
   (destructuring-bind (anti-unified-cipn

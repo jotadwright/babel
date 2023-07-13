@@ -39,10 +39,15 @@
     ;;;; categorial links are added such that these slots
     ;;;; take the same fillers
 
-    ;;;; What-color-is-the-X-cxn + small-rubber-ball-cxn + large-metal-cube-cxn
-    ;;;; => anti-unify 'what size is the tiny matte cylinder' with this item-based cxn
-    ;;;; => what-X-is-the-Y-cxn + size-tiny-matte-cylinder-cxn + color-X-cxn
-    ;;;;    and color-X-cxn takes small-rubber-ball-cxn and large-metal-cube-cxn
+    ;;;; cxn-inventory: what-color-is-the-X + small-rubber-ball + large-metal-cube
+    ;;;; observation: what size is the tiny matte cylinder
+
+    ;;;; generalisation: what-X-is-the-Y-cxn
+    ;;;; source-delta: size-tiny-matte-cylinder-cxn
+    ;;;; pattern-delta: color-X-cxn
+
+    ;;;; observation: what-X-is-the-Y-cxn + size-tiny-matte-cylinder-cxn
+    ;;;; previous obs: what-X-is-the-Y-cxn + color-X-cxn + small-rubber-ball/large-metal-cube
     (setf (corpus *experiment*)
           `(("What color is the large metal cube?"
              ,@(fresh-variables
@@ -158,7 +163,7 @@
     (def-fcg-cxn what-color-is-the-x-y-z-cxn
                  ((?item-based-unit
                    (category what-color-is-the-cat-1)
-                   (meaning-args (?target))
+                   (meaning-args nil)
                    (form-args nil)
                    (subunits (?x-slot ?y-slot ?z-slot)))
                   <-
@@ -631,10 +636,147 @@
 
 
 
+(defun test-anti-unification-with-holistic-cxn ()
+  (multiple-value-bind (*experiment* *cxn-inventory*) (setup-test-case)
+    ;; anti-unify with holistic cxn
+    ;; cxn-inventory: what-color-is-the-X-cxn + large-blue-rubber-cube-cxn
+    ;; observation "is there a large rubber cube?"
+    
+    ;; generalisation: large-rubber-cube-holistic-cxn
+    ;; source-delta: is-there-a-X-cxn
+    ;; pattern-delta: blue-X-cxn
+    
+    ;; observation: is-there-a-X-cxn + large-rubber-cube-cxn
+    ;; previous obs: what-color-is-the-X + blue-X + large-rubber-cube-cxn
+    (def-fcg-cxn what-color-is-the-item-based-cxn
+                 ((?item-based-unit
+                   (category what-color-is-the-1-cat-1)
+                   (meaning-args nil)
+                   (form-args nil)
+                   (subunits (?slot-unit)))
+                  (?slot-unit
+                   (footprints (used-as-slot-filler)))
+                  <-
+                  (?item-based-unit
+                   (HASH meaning ((get-context ?context)
+                                  (filter ?set-1 ?context ?shape-1)
+                                  (filter ?set-2 ?set-1 ?material-1)
+                                  (filter ?set-3 ?set-2 ?col-1)
+                                  (filter ?set-4 ?set-3 ?size-1)
+                                  (unique ?obj-1 ?set-4)
+                                  (query ?target ?obj-1 ?attr-1)
+                                  (bind attribute ?attr-1 color)))
+                   --
+                   (HASH form ((string ?what-1 "what") (string ?color-1 "color")
+                               (string ?is-1 "is") (string ?the-1 "the")
+                               (meets ?what-1 ?color-1) (meets ?color-1 ?is-1)
+                               (meets ?is-1 ?the-1) (meets ?the-1 ?large-1)
+                               (meets ?large-1 ?blue-1) (meets ?blue-1 ?rubber-1)
+                               (meets ?rubber-1 ?cube-1))))
+                  (?slot-unit
+                   (category what-color-is-the-1-slot-cat-1)
+                   (meaning-args (?size-1 ?col-1 ?material-1 ?shape-1))
+                   (footprints (NOT used-as-slot-filler))
+                   --
+                   (footprints (NOT used-as-slot-filler))
+                   (form-args (?large-1 ?blue-1 ?rubber-1 ?cube-1))
+                   (category what-color-is-the-1-slot-cat-1)))
+                 :attributes (:label fcg::routine
+                              :cxn-type item-based
+                              :string ("what" "color" "is" "the")
+                              :meaning query)
+                 :score 0.5 
+                 :cxn-inventory *cxn-inventory*)
 
+    (def-fcg-cxn large-blue-rubber-cube-cxn
+                 ((?holistic-unit
+                   (category large-blue-rubber-cube-cat-1)
+                   (form-args (?large-1 ?blue-1 ?rubber-1 ?cube-1))
+                   (meaning-args (?size-1 ?color-1 ?material-1 ?shape-1)))
+                  <-
+                  (?holistic-unit
+                   (HASH meaning ((bind size ?size-1 large)
+                                  (bind color ?color-1 blue)
+                                  (bind material ?material-1 rubber)
+                                  (bind shape ?shape-1 cube)))
+                   --
+                   (HASH form ((string ?large-1 "large")
+                               (string ?blue-1 "blue")
+                               (string ?rubber-1 "rubber")
+                               (string ?cube-1 "cube")))))
+                 :attributes (:label fcg::routine
+                              :cxn-type holistic
+                              :string ("large" "blue" "rubber" "cube")
+                              :meaning large)
+                 :score 0.5 
+                 :cxn-inventory *cxn-inventory*)
 
+    (add-categories '(what-color-is-the-1-cat-1
+                      what-color-is-the-1-slot-cat-1
+                      large-blue-rubber-cube-cat-1)
+                    (categorial-network *cxn-inventory*))
+    (add-link 'what-color-is-the-1-slot-cat-1 'large-blue-rubber-cube-cat-1
+              (categorial-network *cxn-inventory*))
 
+    (add-element (make-html *cxn-inventory*))
+    (add-element (make-html (categorial-network *cxn-inventory*)))
 
+    (setf (corpus *experiment*)
+          `(("Is there a large rubber cube?"
+             ,@(fresh-variables
+                '((get-context ?context)
+                  (filter ?set-1 ?context ?shape-1)
+                  (bind shape ?shape-1 cube)
+                  (filter ?set-2 ?set-1 ?mat-1)
+                  (bind material ?mat-1 rubber)
+                  (filter ?set-3 ?set-2 ?size-1)
+                  (bind size ?size-1 large)
+                  (exist ?target ?set-3))))))
+    
+    (run-interaction *experiment*)
+
+    (comprehend-all "Is there a large rubber cube?"
+                    :cxn-inventory *cxn-inventory*
+                    :gold-standard-meaning
+                    (fresh-variables
+                     '((get-context ?context)
+                       (filter ?set-1 ?context ?shape-1)
+                       (bind shape ?shape-1 cube)
+                       (filter ?set-2 ?set-1 ?mat-1)
+                       (bind material ?mat-1 rubber)
+                       (filter ?set-3 ?set-2 ?size-1)
+                       (bind size ?size-1 large)
+                       (exist ?target ?set-3))))
+    
+    (comprehend-all "What color is the large blue rubber cube?"
+                    :cxn-inventory *cxn-inventory*
+                    :gold-standard-meaning
+                    (fresh-variables
+                     '((get-context ?context)
+                       (filter ?set-1 ?context ?shape-1)
+                       (bind shape ?shape-1 cube)
+                       (filter ?set-2 ?set-1 ?mat-1)
+                       (bind material ?mat-1 rubber)
+                       (filter ?set-3 ?set-2 ?color-1)
+                       (bind color ?color-1 blue)
+                       (filter ?set-4 ?set-3 ?size-1)
+                       (bind size ?size-1 large)
+                       (unique ?obj-1 ?set-4)
+                       (query ?tgt ?obj-1 ?attr-1)
+                       (bind attribute ?attr-1 color))))))
+;(test-anti-unification-with-holistic-cxn)
+
+;; Interaction 12
+;; cxn-inventory: what-x-cxn + number-of-tiny-objects-are-there-holistic-cxn
+;; observation: are there any large brown objects
+;; anti-unify with holistic cxn (not holophrase!)
+
+;; generalisation: are-there-objects-holistic-cxn
+;; source-delta: any-large-brown-X-cxn
+;; pattern-delta: number-of-tiny-X-cxn
+
+;; observation: any-large-brown-X + are-there-objects
+;; previous obs: what-X + number-of-tiny-X + are-there-objects
 
 
 

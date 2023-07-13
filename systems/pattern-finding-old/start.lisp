@@ -20,11 +20,6 @@
 
 ;;;; TO DO
 
-;;;; Handle anti-unification cases where the pattern delta is empty.
-;;;; Handle these cases differently from the "regular" cases?
-;;;; Do we want the highest cost solution in this case? Do we want the
-;;;; solution with the highest scoring cxn in this case?
-
 ;;;; top-arg/slot-arg predicates
 ;;;; Now, grammatical category (a constant) is added as the last argument in these
 ;;;; predicates. This will (likely) break down when applying repairs recursively.
@@ -64,7 +59,7 @@
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 18)
+(run-series *experiment* 12)
 
 ;;;; Showing the cxn inventory and categorial network
 
@@ -74,14 +69,14 @@
 
 ;;;; Manually trying out sentences
 
-(comprehend-all "Is there a blue block?"
+(comprehend-all "What number of tiny objects are there?"
                 :cxn-inventory *cxn-inventory*
                 :gold-standard-meaning '((get-context ?context)
                                          (filter ?set-1 ?context ?shape-1)
-                                         (bind shape-category ?shape-1 cube)
-                                         (filter ?set-2 ?set-1 ?color-1)
-                                         (bind color-category ?color-1 blue)
-                                         (exist ?target ?set-2)))
+                                         (bind shape-category ?shape-1 thing)
+                                         (filter ?set-2 ?set-1 ?size-1)
+                                         (bind size-category ?size-1 small)
+                                         (count! ?target ?set-2)))
 
 ;;;; Time travel
 
