@@ -652,7 +652,8 @@
                  ((?item-based-unit
                    (category what-color-is-the-1-cat-1)
                    (meaning-args nil)
-                   (form-args nil))
+                   (form-args nil)
+                   (subunits (?slot-unit)))
                   (?slot-unit
                    (footprints (used-as-slot-filler)))
                   <-
@@ -733,6 +734,19 @@
                   (exist ?target ?set-3))))))
     
     (run-interaction *experiment*)
+
+    (comprehend-all "Is there a large rubber cube?"
+                    :cxn-inventory *cxn-inventory*
+                    :gold-standard-meaning
+                    (fresh-variables
+                     '((get-context ?context)
+                       (filter ?set-1 ?context ?shape-1)
+                       (bind shape ?shape-1 cube)
+                       (filter ?set-2 ?set-1 ?mat-1)
+                       (bind material ?mat-1 rubber)
+                       (filter ?set-3 ?set-2 ?size-1)
+                       (bind size ?size-1 large)
+                       (exist ?target ?set-3))))
     
     (comprehend-all "What color is the large blue rubber cube?"
                     :cxn-inventory *cxn-inventory*
@@ -749,22 +763,8 @@
                        (bind size ?size-1 large)
                        (unique ?obj-1 ?set-4)
                        (query ?tgt ?obj-1 ?attr-1)
-                       (bind attribute ?attr-1 color))))
-    
-    (comprehend-all "Is there a large rubber cube?"
-                    :cxn-inventory *cxn-inventory*
-                    :gold-standard-meaning
-                    (fresh-variables
-                     '((get-context ?context)
-                       (filter ?set-1 ?context ?shape-1)
-                       (bind shape ?shape-1 cube)
-                       (filter ?set-2 ?set-1 ?mat-1)
-                       (bind material ?mat-1 rubber)
-                       (filter ?set-3 ?set-2 ?size-1)
-                       (bind size ?size-1 large)
-                       (exist ?target ?set-3))))))
+                       (bind attribute ?attr-1 color))))))
 ;(test-anti-unification-with-holistic-cxn)
-;; not yet working! order of args!
 
 ;; Interaction 12
 ;; cxn-inventory: what-x-cxn + number-of-tiny-objects-are-there-holistic-cxn
