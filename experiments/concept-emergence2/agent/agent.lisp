@@ -11,6 +11,9 @@
    (trash
     :documentation "The lexicon trash."
     :type list :accessor trash :initform nil)
+   (disabled-channels
+    :documentation "Disabled channels in agent."
+    :type list :accessor disabled-channels :initarg :disabled-channels :initform nil)
    (invented-or-adopted
     :documentation "Whether the agent invented or adopted during the interaction."
     :type boolean :accessor invented-or-adopted :initform nil)))

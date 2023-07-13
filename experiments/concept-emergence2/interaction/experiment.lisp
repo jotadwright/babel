@@ -23,9 +23,13 @@
       ;; set the current scene to the first
       (set-configuration experiment :current-scene-idx 0))
     ;; initialise the population
-    (setf (agents experiment)
-          (loop for i from 1 to (get-configuration experiment :population-size)
-                collect (make-instance 'cle-agent :experiment experiment)))
+    (let* ((disabled-channels-list (determine-disable-channels experiment (get-configuration experiment :disable-channels))))
+      (setf (agents experiment)
+            (loop for i from 0 to (- (get-configuration experiment :population-size) 1)
+                  for disabled-channels = (nth i disabled-channels-list)
+                  collect (make-instance 'cle-agent
+                                         :experiment experiment
+                                         :disabled-channels disabled-channels))))
     ;; create a world object to load scenes into
     (setf (world experiment) (make-instance 'dataset-world
                                             :dataset dataset

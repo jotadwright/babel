@@ -27,7 +27,8 @@
                                                                       :weight initial-weight
                                                                       :weight-mode (get-configuration agent :weight-update-strategy)
                                                                       :distribution distribution)
-                                   collect new-prototype)))
+                                   if (not (find channel (disabled-channels agent)))
+                                     collect new-prototype)))
 
 (defmethod copy-object ((concept concept-distribution))
   (make-instance 'concept-distribution
