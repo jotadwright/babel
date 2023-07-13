@@ -68,6 +68,6 @@
                   (if (member 'circle-distance continuous-attributes) t nil)
                   (if (member 'wh-ratio continuous-attributes) t nil)))
       (:MATERIAL (or (if (member 'white-level continuous-attributes) t nil)
-                     (if (member 'black-level continuous-attributes) t nil))
+                     (if (member 'black-level continuous-attributes) t nil)))
       (:XPOS (if (member 'xpos continuous-attributes) t nil))
-      (:ZPOS (if (member 'ypos continuous-attributes) t nil))))))
+      (:ZPOS (if (member 'ypos continuous-attributes) t nil)))))
