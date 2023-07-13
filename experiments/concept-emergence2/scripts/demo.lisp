@@ -32,10 +32,10 @@
                 (:disable-channels . :random)
                 (:amount-disabled-channels . 1)
                 ;; noised channels
-                (:shift-channels . :shift)
-                (:noise-channel-std . 0.05)
-                ;(:shift-observations . :shift)
-                ;(:noise-observation-std . 0.01)
+                (:sensor-noise . :shift)
+                (:sensor-std . 0.05)
+                (:observation-noise . :shift)
+                (:observation-std . 0.01)
                 ;; scene sampling
                 (:scene-sampling . :random)
                 (:topic-sampling . :random)
