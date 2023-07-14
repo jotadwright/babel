@@ -85,12 +85,16 @@
 (defmethod hash ((construction construction)
                  (mode (eql :hash-string-meaning))
                  &key &allow-other-keys)
-  "Returns the string and meaning from the attributes of the construction"
+  "Returns the string and meaning from the attributes of the construction"  
   (when (or (attr-val construction :string)
             (attr-val construction :meaning))
     (remove-duplicates
-     (append (listify (attr-val construction :string))
-             (listify (attr-val construction :meaning))))))
+     (append (if (attr-val construction :string)
+               (listify (attr-val construction :string))
+               (list nil))
+             (if (attr-val construction :meaning)
+               (listify (attr-val construction :meaning))
+               (list nil))))))
      ;(list (attr-val construction :string)
      ;      (attr-val construction :meaning)))))
           
