@@ -26,3 +26,4 @@
 .DS_Store
 **/.tmp
 init-babel-user.lisp
+*.64yfasl
