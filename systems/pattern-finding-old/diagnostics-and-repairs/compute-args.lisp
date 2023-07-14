@@ -20,15 +20,19 @@
             (source-delta-slot-args (find-all 'slot-arg source-delta :key #'first))
             (pattern-delta-top-args (find-all 'top-arg pattern-delta :key #'first))
             (source-delta-top-args (find-all 'top-arg source-delta :key #'first)))
+        ;; determine the args that connect the generalisation to both delta's
         (loop for (pattern-var . generalisation-var) in pattern-bindings
               for (source-var . nil) in source-bindings
               when (or (find-anywhere pattern-var raw-pattern-delta)
                        (find-anywhere source-var raw-source-delta)
                        (find pattern-var pattern-delta-slot-args :key #'second)
-                       (find source-var source-delta-slot-args :key #'second))
+                       (find source-var source-delta-slot-args :key #'second)
+                       (> (count pattern-var pattern-bindings :key #'first) 1)
+                       (> (count source-var source-bindings :key #'first) 1))
               do (push-data args :pattern-top-lvl-args pattern-var)
                  (push-data args :source-top-lvl-args source-var)
                  (push-data args :generalisation-slot-args generalisation-var))
+        ;; determine the args that connect the cxns from the delta's to other cxns
         (set-data args :pattern-slot-args
                   (cond ((holistic-cxn-p anti-unified-cxn)
                          (reverse (mapcar #'second pattern-delta-top-args)))
