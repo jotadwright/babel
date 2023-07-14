@@ -14,31 +14,24 @@
                 (:interacting-agents-strategy . :standard)
                 (:population-size . 10)
                 ;; setup data scene
-                (:dataset . "winery")
-                (:dataset-split . "train")
-                ;(:data-fname . "10-color_area_roughness.lisp")
-                (:available-channels ,@(get-all-channels :winery))
+                (:dataset . "clevr-extracted")
+                (:dataset-split . "val")
+                (:data-fname . "discriminative.lisp")
+                (:available-channels ,@(get-all-channels :clevr-extracted))
                 #|(:available-channels 
                  ;,'xpos ,'ypos ,'zpos ;; position
-                 ,'area ;; size
-                 ;,'wh-ratio ;; shape
-                 ;,'nr-of-sides ,'nr-of-corners ;; shape
-                 ,'r ,'g ,'b ;; color
-                 ,'roughness ;; material
-                 ;,'xpos-3d ,'ypos-3d ,'zpos-3d ;; 3d-position
-                 ;,'rotation ;; rotation
                  )|#
                 ;; disable channels
-                (:disable-channels . :random)
-                (:amount-disabled-channels . 1)
+                (:disable-channels . :none)
+                (:amount-disabled-channels . 0)
                 ;; noised channels
-                (:sensor-noise . :shift)
+                (:sensor-noise . :none)
                 (:sensor-std . 0.05)
-                (:observation-noise . :shift)
+                (:observation-noise . :none)
                 (:observation-std . 0.01)
                 ;; scene sampling
-                (:scene-sampling . :random)
-                (:topic-sampling . :random)
+                (:scene-sampling . :deterministic)
+                (:topic-sampling . :discriminative)
                 ;; general strategy
                 (:strategy . :times)
                 (:similarity-threshold . 0.0)
@@ -66,27 +59,15 @@
   (wi::reset))
 
 
-(setf channel-bobs `(
-                 ,'xpos ,'ypos ,'zpos ;; position
-                 ,'area ;; size
-                 ,'wh-ratio ;; shape
-                 ,'nr-of-sides ,'nr-of-corners ;; shape
-                 ,'r ,'g ,'b ;; color
-                 ,'roughness ;; material
-                 ,'xpos-3d ,'ypos-3d ,'zpos-3d ;; 3d-position
-                 ,'rotation ;; rotation
-                 ))
-
-(length channel-bobs)
-
-
-
 (defmethod after-interaction ((experiment cle-experiment))
   (align (speaker experiment))
   (align (hearer experiment))
   )
 
-(setf ag1 (first (agents *experiment*)))
+(parse-keyword "XPOS")
+(parse-keyword "YPOS")
+(parse-keyword "ZPOS")
+
 
 ;; 1. run x interactions
 (progn
@@ -112,8 +93,6 @@
   (add-cxn-to-interface ag1-cxn)
   (add-cxn-to-interface ag2-cxn))
 
-
-(type-of (type-of #C(-0.00963151126481214D0 5.531869077461537D-11)))
 
 (first (sort (lexicon (first (agents *experiment*))) #'(lambda (x y) (> (score x) (score y)))))
 
@@ -569,7 +548,7 @@ is-discriminative
 (cl-store:store *experiment*
                 (babel-pathname :directory '("experiments"
                                              "concept-emergence2")
-                                :name "very-special181k"
+                                :name "clevr-extracted-random43k-93-84"
                                 :type "store"))
         
 (setf *experiment*
