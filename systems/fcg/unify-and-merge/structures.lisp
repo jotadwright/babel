@@ -289,6 +289,12 @@
 	       (eq (first form-value) 'string))
      collect form-value))
 
+(defun extract-sequence (unit &optional (ignore-tags nil))
+  (loop for form-value in (unit-feature-value unit 'form ignore-tags)
+     when (and (consp form-value)
+	       (eq (first form-value) 'sequence))
+     collect form-value))
+
 (defun extract-stem (unit &optional (ignore-tags nil))
   (loop for form-value in (unit-feature-value unit 'form ignore-tags)
      when (and (consp form-value)
@@ -413,6 +419,10 @@
 (defun extract-strings (structure &optional (ignore-tags nil))
   (loop for unit in structure
         append (extract-string unit ignore-tags)))
+
+(defun extract-sequences (structure &optional (ignore-tags nil))
+  (loop for unit in structure
+        append (extract-sequence unit ignore-tags)))
 
 (defun extract-stems (structure &optional (ignore-tags nil))
   (loop for unit in structure
