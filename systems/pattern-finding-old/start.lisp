@@ -10,12 +10,9 @@
 
 (progn
   (deactivate-all-monitors)
-  (activate-monitor display-metrics)
-  (activate-monitor trace-fcg)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
-  (activate-monitor show-type-hierarchy-after-n-interactions)
-  (activate-monitor trace-interactions-in-wi))
+  (activate-monitor show-type-hierarchy-after-n-interactions))
 
 
 ;;;; TO DO
@@ -59,12 +56,12 @@
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 12)
+(run-series *experiment* 263)
 
 ;;;; Showing the cxn inventory and categorial network
 
 (defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
-(add-element (make-html *cxn-inventory*))
+(add-element (make-html *cxn-inventory* :sort-by-type-and-score t))
 (add-element (make-html (categorial-network *cxn-inventory*)))
 
 ;;;; Manually trying out sentences
@@ -81,7 +78,7 @@
 ;;;; Time travel
 
 (go-back-n-interactions *experiment* 1)
-(remove-cxns-learned-at *experiment* 19)
+(remove-cxns-learned-at *experiment* 144)
 
 (defun go-back-n-interactions (experiment n)
   (setf (interactions experiment)
