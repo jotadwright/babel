@@ -85,12 +85,16 @@
 (defmethod hash ((construction construction)
                  (mode (eql :hash-string-meaning))
                  &key &allow-other-keys)
-  "Returns the string and meaning from the attributes of the construction"
+  "Returns the string and meaning from the attributes of the construction"  
   (when (or (attr-val construction :string)
             (attr-val construction :meaning))
     (remove-duplicates
-     (append (listify (attr-val construction :string))
-             (listify (attr-val construction :meaning))))))
+     (append (if (attr-val construction :string)
+               (listify (attr-val construction :string))
+               (list nil))
+             (if (attr-val construction :meaning)
+               (listify (attr-val construction :meaning))
+               (list nil))))))
      ;(list (attr-val construction :string)
      ;      (attr-val construction :meaning)))))
           
@@ -108,6 +112,39 @@
                                      (first meaning)))))
     (if (eql (car-direction (cipn-car node)) '<-)
       strings
+      meanings)))
+
+
+
+;; hash mode = :hash-sequence-meaning
+;; ---------------------------------------------------------
+(defmethod hash ((construction construction)
+                 (mode (eql :hash-sequence-meaning))
+                 &key &allow-other-keys)
+  "Returns the sequence and meaning from the attributes of the construction"  
+  (when (or (attr-val construction :sequence)
+            (attr-val construction :meaning))
+    (remove-duplicates
+     (append (if (attr-val construction :sequence)
+               (listify (attr-val construction :sequence))
+               (list nil))
+             (if (attr-val construction :meaning)
+               (listify (attr-val construction :meaning))
+               (list nil))))))
+
+
+(defmethod hash ((node cip-node)
+                 (mode (eql :hash-sequence-meaning))
+                 &key &allow-other-keys)
+  "Checks the root and returns entities (for IRL meanings) or predicates."
+  (let* ((units (fcg-get-transient-unit-structure node))
+         (sequences (mapcar #'second (extract-sequences (list (get-root units)))))
+         (meanings (loop for meaning in (extract-meaning (get-root units))
+                         collect (if (and (= 4 (length meaning)) (eql 'bind (first meaning)))
+                                     (fourth meaning)
+                                     (first meaning)))))
+    (if (eql (car-direction (cipn-car node)) '<-)
+      sequences
       meanings)))
 
 
