@@ -5,12 +5,12 @@
 ;; -----------------------
 
 ;; make html of cle-object
-(defmethod make-html-for-entity-details ((object cle-object) &key topic)
+(defmethod make-html-for-entity-details ((object cle-object) &key topic dataset)
   (let ((title-font (if (equal topic (id object)) "font-weight:bold;" ""))
         (attributes (reverse (attributes object))))
     (append 
      (loop for (attr . val) in (description object)
-           if (symbolic-attribute-available-p attr object)
+           if (is-channel-available dataset attr (attributes object))
            append `(((div :class "entity-detail" :style ,(format nil "~a" title-font))
                      ,(format nil "~a = ~,2f" attr val))))
      `(((hr :style ,(format nil "margin: 0px;"))))
@@ -25,10 +25,10 @@
 
 
 ;; make html of object set
-(defmethod make-html-for-entity-details ((set cle-scene) &key topic)
+(defmethod make-html-for-entity-details ((set cle-scene) &key topic dataset)
   `(((div :class "entity-detail")
      ,@(loop for object in (objects set)
-             collect (make-html object :topic topic :expand-initially t)))))
+             collect (make-html object :topic topic :dataset dataset :expand-initially t)))))
 
 ;; make-html of cxn
 (defmethod make-html ((cxn cxn) &key)

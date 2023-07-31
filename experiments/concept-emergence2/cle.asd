@@ -77,8 +77,7 @@
                (:module "utils"
                 :serial t
                 :components ((:file "analysis")
-                             (:file "graph")
-                             (:file "utils")))
+                             (:file "graph")))
                (:module "web"
                 :serial t
                 :components ((:file "html")

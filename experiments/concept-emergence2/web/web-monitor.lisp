@@ -5,17 +5,20 @@
 ;; --------------------------
 
 ;; Add cxn to wi
-(defun add-cxn-to-interface (cxn &key certainty-threshold)
+(defun add-cxn-to-interface (cxn &key certainty-threshold disabled-channels)
   (add-element
    `((div :style ,(format nil "margin-left: 50px;"))
      ,(s-dot->svg
-       (cxn->s-dot cxn :certainty-threshold certainty-threshold)))))
+       (cxn->s-dot cxn
+                   :certainty-threshold certainty-threshold
+                   :disabled-channels disabled-channels)))))
 
 (defun add-cxn-diff-to-interface (cxn previous-copy &key certainty-threshold)
   (add-element
    `((div :style ,(format nil "margin-left: 50px;"))
      ,(s-dot->svg
-       (cxn->s-dot-diff cxn previous-copy :certainty-threshold certainty-threshold)))))
+       (cxn->s-dot-diff cxn previous-copy
+                        :certainty-threshold certainty-threshold)))))
   
 
 ;;;; Show lexicon in web interface
@@ -36,7 +39,7 @@
                                 (first (history cxn))
                                 )))
             when (>= (score cxn) entrenchment-threshold)
-              do (add-cxn-to-interface cxn :certainty-threshold certainty-threshold)))))
+              do (add-cxn-to-interface cxn :certainty-threshold certainty-threshold :disabled-channels (disabled-channels agent))))))
 
 (defun display-lexicon-simple (agent)
   (if (length= (lexicon agent) 0)
@@ -53,7 +56,7 @@
 (defun show-in-wi (args)
   (add-element `((h4) ,(format nil "~{~a~^, ~}" args))))
 
-(defun show-scene (context topic)
+(defun show-scene (dataset context topic)
   (add-element `((h2) ,(format nil "Scene: ~a" (file-namestring (get-image-fpath context)))))
   (add-element `((div :class "image" :style ,(format nil "margin-left: 50px; margin-bottom: 20px; width: fit-content; border-radius: 8px; overflow: hidden; border: 1px; border-color: #000000; box-shadow: 8px 8px 12px 1px rgb(0 0 0 / 10%);"))
                  ((img :src ,(string-append
@@ -64,6 +67,7 @@
   (add-element `((table :style ,(format nil "margin-left: 50px;"))
                  ((tr) ((td) ,(make-html context
                                          :topic (id topic)
+                                         :dataset dataset
                                          :expand-initially t))))))
 
 (defun get-image-fpath (scene)
@@ -116,7 +120,9 @@
 ;; ---------------------------
 
 (define-event-handler (trace-interaction-in-web-interface event-context-determined)
-  (show-scene (get-data (speaker experiment) 'context) (get-data (speaker experiment) 'topic)))
+  (show-scene (parse-keyword (get-configuration experiment :dataset)) 
+              (get-data (speaker experiment) 'context)
+              (get-data (speaker experiment) 'topic)))
 
 ;; ---------------------
 ;; + Conceptualisation +
@@ -171,7 +177,7 @@
   (if (utterance agent)
     (progn
       (add-element `((h2) ,(format nil "Step 2: ~@(~a~) produced an utterance: \"~a\" " (id agent) (utterance agent))))
-      (add-cxn-to-interface (find-data agent 'applied-cxn))
+      (add-cxn-to-interface (find-data agent 'applied-cxn) :disabled-channels (disabled-channels agent))
       )
     (add-element `((h2) ,(format nil "Step 2: ~@(~a~) could not produce an utterance" (id agent))))))
 
@@ -183,7 +189,7 @@
     (if (find-data agent 'applied-cxn)
       (progn
         (add-element '((h2) "Step 3: Hearer parsed the utterance:"))
-        (add-cxn-to-interface (find-data agent 'applied-cxn)))
+        (add-cxn-to-interface (find-data agent 'applied-cxn) :disabled-channels (disabled-channels agent)))
       (add-element
        '((h2) "Step 3: Hearer could not parse the utterance.")))))
 
