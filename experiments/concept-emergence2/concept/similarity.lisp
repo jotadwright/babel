@@ -6,8 +6,9 @@
 
 (defmethod weighted-similarity ((agent cle-agent) (object cle-object) (concept concept))
   "Compute the weighted similarity between an object and a concept."
-  (loop with ledger = (loop for prototype in (prototypes concept) sum (weight prototype))
-        for prototype in (prototypes concept)
+  (loop with prototypes = (get-available-prototypes agent concept)
+        with ledger = (loop for prototype in prototypes sum (weight prototype))
+        for prototype in prototypes
         for observation = (perceive-object-val agent object (channel prototype))
         for similarity = (observation-similarity observation prototype)
         sum (* (/ (weight prototype) ledger) similarity)))

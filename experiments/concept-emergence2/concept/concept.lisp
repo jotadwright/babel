@@ -30,6 +30,20 @@
                                    if (not (find channel (disabled-channels agent)))
                                      collect new-prototype)))
 
+;; ----------------
+;; + get-channels +
+;; ----------------
+(defmethod get-available-prototypes ((agent cle-agent) (concept concept))
+  (loop with disabled-channels = (disabled-channels agent)
+        for prototype in (prototypes concept)
+        if (not (find (channel prototype) disabled-channels))
+          collect prototype))
+
+(defmethod switch-channel-availability ((agent cle-agent) (channel symbol))
+  (if (find channel (disabled-channels agent))
+    (remove channel (disabled-channels agent))
+    (setf (disabled-channels agent) (cons channel (disabled-channels agent)))))
+
 (defmethod copy-object ((concept concept-distribution))
   (make-instance 'concept-distribution
                  :id (id concept)

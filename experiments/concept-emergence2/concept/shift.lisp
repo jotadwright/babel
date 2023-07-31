@@ -10,7 +10,7 @@
   Shifts 1. the prototype of each feature channel
          2. the certainties of salient channel positively and others negatively."
   ;; 1. update the prototypical values
-  (loop for prototype in (prototypes concept) ;; assumes prototype
+  (loop for prototype in (get-available-prototypes agent concept) ;; assumes prototype
         for interaction-number = (interaction-number (current-interaction (experiment agent)))
         for new-observation = (perceive-object-val agent topic (channel prototype))
         do (update-prototype new-observation
@@ -25,7 +25,7 @@
                                                                     concept
                                                                     topic
                                                                     similarity-table))
-         (subsets-to-consider (get-all-subsets (prototypes concept) discriminating-attributes))
+         (subsets-to-consider (get-all-subsets (get-available-prototypes agent concept) discriminating-attributes))
          (best-subset (find-most-discriminating-subset agent
                                                        subsets-to-consider
                                                        topic
@@ -33,9 +33,9 @@
     (when (null best-subset)
       ;; when best-subset returns NIL
       ;; reward all attributes...
-      (setf best-subset (prototypes concept)))
+      (setf best-subset (get-available-prototypes agent concept)))
     ;; 3. actually update the weight scores
-    (loop for prototype in (prototypes concept)
+    (loop for prototype in (get-available-prototypes agent concept)
           ;; if part of the contributing prototypes -> reward
           if (member (channel prototype) best-subset :key #'channel)
             do (progn
@@ -70,8 +70,9 @@
                    
    Saves tons in computation by only calculating it only once."
   (loop with attribute-hash = (make-hash-table)
-        for prototype in (prototypes concept)
-        for ledger = (loop for prototype in (prototypes concept) sum (weight prototype))
+        with prototypes = (get-available-prototypes agent concept)
+        for prototype in prototypes
+        for ledger = (loop for prototype in prototypes sum (weight prototype))
         for channel = (channel prototype)
         for objects-hash = (loop with hash = (make-hash-table)
                                  for object in (objects (get-data agent 'context))
@@ -115,7 +116,7 @@
   (loop with context = (remove topic (objects (get-data agent 'context)))
         with threshold = (get-configuration agent :similarity-threshold)
         with discriminating-attributes = nil
-        for prototype in (prototypes concept)
+        for prototype in (get-available-prototypes agent concept)
         for channel = (channel prototype)
         for topic-similarity = (get-s topic channel similarity-table)
         for best-other-similarity = (loop for object in context
