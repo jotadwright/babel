@@ -32,6 +32,7 @@
                              (:file "utils")
                              (:file "clevr")
                              (:file "winery")
+                             (:file "cogent")
                              ))
                (:module "agent"
                 :serial t
