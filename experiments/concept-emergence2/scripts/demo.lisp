@@ -16,33 +16,28 @@
                 ;; setup data scene
                 (:dataset . "clevr-extracted")
                 (:dataset-split . "val")
-                (:data-fname . "discriminative.lisp")
+                (:data-fname . "all.lisp")
                 (:available-channels ,@(get-all-channels :clevr-extracted))
-                #|(:available-channels 
-                 ;,'xpos ,'ypos ,'zpos ;; position
-                 )|#
                 ;; disable channels
                 (:disable-channels . :none)
                 (:amount-disabled-channels . 0)
                 ;; noised channels
                 (:sensor-noise . :none)
-                (:sensor-std . 0.05)
+                (:sensor-std . 0.0)
                 (:observation-noise . :none)
-                (:observation-std . 0.01)
+                (:observation-std . 0.0)
                 ;; scene sampling
                 (:scene-sampling . :deterministic)
                 (:topic-sampling . :discriminative)
                 ;; general strategy
                 (:strategy . :times)
                 (:similarity-threshold . 0.0)
-
                 ;; entrenchment of constructions
                 (:initial-cxn-entrenchement . 1/2)
                 (:entrenchment-incf . 1/10)
                 (:entrenchment-decf . -1/10)
                 (:entrenchment-li . -1/50) ;; lateral inhibition
                 (:trash-concepts . nil)
-                
                 ;; concept representations
                 (:concept-representation . :distribution)
                 (:distribution . :gaussian-welford)
@@ -64,9 +59,13 @@
   (align (hearer experiment))
   )
 
-(parse-keyword "XPOS")
-(parse-keyword "YPOS")
-(parse-keyword "ZPOS")
+(progn
+  (wi::reset)
+  (deactivate-all-monitors)
+  ;(activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor trace-interaction-in-web-interface)
+  (loop for idx from 1 to 2
+        do (run-interaction *experiment*)))
 
 
 ;; 1. run x interactions
@@ -77,8 +76,15 @@
   (activate-monitor export-lexicon-coherence)
   (activate-monitor print-a-dot-for-each-interaction)
   (format t "~%---------- NEW GAME ----------~%")
-  (loop for i from 1 to 500000
+  (loop for i from 1 to 50000
         do (run-interaction *experiment*)))
+
+
+  
+(loop for agent in (agents *experiment*)
+      do (switch-channel-availability agent 'area))
+
+
 
 (+ 1 2)
 ;; display lexicon
@@ -548,7 +554,7 @@ is-discriminative
 (cl-store:store *experiment*
                 (babel-pathname :directory '("experiments"
                                              "concept-emergence2")
-                                :name "clevr-extracted-random43k-93-84"
+                                :name "clevr-extracted-test"
                                 :type "store"))
         
 (setf *experiment*
