@@ -77,12 +77,12 @@
                (:module "utils"
                 :serial t
                 :components ((:file "analysis")
-                             (:file "graph")))
+                             (:file "graph")
+                             (:file "utils")))
                (:module "web"
                 :serial t
                 :components ((:file "html")
                              (:file "s-dot")
                              (:file "s-dot-diff")
-                             (:file "utils")
                              (:file "web-monitor")
                              (:file "monitors")))))
