@@ -64,6 +64,7 @@
 (defmethod make-html ((e entity)
                       &rest parameters
                       &key (topic nil)
+                      (dataset nil)
                       (expand/collapse-all-id (make-id 'entity))
                       (expand-initially nil))
   `((div :class "entity")
@@ -71,15 +72,15 @@
        (make-expandable/collapsable-element 
         element-id expand/collapse-all-id
         ;; collapsed version
-        (collapsed-entity-html e topic element-id)
+        (collapsed-entity-html e topic dataset element-id)
         ;; expanded version
-        (expanded-entity-html e topic element-id parameters)
+        (expanded-entity-html e topic dataset element-id parameters)
         :expand-initially expand-initially))
     ((table :class "entity")
      ((tr) ((td :class "entity-type") 
             ,(format nil "~(~a~)" (type-of e)))))))
 
-(defmethod collapsed-entity-html ((e entity) (topic symbol) element-id)
+(defmethod collapsed-entity-html ((e entity) (topic symbol) dataset element-id)
   "html for the collapsed version of an entity"
   (let ((border-thickness (if (equal topic (id e))
                             "3px"
@@ -99,7 +100,7 @@
                      "topic: ~(~a~)"
                      "~(~a~)")  (id e)))))))
 
-(defmethod expanded-entity-html ((e entity) (topic symbol) element-id parameters)
+(defmethod expanded-entity-html ((e entity) (topic symbol) dataset element-id parameters)
   "html for the expanded version of an entity"
   (let ((border-thickness (if (equal topic (id e))
                             "3px"
@@ -126,4 +127,4 @@
         ((table :class "entity" :cellpadding "0" :cellspacing "0") 
          ((tr)
           ((td :class "entity-details")
-           ,@(apply 'make-html-for-entity-details e parameters))))))))
+           ,@(apply 'make-html-for-entity-details e :dataset dataset parameters))))))))

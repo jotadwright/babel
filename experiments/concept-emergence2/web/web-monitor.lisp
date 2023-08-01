@@ -203,7 +203,9 @@
        `((h2) ,(format nil "Step 4: The ~a interpreted the utterance:"
                        (downcase (mkstr (id agent))))))
       (add-element `((div :class "image" :style ,(format nil "margin-left: 50px;"))
-                     ,(make-html (find-data agent 'interpreted-topic) :expand-initially t))))
+                     ,(make-html (find-data agent 'interpreted-topic)
+                                 :dataset (parse-keyword (get-configuration agent :dataset))
+                                 :expand-initially t))))
     (add-element
      `((h2) ,(format nil "Step 4: The ~a could not interpret the utterance."
                      (downcase (mkstr (id agent))))))))

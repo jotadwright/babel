@@ -4,7 +4,7 @@
 ;; + cxn -> s-dot +
 ;; ----------------
 
-(defgeneric cxn->s-dot (cxn &key highlight-green highlight-red certainty-threshold)
+(defgeneric cxn->s-dot (cxn &key highlight-green highlight-red certainty-threshold disabled-channels)
   (:documentation "Display a cxn using s-dot."))
 
 (defmethod cxn->s-dot ((cxn cxn) &key highlight-green highlight-red (certainty-threshold 0.1) (disabled-channels nil))

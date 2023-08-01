@@ -9,7 +9,7 @@
 (defparameter *green* "#26AD26")
 (defparameter *black* "#000000")
 
-(defgeneric cxn->s-dot-diff (cxn delta &key highlight-green highlight-red certainty-threshold)
+(defgeneric cxn->s-dot-diff (cxn delta &key highlight-green highlight-red certainty-threshold disabled-channels)
   (:documentation "Display a cxn using s-dot."))
 
 (defmethod cxn->s-dot-diff ((cxn cxn) (previous-copy cxn) &key highlight-green highlight-red (certainty-threshold 0.1) (disabled-channels nil))
@@ -49,7 +49,7 @@
 
     ;; feature-channels nodes
     (loop for prototype in (reverse (prototypes (meaning cxn)))
-          for previous-prototype in (prototypes (meaning previous-copy))
+          for previous-prototype in (reverse (prototypes (meaning previous-copy)))
           for record = (prototype->s-dot-diff prototype
                                               previous-prototype
                                               :green (member (channel prototype) highlight-green)
