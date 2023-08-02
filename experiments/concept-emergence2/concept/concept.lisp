@@ -41,7 +41,7 @@
 
 (defmethod switch-channel-availability ((agent cle-agent) (channel symbol))
   (if (find channel (disabled-channels agent))
-    (remove channel (disabled-channels agent))
+    (setf (disabled-channels agent) (remove channel (disabled-channels agent)))
     (setf (disabled-channels agent) (cons channel (disabled-channels agent)))))
 
 (defmethod copy-object ((concept concept-distribution))
