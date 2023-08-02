@@ -73,7 +73,8 @@
                              (:file "before")
                              (:file "during")
                              (:file "after")
-                             (:file "run")))
+                             (:file "run")
+                             (:file "switch")))
                (:module "utils"
                 :serial t
                 :components ((:file "analysis")
