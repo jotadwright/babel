@@ -5,6 +5,8 @@
 ;; --------------------
 
 (defmethod interact ((experiment cle-experiment) interaction &key scene topic agents)
+  (when (switch-condition-p experiment (get-configuration experiment :switch-condition))
+    (setup-next-condition experiment))
   (before-interaction experiment :scene scene :topic topic :agents agents)
   (do-interaction experiment)
   (after-interaction experiment))

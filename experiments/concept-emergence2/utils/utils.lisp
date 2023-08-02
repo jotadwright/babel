@@ -18,6 +18,20 @@
 (defun parse-keyword (string)
   (intern (string-upcase (string-left-trim ":" string)) :keyword))
 
+(defun store-experiment (experiment)
+  (let* ((experiment-name (get-configuration experiment :experiment-name))
+         (output-dir (get-configuration experiment :output-dir))
+         (current-stage (get-configuration experiment :current-stage))
+         (path (babel-pathname
+                :directory `("experiments" "concept-emergence2" "logging" ,(downcase output-dir) ,(downcase experiment-name) "stores")
+                :name (list-of-strings->string (list (write-to-string (series-number experiment))
+                                                     "history"
+                                                     "stage"
+                                                     (write-to-string current-stage))
+                                               :separator "-") :type "store")))
+    (ensure-directories-exist path)
+    (cl-store:store experiment path)))
+
 ;; -----------------------------------------
 ;; + Utility functions for CLEVR simulated +
 ;; -----------------------------------------
