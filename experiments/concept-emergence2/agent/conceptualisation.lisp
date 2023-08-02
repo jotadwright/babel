@@ -117,3 +117,7 @@
                       nil)))
     (notify event-coherence-p experiment coherence speaker-cxn hearer-cxn)
     coherence))
+
+;; helper function
+(defun conceptualised-p (agent)
+  (find-data agent 'applied-cxn))
