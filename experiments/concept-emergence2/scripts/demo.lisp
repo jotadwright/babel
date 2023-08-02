@@ -8,16 +8,16 @@
     (make-configuration
      :entries `(
                 ;; monitoring
-                (:dot-interval . 10)
+                (:dot-interval . 100)
                 (:save-distribution-history . nil)
                 ;; setup interacting agents
                 (:interacting-agents-strategy . :standard)
                 (:population-size . 10)
                 ;; setup data scene
-                (:dataset . "clevr-extracted")
+                (:dataset . "cogenta-extracted")
                 (:dataset-split . "val")
                 (:data-fname . "all.lisp")
-                (:available-channels ,@(get-all-channels :clevr-extracted))
+                (:available-channels ,@(get-all-channels :cogenta-extracted))
                 ;; disable channels
                 (:disable-channels . :none)
                 (:amount-disabled-channels . 0)
@@ -30,6 +30,7 @@
                 (:scene-sampling . :deterministic)
                 (:topic-sampling . :discriminative)
                 ;; general strategy
+                (:align . t)
                 (:strategy . :times)
                 (:similarity-threshold . 0.0)
                 ;; entrenchment of constructions
@@ -48,11 +49,43 @@
                 (:initial-weight . 0)
                 (:weight-incf . 1)
                 (:weight-decf . -1)
+
+                ;; staging
+                (:current-stage . 0)
+                (:switch-condition . :after-n-interactions)
+                (:switch-conditions-after-n-interactions . 500) 
+                (:stage-parameters 
+                 ((:switch-alignment)
+                  (:switch-dataset . "cogentb-extracted")
+                  (:switch-dataset-split . "val")
+                  (:switch-data-fname . "all.lisp")
+                  (:switch-available-channels ,@(get-all-channels :cogentb-extracted)))
+                 )
+                ;; saving
+                (:experiment-name . "test")
+                (:output-dir . "test")
                 )))
   (setf *experiment* (make-instance 'cle-experiment :configuration *baseline-simulated*))
   (notify reset-monitors)
   (wi::reset))
 
+(numberp 3.0)
+
+(assqv :switch-disable-channels (first (get-configuration *experiment* :stage-parameters)))
+
+
+
+((:switch-disable-channels ,'area ,'width)) ;; disable specific channels
+((:switch-disable-channels . 3)) ;; disable n random channels
+
+((:switch-add-agents . 1)) ;; add n agents
+
+((:switch-alignment . nil))
+
+((:switch-dataset . "cogentb-extracted")
+ (:switch-dataset-split . "val")
+ (:switch-data-fname . "all.lisp")
+ (:switch-available-channels ,@(get-all-channels :cogentb-extracted)))
 
 (defmethod after-interaction ((experiment cle-experiment))
   (align (speaker experiment))
@@ -64,9 +97,10 @@
   (deactivate-all-monitors)
   ;(activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor trace-interaction-in-web-interface)
-  (loop for idx from 1 to 2
+  (loop for idx from 1 to 10
         do (run-interaction *experiment*)))
 
+(add-cxn-to-interface (find-in-lexicon (find-agent 62) "beponi"))
 
 ;; 1. run x interactions
 (progn
@@ -76,13 +110,16 @@
   (activate-monitor export-lexicon-coherence)
   (activate-monitor print-a-dot-for-each-interaction)
   (format t "~%---------- NEW GAME ----------~%")
-  (loop for i from 1 to 50000
+  (loop for i from 1 to 40000
         do (run-interaction *experiment*)))
 
 
   
 (loop for agent in (agents *experiment*)
-      do (switch-channel-availability agent 'area))
+      do (switch-channel-availability agent 'area)
+      do (switch-channel-availability agent 'height))
+
+(display-lexicon 
 
 
 
@@ -553,19 +590,17 @@ is-discriminative
 
 (cl-store:store *experiment*
                 (babel-pathname :directory '("experiments"
-                                             "concept-emergence2")
-                                :name "clevr-extracted-test"
+                                             "concept-emergence2"
+                                             "logging")
+                                :name "clevr-extracted-15k-87-68-trash"
                                 :type "store"))
         
 (setf *experiment*
       (cl-store:restore (babel-pathname :directory '("experiments"
                                                      "concept-emergence2"
                                                      "logging"
-                                                     "big-bench5"
-                                                     "10-all-random"
-                                                     "experiments"
-                                                     "2023-06-26_16h35m10s-exp-0")
-                                        :name "history"
+                                                     )
+                                        :name "clevr-extracted-20k"
                                         :type "store")))
 
 (display-lexicon (first (agents *experiment*)) :sort t :entrenchment-threshold 0.00)
