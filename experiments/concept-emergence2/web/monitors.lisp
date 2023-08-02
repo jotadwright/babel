@@ -163,14 +163,13 @@
 
 (define-monitor export-experiment-store)
 (define-event-handler (export-experiment-store run-series-finished)
-                      (when (= (series-number experiment) 1)
-                        (let* ((experiment-name (get-configuration experiment :experiment-name))
-                               (output-dir (get-configuration experiment :output-dir))
-                               (path (babel-pathname
-                                      :directory `("experiments" "concept-emergence2" "logging" ,(downcase output-dir) ,(downcase experiment-name))
-                                      :name "history" :type "store")))
-                          (ensure-directories-exist path)
-                          (cl-store:store experiment path))))
+  (let* ((experiment-name (get-configuration experiment :experiment-name))
+         (output-dir (get-configuration experiment :output-dir))
+         (path (babel-pathname
+                :directory `("experiments" "concept-emergence2" "logging" ,(downcase output-dir) ,(downcase experiment-name) "stores")
+                :name (list-of-strings->string (list (write-to-string (series-number experiment)) "history") :separator "-") :type "store")))
+    (ensure-directories-exist path)
+    (cl-store:store experiment path)))
 
 ;; ------------------
 ;; + Question Types +
