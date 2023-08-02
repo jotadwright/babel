@@ -221,7 +221,8 @@
         (add-element `((h2) ,(format nil "~a: ~a"
                                      (id (hearer interaction))
                                      (form hearer-cxn))))
-        (add-cxn-to-interface hearer-cxn))
+        (add-cxn-to-interface hearer-cxn
+                              :disabled-channels (disabled-channels (hearer interaction))))
       (add-element `((h2) ,(format nil "~a could not conceptualise!"
                                    (id (hearer interaction))))))
     (add-element `((h2) ,(format nil " ^^^ check for coherence: ~a ^^^ "
