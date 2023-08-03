@@ -16,11 +16,12 @@
 (defun initialise-world (experiment)
   (let* ((dataset (get-configuration experiment :dataset))
          (dataset-split (get-configuration experiment :dataset-split))
+         (scene-sampling (get-configuration experiment :scene-sampling))
          (fname (get-configuration experiment :data-fname))
          (available-channels (get-configuration experiment :available-channels))
          (fpath (mkstr (make-pathname :directory `(:relative ,dataset)
                                       :name fname))))
-    (when fname
+    (when (eql scene-sampling :deterministic)
       ;; load the scene ids
       (set-configuration experiment :scene-ids (read-scene-ids fpath))
       ;; set the current scene to the first
