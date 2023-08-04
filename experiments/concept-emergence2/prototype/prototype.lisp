@@ -39,6 +39,9 @@
   "Sigmoid function where c changes the slope of the function. 
   
     When c is a fraction the slope is less steep, when c is a larger the slope is steeper."
+  (declare (optimize (speed 3) (safety 0)))
+  (declare (type integer x))
+  (declare (type ratio c))
   (/ 1 (+ 1 (exp (* c x)))))
 
 (defmethod print-object ((prototype prototype) stream)
