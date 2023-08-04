@@ -119,7 +119,7 @@
 
 ;(anti-unify-strings "GCATGCG" "GATTACA")
 ;(anti-unify-strings "What size is the cube?" "What size is the red cube?")
-;(anti-unify-strings "What size is the blue cube?" "What size is the red cube?")
+;(print-anti-unification-results (anti-unify-strings "What size is the blue cube?" "What size is the red cube?"))
 ;(anti-unify-strings "What is the color of the sphere?" "What is the size of the cube?")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -143,6 +143,10 @@
     ;; Fill in the scores for the first row and the first column.
     (setf-matrix-column scores 0 (list->array (mapcar #'- (iota (abs (* gap (+ nx 1))) :step (abs gap)))))
     (setf-matrix-row scores 0 (list->array (mapcar #'- (iota (abs (* gap (+ ny 1))) :step (abs gap)))))
+    ;; Fill in the pointers for the first row and the first column.
+    (setf-matrix-column pointers 0 (make-array (list (+ nx 1)) :initial-element '(:top)))
+    (setf-matrix-row pointers 0 (make-array (list (+ ny 1)) :initial-element '(:left)))
+    (setf (aref pointers 0 0) nil)
 
     ;; Calculate the score for each cell by looking at the left cell, the top cell
     ;; and the top-left cell and adding the appropriate score for match, mismatch
@@ -244,6 +248,14 @@
 (mapcar #'print-string-alignments
         (maximal-string-alignments "What is the color of the sphere?"
                                    "What is the size of the cube?"))
+
+(mapcar #'print-string-alignments
+        (maximal-string-alignments "How large is the sphere?"
+                                   "What size is the cube?"))
+
+(mapcar #'print-string-alignments
+        (maximal-string-alignments "appel"
+                                   "ppel"))
 |#
 
 
@@ -344,5 +356,8 @@
 
 (anti-unify-strings "What is the color of the sphere?" "What is the size of the cube?"
                     :to-sequence-predicates-p t)
+
+(setf *test*
+      (anti-unify-strings "what size is the cube?" "what color is the"))
   
 |#
