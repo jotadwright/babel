@@ -17,7 +17,8 @@
  
 (defmethod make-concept ((agent cle-agent) (object cle-object) (mode (eql :distribution)))
   (make-instance 'concept-distribution
-                 :prototypes (loop for (channel . observation) in (attributes object)
+                 :prototypes (loop for channel being the hash-keys of (attributes object)
+                                     using (hash-value observation)
                                    for initial-weight = (get-configuration agent :initial-weight)
                                    for distribution = (make-distribution agent
                                                                          observation
