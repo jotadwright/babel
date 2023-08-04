@@ -31,32 +31,58 @@
   "Conceptualise the topic of the interaction."
   (if (length= (lexicon agent) 0)
     nil
-    (let* (;; step 1 - find the discriminating concepts
-           (discriminating-cxns (search-discriminative-concepts agent))
-           ;; step 2 - find the concept that maximises entrenchment * discriminative power
-           (applied-cxn (select-most-discriminating-concept discriminating-cxns mode)))
-      ;; decides which concepts are considered during alignment
-      (decide-competitors-speaker agent
-                                  applied-cxn
-                                  discriminating-cxns
-                                  mode)
+    (destructuring-bind (applied-cxn . competitors) (find-best-concept agent)
+      ;; set competitors
+      (set-data agent 'meaning-competitors competitors)
       ;; set the applied-cxn slot
       (set-data agent 'applied-cxn applied-cxn)
-      ;; notify
-      (notify event-conceptualisation-end
-              agent
-              discriminating-cxns
-              (list applied-cxn))
       applied-cxn)))
 
 (defmethod hearer-conceptualise ((agent cle-agent) (mode (eql :times)))
   (if (length= (lexicon agent) 0)
     nil
-    (let* (;; step 1 - find the discriminating concepts
-           (discriminating-cxns (search-discriminative-concepts agent))
-           ;; step 2 - find the concept that maximises entrenchment * discriminative power
-           (applied-cxn (select-most-discriminating-concept discriminating-cxns mode)))
+    (destructuring-bind (applied-cxn . competitors) (find-best-concept agent)
       applied-cxn)))
+
+(defun find-best-concept (agent)
+  (let* ((threshold (get-configuration agent :similarity-threshold))
+         (topic (get-data agent 'topic))
+         (context (remove topic (objects (get-data agent 'context))))
+         (best-score -1)
+         (best-cxn nil)
+         (competitors '()))
+    ;; case 1: look only at entrenched concepts first
+    (loop for cxn in (lexicon agent)
+          for concept = (meaning cxn)
+          for topic-sim = (weighted-similarity agent topic concept)
+          for best-other-sim = (loop for object in context
+                                     maximize (weighted-similarity agent object concept))
+          for discriminative-power = (abs (- topic-sim best-other-sim))
+          if (and (> topic-sim (+ best-other-sim threshold))
+                  (> (* discriminative-power (score cxn)) best-score))
+            do (progn
+                 (when best-cxn
+                   (setf competitors (cons best-cxn competitors)))
+                 (setf best-score (* discriminative-power (score cxn)))
+                 (setf best-cxn cxn))
+          else
+            do (setf competitors (cons cxn competitors)))
+    (if best-cxn
+      (cons best-cxn competitors)
+      ;; case 2: if no cxn is found -> look in trash
+      (let* ((best-score -1)
+             (best-cxn nil))
+        (loop for cxn in (trash agent)
+              for concept = (meaning cxn)
+              for topic-sim = (weighted-similarity agent topic concept)
+              for best-other-sim = (loop for object in context maximize (weighted-similarity agent object concept))
+              for discriminative-power = (abs (- topic-sim best-other-sim))
+              if (and (> topic-sim (+ best-other-sim threshold))
+                      (> discriminative-power best-score))
+                do (progn
+                     (setf best-score discriminative-power)
+                     (setf best-cxn cxn)))
+        (cons best-cxn competitors)))))
 
 ;; ----------------------------------
 ;; + Search discriminative concepts +
@@ -79,7 +105,7 @@
                                                discriminating-cxns)))
     discriminating-cxns))
 
-(defmethod select-most-discriminating-concept (cxns (mode (eql :times)))
+#|(defmethod select-most-discriminating-concept (cxns (mode (eql :times)))
   "Selets the concept that maximises power * entrenchment."
   (let* ((best-score -1)
          (best-cxn nil))
@@ -100,7 +126,7 @@
     (when (zerop best-score)
       (setf best-cxn (assqv :cxn (the-biggest (lambda (x) (abs (- (assqv :topic-sim x) (assqv :best-other-sim x))))
                                               cxns))))               
-    best-cxn))
+    best-cxn))|#
 
 ;; ---------------------
 ;; + Lexicon coherence +
