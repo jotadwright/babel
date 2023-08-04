@@ -43,7 +43,7 @@
 ;; ---------
 
 (defmethod perceive-object-val ((agent cle-agent) (object cle-object) attr)
-  (let ((raw-observation-val (rest (assoc attr (attributes object))))
+  (let ((raw-observation-val (get-object-val object attr))
         (sensor-noise (noise-in-sensor agent attr (get-configuration agent :sensor-noise)))
         (observation-noise (noise-in-observation agent attr (get-configuration agent :observation-noise))))
     (+ raw-observation-val sensor-noise observation-noise)))
