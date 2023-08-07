@@ -78,7 +78,31 @@
   (format t "~%---------- NEW GAME ----------~%")
   (time
    (loop for i from 1 to 50000
-         do (run-interaction *experiment*))))`
+         do (run-interaction *experiment*))))
+
+(progn
+  (wi::reset)
+  (deactivate-all-monitors)
+  ;(activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor trace-interaction-in-web-interface)
+  (loop for idx from 1 to 2
+        do (run-interaction *experiment*)))
+
+;;;;
+
+(setf *experiment*
+      (cl-store:restore (babel-pathname :directory '("experiments"
+                                                     "concept-emergence2"
+                                                     "logging"
+                                                     "july"
+                                                     "clevr-extracted"
+                                                     "2023-07-31_11h42m54s-exp-0"
+                                                     
+                                                     )
+                                        :name "history"
+                                        :type "store")))
+
+;;;;
 
 (get-configuration (first (agents *experiment*)) :strategy)
 
@@ -113,13 +137,7 @@
   (align (hearer experiment))
   )
 
-(progn
-  (wi::reset)
-  (deactivate-all-monitors)
-  ;(activate-monitor print-a-dot-for-each-interaction)
-  (activate-monitor trace-interaction-in-web-interface)
-  (loop for idx from 1 to 10
-        do (run-interaction *experiment*)))
+
 
 (add-cxn-to-interface (find-in-lexicon (find-agent 62) "beponi"))
 
@@ -183,7 +201,7 @@
   (deactivate-all-monitors)
   ;(activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor trace-interaction-in-web-interface)
-  (loop for idx from 1 to 10
+  (loop for idx from 1 to 2
         do (run-interaction *experiment*)))
 
 
