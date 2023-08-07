@@ -14,6 +14,7 @@
   (initialise-world experiment))
 
 (defun initialise-world (experiment)
+  "Initialise the world of the experiment by loading the given dataset."
   (let* ((dataset (get-configuration experiment :dataset))
          (dataset-split (get-configuration experiment :dataset-split))
          (scene-sampling (get-configuration experiment :scene-sampling))
@@ -33,6 +34,7 @@
                                             :available-channels available-channels))))
 
 (defun initialise-agent (experiment disabled-channels)
+  "Creates and initialises an agent with sensors and calibrations for these sensors."
   (let* ((sensor-noise (determine-noise-in-sensor experiment
                                                   disabled-channels
                                                   (get-configuration experiment :sensor-noise)))
@@ -47,7 +49,7 @@
     new-agent))
 
 (defun initialise-population (experiment)
-  ;; initialise the population
+  "Creates and initialises a population of agents."
   (let* ((disabled-channels-list (determine-disable-channels experiment
                                                              (get-configuration experiment :population-size)
                                                              (get-configuration experiment :disable-channels))))
