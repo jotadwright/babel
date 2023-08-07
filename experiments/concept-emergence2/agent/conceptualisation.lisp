@@ -114,7 +114,7 @@
                                                      (cons :topic-sim topic-sim)
                                                      (cons :best-other-sim best-other-sim))
                                                discriminating-cxns)))
-    discriminating-cxns)).
+    discriminating-cxns))
 
 ;; ---------------------
 ;; + Lexicon coherence +
