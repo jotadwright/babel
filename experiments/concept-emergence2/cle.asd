@@ -23,6 +23,12 @@
                :distributions)
   :serial t
   :components ((:file "package")
+               (:module "dataset"
+                :serial t
+                :components ((:file "clevr")
+                             (:file "winery")
+                             (:file "cogent")
+                             ))
                (:module "world"
                 :serial t
                 :components ((:file "world")
@@ -30,9 +36,6 @@
                              (:file "scene")
                              (:file "topic")
                              (:file "utils")
-                             (:file "clevr")
-                             (:file "winery")
-                             (:file "cogent")
                              ))
                (:module "agent"
                 :serial t
@@ -62,7 +65,6 @@
                (:module "distribution"
                 :serial t
                 :components ((:file "gaussian")
-                             (:file "replay")
                              (:file "welford")
                              (:file "divergence")
                              ))
