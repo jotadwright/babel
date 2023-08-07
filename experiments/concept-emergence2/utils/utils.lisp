@@ -32,6 +32,12 @@
     (ensure-directories-exist path)
     (cl-store:store experiment path)))
 
+(defun fix-configuration (experiment)
+  "Method to fix configurations of previous experiment without make-configuration and switch condition."
+  (setf (configuration experiment)
+        (configuration (make-configuration :entries (configuration experiment))))
+  (set-configuration experiment :switch-condition :none))
+
 ;; -----------------------------------------
 ;; + Utility functions for CLEVR simulated +
 ;; -----------------------------------------
