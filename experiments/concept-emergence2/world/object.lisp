@@ -46,14 +46,16 @@
 (defclass cle-object (entity)
   ((attributes
     :documentation "The attributes of the object (a-list)."
-    :type list :accessor attributes :initarg :attributes)
+    :type hash-table :accessor attributes :initarg :attributes)
    (description
     :documentation "Symbolic description of the original object."
     :type list :accessor description :initarg :description)))
 
-;; --------------------------------
+;; ------------------------
 ;; + Small utils channels +
-;; --------------------------------
+;; ------------------------
+(defmethod get-object-val ((object cle-object) (attr symbol))
+  (gethash attr (attributes object)))
 
 (defun intern-alist (alist)
   (mapcar #'(lambda (pair)
@@ -63,8 +65,10 @@
 
 (defun filter-object (object available-channels)
   "Only keep the attributes that are in play."
-  (loop for channel in available-channels
-        collect (assoc channel object)))
+  (loop with hash-table = (make-hash-table)
+        for channel in available-channels
+        do (setf (gethash channel hash-table) (assqv channel object))
+        finally (return hash-table)))
 
 (defmethod print-object ((cle-object cle-object) stream)
   (pprint-logical-block (stream nil)

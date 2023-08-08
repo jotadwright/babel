@@ -12,7 +12,6 @@
   (previous-copy cxn))
 
 (defmethod align ((agent cle-agent))
-  ;; event
   (notify event-align-start agent)
   (case (discourse-role agent)
     (speaker (speaker-alignment agent :times))

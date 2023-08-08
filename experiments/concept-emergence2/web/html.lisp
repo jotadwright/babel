@@ -7,18 +7,24 @@
 ;; make html of cle-object
 (defmethod make-html-for-entity-details ((object cle-object) &key topic dataset)
   (let ((title-font (if (equal topic (id object)) "font-weight:bold;" ""))
-        (attributes (reverse (attributes object))))
-    (append 
+        (attributes (reverse (loop for channel being the hash-keys of (attributes object)
+                                     using (hash-value value)
+                                   collect (cons channel value)))))
+    (append
+     ;; symbolic attributes
      (loop for (attr . val) in (description object)
            if (is-channel-available dataset attr (attributes object))
-           append `(((div :class "entity-detail" :style ,(format nil "~a" title-font))
-                     ,(format nil "~a = ~,2f" attr val))))
+             append `(((div :class "entity-detail" :style ,(format nil "~a" title-font))
+                       ,(format nil "~a = ~,2f" attr val))))
+     ;; continuous features
      `(((hr :style ,(format nil "margin: 0px;"))))
      `(((hr :style ,(format nil "margin: 0px;"))))
+     ;; add border to the first key, val pair
      (let* ((attr (caar attributes))
             (val (cdar attributes)))
        `(((div :class "entity-detail" :style ,(format nil "border-top: 0px dashed #563; ~a" title-font))
           ,(format nil "~a = ~,2f" attr val))))
+     ;; then draw the rest
      (loop for (attr . val) in (rest attributes)
            append `(((div :class "entity-detail" :style ,(format nil "~a" title-font))
                      ,(format nil "~a = ~,2f" attr val)))))))

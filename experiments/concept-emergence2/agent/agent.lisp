@@ -9,10 +9,10 @@
     :documentation "The agent's lexicon."
     :type list :accessor lexicon :initform nil)
    (trash
-    :documentation "The lexicon trash."
+    :documentation "The lexicon trash, contains cxns with an entrenchment score of zero."
     :type list :accessor trash :initform nil)
    (disabled-channels
-    :documentation "Disabled channels in agent."
+    :documentation "Disabled/defected channels."
     :type list :accessor disabled-channels :initarg :disabled-channels :initform nil)
    (noise-in-each-sensor
     :documentation "Fixed noise on each channel"
@@ -43,7 +43,13 @@
 ;; ---------
 
 (defmethod perceive-object-val ((agent cle-agent) (object cle-object) attr)
-  (let ((raw-observation-val (rest (assoc attr (attributes object))))
+  "Perceives the value in a given sensor 'attr' of a given object.
+
+   This reading can be affected by two types of noise.
+   The raw observation is the true value in that channel of the object.
+   The sensor-noise term is a fixed shift (in either direction).
+   The observation noise term is different for every observation."
+  (let ((raw-observation-val (get-object-val object attr))
         (sensor-noise (noise-in-sensor agent attr (get-configuration agent :sensor-noise)))
         (observation-noise (noise-in-observation agent attr (get-configuration agent :observation-noise))))
     (+ raw-observation-val sensor-noise observation-noise)))

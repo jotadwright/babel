@@ -16,7 +16,8 @@
              )))
 
 (defmethod is-channel-available ((mode (eql :clevr-simulated)) symbolic-attribute raw-attributes)
-  (let ((continuous-attributes (mapcar 'first raw-attributes)))
+  (let ((continuous-attributes (loop for key being the hash-keys of raw-attributes
+                                     collect key)))
     (case symbolic-attribute
       (:COLOR (or (if (member 'R continuous-attributes) t nil)
                   (if (member 'G continuous-attributes) t nil)
@@ -49,7 +50,8 @@
              )))
 
 (defmethod is-channel-available ((mode (eql :clevr-extracted)) symbolic-attribute raw-attributes)
-  (let ((continuous-attributes (mapcar 'first raw-attributes)))
+  (let ((continuous-attributes (loop for key being the hash-keys of raw-attributes
+                                     collect key)))
     (case symbolic-attribute
       (:COLOR (or (if (member 'color-mean-l continuous-attributes) t nil)
                   (if (member 'color-mean-a continuous-attributes) t nil)
@@ -58,11 +60,11 @@
                   (if (member 'color-std-a continuous-attributes) t nil)
                   (if (member 'color-std-b continuous-attributes) t nil)))
       (:SIZE (or (if (member 'width continuous-attributes) t nil)
-                  (if (member 'height continuous-attributes) t nil)
-                  (if (member 'area continuous-attributes) t nil)
-                  (if (member 'relative-area continuous-attributes) t nil)
-                  (if (member 'bb-area continuous-attributes) t nil)
-                  (if (member 'bb-area-ration continuous-attributes) t nil)))
+                 (if (member 'height continuous-attributes) t nil)
+                 (if (member 'area continuous-attributes) t nil)
+                 (if (member 'relative-area continuous-attributes) t nil)
+                 (if (member 'bb-area continuous-attributes) t nil)
+                 (if (member 'bb-area-ration continuous-attributes) t nil)))
                   
       (:SHAPE (or (if (member 'corners continuous-attributes) t nil)
                   (if (member 'circle-distance continuous-attributes) t nil)

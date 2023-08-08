@@ -2,6 +2,7 @@
 
 (in-package :cle)
 
+
 ;; experiments with entrenchment values - keep the same
 (progn
   (defparameter *baseline-simulated*
@@ -43,23 +44,17 @@
                 (:concept-representation . :distribution)
                 (:distribution . :gaussian-welford)
                 (:M2 . 0.0001) ;; only for gaussian-welford
-
                 ;; prototype weight inits
                 (:weight-update-strategy . :j-interpolation)
                 (:initial-weight . 0)
                 (:weight-incf . 1)
                 (:weight-decf . -1)
-
                 ;; staging
                 (:current-stage . 0)
-                (:switch-condition . :after-n-interactions)
-                (:switch-conditions-after-n-interactions . 500) 
+                (:switch-condition . :after-n-interactions) ; :after-n-interactions)
+                (:switch-conditions-after-n-interactions . 5000) 
                 (:stage-parameters 
-                 ((:switch-alignment)
-                  (:switch-dataset . "cogentb-extracted")
-                  (:switch-dataset-split . "val")
-                  (:switch-data-fname . "all.lisp")
-                  (:switch-available-channels ,@(get-all-channels :cogentb-extracted)))
+                 ((:switch-disable-channels ,'width ,'height ,'area ,'relative-area ,'bb-area))
                  )
                 ;; saving
                 (:experiment-name . "test")
@@ -69,38 +64,9 @@
   (notify reset-monitors)
   (wi::reset))
 
-(numberp 3.0)
+(add-element (html-pprint bibi))
 
-(assqv :switch-disable-channels (first (get-configuration *experiment* :stage-parameters)))
-
-
-
-((:switch-disable-channels ,'area ,'width)) ;; disable specific channels
-((:switch-disable-channels . 3)) ;; disable n random channels
-
-((:switch-add-agents . 1)) ;; add n agents
-
-((:switch-alignment . nil))
-
-((:switch-dataset . "cogentb-extracted")
- (:switch-dataset-split . "val")
- (:switch-data-fname . "all.lisp")
- (:switch-available-channels ,@(get-all-channels :cogentb-extracted)))
-
-(defmethod after-interaction ((experiment cle-experiment))
-  (align (speaker experiment))
-  (align (hearer experiment))
-  )
-
-(progn
-  (wi::reset)
-  (deactivate-all-monitors)
-  ;(activate-monitor print-a-dot-for-each-interaction)
-  (activate-monitor trace-interaction-in-web-interface)
-  (loop for idx from 1 to 10
-        do (run-interaction *experiment*)))
-
-(add-cxn-to-interface (find-in-lexicon (find-agent 62) "beponi"))
+(add-element (html-pprint (configuration *experiment*)))
 
 ;; 1. run x interactions
 (progn
@@ -110,10 +76,95 @@
   (activate-monitor export-lexicon-coherence)
   (activate-monitor print-a-dot-for-each-interaction)
   (format t "~%---------- NEW GAME ----------~%")
-  (loop for i from 1 to 40000
+  (time
+   (loop for i from 1 to 50000
+         do (run-interaction *experiment*))))
+
+(progn
+  (wi::reset)
+  (deactivate-all-monitors)
+  ;(activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor trace-interaction-in-web-interface)
+  (loop for idx from 1 to 2
         do (run-interaction *experiment*)))
 
+;;;;
 
+(setf *experiment*
+      (cl-store:restore (babel-pathname :directory '("experiments"
+                                                     "concept-emergence2"
+                                                     "logging"
+                                                     "july"
+                                                     "clevr-extracted"
+                                                     "2023-07-31_11h42m54s-exp-0"
+                                                     
+                                                     )
+                                        :name "history"
+                                        :type "store")))
+
+;;;;
+
+(get-configuration (first (agents *experiment*)) :strategy)
+
+(print-object (first (agents *experiment*)) nil)
+
+(assqv :switch-disable-channels (first (get-configuration *experiment* :stage-parameters)))
+
+((:switch-disable-channels ,'area ,'width)) ;; disable specific channels
+((:switch-disable-channels . 4)) ;; disable n random channels
+
+((:switch-add-agents . 1)) ;; add n agents
+
+((:switch-alignment))
+
+((:switch-dataset . "cogentb-extracted")
+ (:switch-dataset-split . "val")
+ (:switch-data-fname . "all.lisp")
+ (:switch-scene-sampling . :deterministic)
+ (:switch-topic-sampling . :discriminative)
+ (:switch-available-channels ,@(get-all-channels :cogentb-extracted)))
+
+
+(:switch-dataset . "winery")
+(:switch-dataset-split . "train")
+(:switch-data-fname . "all.lisp")
+(:switch-scene-sampling . :random)
+(:switch-topic-sampling . :random)
+(:switch-available-channels ,@(get-all-channels :winery))
+
+(defmethod after-interaction ((experiment cle-experiment))
+  (align (speaker experiment))
+  (align (hearer experiment))
+  )
+
+
+
+(add-cxn-to-interface (find-in-lexicon (find-agent 62) "beponi"))
+
+
+
+#|(setf con (make-configuration :entries `((:dot-interval . 100)
+                                         (:save-distribution-history . nil))))
+
+(entries (make-instance 'configuration
+                              :entries `((:dot-interval . 100)
+                                         (:save-distribution-history . nil))
+                              :parent-configuration nil))
+
+(let ((hash-table (make-hash-table)))
+  (loop for (key . value) in `((:dot-interval . 100)
+                               (:save-distribution-history . nil))
+        do (setf (gethash key hash-table) value))
+  (make-instance 'configuration
+                 :entries hash-table
+                 :parent-configuration nil))
+
+
+(loop for (key . value) in `((:dot-interval . 100)
+                             (:save-distribution-history . nil))
+      do (setf (gethash key hash-table) value))
+
+(get-configuration con :save-distribution-history2)|#
   
 (loop for agent in (agents *experiment*)
       do (switch-channel-availability agent 'area)
@@ -150,7 +201,7 @@
   (deactivate-all-monitors)
   ;(activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor trace-interaction-in-web-interface)
-  (loop for idx from 1 to 10
+  (loop for idx from 1 to 2
         do (run-interaction *experiment*)))
 
 

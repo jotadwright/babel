@@ -71,6 +71,8 @@
     (set-configuration experiment :dataset (assqv :switch-dataset params))
     (set-configuration experiment :dataset-split (assqv :switch-dataset-split params))
     (set-configuration experiment :data-fname (assqv :switch-data-fname params))
+    (set-configuration experiment :scene-sampling (assqv :switch-scene-sampling params))
+    (set-configuration experiment :topic-sampling (assqv :switch-topic-sampling params))
     (set-configuration experiment :available-channels (assqv :switch-available-channels params))
     (initialise-world experiment)))
 
