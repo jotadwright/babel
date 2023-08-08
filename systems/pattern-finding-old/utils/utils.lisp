@@ -626,7 +626,8 @@
                        when (and meaning ; meaning should be non-nil
                                  (form-predicates-in-root cip-node) ; some form left in root
                                  (irl::embedding meaning gold-standard-meaning) ; partial meaning should be compatible with gold standard
-                                 (fcg::connected-syntactic-structure (fcg-get-transient-unit-structure cip-node))) ; connected structure in TS 
+                                 (fcg::connected-syntactic-structure (fcg-get-transient-unit-structure cip-node)) ; connected structure in TS
+                                 (get-open-slot-units cip-node)) ; some unit(s) that represents open slot(s) in the TS
                        collect cip-node))))))
       (enable-meta-layer-configuration-item-based-first cxn-inventory)
       compatible-cipns)))
