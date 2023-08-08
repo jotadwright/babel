@@ -150,7 +150,8 @@
                                          (category-linking-mode :categories-exist))
   (with-configurations ((meaning-representation :meaning-representation)
                         (form-representation :form-representation)
-                        (initial-link-weight :initial-categorial-link-weight))
+                        (initial-link-weight :initial-categorial-link-weight)
+                        (cxn-supplier-mode :learner-cxn-supplier))
       original-cxn-inventory
     (let* ((inventory-name (gensym))
            (temp-cxn-inventory
@@ -173,9 +174,7 @@
                                           (:render-mode . ,(case form-representation
                                                              (:string+meets :generate-and-test)
                                                              (:sequences :render-sequences)))
-                                          (:cxn-supplier-mode . ,(case form-representation
-                                                                   (:string+meets :hashed-labeled-positive-scores)
-                                                                   (:sequences :ordered-by-label-and-score)))
+                                          (:cxn-supplier-mode . ,cxn-supplier-mode)
                                           (:meaning-representation-formalism . ,meaning-representation)
                                           (:form-representation-formalism . ,form-representation)
                                           

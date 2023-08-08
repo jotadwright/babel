@@ -22,7 +22,8 @@
                         (initial-cxn-score :initial-cxn-score)
                         (initial-link-weight :initial-categorial-link-weight)
                         (repairs :repairs)
-                        (max-au-cost :max-au-cost)) experiment
+                        (max-au-cost :max-au-cost)
+                        (cxn-supplier-mode :learner-cxn-supplier)) experiment
     (let* ((grammar-name (make-const "pattern-finding-grammar"))
            (cxn-inventory
             (eval `(def-fcg-constructions ,grammar-name
@@ -44,9 +45,7 @@
                                           (:render-mode . ,(case form-representation
                                                              (:string+meets :generate-and-test)
                                                              (:sequences :render-sequences)))
-                                          (:cxn-supplier-mode . ,(case form-representation
-                                                                   (:string+meets :hashed-labeled-positive-scores)
-                                                                   (:sequences :ordered-by-label-and-score)))
+                                          (:cxn-supplier-mode . ,cxn-supplier-mode)
 
                                           (:meaning-representation-formalism . ,meaning-representation)
                                           (:form-representation-formalism . ,form-representation)
