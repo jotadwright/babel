@@ -25,7 +25,8 @@
   :components ((:file "package")
                (:module "dataset"
                 :serial t
-                :components ((:file "clevr")
+                :components ((:file "all")
+                             (:file "clevr")
                              (:file "winery")
                              (:file "cogent")
                              ))
