@@ -43,7 +43,7 @@
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 20)
+(run-series *experiment* 6)
 
 ;;;; Showing the cxn inventory and categorial network
 

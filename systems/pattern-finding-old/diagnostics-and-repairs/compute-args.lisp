@@ -24,7 +24,12 @@
       (let ((pattern-slot-args (extract-slot-form-args anti-unified-cxn))
             (pattern-top-args (extract-top-lvl-form-args anti-unified-cxn))
             (source-slot-args (find-data source-args :slot-form-args))
-            (source-top-args (find-data source-args :top-lvl-form-args)))
+            (source-top-args (or (find-data source-args :top-lvl-form-args)
+                                 ;; compute entirely new top args, like for a holophrase cxn,
+                                 ;; by putting together the source delta and the generalisation
+                                 (holistic-form-top-args
+                                  (append (substitute-bindings (fcg::reverse-bindings source-bindings) generalisation) source-delta)
+                                  (get-configuration (cxn-inventory anti-unified-cxn) :form-representation-formalism)))))
         (loop for (pattern-var . generalisation-var) in pattern-bindings
               for (source-var . nil) in source-bindings
               when (or (find-anywhere pattern-var pattern-delta)
@@ -45,7 +50,11 @@
                   (cond ((holistic-cxn-p anti-unified-cxn)
                          source-top-args)
                         ((item-based-cxn-p anti-unified-cxn)
-                         source-slot-args)))))
+                         source-slot-args)))
+        (set-data args :generalisation-top-lvl-args
+                  (loop for arg in pattern-top-args
+                        when (rest (assoc arg pattern-bindings)) ;; !
+                        collect it))))
     args))
 
 (defmethod compute-form-args (anti-unification-result (anti-unified-cipn cip-node) (source-args blackboard))
@@ -61,7 +70,12 @@
       (let ((pattern-slot-args (extract-slot-meaning-args anti-unified-cxn))
             (pattern-top-args (extract-top-lvl-meaning-args anti-unified-cxn))
             (source-slot-args (find-data source-args :slot-meaning-args))
-            (source-top-args (find-data source-args :top-lvl-meaning-args)))
+            (source-top-args (or (find-data source-args :top-lvl-meaning-args)
+                                 ;; compute entirely new top args, like for a holophrase cxn
+                                 ;; by putting together the source delta and the generalisation
+                                 (holistic-meaning-top-args
+                                  (append (substitute-bindings (fcg::reverse-bindings source-bindings) generalisation) source-delta)
+                                  (get-configuration (cxn-inventory anti-unified-cxn) :meaning-representation-formalism)))))
         (loop for (pattern-var . generalisation-var) in pattern-bindings
               for (source-var . nil) in source-bindings
               when (or (find-anywhere pattern-var pattern-delta)
@@ -82,7 +96,11 @@
                   (cond ((holistic-cxn-p anti-unified-cxn)
                          source-top-args)
                         ((item-based-cxn-p anti-unified-cxn)
-                         source-slot-args)))))
+                         source-slot-args)))
+        (set-data args :generalisation-top-lvl-args
+                  (loop for arg in pattern-top-args
+                        when (rest (assoc arg pattern-bindings)) ;; !
+                        collect it))))
     args))
 
 (defmethod compute-meaning-args (anti-unification-result (anti-unified-cipn cip-node) (source-args blackboard))

@@ -163,8 +163,8 @@
     (def-fcg-cxn what-color-is-the-x-y-z-cxn
                  ((?item-based-unit
                    (category what-color-is-the-cat-1)
-                   (meaning-args nil)
-                   (form-args nil)
+                   (meaning-args (?target))
+                   (form-args (?what ?z-farg))
                    (subunits (?x-slot ?y-slot ?z-slot)))
                   <-
                   (?item-based-unit
@@ -268,8 +268,8 @@
     (def-fcg-cxn what-color-is-the-item-based-cxn
                  ((?item-based-unit
                    (category what-color-is-the-1-cat-1)
-                   (meaning-args nil)
-                   (form-args nil)
+                   (meaning-args (?target))
+                   (form-args (?what ?cube-1))
                    (subunits (?slot-unit)))
                   (?slot-unit
                    (footprints (used-as-slot-filler)))
