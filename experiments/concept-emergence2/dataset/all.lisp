@@ -1,23 +1,34 @@
 (in-package :cle)
 
-(defmethod get-all-channels ((mode (eql :clevr)))
-  (reverse `(
-             ,'xpos ,'ypos
-             ,'width ,'height
-             ,'angle
-             ,'corners
-             ,'area ,'relative-area
-             ,'bb-area ,'bb-area-ratio
-             ,'wh-ratio
-             ,'circle-distance
-             ,'white-level ,'black-level
-             ,'lab-mean-l ,'lab-mean-a ,'lab-mean-b
-             ,'lab-std-l ,'lab-std-a ,'lab-std-b
-             ,'rgb-mean-r ,'rgb-mean-g ,'rgb-mean-b
-             ,'rgb-std-r ,'rgb-std-g ,'rgb-std-b
-             )))
+(defmethod get-all-channels ((mode (eql :all)))
+  `(
+    ,'fixed-acidity
+    ,'volatile-acidity
+    ,'citric-acid
+    ,'residual-sugar
+    ,'chlorides
+    ,'free-sulfur-dioxide
+    ,'total-sulfur-dioxide
+    ,'density
+    ,'pH
+    ,'sulphates
+    ,'alcohol
+    ,'xpos ,'ypos
+    ,'width ,'height
+    ,'angle
+    ,'corners
+    ,'area ,'relative-area
+    ,'bb-area ,'bb-area-ratio
+    ,'wh-ratio
+    ,'circle-distance
+    ,'white-level ,'black-level
+    ,'lab-mean-l ,'lab-mean-a ,'lab-mean-b
+    ,'lab-std-l ,'lab-std-a ,'lab-std-b
+    ,'rgb-mean-r ,'rgb-mean-g ,'rgb-mean-b
+    ,'rgb-std-r ,'rgb-std-g ,'rgb-std-b
+    ))
 
-(defmethod is-channel-available ((mode (eql :clevr)) symbolic-attribute raw-attributes)
+(defmethod is-channel-available ((mode (eql :all)) symbolic-attribute raw-attributes)
   (let ((continuous-attributes (loop for key being the hash-keys of raw-attributes
                                      collect key)))
     (case symbolic-attribute
