@@ -26,9 +26,9 @@
 (defparameter *ontology* (build-ontology))
 
 ;make the world; this might take a while
-(defparameter *world* (make-instance 'world :configuration '((:dataset . :clevr)
-                                                             (:datasplit . :train)
-                                                             (:mode . :hybrid))))
+(defparameter *world* (make-instance 'world :entries '((:dataset . :clevr)
+                                                       (:datasplit . :train)
+                                                       (:mode . :hybrid))))
 
 ;some configurations that you might want to set
 ;(set-configuration *world* :evaluation-mode :guess)
@@ -71,9 +71,9 @@
 (defparameter *ontology* (build-ontology))
 
 ;make the world; this might take a while
-(defparameter *world* (make-instance 'world :configuration '((:dataset . :clevr)
-                                                             (:datasplit . :train)
-                                                             (:mode . :hybrid))))
+(defparameter *world* (make-instance 'world :entries '((:dataset . :clevr)
+                                                       (:datasplit . :train)
+                                                       (:mode . :hybrid))))
 
 ;run a specific dialog in a specific scene
 (evaluate-dialog :scene-index 0 :dialog-index 0 :world *world* :ontology *ontology* :silent nil)

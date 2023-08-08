@@ -65,7 +65,7 @@
 (deftest test-experiment-framework ()
   (let* ((experiment (make-instance
                       'test-experiment
-                      :configuration '((number-of-agents . 12)))))
+                      :entries '((number-of-agents . 12)))))
     (with-slots (agents configuration) experiment
       
       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
