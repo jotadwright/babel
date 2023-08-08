@@ -158,16 +158,19 @@
 (defun constructions-for-application-hashed (node)
   "computes all constructions that could be applied for this node
    plus nil hashed constructions"
-  (let ((constructions
-         ;; get all constructions compatible
-         ;; with the hashes of the node
-         ;; append nil hashed constructions
-         (remove-duplicates
-          (append
-           (loop
-            for hash in (hash node (get-configuration node :hash-mode))
-            append (gethash hash (constructions-hash-table (construction-inventory node))))
-           (gethash nil (constructions-hash-table (construction-inventory node)))))))
+  (let* ((ignore-nil-hashes (get-configuration (construction-inventory (cip node))
+                                               :ignore-nil-hashes))
+         (constructions
+          ;; get all constructions compatible
+          ;; with the hashes of the node
+          ;; append nil hashed constructions
+          (remove-duplicates
+           (append
+            (loop
+               for hash in (hash node (get-configuration node :hash-mode))
+               append (gethash hash (constructions-hash-table (construction-inventory node))))
+            (unless ignore-nil-hashes
+              (gethash nil (constructions-hash-table (construction-inventory node))))))))
     ;; shuffle if requested
     (when (get-configuration node :shuffle-cxns-before-application)
       (setq constructions 
@@ -274,16 +277,19 @@
 (defun all-cxns-except-incompatible-hashed-cxns (node)
   "computes all constructions that could be applied for this node
    plus nil hashed constructions"
-  (let ((constructions
-         ;; get all constructions compatible
-         ;; with the hashes of the node
-         ;; append nil hashed constructions
-         (remove-duplicates
-          (append
-           (loop
-            for hash in (hash node (get-configuration node :hash-mode))
-            append (gethash hash (constructions-hash-table (construction-inventory node))))
-           (gethash nil (constructions-hash-table (construction-inventory node)))))))
+  (let* ((ignore-nil-hashes (get-configuration (construction-inventory (cip node))
+                                               :ignore-nil-hashes))
+         (constructions
+          ;; get all constructions compatible
+          ;; with the hashes of the node
+          ;; append nil hashed constructions
+          (remove-duplicates
+           (append
+            (loop
+               for hash in (hash node (get-configuration node :hash-mode))
+               append (gethash hash (constructions-hash-table (construction-inventory node))))
+            (unless ignore-nil-hashes
+              (gethash nil (constructions-hash-table (construction-inventory node))))))))
     ;; shuffle if requested
     (when (get-configuration node :shuffle-cxns-before-application)
       (setq constructions 
@@ -321,16 +327,19 @@
 (defun constructions-for-application-hashed-and-scored (node)
   "computes all constructions that could be applied for this node
    plus nil hashed constructions"
-  (let ((constructions
+  (let* ((ignore-nil-hashes (get-configuration (construction-inventory (cip node))
+                                               :ignore-nil-hashes))
+        (constructions
          ;; get all constructions compatible
          ;; with the hashes of the node
          ;; append nil hashed constructions
          (remove-duplicates
           (append
            (loop
-            for hash in (hash node (get-configuration node :hash-mode))
-            append (gethash hash (constructions-hash-table (construction-inventory node))))
-           (gethash nil (constructions-hash-table (construction-inventory node)))))))
+              for hash in (hash node (get-configuration node :hash-mode))
+              append (gethash hash (constructions-hash-table (construction-inventory node))))
+           (unless ignore-nil-hashes
+             (gethash nil (constructions-hash-table (construction-inventory node))))))))
     ;; shuffle if requested
     (when (get-configuration node :shuffle-cxns-before-application)
       (setq constructions 
@@ -404,19 +413,21 @@
          :remaining-constructions all-constructions-of-current-label
          :all-constructions-of-current-label all-constructions-of-current-label)))))
 
-(defun all-constructions-of-label-by-hash-and-score (node label &key ignore-nil)
+(defun all-constructions-of-label-by-hash-and-score (node label)
   "returns all constructions that of label 'label'"
-  (let ((constructions
-         (loop for cxn in (remove-duplicates
-                           (append
-                            (loop for hash in (hash node (get-configuration node :hash-mode))
-                                  append (gethash hash (constructions-hash-table (construction-inventory node))))
-                            (unless ignore-nil
-                              (gethash nil (constructions-hash-table (construction-inventory node))))))
-               for cxn-label = (attr-val cxn :label)
-               when (or (and (symbolp cxn-label) (equalp (symbol-name label) (symbol-name cxn-label)))
-                        (and (listp cxn-label) (member label cxn-label)))
-               collect cxn)))
+  (let* ((ignore-nil-hashes (get-configuration (construction-inventory (cip node))
+                                               :ignore-nil-hashes))
+         (constructions
+          (loop for cxn in (remove-duplicates
+                            (append
+                             (loop for hash in (hash node (get-configuration node :hash-mode))
+                                   append (gethash hash (constructions-hash-table (construction-inventory node))))
+                             (unless ignore-nil-hashes
+                               (gethash nil (constructions-hash-table (construction-inventory node))))))
+                for cxn-label = (attr-val cxn :label)
+                when (or (and (symbolp cxn-label) (equalp (symbol-name label) (symbol-name cxn-label)))
+                         (and (listp cxn-label) (member label cxn-label)))
+                  collect cxn)))
     ;; shuffle if requested
     (when (get-configuration node :shuffle-cxns-before-application)
       (setf constructions 
