@@ -15,10 +15,10 @@
                 (:interacting-agents-strategy . :standard)
                 (:population-size . 10)
                 ;; setup data scene
-                (:dataset . "cogenta-extracted")
+                (:dataset . "clevr")
                 (:dataset-split . "val")
-                (:data-fname . "all.lisp")
-                (:available-channels ,@(get-all-channels :cogenta-extracted))
+                ;(:data-fname . "all.lisp")
+                (:available-channels ,@(get-all-channels :all))
                 ;; disable channels
                 (:disable-channels . :none)
                 (:amount-disabled-channels . 0)
@@ -28,7 +28,7 @@
                 (:observation-noise . :none)
                 (:observation-std . 0.0)
                 ;; scene sampling
-                (:scene-sampling . :deterministic)
+                (:scene-sampling . :random)
                 (:topic-sampling . :discriminative)
                 ;; general strategy
                 (:align . t)
@@ -52,9 +52,15 @@
                 ;; staging
                 (:current-stage . 0)
                 (:switch-condition . :after-n-interactions) ; :after-n-interactions)
-                (:switch-conditions-after-n-interactions . 5000) 
+                (:switch-conditions-after-n-interactions . 200) 
                 (:stage-parameters 
-                 ((:switch-disable-channels ,'width ,'height ,'area ,'relative-area ,'bb-area))
+                 ;((:switch-disable-channels ,'width ,'height ,'area ,'relative-area ,'bb-area))
+                 ((:switch-dataset . "winery")
+                  (:switch-dataset-split . "train")
+                  (:switch-data-fname . "all.lisp")
+                  (:switch-scene-sampling . :random)
+                  (:switch-topic-sampling . :random)
+                  (:switch-available-channels ,@(get-all-channels :cogentb-extracted)))
                  )
                 ;; saving
                 (:experiment-name . "test")
@@ -69,6 +75,8 @@
 (add-element (html-pprint (configuration *experiment*)))
 
 ;; 1. run x interactions
+(notify reset-monitors)
+
 (progn
   (wi::reset)
   (deactivate-all-monitors)
@@ -77,7 +85,7 @@
   (activate-monitor print-a-dot-for-each-interaction)
   (format t "~%---------- NEW GAME ----------~%")
   (time
-   (loop for i from 1 to 50000
+   (loop for i from 1 to 10000
          do (run-interaction *experiment*))))
 
 (progn
@@ -89,18 +97,75 @@
         do (run-interaction *experiment*)))
 
 ;;;;
-
-(setf *experiment*
-      (cl-store:restore (babel-pathname :directory '("experiments"
-                                                     "concept-emergence2"
-                                                     "logging"
-                                                     "july"
-                                                     "clevr-extracted"
-                                                     "2023-07-31_11h42m54s-exp-0"
+(progn
+  (setf *experiment*
+        (cl-store:restore (babel-pathname :directory '("experiments"
+                                                       "concept-emergence2"
+                                                       "logging"
+                                                       "2023-7-vacationresults"
+                                                       "cogenta-extracted"
+                                                       "2023-07-31_11h43m42s-exp-0"
                                                      
-                                                     )
-                                        :name "history"
-                                        :type "store")))
+                                                       )
+                                          :name "history"
+                                          :type "store")))
+  (fix-configuration *experiment*))
+
+(set-configuration *experiment* :align nil)
+
+(progn
+  (set-configuration *experiment* :dot-interval 10)
+  (set-configuration *experiment* :scene-sampling :random)
+  (set-configuration *experiment* :topic-sampling :random)
+  (set-configuration *experiment* :dataset "cogent")
+  (set-configuration *experiment* :dataset-split "valB")
+  (set-configuration *experiment* :available-channels `(
+             ,'xpos ,'ypos
+             ,'width ,'height
+             ,'angle
+             ,'corners
+             ,'area ,'relative-area
+             ,'bb-area ,'bb-area-ratio
+             ,'wh-ratio
+             ,'circle-distance
+             ,'white-level ,'black-level
+             ,'lab-mean-l ,'lab-mean-a ,'lab-mean-b
+             ,'lab-std-l ,'lab-std-a ,'lab-std-b
+             ;,'rgb-mean-r ,'rgb-mean-g ,'rgb-mean-b
+             ;,'rgb-std-r ,'rgb-std-g ,'rgb-std-b
+             ))
+  (initialise-world *experiment*))
+
+(loop for agent in (agents *experiment*)
+      for lexicon = (lexicon agent)
+      do (setf (noise-in-each-sensor agent)
+               (determine-noise-in-sensor *experiment*
+                                          nil
+                                          (get-configuration *experiment* :sensor-noise)))
+      do (setf (noise-in-each-observation agent)
+               (determine-noise-in-observation *experiment*
+                                               nil
+                                               (get-configuration *experiment* :sensor-noise)))
+      do (loop for cxn in lexicon
+               for prototypes = (prototypes (meaning cxn))
+               do (loop for prototype in prototypes
+                        if (eq (channel prototype) 'color-mean-l)
+                          do (setf (channel prototype) 'lab-mean-l)
+                        if (eq (channel prototype) 'color-mean-a)
+                          do (setf (channel prototype) 'lab-mean-a)
+                        if (eq (channel prototype) 'color-mean-b)
+                          do (setf (channel prototype) 'lab-mean-b)
+                        if (eq (channel prototype) 'color-std-l)
+                          do (setf (channel prototype) 'lab-std-l)
+                        if (eq (channel prototype) 'color-std-a)
+                          do (setf (channel prototype) 'lab-std-a)
+                        if (eq (channel prototype) 'color-std-b)
+                          do (setf (channel prototype) 'lab-std-b))))
+               
+      
+
+(objects (current-scene (world *experiment*)))
+
 
 ;;;;
 
@@ -122,8 +187,14 @@
  (:switch-data-fname . "all.lisp")
  (:switch-scene-sampling . :deterministic)
  (:switch-topic-sampling . :discriminative)
- (:switch-available-channels ,@(get-all-channels :cogentb-extracted)))
+ (:switch-available-channels ,@(get-all-channels :all)))
 
+((:switch-dataset . "winery")
+ (:switch-dataset-split . "train")
+ (:switch-data-fname . "all.lisp")
+ (:switch-scene-sampling . :random)
+ (:switch-topic-sampling . :random)
+ (:switch-available-channels ,@(get-all-channels :cogentb-extracted)))
 
 (:switch-dataset . "winery")
 (:switch-dataset-split . "train")
