@@ -23,8 +23,7 @@
           with-configurations))
 
 (defclass configuration ()
-  ((configuration :initarg :entries
-                  :accessor entries
+  ((configuration :initarg :configuration
                   :accessor configuration
                   :initform nil :type hash-table
                   :documentation "A hash table containing the configuration entries")
@@ -34,15 +33,35 @@
 
 (defmethod initialize-instance :after ((c configuration)
                                        &key entries configuration &allow-other-keys)
-  "it is possible to pass a configuration instance or an alist with
-   through the initarg :configuration. This method handles both cases."
+  "make-instance of a configuration can be called with :entries and :configuration.
+   :entries is always an alist, while :configuration can be an alist, hash-table or
+   a configuration object"
   ;; you can't use both :entries and :configuration as initargs
   (assert (not (and configuration entries)))
+  (when entries
+    (setf (configuration c)
+          (let ((hash (make-hash-table :test
+                                       #'(lambda (entry-1 entry-2)
+                                           (equalp (symbol-name entry-1)
+                                                   (symbol-name entry-2))))))
+            (loop for (key . value) in entries
+                  do (setf (gethash key hash) value))
+            hash)))
   (when configuration
-    (setf (entries c)
-          (if (typep configuration 'configuration)
-            (entries configuration)
-            configuration))))
+    (setf (configuration c)
+          (cond ((typep configuration 'configuration)
+                 (configuration configuration))
+                ((hash-table-p configuration)
+                 configuration)
+                ((listp configuration)
+                 (let ((hash (make-hash-table :test
+                                       #'(lambda (entry-1 entry-2)
+                                           (equalp (symbol-name entry-1)
+                                                   (symbol-name entry-2))))))
+                   (loop for (key . value) in configuration
+                         do (setf (gethash key hash) value))
+                   hash))))))
+
 
 ;; ----------------------------------------------------------------------------  
 
@@ -61,7 +80,7 @@
     (loop for (key . value) in entries
           do (setf (gethash key hash-table) value))
     (make-instance 'configuration
-                   :entries hash-table
+                   :configuration hash-table
                    :parent-configuration parent-configuration)))
 
 (defmacro make-config (&rest key-value-lists)
@@ -71,18 +90,23 @@
                        (list . ,(loop for (key value) in key-value-lists
                                       collect `(cons ',key ,value)))))
 
+(defmethod entries ((configuration configuration))
+  (loop for key being the hash-keys of (configuration configuration)
+          using (hash-value value)
+        collect (cons key value)))
+
 ;; ----------------------------------------------------------------------------
 
 (defmethod print-object ((configuration configuration) stream)
   (if *print-pretty*
     (pprint-logical-block (stream nil)
       (format stream "<configuration:~:_ ~{~a~^,~:_ ~}" 
-              (loop for key being the hash-keys of (entries configuration)
+              (loop for key being the hash-keys of (configuration configuration)
                     using (hash-value value)
                     collect (format nil "~(~a~): ~a" key value)))
       (format stream ">"))
     (format stream "<configuration (~a entries)>" 
-            (hash-table-count (entries configuration)))))
+            (hash-table-count (configuration configuration)))))
 
 ;; ----------------------------------------------------------------------------
 
@@ -93,8 +117,8 @@
 
 (defmethod copy-object-content ((source configuration)
 				(destination configuration))
-  (setf (entries destination)
-	(copy-object (entries source))))
+  (setf (configuration destination)
+	(copy-object (configuration source))))
 
 ;; ----------------------------------------------------------------------------
 ;; get-configuration
@@ -121,7 +145,7 @@
       ;; get-configuration returns two values: (value, key-exists)
       ;; if the key existed, the value was returned
       ;; otherwise the returned value is nil
-      (entry found) (get-configuration (entries configuration) key)
+      (entry found) (get-configuration (configuration configuration) key)
     (cond
      ;; if the entry was not found, check the parent configuration
      ((and (not found) (parent-configuration configuration))
@@ -152,7 +176,7 @@
 (defmethod set-configuration ((configuration configuration) key value
                               &key (replace t)
                               &allow-other-keys)
-  (let* ((hash-table (entries configuration))
+  (let* ((hash-table (configuration configuration))
          (previous-entry (gethash key hash-table)))
     (if previous-entry
       ;; if the entry already exists, only replace it if :replace is true
