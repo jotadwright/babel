@@ -18,13 +18,15 @@
   (let* ((dataset (get-configuration experiment :dataset))
          (dataset-split (get-configuration experiment :dataset-split))
          (scene-sampling (get-configuration experiment :scene-sampling))
-         (fname (get-configuration experiment :data-fname))
-         (available-channels (get-configuration experiment :available-channels))
-         (fpath (mkstr (make-pathname :directory `(:relative ,dataset)
-                                      :name fname))))
+         (available-channels (get-configuration experiment :available-channels)))
     (when (eql scene-sampling :deterministic)
       ;; load the scene ids
-      (set-configuration experiment :scene-ids (read-scene-ids fpath))
+      (set-configuration experiment
+                         :scene-ids (read-scene-ids
+                                     (mkstr (make-pathname :directory
+                                                           `(:relative ,dataset)
+                                                           :name
+                                                           (get-configuration experiment :data-fname)))))
       ;; set the current scene to the first
       (set-configuration experiment :current-scene-idx 0))
     ;; create a world object to load scenes into
