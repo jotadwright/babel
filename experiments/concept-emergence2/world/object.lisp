@@ -74,5 +74,7 @@
   (pprint-logical-block (stream nil)
     (format stream "<cle-object:~
                         ~:_ attributes: ~{~,2f~^, ~}"
-            (reverse (attributes cle-object)))
+            (reverse (loop for channel being the hash-keys of (attributes cle-object)
+                             using (hash-value value)
+                           collect (cons channel value))))
     (format stream ">")))
