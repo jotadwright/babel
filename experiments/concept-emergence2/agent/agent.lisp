@@ -52,7 +52,9 @@
   (let ((raw-observation-val (get-object-val object attr))
         (sensor-noise (noise-in-sensor agent attr (get-configuration agent :sensor-noise)))
         (observation-noise (noise-in-observation agent attr (get-configuration agent :observation-noise))))
-    (+ raw-observation-val sensor-noise observation-noise)))
+    (if raw-observation-val
+      (+ raw-observation-val sensor-noise observation-noise)
+      nil)))
 
 ;; -------------------
 ;; + noise-in-sensor +

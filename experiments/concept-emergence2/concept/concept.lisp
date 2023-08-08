@@ -16,18 +16,19 @@
   (:documentation "Concept representation using prototypes."))
  
 (defmethod make-concept ((agent cle-agent) (object cle-object) (mode (eql :distribution)))
-  (let ((prototypes (loop for channel being the hash-keys of (attributes object) using (hash-value observation)
-                          for initial-weight = (get-configuration agent :initial-weight)
+  (let ((prototypes (loop for channel being the hash-keys of (attributes object)
+                            using (hash-value observation)
                           for distribution = (make-distribution agent
                                                                 observation
                                                                 (get-configuration agent :distribution))
                           for new-prototype = (make-instance 'prototype
                                                              :channel channel
-                                                             :weight initial-weight
+                                                             :weight (get-configuration agent :initial-weight)
                                                              :weight-mode (get-configuration agent :weight-update-strategy)
                                                              :distribution distribution)
                           ;; only create prototypes for working sensors
-                          if (not (find channel (disabled-channels agent)))
+                          if (and (not (find channel (disabled-channels agent)))
+                                  observation)
                             collect new-prototype)))
     ;; create the concept
     (make-instance 'concept-distribution :prototypes prototypes)))
@@ -50,3 +51,9 @@
   (make-instance 'concept-distribution
                  :id (id concept)
                  :prototypes (copy-object (prototypes concept))))
+
+(defmethod print-object ((concept concept-distribution) stream)
+  (pprint-logical-block (stream nil)
+    (format stream "<Concept - channels: ~a,~:_"
+            (loop for prototype in (prototypes concept) collect (channel prototype)))
+    (format stream ">")))

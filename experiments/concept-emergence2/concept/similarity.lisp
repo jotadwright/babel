@@ -11,11 +11,17 @@
         for prototype in prototypes
         for observation = (perceive-object-val agent object (channel prototype))
         for similarity = (observation-similarity observation prototype)
-        sum (* (/ (weight prototype) ledger) similarity)))
+        if similarity
+          sum (* (/ (weight prototype) ledger) similarity)))
 
 ;; ----------------------------------
 ;; + Comparing OBJECT <-> PROTOTYPE +
 ;; ----------------------------------
+(defmethod observation-similarity ((observation null) (prototype prototype))
+  "Similarity on the level of a single prototype."
+  ;; similarity measure between [0,1]
+  nil)
+
 (defmethod observation-similarity ((observation number) (prototype prototype))
   "Similarity on the level of a single prototype."
   ;; similarity measure between [0,1]
