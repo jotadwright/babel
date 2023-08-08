@@ -15,19 +15,6 @@
   (activate-monitor show-type-hierarchy-after-n-interactions))
 
 
-;;;; TO DO
-
-;;;; top-arg/slot-arg predicates
-;;;; Now, grammatical category (a constant) is added as the last argument in these
-;;;; predicates. This will (likely) break down when applying repairs recursively.
-;;;; However, we need these constants to find out which args on the form side
-;;;; and the meaning side belong together. Another way to fix this would be to
-;;;; run 'fresh-variables' on the form side and meaning side simultaneously, or
-;;;; to keep some variables unchanged...
-
-;;;; Add recursion!
-
-
 (progn
   (wi::reset)
   (notify reset-monitors)
@@ -56,7 +43,7 @@
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 263)
+(run-series *experiment* 20)
 
 ;;;; Showing the cxn inventory and categorial network
 

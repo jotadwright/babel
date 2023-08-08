@@ -4,15 +4,15 @@
 ;; anti-unify form ;;
 ;;;;;;;;;;;;;;;;;;;;;
 
-(defun anti-unify-form (source-form thing args form-representation &key max-au-cost)
+(defun anti-unify-form (source-form thing form-representation &key max-au-cost)
   (case form-representation
-    (:string+meets (anti-unify-form-string-meets source-form thing args :max-au-cost max-au-cost))
-    (:sequences (anti-unify-form-sequences source-form thing args :max-au-cost max-au-cost))))
+    (:string+meets (anti-unify-form-string-meets source-form thing :max-au-cost max-au-cost))
+    (:sequences (anti-unify-form-sequences source-form thing :max-au-cost max-au-cost))))
 
-(defgeneric anti-unify-form-sequences (source-form thing args &key max-au-cost)
+(defgeneric anti-unify-form-sequences (source-form thing &key max-au-cost)
   (:documentation "Anti-unify the observation with the given thing on the form side."))
 
-(defmethod anti-unify-form-sequences (source-form (cxn fcg-construction) (args blackboard) &key max-au-cost)
+(defmethod anti-unify-form-sequences (source-form (cxn fcg-construction) &key max-au-cost)
   (let* ((possible-source-forms
           (mapcar #'(lambda (lst) (list-of-strings->string lst :separator ""))
                   (render-all source-form :render-sequences)))
@@ -31,7 +31,7 @@
                        valid-anti-unification-results)))
     (sort valid-anti-unification-results #'< :key #'fcg::cost)))
 
-(defmethod anti-unify-form-sequences (source-form (cipn cip-node) (args blackboard) &key max-au-cost)
+(defmethod anti-unify-form-sequences (source-form (cipn cip-node) &key max-au-cost)
   (let* ((possible-source-forms
           (mapcar #'(lambda (lst) (list-of-strings->string lst :separator ""))
                   (render-all source-form :render-sequences)))
@@ -54,50 +54,36 @@
     (sort valid-anti-unification-results #'< :key #'fcg::cost)))
           
 
-(defgeneric anti-unify-form-string-meets (source-form thing args &key max-au-cost)
+(defgeneric anti-unify-form-string-meets (source-form thing &key max-au-cost)
   (:documentation "Anti-unify the observation with the given thing on the form side."))
 
-(defmethod anti-unify-form-string-meets (source-form (cxn fcg-construction) (args blackboard) &key max-au-cost)
-  ;; before anti unifying, top-args and slot-args are added to the
-  ;; source-form and pattern-form! This makes the learning of cxns
-  ;; easier later on
-  (let* ((pattern-form (extract-form-predicates cxn))
-         (pattern-form-with-args (add-form-arg-predicates pattern-form cxn))
-         (source-form-with-args (add-form-arg-predicates source-form args))
-         (anti-unification-results
-          (anti-unify-predicate-network (fresh-variables pattern-form-with-args) source-form-with-args))
-         (valid-anti-unification-results
-          (remove-if-not #'valid-au-result-p anti-unification-results)))
-    (loop for au-result in valid-anti-unification-results
-          do (setf (fcg::cost au-result)
-                   (correct-au-cost au-result)))
-    (when max-au-cost
+(defmethod anti-unify-form-string-meets (source-form (cxn fcg-construction) &key max-au-cost)
+  (multiple-value-bind (pattern-form renamings)
+      (fresh-variables (extract-form-predicates cxn))
+    (let* ((anti-unification-results
+            (anti-unify-predicate-network pattern-form source-form))
+           (valid-anti-unification-results
+            (remove-if-not #'valid-au-result-p anti-unification-results)))
       (setf valid-anti-unification-results
-            (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
-                       valid-anti-unification-results)))
-    (sort valid-anti-unification-results #'< :key #'fcg::cost)))
+            (loop for au-result in valid-anti-unification-results
+                  collect (rerename-pattern-variables au-result renamings)))
+      (when max-au-cost
+        (setf valid-anti-unification-results
+              (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
+                         valid-anti-unification-results)))
+      (sort valid-anti-unification-results #'< :key #'fcg::cost))))
 
-(defmethod anti-unify-form-string-meets (source-form (cipn cip-node) (args blackboard) &key max-au-cost)
-  ;; before anti unifying, top-args and slot-args are added to the
-  ;; source-form and pattern-form! This makes the learning of cxns
-  ;; easier later on
+(defmethod anti-unify-form-string-meets (source-form (cipn cip-node) &key max-au-cost)
   (let* ((pattern-form
-          (loop for unit in (fcg-get-transient-unit-structure cipn)
-                unless (eql (unit-name unit) 'fcg::root)
-                append (unit-feature-value unit 'form)))
-         (pattern-form-with-args (add-form-arg-predicates pattern-form cipn))
-         (source-form-with-args (add-form-arg-predicates source-form args))
+          (variablify-form-constraints-with-constants
+           (loop for unit in (fcg-get-transient-unit-structure cipn)
+                 unless (eql (unit-name unit) 'fcg::root)
+                 append (unit-feature-value unit 'form))))
          (anti-unification-results
-          (anti-unify-predicate-network
-           ;; first add the arg-predicates, before variablifying everything!
-           (fresh-variables (variablify-form-constraints-with-constants pattern-form-with-args))
-           source-form-with-args))
+          (anti-unify-predicate-network pattern-form source-form))
          ;; when are AU results valid/invalid in the case of partial analysis?
          (valid-anti-unification-results
           (remove-if-not #'valid-au-result-p anti-unification-results)))
-    (loop for au-result in valid-anti-unification-results
-          do (setf (fcg::cost au-result)
-                   (correct-au-cost au-result)))
     (when max-au-cost
       (setf valid-anti-unification-results
             (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
@@ -105,6 +91,7 @@
     (sort valid-anti-unification-results #'< :key #'fcg::cost)))
 
 
+#|
 (defgeneric add-form-arg-predicates (set-of-predicates thing)
   (:documentation "Extract args from thing and add them as predicates
                    to the set of predicates."))
@@ -162,56 +149,49 @@
                    do (push (list 'slot-arg arg category) set-of-predicates))))
   ;; return set of predicates
   set-of-predicates)
+|#
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;; anti-unify meaning ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defgeneric anti-unify-meaning (source-meaning thing args &key max-au-cost)
+(defgeneric anti-unify-meaning (source-meaning thing &key max-au-cost)
   (:documentation "Anti-unify the observation with the given cxn on the meaning side."))
 
-(defmethod anti-unify-meaning (source-meaning (cxn fcg-construction) (args blackboard) &key max-au-cost)
-  ;; before anti unifying, top-args and slot-args are added to the
-  ;; source-meaning and pattern-meaning! This makes the learning of cxns
-  ;; easier later on
-  (let* ((pattern-meaning (extract-meaning-predicates cxn))
-         (pattern-meaning-with-args (add-meaning-arg-predicates pattern-meaning cxn))
-         (source-meaning-with-args (add-meaning-arg-predicates source-meaning args))
-         (anti-unification-results
-          (anti-unify-predicate-network (fresh-variables pattern-meaning-with-args) source-meaning-with-args))
-         (valid-anti-unification-results
-          (remove-if-not #'valid-au-result-p anti-unification-results)))
-    (loop for au-result in valid-anti-unification-results
-          do (setf (fcg::cost au-result)
-                   (correct-au-cost au-result)))
-    (when max-au-cost
+(defmethod anti-unify-meaning (source-meaning (cxn fcg-construction) &key max-au-cost)
+  (multiple-value-bind (pattern-meaning renamings)
+      (fresh-variables (extract-meaning-predicates cxn))
+    (let* ((anti-unification-results
+            (anti-unify-predicate-network pattern-meaning source-meaning))
+           (valid-anti-unification-results
+            (remove-if-not #'valid-au-result-p anti-unification-results)))
+      (when max-au-cost
+        (setf valid-anti-unification-results
+              (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
+                         valid-anti-unification-results)))
       (setf valid-anti-unification-results
-            (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
-                       valid-anti-unification-results)))
-    (sort valid-anti-unification-results #'< :key #'fcg::cost)))
+            (loop for au-result in valid-anti-unification-results
+                  collect (rerename-pattern-variables au-result renamings)))
+      (sort valid-anti-unification-results #'< :key #'fcg::cost))))
 
-(defmethod anti-unify-meaning (source-meaning (cipn cip-node) (args blackboard) &key max-au-cost)
-  ;; before anti unifying, top-args and slot-args are added to the
-  ;; source-meaning and pattern-meaning! This makes the learning of cxns
-  ;; easier later on
-  (let* ((pattern-meaning (fcg-extract-meanings cipn))
-         (pattern-meaning-with-args (add-meaning-arg-predicates pattern-meaning cipn))
-         (source-meaning-with-args (add-meaning-arg-predicates source-meaning args))
-         (anti-unification-results
-          (anti-unify-predicate-network (fresh-variables pattern-meaning-with-args) source-meaning-with-args))
-         ;; when are AU results valid/invalid in the case of partial analysis?
-         (valid-anti-unification-results
-          (remove-if-not #'valid-au-result-p anti-unification-results)))
-    (loop for au-result in valid-anti-unification-results
-          do (setf (fcg::cost au-result)
-                   (correct-au-cost au-result)))
-    (when max-au-cost
+(defmethod anti-unify-meaning (source-meaning (cipn cip-node) &key max-au-cost)
+  (multiple-value-bind (pattern-meaning renamings)
+      (fresh-variables (fcg-extract-meanings cipn))
+    (let* ((anti-unification-results
+            (anti-unify-predicate-network pattern-meaning source-meaning))
+           ;; when are AU results valid/invalid in the case of partial analysis?
+           (valid-anti-unification-results
+            (remove-if-not #'valid-au-result-p anti-unification-results)))
+      (when max-au-cost
+        (setf valid-anti-unification-results
+              (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
+                         valid-anti-unification-results)))
       (setf valid-anti-unification-results
-            (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
-                       valid-anti-unification-results)))
-    (sort valid-anti-unification-results #'< :key #'fcg::cost)))
+            (loop for au-result in valid-anti-unification-results
+                  collect (rerename-pattern-variables au-result renamings)))
+      (sort valid-anti-unification-results #'< :key #'fcg::cost))))
 
-
+#|
 (defgeneric add-meaning-arg-predicates (set-of-predicates thing)
   (:documentation "Extract args from thing and add them as predicates
                    to the set of predicates."))
@@ -269,12 +249,27 @@
                    do (push (list 'slot-arg arg category) set-of-predicates))))
   ;; return set of predicates
   set-of-predicates)
-
+|#
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; anti-unify utils ;;
 ;;;;;;;;;;;;;;;;;;;;;;
 
+(defun rerename-pattern-variables (anti-unification-result renamings)
+  (with-slots (generalisation
+               pattern-bindings
+               source-bindings
+               pattern-delta
+               source-delta) anti-unification-result
+    (let ((bs (fcg::reverse-bindings renamings)))
+      (setf pattern-bindings
+            (loop for (x . y) in pattern-bindings
+                  collect (cons (rest (assoc x bs)) y)))
+      (setf pattern-delta
+            (substitute-variables pattern-delta bs))
+      anti-unification-result)))
+
+#|
 (defun remove-arg-predicates (set-of-predicates)
   "Remove both top-args and slot-args predicates
    from the set of predicates."
@@ -292,6 +287,7 @@
                (count 'slot-arg pattern-delta :key #'first)
                (count 'top-arg source-delta :key #'first)
                (count 'slot-arg source-delta :key #'first)))))
+|#
 
 (defun renamingp (bindings-list)
   "A bindings list is a renaming if the mappings are one to one"
@@ -306,8 +302,8 @@
    (i.e. generalisation and both delta's)
    are non-empty!"
   (and (generalisation au-result)
-       (remove-arg-predicates (source-delta au-result))
-       (remove-arg-predicates (pattern-delta au-result))))
+       (source-delta au-result)
+       (pattern-delta au-result)))
 
 (defun au-partial-analysis-p (au-result)
   "The anti-unification result can be used as a partial
@@ -316,7 +312,7 @@
    and the pattern bindings list is a renaming."
   (and (generalisation au-result)
        (source-delta au-result)
-       (null (remove-arg-predicates (pattern-delta au-result)))
+       (null (pattern-delta au-result))
        (renamingp (pattern-bindings au-result))))
 
 (defun valid-au-result-p (au-result)
@@ -354,6 +350,7 @@
                 (< combined-cost-1 combined-cost-2))))))
 
 
+#|
 (defun copy-arg-predicates (anti-unification-result)
   "Copy arg predicates from the pattern delta to the source delta;
    only copy predicates that include variables that can be found in
@@ -392,3 +389,4 @@
                         (loop for predicate in top-arg-predicates
                               when (eql (last-elt predicate) category)
                                 collect (second predicate))))))
+|#

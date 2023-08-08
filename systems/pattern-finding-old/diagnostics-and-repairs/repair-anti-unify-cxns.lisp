@@ -69,11 +69,11 @@
                 for cxn in filtered-hash-compatible-cxns
                 ;; returns all valid form anti unification results
                 for form-anti-unification-results
-                  = (anti-unify-form observation-form cxn args form-representation
+                  = (anti-unify-form observation-form cxn form-representation
                                      :max-au-cost max-au-cost)
                 ;; returns all valid meaning anti unification results
                 for meaning-anti-unification-results
-                  = (anti-unify-meaning observation-meaning cxn args
+                  = (anti-unify-meaning observation-meaning cxn
                                         :max-au-cost max-au-cost)
                 ;; make all combinations and filter for valid combinations
                 for all-anti-unification-combinations
@@ -94,11 +94,11 @@
         (let* ((anti-unified-cxn (first generalisation))
                (new-cxns-and-links
                 (cond ((holophrase-cxn-p anti-unified-cxn)
-                       (make-cxns-from-holophrase-generalisation generalisation cxn-inventory))
+                       (make-cxns-from-holophrase-generalisation generalisation args cxn-inventory))
                       ((holistic-cxn-p anti-unified-cxn)
-                       (make-cxns-from-holistic-generalisation generalisation cxn-inventory))
+                       (make-cxns-from-holistic-generalisation generalisation args cxn-inventory))
                       ((item-based-cxn-p anti-unified-cxn)
-                       (make-cxns-from-item-based-generalisation generalisation cxn-inventory)))))
+                       (make-cxns-from-item-based-generalisation generalisation args cxn-inventory)))))
           (when new-cxns-and-links
             (return new-cxns-and-links)))))))
 
@@ -106,7 +106,7 @@
 ;; make cxns from holophrase generalisation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun make-cxns-from-holophrase-generalisation (anti-unification-results cxn-inventory)
+(defun make-cxns-from-holophrase-generalisation (anti-unification-results args cxn-inventory)
   "When anti-unifying with a holophrase cxn, make
    1) an item-based cxn from the generalisation,
    2) a holistic cxn from the source delta, and
@@ -116,12 +116,12 @@
                        form-anti-unification
                        meaning-anti-unification) anti-unification-results
     (let* (;; all form-args and meaning-args
-           (form-args (compute-args form-anti-unification anti-unified-cxn))
-           (meaning-args (compute-args meaning-anti-unification anti-unified-cxn))
+           (form-args (compute-form-args form-anti-unification anti-unified-cxn args))
+           (meaning-args (compute-meaning-args meaning-anti-unification anti-unified-cxn args))
            ;; item-based cxn from generalisation
            (generalisation-cxns-and-categories
-            (make-generalisation-cxn (remove-arg-predicates (generalisation form-anti-unification))
-                                     (remove-arg-predicates (generalisation meaning-anti-unification))
+            (make-generalisation-cxn (generalisation form-anti-unification)
+                                     (generalisation meaning-anti-unification)
                                      (find-data form-args :generalisation-top-lvl-args)
                                      (find-data meaning-args :generalisation-top-lvl-args)
                                      (find-data form-args :generalisation-slot-args)
@@ -129,17 +129,17 @@
                                      cxn-inventory))
            ;; holistic cxn from source delta
            (source-delta-cxns-and-categories
-            (make-holistic-cxn (remove-arg-predicates (source-delta form-anti-unification))
-                               (remove-arg-predicates (source-delta meaning-anti-unification))
+            (make-holistic-cxn (source-delta form-anti-unification)
+                               (source-delta meaning-anti-unification)
                                (find-data form-args :source-top-lvl-args)
                                (find-data meaning-args :source-top-lvl-args)
                                cxn-inventory))
            ;; holistic cxn from pattern delta
            (pattern-delta-cxns-and-categories
-            (when (and (remove-arg-predicates (pattern-delta form-anti-unification))
-                       (remove-arg-predicates (pattern-delta meaning-anti-unification)))
-              (make-holistic-cxn (remove-arg-predicates (pattern-delta form-anti-unification))
-                                 (remove-arg-predicates (pattern-delta meaning-anti-unification))
+            (when (and (pattern-delta form-anti-unification)
+                       (pattern-delta meaning-anti-unification))
+              (make-holistic-cxn (pattern-delta form-anti-unification)
+                                 (pattern-delta meaning-anti-unification)
                                  (find-data form-args :pattern-top-lvl-args)
                                  (find-data meaning-args :pattern-top-lvl-args)
                                  cxn-inventory)))
@@ -181,7 +181,7 @@
 ;; make cxns from holistic generalisation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun make-cxns-from-holistic-generalisation (anti-unification-results cxn-inventory)
+(defun make-cxns-from-holistic-generalisation (anti-unification-results args cxn-inventory)
   "When anti-unifying with a holistic cxn, make
    1) a holistic cxn from the generalisation,
    2) an item-based cxn from the source delta, and
@@ -195,19 +195,19 @@
                        form-anti-unification
                        meaning-anti-unification) anti-unification-results
     (let* (;; all form-args and meaning-args
-           (form-args (compute-args form-anti-unification anti-unified-cxn))
-           (meaning-args (compute-args meaning-anti-unification anti-unified-cxn))
+           (form-args (compute-form-args form-anti-unification anti-unified-cxn args))
+           (meaning-args (compute-meaning-args meaning-anti-unification anti-unified-cxn args))
            ;; holistic cxn from generalisation
            (generalisation-cxns-and-categories
-            (make-holistic-cxn (remove-arg-predicates (generalisation form-anti-unification))
-                               (remove-arg-predicates (generalisation meaning-anti-unification))
+            (make-holistic-cxn (generalisation form-anti-unification)
+                               (generalisation meaning-anti-unification)
                                (find-data form-args :generalisation-slot-args)
                                (find-data meaning-args :generalisation-slot-args)
                                cxn-inventory))
            ;; item-based cxn from source delta
            (source-delta-cxns-and-categories
-            (make-generalisation-cxn (remove-arg-predicates (source-delta form-anti-unification))
-                                     (remove-arg-predicates (source-delta meaning-anti-unification))
+            (make-generalisation-cxn (source-delta form-anti-unification)
+                                     (source-delta meaning-anti-unification)
                                      (find-data form-args :source-slot-args)
                                      (find-data meaning-args :source-slot-args)
                                      (find-data form-args :source-top-lvl-args)
@@ -215,10 +215,10 @@
                                      cxn-inventory))
            ;; item-based cxn from pattern delta
            (pattern-delta-cxns-and-categories
-            (when (and (remove-arg-predicates (pattern-delta form-anti-unification))
-                       (remove-arg-predicates (pattern-delta meaning-anti-unification)))
-              (make-generalisation-cxn (remove-arg-predicates (pattern-delta form-anti-unification))
-                                       (remove-arg-predicates (pattern-delta meaning-anti-unification))
+            (when (and (pattern-delta form-anti-unification)
+                       (pattern-delta meaning-anti-unification))
+              (make-generalisation-cxn (pattern-delta form-anti-unification)
+                                       (pattern-delta meaning-anti-unification)
                                        (find-data form-args :pattern-slot-args)
                                        (find-data meaning-args :pattern-slot-args)
                                        (find-data form-args :pattern-top-lvl-args)
@@ -276,7 +276,7 @@
 ;; make cxns from item-based generalisation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun make-cxns-from-item-based-generalisation (anti-unification-results cxn-inventory)
+(defun make-cxns-from-item-based-generalisation (anti-unification-results args cxn-inventory)
   "When anti-unifying with an item-based cxn, make
    1) an item-based cxn from the generalisation,
    2) a holistic cxn from the source delta, and
@@ -290,12 +290,12 @@
                        form-anti-unification
                        meaning-anti-unification) anti-unification-results
     (let* (;; all form-args and meaning-args
-           (form-args (compute-args form-anti-unification anti-unified-cxn))
-           (meaning-args (compute-args meaning-anti-unification anti-unified-cxn))
+           (form-args (compute-form-args form-anti-unification anti-unified-cxn args))
+           (meaning-args (compute-meaning-args meaning-anti-unification anti-unified-cxn args))
            ;; item-based cxn from generalisation
            (generalisation-cxns-and-categories
-            (make-generalisation-cxn (remove-arg-predicates (generalisation form-anti-unification))
-                                     (remove-arg-predicates (generalisation meaning-anti-unification))
+            (make-generalisation-cxn (generalisation form-anti-unification)
+                                     (generalisation meaning-anti-unification)
                                      (find-data form-args :generalisation-top-lvl-args)
                                      (find-data meaning-args :generalisation-top-lvl-args)
                                      (find-data form-args :generalisation-slot-args)
@@ -303,25 +303,25 @@
                                      cxn-inventory))
            ;; holistic cxn from source delta
            (source-delta-cxns-and-categories
-            (make-holistic-cxn (remove-arg-predicates (source-delta form-anti-unification))
-                               (remove-arg-predicates (source-delta meaning-anti-unification))
+            (make-holistic-cxn (source-delta form-anti-unification)
+                               (source-delta meaning-anti-unification)
                                (find-data form-args :source-top-lvl-args)
                                (find-data meaning-args :source-top-lvl-args)
                                cxn-inventory))
            ;; item-based cxn from pattern delta
            (pattern-delta-form-arg-groups
-            (loop with groups = (group-slot-args-into-units (pattern-delta form-anti-unification))
-                  for group in groups
-                  collect (cons (first group) (reverse (rest group)))))
+            (loop for unit in (extract-slot-units anti-unified-cxn)
+                  collect (cons (extract-category-unit unit)
+                                (first (fcg-unit-feature-value unit 'form-args)))))
            (pattern-delta-meaning-arg-groups
-            (loop with groups = (group-slot-args-into-units (pattern-delta meaning-anti-unification))
-                  for group in groups
-                  collect (cons (first group) (reverse (rest group)))))
+            (loop for unit in (extract-slot-units anti-unified-cxn)
+                  collect (cons (extract-category-unit unit)
+                                (first (fcg-unit-feature-value unit 'meaning-args)))))
            (pattern-delta-cxns-and-categories
-            (when (and (remove-arg-predicates (pattern-delta form-anti-unification))
-                       (remove-arg-predicates (pattern-delta meaning-anti-unification)))
-              (make-generalisation-cxn-with-n-units (remove-arg-predicates (pattern-delta form-anti-unification))
-                                                    (remove-arg-predicates (pattern-delta meaning-anti-unification))
+            (when (and (pattern-delta form-anti-unification)
+                       (pattern-delta meaning-anti-unification))
+              (make-generalisation-cxn-with-n-units (pattern-delta form-anti-unification)
+                                                    (pattern-delta meaning-anti-unification)
                                                     (find-data form-args :pattern-top-lvl-args)
                                                     (find-data meaning-args :pattern-top-lvl-args)
                                                     (find-data form-args :pattern-slot-args)

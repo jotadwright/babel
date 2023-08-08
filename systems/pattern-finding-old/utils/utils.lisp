@@ -469,7 +469,9 @@
     (values (substitute-bindings renamings set-of-predicates)
             renamings)))
 
+
 (defun variablify-form-constraints-with-constants (form-constraints-with-constants)
+  "Variablify the constants in the form constraints"
   (loop for form-constraint in form-constraints-with-constants
         for constraint = (first form-constraint)
         collect (cons constraint
@@ -484,8 +486,32 @@
                         (sequence (cons (second form-constraint)
                                         (mapcar #'variablify (cddr form-constraint))))))))
 
-(defun devariablify (var)
-  (intern (get-base-name var :remove-numeric-tail nil)))
+
+(defun fresh-variablify-form-constraints-with-constants (form-constraints-with-constants)
+  "Variablify the constants in the form constraints with fresh variables.
+   Uses a locally defined version of substitute-bindings that can handle
+   (const . var) bindings lists."
+  (labels ((substitute-constants (bindings x)
+             (if (atom x)
+               (let ((y (assoc x bindings :test #'eq)))
+                 (if (and y (not (eq (cdr y) x)))
+                   (substitute-constants bindings (cdr y))
+                   x))
+               (cons (substitute-constants bindings (car x))
+                     (substitute-constants bindings (cdr x))))))
+    (let* ((all-constants (loop for form-constraint in form-constraints-with-constants
+                                for constraint = (first form-constraint)
+                                append (case constraint
+                                         (string (list (second form-constraint)))
+                                         (meets (rest form-constraint))
+                                         (sequence (cddr form-constraint)))))
+           (unique-constants (remove-duplicates all-constants))
+           (renamings (loop for const in unique-constants
+                            for base-name = (get-base-name const)
+                            unless (variable-p const)
+                              collect (cons const (make-var base-name)))))
+      (values (substitute-constants renamings form-constraints-with-constants)
+              renamings))))
 
 
 ;;;;;
@@ -687,14 +713,14 @@
                  (extract-forms (left-pole-structure
                                  (de-render utterance de-render-mode)))
                  :key #'first)))
-    (variablify-form-constraints-with-constants form-constraints-with-constants)))
+    (fresh-variablify-form-constraints-with-constants form-constraints-with-constants)))
 
 (defmethod form-constraints-with-variables (utterance de-render-mode (mode (eql :sequences)))
   (let ((form-constraints-with-constants
          (extract-forms
           (left-pole-structure
            (de-render utterance de-render-mode)))))
-    (variablify-form-constraints-with-constants form-constraints-with-constants)))
+    (fresh-variablify-form-constraints-with-constants form-constraints-with-constants)))
 
 (defgeneric meaning-predicates-with-variables (meaning mode))
 
