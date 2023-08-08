@@ -62,10 +62,10 @@
                 for cipn in partial-analysis-cipns
                 ;; returns all valid form anti unification results
                 for form-anti-unification-results
-                  = (anti-unify-form observation-form cipn args form-representation)
+                  = (anti-unify-form observation-form cipn form-representation)
                 ;; returns all valid meaning anti unification results
                 for meaning-anti-unification-results
-                  = (anti-unify-meaning observation-meaning cipn args)
+                  = (anti-unify-meaning observation-meaning cipn)
                 ;; make all combinations and filter for valid combinations
                 for all-anti-unification-combinations
                   = (remove-if-not #'valid-au-combination-p
@@ -82,20 +82,16 @@
     ;; 3) when there are anti-unification results, learn cxns from them!
     (when least-general-generalisations
       (dolist (generalisation least-general-generalisations)
-        (let ((form-anti-unification (second generalisation))
-              (meaning-anti-unification (third generalisation))
-              (new-cxns-and-links nil))
-          (copy-arg-predicates form-anti-unification)
-          (copy-arg-predicates meaning-anti-unification)
-          (setf new-cxns-and-links
-                (cond ((and (find 'top-arg (source-delta form-anti-unification) :key #'first)
-                            (find 'top-arg (source-delta meaning-anti-unification) :key #'first))
-                       (make-holistic-cxns-from-partial-analysis
-                        generalisation observation-form observation-meaning cxn-inventory))
-                      ((and (find 'slot-arg (source-delta form-anti-unification) :key #'first)
-                            (find 'slot-arg (source-delta meaning-anti-unification) :key #'first))
+        (let* ((applied-cxn-labels
+                (mapcar #'(lambda (cxn) (attr-val cxn :label))
+                        (original-applied-constructions (first generalisation))))
+               (new-cxns-and-links
+                (cond ((every #'(lambda (elem) (eql elem 'fcg::routine)) applied-cxn-labels)
                        (make-item-based-cxn-from-partial-analysis
-                        generalisation observation-form observation-meaning cxn-inventory))))
+                        generalisation observation-form observation-meaning cxn-inventory))
+                      ((every #'(lambda (elem) (eql elem 'fcg::meta-only)) applied-cxn-labels)
+                       (make-holistic-cxns-from-partial-analysis
+                        generalisation observation-form observation-meaning cxn-inventory)))))
           (when new-cxns-and-links
             (return new-cxns-and-links)))))))
 
@@ -103,28 +99,94 @@
 ;; make item-based cxn from partial analysis ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun get-top-lvl-units (cipn)
+  (let* ((ts-units (fcg-get-transient-unit-structure cipn))
+         (root-unit (get-root ts-units)))
+    (remove-child-units (remove root-unit ts-units))))
+
+(defun get-open-slot-units (cipn)
+  (let* ((ts-units (fcg-get-transient-unit-structure cipn))
+         (root-unit (get-root ts-units))
+         (all-slot-units (get-child-units (remove root-unit ts-units))))
+    (loop for unit in all-slot-units
+          unless (and (unit-feature unit 'form) (unit-feature unit 'meaning))
+          collect unit)))
+
+(defun cipn-form-slot-args (cipn &key by-category-p)
+  (loop for unit in (get-top-lvl-units cipn)
+        for category = (extract-category-unit unit)
+        if by-category-p
+          collect (cons category (unit-feature-value unit 'form-args))
+        else
+          append (unit-feature-value unit 'form-args)))
+
+(defun cipn-meaning-slot-args (cipn &key by-category-p)
+  (loop for unit in (get-top-lvl-units cipn)
+        for category = (extract-category-unit unit)
+        if by-category-p
+            collect (cons category (unit-feature-value unit 'meaning-args))
+        else
+          append (unit-feature-value unit 'meaning-args)))
+
+(defun cipn-form-top-args (cipn &key by-category-p)
+  (loop for unit in (get-open-slot-units cipn)
+        for category = (extract-category-unit unit)
+        if by-category-p
+            collect (cons category (unit-feature-value unit 'form-args))
+        else
+          append (unit-feature-value unit 'form-args)))
+
+(defun cipn-meaning-top-args (cipn &key by-category-p)
+  (loop for unit in (get-open-slot-units cipn)
+        for category = (extract-category-unit unit)
+        if by-category-p
+            collect (cons category (unit-feature-value unit 'meaning-args))
+        else
+          append (unit-feature-value unit 'meaning-args)))
+
+(defun map-var-from-pattern-to-source (var anti-unification-result)
+  "Map a variable from the pattern delta to the same variable in the source delta,
+   using the bindings lists."
+  (let* ((var-in-generalisation (rest (assoc var (pattern-bindings anti-unification-result)))))
+    (first (rassoc var-in-generalisation (source-bindings anti-unification-result)))))
+
+(defun group-cipn-args-by-unit (cipn lists-of-args)
+  (loop for args in lists-of-args
+        collect (loop for unit in (fcg-get-transient-unit-structure cipn)
+                      when (or (equal (first (unit-feature-value unit 'form-args)) args)
+                               (equal (first (unit-feature-value unit 'meaning-args)) args))
+                      return (cons (extract-category-unit unit) args))))
+
 (defun make-item-based-cxn-from-partial-analysis (anti-unification-results observation-form observation-meaning cxn-inventory)
   (destructuring-bind (anti-unified-cipn
                        form-anti-unification
                        meaning-anti-unification) anti-unification-results
-    (let* ((source-delta-form-arg-groups
-            (group-slot-args-into-units (source-delta form-anti-unification)))
-           (source-delta-meaning-arg-groups
-            (group-slot-args-into-units (source-delta meaning-anti-unification)))
-           (top-lvl-form-args
-            (mapcar #'second (find-all 'top-arg (source-delta form-anti-unification) :key #'first)))
-           (top-lvl-meaning-args
-            (mapcar #'second (find-all 'top-arg (source-delta meaning-anti-unification) :key #'first)))
+    (let* ((form-top-args
+            (loop for arg in (cipn-form-top-args anti-unified-cipn)
+                  collect (map-var-from-pattern-to-source (variablify arg) form-anti-unification)))
+           (meaning-top-args
+            (loop for arg in (cipn-meaning-top-args anti-unified-cipn)
+                  collect (map-var-from-pattern-to-source arg meaning-anti-unification)))
+           (form-slot-arg-groups
+            (loop for (category . args) in (cipn-form-slot-args anti-unified-cipn :by-category-p t)
+                  collect (cons category
+                                (loop for arg in args
+                                      collect (map-var-from-pattern-to-source (variablify arg) form-anti-unification)))))
+           (meaning-slot-arg-groups
+            (loop for (category . args) in (cipn-meaning-slot-args anti-unified-cipn :by-category-p t)
+                  collect (cons category
+                                (loop for arg in args
+                                      collect (map-var-from-pattern-to-source arg meaning-anti-unification)))))
            ;; learn cxns from source delta
            (source-delta-cxns-and-categories
-            (make-generalisation-cxn-with-n-units (remove-arg-predicates (source-delta form-anti-unification))
-                                                  (remove-arg-predicates (source-delta meaning-anti-unification))
-                                                  top-lvl-form-args
-                                                  top-lvl-meaning-args
-                                                  (mappend #'rest source-delta-form-arg-groups)
-                                                  (mappend #'rest source-delta-meaning-arg-groups)
-                                                  source-delta-form-arg-groups
-                                                  source-delta-meaning-arg-groups
+            (make-generalisation-cxn-with-n-units (source-delta form-anti-unification)
+                                                  (source-delta meaning-anti-unification)
+                                                  form-top-args
+                                                  meaning-top-args
+                                                  (mappend #'rest form-slot-arg-groups)
+                                                  (mappend #'rest meaning-slot-arg-groups)
+                                                  form-slot-arg-groups
+                                                  meaning-slot-arg-groups
                                                   cxn-inventory))
            ;; apply new cxns in sandbox to extract categorial links
            (applied-cxns
@@ -161,16 +223,23 @@
   (destructuring-bind (anti-unified-cipn
                        form-anti-unification
                        meaning-anti-unification) anti-unification-results
-    (let* ((source-delta-form-arg-groups
-            (group-top-args-into-units (source-delta form-anti-unification)))
-           (source-delta-meaning-arg-groups
-            (group-top-args-into-units (source-delta meaning-anti-unification)))
+    (let* (;; deal with args...
+           (form-top-arg-groups
+            (loop for (category . args) in (cipn-form-top-args anti-unified-cipn :by-category-p t)
+                  collect (cons category
+                                (loop for arg in args
+                                      collect (map-var-from-pattern-to-source (variablify arg) form-anti-unification)))))
+           (meaning-top-arg-groups
+            (loop for (category . args) in (cipn-meaning-top-args anti-unified-cipn :by-category-p t)
+                  collect (cons category
+                                (loop for arg in args
+                                      collect (map-var-from-pattern-to-source arg meaning-anti-unification)))))
            ;; learn cxns from source delta
            (source-delta-cxns-and-categories
-            (make-n-holistic-cxns (remove-arg-predicates (source-delta form-anti-unification))
-                                  (remove-arg-predicates (source-delta meaning-anti-unification))
-                                  source-delta-form-arg-groups
-                                  source-delta-meaning-arg-groups
+            (make-n-holistic-cxns (source-delta form-anti-unification)
+                                  (source-delta meaning-anti-unification)
+                                  form-top-arg-groups
+                                  meaning-top-arg-groups
                                   cxn-inventory))
            ;; apply new cxns in sandbox to extract categorial links
            (applied-cxns

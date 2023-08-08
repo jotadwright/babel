@@ -29,3 +29,5 @@
 (defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
 (add-element (make-html *cxn-inventory* :sort-by-type-and-score t))
 (add-element (make-html (categorial-network *cxn-inventory*)))
+
+;; try with a different cxn supplier (one that does not ignore cxns with score 0)
