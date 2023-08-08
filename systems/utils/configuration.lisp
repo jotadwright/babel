@@ -34,11 +34,11 @@
 (defmethod initialize-instance :after ((c configuration)
                                        &key entries configuration &allow-other-keys)
   "make-instance of a configuration can be called with :entries and :configuration.
-   :entries is always an alist, while :configuration can be an alist, hash-table or
-   a configuration object"
+   :entries must be an alist, while :configuration must be a configuration object"
   ;; you can't use both :entries and :configuration as initargs
   (assert (not (and configuration entries)))
   (when entries
+    (assert (listp entries))
     (setf (configuration c)
           (let ((hash (make-hash-table :test
                                        #'(lambda (entry-1 entry-2)
@@ -48,19 +48,15 @@
                   do (setf (gethash key hash) value))
             hash)))
   (when configuration
+    (assert (or (typep configuration 'configuration)
+                (hash-table-p configuration)))
     (setf (configuration c)
           (cond ((typep configuration 'configuration)
                  (configuration configuration))
+                ;; check for hash-table when arriving here
+                ;; through make-configuration
                 ((hash-table-p configuration)
-                 configuration)
-                ((listp configuration)
-                 (let ((hash (make-hash-table :test
-                                       #'(lambda (entry-1 entry-2)
-                                           (equalp (symbol-name entry-1)
-                                                   (symbol-name entry-2))))))
-                   (loop for (key . value) in configuration
-                         do (setf (gethash key hash) value))
-                   hash))))))
+                 configuration)))))
 
 
 ;; ----------------------------------------------------------------------------  
