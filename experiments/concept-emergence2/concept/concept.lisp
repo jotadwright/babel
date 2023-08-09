@@ -20,11 +20,11 @@
                             using (hash-value observation)
                           for distribution = (make-distribution agent
                                                                 observation
-                                                                (get-configuration agent :distribution))
+                                                                (get-configuration (experiment agent) :distribution))
                           for new-prototype = (make-instance 'prototype
                                                              :channel channel
-                                                             :weight (get-configuration agent :initial-weight)
-                                                             :weight-mode (get-configuration agent :weight-update-strategy)
+                                                             :weight (get-configuration (experiment agent) :initial-weight)
+                                                             :weight-mode (get-configuration (experiment agent) :weight-update-strategy)
                                                              :distribution distribution)
                           ;; only create prototypes for working sensors
                           if (and (not (find channel (disabled-channels agent)))

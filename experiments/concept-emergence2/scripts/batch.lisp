@@ -35,8 +35,7 @@
                 (:available-channels ,@(get-all-channels :clevr-extracted))
                 (:scene-sampling . :random)
                 (:topic-sampling . :random)
-                ;; general strategy
-                (:strategy . :times)
+
                 (:similarity-threshold . 0.0)
 
                 ;; entrenchment of constructions

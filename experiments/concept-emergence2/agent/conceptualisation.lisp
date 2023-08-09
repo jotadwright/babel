@@ -21,13 +21,13 @@
   (notify event-conceptualisation-start agent)
   ;; conceptualise ifo the role
   (case (discourse-role agent)
-    (speaker (speaker-conceptualise agent (get-configuration agent :strategy)))
-    (hearer (hearer-conceptualise agent (get-configuration agent :strategy)))))
+    (speaker (speaker-conceptualise agent))
+    (hearer (hearer-conceptualise agent))))
 
 ;; -------------
 ;; + Algorithm +
 ;; -------------
-(defmethod speaker-conceptualise ((agent cle-agent) (mode (eql :times)))
+(defmethod speaker-conceptualise ((agent cle-agent))
   "Conceptualise the topic of the interaction."
   (if (length= (lexicon agent) 0)
     nil
@@ -38,7 +38,7 @@
       (set-data agent 'applied-cxn applied-cxn)
       applied-cxn)))
 
-(defmethod hearer-conceptualise ((agent cle-agent) (mode (eql :times)))
+(defmethod hearer-conceptualise ((agent cle-agent))
   (if (length= (lexicon agent) 0)
     nil
     (destructuring-bind (applied-cxn . competitors) (find-best-concept agent)
@@ -49,7 +49,7 @@
 
    The best concept corresponds to the concept that maximises
    the multiplication of its entrenchment score and its discriminative power."
-  (let* ((threshold (get-configuration agent :similarity-threshold))
+  (let* ((threshold (get-configuration (experiment agent) :similarity-threshold))
          (topic (get-data agent 'topic))
          (context (remove topic (objects (get-data agent 'context))))
          (best-score -1)
@@ -100,7 +100,7 @@
    Therefore, this function will only look into the lexicon for
    competitors as all competitors in the trash already have an
    entrenchment score of zero."
-  (let ((threshold (get-configuration agent :similarity-threshold))
+  (let ((threshold (get-configuration (experiment agent) :similarity-threshold))
         (topic (get-data agent 'topic))
         (context (objects (get-data agent 'context)))
         (discriminating-cxns '()))

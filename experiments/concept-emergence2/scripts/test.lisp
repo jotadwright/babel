@@ -16,7 +16,7 @@
              (add-element `((h3) ,(format nil " with competitors:")))
              (loop for other-cxn in (find-data agent 'meaning-competitors)
                    for similarity = (similar-concepts (meaning applied-cxn) (meaning other-cxn) :times)
-                   for delta = (* similarity (get-configuration agent :entrenchment-li))
+                   for delta = (* similarity (get-configuration (experiment agent) :entrenchment-li))
                      
                    do (add-element `((h4) ,(format nil "~a - punished by ~,4f [similarity: ~,2f]" (form other-cxn) delta similarity)))))
            ))

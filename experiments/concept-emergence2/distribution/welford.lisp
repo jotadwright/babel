@@ -11,7 +11,7 @@
 
 ;; Constructor
 (defmethod make-distribution (agent observation (mode (eql :gaussian-welford)))
-  (let* ((M2 (get-configuration agent :M2))
+  (let* ((M2 (get-configuration (experiment agent) :M2))
          (nr-of-samples 1)
          (st-dev (sqrt (/ M2 nr-of-samples)))
          (mean observation)

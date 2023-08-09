@@ -16,7 +16,7 @@
         do (update-prototype new-observation
                              interaction-number
                              prototype
-                             :save-distribution-history (get-configuration agent :save-distribution-history)))
+                             :save-distribution-history (get-configuration (experiment agent) :save-distribution-history)))
   
   ;; 2. determine which attributes should get an increase
   ;;    in weight, and which should get a decrease.
@@ -39,17 +39,17 @@
           ;; if part of the contributing prototypes -> reward
           if (member (channel prototype) best-subset :key #'channel)
             do (progn
-                 ;(update-history-weight agent prototype (get-configuration agent :weight-incf))        
+                 ;(update-history-weight agent prototype (get-configuration (experiment agent) :weight-incf))        
                  (update-weight prototype
-                                (get-configuration agent :weight-incf)
-                                (get-configuration agent :weight-update-strategy)))
+                                (get-configuration (experiment agent) :weight-incf)
+                                (get-configuration (experiment agent) :weight-update-strategy)))
             ;; otherwise -> punish
           else
             do (progn
-                 ;(update-history-weight agent prototype (get-configuration agent :weight-decf))        
+                 ;(update-history-weight agent prototype (get-configuration (experiment agent) :weight-decf))        
                  (update-weight prototype
-                                (get-configuration agent :weight-decf)
-                                (get-configuration agent :weight-update-strategy))))))
+                                (get-configuration (experiment agent) :weight-decf)
+                                (get-configuration (experiment agent) :weight-update-strategy))))))
 
 ;; -----------------------
 ;; + Utils for alignment +
@@ -114,7 +114,7 @@
 (defun find-discriminating-attributes (agent concept topic similarity-table)
   "Find all attributes that are discriminating for the topic."
   (loop with context = (remove topic (objects (get-data agent 'context)))
-        with threshold = (get-configuration agent :similarity-threshold)
+        with threshold = (get-configuration (experiment agent) :similarity-threshold)
         with discriminating-attributes = nil
         for prototype in (get-available-prototypes agent concept)
         for channel = (channel prototype)

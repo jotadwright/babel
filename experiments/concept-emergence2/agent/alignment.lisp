@@ -14,13 +14,13 @@
 (defmethod align ((agent cle-agent))
   (notify event-align-start agent)
   (case (discourse-role agent)
-    (speaker (speaker-alignment agent :times))
-    (hearer (hearer-alignment agent :times))))
+    (speaker (speaker-alignment agent))
+    (hearer (hearer-alignment agent))))
 
 ;; ---------------------
 ;; + Speaker Alignment +
 ;; ---------------------
-(defmethod speaker-alignment ((agent cle-agent) (mode (eql :times)))
+(defmethod speaker-alignment ((agent cle-agent))
   "Speaker alignment."
   (let* ((topic (find-data agent 'topic))
          (applied-cxn (find-data agent 'applied-cxn))
@@ -31,25 +31,25 @@
         ;; if success,
         (progn
           ;;  1. entrench applied-cxn
-          (update-score-cxn agent applied-cxn (get-configuration agent :entrenchment-incf))
+          (update-score-cxn agent applied-cxn (get-configuration (experiment agent) :entrenchment-incf))
           ;;  2. shift concept of applied-cxn to topic
           (shift-concept agent topic (meaning applied-cxn))
           ;;  3. punish competing similar cxns
           (loop for other-cxn in (find-data agent 'meaning-competitors)
-                for similarity = (similar-concepts (meaning applied-cxn) (meaning other-cxn) mode)
-                for delta = (* similarity (get-configuration agent :entrenchment-li))
+                for similarity = (similar-concepts (meaning applied-cxn) (meaning other-cxn))
+                for delta = (* similarity (get-configuration (experiment agent) :entrenchment-li))
                 do (update-score-cxn agent other-cxn delta))
           ;; notify
           (notify event-align-cxn "Entrench and shift" applied-cxn previous-copy))
         ;; otherwise, entrench used cxn negatively
         (progn
-          (update-score-cxn agent applied-cxn (get-configuration agent :entrenchment-decf))
+          (update-score-cxn agent applied-cxn (get-configuration (experiment agent) :entrenchment-decf))
           (notify event-align-cxn "Punish (due to failure)" applied-cxn previous-copy))))))
 
 ;; --------------------
 ;; + Hearer Alignment +
 ;; --------------------
-(defmethod hearer-alignment ((agent cle-agent) (mode (eql :times)))
+(defmethod hearer-alignment ((agent cle-agent))
   "Hearer alignment."
   (let* ((topic (get-data agent 'topic))
          (applied-cxn (find-data agent 'applied-cxn))
@@ -64,21 +64,21 @@
          ;; CASE A: recognized + communication was successful!
          (progn
            ;; 1. entrench applied-cxn
-           (update-score-cxn agent applied-cxn (get-configuration agent :entrenchment-incf))
+           (update-score-cxn agent applied-cxn (get-configuration (experiment agent) :entrenchment-incf))
            ;; 2. shift concept of applied-cxn to topic
            (shift-concept agent topic (meaning applied-cxn))
            ;; 3. find and punish meaning competitors
-           (decide-competitors-hearer agent applied-cxn mode)
+           (decide-competitors-hearer agent applied-cxn)
            (loop for other-cxn in (find-data agent 'meaning-competitors)
-                 for similarity = (similar-concepts (meaning applied-cxn) (meaning other-cxn) mode)
-                 for delta = (* similarity (get-configuration agent :entrenchment-li))
+                 for similarity = (similar-concepts (meaning applied-cxn) (meaning other-cxn))
+                 for delta = (* similarity (get-configuration (experiment agent) :entrenchment-li))
                  do (update-score-cxn agent other-cxn delta))
            ;; notify
            (notify event-align-cxn "Entrench and shift" applied-cxn previous-copy))
          ;; CASE B: recognized but did not point to correct word
          (progn
            ;; 1. entrench applied-cxn negatively
-           (update-score-cxn agent applied-cxn (get-configuration agent :entrenchment-decf))
+           (update-score-cxn agent applied-cxn (get-configuration (experiment agent) :entrenchment-decf))
            ;; 2. shift concept of applied-cxn to topic
            (shift-concept agent topic (meaning applied-cxn))
            (notify event-align-cxn "Punish (due to failure) and shift" applied-cxn previous-copy)))))))

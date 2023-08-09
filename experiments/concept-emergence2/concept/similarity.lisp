@@ -41,7 +41,7 @@
 ;; -------------------------------
 ;; + Similarity between CONCEPTS +
 ;; -------------------------------
-(defmethod similar-concepts ((concept1 concept) (concept2 concept) (mode (eql :times)) &key &allow-other-keys)
+(defmethod similar-concepts ((concept1 concept) (concept2 concept) &key &allow-other-keys)
   (loop with concept1-weight-sum = (loop for proto in (prototypes concept1) sum (weight proto))
         with concept2-weight-sum = (loop for proto in (prototypes concept2) sum (weight proto))
         for proto1 in (prototypes concept1)
