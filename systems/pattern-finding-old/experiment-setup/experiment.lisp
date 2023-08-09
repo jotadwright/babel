@@ -7,7 +7,7 @@
 ;; Finding the data
 (define-configuration-default-value :corpus-directory
                                     (merge-pathnames
-                                     (make-pathname :directory '(:relative "clevr-grammar-learning"))
+                                     (make-pathname :directory '(:relative "CLEVR-pattern-finding-data"))
                                      cl-user:*babel-corpora*))
 (define-configuration-default-value :corpus-file
                                     (make-pathname :directory '(:relative "train")

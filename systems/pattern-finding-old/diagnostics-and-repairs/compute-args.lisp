@@ -53,12 +53,8 @@
                          source-slot-args)))
         (set-data args :generalisation-top-lvl-args
                   (loop for arg in pattern-top-args
-                        when (rest (assoc arg pattern-bindings)) ;; !
-                        collect it))))
+                        collect (or (rest (assoc arg pattern-bindings)) arg)))))
     args))
-
-(defmethod compute-form-args (anti-unification-result (anti-unified-cipn cip-node) (source-args blackboard))
-  )
 
 (defmethod compute-meaning-args (anti-unification-result (anti-unified-cxn fcg-construction) (source-args blackboard))
   (let ((args (make-blackboard)))
@@ -99,14 +95,8 @@
                          source-slot-args)))
         (set-data args :generalisation-top-lvl-args
                   (loop for arg in pattern-top-args
-                        when (rest (assoc arg pattern-bindings)) ;; !
-                        collect it))))
+                        collect (or (rest (assoc arg pattern-bindings)) arg)))))
     args))
-
-(defmethod compute-meaning-args (anti-unification-result (anti-unified-cipn cip-node) (source-args blackboard))
-  )
-
-
 
 #|
 (defun compute-args (anti-unification-result anti-unified-cxn)
