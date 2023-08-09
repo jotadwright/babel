@@ -626,7 +626,8 @@
                        when (and meaning ; meaning should be non-nil
                                  (form-predicates-in-root cip-node) ; some form left in root
                                  (irl::embedding meaning gold-standard-meaning) ; partial meaning should be compatible with gold standard
-                                 (fcg::connected-syntactic-structure (fcg-get-transient-unit-structure cip-node))) ; connected structure in TS 
+                                 (fcg::connected-syntactic-structure (fcg-get-transient-unit-structure cip-node)) ; connected structure in TS
+                                 (get-open-slot-units cip-node)) ; some unit(s) that represents open slot(s) in the TS
                        collect cip-node))))))
       (enable-meta-layer-configuration-item-based-first cxn-inventory)
       compatible-cipns)))
@@ -636,10 +637,9 @@
 ;; Sort meets constraints
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-#|
-(defun get-boundary-units (form-constraints)
-  "returns the leftmost and rightmost unit
-   based on meets constraints"
+(defun get-boundaries (form-constraints)
+  "returns all boundaries of the given form-constraints
+   (in terms of string + meets predicates)"
   (let* ((left-units
           (loop for fc in form-constraints
                 when (eql 'meets (first fc))
@@ -648,16 +648,17 @@
           (loop for fc in form-constraints
                 when (eql 'meets (first fc))
                 collect (third fc)))
-         (left-most-unit (first (set-difference left-units right-units)))
-         (right-most-unit (first (set-difference right-units left-units))))
-    (if (and left-most-unit right-most-unit)
-      (list left-most-unit right-most-unit)
+         (left-boundaries (set-difference left-units right-units))
+         (right-boundaries (set-difference right-units left-units)))
+    (if (and left-boundaries right-boundaries)
+      (flatten (pairlis left-boundaries right-boundaries))
       (when (and (= (length form-constraints) 1)
                  (eql 'string (first (first form-constraints))))
         (list (second (first form-constraints))
               (second (first form-constraints)))))))
 
 
+#|
 (defun sort-meets-constraints (meets-constraints)
   "return the sorted list of meets constraints"
   (let* ((begin-var (first (get-boundary-units meets-constraints)))

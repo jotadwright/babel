@@ -28,6 +28,18 @@
                      :problem problem
                      :restart-data cxns-and-categorial-links))))
 
+(defgeneric holistic-form-top-args (form mode)
+  (:documentation "Extract the top args from the form"))
+
+(defmethod holistic-form-top-args (form (mode (eql :string+meets)))
+  (get-boundaries form))
+
+(defgeneric holistic-meaning-top-args (meaning mode)
+  (:documentation "Extract the top args from the meaning"))
+
+(defmethod holistic-meaning-top-args (meaning (mode (eql :irl)))
+  (list (get-target-var meaning)))
+
 (defmethod do-repair (observation-form observation-meaning (args blackboard) (cxn-inventory construction-inventory) node (repair-type (eql 'nothing->holistic)))
   (let* ((cxn-inventory (original-cxn-set cxn-inventory))
          ;; make the cxn name
@@ -40,8 +52,12 @@
          (cxn-name-apply-first
           (intern (upcase (format nil "~a-apply-first" cxn-name))))
          ;; top lvl args
-         (cxn-form-args (find-data args :top-lvl-form-args))
-         (cxn-meaning-args (find-data args :top-lvl-meaning-args))
+         (meaning-representation (get-configuration cxn-inventory :meaning-representation-formalism))
+         (form-representation (get-configuration cxn-inventory :form-representation-formalism))
+         (cxn-form-args (or (find-data args :top-lvl-form-args)
+                            (holistic-form-top-args observation-form form-representation)))
+         (cxn-meaning-args (or (find-data args :top-lvl-meaning-args)
+                               (holistic-meaning-top-args observation-meaning meaning-representation)))
          ;; find an identical existing holistic cxn
          (existing-routine-holistic-cxn
           (find-identical-holistic-cxn observation-form observation-meaning cxn-form-args cxn-meaning-args cxn-inventory))

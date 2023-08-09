@@ -26,24 +26,12 @@
                               (:corpus-file . ,(make-pathname :directory '(:relative "val")
                                                               :name "stage-1" :type "jsonl"))))))
 
-(progn
-  (wi::reset)
-  (notify reset-monitors)
-  (reset-id-counters)
-  (defparameter *experiment*
-    (make-instance 'pattern-finding-experiment
-                   :entries `((:comprehend-all-n . 2)
-                              (:shuffle-data-p . nil)
-                              (:corpus-directory . ,(babel-pathname :directory '("experiments" "grammar-learning"
-                                                                                 "cooking" "data")))
-                              (:corpus-file . ,(make-pathname :name "benchmark-ingredients-uniform" :type "jsonl"))))))
-
 (length (corpus *experiment*))
 
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 20)
+(run-series *experiment* 6)
 
 ;;;; Showing the cxn inventory and categorial network
 

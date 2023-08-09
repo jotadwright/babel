@@ -20,12 +20,11 @@
        :remaining-constructions (all-constructions-of-current-label (cxn-supplier parent))
        :all-constructions-of-current-label (all-constructions-of-current-label (cxn-supplier parent)))
       ;; there is no parent, start from first label
-      (let* ((ignore-nil (get-configuration (construction-inventory (cip node)) :ignore-nil-hashes))
-             (labels (get-configuration (construction-inventory (cip node))
+      (let* ((labels (get-configuration (construction-inventory (cip node))
                                         (if (eq (direction (cip node)) '->)
                                           :production-order :parse-order)))
              (all-constructions-of-current-label
-              (all-constructions-of-label-by-hash-and-score node (car labels) :ignore-nil ignore-nil))
+              (all-constructions-of-label-by-hash-and-score node (car labels)))
              (all-constructions-of-current-label-with-positive-scores
               (remove-if #'(lambda (cxn) (< (attr-val cxn :score) 0))
                          all-constructions-of-current-label)))
