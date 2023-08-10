@@ -38,6 +38,14 @@
         (configuration (make-configuration :entries (configuration experiment))))
   (set-configuration experiment :switch-condition :none))
 
+(defun list-to-hash-table (lst &key (key #'identity))
+  "Creates a hash table given a list."
+  (loop with tbl = (make-hash-table)
+        for el in lst
+        do (setf (gethash (funcall key el) tbl) el)
+        finally (return tbl)))
+
+
 ;; -----------------------------------------
 ;; + Utility functions for CLEVR simulated +
 ;; -----------------------------------------

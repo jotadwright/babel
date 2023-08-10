@@ -45,15 +45,21 @@
                      (s-dot::fontcolor "#AA0000"))))
      g)
     ;; feature-channels nodes
-    (loop for prototype in (reverse (prototypes (meaning cxn)))
+    (loop for prototype in (reverse (get-prototypes (meaning cxn)))
           for record = (prototype->s-dot prototype
                                          :green (member (channel prototype) highlight-green)
                                          :red (member (channel prototype) highlight-red))
-          when (and (not (find (channel prototype) disabled-channels)) (>= (weight prototype) 0.1))
+          when (and (if disabled-channels
+                      (not (gethash (channel prototype) disabled-channels))
+                      t)
+                    (>= (weight prototype) 0.1))
             do (push record g))
     ;; edges between cxn node and feature-channels
-    (loop for prototype in (prototypes (meaning cxn))
-          when (and (not (find (channel prototype) disabled-channels)) (>= (weight prototype) 0.1))
+    (loop for prototype in (get-prototypes (meaning cxn))
+          when (and (if disabled-channels
+                      (not (gethash (channel prototype) disabled-channels))
+                      t)
+                    (>= (weight prototype) 0.1))
             do (push
                 `(s-dot::edge
                   ((s-dot::from ,(mkdotstr (id (meaning cxn))))
@@ -113,13 +119,13 @@
 
 (defmethod get-hex-color (cxn &key (threshold 0.9))
   "Calculate the prototypical color of a cxn."
-  (let ((r (loop for prototype in (prototypes (meaning cxn))
+  (let ((r (loop for prototype in (get-prototypes (meaning cxn))
                  when (equal (channel prototype) 'R)
                    return (cons (round (* 255 (mean (distribution prototype)))) (weight prototype))))
-        (g (loop for prototype in (prototypes (meaning cxn))
+        (g (loop for prototype in (get-prototypes (meaning cxn))
                  when (equal (channel prototype) 'G)
                    return (cons (round (* 255 (mean (distribution prototype)))) (weight prototype))))
-        (b (loop for prototype in (prototypes (meaning cxn))
+        (b (loop for prototype in (get-prototypes (meaning cxn))
                  when (equal (channel prototype) 'B)
                    return (cons (round (* 255 (mean (distribution prototype)))) (weight prototype)))))
     (if (and (> (rest r) threshold) (> (rest g) threshold) (> (rest b) threshold))

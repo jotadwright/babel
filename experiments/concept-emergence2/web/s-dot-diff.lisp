@@ -48,19 +48,25 @@
      g)
 
     ;; feature-channels nodes
-    (loop for prototype in (reverse (prototypes (meaning cxn)))
-          for previous-prototype in (reverse (prototypes (meaning previous-copy)))
+    (loop for prototype in (reverse (get-prototypes (meaning cxn)))
+          for previous-prototype in (reverse (get-prototypes (meaning previous-copy)))
           for record = (prototype->s-dot-diff prototype
                                               previous-prototype
                                               :green (member (channel prototype) highlight-green)
                                               :red (member (channel prototype) highlight-red))
-          when (and (not (find (channel prototype) disabled-channels)) (>= (weight previous-prototype) 0.1))
+          when (and (if disabled-channels
+                      (not (gethash (channel prototype) disabled-channels))
+                      t)
+                    (>= (weight previous-prototype) 0.1))
             do (push record g))
     ;; edges between cxn node and feature-channels
-    (loop for prototype in (prototypes (meaning cxn))
-          for previous-prototype in (prototypes (meaning previous-copy))
+    (loop for prototype in (get-prototypes (meaning cxn))
+          for previous-prototype in (get-prototypes (meaning previous-copy))
           for delta = (- (weight-val prototype) (weight-val previous-prototype))
-          when (and (not (find (channel prototype) disabled-channels)) (>= (weight previous-prototype) 0.1))
+          when (and (if disabled-channels
+                      (not (gethash (channel prototype) disabled-channels))
+                      t)
+                    (>= (weight previous-prototype) 0.1))
             do (push
                 `(s-dot::edge
                   ((s-dot::from ,(mkdotstr (id (meaning cxn))))

@@ -41,19 +41,22 @@
 ;; -------------------------------
 ;; + Similarity between CONCEPTS +
 ;; -------------------------------
-(defmethod similar-concepts ((concept1 concept) (concept2 concept) &key &allow-other-keys)
-  (loop with concept1-weight-sum = (loop for proto in (prototypes concept1) sum (weight proto))
-        with concept2-weight-sum = (loop for proto in (prototypes concept2) sum (weight proto))
-        for proto1 in (prototypes concept1)
-        for proto2 in (prototypes concept2)
-        ;; take the average weight
-        for avg-weight = (/ (+ (/ (weight proto1) concept1-weight-sum)
-                               (/ (weight proto2) concept2-weight-sum))
-                            2)
+(defmethod similar-concepts ((agent cle-agent) (concept1 concept) (concept2 concept))
+  (loop with concept1-weight-sum = (loop for proto in (get-available-prototypes agent concept1) sum (weight proto))
+        with concept2-weight-sum = (loop for proto in (get-available-prototypes agent concept2) sum (weight proto))
+        for proto1 in (get-available-prototypes agent concept1)
+        for proto2 = (gethash (channel proto1) (prototypes concept2))
+        if proto2
+          sum (similar-prototypes proto1 proto2 concept1-weight-sum concept2-weight-sum)))
+
+(defmethod similar-prototypes ((proto1 prototype) (proto2 prototype) (ledger1 number) (ledger2 number))
+  (let (;; take the average weight
+        (avg-weight (/ (+ (/ (weight proto1) ledger1)
+                          (/ (weight proto2) ledger2))
+                       2))
         ;; similarity of the weights
-        for weight-similarity = (- 1 (abs (- (weight proto1) (weight proto2))))
+        (weight-similarity (- 1 (abs (- (weight proto1) (weight proto2)))))
         ;; invert distance (1-h) so that it becomes a similarity metric
-        for prototype-similarity = (- 1 (f-divergence (distribution proto1) (distribution proto2) :hellinger))
-        ;; multiple all three
-        for sim-score = (* avg-weight weight-similarity prototype-similarity)
-        sum sim-score))
+        (prototype-similarity (- 1 (f-divergence (distribution proto1) (distribution proto2) :hellinger))))
+    ;; multiple all three
+    (* avg-weight weight-similarity prototype-similarity)))

@@ -13,7 +13,7 @@
     :type list :accessor trash :initform nil)
    (disabled-channels
     :documentation "Disabled/defected channels."
-    :type list :accessor disabled-channels :initarg :disabled-channels :initform nil)
+    :type hash-table :accessor disabled-channels :initarg :disabled-channels :initform nil)
    (noise-in-each-sensor
     :documentation "Fixed noise on each channel"
     :type list :accessor noise-in-each-sensor :initarg :noise-in-each-sensor :initform nil)
