@@ -16,7 +16,7 @@
                 (:population-size . 10)
                 ;; setup data scene
                 (:dataset . "clevr")
-                (:dataset-split . "val")
+                (:dataset-split . "train")
                 ;(:data-fname . "all.lisp")
                 (:available-channels ,@(get-all-channels :all))
                 ;; disable channels
@@ -51,16 +51,10 @@
                 (:weight-decf . -1)
                 ;; staging
                 (:current-stage . 0)
-                (:switch-condition . :after-n-interactions) ; :after-n-interactions)
+                (:switch-condition . :none) ; :after-n-interactions)
                 (:switch-conditions-after-n-interactions . 200) 
-                (:stage-parameters 
-                 ;((:switch-disable-channels ,'width ,'height ,'area ,'relative-area ,'bb-area))
-                 ((:switch-dataset . "winery")
-                  (:switch-dataset-split . "train")
-                  (:switch-data-fname . "all.lisp")
-                  (:switch-scene-sampling . :random)
-                  (:switch-topic-sampling . :random)
-                  (:switch-available-channels ,@(get-all-channels :cogentb-extracted)))
+                (:stage-parameters
+                 ((:switch-disable-channels ,'area ,'bb-area))
                  )
                 ;; saving
                 (:experiment-name . "test")
@@ -69,10 +63,6 @@
   (setf *experiment* (make-instance 'cle-experiment :configuration *baseline-simulated*))
   (notify reset-monitors)
   (wi::reset))
-
-(add-element (html-pprint bibi))
-
-(add-element (html-pprint (configuration *experiment*)))
 
 ;; 1. run x interactions
 (notify reset-monitors)
@@ -93,7 +83,7 @@
   (deactivate-all-monitors)
   ;(activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor trace-interaction-in-web-interface)
-  (loop for idx from 1 to 2
+  (loop for idx from 1 to 10
         do (run-interaction *experiment*)))
 
 ;;;;

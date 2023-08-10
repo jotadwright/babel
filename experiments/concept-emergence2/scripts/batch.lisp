@@ -12,8 +12,8 @@
        :asdf-system "cle"
        :package "cle"
        :experiment-class "cle-experiment"
-       :number-of-interactions 1000000
-       :number-of-series 5
+       :number-of-interactions 1300
+       :number-of-series 3
        :monitors (list "export-communicative-success"
                        "export-lexicon-coherence"
                        "export-experiment-configurations"
@@ -23,42 +23,61 @@
        ;; default configuration settings
        :shared-configuration `(
                 ;; monitoring
-                (:dot-interval . 1000)
+                (:dot-interval . 100)
                 (:save-distribution-history . nil)
                 ;; setup interacting agents
                 (:interacting-agents-strategy . :standard)
                 (:population-size . 10)
                 ;; setup data scene
-                (:dataset . "clevr-extracted")
-                (:dataset-split . "val")
-                (:data-fname . "10-all.lisp")
-                (:available-channels ,@(get-all-channels :clevr-extracted))
+                (:dataset . "clevr")
+                (:dataset-split . "train")
+                ;(:data-fname . "all.lisp")
+                (:available-channels ,@(get-all-channels :all))
+                ;; disable channels
+                (:disable-channels . :none)
+                (:amount-disabled-channels . 0)
+                ;; noised channels
+                (:sensor-noise . :none)
+                (:sensor-std . 0.0)
+                (:observation-noise . :none)
+                (:observation-std . 0.0)
+                ;; scene sampling
                 (:scene-sampling . :random)
-                (:topic-sampling . :random)
-
+                (:topic-sampling . :discriminative)
+                ;; general strategy
+                (:align . t)
+                (:strategy . :times)
                 (:similarity-threshold . 0.0)
-
                 ;; entrenchment of constructions
                 (:initial-cxn-entrenchement . 1/2)
                 (:entrenchment-incf . 1/10)
                 (:entrenchment-decf . -1/10)
-                (:entrenchment-li . -1/100) ;; lateral inhibition
+                (:entrenchment-li . -1/50) ;; lateral inhibition
                 (:trash-concepts . nil)
-                
                 ;; concept representations
                 (:concept-representation . :distribution)
                 (:distribution . :gaussian-welford)
                 (:M2 . 0.0001) ;; only for gaussian-welford
-
                 ;; prototype weight inits
                 (:weight-update-strategy . :j-interpolation)
                 (:initial-weight . 0)
                 (:weight-incf . 1)
                 (:weight-decf . -1)
+                ;; staging
+                (:current-stage . 0)
+                (:switch-condition . :after-n-interactions) ; :after-n-interactions)
+                (:switch-conditions-after-n-interactions . 500)
+                (:stage-parameters
+                 ((:switch-disable-channels ,'area ,'bb-area))
+                 ((:switch-disable-channels ,'area ,'bb-area))
+                 )
+                ;; saving
+                #|(:experiment-name . "test")
+                (:output-dir . "test")|#
                 )
        ;; configurations
        :configurations `(;(:similarity-threshold 0.0 0.01 0.05 0.1 0.2)
-                         (:initial-weight 0 35)
+                         ;(:initial-weight 0 35)
                          )
        ;; output directory
        :output-dir (babel-pathname :directory '("experiments" "concept-emergence2" "logging" "all"))
