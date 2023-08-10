@@ -26,17 +26,22 @@
   "Similarity on the level of a single prototype."
   ;; similarity measure between [0,1]
   (let* ((distribution (distribution prototype))
+         (mean (mean distribution))
          (st-dev (st-dev distribution))
          ;; z-score [-inf, + inf], by taking abs: [0, +inf]
          (z-score (if (not (zerop st-dev))
                     ;; z-score formula then absolute value
-                    (abs (/ (- observation (mean distribution)) st-dev))
+                    (/ (- observation mean) st-dev)
                     0))
-         ;; exp(-x) maps [0, +inf] to [0, 1]
-         ;; IMPORTANT: func is a design choice
-         ;;            can use any func that maps to [0, 1]
-         (sim (exp (- z-score)))) 
+         (sim (z-score-to-probability z-score)))
     sim))
+
+(defun z-score-to-probability (z-score)
+  (exp (- (abs z-score))))
+
+#|(defun z-score-to-probability (z-score)
+  ;; z-score is centered around mean 0 and std 1
+  (- 1 (- (* 2 (distributions::cdf-normal% (abs z-score) 0 1)) 1)))|#
 
 ;; -------------------------------
 ;; + Similarity between CONCEPTS +
