@@ -31,7 +31,10 @@
     (:j-interpolation (j-interpolation (weight-val prototype)))))
 
 (defun j-interpolation (value)
-  (cond ((< value -35) 0)
+  (cond ((= value 0) 0.5)
+        ((= value 1) 0.622)
+        ((= value -1) 0.378)
+        ((< value -35) 0)
         ((> value  35) 1)
         (t (sigmoid value))))
 
@@ -40,6 +43,9 @@
   
     When c is a fraction the slope is less steep, when c is a larger the slope is steeper."
   (/ 1 (+ 1 (exp (- (* c x))))))
+
+#|(defun fast-sigmoid (x)
+  (* 0.5 (+ (/ x (+ 1 (abs x))) 1)))|#
 
 (defmethod print-object ((prototype prototype) stream)
   (pprint-logical-block (stream nil)
