@@ -31,6 +31,23 @@
                          :accessor parent-configuration
                          :initform nil :type (or null configuration))))
 
+;; ----------------------------------------------------------------------------
+
+;; SBCL requires custom definition of hash-table tests using the following scheme
+(defun config-entry= (entry-1 entry-2)
+  (equalp (symbol-name entry-1)
+          (symbol-name entry-2)))
+
+(defun sxhash-symbol (n)
+  (sxhash (symbol-name n)))
+
+#+sbcl
+(sb-ext:define-hash-table-test config-entry= sxhash-symbol)
+
+(defun make-config-hash-table ()
+  (make-hash-table :test #+sbcl 'config-entry= #+lispworks #'config-entry= #+ccl #'config-entry=))
+
+
 (defmethod initialize-instance :after ((c configuration)
                                        &key entries configuration &allow-other-keys)
   "make-instance of a configuration can be called with :entries and :configuration.
@@ -40,10 +57,7 @@
   (when entries
     (assert (listp entries))
     (setf (configuration c)
-          (let ((hash (make-hash-table :test
-                                       #'(lambda (entry-1 entry-2)
-                                           (equalp (symbol-name entry-1)
-                                                   (symbol-name entry-2))))))
+          (let ((hash (make-config-hash-table)))
             (loop for (key . value) in entries
                   do (setf (gethash key hash) value))
             hash)))
@@ -64,10 +78,7 @@
 (defun make-configuration (&key entries parent-configuration)
   "Creates a configuration based on a alist of key value pairs.
    Example: (make-configuration :entries `((key1 . 123) (key2 . 'symbol)))"
-  (let ((hash-table (make-hash-table :test
-                                     #'(lambda (entry-1 entry-2)
-                                               (equalp (symbol-name entry-1)
-                                                       (symbol-name entry-2))))))
+  (let ((hash-table (make-config-hash-table)))
     ;; The test of 'make-hash-table' compares keys using symbol-name equality
     ;; this enables to set a configuration with keywords and retrieve it with 
     ;; the symbol with the same symbol-name (e.g. :key1 and 'key1).
