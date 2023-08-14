@@ -1,3 +1,6 @@
+(setf cl-user::*automatically-start-web-interface* nil)
+(setf test-framework::*dont-run-tests-when-loading-asdf-systems* t)
+
 (ql:quickload :cle)
 (in-package :cle)
 
