@@ -113,4 +113,6 @@
 
 ;; helper function
 (defun random-gaussian (mean st-dev)
-  (distributions:from-standard-normal (distributions:draw-standard-normal) mean st-dev))
+  0
+  #|(distributions:from-standard-normal (distributions:draw-standard-normal) mean st-dev)|#
+  )
