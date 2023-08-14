@@ -42,7 +42,7 @@
 ;; + NOISE +
 ;; ---------
 
-(defmethod perceive-object-val ((agent cle-agent) (object cle-object) attr)
+(defmethod perceive-object-val2 ((agent cle-agent) (object cle-object) attr)
   "Perceives the value in a given sensor 'attr' of a given object.
 
    This reading can be affected by two types of noise.
@@ -55,6 +55,15 @@
     (if raw-observation-val
       (+ raw-observation-val sensor-noise observation-noise)
       nil)))
+
+(defmethod perceive-object-val ((agent cle-agent) (object cle-object) attr)
+  "Perceives the value in a given sensor 'attr' of a given object.
+
+   This reading can be affected by two types of noise.
+   The raw observation is the true value in that channel of the object.
+   The sensor-noise term is a fixed shift (in either direction).
+   The observation noise term is different for every observation."
+  (get-object-val object attr))
 
 ;; -------------------
 ;; + noise-in-sensor +
