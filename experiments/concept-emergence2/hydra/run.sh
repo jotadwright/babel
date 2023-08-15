@@ -2,8 +2,8 @@
 #SBATCH --time=120:00:00
 #SBATCH	--ntasks=1
 #SBATCH --job-name=mid_august
-#SBATCH --error $VSC_HOME/scratch/Projects/babel/experiments/concept-emergence2/logging/hydra/mid_august_%a.err
-#SBATCH --output $VSC_HOME/scratch/Projects/babel/experiments/concept-emergence2/logging/hydra/mid_august_%a.log
+#SBATCH --error $VSC_HOME/scratch/Projects/babel/experiments/concept-emergence2/logging/hydra/logs/mid_august_%a.err
+#SBATCH --output $VSC_HOME/scratch/Projects/babel/experiments/concept-emergence2/logging/hydra/logs/mid_august_%a.log
 #SBATCH --array=0-24
 
 # move to dir
