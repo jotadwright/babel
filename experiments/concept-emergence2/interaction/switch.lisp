@@ -35,7 +35,7 @@
     ;; store history
     (store-experiment experiment)
     ;; set the new stage
-    (set-configuration experiment :current-stage next-stage :replace t)
+    (set-configuration experiment :current-stage next-stage)
 
     ;; PART 2: the possible switches
     ;; check if channels need to be disabled

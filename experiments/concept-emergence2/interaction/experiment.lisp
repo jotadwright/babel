@@ -10,6 +10,7 @@
 
 (defmethod initialize-instance :after ((experiment cle-experiment) &key)
   "Create the population and load the scenes from file."
+  (set-configuration experiment :current-stage 0)
   (initialise-population experiment)
   (initialise-world experiment))
 
