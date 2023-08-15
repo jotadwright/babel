@@ -28,9 +28,12 @@
                                                      "history"
                                                      "stage"
                                                      (write-to-string current-stage))
-                                               :separator "-") :type "store")))
+                                               :separator "-") :type "store"))
+         (tmp-world (copy-object (world experiment))))
     (ensure-directories-exist path)
-    (cl-store:store experiment path)))
+    (setf (world experiment) nil)
+    (cl-store:store experiment path)
+    (setf (world experiment) tmp-world)))
 
 (defun fix-configuration (experiment)
   "Method to fix configurations of previous experiment without make-configuration and switch condition."
