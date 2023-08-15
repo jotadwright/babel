@@ -36,7 +36,7 @@
       :asdf-system "cle"
       :package "cle"
       :experiment-class "cle-experiment"
-      :number-of-interactions (assqv :number-of-interactions config)
+      :number-of-interactions (assqv :nr-of-interactions config)
       :number-of-series (assqv :nr-of-series config)
       :monitors (list "export-communicative-success"
                       "export-lexicon-coherence"
