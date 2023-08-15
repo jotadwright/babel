@@ -13,7 +13,7 @@
     (loop for (key . val) in config
           when (find key (list :exp-name :dataset :dataset-split))
             do (rplacd (assoc key config)
-                       (string (assqv key config))))
+                       (string-downcase (string (assqv key config)))))
     config))
 
 (defun fixed-config ()
