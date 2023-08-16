@@ -5,7 +5,7 @@
 #SBATCH --time=120:00:00
 #SBATCH	--ntasks=1
 #SBATCH --cpus-per-task=5
-#SBATCH --mem=10G
+#SBATCH --mem=16G
 #SBATCH --array=1-24
 
 # move to dir
@@ -30,9 +30,9 @@ sbcl --dynamic-space-size 16000 --load run.lisp \
     population-size $population_size \
     dataset $dataset \
     dataset-split $dataset_split \
-    available-channels $available_channels \
+    available-channels "$available_channels" \
     disable-channels $disable_channels \
-    amount-of-disabled-channels $amount_of_disabled_channels \
+    amount-disabled-channels $amount_disabled_channels \
     sensor-noise $sensor_noise \
     sensor-std $sensor_std \
     observation-noise $observation_noise \
@@ -51,4 +51,4 @@ sbcl --dynamic-space-size 16000 --load run.lisp \
     weight-decf $weight_decf \
     switch-condition $switch_condition \
     switch-conditions-after-n-interactions $switch_conditions_after_n_interactions \
-    stage-parameters $stage_parameters
+    stage-parameters "$stage_parameters"

@@ -7,7 +7,7 @@
 (defun parse-config (args)
   (let ((config (loop for (a b) on args by #'cddr
                       collect (cons (parse-keyword a) (read-from-string b)))))
-    (when (assoc :available-channels config)
+    (when (and (assoc :available-channels config) (keywordp (assqv :available-channels config)))
       (rplacd (assoc :available-channels config)
               (get-all-channels (assqv :available-channels config))))
     (loop for (key . val) in config
