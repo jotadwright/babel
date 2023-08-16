@@ -101,24 +101,23 @@
 
 (define-event-handler ((trace-irl trace-irl-verbose)
                        chunk-composer-finished)
-  (let ((finish-time (get-universal-time)))
-    (add-element (make-html-for-composition-process composer))
-    (add-element '((h3) "Composer queue:"))
-    (add-element 
-     `((div :class "indent-irpf") 
-       ,@(html-hide-rest-of-long-list (queue composer)
-                                      3
-                                      #'(lambda (n)
-                                          (make-html n :draw-as-tree nil)))))
-    (if solutions
-      (progn
-        (add-element `((h3) ,(format nil "Found ~a solutions:"
-                                     (length solutions))))
-        (composer-solutions->html solutions)
-        (add-element '((h2 :style "color:#040;") "A meaning hypothesis has been found!"))
-        )
-      (add-element '((h3) "No solutions found.")))
-    (when (and (solutions composer)
-               (not (length= (solutions composer) solutions)))
-      (add-element '((h3) "All composer solutions so far"))
-      (composer-solutions->html (solutions composer)))))
+  (add-element (make-html-for-composition-process composer))
+  (add-element '((h3) "Composer queue:"))
+  (add-element 
+    `((div :class "indent-irpf") 
+      ,@(html-hide-rest-of-long-list (queue composer)
+                                    3
+                                    #'(lambda (n)
+                                        (make-html n :draw-as-tree nil)))))
+  (if solutions
+    (progn
+      (add-element `((h3) ,(format nil "Found ~a solutions:"
+                                    (length solutions))))
+      (composer-solutions->html solutions)
+      (add-element '((h2 :style "color:#040;") "A meaning hypothesis has been found!"))
+      )
+    (add-element '((h3) "No solutions found.")))
+  (when (and (solutions composer)
+              (not (length= (solutions composer) solutions)))
+    (add-element '((h3) "All composer solutions so far"))
+    (composer-solutions->html (solutions composer))))
