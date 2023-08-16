@@ -11,10 +11,6 @@
          (scene-ids (map 'list #'parse-integer raw)))
     scene-ids))
 
-(defun first-n (n list)
-  "Returns the first N elements of the LIST."
-  (butlast list (max (- (list-length list) n) 0)))
-
 (defun parse-keyword (string)
   (intern (string-upcase (string-left-trim ":" string)) :keyword))
 
