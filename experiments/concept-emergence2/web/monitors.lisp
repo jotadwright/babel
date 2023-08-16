@@ -7,12 +7,14 @@
 ;; -----------------
 ;; + Printing dots +
 ;; -----------------
+(defvar *start-time* nil)
+
 (define-monitor print-a-dot-for-each-interaction
                 :documentation "Prints a '.' for each interaction
                  and prints the number after :dot-interval")
   
 (define-event-handler (print-a-dot-for-each-interaction interaction-finished)
-                      (cond ((or (= (interaction-number interaction) 1) (not (boundp '*start-time*)))
+                      (cond ((or (= (interaction-number interaction) 1) (not *start-time*))
                              (setf *start-time* (get-universal-time)))
                             ((= (mod (interaction-number interaction)
                                      (get-configuration experiment :dot-interval)) 0)
