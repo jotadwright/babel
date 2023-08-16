@@ -67,15 +67,17 @@
 
     (loop for (key . def-val) in default-config and i from 1
           if (< i (length default-config))
-            do (format str "~(~a~)," key)
+            do (format str "~a" (replace-char (format nil "~(~a~)," key) #\- #\_))
           else
-            do (format str "~(~a~)" key))
+            do (format str "~a" (replace-char (format nil "~(~a~)" key) #\- #\_)))
     (loop for config in (create-configurations tuned-params) and i from 1
           do (loop for (key . def-val) in default-config and j from 1
                    for found = (assoc key config)
                    if (< j (length default-config))
-                     do (cond ((eq key :exp-name)
-                               (format str "~%~a-~a," exp-prefix i))
+                     do (cond ((eq key :id)
+                               (format str "~%~a," i))
+                              ((eq key :exp-name)
+                               (format str "~a-~a," exp-prefix i))
                               (found
                                (cond ((keywordp (assqv key config))
                                       (format str "~(~s~)," (assqv key config)))
@@ -87,8 +89,10 @@
                                      (t
                                       (format str "~a," def-val)))))
                    else
-                     do (cond ((eq key :exp-name)
-                               (format str "~%~a-~a" exp-prefix i))
+                     do (cond ((eq key :id)
+                               (format str "~%~a" i))
+                              ((eq key :exp-name)
+                               (format str "~a-~a" exp-prefix i))
                               (found
                                (cond ((keywordp (assqv key config))
                                       (format str "~(~s~)" (assqv key config)))
@@ -119,10 +123,13 @@
 
 #|(generate-csv-for-tuning "tuning"
                          "tune-mid-august"
-                         `((:exp-name . "?")
+                         `((:id . "?")
+                           (:exp-name . "?")
+                           (:nr-of-series . 5)
+                           (:nr-of-interactions . 500000)
                            (:population-size . 10)
                            (:dataset . "clevr")
-                           (:dataset-split . "val")
+                           (:dataset-split . "train")
                            (:available-channels . :clevr)
                            (:disable-channels . :none)
                            (:amount-disabled-channels . 0)
