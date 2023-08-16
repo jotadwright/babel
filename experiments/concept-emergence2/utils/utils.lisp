@@ -125,7 +125,7 @@
                            (:dataset-split . "val")
                            (:available-channels . :clevr)
                            (:disable-channels . :none)
-                           (:amount-of-disabled-channels . 0)
+                           (:amount-disabled-channels . 0)
                            (:sensor-noise . :none)
                            (:sensor-std . 0.0)
                            (:observation-noise . :none)
