@@ -6,17 +6,18 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--csv", type=str)
 
 # assumes folder structure:
-# hydra/
-#   create_scripts.ipynb
-#   run.lisp
-#   scripts/
-#       script_1.sh
-#       ...
-#       script_x.sh
+# batch/
+#   bash/
+#       create.py
+#       run.lisp
+#       scripts/
+#           script_1.sh
+#           ...
+#           script_x.sh
 template = """\
 #!/bin/bash
 
-sbcl --dynamic-space-size 16000 --load ../run.lisp \\
+sbcl --dynamic-space-size 16000 --load run.lisp \\
     exp-name {exp_name} \\
     nr-of-series {nr_of_series} \\
     nr-of-interactions {nr_of_interactions} \\
@@ -66,7 +67,7 @@ def main(input_file, output_dir, exp_fname):
 if __name__ == "__main__":
     args = parser.parse_args()
     exp_fname = args.csv
-    input_csv_file = f"{exp_fname}.csv"  # Replace with your input CSV file name
-    output_directory = "scripts"  # Replace with your desired output directory
+    input_csv_file = f"data/{exp_fname}.csv"  # Replace with your input CSV file name
+    output_directory = "bash/scripts"  # Replace with your desired output directory
 
     main(input_csv_file, output_directory, exp_fname)

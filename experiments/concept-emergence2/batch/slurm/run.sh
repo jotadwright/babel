@@ -1,29 +1,29 @@
 #!/bin/bash
-#SBATCH --job-name=mid_august
-#SBATCH --error=/user/brussel/101/vsc10156/concept-emergence2/hydra/logs/mid_august_%a_e.txt
-#SBATCH --output=/user/brussel/101/vsc10156/concept-emergence2/hydra/logs/mid_august_%a_o.txt
-#SBATCH --time=120:00:00
+mkdir -p $VSC_HOME/concept-emergence2/batch/slurm/logs/$1
+sbatch <<EOT
+#!/bin/bash
+#SBATCH --job-name=$1
+#SBATCH --error=$VSC_HOME/concept-emergence2/batch/slurm/logs/$1/$1_%a_e.txt
+#SBATCH --output=$VSC_HOME/concept-emergence2/batch/slurm/logs/$1/$1_%a_o.txt
+#SBATCH --time=$4
 #SBATCH	--ntasks=1
 #SBATCH --cpus-per-task=5
-#SBATCH --mem=16G
-#SBATCH --array=1-24
-
-# move to dir
-cd $VSC_HOME/concept-emergence2/hydra/
+#SBATCH --mem=$3
+#SBATCH --array=$2
 
 # load atools
 module purge
 module load atools/1.5.1-GCCcore-11.2.0
 
 # read input data from csv
-source <(aenv --data $VSC_HOME/concept-emergence2/hydra/mid_august.csv --sniff 4096)
+source <(aenv --data $VSC_HOME/concept-emergence2/batch/data/$1.csv --sniff 4096)
 
 # load sbcl
 module purge
-module load SBCL/2.2.1-GCCcore-10.3.0 
+module load SBCL/2.2.1-GCCcore-10.3.0
 
 # run script
-sbcl --dynamic-space-size 16000 --load run.lisp \
+sbcl --dynamic-space-size 16000 --load $VSC_HOME/concept-emergence2/batch/run.lisp \
     exp-name $exp_name \
     nr-of-series $nr_of_series \
     nr-of-interactions $nr_of_interactions \
@@ -52,3 +52,4 @@ sbcl --dynamic-space-size 16000 --load run.lisp \
     switch-condition $switch_condition \
     switch-conditions-after-n-interactions $switch_conditions_after_n_interactions \
     stage-parameters "$stage_parameters"
+EOT
