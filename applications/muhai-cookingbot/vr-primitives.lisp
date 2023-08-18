@@ -22,6 +22,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+
+
+
+
 ;; TODO: A way in VR kitchen to search for 'sugar' and it returns the container with 'sugar' in it
 ;; TODO: Type names in the VR kitchen should be ontology with the yaml ontology so this mapping can be removed.
 (defvar *type-mapping* '((sugar-bag              . sugar)
@@ -62,12 +66,12 @@
       type))
 
 
-(defun sim-find-object-by-name (name root)
-  (if (string= (sim-identifier root) name)
+(defun sim-find-object-by-name (obj-name root)
+  (if (string= (name root) obj-name)
       root
       (when (slot-exists-p root 'contents)
         (loop for child in (contents root)
-              when (sim-find-object-by-name name child)
+              when (sim-find-object-by-name obj-name child)
                 return it))))
 
 
@@ -100,19 +104,18 @@
           do (setf (slot-value object slot-name)
                    (intern (cdr (assoc slot-key-accessor alist))))))
 
-(defun make-object (type sim-arguments sim-identifier)
+(defun make-object (type simulation-data name)
   (if type
-      (let* ((custom-state-variables (cdr (assoc :custom-state-variables sim-arguments)))
+      (let* ((custom-state-variables (cdr (assoc :custom-state-variables simulation-data)))
              (substance (cdr (assoc :substance custom-state-variables)))
              (object (make-instance (map-type (read-from-string (simplified-camel-case-to-lisp (or substance type))))
-                                    :sim-arguments sim-arguments
-                                    :sim-identifier sim-identifier)))
+                                    :simulation-data simulation-data
+                                    :name name)))
         (set-object-slots object custom-state-variables '(persistent-id))
         object)))
 
 
 (defun vr-to-symbolic-kitchen (lst)
-  ;;NOTE constructs the class hierarchy from the kitchen simulation edge list json
   (labels ((triple-name     (x) (car x))
            (triple-parent   (x) (cadr x))
            (triple-object   (x) (caddr x))
@@ -139,7 +142,6 @@
                          for object   = (if (object? properties) (make-object type properties name))
                          when object collect (list name parent object)))
           (constraints (loop for item in lst when (constraint? (cdr item)) collect item)))
-
       (make-instance 'kitchen-state
                      :contents (loop for triple in objects
                                      unless (triple-parent triple)
@@ -153,7 +155,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun slots-to-alist (object)
-  (let ((alist-vr-properties (sim-arguments object))
+  (let ((alist-vr-properties (simulation-data object))
         (alist-slots (iter-slots object)))
     (loop for (key . value) in alist-vr-properties
           if (eq key :custom-state-variables)
@@ -167,7 +169,14 @@
         for slot-name    = (closer-mop:slot-definition-name slot)
         for slot-initarg = (car (closer-mop:slot-definition-initargs slot))
         for slot-value   = (slot-value object slot-name)
-        unless (or (eq slot-name 'sim-arguments) (eq slot-name 'contents))
+
+        ;; TODO we will need to send properties too if the simulator accepts them
+        unless (or (eq slot-name 'simulation-data)
+                   (eq slot-name 'amount)
+                   (eq slot-name 'quantity)
+                   (eq slot-name 'arrangement)
+                   (eq slot-name 'contents)
+                   (eq slot-name 'temperature))
           collect (cons slot-initarg  slot-value)))
 
 
@@ -183,11 +192,10 @@
                curr-edges))
            (sim-transform (edge-tuple)
              (let ((object (cadr edge-tuple)))
-               `( ,(intern (string-upcase (sim-identifier object)) :keyword)
+               `( ,(intern (string-upcase (name object)) :keyword)
                   .
                   ,(slots-to-alist object)))))
-
-    (append (map 'list #'sim-transform (remove-if-not (lambda (x) (equal x '(:nil)))  (sim-my-traverse kitchen)))
+    (append (remove-if (lambda (x) (equal x '(:nil))) (map 'list #'sim-transform (sim-my-traverse kitchen)))
             (constraints kitchen))))
 
 
@@ -258,17 +266,19 @@
     container-with-ingredient
     target-container)
 
-   (let* ((ingredient-concept-type (rmap-type (type-of ingredient-concept)))
-          (unused-container (find-unused-kitchen-entity-vr 'medium-bowl kitchen-state-in))
+   (let* ((unused-container (find-unused-kitchen-entity-vr 'medium-bowl kitchen-state-in)) ;; find an unused container
+          (vr-result-fetch (request-to-fetch (slot-value unused-container 'name) (symbolic-to-vr-kitchen kitchen-state-in))) ;; place the unused container on the countertop
+          (ks-after-fetch (vr-to-symbolic-kitchen (cdr (assoc :kitchen-state-out vr-result-fetch)))) ;; parrse the kitchen state
+          (ingredient-concept-type (rmap-type (type-of ingredient-concept)))
           (vr-result (request-to-portion ingredient-concept-type
-                                         (slot-value unused-container 'sim-identifier)
+                                         (slot-value unused-container 'name)
                                          (value quantity)
-                                         (symbolic-to-vr-kitchen kitchen-state-in)))
-          (container-available-at (request-to-get-time))
-          (kitchen-state-available-at container-available-at)
+                                         (symbolic-to-vr-kitchen kitchen-state-in))) ;; portion the ingredient in the unused container
+          (new-kitchen-state (vr-to-symbolic-kitchen (cdr (assoc :kitchen-state-out vr-result)))) ;; parse new kitchen state
           (output-container-name (cdr (assoc :output-container vr-result)))
-          (new-kitchen-state (vr-to-symbolic-kitchen (cdr (assoc :kitchen-state-out vr-result))))
-          (output-container-object (sim-find-object-by-name output-container-name new-kitchen-state)))
+          (output-container-object (sim-find-object-by-name output-container-name new-kitchen-state))
+          (container-available-at (request-to-get-time)) ;; time of the kitchen
+          (kitchen-state-available-at container-available-at))
 
      ;; TODO: This can be set in the VR kitchen for consistency
      (setf (slot-value output-container-object 'used) t)
@@ -308,8 +318,8 @@
    (let* ((total-amount nil)
           (new-kitchen-state nil)
           (unused-container (find-unused-kitchen-entity-vr 'medium-bowl kitchen-state-in))
-          (res (request-to-transfer (sim-identifier container-with-input-ingredients)
-                                    (sim-identifier unused-container)
+          (res (request-to-transfer (name container-with-input-ingredients)
+                                    (name unused-container)
                                     (symbolic-to-vr-kitchen kitchen-state-in)))
           (container-available-at (request-to-get-time))
           (kitchen-state-available-at container-available-at)
@@ -341,8 +351,8 @@
     quantity
     unit)
 
-   (let* ((res (request-to-transfer (sim-identifier container-with-input-ingredients)
-                                    (sim-identifier target-container)
+   (let* ((res (request-to-transfer (name container-with-input-ingredients)
+                                    (name target-container)
                                     (symbolic-to-vr-kitchen kitchen-state-in)))
           (container-available-at (request-to-get-time))
           (kitchen-state-available-at container-available-at)
@@ -384,7 +394,7 @@
     container-with-mixture
     mixing-tool)
 
-   (let* ((res (request-to-mix (slot-value container-with-input-ingredients 'sim-identifier)
+   (let* ((res (request-to-mix (slot-value container-with-input-ingredients 'name)
                                'whisk
                                (symbolic-to-vr-kitchen kitchen-state-in)))
           (container-available-at (request-to-get-time))
@@ -408,8 +418,8 @@
     kitchen-state-out
     container-with-mixture)
 
-   (let* ((res (request-to-mix (slot-value container-with-input-ingredients 'sim-identifier)
-                               (slot-value mixing-tool 'sim-identifier)
+   (let* ((res (request-to-mix (slot-value container-with-input-ingredients 'name)
+                               (slot-value mixing-tool 'name)
                                (symbolic-to-vr-kitchen kitchen-state-in)))
           (container-available-at (request-to-get-time))
           (kitchen-state-available-at container-available-at)
@@ -444,7 +454,7 @@
     container-with-mixture
     beating-tool)
 
-   (let* ((res (request-to-beat (slot-value container-with-input-ingredients 'sim-identifier) 'spoon (symbolic-to-vr-kitchen kitchen-state-in)))
+   (let* ((res (request-to-beat (slot-value container-with-input-ingredients 'name) 'spoon (symbolic-to-vr-kitchen kitchen-state-in)))
           (container-available-at (request-to-get-time))
           (kitchen-state-available-at container-available-at)
           (container-with-mixture-name (cdr (assoc :container-with-mixture res)))
@@ -515,7 +525,7 @@
     kitchen-state-out
     lined-thing)
 
-   (let* ((res (request-to-line (slot-value thing-to-be-lined 'sim-identifier)
+   (let* ((res (request-to-line (slot-value thing-to-be-lined 'name)
                                 'baking-paper
                                 (symbolic-to-vr-kitchen kitchen-state-in)))
           (container-available-at (request-to-get-time))
@@ -543,8 +553,8 @@
     kitchen-state-out
     lined-thing)
 
-   (let* ((res (request-to-line (slot-value thing-to-be-lined 'sim-identifier)
-                                (slot-value lining-material 'sim-identifier)
+   (let* ((res (request-to-line (slot-value thing-to-be-lined 'name)
+                                (slot-value lining-material 'name)
                                 (symbolic-to-vr-kitchen kitchen-state-in)))
           (container-available-at (request-to-get-time))
           (kitchen-state-available-at container-available-at)
@@ -583,8 +593,8 @@
     shaped-portions
     kitchen-state-out)
 
-   (let* ((res (request-to-shape (slot-value portion 'sim-identifier)
-                                 (slot-value container 'sim-identifier)
+   (let* ((res (request-to-shape (slot-value portion 'name)
+                                 (slot-value container 'name)
                                  (symbolic-to-vr-kitchen kitchen-state-in)))
           (shaped-portions-available-at (request-to-get-time))
           (kitchen-state-available-at shaped-portions-available-at)
@@ -596,7 +606,7 @@
           ;;                        collect (sim-find-object-by-name name new-kitchen-state)))
           ;;(new-portions (make-instance 'list-of-kitchen-entities :items list-of-portions)))
           ;; NOTE convert lisp to camel case because find object by name does lisp to camel to find in jsondata
-          (container-camel-name (lisp-to-camel-case (symbol-name (slot-value container 'sim-identifier))))
+          (container-camel-name (lisp-to-camel-case (symbol-name (slot-value container 'name))))
           (container-with-new-portions (sim-find-object-by-name container-camel-name new-kitchen-state)))
 
      (bind (shaped-portions 1.0 container-with-new-portions shaped-portions-available-at)
@@ -634,7 +644,7 @@
 
    ;; TODO maybe get oven name instead string "kitchenstove"
 
-   (let* ((res (request-to-bake (lisp-to-camel-case (symbol-name (slot-value thing-to-bake 'sim-identifier)))
+   (let* ((res (request-to-bake (lisp-to-camel-case (symbol-name (slot-value thing-to-bake 'name)))
                                 "kitchenStove"
                                 "counterTop"
                                 (symbolic-to-vr-kitchen kitchen-state-in)))
@@ -664,7 +674,7 @@
 
 
    ;; baked things never actually enter the oven!
-   (let* ((res (request-to-bake (slot-value thing-to-bake 'sim-identifier)
+   (let* ((res (request-to-bake (slot-value thing-to-bake 'name)
                                 "kitchenStove"
                                 "counterTop"
                                 (symbolic-to-vr-kitchen kitchen-state-in)))
@@ -703,7 +713,7 @@
     sprinkled-object)
 
    ;; TODO get sprinkler using get-location instead of just string
-   (let* ((result (request-to-sprinkle (slot-value object 'sim-identifier) "sugarShaker" (symbolic-to-vr-kitchen kitchen-state-in)))
+   (let* ((result (request-to-sprinkle (slot-value object 'name) "sugarShaker" (symbolic-to-vr-kitchen kitchen-state-in)))
           (sprinkled-object-available-at (request-to-get-time))
           (kitchen-state-available-at sprinkled-object-available-at)
           (sprinkled-object-name (cdr (assoc :sprinkled-object result)))
@@ -734,9 +744,9 @@
   ;; TODO: cutting-board
   ((kitchen-state-in object cut-pattern => cut-object kitchen-state-out cutting-tool cutting-surface)
 
-   (let* ((result (request-to-cut (slot-value object 'sim-identifier)
+   (let* ((result (request-to-cut (slot-value object 'name)
                                   'knife
-                                  (slot-value cut-pattern 'sim-identifier)
+                                  (slot-value cut-pattern 'name)
                                   (symbolic-to-vr-kitchen kitchen-state-in)))
           (cut-object-available-at (request-to-get-time))
           (kitchen-state-available-at cut-object-available-at)
@@ -755,9 +765,9 @@
   ;; TODO: cutting-board
   ((kitchen-state-in object cut-pattern cutting-surface => cut-object kitchen-state-out cutting-tool)
 
-   (let* ((result (request-to-cut (slot-value object 'sim-identifier)
+   (let* ((result (request-to-cut (slot-value object 'name)
                                   'knife
-                                  (slot-value cut-pattern 'sim-identifier)
+                                  (slot-value cut-pattern 'name)
                                   (symbolic-to-vr-kitchen kitchen-state-in)))
           (cut-object-available-at (request-to-get-time))
           (kitchen-state-available-at cut-object-available-at)
@@ -775,9 +785,9 @@
   ;; Case 2: cutting tool given, cut-pattern given, cutting-surface not given
   ;; TODO: cutting-board
   ((kitchen-state-in object cut-pattern cutting-tool => cut-object kitchen-state-out cutting-surface)
-   (let* ((result (request-to-cut (slot-value object 'sim-identifier)
-                                  (slot-value cutting-tool 'sim-identifier)
-                                  (slot-value cut-pattern 'sim-identifier)
+   (let* ((result (request-to-cut (slot-value object 'name)
+                                  (slot-value cutting-tool 'name)
+                                  (slot-value cut-pattern 'name)
                                   (symbolic-to-vr-kitchen kitchen-state-in)))
           (cut-object-available-at (request-to-get-time))
           (kitchen-state-available-at cut-object-available-at)
@@ -785,7 +795,7 @@
           (kitchen-state-alist (cdr (assoc :kitchen-state-out result)))
           (new-kitchen-state (vr-to-symbolic-kitchen kitchen-state-alist))
           (cut-object-instance (sim-find-object-by-name cut-object-name new-kitchen-state))
-          (cutting-tool-instance (sim-find-object-by-name (slot-value cuttin-tool 'sim-identifier) new-kitchen-state)))
+          (cutting-tool-instance (sim-find-object-by-name (slot-value cuttin-tool 'name) new-kitchen-state)))
 
      (bind (cut-object 1.0 cut-object-instance cut-object-available-at)
        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
@@ -795,9 +805,9 @@
   ;; TODO: cutting-board
   ((kitchen-state-in object cut-pattern cutting-tool cutting-surface => cut-object kitchen-state-out)
 
-   (let* ((result (request-to-cut (slot-value object 'sim-identifier)
-                                  (slot-value cutting-tool 'sim-identifier)
-                                  (slot-value cut-pattern 'sim-identifier)
+   (let* ((result (request-to-cut (slot-value object 'name)
+                                  (slot-value cutting-tool 'name)
+                                  (slot-value cut-pattern 'name)
                                   (symbolic-to-vr-kitchen kitchen-state-in)))
           (cut-object-available-at (request-to-get-time))
           (kitchen-state-available-at cut-object-available-at)
@@ -805,7 +815,7 @@
           (kitchen-state-alist (cdr (assoc :kitchen-state-out result)))
           (new-kitchen-state (vr-to-symbolic-kitchen kitchen-state-alist))
           (cut-object-instance (sim-find-object-by-name cut-object-name new-kitchen-state))
-          (cutting-tool-instance (sim-find-object-by-name (slot-value cuttin-tool 'sim-identifier) new-kitchen-state)))
+          (cutting-tool-instance (sim-find-object-by-name (slot-value cuttin-tool 'name) new-kitchen-state)))
 
      (bind (cut-object 1.0 cut-object-instance cut-object-available-at)
        (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
@@ -837,7 +847,7 @@
 
    (let* ((new-cooling-quantity (make-instance 'quantity :value 1))
           (new-cooling-unit (make-instance 'hour))
-          (result (request-to-refrigerate (slot-value container-with-ingredients 'sim-identifier)
+          (result (request-to-refrigerate (slot-value container-with-ingredients 'name)
                                           'refrigerator
                                           (value new-cooling-quantity)
                                           new-cooling-unit))
@@ -868,7 +878,7 @@
     kitchen-state-out
     container-with-ingredients-at-temperature)
 
-   (let* ((result (request-to-refrigerate (slot-value container-with-ingredients 'sim-identifier)
+   (let* ((result (request-to-refrigerate (slot-value container-with-ingredients 'name)
                                           'refrigerator
                                           (value cooling-quantity) ;; 1
                                           cooling-unit))           ;; 'hour
@@ -895,8 +905,8 @@
     kitchen-state-out
     container-with-ingredients-at-temperature)
 
-   (let* ((result (request-to-refrigerate (slot-value container-with-ingredients 'sim-identifier)
-                                          (slot-value refrigerator 'sim-identifier)
+   (let* ((result (request-to-refrigerate (slot-value container-with-ingredients 'name)
+                                          (slot-value refrigerator 'name)
                                           (value cooling-quantity) ;; 1
                                           cooling-unit))           ;; 'hour
           (cooled-object-available-at (request-to-get-time))

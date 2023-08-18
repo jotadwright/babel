@@ -11,8 +11,8 @@
 
 (defclass kitchen-entity (entity)
   ((persistent-id :type symbol :initarg :persistent-id :accessor persistent-id :initform nil)
-   (sim-arguments :type list :initarg :sim-arguments :accessor sim-arguments :initform nil)
-   (sim-identifier :type symbol :initarg :sim-identifier :accessor sim-identifier :initform nil))
+   (simulation-data :type list :initarg :sim-arguments :accessor sim-arguments :initform nil)
+   (name :type symbol :initarg :sim-identifier :accessor sim-identifier :initform nil))
   (:documentation "Abstract class for all kitchen entities. All items
 in the cookingbot ontology should subclass of kitchen-entity."))
 

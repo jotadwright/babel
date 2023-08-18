@@ -5,17 +5,17 @@
       :initarg :id
       :accessor id
       :initform nil)
+   (name :type string
+      :initarg :name
+      :accessor name
+      :initform nil)
    (persistent-id :type symbol
       :initarg :persistent-id
       :accessor persistent-id
       :initform nil)
-   (sim-arguments :type list
-      :initarg :sim-arguments
-      :accessor sim-arguments
-      :initform nil)
-   (sim-identifier :type symbol
-      :initarg :sim-identifier
-      :accessor sim-identifier
+   (simulation-data :type list
+      :initarg :simulation-data
+      :accessor simulation-data
       :initform nil))
   (:documentation "Abstract class for all kitchen entities. All items in the cookingbot ontology should subclass of kitchen-entity."))
 
@@ -26,9 +26,9 @@
 
 (defmethod copy-object-content ((original kitchen-entity) (copy kitchen-entity))
   (setf (id copy) (make-id (id original)))
+  (setf (name copy) (copy-object (name original)))
   (setf (persistent-id copy) (persistent-id original))
-  (setf (sim-arguments copy) (copy-object (sim-arguments original)))
-  (setf (sim-identifier copy) (copy-object (sim-identifier original))))
+  (setf (simulation-data copy) (copy-object (simulation-data original))))
 
 
 (defclass agent (kitchen-entity)
@@ -859,7 +859,7 @@
   (:documentation "A jar lid. Used to cover/close a jar."))
 
 
-(defclass kitchen-floor (kitchen-entity)
+(defclass kitchen-floor (container kitchen-entity)
   ()
   (:documentation "The floor."))
 
