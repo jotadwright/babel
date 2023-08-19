@@ -104,16 +104,16 @@
                                      (t
                                       (format str "~a" def-val)))))))))
             
-(defun find-experiment-dir (base-dir exp-number)
+#|(defun find-experiment-dir (base-dir exp-number)
   "Finds the path to the directory of an experiment." 
-  (let* ((experiment-directories (uiop:subdirectories (asdf:system-relative-pathname "cle" (format nil "logging/~a/experiments/" "similarity"))))
+  (let* ((experiment-directories (uiop:subdirectories (asdf:system-relative-pathname "cle" (format nil "storage/~a/experiments/" "similarity"))))
          (exp-dir (loop for exp-dir in experiment-directories
                         for found-exp-number = (parse-integer (last-elt (split-sequence:split-sequence #\- (last-elt (pathname-directory exp-dir)))))
                         when (equal exp-number found-exp-number)
                           do (loop-finish)
                         finally
                           (return exp-dir))))
-    exp-dir))
+    exp-dir))|#
 
 (defun load-experiment (store-dir &key (name "history"))
   "Loads and returns the store object in the given directory." 
