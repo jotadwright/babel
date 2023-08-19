@@ -11,7 +11,8 @@
                :cl-json
                :closer-mop
                :nlp-tools
-               :dexador)
+               :dexador
+               :yason)
   :serial t
   :components ((:file "package")
                (:file "parse-yaml")
