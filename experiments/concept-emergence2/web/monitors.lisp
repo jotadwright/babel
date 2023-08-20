@@ -38,7 +38,7 @@
 ;; -------------------------
 (define-monitor record-communicative-success
                 :class 'data-recorder
-                :average-window 2000
+                :average-window 1000
                 :documentation "Records the game outcome of each game (1 or 0).")
 
 (define-monitor export-communicative-success
@@ -59,7 +59,7 @@
 ;; ---------------------
 (define-monitor record-lexicon-coherence
                 :class 'data-recorder
-                :average-window 2000
+                :average-window 1000
                 :documentation "Records the lexicon coherence.")
 
 (define-monitor export-lexicon-coherence

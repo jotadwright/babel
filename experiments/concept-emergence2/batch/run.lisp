@@ -19,7 +19,8 @@
 (defun fixed-config ()
   `(;; fixed in stone
     ;; --------------
-    (:dot-interval . 1000)
+    (:dot-interval . 5000)
+    (:record-every-x-interactions . 100)
     (:save-distribution-history . nil)
     (:interacting-agents-strategy . :standard)
     (:initial-cxn-entrenchement . 0.5)
