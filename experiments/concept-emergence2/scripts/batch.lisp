@@ -15,7 +15,7 @@
        :asdf-system "cle"
        :package "cle"
        :experiment-class "cle-experiment"
-       :number-of-interactions 1300
+       :number-of-interactions 5000
        :number-of-series 3
        :monitors (list "export-communicative-success"
                        "export-lexicon-coherence"
@@ -27,6 +27,7 @@
        :shared-configuration `(
                 ;; monitoring
                 (:dot-interval . 100)
+                ;(:record-every-x-interactions . 100) ;; important for fast logging
                 (:save-distribution-history . nil)
                 ;; setup interacting agents
                 (:interacting-agents-strategy . :standard)
@@ -51,10 +52,10 @@
                 (:align . t)
                 (:similarity-threshold . 0.0)
                 ;; entrenchment of constructions
-                (:initial-cxn-entrenchement . 1/2)
-                (:entrenchment-incf . 1/10)
-                (:entrenchment-decf . -1/10)
-                (:entrenchment-li . -1/50) ;; lateral inhibition
+                (:initial-cxn-entrenchement . 0.5)
+                (:entrenchment-incf . 0.1)
+                (:entrenchment-decf . -0.1)
+                (:entrenchment-li . -0.01) ;; lateral inhibition
                 (:trash-concepts . nil)
                 ;; concept representations
                 (:concept-representation . :distribution)
@@ -64,7 +65,7 @@
                 (:weight-update-strategy . :j-interpolation)
                 (:initial-weight . 0)
                 (:weight-incf . 1)
-                (:weight-decf . -1)
+                (:weight-decf . -5)
                 ;; staging
                 (:switch-condition . :after-n-interactions) ; :after-n-interactions)
                 (:switch-conditions-after-n-interactions . 500)
