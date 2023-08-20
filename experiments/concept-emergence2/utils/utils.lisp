@@ -59,7 +59,7 @@
 
 (defun generate-csv-for-tuning (filename exp-prefix default-config tuned-params)
   (with-open-file (str (namestring (merge-pathnames (format nil "~a.csv" filename)
-                                                    (asdf:system-relative-pathname "cle" "hydra/")
+                                                    (asdf:system-relative-pathname "cle" "batch/data/")
                                                     ))
                        :direction :output
                        :if-exists :supersede
@@ -121,8 +121,8 @@
                                      store-dir)))
     (cl-store:restore store-path)))     
 
-#|(generate-csv-for-tuning "tuning"
-                         "tune-mid-august"
+#|(generate-csv-for-tuning "tuning2"
+                         "tune-mid-august2"
                          `((:id . "?")
                            (:exp-name . "?")
                            (:nr-of-series . 5)
@@ -149,13 +149,13 @@
                            (:initial-weight . 0)
                            (:weight-incf . 1)
                            (:weight-decf . -1)
-                           (:switch-condition . :none)
-                           (:switch-conditions-after-n-interactions . 0)
-                           (:stage-parameters))
-                         `((:similarity-threshold 0.0 0.01 0.05 0.1 0.2)
+                           (:switch-condition . :after-n-interactions)
+                           (:switch-conditions-after-n-interactions . 250000)
+                           (:stage-parameters ,'((:do-nothing . t))))
+                         `(;(:similarity-threshold 0.0 0.01 0.05); 0.1 0.2)
                            (:initial-weight 0 35)
-                           (:weight-decf -1 -5)
-                           (:entrenchment-li -0.01 -0.02 -0.05 -0.1)
+                           (:weight-decf -1 -5 -10 -20)
+                           (:entrenchment-li -0.001 -0.005 -0.01 -0.02); -0.05 -0.1)
                            (:trash-concepts nil t)
                            ))|#
 
