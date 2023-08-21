@@ -42,6 +42,7 @@
       :number-of-series (assqv :nr-of-series config)
       :monitors (list "export-communicative-success"
                       "export-lexicon-coherence"
+                      "export-unique-form-usage"
                       "export-experiment-configurations"
                       "export-experiment-store"
                       "print-a-dot-for-each-interaction")
