@@ -42,7 +42,7 @@
 ;; + NOISE +
 ;; ---------
 
-(defmethod perceive-object-val ((agent cle-agent) (object cle-object) attr)
+(defmethod perceive-object-val2 ((agent cle-agent) (object cle-object) attr)
   "Perceives the value in a given sensor 'attr' of a given object.
 
    This reading can be affected by two types of noise.
@@ -50,11 +50,20 @@
    The sensor-noise term is a fixed shift (in either direction).
    The observation noise term is different for every observation."
   (let ((raw-observation-val (get-object-val object attr))
-        (sensor-noise (noise-in-sensor agent attr (get-configuration agent :sensor-noise)))
-        (observation-noise (noise-in-observation agent attr (get-configuration agent :observation-noise))))
+        (sensor-noise (noise-in-sensor agent attr (get-configuration (experiment agent) :sensor-noise)))
+        (observation-noise (noise-in-observation agent attr (get-configuration (experiment agent) :observation-noise))))
     (if raw-observation-val
       (+ raw-observation-val sensor-noise observation-noise)
       nil)))
+
+(defmethod perceive-object-val ((agent cle-agent) (object cle-object) attr)
+  "Perceives the value in a given sensor 'attr' of a given object.
+
+   This reading can be affected by two types of noise.
+   The raw observation is the true value in that channel of the object.
+   The sensor-noise term is a fixed shift (in either direction).
+   The observation noise term is different for every observation."
+  (get-object-val object attr))
 
 ;; -------------------
 ;; + noise-in-sensor +
@@ -104,4 +113,6 @@
 
 ;; helper function
 (defun random-gaussian (mean st-dev)
-  (distributions:from-standard-normal (distributions:draw-standard-normal) mean st-dev))
+  0
+  #|(distributions:from-standard-normal (distributions:draw-standard-normal) mean st-dev)|#
+  )

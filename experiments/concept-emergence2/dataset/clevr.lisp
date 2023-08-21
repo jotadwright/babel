@@ -11,8 +11,6 @@
              ,'wh-ratio
              ,'circle-distance
              ,'white-level ,'black-level
-             ,'lab-mean-l ,'lab-mean-a ,'lab-mean-b
-             ,'lab-std-l ,'lab-std-a ,'lab-std-b
              ,'rgb-mean-r ,'rgb-mean-g ,'rgb-mean-b
              ,'rgb-std-r ,'rgb-std-g ,'rgb-std-b
              )))
@@ -21,13 +19,7 @@
   (let ((continuous-attributes (loop for key being the hash-keys of raw-attributes
                                      collect key)))
     (case symbolic-attribute
-      (:COLOR (or (if (member 'lab-mean-l continuous-attributes) t nil)
-                  (if (member 'lab-mean-a continuous-attributes) t nil)
-                  (if (member 'lab-mean-b continuous-attributes) t nil)
-                  (if (member 'lab-std-l continuous-attributes) t nil)
-                  (if (member 'lab-std-a continuous-attributes) t nil)
-                  (if (member 'lab-std-b continuous-attributes) t nil)
-                  (if (member 'rgb-mean-r continuous-attributes) t nil)
+      (:COLOR (or (if (member 'rgb-mean-r continuous-attributes) t nil)
                   (if (member 'rgb-mean-g continuous-attributes) t nil)
                   (if (member 'rgb-mean-b continuous-attributes) t nil)
                   (if (member 'rgb-std-r continuous-attributes) t nil)

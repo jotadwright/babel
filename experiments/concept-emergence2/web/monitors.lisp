@@ -7,12 +7,14 @@
 ;; -----------------
 ;; + Printing dots +
 ;; -----------------
+(defvar *start-time* nil)
+
 (define-monitor print-a-dot-for-each-interaction
                 :documentation "Prints a '.' for each interaction
                  and prints the number after :dot-interval")
   
 (define-event-handler (print-a-dot-for-each-interaction interaction-finished)
-                      (cond ((or (= (interaction-number interaction) 1) (not (boundp '*start-time*)))
+                      (cond ((or (= (interaction-number interaction) 1) (not *start-time*))
                              (setf *start-time* (get-universal-time)))
                             ((= (mod (interaction-number interaction)
                                      (get-configuration experiment :dot-interval)) 0)
@@ -163,13 +165,15 @@
 
 (define-monitor export-experiment-store)
 (define-event-handler (export-experiment-store run-series-finished)
-  (let* ((experiment-name (get-configuration experiment :experiment-name))
-         (output-dir (get-configuration experiment :output-dir))
-         (path (babel-pathname
-                :directory `("experiments" "concept-emergence2" "logging" ,(downcase output-dir) ,(downcase experiment-name) "stores")
-                :name (list-of-strings->string (list (write-to-string (series-number experiment)) "history") :separator "-") :type "store")))
-    (ensure-directories-exist path)
-    (cl-store:store experiment path)))
+  (when (= (series-number experiment) 1)
+    (let* ((experiment-name (get-configuration experiment :experiment-name))
+           (output-dir (get-configuration experiment :output-dir))
+           (path (babel-pathname
+                  :directory `("experiments" "concept-emergence2" "logging" ,(downcase output-dir) ,(downcase experiment-name) "stores")
+                  :name (list-of-strings->string (list (write-to-string (series-number experiment)) "history") :separator "-") :type "store")))
+      (setf (world experiment) nil)
+      (ensure-directories-exist path)
+      (cl-store:store experiment path))))
 
 ;; ------------------
 ;; + Question Types +

@@ -32,7 +32,6 @@
                 (:topic-sampling . :discriminative)
                 ;; general strategy
                 (:align . t)
-                (:strategy . :times)
                 (:similarity-threshold . 0.0)
                 ;; entrenchment of constructions
                 (:initial-cxn-entrenchement . 1/2)
@@ -50,7 +49,6 @@
                 (:weight-incf . 1)
                 (:weight-decf . -1)
                 ;; staging
-                (:current-stage . 0)
                 (:switch-condition . :none) ; :after-n-interactions)
                 (:switch-conditions-after-n-interactions . 200) 
                 (:stage-parameters

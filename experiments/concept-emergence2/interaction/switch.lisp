@@ -35,11 +35,13 @@
     ;; store history
     (store-experiment experiment)
     ;; set the new stage
-    (set-configuration experiment :current-stage next-stage :replace t)
+    (set-configuration experiment :current-stage next-stage)
 
     ;; PART 2: the possible switches
     ;; check if channels need to be disabled
     (switch-disable-channels experiment params)
+    ;; check if half of the population gets some channels disabled
+    (switch-disable-channels-half experiment params)
     ;; check if need to add agents
     (switch-add-agents experiment params)
     ;; check if need to change alignment
@@ -61,6 +63,22 @@
                        ;; disable the given list of features
                        change)))
       (loop for agent in (agents experiment)
+            do (loop for channel in channels
+                     do (switch-channel-availability agent channel))))))
+
+(defmethod switch-disable-channels-half ((experiment cle-experiment)
+                                         (params list))
+  "Disables a specified list of sensors (or a random amount of sensors) for the half of the population."
+  (when (assoc :switch-disable-channels-half params)
+    (let* ((change (assqv :switch-disable-channels-half params)) ;; change is either a list or a number
+           (channels (if (numberp change)
+                       ;; disable n sensors
+                       (random-elts (get-configuration experiment :available-channels) change)
+                       ;; disable the given list of features
+                       change))
+           (population-size (length (agents experiment)))
+           (population-half (first-n (floor (/ population-size 2)) (agents experiment))))
+      (loop for agent in population-half
             do (loop for channel in channels
                      do (switch-channel-availability agent channel))))))
 

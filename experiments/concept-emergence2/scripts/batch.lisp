@@ -1,3 +1,6 @@
+(setf cl-user::*automatically-start-web-interface* nil)
+(setf test-framework::*dont-run-tests-when-loading-asdf-systems* t)
+
 (ql:quickload :cle)
 (in-package :cle)
 
@@ -46,7 +49,6 @@
                 (:topic-sampling . :discriminative)
                 ;; general strategy
                 (:align . t)
-                (:strategy . :times)
                 (:similarity-threshold . 0.0)
                 ;; entrenchment of constructions
                 (:initial-cxn-entrenchement . 1/2)
@@ -64,16 +66,12 @@
                 (:weight-incf . 1)
                 (:weight-decf . -1)
                 ;; staging
-                (:current-stage . 0)
                 (:switch-condition . :after-n-interactions) ; :after-n-interactions)
                 (:switch-conditions-after-n-interactions . 500)
                 (:stage-parameters
                  ((:switch-disable-channels ,'area ,'bb-area))
                  ((:switch-disable-channels ,'area ,'bb-area))
                  )
-                ;; saving
-                #|(:experiment-name . "test")
-                (:output-dir . "test")|#
                 )
        ;; configurations
        :configurations `(;(:similarity-threshold 0.0 0.01 0.05 0.1 0.2)

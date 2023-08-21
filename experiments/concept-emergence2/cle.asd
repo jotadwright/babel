@@ -20,7 +20,8 @@
                :cl-mop
                :cl-json
                :cl-jonathan
-               :distributions)
+               ;;:distributions
+               )
   :serial t
   :components ((:file "package")
                (:module "dataset"

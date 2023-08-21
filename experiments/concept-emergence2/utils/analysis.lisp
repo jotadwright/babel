@@ -5,20 +5,38 @@
 ;; -------------------
 (defun get-statistics (top-dir exp-dir raw-parameters filters)
   "Helper function to find experiment names with particular filters." 
-  (let* ((exp-dir-path (asdf:system-relative-pathname "cle" (format nil "logging/~a/~a/experiments/" top-dir exp-dir)))
+  (let* ((exp-dir-path (asdf:system-relative-pathname "cle" (format nil "storage/~a/~a/experiments/" top-dir exp-dir)))
          (all-configs (sort (get-configurations exp-dir-path) (lambda (x y) (< (first x) (first y)))))
          (configs (filter-experiments all-configs filters)) ; (loop for (index . config) in (filter-experiments all-configs filters) collect config))
-         (exp-names (loop for (index . config) in configs collect (downcase (assqv :EXPERIMENT-NAME config))))
+         (exp-names (loop for (index . config) in configs collect (downcase (assqv :output-dir config))))
          (captions (generate-captions configs raw-parameters filters))
          (title (generate-title exp-dir filters)))
     (list (length exp-names) title exp-names captions)))
 
+(defun get-configurations (base-exp-dir)
+  "Returns a list of experiments by walking the directory."
+  (loop with results = '()
+        for exp-name-path in (uiop:subdirectories base-exp-dir)
+        do (loop for exp-dir in (uiop:subdirectories exp-name-path)
+                 for fpath = (merge-pathnames (make-pathname :name "experiment-configurations" :type "lisp")
+                                              exp-dir)
+                 if (probe-file fpath)
+                   do (let* ((config (with-open-file (stream fpath :direction :input) (read stream)))
+                             (exp-index (parse-integer (first (last (split-sequence:split-sequence #\- (assqv :output-dir config)))))))
+                        (setf results (cons (cons exp-index config) results))))
+        finally (return results)))
+
 (defun graph-batch-experiments (top-dir exp-dir raw-parameters filters &key (start nil) (end nil) (plot :all) (y-max 100) (y-min 0) (average-windows 1000))
   "Plot a batch of experiments."
-  (let* ((exp-dir-path (asdf:system-relative-pathname "cle" (format nil "logging/~a/~a/experiments/" top-dir exp-dir)))
+  (let* ((exp-dir-path (asdf:system-relative-pathname "cle" (format nil "storage/~a/~a/experiments/" top-dir exp-dir)))
          (all-configs (sort (get-configurations exp-dir-path) (lambda (x y) (< (first x) (first y)))))
          (configs (filter-experiments all-configs filters))
-         (exp-names (loop for (index . config) in configs collect (downcase (assqv :EXPERIMENT-NAME config))))
+         (exp-names (loop for (index . config) in configs collect (format nil "~a/~a"
+                                                                          (downcase (assqv :output-dir config))
+                                                                          (downcase (namestring (first (last (pathname-directory (first (uiop:subdirectories (merge-pathnames (downcase (assqv :output-dir config))
+                                                                                                                                                                              exp-dir-path)))))))))))
+                                                                          
+                                                                          
          (captions (generate-captions configs raw-parameters filters))
          (title (generate-title exp-dir filters)))
     (when (or (eq plot :all) (eq plot :communicative-success))
@@ -53,14 +71,7 @@
        ))
     ))
 
-(defun get-configurations (base-exp-dir)
-  "Returns a list of experiments by walking the directory."
-  (loop for experiment-dir in (uiop:subdirectories base-exp-dir)
-        for fpath = (merge-pathnames (make-pathname :name "experiment-configurations" :type "lisp")
-                                     experiment-dir)
-        for config = (with-open-file (stream fpath :direction :input) (read stream))
-        for exp-index = (parse-integer (first (last (split-sequence:split-sequence #\- (assqv :EXPERIMENT-NAME config)))))
-        collect (cons exp-index config)))
+
 
 (defun member-nested (el l)
   "Whether el is a member of l, el can be atom or cons, l can be list of atoms or not"

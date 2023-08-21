@@ -11,10 +11,6 @@
          (scene-ids (map 'list #'parse-integer raw)))
     scene-ids))
 
-(defun first-n (n list)
-  "Returns the first N elements of the LIST."
-  (butlast list (max (- (list-length list) n) 0)))
-
 (defun parse-keyword (string)
   (intern (string-upcase (string-left-trim ":" string)) :keyword))
 
@@ -28,9 +24,12 @@
                                                      "history"
                                                      "stage"
                                                      (write-to-string current-stage))
-                                               :separator "-") :type "store")))
+                                               :separator "-") :type "store"))
+         (tmp-world (copy-object (world experiment))))
     (ensure-directories-exist path)
-    (cl-store:store experiment path)))
+    (setf (world experiment) nil)
+    (cl-store:store experiment path)
+    (setf (world experiment) tmp-world)))
 
 (defun fix-configuration (experiment)
   "Method to fix configurations of previous experiment without make-configuration and switch condition."
@@ -44,6 +43,121 @@
         for el in lst
         do (setf (gethash (funcall key el) tbl) el)
         finally (return tbl)))
+
+(defun create-configurations (parameters)
+  "Generate a set of experiments. Specify which parameters are variable
+   and what their possible values can be. Optionally specify an a-list
+   of shared configurations."
+  (let* ((pairs (loop for (key . values) in parameters
+                      collect (loop for value in values
+                                    collect (cons key value))))
+         (configurations (apply #'combinations pairs)))
+    configurations))
+
+(defun calculate-amount-of-variations (parameters)
+  (length (create-configurations parameters)))
+
+(defun generate-csv-for-tuning (filename exp-prefix default-config tuned-params)
+  (with-open-file (str (namestring (merge-pathnames (format nil "~a.csv" filename)
+                                                    (asdf:system-relative-pathname "cle" "batch/data/")
+                                                    ))
+                       :direction :output
+                       :if-exists :supersede
+                       :if-does-not-exist :create)
+
+    (loop for (key . def-val) in default-config and i from 1
+          if (< i (length default-config))
+            do (format str "~a" (replace-char (format nil "~(~a~)," key) #\- #\_))
+          else
+            do (format str "~a" (replace-char (format nil "~(~a~)" key) #\- #\_)))
+    (loop for config in (create-configurations tuned-params) and i from 1
+          do (loop for (key . def-val) in default-config and j from 1
+                   for found = (assoc key config)
+                   if (< j (length default-config))
+                     do (cond ((eq key :id)
+                               (format str "~%~a," i))
+                              ((eq key :exp-name)
+                               (format str "~a-~a," exp-prefix i))
+                              (found
+                               (cond ((keywordp (assqv key config))
+                                      (format str "~(~s~)," (assqv key config)))
+                                     (t
+                                      (format str "~a," (assqv key config)))))
+                              (t
+                               (cond ((keywordp def-val)
+                                      (format str "~(~s~)," def-val))
+                                     (t
+                                      (format str "~a," def-val)))))
+                   else
+                     do (cond ((eq key :id)
+                               (format str "~%~a" i))
+                              ((eq key :exp-name)
+                               (format str "~a-~a" exp-prefix i))
+                              (found
+                               (cond ((keywordp (assqv key config))
+                                      (format str "~(~s~)" (assqv key config)))
+                                     (t
+                                      (format str "~a" (assqv key config)))))
+                              (t
+                               (cond ((keywordp def-val)
+                                      (format str "~(~s~)" def-val))
+                                     (t
+                                      (format str "~a" def-val)))))))))
+            
+#|(defun find-experiment-dir (base-dir exp-number)
+  "Finds the path to the directory of an experiment." 
+  (let* ((experiment-directories (uiop:subdirectories (asdf:system-relative-pathname "cle" (format nil "storage/~a/experiments/" "similarity"))))
+         (exp-dir (loop for exp-dir in experiment-directories
+                        for found-exp-number = (parse-integer (last-elt (split-sequence:split-sequence #\- (last-elt (pathname-directory exp-dir)))))
+                        when (equal exp-number found-exp-number)
+                          do (loop-finish)
+                        finally
+                          (return exp-dir))))
+    exp-dir))|#
+
+(defun load-experiment (store-dir &key (name "history"))
+  "Loads and returns the store object in the given directory." 
+  (let ((store-path (merge-pathnames (make-pathname :name name :type "store")
+                                     store-dir)))
+    (cl-store:restore store-path)))     
+
+#|(generate-csv-for-tuning "tuning2"
+                         "tune-mid-august2"
+                         `((:id . "?")
+                           (:exp-name . "?")
+                           (:nr-of-series . 5)
+                           (:nr-of-interactions . 500000)
+                           (:population-size . 10)
+                           (:dataset . "clevr")
+                           (:dataset-split . "train")
+                           (:available-channels . :clevr)
+                           (:disable-channels . :none)
+                           (:amount-disabled-channels . 0)
+                           (:sensor-noise . :none)
+                           (:sensor-std . 0.0)
+                           (:observation-noise . :none)
+                           (:observation-std . 0.0)
+                           (:scene-sampling . :random)
+                           (:topic-sampling . :random)
+                           (:similarity-threshold . 0.0)
+                           (:align . t)
+                           (:entrenchment-incf . 0.1)
+                           (:entrenchment-decf . -0.1)
+                           (:entrenchment-li . -0.02)
+                           (:trash-concepts . nil)
+                           (:weight-update-strategy . :j-interpolation)
+                           (:initial-weight . 0)
+                           (:weight-incf . 1)
+                           (:weight-decf . -1)
+                           (:switch-condition . :after-n-interactions)
+                           (:switch-conditions-after-n-interactions . 250000)
+                           (:stage-parameters ,'((:do-nothing . t))))
+                         `(;(:similarity-threshold 0.0 0.01 0.05); 0.1 0.2)
+                           (:initial-weight 0 35)
+                           (:weight-decf -1 -5 -10 -20)
+                           (:entrenchment-li -0.001 -0.005 -0.01 -0.02); -0.05 -0.1)
+                           (:trash-concepts nil t)
+                           ))|#
 
 
 ;; -----------------------------------------
@@ -83,16 +197,6 @@
 
 ;;;
 
-(defun calculate-amount-of-variations (parameters)
-  "Generate a set of experiments. Specify which parameters are variable
-   and what their possible values can be. Optionally specify an a-list
-   of shared configurations."
-  (let* ((pairs (loop for (key . values) in parameters
-                      collect (loop for value in values
-                                    collect (cons key value))))
-         (configurations (apply #'combinations pairs)))
-    (length configurations)))
-
 #|
  
 (setf all-scenes (find-scenes-with-size))
@@ -129,19 +233,4 @@
                  (loop for agent in (interacting-agents experiment)
                        do (set-data agent 'topic ecl-topic))))))|#
 
-(defun find-experiment-dir (base-dir exp-number)
-  "Finds the path to the directory of an experiment." 
-  (let* ((experiment-directories (uiop:subdirectories (asdf:system-relative-pathname "cle" (format nil "logging/~a/experiments/" "similarity"))))
-         (exp-dir (loop for exp-dir in experiment-directories
-                        for found-exp-number = (parse-integer (last-elt (split-sequence:split-sequence #\- (last-elt (pathname-directory exp-dir)))))
-                        when (equal exp-number found-exp-number)
-                          do (loop-finish)
-                        finally
-                          (return exp-dir))))
-    exp-dir))
 
-(defun load-experiment (store-dir &key (name "history"))
-  "Loads and returns the store object in the given directory." 
-  (let ((store-path (merge-pathnames (make-pathname :name name :type "store")
-                                     store-dir)))
-    (cl-store:restore store-path)))     

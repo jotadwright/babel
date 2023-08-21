@@ -6,37 +6,45 @@
 ;; ------------------
 ;; + Graph creation +
 ;; ------------------
-(graph-batch-experiments "big-bench5"
-                         "compare"
+(graph-batch-experiments "2023-8-mid_august2"
+                         "tuning"
                          `((:similarity-threshold 0.0 0.01 0.05 0.1 0.2)
                            (:initial-weight 0 35)
-                           (:topic-sampling :english-concepts :random-topic)
+                           (:weight-decf -1 -5)
+                           (:entrenchment-li -0.01 -0.02 -0.05 -0.1)
+                           (:trash-concepts nil t)
                            )
                          
-                         `(
-                           (:similarity-threshold 0.05)
-                           (:initial-weight 0)
+                         `((:similarity-threshold 0.0); 0.05); 0.01 0.2)
+                           (:initial-weight 0 );35)
+                           (:weight-decf -5);
+                           (:entrenchment-li -0.01 -0.02); -0.05 -0.1)
+                           (:trash-concepts nil t)
                            )
                          :plot :communicative-success
                          ;:plot :lexicon-coherence
-                         :y-min 0.98
+                         :y-min 0.95
                          ;:plot :lexicon-size
                          ;:y-max 10
-                         :start 950000
-                         :end  1000000
+                         :start  95000
+                         :end   100000
                          )
 
-(get-statistics "big-bench5"
-                "compare"
+(get-statistics "2023-8-mid_august2"
+                "tuning"
                 `((:similarity-threshold 0.0 0.01 0.05 0.1 0.2)
-                           (:initial-weight 0 35)
-                           (:topic-sampling :english-concepts :random-topic)
-                           )
-                `(
-                  (:similarity-threshold 0.05)
-                  (:initial-weight 35)
-                  ;(:topic-sampling :english-concepts)
+                  (:initial-weight 0 35)
+                  (:weight-decf -1 -5)
+                  (:entrenchment-li -0.01 -0.02 -0.05 -0.1)
+                  (:trash-concepts nil t)
                   )
+                         
+                `((:similarity-threshold 0.0 0.05); 0.05 0.01 0.2)
+                           (:initial-weight 0)
+                           (:weight-decf -5); -5)
+                           (:entrenchment-li -0.02 -0.01 -0.05 -0.1)
+                           (:trash-concepts t)
+                           )
                 )
 
 
