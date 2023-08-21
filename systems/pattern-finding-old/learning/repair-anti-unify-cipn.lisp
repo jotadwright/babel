@@ -58,11 +58,10 @@
          
          ;; 2) find the least general generalisations through anti-unification
          (least-general-generalisations
-          (loop with form-representation = (get-configuration cxn-inventory :form-representation-formalism)
-                for cipn in partial-analysis-cipns
+          (loop for cipn in partial-analysis-cipns
                 ;; returns all valid form anti unification results
                 for form-anti-unification-results
-                  = (anti-unify-form observation-form cipn form-representation)
+                  = (anti-unify-form observation-form cipn)
                 ;; returns all valid meaning anti unification results
                 for meaning-anti-unification-results
                   = (anti-unify-meaning observation-meaning cipn)

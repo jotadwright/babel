@@ -509,7 +509,7 @@
            (renamings (loop for const in unique-constants
                             for base-name = (get-base-name const)
                             unless (variable-p const)
-                              collect (cons const (make-var base-name)))))
+                            collect (cons const (if (numberp const) (make-var) (make-var base-name))))))
       (values (substitute-constants renamings form-constraints-with-constants)
               renamings))))
 
@@ -642,12 +642,16 @@
    (in terms of string + meets predicates)"
   (let* ((left-units
           (loop for fc in form-constraints
-                when (eql 'meets (first fc))
-                collect (second fc)))
+                if (eql 'meets (first fc))
+                collect (second fc)
+                else if (eql 'sequence (first fc))
+                collect (third fc)))
          (right-units
           (loop for fc in form-constraints
-                when (eql 'meets (first fc))
-                collect (third fc)))
+                if (eql 'meets (first fc))
+                collect (third fc)
+                else if (eql 'sequence (first fc))
+                collect (fourth fc)))
          (left-boundaries (set-difference left-units right-units))
          (right-boundaries (set-difference right-units left-units)))
     (if (and left-boundaries right-boundaries)
@@ -711,8 +715,9 @@
 (defmethod form-constraints-with-variables (utterance de-render-mode (mode (eql :string+meets)))
   (let ((form-constraints-with-constants
          (remove 'sequence
-                 (extract-forms (left-pole-structure
-                                 (de-render utterance de-render-mode)))
+                 (extract-forms
+                  (left-pole-structure
+                   (de-render utterance de-render-mode)))
                  :key #'first)))
     (fresh-variablify-form-constraints-with-constants form-constraints-with-constants)))
 

@@ -31,13 +31,13 @@
 (defgeneric holistic-form-top-args (form mode)
   (:documentation "Extract the top args from the form"))
 
-(defmethod holistic-form-top-args (form (mode (eql :string+meets)))
+(defmethod holistic-form-top-args (form mode)
   (get-boundaries form))
 
 (defgeneric holistic-meaning-top-args (meaning mode)
   (:documentation "Extract the top args from the meaning"))
 
-(defmethod holistic-meaning-top-args (meaning (mode (eql :irl)))
+(defmethod holistic-meaning-top-args (meaning mode)
   (list (get-target-var meaning)))
 
 (defmethod do-repair (observation-form observation-meaning (args blackboard) (cxn-inventory construction-inventory) node (repair-type (eql 'nothing->holistic)))
