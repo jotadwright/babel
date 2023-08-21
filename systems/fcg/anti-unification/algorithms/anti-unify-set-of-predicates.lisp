@@ -18,7 +18,11 @@
     c))
 
 (defclass anti-unification-result ()
-  ((generalisation
+  ((pattern
+    :accessor pattern :initarg :pattern :initform nil)
+   (source
+    :accessor source :initarg :source :initform nil)
+   (generalisation
     :accessor generalisation :initarg :generalisation :type list :initform nil)
    (pattern-bindings
     :accessor pattern-bindings :initarg :pattern-bindings :type list :initform nil)
@@ -57,6 +61,8 @@
                                       resulting-source-delta)
                     (anti-unify-predicate-sequence pattern-in-alignment source-in-alignment nil nil nil pattern-delta source-delta)
                   (make-instance 'anti-unification-result
+                                 :pattern pattern
+                                 :source source
                                  :generalisation resulting-generalisation
                                  :pattern-bindings resulting-pattern-bindings
                                  :source-bindings resulting-source-bindings

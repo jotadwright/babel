@@ -148,10 +148,10 @@
                                          (categories-to-add nil)
                                          (categorial-links-to-add nil)
                                          (category-linking-mode :categories-exist))
-  (with-configurations ((meaning-representation :meaning-representation)
-                        (form-representation :form-representation)
+  (with-configurations ((meaning-representation :meaning-representation-formalism)
+                        (form-representation :form-representation-formalism)
                         (initial-link-weight :initial-categorial-link-weight)
-                        (cxn-supplier-mode :learner-cxn-supplier))
+                        (cxn-supplier-mode :cxn-supplier-mode))
       original-cxn-inventory
     (let* ((inventory-name (gensym))
            (temp-cxn-inventory

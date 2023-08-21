@@ -15,6 +15,7 @@
   (activate-monitor show-type-hierarchy-after-n-interactions))
 
 
+;; default: use string and meets as form-representation
 (progn
   (wi::reset)
   (notify reset-monitors)
@@ -26,12 +27,27 @@
                               (:corpus-file . ,(make-pathname :directory '(:relative "val")
                                                               :name "stage-1" :type "jsonl"))))))
 
+;; use sequences as form-representation
+;; also requires different cxn supplier!
+(progn
+  (wi::reset)
+  (notify reset-monitors)
+  (reset-id-counters)
+  (defparameter *experiment*
+    (make-instance 'pattern-finding-experiment
+                   :entries `((:form-representation . :sequences)
+                              (:learner-cxn-supplier . :ordered-by-label-and-positive-score)
+                              (:comprehend-all-n . 2)
+                              (:shuffle-data-p . nil)
+                              (:corpus-file . ,(make-pathname :directory '(:relative "val")
+                                                              :name "stage-1" :type "jsonl"))))))
+
 (length (corpus *experiment*))
 
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 6)
+(run-series *experiment* 100)
 
 ;;;; Showing the cxn inventory and categorial network
 

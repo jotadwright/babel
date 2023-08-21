@@ -65,11 +65,10 @@
          ;; 3) find the least general generalisation through anti-unification
          (least-general-generalisations
           (loop with max-au-cost = (get-configuration cxn-inventory :max-au-cost)
-                with form-representation = (get-configuration cxn-inventory :form-representation-formalism)
                 for cxn in filtered-hash-compatible-cxns
                 ;; returns all valid form anti unification results
                 for form-anti-unification-results
-                  = (anti-unify-form observation-form cxn form-representation
+                  = (anti-unify-form observation-form cxn
                                      :max-au-cost max-au-cost)
                 ;; returns all valid meaning anti unification results
                 for meaning-anti-unification-results
@@ -91,6 +90,12 @@
     ;; 4) learn cxns(s) from the anti-unification results
     (when least-general-generalisations
       (dolist (generalisation least-general-generalisations)
+        ;; when necessary, initialize sequence predicates
+        (when (eql (get-configuration cxn-inventory :form-representation-formalism) :sequences)
+          (initialize-sequence-predicates (second generalisation)))
+        ;; the type of cxns that can be learned differ
+        ;; depending on the cxn that was used for
+        ;; anti-unification
         (let* ((anti-unified-cxn (first generalisation))
                (new-cxns-and-links
                 (cond ((holophrase-cxn-p anti-unified-cxn)

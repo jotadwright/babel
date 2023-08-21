@@ -4,37 +4,76 @@
 ;; anti-unify form ;;
 ;;;;;;;;;;;;;;;;;;;;;
 
-(defun anti-unify-form (source-form thing form-representation &key max-au-cost)
-  (case form-representation
-    (:string+meets (anti-unify-form-string-meets source-form thing :max-au-cost max-au-cost))
-    (:sequences (anti-unify-form-sequences source-form thing :max-au-cost max-au-cost))))
+(defgeneric anti-unify-form (source-form thing &key max-au-cost)
+  (:documentation "Anti-unify the observation with the given thing on the form side"))
 
-(defgeneric anti-unify-form-sequences (source-form thing &key max-au-cost)
-  (:documentation "Anti-unify the observation with the given thing on the form side."))
+(defmethod anti-unify-form (source-form thing &key max-au-cost)
+  (let ((form-representation (get-configuration
+                              (typecase thing
+                                (fcg-construction (cxn-inventory thing))
+                                (cip-node (construction-inventory thing)))
+                              :form-representation-formalism)))
+    (anti-unify-form-aux source-form thing form-representation :max-au-cost max-au-cost)))
 
-(defmethod anti-unify-form-sequences (source-form (cxn fcg-construction) &key max-au-cost)
-  (let* ((possible-source-forms
+(defmethod anti-unify-form-aux (source-form (cxn fcg-construction) (mode (eql :sequences)) &key max-au-cost)
+  (multiple-value-bind (possible-pattern-forms variable-boundaries)
+      (render-all (extract-form-predicates cxn) :render-sequences)
+    (setf possible-pattern-forms
+          (mapcar #'(lambda (lst)
+                      (list-of-strings->string lst :separator ""))
+                  possible-pattern-forms))
+    (let* ((anti-unification-results
+            (loop for pattern-form in possible-pattern-forms
+                  append (anti-unify-strings pattern-form source-form)))
+           (valid-anti-unification-results
+            (remove-if-not #'valid-au-result-p anti-unification-results)))
+      (when max-au-cost
+        (setf valid-anti-unification-results
+              (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
+                         valid-anti-unification-results)))
+      (setf valid-anti-unification-results
+            (loop for au-result in valid-anti-unification-results
+                  collect (replace-variables-with-matching-boundaries au-result variable-boundaries)))
+      (sort valid-anti-unification-results #'< :key #'fcg::cost))))
+
+;; TO DO:
+;; check for each variable in the generalisation if it occurs in the same position
+;; as one of the variable boundaries in the pattern.
+;; if so, replace that variable in the generalisation and the delta
+(defun replace-variables-with-matching-boundaries ()
+  )
+
+#|
+  (let* (;; render all possible forms for source
+         (possible-source-forms
           (mapcar #'(lambda (lst) (list-of-strings->string lst :separator ""))
                   (render-all source-form :render-sequences)))
+         ;; render all possible forms for pattern
          (cxn-form (extract-form-predicates cxn))
          (possible-pattern-forms
           (mapcar #'(lambda (lst) (list-of-strings->string lst :separator ""))
                   (render-all cxn-form :render-sequences)))
+         ;; anti-unify all combinations
          (anti-unification-results
           (loop for (pattern-form source-form) in (combinations possible-source-forms possible-pattern-forms)
-                append (fcg::anti-unify-strings pattern-form source-form :to-sequence-predicates-p t)))
+                append (fcg::anti-unify-strings pattern-form source-form)))
+         ;; remove invalid anti-unification results
          (valid-anti-unification-results
           (remove-if-not #'valid-au-result-p anti-unification-results)))
+    ;; remove anti-unification results with high cost
     (when max-au-cost
       (setf valid-anti-unification-results
             (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
                        valid-anti-unification-results)))
     (sort valid-anti-unification-results #'< :key #'fcg::cost)))
+|#
 
-(defmethod anti-unify-form-sequences (source-form (cipn cip-node) &key max-au-cost)
-  (let* ((possible-source-forms
+(defmethod anti-unify-form-aux (source-form (cipn cip-node) (mode (eql :sequences)) &key max-au-cost)
+  (let* (;; render all possible forms for source
+         (possible-source-forms
           (mapcar #'(lambda (lst) (list-of-strings->string lst :separator ""))
                   (render-all source-form :render-sequences)))
+         ;; render all possible forms for pattern
          (ts-form
           (loop for unit in (fcg-get-transient-unit-structure cipn)
                 unless (eql (unit-name unit) 'fcg::root)
@@ -42,48 +81,55 @@
          (possible-pattern-forms
           (mapcar #'(lambda (lst) (list-of-strings->string lst :separator ""))
                   (render-all ts-form :render-sequences)))
-         (anti-unification-results
+          ;; anti-unify all combinations
+          (anti-unification-results
           (loop for (pattern-form source-form) in (combinations possible-source-forms possible-pattern-forms)
                 append (fcg::anti-unify-strings pattern-form source-form :to-sequence-predicates-p t)))
+         ;; remove invalid anti-unification results
          (valid-anti-unification-results
           (remove-if-not #'valid-au-result-p anti-unification-results)))
+    ;; remove anti-unification results with high cost
     (when max-au-cost
       (setf valid-anti-unification-results
             (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
                        valid-anti-unification-results)))
-    (sort valid-anti-unification-results #'< :key #'fcg::cost)))
-          
+    (sort valid-anti-unification-results #'< :key #'fcg::cost)))        
 
-(defgeneric anti-unify-form-string-meets (source-form thing &key max-au-cost)
-  (:documentation "Anti-unify the observation with the given thing on the form side."))
-
-(defmethod anti-unify-form-string-meets (source-form (cxn fcg-construction) &key max-au-cost)
+(defmethod anti-unify-form-aux (source-form (cxn fcg-construction) (mode (eql :string+meets)) &key max-au-cost)
+  ;; assign fresh variables to the pattern
   (multiple-value-bind (pattern-form renamings)
       (fresh-variables (extract-form-predicates cxn))
-    (let* ((anti-unification-results
+    (let* (;; anti-unify
+           (anti-unification-results
             (anti-unify-predicate-network pattern-form source-form))
+           ;; remove invalid anti-unification results
            (valid-anti-unification-results
             (remove-if-not #'valid-au-result-p anti-unification-results)))
+      ;; restore original variables
       (setf valid-anti-unification-results
             (loop for au-result in valid-anti-unification-results
                   collect (rerename-pattern-variables au-result renamings)))
+      ;; remove anti-unification results with high cost
       (when max-au-cost
         (setf valid-anti-unification-results
               (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
                          valid-anti-unification-results)))
       (sort valid-anti-unification-results #'< :key #'fcg::cost))))
 
-(defmethod anti-unify-form-string-meets (source-form (cipn cip-node) &key max-au-cost)
-  (let* ((pattern-form
+(defmethod anti-unify-form-aux (source-form (cipn cip-node) (mode (eql :string+meets)) &key max-au-cost)
+  (let* (;; extract pattern form
+         (pattern-form
           (variablify-form-constraints-with-constants
            (loop for unit in (fcg-get-transient-unit-structure cipn)
                  unless (eql (unit-name unit) 'fcg::root)
                  append (unit-feature-value unit 'form))))
+         ;; anti-unify
          (anti-unification-results
           (anti-unify-predicate-network pattern-form source-form))
-         ;; when are AU results valid/invalid in the case of partial analysis?
+         ;; remove invalid anti-unification results
          (valid-anti-unification-results
           (remove-if-not #'valid-au-result-p anti-unification-results)))
+    ;; remove anti-unification results with high cost
     (when max-au-cost
       (setf valid-anti-unification-results
             (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
@@ -255,6 +301,25 @@
 ;; anti-unify utils ;;
 ;;;;;;;;;;;;;;;;;;;;;;
 
+(defun initialize-sequence-predicates (form-anti-unification)
+  (with-slots (generalisation
+               pattern-delta
+               source-delta) form-anti-unification
+    (let* ((generalisation-sequences
+            (loop for elem in generalisation
+                  if (stringp elem)
+                    collect (list 'sequence elem (make-var 'lb) (make-var 'rb))
+                  else collect elem))
+           (pattern-delta-sequences
+            (loop for (var . seq) in pattern-delta
+                  collect (cons var (list 'sequence seq (make-var 'lb) (make-var 'rb)))))
+           (source-delta-sequences
+            (loop for (var . seq) in source-delta
+                  collect (cons var (list 'sequence seq (make-var 'lb) (make-var 'rb))))))
+      (setf generalisation generalisation-sequences
+            pattern-delta pattern-delta-sequences
+            source-delta source-delta-sequences))))
+
 (defun rerename-pattern-variables (anti-unification-result renamings)
   (with-slots (generalisation
                pattern-bindings
@@ -268,26 +333,6 @@
       (setf pattern-delta
             (substitute-variables pattern-delta bs))
       anti-unification-result)))
-
-#|
-(defun remove-arg-predicates (set-of-predicates)
-  "Remove both top-args and slot-args predicates
-   from the set of predicates."
-  (let ((predicates (copy-list set-of-predicates)))
-    (loop for predicate in '(top-arg slot-arg)
-          do (setf predicates (remove predicate predicates :key #'first)))
-    predicates))
-
-(defun correct-au-cost (anti-unification-result)
-  "Remove the cost of the top-arg and slot-arg predicates from
-   the total anti-unification cost"
-  (with-slots (g pb sb pattern-delta source-delta cost) anti-unification-result
-    (declare (ignore g pb sb))
-    (- cost (+ (count 'top-arg pattern-delta :key #'first)
-               (count 'slot-arg pattern-delta :key #'first)
-               (count 'top-arg source-delta :key #'first)
-               (count 'slot-arg source-delta :key #'first)))))
-|#
 
 (defun renamingp (bindings-list)
   "A bindings list is a renaming if the mappings are one to one"
@@ -351,6 +396,24 @@
 
 
 #|
+(defun remove-arg-predicates (set-of-predicates)
+  "Remove both top-args and slot-args predicates
+   from the set of predicates."
+  (let ((predicates (copy-list set-of-predicates)))
+    (loop for predicate in '(top-arg slot-arg)
+          do (setf predicates (remove predicate predicates :key #'first)))
+    predicates))
+
+(defun correct-au-cost (anti-unification-result)
+  "Remove the cost of the top-arg and slot-arg predicates from
+   the total anti-unification cost"
+  (with-slots (g pb sb pattern-delta source-delta cost) anti-unification-result
+    (declare (ignore g pb sb))
+    (- cost (+ (count 'top-arg pattern-delta :key #'first)
+               (count 'slot-arg pattern-delta :key #'first)
+               (count 'top-arg source-delta :key #'first)
+               (count 'slot-arg source-delta :key #'first)))))
+
 (defun copy-arg-predicates (anti-unification-result)
   "Copy arg predicates from the pattern delta to the source delta;
    only copy predicates that include variables that can be found in
