@@ -41,7 +41,8 @@
                              ))
                (:module "agent"
                 :serial t
-                :components ((:file "agent")
+                :components ((:file "utils")
+                             (:file "agent")
                              (:file "adoption")
                              (:file "alignment")
                              (:file "invention")

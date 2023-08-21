@@ -22,7 +22,11 @@
     :type list :accessor noise-in-each-observation :initarg :noise-in-each-observation :initform nil)
    (invented-or-adopted
     :documentation "Whether the agent invented or adopted during the interaction."
-    :type boolean :accessor invented-or-adopted :initform nil)))
+    :type boolean :accessor invented-or-adopted :initform nil)
+   (usage-table
+    :documentation "Keeps track of the cxns used with a sliding window."
+    :type usage-table :accessor usage-table :initarg :usage-table)
+    ))
   
 (defmethod clear-agent ((agent cle-agent))
   "Clear the slots of the agent for the next interaction."

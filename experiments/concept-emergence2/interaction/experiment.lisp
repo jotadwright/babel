@@ -49,7 +49,9 @@
                                    :experiment experiment
                                    :disabled-channels disabled-channels-hash
                                    :noise-in-each-sensor sensor-noise
-                                   :noise-in-each-observation observation-noise)))
+                                   :noise-in-each-observation observation-noise
+                                   :usage-table (create-usage-table (get-configuration experiment :usage-table-window))
+                                   )))
     new-agent))
 
 (defun initialise-population (experiment)
