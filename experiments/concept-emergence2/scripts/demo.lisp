@@ -10,6 +10,7 @@
      :entries `(
                 ;; monitoring
                 (:dot-interval . 100)
+                (:usage-table-window . 100)
                 (:save-distribution-history . nil)
                 ;; setup interacting agents
                 (:interacting-agents-strategy . :standard)
@@ -34,11 +35,11 @@
                 (:align . t)
                 (:similarity-threshold . 0.0)
                 ;; entrenchment of constructions
-                (:initial-cxn-entrenchement . 1/2)
-                (:entrenchment-incf . 1/10)
-                (:entrenchment-decf . -1/10)
-                (:entrenchment-li . -1/50) ;; lateral inhibition
-                (:trash-concepts . nil)
+                (:initial-cxn-entrenchement . 0.5)
+                (:entrenchment-incf . 0.1)
+                (:entrenchment-decf . -0.1)
+                (:entrenchment-li . -0.01) ;; lateral inhibition
+                (:trash-concepts . t)
                 ;; concept representations
                 (:concept-representation . :distribution)
                 (:distribution . :gaussian-welford)
@@ -70,6 +71,7 @@
   (deactivate-all-monitors)
   (activate-monitor export-communicative-success)
   (activate-monitor export-lexicon-coherence)
+  ;(activate-monitor export-unique-form-usage)
   (activate-monitor print-a-dot-for-each-interaction)
   (format t "~%---------- NEW GAME ----------~%")
   (time

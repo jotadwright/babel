@@ -15,19 +15,21 @@
        :asdf-system "cle"
        :package "cle"
        :experiment-class "cle-experiment"
-       :number-of-interactions 5000
-       :number-of-series 3
+       :number-of-interactions 10000
+       :number-of-series 5
        :monitors (list "export-communicative-success"
                        "export-lexicon-coherence"
                        "export-experiment-configurations"
                        "export-experiment-store"
+                       "export-unique-form-usage"
                        "print-a-dot-for-each-interaction"
                        )
        ;; default configuration settings
        :shared-configuration `(
                 ;; monitoring
-                (:dot-interval . 100)
+                (:dot-interval . 5000)
                 ;(:record-every-x-interactions . 100) ;; important for fast logging
+                (:usage-table-window . 5000)
                 (:save-distribution-history . nil)
                 ;; setup interacting agents
                 (:interacting-agents-strategy . :standard)
@@ -56,7 +58,7 @@
                 (:entrenchment-incf . 0.1)
                 (:entrenchment-decf . -0.1)
                 (:entrenchment-li . -0.01) ;; lateral inhibition
-                (:trash-concepts . nil)
+                (:trash-concepts . t)
                 ;; concept representations
                 (:concept-representation . :distribution)
                 (:distribution . :gaussian-welford)
