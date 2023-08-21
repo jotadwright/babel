@@ -38,7 +38,7 @@
 ;; ---------------
 
 (defun determine-communicative-success (cipn)
-  (assert (succeeded-cipn-p cipn)) ;(find 'fcg::succeeded (statuses cipn)))
+  (assert (succeeded-cipn-p cipn))
   (let ((all-node-statuses (mappend #'statuses (cons cipn (all-parents cipn))))
         (communicative-success t))
     (when (find 'gold-standard-consulted all-node-statuses)
@@ -48,7 +48,7 @@
 (defun get-last-repair-symbol (cipn success?)
   (let ((all-node-statuses (mappend #'statuses (cons cipn (all-parents cipn)))))
     (if (not (find 'added-by-repair all-node-statuses))
-      (if success? "." "x") ; return a dot or x in processing mode
+      (if success? "." "x")
       (cond ((member 'nothing->holistic all-node-statuses) "h")
             ((member 'anti-unify-cxns all-node-statuses) "a")
             ((member 'anti-unify-cipn all-node-statuses) "p")

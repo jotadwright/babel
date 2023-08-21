@@ -24,7 +24,7 @@
                              (:file "goal-tests")
                              (:file "fcg-utils")
                              (:file "utils")))
-               (:module diagnostics-and-repairs
+               (:module learning
                 :serial t
                 :components ((:file "handle-fix")
                              (:file "problems-diagnostics")
@@ -37,7 +37,7 @@
                              (:file "repair-nothing-to-holophrase-cxn")
                              (:file "repair-anti-unify-cxns")
                              (:file "repair-anti-unify-cipn")))
-               (:module experiment-setup
+               (:module experiment
                 :serial t
                 :components ( (:file "run-helpers")
                               (:file "agent")
