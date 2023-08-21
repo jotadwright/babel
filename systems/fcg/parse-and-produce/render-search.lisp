@@ -254,12 +254,22 @@ string constraint with the variable ?Y."
 (defgeneric render-all (object mode &key &allow-other-keys)
   (:documentation "Provides all possible renders of an utterance."))
 
+(defun instantiate-boundaries (render-state)
+  (let ((bindings nil))
+    (loop with index = 0
+          for c in (used-string-constraints render-state)
+          do (push (cons (third c) index) bindings)
+             (incf index (length (second c)))
+             (push (cons (fourth c) index) bindings))
+    (reverse bindings)))          
+
 (defmethod render-all ((form-constraints list) (mode (eql :render-sequences)) &key &allow-other-keys)
   (let* ((sequence-constraints (remove-if-not #'stringp form-constraints :key #'second))
          (queue (list (make-instance 'render-state
                                      :used-string-constraints nil
                                      :remaining-string-constraints (shuffle sequence-constraints))))
-         (solutions nil))
+         (solutions nil)
+         (boundaries-bindings nil))
     (loop while queue
           for current-state = (pop queue)
           for all-new-states = (generate-render-states current-state)
@@ -267,5 +277,7 @@ string constraint with the variable ?Y."
           do (loop for valid-state in valid-new-states
                    if (remaining-string-constraints valid-state)
                    do (push valid-state queue)
-                   else do (push (render valid-state :render-sequences) solutions)))
-    solutions))
+                   else
+                     do (push (instantiate-boundaries valid-state) boundaries-bindings)
+                        (push (render valid-state :render-sequences) solutions)))
+    (values solutions boundaries-bindings)))
