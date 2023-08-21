@@ -22,6 +22,8 @@
                                               resulting-source-delta)
                             (anti-unify-aligned-strings pattern-in-alignment source-in-alignment)
                           (make-instance 'anti-unification-result
+                                         :pattern pattern
+                                         :source source
                                          :generalisation (generalisation-chars->strings resulting-generalisation)
                                          :pattern-delta (loop for (var . chars) in resulting-pattern-delta
                                                               collect (cons var (coerce chars 'string)))
