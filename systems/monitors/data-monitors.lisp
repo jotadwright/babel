@@ -87,15 +87,18 @@
   (with-slots (values average-values current-value default-value no-default-value
                       average-window) monitor
     (push current-value (caar values))
-    (typecase current-value
-      (number    ;; current-value is a number, so we can compute the average
-                 (loop for value in (remove nil (caar (get-values monitor))) ;; Jens (29/11/19)
-                       for count from 1
-                       sum value into sum-of-values
-                       while (< count average-window)
-                       finally (push (/ sum-of-values count) (caar average-values))))
-      (otherwise ;;value is not a number
-                 (push current-value (caar average-values))))))
+    ;; if window is zero, no calculation of average is needed
+    ;; otherwise, we would create a list of zeros in memory for no reason
+    (when (not (zerop average-window)) 
+      (typecase current-value
+        (number    ;; current-value is a number, so we can compute the average
+                   (loop for value in (remove nil (caar (get-values monitor))) ;; Jens (29/11/19)
+                         for count from 1
+                         sum value into sum-of-values
+                         while (< count average-window)
+                         finally (push (/ sum-of-values count) (caar average-values))))
+        (otherwise ;;value is not a number
+                   (push current-value (caar average-values)))))))
 
 (defmethod handle-run-series-finished-event :after ((monitor data-recorder)
                                                     (monitor-id symbol)

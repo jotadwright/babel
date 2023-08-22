@@ -6,45 +6,45 @@
 ;; ------------------
 ;; + Graph creation +
 ;; ------------------
-(graph-batch-experiments "2023-8-mid_august2"
-                         "tuning"
-                         `((:similarity-threshold 0.0 0.01 0.05 0.1 0.2)
+(graph-batch-experiments "2023-8-mid_august3"
+                         "tuning2"
+                         `(;(:similarity-threshold 0.0 0.01 0.05); 0.1 0.2)
                            (:initial-weight 0 35)
-                           (:weight-decf -1 -5)
-                           (:entrenchment-li -0.01 -0.02 -0.05 -0.1)
+                           (:weight-decf -1 -5 -10 -20)
+                           (:entrenchment-li -0.001 -0.005 -0.01 -0.02); -0.05 -0.1)
                            (:trash-concepts nil t)
                            )
                          
-                         `((:similarity-threshold 0.0); 0.05); 0.01 0.2)
-                           (:initial-weight 0 );35)
-                           (:weight-decf -5);
-                           (:entrenchment-li -0.01 -0.02); -0.05 -0.1)
-                           (:trash-concepts nil t)
-                           )
+                         `((:initial-weight 0) ;35)
+                           (:weight-decf -5); -10 -20) ;-10); -20)
+                           (:entrenchment-li -0.001 -0.005 -0.01 -0.02); -0.05 -0.1)
+                           (:trash-concepts t))
                          :plot :communicative-success
                          ;:plot :lexicon-coherence
-                         :y-min 0.95
+                         :y-min 0.97
                          ;:plot :lexicon-size
                          ;:y-max 10
-                         :start  95000
-                         :end   100000
+                         :start 490000
+                         :end   500000
+                         :average-windows 5000
                          )
 
-(get-statistics "2023-8-mid_august2"
-                "tuning"
-                `((:similarity-threshold 0.0 0.01 0.05 0.1 0.2)
-                  (:initial-weight 0 35)
-                  (:weight-decf -1 -5)
-                  (:entrenchment-li -0.01 -0.02 -0.05 -0.1)
-                  (:trash-concepts nil t)
-                  )
+(get-statistics "2023-8-mid_august3"
+                "tuning2"
+                `(
+                 (:similarity-threshold 0.0)
+                 (:initial-weight 0 35)
+                 (:weight-decf -1 -5 -10 -20)
+                 (:entrenchment-li -0.001 -0.005 -0.01 -0.02); -0.05 -0.1)
+                 (:trash-concepts nil t)
+                 )
                          
-                `((:similarity-threshold 0.0 0.05); 0.05 0.01 0.2)
-                           (:initial-weight 0)
-                           (:weight-decf -5); -5)
-                           (:entrenchment-li -0.02 -0.01 -0.05 -0.1)
-                           (:trash-concepts t)
-                           )
+                `(;(:similarity-threshold 0.0 0.01 0.05); 0.1 0.2)
+                 (:initial-weight 0 35)
+                 (:weight-decf -1 -5 -10 -20)
+                 (:entrenchment-li -0.001 -0.005 -0.01 -0.02); -0.05 -0.1)
+                 (:trash-concepts t)
+                 )
                 )
 
 

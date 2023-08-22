@@ -15,18 +15,21 @@
        :asdf-system "cle"
        :package "cle"
        :experiment-class "cle-experiment"
-       :number-of-interactions 1300
-       :number-of-series 3
+       :number-of-interactions 10000
+       :number-of-series 5
        :monitors (list "export-communicative-success"
                        "export-lexicon-coherence"
                        "export-experiment-configurations"
                        "export-experiment-store"
+                       "export-unique-form-usage"
                        "print-a-dot-for-each-interaction"
                        )
        ;; default configuration settings
        :shared-configuration `(
                 ;; monitoring
-                (:dot-interval . 100)
+                (:dot-interval . 5000)
+                ;(:record-every-x-interactions . 100) ;; important for fast logging
+                (:usage-table-window . 5000)
                 (:save-distribution-history . nil)
                 ;; setup interacting agents
                 (:interacting-agents-strategy . :standard)
@@ -51,11 +54,11 @@
                 (:align . t)
                 (:similarity-threshold . 0.0)
                 ;; entrenchment of constructions
-                (:initial-cxn-entrenchement . 1/2)
-                (:entrenchment-incf . 1/10)
-                (:entrenchment-decf . -1/10)
-                (:entrenchment-li . -1/50) ;; lateral inhibition
-                (:trash-concepts . nil)
+                (:initial-cxn-entrenchement . 0.5)
+                (:entrenchment-incf . 0.1)
+                (:entrenchment-decf . -0.1)
+                (:entrenchment-li . -0.01) ;; lateral inhibition
+                (:trash-concepts . t)
                 ;; concept representations
                 (:concept-representation . :distribution)
                 (:distribution . :gaussian-welford)
@@ -64,7 +67,7 @@
                 (:weight-update-strategy . :j-interpolation)
                 (:initial-weight . 0)
                 (:weight-incf . 1)
-                (:weight-decf . -1)
+                (:weight-decf . -5)
                 ;; staging
                 (:switch-condition . :after-n-interactions) ; :after-n-interactions)
                 (:switch-conditions-after-n-interactions . 500)
