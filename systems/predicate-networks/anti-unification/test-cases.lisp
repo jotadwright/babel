@@ -35,7 +35,7 @@
     (filter ?set-2 ?set-1 ?color-1)
     (bind color-category ?color-1 red)
     (exist ?target ?set-2))
-  ;; are there any small cybes?
+  ;; are there any small cubes?
   '((get-context ?c)
     (filter ?s1 ?c ?b1)
     (bind shape-category ?b1 cube)
