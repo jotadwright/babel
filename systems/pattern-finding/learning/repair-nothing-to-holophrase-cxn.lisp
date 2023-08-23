@@ -38,7 +38,12 @@
   (:documentation "Extract the top args from the meaning"))
 
 (defmethod holistic-meaning-top-args (meaning mode)
-  (list (get-target-var meaning)))
+  (let ((target-var (get-target-var meaning)))
+    (if target-var
+      (list target-var)
+      (let* ((all-vars (find-all-anywhere-if #'variable-p meaning))
+             (singleton-vars (find-all-if #'(lambda (var) (= (count-anywhere var meaning) 1)) all-vars)))
+        singleton-vars))))
 
 (defmethod do-repair (observation-form observation-meaning (args blackboard) (cxn-inventory construction-inventory) node (repair-type (eql 'nothing->holistic)))
   (let* ((cxn-inventory (original-cxn-set cxn-inventory))
