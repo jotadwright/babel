@@ -45,32 +45,28 @@
 
     ;; 3. Perform the actual comprehension process
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    
-    (handler-case
-        (trivial-timeout:with-timeout (timeout)
-          (multiple-value-bind (solution cipn frame-set)
-              (handler-case (monitors:with-disabled-monitor-notifications
-                              (utils::with-package (package-name package)
-                                (propbank-grammar::comprehend-and-extract-frames utterance :cxn-inventory grammar :silent t)))
-                
-                (error (e)
-                  (http-condition 400 (format nil "Error during the comprehension process: ~a" e))))
-
-                                        ;(pprint (fcg::name (fcg::construction-inventory cipn)))
-            (declare (ignore solution cipn))
-            ;;  4. Return the result as a json object
-            (cl-json:encode-json-alist-to-string
-             `((:status-code . 200)
-               (:frame-set . ,(loop for frame in (propbank-grammar::frames frame-set)
-                                    collect `((:frame-name . ,(propbank-grammar::frame-name frame))
-                                              (:roles . ,(append `(((:role . "V")
-                                                                    (:string . ,(propbank-grammar::fel-string
-                                                                                 (propbank-grammar::frame-evoking-element frame)))
-                                                                    (:indices . ,(propbank-grammar::indices
-                                                                                  (propbank-grammar::frame-evoking-element frame)))))
-                                                                 (loop for fe in (propbank-grammar::frame-elements frame)
-                                                                       collect `((:role . ,(propbank-grammar::fe-role fe))
-                                                                                 (:string . ,(propbank-grammar::fe-string fe))
-                                                                                 (:indices . ,(propbank-grammar::indices fe)))))))))))))
-      (trivial-timeout:timeout-error ()
-        (http-condition 500 "Timeout exceeded!")))))
+    (multiple-value-bind (solution cipn frame-set)
+        (handler-case (monitors:with-disabled-monitor-notifications
+                        (utils::with-package (package-name package)
+                          (propbank-grammar::comprehend-and-extract-frames utterance :cxn-inventory grammar :silent t :timeout timeout)))
+          
+          (error (e)
+            (http-condition 400 (format nil "Error during the comprehension process: ~a" e))))
+      
+      (declare (ignore solution cipn))
+      ;;  4. Return the result as a json object
+      (if (eql solution 'propbank-grammar::time-out)
+        (http-condition 500 "Timeout exceeded!")
+        (cl-json:encode-json-alist-to-string
+         `((:status-code . 200)
+           (:frame-set . ,(loop for frame in (propbank-grammar::frames frame-set)
+                                collect `((:frame-name . ,(propbank-grammar::frame-name frame))
+                                          (:roles . ,(append `(((:role . "V")
+                                                                (:string . ,(propbank-grammar::fel-string
+                                                                             (propbank-grammar::frame-evoking-element frame)))
+                                                                (:indices . ,(propbank-grammar::indices
+                                                                              (propbank-grammar::frame-evoking-element frame)))))
+                                                             (loop for fe in (propbank-grammar::frame-elements frame)
+                                                                   collect `((:role . ,(propbank-grammar::fe-role fe))
+                                                                             (:string . ,(propbank-grammar::fe-string fe))
+                                                                             (:indices . ,(propbank-grammar::indices fe)))))))))))))))
