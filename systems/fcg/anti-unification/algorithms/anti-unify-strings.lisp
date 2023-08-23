@@ -255,9 +255,23 @@
         (maximal-string-alignments "How large is the sphere?"
                                    "What size is the cube?"))
 
-(mapcar #'print-string-alignments
-        (maximal-string-alignments "appel"
-                                   "ppel"))
+(length
+ (maximal-string-alignments "The tiny shiny cylinder has what color?"
+                            "What is the color of the large shiny sphere?"))
+=> 216 possible alignments
+
+(length
+ (maximal-string-alignments "The tiny shiny cylinder has what color?"
+                            "What is the material of the big purple object?"))
+=> 3196800 possible alignments 
+==> 
+
+(length
+ (anti-unify-predicate-network
+  (form-constraints-with-meets (split "The tiny shiny cylinder has what color?" #\space) :variables t)
+  (form-constraints-with-meets (split "What is the material of the big purple object?" #\space) :variables t)))
+=> 40320 anti-unification results
+
 |#
 
 
