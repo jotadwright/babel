@@ -64,12 +64,12 @@
              observation-form
              ;; cxns to appply
              cxns-to-apply
-             ;; categorial links
-             (extract-used-categorial-links solution)
-             ;; original cxns to consolidate
+             ;; cxns to consolidate
              nil
              ;; categories to add
              nil
+             ;; categorial links
+             (extract-used-categorial-links solution)
              ;; top level category
              top-lvl-category
              ;; gold standard consulted p

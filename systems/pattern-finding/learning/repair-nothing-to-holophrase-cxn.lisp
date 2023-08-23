@@ -105,12 +105,12 @@
      observation-form
      ;; cxns to apply
      cxns-to-apply
-     ;; categorial links
-     nil
-     ;; original cxns to consolidate
+     ;; cxns to consolidate
      cxns-to-consolidate
      ;; categories to add
      cats-to-add
+     ;; categorial links
+     nil
      ;; top level category
      category
      ;; gold standard consulted p

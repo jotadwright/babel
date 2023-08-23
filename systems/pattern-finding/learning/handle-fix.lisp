@@ -15,10 +15,10 @@
 
 ;; Apply fix result
 (defstruct (apply-fix-result (:conc-name afr-))
-  (orig-cxns-to-apply nil)
-  (categorial-links nil)
-  (orig-cxns-to-consolidate nil)
+  (cxns-to-apply nil)
+  (cxns-to-consolidate nil)
   (categories-to-add nil)
+  (categorial-links nil)
   (top-lvl-category nil)
   (gold-standard-consulted-p nil)
   (node nil)
@@ -28,9 +28,9 @@
 
 (defun apply-fix (form-constraints
                   cxns-to-apply
-                  categorial-links
-                  original-cxns-to-consolidate
+                  cxns-to-consolidate
                   categories-to-add
+                  categorial-links
                   top-level-category
                   gold-standard-consulted-p
                   node
@@ -41,7 +41,7 @@
   (let ((learned-cxns
          (remove-if-not #'(lambda (cxn) (and (eql (attr-val cxn :label) 'fcg::routine)
                                              (not (attr-val cxn :learned-at))))
-                        (append cxns-to-apply original-cxns-to-consolidate))))
+                        (append cxns-to-apply cxns-to-consolidate))))
     (if node
       (let* ((orig-categorial-network (categorial-network (construction-inventory node)))
              (temp-categorial-network (copy-object (categorial-network (construction-inventory node)))))
@@ -69,13 +69,12 @@
           ;; reset categorial network
           (set-categorial-network (construction-inventory node) orig-categorial-network)
           (when (succeeded-cipn-p sandbox-solution)
-          ;(when (find 'fcg::succeeded (statuses sandbox-solution))
             (notify fix-applied repair-name form-constraints learned-cxns)
             (make-apply-fix-result
-             :orig-cxns-to-apply cxns-to-apply
-             :categorial-links categorial-links
-             :orig-cxns-to-consolidate original-cxns-to-consolidate
+             :cxns-to-apply cxns-to-apply
+             :cxns-to-consolidate cxns-to-consolidate
              :categories-to-add categories-to-add
+             :categorial-links categorial-links
              :top-lvl-category top-level-category
              :gold-standard-consulted-p gold-standard-consulted-p
              :node node
@@ -86,10 +85,10 @@
       (progn
         (notify fix-applied repair-name form-constraints learned-cxns)
         (make-apply-fix-result
-         :orig-cxns-to-apply cxns-to-apply
-         :categorial-links categorial-links
-         :orig-cxns-to-consolidate original-cxns-to-consolidate
+         :cxns-to-apply cxns-to-apply
+         :cxns-to-consolidate cxns-to-consolidate
          :categories-to-add categories-to-add
+         :categorial-links categorial-links
          :top-lvl-category top-level-category
          :gold-standard-consulted-p gold-standard-consulted-p
          :node node
@@ -104,10 +103,10 @@
 (defmethod handle-fix ((fix fcg::cxn-fix) (repair add-cxns-and-categorial-links) (problem problem) (node cip-node) &key &allow-other-keys) 
   "Enqueue the solution node."
   (push fix (fixes (problem fix)))
-  (let* ((cxns-to-apply (afr-orig-cxns-to-apply (restart-data fix)))
-         (categorial-links (afr-categorial-links (restart-data fix)))
-         (cxns-to-consolidate (afr-orig-cxns-to-consolidate (restart-data fix)))
+  (let* ((cxns-to-apply (afr-cxns-to-apply (restart-data fix)))
+         (cxns-to-consolidate (afr-cxns-to-consolidate (restart-data fix)))
          (categories-to-add (afr-categories-to-add (restart-data fix)))
+         (categorial-links (afr-categorial-links (restart-data fix)))
          (gold-standard-consulted-p (afr-gold-standard-consulted-p (restart-data fix)))
          (solution-node (afr-solution-node (restart-data fix)))
          (learned-cxns

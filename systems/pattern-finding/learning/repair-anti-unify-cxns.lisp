@@ -34,9 +34,9 @@
         (destructuring-bind (cxns-to-apply cxns-to-consolidate cats-to-add cat-links-to-add) new-cxns-and-links
           (apply-fix observation-form
                      cxns-to-apply
-                     cat-links-to-add
                      cxns-to-consolidate
                      cats-to-add
+                     cat-links-to-add
                      (extract-contributing-category (last-elt cxns-to-apply))
                      t
                      node
