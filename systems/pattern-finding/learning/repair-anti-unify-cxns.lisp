@@ -132,54 +132,62 @@
                                      (find-data form-args :generalisation-slot-args)
                                      (find-data meaning-args :generalisation-slot-args)
                                      cxn-inventory))
+           (generalisation-slot-categories
+            (remove (afr-top-lvl-category generalisation-cxns-and-categories)
+                    (afr-categories-to-add generalisation-cxns-and-categories)))
            ;; holistic cxn from source delta
            (source-delta-cxns-and-categories
-            (make-holistic-cxn (source-delta form-anti-unification)
-                               (source-delta meaning-anti-unification)
-                               (find-data form-args :source-top-lvl-args)
-                               (find-data meaning-args :source-top-lvl-args)
-                               cxn-inventory))
+            (let ((recursion-args
+                   (make-blackboard
+                    :data-fields
+                    (list (cons :top-lvl-form-args (find-data form-args :source-top-lvl-args))
+                          (cons :top-lvl-meaning-args (find-data meaning-args :source-top-lvl-args))))))
+              (handle-potential-holistic-cxn (source-delta form-anti-unification)
+                                             (source-delta meaning-anti-unification)
+                                             recursion-args cxn-inventory)))
            ;; holistic cxn from pattern delta
            (pattern-delta-cxns-and-categories
             (when (and (pattern-delta form-anti-unification)
                        (pattern-delta meaning-anti-unification))
-              (make-holistic-cxn (pattern-delta form-anti-unification)
-                                 (pattern-delta meaning-anti-unification)
-                                 (find-data form-args :pattern-top-lvl-args)
-                                 (find-data meaning-args :pattern-top-lvl-args)
-                                 cxn-inventory)))
+              (let ((recursion-args
+                     (make-blackboard
+                      :data-fields
+                      (list (cons :top-lvl-form-args (find-data form-args :pattern-top-lvl-args))
+                            (cons :top-lvl-meaning-args (find-data meaning-args :pattern-top-lvl-args))))))
+                (handle-potential-holistic-cxn (pattern-delta form-anti-unification)
+                                               (pattern-delta meaning-anti-unification)
+                                               recursion-args cxn-inventory))))
            ;; build results
            (cxns-to-apply
             ;; holistic cxn source delta apply-first + item-based cxn generalisation apply-last
-            (list (first source-delta-cxns-and-categories)
-                  (first generalisation-cxns-and-categories)))
+            (append (afr-cxns-to-apply source-delta-cxns-and-categories)
+                    (afr-cxns-to-apply generalisation-cxns-and-categories)))
            (cxns-to-consolidate
             ;; holistic cxn source delta apply-last + item-based cxn generalisation apply-first
             ;; + holistic cxn pattern delta apply-first and apply-last
-            (append
-             (list (second source-delta-cxns-and-categories)
-                   (second generalisation-cxns-and-categories))
-             (when pattern-delta-cxns-and-categories
-               (list (first pattern-delta-cxns-and-categories)
-                     (second pattern-delta-cxns-and-categories)))))
+            (append (afr-cxns-to-consolidate source-delta-cxns-and-categories)
+                    (afr-cxns-to-consolidate generalisation-cxns-and-categories)
+                    (when pattern-delta-cxns-and-categories
+                      (append (afr-cxns-to-apply pattern-delta-cxns-and-categories)
+                              (afr-cxns-to-consolidate pattern-delta-cxns-and-categories)))))
            (categories-to-add
             ;; top lvl category source delta cxn + top lvl category generalisation cxn
             ;; + slot category generalisation cxn + top-lvl category pattern delta cxn
-            (append
-             (cons (third source-delta-cxns-and-categories)
-                   (cons (third generalisation-cxns-and-categories)
-                         (fourth generalisation-cxns-and-categories)))
-             (when pattern-delta-cxns-and-categories
-               (list (third pattern-delta-cxns-and-categories)))))
+            (append (afr-categories-to-add source-delta-cxns-and-categories)
+                    (afr-categories-to-add generalisation-cxns-and-categories)
+                    (when pattern-delta-cxns-and-categories
+                      (afr-categories-to-add pattern-delta-cxns-and-categories))))
            (links-to-add
             ;; link between slot of generalisation cxn and source delta cxn
             ;; + link between slot of generalisation cxn and pattern delta cxn
-            (append
-             (list (cons (first (fourth generalisation-cxns-and-categories))
-                         (third source-delta-cxns-and-categories)))
-             (when pattern-delta-cxns-and-categories
-               (list (cons (first (fourth generalisation-cxns-and-categories))
-                           (third pattern-delta-cxns-and-categories)))))))
+            (append (loop for slot-cat in generalisation-slot-categories
+                          collect (cons (afr-top-lvl-category source-delta-cxns-and-categories) slot-cat))
+                    (afr-categorial-links source-delta-cxns-and-categories)
+                    (afr-categorial-links generalisation-slot-categories)
+                    (when pattern-delta-cxns-and-categories
+                      (append (loop for slot-cat in generalisation-slot-categories
+                                    collect (cons (afr-top-lvl-category pattern-delta-cxns-and-categories) slot-cat))
+                              (afr-categorial-links pattern-delta-cxns-and-categories))))))
       (list cxns-to-apply cxns-to-consolidate categories-to-add links-to-add))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -204,11 +212,14 @@
            (meaning-args (compute-meaning-args meaning-anti-unification anti-unified-cxn args))
            ;; holistic cxn from generalisation
            (generalisation-cxns-and-categories
-            (make-holistic-cxn (generalisation form-anti-unification)
-                               (generalisation meaning-anti-unification)
-                               (find-data form-args :generalisation-slot-args)
-                               (find-data meaning-args :generalisation-slot-args)
-                               cxn-inventory))
+            (let ((recursion-args
+                   (make-blackboard
+                    :data-fields
+                    (list (cons :top-lvl-form-args (find-data form-args :generalisation-slot-args))
+                          (cons :top-lvl-meaning-args (find-data meaning-args :generalisation-slot-args))))))
+              (handle-potential-holistic-cxn (generalisation form-anti-unification)
+                                             (generalisation meaning-anti-unification)
+                                             recursion-args cxn-inventory)))
            ;; item-based cxn from source delta
            (source-delta-cxns-and-categories
             (make-generalisation-cxn (source-delta form-anti-unification)
@@ -218,6 +229,9 @@
                                      (find-data form-args :source-top-lvl-args)
                                      (find-data meaning-args :source-top-lvl-args)
                                      cxn-inventory))
+           (source-delta-slot-categories
+            (remove (afr-top-lvl-category source-delta-cxns-and-categories)
+                    (afr-categories-to-add source-delta-cxns-and-categories)))
            ;; item-based cxn from pattern delta
            (pattern-delta-cxns-and-categories
             (when (and (pattern-delta form-anti-unification)
@@ -229,46 +243,47 @@
                                        (find-data form-args :pattern-top-lvl-args)
                                        (find-data meaning-args :pattern-top-lvl-args)
                                        cxn-inventory)))
+           (pattern-delta-slot-categories
+            (when pattern-delta-cxns-and-categories
+              (remove (afr-top-lvl-category pattern-delta-cxns-and-categories)
+                      (afr-categories-to-add pattern-delta-cxns-and-categories))))
            ;; build results
            (cxns-to-apply
             ;; holistic generalisation cxn apply-first + item-based source delta cxn apply-last
-            (list (first generalisation-cxns-and-categories)
-                  (first source-delta-cxns-and-categories)))
+            (append (afr-cxns-to-apply generalisation-cxns-and-categories)
+                    (afr-cxns-to-apply source-delta-cxns-and-categories)))
            (cxns-to-consolidate
             ;; holistic generalisation cxn apply-last + item-based source delta cxn apply-first
             ;; + item-based pattern delta cxn apply-last and apply-first
-            (append
-             (list (second generalisation-cxns-and-categories)
-                   (second source-delta-cxns-and-categories))
-             (when pattern-delta-cxns-and-categories
-               (list (first pattern-delta-cxns-and-categories)
-                     (second pattern-delta-cxns-and-categories)))))
+            (append (afr-cxns-to-consolidate generalisation-cxns-and-categories)
+                    (afr-cxns-to-consolidate source-delta-cxns-and-categories)
+                    (when pattern-delta-cxns-and-categories
+                      (append (afr-cxns-to-apply pattern-delta-cxns-and-categories)
+                              (afr-cxns-to-consolidate pattern-delta-cxns-and-categories)))))
            (categories-to-add
             ;; top lvl category generalisation cxn + top lvl category source delta cxn
             ;; + slot category source delta cxn + top lvl category pattern delta cxn
             ;; + slot category pattern delta cxn
-            (append
-             (cons (third generalisation-cxns-and-categories)
-                   (cons (third source-delta-cxns-and-categories)
-                         (fourth source-delta-cxns-and-categories)))
-             (when pattern-delta-cxns-and-categories
-               (cons (third pattern-delta-cxns-and-categories)
-                     (fourth pattern-delta-cxns-and-categories)))))
+            (append (afr-categories-to-add generalisation-cxns-and-categories)
+                    (afr-categories-to-add source-delta-cxns-and-categories)
+                    (when pattern-delta-cxns-and-categories
+                      (afr-categories-to-add pattern-delta-cxns-and-categories))))
            ;; link generalisation cxn to slot of source delta cxn
            ;; + link generalisation cxn to slot of pattern delta cxn
            ;; + link pattern delta cxn to slots that were filled by anti-unified cxn
            (links-to-add
-            (append
-             (list (cons (first (fourth source-delta-cxns-and-categories))
-                         (third generalisation-cxns-and-categories)))
-             (when pattern-delta-cxns-and-categories
-               (append
-                (list (cons (first (fourth pattern-delta-cxns-and-categories))
-                            (third generalisation-cxns-and-categories)))
-                (link-filler-to-previous-slots
-                 anti-unified-cxn
-                 (third pattern-delta-cxns-and-categories)
-                 cxn-inventory))))))
+            (append (loop for slot-cat in source-delta-slot-categories
+                          collect (cons (afr-top-lvl-category generalisation-cxns-and-categories) slot-cat))
+                    (afr-categorial-links generalisation-cxns-and-categories)
+                    (afr-categorial-links source-delta-cxns-and-categories)
+                    (when pattern-delta-cxns-and-categories
+                      (append (loop for slot-cat in pattern-delta-slot-categories
+                                    collect (cons (afr-top-lvl-category generalisation-cxns-and-categories) slot-cat))
+                              (afr-categorial-links pattern-delta-cxns-and-categories)
+                              (link-filler-to-previous-slots
+                               anti-unified-cxn
+                               (afr-top-lvl-category pattern-delta-cxns-and-categories)
+                               cxn-inventory))))))
       (list cxns-to-apply cxns-to-consolidate categories-to-add links-to-add))))
 
 (defun link-filler-to-previous-slots (anti-unified-cxn filler-category cxn-inventory)
@@ -306,13 +321,19 @@
                                      (find-data form-args :generalisation-slot-args)
                                      (find-data meaning-args :generalisation-slot-args)
                                      cxn-inventory))
+           (generalisation-slot-categories
+            (remove (afr-top-lvl-category generalisation-cxns-and-categories)
+                    (afr-categories-to-add generalisation-cxns-and-categories)))
            ;; holistic cxn from source delta
            (source-delta-cxns-and-categories
-            (make-holistic-cxn (source-delta form-anti-unification)
-                               (source-delta meaning-anti-unification)
-                               (find-data form-args :source-top-lvl-args)
-                               (find-data meaning-args :source-top-lvl-args)
-                               cxn-inventory))
+            (let ((recursion-args
+                   (make-blackboard
+                    :data-fields
+                    (list (cons :top-lvl-form-args (find-data form-args :source-top-lvl-args))
+                          (cons :top-lvl-meaning-args (find-data meaning-args :source-top-lvl-args))))))
+              (handle-potential-holistic-cxn (source-delta form-anti-unification)
+                                             (source-delta meaning-anti-unification)
+                                             recursion-args cxn-inventory)))
            ;; item-based cxn from pattern delta
            (pattern-delta-form-arg-groups
             (loop for unit in (extract-slot-units anti-unified-cxn)
@@ -337,43 +358,40 @@
            ;; build results
            (cxns-to-apply
             ;; holistic cxn source delta apply-first + item-based cxn generalisation apply-last
-            (list (first source-delta-cxns-and-categories)
-                  (first generalisation-cxns-and-categories)))
+            (append (afr-cxns-to-apply source-delta-cxns-and-categories)
+                    (afr-cxns-to-apply generalisation-cxns-and-categories)))
            (cxns-to-consolidate
             ;; holistic cxn source delta apply-last + item-based cxn generalisation apply-first
             ;; + item-based cxn pattern delta apply-last and apply-first
-            (append
-             (list (second source-delta-cxns-and-categories)
-                   (second generalisation-cxns-and-categories))
-             (when pattern-delta-cxns-and-categories
-               (list (first pattern-delta-cxns-and-categories)
-                     (second pattern-delta-cxns-and-categories)))))
+            (append (afr-cxns-to-consolidate source-delta-cxns-and-categories)
+                    (afr-cxns-to-consolidate generalisation-cxns-and-categories)
+                    (when pattern-delta-cxns-and-categories
+                      (append (afr-cxns-to-apply pattern-delta-cxns-and-categories)
+                              (afr-cxns-to-consolidate pattern-delta-cxns-and-categories)))))
            (categories-to-add
             ;; top lvl category source delta cxn + top lvl category generalisation cxn
             ;; + slot category generalisation cxn
             ;; + top lvl category pattern delta cxn + slot categories pattern delta cxn
-            (append
-             (cons (third source-delta-cxns-and-categories)
-                   (cons (third generalisation-cxns-and-categories)
-                         (fourth generalisation-cxns-and-categories)))
-             (when pattern-delta-cxns-and-categories
-               (cons (third pattern-delta-cxns-and-categories)
-                     (fourth pattern-delta-cxns-and-categories)))))
+            (append (afr-categories-to-add source-delta-cxns-and-categories)
+                    (afr-categories-to-add generalisation-cxns-and-categories)
+                    (when pattern-delta-cxns-and-categories
+                      (afr-categories-to-add pattern-delta-cxns-and-categories))))
            (links-to-add
             ;; link between slot of generalisation cxn and source delta cxn
             ;; + link between slot of generalisation cxn and pattern delta cxn
             ;; + link between slots of pattern delta cxn and fillers of anti-unified item-based cxn!
-            (append
-             (list (cons (first (fourth generalisation-cxns-and-categories))
-                         (third source-delta-cxns-and-categories)))
-             (when pattern-delta-cxns-and-categories
-               (append
-                (list (cons (first (fourth generalisation-cxns-and-categories))
-                            (third pattern-delta-cxns-and-categories)))
-                (link-slots-to-previous-fillers
-                 pattern-delta-meaning-arg-groups
-                 (first pattern-delta-cxns-and-categories)
-                 cxn-inventory))))))
+            (append (loop for slot-cat in generalisation-slot-categories
+                          collect (cons (afr-top-lvl-category source-delta-cxns-and-categories) slot-cat))
+                    (afr-categorial-links source-delta-cxns-and-categories)
+                    (afr-categorial-links generalisation-cxns-and-categories)
+                    (when pattern-delta-cxns-and-categories
+                      (append (loop for slot-cat in generalisation-slot-categories
+                                    collect (cons (afr-top-lvl-category pattern-delta-cxns-and-categories) slot-cat))
+                              (afr-categorial-links pattern-delta-cxns-and-categories)
+                              (link-slots-to-previous-fillers
+                               pattern-delta-meaning-arg-groups
+                               (first (afr-cxns-to-apply pattern-delta-cxns-and-categories))
+                               cxn-inventory))))))
       (list cxns-to-apply cxns-to-consolidate categories-to-add links-to-add))))
 
 (defun link-slots-to-previous-fillers (arg-groups new-cxn cxn-inventory)

@@ -142,10 +142,15 @@
                                                    (get-configuration cxn-inventory :initial-cxn-score)
                                                    cxn-inventory-copy))))
     ;; done!
-    (list item-based-cxn-apply-last
-          item-based-cxn-apply-first
-          top-cat-item-based
-          (list slot-cat-item-based))))
+    (apply-fix form
+               (list item-based-cxn-apply-last)
+               (list item-based-cxn-apply-first)
+               (list top-cat-item-based slot-cat-item-based)
+               nil
+               top-cat-item-based
+               t
+               nil
+               'make-generalisation-cxn)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; make generalisation cxn with n units ;;
@@ -207,8 +212,13 @@
                                                               contributing-units-apply-first
                                                               (mapcar #'first contributing-units-apply-first)))))
     ;; done!
-    (list item-based-cxn-apply-last
-          item-based-cxn-apply-first
-          top-cat-item-based
-          slot-cats-item-based)))
+    (apply-fix form
+               (list item-based-cxn-apply-last)
+               (list item-based-cxn-apply-first)
+               (cons top-cat-item-based slot-cats-item-based)
+               nil
+               top-cat-item-based
+               t
+               nil
+               'make-generalisation-cxn)))
 
