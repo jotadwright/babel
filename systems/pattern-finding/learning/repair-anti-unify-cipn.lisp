@@ -193,7 +193,7 @@
                   collect (original-cxn (if (routine-cxn-p cxn) cxn
                                           (alter-ego-cxn cxn (construction-inventory anti-unified-cipn))))))
            (sandbox-cxns
-            (cons (first source-delta-cxns-and-categories) applied-cxns))
+            (append (afr-cxns-to-apply source-delta-cxns-and-categories) applied-cxns))
            (sandbox-categories
             (append (mappend #'extract-conditional-categories sandbox-cxns)
                     (mapcar #'extract-contributing-category sandbox-cxns)))
@@ -204,11 +204,8 @@
                                    :categories-to-add sandbox-categories))
            ;; build results
            (cxns-to-apply sandbox-cxns)
-           (cxns-to-consolidate (list (second source-delta-cxns-and-categories)))
-           (categories-to-add
-            (remove nil
-                    (append (list (third source-delta-cxns-and-categories))
-                            (fourth source-delta-cxns-and-categories))))
+           (cxns-to-consolidate (afr-cxns-to-consolidate source-delta-cxns-and-categories))
+           (categories-to-add (afr-categories-to-add source-delta-cxns-and-categories))
            (links-to-add (extract-used-categorial-links sandbox-cipn)))
       ;; done!
       (when (and sandbox-cipn (succeeded-cipn-p sandbox-cipn))
@@ -246,7 +243,8 @@
                   collect (original-cxn (if (routine-cxn-p cxn) cxn
                                           (alter-ego-cxn cxn (construction-inventory anti-unified-cipn))))))
            (sandbox-cxns
-            (append (first source-delta-cxns-and-categories) applied-cxns))
+            (append (mapcar #'afr-cxns-to-apply source-delta-cxns-and-categories)
+                    applied-cxns))
            (sandbox-categories
             (append (mappend #'extract-conditional-categories sandbox-cxns)
                     (mapcar #'extract-contributing-category sandbox-cxns)))
@@ -257,8 +255,8 @@
                                    :categories-to-add sandbox-categories))
            ;; build results
            (cxns-to-apply sandbox-cxns)
-           (cxns-to-consolidate (second source-delta-cxns-and-categories))
-           (categories-to-add (third source-delta-cxns-and-categories))
+           (cxns-to-consolidate (mapcar #'afr-cxns-to-consolidate source-delta-cxns-and-categories))
+           (categories-to-add (mapcar #'afr-categories-to-add source-delta-cxns-and-categories))
            (links-to-add (extract-used-categorial-links sandbox-cipn)))
       ;; done!
       (when (and sandbox-cipn (succeeded-cipn-p sandbox-cipn))

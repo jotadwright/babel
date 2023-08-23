@@ -83,14 +83,12 @@
     (loop for (holistic-cxn-form holistic-cxn-meaning category) in holistic-cxns-forms-and-meanings
           for holistic-cxn-form-args = (rest (find category form-arg-groups :key #'first))
           for holistic-cxn-meaning-args = (rest (find category meaning-arg-groups :key #'first))
-          for (holistic-cxn-apply-first holistic-cxn-apply-last category-holistic-cxn)
-            = (make-holistic-cxn holistic-cxn-form holistic-cxn-meaning holistic-cxn-form-args holistic-cxn-meaning-args cxn-inventory)
-          collect holistic-cxn-apply-first into holistic-cxns-apply-first
-          collect holistic-cxn-apply-last into holistic-cxns-apply-last
-          collect category-holistic-cxn into categories-holistic-cxns
-          finally (return (list holistic-cxns-apply-first
-                                holistic-cxns-apply-last
-                                categories-holistic-cxns)))))
+          for recursion-args = (make-blackboard :data-fields (list (cons :top-lvl-form-args holistic-cxn-form-args)
+                                                                   (cons :top-lvl-meaning-args holistic-cxn-meaning-args)))
+          for holistic-apply-fix-result
+            ;= (make-holistic-cxn holistic-cxn-form holistic-cxn-meaning holistic-cxn-form-args holistic-cxn-meaning-args cxn-inventory)
+            = (handle-potential-holistic-cxn holistic-cxn-form holistic-cxn-meaning recursion-args cxn-inventory)
+          collect holistic-apply-fix-result)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; make generalisation cxn ;;
