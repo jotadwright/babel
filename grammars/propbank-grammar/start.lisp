@@ -28,8 +28,6 @@
 ;; Storing and restoring grammars
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
-
 #|(defparameter *restored-grammar-sbcl*
   (cl-store:restore
    (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
@@ -41,6 +39,20 @@
    (babel-pathname :directory '("grammars" "propbank-grammar" "grammars")
                    :name "propbank-grammar-ontonotes-no-aux-lw"
                    :type "fcg")))
+
+;; if the restored grammar has the old configuration (as an alist)
+;; run the following code to turn it into a hash table
+(progn
+  (setf (configuration *restored-grammar-lw*)
+        (make-configuration :entries (configuration (configuration *restored-grammar-lw*))))
+  (setf (visualization-configuration *restored-grammar-lw*)
+        (make-configuration :entries (configuration (visualization-configuration *restored-grammar-lw*))))
+  (setf (configuration (processing-cxn-inventory *restored-grammar-lw*))
+        (make-configuration :entries (configuration (configuration (processing-cxn-inventory *restored-grammar-lw*)))))
+  (setf (visualization-configuration (processing-cxn-inventory *restored-grammar-lw*))
+        (make-configuration :entries (configuration (visualization-configuration (processing-cxn-inventory *restored-grammar-lw*))))))
+
+
 
 (categorial-network *restored-grammar-lw*)
 
