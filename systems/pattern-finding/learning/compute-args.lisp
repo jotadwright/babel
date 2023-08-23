@@ -20,6 +20,112 @@
 (defun right-boundary (sequence-predicate)
   (fourth sequence-predicate))
 
+
+(defmethod compute-form-args-aux (anti-unification-result
+                                  (anti-unified-cxn fcg-construction)
+                                  (source-args blackboard)
+                                  (mode (eql :sequences)))
+  (with-slots (generalisation
+               pattern-delta
+               source-delta) anti-unification-result
+    (let* ((starts-with-slot (consp (first generalisation)))
+           (ends-with-slot (consp (last-elt generalisation)))
+           ;; make sequence predicates from the generalisation and delta's
+           (generalisation-predicates
+            (loop for elem in generalisation
+                  when (stringp elem)
+                  collect (let* ((pos (position elem generalisation :test #'equal))
+                                 (prev-elem (unless (= pos 0) (nth (1- pos) generalisation)))
+                                 (next-elem (nth (1+ pos) generalisation))
+                                 (left-boundary (if prev-elem (cdr prev-elem) (make-var 'lb)))
+                                 (right-boundary (if next-elem (car next-elem) (make-var 'rb))))
+                            (list 'sequence elem left-boundary right-boundary))))
+           (pattern-delta-predicates
+            (loop for (boundaries . seq-str) in pattern-delta
+                  collect (list 'sequence seq-str (car boundaries) (cdr boundaries))))
+           (source-delta-predicates
+            (loop for (boundaries . seq-str) in source-delta
+                  collect (list 'sequence seq-str (car boundaries) (cdr boundaries))))
+           ;; slot/top-args
+           (pattern-slot-args (extract-slot-form-args anti-unified-cxn))
+           (pattern-top-args (extract-top-lvl-form-args anti-unified-cxn))
+           (source-slot-args (find-data source-args :slot-form-args))
+           (source-top-args (or (find-data source-args :top-lvl-form-args)
+                                ;; compute entirely new top args, like for a holophrase cxn,
+                                ;; by putting together the source delta and the generalisation
+                                (holistic-form-top-args
+                                 ;; to do: have a function for putting back the generalisation and the delta
+                                 nil
+                                 (get-configuration (cxn-inventory anti-unified-cxn) :form-representation-formalism))))
+           ;; outermost boundaries
+           (leftmost-boundary
+            (if starts-with-slot
+              (car (first generalisation))
+              (left-boundary (first generalisation-predicates))))
+           (rightmost-boundary
+            (if ends-with-slot
+              (cdr (last-elt generalisation))
+              (right-boundary (last-elt generalisation-predicates))))
+           ;; blackboard for args
+           (args (make-blackboard)))
+      ;; generalisation top lvl args
+      (push-data args :generalisation-top-lvl-args rightmost-boundary)
+      (push-data args :generalisation-top-lvl-args leftmost-boundary)
+      ;; generalisation slot args + pattern/source top lvl args
+      (loop with len = (length generalisation-predicates)
+            for predicate in generalisation-predicates
+            for index from 1
+            do (cond ((and (= index 1) starts-with-slot)
+                      (let ((boundaries (first generalisation)))
+                        (push-data args :generalisation-slot-args
+                                   (car boundaries))
+                        (push-data args :generalisation-slot-args
+                                   (cdr boundaries))))
+                     ((= index 1)
+                      (push-data args :generalisation-slot-args
+                                 (fourth predicate)))
+                     ((and (= index len) ends-with-slot)
+                      (let ((boundaries (last-elt generalisation)))
+                        (push-data args :generalisation-slot-args
+                                   (car boundaries))
+                        (push-data args :generalisation-slot-args
+                                   (cdr boundaries))))
+                     ((= index len)
+                      (push-data args :generalisation-slot-args
+                                 (third predicate)))
+                     (t
+                      (push-data args :generalisation-slot-args
+                                 (third predicate))
+                      (push-data args :generalisation-slot-args
+                                 (fourth predicate)))))
+      (set-data args :generalisation-slot-args
+                (reverse (get-data args :generalisation-slot-args)))
+      (set-data args :pattern-top-lvl-args
+                (loop for predicate in (reverse pattern-delta-predicates)
+                      append (list (third predicate) (fourth predicate))))
+      (set-data args :source-top-lvl-args
+                (loop for predicate in (reverse source-delta-predicates)
+                      append (list (third predicate) (fourth predicate))))
+      ;; pattern slot args + source slot args
+      (set-data args :pattern-slot-args
+                (loop for predicate in pattern-delta-predicates
+                      when (and (find (third predicate) pattern-slot-args)
+                                (find (fourth predicate) pattern-slot-args))
+                      append (list (third predicate) (fourth predicate))))
+      (set-data args :source-slot-args
+                (loop for predicate in source-delta-predicates
+                      when (and (find (third predicate) source-slot-args)
+                                (find (fourth predicate) source-slot-args))
+                      append (list (third predicate) (fourth predicate))))
+      ;; cleanup
+      (setf generalisation generalisation-predicates)
+      (setf pattern-delta (remove-if #'(lambda (p) (string= (second p) "")) pattern-delta-predicates))
+      (setf source-delta (remove-if #'(lambda (p) (string= (second p) "")) source-delta-predicates))
+      ;; done!
+      args)))
+        
+
+#|
 (defmethod compute-form-args-aux (anti-unification-result
                                   (anti-unified-cxn fcg-construction)
                                   (source-args blackboard)
@@ -27,9 +133,7 @@
   (let ((args (make-blackboard)))
     (with-slots (generalisation
                  pattern-delta
-                 source-delta
-                 pattern
-                 source) anti-unification-result
+                 source-delta) anti-unification-result
       (let* (;; determine outermost boundaries
              (leftmost-boundary
               (if (variable-p (first generalisation))
@@ -38,7 +142,13 @@
              (rightmost-boundary
               (if (variable-p (last-elt generalisation))
                 (make-var 'rightmost)
-                (right-boundary (last-elt generalisation)))))
+                (right-boundary (last-elt generalisation))))
+             ;; slot/top-args
+             (pattern-slot-args (extract-slot-form-args anti-unified-cxn))
+             (pattern-top-args (extract-top-lvl-form-args anti-unified-cxn))
+             (source-slot-args (find-data source-args :slot-form-args))
+             (source-top-args (find-data source-args :top-lvl-form-args)))
+        ;; generalisation top lvl args
         (push-data args :generalisation-top-lvl-args rightmost-boundary)
         (push-data args :generalisation-top-lvl-args leftmost-boundary) 
         (dolist (elem generalisation)
@@ -66,60 +176,21 @@
               (push-data args :pattern-top-lvl-args (left-boundary pd-seq))
               (push-data args :source-top-lvl-args (left-boundary sd-seq)))))
         (set-data args :pattern-slot-args
-                  ;; instantiate boundaries in generalisation using pattern delta
-                  ;; instantiate boundaries in original pattern
-                  ;; loop through variables in generalisation:
-                  ;;    if instantiation in gen+pd matches instantiation in original pattern
-                  ;;    -> that variable (+ its buddy) is a slot arg!!
-                  (let ((var-bounds (variable-boundaries generalisation pattern-delta))
-                        (pattern-bounds (instantiate-boundaries (extract-form-predicates anti-unified-cxn)))
-                        (pattern-form-args (extract-slot-form-args anti-unified-cxn)))
-                    (loop for (nil left right) in var-bounds
-                          for lb-var = (find left pattern-bounds :key #'cdr :test #'=)
-                          for rb-var = (find right pattern-bounds :key #'cdr :test #'=)
-                          if (find lb-var pattern-form-args)
-                            append (list lb-var (nth (1+ (position lb-var pattern-form-args)) pattern-form-args))
-                          else if (find rb-var pattern-form-args)
-                            append (list rb-var (nth (1- (position rb-var pattern-form-args)) pattern-form-args)))))
+                  ;; check if there are variables in the pattern delta that also
+                  ;; occur as a pattern-slot-arg. if so, take this variable (and
+                  ;; its buddy) as :pattern-slot-arg
+                  (loop for (var . seq-pred) in pattern-delta
+                        when (find var pattern-slot-args)
+                        append (let* ((position (position var pattern-slot-args))
+                                      (buddy-position (if (evenp position) (1+ position) (1- position)))
+                                      (buddy (nth buddy-position pattern-slot-args)))
+                                 (list var buddy))))  
         ;; dirty tricks here....
         (setf generalisation (remove-if #'variable-p generalisation))
         (setf pattern-delta (mapcar #'rest pattern-delta))
         (setf source-delta (mapcar #'rest source-delta))))
     args))
-
-
-(defun instantiate-boundaries (set-of-sequence-predicates)
-  (let ((index 0))
-    (loop for predicate in set-of-sequence-predicates
-          for left-index = index
-          for string-length = (length (sequence-string predicate))
-          for right-index = (+ index string-length)
-          do (incf index (length (sequence-string predicate)))
-          append (list (cons (left-boundary predicate) left-index)
-                       (cons (right-boundary predicate) right-index)))))
-
-;(instantiate-boundaries '((sequence "what color is the " ?lb ?rb)))
-;; ((?lb 0) (?rb 18))
-
-(defun variable-boundaries (set-of-sequence-predicates bindings)
-  (let ((index 0)
-        positions)
-    (dolist (elem set-of-sequence-predicates)
-      (if (variable-p elem)
-        (let* ((len (length (sequence-string (rest (assoc elem bindings)))))
-               (start-pos index)
-               (end-pos (+ index len)))
-          (push (list elem start-pos end-pos) positions)
-          (incf index len))
-        (incf index (length (sequence-string elem)))))
-    (reverse positions)))
-
-;(variable-boundaries
-; '((sequence "what " ?a ?b) ?x (sequence " is the " ?c ?d) ?y (sequence " ?" ?e ?f))
-; '((?x sequence "color" ?a ?b) (?y sequence "ball" ?c ?d)))
-;; ((?x 5 10) (?y 18 22))
-            
-              
+|#
               
 
 (defmethod compute-form-args-aux (anti-unification-result
@@ -153,15 +224,11 @@
                  (push-data args :source-top-lvl-args source-var)
                  (push-data args :generalisation-slot-args generalisation-var))
         (set-data args :pattern-slot-args
-                  (cond ((holistic-cxn-p anti-unified-cxn)
-                         pattern-top-args)
-                        ((item-based-cxn-p anti-unified-cxn)
-                         pattern-slot-args)))
+                  (cond ((holistic-cxn-p anti-unified-cxn) pattern-top-args)
+                        ((item-based-cxn-p anti-unified-cxn) pattern-slot-args)))
         (set-data args :source-slot-args
-                  (cond ((holistic-cxn-p anti-unified-cxn)
-                         source-top-args)
-                        ((item-based-cxn-p anti-unified-cxn)
-                         source-slot-args)))
+                  (cond ((holistic-cxn-p anti-unified-cxn) source-top-args)
+                        ((item-based-cxn-p anti-unified-cxn) source-slot-args)))
         (set-data args :generalisation-top-lvl-args
                   (loop for arg in pattern-top-args
                         collect (or (rest (assoc arg pattern-bindings)) arg)))))
@@ -182,8 +249,13 @@
                  source-bindings
                  pattern-delta
                  source-delta) anti-unification-result
-      (let ((pattern-slot-args (extract-slot-meaning-args anti-unified-cxn))
+      (let (;; pattern slot args are meaning-args that are used in the units that
+            ;; represent slots in the pattern (anti-unified-cxn)
+            (pattern-slot-args (extract-slot-meaning-args anti-unified-cxn))
+            ;; pattern top args are meaning-args that are used on the contributing
+            ;; part of the pattern (anti-unified cxn)
             (pattern-top-args (extract-top-lvl-meaning-args anti-unified-cxn))
+            ;; for now, this is always empty... but it will be used when adding recursion
             (source-slot-args (find-data source-args :slot-meaning-args))
             (source-top-args (or (find-data source-args :top-lvl-meaning-args)
                                  ;; compute entirely new top args, like for a holophrase cxn
@@ -191,6 +263,11 @@
                                  (holistic-meaning-top-args
                                   (append (substitute-bindings (fcg::reverse-bindings source-bindings) generalisation) source-delta)
                                   (get-configuration (cxn-inventory anti-unified-cxn) :meaning-representation-formalism)))))
+        ;; loop through both bindings lists (pattern and source) at the same time
+        ;; whenever a variable from the bindings list is used in the delta
+        ;; OR that variable is a slot-arg
+        ;; OR that variable occurs more than once in the bindings (decoupled link)
+        ;; THEN use that variable as an arg 
         (loop for (pattern-var . generalisation-var) in pattern-bindings
               for (source-var . nil) in source-bindings
               when (or (find-anywhere pattern-var pattern-delta)
@@ -202,16 +279,25 @@
               do (push-data args :pattern-top-lvl-args pattern-var)
                  (push-data args :source-top-lvl-args source-var)
                  (push-data args :generalisation-slot-args generalisation-var))
+        ;; when anti-unifying with a holistic cxn, the pattern delta cxn will be item-based
+        ;; and the top-args/slot-args are reversed, so pass on the top-lvl args of the
+        ;; previous pattern as top-lvl args for the next pattern
+
+        ;; when anti-unifying with an item-based cxn, the pattern delta cxn will also be
+        ;; item-based, so pass on the slot args of the previous pattern as the slot args
+        ;; for the next pattern
         (set-data args :pattern-slot-args
-                  (cond ((holistic-cxn-p anti-unified-cxn)
-                         pattern-top-args)
-                        ((item-based-cxn-p anti-unified-cxn)
-                         pattern-slot-args)))
+                  (cond ((holistic-cxn-p anti-unified-cxn) pattern-top-args)
+                        ((item-based-cxn-p anti-unified-cxn) pattern-slot-args)))
+
+        ;; when anti-unifying with a holistic cxn, the source delta cxn will be item-based
+        ;; and the top-args/slot-args are reversed, so pass on the top-lvl args of the
+        ;; previous source as the top-lvl args for the next source
         (set-data args :source-slot-args
-                  (cond ((holistic-cxn-p anti-unified-cxn)
-                         source-top-args)
-                        ((item-based-cxn-p anti-unified-cxn)
-                         source-slot-args)))
+                  (cond ((holistic-cxn-p anti-unified-cxn) source-top-args)
+                        ((item-based-cxn-p anti-unified-cxn) source-slot-args)))
+
+        ;; 
         (set-data args :generalisation-top-lvl-args
                   (loop for arg in pattern-top-args
                         collect (or (rest (assoc arg pattern-bindings)) arg)))))

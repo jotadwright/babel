@@ -68,12 +68,10 @@
                 for cxn in filtered-hash-compatible-cxns
                 ;; returns all valid form anti unification results
                 for form-anti-unification-results
-                  = (anti-unify-form observation-form cxn
-                                     :max-au-cost max-au-cost)
+                  = (anti-unify-form observation-form cxn :max-au-cost max-au-cost)
                 ;; returns all valid meaning anti unification results
                 for meaning-anti-unification-results
-                  = (anti-unify-meaning observation-meaning cxn
-                                        :max-au-cost max-au-cost)
+                  = (anti-unify-meaning observation-meaning cxn :max-au-cost max-au-cost)
                 ;; make all combinations and filter for valid combinations
                 for all-anti-unification-combinations
                   = (remove-if-not #'valid-au-combination-p
@@ -90,9 +88,6 @@
     ;; 4) learn cxns(s) from the anti-unification results
     (when least-general-generalisations
       (dolist (generalisation least-general-generalisations)
-        ;; when necessary, initialize sequence predicates
-        (when (eql (get-configuration cxn-inventory :form-representation-formalism) :sequences)
-          (initialize-sequence-predicates (second generalisation)))
         ;; the type of cxns that can be learned differ
         ;; depending on the cxn that was used for
         ;; anti-unification

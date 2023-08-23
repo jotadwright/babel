@@ -97,14 +97,14 @@
     ;;;; an item-based cxn that has 3 slots!
     (def-fcg-cxn metal-cxn
                  ((?holistic-unit
-                   (form-args (?metal))
+                   (form-args (?lb ?rb))
                    (meaning-args (?material-1))
                    (category metal-cat-1))
                   <-
                   (?holistic-unit
                    (HASH meaning ((bind material ?material-1 metal)))
                    --
-                   (HASH form ((string ?metal "metal")))))
+                   (HASH form ((sequence "metal" ?lb ?rb)))))
                  :attributes (:label fcg::routine
                               :cxn-type holistic
                               :string "metal"
@@ -114,14 +114,14 @@
     
     (def-fcg-cxn large-cxn
                  ((?holistic-unit
-                   (form-args (?large))
+                   (form-args (?lb ?rb))
                    (meaning-args (?size-1))
                    (category large-cat-1))
                   <-
                   (?holistic-unit
                    (HASH meaning ((bind size ?size-1 large)))
                    --
-                   (HASH form ((string ?large "large")))))
+                   (HASH form ((sequence "large" ?lb ?rb)))))
                  :attributes (:label fcg::routine
                               :cxn-type holistic
                               :string "large"
@@ -131,14 +131,14 @@
     
     (def-fcg-cxn cube-cxn
                  ((?holistic-unit
-                   (form-args (?cube-1))
+                   (form-args (?lb ?rb))
                    (meaning-args (?shape-1))
                    (category cube-cat-1))
                   <-
                   (?holistic-unit
                    (HASH meaning ((bind shape ?shape-1 cube)))
                    --
-                   (HASH form ((string ?cube-1 "cube")))))
+                   (HASH form ((sequence "cube" ?lb ?rb)))))
                  :attributes (:label fcg::routine
                               :cxn-type holistic
                               :string "cube"
@@ -150,7 +150,7 @@
                  ((?item-based-unit
                    (category what-color-is-the-cat-1)
                    (meaning-args (?target))
-                   (form-args (?what ?z-farg))
+                   (form-args (?lb-1 ?rb-2))
                    (subunits (?x-slot ?y-slot ?z-slot)))
                   <-
                   (?item-based-unit
@@ -162,33 +162,25 @@
                                   (query ?target ?obj-1 ?attr-1)
                                   (bind attribute ?attr-1 color)))
                    --
-                   (HASH form ((string ?what "what")
-                               (string ?color "color")
-                               (string ?is "is")
-                               (string ?the "the")
-                               (meets ?what ?color)
-                               (meets ?color ?is)
-                               (meets ?is ?the)
-                               (meets ?the ?x-farg)
-                               (meets ?x-farg ?y-farg)
-                               (meets ?y-farg ?z-farg))))
+                   (HASH form ((sequence "What color is the " ?lb-1 ?rb-1)
+                               (sequence " ?" ?lb-2 ?rb-2))))
                   (?x-slot
                    (meaning-args (?x-marg))
                    (category what-color-is-the-slot-cat-1)
                    --
-                   (form-args (?x-farg))
+                   (form-args (?rb-1 ?rb-x))
                    (category what-color-is-the-slot-cat-1))
                   (?y-slot
                    (meaning-args (?y-marg))
                    (category what-color-is-the-slot-cat-2)
                    --
-                   (form-args (?y-farg))
+                   (form-args (?rb-x ?rb-y))
                    (category what-color-is-the-slot-cat-2))
                   (?z-slot
                    (meaning-args (?z-marg))
                    (category what-color-is-the-slot-cat-3)
                    --
-                   (form-args (?z-farg))
+                   (form-args (?rb-y ?lb-2))
                    (category what-color-is-the-slot-cat-3)))
                  :attributes (:label fcg::routine
                               :cxn-type item-based
@@ -255,7 +247,7 @@
                  ((?item-based-unit
                    (category what-color-is-the-1-cat-1)
                    (meaning-args (?target))
-                   (form-args (?what ?cube-1))
+                   (form-args (?lb-1 ?rb-2))
                    (subunits (?slot-unit)))
                   (?slot-unit
                    (footprints (used-as-slot-filler)))
@@ -270,19 +262,15 @@
                                   (query ?target ?obj-1 ?attr-1)
                                   (bind attribute ?attr-1 color)))
                    --
-                   (HASH form ((string ?what-1 "what") (string ?color-1 "color")
-                               (string ?is-1 "is") (string ?the-1 "the")
-                               (meets ?what-1 ?color-1) (meets ?color-1 ?is-1)
-                               (meets ?is-1 ?the-1) (meets ?the-1 ?large-1)
-                               (meets ?large-1 ?blue-1) (meets ?blue-1 ?rubber-1)
-                               (meets ?rubber-1 ?cube-1))))
+                   (HASH form ((sequence "What color is the " ?lb-1 ?rb-1)
+                               (sequence " ?" ?lb-2 ?rb-2))))
                   (?slot-unit
                    (category what-color-is-the-1-slot-cat-1)
                    (meaning-args (?size-1 ?col-1 ?material-1 ?shape-1))
                    (footprints (NOT used-as-slot-filler))
                    --
                    (footprints (NOT used-as-slot-filler))
-                   (form-args (?large-1 ?blue-1 ?rubber-1 ?cube-1))
+                   (form-args (?rb-1 ?lb-2))
                    (category what-color-is-the-1-slot-cat-1)))
                  :attributes (:label fcg::routine
                               :cxn-type item-based
@@ -294,7 +282,7 @@
     (def-fcg-cxn large-blue-rubber-cube-cxn
                  ((?holistic-unit
                    (category large-blue-rubber-cube-cat-1)
-                   (form-args (?large-1 ?blue-1 ?rubber-1 ?cube-1))
+                   (form-args (?lb ?rb))
                    (meaning-args (?size-1 ?color-1 ?material-1 ?shape-1)))
                   <-
                   (?holistic-unit
@@ -303,10 +291,7 @@
                                   (bind material ?material-1 rubber)
                                   (bind shape ?shape-1 cube)))
                    --
-                   (HASH form ((string ?large-1 "large")
-                               (string ?blue-1 "blue")
-                               (string ?rubber-1 "rubber")
-                               (string ?cube-1 "cube")))))
+                   (HASH form ((sequence "large blue rubber cube" ?lb ?rb)))))
                  :attributes (:label fcg::routine
                               :cxn-type holistic
                               :string ("large" "blue" "rubber" "cube")

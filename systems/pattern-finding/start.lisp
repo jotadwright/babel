@@ -15,6 +15,14 @@
   (activate-monitor show-type-hierarchy-after-n-interactions))
 
 
+
+;; TO DO
+;; Merge the repair-anti-unify-cipn and repair-anti-unify-cxn?
+;; Take ALL anti-unification results (combining anti-unifying the observation
+;; with cxns and anti-unifying the observation with partial analyses)
+;; and sort the results by cost and try to learn from the cheapest one first?
+
+
 ;; default: use string and meets as form-representation
 (progn
   (wi::reset)
@@ -69,7 +77,7 @@
 ;;;; Time travel
 
 (go-back-n-interactions *experiment* 1)
-(remove-cxns-learned-at *experiment* 144)
+(remove-cxns-learned-at *experiment* 8)
 
 (defun go-back-n-interactions (experiment n)
   (setf (interactions experiment)

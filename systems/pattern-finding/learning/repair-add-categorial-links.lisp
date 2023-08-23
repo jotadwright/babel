@@ -51,7 +51,7 @@
              (first
               (loop for cipn in cipns
                     for meaning in meanings
-                    when (and (succeeded-cipn-p cipn) ;(find 'fcg::succeeded (statuses cipn))
+                    when (and (succeeded-cipn-p cipn)
                               (> (length (applied-constructions cipn)) 1)
                               (equivalent-meaning-networks meaning observation-meaning
                                                            (get-configuration cxn-inventory :meaning-representation-formalism)))
