@@ -243,7 +243,7 @@
                   collect (original-cxn (if (routine-cxn-p cxn) cxn
                                           (alter-ego-cxn cxn (construction-inventory anti-unified-cipn))))))
            (sandbox-cxns
-            (append (mapcar #'afr-cxns-to-apply source-delta-cxns-and-categories)
+            (append (mappend #'afr-cxns-to-apply source-delta-cxns-and-categories)
                     applied-cxns))
            (sandbox-categories
             (append (mappend #'extract-conditional-categories sandbox-cxns)
@@ -255,8 +255,8 @@
                                    :categories-to-add sandbox-categories))
            ;; build results
            (cxns-to-apply sandbox-cxns)
-           (cxns-to-consolidate (mapcar #'afr-cxns-to-consolidate source-delta-cxns-and-categories))
-           (categories-to-add (mapcar #'afr-categories-to-add source-delta-cxns-and-categories))
+           (cxns-to-consolidate (mappend #'afr-cxns-to-consolidate source-delta-cxns-and-categories))
+           (categories-to-add (mappend #'afr-categories-to-add source-delta-cxns-and-categories))
            (links-to-add (extract-used-categorial-links sandbox-cipn)))
       ;; done!
       (when (and sandbox-cipn (succeeded-cipn-p sandbox-cipn))

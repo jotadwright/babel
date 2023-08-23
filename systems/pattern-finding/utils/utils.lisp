@@ -656,10 +656,9 @@
          (right-boundaries (set-difference right-units left-units)))
     (if (and left-boundaries right-boundaries)
       (flatten (pairlis left-boundaries right-boundaries))
-      (when (and (= (length form-constraints) 1)
-                 (eql 'string (first (first form-constraints))))
-        (list (second (first form-constraints))
-              (second (first form-constraints)))))))
+      (when (every #'(lambda (p) (eql p 'string))
+                   (mapcar #'first form-constraints))
+        (mapcar #'second form-constraints)))))
 
 
 #|

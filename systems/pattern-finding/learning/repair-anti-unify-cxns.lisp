@@ -183,12 +183,14 @@
             (append (loop for slot-cat in generalisation-slot-categories
                           collect (cons (afr-top-lvl-category source-delta-cxns-and-categories) slot-cat))
                     (afr-categorial-links source-delta-cxns-and-categories)
-                    (afr-categorial-links generalisation-slot-categories)
+                    (afr-categorial-links generalisation-cxns-and-categories)
                     (when pattern-delta-cxns-and-categories
                       (append (loop for slot-cat in generalisation-slot-categories
                                     collect (cons (afr-top-lvl-category pattern-delta-cxns-and-categories) slot-cat))
                               (afr-categorial-links pattern-delta-cxns-and-categories))))))
       (list cxns-to-apply cxns-to-consolidate categories-to-add links-to-add))))
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; make cxns from holistic generalisation ;;
@@ -288,8 +290,8 @@
 
 (defun link-filler-to-previous-slots (anti-unified-cxn filler-category cxn-inventory)
   (let* ((anti-unified-cxn-category (extract-top-category-holistic-cxn anti-unified-cxn))
-         (slot-categories (neighbouring-categories anti-unified-cxn-category (categorial-network cxn-inventory))))
-    (loop for slot in slot-categories
+         (filling-slot-categories (neighbouring-categories anti-unified-cxn-category (categorial-network cxn-inventory))))
+    (loop for slot in filling-slot-categories
           collect (cons slot filler-category))))
           
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
