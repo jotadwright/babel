@@ -129,6 +129,21 @@
        :plot-file-name (format nil "~{~a~^-~}" (list title "lex-coherence"))
        :captions captions
        ))
+    (when (or (eq plot :all) (eq plot :unique-form-usage))
+      (create-graph-comparing-strategies
+       :base-dir (format nil "~a/~a" top-dir exp-dir)
+       :title title
+       :experiment-names exp-names
+       :measure-name "unique-form-usage"
+       :y1-label "Unique forms used in the last 5000 interactions"
+       :y-min y-min
+       :y-max y-max
+       :start start
+       :end end
+       :average-windows average-windows
+       :plot-file-name (format nil "~{~a~^-~}" (list title "unique-forms-usage"))
+       :captions captions
+       ))
     ))
 
 (defun member-nested (el l)
