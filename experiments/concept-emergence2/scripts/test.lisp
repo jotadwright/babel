@@ -80,14 +80,6 @@
     (car res)
     nil))
 
-(defun find-agent (id)
-  "Given an integer id, returns the associated agent"
-  (let ((agent (loop for agent in (agents *experiment*)
-                     for found-id = (second (split-sequence:split-sequence #\- (mkstr (id agent))))
-                       do (when (equal (mkstr id) found-id)
-                         (return agent)))))
-    agent))
-
 (defun count-cxn-usage (cxn last-interaction window)
   (let ((history (history cxn))
         (stop-condition (- last-interaction window)))

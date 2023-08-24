@@ -37,6 +37,14 @@
         (configuration (make-configuration :entries (configuration experiment))))
   (set-configuration experiment :switch-condition :none))
 
+(defun find-agent (id experiment)
+  "Given an integer id, returns the associated agent"
+  (let ((agent (loop for agent in (agents experiment)
+                     for found-id = (second (split-sequence:split-sequence #\- (mkstr (id agent))))
+                       do (when (equal (mkstr id) found-id)
+                         (return agent)))))
+    agent))
+
 (defun list-to-hash-table (lst &key (key #'identity))
   "Creates a hash table given a list."
   (loop with tbl = (make-hash-table)
