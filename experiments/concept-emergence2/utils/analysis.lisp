@@ -26,7 +26,14 @@
                         (setf results (cons (cons exp-index config) results))))
         finally (return results)))
 
-(defun graph-batch-experiments (top-dir exp-dir raw-parameters filters &key (start nil) (end nil) (plot :all) (y-max 100) (y-min 0) (average-windows 1000))
+(defun graph-batch-experiments (top-dir exp-dir raw-parameters filters
+                                        &key
+                                        (start nil)
+                                        (end nil)
+                                        (plot :all)
+                                        (y-max 100)
+                                        (y-min 0)
+                                        (average-windows 1000))
   "Plot a batch of experiments."
   (let* ((exp-dir-path (asdf:system-relative-pathname "cle" (format nil "storage/~a/~a/experiments/" top-dir exp-dir)))
          (all-configs (sort (get-configurations exp-dir-path) (lambda (x y) (< (first x) (first y)))))
@@ -71,7 +78,58 @@
        ))
     ))
 
-
+(defun graph-batch-experiments2 (top-dir exp-dir exp-name raw-parameters filters
+                                         &key
+                                         (start nil)
+                                         (end nil)
+                                         (plot :all)
+                                         (y-max 100)
+                                         (y-min 0)
+                                         (average-windows 1000))
+  "Plot a batch of experiments."
+  (let* ((exp-dir-path (asdf:system-relative-pathname "cle" (format nil "storage/~a/~a/experiments/~a/" top-dir exp-dir exp-name)))
+         (all-configs (sort (get-configurations exp-dir-path) (lambda (x y) (< (first x) (first y)))))
+         (configs (filter-experiments all-configs filters))
+         (exp-names (loop for (index . config) in configs collect (format nil "~a/~a/~a"
+                                                                          (downcase exp-name)
+                                                                          (downcase (assqv :output-dir config))
+                                                                          (downcase (namestring (first (last (pathname-directory (first (uiop:subdirectories (merge-pathnames (downcase (assqv :output-dir config))
+                                                                                                                                                                              exp-dir-path)))))))))))
+                                                                          
+                                                                          
+         (captions (generate-captions configs raw-parameters filters))
+         (title (generate-title exp-dir filters)))
+    (when (or (eq plot :all) (eq plot :communicative-success))
+      (create-graph-comparing-strategies
+       :base-dir (format nil "~a/~a" top-dir exp-dir)
+       :title title
+       :experiment-names exp-names
+       :measure-name "communicative-success"
+       :y1-label "Communicative success"
+       :y-min y-min
+       :y-max 1
+       :start start
+       :end end
+       :average-windows average-windows
+       :plot-file-name (format nil "~{~a~^-~}" (list title "comm-success"))
+       :captions captions
+       ))
+    (when (or (eq plot :all) (eq plot :lexicon-coherence))
+      (create-graph-comparing-strategies
+       :base-dir (format nil "~a/~a" top-dir exp-dir)
+       :title title
+       :experiment-names exp-names
+       :measure-name "lexicon-coherence"
+       :y1-label "Lexicon coherence"
+       :y-min y-min
+       :y-max 1
+       :start start
+       :end end
+       :average-windows average-windows
+       :plot-file-name (format nil "~{~a~^-~}" (list title "lex-coherence"))
+       :captions captions
+       ))
+    ))
 
 (defun member-nested (el l)
   "Whether el is a member of l, el can be atom or cons, l can be list of atoms or not"
