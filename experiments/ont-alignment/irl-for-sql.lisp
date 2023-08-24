@@ -1,318 +1,41 @@
 (ql:quickload :irl)
 (in-package :irl)
-;; This file contains the code to run IRL networks in the SHRDLU world. 
 
-;; Part 1: Building blocks of IRL
-;; ------------------------------
+;; Show in browser (http://localhost:8000/)
 
-;; Entities are the building blocks of IRL
-;; They are used to represent
-;;     1. objects in the agent's environment
-;;     2. the agent's knowledge, in terms of semantic concepts/categories
-;; The agent's environment is typically called the _context_
-;; The agent's knowledge is stored in the _ontology_
+;; an entity in irl for sql would be a record in a database
 
-
-(defclass simple-object (entity)
-  ((color
-    :initarg :color :accessor color :initform nil :type symbol
-    :documentation "the color of the object")
-   (size
-    :initarg :size :accessor size :initform nil :type symbol
-    :documentation "the size of the object")
-   (shape
-    :initarg :shape :accessor shape :initform nil :type symbol
-    :documentation "the shape of the object")
-   ;; relationships is an alist of (spatial-relation . object-ids)
-   ;; for example (left . obj-1 obj-2) means that obj-1 and obj-2
-   ;; are left of this object
-   (relationships
-    :initarg :relationships :accessor relationships :initform nil :type list
-    :documentation "the spatial relationships of the object"))
-  (:documentation "an object in the world"))
-
-(defmethod make-html-for-entity-details ((obj simple-object) &key)
-  "Draw the objects in the web interface"
-  `(((div :class "entity-detail")
-     ((table)
-      ((tr) ((td) "color:") ((td) ,(format nil "~(~a~)" (color obj))))
-      ((tr) ((td) "size:") ((td) ,(format nil "~(~a~)" (size obj))))
-      ((tr) ((td) "shape:") ((td) ,(format nil "~(~a~)" (shape obj))))
-      ,@(loop for (relation . object-ids) in (relationships obj)
-              collect `((tr) ((td) ,(format nil "~(~a~):" relation))
-                         ((td) ,(if (null object-ids) "/"
-                                 (format nil "~{~(~a~)~^,~}" object-ids)))))))))
-
-(defmethod equal-entity ((obj-1 simple-object) (obj-2 simple-object))
-  "Objects are equal when their attributes are"
-  (and (eql (color obj-1) (color obj-2))
-       (eql (size obj-1) (size obj-2))
-       (eql (shape obj-1) (shape obj-2))))
-
-(defmethod copy-object-content ((src simple-object) (copy simple-object))
-  (setf (id copy) (id src) ;; make sure that copies have the same id!
-        (color copy) (color src)
-        (size copy) (size src)
-        (shape copy) (shape src)
-        (relationships copy) (mapcar #'copy-object (relationships src))))
-
-
-
-(defclass simple-object-set (entity)
-  ((objects
-    :initarg :objects :accessor objects :initform nil :type list
-    :documentation "a set of objects"))
-  (:documentation "a set of objects in the world"))
-
-(defmethod make-html-for-entity-details ((set simple-object-set) &key)
-  `(((div :class "entity-detail") 
-     ,@(loop for object in (objects set)
-             collect (make-html object :expand-initially t)))))
-
-(defmethod equal-entity ((set-1 simple-object-set) (set-2 simple-object-set))
-  (permutation-of? (objects set-1) (objects set-2) :test #'equal-entity))
-
-(defmethod copy-object-content ((src simple-object-set) (copy simple-object-set))
-  ;; for sets of objects, the id does not matter
-  (setf (objects copy) (mapcar #'copy-object (objects src))))
-
-(defmethod find-entity-by-id ((set simple-object-set) (id symbol))
-  (find-entity-by-id (objects set) id))
-
-
-
-
-(defun make-random-simple-object ()
-  "Make a random object"
-  (let ((possible-shapes '(cube cylinder ball pyramid))
-        (possible-sizes '(tiny small large huge))
-        (possible-colors '(red blue green yellow purple)))
-    (make-instance 'simple-object :id (make-id 'obj)
-                   :shape (random-elt possible-shapes)
-                   :size (random-elt possible-sizes)
-                   :color (random-elt possible-colors))))
-
-(defun make-random-simple-object-set (n)
-  "Make a random set of simple objects.
-   Randomly decide on spatial relations between the objects
-   in terms of left, right, front and back. Objects will
-   not be stacked."
-  (let* ((all-objects
-          (loop repeat n collect (make-random-simple-object)))
-         (all-object-ids
-          (mapcar #'id all-objects)))
-    ;; shuffle the objects. This is their ordering from left to right
-    (loop with processed-ids = nil
-          for object in (simple-shuffle all-objects)
-          ;; all objects already processed are left of this object
-          do (push (cons 'left processed-ids)
-                   (relationships object))
-          ;; all other objects are right of this object
-          ;; don't forget to remove the ID of this object as well!
-          do (push (cons 'right
-                         (set-difference all-object-ids
-                                         (cons (id object) processed-ids)))
-                   (relationships object))
-          do (push (id object) processed-ids))
-    ;; shuffle the objects again. This is their ordering from front to back
-    (loop with processed-ids = nil
-          for object in (simple-shuffle all-objects)
-          ;; all objects already processed are in front of this object
-          do (push (cons 'front processed-ids)
-                   (relationships object))
-          ;; all other objects are behind this object
-          ;; don't forget to remove the ID of this object as well!
-          do (push (cons 'back
-                         (set-difference all-object-ids
-                                         (cons (id object) processed-ids)))
-                   (relationships object))
-          do (push (id object) processed-ids))
-    ;; add the 'on and 'below relations to each object, but empty
-    (loop for object in all-objects
-          do (push (cons 'on nil) (relationships object))
-          do (push (cons 'below nil) (relationships object)))
-    ;; make an object set and return it
-    (make-instance 'simple-object-set :objects all-objects)))
-
-
-(defun make-example-object-set ()
-  (let* ((objects (list (make-instance 'simple-object :id (make-id 'obj)
-                                      :shape 'cube
-                                      :size 'tiny
-                                      :color 'red)
-                       (make-instance 'simple-object :id (make-id 'obj)
-                                      :shape 'cube
-                                      :size 'large
-                                      :color 'blue)
-                       (make-instance 'simple-object :id (make-id 'obj)
-                                      :shape 'cylinder
-                                      :size 'tiny
-                                      :color 'yellow)
-                       (make-instance 'simple-object :id (make-id 'obj)
-                                      :shape 'pyramid
-                                      :size 'small
-                                      :color 'purple)
-                       (make-instance 'simple-object :id (make-id 'obj)
-                                      :shape 'ball
-                                      :size 'huge
-                                      :color 'red)
-                       (make-instance 'simple-object :id (make-id 'obj)
-                                      :shape 'cylinder
-                                      :size 'tiny
-                                      :color 'green)))
-        (all-object-ids
-          (mapcar #'id objects)))
-    (loop with processed-ids = nil
-          for object in objects
-          do (push (cons 'front processed-ids)
-                   (relationships object))
-          do (push (cons 'back
-                         (set-difference all-object-ids
-                                         (cons (id object) processed-ids)))
-                   (relationships object))
-          do (push (id object) processed-ids))
-    (loop with processed-ids = nil
-          for object in objects
-          do (push (cons 'left processed-ids)
-                   (relationships object))
-          do (push (cons 'right
-                         (set-difference all-object-ids
-                                         (cons (id object) processed-ids)))
-                   (relationships object))
-          do (push (id object) processed-ids))
-    (loop for object in objects
-          do (push (cons 'on nil) (relationships object))
-          do (push (cons 'below nil) (relationships object)))
-  (make-instance 'simple-object-set :objects objects)))
-                               
-
-
-(defclass simple-category (entity)
-  ((category
-    :initarg :category :accessor category :initform nil :type symbol
-    :documentation "the category")))
-
-(defmethod make-html-for-entity-details ((cat simple-category) &key)
-  `(((div :class "entity-detail")
-     ,(format nil "~(~a~)" (category cat)))))
-
-(defmethod equal-entity ((cat-1 simple-category) (cat-2 simple-category))
-  (eql (category cat-1) (category cat-2)))
-
-(defmethod copy-object-content ((src simple-category) (copy simple-category))
-  (setf (category copy) (category src)))
-  
-(defclass color-category (simple-category) ())
-
-(defclass size-category (simple-category) ())
-
-(defclass shape-category (simple-category) ())
-
-(defclass spatial-relation (simple-category) ())
-
-(defclass attribute-category (simple-category) ())
-
-(defclass boolean-category (simple-category) ())
-
-
-
-
-
-
-
-
-
-(defun build-initial-ontology ()
-  (let ((shapes '(cube cylinder ball pyramid))
-        (sizes '(tiny small large huge))
-        (colors '(red blue green yellow purple))
-        (relations '(left right front back on below))
-        (attributes '(shape size color))
-        (booleans '(true false))
-        (initial-ontology (make-blackboard)))
-    (loop for shape in shapes
-          for instance = (make-instance 'shape-category
-                                        :id shape :category shape)
-          do (push-data initial-ontology 'shapes instance))
-    (loop for size in sizes
-          for instance = (make-instance 'size-category
-                                        :id size :category size)
-          do (push-data initial-ontology 'sizes instance))
-    (loop for color in colors
-          for instance = (make-instance 'color-category
-                                        :id color :category color)
-          do (push-data initial-ontology 'colors instance))
-    (loop for relation in relations
-          for instance = (make-instance 'spatial-relation
-                                        :id relation :category relation)
-          do (push-data initial-ontology 'spatial-relations instance))
-    (loop for attribute in attributes
-          for instance = (make-instance 'attribute-category
-                                        :id attribute :category attribute)
-          do (push-data initial-ontology 'attributes instance))
-    (loop for boolean in booleans
-          for instance = (make-instance 'boolean-category
-                                        :id boolean :category boolean)
-          do (push-data initial-ontology 'booleans instance))
-    initial-ontology))
-
-(defun make-new-context (context-size ontology)
-  "Make a new context (i.e. a new set of objects) and
-  add it to the ontology so IRL primitives can access it"
-  (let ((context (make-random-simple-object-set context-size)))
-    (set-data ontology 'context context)
-    ontology))
-
-(defun make-example-context (ontology)
-  "Make a new context (i.e. a new set of objects) and
-   add it to the ontology so IRL primitives can access it"
-  (let ((context (make-example-object-set)))
-    (set-data ontology 'context context)
-    ontology))
-
-
-
-;; Part 2: Primitive operations
+;; Primitive operations
 ;; ----------------------------
 
-;; IRL's primitives represent basic cognitive operations
-;; that can be executed by the agent. Primitives operate
-;; over semantic entities, as defined above. They are
-;; _predicates_, not functions. Hence, they specify a
-;; relation between their arguments. All arguments of a
-;; primitive are typed. Unbound arguments, i.e. arguments
-;; for which there is not yet a value, are represented
-;; through variables. Primitives are linked together into
-;; IRL networks (or meaning network) by unifying arguments
-;; of primitives.
+;; In irl for sql, a primitive would take its source into the sql keywords,
+;; dus the function of an sql primitive would be defined by the corresponding keyword
 
 ;; List of available primitives:
-;; observe-objects, filter, query, count-set, exist, relate, unique, stack, move
+;; select, from, where, equals, greater-than, inner-join ...
 
-;; Primitives have a number of arguments. All arguments are typed.
-;; Primitives can be implemented in multiple directions.
-;; Argument before the => are bound and those behind the => are unbound
+;; Primitives have a number of arguments.
 
 ;; Primitives are collected in a primitive inventory
 (def-irl-primitives simple-primitive-inventory
   :primitive-inventory *simple-primitives*)
 
 
-;; observe-objects
+;; select
 ;; ---------------
 
 ;; retrieve all objects in the current scene
-(defprimitive observe-objects ((context simple-object-set))
+(defprimitive select ((entity record))
   ;;Case 1: context bound
-  ((context =>)
+  ((entity =>)
    (equal-entity context (get-data ontology 'context)))
   ;;Case 2
-  ((=> context)
+  ((=> entity)
    (bind (context 1.0 (get-data ontology 'context))))
   :primitive-inventory *simple-primitives*)
 
 
-;; filter
+;; from
 ;; ------
 
 (defun filter-by-category (set category)

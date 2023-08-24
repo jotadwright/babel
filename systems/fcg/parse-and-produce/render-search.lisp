@@ -260,7 +260,8 @@ string constraint with the variable ?Y."
           for c in (used-string-constraints render-state)
           do (push (cons (third c) index) bindings)
              (incf index (length (second c)))
-             (push (cons (fourth c) index) bindings))
+             (push (cons (fourth c) index) bindings)
+             (incf index))
     (reverse bindings)))          
 
 (defmethod render-all ((form-constraints list) (mode (eql :render-sequences)) &key &allow-other-keys)
