@@ -52,7 +52,7 @@
         for proto1 in (get-available-prototypes agent concept1)
         for proto2 = (gethash (channel proto1) (prototypes concept2))
         if (and proto2 (not (zerop ledger1)) (not (zerop ledger2)))
-          sum (similar-prototypes proto1 proto2 concept1-weight-sum concept2-weight-sum)))
+          sum (similar-prototypes proto1 proto2 ledger1 ledger2)))
 
 (defmethod similar-prototypes ((proto1 prototype) (proto2 prototype) (ledger1 number) (ledger2 number))
   (let (;; take the average weight
