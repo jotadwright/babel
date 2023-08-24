@@ -5,30 +5,36 @@
 ;; -----------------------
 
 ;; make html of cle-object
-(defmethod make-html-for-entity-details ((object cle-object) &key topic)
+(defmethod make-html-for-entity-details ((object cle-object) &key topic dataset)
   (let ((title-font (if (equal topic (id object)) "font-weight:bold;" ""))
-        (attributes (reverse (attributes object))))
-    (append 
+        (attributes (reverse (loop for channel being the hash-keys of (attributes object)
+                                     using (hash-value value)
+                                   collect (cons channel value)))))
+    (append
+     ;; symbolic attributes
      (loop for (attr . val) in (description object)
-           if (symbolic-attribute-available-p attr object)
-           append `(((div :class "entity-detail" :style ,(format nil "~a" title-font))
-                     ,(format nil "~a = ~,2f" attr val))))
+           if (is-channel-available dataset attr (attributes object))
+             append `(((div :class "entity-detail" :style ,(format nil "~a" title-font))
+                       ,(format nil "~a = ~,2f" attr val))))
+     ;; continuous features
      `(((hr :style ,(format nil "margin: 0px;"))))
      `(((hr :style ,(format nil "margin: 0px;"))))
+     ;; add border to the first key, val pair
      (let* ((attr (caar attributes))
             (val (cdar attributes)))
        `(((div :class "entity-detail" :style ,(format nil "border-top: 0px dashed #563; ~a" title-font))
           ,(format nil "~a = ~,2f" attr val))))
+     ;; then draw the rest
      (loop for (attr . val) in (rest attributes)
            append `(((div :class "entity-detail" :style ,(format nil "~a" title-font))
                      ,(format nil "~a = ~,2f" attr val)))))))
 
 
 ;; make html of object set
-(defmethod make-html-for-entity-details ((set cle-scene) &key topic)
+(defmethod make-html-for-entity-details ((set cle-scene) &key topic dataset)
   `(((div :class "entity-detail")
      ,@(loop for object in (objects set)
-             collect (make-html object :topic topic :expand-initially t)))))
+             collect (make-html object :topic topic :dataset dataset :expand-initially t)))))
 
 ;; make-html of cxn
 (defmethod make-html ((cxn cxn) &key)
@@ -64,6 +70,7 @@
 (defmethod make-html ((e entity)
                       &rest parameters
                       &key (topic nil)
+                      (dataset nil)
                       (expand/collapse-all-id (make-id 'entity))
                       (expand-initially nil))
   `((div :class "entity")
@@ -71,15 +78,15 @@
        (make-expandable/collapsable-element 
         element-id expand/collapse-all-id
         ;; collapsed version
-        (collapsed-entity-html e topic element-id)
+        (collapsed-entity-html e topic dataset element-id)
         ;; expanded version
-        (expanded-entity-html e topic element-id parameters)
+        (expanded-entity-html e topic dataset element-id parameters)
         :expand-initially expand-initially))
     ((table :class "entity")
      ((tr) ((td :class "entity-type") 
             ,(format nil "~(~a~)" (type-of e)))))))
 
-(defmethod collapsed-entity-html ((e entity) (topic symbol) element-id)
+(defmethod collapsed-entity-html ((e entity) (topic symbol) dataset element-id)
   "html for the collapsed version of an entity"
   (let ((border-thickness (if (equal topic (id e))
                             "3px"
@@ -99,7 +106,7 @@
                      "topic: ~(~a~)"
                      "~(~a~)")  (id e)))))))
 
-(defmethod expanded-entity-html ((e entity) (topic symbol) element-id parameters)
+(defmethod expanded-entity-html ((e entity) (topic symbol) dataset element-id parameters)
   "html for the expanded version of an entity"
   (let ((border-thickness (if (equal topic (id e))
                             "3px"
@@ -126,4 +133,4 @@
         ((table :class "entity" :cellpadding "0" :cellspacing "0") 
          ((tr)
           ((td :class "entity-details")
-           ,@(apply 'make-html-for-entity-details e parameters))))))))
+           ,@(apply 'make-html-for-entity-details e :dataset dataset parameters))))))))

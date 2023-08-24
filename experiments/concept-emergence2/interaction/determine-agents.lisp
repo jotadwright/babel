@@ -27,22 +27,22 @@
 ;; + Determine disabled channels +
 ;; -------------------------------
 
-(defmethod determine-disable-channels (experiment (mode (eql :none)))
+(defmethod determine-disable-channels (experiment amount (mode (eql :none)))
   "For every agent, chooses randomly n channels to be disabled."
-  (loop for i from 1 to (get-configuration experiment :population-size)
+  (loop for i from 1 to amount
         collect nil))
 
-(defmethod determine-disable-channels (experiment (mode (eql :random)))
+(defmethod determine-disable-channels (experiment amount (mode (eql :random)))
   "For every agent, chooses randomly n channels to be disabled."
-  (loop for i from 1 to (get-configuration experiment :population-size)
+  (loop for i from 1 to amount
         for disabled = (random-elts (get-configuration experiment :available-channels)
                                     (get-configuration experiment :amount-disabled-channels))
         collect disabled))
 
-(defmethod determine-disable-channels (experiment (mode (eql :2-groups)))
+(defmethod determine-disable-channels (experiment amount (mode (eql :2-groups)))
   "Split the population in two groups, for every group, chooses randomly n channels to be disabled.
    The disabled channels cannot overlap."
-  (let* ((population-size (get-configuration experiment :population-size))
+  (let* ((population-size amount)
          (available-channels (get-configuration experiment :available-channels))
          (amount-channels (get-configuration experiment :amount-disabled-channels))
          (group1 (random-elts available-channels amount-channels))
@@ -53,4 +53,21 @@
                                               (/ population-size 2)
                                               (/ (+ population-size 1) 2))
                             collect group2)))
+    (append repeated-g1 repeated-g2)))
+
+(defmethod determine-disable-channels (experiment amount (mode (eql :split-by-color)))
+  "Split the population in two groups, for every group, 
+    1. disable lab channels for one group
+    2. disable rgb channels for the other group."
+  (let* ((population-size amount)
+         (available-channels (get-configuration experiment :available-channels))
+         (amount-channels (get-configuration experiment :amount-disabled-channels))
+         (group1 (random-elts available-channels amount-channels))
+         (group2 (random-elts (set-difference available-channels group1) amount-channels))
+         (repeated-g1 (loop for i from 1 to (/ population-size 2)
+                            collect (list 'lab-mean-l 'lab-mean-a 'lab-mean-b 'lab-std-l 'lab-std-a 'lab-std-b)))
+         (repeated-g2 (loop for i from 1 to (if (eq (mod population-size 2) 0)
+                                              (/ population-size 2)
+                                              (/ (+ population-size 1) 2))
+                            collect (list 'rgb-mean-r 'rgb-mean-g 'rgb-mean-b 'rgb-std-r 'rgb-std-g 'rgb-std-b))))
     (append repeated-g1 repeated-g2)))

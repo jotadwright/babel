@@ -10,9 +10,9 @@
 (defmethod before-interaction ((experiment cle-experiment) &key scene topic agents)
   ;; 1. reset agents
   (determine-interacting-agents experiment
-                                  (current-interaction experiment)
-                                  (get-configuration experiment :interacting-agents-strategy)
-                                  :agents agents)
+                                (current-interaction experiment)
+                                (get-configuration experiment :interacting-agents-strategy)
+                                :agents agents)
   (loop for agent in (interacting-agents experiment)
         do (clear-agent agent))
   ;; 2. load a scene

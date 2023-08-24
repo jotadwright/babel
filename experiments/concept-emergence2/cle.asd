@@ -20,9 +20,17 @@
                :cl-mop
                :cl-json
                :cl-jonathan
-               :distributions)
+               ;;:distributions
+               )
   :serial t
   :components ((:file "package")
+               (:module "dataset"
+                :serial t
+                :components ((:file "all")
+                             (:file "clevr")
+                             (:file "winery")
+                             (:file "cogent")
+                             ))
                (:module "world"
                 :serial t
                 :components ((:file "world")
@@ -30,13 +38,11 @@
                              (:file "scene")
                              (:file "topic")
                              (:file "utils")
-                             (:file "clevr")
-                             (:file "winery")
-                             (:file "cogent")
                              ))
                (:module "agent"
                 :serial t
-                :components ((:file "agent")
+                :components ((:file "utils")
+                             (:file "agent")
                              (:file "adoption")
                              (:file "alignment")
                              (:file "invention")
@@ -62,7 +68,6 @@
                (:module "distribution"
                 :serial t
                 :components ((:file "gaussian")
-                             (:file "replay")
                              (:file "welford")
                              (:file "divergence")
                              ))
@@ -73,7 +78,8 @@
                              (:file "before")
                              (:file "during")
                              (:file "after")
-                             (:file "run")))
+                             (:file "run")
+                             (:file "switch")))
                (:module "utils"
                 :serial t
                 :components ((:file "analysis")
@@ -84,6 +90,5 @@
                 :components ((:file "html")
                              (:file "s-dot")
                              (:file "s-dot-diff")
-                             (:file "utils")
                              (:file "web-monitor")
                              (:file "monitors")))))

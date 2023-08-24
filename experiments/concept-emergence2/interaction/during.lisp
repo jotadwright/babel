@@ -17,24 +17,27 @@
    alignment."
   (let ((speaker (speaker experiment))
         (hearer (hearer experiment)))
-    (when (not (conceptualise speaker))
+    (when (and (not (conceptualise speaker)) (align-p experiment))
       ;; when speaker could not conceptualise
       ;; invent and conceptualise again
+      ;; invention always leads to conceptualisation
       (invent speaker))
-    
-    ;; speaker utters the form
-    (production speaker)
-    ;; hearer hears the utterance
-    (setf (utterance hearer) (utterance speaker))
-    ;; check lexicon coherence
-    (set-data (current-interaction experiment) 'lexicon-coherence (lexicon-coherence-p experiment speaker hearer))
-    ;; success if
-    (when (and ;; 1. the hearer recognises it,
-               (parsing hearer)
-               ;; 2. can interpret it, and
-               (interpret hearer)
-               ;; 3. it matches the topic
-               (eql (id (get-data speaker 'topic))
-                    (id (get-data hearer 'interpreted-topic))))
-      (setf (communicated-successfully speaker) t)
-      (setf (communicated-successfully hearer) t))))
+
+    ;; failure to conceptualise can only occur if speaker cannot invent
+    (when (conceptualised-p speaker)
+      ;; speaker utters the form
+      (production speaker)
+      ;; hearer hears the utterance
+      (setf (utterance hearer) (utterance speaker))
+      ;; check lexicon coherence
+      (set-data (current-interaction experiment) 'lexicon-coherence (lexicon-coherence-p experiment speaker hearer))
+      ;; success if
+      (when (and ;; 1. the hearer recognises it,
+                 (parsing hearer)
+                 ;; 2. can interpret it, and
+                 (interpret hearer)
+                 ;; 3. it matches the topic
+                 (eql (id (get-data speaker 'topic))
+                      (id (get-data hearer 'interpreted-topic))))
+        (setf (communicated-successfully speaker) t)
+        (setf (communicated-successfully hearer) t)))))

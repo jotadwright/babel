@@ -65,13 +65,13 @@
 (deftest test-experiment-framework ()
   (let* ((experiment (make-instance
                       'test-experiment
-                      :configuration '((number-of-agents . 12)))))
+                      :entries '((number-of-agents . 12)))))
     (with-slots (agents configuration) experiment
       
       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
       ;; test initialization
       ;; 1 configuration
-      (test-assert (length= 1 configuration))
+      (test-assert (= (hash-table-count configuration) 1))
       ;; 12 agents
       (test-assert (length= 12 agents))
       (test-assert (loop for a in agents

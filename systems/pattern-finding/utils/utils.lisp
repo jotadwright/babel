@@ -1,4 +1,4 @@
-(in-package :pattern-finding)
+(in-package :pf)
 
 ;;;;;
 ;; Accessors and Predicates
@@ -15,6 +15,9 @@
 
 (defun routine-cxn-p (cxn)
   (eql (attr-val cxn :label) 'fcg::routine))
+
+(defun item-based-cxn-p (cxn)
+  (eql (attr-val cxn :cxn-type) 'item-based))
 
 (defun holistic-cxn-p (cxn)
   (eql (attr-val cxn :cxn-type) 'holistic))
@@ -49,12 +52,8 @@
                      (non-zero-cxn-p cxn)))
             (constructions grammar)))
 
-(defun set-cxn-last-used (agent cxn)
-  (let ((current-interaction-nr
-         (interaction-number
-          (current-interaction
-           (experiment agent)))))
-    (setf (attr-val cxn :last-used) current-interaction-nr)))
+(defmethod succeeded-cipn-p ((node cip-node))
+  (find 'fcg::succeeded (statuses node)))
 
 
 ;;;;;
@@ -83,29 +82,6 @@
 ;; Make cxn name
 ;;;;;;;;;;;;;;;;;;;;
 
-(defconstant +placeholder-vars+
-  '("?X" "?Y" "?Z" "?A" "?B" "?C"
-    "?D" "?E" "?F" "?G" "?H" "?I"
-    "?J" "?K" "?L" "?M" "?N" "?O"
-    "?P" "?Q" "?R" "?S" "?T" "?U"
-    "?V" "?W"))
-
-(defun variablify-missing-strings (form-constraints)
-  "Generate new sequence predicates for the missing elements in the given
-   form constraints. For now, I assume that N sequence predicates corresponds
-   in N-1 slots. This assumption does not hold when there are slots at the
-   beginning or the end of an utterance. In that case, there would be N+1 slots.
-   Moreover, it is assumed that the sequence predicates are provided in order!"
-  (loop with placeholder-index = 0
-        for prev-seq-predicate in form-constraints
-        for next-seq-predicate in (cdr form-constraints)
-        collect `(sequence ,(nth placeholder-index +placeholder-vars+)
-                           ,(fourth prev-seq-predicate)
-                           ,(third next-seq-predicate))
-          into new-seq-predicates
-        do (incf placeholder-index)
-        finally (return new-seq-predicates)))
-
 (defgeneric make-cxn-name (thing cxn-inventory
                                  &key holistic-suffix item-based-suffix numeric-suffix))
 
@@ -128,7 +104,6 @@
 (defmethod make-cxn-name ((form-constraints list) (cxn-inventory fcg-construction-set)
                           &key holistic-suffix item-based-suffix numeric-suffix)
   "Transform a list of form constraints into a suitable construction name"
-  ;(let ((new-form-constraints (variablify-missing-strings form-constraints)))
   (make-cxn-name (format nil "~{~a~^-~}" (render form-constraints (get-configuration cxn-inventory :render-mode)))
                  cxn-inventory :holistic-suffix holistic-suffix
                  :item-based-suffix item-based-suffix
@@ -140,6 +115,9 @@
 
 (defgeneric make-unit-name (thing cxn-inventory &key trim-cxn-suffix))
 
+(defmethod make-unit-name ((symbol symbol) (cxn-inventory fcg-construction-set) &key trim-cxn-suffix)
+  (make-unit-name (mkstr symbol) cxn-inventory :trim-cxn-suffix trim-cxn-suffix))
+
 (defmethod make-unit-name ((string string) (cxn-inventory fcg-construction-set) &key trim-cxn-suffix)
   "Transform an utterance into a suitable construction name"
   (declare (ignore cxn-inventory))
@@ -150,13 +128,12 @@
 
 (defmethod make-unit-name ((form-constraints list) (cxn-inventory fcg-construction-set) &key trim-cxn-suffix)
   "Transform a list of form constraints into a suitable construction name"
-  ;(let ((new-string-constraints (variablify-missing-form-strings form-constraints)))
   (make-unit-name (format nil "~{~a~^-~}" (render form-constraints (get-configuration cxn-inventory :render-mode)))
                   cxn-inventory :trim-cxn-suffix trim-cxn-suffix))
 
 
 ;;;;;
-;; Make lex class
+;; Make grammatical category
 ;;;;;;;;;;;;;;;;;;;;
 
 (defun replace-special-initial-chars (string)
@@ -164,7 +141,7 @@
     (string-append "-" string)
     string))
  
-(defun make-lex-class (cat-name &key numeric-suffix trim-cxn-suffix slotp)
+(defun make-grammatical-category (cat-name &key numeric-suffix trim-cxn-suffix slotp)
   (let* ((name-string
           (replace-special-initial-chars
            (string-downcase
@@ -183,63 +160,79 @@
       (setf name-string (make-symbol name-string)))
     (intern (string-downcase (symbol-name name-string)) :pattern-finding)))
 
+;;;;
+;; Extracting categories from units
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defgeneric extract-category-unit (unit)
+  (:documentation "extract the lex class from a unit"))
+  
+(defmethod extract-category-unit ((unit contributing-unit))
+  (first (fcg-unit-feature-value unit 'category)))
+
+(defmethod extract-category-unit ((unit conditional-unit))
+  (first (fcg-unit-feature-value unit 'category)))
+
+(defmethod extract-category-unit ((unit list))
+  (unit-feature-value unit 'category))
 
 ;;;;;
-;; Extracting lex classes from cxns
+;; Extracting units from cxns
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun extract-slot-units (cxn)
+  (unless (holistic-cxn-p cxn)
+    (if (routine-cxn-p cxn)
+      (loop for unit in (conditional-part cxn)
+            when (and (fcg-unit-feature unit 'meaning-args)
+                      (fcg-unit-feature unit 'form-args))
+            collect unit)
+      (loop for unit in (contributing-part cxn)
+            unless (fcg-unit-feature unit 'subunits)
+            collect unit))))
+
+;;;;;
+;; Extracting categories from cxns
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun extract-lex-class-holistic-cxn (cxn)
+(defun extract-top-category-holistic-cxn (cxn)
   "Extract the lex class from a holistic cxn.
    Works for both routine and meta cxns."
-  (let* ((unit-to-search
-          (if (routine-cxn-p cxn)
-            (fcg::unit-structure (first (contributing-part cxn)))
-            (comprehension-lock (first (conditional-part cxn)))))
-         (syn-cat (find 'syn-cat unit-to-search :key #'first)))
-    (second (find 'lex-class (rest syn-cat) :key #'first))))
+  (let ((unit-to-search
+         (if (routine-cxn-p cxn)
+           (first (contributing-part cxn))
+           (first (conditional-part cxn)))))
+    (first (fcg-unit-feature-value unit-to-search 'category))))
 
-(defun extract-lex-class-slot-item-based-cxn (cxn)
+(defun extract-slot-categories-item-based-cxn (cxn)
   "Extracts the lex classes from the slots of an item-based cxn.
    Works for both routine and meta cxns."
-  (let* ((units-to-search
-          (if (routine-cxn-p cxn)
-            (loop for unit in (conditional-part cxn)
-                  when (find 'syn-cat (comprehension-lock unit) :key #'first)
-                  collect (comprehension-lock unit))
-            (loop for unit in (contributing-part cxn)
-                  unless (find 'subunits (fcg::unit-structure unit) :key #'first)
-                  collect (fcg::unit-structure unit)))))
-    (loop for unit in units-to-search
-          for syn-cat = (find 'syn-cat unit :key #'first)
-          for lex-class = (second (find 'lex-class (rest syn-cat) :key #'first))
-          collect lex-class)))
+  (loop for unit in (extract-slot-units cxn)
+        for category = (first (fcg-unit-feature-value unit 'category))
+        collect category))
 
-(defun extract-lex-class-item-based-cxn (cxn)
-  (let* ((unit-to-search
-          (loop for unit in (contributing-part cxn)
-                when (find 'subunits (fcg::unit-structure unit) :key #'first)
-                return (fcg::unit-structure unit)))
-         (syn-cat (find 'syn-cat unit-to-search :key #'first)))
-    (second (find 'lex-class (rest syn-cat) :key #'first))))
+(defun extract-top-category-item-based-cxn (cxn)
+  (let ((unit-to-search
+         (loop for unit in (contributing-part cxn)
+               when (find 'subunits (fcg::unit-structure unit) :key #'first)
+                 return unit)))
+    (first (fcg-unit-feature-value unit-to-search 'category))))
 
-(defun lex-class (unit)
-  (let* ((syn-cat (find 'syn-cat (unit-body unit) :key #'first))
-         (lex-class (find 'lex-class (second syn-cat) :key #'first)))    
-    (when lex-class
-      (second lex-class))))
+(defun category (unit)
+  (unit-feature-value unit 'category))
 
-(defun extract-contributing-lex-class (cxn)
-  "return the lex-class on the contributing part of a cxn
+(defun extract-contributing-category (cxn)
+  "return the category on the contributing part of a cxn
    works for both holistic and item-based cxns"
   (if (holistic-cxn-p cxn)
-    (extract-lex-class-holistic-cxn cxn)
-    (extract-lex-class-item-based-cxn cxn)))
+    (extract-top-category-holistic-cxn cxn)
+    (extract-top-category-item-based-cxn cxn)))
 
-(defun extract-conditional-lex-classes (cxn)
-  "return the lex classes on the conditional part of a cxn
+(defun extract-conditional-categories (cxn)
+  "return the categories on the conditional part of a cxn
    works only for item-based cxns"
   (unless (holistic-cxn-p cxn)
-    (extract-lex-class-slot-item-based-cxn cxn)))
+    (extract-slot-categories-item-based-cxn cxn)))
 
 ;;;;;
 ;; Extracting args from cxns
@@ -267,7 +260,7 @@
             (loop for unit in (conditional-part cxn)
                   for meaning-args = (second (find 'meaning-args (formulation-lock unit) :key #'first))
                   for form-args = (second (find 'form-args (comprehension-lock unit) :key #'first))
-                  when (and meaning-args form-args)
+                  when (or meaning-args form-args)
                     append form-args into all-form-args
                     and append meaning-args into all-meaning-args
                   finally (return (list all-form-args all-meaning-args))))
@@ -275,7 +268,7 @@
             (loop for unit in (contributing-part cxn)
                   for meaning-args = (second (find 'meaning-args (fcg::unit-structure unit) :key #'first))
                   for form-args = (second (find 'form-args (fcg::unit-structure unit) :key #'first))
-                  when (and form-args meaning-args)
+                  when (or form-args meaning-args)
                     return (list form-args meaning-args))))
       (list top-lvl-args slot-args))
     (let ((slot-args
@@ -292,6 +285,27 @@
                  return (list (second (find 'form-args unit-structure :key #'first))
                               (second (find 'meaning-args unit-structure :key #'first))))))
       (list top-lvl-args slot-args))))
+
+(defun extract-top-lvl-args (cxn)
+  (if (holistic-cxn-p cxn)
+    (extract-args-holistic-cxn cxn)
+    (first (extract-args-item-based-cxn cxn))))
+
+(defun extract-slot-args (cxn)
+  (unless (holistic-cxn-p cxn)
+    (second (extract-args-item-based-cxn cxn))))
+
+(defun extract-top-lvl-form-args (cxn)
+  (first (extract-top-lvl-args cxn)))
+
+(defun extract-top-lvl-meaning-args (cxn)
+  (second (extract-top-lvl-args cxn)))
+
+(defun extract-slot-form-args (cxn)
+  (first (extract-slot-args cxn)))
+
+(defun extract-slot-meaning-args (cxn)
+  (second (extract-slot-args cxn)))
 
 
 ;;;;;
@@ -381,34 +395,44 @@
   (set-configuration cxn-inventory :consolidate-repairs nil))
 
 (defun enable-meta-layer-configuration (cxn-inventory)
+  (set-configuration cxn-inventory :parse-goal-tests '(:no-strings-in-root
+                                                       :no-applicable-cxns
+                                                       :connected-semantic-network
+                                                       :connected-structure
+                                                       :non-gold-standard-meaning))
   (set-configuration cxn-inventory :category-linking-mode :neighbours)
   (set-configuration cxn-inventory :update-categorial-links t)
   (set-configuration cxn-inventory :use-meta-layer t)
   (set-configuration cxn-inventory :consolidate-repairs t))
 
 (defun disable-meta-layer-configuration-item-based-first (cxn-inventory)
+  (set-configuration cxn-inventory :ignore-nil-hashes t)
   (set-configuration cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
   (set-configuration cxn-inventory :parse-order '(meta-only))
   (set-configuration cxn-inventory :category-linking-mode :categories-exist)
-  (set-configuration cxn-inventory :hash-mode :hash-string-meaning-lex-id) ; excludes nil hashed cxns (e.g. ?x-?y)
   (set-configuration cxn-inventory :max-nr-of-nodes 250)
   (set-configuration cxn-inventory :update-categorial-links nil)
   (set-configuration cxn-inventory :use-meta-layer nil)
-  (set-configuration cxn-inventory :consolidate-repairs nil))
+  (set-configuration cxn-inventory :consolidate-repairs nil)
+  (set-configuration cxn-inventory :node-tests '(:restrict-nr-of-nodes
+                                                 :restrict-search-depth)))
 
 (defun enable-meta-layer-configuration-item-based-first (cxn-inventory)
+  (set-configuration cxn-inventory :ignore-nil-hashes nil)
   (set-configuration cxn-inventory :parse-goal-tests '(:no-strings-in-root
                                                        :no-applicable-cxns
                                                        :connected-semantic-network
                                                        :connected-structure
                                                        :non-gold-standard-meaning))
-  (set-configuration cxn-inventory :hash-mode :hash-string-meaning)
   (set-configuration cxn-inventory :parse-order '(routine))
   (set-configuration cxn-inventory :max-nr-of-nodes (get-configuration cxn-inventory :original-max-nr-of-nodes))
   (set-configuration cxn-inventory :category-linking-mode :neighbours)
   (set-configuration cxn-inventory :update-categorial-links t)
   (set-configuration cxn-inventory :use-meta-layer t)
-  (set-configuration cxn-inventory :consolidate-repairs t))
+  (set-configuration cxn-inventory :consolidate-repairs t)
+  (set-configuration cxn-inventory :node-tests '(:restrict-nr-of-nodes
+                                                 :restrict-search-depth
+                                                 :check-duplicate)))
                  
 ;;;;;
 ;; Unit Utils
@@ -436,78 +460,119 @@
 ;; Variablify
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun fresh-variables (predicates)
-  (let* ((all-variables (find-all-anywhere-if #'variable-p predicates))
+(defun fresh-variables (set-of-predicates)
+  (let* ((all-variables (find-all-anywhere-if #'variable-p set-of-predicates))
          (unique-variables (remove-duplicates all-variables))
          (renamings (loop for var in unique-variables
                           for base-name = (get-base-name var)
                           collect (cons var (make-var base-name)))))
-    (values (substitute-bindings renamings predicates)
+    (values (substitute-bindings renamings set-of-predicates)
             renamings)))
 
+
 (defun variablify-form-constraints-with-constants (form-constraints-with-constants)
+  "Variablify the constants in the form constraints"
   (loop for form-constraint in form-constraints-with-constants
         for constraint = (first form-constraint)
         collect (cons constraint
                       (case constraint
-                        (sequence (cons (second form-constraint)
-                                        (mapcar #'variablify (cddr form-constraint))))
                         (string (list (variablify (second form-constraint))
                                       (third form-constraint)))
-                        (meets (mapcar #'variablify (rest form-constraint)))))))
+                        (meets (mapcar #'variablify (rest form-constraint)))
+                        (top-arg (list (variablify (second form-constraint))
+                                       (third form-constraint)))
+                        (slot-arg (list (variablify (second form-constraint))
+                                        (third form-constraint)))
+                        (sequence (cons (second form-constraint)
+                                        (mapcar #'variablify (cddr form-constraint))))))))
 
-(defun devariablify (var)
-  (intern (get-base-name var :remove-numeric-tail nil)))
+
+(defun fresh-variablify-form-constraints-with-constants (form-constraints-with-constants)
+  "Variablify the constants in the form constraints with fresh variables.
+   Uses a locally defined version of substitute-bindings that can handle
+   (const . var) bindings lists."
+  (labels ((substitute-constants (bindings x)
+             (if (atom x)
+               (let ((y (assoc x bindings :test #'eq)))
+                 (if (and y (not (eq (cdr y) x)))
+                   (substitute-constants bindings (cdr y))
+                   x))
+               (cons (substitute-constants bindings (car x))
+                     (substitute-constants bindings (cdr x))))))
+    (let* ((all-constants (loop for form-constraint in form-constraints-with-constants
+                                for constraint = (first form-constraint)
+                                append (case constraint
+                                         (string (list (second form-constraint)))
+                                         (meets (rest form-constraint))
+                                         (sequence (cddr form-constraint)))))
+           (unique-constants (remove-duplicates all-constants))
+           (renamings (loop for const in unique-constants
+                            for base-name = (get-base-name const)
+                            unless (variable-p const)
+                            collect (cons const (if (numberp const) (make-var) (make-var base-name))))))
+      (values (substitute-constants renamings form-constraints-with-constants)
+              renamings))))
 
 
 ;;;;;
 ;; Hash
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun form-predicates->hash-string (form-predicates)
-  (mapcar #'second (find-all 'sequence form-predicates :key #'first)))
+(defgeneric form-predicates->hash-string (form-predicates form-representation)
+  (:documentation "Generate a hash key for the form predicates according to the form-representation"))
 
-(defgeneric meaning-predicates->hash-meaning (meaning-predicates meaning-representation))
+(defmethod form-predicates->hash-string (form-predicates (form-representation (eql :string+meets)))
+  ;; a list of all string predicates
+  (mapcar #'third (find-all 'string form-predicates :key #'first)))
+
+(defmethod form-predicates->hash-string (form-predicates (form-representation (eql :sequences)))
+  nil)
+
+(defgeneric meaning-predicates->hash-meaning (meaning-predicates meaning-representation)
+  (:documentation "Generate a hash key for the meaning predicates according to the meaning-representation"))
 
 (defmethod meaning-predicates->hash-meaning (meaning-predicates (meaning-representation (eql :irl)))
-  (let* ((all-primitives
-          (mapcar #'first meaning-predicates))
-         (all-primitives-but-bind
-          (remove 'bind all-primitives))
-         (target-variable
-          (get-target-var meaning-predicates)))
-    ;; if there are only bind statements
-    (if (null all-primitives-but-bind)
-      ;; take the last element of the first binding
-      (last-elt (first (find-all 'bind meaning-predicates :key #'first)))
-      ;; otherwise, take the primitive that holds the target var
-      (first (find target-variable meaning-predicates :key #'second)))))
+  (let* ((all-primitives (mapcar #'first meaning-predicates))
+         (all-primitives-but-bind (remove 'bind all-primitives))
+         (target-variable (get-target-var meaning-predicates)))
+    (cond (; if there are only bind statements
+           (null all-primitives-but-bind)
+           ; take the last element of the first binding
+           (last-elt (first (find-all 'bind meaning-predicates :key #'first))))
+          (; if there is a target variable
+           target-variable
+           ; take the primitive that has it
+           (first (find target-variable meaning-predicates :key #'second)))
+          (t ;otherwise
+           ; take a random primitive that has an open variable on the second position
+           (let* ((open-vars (get-unconnected-vars meaning-predicates))
+                  (target-vars (intersection open-vars (mapcar #'second meaning-predicates)))
+                  (a-target-var (random-elt target-vars)))
+             (first (find a-target-var meaning-predicates :key #'second)))))))
 
 (defun hash-observation (form-constraints meaning-predicates)
-  ;; meaning hash keys = predicate names and bind values
-  ;; form hash keys = strings in sequence predicates
-  (let ((meaning-keys
+  ;; extract string predicates + predicate names
+  (let ((meaning-predicates
          (loop for meaning in meaning-predicates
                collect (if (and (= 4 (length meaning))
                                 (eql 'bind (first meaning)))
                          (fourth meaning)
                          (first meaning))))
-        (form-keys
-         (mapcar #'second (find-all 'sequence form-constraints :key #'first))))
-    (append form-keys meaning-keys)))
+        (form-predicates
+         (mapcar #'third (find-all 'string form-constraints :key #'first))))
+    (append form-predicates meaning-predicates)))
                             
 (defun constructions-for-anti-unification-hashed (form-constraints meaning-predicates cxn-inventory)
-  (let ((observation-hashes (hash-observation form-constraints meaning-predicates)))
-    (remove-duplicates
-     (append
-      (loop for cxn-hash being the hash-keys of (constructions-hash-table cxn-inventory)
-            using (hash-value cxns)
-            when (and (stringp cxn-hash)
-                      (loop for observation-hash in observation-hashes
-                            thereis (or (search cxn-hash observation-hash)
-                                        (search observation-hash cxn-hash))))
-            append cxns)
-      (gethash nil (constructions-hash-table cxn-inventory))))))
+  (case (get-configuration cxn-inventory :form-representation-formalism)
+    (:string+meets
+     (remove-duplicates
+      (append
+       (loop for hash in (hash-observation form-constraints meaning-predicates)
+             append (gethash hash (constructions-hash-table cxn-inventory)))
+       (gethash nil (constructions-hash-table cxn-inventory)))))
+    ;; when using sequences, there is no hashing
+    ;; so just return all cxns!
+    (:sequences (constructions cxn-inventory))))
 
 ;;;;;
 ;; Partial Analysis
@@ -516,91 +581,88 @@
 (defun form-predicates-in-root (cipn)
   (unit-feature-value (get-root (left-pole-structure (car-resulting-cfs (cipn-car cipn)))) 'form))
 
-(defun sort-cipns-by-coverage-and-nr-of-applied-cxns (cipn-1 cipn-2)
-  "Predicate should return true if and only if the first argument
-   is strictly less than the second (in some appropriate sense).
-   If the first argument is greater than or equal to the second
-   (in the appropriate sense), then the predicate should return false."
-  (let ((cipn-1-form-in-root (length (form-predicates-in-root cipn-1)))
-        (cipn-2-form-in-root (length (form-predicates-in-root cipn-2)))
-        (cipn-1-applied-cxns (length (applied-constructions cipn-1)))
-        (cipn-2-applied-cxns (length (applied-constructions cipn-2))))
-    (if (= cipn-1-form-in-root cipn-2-form-in-root)
-      (< cipn-1-applied-cxns cipn-2-applied-cxns)
-      (< cipn-1-form-in-root cipn-2-form-in-root))))
+(defun all-cip-nodes (cip)
+  (remove nil
+          (traverse-depth-first
+           (top-node cip)
+           :collect-fn #'(lambda (node)
+                           (unless (or (find 'fcg::duplicate (fcg::statuses node))
+                                       (find 'fcg::second-merge-failed (fcg::statuses node)))
+                             node)))))
 
-(defun extract-args-from-resulting-unit (unit)
-  (and (find 'form-args (rest unit) :key #'first))
-       (find 'meaning-args (rest unit) :key #'first))
-
-(defun discard-cipns-with-incompatible-meanings-and-args (cipns meanings gold-standard-meaning)
-  (loop for cipn in cipns
-        for candidate-meaning in meanings
-        for ts-units = (left-pole-structure (car-resulting-cfs (cipn-car cipn)))
-        for root-unit = (get-root ts-units)
-        for top-lvl-units = (remove-child-units (remove root-unit ts-units))
-        for bindings = (irl::embedding candidate-meaning gold-standard-meaning)
-        when (and bindings
-                  ;; why is this???
-                  (loop for unit in top-lvl-units
-                        always (extract-args-from-resulting-unit unit)))
-        collect cipn))
-
-(defun compatible-cipn-with-largest-coverage (form-constraints gold-standard-meaning cxn-inventory)
-  (with-disabled-monitor-notifications
-    (multiple-value-bind (meanings cip-nodes) (comprehend-all form-constraints :cxn-inventory cxn-inventory)
-      (let* ((cip-nodes-with-meaning
-              (loop for meaning in meanings
-                    for cipn in cip-nodes
-                    when meaning collect cipn))
-             (compatible-cip-nodes
-              (discard-cipns-with-incompatible-meanings-and-args cip-nodes-with-meaning
-                                                                 meanings gold-standard-meaning)))
-        (when compatible-cip-nodes
-          (first (sort compatible-cip-nodes #'sort-cipns-by-coverage-and-nr-of-applied-cxns)))))))
-
-(defun best-partial-analysis-cipn-with-meta-cxns (form-constraints gold-standard-meaning cxn-inventory)
-  (when (constructions-list cxn-inventory)
-    (let (best-cipn)
-      (disable-meta-layer-configuration-item-based-first cxn-inventory)
-      (setf best-cipn (compatible-cipn-with-largest-coverage form-constraints gold-standard-meaning cxn-inventory))
-      (enable-meta-layer-configuration-item-based-first cxn-inventory)
-      best-cipn)))
-
-(defun best-partial-analysis-cipn-with-routine-cxns (form-constraints gold-standard-meaning cxn-inventory)
-  (when (constructions-list cxn-inventory)
-    (let (best-cipn)
-      (disable-meta-layer-configuration cxn-inventory)
-      (setf best-cipn (compatible-cipn-with-largest-coverage form-constraints gold-standard-meaning cxn-inventory))
+(defun compatible-cipns-with-routine-cxns (form-constraints gold-standard-meaning cxn-inventory)
+  (when (constructions cxn-inventory)
+    (disable-meta-layer-configuration cxn-inventory)
+    (let ((compatible-cipns
+           (with-disabled-monitor-notifications
+             (multiple-value-bind (_meanings _cipns cip) (comprehend-all form-constraints :cxn-inventory cxn-inventory)
+               (declare (ignore _meanings _cipns))
+               (let ((cip-nodes (all-cip-nodes cip)))
+                 (loop for cip-node in cip-nodes
+                       for meaning = (extract-meanings
+                                      (left-pole-structure
+                                       (car-resulting-cfs
+                                        (cipn-car cip-node))))
+                       when (and meaning ; meaning should be non-nil
+                                 (form-predicates-in-root cip-node) ; some form left in root
+                                 (irl::embedding meaning gold-standard-meaning)) ; partial meaning should be compatible with gold standard
+                       collect cip-node))))))
       (enable-meta-layer-configuration cxn-inventory)
-      best-cipn)))
+      compatible-cipns)))
+
+(defun compatible-cipns-with-meta-cxns (form-constraints gold-standard-meaning cxn-inventory)
+  (when (constructions cxn-inventory)
+    (disable-meta-layer-configuration-item-based-first cxn-inventory)
+    (let ((compatible-cipns
+           (with-disabled-monitor-notifications
+             (multiple-value-bind (_meanings _cipns cip) (comprehend-all form-constraints :cxn-inventory cxn-inventory)
+               (declare (ignore _meanings _cipns))
+               (let ((cip-nodes (all-cip-nodes cip)))
+                 (loop for cip-node in cip-nodes
+                       for meaning = (extract-meanings
+                                      (left-pole-structure
+                                       (car-resulting-cfs
+                                        (cipn-car cip-node))))
+                       when (and meaning ; meaning should be non-nil
+                                 (form-predicates-in-root cip-node) ; some form left in root
+                                 (irl::embedding meaning gold-standard-meaning) ; partial meaning should be compatible with gold standard
+                                 (fcg::connected-syntactic-structure (fcg-get-transient-unit-structure cip-node)) ; connected structure in TS
+                                 (get-open-slot-units cip-node)) ; some unit(s) that represents open slot(s) in the TS
+                       collect cip-node))))))
+      (enable-meta-layer-configuration-item-based-first cxn-inventory)
+      compatible-cipns)))
 
 
 ;;;;;
 ;; Sort meets constraints
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun get-boundary-units (form-constraints)
-  "returns the leftmost and rightmost unit
-   based on meets constraints"
+(defun get-boundaries (form-constraints)
+  "returns all boundaries of the given form-constraints
+   (in terms of string + meets predicates)"
   (let* ((left-units
           (loop for fc in form-constraints
-                when (eql 'meets (first fc))
-                collect (second fc)))
+                if (eql 'meets (first fc))
+                collect (second fc)
+                else if (eql 'sequence (first fc))
+                collect (third fc)))
          (right-units
           (loop for fc in form-constraints
-                when (eql 'meets (first fc))
-                collect (third fc)))
-         (left-most-unit (first (set-difference left-units right-units)))
-         (right-most-unit (first (set-difference right-units left-units))))
-    (if (and left-most-unit right-most-unit)
-      (list left-most-unit right-most-unit)
+                if (eql 'meets (first fc))
+                collect (third fc)
+                else if (eql 'sequence (first fc))
+                collect (fourth fc)))
+         (left-boundaries (set-difference left-units right-units))
+         (right-boundaries (set-difference right-units left-units)))
+    (if (and left-boundaries right-boundaries)
+      (flatten (pairlis left-boundaries right-boundaries))
       (when (and (= (length form-constraints) 1)
                  (eql 'string (first (first form-constraints))))
         (list (second (first form-constraints))
               (second (first form-constraints)))))))
 
 
+#|
 (defun sort-meets-constraints (meets-constraints)
   "return the sorted list of meets constraints"
   (let* ((begin-var (first (get-boundary-units meets-constraints)))
@@ -641,18 +703,30 @@
            (not meets-string-diff)
            (get-boundary-units form-constraints))
       (get-boundary-units form-constraints))))
+|#
 
 ;;;;;
 ;; Input Processing
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun form-constraints-with-variables (utterance de-render-mode)
-  "Extract form constraints from utterance in the format they would appear in a construction."
+(defgeneric form-constraints-with-variables (utterance de-render-mode mode)
+  (:documentation "Extract form constraints from utterance in the format they would appear in a construction."))
+
+(defmethod form-constraints-with-variables (utterance de-render-mode (mode (eql :string+meets)))
+  (let ((form-constraints-with-constants
+         (remove 'sequence
+                 (extract-forms
+                  (left-pole-structure
+                   (de-render utterance de-render-mode)))
+                 :key #'first)))
+    (fresh-variablify-form-constraints-with-constants form-constraints-with-constants)))
+
+(defmethod form-constraints-with-variables (utterance de-render-mode (mode (eql :sequences)))
   (let ((form-constraints-with-constants
          (extract-forms
           (left-pole-structure
            (de-render utterance de-render-mode)))))
-    (variablify-form-constraints-with-constants form-constraints-with-constants)))
+    (fresh-variablify-form-constraints-with-constants form-constraints-with-constants)))
 
 (defgeneric meaning-predicates-with-variables (meaning mode))
 
@@ -679,7 +753,7 @@
 
 ;;;;;
 ;; Equivalent Meaning Networks
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defgeneric equivalent-meaning-networks (m1 m2 mode))
 
@@ -697,14 +771,7 @@
 ;; Anti Unification Utils
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun renamingp (bindings-list)
-  "A bindings list is a renaming if the mappings are one to one"
-  (let ((renamingp t))
-    (loop for (binding . rest) on bindings-list
-          when (find (car binding) rest :key #'car :test #'equalp)
-          do (setf renamingp nil))
-    renamingp))
-
+#|
 (defmethod select-holistic-cxns-for-anti-unification (observation-form observation-meaning (cxn-inventory fcg-construction-set))
   "Select holistic cxns from the routine set with a score greater than 0."
   (declare (ignore observation-form observation-meaning))
@@ -775,3 +842,4 @@
                    (equivalent-irl-programs? (generalisation form-a-u) cipn-form)))
       ;; return AU results
       (values form-a-u meaning-a-u))))
+|#

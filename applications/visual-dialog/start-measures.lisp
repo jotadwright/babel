@@ -34,9 +34,9 @@
                                           :nodes nil
                                           :edges nil)))
   (defparameter *ontology* (visual-dialog::build-ontology))
-  (defparameter *world* (make-instance 'world :configuration '((:dataset . :clevr) 
-                                                               (:datasplit . :train)
-                                                               (:mode . :symbolic))))
+  (defparameter *world* (make-instance 'world :entries '((:dataset . :clevr) 
+                                                         (:datasplit . :train)
+                                                         (:mode . :symbolic))))
   (setf *scene-pathname* (get-scene-pathname-by-index 0 *world*))
   (setf *ont* (initialize-agent-ontology-and-world *ontology* *world* nil))
   (setf *caption* (first (get-dialog-by-index 0 3 *world* :clevr)))

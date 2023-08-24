@@ -9,7 +9,7 @@
 ;; Finding the data
 (define-configuration-default-value :challenge-files-root
                                     (merge-pathnames
-                                     (make-pathname :directory '(:relative "clevr-learning-data" "val"))
+                                     (make-pathname :directory '(:relative "CLEVR-intention-reading-data" "val"))
                                      cl-user:*babel-corpora*))
 (define-configuration-default-value :challenge-1-files
                                     (make-pathname :directory '(:relative "stage-1")

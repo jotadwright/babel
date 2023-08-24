@@ -18,7 +18,11 @@
     c))
 
 (defclass anti-unification-result ()
-  ((generalisation
+  ((pattern
+    :accessor pattern :initarg :pattern :initform nil)
+   (source
+    :accessor source :initarg :source :initform nil)
+   (generalisation
     :accessor generalisation :initarg :generalisation :type list :initform nil)
    (pattern-bindings
     :accessor pattern-bindings :initarg :pattern-bindings :type list :initform nil)
@@ -38,8 +42,8 @@
    generalisation, pattern-bindings, source-bindings, pattern-delta and source-delta."
   
   ;; Assert that all predicates are unique in pattern and source (just to be safe)
-  ;(assert (= (length pattern) (length (remove-duplicates pattern :test #'equalp))))
-  ;(assert (= (length source) (length (remove-duplicates source :test #'equalp))))
+  (assert (= (length pattern) (length (remove-duplicates pattern :test #'equalp))))
+  (assert (= (length source) (length (remove-duplicates source :test #'equalp))))
 
   ;; Loop over all possible alignments of predicates in pattern and source and anti-unify them...
   (loop with possible-alignments = (identify-possible-alignments pattern source
@@ -57,6 +61,8 @@
                                       resulting-source-delta)
                     (anti-unify-predicate-sequence pattern-in-alignment source-in-alignment nil nil nil pattern-delta source-delta)
                   (make-instance 'anti-unification-result
+                                 :pattern pattern
+                                 :source source
                                  :generalisation resulting-generalisation
                                  :pattern-bindings resulting-pattern-bindings
                                  :source-bindings resulting-source-bindings

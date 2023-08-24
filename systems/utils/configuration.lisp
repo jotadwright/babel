@@ -23,34 +23,72 @@
           with-configurations))
 
 (defclass configuration ()
-  ((configuration :initarg :entries
-                  :accessor entries
+  ((configuration :initarg :configuration
                   :accessor configuration
-                  :initform nil :type list
-                  :documentation "alist of key value pairs")
+                  :initform nil :type hash-table
+                  :documentation "A hash table containing the configuration entries")
    (parent-configuration :initarg :parent-configuration
                          :accessor parent-configuration
                          :initform nil :type (or null configuration))))
 
+;; ----------------------------------------------------------------------------
+
+;; SBCL requires custom definition of hash-table tests using the following scheme
+(defun config-entry= (entry-1 entry-2)
+  (equalp (symbol-name entry-1)
+          (symbol-name entry-2)))
+
+(defun sxhash-symbol (n)
+  (sxhash (symbol-name n)))
+
+#+sbcl
+(sb-ext:define-hash-table-test config-entry= sxhash-symbol)
+
+(defun make-config-hash-table ()
+  (make-hash-table :test #+sbcl 'config-entry= #+lispworks #'config-entry= #+ccl #'config-entry=))
+
+
 (defmethod initialize-instance :after ((c configuration)
                                        &key entries configuration &allow-other-keys)
-  "it is possible to pass a configuration instance or an alist with
-   through the initarg :configuration. This method handles both cases."
+  "make-instance of a configuration can be called with :entries and :configuration.
+   :entries must be an alist, while :configuration must be a configuration object"
   ;; you can't use both :entries and :configuration as initargs
   (assert (not (and configuration entries)))
+  (when entries
+    (assert (listp entries))
+    (setf (configuration c)
+          (let ((hash (make-config-hash-table)))
+            (loop for (key . value) in entries
+                  do (setf (gethash key hash) value))
+            hash)))
   (when configuration
-    (setf (entries c)
-          (if (typep configuration 'configuration)
-            (entries configuration)
-            configuration))))
+    (assert (or (typep configuration 'configuration)
+                (hash-table-p configuration)))
+    (setf (configuration c)
+          (cond ((typep configuration 'configuration)
+                 (configuration configuration))
+                ;; check for hash-table when arriving here
+                ;; through make-configuration
+                ((hash-table-p configuration)
+                 configuration)))))
+
 
 ;; ----------------------------------------------------------------------------  
 
 (defun make-configuration (&key entries parent-configuration)
-  "deprecated. configuration was a struct before"
-  (make-instance 'configuration
-                 :entries entries
-                 :parent-configuration parent-configuration))
+  "Creates a configuration based on a alist of key value pairs.
+   Example: (make-configuration :entries `((key1 . 123) (key2 . 'symbol)))"
+  (let ((hash-table (make-config-hash-table)))
+    ;; The test of 'make-hash-table' compares keys using symbol-name equality
+    ;; this enables to set a configuration with keywords and retrieve it with 
+    ;; the symbol with the same symbol-name (e.g. :key1 and 'key1).
+    ;; This test was added to ensure backwards compatibility, however
+    ;; we do encourage to not use this feature anymore.
+    (loop for (key . value) in entries
+          do (setf (gethash key hash-table) value))
+    (make-instance 'configuration
+                   :configuration hash-table
+                   :parent-configuration parent-configuration)))
 
 (defmacro make-config (&rest key-value-lists)
   "Example: (make-config (key1 123) (key2 'symbol))
@@ -59,17 +97,23 @@
                        (list . ,(loop for (key value) in key-value-lists
                                       collect `(cons ',key ,value)))))
 
+(defmethod entries ((configuration configuration))
+  (loop for key being the hash-keys of (configuration configuration)
+          using (hash-value value)
+        collect (cons key value)))
+
 ;; ----------------------------------------------------------------------------
 
 (defmethod print-object ((configuration configuration) stream)
   (if *print-pretty*
     (pprint-logical-block (stream nil)
       (format stream "<configuration:~:_ ~{~a~^,~:_ ~}" 
-              (loop for (key . value) in (slot-value configuration 'configuration)
+              (loop for key being the hash-keys of (configuration configuration)
+                    using (hash-value value)
                     collect (format nil "~(~a~): ~a" key value)))
       (format stream ">"))
     (format stream "<configuration (~a entries)>" 
-            (length (entries configuration)))))
+            (hash-table-count (configuration configuration)))))
 
 ;; ----------------------------------------------------------------------------
 
@@ -80,8 +124,8 @@
 
 (defmethod copy-object-content ((source configuration)
 				(destination configuration))
-  (setf (entries destination)
-	(copy-alist (entries source))))
+  (setf (configuration destination)
+	(copy-object (configuration source))))
 
 ;; ----------------------------------------------------------------------------
 ;; get-configuration
@@ -89,21 +133,34 @@
 (defgeneric get-configuration (object key &key)
   (:documentation "Gets the configuration value for a key"))
 
-(defmethod get-configuration ((entries list) key &key)
-  (let ((entry (assoc key entries
-		      :test #'(lambda (entry-1 entry-2)
-				(equalp (symbol-name entry-1) (symbol-name entry-2))))))
-    (values (rest entry) (not (null entry)))))
+(defmethod get-configuration ((list list) key &key)
+  "Note: due to implementation decisions in the past,
+         get-configuration is sometimes called with nil.
+   This method catches this case and returns two values: (nil, nil)
+   The second nil represents whether the entry was found.
+   The first nil represents the found entry.
+   It is up to the method caller to determine whether the
+   returned nil is actually nil or whether nothing was found."
+  (values nil nil))
+
+(defmethod get-configuration ((hash-table hash-table) key &key)
+  (gethash key hash-table))
 
 (defmethod get-configuration ((configuration configuration) (key t)
                               &key omit-owner)
   (multiple-value-bind
-      (entry found) (get-configuration (entries configuration) key)
+      ;; get-configuration returns two values: (value, key-exists)
+      ;; if the key existed, the value was returned
+      ;; otherwise the returned value is nil
+      (entry found) (get-configuration (configuration configuration) key)
     (cond
+     ;; if the entry was not found, check the parent configuration
      ((and (not found) (parent-configuration configuration))
       (get-configuration (parent-configuration configuration) key))
-     ((and (not found) (not omit-owner))
+     ;; if the entry was not found and the owner should not be omitted, check the owner
+     ((and (not found) (not omit-owner) (owner configuration))
       (get-configuration (owner configuration) key))
+     ;; otherwise, return the found entry (and whether it was found)
      (t
       (values entry found)))))
 
@@ -126,12 +183,13 @@
 (defmethod set-configuration ((configuration configuration) key value
                               &key (replace t)
                               &allow-other-keys)
-  (let ((previous-entry (assoc key (entries configuration) 
-			       :test #'(lambda (entry-1 entry-2)
-					 (equalp (symbol-name entry-1) (symbol-name entry-2))))))
+  (let* ((hash-table (configuration configuration))
+         (previous-entry (gethash key hash-table)))
     (if previous-entry
-      (when replace (setf (cdr previous-entry) value))
-      (push (cons key value) (entries configuration)))
+      ;; if the entry already exists, only replace it if :replace is true
+      (when replace (setf (gethash key hash-table) value))
+      ;; otherwise, add the new entry
+      (setf (gethash key hash-table) value))
     configuration))
 
 (defun set-configurations (configuration configurations &key (replace t))
@@ -142,8 +200,8 @@
 ;; 
 
 (defmacro define-configuration-default-value (key value)
-  "when a configuration was not set, this value is returned from
-   a call to (get-configuration x key)"
+  "Defines a default value for a configuration key. 
+   This value is returned when the key is not found in the configuration."
   `(defmethod get-configuration :around ((configuration configuration) (key (eql ,key)) &key)
        (multiple-value-bind (returned-value key-exists)
            (call-next-method)
@@ -155,7 +213,7 @@
 ;; 
 
 (defmacro require-configuration (key)
-  "throws an error when a configuration was not set"
+  "Throws an error when a configuration was not set"
   `(defmethod get-configuration :around ((object t) (key (eql ,key)) &key)
      (multiple-value-bind (value key-exists)
 	 (call-next-method)

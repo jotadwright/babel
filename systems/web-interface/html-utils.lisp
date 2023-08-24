@@ -570,6 +570,11 @@ div.pprint span.table > span { display:table-cell;vertical-align:top; margin-top
    ;; '(a b)
    ((listp thing) 
     (html-pprint-list thing (first thing) append))
+   ((hash-table-p thing)
+    (let ((lst (loop for key being the hash-keys of thing
+                       using (hash-value value)
+                     collect (cons key value))))
+      (html-pprint-list lst (first lst) append)))
    (t 
     `((span :class "table")
       ((span :style "white-space:nowrap")

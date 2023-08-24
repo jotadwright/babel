@@ -43,12 +43,12 @@
 ;; then a maximum of parallel processes is started
 ;; e.g., use this if you have large number of series to run on
 ;; hardware which only has few cores
-(defparameter *max-nr-parallel-processes* nil) 
+(defparameter *max-nr-parallel-processes* nil)
 
 ;; the following two defparams are used for starting a particular 
 ;; client/inferior lisp 
 (defparameter *inferior-lisps*
-  '((sbcl . ("sbcl" ("--dynamic-space-size" "heap-size" "--disable-debugger" "--noinform")))
+  '((sbcl . ("sbcl" ("--dynamic-space-size" "heap-size" "--disable-debugger")))
     (ccl . ("ccl" ("--batch" "--quiet")))
     (lx86cl . ("lx86cl64" ("--batch" "--quiet")))
     (lispworks . ("lispworks" ())))
@@ -96,8 +96,8 @@
        ;;with series-run = 0
        while (< series-run number-of-series)
        for series-to-run = (if max-nr-parallel-processes
-                               (min max-nr-parallel-processes
-                                    (- number-of-series series-run))
+                             (min max-nr-parallel-processes
+                                  (- number-of-series series-run))
                              number-of-series)
        for processes = nil
        for input-streams = nil
@@ -182,8 +182,8 @@
                              " :number-of-data-points " (format nil "\"~a\"" number-of-data-points)
                              " :file-name \"" file-name  "\" "
                              (if (= counter 1)
-                                 (mkstr " :configuration-output-directory \"" 
-                                        configuration-output-directory "\"") "")
+                               (mkstr " :configuration-output-directory \"" 
+                                      configuration-output-directory "\"") "")
                              ")")
                             "(utils:quit-lisp)"
                             "(sleep 0.1)" ;; make sure the status of the process can be changed
@@ -293,10 +293,10 @@
 
 ;; this is the function that is run by the inferior/client lisp
 (defun parallel-batch-run-client-process (&key asdf-system package experiment-class 
-					  number-of-interactions series-number
-                                          monitors configurations file-name
-					  number-of-data-points
-                                          configuration-output-directory)
+                                               number-of-interactions series-number
+                                               monitors configurations file-name
+                                               number-of-data-points
+                                               configuration-output-directory)
   ;; set random seed
   (setf *random-state* 
         #+sbcl(make-random-state t)
@@ -320,12 +320,12 @@
     ;; Some configurations are also set by the experiment, so
     ;; they have to be set again after the experiment was created.
     (loop for configuration in (read-from-string configurations)
-       do (set-configuration experiment (car configuration) (cdr configuration)))
+          do (set-configuration experiment (car configuration) (cdr configuration)))
 
     ;; activate the monitors
     (monitors:deactivate-all-monitors)
     (loop for monitor in monitors
-       do (monitors::activate-monitor-method (read-from-string monitor)))
+          do (monitors::activate-monitor-method (read-from-string monitor)))
     (monitors:notify monitors:reset-monitors)
     (monitors:activate-monitor experiment-framework:trace-experiment-in-repl)
 
@@ -338,29 +338,29 @@
     (let* ((number-of-data-points-parsed (read-from-string number-of-data-points))
            (recorded-data
             (loop for monitor being the hash-value of monitors::*monitors*
-               when (and (or (subtypep (class-of monitor) 'monitors:data-recorder)
-                             (subtypep (class-of monitor) 'monitors:alist-recorder))
-                         (monitors::active monitor))
-               collect 
-                 (list (monitors::id monitor) 
-                       (if number-of-data-points-parsed
-                           (loop with source = (caar (slot-value monitor 'monitors::values))
-                              for i from 0 to (- number-of-data-points-parsed 1)
-                              for index = (round (* (/ number-of-interactions
-                                                       number-of-data-points-parsed) i))
-                              collect (nth index source))
-                           (if (subtypep (class-of monitor) 'monitors:data-recorder)
-                             (caar (slot-value monitor 'monitors::values))
-                             (slot-value monitor 'monitors::values)))
-                       (if number-of-data-points-parsed
-                           (loop with source = (caar (slot-value monitor 'monitors::average-values))
-                              for i from 0 to (- number-of-data-points-parsed 1)
-                              for index = (round (* (/ number-of-interactions
-                                                       number-of-data-points-parsed) i))
-                              collect (nth index source))
-                           (if (subtypep (class-of monitor) 'monitors:data-recorder)
-                             (caar (slot-value monitor 'monitors::average-values))
-                             (slot-value monitor 'monitors::average-values)))))))
+                  when (and (or (subtypep (class-of monitor) 'monitors:data-recorder)
+                                (subtypep (class-of monitor) 'monitors:alist-recorder))
+                            (monitors::active monitor))
+                    collect 
+                      (list (monitors::id monitor) 
+                            (if number-of-data-points-parsed
+                              (loop with source = (caar (slot-value monitor 'monitors::values))
+                                    for i from 0 to (- number-of-data-points-parsed 1)
+                                    for index = (round (* (/ number-of-interactions
+                                                             number-of-data-points-parsed) i))
+                                    collect (nth index source))
+                              (if (subtypep (class-of monitor) 'monitors:data-recorder)
+                                (caar (slot-value monitor 'monitors::values))
+                                (slot-value monitor 'monitors::values)))
+                            (if number-of-data-points-parsed
+                              (loop with source = (caar (slot-value monitor 'monitors::average-values))
+                                    for i from 0 to (- number-of-data-points-parsed 1)
+                                    for index = (round (* (/ number-of-interactions
+                                                             number-of-data-points-parsed) i))
+                                    collect (nth index source))
+                              (if (subtypep (class-of monitor) 'monitors:data-recorder)
+                                (caar (slot-value monitor 'monitors::average-values))
+                                (slot-value monitor 'monitors::average-values)))))))
       (format t ".. writing recorded data to ~s.~%" file-name)
       (force-output t)
       (ensure-directories-exist file-name)
@@ -390,11 +390,11 @@
 
 
 (defun run-parallel-batch (&key asdf-system package experiment-class
-			   number-of-interactions number-of-series 
-                           (max-nr-parallel-processes
-                            *max-nr-parallel-processes*)
-                           monitors configurations
-                           (heap-size 1024))
+                                number-of-interactions number-of-series 
+                                (max-nr-parallel-processes
+                                 *max-nr-parallel-processes*)
+                                monitors configurations
+                                (heap-size 1024))
   ;; parameter configurations should be called configuration since it
   ;; allows only one.
   (assert (typep asdf-system 'string))
@@ -410,7 +410,7 @@
   ;; activate the monitors
   (monitors:deactivate-all-monitors)
   (loop for monitor in (reverse monitors)
-     do (monitors::activate-monitor-method (read-from-string monitor)))
+        do (monitors::activate-monitor-method (read-from-string monitor)))
   (monitors:notify monitors:reset-monitors)
   
   (run-client-processes :asdf-system asdf-system
@@ -447,56 +447,56 @@ name."
         unless (and (listp configuration) 
                     (symbolp (first configuration)) 
                     (listp (second configuration)))
-        do (error "Configurations should be a list of pairs like (name configuration-list)")
+          do (error "Configurations should be a list of pairs like (name configuration-list)")
         do 
-        ;; merge shared-configuration and current configuration
-        (setf (second configuration)
-              (loop with local-config = (make-configuration :entries (second configuration)) 
-                    for (key . value) in shared-configuration
-                    do (set-configuration local-config key value :replace nil)
-                    finally (return (entries local-config))))
+          ;; merge shared-configuration and current configuration
+          (setf (second configuration)
+                (loop with local-config = (make-configuration :entries (second configuration)) 
+                      for (key . value) in shared-configuration
+                      do (set-configuration local-config key value :replace nil)
+                      finally (return (entries local-config))))
        
-        ;; adapt file-writing monitors so they output in the correct output-dir
-        (monitors::deactivate-all-monitors)
-        (loop for monitor-string in monitors
-              for monitor = (monitors::get-monitor (read-from-string monitor-string))
-              do (monitors::activate-monitor-method (read-from-string monitor-string))
-              when (slot-exists-p monitor 'file-name)
-              do (setf (slot-value monitor 'file-name)
-                       (ensure-directories-exist
-                        (merge-pathnames (make-pathname :directory `(:relative ,(string-downcase (symbol-name (first configuration))))
-                                                        :name (pathname-name (file-name monitor)) 
-                                                        :type (pathname-type (file-name monitor)))
-                                         output-dir))))
+          ;; adapt file-writing monitors so they output in the correct output-dir
+          (monitors::deactivate-all-monitors)
+          (loop for monitor-string in monitors
+                for monitor = (monitors::get-monitor (read-from-string monitor-string))
+                do (monitors::activate-monitor-method (read-from-string monitor-string))
+                when (slot-exists-p monitor 'file-name)
+                  do (setf (slot-value monitor 'file-name)
+                           (ensure-directories-exist
+                            (merge-pathnames (make-pathname :directory `(:relative ,(string-downcase (symbol-name (first configuration))))
+                                                            :name (pathname-name (file-name monitor)) 
+                                                            :type (pathname-type (file-name monitor)))
+                                             output-dir))))
        
-        ;; run the actual batch for the current configuration
-        (run-parallel-batch :asdf-system asdf-system 
-                            :package package
-                            :experiment-class experiment-class
-                            :number-of-interactions number-of-interactions 
-                            :number-of-series number-of-series
-                            :max-nr-parallel-processes max-nr-parallel-processes
-                            :monitors monitors 
-                            :configurations (second configuration)
-                            :heap-size heap-size)))
+          ;; run the actual batch for the current configuration
+          (run-parallel-batch :asdf-system asdf-system 
+                              :package package
+                              :experiment-class experiment-class
+                              :number-of-interactions number-of-interactions 
+                              :number-of-series number-of-series
+                              :max-nr-parallel-processes max-nr-parallel-processes
+                              :monitors monitors 
+                              :configurations (second configuration)
+                              :heap-size heap-size)))
 
 
 (defun create-combined-graphs-from-different-runs
-    (&key 
-     asdf-system ;; (string) the asdf system to load 
-     package ;; (string) the package to use 
-     file-prefix ;; (string) a prefix for file names of generated graphs (usually experiment class)
-     experiment-classes ;; (list of strings) class names of experiments to run
-     configurations-per-experiment ;; (list of lists of conses) configurations for each experiment
-     captions ;; (list of strings) graph captions for different runs
-     number-of-interactions-per-experiment ;; (list of numbers) the number interactions to run
-     number-of-data-points ;; (number) how many values to record in each run
-     number-of-series ;; (number) how many series to run per experiment
-     (max-nr-parallel-processes *max-nr-parallel-processes*)  ;; how many series to run in parallel
-     data-recorders ;; (list of strings) data recorders to generate graphs for
-     average-data ;; (list of booleans) whether data is averaged
-     parameters-for-graphic-generators ;; (list of :key value pairs) parameters for making graphs
-     )
+       (&key 
+        asdf-system ;; (string) the asdf system to load 
+        package ;; (string) the package to use 
+        file-prefix ;; (string) a prefix for file names of generated graphs (usually experiment class)
+        experiment-classes ;; (list of strings) class names of experiments to run
+        configurations-per-experiment ;; (list of lists of conses) configurations for each experiment
+        captions ;; (list of strings) graph captions for different runs
+        number-of-interactions-per-experiment ;; (list of numbers) the number interactions to run
+        number-of-data-points ;; (number) how many values to record in each run
+        number-of-series ;; (number) how many series to run per experiment
+        (max-nr-parallel-processes *max-nr-parallel-processes*)  ;; how many series to run in parallel
+        data-recorders ;; (list of strings) data recorders to generate graphs for
+        average-data ;; (list of booleans) whether data is averaged
+        parameters-for-graphic-generators ;; (list of :key value pairs) parameters for making graphs
+        )
   ;; nazi checks
   (assert (typep asdf-system 'string))
   (assert (typep package 'string))
@@ -506,14 +506,14 @@ name."
   (assert (typep configurations-per-experiment 'list))
   (assert (= (length configurations-per-experiment) (length experiment-classes)))
   (assert (loop for configurations in configurations-per-experiment
-	     always (listp configurations)))
+                always (listp configurations)))
   (assert (typep captions 'list))
   (assert (= (length captions) (length experiment-classes)))
   (assert (loop for caption in captions always (typep caption 'string)))
   (assert (typep number-of-interactions-per-experiment 'list))
   (assert (= (length number-of-interactions-per-experiment) (length experiment-classes)))
   (assert (loop for number-of-interactions in number-of-interactions-per-experiment
-	     always (typep number-of-interactions 'number)))
+                always (typep number-of-interactions 'number)))
   (assert (typep number-of-data-points 'number))
   (assert (typep number-of-series 'number))
   (assert (typep data-recorders 'list))
@@ -533,68 +533,68 @@ name."
   ;; create dummy monitors
   (let* ((original-data-recorders 
 	  (loop for data-recorder in data-recorders
-	     for monitor = (monitors::get-monitor (read-from-string data-recorder))
-	     unless (and monitor 
-			 (subtypep (monitors::get-monitor monitor) 'monitors::data-recorder))
-	     do (error "~a is not a data-recorder" data-recorder)
-	     collect monitor))
+                for monitor = (monitors::get-monitor (read-from-string data-recorder))
+                unless (and monitor 
+                            (subtypep (monitors::get-monitor monitor) 'monitors::data-recorder))
+                  do (error "~a is not a data-recorder" data-recorder)
+                collect monitor))
 	 (dummy-data-recorder-lists
 	  (loop repeat (length original-data-recorders)
-	     for i from 1
-	     collect (loop for j from 1 to (length experiment-classes)
-			collect (monitors::make-monitor-unless-already-defined
-				 (intern (mkstr "dummy-data-recorder-" i "-" j))
-				 ''data-recorder
-				 (list :documentation "This is a dummy monitor created by create-combined-graphs-from-different-runs. Please ignore it")))))
+                for i from 1
+                collect (loop for j from 1 to (length experiment-classes)
+                              collect (monitors::make-monitor-unless-already-defined
+                                       (intern (mkstr "dummy-data-recorder-" i "-" j))
+                                       ''data-recorder
+                                       (list :documentation "This is a dummy monitor created by create-combined-graphs-from-different-runs. Please ignore it")))))
 	 (dummy-graphic-generators
 	  (loop for dummy-data-recorder-list in dummy-data-recorder-lists
-	     for parameters in parameters-for-graphic-generators
-	     for average in average-data
-	     for i from 1
-	     collect (monitors::make-monitor-unless-already-defined
-		      (intern (mkstr "dummy-gnuplot-graphic-generator-" i))
-		      ''gnuplot-graphic-generator
-		      `(:documentation "This is a dummy monitor created by create-combined-graphs-from-different-runs. Please ignore it"
-			:data-sources ',(loop for dummy-data-recorder in dummy-data-recorder-list
-					   for id = (monitors::id dummy-data-recorder)
-					   collect (if average `(average ,id) id))
-			:caption ',captions
-			,@parameters)))))
+                for parameters in parameters-for-graphic-generators
+                for average in average-data
+                for i from 1
+                collect (monitors::make-monitor-unless-already-defined
+                         (intern (mkstr "dummy-gnuplot-graphic-generator-" i))
+                         ''gnuplot-graphic-generator
+                         `(:documentation "This is a dummy monitor created by create-combined-graphs-from-different-runs. Please ignore it"
+                           :data-sources ',(loop for dummy-data-recorder in dummy-data-recorder-list
+                                                 for id = (monitors::id dummy-data-recorder)
+                                                 collect (if average `(average ,id) id))
+                           :caption ',captions
+                           ,@parameters)))))
 
     ;; activate the monitors
     (monitors:deactivate-all-monitors)
     (loop for data-recorder in original-data-recorders
-       do (monitors::activate-monitor-method data-recorder))
+          do (monitors::activate-monitor-method data-recorder))
     (loop for dummy-graphic-generator in dummy-graphic-generators
-       do (monitors::activate-monitor-method dummy-graphic-generator))
+          do (monitors::activate-monitor-method dummy-graphic-generator))
     (monitors:notify monitors:reset-monitors)
         
     ;; run the experiments
     (loop for experiment-class in experiment-classes 
-       for number-of-interactions in number-of-interactions-per-experiment
-       for configurations in configurations-per-experiment
-       for e from 0
-       do (run-client-processes
-           :asdf-system asdf-system
-           :package package
-           :experiment-class experiment-class
-           :configurations configurations
-           :number-of-interactions number-of-interactions
-           :number-of-series number-of-series
-           :max-nr-parallel-processes max-nr-parallel-processes
-           :number-of-data-points number-of-data-points
-           :monitors data-recorders)
-	 ;; copying the recorded data into the dummy data recorders
-	 (loop for original-data-recorder in original-data-recorders
-	    for r from 0
-	    for dummy-data-recorder = (nth e (nth r dummy-data-recorder-lists))
-	    do (setf (cdar (slot-value dummy-data-recorder 'values))
-		     (cdar (slot-value original-data-recorder 'values)))
-	      (setf (cdar (slot-value dummy-data-recorder 'monitors::average-values))
-		     (cdar (slot-value original-data-recorder 'monitors::average-values)))
-	      (monitors::handle-reset-monitors-event 
-	       original-data-recorder (monitors::id original-data-recorder) 
-	       'monitors::reset-monitors)))
+          for number-of-interactions in number-of-interactions-per-experiment
+          for configurations in configurations-per-experiment
+          for e from 0
+          do (run-client-processes
+              :asdf-system asdf-system
+              :package package
+              :experiment-class experiment-class
+              :configurations configurations
+              :number-of-interactions number-of-interactions
+              :number-of-series number-of-series
+              :max-nr-parallel-processes max-nr-parallel-processes
+              :number-of-data-points number-of-data-points
+              :monitors data-recorders)
+             ;; copying the recorded data into the dummy data recorders
+             (loop for original-data-recorder in original-data-recorders
+                   for r from 0
+                   for dummy-data-recorder = (nth e (nth r dummy-data-recorder-lists))
+                   do (setf (cdar (slot-value dummy-data-recorder 'values))
+                            (cdar (slot-value original-data-recorder 'values)))
+                      (setf (cdar (slot-value dummy-data-recorder 'monitors::average-values))
+                            (cdar (slot-value original-data-recorder 'monitors::average-values)))
+                      (monitors::handle-reset-monitors-event 
+                       original-data-recorder (monitors::id original-data-recorder) 
+                       'monitors::reset-monitors)))
     
     ;; create the graphs
     (format t ".. creating the graphs.")
@@ -632,10 +632,10 @@ name."
    :parameters-for-graphic-generators parameters-for-graphic-generators))
 
 (defun create-graphs-for-different-experimental-configurations
-    (&key asdf-system package experiment-class
-     configurations number-of-interactions number-of-series
-     (max-nr-parallel-processes *max-nr-parallel-processes*)
-     data-recorders average-data captions parameters-for-graphic-generators)
+       (&key asdf-system package experiment-class
+             configurations number-of-interactions number-of-series
+             (max-nr-parallel-processes *max-nr-parallel-processes*)
+             data-recorders average-data captions parameters-for-graphic-generators)
   ;; nazi checks
   (assert (typep number-of-interactions 'number))
 
@@ -644,7 +644,7 @@ name."
    :experiment-classes (loop repeat (length configurations) collect experiment-class)
    :captions captions
    :number-of-interactions-per-experiment (loop repeat (length configurations)
-					     collect number-of-interactions)
+                                                collect number-of-interactions)
    :number-of-data-points number-of-interactions
    :configurations-per-experiment configurations
    :number-of-series number-of-series
@@ -654,28 +654,28 @@ name."
 
 
 (defun create-graphs-for-different-population-sizes 
-    (&key asdf-system package experiment-class population-sizes
-     number-of-interactions-per-agent number-of-series
-     (max-nr-parallel-processes *max-nr-parallel-processes*)
-     data-recorders average-data parameters-for-graphic-generators)
+       (&key asdf-system package experiment-class population-sizes
+             number-of-interactions-per-agent number-of-series
+             (max-nr-parallel-processes *max-nr-parallel-processes*)
+             data-recorders average-data parameters-for-graphic-generators)
   (assert (typep experiment-class 'string))
   (assert (typep number-of-interactions-per-agent 'number))
   (assert (typep population-sizes 'list))
   (assert (> (length population-sizes) 0))
   (assert (loop for population-size in population-sizes
-	     always (and (numberp population-size) (>= population-size 2))))
+                always (and (numberp population-size) (>= population-size 2))))
  
   (create-combined-graphs-from-different-runs
    :asdf-system asdf-system :package package :file-prefix experiment-class
    :experiment-classes (loop repeat (length population-sizes) collect experiment-class)
    :captions (loop for population-size in population-sizes 
-		collect (format nil "~a agents" population-size))
+                   collect (format nil "~a agents" population-size))
    :number-of-interactions-per-experiment 
    (loop for population-size in population-sizes 
-      collect (* number-of-interactions-per-agent (/ population-size 2)))
+         collect (* number-of-interactions-per-agent (/ population-size 2)))
    :number-of-data-points number-of-interactions-per-agent
    :configurations-per-experiment (loop for population-size in population-sizes 
-				     collect `((population-size . ,population-size)))
+                                        collect `((population-size . ,population-size)))
    :number-of-series number-of-series
    :max-nr-parallel-processes max-nr-parallel-processes
    :data-recorders data-recorders :average-data average-data
@@ -685,11 +685,11 @@ name."
 
 ;; bar plots
 (defun create-bar-plots-for-different-experimental-conditions
-    (&key asdf-system package experiment-class 
-     number-of-interactions number-of-series
-     (max-nr-parallel-processes *max-nr-parallel-processes*)
-     configurations-a configurations-b labels-a labels-b x-label
-     data-recorders bar-plot-parameter-lists)
+       (&key asdf-system package experiment-class 
+             number-of-interactions number-of-series
+             (max-nr-parallel-processes *max-nr-parallel-processes*)
+             configurations-a configurations-b labels-a labels-b x-label
+             data-recorders bar-plot-parameter-lists)
   (assert (= (length data-recorders) (length bar-plot-parameter-lists)))
   (let ((test-framework::*dont-run-tests-when-loading-asdf-systems* t))
     (ql:quickload asdf-system)
@@ -698,97 +698,97 @@ name."
   
   (deactivate-all-monitors)
   (loop for data-recorder in data-recorders
-     for monitor = (monitors::get-monitor (read-from-string data-recorder))
-     if (and monitor 
-             (subtypep (monitors::get-monitor monitor) 'monitors::data-recorder))
-     do (monitors::activate-monitor-method monitor)
-     else do (error "~a is not a data-recorder" data-recorder))
+        for monitor = (monitors::get-monitor (read-from-string data-recorder))
+        if (and monitor 
+                (subtypep (monitors::get-monitor monitor) 'monitors::data-recorder))
+          do (monitors::activate-monitor-method monitor)
+        else do (error "~a is not a data-recorder" data-recorder))
   (loop for a in configurations-a
-     collect 
-     (loop for b in configurations-b
-        do 
-        (monitors:notify monitors:reset-monitors)
-        (run-client-processes 
-         :asdf-system asdf-system
-         :package package
-         :experiment-class experiment-class
-         :configurations (append a b)
-         :number-of-interactions number-of-interactions
-         :number-of-series number-of-series
-         :max-nr-parallel-processes max-nr-parallel-processes
-         :monitors data-recorders)
         collect 
-        (loop for monitor in data-recorders
-           for data-recorder = (monitors::get-monitor (read-from-string monitor))
-           for values =
-           (mapcar #'car 
-                   (cdar (slot-value data-recorder 'monitors::average-values)))
-           collect (cons (average values) (stdev values))))
-     into data
-     finally 
-     (format t "~%.. creating the graphs")
-     (loop for parameters in bar-plot-parameter-lists
-        for i from 0
-        do (destructuring-bind (&key title y-label (error-bars t) 
-                                     (key-location "above") y-min y-max 
-                                     (draw-y-grid t) (grid-color "#aaaaaa")
-                                     (grid-line-width 0.5) 
-                                     (colors *great-gnuplot-colors*)
-                                     graphic-type file-name)
-               parameters
-             (let ((file-name (make-file-name-with-time file-name)))
-               (with-open-pipe (stream (pipe-to-gnuplot))
-                 (format stream "~cset output \"~a\"" #\linefeed file-name)
-                 (format stream "~cset terminal ~a" #\linefeed graphic-type)
-                 (when title
-                   (format stream "~cset title ~s" #\linefeed title))
-                 (format stream "~cset style histogram ~a gap 1" 
-                         #\linefeed (if error-bars "errorbars" "clustered"))
-                 (format stream "~cset style fill solid" #\linefeed)
-                 (format 
-                  stream 
-                  "~cset grid back ~:[noytics~;ytics lt 4 lc rgb \"~a\" lw ~a~]" 
-                  #\linefeed draw-y-grid grid-color grid-line-width)
-                 (format stream "~cset key ~a" #\linefeed key-location)
-                 (format stream "~cset xlabel ~:[~;~:*~s~]" #\linefeed x-label)
-                 (format stream "~cset ylabel ~:[~;~:*~s~]" #\linefeed y-label)
-                 (format stream "~cset xtics nomirror (~{~{~s ~a~}~^, ~})"
-                         #\linefeed
-                         (loop for title in labels-b for n from 0 collect (list title n)))
-                 (format stream "~cset xrange [-0.5:~,2f]" 
-                         #\linefeed (- (length (car data)) 0.5))
-                 (format 
-                  stream 
-                  "~cset ytics nomirror~cset yrange [~:[*~;~:*~d~]:~:[*~;~:*~d~]]" 
-                  #\linefeed #\linefeed y-min y-max)
+          (loop for b in configurations-b
+                do 
+                  (monitors:notify monitors:reset-monitors)
+                  (run-client-processes 
+                   :asdf-system asdf-system
+                   :package package
+                   :experiment-class experiment-class
+                   :configurations (append a b)
+                   :number-of-interactions number-of-interactions
+                   :number-of-series number-of-series
+                   :max-nr-parallel-processes max-nr-parallel-processes
+                   :monitors data-recorders)
+                collect 
+                  (loop for monitor in data-recorders
+                        for data-recorder = (monitors::get-monitor (read-from-string monitor))
+                        for values =
+                          (mapcar #'car 
+                                  (cdar (slot-value data-recorder 'monitors::average-values)))
+                        collect (cons (average values) (stdev values))))
+          into data
+        finally 
+          (format t "~%.. creating the graphs")
+          (loop for parameters in bar-plot-parameter-lists
+                for i from 0
+                do (destructuring-bind (&key title y-label (error-bars t) 
+                                             (key-location "above") y-min y-max 
+                                             (draw-y-grid t) (grid-color "#aaaaaa")
+                                             (grid-line-width 0.5) 
+                                             (colors *great-gnuplot-colors*)
+                                             graphic-type file-name)
+                       parameters
+                     (let ((file-name (make-file-name-with-time file-name)))
+                       (with-open-pipe (stream (pipe-to-gnuplot))
+                                       (format stream "~cset output \"~a\"" #\linefeed file-name)
+                                       (format stream "~cset terminal ~a" #\linefeed graphic-type)
+                                       (when title
+                                         (format stream "~cset title ~s" #\linefeed title))
+                                       (format stream "~cset style histogram ~a gap 1" 
+                                               #\linefeed (if error-bars "errorbars" "clustered"))
+                                       (format stream "~cset style fill solid" #\linefeed)
+                                       (format 
+                                        stream 
+                                        "~cset grid back ~:[noytics~;ytics lt 4 lc rgb \"~a\" lw ~a~]" 
+                                        #\linefeed draw-y-grid grid-color grid-line-width)
+                                       (format stream "~cset key ~a" #\linefeed key-location)
+                                       (format stream "~cset xlabel ~:[~;~:*~s~]" #\linefeed x-label)
+                                       (format stream "~cset ylabel ~:[~;~:*~s~]" #\linefeed y-label)
+                                       (format stream "~cset xtics nomirror (~{~{~s ~a~}~^, ~})"
+                                               #\linefeed
+                                               (loop for title in labels-b for n from 0 collect (list title n)))
+                                       (format stream "~cset xrange [-0.5:~,2f]" 
+                                               #\linefeed (- (length (car data)) 0.5))
+                                       (format 
+                                        stream 
+                                        "~cset ytics nomirror~cset yrange [~:[*~;~:*~d~]:~:[*~;~:*~d~]]" 
+                                        #\linefeed #\linefeed y-min y-max)
 
-                 (format stream "~cplot " #\linefeed)
-                 (loop for i from 0 to (- (length data) 1)
-                    for color = (nth (mod i (length colors)) colors)
-                    do (format 
-                        stream 
-                        "'-' title ~s with histograms lt -1 lw 2 lc rgb ~s~:[~;, ~]"
-                        (nth i labels-a) color
-                        (< i (- (length data) 1))))
-                 (loop for a in data
-                    do (loop for b in a 
-                          for (value . stdev) = (nth i b)
-                          do (format stream "~c~,3f ~:[~;~,3f~]" #\linefeed 
-                                     value error-bars stdev))
-                    (format stream "~ce"  #\linefeed)))
-               (format t "~%.. wrote ~a" file-name))))
-       (format t "~%.. done.")))
+                                       (format stream "~cplot " #\linefeed)
+                                       (loop for i from 0 to (- (length data) 1)
+                                             for color = (nth (mod i (length colors)) colors)
+                                             do (format 
+                                                 stream 
+                                                 "'-' title ~s with histograms lt -1 lw 2 lc rgb ~s~:[~;, ~]"
+                                                 (nth i labels-a) color
+                                                 (< i (- (length data) 1))))
+                                       (loop for a in data
+                                             do (loop for b in a 
+                                                      for (value . stdev) = (nth i b)
+                                                      do (format stream "~c~,3f ~:[~;~,3f~]" #\linefeed 
+                                                                 value error-bars stdev))
+                                                (format stream "~ce"  #\linefeed)))
+                       (format t "~%.. wrote ~a" file-name))))
+          (format t "~%.. done.")))
 
 
 (defun create-bar-plot-for-different-experimental-conditions
-    (&key asdf-system package experiment-classes data-recorders 
-     number-of-interactions-per-experiment number-of-series
-     (max-nr-parallel-processes *max-nr-parallel-processes*)
-     configurations-a configurations-b labels-a labels-b
-     title (x-label nil) (y-label nil) 
-     (error-bars t) (key-location "above") y-min y-max 
-     (draw-y-grid nil) (grid-color "#aaaaaa") (grid-line-width 0.5)
-     (colors *great-gnuplot-colors*) graphic-type file-name)
+       (&key asdf-system package experiment-classes data-recorders 
+             number-of-interactions-per-experiment number-of-series
+             (max-nr-parallel-processes *max-nr-parallel-processes*)
+             configurations-a configurations-b labels-a labels-b
+             title (x-label nil) (y-label nil) 
+             (error-bars t) (key-location "above") y-min y-max 
+             (draw-y-grid nil) (grid-color "#aaaaaa") (grid-line-width 0.5)
+             (colors *great-gnuplot-colors*) graphic-type file-name)
   
   (let ((test-framework::*dont-run-tests-when-loading-asdf-systems* t))
     (ql:quickload asdf-system)
@@ -796,93 +796,93 @@ name."
     )
   
   (loop for data-recorder in data-recorders
-     for monitor = (monitors::get-monitor (read-from-string data-recorder))
-     do (unless (and monitor 
-		     (subtypep (monitors::get-monitor monitor) 'monitors::data-recorder))
-	  (error "~a is not a data-recorder" data-recorder)))
+        for monitor = (monitors::get-monitor (read-from-string data-recorder))
+        do (unless (and monitor 
+                        (subtypep (monitors::get-monitor monitor) 'monitors::data-recorder))
+             (error "~a is not a data-recorder" data-recorder)))
     
   (loop for a in configurations-a
-     collect 
-       (loop for b in configurations-b
-	  for experiment-class in experiment-classes
-	  for data-recorder in data-recorders
-	  for number-of-interactions in number-of-interactions-per-experiment
-	  for monitor = (monitors::get-monitor (read-from-string data-recorder))
-	  do 
-	    (monitors::deactivate-all-monitors)
-	    (monitors::activate-monitor-method monitor)
-            (monitors:notify monitors:reset-monitors)
-            (run-client-processes 
-             :asdf-system asdf-system
-             :package package
-             :experiment-class experiment-class
-             :configurations (append a b)
-             :number-of-interactions number-of-interactions
-             :number-of-series number-of-series
-             :max-nr-parallel-processes max-nr-parallel-processes
-             :monitors (list data-recorder))
-	  collect 
-            (let ((values 
-                   (mapcar #'car 
-                           (cdar (slot-value 
-                                  monitor 'monitors::average-values)))))
-              (list (average values) (stdev values))))
-     into data
-     finally (format t ".. creating the graph.")
-       (let ((file-name (make-file-name-with-time file-name)))
-         (with-open-pipe (stream (pipe-to-gnuplot))
-           (format stream "~cset output \"~a\"" #\linefeed file-name)
-           (format stream "~cset terminal ~a" #\linefeed graphic-type)
-           (when title
-             (format stream "~cset title ~s" #\linefeed title))
-           (format stream "~cset style histogram ~a gap 1" 
-                   #\linefeed (if error-bars "errorbars" "clustered"))
-           (format stream "~cset style fill solid" #\linefeed)
-           (format stream "~cset grid back ~:[noytics~;ytics lt 4 lc rgb \"~a\" lw ~a~]" 
-                   #\linefeed draw-y-grid grid-color grid-line-width)
-           (format stream "~cset key ~a" #\linefeed key-location)
-           (format stream "~cset xlabel ~:[~;~:*~s~]" #\linefeed x-label)
-           (format stream "~cset ylabel ~:[~;~:*~s~]" #\linefeed y-label)
-           (format stream "~cset xtics nomirror (~{~{~s ~a~}~^, ~})" #\linefeed
-                   (loop for title in labels-b for n from 0 collect (list title n)))
-           (format stream "~cset xrange [-0.5:~,2f]" 
-                   #\linefeed (- (length (car data)) 0.5))
-           (format stream "~cset ytics nomirror~cset yrange [~:[*~;~:*~d~]:~:[*~;~:*~d~]]" 
-                   #\linefeed #\linefeed y-min y-max)
+        collect 
+          (loop for b in configurations-b
+                for experiment-class in experiment-classes
+                for data-recorder in data-recorders
+                for number-of-interactions in number-of-interactions-per-experiment
+                for monitor = (monitors::get-monitor (read-from-string data-recorder))
+                do 
+                  (monitors::deactivate-all-monitors)
+                  (monitors::activate-monitor-method monitor)
+                  (monitors:notify monitors:reset-monitors)
+                  (run-client-processes 
+                   :asdf-system asdf-system
+                   :package package
+                   :experiment-class experiment-class
+                   :configurations (append a b)
+                   :number-of-interactions number-of-interactions
+                   :number-of-series number-of-series
+                   :max-nr-parallel-processes max-nr-parallel-processes
+                   :monitors (list data-recorder))
+                collect 
+                  (let ((values 
+                         (mapcar #'car 
+                                 (cdar (slot-value 
+                                        monitor 'monitors::average-values)))))
+                    (list (average values) (stdev values))))
+          into data
+        finally (format t ".. creating the graph.")
+                (let ((file-name (make-file-name-with-time file-name)))
+                  (with-open-pipe (stream (pipe-to-gnuplot))
+                                  (format stream "~cset output \"~a\"" #\linefeed file-name)
+                                  (format stream "~cset terminal ~a" #\linefeed graphic-type)
+                                  (when title
+                                    (format stream "~cset title ~s" #\linefeed title))
+                                  (format stream "~cset style histogram ~a gap 1" 
+                                          #\linefeed (if error-bars "errorbars" "clustered"))
+                                  (format stream "~cset style fill solid" #\linefeed)
+                                  (format stream "~cset grid back ~:[noytics~;ytics lt 4 lc rgb \"~a\" lw ~a~]" 
+                                          #\linefeed draw-y-grid grid-color grid-line-width)
+                                  (format stream "~cset key ~a" #\linefeed key-location)
+                                  (format stream "~cset xlabel ~:[~;~:*~s~]" #\linefeed x-label)
+                                  (format stream "~cset ylabel ~:[~;~:*~s~]" #\linefeed y-label)
+                                  (format stream "~cset xtics nomirror (~{~{~s ~a~}~^, ~})" #\linefeed
+                                          (loop for title in labels-b for n from 0 collect (list title n)))
+                                  (format stream "~cset xrange [-0.5:~,2f]" 
+                                          #\linefeed (- (length (car data)) 0.5))
+                                  (format stream "~cset ytics nomirror~cset yrange [~:[*~;~:*~d~]:~:[*~;~:*~d~]]" 
+                                          #\linefeed #\linefeed y-min y-max)
 	 
 	 
-           (format stream "~cplot " #\linefeed)
-           (loop for i from 0 to (- (length data) 1)
-              for color = (nth (mod i (length colors)) colors)
-              do (format stream "'-' title ~s with histograms lt -1 lc rgb ~s~:[~;, ~]"
-                         (nth i labels-a) color
-                         (< i (- (length data) 1))))
-           (loop for a in data
-              for i from 0
-              do (loop for b in a 
-                    do (format stream "~c~,3f ~:[~;~,3f~]" #\linefeed 
-                               (first b) error-bars (second b)))
-              (format stream "~ce"  #\linefeed)))
-         (format t "~%.. wrote ~a" file-name))
-       (format t "~%.. done.")))
+                                  (format stream "~cplot " #\linefeed)
+                                  (loop for i from 0 to (- (length data) 1)
+                                        for color = (nth (mod i (length colors)) colors)
+                                        do (format stream "'-' title ~s with histograms lt -1 lc rgb ~s~:[~;, ~]"
+                                                   (nth i labels-a) color
+                                                   (< i (- (length data) 1))))
+                                  (loop for a in data
+                                        for i from 0
+                                        do (loop for b in a 
+                                                 do (format stream "~c~,3f ~:[~;~,3f~]" #\linefeed 
+                                                            (first b) error-bars (second b)))
+                                           (format stream "~ce"  #\linefeed)))
+                  (format t "~%.. wrote ~a" file-name))
+                (format t "~%.. done.")))
 
 (defun create-configuration-a-vs-configuration-b-bar-plot 
-    (&key asdf-system package experiment-class data-recorder 
-     number-of-interactions number-of-series
-     (max-nr-parallel-processes *max-nr-parallel-processes*)
-     configurations-a configurations-b labels-a labels-b
-     title (x-label nil) (y-label nil) 
-     (error-bars t) (key-location "above") y-min y-max 
-     (draw-y-grid nil) (grid-color "#aaaaaa") (grid-line-width 0.5)
-     (colors *great-gnuplot-colors*) graphic-type file-name)
+       (&key asdf-system package experiment-class data-recorder 
+             number-of-interactions number-of-series
+             (max-nr-parallel-processes *max-nr-parallel-processes*)
+             configurations-a configurations-b labels-a labels-b
+             title (x-label nil) (y-label nil) 
+             (error-bars t) (key-location "above") y-min y-max 
+             (draw-y-grid nil) (grid-color "#aaaaaa") (grid-line-width 0.5)
+             (colors *great-gnuplot-colors*) graphic-type file-name)
   (create-bar-plot-for-different-experimental-conditions
    :asdf-system asdf-system :package package 
    :experiment-classes (loop repeat (length configurations-b)
-			  collect experiment-class)
+                             collect experiment-class)
    :data-recorders (loop repeat (length configurations-b)
-		      collect data-recorder)
+                         collect data-recorder)
    :number-of-interactions-per-experiment (loop repeat (length configurations-b)
-					     collect number-of-interactions)
+                                                collect number-of-interactions)
    :number-of-series number-of-series
    :max-nr-parallel-processes max-nr-parallel-processes
    :configurations-a configurations-a :configurations-b configurations-b

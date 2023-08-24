@@ -109,10 +109,10 @@ classes:
         range: symbol
         max: 1
         isid: true
-      sim-arguments:
+      simulation-data:
         range: list
         max: 1
-      sim-identifier:
+      name:
         range: symbol
         max: 1
   agent:

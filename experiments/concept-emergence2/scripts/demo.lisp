@@ -2,83 +2,238 @@
 
 (in-package :cle)
 
+
 ;; experiments with entrenchment values - keep the same
 (progn
   (defparameter *baseline-simulated*
     (make-configuration
      :entries `(
                 ;; monitoring
-                (:dot-interval . 10)
+                (:dot-interval . 100)
+                (:usage-table-window . 100)
                 (:save-distribution-history . nil)
                 ;; setup interacting agents
                 (:interacting-agents-strategy . :standard)
                 (:population-size . 10)
                 ;; setup data scene
-                (:dataset . "clevr-extracted")
-                (:dataset-split . "val")
-                (:data-fname . "discriminative.lisp")
-                (:available-channels ,@(get-all-channels :clevr-extracted))
-                #|(:available-channels 
-                 ;,'xpos ,'ypos ,'zpos ;; position
-                 )|#
+                (:dataset . "clevr")
+                (:dataset-split . "train")
+                ;(:data-fname . "all.lisp")
+                (:available-channels ,@(get-all-channels :all))
                 ;; disable channels
                 (:disable-channels . :none)
                 (:amount-disabled-channels . 0)
                 ;; noised channels
                 (:sensor-noise . :none)
-                (:sensor-std . 0.05)
+                (:sensor-std . 0.0)
                 (:observation-noise . :none)
-                (:observation-std . 0.01)
+                (:observation-std . 0.0)
                 ;; scene sampling
-                (:scene-sampling . :deterministic)
+                (:scene-sampling . :random)
                 (:topic-sampling . :discriminative)
                 ;; general strategy
-                (:strategy . :times)
+                (:align . t)
                 (:similarity-threshold . 0.0)
-
                 ;; entrenchment of constructions
-                (:initial-cxn-entrenchement . 1/2)
-                (:entrenchment-incf . 1/10)
-                (:entrenchment-decf . -1/10)
-                (:entrenchment-li . -1/50) ;; lateral inhibition
-                (:trash-concepts . nil)
-                
+                (:initial-cxn-entrenchement . 0.5)
+                (:entrenchment-incf . 0.1)
+                (:entrenchment-decf . -0.1)
+                (:entrenchment-li . -0.01) ;; lateral inhibition
+                (:trash-concepts . t)
                 ;; concept representations
                 (:concept-representation . :distribution)
                 (:distribution . :gaussian-welford)
                 (:M2 . 0.0001) ;; only for gaussian-welford
-
                 ;; prototype weight inits
                 (:weight-update-strategy . :j-interpolation)
                 (:initial-weight . 0)
                 (:weight-incf . 1)
                 (:weight-decf . -1)
+                ;; staging
+                (:switch-condition . :none) ; :after-n-interactions)
+                (:switch-conditions-after-n-interactions . 200) 
+                (:stage-parameters
+                 ((:switch-disable-channels ,'area ,'bb-area))
+                 )
+                ;; saving
+                (:experiment-name . "test")
+                (:output-dir . "test")
                 )))
   (setf *experiment* (make-instance 'cle-experiment :configuration *baseline-simulated*))
   (notify reset-monitors)
   (wi::reset))
 
+;; 1. run x interactions
+(notify reset-monitors)
+
+(progn
+  (wi::reset)
+  (deactivate-all-monitors)
+  (activate-monitor export-communicative-success)
+  (activate-monitor export-lexicon-coherence)
+  ;(activate-monitor export-unique-form-usage)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (format t "~%---------- NEW GAME ----------~%")
+  (time
+   (loop for i from 1 to 10000
+         do (run-interaction *experiment*))))
+
+(progn
+  (wi::reset)
+  (deactivate-all-monitors)
+  ;(activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor trace-interaction-in-web-interface)
+  (loop for idx from 1 to 10
+        do (run-interaction *experiment*)))
+
+;;;;
+(progn
+  (setf *experiment*
+        (cl-store:restore (babel-pathname :directory '("experiments"
+                                                       "concept-emergence2"
+                                                       "logging"
+                                                       "2023-7-vacationresults"
+                                                       "cogenta-extracted"
+                                                       "2023-07-31_11h43m42s-exp-0"
+                                                     
+                                                       )
+                                          :name "history"
+                                          :type "store")))
+  (fix-configuration *experiment*))
+
+(set-configuration *experiment* :align nil)
+
+(progn
+  (set-configuration *experiment* :dot-interval 10)
+  (set-configuration *experiment* :scene-sampling :random)
+  (set-configuration *experiment* :topic-sampling :random)
+  (set-configuration *experiment* :dataset "cogent")
+  (set-configuration *experiment* :dataset-split "valB")
+  (set-configuration *experiment* :available-channels `(
+             ,'xpos ,'ypos
+             ,'width ,'height
+             ,'angle
+             ,'corners
+             ,'area ,'relative-area
+             ,'bb-area ,'bb-area-ratio
+             ,'wh-ratio
+             ,'circle-distance
+             ,'white-level ,'black-level
+             ,'lab-mean-l ,'lab-mean-a ,'lab-mean-b
+             ,'lab-std-l ,'lab-std-a ,'lab-std-b
+             ;,'rgb-mean-r ,'rgb-mean-g ,'rgb-mean-b
+             ;,'rgb-std-r ,'rgb-std-g ,'rgb-std-b
+             ))
+  (initialise-world *experiment*))
+
+(loop for agent in (agents *experiment*)
+      for lexicon = (lexicon agent)
+      do (setf (noise-in-each-sensor agent)
+               (determine-noise-in-sensor *experiment*
+                                          nil
+                                          (get-configuration *experiment* :sensor-noise)))
+      do (setf (noise-in-each-observation agent)
+               (determine-noise-in-observation *experiment*
+                                               nil
+                                               (get-configuration *experiment* :sensor-noise)))
+      do (loop for cxn in lexicon
+               for prototypes = (prototypes (meaning cxn))
+               do (loop for prototype in prototypes
+                        if (eq (channel prototype) 'color-mean-l)
+                          do (setf (channel prototype) 'lab-mean-l)
+                        if (eq (channel prototype) 'color-mean-a)
+                          do (setf (channel prototype) 'lab-mean-a)
+                        if (eq (channel prototype) 'color-mean-b)
+                          do (setf (channel prototype) 'lab-mean-b)
+                        if (eq (channel prototype) 'color-std-l)
+                          do (setf (channel prototype) 'lab-std-l)
+                        if (eq (channel prototype) 'color-std-a)
+                          do (setf (channel prototype) 'lab-std-a)
+                        if (eq (channel prototype) 'color-std-b)
+                          do (setf (channel prototype) 'lab-std-b))))
+               
+      
+
+(objects (current-scene (world *experiment*)))
+
+
+;;;;
+
+(get-configuration (first (agents *experiment*)) :strategy)
+
+(print-object (first (agents *experiment*)) nil)
+
+(assqv :switch-disable-channels (first (get-configuration *experiment* :stage-parameters)))
+
+((:switch-disable-channels ,'area ,'width)) ;; disable specific channels
+((:switch-disable-channels . 4)) ;; disable n random channels
+
+((:switch-add-agents . 1)) ;; add n agents
+
+((:switch-alignment))
+
+((:switch-dataset . "cogentb-extracted")
+ (:switch-dataset-split . "val")
+ (:switch-data-fname . "all.lisp")
+ (:switch-scene-sampling . :deterministic)
+ (:switch-topic-sampling . :discriminative)
+ (:switch-available-channels ,@(get-all-channels :all)))
+
+((:switch-dataset . "winery")
+ (:switch-dataset-split . "train")
+ (:switch-data-fname . "all.lisp")
+ (:switch-scene-sampling . :random)
+ (:switch-topic-sampling . :random)
+ (:switch-available-channels ,@(get-all-channels :cogentb-extracted)))
+
+(:switch-dataset . "winery")
+(:switch-dataset-split . "train")
+(:switch-data-fname . "all.lisp")
+(:switch-scene-sampling . :random)
+(:switch-topic-sampling . :random)
+(:switch-available-channels ,@(get-all-channels :winery))
 
 (defmethod after-interaction ((experiment cle-experiment))
   (align (speaker experiment))
   (align (hearer experiment))
   )
 
-(parse-keyword "XPOS")
-(parse-keyword "YPOS")
-(parse-keyword "ZPOS")
 
 
-;; 1. run x interactions
-(progn
-  (wi::reset)
-  (deactivate-all-monitors)
-  (activate-monitor export-communicative-success)
-  (activate-monitor export-lexicon-coherence)
-  (activate-monitor print-a-dot-for-each-interaction)
-  (format t "~%---------- NEW GAME ----------~%")
-  (loop for i from 1 to 500000
-        do (run-interaction *experiment*)))
+(add-cxn-to-interface (find-in-lexicon (find-agent 62) "beponi"))
+
+
+
+#|(setf con (make-configuration :entries `((:dot-interval . 100)
+                                         (:save-distribution-history . nil))))
+
+(entries (make-instance 'configuration
+                              :entries `((:dot-interval . 100)
+                                         (:save-distribution-history . nil))
+                              :parent-configuration nil))
+
+(let ((hash-table (make-hash-table)))
+  (loop for (key . value) in `((:dot-interval . 100)
+                               (:save-distribution-history . nil))
+        do (setf (gethash key hash-table) value))
+  (make-instance 'configuration
+                 :entries hash-table
+                 :parent-configuration nil))
+
+
+(loop for (key . value) in `((:dot-interval . 100)
+                             (:save-distribution-history . nil))
+      do (setf (gethash key hash-table) value))
+
+(get-configuration con :save-distribution-history2)|#
+  
+(loop for agent in (agents *experiment*)
+      do (switch-channel-availability agent 'area)
+      do (switch-channel-availability agent 'height))
+
+(display-lexicon 
+
+
 
 (+ 1 2)
 ;; display lexicon
@@ -107,7 +262,7 @@
   (deactivate-all-monitors)
   ;(activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor trace-interaction-in-web-interface)
-  (loop for idx from 1 to 10
+  (loop for idx from 1 to 2
         do (run-interaction *experiment*)))
 
 
@@ -547,19 +702,17 @@ is-discriminative
 
 (cl-store:store *experiment*
                 (babel-pathname :directory '("experiments"
-                                             "concept-emergence2")
-                                :name "clevr-extracted-random43k-93-84"
+                                             "concept-emergence2"
+                                             "logging")
+                                :name "clevr-extracted-15k-87-68-trash"
                                 :type "store"))
         
 (setf *experiment*
       (cl-store:restore (babel-pathname :directory '("experiments"
                                                      "concept-emergence2"
                                                      "logging"
-                                                     "big-bench5"
-                                                     "10-all-random"
-                                                     "experiments"
-                                                     "2023-06-26_16h35m10s-exp-0")
-                                        :name "history"
+                                                     )
+                                        :name "clevr-extracted-20k"
                                         :type "store")))
 
 (display-lexicon (first (agents *experiment*)) :sort t :entrenchment-threshold 0.00)

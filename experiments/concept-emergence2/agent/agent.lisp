@@ -9,11 +9,11 @@
     :documentation "The agent's lexicon."
     :type list :accessor lexicon :initform nil)
    (trash
-    :documentation "The lexicon trash."
+    :documentation "The lexicon trash, contains cxns with an entrenchment score of zero."
     :type list :accessor trash :initform nil)
    (disabled-channels
-    :documentation "Disabled channels in agent."
-    :type list :accessor disabled-channels :initarg :disabled-channels :initform nil)
+    :documentation "Disabled/defected channels."
+    :type hash-table :accessor disabled-channels :initarg :disabled-channels :initform nil)
    (noise-in-each-sensor
     :documentation "Fixed noise on each channel"
     :type list :accessor noise-in-each-sensor :initarg :noise-in-each-sensor :initform nil)
@@ -22,7 +22,11 @@
     :type list :accessor noise-in-each-observation :initarg :noise-in-each-observation :initform nil)
    (invented-or-adopted
     :documentation "Whether the agent invented or adopted during the interaction."
-    :type boolean :accessor invented-or-adopted :initform nil)))
+    :type boolean :accessor invented-or-adopted :initform nil)
+   (usage-table
+    :documentation "Keeps track of the cxns used with a sliding window."
+    :type usage-table :accessor usage-table :initarg :usage-table)
+    ))
   
 (defmethod clear-agent ((agent cle-agent))
   "Clear the slots of the agent for the next interaction."
@@ -42,11 +46,28 @@
 ;; + NOISE +
 ;; ---------
 
+(defmethod perceive-object-val2 ((agent cle-agent) (object cle-object) attr)
+  "Perceives the value in a given sensor 'attr' of a given object.
+
+   This reading can be affected by two types of noise.
+   The raw observation is the true value in that channel of the object.
+   The sensor-noise term is a fixed shift (in either direction).
+   The observation noise term is different for every observation."
+  (let ((raw-observation-val (get-object-val object attr))
+        (sensor-noise (noise-in-sensor agent attr (get-configuration (experiment agent) :sensor-noise)))
+        (observation-noise (noise-in-observation agent attr (get-configuration (experiment agent) :observation-noise))))
+    (if raw-observation-val
+      (+ raw-observation-val sensor-noise observation-noise)
+      nil)))
+
 (defmethod perceive-object-val ((agent cle-agent) (object cle-object) attr)
-  (let ((raw-observation-val (rest (assoc attr (attributes object))))
-        (sensor-noise (noise-in-sensor agent attr (get-configuration agent :sensor-noise)))
-        (observation-noise (noise-in-observation agent attr (get-configuration agent :observation-noise))))
-    (+ raw-observation-val sensor-noise observation-noise)))
+  "Perceives the value in a given sensor 'attr' of a given object.
+
+   This reading can be affected by two types of noise.
+   The raw observation is the true value in that channel of the object.
+   The sensor-noise term is a fixed shift (in either direction).
+   The observation noise term is different for every observation."
+  (get-object-val object attr))
 
 ;; -------------------
 ;; + noise-in-sensor +
@@ -96,4 +117,6 @@
 
 ;; helper function
 (defun random-gaussian (mean st-dev)
-  (distributions:from-standard-normal (distributions:draw-standard-normal) mean st-dev))
+  0
+  #|(distributions:from-standard-normal (distributions:draw-standard-normal) mean st-dev)|#
+  )

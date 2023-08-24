@@ -13,14 +13,15 @@
   ;; check the upper boundary
   (when (> (score cxn) upper-bound)
     (setf (score cxn) upper-bound))
-  ;; check the lower boundary + forget if needed
-  (when (and (get-configuration agent :trash-concepts)
+  ;; CASE 1: if cxn is in trash and now not anymore => recover it from the trash
+  (when (and (get-configuration (experiment agent) :trash-concepts)
             (<= (- (score cxn) delta) lower-bound))
     (push cxn (lexicon agent))
     (setf (trash agent) (remove cxn (trash agent))))
+  ;; CASE 2: check lower-bound if cxn should be added to trash
   (when (<= (score cxn) lower-bound)
     (setf (score cxn) lower-bound)
-    (when (get-configuration agent :trash-concepts)
+    (when (get-configuration (experiment agent) :trash-concepts)
       (push cxn (trash agent))
       (setf (lexicon agent) (remove cxn (lexicon agent))))))
 

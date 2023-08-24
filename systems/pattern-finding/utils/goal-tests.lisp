@@ -1,4 +1,4 @@
-(in-package :pattern-finding)
+(in-package :pf)
 
 ;;;;;;;;;;;;;;;;;;;
 ;; CIP Goal Test ;;
@@ -9,7 +9,7 @@
   (and (fully-expanded? node)
        (let* ((resulting-cfs (car-resulting-cfs (cipn-car node)))
               (meaning (extract-meanings (left-pole-structure resulting-cfs)))
-              (meaning-representation-formalism (get-configuration (construction-inventory node) :meaning-representation))
+              (meaning-representation-formalism (get-configuration (construction-inventory node) :meaning-representation-formalism))
               (gold-standard-meaning (get-data resulting-cfs :meaning)))
          (if (equivalent-meaning-networks gold-standard-meaning meaning meaning-representation-formalism)
            (progn (set-data (goal-test-data node) :result-goal-test-non-gold-standard-meaning t) t)
