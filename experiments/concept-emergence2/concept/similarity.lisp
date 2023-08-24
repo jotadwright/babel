@@ -11,8 +11,8 @@
         for prototype in prototypes
         for observation = (perceive-object-val agent object (channel prototype))
         for similarity = (observation-similarity observation prototype)
-        if similarity
-          sum (* (/ (weight prototype) ledger) similarity)))
+        if (and similarity (not (zerop ledger)))
+          sum (* (/ (weight prototype) ledger) similarity))) ;; ledger could be factored out, but kept for clarity
 
 ;; ----------------------------------
 ;; + Comparing OBJECT <-> PROTOTYPE +
@@ -47,11 +47,11 @@
 ;; + Similarity between CONCEPTS +
 ;; -------------------------------
 (defmethod similar-concepts ((agent cle-agent) (concept1 concept) (concept2 concept))
-  (loop with concept1-weight-sum = (loop for proto in (get-available-prototypes agent concept1) sum (weight proto))
-        with concept2-weight-sum = (loop for proto in (get-available-prototypes agent concept2) sum (weight proto))
+  (loop with ledger1 = (loop for proto in (get-available-prototypes agent concept1) sum (weight proto))
+        with ledger2 = (loop for proto in (get-available-prototypes agent concept2) sum (weight proto))
         for proto1 in (get-available-prototypes agent concept1)
         for proto2 = (gethash (channel proto1) (prototypes concept2))
-        if proto2
+        if (and proto2 (not (zerop ledger1)) (not (zerop ledger2)))
           sum (similar-prototypes proto1 proto2 concept1-weight-sum concept2-weight-sum)))
 
 (defmethod similar-prototypes ((proto1 prototype) (proto2 prototype) (ledger1 number) (ledger2 number))
@@ -60,7 +60,7 @@
                           (/ (weight proto2) ledger2))
                        2))
         ;; similarity of the weights
-        (weight-similarity (- 1 (abs (- (weight proto1) (weight proto2)))))
+        (weight-similarity (- 1 (abs (- (/ (weight proto1) ledger1) (/ (weight proto2) ledger2)))))
         ;; invert distance (1-h) so that it becomes a similarity metric
         (prototype-similarity (- 1 (f-divergence (distribution proto1) (distribution proto2) :hellinger))))
     ;; multiple all three
