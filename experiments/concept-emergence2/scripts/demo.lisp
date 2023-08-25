@@ -63,6 +63,32 @@
   (notify reset-monitors)
   (wi::reset))
 
+(setf *experiment* (cl-store:restore (babel-pathname :directory `("experiments"
+                                                                  "concept-emergence2"
+                                                                  "logging")
+                                                     :name "ra-cogent-lim"
+                                                     :type "store")))
+
+(progn
+  (set-configuration *experiment* :dot-interval 10)
+  (set-configuration *experiment* :scene-sampling :random)
+  (set-configuration *experiment* :topic-sampling :random)
+  (set-configuration *experiment* :dataset "cogent")
+  (set-configuration *experiment* :dataset-split "testB")
+  (set-configuration *experiment* :available-channels (get-all-channels :clevr))
+  (set-configuration *experiment* :align nil)
+  (initialise-world *experiment*))
+
+(progn
+  (wi::reset)
+  (deactivate-all-monitors)
+  ;(activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor trace-interaction-in-web-interface)
+  (loop for idx from 1 to 1
+        do (run-interaction *experiment*)))
+
+(display-lexicon (find-agent 8 *experiment*) :sort t)
+
 ;; 1. run x interactions
 (notify reset-monitors)
 
@@ -77,6 +103,28 @@
   (time
    (loop for i from 1 to 10000
          do (run-interaction *experiment*))))
+
+(let* ((experiment *experiment*)
+       (current-stage (get-configuration experiment :current-stage))
+       (next-stage (1+ current-stage))
+       (params (nth current-stage (get-configuration experiment :stage-parameters))))
+  ;; PART 1: logging the previous stage
+  ;; message
+  (format t "~%~%SWITCHING FROM CONDITION ~a TO CONDITION ~a~%~%" current-stage next-stage)
+  ;; set the new stage
+  (set-configuration experiment :current-stage next-stage)
+
+  ;; PART 2: the possible switches
+  ;; check if channels need to be disabled
+  (switch-disable-channels experiment params)
+  ;; check if half of the population gets some channels disabled
+  (switch-disable-channels-half experiment params)
+  ;; check if need to add agents
+  (switch-add-agents experiment params)
+  ;; check if need to change alignment
+  (switch-alignment experiment params)
+  ;; check if dataset changes
+  (switch-dataset experiment params))
 
 (progn
   (wi::reset)
@@ -231,11 +279,6 @@
       do (switch-channel-availability agent 'area)
       do (switch-channel-availability agent 'height))
 
-(display-lexicon 
-
-
-
-(+ 1 2)
 ;; display lexicon
 (display-lexicon (first (agents *experiment*)) :sort t :entrenchment-threshold 0.5)
 (display-lexicon (second (agents *experiment*)) :sort t :entrenchment-threshold 0.5)

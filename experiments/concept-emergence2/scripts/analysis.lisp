@@ -6,26 +6,20 @@
 ;; ------------------
 ;; + Graph creation +
 ;; ------------------
-(graph-batch-experiments "2023-8-mid_august3"
-                         "tuning2"
-                         `(;(:similarity-threshold 0.0 0.01 0.05); 0.1 0.2)
-                           (:initial-weight 0 35)
-                           (:weight-decf -1 -5 -10 -20)
-                           (:entrenchment-li -0.001 -0.005 -0.01 -0.02); -0.05 -0.1)
-                           (:trash-concepts nil t)
-                           )
-                         
-                         `((:initial-weight 0) ;35)
-                           (:weight-decf -5); -10 -20) ;-10); -20)
-                           (:entrenchment-li -0.001 -0.005 -0.01 -0.02); -0.05 -0.1)
-                           (:trash-concepts t))
-                         :plot :communicative-success
+(graph-batch-experiments2 "2023-8-mid_august4"
+                         "ra"
+                         "clevr"
+                         `()
+                         `()
+                         ;:plot :communicative-success
                          ;:plot :lexicon-coherence
-                         :y-min 0.97
+                         :plot :unique-form-usage
+                         :y-min 0
+                         :y-max 100
                          ;:plot :lexicon-size
                          ;:y-max 10
-                         :start 490000
-                         :end   500000
+                         :start  950000
+                         :end   1000000
                          :average-windows 5000
                          )
 
@@ -47,6 +41,38 @@
                  )
                 )
 
+;;;;;;;;;;;;;
+
+
+
+
+
+
+
+
+
+;;;;;;;;;;;;;
+(create-graph-comparing-strategies
+ :base-dir "2023-8-mid_august3/ra/"
+ :experiment-name 
+
+ 
+ :experiment-names '("clevr-di-0-defects-in-half-of-pop/2023-08-22_2h21m51s-exp-0"
+                     "clevr-di-1-defects-in-half-of-pop/2023-08-22_2h21m53s-exp-0"
+                     "clevr-di-2-defects-in-half-of-pop/2023-08-22_2h21m53s-exp-0"
+                     "clevr-di-5-defects-in-half-of-pop/2023-08-22_2h22m30s-exp-0"
+                     "clevr-di-10-defects-in-half-of-pop/2023-08-22_2h21m51s-exp-0"
+                     )
+ :measure-name "communicative-success"
+ :y1-label "Communicative success"
+ :y-max 1
+ :average-windows 200
+ :captions '("14-12-2022-exp-1"
+             "14-12-2022-exp-2"
+             "14-12-2022-exp-3"
+             "14-12-2022-exp-4"
+             ))
+
 
 ;(list (length exp-names) title exp-names captions)
 
@@ -59,19 +85,18 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(create-graph-for-single-strategy "big-bench" "2022-12-16_12h14m17s-exp-0" '("communicative-success" "lexicon-coherence" "lexicon-size")
+(create-graph-for-single-strategy "2023-8-mid_august4/ra" "clevr/clevr-ra/2023-08-22_2h19m47s-exp-0" '("communicative-success" "lexicon-coherence" "unique-form-usage")
                                   ;:plot-file-name "plot-randomscenes"
-                                  
-                                  :average-windows '(500 500 500)
+                                  :average-windows '(5000 5000 5000)
                                   :use-y-axis '(1 1 2)
                                   :y1-min 0 :y1-max 1
-                                  :y2-min 0 :y2-max 5
+                                  :y2-min 0 :y2-max 100
                                   :x-label "Number of Games"
                                   :y1-label "Communicative Success/Lexicon Coherence"
-                                  :y2-label "Number of Concepts"
+                                  :y2-label "Number of unique forms used"
                                   :captions '("communicative success"
                                               "lexicon coherence"
-                                              "lexicon size")
+                                              "Unique forms used (last 5k)")
                                   :error-bars '(:percentile 5 95)
                                   :error-bar-modes '(:lines)
                                   :key-location "bottom"
@@ -129,7 +154,7 @@
                                                       :type "store")))
 
 
-(setf results (testi3 an-experiment))
+#|(setf results (testi3 an-experiment))
 
 
 
@@ -362,4 +387,4 @@
 
 (add-element `((h2) "-----"))
 (display-lexicon  (first (agents *experiment*)) :sort t :entrenchment-threshold 0.1)
-(length (lexicon (first (agents *experiment*))))
+(length (lexicon (first (agents *experiment*))))|#
