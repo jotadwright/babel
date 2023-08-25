@@ -9,10 +9,16 @@
                    obtained by anti-unifying the observation with 'thing',
                    which can be a cxn or a cipn."))
 
+(defgeneric compute-meaning-args (anti-unification-result cxn source-args)
+  (:documentation "Compute the meaning-args from the anti-unification result
+                   obtained by anti-unifying the observation with 'thing',
+                   which can be a cxn or a cipn."))
+
 (defmethod compute-form-args (anti-unification-result cxn source-args)
   (let ((form-representation (get-configuration (cxn-inventory cxn) :form-representation-formalism)))
     (compute-form-args-aux anti-unification-result cxn source-args form-representation)))
 
+#|
 (defun sequence-string (sequence-predicate)
   (second sequence-predicate))
 (defun left-boundary (sequence-predicate)
@@ -118,10 +124,67 @@
 ; '((sequence "what " ?a ?b) ?x (sequence " is the " ?c ?d) ?y (sequence " ?" ?e ?f))
 ; '((?x sequence "color" ?a ?b) (?y sequence "ball" ?c ?d)))
 ;; ((?x 5 10) (?y 18 22))
+|#
+
+(defun restore-original-input (generalisation bindings delta)
+  (append (substitute-bindings (fcg::reverse-bindings bindings) generalisation) delta))
+
+(defmethod compute-form-args-aux (anti-unification-result
+                                  (anti-unified-cxn fcg-construction)
+                                  (source-args blackboard)
+                                  (mode (eql :string+meets)))
+  (let ((args (make-blackboard)))
+    (with-slots (generalisation
+                 pattern-bindings
+                 source-bindings
+                 pattern-delta
+                 source-delta) anti-unification-result
+      (let ((pattern-slot-args  ; group per category and alphabetically
+             (sort (cxn-form-slot-args anti-unified-cxn :by-category-p t) #'string< :key #'car))
+            (pattern-top-args (cxn-form-top-args anti-unified-cxn))
+            (source-slot-args  ; grouped per category, sorted alphabetically
+             (find-data source-args :slot-form-args))
+            (source-top-args (or (find-data source-args :top-lvl-form-args)
+                                 (holistic-form-top-args
+                                  (restore-original-input generalisation source-bindings source-delta)
+                                  (get-configuration (cxn-inventory anti-unified-cxn) :form-representation-formalism)))))
+        (set-data args :generalisation-top-lvl-args (mapcar #'cdr (reverse pattern-bindings)))
+        (set-data args :pattern-slot-args (append (list (mapcar #'car (reverse pattern-bindings)))
+                                                  (mapcar #'rest pattern-slot-args)))
+        (set-data args :source-slot-args (append (list (mapcar #'car (reverse source-bindings)))
+                                                 source-slot-args))
+        (set-data args :pattern-top-lvl-args pattern-top-args)
+        (set-data args :source-top-lvl-args source-top-args)))))
+        
+(defmethod compute-meaning-args (anti-unification-result
+                                 (anti-unified-cxn fcg-construction)
+                                 (source-args blackboard))
+  (let ((args (make-blackboard)))
+    (with-slots (generalisation
+                 pattern-bindings
+                 source-bindings
+                 pattern-delta
+                 source-delta) anti-unification-result
+      (let ((pattern-slot-args  ; grouped per category, sorted alphabetically
+             (sort (cxn-meaning-slot-args anti-unified-cxn :by-category-p t) #'string< :key #'car))
+            (pattern-top-args (cxn-meaning-top-args anti-unified-cxn))
+            (source-slot-args  ; grouped per category, sorted alphabetically
+             (find-data source-args :slot-meaning-args))
+            (source-top-args (or (find-data source-args :top-lvl-meaning-args)
+                                 (holistic-meaning-top-args
+                                  (restore-original-input generalisation source-bindings source-delta)
+                                  (get-configuration (cxn-inventory anti-unified-cxn) :meaning-representation-formalism)))))
+        (set-data args :generalisation-top-lvl-args (mapcar #'cdr (reverse pattern-bindings)))
+        (set-data args :pattern-slot-args (append (list (mapcar #'car (reverse pattern-bindings)))
+                                                  (mapcar #'rest pattern-slot-args)))
+        (set-data args :source-slot-args (append (list (mapcar #'car (reverse source-bindings)))
+                                                 source-slot-args))
+        (set-data args :pattern-top-lvl-args pattern-top-args)
+        (set-data args :source-top-lvl-args source-top-args)))))
             
               
               
-
+#|
 (defmethod compute-form-args-aux (anti-unification-result
                                   (anti-unified-cxn fcg-construction)
                                   (source-args blackboard)
@@ -143,37 +206,25 @@
                                   (get-configuration (cxn-inventory anti-unified-cxn) :form-representation-formalism)))))
         (loop for (pattern-var . generalisation-var) in pattern-bindings
               for (source-var . nil) in source-bindings
-              when (or (find-anywhere pattern-var pattern-delta)
-                       (find-anywhere source-var source-delta)
-                       (find pattern-var pattern-slot-args)
-                       (find source-var source-slot-args)
-                       (> (count pattern-var pattern-bindings :key #'car) 1)
-                       (> (count source-var source-bindings :key #'car) 1))
+              ;when (or (find-anywhere pattern-var pattern-delta)
+              ;         (find-anywhere source-var source-delta)
+              ;         (find pattern-var pattern-slot-args)
+              ;         (find source-var source-slot-args)
+              ;         (> (count pattern-var pattern-bindings :key #'car) 1)
+              ;         (> (count source-var source-bindings :key #'car) 1))
               do (push-data args :pattern-top-lvl-args pattern-var)
                  (push-data args :source-top-lvl-args source-var)
                  (push-data args :generalisation-slot-args generalisation-var))
         (set-data args :pattern-slot-args
-                  (cond ((holistic-cxn-p anti-unified-cxn)
-                         pattern-top-args)
-                        ((item-based-cxn-p anti-unified-cxn)
-                         pattern-slot-args)))
+                  (cond ((holistic-cxn-p anti-unified-cxn) pattern-top-args)
+                        ((item-based-cxn-p anti-unified-cxn) pattern-slot-args)))
         (set-data args :source-slot-args
-                  (cond ((holistic-cxn-p anti-unified-cxn)
-                         source-top-args)
-                        ((item-based-cxn-p anti-unified-cxn)
-                         source-slot-args)))
+                  (cond ((holistic-cxn-p anti-unified-cxn) source-top-args)
+                        ((item-based-cxn-p anti-unified-cxn) source-slot-args)))
         (set-data args :generalisation-top-lvl-args
                   (loop for arg in pattern-top-args
                         collect (or (rest (assoc arg pattern-bindings)) arg)))))
     args))
-
-
-
-(defgeneric compute-meaning-args (anti-unification-result cxn source-args)
-  (:documentation "Compute the meaning-args from the anti-unification result
-                   obtained by anti-unifying the observation with 'thing',
-                   which can be a cxn or a cipn."))
-
 
 (defmethod compute-meaning-args (anti-unification-result (anti-unified-cxn fcg-construction) (source-args blackboard))
   (let ((args (make-blackboard)))
@@ -193,70 +244,23 @@
                                   (get-configuration (cxn-inventory anti-unified-cxn) :meaning-representation-formalism)))))
         (loop for (pattern-var . generalisation-var) in pattern-bindings
               for (source-var . nil) in source-bindings
-              when (or (find-anywhere pattern-var pattern-delta)
-                       (find-anywhere source-var source-delta)
-                       (find pattern-var pattern-slot-args)
-                       (find source-var source-slot-args)
-                       (> (count pattern-var pattern-bindings :key #'car) 1)
-                       (> (count source-var source-bindings :key #'car) 1))
+              ;when (or (find-anywhere pattern-var pattern-delta)
+              ;         (find-anywhere source-var source-delta)
+              ;         (find pattern-var pattern-slot-args)
+              ;         (find source-var source-slot-args)
+              ;         (> (count pattern-var pattern-bindings :key #'car) 1)
+              ;         (> (count source-var source-bindings :key #'car) 1))
               do (push-data args :pattern-top-lvl-args pattern-var)
                  (push-data args :source-top-lvl-args source-var)
                  (push-data args :generalisation-slot-args generalisation-var))
         (set-data args :pattern-slot-args
-                  (cond ((holistic-cxn-p anti-unified-cxn)
-                         pattern-top-args)
-                        ((item-based-cxn-p anti-unified-cxn)
-                         pattern-slot-args)))
+                  (cond ((holistic-cxn-p anti-unified-cxn) pattern-top-args)
+                        ((item-based-cxn-p anti-unified-cxn) pattern-slot-args)))
         (set-data args :source-slot-args
-                  (cond ((holistic-cxn-p anti-unified-cxn)
-                         source-top-args)
-                        ((item-based-cxn-p anti-unified-cxn)
-                         source-slot-args)))
+                  (cond ((holistic-cxn-p anti-unified-cxn) source-top-args)
+                        ((item-based-cxn-p anti-unified-cxn) source-slot-args)))
         (set-data args :generalisation-top-lvl-args
                   (loop for arg in pattern-top-args
                         collect (or (rest (assoc arg pattern-bindings)) arg)))))
-    args))
-
-
-#|
-(defun compute-args (anti-unification-result anti-unified-cxn)
-  "Loop over all variables in both bindings lists.
-   Whenever a variable occurs in either one of the delta's,
-   or it is a slot-arg; add it as an arg!"
-  (let ((args (make-blackboard)))
-    (with-slots (generalisation
-                 pattern-bindings
-                 source-bindings
-                 pattern-delta
-                 source-delta) anti-unification-result
-      (let ((raw-pattern-delta (remove-arg-predicates pattern-delta))
-            (raw-source-delta (remove-arg-predicates source-delta))
-            (pattern-delta-slot-args (find-all 'slot-arg pattern-delta :key #'first))
-            (source-delta-slot-args (find-all 'slot-arg source-delta :key #'first))
-            (pattern-delta-top-args (find-all 'top-arg pattern-delta :key #'first))
-            (source-delta-top-args (find-all 'top-arg source-delta :key #'first)))
-        ;; determine the args that connect the generalisation to both delta's
-        (loop for (pattern-var . generalisation-var) in pattern-bindings
-              for (source-var . nil) in source-bindings
-              when (or (find-anywhere pattern-var raw-pattern-delta)
-                       (find-anywhere source-var raw-source-delta)
-                       (find pattern-var pattern-delta-slot-args :key #'second)
-                       (find source-var source-delta-slot-args :key #'second)
-                       (> (count pattern-var pattern-bindings :key #'first) 1)
-                       (> (count source-var source-bindings :key #'first) 1))
-              do (push-data args :pattern-top-lvl-args pattern-var)
-                 (push-data args :source-top-lvl-args source-var)
-                 (push-data args :generalisation-slot-args generalisation-var))
-        ;; determine the args that connect the cxns from the delta's to other cxns
-        (set-data args :pattern-slot-args
-                  (cond ((holistic-cxn-p anti-unified-cxn)
-                         (reverse (mapcar #'second pattern-delta-top-args)))
-                        ((item-based-cxn-p anti-unified-cxn)
-                         (mapcar #'second pattern-delta-slot-args))))
-        (set-data args :source-slot-args
-                  (cond ((holistic-cxn-p anti-unified-cxn)
-                         (reverse (mapcar #'second source-delta-top-args)))
-                        ((item-based-cxn-p anti-unified-cxn)
-                         (mapcar #'second source-delta-slot-args))))))
     args))
 |#

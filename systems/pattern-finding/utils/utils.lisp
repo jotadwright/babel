@@ -165,7 +165,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defgeneric extract-category-unit (unit)
-  (:documentation "extract the lex class from a unit"))
+  (:documentation "extract the category from a unit"))
   
 (defmethod extract-category-unit ((unit contributing-unit))
   (first (fcg-unit-feature-value unit 'category)))
@@ -175,6 +175,34 @@
 
 (defmethod extract-category-unit ((unit list))
   (unit-feature-value unit 'category))
+
+;;;;
+;; Extracting form/meaning-args from units
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defgeneric extract-form-args-unit (unit)
+  (:documentation "extract the form args from a unit"))
+
+(defmethod extract-form-args-unit ((unit contributing-unit))
+  (first (fcg-unit-feature-value unit 'form-args)))
+
+(defmethod extract-form-args-unit ((unit conditional-unit))
+  (first (fcg-unit-feature-value unit 'form-args)))
+
+(defmethod extract-form-args-unit ((unit list))
+  (unit-feature-value unit 'form-args))
+
+(defgeneric extract-meaning-args-unit (unit)
+  (:documentation "extract the meaning args from a unit"))
+
+(defmethod extract-meaning-args-unit ((unit contributing-unit))
+  (first (fcg-unit-feature-value unit 'meaning-args)))
+
+(defmethod extract-meaning-args-unit ((unit conditional-unit))
+  (first (fcg-unit-feature-value unit 'meaning-args)))
+
+(defmethod extract-meaning-args-unit ((unit list))
+  (unit-feature-value unit 'meaning-args))
 
 ;;;;;
 ;; Extracting units from cxns
@@ -202,13 +230,13 @@
          (if (routine-cxn-p cxn)
            (first (contributing-part cxn))
            (first (conditional-part cxn)))))
-    (first (fcg-unit-feature-value unit-to-search 'category))))
+    (extract-category-unit unit-to-search)))
 
 (defun extract-slot-categories-item-based-cxn (cxn)
   "Extracts the lex classes from the slots of an item-based cxn.
    Works for both routine and meta cxns."
   (loop for unit in (extract-slot-units cxn)
-        for category = (first (fcg-unit-feature-value unit 'category))
+        for category = (extract-category-unit unit)
         collect category))
 
 (defun extract-top-category-item-based-cxn (cxn)
@@ -216,10 +244,12 @@
          (loop for unit in (contributing-part cxn)
                when (find 'subunits (fcg::unit-structure unit) :key #'first)
                  return unit)))
-    (first (fcg-unit-feature-value unit-to-search 'category))))
+    (extract-category-unit unit-to-search)))
 
-(defun category (unit)
-  (unit-feature-value unit 'category))
+(defun extract-top-category-cxn (cxn)
+  (if (holistic-cxn-p cxn)
+    (extract-top-category-holistic-cxn cxn)
+    (extract-top-category-item-based-cxn cxn)))
 
 (defun extract-contributing-category (cxn)
   "return the category on the contributing part of a cxn
@@ -238,74 +268,114 @@
 ;; Extracting args from cxns
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun extract-args-holistic-cxn (cxn)
-  "Extract the form-args and meaning-args from
-   a holistic cxn. Works for both routine and
-   meta cxns."
-  (let ((holistic-unit-structure
-         (fcg::unit-structure
-          (first
-           (if (routine-cxn-p cxn)
-             (contributing-part cxn)
-             (conditional-part cxn))))))
-    (list (second (find 'form-args holistic-unit-structure :key #'first))
-          (second (find 'meaning-args holistic-unit-structure :key #'first)))))
+(defun cxn-form-top-args (cxn &key by-category-p)
+  (let ((units-to-search (if (or (routine-cxn-p cxn)
+                                 (item-based-cxn-p cxn))
+                           (contributing-part cxn)
+                           (conditional-part cxn))))
+    (loop for unit in units-to-search
+          for form-args = (extract-form-args-unit unit)
+          for category = (extract-category-unit unit)
+          when (and form-args category)
+          if by-category-p
+            collect (cons category form-args)
+          else append form-args)))
+    
+(defun cxn-meaning-top-args (cxn &key by-category-p)
+  (let ((units-to-search (if (or (routine-cxn-p cxn)
+                                 (item-based-cxn-p cxn))
+                           (contributing-part cxn)
+                           (conditional-part cxn))))
+    (loop for unit in units-to-search
+          for form-args = (extract-meaning-args-unit unit)
+          for category = (extract-category-unit unit)
+          when (and form-args category)
+          if by-category-p
+            collect (cons category form-args)
+          else append form-args)))
 
-(defun extract-args-item-based-cxn (cxn)
-  "Extract the top-lvl form args, top-lvl meaning args,
-   slot form args, and slot meaning args of an item-based
-   cxn. Works for both routine and meta cxns."
-  (if (routine-cxn-p cxn)
-    (let* ((slot-args
-            (loop for unit in (conditional-part cxn)
-                  for meaning-args = (second (find 'meaning-args (formulation-lock unit) :key #'first))
-                  for form-args = (second (find 'form-args (comprehension-lock unit) :key #'first))
-                  when (or meaning-args form-args)
-                    append form-args into all-form-args
-                    and append meaning-args into all-meaning-args
-                  finally (return (list all-form-args all-meaning-args))))
-           (top-lvl-args
-            (loop for unit in (contributing-part cxn)
-                  for meaning-args = (second (find 'meaning-args (fcg::unit-structure unit) :key #'first))
-                  for form-args = (second (find 'form-args (fcg::unit-structure unit) :key #'first))
-                  when (or form-args meaning-args)
-                    return (list form-args meaning-args))))
-      (list top-lvl-args slot-args))
-    (let ((slot-args
-           (loop for unit in (contributing-part cxn)
-                 for unit-structure = (fcg::unit-structure unit)
-                 unless (find 'subunits unit-structure :key #'first)
-                   append (find 'form-args unit-structure :key #'first) into all-form-args
-                   and append (find 'meaning-args unit-structure :key #'first) into all-meaning-args
-                 finally (return (list all-form-args all-meaning-args))))
-          (top-lvl-args
-           (loop for unit in (contributing-part cxn)
-                 for unit-structure = (fcg::unit-structure unit)
-                 when (find 'subunits unit-structure :key #'first)
-                 return (list (second (find 'form-args unit-structure :key #'first))
-                              (second (find 'meaning-args unit-structure :key #'first))))))
-      (list top-lvl-args slot-args))))
-
-(defun extract-top-lvl-args (cxn)
-  (if (holistic-cxn-p cxn)
-    (extract-args-holistic-cxn cxn)
-    (first (extract-args-item-based-cxn cxn))))
-
-(defun extract-slot-args (cxn)
+(defun cxn-form-slot-args (cxn &key by-category-p)
   (unless (holistic-cxn-p cxn)
-    (second (extract-args-item-based-cxn cxn))))
+    (let ((units-to-search (if (routine-cxn-p cxn)
+                             (conditional-part cxn)
+                             (contributing-part cxn))))
+      (loop for unit in units-to-search
+            for form-args = (extract-form-args-unit unit)
+            for category = (extract-category-unit unit)
+            when (and form-args category)
+            if by-category-p
+            collect (cons category form-args)
+            else append form-args))))
 
-(defun extract-top-lvl-form-args (cxn)
-  (first (extract-top-lvl-args cxn)))
+(defun cxn-meaning-slot-args (cxn &key by-category-p)
+  (unless (holistic-cxn-p cxn)
+    (let ((units-to-search (if (routine-cxn-p cxn)
+                             (conditional-part cxn)
+                             (contributing-part cxn))))
+      (loop for unit in units-to-search
+            for form-args = (extract-meaning-args-unit unit)
+            for category = (extract-category-unit unit)
+            when (and form-args category)
+            if by-category-p
+            collect (cons category form-args)
+            else append form-args))))
 
-(defun extract-top-lvl-meaning-args (cxn)
-  (second (extract-top-lvl-args cxn)))
 
-(defun extract-slot-form-args (cxn)
-  (first (extract-slot-args cxn)))
+;;;;;
+;; Extracting args from cipns
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun extract-slot-meaning-args (cxn)
-  (second (extract-slot-args cxn)))
+(defun get-top-lvl-units (cipn)
+  (let* ((ts-units (fcg-get-transient-unit-structure cipn))
+         (root-unit (get-root ts-units)))
+    (remove-child-units (remove root-unit ts-units))))
+
+(defun get-open-slot-units (cipn)
+  (let* ((ts-units (fcg-get-transient-unit-structure cipn))
+         (root-unit (get-root ts-units))
+         (all-slot-units (get-child-units (remove root-unit ts-units))))
+    (loop for unit in all-slot-units
+          unless (and (unit-feature unit 'form) (unit-feature unit 'meaning))
+          collect unit)))
+
+(defun cipn-form-slot-args (cipn &key by-category-p)
+  (loop for unit in (get-top-lvl-units cipn)
+        for category = (extract-category-unit unit)
+        if by-category-p
+          collect (cons category (unit-feature-value unit 'form-args))
+        else
+          append (unit-feature-value unit 'form-args)))
+
+(defun cipn-meaning-slot-args (cipn &key by-category-p)
+  (loop for unit in (get-top-lvl-units cipn)
+        for category = (extract-category-unit unit)
+        if by-category-p
+            collect (cons category (unit-feature-value unit 'meaning-args))
+        else
+          append (unit-feature-value unit 'meaning-args)))
+
+(defun cipn-form-top-args (cipn &key by-category-p)
+  (loop for unit in (get-open-slot-units cipn)
+        for category = (extract-category-unit unit)
+        if by-category-p
+            collect (cons category (unit-feature-value unit 'form-args))
+        else
+          append (unit-feature-value unit 'form-args)))
+
+(defun cipn-meaning-top-args (cipn &key by-category-p)
+  (loop for unit in (get-open-slot-units cipn)
+        for category = (extract-category-unit unit)
+        if by-category-p
+            collect (cons category (unit-feature-value unit 'meaning-args))
+        else
+          append (unit-feature-value unit 'meaning-args)))
+
+(defun group-cipn-args-by-unit (cipn lists-of-args)
+  (loop for args in lists-of-args
+        collect (loop for unit in (fcg-get-transient-unit-structure cipn)
+                      when (or (equal (first (unit-feature-value unit 'form-args)) args)
+                               (equal (first (unit-feature-value unit 'meaning-args)) args))
+                      return (cons (extract-category-unit unit) args))))
 
 
 ;;;;;
@@ -318,13 +388,14 @@
    (append cxn-network `((args ,@cxn-args)))))
 
 (defun identical-holistic-cxn-p (form meaning form-args meaning-args cxn)
-  (let ((cxn-args (extract-args-holistic-cxn cxn)))
+  (let ((form-top-args (cxn-form-top-args cxn))
+        (meaning-top-args (cxn-meaning-top-args cxn)))
     (and (equivalent-irl-programs? form (extract-form-predicates cxn))
          (equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
-         (length= form-args (first cxn-args))
-         (length= meaning-args (second cxn-args))
-         (equivalent-networks-and-args? form (extract-form-predicates cxn) form-args (first cxn-args))
-         (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) meaning-args (second cxn-args)))))
+         (length= form-args form-top-args)
+         (length= meaning-args meaning-top-args)
+         (equivalent-networks-and-args? form (extract-form-predicates cxn) form-args form-top-args)
+         (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) meaning-args meaning-top-args))))
 
 (defun find-identical-holistic-cxn (form meaning form-args meaning-args cxn-inventory)
   "Find a routine holistic cxn that is identical to the given form, meaning, and args"
@@ -343,17 +414,20 @@
 
 (defun identical-item-based-cxn-p (form meaning top-lvl-form-args top-lvl-meaning-args
                                    slot-form-args slot-meaning-args cxn)
-  (destructuring-bind (top-lvl-args slot-args) (extract-args-item-based-cxn cxn)
+  (let ((form-top-args (cxn-form-top-args cxn))
+        (meaning-top-args (cxn-meaning-top-args cxn))
+        (form-slot-args (cxn-form-slot-args cxn))
+        (meaning-slot-args (cxn-meaning-slot-args cxn)))
     (and (equivalent-irl-programs? form (extract-form-predicates cxn))
          (equivalent-irl-programs? meaning (extract-meaning-predicates cxn))
-         (length= top-lvl-form-args (first top-lvl-args))
-         (length= top-lvl-meaning-args (second top-lvl-args))
-         (length= slot-form-args (first slot-args))
-         (length= slot-meaning-args (second slot-args))
-         (equivalent-networks-and-args? form (extract-form-predicates cxn) top-lvl-form-args (first top-lvl-args))
-         (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) top-lvl-meaning-args (second top-lvl-args))
-         (equivalent-networks-and-args? form (extract-form-predicates cxn) slot-form-args (first slot-args))
-         (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) slot-meaning-args (second slot-args)))))
+         (length= top-lvl-form-args form-top-args)
+         (length= top-lvl-meaning-args meaning-top-args)
+         (length= slot-form-args form-slot-args)
+         (length= slot-meaning-args meaning-slot-args)
+         (equivalent-networks-and-args? form (extract-form-predicates cxn) top-lvl-form-args form-top-args)
+         (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) top-lvl-meaning-args meaning-top-args)
+         (equivalent-networks-and-args? form (extract-form-predicates cxn) slot-form-args form-slot-args)
+         (equivalent-networks-and-args? meaning (extract-meaning-predicates cxn) slot-meaning-args meaning-slot-args))))
                       
 
 (defun find-identical-item-based-cxn (form meaning top-lvl-form-args top-lvl-meaning-args slot-form-args slot-meaning-args cxn-inventory)

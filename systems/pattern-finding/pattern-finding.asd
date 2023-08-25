@@ -34,7 +34,7 @@
                              (:file "anti-unify-utils")
                              (:file "make-cxns")
                              (:file "repair-add-categorial-links")
-                             (:file "repair-nothing-to-holophrase-cxn")
+                             (:file "repair-add-cxn")
                              (:file "repair-anti-unify-cxns")
                              (:file "repair-anti-unify-cipn")))
                (:module experiment

@@ -258,13 +258,17 @@
     ;; anti-unify with holistic cxn
     ;; cxn-inventory: what-color-is-the-X-cxn + large-blue-rubber-cube-cxn
     ;; observation "is there a large rubber cube?"
-    
-    ;; generalisation: large-rubber-cube-holistic-cxn
+
+    ;; generalisation: large-rubber-cube-cxn
     ;; source-delta: is-there-a-X-cxn
     ;; pattern-delta: blue-X-cxn
+
+    ;; generalisation: X-large-rubber-cube-cxn
+    ;; source-delta: is-there-a-cxn
+    ;; pattern-delta: blue-cxn
     
     ;; observation: is-there-a-X-cxn + large-rubber-cube-cxn
-    ;; previous obs: what-color-is-the-X + blue-X + large-rubber-cube-cxn
+    ;; previous obs: what-color-is-the-X + X-large-rubber-cube + blue-cxn
     (def-fcg-cxn what-color-is-the-item-based-cxn
                  ((?item-based-unit
                    (category what-color-is-the-1-cat-1)
@@ -394,7 +398,6 @@
 
 ;; observation: any-large-brown-X + are-there-objects
 ;; previous obs: what-X + number-of-tiny-X + are-there-objects
-
 
 (defun test-holistic-partial-analysis ()
   (multiple-value-bind (*experiment* *cxn-inventory*) (setup-test-case)
@@ -777,6 +780,132 @@
                        (query ?tgt ?obj-1 ?attr-1)
                        (bind attribute ?attr-1 color))))))
 ;(test-item-based-partial-analysis-2)
+
+
+
+(defun test-recursive-repair-application ()
+  (multiple-value-bind (*experiment* *cxn-inventory*) (setup-test-case)
+    ;; observation: what is the small metal ball made of?
+    ;; => learn holophrase
+    
+    ;; observation: what is the large rubber block made of?
+    ;; => learn what-is-the-X-made-of + small-metal-ball + large-rubber-block
+    
+    ;; observation: what is the small metal cylinder made of?
+    ;; => learn small-metal-cylinder
+    ;; ==> learn small-metal-X + cylinder + ball
+    (setf (corpus *experiment*)
+          `(("What is the small metal ball made of?"
+             ,@(fresh-variables
+                '((get-context ?context)
+                  (filter ?set-1 ?context ?shape-1)
+                  (bind shape ?shape-1 ball)
+                  (filter ?set-2 ?set-1 ?material-1)
+                  (bind material ?material-1 metal)
+                  (filter ?set-3 ?set-2 ?size-1)
+                  (bind size ?size-1 small)
+                  (unique ?obj-1 ?set-3)
+                  (query ?tgt ?obj-1 ?attr-1)
+                  (bind attribute ?attr-1 material))))
+            ("What is the large rubber block made of?"
+             ,@(fresh-variables
+                '((get-context ?context)
+                  (filter ?set-1 ?context ?shape-1)
+                  (bind shape ?shape-1 cube)
+                  (filter ?set-2 ?set-1 ?material-1)
+                  (bind material ?material-1 rubber)
+                  (filter ?set-3 ?set-2 ?size-1)
+                  (bind size ?size-1 large)
+                  (unique ?obj-1 ?set-3)
+                  (query ?tgt ?obj-1 ?attr-1)
+                  (bind attribute ?attr-1 material))))
+            ("What is the small metal cylinder made of?"
+             ,@(fresh-variables
+                '((get-context ?context)
+                  (filter ?set-1 ?context ?shape-1)
+                  (bind shape ?shape-1 cylinder)
+                  (filter ?set-2 ?set-1 ?material-1)
+                  (bind material ?material-1 metal)
+                  (filter ?set-3 ?set-2 ?size-1)
+                  (bind size ?size-1 small)
+                  (unique ?obj-1 ?set-3)
+                  (query ?tgt ?obj-1 ?attr-1)
+                  (bind attribute ?attr-1 material))))))
+    (run-series *experiment* 3)
+    (comprehend-all "What is the small metal cylinder made of?"
+                    :cxn-inventory *cxn-inventory*
+                    :gold-standard-meaning
+                    (fresh-variables
+                     '((get-context ?context)
+                       (filter ?set-1 ?context ?shape-1)
+                       (bind shape ?shape-1 cylinder)
+                       (filter ?set-2 ?set-1 ?material-1)
+                       (bind material ?material-1 metal)
+                       (filter ?set-3 ?set-2 ?size-1)
+                       (bind size ?size-1 small)
+                       (unique ?obj-1 ?set-3)
+                       (query ?tgt ?obj-1 ?attr-1)
+                       (bind attribute ?attr-1 material))))))
+;(test-recursive-repair-application)
+
+(defun test-recursive-repair-application-2 ()
+  (multiple-value-bind (*experiment* *cxn-inventory*) (setup-test-case)
+    ;; observation: what is the small metal ball made of?
+    ;; => learn holophrase
+    
+    ;; observation: what is the large rubber block made of?
+    ;; => learn what-is-the-X-made-of + small-metal-ball + large-rubber-block
+    
+    ;; observation: what is the small rubber cylinder made of
+    ;; => small-rubber-cylinder
+    ;; ==> small + X-rubber-cylinder + X-metal-ball
+    ;; ===> small + rubber + X-Y-cylinder + large-Y-block + X-metal-ball
+
+    ;; observation: what is the small rubber cylinder made of
+    ;; => small-rubber-cylinder
+    ;; ==> small-X + rubber-cylinder + metal-ball
+    ;; ===> small-X + rubber-X + cylinder + large-block + metal-ball
+    
+    (setf (corpus *experiment*)
+          `(("What is the small metal ball made of?"
+             ,@(fresh-variables
+                '((get-context ?context)
+                  (filter ?set-1 ?context ?shape-1)
+                  (bind shape ?shape-1 ball)
+                  (filter ?set-2 ?set-1 ?material-1)
+                  (bind material ?material-1 metal)
+                  (filter ?set-3 ?set-2 ?size-1)
+                  (bind size ?size-1 small)
+                  (unique ?obj-1 ?set-3)
+                  (query ?tgt ?obj-1 ?attr-1)
+                  (bind attribute ?attr-1 material))))
+            ("What is the large rubber block made of?"
+             ,@(fresh-variables
+                '((get-context ?context)
+                  (filter ?set-1 ?context ?shape-1)
+                  (bind shape ?shape-1 cube)
+                  (filter ?set-2 ?set-1 ?material-1)
+                  (bind material ?material-1 rubber)
+                  (filter ?set-3 ?set-2 ?size-1)
+                  (bind size ?size-1 large)
+                  (unique ?obj-1 ?set-3)
+                  (query ?tgt ?obj-1 ?attr-1)
+                  (bind attribute ?attr-1 material))))
+            ("What is the small rubber cylinder made of?"
+             ,@(fresh-variables
+                '((get-context ?context)
+                  (filter ?set-1 ?context ?shape-1)
+                  (bind shape ?shape-1 cylinder)
+                  (filter ?set-2 ?set-1 ?material-1)
+                  (bind material ?material-1 rubber)
+                  (filter ?set-3 ?set-2 ?size-1)
+                  (bind size ?size-1 small)
+                  (unique ?obj-1 ?set-3)
+                  (query ?tgt ?obj-1 ?attr-1)
+                  (bind attribute ?attr-1 material))))))
+    (run-series *experiment* 3)))
+;(test-recursive-repair-application-2)
+            
 
 
 

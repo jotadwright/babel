@@ -51,7 +51,7 @@
              (first
               (loop for cipn in cipns
                     for meaning in meanings
-                    when (and (succeeded-cipn-p cipn) ;(find 'fcg::succeeded (statuses cipn))
+                    when (and (succeeded-cipn-p cipn)
                               (> (length (applied-constructions cipn)) 1)
                               (equivalent-meaning-networks meaning observation-meaning
                                                            (get-configuration cxn-inventory :meaning-representation-formalism)))
@@ -59,25 +59,13 @@
         (when solution
           (let* ((cxns-to-apply (reverse (original-applied-constructions solution)))
                  (top-lvl-category (extract-top-category-item-based-cxn (last-elt cxns-to-apply))))
-            (apply-fix 
-             ;; form constraints
-             observation-form
-             ;; cxns to appply
-             cxns-to-apply
-             ;; cxns to consolidate
-             nil
-             ;; categories to add
-             nil
-             ;; categorial links
-             (extract-used-categorial-links solution)
-             ;; top level category
-             top-lvl-category
-             ;; gold standard consulted p
-             (gold-standard-consulted-p solution)
-             ;; node
-             node
-             ;; repair name
-             repair-type)))))))
+            (apply-fix :form-constraints observation-form
+                       :cxns-to-apply cxns-to-apply
+                       :categorial-links (extract-used-categorial-links solution)
+                       :top-level-category top-lvl-category
+                       :gold-standard-consulted-p (gold-standard-consulted-p solution)
+                       :node node
+                       :repair-name repair-type)))))))
 
 
 (defun gold-standard-consulted-p (cipn)

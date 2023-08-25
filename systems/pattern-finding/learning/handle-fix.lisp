@@ -26,13 +26,13 @@
   (repair nil))
 
 
-(defun apply-fix (form-constraints
+(defun apply-fix (&key form-constraints
                   cxns-to-apply
                   cxns-to-consolidate
                   categories-to-add
                   categorial-links
                   top-level-category
-                  gold-standard-consulted-p
+                  (gold-standard-consulted-p t)
                   node
                   repair-name)
   "Apply the learned cxns and links, return the solution node."

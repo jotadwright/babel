@@ -49,7 +49,7 @@
   (let ((all-node-statuses (mappend #'statuses (cons cipn (all-parents cipn)))))
     (if (not (find 'added-by-repair all-node-statuses))
       (if success? "." "x")
-      (cond ((member 'nothing->holistic all-node-statuses) "h")
+      (cond ((member 'add-cxn all-node-statuses) "h")
             ((member 'anti-unify-cxns all-node-statuses) "a")
             ((member 'anti-unify-cipn all-node-statuses) "p")
             ((member 'add-categorial-links all-node-statuses) "l")))))

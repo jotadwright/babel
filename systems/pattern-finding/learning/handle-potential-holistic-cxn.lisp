@@ -6,9 +6,8 @@
 (defmethod handle-potential-holistic-cxn (observation-form observation-meaning
                                           (args blackboard)
                                           (cxn-inventory fcg-construction-set))
-  (loop for repair in (repairs cxn-inventory)
-        for repair-type = (type-of repair)
+  (loop for repair in '(add-categorial-links anti-unify-cxns add-cxn)
         for repair-result = (do-repair observation-form observation-meaning
                                        args (processing-cxn-inventory cxn-inventory)
-                                       nil repair-type)
+                                       nil repair)
         when repair-result return repair-result))

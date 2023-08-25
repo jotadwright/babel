@@ -36,7 +36,7 @@
                                     '(add-categorial-links
                                       anti-unify-cipn
                                       anti-unify-cxns                                   
-                                      nothing->holistic))
+                                      add-cxn))
 
 ;; Strategies and scores
 (define-configuration-default-value :initial-cxn-score 0.5)
