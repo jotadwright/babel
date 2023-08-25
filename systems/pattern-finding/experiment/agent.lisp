@@ -77,7 +77,7 @@
                                    pf::diagnose-non-gold-standard-utterance)
                      :repairs ,repairs
                      :visualization-configurations ((:show-constructional-dependencies . nil)
-                                                    (:show-categorial-network . t))))))
+                                                    (:show-categorial-network . nil))))))
       cxn-inventory)))
      
 

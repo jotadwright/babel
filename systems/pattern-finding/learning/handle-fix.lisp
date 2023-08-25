@@ -10,6 +10,7 @@
 
 ;; Events
 (define-event cxns-learned (cxns list))
+(define-event links-added (links list))
 (define-event fix-applied (repair-name symbol) (form list) (learned-cxns list))
 
 
@@ -117,7 +118,8 @@
       (loop for cxn in learned-cxns
             for interaction-nr = (find-data (blackboard (construction-inventory node)) :current-interaction-nr)
             do (setf (attr-val cxn :learned-at) (format nil "@~a" interaction-nr)))
-      (notify cxns-learned learned-cxns))
+      (notify cxns-learned learned-cxns)
+      (notify links-added categorial-links))
    
     ;; Add cxns to blackboard of second new node
     (set-data (car-resulting-cfs (cipn-car solution-node)) :fix-cxns cxns-to-consolidate)

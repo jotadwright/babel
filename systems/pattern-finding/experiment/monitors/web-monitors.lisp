@@ -85,6 +85,14 @@
     (add-element '((h3) "The following cxns are punished:"))
     (add-cxns-to-wi cxns)))
 
+(define-event-handler (trace-interactions-in-wi links-added)
+  (when links
+    (add-element '((h3) "The following links were added to the categorial network:"))
+    (add-element
+     `((div)
+       ,(s-dot->svg
+         (categorial-links->s-dot links))))))
+
 
 ;; --------------------------------------------
 ;; + evaluation-after-n-interactions handlers +
