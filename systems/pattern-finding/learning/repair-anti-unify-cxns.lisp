@@ -109,9 +109,6 @@
 ;; make cxns from generalisation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; change args into args-and-cats to pass on grammatical categories
-;; on the source side in the recursion!
-
 (defun make-cxns-from-generalisation (anti-unification-results args cxn-inventory)
   (destructuring-bind (anti-unified-cxn
                        form-anti-unification
@@ -232,15 +229,17 @@
                        ; => handled at the end of recursion
                        ;(list (cons (afr-top-lvl-category generalisation-cxns-and-links) (first pattern-delta-slot-categories)))
                        ; + top lvl category of pattern delta cxn <-> slots that are filled by top lvl category of pattern
-                       (link-filler-to-previous-slots
-                        anti-unified-cxn
-                        (afr-top-lvl-category pattern-delta-cxns-and-links)
-                        cxn-inventory)
+                       ; => handled at the end of recursion!
+                       ;(link-filler-to-previous-slots
+                       ; anti-unified-cxn
+                       ; (afr-top-lvl-category pattern-delta-cxns-and-links)
+                       ; cxn-inventory)
                        ; + fillers of slots of pattern <-> (rest of) slots of pattern delta cxn
                        (link-slots-to-previous-fillers
                         anti-unified-cxn
                         (rest pattern-delta-slot-categories)
-                        cxn-inventory))))))
+                        cxn-inventory)
+                       )))))
       (list cxns-to-apply
             cxns-to-consolidate
             categories-to-add
