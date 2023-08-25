@@ -47,6 +47,8 @@
 ;; find cipn and anti-unify ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(define-event learn-from-partial-analysis (anti-unification-results list))
+
 (defmethod find-cipn-and-anti-unify (observation-form observation-meaning (args blackboard) (cxn-inventory fcg-construction-set))
   "Given form and meaning of an observation and a cxn inventory,
    find the best transient structure that partially covers the observation
@@ -93,6 +95,7 @@
                        (make-holistic-cxns-from-partial-analysis
                         generalisation observation-form observation-meaning args cxn-inventory)))))
           (when new-cxns-and-links
+            (notify learn-from-partial-analysis generalisation)
             (return new-cxns-and-links)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;

@@ -10,17 +10,33 @@
 (define-monitor summarize-results-after-n-interactions)
 (define-monitor evaluation-after-n-interactions)
 (define-monitor show-type-hierarchy-after-n-interactions)
-(define-monitor trace-grammar-learning-repairs-in-wi)
+(define-monitor trace-interactions-in-wi-verbose)
 
-;; -------------------------------------------------
-;; + trace-grammar-learning-repairs-in-wi handlers +
-;; -------------------------------------------------
+;; ---------------------------------------------
+;; + trace-interactions-in-wi-verbose handlers +
+;; ---------------------------------------------
 
-(define-event-handler (trace-grammar-learning-repairs-in-wi fix-applied)
-  (add-element
-   `((h4) ,(format nil "Applied repair: ~a with form: \"~{~a~^ ~}\" and learned: ~{~a~^; ~}"
-                   repair-name (render form :render-string-meets)
-                   (mapcar #'(lambda (cxn) (attr-val cxn :bare-cxn-name)) learned-cxns)))))
+(define-event-handler (trace-interactions-in-wi-verbose learn-from-anti-unification)
+  (destructuring-bind (anti-unified-cxn
+                       form-anti-unification
+                       meaning-anti-unification) anti-unification-results
+    (add-element `((h3) ,(format nil "Anti-unified \"~a\" with \"~a\""
+                                 (list-of-strings->string
+                                  (render (fcg::source form-anti-unification)
+                                          (get-configuration (cxn-inventory anti-unified-cxn) :render-mode)))
+                                 (downcase (mkstr (attr-val anti-unified-cxn :bare-cxn-name))))))))
+
+(define-event-handler (trace-interactions-in-wi-verbose learn-from-partial-analysis)
+  (destructuring-bind (anti-unified-cipn
+                       form-anti-unification
+                       meaning-anti-unification) anti-unification-results
+    (add-element `((h3) ,(format nil "Anti-unified \"~a\" with partial analysis from ~{~a~^ + ~}"
+                                 (list-of-strings->string
+                                  (render (fcg::source form-anti-unification)
+                                          (get-configuration (construction-inventory anti-unified-cipn) :render-mode)))
+                                 (mapcar (compose #'downcase #'mkstr #'(lambda (cxn) (attr-val cxn :bare-cxn-name)))
+                                         (original-applied-constructions anti-unified-cipn)))))))
+
 
 
 ;; -------------------------------------

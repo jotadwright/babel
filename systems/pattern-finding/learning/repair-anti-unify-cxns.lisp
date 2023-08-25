@@ -46,6 +46,8 @@
 ;; find cxns and anti-unify ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(define-event learn-from-anti-unification (anti-unification-results list))
+
 (defmethod find-cxns-and-anti-unify (observation-form observation-meaning (args blackboard) (cxn-inventory fcg-construction-set))
   "Given form and meaning of an observation and a cxn inventory,
    find the cxn that leads to the smallest generalisation
@@ -99,6 +101,7 @@
                 ;      ((item-based-cxn-p anti-unified-cxn)
                 ;       (make-cxns-from-item-based-generalisation generalisation args cxn-inventory)))))
           (when new-cxns-and-links
+            (notify learn-from-anti-unification generalisation)
             (return new-cxns-and-links)))))))
 
 

@@ -5,7 +5,8 @@
   (deactivate-all-monitors)
   (activate-monitor trace-fcg)
   (activate-monitor print-a-dot-for-each-interaction)
-  (activate-monitor trace-interactions-in-wi))
+  (activate-monitor trace-interactions-in-wi)
+  (activate-monitor trace-interactions-in-wi-verbose))
 
 
 (progn
@@ -47,7 +48,7 @@
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 10)
+(run-series *experiment* 100)
 
 ;;;; Showing the cxn inventory and categorial network
 
@@ -69,7 +70,7 @@
 ;;;; Time travel
 
 (go-back-n-interactions *experiment* 1)
-(remove-cxns-learned-at *experiment* 144)
+(remove-cxns-learned-at *experiment* 12)
 
 (defun go-back-n-interactions (experiment n)
   (setf (interactions experiment)
