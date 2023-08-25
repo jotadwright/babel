@@ -185,7 +185,8 @@
                                                              :non-gold-standard-meaning)
                                           (:node-tests :restrict-nr-of-nodes
                                                        :restrict-search-depth
-                                                       :check-duplicate)
+                                                       ;:check-duplicate
+                                                       )
                                           (:parse-order routine)
                                           (:max-nr-of-nodes . 250)
                                           (:production-order routine)
@@ -238,6 +239,7 @@
       ;; non-sequential normal comprehend
       (second (multiple-value-list (comprehend utterance :gold-standard-meaning gold-standard-meaning :cxn-inventory temp-cxn-inventory :silent t))))))
 
+
 (defun apply-in-sandbox (initial-node
                          original-cxn-inventory
                          &key (cxns-to-add nil)
@@ -255,6 +257,7 @@
                    '<- :notify nil)
       (declare (ignore cip))
       solution)))
+
 
 (defun ordered-fcg-apply (processing-cxns-to-apply initial-node direction cxn-inventory)
   "Apply a list of processing cxns in the order they appear in the list. Returns the solution cipn."
