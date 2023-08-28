@@ -148,13 +148,24 @@
                                  (holistic-form-top-args
                                   (restore-original-input generalisation source-bindings source-delta)
                                   (get-configuration (cxn-inventory anti-unified-cxn) :form-representation-formalism)))))
-        (set-data args :generalisation-top-lvl-args (mapcar #'cdr (reverse pattern-bindings)))
-        (set-data args :pattern-slot-args (append (list (mapcar #'car (reverse pattern-bindings)))
-                                                  (mapcar #'rest pattern-slot-args)))
-        (set-data args :source-slot-args (append (list (mapcar #'car (reverse source-bindings)))
-                                                 source-slot-args))
-        (set-data args :pattern-top-lvl-args pattern-top-args)
-        (set-data args :source-top-lvl-args source-top-args)))))
+        (multiple-value-bind (gen-binding-vars pattern-binding-vars source-binding-vars)
+            (loop for (pattern-var . generalisation-var) in (reverse pattern-bindings)
+                  for (source-var . nil) in (reverse source-bindings)
+                  when (or (find-anywhere pattern-var pattern-delta)
+                           (find-anywhere source-var source-delta)
+                           (find-anywhere pattern-var pattern-slot-args)
+                           (find-anywhere source-var source-slot-args)
+                           (> (count pattern-var pattern-bindings :key #'car) 1)
+                           (> (count source-var source-bindings :key #'car) 1))
+                  collect generalisation-var into gen-vars
+                  and collect pattern-var into pattern-vars
+                  and collect source-var into source-vars
+                  finally (return (values gen-vars pattern-vars source-vars)))
+          (set-data args :generalisation-top-lvl-args gen-binding-vars)
+          (set-data args :pattern-slot-args (append (list pattern-binding-vars) (mapcar #'rest pattern-slot-args)))
+          (set-data args :source-slot-args (append (list source-binding-vars) source-slot-args))
+          (set-data args :pattern-top-lvl-args pattern-top-args)
+          (set-data args :source-top-lvl-args source-top-args))))))
         
 (defmethod compute-meaning-args (anti-unification-result
                                  (anti-unified-cxn fcg-construction)
@@ -174,13 +185,24 @@
                                  (holistic-meaning-top-args
                                   (restore-original-input generalisation source-bindings source-delta)
                                   (get-configuration (cxn-inventory anti-unified-cxn) :meaning-representation-formalism)))))
-        (set-data args :generalisation-top-lvl-args (mapcar #'cdr (reverse pattern-bindings)))
-        (set-data args :pattern-slot-args (append (list (mapcar #'car (reverse pattern-bindings)))
-                                                  (mapcar #'rest pattern-slot-args)))
-        (set-data args :source-slot-args (append (list (mapcar #'car (reverse source-bindings)))
-                                                 source-slot-args))
-        (set-data args :pattern-top-lvl-args pattern-top-args)
-        (set-data args :source-top-lvl-args source-top-args)))))
+        (multiple-value-bind (gen-binding-vars pattern-binding-vars source-binding-vars)
+            (loop for (pattern-var . generalisation-var) in (reverse pattern-bindings)
+                  for (source-var . nil) in (reverse source-bindings)
+                  when (or (find-anywhere pattern-var pattern-delta)
+                           (find-anywhere source-var source-delta)
+                           (find-anywhere pattern-var pattern-slot-args)
+                           (find-anywhere source-var source-slot-args)
+                           (> (count pattern-var pattern-bindings :key #'car) 1)
+                           (> (count source-var source-bindings :key #'car) 1))
+                  collect generalisation-var into gen-vars
+                  and collect pattern-var into pattern-vars
+                  and collect source-var into source-vars
+                  finally (return (values gen-vars pattern-vars source-vars)))
+          (set-data args :generalisation-top-lvl-args gen-binding-vars)
+          (set-data args :pattern-slot-args (append (list pattern-binding-vars) (mapcar #'rest pattern-slot-args)))
+          (set-data args :source-slot-args (append (list source-binding-vars) source-slot-args))
+          (set-data args :pattern-top-lvl-args pattern-top-args)
+          (set-data args :source-top-lvl-args source-top-args))))))
             
               
               
