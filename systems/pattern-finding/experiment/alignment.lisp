@@ -7,9 +7,25 @@
 (define-event cxns-punished (cxns list))
 
 
-(defun delete-grammatical-categories (cxn cxn-inventory)
+(defun delete-cxn-and-grammatical-categories (cxn cxn-inventory)
   "Delete the grammatical categories that occur in cxn"
-  nil)
+  (let* ((categories-to-remove
+          (cons (extract-contributing-category cxn)
+                (extract-conditional-categories cxn)))
+         (links-to-remove
+          (loop with network = (categorial-network cxn-inventory)
+                for gram-cat in categories-to-remove
+                for neighbours = (neighbouring-categories gram-cat network)
+                append (loop for n in neighbours
+                             collect (cons gram-cat n))))
+         (alter-ego-cxn (alter-ego-cxn cxn cxn-inventory)))
+    (loop for (from . to) in links-to-remove
+          do (remove-link from to (categorial-network cxn-inventory)))
+    (remove-categories categories-to-remove (categorial-network cxn-inventory))
+    (delete-cxn (name cxn) cxn-inventory :key #'name)
+    (delete-cxn (name alter-ego-cxn) cxn-inventory :key #'name)
+    t))
+                            
 
 
 (defun inc-cxn-score (agent cxn &key (delta 0.1))
@@ -31,9 +47,8 @@
   (setf (attr-val alter-ego-cxn :score) new-score)
   (when (and (get-configuration (experiment agent) :remove-cxn-on-lower-bound)
              (<= (attr-val cxn :score) lower-bound))
-    (delete-grammatical-categories cxn (grammar agent))
-    (delete-cxn (name cxn) (grammar agent) :key #'name)
-    (delete-cxn (name alter-ego-cxn) (grammar agent)) :key #'name)))
+    (delete-cxn-and-grammatical-categories cxn (grammar agent)))))
+    
 
 
 (defmethod run-alignment ((agent pattern-finding-agent) solution-cipn competing-cipns (strategy (eql :lateral-inhibition)))
