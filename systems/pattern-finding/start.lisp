@@ -84,9 +84,7 @@
                       (constructions (grammar (learner experiment))))))
     (loop with grammar = (grammar (learner experiment))
           for cxn in learned-at-cxns
-          for alter-ego-cxn = (alter-ego-cxn cxn grammar)
-          do (delete-cxn (name cxn) grammar :key #'name)
-             (delete-cxn (name alter-ego-cxn) grammar :key #'name))))
+          do (delete-cxn-and-grammatical-categories cxn grammar))))
 
 
 ;;;; Changing the order of repairs on the fly

@@ -93,8 +93,7 @@
     ;; 4) learn cxns(s) from the anti-unification results
     (when least-general-generalisations
       (dolist (generalisation least-general-generalisations)
-        (let* ((anti-unified-cxn (first generalisation))
-               (new-cxns-and-links
+        (let* ((new-cxns-and-links
                 (make-cxns-from-generalisation generalisation args cxn-inventory)))
           (when new-cxns-and-links
             (notify learn-from-anti-unification generalisation)
