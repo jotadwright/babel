@@ -31,13 +31,13 @@
   (when (constructions cxn-inventory)
     (let ((new-cxns-and-links (find-cxns-and-anti-unify observation-form observation-meaning args (original-cxn-set cxn-inventory))))
       (when new-cxns-and-links
-        (destructuring-bind (cxns-to-apply cxns-to-consolidate cats-to-add cat-links-to-add) new-cxns-and-links
+        (destructuring-bind (cxns-to-apply cxns-to-consolidate cats-to-add cat-links-to-add top-level-category) new-cxns-and-links
           (apply-fix :form-constraints observation-form
                      :cxns-to-apply cxns-to-apply
                      :cxns-to-consolidate cxns-to-consolidate
                      :categories-to-add cats-to-add
                      :categorial-links cat-links-to-add
-                     :top-level-category (extract-contributing-category (last-elt cxns-to-apply))
+                     :top-level-category top-level-category
                      :node node
                      :repair-name repair-type))))))
 
@@ -149,6 +149,7 @@
             ;                     (find-data meaning-args :source-slot-args)
             ;                     cxn-inventory)
             )
+           (top-level-category (afr-top-lvl-category source-delta-cxns-and-links))
            ;; item-based cxn from pattern delta
            (original-slot-cats
             (neighbouring-categories
@@ -185,8 +186,8 @@
            ;; build results
            (cxns-to-apply
             (append
-             (afr-cxns-to-apply generalisation-cxns-and-links)
-             (afr-cxns-to-apply source-delta-cxns-and-links)))
+             (afr-cxns-to-apply source-delta-cxns-and-links)
+             (afr-cxns-to-apply generalisation-cxns-and-links)))
            (cxns-to-consolidate
             (append
              (afr-cxns-to-consolidate source-delta-cxns-and-links)
@@ -236,7 +237,8 @@
       (list cxns-to-apply
             cxns-to-consolidate
             categories-to-add
-            categorial-links))))
+            categorial-links
+            top-level-category))))
 
 (defun link-filler-to-previous-slots (anti-unified-cxn filler-category cxn-inventory)
   (let* ((anti-unified-cxn-top-category (extract-top-category-cxn anti-unified-cxn))
