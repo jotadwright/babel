@@ -61,10 +61,11 @@
          
          ;; 2) find the least general generalisations through anti-unification
          (least-general-generalisations
-          (loop for cipn in partial-analysis-cipns
+          (loop with no-string-cxns = (get-configuration cxn-inventory :allow-cxns-with-no-strings)
+                for cipn in partial-analysis-cipns
                 ;; returns all valid form anti unification results
                 for form-anti-unification-results
-                  = (anti-unify-form observation-form cipn)
+                  = (anti-unify-form observation-form cipn :no-string-cxns no-string-cxns)
                 ;; returns all valid meaning anti unification results
                 for meaning-anti-unification-results
                   = (anti-unify-meaning observation-meaning cipn)

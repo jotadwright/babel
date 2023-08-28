@@ -23,6 +23,7 @@
                         (initial-link-weight :initial-categorial-link-weight)
                         (repairs :repairs)
                         (max-au-cost :max-au-cost)
+                        (allow-cxns-with-no-strings :allow-cxns-with-no-strings)
                         (cxn-supplier-mode :learner-cxn-supplier)) experiment
     (let* ((grammar-name (make-const "pattern-finding-grammar"))
            (cxn-inventory
@@ -72,6 +73,7 @@
                                           (:initial-categorial-link-weight . ,initial-link-weight)
                                           (:ignore-transitive-closure . t)
                                           (:max-au-cost . ,max-au-cost)
+                                          (:allow-cxns-with-no-strings . ,allow-cxns-with-no-strings)
                                           (:ignore-nil-hashes . nil))
                      :diagnostics (pf::diagnose-non-gold-standard-meaning
                                    pf::diagnose-non-gold-standard-utterance)

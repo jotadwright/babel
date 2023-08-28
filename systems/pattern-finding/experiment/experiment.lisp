@@ -30,6 +30,7 @@
 (define-configuration-default-value :initial-categorial-link-weight 0.0)
 (define-configuration-default-value :category-linking-mode :neighbours)
 (define-configuration-default-value :learner-cxn-supplier :hashed-labeled-positive-scores)
+(define-configuration-default-value :allow-cxns-with-no-strings t)
 
 ;; Learning Operators
 (define-configuration-default-value :repairs 

@@ -4,16 +4,18 @@
 ;; anti-unify form ;;
 ;;;;;;;;;;;;;;;;;;;;;
 
-(defgeneric anti-unify-form (source-form thing &key max-au-cost)
+(defgeneric anti-unify-form (source-form thing &key max-au-cost no-string-cxns)
   (:documentation "Anti-unify the observation with the given thing on the form side"))
 
-(defmethod anti-unify-form (source-form thing &key max-au-cost)
+(defmethod anti-unify-form (source-form thing &key max-au-cost (no-string-cxns t))
   (let ((form-representation (get-configuration
                               (typecase thing
                                 (fcg-construction (cxn-inventory thing))
                                 (cip-node (construction-inventory thing)))
                               :form-representation-formalism)))
-    (anti-unify-form-aux source-form thing form-representation :max-au-cost max-au-cost)))
+    (anti-unify-form-aux source-form thing form-representation
+                         :max-au-cost max-au-cost
+                         :no-string-cxns no-string-cxns)))
 
 #|
 (defmethod anti-unify-form-aux (source-form (cxn fcg-construction) (mode (eql :sequences)) &key max-au-cost)
@@ -97,7 +99,7 @@
     (sort valid-anti-unification-results #'< :key #'fcg::cost)))
 |#
 
-(defmethod anti-unify-form-aux (source-form (cxn fcg-construction) (mode (eql :string+meets)) &key max-au-cost)
+(defmethod anti-unify-form-aux (source-form (cxn fcg-construction) (mode (eql :string+meets)) &key max-au-cost (no-string-cxns t))
   ;; assign fresh variables to the pattern
   (multiple-value-bind (pattern-form renamings)
       (fresh-variables (extract-form-predicates cxn))
@@ -112,13 +114,21 @@
         (setf valid-anti-unification-results
               (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
                          valid-anti-unification-results)))
+      ;; remove anti-unification-results with no strings in them (when set)
+      (unless no-string-cxns
+        (setf valid-anti-unification-results
+              (remove-if-not #'(lambda (au-result)
+                                 (and (find 'string (generalisation au-result) :key #'first)
+                                      (find 'string (source-delta au-result) :key #'first)
+                                      (find 'string (pattern-delta au-result) :key #'first)))
+                             valid-anti-unification-results)))
       ;; restore original variables
       (setf valid-anti-unification-results
             (loop for au-result in valid-anti-unification-results
                   collect (rerename-pattern-variables au-result renamings)))
       (sort valid-anti-unification-results #'< :key #'fcg::cost))))
 
-(defmethod anti-unify-form-aux (source-form (cipn cip-node) (mode (eql :string+meets)) &key max-au-cost)
+(defmethod anti-unify-form-aux (source-form (cipn cip-node) (mode (eql :string+meets)) &key max-au-cost (no-string-cxns t))
   (let* (;; extract pattern form
          (pattern-form
           (variablify-form-constraints-with-constants
@@ -136,6 +146,13 @@
       (setf valid-anti-unification-results
             (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
                        valid-anti-unification-results)))
+    ;; remove anti-unification-results with no strings in them (when set)
+    (unless no-string-cxns
+        (setf valid-anti-unification-results
+              (remove-if-not #'(lambda (au-result)
+                                 (and (find 'string (generalisation au-result) :key #'first)
+                                      (find 'string (source-delta au-result) :key #'first)))
+                             valid-anti-unification-results)))
     (sort valid-anti-unification-results #'< :key #'fcg::cost)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;

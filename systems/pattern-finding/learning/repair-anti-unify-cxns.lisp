@@ -66,11 +66,13 @@
          ;; 3) find the least general generalisation through anti-unification
          (least-general-generalisations
           (loop with max-au-cost = (get-configuration cxn-inventory :max-au-cost)
+                with no-string-cxns = (get-configuration cxn-inventory :allow-cxns-with-no-strings)
                 for cxn in filtered-hash-compatible-cxns
                 ;; returns all valid form anti unification results
                 for form-anti-unification-results
                   = (anti-unify-form observation-form cxn
-                                     :max-au-cost max-au-cost)
+                                     :max-au-cost max-au-cost
+                                     :no-string-cxns no-string-cxns)
                 ;; returns all valid meaning anti unification results
                 for meaning-anti-unification-results
                   = (anti-unify-meaning observation-meaning cxn
@@ -94,12 +96,6 @@
         (let* ((anti-unified-cxn (first generalisation))
                (new-cxns-and-links
                 (make-cxns-from-generalisation generalisation args cxn-inventory)))
-                ;(cond ((holophrase-cxn-p anti-unified-cxn)
-                ;       (make-cxns-from-holophrase-generalisation generalisation args cxn-inventory))
-                ;      ((holistic-cxn-p anti-unified-cxn)
-                ;       (make-cxns-from-holistic-generalisation generalisation args cxn-inventory))
-                ;      ((item-based-cxn-p anti-unified-cxn)
-                ;       (make-cxns-from-item-based-generalisation generalisation args cxn-inventory)))))
           (when new-cxns-and-links
             (notify learn-from-anti-unification generalisation)
             (return new-cxns-and-links)))))))
@@ -153,9 +149,6 @@
             ;                     (find-data meaning-args :source-slot-args)
             ;                     cxn-inventory)
             )
-           (source-delta-slot-categories
-            (remove (afr-top-lvl-category source-delta-cxns-and-links)
-                    (afr-categories-to-add source-delta-cxns-and-links)))
            ;; item-based cxn from pattern delta
            (original-slot-cats
             (neighbouring-categories
@@ -192,8 +185,8 @@
            ;; build results
            (cxns-to-apply
             (append
-             (afr-cxns-to-apply source-delta-cxns-and-links)
-             (afr-cxns-to-apply generalisation-cxns-and-links)))
+             (afr-cxns-to-apply generalisation-cxns-and-links)
+             (afr-cxns-to-apply source-delta-cxns-and-links)))
            (cxns-to-consolidate
             (append
              (afr-cxns-to-consolidate source-delta-cxns-and-links)
