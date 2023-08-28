@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import os
 
 import pandas as pd
@@ -7,7 +5,15 @@ from utils import (BABEL_PATHNAME, apply_average_across_series,
                    apply_window_over_each_series)
 
 
-def read_raw_evo_data(path, file_type):
+def get_collect_func(file_type):
+    if file_type == "csv":
+        return read_csv
+    elif file_type == "lisp":
+        return read_lisp
+    else:
+        return ValueError(f"File type {file_type} is not valid.")
+
+def read_csv(path, file_type):
     """
     Read in the raw data at path. If no file type is specified
     in path, the file_type argument is used.
@@ -16,7 +22,7 @@ def read_raw_evo_data(path, file_type):
     names are integers starting from 0.
 
     :param path: a pathname
-    :param file_type: a file type
+    :param file_type: a csv 
     :returns: a Pandas DataFrame
     """
     if '.' in path:
@@ -30,6 +36,21 @@ def read_raw_evo_data(path, file_type):
     data.sort_index(inplace=True)
     return data
 
+def read_lisp(path, file_type):
+    data_path = os.path.join(BABEL_PATHNAME, f"{path}.{file_type}")
+    with open(data_path, 'r') as f:
+        data = f.read().splitlines()
+    data = data[5][3:-3].split(") (")
+    data = [i.split(" ") for i in data]
+    data = [[float(j) for j in i] for i in data]
+    data = pd.DataFrame(data)
+    data = data.T # Transpose
+    # We duplicate the first row, to have a nicer plot...
+    # TODO: to delete?
+    data.loc[-1] = data.loc[0]
+    data.index = data.index + 1
+    data.sort_index(inplace=True)
+    return data
 
 def collect_data_for_evo_plot(raw_file_paths, file_type='dat', windows=None,
                               only_x_last_interactions=None,
@@ -55,7 +76,7 @@ def collect_data_for_evo_plot(raw_file_paths, file_type='dat', windows=None,
     """
     result = []
     for path, window in zip(raw_file_paths, windows):
-        data = read_raw_evo_data(path, file_type)
+        data = get_collect_func(path, file_type)
         series_length = len(data)
 
         if window is not None:

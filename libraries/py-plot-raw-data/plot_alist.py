@@ -1,11 +1,9 @@
-#!/usr/bin/env python
-
 import argparse
 import os
 
 import matplotlib.pyplot as plt
 from matplotlib.figure import figaspect
-from plot_raw_alist_data import collect_data_for_alist_plot
+from read_alist import collect_data_for_alist_plot
 from utils import (BABEL_PATHNAME, GREAT_GNUPLOT_COLORS,
                    get_error_bar_distance, pathname_directory, pathname_name)
 
