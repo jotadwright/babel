@@ -118,11 +118,15 @@
                        form-anti-unification
                        meaning-anti-unification) anti-unification-results
     (let* ((form-top-args
-            (loop for arg in (cipn-form-top-args anti-unified-cipn)
-                  collect (map-var-from-pattern-to-source (variablify arg) form-anti-unification)))
+            (or
+             (loop for arg in (cipn-form-top-args anti-unified-cipn)
+                   collect (map-var-from-pattern-to-source (variablify arg) form-anti-unification))
+             (holistic-form-top-args observation-form (get-configuration cxn-inventory :form-representation-formalism))))
            (meaning-top-args
-            (loop for arg in (cipn-meaning-top-args anti-unified-cipn)
-                  collect (map-var-from-pattern-to-source arg meaning-anti-unification)))
+            (or
+             (loop for arg in (cipn-meaning-top-args anti-unified-cipn)
+                   collect (map-var-from-pattern-to-source arg meaning-anti-unification))
+             (holistic-meaning-top-args observation-meaning (get-configuration cxn-inventory :meaning-representation-formalism))))
            (form-slot-args
             (sort
              (loop for (category . args) in (cipn-form-slot-args anti-unified-cipn :by-category-p t)
