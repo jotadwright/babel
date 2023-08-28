@@ -1,15 +1,13 @@
 #!/usr/bin/env python
 
-import os
 import argparse
+import os
+
 import matplotlib.pyplot as plt
-
 from matplotlib.figure import figaspect
-from utils import GREAT_GNUPLOT_COLORS, BABEL_PATHNAME
-from utils import pathname_name, pathname_directory
-from utils import get_error_bar_distance
 from plot_raw_alist_data import collect_data_for_alist_plot
-
+from utils import (BABEL_PATHNAME, GREAT_GNUPLOT_COLORS,
+                   get_error_bar_distance, pathname_directory, pathname_name)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--raw-file-path', required=True, type=str,
