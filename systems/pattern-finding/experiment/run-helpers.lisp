@@ -10,13 +10,13 @@
                          (monitors (get-all-lisp-monitors)))
   (format t "~%Starting experimental runs")
   (run-batch-for-different-configurations
-    :experiment-class 'grammar-learning-experiment 
+    :experiment-class 'pattern-finding-experiment 
     :number-of-interactions number-of-interactions
     :number-of-series number-of-series
     :named-configurations strategies
     :shared-configuration nil
     :monitors monitors
-    :output-dir (babel-pathname :directory '("experiments" "grammar-learning" "raw-data")))
+    :output-dir (babel-pathname :directory '("systems" "pattern-finding" "raw-data")))
   (format t "~%Experimental runs finished and data has been generated. You can now plot graphs."))
 
 ;;;; UTILS FOR PLOTTING
@@ -31,9 +31,9 @@
   (raw-files->evo-plot
     :raw-file-paths
     (loop for measure-name in measure-names
-          collect `("experiments" "clevr-grammar-learning" "raw-data" ,experiment-name ,measure-name))
+          collect `("systems" "pattern-finding" "raw-data" ,experiment-name ,measure-name))
     :average-windows 100
-    :plot-directory `("experiments" "clevr-grammar-learning" "raw-data" ,experiment-name)
+    :plot-directory `("systems" "pattern-finding" "graphs" ,experiment-name)
     :error-bars '(:stdev)
     :error-bar-modes '(:lines)
     :captions captions
@@ -57,11 +57,11 @@
   (raw-files->evo-plot
     :raw-file-paths
     (loop for experiment-name in experiment-names
-          collect `("experiments" "clevr-grammar-learning" "raw-data" ,experiment-name ,measure-name))
+          collect `("systems" "pattern-finding" "raw-data" ,experiment-name ,measure-name))
     :average-windows 500
     :captions (if captions captions experiment-names)
     :title (if title title "")
-    :plot-directory '("experiments" "clevr-grammar-learning" "graphs")
+    :plot-directory '("systems" "pattern-finding" "graphs")
     :error-bars '(:stdev)
     :error-bar-modes '(:lines)
     :y1-min y-min
@@ -71,25 +71,3 @@
     :y2-label (when y2-label y2-label)
     :open open)
   (format t "~%Graphs have been created"))
-
-
-
-;; MONITOR UTILS
-;; -------------
-
-(in-package :monitors)
-
-(export '(store-monitor))
-
-;;;; store-monitor
-(defclass store-monitor (monitor)
-  ((file-name :documentation "The file name of the file to write"
-              :initarg :file-name
-              :reader file-name))
-  (:documentation "Monitor that stores data using cl-store"))
-
-(defmethod initialize-instance :around ((monitor store-monitor)
-					&key &allow-other-keys)
-  (setf (error-occured-during-initialization monitor) t)
-  (setf (error-occured-during-initialization monitor) nil)
-  (call-next-method))
