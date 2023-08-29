@@ -43,6 +43,7 @@
 (define-configuration-default-value :cxn-incf-score 0.1)
 (define-configuration-default-value :cxn-decf-score 0.1)
 (define-configuration-default-value :evaluation-grammar nil)
+;; :lateral-inhibition or :most-recent-generalisation
 (define-configuration-default-value :alignment-strategy :lateral-inhibition)
 (define-configuration-default-value :remove-cxn-on-lower-bound nil)
 (define-configuration-default-value :max-au-cost 10)

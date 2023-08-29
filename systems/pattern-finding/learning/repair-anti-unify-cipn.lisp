@@ -152,16 +152,6 @@
             (notify learn-from-partial-analysis generalisation)
             (return new-cxns-and-links)))))))
 
-;;;;;;;;;;;;;;;;;;;;;;
-;; helper functions ;;
-;;;;;;;;;;;;;;;;;;;;;;
-
-(defun map-var-from-pattern-to-source (var anti-unification-result)
-  "Map a variable from the pattern delta to the same variable in the source delta,
-   using the bindings lists."
-  (let* ((var-in-generalisation (rest (assoc var (pattern-bindings anti-unification-result)))))
-    (first (rassoc var-in-generalisation (source-bindings anti-unification-result)))))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; make item-based cxn from partial analysis ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

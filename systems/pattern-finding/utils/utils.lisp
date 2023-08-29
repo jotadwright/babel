@@ -857,6 +857,12 @@
 ;; Anti Unification Utils
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun map-var-from-pattern-to-source (var anti-unification-result)
+  "Map a variable from the pattern delta to the same variable in the source delta,
+   using the bindings lists."
+  (let* ((var-in-generalisation (rest (assoc var (pattern-bindings anti-unification-result)))))
+    (first (rassoc var-in-generalisation (source-bindings anti-unification-result)))))
+
 #|
 (defmethod select-holistic-cxns-for-anti-unification (observation-form observation-meaning (cxn-inventory fcg-construction-set))
   "Select holistic cxns from the routine set with a score greater than 0."
