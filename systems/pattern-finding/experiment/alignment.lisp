@@ -48,7 +48,42 @@
   (when (and (get-configuration (experiment agent) :remove-cxn-on-lower-bound)
              (<= (attr-val cxn :score) lower-bound))
     (delete-cxn-and-grammatical-categories cxn (grammar agent)))))
+
+
+
+(defmethod run-alignment ((agent pattern-finding-agent) solution-cipn competing-cipns (strategy (eql :most-recent-generalisation)))
+  "Run alignment by rewarding the applied cxns and punishing the
+   cxns that were used for anti-unification, since more general cxns
+   have been learned instead."                                      
+  (notify alignment-started)
+
+  ;; align categorial links
+  (loop with categorial-network = (categorial-network (construction-inventory solution-cipn))
+        for (cat-1 . cat-2) in (extract-used-categorial-links solution-cipn)
+        ;; default delta is 0.1
+        do (incf-link-weight cat-1 cat-2 categorial-network))
+
+  ;; reward used cxns, except if they are just learned
+  (let ((applied-cxns (original-applied-constructions solution-cipn)))
+    (loop with cxn-delta = (get-configuration agent :cxn-incf-score)
+          with interaction-nr = (interaction-number (current-interaction (experiment agent)))
+          with rewarded-cxns = nil
+          for cxn in applied-cxns
+          for just-learned-p = (string= (format nil "@~a" interaction-nr)
+                                        (attr-val cxn :learned-at))
+          unless just-learned-p
+          do (inc-cxn-score agent cxn :delta cxn-delta)
+             (push cxn rewarded-cxns)
+          finally (notify cxns-rewarded rewarded-cxns)))
+
+  ;; punish anti-unified cxns
+  (let ((cxns-to-punish (find-data (blackboard (construction-inventory solution-cipn)) :anti-unified-cxns)))
+    (dolist (cxn cxns-to-punish)
+      (dec-cxn-score agent cxn :delta (get-configuration (experiment agent) :cxn-decf-score)))
+    (notify cxns-punished cxns-to-punish)))
     
+
+
 
 
 (defmethod run-alignment ((agent pattern-finding-agent) solution-cipn competing-cipns (strategy (eql :lateral-inhibition)))
