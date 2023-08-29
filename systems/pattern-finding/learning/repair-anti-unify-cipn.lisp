@@ -31,16 +31,23 @@
   (when (constructions cxn-inventory)
     (let ((new-cxns-and-links (find-cipn-and-anti-unify observation-form observation-meaning args (original-cxn-set cxn-inventory))))
       (when new-cxns-and-links
-        (destructuring-bind (cxns-to-apply cxns-to-consolidate cats-to-add cat-links-to-add) new-cxns-and-links
+        (destructuring-bind (cxns-to-apply
+                             cxns-to-consolidate
+                             cats-to-add
+                             cat-links-to-add
+                             top-lvl-category
+                             anti-unified-cxns
+                             partial-analysis-cxns) new-cxns-and-links
           (apply-fix :form-constraints observation-form
                      :cxns-to-apply cxns-to-apply
                      :cxns-to-consolidate cxns-to-consolidate
                      :categories-to-add cats-to-add
                      :categorial-links cat-links-to-add
-                     ;; maybe to do: extract the contributing category from the last applied cxn in the sandbox-cipn
-                     :top-level-category (extract-contributing-category (last-elt cxns-to-apply))
+                     :top-level-category top-lvl-category
                      :node node
-                     :repair-name repair-type))))))
+                     :repair-name repair-type
+                     :anti-unified-cxns anti-unified-cxns
+                     :partial-analysis-cxns partial-analysis-cxns))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -176,15 +183,17 @@
             (comprehend-in-sandbox observation-form cxn-inventory
                                    :gold-standard-meaning observation-meaning
                                    :cxns-to-add sandbox-cxns
-                                   :categories-to-add sandbox-categories))
-           ;; build results
-           (cxns-to-apply sandbox-cxns)
-           (cxns-to-consolidate (afr-cxns-to-consolidate source-delta-cxns-and-categories))
-           (categories-to-add (afr-categories-to-add source-delta-cxns-and-categories))
-           (links-to-add (extract-used-categorial-links sandbox-cipn)))
+                                   :categories-to-add sandbox-categories)))
       ;; done!
       (when (and sandbox-cipn (succeeded-cipn-p sandbox-cipn))
-        (list cxns-to-apply cxns-to-consolidate categories-to-add links-to-add)))))
+        (list sandbox-cxns  ; cxns to apply
+              (afr-cxns-to-consolidate source-delta-cxns-and-categories)  ; cxns to consolidate
+              (afr-categories-to-add source-delta-cxns-and-categories)  ; categories to add
+              (extract-used-categorial-links sandbox-cipn)  ; categorial links
+              (afr-top-lvl-category source-delta-cxns-and-categories)  ; top lvl category
+              (afr-anti-unified-cxns source-delta-cxns-and-categories)  ; anti unified cxns
+              applied-cxns  ; partial analysis cxns
+              )))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; make holistic cxns from partial analysis ;;
@@ -229,12 +238,16 @@
                                    :cxns-to-add sandbox-cxns
                                    :categories-to-add sandbox-categories))
            ;; build results
-           (cxns-to-apply sandbox-cxns)
-           (cxns-to-consolidate (mappend #'afr-cxns-to-consolidate source-delta-cxns-and-categories))
-           (categories-to-add (mappend #'afr-categories-to-add source-delta-cxns-and-categories))
            (links-to-add
             (append (mappend #'afr-categorial-links source-delta-cxns-and-categories)
                     (extract-used-categorial-links sandbox-cipn))))
       ;; done!
       (when (and sandbox-cipn (succeeded-cipn-p sandbox-cipn))
-        (list cxns-to-apply cxns-to-consolidate categories-to-add links-to-add)))))
+        (list sandbox-cxns  ; cxns to apply
+              (mappend #'afr-cxns-to-consolidate source-delta-cxns-and-categories)  ; cxns to consolidate
+              (mappend #'afr-categories-to-add source-delta-cxns-and-categories)  ; categories to add
+              links-to-add  ; links to add
+              (extract-top-category-cxn (last-elt applied-cxns))  ; top lvl category
+              (mappend #'afr-anti-unified-cxns source-delta-cxns-and-categories)  ; anti unified cxns
+              applied-cxns  ; partial analysis cxns
+              )))))
