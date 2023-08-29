@@ -145,9 +145,28 @@
              (path (make-file-name-with-series (file-name monitor) (series-number experiment))))
         (export-categorial-network-evolution-to-jsonl cn :path path :timestep timestep :interaction-number (interaction-number interaction))))))
 
+
+;;;; export experiment configurations
+(define-monitor export-experiment-configurations)
+
+(define-event-handler (export-experiment-configurations run-series-finished)
+  (when (= (series-number experiment) 1)
+    (let* ((experiment-name (get-configuration experiment :experiment-name))
+           (path (babel-pathname
+                  :directory `("systems" "pattern-finding" "raw-data" ,(downcase experiment-name))
+                  :name "experiment-configurations" :type "lisp"))
+           (git-hash (first (exec-and-return "git" "rev-parse" "HEAD"))))
+      (set-configuration experiment :HASH git-hash)
+      (ensure-directories-exist path)
+      (with-open-file (stream path :direction :output
+                              :if-exists :overwrite
+                              :if-does-not-exist :create)
+        (pprint (entries experiment) stream)))))
+
 (defun get-all-export-monitors ()
   '(;"export-type-hierarchy-to-image"
     ;"export-type-hierarchy-to-json"
     ;"export-type-hierarchy-evolution-to-jsonl"
-    "export-learner-grammar"))
+    "export-learner-grammar"
+    "export-experiment-configurations"))
   
