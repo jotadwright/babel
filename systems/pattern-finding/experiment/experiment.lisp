@@ -30,7 +30,6 @@
 (define-configuration-default-value :initial-categorial-link-weight 0.0)
 (define-configuration-default-value :category-linking-mode :neighbours)
 (define-configuration-default-value :learner-cxn-supplier :hashed-labeled-positive-scores)
-(define-configuration-default-value :allow-cxns-with-no-strings t)
 
 ;; Learning Operators
 (define-configuration-default-value :repairs 
@@ -49,6 +48,8 @@
 (define-configuration-default-value :max-au-cost 10)
 (define-configuration-default-value :comprehend-all-n nil)
 (define-configuration-default-value :determine-interacting-agents-mode :corpus-learner)
+(define-configuration-default-value :allow-cxns-with-no-strings t)
+(define-configuration-default-value :anti-unification-mode :exhaustive) ; :exhaustive or :heuristic
 
 ;; Misc
 (define-configuration-default-value :categorial-network-export-interval 1000)

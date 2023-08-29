@@ -24,7 +24,8 @@
                         (repairs :repairs)
                         (max-au-cost :max-au-cost)
                         (allow-cxns-with-no-strings :allow-cxns-with-no-strings)
-                        (cxn-supplier-mode :learner-cxn-supplier)) experiment
+                        (cxn-supplier-mode :learner-cxn-supplier)
+                        (anti-unification-mode :anti-unification-mode)) experiment
     (let* ((grammar-name (make-const "pattern-finding-grammar"))
            (cxn-inventory
             (eval `(def-fcg-constructions ,grammar-name
@@ -74,7 +75,8 @@
                                           (:ignore-transitive-closure . t)
                                           (:max-au-cost . ,max-au-cost)
                                           (:allow-cxns-with-no-strings . ,allow-cxns-with-no-strings)
-                                          (:ignore-nil-hashes . nil))
+                                          (:ignore-nil-hashes . nil)
+                                          (:anti-unification-mode . ,anti-unification-mode))
                      :diagnostics (pf::diagnose-non-gold-standard-meaning
                                    pf::diagnose-non-gold-standard-utterance)
                      :repairs ,repairs

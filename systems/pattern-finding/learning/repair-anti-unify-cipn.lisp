@@ -29,7 +29,8 @@
 
 (defmethod do-repair (observation-form observation-meaning (args blackboard) (cxn-inventory construction-inventory) node (repair-type (eql 'anti-unify-cipn)))
   (when (constructions cxn-inventory)
-    (let ((new-cxns-and-links (find-cipn-and-anti-unify observation-form observation-meaning args (original-cxn-set cxn-inventory))))
+    (let* ((mode (get-configuration cxn-inventory :anti-unification-mode))
+           (new-cxns-and-links (find-cipn-and-anti-unify observation-form observation-meaning args (original-cxn-set cxn-inventory) mode)))
       (when new-cxns-and-links
         (destructuring-bind (cxns-to-apply
                              cxns-to-consolidate
@@ -56,10 +57,55 @@
 
 (define-event learn-from-partial-analysis (anti-unification-results list))
 
-(defmethod find-cipn-and-anti-unify (observation-form observation-meaning (args blackboard) (cxn-inventory fcg-construction-set))
-  "Given form and meaning of an observation and a cxn inventory,
+(defgeneric find-cipn-and-anti-unify (observation-form observation-meaning args cxn-inventory mode)
+  (:documentation "Given form and meaning of an observation and a cxn inventory,
    find the best transient structure that partially covers the observation
-   and learn new cxn(s) from the remainder"
+   and learn new cxn(s) from the remainder"))
+
+(defmethod find-cipn-and-anti-unify (observation-form observation-meaning (args blackboard) (cxn-inventory fcg-construction-set) (mode (eql :heuristic)))
+  (let* (;; 1) run comprehension (routine and meta set) and obtain partial analyses
+         (cipns-with-routine-cxns (compatible-cipns-with-routine-cxns observation-form observation-meaning cxn-inventory))
+         (cipns-with-meta-cxns (compatible-cipns-with-meta-cxns observation-form observation-meaning cxn-inventory))
+         
+         ;; 2) sort all cipns by depth, created-at, and avg cxn score
+         (sorted-cipns (sort-by-depth-created-at-and-avg-score (append cipns-with-routine-cxns cipns-with-meta-cxns))))
+
+    ;; 3) anti-unify and learn cxns
+    (loop with no-string-cxns = (get-configuration cxn-inventory :allow-cxns-with-no-strings)
+          for cipn in sorted-cipns
+          ;; returns all valid form anti unification results
+          for form-anti-unification-results
+            = (anti-unify-form observation-form cipn :no-string-cxns no-string-cxns)
+          for meaning-anti-unification-results
+            = (anti-unify-meaning observation-meaning cipn)
+          ;; make all combinations and filter for valid combinations
+          for all-anti-unification-combinations
+            = (remove-if-not #'valid-au-combination-p
+                             (combinations meaning-anti-unification-results
+                                           form-anti-unification-results))
+          for combinations-with-cipn
+            = (loop for combo in all-anti-unification-combinations
+                    collect (cons cipn combo))
+          for applied-cxn-labels
+            = (mapcar #'(lambda (cxn) (attr-val cxn :label))
+                      (original-applied-constructions cipn))
+           for new-cxns-and-links
+             = (when combinations-with-cipn
+                 (loop for generalisation in (sort-anti-unification-combinations combinations-with-cipn)
+                       for new-cxns-and-links
+                         = (cond ((every #'(lambda (elem) (eql elem 'fcg::routine)) applied-cxn-labels)
+                                  (make-item-based-cxn-from-partial-analysis
+                                   generalisation observation-form observation-meaning args cxn-inventory))
+                                 ((every #'(lambda (elem) (eql elem 'fcg::meta-only)) applied-cxn-labels)
+                                  (make-holistic-cxns-from-partial-analysis
+                                   generalisation observation-form observation-meaning args cxn-inventory)))
+                       when new-cxns-and-links
+                         return new-cxns-and-links))
+          when new-cxns-and-links
+            return new-cxns-and-links)))
+  
+
+(defmethod find-cipn-and-anti-unify (observation-form observation-meaning (args blackboard) (cxn-inventory fcg-construction-set) (mode (eql :exhaustive)))
   (let* (;; 1) run comprehension (routine and meta set)
          ;;    and obtain partial analyses
          (cipns-with-routine-cxns (compatible-cipns-with-routine-cxns observation-form observation-meaning cxn-inventory))

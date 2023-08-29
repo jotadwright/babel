@@ -29,7 +29,8 @@
 
 (defmethod do-repair (observation-form observation-meaning (args blackboard) (cxn-inventory construction-inventory) node (repair-type (eql 'anti-unify-cxns)))
   (when (constructions cxn-inventory)
-    (let ((new-cxns-and-links (find-cxns-and-anti-unify observation-form observation-meaning args (original-cxn-set cxn-inventory))))
+    (let* ((mode (get-configuration cxn-inventory :anti-unification-mode))
+           (new-cxns-and-links (find-cxns-and-anti-unify observation-form observation-meaning args (original-cxn-set cxn-inventory) mode)))
       (when new-cxns-and-links
         (destructuring-bind (cxns-to-apply
                              cxns-to-consolidate
@@ -54,10 +55,78 @@
 
 (define-event learn-from-anti-unification (anti-unification-results list))
 
-(defmethod find-cxns-and-anti-unify (observation-form observation-meaning (args blackboard) (cxn-inventory fcg-construction-set))
-  "Given form and meaning of an observation and a cxn inventory,
+(defgeneric sort-cxns-for-anti-unification (form meaning list-of-cxns mode)
+  (:documentation "Sort cxns for anti-unification"))
+
+(defmethod sort-cxns-for-anti-unification (form meaning list-of-cxns (mode (eql :score)))
+  (sort list-of-cxns #'> :key #'get-cxn-score))
+
+(defmethod sort-cxns-for-anti-unification (form meaning list-of-cxns (mode (eql :form-coverage)))
+  (sort list-of-cxns #'>
+        #'(lambda (cxn)
+            (let ((cxn-string-predicates (find-all 'string (extract-form-predicates cxn) :key #'first))
+                  (obs-string-predicates (find-all 'string form :key #'first)))
+              (length (intersection cxn-string-predicates obs-string-predicates :key #'second :test #'string=))))))
+
+(defgeneric find-cxns-and-anti-unify (observation-form observation-meaning args cxn-inventory mode)
+  (:documentation "Given form and meaning of an observation and a cxn inventory,
    find the cxn that leads to the smallest generalisation
-   and learn new cxn(s) from this generalisation."
+   and learn new cxn(s) from this generalisation."))
+
+(defmethod find-cxns-and-anti-unify (observation-form observation-meaning (args blackboard) (cxn-inventory fcg-construction-set) (mode (eql :heuristic)))
+  (let* (;; 1) select cxns by hasing the observation
+         ;;    only form is provided since we are learning in comprehension
+         (hash-compatible-cxns
+          (constructions-for-anti-unification-hashed observation-form nil cxn-inventory))
+         
+         ;; 2) filter hash-compatible cxns for routine cxns with a positive score
+         (filtered-hash-compatible-cxns
+          (remove-if-not #'non-zero-cxn-p
+                         (remove-if-not #'routine-cxn-p
+                                        hash-compatible-cxns)))
+
+         ;; 3) sort filtered-hash-compatible-cxns according to the anti-unification-order-heuristic
+         (sorted-cxns
+          (sort-cxns-for-anti-unification
+           observation-form observation-meaning
+           filtered-hash-compatible-cxns
+           :score)))
+           ;(get-configuration cxn-inventory :anti-unification-order)))
+
+     ;; 4) anti-unify and learn cxns
+     (loop with max-au-cost = (get-configuration cxn-inventory :max-au-cost)
+           with no-string-cxns = (get-configuration cxn-inventory :allow-cxns-with-no-strings)
+           for cxn in sorted-cxns
+           ;; returns all valid form anti unification results
+           for form-anti-unification-results
+             = (anti-unify-form observation-form cxn
+                                :max-au-cost max-au-cost
+                                :no-string-cxns no-string-cxns)
+           ;; returns all valid meaning anti unification results
+           for meaning-anti-unification-results
+             = (anti-unify-meaning observation-meaning cxn
+                                   :max-au-cost max-au-cost)
+           ;; make all combinations and filter for valid combinations
+           for all-anti-unification-combinations
+             = (remove-if-not #'valid-au-combination-p
+                              (combinations meaning-anti-unification-results
+                                            form-anti-unification-results))
+           for combinations-with-cxns
+             = (loop for combo in all-anti-unification-combinations
+                     collect (cons cxn combo))
+           ;; sort combinations in terms of cost and cxn score
+           for new-cxns-and-links
+             = (when combinations-with-cxns
+                 (loop for generalisation in (sort-anti-unification-combinations combinations-with-cxns)
+                       for new-cxns-and-links
+                         = (make-cxns-from-generalisation generalisation args cxn-inventory)
+                       when new-cxns-and-links
+                         return new-cxns-and-links))
+           when new-cxns-and-links
+             return new-cxns-and-links)))
+
+  
+(defmethod find-cxns-and-anti-unify (observation-form observation-meaning (args blackboard) (cxn-inventory fcg-construction-set) (mode (eql :exhaustive)))
   (let* (;; 1) select cxns by hasing the observation
          ;;    only form is provided since we are learning in comprehension
          (hash-compatible-cxns
@@ -97,7 +166,7 @@
                 finally (return (sort-anti-unification-combinations anti-unification-results)))))
 
     ;; 4) learn cxns(s) from the anti-unification results
-    (when least-general-generalisations
+    (when least-general-generalisations      
       (dolist (generalisation least-general-generalisations)
         (let* ((new-cxns-and-links
                 (make-cxns-from-generalisation generalisation args cxn-inventory)))
