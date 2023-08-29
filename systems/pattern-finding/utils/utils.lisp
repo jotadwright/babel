@@ -665,6 +665,18 @@
                                        (find 'fcg::initial (fcg::statuses node)))
                              node)))))
 
+(defun sort-by-depth-created-at-and-avg-score (list-of-cip-nodes)
+  (sort list-of-cip-nodes
+        #'(lambda (cipn-1 cipn-2)
+            (cond ((length= (all-parents cipn-1) (all-parents cipn-2))
+                   (cond ((= (created-at cipn-1) (created-at cipn-2))
+                          (> (average (mapcar #'get-cxn-score (original-applied-constructions cipn-1)))
+                             (average (mapcar #'get-cxn-score (original-applied-constructions cipn-2)))))
+                         ((< (created-at cipn-1) (created-at cipn-2)) t)
+                         (t nil)))
+                  ((length> (all-parents cipn-1) (all-parents cipn-2)) t)
+                  (t nil)))))
+
 (defun compatible-cipns-with-routine-cxns (form-constraints gold-standard-meaning cxn-inventory)
   (when (constructions cxn-inventory)
     (disable-meta-layer-configuration cxn-inventory)
