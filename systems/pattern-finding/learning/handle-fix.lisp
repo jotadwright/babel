@@ -24,7 +24,9 @@
   (gold-standard-consulted-p nil)
   (node nil)
   (solution-node nil)
-  (repair nil))
+  (repair nil)
+  (anti-unified-cxns nil)
+  (partial-analysis-cxns nil))
 
 
 (defun apply-fix (&key form-constraints
@@ -35,7 +37,9 @@
                   top-level-category
                   (gold-standard-consulted-p t)
                   node
-                  repair-name)
+                  repair-name
+                  anti-unified-cxns
+                  partial-analysis-cxns)
   "Apply the learned cxns and links, return the solution node."
   (assert (notany #'null categorial-links))
   (assert (notany #'null categories-to-add))
@@ -80,7 +84,9 @@
              :gold-standard-consulted-p gold-standard-consulted-p
              :node node
              :solution-node solution-node
-             :repair repair-name))))
+             :repair repair-name
+             :anti-unified-cxns anti-unified-cxns
+             :partial-analysis-cxns partial-analysis-cxns))))
       ;; node is nil (we are in a deeper level of the recursion)
       ;; just pass through the list of cxns and cats
       (progn
@@ -94,7 +100,9 @@
          :gold-standard-consulted-p gold-standard-consulted-p
          :node node
          :solution-node nil
-         :repair repair-name)))))
+         :repair repair-name
+         :anti-unified-cxns anti-unified-cxns
+         :partial-analysis-cxns partial-analysis-cxns)))))
        
     
 
@@ -110,6 +118,8 @@
          (categorial-links (afr-categorial-links (restart-data fix)))
          (gold-standard-consulted-p (afr-gold-standard-consulted-p (restart-data fix)))
          (solution-node (afr-solution-node (restart-data fix)))
+         (anti-unified-cxns (afr-anti-unified-cxns (restart-data fix)))
+         (partial-analysis-cxns (afr-partial-analysis-cxns (restart-data fix)))
          (learned-cxns
           (remove-if-not #'(lambda (cxn) (and (eql (attr-val cxn :label) 'fcg::routine)
                                               (not (attr-val cxn :learned-at))))
@@ -120,7 +130,10 @@
             do (setf (attr-val cxn :learned-at) (format nil "@~a" interaction-nr)))
       (notify cxns-learned learned-cxns)
       (notify links-added categorial-links))
-   
+
+    ;; Store anti-unified-cxns and partial-analysis-cxns on the blackboard of the cxn inventory (for alignment)
+    (set-data (blackboard (construction-inventory node)) :anti-unified-cxns anti-unified-cxns)
+    (set-data (blackboard (construction-inventory node)) :partial-analysis-cxns partial-analysis-cxns)
     ;; Add cxns to blackboard of second new node
     (set-data (car-resulting-cfs (cipn-car solution-node)) :fix-cxns cxns-to-consolidate)
     (set-data (car-resulting-cfs (cipn-car solution-node)) :fix-categorial-links categorial-links)
