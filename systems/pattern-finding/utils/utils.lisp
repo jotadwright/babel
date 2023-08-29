@@ -661,7 +661,8 @@
            (top-node cip)
            :collect-fn #'(lambda (node)
                            (unless (or (find 'fcg::duplicate (fcg::statuses node))
-                                       (find 'fcg::second-merge-failed (fcg::statuses node)))
+                                       (find 'fcg::second-merge-failed (fcg::statuses node))
+                                       (find 'fcg::initial (fcg::statuses node)))
                              node)))))
 
 (defun compatible-cipns-with-routine-cxns (form-constraints gold-standard-meaning cxn-inventory)
