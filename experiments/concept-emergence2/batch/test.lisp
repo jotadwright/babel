@@ -3,12 +3,13 @@
 
 (ql:quickload :cle)
 (in-package :cle)
- 
+
 (defmethod handle-batch-finished-event2 ((monitor data-file-writer) (exp-name string))
   (let* ((fname (file-name monitor))
          (fpath (mkstr (make-pathname :directory (pathname-directory fname))
                           (format nil "~a/" exp-name)
                           (pathname-name fname) "." (pathname-type fname))))
+    (ensure-directories-exist fpath)
     (with-open-file (file fpath :direction :output 
 			  :if-exists :supersede :if-does-not-exist :create)
       (write-data-to-file2 monitor file)
@@ -79,7 +80,6 @@
                               ,'export-lexicon-coherence
                               ,'export-unique-form-usage)
           for monitor = (monitors::get-monitor monitor-id)
-          do (handle-batch-finished-event2 monitor "cle-experiment"))))
+          do (handle-batch-finished-event2 monitor (assqv :exp-name config)))))
       
 (test-experiment #+sbcl (rest sb-ext:*posix-argv*))
-

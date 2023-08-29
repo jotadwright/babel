@@ -16,7 +16,7 @@ module purge
 module load atools/1.5.1-GCCcore-11.2.0
 
 # read input data from csv
-source <(aenv --data $VSC_HOME/concept-emergence2/batch/data/$1.csv --sniff 4096)
+source <(aenv --data $VSC_HOME/concept-emergence2/batch/data-test/$1.csv --sniff 4096)
 
 # load sbcl
 module purge
