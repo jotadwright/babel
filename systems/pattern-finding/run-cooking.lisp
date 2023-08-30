@@ -67,10 +67,33 @@
 (defun run-training ()
   (wi::reset)
   (run-experiments `(
-                     (alignment-li-anti-unification-exhaustive
+                     (alignment-li-anti-unification-exhaustive-no-punish
                       ((:comprehend-all-n . 2)
                        (:shuffle-data-p . nil)
-                       (:number-of-epochs . 5)
+                       (:number-of-epochs . 2)
+                       (:allow-cxns-with-no-strings . nil)
+                       (:alignment-strategy . :lateral-inhibition)
+                       (:anti-unification-mode . :exhaustive)
+                       (:cxn-decf-score . 0.0)
+                       (:corpus-directory . ,(babel-pathname :directory '("experiments" "grammar-learning" "cooking" "data")))
+                       (:corpus-file . ,(make-pathname :name "benchmark-ingredients-cleaned" :type "jsonl"))
+                       (:experiment-name . alignment-li-anti-unification-exhaustive)))
+                     (alignment-li-anti-unification-heuristic-no-punish
+                      ((:comprehend-all-n . 2)
+                       (:shuffle-data-p . nil)
+                       (:number-of-epochs . 2)
+                       (:allow-cxns-with-no-strings . nil)
+                       (:alignment-strategy . :lateral-inhibition)
+                       (:anti-unification-mode . :heuristic)
+                       (:cxn-decf-score . 0.0)
+                       (:corpus-directory . ,(babel-pathname :directory '("experiments" "grammar-learning" "cooking" "data")))
+                       (:corpus-file . ,(make-pathname :name "benchmark-ingredients-cleaned" :type "jsonl"))
+                       (:experiment-name . alignment-li-anti-unification-heuristic)
+                       (:output-dir . ,(babel-pathname :directory '("systems" "pattern-finding" "raw-data")))))
+                     (alignment-li-anti-unification-exhaustive-punish
+                      ((:comprehend-all-n . 2)
+                       (:shuffle-data-p . nil)
+                       (:number-of-epochs . 2)
                        (:allow-cxns-with-no-strings . nil)
                        (:alignment-strategy . :lateral-inhibition)
                        (:anti-unification-mode . :exhaustive)
@@ -80,7 +103,7 @@
                      (alignment-mrg-anti-unification-exhaustive
                       ((:comprehend-all-n . 2)
                        (:shuffle-data-p . nil)
-                       (:number-of-epochs . 5)
+                       (:number-of-epochs . 2)
                        (:allow-cxns-with-no-strings . nil)
                        (:alignment-strategy . :most-recent-generalisation)
                        (:anti-unification-mode . :exhaustive)
@@ -88,10 +111,10 @@
                        (:corpus-file . ,(make-pathname :name "benchmark-ingredients-cleaned" :type "jsonl"))
                        (:experiment-name . alignment-mrg-anti-unification-exhaustive)
                        (:output-dir . ,(babel-pathname :directory '("systems" "pattern-finding" "raw-data")))))
-                     (alignment-li-anti-unification-heuristic
+                     (alignment-li-anti-unification-heuristic-punish
                       ((:comprehend-all-n . 2)
                        (:shuffle-data-p . nil)
-                       (:number-of-epochs . 5)
+                       (:number-of-epochs . 2)
                        (:allow-cxns-with-no-strings . nil)
                        (:alignment-strategy . :lateral-inhibition)
                        (:anti-unification-mode . :heuristic)
@@ -102,7 +125,7 @@
                      (alignment-mrg-anti-unification-heuristic
                       ((:comprehend-all-n . 2)
                        (:shuffle-data-p . nil)
-                       (:number-of-epochs . 5)
+                       (:number-of-epochs . 2)
                        (:allow-cxns-with-no-strings . nil)
                        (:alignment-strategy . :most-recent-generalisation)
                        (:anti-unification-mode . :heuristic)
@@ -111,7 +134,7 @@
                        (:experiment-name . alignment-mrg-anti-unification-heuristic)
                        (:output-dir . ,(babel-pathname :directory '("systems" "pattern-finding" "raw-data")))))
                      )
-                   :number-of-interactions 1315
+                   :number-of-interactions 526
                    :number-of-series 1
                    :monitors (append '("print-a-dot-for-each-interaction"
                                        "summarize-results-after-n-interactions")
