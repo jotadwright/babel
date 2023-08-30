@@ -104,6 +104,7 @@
 (define-event-handler (trace-interactions-in-wi links-added)
   (when links
     (add-element '((h3) "The following links were added to the categorial network:"))
+    (add-element (html-pprint links))
     (add-element
      `((div)
        ,(s-dot->svg
