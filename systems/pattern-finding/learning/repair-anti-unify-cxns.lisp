@@ -311,7 +311,8 @@
             (cons anti-unified-cxn
                   (append (afr-anti-unified-cxns generalisation-cxns-and-links)
                           (afr-anti-unified-cxns source-delta-cxns-and-links)
-                          (afr-anti-unified-cxns pattern-delta-cxns-and-links)))))
+                          (when pattern-delta-cxns-and-links
+                            (afr-anti-unified-cxns pattern-delta-cxns-and-links))))))
       (list cxns-to-apply
             cxns-to-consolidate
             categories-to-add
@@ -328,10 +329,11 @@
 (defun link-slots-to-previous-fillers (anti-unified-cxn slot-categories cxn-inventory)
   (let* ((anti-unified-cxn-slot-categories (extract-slot-categories-item-based-cxn anti-unified-cxn))
          (filler-categories (loop for slot-category in anti-unified-cxn-slot-categories
-                                  append (neighbouring-categories slot-category (categorial-network cxn-inventory)))))
-    (loop for filler in filler-categories
-          for slot in slot-categories
-          collect (cons filler slot))))
+                                  collect (neighbouring-categories slot-category (categorial-network cxn-inventory)))))
+    (loop for slot in slot-categories
+          for fillers in filler-categories
+          append (loop for filler in fillers
+                       collect (cons filler slot)))))
 
 
 #|
