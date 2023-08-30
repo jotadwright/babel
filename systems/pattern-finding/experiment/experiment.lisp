@@ -29,7 +29,7 @@
 (define-configuration-default-value :max-number-of-nodes 1000)
 (define-configuration-default-value :initial-categorial-link-weight 0.0)
 (define-configuration-default-value :category-linking-mode :neighbours)
-(define-configuration-default-value :learner-cxn-supplier :hashed-labeled-positive-scores)
+(define-configuration-default-value :learner-cxn-supplier :hashed-scored-labeled)
 
 ;; Learning Operators
 (define-configuration-default-value :repairs 
