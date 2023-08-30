@@ -31,10 +31,13 @@
                                 (constructions (grammar agent)))))
 
 (defun get-cxns-of-type (agent type)
-  (if (eql type 'all)
-    (constructions-list (grammar agent))
-    (find-all type (constructions-list (grammar agent))
-              :key #'get-cxn-type)))
+  (let ((found-cxns (if (eql type 'all)
+                      (constructions-list (grammar agent))
+                      (find-all type (constructions-list (grammar agent))
+                                :key #'get-cxn-type))))
+    (loop for cxn in found-cxns
+          when (non-zero-cxn-p cxn)
+          collect cxn)))
 
 (defun item-based-number-of-slots (cxn)
   (when (eql (get-cxn-type cxn) 'item-based)
@@ -397,10 +400,10 @@
 (defun find-identical-holistic-cxn (form meaning form-args meaning-args cxn-inventory)
   "Find a routine holistic cxn that is identical to the given form, meaning, and args"
   (let ((candidate-cxns
-         ;(remove-if-not #'non-zero-cxn-p
-         (remove-if-not #'routine-cxn-p
-                        (remove-if-not #'holistic-cxn-p
-                                       (constructions cxn-inventory)))))
+         (remove-if-not #'non-zero-cxn-p
+                        (remove-if-not #'routine-cxn-p
+                                       (remove-if-not #'holistic-cxn-p
+                                                      (constructions cxn-inventory))))))
     (loop for cxn in candidate-cxns
           when (identical-holistic-cxn-p form meaning form-args meaning-args cxn)
           return cxn)))
@@ -430,10 +433,10 @@
 (defun find-identical-item-based-cxn (form meaning top-lvl-form-args top-lvl-meaning-args slot-form-args slot-meaning-args cxn-inventory)
   "Find a routine item-based cxn that is identical to the given form, meaning, and args"
   (let ((candidate-cxns
-         ;(remove-if-not #'non-zero-cxn-p
-         (remove-if-not #'routine-cxn-p
-                        (remove-if #'holistic-cxn-p
-                                   (constructions cxn-inventory)))))
+         (remove-if-not #'non-zero-cxn-p
+                        (remove-if-not #'routine-cxn-p
+                                       (remove-if #'holistic-cxn-p
+                                                  (constructions cxn-inventory))))))
     (loop for cxn in candidate-cxns
           when (identical-item-based-cxn-p form meaning top-lvl-form-args top-lvl-meaning-args
                                            slot-form-args slot-meaning-args cxn)

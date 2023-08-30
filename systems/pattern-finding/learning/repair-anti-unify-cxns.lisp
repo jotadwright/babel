@@ -81,9 +81,9 @@
          
          ;; 2) filter hash-compatible cxns for routine cxns with a positive score
          (filtered-hash-compatible-cxns
-          ;(remove-if-not #'non-zero-cxn-p
-          (remove-if-not #'routine-cxn-p
-                         hash-compatible-cxns))
+          (remove-if-not #'non-zero-cxn-p
+                         (remove-if-not #'routine-cxn-p
+                                        hash-compatible-cxns)))
 
          ;; 3) sort filtered-hash-compatible-cxns according to the anti-unification-order-heuristic
          (sorted-cxns
@@ -134,9 +134,9 @@
          
          ;; 2) filter hash-compatible cxns for routine cxns with a positive score
          (filtered-hash-compatible-cxns
-          ;(remove-if-not #'non-zero-cxn-p
-          (remove-if-not #'routine-cxn-p
-                         hash-compatible-cxns))
+          (remove-if-not #'non-zero-cxn-p
+                         (remove-if-not #'routine-cxn-p
+                                        hash-compatible-cxns)))
            
          ;; 3) find the least general generalisation through anti-unification
          (least-general-generalisations
