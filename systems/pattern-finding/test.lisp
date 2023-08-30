@@ -905,6 +905,82 @@
                   (bind attribute ?attr-1 material))))))
     (run-series *experiment* 3)))
 ;(test-recursive-repair-application-2)
+
+(defun test-link-slots-to-previous-fillers ()
+  (multiple-value-bind (*experiment* *cxn-inventory*) (setup-test-case)
+    (def-fcg-cxn large-cxn
+                 ((?holistic-unit
+                   (form-args (?large))
+                   (meaning-args (?size-1))
+                   (category large-cat-1))
+                  <-
+                  (?holistic-unit
+                   (HASH meaning ((bind size ?size-1 large)))
+                   --
+                   (HASH form ((string ?large "large")))))
+                 :attributes (:label fcg::routine
+                              :cxn-type holistic
+                              :string "large"
+                              :meaning large)
+                 :score 0.5 
+                 :cxn-inventory *cxn-inventory*)
+    (def-fcg-cxn color-cxn
+                 ((?holistic-unit
+                   (form-args (?color))
+                   (meaning-args (?attr-1))
+                   (category color-cat-1))
+                  <-
+                  (?holistic-unit
+                   (HASH meaning ((bind attribute ?attr-1 color)))
+                   --
+                   (HASH form ((string ?color "color")))))
+                 :attributes (:label fcg::routine
+                              :cxn-type holistic
+                              :string "color"
+                              :meaning color)
+                 :score 0.5 
+                 :cxn-inventory *cxn-inventory*)
+    (add-categories '(color-1-cat-1
+                      large-1-cat-1)
+                    (categorial-network *cxn-inventory*))
+    (add-element (make-html *cxn-inventory*))
+    (add-element (make-html (categorial-network *cxn-inventory*)))
+    (setf (corpus *experiment*)
+          `(("What color is the large cube?"
+             ,@(fresh-variables
+                '((get-context ?context)
+                  (filter ?set-1 ?context ?shape-1)
+                  (bind shape ?shape-1 cube)
+                  (filter ?set-2 ?set-1 ?size-1)
+                  (bind size ?size-1 large)
+                  (unique ?obj-1 ?set-2)
+                  (query ?tgt ?obj-1 ?attr-1)
+                  (bind attribute ?attr-1 color))))
+            ("The small sphere is what material?"
+             ,@(fresh-variables
+                '((get-context ?context)
+                  (filter ?set-1 ?context ?shape-1)
+                  (bind shape ?shape-1 sphere)
+                  (filter ?set-2 ?set-1 ?size-1)
+                  (bind size ?size-1 small)
+                  (unique ?obj-1 ?set-2)
+                  (query ?tgt ?obj-1 ?attr-1)
+                  (bind attribute ?attr-1 material))))))
+    (run-interaction *experiment*)
+    (run-interaction *experiment*)
+    (comprehend-all "What color is the large cube?"
+                    :cxn-inventory *cxn-inventory*
+                    :gold-standard-meaning
+                    (fresh-variables
+                     '((get-context ?context)
+                       (filter ?set-1 ?context ?shape-1)
+                       (bind shape ?shape-1 cube)
+                       (filter ?set-2 ?set-1 ?size-1)
+                       (bind size ?size-1 large)
+                       (unique ?obj-1 ?set-2)
+                       (query ?tgt ?obj-1 ?attr-1)
+                       (bind attribute ?attr-1 color))))))
+;(test-link-slots-to-previous-fillers)
             
 
 

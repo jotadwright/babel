@@ -208,24 +208,33 @@
 ;; anti-unify utils ;;
 ;;;;;;;;;;;;;;;;;;;;;;
 
-(defun initialize-sequence-predicates (form-anti-unification)
+(defun push-meets-to-deltas (anti-unification-result)
   (with-slots (generalisation
+               pattern-bindings
+               source-bindings
                pattern-delta
-               source-delta) form-anti-unification
-    (let* ((generalisation-sequences
-            (loop for elem in generalisation
-                  if (stringp elem)
-                    collect (list 'sequence elem (make-var 'lb) (make-var 'rb))
-                  else collect elem))
-           (pattern-delta-sequences
-            (loop for (var . seq) in pattern-delta
-                  collect (cons var (list 'sequence seq (make-var 'lb) (make-var 'rb)))))
-           (source-delta-sequences
-            (loop for (var . seq) in source-delta
-                  collect (cons var (list 'sequence seq (make-var 'lb) (make-var 'rb))))))
-      (setf generalisation generalisation-sequences
-            pattern-delta pattern-delta-sequences
-            source-delta source-delta-sequences))))
+               source-delta) anti-unification-result
+    (let ((generalisation-meets
+           (find-all 'meets generalisation :key #'first))
+          (generalisation-string-vars
+           (remove-duplicates (mapcar #'second (find-all 'string generalisation :key #'first)))))
+      (dolist (meets-predicate generalisation-meets)
+        (let ((left-var (second meets-predicate))
+              (right-var (third meets-predicate)))
+          (when (and (not (find left-var generalisation-string-vars))
+                     (not (find right-var generalisation-string-vars)))
+          (let* ((meets-predicate-in-source
+                  (list 'meets
+                        (first (rassoc left-var source-bindings))
+                        (first (rassoc right-var source-bindings))))
+                 (meets-predicate-in-pattern
+                  (list 'meets
+                        (first (rassoc left-var pattern-bindings))
+                        (first (rassoc right-var pattern-bindings)))))
+            (push meets-predicate-in-source source-delta)
+            (push meets-predicate-in-pattern pattern-delta)
+            (setf generalisation (remove meets-predicate generalisation :test #'equal))))))
+      anti-unification-result)))
 
 (defun rerename-pattern-variables (anti-unification-result renamings)
   (with-slots (generalisation
@@ -300,3 +309,22 @@
               (if (= combined-cost-1 combined-cost-2)
                 (> cxn-score-1 cxn-score-2)
                 (< combined-cost-1 combined-cost-2))))))
+
+(defun initialize-sequence-predicates (form-anti-unification)
+  (with-slots (generalisation
+               pattern-delta
+               source-delta) form-anti-unification
+    (let* ((generalisation-sequences
+            (loop for elem in generalisation
+                  if (stringp elem)
+                    collect (list 'sequence elem (make-var 'lb) (make-var 'rb))
+                  else collect elem))
+           (pattern-delta-sequences
+            (loop for (var . seq) in pattern-delta
+                  collect (cons var (list 'sequence seq (make-var 'lb) (make-var 'rb)))))
+           (source-delta-sequences
+            (loop for (var . seq) in source-delta
+                  collect (cons var (list 'sequence seq (make-var 'lb) (make-var 'rb))))))
+      (setf generalisation generalisation-sequences
+            pattern-delta pattern-delta-sequences
+            source-delta source-delta-sequences))))

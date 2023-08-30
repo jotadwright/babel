@@ -4,7 +4,7 @@
 (progn
   (deactivate-all-monitors)
   (activate-monitor trace-fcg)
-  ;(activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor trace-interactions-in-wi)
   (activate-monitor trace-interactions-in-wi-verbose))
 
@@ -14,10 +14,6 @@
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
   (activate-monitor show-type-hierarchy-after-n-interactions))
-
-;; TO DO:
-;; find heuristic for sorting the cxns-to-anti-unify
-;; and interleave anti-unification with cxn learning
 
 ;; default: use string and meets as form-representation
 (progn
@@ -51,7 +47,7 @@
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 20)
+(run-series *experiment* 10)
 
 ;;;; Showing the cxn inventory and categorial network
 
@@ -73,7 +69,7 @@
 ;;;; Time travel
 
 (go-back-n-interactions *experiment* 1)
-(remove-cxns-learned-at *experiment* 19)
+(remove-cxns-learned-at *experiment* 8)
 
 (defun go-back-n-interactions (experiment n)
   (setf (interactions experiment)
