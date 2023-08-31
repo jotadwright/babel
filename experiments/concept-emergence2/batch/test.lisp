@@ -63,6 +63,9 @@
     (set-configuration experiment :dataset-split (assqv :dataset-split config))
     (set-configuration experiment :available-channels (assqv :available-channels config))
     (set-configuration experiment :align nil)
+    ;; reset usage tables
+    (loop for agent in (agents experiment)
+          do (setf (usage-table agent) (create-usage-table (assqv :usage-table-window config))))
     ;; initialise the world
     (initialise-world experiment)
     ;; set-up monitors
