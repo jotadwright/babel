@@ -226,7 +226,8 @@
         (list sandbox-cxns  ; cxns to apply
               (afr-cxns-to-consolidate source-delta-cxns-and-categories)  ; cxns to consolidate
               (afr-categories-to-add source-delta-cxns-and-categories)  ; categories to add
-              (extract-used-categorial-links sandbox-cipn)  ; categorial links
+              (append (afr-categorial-links source-delta-cxns-and-categories)
+                      (extract-used-categorial-links sandbox-cipn))  ; categorial links
               (afr-top-lvl-category source-delta-cxns-and-categories)  ; top lvl category
               (afr-anti-unified-cxns source-delta-cxns-and-categories)  ; anti unified cxns
               applied-cxns  ; partial analysis cxns
@@ -273,17 +274,14 @@
             (comprehend-in-sandbox observation-form cxn-inventory
                                    :gold-standard-meaning observation-meaning
                                    :cxns-to-add sandbox-cxns
-                                   :categories-to-add sandbox-categories))
-           ;; build results
-           (links-to-add
-            (append (mappend #'afr-categorial-links source-delta-cxns-and-categories)
-                    (extract-used-categorial-links sandbox-cipn))))
+                                   :categories-to-add sandbox-categories)))
       ;; done!
       (when (and sandbox-cipn (succeeded-cipn-p sandbox-cipn))
         (list sandbox-cxns  ; cxns to apply
               (mappend #'afr-cxns-to-consolidate source-delta-cxns-and-categories)  ; cxns to consolidate
               (mappend #'afr-categories-to-add source-delta-cxns-and-categories)  ; categories to add
-              links-to-add  ; links to add
+              (append (mappend #'afr-categorial-links source-delta-cxns-and-categories)
+                      (extract-used-categorial-links sandbox-cipn))  ; links to add
               (extract-top-category-cxn (last-elt applied-cxns))  ; top lvl category
               (mappend #'afr-anti-unified-cxns source-delta-cxns-and-categories)  ; anti unified cxns
               applied-cxns  ; partial analysis cxns
