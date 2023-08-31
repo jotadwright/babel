@@ -100,7 +100,8 @@
                                   (make-holistic-cxns-from-partial-analysis
                                    generalisation observation-form observation-meaning args cxn-inventory)))
                        when new-cxns-and-links
-                         return new-cxns-and-links))
+                         do (notify learn-from-partial-analysis generalisation)
+                         and return new-cxns-and-links))
           when new-cxns-and-links
             return new-cxns-and-links)))
   
