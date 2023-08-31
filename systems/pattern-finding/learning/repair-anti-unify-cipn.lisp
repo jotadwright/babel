@@ -29,7 +29,7 @@
 
 (defmethod do-repair (observation-form observation-meaning (args blackboard) (cxn-inventory construction-inventory) node (repair-type (eql 'anti-unify-cipn)))
   (when (constructions cxn-inventory)
-    (let* ((mode (get-configuration cxn-inventory :anti-unification-mode))
+    (let* ((mode (get-configuration cxn-inventory :partial-analysis-mode))
            (new-cxns-and-links (find-cipn-and-anti-unify observation-form observation-meaning args (original-cxn-set cxn-inventory) mode)))
       (when new-cxns-and-links
         (destructuring-bind (cxns-to-apply
