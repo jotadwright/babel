@@ -20,22 +20,21 @@
   (destructuring-bind (anti-unified-cxn
                        form-anti-unification
                        meaning-anti-unification) anti-unification-results
-    (add-element `((h3) ,(format nil "Anti-unified \"~a\" with \"~a\""
+    (add-element `((h3) ,(format nil "Anti-unified \"~a\" with"
                                  (list-of-strings->string
                                   (render (fcg::source form-anti-unification)
-                                          (get-configuration (cxn-inventory anti-unified-cxn) :render-mode)))
-                                 (downcase (mkstr (attr-val anti-unified-cxn :bare-cxn-name))))))))
+                                          (get-configuration (cxn-inventory anti-unified-cxn) :render-mode))))))
+    (add-element (make-html anti-unified-cxn))))
 
 (define-event-handler (trace-interactions-in-wi-verbose learn-from-partial-analysis)
   (destructuring-bind (anti-unified-cipn
                        form-anti-unification
                        meaning-anti-unification) anti-unification-results
-    (add-element `((h3) ,(format nil "Anti-unified \"~a\" with partial analysis from ~{~a~^ + ~}"
+    (add-element `((h3) ,(format nil "Anti-unified \"~a\" with partial analysis from"
                                  (list-of-strings->string
                                   (render (fcg::source form-anti-unification)
-                                          (get-configuration (construction-inventory anti-unified-cipn) :render-mode)))
-                                 (mapcar (compose #'downcase #'mkstr #'(lambda (cxn) (attr-val cxn :bare-cxn-name)))
-                                         (original-applied-constructions anti-unified-cipn)))))))
+                                          (get-configuration (construction-inventory anti-unified-cipn) :render-mode))))))
+    (add-element (make-html anti-unified-cipn))))
 
 
 
