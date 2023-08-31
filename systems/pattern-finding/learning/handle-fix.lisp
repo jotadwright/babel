@@ -120,6 +120,7 @@
          (solution-node (afr-solution-node (restart-data fix)))
          (anti-unified-cxns (afr-anti-unified-cxns (restart-data fix)))
          (partial-analysis-cxns (afr-partial-analysis-cxns (restart-data fix)))
+         (repair-type (afr-repair (restart-data fix)))
          (learned-cxns
           (remove-if-not #'(lambda (cxn) (and (eql (attr-val cxn :label) 'fcg::routine)
                                               (not (attr-val cxn :learned-at))))
@@ -127,7 +128,8 @@
     (when learned-cxns
       (loop for cxn in learned-cxns
             for interaction-nr = (find-data (blackboard (construction-inventory node)) :current-interaction-nr)
-            do (setf (attr-val cxn :learned-at) (format nil "@~a" interaction-nr)))
+            do (setf (attr-val cxn :learned-at) (format nil "@~a" interaction-nr))
+               (setf (attr-val cxn :repair) repair-type))
       (notify cxns-learned learned-cxns)
       (notify links-added categorial-links))
 
