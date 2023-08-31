@@ -64,6 +64,52 @@
 (define-event constructions-chosen (constructions list))
 (define-event cipn-statuses (cipn-statuses list))
 
+(defun run-sanity-check (experiment agent cipn)
+  ;; gather the anti-unified cxns, check in which interaction they were learned
+  ;; and comprehend the utterances from those interactions again.
+  ;; Check if there is a solution cipn that includes cxns that were learned in
+  ;; this interaction, as the anti-unification repair should replace anti-unified cxns
+  ;; with equivalents.
+  ;; !! this does not hold for cxns that were learned from partial analysis (??)
+  (let* ((anti-unified-cxns (find-data (blackboard (construction-inventory cipn)) :anti-unified-cxns))
+         (observations-to-check
+          (remove-duplicates
+           (loop for cxn in anti-unified-cxns
+                 for learned-at = (attr-val cxn :learned-at)
+                 for repair-type = (attr-val cxn :repair)
+                 for observation-num = (parse-integer (subseq learned-at 1))
+                 ;unless (eql repair-type 'anti-unify-cipn)
+                 collect observation-num)))
+         (afr (restart-data (first (fixes (first (problems cipn))))))
+         (new-cxns
+          (loop with interaction-nr = (interaction-number (current-interaction experiment))
+                for cxn in (append (afr-cxns-to-apply afr) (afr-cxns-to-consolidate afr))
+                when (string= (format nil "@~a" interaction-nr) (attr-val cxn :learned-at))
+                collect cxn)))
+    (when observations-to-check
+      (assert
+          (loop for n in observations-to-check
+                for sample = (nth (- n 1) (corpus experiment))
+                for utterance = (car sample)
+                for gold-meaning = (cdr sample)
+                for cip-nodes
+                  = (progn
+                      (set-configuration (grammar agent) :update-categorial-links nil)
+                      (set-configuration (grammar agent) :use-meta-layer nil)
+                      (set-configuration (grammar agent) :consolidate-repairs nil)
+                      (multiple-value-bind (meanings cip-nodes cip)
+                          (comprehend-all utterance :cxn-inventory (grammar agent)
+                                          :gold-standard-meaning gold-meaning)
+                        (set-configuration (grammar agent) :update-categorial-links t)
+                        (set-configuration (grammar agent) :use-meta-layer t)
+                        (set-configuration (grammar agent) :consolidate-repairs t)
+                        cip-nodes))
+                always (loop for node in cip-nodes
+                             for node-applied-cxns = (original-applied-constructions node)
+                             thereis (and (succeeded-cipn-p node)
+                                          (intersection node-applied-cxns new-cxns))))))))
+                         
+
 (defmethod interact ((experiment pattern-finding-experiment)
                      interaction &key)
   "the learner attempts to comprehend the utterance with its grammar,
@@ -86,6 +132,9 @@
         ;; notify
         (notify constructions-chosen applied-cxns)
         (notify cipn-statuses (statuses solution-cipn))
+        ;; run santiy check...
+        (unless successp
+          (run-sanity-check experiment agent solution-cipn))
         ;; run alignment
         (run-alignment agent solution-cipn competing-cipns
                        (get-configuration agent :alignment-strategy))
