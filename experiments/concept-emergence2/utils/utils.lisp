@@ -129,8 +129,8 @@
                                      store-dir)))
     (cl-store:restore store-path)))     
 
-#|(generate-csv-for-tuning "tuning2"
-                         "tune-mid-august2"
+#|(generate-csv-for-tuning "tune-color"
+                         "tune-color"
                          `((:id . "?")
                            (:exp-name . "?")
                            (:nr-of-series . 5)
