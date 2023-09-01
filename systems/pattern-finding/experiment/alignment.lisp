@@ -20,8 +20,10 @@
                              collect (cons gram-cat n))))
          (alter-ego-cxn (alter-ego-cxn cxn cxn-inventory)))
     (loop for (from . to) in links-to-remove
-          do (remove-link from to (categorial-network cxn-inventory)))
-    (remove-categories categories-to-remove (categorial-network cxn-inventory))
+          do (remove-link from to (categorial-network cxn-inventory)
+                          :recompute-transitive-closure nil))
+    (remove-categories categories-to-remove (categorial-network cxn-inventory)
+                       :recompute-transitive-closure nil)
     (delete-cxn (name cxn) cxn-inventory :key #'name)
     (delete-cxn (name alter-ego-cxn) cxn-inventory :key #'name)
     t))
