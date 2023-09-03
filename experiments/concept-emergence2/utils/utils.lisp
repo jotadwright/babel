@@ -127,7 +127,7 @@
   "Loads and returns the store object in the given directory." 
   (let ((store-path (merge-pathnames (make-pathname :name name :type "store")
                                      store-dir)))
-    (cl-store:restore store-path)))     
+    (cl-store:restore store-path)))
 
 #|(generate-csv-for-tuning "tune-color"
                          "tune-color"
@@ -138,8 +138,20 @@
                            (:population-size . 10)
                            (:dataset . "clevr")
                            (:dataset-split . "train")
-                           (:available-channels . :clevr)
-                           (:disable-channels . :none)
+                           (:available-channels
+                            ,'lab-mean-l
+                            ,'lab-mean-a
+                            ,'lab-mean-b
+                            ,'lab-std-l
+                            ,'lab-std-a
+                            ,'lab-std-b
+                            ,'rgb-mean-r
+                            ,'rgb-mean-g
+                            ,'rgb-mean-b
+                            ,'rgb-std-r
+                            ,'rgb-std-g
+                            ,'rgb-std-b)
+                           (:disable-channels . :split-by-color)
                            (:amount-disabled-channels . 0)
                            (:sensor-noise . :none)
                            (:sensor-std . 0.0)
@@ -156,15 +168,14 @@
                            (:weight-update-strategy . :j-interpolation)
                            (:initial-weight . 0)
                            (:weight-incf . 1)
-                           (:weight-decf . -1)
-                           (:switch-condition . :after-n-interactions)
-                           (:switch-conditions-after-n-interactions . 250000)
+                           (:weight-decf . -5)
+                           (:switch-condition . :none)
+                           (:switch-conditions-after-n-interactions . 0)
                            (:stage-parameters ,'((:do-nothing . t))))
-                         `(;(:similarity-threshold 0.0 0.01 0.05); 0.1 0.2)
+                         `((:similarity-threshold 0.0 0.001 0.005 0.01 0.05 0.1 0.2 0.3)
                            (:initial-weight 0 35)
-                           (:weight-decf -1 -5 -10 -20)
-                           (:entrenchment-li -0.001 -0.005 -0.01 -0.02); -0.05 -0.1)
-                           (:trash-concepts nil t)
+                           (:weight-decf -1 -2 -3 -5 -10 -20)
+                           (:entrenchment-li -0.001 -0.005 -0.01 -0.02)
                            ))|#
 
 
