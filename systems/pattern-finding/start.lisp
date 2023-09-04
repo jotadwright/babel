@@ -22,18 +22,24 @@
 ;; while 'form-args' is marked as a 'sequence' feature.
 
 #|
-'((holistic-unit-483
-   (meaning ((filter ?o ?p ?q) (bind size ?r large)))
-   (form ((string large-11 "large") (meets red-3 cylinder-5) (meets what-31 is-23)))
-   (meaning-args (?o ?p ?q ?r))
-   (form-args (large-11 red-3 cylinder-5 what-31 is-23))
-   (category large-1-cat-1)))
-'((holistic-unit-484
-   (meaning ((filter ?o ?p ?q) (bind size ?r large)))
-   (form ((string large-11 "large") (meets what-31 is-23) (meets red-3 cylinder-5)))
-   (meaning-args (?o ?p ?q ?r))
-   (form-args (large-11 what-31 is-23 red-3 cylinder-5))
-   (category large-1-cat-1)))
+ (fcg::equivalent-coupled-feature-structures-strict-aux 
+  (make-instance 'coupled-feature-structure
+                 :left-pole '((?holistic-unit-483
+                               (meaning ((filter ?o ?p ?q) (bind size ?r large)))
+                               (form ((string large-11 "large") (meets red-3 cylinder-5) (meets what-31 is-23)))
+                               (meaning-args (?o ?p ?q ?r))
+                               (form-args (large-11 red-3 cylinder-5 what-31 is-23))
+                               (category large-1-cat-1)))
+                 :right-pole '((root)))
+  (make-instance 'coupled-feature-structure
+                 :left-pole '((?holistic-unit-484
+                               (meaning ((bind size ?r large) (filter ?o ?p ?q)))
+                               (form ((string large-11 "large") (meets what-31 is-23) (meets red-3 cylinder-5)))
+                               (meaning-args (?o ?p ?q ?r))
+                               (form-args (large-11 red-3 cylinder-5 what-31 is-23))
+                               (category large-1-cat-1)))
+                 :right-pole '((root)))
+ :cxn-inventory (processing-cxn-inventory (grammar (first (agents *experiment*)))))
 |#
 
 
