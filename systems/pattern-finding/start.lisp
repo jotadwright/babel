@@ -2,18 +2,40 @@
 (in-package :pf)
 
 (progn
-  (deactivate-all-monitors)
-  (activate-monitor trace-fcg)
+  (monitors::deactivate-all-monitors)
+  (monitors::activate-monitor trace-fcg)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor trace-interactions-in-wi)
   (activate-monitor trace-interactions-in-wi-verbose))
-
 
 (progn
   (deactivate-all-monitors)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
   (activate-monitor show-type-hierarchy-after-n-interactions))
+
+
+;; TO DO
+;; Fix check-duplicate!
+;; The following units are marked as duplicates, while they are not!
+;; The order of the feature value of the feature 'form-args' is different
+;; while 'form-args' is marked as a 'sequence' feature.
+
+#|
+'((holistic-unit-483
+   (meaning ((filter ?o ?p ?q) (bind size ?r large)))
+   (form ((string large-11 "large") (meets red-3 cylinder-5) (meets what-31 is-23)))
+   (meaning-args (?o ?p ?q ?r))
+   (form-args (large-11 red-3 cylinder-5 what-31 is-23))
+   (category large-1-cat-1)))
+'((holistic-unit-484
+   (meaning ((filter ?o ?p ?q) (bind size ?r large)))
+   (form ((string large-11 "large") (meets what-31 is-23) (meets red-3 cylinder-5)))
+   (meaning-args (?o ?p ?q ?r))
+   (form-args (large-11 what-31 is-23 red-3 cylinder-5))
+   (category large-1-cat-1)))
+|#
+
 
 ;; default: use string and meets as form-representation
 (progn
@@ -47,11 +69,12 @@
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 10)
+(run-series *experiment* 20)
 
 ;;;; Showing the cxn inventory and categorial network
 
 (defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
+(defparameter *categorial-network* (categorial-network *cxn-inventory*))
 (add-element (make-html *cxn-inventory* :sort-by-type-and-score t))
 (add-element (make-html (categorial-network *cxn-inventory*)))
 
@@ -69,7 +92,7 @@
 ;;;; Time travel
 
 (go-back-n-interactions *experiment* 1)
-(remove-cxns-learned-at *experiment* 8)
+(remove-cxns-learned-at *experiment* 12)
 
 (defun go-back-n-interactions (experiment n)
   (setf (interactions experiment)

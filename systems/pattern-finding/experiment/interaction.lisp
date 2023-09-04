@@ -97,12 +97,17 @@
                       (set-configuration (grammar agent) :update-categorial-links nil)
                       (set-configuration (grammar agent) :use-meta-layer nil)
                       (set-configuration (grammar agent) :consolidate-repairs nil)
+                      (set-configuration (grammar agent) :node-tests
+                                         (remove :check-duplicate (get-configuration (grammar agent) :node-tests)))
                       (multiple-value-bind (meanings cip-nodes cip)
                           (comprehend-all utterance :cxn-inventory (grammar agent)
                                           :gold-standard-meaning gold-meaning)
                         (set-configuration (grammar agent) :update-categorial-links t)
                         (set-configuration (grammar agent) :use-meta-layer t)
                         (set-configuration (grammar agent) :consolidate-repairs t)
+                        (set-configuration (grammar agent) :node-tests
+                                           (append (get-configuration (grammar agent) :node-tests)
+                                                   (list :check-duplicate)))
                         cip-nodes))
                 always (loop for node in cip-nodes
                              for node-applied-cxns = (original-applied-constructions node)
