@@ -30,6 +30,7 @@
                              (:file "clevr")
                              (:file "winery")
                              (:file "cogent")
+                             (:file "credit")
                              ))
                (:module "world"
                 :serial t
