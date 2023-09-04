@@ -22,6 +22,7 @@
                 :components ((:file "cxn-supplier")
                              (:file "render-and-de-render")
                              (:file "goal-tests")
+                             (:file "node-tests")
                              (:file "fcg-utils")
                              (:file "utils")))
                (:module learning

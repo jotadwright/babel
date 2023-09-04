@@ -58,7 +58,7 @@
                                           (:hash-mode . :hash-string-meaning)
                                           (:node-tests :restrict-nr-of-nodes
                                                        :restrict-search-depth
-                                                       :check-duplicate)
+                                                       :check-duplicate-strict)
                                           (:parse-goal-tests :no-strings-in-root
                                                              :no-applicable-cxns
                                                              :connected-semantic-network

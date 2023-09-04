@@ -506,7 +506,7 @@
   (set-configuration cxn-inventory :consolidate-repairs t)
   (set-configuration cxn-inventory :node-tests '(:restrict-nr-of-nodes
                                                  :restrict-search-depth
-                                                 :check-duplicate)))
+                                                 :check-duplicate-strict)))
                  
 ;;;;;
 ;; Unit Utils

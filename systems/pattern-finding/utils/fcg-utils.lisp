@@ -185,7 +185,7 @@
                                                              :non-gold-standard-meaning)
                                           (:node-tests :restrict-nr-of-nodes
                                                        :restrict-search-depth
-                                                       ;:check-duplicate
+                                                       :check-duplicate-strict
                                                        )
                                           (:parse-order routine)
                                           (:max-nr-of-nodes . 250)
