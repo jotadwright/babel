@@ -34,7 +34,7 @@
                                  (list-of-strings->string
                                   (render (fcg::source form-anti-unification)
                                           (get-configuration (construction-inventory anti-unified-cipn) :render-mode))))))
-    (add-element (make-html anti-unified-cipn))))
+    (add-element (make-html-fcg-light anti-unified-cipn :draw-children nil))))
 
 
 
