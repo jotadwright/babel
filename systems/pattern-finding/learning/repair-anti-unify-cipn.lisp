@@ -176,8 +176,8 @@
             (sort
              (loop for (category . args) in (cipn-form-slot-args anti-unified-cipn :by-category-p t)
                    collect (cons category
-                                 (loop for arg in args
-                                       collect (map-var-from-pattern-to-source (variablify arg) form-anti-unification))))
+                                 (loop for arg in args collect (variablify arg))))
+                                       ;collect (map-var-from-pattern-to-source (variablify arg) form-anti-unification))))
              #'string< :key #'car))
            (meaning-slot-args
             (sort
@@ -246,8 +246,8 @@
            (form-top-arg-groups
             (loop for (category . args) in (cipn-form-top-args anti-unified-cipn :by-category-p t)
                   collect (cons category
-                                (loop for arg in args
-                                      collect (map-var-from-pattern-to-source (variablify arg) form-anti-unification)))))
+                                (loop for arg in args collect (variablify arg)))))
+                                      ;collect (map-var-from-pattern-to-source (variablify arg) form-anti-unification)))))
            (meaning-top-arg-groups
             (loop for (category . args) in (cipn-meaning-top-args anti-unified-cipn :by-category-p t)
                   collect (cons category

@@ -128,6 +128,8 @@
                   collect (rerename-pattern-variables au-result renamings)))
       (sort valid-anti-unification-results #'< :key #'fcg::cost))))
 
+
+#|
 (defmethod anti-unify-form-aux (source-form (cipn cip-node) (mode (eql :string+meets)) &key max-au-cost (no-string-cxns t))
   (let* (;; extract pattern form
          (pattern-form
@@ -154,6 +156,40 @@
                                       (find 'string (source-delta au-result) :key #'first)))
                              valid-anti-unification-results)))
     (sort valid-anti-unification-results #'< :key #'fcg::cost)))
+|#
+
+
+(defmethod anti-unify-form-aux (source-form (cipn cip-node) (mode (eql :string+meets)) &key max-au-cost (no-string-cxns t))
+  (let* (;; extract pattern form
+         (pattern-form
+          (variablify-form-constraints-with-constants
+           (loop for unit in (fcg-get-transient-unit-structure cipn)
+                 unless (eql (unit-name unit) 'fcg::root)
+                 append (unit-feature-value unit 'form))))
+         ;; extract remaining form from root (shortcut!)
+         (form-in-root
+          (variablify-form-constraints-with-constants
+           (form-predicates-in-root cipn)))
+         ;; make au-result
+         (au-result
+          (make-instance 'fcg::anti-unification-result
+                         :pattern pattern-form
+                         :source source-form
+                         :generalisation pattern-form
+                         :pattern-delta nil
+                         :source-delta form-in-root
+                         :cost (length form-in-root))))
+    ;; apply filters
+    (when max-au-cost
+      (when (> (length form-in-root) max-au-cost)
+        (setf au-result nil)))
+    (unless no-string-cxns
+      (unless (find 'string form-in-root :key #'first)
+        (setf au-result nil)))
+    (when au-result
+      (list au-result))))
+
+                        
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;; anti-unify meaning ;;
