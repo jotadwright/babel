@@ -27,7 +27,7 @@
        ;; default configuration settings
        :shared-configuration `(
                 ;; monitoring
-                (:dot-interval . 5000)
+                (:dot-interval . 10)
                 ;(:record-every-x-interactions . 100) ;; important for fast logging
                 (:usage-table-window . 5000)
                 (:save-distribution-history . nil)
@@ -35,10 +35,10 @@
                 (:interacting-agents-strategy . :standard)
                 (:population-size . 10)
                 ;; setup data scene
-                (:dataset . "clevr")
+                (:dataset . "winery")
                 (:dataset-split . "train")
                 ;(:data-fname . "all.lisp")
-                (:available-channels ,@(get-all-channels :all))
+                (:available-channels ,@(get-all-channels :winery))
                 ;; disable channels
                 (:disable-channels . :none)
                 (:amount-disabled-channels . 0)
@@ -69,11 +69,11 @@
                 (:weight-incf . 1)
                 (:weight-decf . -5)
                 ;; staging
-                (:switch-condition . :after-n-interactions) ; :after-n-interactions)
+                (:switch-condition . :none) ; :after-n-interactions)
                 (:switch-conditions-after-n-interactions . 500)
                 (:stage-parameters
-                 ((:switch-disable-channels ,'area ,'bb-area))
-                 ((:switch-disable-channels ,'area ,'bb-area))
+                 ;((:switch-disable-channels ,'area ,'bb-area))
+                 ;((:switch-disable-channels ,'area ,'bb-area))
                  )
                 )
        ;; configurations

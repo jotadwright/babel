@@ -9,19 +9,19 @@
     (make-configuration
      :entries `(
                 ;; monitoring
-                (:dot-interval . 100)
+                (:dot-interval . 10)
                 (:usage-table-window . 100)
                 (:save-distribution-history . nil)
                 ;; setup interacting agents
                 (:interacting-agents-strategy . :standard)
                 (:population-size . 10)
                 ;; setup data scene
-                (:dataset . "clevr")
+                (:dataset . "credit")
                 (:dataset-split . "train")
                 ;(:data-fname . "all.lisp")
-                (:available-channels ,@(get-all-channels :all))
+                (:available-channels ,@(get-all-channels :credit))
                 ;; disable channels
-                (:disable-channels . :none)
+                (:disable-channels . :split-by-color)
                 (:amount-disabled-channels . 0)
                 ;; noised channels
                 (:sensor-noise . :none)
@@ -30,15 +30,15 @@
                 (:observation-std . 0.0)
                 ;; scene sampling
                 (:scene-sampling . :random)
-                (:topic-sampling . :discriminative)
+                (:topic-sampling . :random)
                 ;; general strategy
                 (:align . t)
                 (:similarity-threshold . 0.0)
                 ;; entrenchment of constructions
                 (:initial-cxn-entrenchement . 0.5)
                 (:entrenchment-incf . 0.1)
-                (:entrenchment-decf . -0.1)
-                (:entrenchment-li . -0.01) ;; lateral inhibition
+                (:entrenchment-decf . -0.01)
+                (:entrenchment-li . -0.02) ;; lateral inhibition
                 (:trash-concepts . t)
                 ;; concept representations
                 (:concept-representation . :distribution)
@@ -48,12 +48,17 @@
                 (:weight-update-strategy . :j-interpolation)
                 (:initial-weight . 0)
                 (:weight-incf . 1)
-                (:weight-decf . -1)
+                (:weight-decf . -5)
                 ;; staging
                 (:switch-condition . :none) ; :after-n-interactions)
-                (:switch-conditions-after-n-interactions . 200) 
+                (:switch-conditions-after-n-interactions . 2500) 
                 (:stage-parameters
-                 ((:switch-disable-channels ,'area ,'bb-area))
+                 ((:switch-dataset . "clevr")
+                  (:switch-dataset-split . "train")
+                  (:switch-data-fname . "all.lisp")
+                  (:switch-scene-sampling . :random)
+                  (:switch-topic-sampling . :random)
+                  (:switch-available-channels ,@(get-all-channels :clevr)))
                  )
                 ;; saving
                 (:experiment-name . "test")
@@ -62,35 +67,6 @@
   (setf *experiment* (make-instance 'cle-experiment :configuration *baseline-simulated*))
   (notify reset-monitors)
   (wi::reset))
-
-(setf *experiment* (cl-store:restore (babel-pathname :directory `("experiments"
-                                                                  "concept-emergence2"
-                                                                  "logging")
-                                                     :name "ra-cogent-lim"
-                                                     :type "store")))
-
-(progn
-  (set-configuration *experiment* :dot-interval 10)
-  (set-configuration *experiment* :scene-sampling :random)
-  (set-configuration *experiment* :topic-sampling :random)
-  (set-configuration *experiment* :dataset "cogent")
-  (set-configuration *experiment* :dataset-split "testB")
-  (set-configuration *experiment* :available-channels (get-all-channels :clevr))
-  (set-configuration *experiment* :align nil)
-  (initialise-world *experiment*))
-
-(progn
-  (wi::reset)
-  (deactivate-all-monitors)
-  ;(activate-monitor print-a-dot-for-each-interaction)
-  (activate-monitor trace-interaction-in-web-interface)
-  (loop for idx from 1 to 1
-        do (run-interaction *experiment*)))
-
-(display-lexicon (find-agent 8 *experiment*) :sort t)
-
-;; 1. run x interactions
-(notify reset-monitors)
 
 (progn
   (wi::reset)
@@ -101,8 +77,40 @@
   (activate-monitor print-a-dot-for-each-interaction)
   (format t "~%---------- NEW GAME ----------~%")
   (time
-   (loop for i from 1 to 10000
+   (loop for i from 1 to 100000
          do (run-interaction *experiment*))))
+
+(setf *experiment* (cl-store:restore (babel-pathname :directory `("experiments"
+                                                                  "concept-emergence2"
+                                                                  "storage"
+                                                                  "c-ra-color-all")
+                                                     :name "1-history"
+                                                     :type "store")))
+
+(progn
+  (set-configuration *experiment* :dot-interval 10)
+  (set-configuration *experiment* :scene-sampling :random)
+  (set-configuration *experiment* :topic-sampling :random)
+  (set-configuration *experiment* :dataset "clevr")
+  (set-configuration *experiment* :dataset-split "train")
+  (set-configuration *experiment* :available-channels (get-all-channels :clevr))
+  (set-configuration *experiment* :align nil)
+  (initialise-world *experiment*))
+
+(progn
+  (wi::reset)
+  (deactivate-all-monitors)
+  ;(activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor trace-interaction-in-web-interface)
+  (loop for idx from 1 to 100
+        do (run-interaction *experiment*)))
+
+(display-lexicon (find-agent 1 *experiment*) :sort t)
+
+;; 1. run x interactions
+(notify reset-monitors)
+
+
 
 (let* ((experiment *experiment*)
        (current-stage (get-configuration experiment :current-stage))
@@ -131,7 +139,7 @@
   (deactivate-all-monitors)
   ;(activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor trace-interaction-in-web-interface)
-  (loop for idx from 1 to 10
+  (loop for idx from 1 to 15
         do (run-interaction *experiment*)))
 
 ;;;;
@@ -247,8 +255,12 @@
   )
 
 
+(loop for i from 23 to 32
+        
+      do (add-cxn-to-interface (find-in-lexicon (find-agent i *experiment*) "warimi")))
+(add-cxn-to-interface (find-in-lexicon (find-agent 25 *experiment*) "warimi"))
 
-(add-cxn-to-interface (find-in-lexicon (find-agent 62) "beponi"))
+(display-lexicon (find-agent 103 *experiment*) :sort t)
 
 
 
