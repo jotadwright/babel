@@ -132,8 +132,9 @@
         (notify constructions-chosen applied-cxns)
         (notify cipn-statuses (statuses solution-cipn))
         ;; run santiy check...
-        ;(unless successp
-        ;  (run-sanity-check experiment agent solution-cipn))
+        (when (and (get-configuration experiment :run-sanity-check)
+                   (null successp))
+          (run-sanity-check experiment agent solution-cipn))
         ;; run alignment
         (run-alignment agent solution-cipn competing-cipns
                        (get-configuration agent :alignment-strategy))

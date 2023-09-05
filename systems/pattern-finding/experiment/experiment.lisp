@@ -52,6 +52,8 @@
 (define-configuration-default-value :allow-cxns-with-no-strings t)
 (define-configuration-default-value :anti-unification-mode :exhaustive) ; :exhaustive or :heuristic
 (define-configuration-default-value :partial-analysis-mode :heuristic) ; :exhaustive or :heuristic
+(define-configuration-default-value :run-sanity-check nil)
+(define-configuration-default-value :repair-recursively t)
 
 ;; Misc
 (define-configuration-default-value :categorial-network-export-interval 1000)

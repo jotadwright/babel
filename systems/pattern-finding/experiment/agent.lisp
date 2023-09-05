@@ -26,7 +26,8 @@
                         (allow-cxns-with-no-strings :allow-cxns-with-no-strings)
                         (cxn-supplier-mode :learner-cxn-supplier)
                         (anti-unification-mode :anti-unification-mode)
-                        (partial-analysis-mode :partial-analysis-mode)) experiment
+                        (partial-analysis-mode :partial-analysis-mode)
+                        (repair-recursively :repair-recursively)) experiment
     (let* ((grammar-name (make-const "pattern-finding-grammar"))
            (cxn-inventory
             (eval `(def-fcg-constructions ,grammar-name
@@ -78,7 +79,8 @@
                                           (:allow-cxns-with-no-strings . ,allow-cxns-with-no-strings)
                                           (:ignore-nil-hashes . nil)
                                           (:anti-unification-mode . ,anti-unification-mode)
-                                          (:partial-analysis-mode . ,partial-analysis-mode))
+                                          (:partial-analysis-mode . ,partial-analysis-mode)
+                                          (:repair-recursively . ,repair-recursively))
                      :diagnostics (pf::diagnose-non-gold-standard-meaning
                                    pf::diagnose-non-gold-standard-utterance)
                      :repairs ,repairs
