@@ -14,10 +14,11 @@
     (loop for prototype in prototypes ;; assumes prototype
           for interaction-number = (interaction-number (current-interaction (experiment agent)))
           for new-observation = (perceive-object-val agent topic (channel prototype))
-          do (update-prototype new-observation
-                               interaction-number
-                               prototype
-                               :save-distribution-history (get-configuration (experiment agent) :save-distribution-history)))
+          if new-observation
+            do (update-prototype new-observation
+                                 interaction-number
+                                 prototype
+                                 :save-distribution-history (get-configuration (experiment agent) :save-distribution-history)))
   
     ;; 2. determine which attributes should get an increase
     ;;    in weight, and which should get a decrease.
@@ -79,7 +80,7 @@
                                  for object in (objects (get-data agent 'context))
                                  for observation = (perceive-object-val agent object channel)
                                  for similarity = (observation-similarity observation prototype)
-                                 for weighted-similarity = (if (not (zerop ledger))
+                                 for weighted-similarity = (if (and (not (zerop ledger)) similarity)
                                                              (* (/ (weight prototype) ledger) similarity)
                                                              0)
                                  do (setf (gethash (id object) hash) (cons similarity weighted-similarity))
