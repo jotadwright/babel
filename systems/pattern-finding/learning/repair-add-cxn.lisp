@@ -76,6 +76,7 @@
                         (holistic-form-top-args observation-form form-representation))
                     (or (find-data args :top-lvl-meaning-args)
                         (holistic-meaning-top-args observation-meaning meaning-representation))
+                    (not (null node))
                     cxn-inventory)))))
          (new-cxns-slot-categories
           (remove (afr-top-lvl-category new-cxns-and-links-afr)

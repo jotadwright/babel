@@ -4,7 +4,7 @@
 ;; make holistic cxn ;;
 ;;;;;;;;;;;;;;;;;;;;;;;
         
-(defun make-holistic-cxn (form meaning form-args meaning-args cxn-inventory)
+(defun make-holistic-cxn (form meaning form-args meaning-args holophrasep cxn-inventory)
   (let* (;; make the cxn names
          (cxn-name
           (make-cxn-name form cxn-inventory :holistic-suffix t :numeric-suffix t))
@@ -31,14 +31,14 @@
               (holistic-cxn-apply-first-skeleton cxn-name cxn-name-apply-first category-holistic-cxn
                                                  form meaning form-args meaning-args
                                                  (get-configuration cxn-inventory :initial-cxn-score)
-                                                 nil cxn-inventory-copy)))
+                                                 holophrasep cxn-inventory-copy)))
          ;; apply last cxn
          (holistic-cxn-apply-last
           (or existing-meta-holistic-cxn
               (holistic-cxn-apply-last-skeleton cxn-name cxn-name-apply-last category-holistic-cxn
                                                 form meaning form-args meaning-args
                                                 (get-configuration cxn-inventory :initial-cxn-score)
-                                                nil cxn-inventory-copy))))
+                                                holophrasep cxn-inventory-copy))))
     ;; done!
     (apply-fix :form-constraints form
                :cxns-to-apply (list holistic-cxn-apply-first)
