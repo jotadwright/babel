@@ -27,7 +27,7 @@
                    :entries `((:comprehend-all-n . 2)
                               (:shuffle-data-p . nil)
                               (:number-of-epochs . 20)
-                              (:repair-recursively . t)
+                              (:repair-recursively . nil)
                               (:alignment-strategy . :lateral-inhibition)
                               (:corpus-directory . ,(babel-pathname :directory '("experiments" "grammar-learning" "cooking" "data")))
                               (:corpus-file . ,(make-pathname :name "benchmark-ingredients-cleaned" :type "jsonl"))))))

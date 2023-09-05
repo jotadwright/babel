@@ -4,7 +4,7 @@
 (progn
   (monitors::deactivate-all-monitors)
   (monitors::activate-monitor trace-fcg)
-  (activate-monitor print-a-dot-for-each-interaction)
+  (monitors::activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor trace-interactions-in-wi)
   (activate-monitor trace-interactions-in-wi-verbose))
 
@@ -12,7 +12,10 @@
   (deactivate-all-monitors)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
-  (activate-monitor show-type-hierarchy-after-n-interactions))
+  ;(activate-monitor show-type-hierarchy-after-n-interactions)
+  )
+
+;; to do: reduce calls to comprehend-all...
 
 ;; default: use string and meets as form-representation
 (progn
@@ -23,6 +26,11 @@
     (make-instance 'pattern-finding-experiment
                    :entries `((:comprehend-all-n . 2)
                               (:shuffle-data-p . nil)
+                              (:number-of-epochs . 1)
+                              (:anti-unification-mode . :exhaustive)
+                              (:partial-analysis-mode . :exhaustive)
+                              (:allow-cxns-with-no-strings . t)
+                              (:repair-recursively . t)
                               (:corpus-file . ,(make-pathname :directory '(:relative "val")
                                                               :name "stage-1" :type "jsonl"))))))
 
@@ -46,7 +54,7 @@
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 7)
+(run-series *experiment* 100)
 
 ;; is de sanity check wel correct?
 ;; interactie 9: cube-rubber-of-the cxn geleerd
