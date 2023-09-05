@@ -138,7 +138,7 @@
                    (null successp))
           (run-sanity-check experiment agent solution-cipn))
         ;; run alignment
-        (run-alignment agent solution-cipn competing-cipns
+        (run-alignment agent solution-cipn competing-cipns successp
                        (get-configuration agent :alignment-strategy))
         ;; update the :last-used property of the cxns
         (dolist (cxn applied-cxns)

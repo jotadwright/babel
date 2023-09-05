@@ -26,16 +26,16 @@
     (make-instance 'pattern-finding-experiment
                    :entries `((:comprehend-all-n . 2)
                               (:shuffle-data-p . nil)
-                              (:number-of-epochs . 5)
-                              (:repair-recursively . nil)
-                              (:cxn-decf-score . 0.0)
+                              (:number-of-epochs . 20)
+                              (:repair-recursively . t)
+                              (:alignment-strategy . :lateral-inhibition)
                               (:corpus-directory . ,(babel-pathname :directory '("experiments" "grammar-learning" "cooking" "data")))
                               (:corpus-file . ,(make-pathname :name "benchmark-ingredients-cleaned" :type "jsonl"))))))
 
 (length (corpus *experiment*))
 
 (run-interaction *experiment*)
-(run-series *experiment* 1315)
+(run-series *experiment* 263)
 (run-series *experiment* (length (corpus *experiment*)))
 
 (defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
@@ -95,3 +95,14 @@
                                      (get-all-lisp-monitors)
                                      (get-all-export-monitors))))
 ;(run-training)
+
+
+(create-graph-for-single-strategy
+ :experiment-name "default-configurations-non-recursive-mre"
+ :measure-names '("communicative-success" "grammar-size")
+ :y-axis '(1 2) :y1-max 1
+ :xlabel "Number of observations"
+ :y1-label "Communicative Success"
+ :y2-label "Grammar Size"
+ :captions '("communicative success" "grammar size")
+ :open nil)
