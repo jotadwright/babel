@@ -5,6 +5,7 @@
 
 (defun run-experiments (strategies
                          &key
+                         shared-configuration
                          (number-of-interactions 5)
                          (number-of-series 1)
                          (monitors (get-all-lisp-monitors)))
@@ -14,7 +15,7 @@
     :number-of-interactions number-of-interactions
     :number-of-series number-of-series
     :named-configurations strategies
-    :shared-configuration nil
+    :shared-configuration shared-configuration
     :monitors monitors
     :output-dir (babel-pathname :directory '("systems" "pattern-finding" "raw-data")))
   (format t "~%Experimental runs finished and data has been generated. You can now plot graphs."))

@@ -3,10 +3,11 @@
 
 ;; activate monitors
 (progn
-  (deactivate-all-monitors)
-  (activate-monitor trace-fcg)
+  (monitors::deactivate-all-monitors)
+  (monitors::activate-monitor trace-fcg)
   (activate-monitor print-a-dot-for-each-interaction)
-  (activate-monitor trace-interactions-in-wi))
+  (activate-monitor trace-interactions-in-wi)
+  (activate-monitor trace-interactions-in-wi-verbose))
 
 (progn
   (deactivate-all-monitors)
@@ -26,17 +27,15 @@
                    :entries `((:comprehend-all-n . 2)
                               (:shuffle-data-p . nil)
                               (:number-of-epochs . 5)
-                              (:allow-cxns-with-no-strings . nil)
-                              (:alignment-strategy . :lateral-inhibition)
-                              (:anti-unification-mode . :exhaustive)
-                              (:corpus-directory . ,(babel-pathname :directory '("experiments" "grammar-learning"
-                                                                                 "cooking" "data")))
+                              (:repair-recursively . nil)
+                              (:cxn-decf-score . 0.0)
+                              (:corpus-directory . ,(babel-pathname :directory '("experiments" "grammar-learning" "cooking" "data")))
                               (:corpus-file . ,(make-pathname :name "benchmark-ingredients-cleaned" :type "jsonl"))))))
 
 (length (corpus *experiment*))
 
 (run-interaction *experiment*)
-(run-series *experiment* 263)
+(run-series *experiment* 1315)
 (run-series *experiment* (length (corpus *experiment*)))
 
 (defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
@@ -67,80 +66,29 @@
 (defun run-training ()
   (wi::reset)
   (run-experiments `(
-                     (alignment-li-anti-unification-exhaustive-no-punish
-                      ((:comprehend-all-n . 2)
-                       (:shuffle-data-p . nil)
-                       (:number-of-epochs . 2)
-                       (:allow-cxns-with-no-strings . nil)
-                       (:alignment-strategy . :lateral-inhibition)
-                       (:anti-unification-mode . :exhaustive)
+                     (default-configurations-non-recursive
+                      ((:experiment-name . default-configurations-non-recursive)))                     
+                     (au-exhaustive-pa-heuristic-non-recursive
+                      ((:anti-unification-mode . :exhaustive)
                        (:partial-analysis-mode . :heuristic)
-                       (:cxn-decf-score . 0.0)
-                       (:corpus-directory . ,(babel-pathname :directory '("experiments" "grammar-learning" "cooking" "data")))
-                       (:corpus-file . ,(make-pathname :name "benchmark-ingredients-cleaned" :type "jsonl"))
-                       (:experiment-name . alignment-li-anti-unification-exhaustive)))
-                     (alignment-li-anti-unification-heuristic-no-punish
-                      ((:comprehend-all-n . 2)
-                       (:shuffle-data-p . nil)
-                       (:number-of-epochs . 2)
-                       (:allow-cxns-with-no-strings . nil)
-                       (:alignment-strategy . :lateral-inhibition)
-                       (:anti-unification-mode . :heuristic)
+                       (:experiment-name . au-exhaustive-pa-heuristic-non-recursive)))
+                     (au-heuristic-pa-exhaustive-non-recursive
+                      ((:anti-unification-mode . :heuristic)
+                       (:partial-analysis-mode . :exhaustive)
+                       (:experiment-name . au-heuristic-pa-exhaustive-non-recursive)))
+                     (all-heuristic-mode-non-recursive
+                      ((:anti-unification-mode . :heuristic)
                        (:partial-analysis-mode . :heuristic)
-                       (:cxn-decf-score . 0.0)
-                       (:corpus-directory . ,(babel-pathname :directory '("experiments" "grammar-learning" "cooking" "data")))
-                       (:corpus-file . ,(make-pathname :name "benchmark-ingredients-cleaned" :type "jsonl"))
-                       (:experiment-name . alignment-li-anti-unification-heuristic)
-                       (:output-dir . ,(babel-pathname :directory '("systems" "pattern-finding" "raw-data")))))
-                     (alignment-li-anti-unification-exhaustive-punish
-                      ((:comprehend-all-n . 2)
-                       (:shuffle-data-p . nil)
-                       (:number-of-epochs . 2)
-                       (:allow-cxns-with-no-strings . nil)
-                       (:alignment-strategy . :lateral-inhibition)
-                       (:anti-unification-mode . :exhaustive)
-                       (:partial-analysis-mode . :heuristic)
-                       (:corpus-directory . ,(babel-pathname :directory '("experiments" "grammar-learning" "cooking" "data")))
-                       (:corpus-file . ,(make-pathname :name "benchmark-ingredients-cleaned" :type "jsonl"))
-                       (:experiment-name . alignment-li-anti-unification-exhaustive)))
-                     (alignment-mrg-anti-unification-exhaustive
-                      ((:comprehend-all-n . 2)
-                       (:shuffle-data-p . nil)
-                       (:number-of-epochs . 2)
-                       (:allow-cxns-with-no-strings . nil)
-                       (:alignment-strategy . :most-recent-generalisation)
-                       (:anti-unification-mode . :exhaustive)
-                       (:partial-analysis-mode . :heuristic)
-                       (:corpus-directory . ,(babel-pathname :directory '("experiments" "grammar-learning" "cooking" "data")))
-                       (:corpus-file . ,(make-pathname :name "benchmark-ingredients-cleaned" :type "jsonl"))
-                       (:experiment-name . alignment-mrg-anti-unification-exhaustive)
-                       (:output-dir . ,(babel-pathname :directory '("systems" "pattern-finding" "raw-data")))))
-                     (alignment-li-anti-unification-heuristic-punish
-                      ((:comprehend-all-n . 2)
-                       (:shuffle-data-p . nil)
-                       (:number-of-epochs . 2)
-                       (:allow-cxns-with-no-strings . nil)
-                       (:alignment-strategy . :lateral-inhibition)
-                       (:anti-unification-mode . :heuristic)
-                       (:partial-analysis-mode . :heuristic)
-                       (:corpus-directory . ,(babel-pathname :directory '("experiments" "grammar-learning" "cooking" "data")))
-                       (:corpus-file . ,(make-pathname :name "benchmark-ingredients-cleaned" :type "jsonl"))
-                       (:experiment-name . alignment-li-anti-unification-heuristic)
-                       (:output-dir . ,(babel-pathname :directory '("systems" "pattern-finding" "raw-data")))))
-                     (alignment-mrg-anti-unification-heuristic
-                      ((:comprehend-all-n . 2)
-                       (:shuffle-data-p . nil)
-                       (:number-of-epochs . 2)
-                       (:allow-cxns-with-no-strings . nil)
-                       (:alignment-strategy . :most-recent-generalisation)
-                       (:anti-unification-mode . :heuristic)
-                       (:partial-analysis-mode . :heuristic)
-                       (:corpus-directory . ,(babel-pathname :directory '("experiments" "grammar-learning" "cooking" "data")))
-                       (:corpus-file . ,(make-pathname :name "benchmark-ingredients-cleaned" :type "jsonl"))
-                       (:experiment-name . alignment-mrg-anti-unification-heuristic)
-                       (:output-dir . ,(babel-pathname :directory '("systems" "pattern-finding" "raw-data")))))
+                       (:experiment-name . all-heuristic-mode-non-recursive)))
                      )
-                   :number-of-interactions 526
+                   :shared-configuration `((:comprehend-all-n . 2)
+                                           (:shuffle-data-p . nil)
+                                           (:number-of-epochs . 5)
+                                           (:repair-recursively . nil)
+                                           (:corpus-directory . ,(babel-pathname :directory '("experiments" "grammar-learning" "cooking" "data")))
+                                           (:corpus-file . ,(make-pathname :name "benchmark-ingredients-cleaned" :type "jsonl"))
+                                           (:output-dir . ,(babel-pathname :directory '("systems" "pattern-finding" "raw-data"))))
+                   :number-of-interactions 1315
                    :number-of-series 1
                    :monitors (append '("print-a-dot-for-each-interaction"
                                        "summarize-results-after-n-interactions")

@@ -14,35 +14,6 @@
   (activate-monitor summarize-results-after-n-interactions)
   (activate-monitor show-type-hierarchy-after-n-interactions))
 
-
-;; TO DO
-;; Fix check-duplicate!
-;; The following units are marked as duplicates, while they are not!
-;; The order of the feature value of the feature 'form-args' is different
-;; while 'form-args' is marked as a 'sequence' feature.
-
-#|
- (fcg::equivalent-coupled-feature-structures-strict-aux 
-  (make-instance 'coupled-feature-structure
-                 :left-pole '((?holistic-unit-483
-                               (meaning ((filter ?o ?p ?q) (bind size ?r large)))
-                               (form ((string large-11 "large") (meets red-3 cylinder-5) (meets what-31 is-23)))
-                               (meaning-args (?o ?p ?q ?r))
-                               (form-args (large-11 red-3 cylinder-5 what-31 is-23))
-                               (category large-1-cat-1)))
-                 :right-pole '((root)))
-  (make-instance 'coupled-feature-structure
-                 :left-pole '((?holistic-unit-484
-                               (meaning ((bind size ?r large) (filter ?o ?p ?q)))
-                               (form ((string large-11 "large") (meets what-31 is-23) (meets red-3 cylinder-5)))
-                               (meaning-args (?o ?p ?q ?r))
-                               (form-args (large-11 red-3 cylinder-5 what-31 is-23))
-                               (category large-1-cat-1)))
-                 :right-pole '((root)))
- :cxn-inventory (processing-cxn-inventory (grammar (first (agents *experiment*)))))
-|#
-
-
 ;; default: use string and meets as form-representation
 (progn
   (wi::reset)
@@ -75,7 +46,13 @@
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 20)
+(run-series *experiment* 7)
+
+;; is de sanity check wel correct?
+;; interactie 9: cube-rubber-of-the cxn geleerd
+;; observatie 9: What size is the purple rubber sphere?
+;; interactie 14: anti-unificatie met cube-rubber-of-the cxn
+;; geen overlap met observatie 9...
 
 ;;;; Showing the cxn inventory and categorial network
 
@@ -98,7 +75,7 @@
 ;;;; Time travel
 
 (go-back-n-interactions *experiment* 1)
-(remove-cxns-learned-at *experiment* 12)
+(remove-cxns-learned-at *experiment* 13)
 
 (defun go-back-n-interactions (experiment n)
   (setf (interactions experiment)

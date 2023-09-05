@@ -51,7 +51,7 @@
 (define-configuration-default-value :determine-interacting-agents-mode :corpus-learner)
 (define-configuration-default-value :allow-cxns-with-no-strings t)
 (define-configuration-default-value :anti-unification-mode :exhaustive) ; :exhaustive or :heuristic
-(define-configuration-default-value :partial-analysis-mode :heuristic) ; :exhaustive or :heuristic
+(define-configuration-default-value :partial-analysis-mode :exhaustive) ; :exhaustive or :heuristic
 (define-configuration-default-value :run-sanity-check nil)
 (define-configuration-default-value :repair-recursively t)
 
