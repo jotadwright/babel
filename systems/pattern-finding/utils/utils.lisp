@@ -462,51 +462,43 @@
 ;; Enable/Disable meta layer
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun disable-meta-layer-configuration (cxn-inventory)
-  (set-configuration cxn-inventory :category-linking-mode :categories-exist)
-  (set-configuration cxn-inventory :update-categorial-links nil)
-  (set-configuration cxn-inventory :use-meta-layer nil)
-  (set-configuration cxn-inventory :consolidate-repairs nil))
+(defun comprehend-all-with-disabled-meta-layer-configuration (utterance &key cxn-inventory silent n gold-standard-meaning meta-only-cxns)
+  (let (;; store original configurations
+        (original-category-linking-mode (get-configuration cxn-inventory :category-linking-mode))
+        (original-parse-goal-tests (get-configuration cxn-inventory :parse-goal-tests))
+        (original-max-nr-of-nodes (get-configuration cxn-inventory :max-nr-of-nodes))
+        (original-node-tests (get-configuration cxn-inventory :node-tests)))
+    ;; disable meta layer
+    (set-configuration cxn-inventory :category-linking-mode :categories-exist)
+    (set-configuration cxn-inventory :update-categorial-links nil)
+    (set-configuration cxn-inventory :use-meta-layer nil)
+    (set-configuration cxn-inventory :consolidate-repairs nil)
+    (when meta-only-cxns
+      ;; switch to meta-only cxns
+      (set-configuration cxn-inventory :ignore-nil-hashes t)
+      (set-configuration cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
+      (set-configuration cxn-inventory :parse-order '(meta-only))
+      (set-configuration cxn-inventory :max-nr-of-nodes 250)
+      (set-configuration cxn-inventory :node-tests '(:restrict-nr-of-nodes
+                                                     :restrict-search-depth)))
+    ;; run comprehend-all with the new configurations
+    (multiple-value-bind (meanings cip-nodes cip)
+        (comprehend-all utterance :cxn-inventory cxn-inventory :silent silent :n n
+                        :gold-standard-meaning gold-standard-meaning)
+      ;; enable the meta layer
+      (set-configuration cxn-inventory :update-categorial-links t)
+      (set-configuration cxn-inventory :use-meta-layer t)
+      (set-configuration cxn-inventory :consolidate-repairs t)
+      (set-configuration cxn-inventory :category-linking-mode original-category-linking-mode)
+      (when meta-only-cxns
+        ;; switch back to routine cxns
+        (set-configuration cxn-inventory :ignore-nil-hashes nil)
+        (set-configuration cxn-inventory :parse-goal-tests original-parse-goal-tests)
+        (set-configuration cxn-inventory :parse-order '(routine))
+        (set-configuration cxn-inventory :max-nr-of-nodes original-max-nr-of-nodes)
+        (set-configuration cxn-inventory :node-tests original-node-tests))
+      (values meanings cip-nodes cip))))
 
-(defun enable-meta-layer-configuration (cxn-inventory)
-  (set-configuration cxn-inventory :parse-goal-tests '(:no-strings-in-root
-                                                       :no-applicable-cxns
-                                                       :connected-semantic-network
-                                                       :connected-structure
-                                                       :non-gold-standard-meaning))
-  (set-configuration cxn-inventory :category-linking-mode :neighbours)
-  (set-configuration cxn-inventory :update-categorial-links t)
-  (set-configuration cxn-inventory :use-meta-layer t)
-  (set-configuration cxn-inventory :consolidate-repairs t))
-
-(defun disable-meta-layer-configuration-item-based-first (cxn-inventory)
-  (set-configuration cxn-inventory :ignore-nil-hashes t)
-  (set-configuration cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
-  (set-configuration cxn-inventory :parse-order '(meta-only))
-  (set-configuration cxn-inventory :category-linking-mode :categories-exist)
-  (set-configuration cxn-inventory :max-nr-of-nodes 250)
-  (set-configuration cxn-inventory :update-categorial-links nil)
-  (set-configuration cxn-inventory :use-meta-layer nil)
-  (set-configuration cxn-inventory :consolidate-repairs nil)
-  (set-configuration cxn-inventory :node-tests '(:restrict-nr-of-nodes
-                                                 :restrict-search-depth)))
-
-(defun enable-meta-layer-configuration-item-based-first (cxn-inventory)
-  (set-configuration cxn-inventory :ignore-nil-hashes nil)
-  (set-configuration cxn-inventory :parse-goal-tests '(:no-strings-in-root
-                                                       :no-applicable-cxns
-                                                       :connected-semantic-network
-                                                       :connected-structure
-                                                       :non-gold-standard-meaning))
-  (set-configuration cxn-inventory :parse-order '(routine))
-  (set-configuration cxn-inventory :max-nr-of-nodes (get-configuration cxn-inventory :original-max-nr-of-nodes))
-  (set-configuration cxn-inventory :category-linking-mode :neighbours)
-  (set-configuration cxn-inventory :update-categorial-links t)
-  (set-configuration cxn-inventory :use-meta-layer t)
-  (set-configuration cxn-inventory :consolidate-repairs t)
-  (set-configuration cxn-inventory :node-tests '(:restrict-nr-of-nodes
-                                                 :restrict-search-depth
-                                                 :check-duplicate-strict)))
                  
 ;;;;;
 ;; Unit Utils
@@ -679,45 +671,43 @@
 
 (defun compatible-cipns-with-routine-cxns (form-constraints gold-standard-meaning cxn-inventory)
   (when (constructions cxn-inventory)
-    (disable-meta-layer-configuration cxn-inventory)
-    (let ((compatible-cipns
-           (with-disabled-monitor-notifications
-             (multiple-value-bind (_meanings _cipns cip) (comprehend-all form-constraints :cxn-inventory cxn-inventory)
-               (declare (ignore _meanings _cipns))
-               (let ((cip-nodes (all-cip-nodes cip)))
-                 (loop for cip-node in cip-nodes
-                       for meaning = (extract-meanings
-                                      (left-pole-structure
-                                       (car-resulting-cfs
-                                        (cipn-car cip-node))))
-                       when (and meaning ; meaning should be non-nil
-                                 (form-predicates-in-root cip-node) ; some form left in root
-                                 (irl::embedding meaning gold-standard-meaning)) ; partial meaning should be compatible with gold standard
-                       collect cip-node))))))
-      (enable-meta-layer-configuration cxn-inventory)
-      compatible-cipns)))
+    (destructuring-bind (meanings cipns cip)
+        ;; re-use the comprehension results with disabled meta layer (if available)
+        ;; created by the add-categorial-links repair
+        ;; otherwise, run comprehension
+        (or (find-data (blackboard cxn-inventory) :comprehension-results-with-disabled-meta-layer)
+            (multiple-value-list
+             (comprehend-all-with-disabled-meta-layer-configuration
+              form-constraints :cxn-inventory cxn-inventory :silent t)))
+      (declare (ignore meanings cipns))
+      (loop for cip-node in (all-cip-nodes cip)
+            for meaning = (extract-meanings
+                           (left-pole-structure
+                            (car-resulting-cfs
+                             (cipn-car cip-node))))
+            when (and meaning ; meaning should be non-nil
+                      (form-predicates-in-root cip-node) ; some form left in root
+                      (irl::embedding meaning gold-standard-meaning)) ; partial meaning should be compatible with gold standard
+            collect cip-node))))
 
 (defun compatible-cipns-with-meta-cxns (form-constraints gold-standard-meaning cxn-inventory)
   (when (constructions cxn-inventory)
-    (disable-meta-layer-configuration-item-based-first cxn-inventory)
-    (let ((compatible-cipns
-           (with-disabled-monitor-notifications
-             (multiple-value-bind (_meanings _cipns cip) (comprehend-all form-constraints :cxn-inventory cxn-inventory)
-               (declare (ignore _meanings _cipns))
-               (let ((cip-nodes (all-cip-nodes cip)))
-                 (loop for cip-node in cip-nodes
-                       for meaning = (extract-meanings
-                                      (left-pole-structure
-                                       (car-resulting-cfs
-                                        (cipn-car cip-node))))
-                       when (and meaning ; meaning should be non-nil
-                                 (form-predicates-in-root cip-node) ; some form left in root
-                                 (irl::embedding meaning gold-standard-meaning) ; partial meaning should be compatible with gold standard
-                                 (fcg::connected-syntactic-structure (fcg-get-transient-unit-structure cip-node)) ; connected structure in TS
-                                 (get-open-slot-units cip-node)) ; some unit(s) that represents open slot(s) in the TS
-                       collect cip-node))))))
-      (enable-meta-layer-configuration-item-based-first cxn-inventory)
-      compatible-cipns)))
+    (multiple-value-bind (meanings cipns cip)
+        (comprehend-all-with-disabled-meta-layer-configuration
+         form-constraints :cxn-inventory cxn-inventory :silent t
+         :meta-only-cxns t)
+      (declare (ignore meanings cipns))
+      (loop for cip-node in (all-cip-nodes cip)
+            for meaning = (extract-meanings
+                           (left-pole-structure
+                            (car-resulting-cfs
+                             (cipn-car cip-node))))
+            when (and meaning ; meaning should be non-nil
+                      (form-predicates-in-root cip-node) ; some form left in root
+                      (irl::embedding meaning gold-standard-meaning) ; partial meaning should be compatible with gold standard
+                      (fcg::connected-syntactic-structure (fcg-get-transient-unit-structure cip-node)) ; connected structure in TS
+                      (get-open-slot-units cip-node)) ; some unit(s) that represents open slot(s) in the TS
+            collect cip-node))))
 
 
 ;;;;;

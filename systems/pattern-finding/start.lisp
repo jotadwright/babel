@@ -15,8 +15,6 @@
   ;(activate-monitor show-type-hierarchy-after-n-interactions)
   )
 
-;; to do: reduce calls to comprehend-all...
-
 ;; default: use string and meets as form-representation
 (progn
   (wi::reset)
@@ -28,7 +26,7 @@
                               (:shuffle-data-p . nil)
                               (:number-of-epochs . 1)
                               (:anti-unification-mode . :exhaustive)
-                              (:partial-analysis-mode . :exhaustive)
+                              (:partial-analysis-mode . :heuristic)
                               (:allow-cxns-with-no-strings . t)
                               (:repair-recursively . t)
                               (:corpus-file . ,(make-pathname :directory '(:relative "val")
@@ -54,7 +52,7 @@
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 100)
+(run-series *experiment* 10)
 
 ;; is de sanity check wel correct?
 ;; interactie 9: cube-rubber-of-the cxn geleerd
