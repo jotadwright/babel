@@ -71,14 +71,14 @@
   "Disables a specified list of sensors (or a random amount of sensors) for the half of the population."
   (when (assoc :switch-disable-channels-half params)
     (let* ((change (assqv :switch-disable-channels-half params)) ;; change is either a list or a number
-           (channels (if (numberp change)
-                       ;; disable n sensors
-                       (random-elts (get-configuration experiment :available-channels) change)
-                       ;; disable the given list of features
-                       change))
            (population-size (length (agents experiment)))
            (population-half (first-n (floor (/ population-size 2)) (agents experiment))))
       (loop for agent in population-half
+            for channels = (if (numberp change)
+                             ;; disable n sensors
+                             (random-elts (get-configuration experiment :available-channels) change)
+                             ;; disable the given list of features
+                             change)
             do (loop for channel in channels
                      do (switch-channel-availability agent channel))))))
 
