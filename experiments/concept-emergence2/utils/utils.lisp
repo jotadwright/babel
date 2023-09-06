@@ -67,7 +67,7 @@
 
 (defun generate-csv-for-tuning (filename exp-prefix default-config tuned-params)
   (with-open-file (str (namestring (merge-pathnames (format nil "~a.csv" filename)
-                                                    (asdf:system-relative-pathname "cle" "batch/data/")
+                                                    (asdf:system-relative-pathname "cle" "batch/data-train/")
                                                     ))
                        :direction :output
                        :if-exists :supersede
@@ -129,8 +129,8 @@
                                      store-dir)))
     (cl-store:restore store-path)))
 
-#|(generate-csv-for-tuning "tune-color"
-                         "tune-color"
+#|(generate-csv-for-tuning "tune-clevr"
+                         "tune-clevr"
                          `((:id . "?")
                            (:exp-name . "?")
                            (:nr-of-series . 5)
@@ -138,20 +138,8 @@
                            (:population-size . 10)
                            (:dataset . "clevr")
                            (:dataset-split . "train")
-                           (:available-channels
-                            ,'lab-mean-l
-                            ,'lab-mean-a
-                            ,'lab-mean-b
-                            ,'lab-std-l
-                            ,'lab-std-a
-                            ,'lab-std-b
-                            ,'rgb-mean-r
-                            ,'rgb-mean-g
-                            ,'rgb-mean-b
-                            ,'rgb-std-r
-                            ,'rgb-std-g
-                            ,'rgb-std-b)
-                           (:disable-channels . :split-by-color)
+                           (:available-channels . :clevr)
+                           (:disable-channels . :none)
                            (:amount-disabled-channels . 0)
                            (:sensor-noise . :none)
                            (:sensor-std . 0.0)
@@ -164,7 +152,7 @@
                            (:entrenchment-incf . 0.1)
                            (:entrenchment-decf . -0.1)
                            (:entrenchment-li . -0.02)
-                           (:trash-concepts . nil)
+                           (:trash-concepts . t)
                            (:weight-update-strategy . :j-interpolation)
                            (:initial-weight . 0)
                            (:weight-incf . 1)
@@ -174,8 +162,8 @@
                            (:stage-parameters ,'((:do-nothing . t))))
                          `((:similarity-threshold 0.0 0.001 0.005 0.01 0.05 0.1 0.2 0.3)
                            (:initial-weight 0 35)
-                           (:weight-decf -1 -2 -3 -5 -10 -20)
-                           (:entrenchment-li -0.001 -0.005 -0.01 -0.02)
+                           (:weight-decf -1 -2 -3 -5)
+                           (:entrenchment-li -0.0001 -0.0005 -0.001 -0.005 -0.01 -0.02 -0.05)
                            ))|#
 
 
