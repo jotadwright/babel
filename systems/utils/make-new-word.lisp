@@ -21,6 +21,6 @@
 
 (defun make-new-word (&optional (nof-syllables 3))
   (loop for word = (random-word nof-syllables)
-    unless (member word *words-so-far*)
+    unless (member word *words-so-far* :test #'equal)
     do (setf *words-so-far* (push word *words-so-far*))
     (return word)))
