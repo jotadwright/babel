@@ -84,6 +84,7 @@
                                        ,'export-lexicon-coherence
                                        ,'export-unique-form-usage)
                    for monitor = (monitors::get-monitor monitor-id)
-                   do (handle-batch-finished-event2 monitor (assqv :exp-name config) store)))))
+                   do (handle-batch-finished-event2 monitor (assqv :exp-name config) store))
+             (notify reset-monitors))))
       
 (test-experiment #+sbcl (rest sb-ext:*posix-argv*))
