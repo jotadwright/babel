@@ -45,7 +45,7 @@
     (:usage-table-window . 5000)))
 
 (defun test-experiment (args)
-  (loop for store in (list "1-history" "2-history" "3-history" "4-history" "5-history")
+  (loop for store in (list "1-history" "2-history" "3-history" "4-history" "5-history" "6-history" "7-history" "8-history" "9-history" "10-history")
         do (let* ((config (append (fixed-config)
                                   (parse-config args)))
                   (experiment (cl-store:restore
