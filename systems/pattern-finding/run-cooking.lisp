@@ -26,8 +26,10 @@
     (make-instance 'pattern-finding-experiment
                    :entries `((:comprehend-all-n . 2)
                               (:shuffle-data-p . nil)
-                              (:number-of-epochs . 20)
-                              (:repair-recursively . nil)
+                              (:number-of-epochs . 5)
+                              (:repair-recursively . t)
+                              (:allow-cxns-with-no-strings . nil)
+                              (:max-nr-of-nodes . 2000)
                               (:alignment-strategy . :lateral-inhibition)
                               (:corpus-directory . ,(babel-pathname :directory '("experiments" "grammar-learning" "cooking" "data")))
                               (:corpus-file . ,(make-pathname :name "benchmark-ingredients-cleaned" :type "jsonl"))))))
@@ -36,7 +38,7 @@
 
 (run-interaction *experiment*)
 (run-series *experiment* 263)
-(run-series *experiment* (length (corpus *experiment*)))
+(run-series *experiment* (length (corpus *experiment*)))            
 
 (defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
 (add-element (make-html *cxn-inventory* :sort-by-type-and-score t))
@@ -44,7 +46,7 @@
 
 ;;;; Time travel
 
-(go-back-n-interactions *experiment* 1)
+(go-back-n-interactions *experiment* 17)
 (remove-cxns-learned-at *experiment* 16)
 
 (defun go-back-n-interactions (experiment n)

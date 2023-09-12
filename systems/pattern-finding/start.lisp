@@ -27,7 +27,7 @@
                               (:number-of-epochs . 1)
                               (:anti-unification-mode . :exhaustive)
                               (:partial-analysis-mode . :heuristic)
-                              (:allow-cxns-with-no-strings . t)
+                              (:allow-cxns-with-no-strings . nil)
                               (:repair-recursively . t)
                               (:corpus-file . ,(make-pathname :directory '(:relative "val")
                                                               :name "stage-1" :type "jsonl"))))))
@@ -52,7 +52,7 @@
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 10)
+(run-series *experiment* 50)
 
 ;; is de sanity check wel correct?
 ;; interactie 9: cube-rubber-of-the cxn geleerd
