@@ -29,16 +29,16 @@
                 ;; monitoring
                 (:dot-interval . 10)
                 ;(:record-every-x-interactions . 100) ;; important for fast logging
-                (:usage-table-window . 5000)
+                (:usage-table-window . 1000000)
                 (:save-distribution-history . nil)
                 ;; setup interacting agents
                 (:interacting-agents-strategy . :standard)
                 (:population-size . 10)
                 ;; setup data scene
-                (:dataset . "winery")
+                (:dataset . "clevr")
                 (:dataset-split . "train")
                 ;(:data-fname . "all.lisp")
-                (:available-channels ,@(get-all-channels :winery))
+                (:available-channels ,@(get-all-channels :clevr))
                 ;; disable channels
                 (:disable-channels . :none)
                 (:amount-disabled-channels . 0)
@@ -69,11 +69,15 @@
                 (:weight-incf . 1)
                 (:weight-decf . -5)
                 ;; staging
-                (:switch-condition . :none) ; :after-n-interactions)
-                (:switch-conditions-after-n-interactions . 500)
+                (:switch-condition . :after-n-interactions) ; :after-n-interactions)
+                (:switch-conditions-after-n-interactions . 2500)
                 (:stage-parameters
-                 ;((:switch-disable-channels ,'area ,'bb-area))
-                 ;((:switch-disable-channels ,'area ,'bb-area))
+                 ((:switch-dataset . "winery")
+                  (:switch-dataset-split . "train")
+                  ;(:switch-data-fname . "all.lisp")
+                  (:switch-scene-sampling . :random)
+                  (:switch-topic-sampling . :random)
+                  (:switch-available-channels ,@(get-all-channels :winery)))
                  )
                 )
        ;; configurations
