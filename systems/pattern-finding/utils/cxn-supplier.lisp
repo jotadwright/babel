@@ -63,3 +63,35 @@
          :current-label (car labels)
          :remaining-labels (cdr labels)
          :all-constructions-of-current-label positive-cxns)))))
+
+
+
+(defclass cxn-supplier-cxn-sets-hashed-positive-score (cxn-supplier-cxn-sets-hashed)
+  () (:documentation "cxn sets + hashing + positive scores"))
+
+(defmethod create-cxn-supplier ((node cip-node) (mode (eql :cxn-sets-hashed-positive-scores)))
+  "Creates an instance of the cxn-supplier and sets the cxn-sets for the applicable direction."
+  (make-instance 'cxn-supplier-cxn-sets-hashed-positive-score
+                 :cxn-sets (get-configuration (construction-inventory (cip node))
+                                              (if (eq (direction (cip node)) '->)
+                                                :production-order :parse-order))))
+
+(defmethod next-cxn ((cxn-supplier cxn-supplier-cxn-sets-hashed-positive-score) (node cip-node))
+  "Returns all constructions that satisfy the hash of the node and are in the current or a later set
+   and have a positive score!"
+  (if (initial-node-p node)
+    ;; return cxns of the first set
+    (loop with first-set = (first (cxn-sets cxn-supplier))
+          for construction in (constructions-for-application-hashed node)
+          when (and (equalp (symbol-name (attr-val construction :label))
+                            (symbol-name first-set))
+                    (> (attr-val construction :score) 0))
+          collect construction)
+    ;; return cxns of the same or later sets
+    (loop with current-set = (attr-val (first (applied-constructions node)) :label)
+          with current-set-index = (position (symbol-name current-set) (cxn-sets cxn-supplier) :test #'equalp :key #'symbol-name)
+          with remaining-sets = (subseq (cxn-sets cxn-supplier) current-set-index)
+          for construction in (constructions-for-application-hashed node)
+          when (and (member (symbol-name (attr-val construction :label)) remaining-sets :test #'equalp :key #'symbol-name)
+                    (> (attr-val construction :score) 0))
+          collect construction)))

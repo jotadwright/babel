@@ -42,8 +42,15 @@
                                      (form-args sequence)
                                      (meaning-args sequence)
                                      (subunits set)
-                                     (footprints set))
-                     :fcg-configurations ((:de-render-mode . ,(case form-representation
+                                     (footprints set))                     
+                     :fcg-configurations ((:construction-inventory-processor-mode . :heuristic-search)
+                                          (:node-expansion-mode . :full-expansion)
+                                          (:cxn-supplier-mode . ,cxn-supplier-mode)
+                                          (:search-algorithm . :best-first)
+                                          (:heuristics :nr-of-applied-cxns :cxn-score)
+                                          (:heuristic-value-mode . :sum-heuristics-and-parent)
+
+                                          (:de-render-mode . ,(case form-representation
                                                                 (:string+meets :de-render-string-meets-no-punct)
                                                                 (:sequences :de-render-sequence)))
                                           (:render-mode . ,(case form-representation
