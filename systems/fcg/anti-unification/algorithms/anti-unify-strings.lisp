@@ -124,6 +124,20 @@
 ;(print-anti-unification-results (anti-unify-strings "What size is the blue cube?" "What size is the red cube?"))
 ;(anti-unify-strings "What is the color of the sphere?" "What is the size of the cube?")
 
+#|
+(length
+ (remove-if #'(lambda (x) (< (score x) 0))
+            (maximal-string-alignments "The tiny shiny cylinder has what color?"
+                                       "What is the material of the big purple object?")))
+(length
+ (anti-unify-strings "The tiny shiny cylinder has what color?"
+                     "What is the material of the big purple object?"))
+
+=> 3196800 possible alignments 
+=> 0 possible alignments with positive score
+|#
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Maximal string alignments ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

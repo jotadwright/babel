@@ -42,9 +42,11 @@
   (defparameter *experiment*
     (make-instance 'pattern-finding-experiment
                    :entries `((:form-representation . :sequences)
-                              (:learner-cxn-supplier . :ordered-by-label-and-positive-score)
+                              (:learner-cxn-supplier . :cxn-sets-positive-scores)
                               (:comprehend-all-n . 2)
                               (:shuffle-data-p . nil)
+                              (:number-of-epochs . 1)
+                              (:repair-recursively . nil)
                               (:corpus-file . ,(make-pathname :directory '(:relative "val")
                                                               :name "stage-1" :type "jsonl"))))))
 

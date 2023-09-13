@@ -17,61 +17,83 @@
                          :max-au-cost max-au-cost
                          :no-string-cxns no-string-cxns)))
 
-#|
-(defmethod anti-unify-form-aux (source-form (cxn fcg-construction) (mode (eql :sequences)) &key max-au-cost)
-  (multiple-value-bind (possible-pattern-forms variable-boundaries)
+;;;;;;;;;;;;;;;
+;; sequences ;;
+;;;;;;;;;;;;;;;
+
+(defmethod anti-unify-form-aux (source-form (cxn fcg-construction) (mode (eql :sequences)) &key max-au-cost (no-string-cxns t))
+  ;; to do: include no-string-cxns option
+  (multiple-value-bind (possible-pattern-forms sequence-boundaries)
       (render-all (extract-form-predicates cxn) :render-sequences)
-    (setf possible-pattern-forms
-          (mapcar #'(lambda (lst)
-                      (list-of-strings->string lst :separator ""))
-                  possible-pattern-forms))
-    (let* ((anti-unification-results
+    (let* ((possible-pattern-forms
+            (mapcar #'(lambda (lst) (list-of-strings->string lst :separator "")) possible-pattern-forms))
+           (source-form
+            ;; !! 'first' is an assumption that will not work when adding recursion
+            (first
+             (mapcar #'(lambda (lst) (list-of-strings->string lst :separator ""))
+                     (render-all source-form :render-sequences))))
+           (anti-unification-results
             (loop for pattern-form in possible-pattern-forms
-                  append (anti-unify-strings pattern-form source-form)))
-           (valid-anti-unification-results
-            (remove-if-not #'valid-au-result-p anti-unification-results)))
-      (when max-au-cost
-        (setf valid-anti-unification-results
-              (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
-                         valid-anti-unification-results)))
-      (setf valid-anti-unification-results
-            (loop for au-result in valid-anti-unification-results
-                  collect (replace-variables-with-matching-boundaries au-result variable-boundaries)))
-      (sort valid-anti-unification-results #'< :key #'fcg::cost))))
-
-;; TO DO:
-;; check for each variable in the generalisation if it occurs in the same position
-;; as one of the variable boundaries in the pattern.
-;; if so, replace that variable in the generalisation and the delta
-(defun replace-variables-with-matching-boundaries ()
-  )
+                  for boundaries in sequence-boundaries
+                  for au-results = (anti-unify-strings pattern-form source-form)
+                  append (loop for au-result in au-results
+                               when (and (valid-au-result-p au-result)
+                                         max-au-cost
+                                         (<= (fcg::cost au-result) max-au-cost))
+                               do (rerename-boundaries au-result boundaries)
+                               and collect au-result))))
+      (sort anti-unification-results #'< :key #'fcg::cost))))
 
 
-  (let* (;; render all possible forms for source
-         (possible-source-forms
-          (mapcar #'(lambda (lst) (list-of-strings->string lst :separator ""))
-                  (render-all source-form :render-sequences)))
-         ;; render all possible forms for pattern
-         (cxn-form (extract-form-predicates cxn))
-         (possible-pattern-forms
-          (mapcar #'(lambda (lst) (list-of-strings->string lst :separator ""))
-                  (render-all cxn-form :render-sequences)))
-         ;; anti-unify all combinations
-         (anti-unification-results
-          (loop for (pattern-form source-form) in (combinations possible-source-forms possible-pattern-forms)
-                append (fcg::anti-unify-strings pattern-form source-form)))
-         ;; remove invalid anti-unification results
-         (valid-anti-unification-results
-          (remove-if-not #'valid-au-result-p anti-unification-results)))
-    ;; remove anti-unification results with high cost
-    (when max-au-cost
-      (setf valid-anti-unification-results
-            (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
-                       valid-anti-unification-results)))
-    (sort valid-anti-unification-results #'< :key #'fcg::cost)))
+(defun rerename-boundaries (au-result sequence-boundaries)
+  (let ((slot-boundaries (instantiate-slot-boundaries (generalisation au-result) (pattern-delta au-result))))
+    (dolist (slot-boundary slot-boundaries)
+      (destructuring-bind (slot-var start end) slot-boundary
+        (let* ((lb (find start sequence-boundaries :key #'cdr :test #'=))
+               (rb (find end sequence-boundaries :key #'cdr :test #'=))
+               (matching-boundary (cond (lb (car lb)) (rb (car rb))))
+               replacement)
+          (if matching-boundary
+            (let* ((match-position (position matching-boundary sequence-boundaries :key #'car))
+                   (buddy (unless (= match-position 0)
+                            (car (if (evenp match-position)
+                                   (nth (1- match-position) sequence-boundaries)
+                                   (nth (1+ match-position) sequence-boundaries))))))
+              (unless buddy (setf buddy (make-var)))
+              (setf replacement
+                    (if (evenp match-position)
+                      (cons buddy matching-boundary)
+                      (cons matching-boundary buddy))))
+            (setf replacement (cons (make-var 'lb) (make-var 'rb))))
+          (setf (generalisation au-result) (subst replacement slot-var (generalisation au-result))
+                (pattern-delta au-result) (subst replacement slot-var (pattern-delta au-result))
+                (source-delta au-result) (subst replacement slot-var (source-delta au-result))))))))
 
 
-(defmethod anti-unify-form-aux (source-form (cipn cip-node) (mode (eql :sequences)) &key max-au-cost)
+(defun instantiate-slot-boundaries (set-of-sequence-predicates bindings)
+  (let ((index 0)
+        positions)
+    (dolist (elem set-of-sequence-predicates)
+      (if (variable-p elem)
+        (let* ((len (length (rest (assoc elem bindings))))
+               (start-pos index)
+               (end-pos (+ index len)))
+          (push (list elem start-pos end-pos) positions)
+          (incf index len))
+        (incf index (length elem))))
+    (reverse positions)))
+
+;(instantiate-slot-boundaries
+; '("what" ?x "is the" ?y "?")
+; '((?x "color") (?y "ball")))
+; => ((?x 5 10) (?y 18 22))
+
+; (sequence-boundaries '((sequence "what color is the " ?lb ?rb)))
+; => ((?lb 0) (?rb 18))
+
+
+(defmethod anti-unify-form-aux (source-form (cipn cip-node) (mode (eql :sequences)) &key max-au-cost (no-string-cxns t))
+  ;; to do: include no-string-cxns option
   (let* (;; render all possible forms for source
          (possible-source-forms
           (mapcar #'(lambda (lst) (list-of-strings->string lst :separator ""))
@@ -86,8 +108,8 @@
                   (render-all ts-form :render-sequences)))
           ;; anti-unify all combinations
           (anti-unification-results
-          (loop for (pattern-form source-form) in (combinations possible-source-forms possible-pattern-forms)
-                append (fcg::anti-unify-strings pattern-form source-form :to-sequence-predicates-p t)))
+           (loop for (pattern-form source-form) in (combinations possible-source-forms possible-pattern-forms)
+                 append (fcg::anti-unify-strings pattern-form source-form :to-sequence-predicates-p t)))
          ;; remove invalid anti-unification results
          (valid-anti-unification-results
           (remove-if-not #'valid-au-result-p anti-unification-results)))
@@ -97,7 +119,11 @@
             (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
                        valid-anti-unification-results)))
     (sort valid-anti-unification-results #'< :key #'fcg::cost)))
-|#
+
+
+;;;;;;;;;;;;;;;;;;
+;; string+meets ;;
+;;;;;;;;;;;;;;;;;;
 
 (defmethod anti-unify-form-aux (source-form (cxn fcg-construction) (mode (eql :string+meets)) &key max-au-cost (no-string-cxns t))
   ;; assign fresh variables to the pattern
