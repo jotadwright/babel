@@ -25,10 +25,11 @@
                    :entries `((:comprehend-all-n . 2)
                               (:shuffle-data-p . nil)
                               (:number-of-epochs . 1)
-                              (:anti-unification-mode . :exhaustive)
+                              (:anti-unification-mode . :heuristic)
                               (:partial-analysis-mode . :heuristic)
                               (:allow-cxns-with-no-strings . nil)
-                              (:repair-recursively . t)
+                              (:repair-recursively . nil)
+                              (:max-nr-of-nodes . 2000)
                               (:corpus-file . ,(make-pathname :directory '(:relative "val")
                                                               :name "stage-1" :type "jsonl"))))))
 
@@ -49,10 +50,12 @@
 
 (length (corpus *experiment*))
 
+;;; INTERACTION 15: not enough nodes in the sandbox cxn inventory...
+
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 50)
+(run-series *experiment* 100)
 
 ;; is de sanity check wel correct?
 ;; interactie 9: cube-rubber-of-the cxn geleerd

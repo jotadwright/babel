@@ -26,27 +26,61 @@
     (make-instance 'pattern-finding-experiment
                    :entries `((:comprehend-all-n . 2)
                               (:shuffle-data-p . nil)
-                              (:number-of-epochs . 5)
+                              (:number-of-epochs . 20)
                               (:repair-recursively . t)
                               (:allow-cxns-with-no-strings . nil)
                               (:max-nr-of-nodes . 2000)
                               (:alignment-strategy . :lateral-inhibition)
+                              (:anti-unification-mode . :heuristic)
+                              (:partial-analysis-mode . :heuristic)
                               (:corpus-directory . ,(babel-pathname :directory '("experiments" "grammar-learning" "cooking" "data")))
                               (:corpus-file . ,(make-pathname :name "benchmark-ingredients-cleaned" :type "jsonl"))))))
+
+(progn
+  (wi::reset)
+  (notify reset-monitors)
+  (reset-id-counters)
+  (defparameter *experiment*
+    (make-instance 'pattern-finding-experiment
+                   :entries `((:comprehend-all-n . 2)
+                              (:shuffle-data-p . nil)
+                              (:sort-data-p . t)
+                              (:number-of-epochs . 20)
+                              (:repair-recursively . t)
+                              (:allow-cxns-with-no-strings . nil)
+                              (:max-nr-of-nodes . 2000)
+                              (:alignment-strategy . :lateral-inhibition)
+                              (:anti-unification-mode . :heuristic)
+                              (:partial-analysis-mode . :heuristic)
+                              (:corpus-directory . ,(babel-pathname :directory '("experiments" "grammar-learning" "cooking" "data")))
+                              (:corpus-file . ,(make-pathname :name "benchmark-recipes-cleaned" :type "jsonl"))))))
 
 (length (corpus *experiment*))
 
 (run-interaction *experiment*)
-(run-series *experiment* 263)
-(run-series *experiment* (length (corpus *experiment*)))            
+(run-series *experiment* 469)
+(run-series *experiment* (length (corpus *experiment*)))         
 
 (defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
 (add-element (make-html *cxn-inventory* :sort-by-type-and-score t))
 (add-element (make-html (categorial-network *cxn-inventory*)))
 
+;;;; RESULTS
+;;;; ingredient lists (263 observations); with recursion; AU-mode heuristic; PA-mode heuristic
+;;;; => 100% success after first epoch, 686 cxns after 20 epochs; will it converge further?
+;;;;
+;;;; full recipes (469 observations), with recursion, AU-mode heuristic, PA-mode heuristic
+;;;; => 
+;;;;
+;;;; many inconsistensies in annotation!
+;;;; e.g. quantity unit ingredient + "divided" => 2x fetch-and-proportion
+;;;; e.g. "let stand" => leave-for-time; "allow to stand" => no meaning annotation
+
+
+
 ;;;; Time travel
 
-(go-back-n-interactions *experiment* 17)
+(go-back-n-interactions *experiment* 1)
 (remove-cxns-learned-at *experiment* 16)
 
 (defun go-back-n-interactions (experiment n)
@@ -68,29 +102,33 @@
 (defun run-training ()
   (wi::reset)
   (run-experiments `(
-                     (default-configurations-non-recursive
-                      ((:experiment-name . default-configurations-non-recursive)))                     
-                     (au-exhaustive-pa-heuristic-non-recursive
+                     (ingredient-list-recursive-all-heuristic
+                      ((:anti-unification-mode . :heuristic)
+                       (:partial-analysis-mode . :heuristic)
+                       (:experiment-name . ingredient-list-recursive-all-heuristic)))                     
+                     (ingredient-list-recursive-au-exhaustive-pa-heuristic
                       ((:anti-unification-mode . :exhaustive)
                        (:partial-analysis-mode . :heuristic)
-                       (:experiment-name . au-exhaustive-pa-heuristic-non-recursive)))
-                     (au-heuristic-pa-exhaustive-non-recursive
+                       (:experiment-name . ingredient-list-recursive-au-exhaustive-pa-heuristic)))
+                     (ingredient-list-recursive-au-heuristic-pa-exhaustive
                       ((:anti-unification-mode . :heuristic)
                        (:partial-analysis-mode . :exhaustive)
-                       (:experiment-name . au-heuristic-pa-exhaustive-non-recursive)))
-                     (all-heuristic-mode-non-recursive
-                      ((:anti-unification-mode . :heuristic)
-                       (:partial-analysis-mode . :heuristic)
-                       (:experiment-name . all-heuristic-mode-non-recursive)))
+                       (:experiment-name . ingredient-list-recursive-au-heuristic-pa-exhaustive)))
+                     (ingredient-list-recursive-all-exhaustive
+                      ((:anti-unification-mode . :exhaustive)
+                       (:partial-analysis-mode . :exhaustive)
+                       (:experiment-name . ingredient-list-recursive-all-exhaustive)))
                      )
                    :shared-configuration `((:comprehend-all-n . 2)
                                            (:shuffle-data-p . nil)
-                                           (:number-of-epochs . 5)
-                                           (:repair-recursively . nil)
+                                           (:number-of-epochs . 30)
+                                           (:repair-recursively . t)
+                                           (:max-nr-of-nodes . 5000)
+                                           (:allow-cxns-with-no-strings . nil)
                                            (:corpus-directory . ,(babel-pathname :directory '("experiments" "grammar-learning" "cooking" "data")))
                                            (:corpus-file . ,(make-pathname :name "benchmark-ingredients-cleaned" :type "jsonl"))
                                            (:output-dir . ,(babel-pathname :directory '("systems" "pattern-finding" "raw-data"))))
-                   :number-of-interactions 1315
+                   :number-of-interactions (- (* 30 263) 1)
                    :number-of-series 1
                    :monitors (append '("print-a-dot-for-each-interaction"
                                        "summarize-results-after-n-interactions")
