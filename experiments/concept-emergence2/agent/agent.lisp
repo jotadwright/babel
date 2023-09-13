@@ -106,7 +106,7 @@
   "Determines a standard deviation for each sensor at each observation."
   (loop with remaining-channels = (set-difference (get-configuration experiment :available-channels) disabled-channels)
         for channel in remaining-channels
-        for shift = (random-gaussian 0 (get-configuration experiment :observation-std))
+        for shift = (get-configuration experiment :observation-std)
         collect (cons channel shift)))
 
 (defmethod noise-in-observation ((agent cle-agent) (attr symbol) (mode (eql :none)))
