@@ -57,7 +57,9 @@
         (sensor-noise (noise-in-sensor agent attr (get-configuration (experiment agent) :sensor-noise)))
         (observation-noise (noise-in-observation agent attr (get-configuration (experiment agent) :observation-noise))))
     (if raw-observation-val
-      (min (max 0 (+ raw-observation-val sensor-noise observation-noise)) 1)
+      (if (or (> sensor-noise 0) (> observation-noise 0))
+        (min (max 0 (+ raw-observation-val sensor-noise observation-noise)) 1)
+        raw-observation-val)
       nil)))
 
 (defmethod perceive-object-val ((agent cle-agent) (object cle-object) attr)
