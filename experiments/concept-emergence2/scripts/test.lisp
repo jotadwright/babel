@@ -1,6 +1,247 @@
+(ql:quickload :cle)
+
 (in-package :cle)
 
-(defun how-would-the-population-conceptualise (context topic)
+(progn 
+    (setf *experiment* (cl-store:restore (babel-pathname :directory `("experiments"
+                                                                      "concept-emergence2"
+                                                                      "storage"
+                                                                      "experiments"
+                                                                      "7-supervised"
+                                                                      "credit-fraud"
+                                                                      "2023-09-12_0h32m23s-exp-c"
+                                                                      "stores")
+                                                         :name "1-history"
+                                                         :type "store")))
+    (set-configuration *experiment* :dot-interval 10)
+    (set-configuration *experiment* :dataset-split "test")
+    (set-configuration *experiment* :topic-sampling :random)
+    (set-configuration *experiment* :align nil)
+    (initialise-world *experiment*))
+
+
+(setf (lexicon agent) (remove cxn (lexicon agent)))
+
+(loop for agent in (agents *experiment*)
+      for cxn = (find-in-lexicon agent "finaro")
+      do (setf (lexicon agent) (remove cxn (lexicon agent))))
+
+(loop for agent in (agents *experiment*)
+      for cxn = (find-in-lexicon agent "tobetu")
+      do (setf (lexicon agent) (remove cxn (lexicon agent))))
+
+(loop for agent in (agents *experiment*)
+      for cxn = (find-in-lexicon agent "poxuvo")
+      do (setf (lexicon agent) (remove cxn (lexicon agent))))
+
+(loop for agent in (agents *experiment*)
+      for cxn = (find-in-lexicon agent "tavafo")
+      do (setf (lexicon agent) (remove cxn (lexicon agent))))
+(loop for agent in (agents *experiment*)
+      for cxn = (find-in-lexicon agent "xokaze")
+      do (setf (lexicon agent) (remove cxn (lexicon agent))))
+
+
+(progn
+  (wi::reset)
+  (notify reset-monitors)
+  (deactivate-all-monitors)
+  (activate-monitor export-communicative-success)
+  (activate-monitor export-lexicon-coherence)
+    ;(activate-monitor export-unique-form-usage)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor trace-interaction-in-web-interface)
+  (format t "~%---------- NEW GAME ----------~%")
+  (time
+   (loop with count = 0
+         for i from 1 to 200
+         do (run-interaction *experiment*)
+         do (loop for agent in (agents *experiment*)
+                  do (set-data agent 'context (get-data (car (interacting-agents *experiment*)) 'context))
+                  do (set-data agent 'topic (get-data (car (interacting-agents *experiment*)) 'topic)))
+         do (when (equal (majority-vote) "target")
+              (incf count))
+         do (format t "~% ~a: ~a |||| ~a/10, from ~a in scene ~a"
+                    i
+                    (majority-vote)
+                    (count "target" (loop for i from 1 to 10
+                                          for found-topic = (find-anomaly (find-agent i *experiment*))
+                                          if found-topic
+                                            collect (assqv :function (description found-topic))) :test #'equal)
+                    (length (objects (get-data (car (interacting-agents *experiment*)) 'context)))
+                    (id (current-scene (world *experiment*))))
+         finally (return (/ count 200)))))
+
+
+=> 157/200
+
+(
+
+
+(find-anomaly2 (find-agent 1 *experiment*))
+
+
+(progn
+  (wi::reset)
+  (deactivate-all-monitors)
+  
+  ;(activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor trace-interaction-in-web-interface)
+  (loop for idx from 1 to 1
+        do (run-interaction *experiment*)
+        do (loop for agent in (agents *experiment*)
+                 do (set-data agent 'context (get-data (car (interacting-agents *experiment*)) 'context))
+                 do (set-data agent 'topic (get-data (car (interacting-agents *experiment*)) 'topic)))
+        ;do (display-lexicon (car (interacting-agents *experiment*)) :sort t)
+        do (format t "~% ~a: ~a |||| ~a/10, from ~a"
+                   idx
+                   ;(majority-vote)
+                   "nothing"
+                   (count "target" (loop for i from 1 to 1
+                                         collect (assqv :function (description (find-anomaly2 (find-agent 1 *experiment*))))) :test #'equal)
+                   (length (objects (get-data (car (interacting-agents *experiment*)) 'context)))
+                   )
+
+
+
+           ))
+
+(displa
+
+
+(setf finaro (find-in-lexicon (find-agent 1 *experiment*) "finaro"))
+(add-cxn-to-interface finaro)
+
+
+(loop for obj in (objects (get-data (find-agent 1 *experiment*) 'context))
+      do (format t "~% ~a -> ~,3f"
+                 (id obj)
+                 (weighted-similarity (find-agent 1 *experiment*) obj (meaning (find-in-lexicon (find-agent 1 *experiment*) "finaro")))))
+
+(loop for obj in (objects (get-data (find-agent 1 *experiment*) 'context))
+      do (format t "~% ~a -> ~,3f"
+                 (id obj)
+                 (weighted-similarity (find-agent 1 *experiment*) obj (meaning (find-in-lexicon (find-agent 1 *experiment*) "binitu")))))
+
+;=> ((CLE::CLE-OBJECT-2041 . 2.889992E-9)
+;   (CLE::CLE-OBJECT-2042 . 0.12158221) (CLE::CLE-OBJECT-2043 . 0.97671104) (CLE::CLE-OBJECT-2044 . 0.01743452) (CLE::CLE-OBJECT-2045 . 0.0026957854) (CLE::CLE-OBJECT-2046 . 0.0027299344) (CLE::CLE-OBJECT-2047 . 0.090485715) (CLE::CLE-OBJECT-2048 . 0.25366044))
+
+(setf obj3 (nth 2 (objects (get-data (find-agent 1 *experiment*) 'context))))
+
+(weighted-similarity (find-agent 1 *experiment*) obj3 (meaning finaro))
+
+
+
+
+(display-lexicon (find-agent 1 *experiment*) :sort t)
+(display-lexicon (find-agent 8 *experiment*) :sort t)
+
+(defun majority-vote ()
+  (let ((big-ht (loop with ht = (make-hash-table)
+                      for i from 1 to 10
+                      for selected-object = (find-anomaly (find-agent i *experiment*))
+                      for id = (id selected-object)
+                      for function = (assqv :function (description selected-object))
+                      if (gethash id ht)
+                        do (setf (gethash id ht) (cons selected-object (gethash id ht)))
+                      else
+                        do (setf (gethash id ht) (list selected-object))
+                      finally (return ht))))
+    (loop with biggest-key = nil
+          with largest = -1
+          for key being the hash-keys of big-ht
+            using (hash-value value)
+          if (> (length value) largest)
+            do (progn
+                 (setf biggest-key key)
+                 (setf largest (length value)))
+          finally (return (assqv :function (description (car (gethash biggest-key big-ht))))))))
+
+(defun find-anomaly (agent)
+  "Finds the best concept (and its direct competitors) for a given scene and topic.
+
+   The best concept corresponds to the concept that maximises
+   the multiplication of its entrenchment score and its discriminative power."
+  (let* ((threshold (get-configuration (experiment agent) :similarity-threshold))
+         ;(topic (get-data agent 'topic))
+         (context (objects (get-data agent 'context)))
+         (best-topic nil)
+         (best-score -1)
+         (best-cxn nil))
+    ;; case 1: look only at entrenched concepts first
+    ;; this heuristic is possible as the score is based on the multiplication
+    (loop for topic in context
+          do (loop for cxn in (lexicon agent)
+                   for concept = (meaning cxn)
+                   for rest-context = (remove topic context)
+                   for topic-sim = (weighted-similarity agent topic concept)
+                   for best-other-sim = (loop for object in rest-context
+                                              maximize (weighted-similarity agent object concept))
+                   for discriminative-power = (abs (- topic-sim best-other-sim))
+                   if (and (> topic-sim (+ best-other-sim threshold))
+                           (< best-other-sim 0.12)
+                           (> (* discriminative-power (score cxn)) best-score))
+                     do (progn
+                          #|(when best-cxn
+                            (setf competitors (cons best-cxn competitors)))|#
+                          (setf best-score (* discriminative-power (score cxn)))
+                          (setf best-topic topic)
+                          (setf best-cxn cxn))
+                   ;else
+                   ;  do (setf competitors (cons cxn competitors))
+                        ))
+    best-topic))
+
+(defun find-anomaly2 (agent)
+  "Finds the best concept (and its direct competitors) for a given scene and topic.
+
+   The best concept corresponds to the concept that maximises
+   the multiplication of its entrenchment score and its discriminative power."
+  (let* ((threshold (get-configuration (experiment agent) :similarity-threshold))
+         ;(topic (get-data agent 'topic))
+         (context (objects (get-data agent 'context)))
+         (best-topic nil)
+         (best-score -1)
+         (best-cxn nil))
+    ;; case 1: look only at entrenched concepts first
+    ;; this heuristic is possible as the score is based on the multiplication
+    (loop for topic in context
+          do (format t "~% ====== NEXT OBJECT: ~a" (id topic))
+          do (loop for cxn in (lexicon agent)
+                   for concept = (meaning cxn)
+                   for rest-context = (remove topic context)
+                   for topic-sim = (weighted-similarity agent topic concept)
+                   for best-other-sim = (loop for object in rest-context
+                                              maximize (weighted-similarity agent object concept))
+                   for discriminative-power = (abs (- topic-sim best-other-sim))
+                   do (format t "~% ~a => ~,3f vs ~,3f => ~,3f, ~,3f"
+                              (form cxn)
+                              topic-sim
+                              best-other-sim
+                              (- topic-sim best-other-sim)
+                              (* discriminative-power (score cxn)))
+                   if (and (> topic-sim (+ best-other-sim threshold))
+                           (< best-other-sim 0.12)
+                           (> (* discriminative-power (score cxn)) best-score))
+                     do (progn
+                          #|(when best-cxn
+                            (setf competitors (cons best-cxn competitors)))|#
+                          (setf best-score (* discriminative-power (score cxn)))
+                          (setf best-topic topic)
+                          (setf best-cxn cxn)))
+          if best-topic
+            do (format t "~% === CURRENT BEST OBJECT: ~a based on ~a w/ ~,3f" (id best-topic) (form best-cxn) best-score)
+                   
+                   ;else
+                   ;  do (setf competitors (cons cxn competitors))
+             )
+    (when best-topic
+      (format t "~% ====== CHOSEN OBJECT: ~a based on ~a" (id best-topic) (form best-cxn)))
+    best-topic))
+
+(setf htt (majority-vote))
+
+#|(defun how-would-the-population-conceptualise (context topic)
   (wi::reset)
   (deactivate-all-monitors)
   (activate-monitor trace-interaction-in-web-interface)
@@ -314,4 +555,4 @@
         with sorted-keys = (sort all-keys #'string<)
         for key in sorted-keys
         for value = (gethash (intern key) counter)
-        do (format t "The value associated with the key ~S is ~S~%" key value)))
+        do (format t "The value associated with the key ~S is ~S~%" key value)))|#
