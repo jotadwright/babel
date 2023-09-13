@@ -14,7 +14,12 @@
   (> (attr-val cxn :score) 0))
 
 (defun routine-cxn-p (cxn)
-  (eql (attr-val cxn :label) 'fcg::routine))
+  (or (eql (attr-val cxn :label) 'fcg::routine-apply-first)
+      (eql (attr-val cxn :label) 'fcg::routine-apply-last)))
+
+(defun meta-cxn-p (cxn)
+  (or (eql (attr-val cxn :label) 'fcg::meta-apply-first)
+      (eql (attr-val cxn :label) 'fcg::meta-apply-last)))
 
 (defun item-based-cxn-p (cxn)
   (eql (attr-val cxn :cxn-type) 'item-based))
@@ -477,7 +482,7 @@
       ;; switch to meta-only cxns
       (set-configuration cxn-inventory :ignore-nil-hashes t)
       (set-configuration cxn-inventory :parse-goal-tests '(:no-applicable-cxns))
-      (set-configuration cxn-inventory :parse-order '(meta-only))
+      (set-configuration cxn-inventory :parse-order '(meta-apply-first meta-apply-last))
       (set-configuration cxn-inventory :max-nr-of-nodes 250)
       (set-configuration cxn-inventory :node-tests '(:restrict-nr-of-nodes
                                                      :restrict-search-depth)))
@@ -494,7 +499,7 @@
         ;; switch back to routine cxns
         (set-configuration cxn-inventory :ignore-nil-hashes nil)
         (set-configuration cxn-inventory :parse-goal-tests original-parse-goal-tests)
-        (set-configuration cxn-inventory :parse-order '(routine))
+        (set-configuration cxn-inventory :parse-order '(routine-apply-first routine-apply-last))
         (set-configuration cxn-inventory :max-nr-of-nodes original-max-nr-of-nodes)
         (set-configuration cxn-inventory :node-tests original-node-tests))
       (values meanings cip-nodes cip))))

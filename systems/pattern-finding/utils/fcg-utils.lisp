@@ -181,10 +181,8 @@
                                           (:render-mode . ,(case form-representation
                                                              (:string+meets :generate-and-test)
                                                              (:sequences :render-sequences)))
-                                          (:cxn-supplier-mode . ,cxn-supplier-mode)
                                           (:meaning-representation-formalism . ,meaning-representation)
                                           (:form-representation-formalism . ,form-representation)
-                                          
                                           (:parse-goal-tests :no-strings-in-root
                                                              :no-applicable-cxns
                                                              :connected-semantic-network
@@ -192,11 +190,10 @@
                                                              :non-gold-standard-meaning)
                                           (:node-tests :restrict-nr-of-nodes
                                                        :restrict-search-depth
-                                                       :check-duplicate-strict
-                                                       )
-                                          (:parse-order routine)
+                                                       :check-duplicate-strict)
+                                          (:parse-order routine-apply-first routine-apply-last)
+                                          (:production-order routine-apply-first routine-apply-last)
                                           (:max-nr-of-nodes . 250)
-                                          (:production-order routine)
                                           (:category-linking-mode . ,category-linking-mode)
                                           (:update-categorial-links . nil)
                                           (:consolidate-repairs . nil)

@@ -44,7 +44,7 @@
   (assert (notany #'null categorial-links))
   (assert (notany #'null categories-to-add))
   (let ((learned-cxns
-         (remove-if-not #'(lambda (cxn) (and (eql (attr-val cxn :label) 'fcg::routine)
+         (remove-if-not #'(lambda (cxn) (and (routine-cxn-p cxn)
                                              (not (attr-val cxn :learned-at))))
                         (append cxns-to-apply cxns-to-consolidate))))
     (if node
@@ -122,7 +122,7 @@
          (partial-analysis-cxns (afr-partial-analysis-cxns (restart-data fix)))
          (repair-type (afr-repair (restart-data fix)))
          (learned-cxns
-          (remove-if-not #'(lambda (cxn) (and (eql (attr-val cxn :label) 'fcg::routine)
+          (remove-if-not #'(lambda (cxn) (and (routine-cxn-p cxn)
                                               (not (attr-val cxn :learned-at))))
                          (append cxns-to-apply cxns-to-consolidate))))
     (when learned-cxns

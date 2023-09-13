@@ -20,7 +20,7 @@
                      (HASH meaning ,meaning)
                      --
                      (HASH form ,form)))
-                   :attributes (:label fcg::routine
+                   :attributes (:label fcg::routine-apply-first
                                 :cxn-type holistic
                                 :bare-cxn-name ,bare-cxn-name
                                 :is-holophrase ,holophrasep
@@ -45,7 +45,7 @@
                        (HASH form ,form)
                        (form-args ,form-args)
                        (category ,top-cat)))
-                     :attributes (:label fcg::meta-only
+                     :attributes (:label fcg::meta-apply-last
                                   :cxn-type holistic
                                   :bare-cxn-name ,bare-cxn-name
                                   :is-holophrase ,holophrasep
@@ -86,7 +86,7 @@
                        --
                        (HASH form ,form))
                       ,@conditional-slot-units)
-                     :attributes (:label fcg::routine
+                     :attributes (:label fcg::routine-apply-last
                                   :cxn-type item-based
                                   :bare-cxn-name ,bare-cxn-name
                                   :string ,(form-predicates->hash-string form form-representation)
@@ -148,7 +148,7 @@
                        (HASH meaning ,meaning)
                        --
                        (HASH form ,form)))
-                     :attributes (:label fcg::meta-only
+                     :attributes (:label fcg::meta-apply-first
                                   :cxn-type item-based
                                   :bare-cxn-name ,bare-cxn-name
                                   :string ,(form-predicates->hash-string form form-representation)

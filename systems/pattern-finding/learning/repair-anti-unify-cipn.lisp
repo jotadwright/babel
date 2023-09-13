@@ -86,17 +86,15 @@
           for combinations-with-cipn
             = (loop for combo in all-anti-unification-combinations
                     collect (cons cipn combo))
-          for applied-cxn-labels
-            = (mapcar #'(lambda (cxn) (attr-val cxn :label))
-                      (original-applied-constructions cipn))
            for new-cxns-and-links
              = (when combinations-with-cipn
                  (loop for generalisation in (sort-anti-unification-combinations combinations-with-cipn)
+                       for applied-cxns = (original-applied-constructions (first generalisation))
                        for new-cxns-and-links
-                         = (cond ((every #'(lambda (elem) (eql elem 'fcg::routine)) applied-cxn-labels)
+                         = (cond ((every #'routine-cxn-p applied-cxns)
                                   (make-item-based-cxn-from-partial-analysis
                                    generalisation observation-form observation-meaning args cxn-inventory))
-                                 ((every #'(lambda (elem) (eql elem 'fcg::meta-only)) applied-cxn-labels)
+                                 ((every #'meta-cxn-p applied-cxns)
                                   (make-holistic-cxns-from-partial-analysis
                                    generalisation observation-form observation-meaning args cxn-inventory)))
                        when new-cxns-and-links
@@ -139,14 +137,12 @@
     ;; 3) when there are anti-unification results, learn cxns from them!
     (when least-general-generalisations
       (dolist (generalisation least-general-generalisations)
-        (let* ((applied-cxn-labels
-                (mapcar #'(lambda (cxn) (attr-val cxn :label))
-                        (original-applied-constructions (first generalisation))))
+        (let* ((applied-cxns (original-applied-constructions (first generalisation)))
                (new-cxns-and-links
-                (cond ((every #'(lambda (elem) (eql elem 'fcg::routine)) applied-cxn-labels)
+                (cond ((every #'routine-cxn-p applied-cxns)
                        (make-item-based-cxn-from-partial-analysis
                         generalisation observation-form observation-meaning args cxn-inventory))
-                      ((every #'(lambda (elem) (eql elem 'fcg::meta-only)) applied-cxn-labels)
+                      ((every #'meta-cxn-p applied-cxns)
                        (make-holistic-cxns-from-partial-analysis
                         generalisation observation-form observation-meaning args cxn-inventory)))))
           (when new-cxns-and-links

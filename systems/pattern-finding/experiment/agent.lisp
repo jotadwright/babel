@@ -56,13 +56,11 @@
                                           (:render-mode . ,(case form-representation
                                                              (:string+meets :generate-and-test)
                                                              (:sequences :render-sequences)))
-                                          (:cxn-supplier-mode . ,cxn-supplier-mode)
 
                                           (:meaning-representation-formalism . ,meaning-representation)
                                           (:form-representation-formalism . ,form-representation)
-
-                                          (:parse-order routine)
-                                          (:production-order routine)
+                                          (:parse-order routine-apply-first routine-apply-last)
+                                          (:production-order routine-apply-first routine-apply-last)
                                           (:hash-mode . :hash-string-meaning)
                                           (:node-tests :restrict-nr-of-nodes
                                                        :restrict-search-depth

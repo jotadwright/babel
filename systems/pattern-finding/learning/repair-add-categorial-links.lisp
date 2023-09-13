@@ -117,7 +117,7 @@
         append (let* ((processing-cxn
                        (car-applied-cxn (cipn-car cipn)))
                       (processing-cxn
-                       (if (equal (attr-val processing-cxn :label) 'fcg::routine)
+                       (if (routine-cxn-p processing-cxn)
                          processing-cxn
                          (first (remove (name processing-cxn)
                                         (find-all (attr-val processing-cxn :bare-cxn-name)
