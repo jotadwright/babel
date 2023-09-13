@@ -43,7 +43,7 @@
                                                   (get-configuration experiment :sensor-noise)))
          (observation-noise (determine-noise-in-observation experiment
                                                             disabled-channels
-                                                            (get-configuration experiment :sensor-noise)))
+                                                            (get-configuration experiment :observation-noise)))
          (disabled-channels-hash (list-to-hash-table disabled-channels))
          (new-agent (make-instance 'cle-agent
                                    :experiment experiment
