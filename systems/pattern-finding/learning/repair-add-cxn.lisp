@@ -13,20 +13,18 @@
                    (node cip-node)
                    &key &allow-other-keys)
   "Repair by making a new construction."
-  (when (and (initial-node-p node)
-             (get-data problem :utterance))
-    (let ((cxns-and-categorial-links
-           (do-repair
-            (get-data problem :utterance)
-            (get-data problem :meaning)
-            (make-blackboard)
-            (construction-inventory node)
-            node
-            'add-cxn)))
-      (make-instance 'fcg::cxn-fix
-                     :repair repair
-                     :problem problem
-                     :restart-data cxns-and-categorial-links))))
+  (let ((cxns-and-categorial-links
+         (do-repair
+          (get-data problem :utterance)
+          (get-data problem :meaning)
+          (make-blackboard)
+          (construction-inventory node)
+          node
+          'add-cxn)))
+    (make-instance 'fcg::cxn-fix
+                   :repair repair
+                   :problem problem
+                   :restart-data cxns-and-categorial-links)))
 
 
 (defgeneric holistic-form-top-args (form mode)
