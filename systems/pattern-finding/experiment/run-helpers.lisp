@@ -25,7 +25,7 @@
 
 (defun create-graph-for-single-strategy (&key experiment-name measure-names
                                               y-axis (y1-min 0) y1-max y2-max xlabel y1-label y2-label
-                                              captions open)
+                                              captions end open)
   ;; This function allows you to plot one or more measures for a single experiment
   ;; e.g. communicative success and lexicon size
   (format t "~%Creating graph for experiment ~a with measures ~a" experiment-name measure-names)
@@ -46,6 +46,7 @@
     :x-label (if xlabel xlabel "Number of Games")
     :y1-label (when y1-label y1-label)
     :y2-label (when y2-label y2-label)
+    :end end
     :open open)
   (format t "~%Graphs have been created"))
 
