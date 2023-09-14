@@ -22,7 +22,7 @@
 ;;;;;;;;;;;;;;;
 
 (defmethod anti-unify-form-aux (source-form (cxn fcg-construction) (mode (eql :sequences)) &key max-au-cost (no-string-cxns t))
-  ;; to do: include no-string-cxns option
+  (declare (ignore no-string-cxns))
   (multiple-value-bind (possible-pattern-forms sequence-boundaries)
       (render-all (extract-form-predicates cxn) :render-sequences)
     (let* ((possible-pattern-forms
@@ -91,9 +91,13 @@
 ; (sequence-boundaries '((sequence "what color is the " ?lb ?rb)))
 ; => ((?lb 0) (?rb 18))
 
+; ===> '("what" (?var-1 ?var-2) "is the" (?rb ?var) "?")
+;      '((?var-1 ?var-2) . color) ((?rb ?var-3) . "ball"))
+
+
 
 (defmethod anti-unify-form-aux (source-form (cipn cip-node) (mode (eql :sequences)) &key max-au-cost (no-string-cxns t))
-  ;; to do: include no-string-cxns option
+  (declare (ignore no-string-cxns))
   (let* (;; render all possible forms for source
          (possible-source-forms
           (mapcar #'(lambda (lst) (list-of-strings->string lst :separator ""))

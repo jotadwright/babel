@@ -29,6 +29,16 @@
 (defun right-boundary (sequence-predicate)
   (fourth sequence-predicate))
 
+(defun compute-string-from-generalisation (generalisation delta)
+  (let ((complete-string
+         (list-of-strings->string
+          (loop for el in generalisation
+                if (consp el)
+                collect (rest (assoc el delta :test #'equal))        
+                else collect el)
+          :separator "")))
+    (list (list 'sequence complete-string (make-var) (make-var)))))
+
 (defmethod compute-form-args-aux (anti-unification-result
                                   (anti-unified-cxn fcg-construction)
                                   (source-args blackboard)
@@ -36,9 +46,7 @@
   (with-slots (generalisation
                pattern-delta
                source-delta) anti-unification-result
-    (let* ((starts-with-slot (consp (first generalisation)))
-           (ends-with-slot (consp (last-elt generalisation)))
-           ;; make sequence predicates from the generalisation and delta's
+    (let* (;; make sequence predicates from the generalisation and delta's
            (generalisation-predicates
             (loop for elem in generalisation
                   when (stringp elem)
@@ -54,18 +62,75 @@
            (source-delta-predicates
             (loop for (boundaries . seq-str) in source-delta
                   collect (list 'sequence seq-str (car boundaries) (cdr boundaries))))
-           ;; slot/top-args
-           (pattern-slot-args (extract-slot-form-args anti-unified-cxn))
-           (pattern-top-args (extract-top-lvl-form-args anti-unified-cxn))
+           ;; slot/top-args of pattern and soource
+           (pattern-slot-args
+            (sort (cxn-form-slot-args anti-unified-cxn :by-category-p t) #'string< :key #'car))
+           (pattern-top-args (cxn-form-top-args anti-unified-cxn))
            (source-slot-args (find-data source-args :slot-form-args))
            (source-top-args (or (find-data source-args :top-lvl-form-args)
                                 ;; compute entirely new top args, like for a holophrase cxn,
                                 ;; by putting together the source delta and the generalisation
                                 (holistic-form-top-args
-                                 ;; to do: have a function for putting back the generalisation and the delta
-                                 nil
+                                 (compute-string-from-generalisation generalisation source-delta)
                                  (get-configuration (cxn-inventory anti-unified-cxn) :form-representation-formalism))))
-           ;; outermost boundaries
+           ;; start/end with slot?
+           (starts-with-slot (consp (first generalisation)))
+           (ends-with-slot (consp (last-elt generalisation)))
+           ;; blackboard for args
+           (args (make-blackboard)))
+      ;; generalisation top lvl args + pattern/source slot args
+      (loop with len = (length generalisation-predicates)
+            for predicate in generalisation-predicates
+            for index from 1
+            do (cond ((and (= index 1) starts-with-slot)
+                      (let ((boundaries (first generalisation)))
+                        (push-data args :generalisation-top-lvl-args (car boundaries))
+                        (push-data args :generalisation-top-lvl-args (cdr boundaries))))
+                     ((= index 1)
+                      (push-data args :generalisation-top-lvl-args (fourth predicate)))
+                     ((and (= index len) ends-with-slot)
+                      (let ((boundaries (last-elt generalisation)))
+                        (push-data args :generalisation-top-lvl-args (car boundaries))
+                        (push-data args :generalisation-top-lvl-args (cdr boundaries))))
+                     ((= index len)
+                      (push-data args :generalisation-top-lvl-args (third predicate)))
+                     (t
+                      (push-data args :generalisation-top-lvl-args (third predicate))
+                      (push-data args :generalisation-top-lvl-args (fourth predicate)))))
+      (set-data args :generalisation-top-lvl-args
+                (reverse (get-data args :generalisation-top-lvl-args)))
+      (set-data args :pattern-slot-args
+                (append
+                 (list (loop for predicate in (reverse pattern-delta-predicates)
+                             append (list (third predicate) (fourth predicate))))
+                 (mapcar #'rest pattern-slot-args)))
+      (set-data args :source-slot-args
+                (append
+                 (list (loop for predicate in (reverse source-delta-predicates)
+                             append (list (third predicate) (fourth predicate))))
+                 source-slot-args))
+      ;; pattern/source top args
+      (set-data args :pattern-top-lvl-args
+                (holistic-form-top-args
+                 (append generalisation-predicates pattern-delta-predicates)
+                 (get-configuration (cxn-inventory anti-unified-cxn) :form-representation-formalism)))
+      (set-data args :source-top-lvl-args
+                (holistic-form-top-args
+                 (append generalisation-predicates source-delta-predicates)
+                 (get-configuration (cxn-inventory anti-unified-cxn) :form-representation-formalism)))
+      ;; cleanup
+      (setf generalisation generalisation-predicates)
+      (setf pattern-delta (remove-if #'(lambda (p) (string= (second p) "")) pattern-delta-predicates))
+      (setf source-delta (remove-if #'(lambda (p) (string= (second p) "")) source-delta-predicates))
+      ;; done!
+      args)))
+
+
+
+#|
+            ;; outermost boundaries (probably no longer needed...)
+           (starts-with-slot (consp (first generalisation)))
+           (ends-with-slot (consp (last-elt generalisation)))
            (leftmost-boundary
             (if starts-with-slot
               (car (first generalisation))
@@ -74,8 +139,6 @@
             (if ends-with-slot
               (cdr (last-elt generalisation))
               (right-boundary (last-elt generalisation-predicates))))
-           ;; blackboard for args
-           (args (make-blackboard)))
       ;; generalisation top lvl args
       (push-data args :generalisation-top-lvl-args rightmost-boundary)
       (push-data args :generalisation-top-lvl-args leftmost-boundary)
@@ -125,12 +188,7 @@
                       when (and (find (third predicate) source-slot-args)
                                 (find (fourth predicate) source-slot-args))
                       append (list (third predicate) (fourth predicate))))
-      ;; cleanup
-      (setf generalisation generalisation-predicates)
-      (setf pattern-delta (remove-if #'(lambda (p) (string= (second p) "")) pattern-delta-predicates))
-      (setf source-delta (remove-if #'(lambda (p) (string= (second p) "")) source-delta-predicates))
-      ;; done!
-      args)))
+|#
 
 ;;;;;;;;;;;;;;;;;;
 ;; string+meets ;;
