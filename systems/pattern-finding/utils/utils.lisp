@@ -543,19 +543,21 @@
 
 (defun variablify-form-constraints-with-constants (form-constraints-with-constants)
   "Variablify the constants in the form constraints"
-  (loop for form-constraint in form-constraints-with-constants
-        for constraint = (first form-constraint)
-        collect (cons constraint
-                      (case constraint
-                        (string (list (variablify (second form-constraint))
-                                      (third form-constraint)))
-                        (meets (mapcar #'variablify (rest form-constraint)))
-                        (top-arg (list (variablify (second form-constraint))
-                                       (third form-constraint)))
-                        (slot-arg (list (variablify (second form-constraint))
+  (labels ((symbol-variablify (symbol)
+             (make-symbol (upcase (mkstr (variablify symbol))))))
+    (loop for form-constraint in form-constraints-with-constants
+          for constraint = (first form-constraint)
+          collect (cons constraint
+                        (case constraint
+                          (string (list (symbol-variablify (second form-constraint))
                                         (third form-constraint)))
-                        (sequence (cons (second form-constraint)
-                                        (mapcar #'variablify (cddr form-constraint))))))))
+                          (meets (mapcar #'symbol-variablify (rest form-constraint)))
+                          (top-arg (list (symbol-variablify (second form-constraint))
+                                         (third form-constraint)))
+                          (slot-arg (list (symbol-variablify (second form-constraint))
+                                          (third form-constraint)))
+                          (sequence (cons (second form-constraint)
+                                          (mapcar #'symbol-variablify (cddr form-constraint)))))))))
 
 
 (defun fresh-variablify-form-constraints-with-constants (form-constraints-with-constants)
