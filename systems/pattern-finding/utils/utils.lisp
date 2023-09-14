@@ -387,6 +387,10 @@
 ;; Find identical holistic cxn
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; to do
+;; cxns with negative scores _should_ be considered when looking for identical cxns
+;; but they are not, given that they wont be applied by the cxn supplier anyway...
+
 (defun equivalent-networks-and-args? (network cxn-network args cxn-args)
   (equivalent-irl-programs?
    (append network `((args ,@args)))
@@ -415,7 +419,11 @@
 
 ;;;;;
 ;; Find identical item-based cxn
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; to do
+;; cxns with negative scores _should_ be considered when looking for identical cxns
+;; but they are not, given that they wont be applied by the cxn supplier anyway...
 
 (defun identical-item-based-cxn-p (form meaning top-lvl-form-args top-lvl-meaning-args
                                    slot-form-args slot-meaning-args cxn)

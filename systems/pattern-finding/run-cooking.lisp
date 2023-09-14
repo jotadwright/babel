@@ -102,33 +102,34 @@
 (defun run-training ()
   (wi::reset)
   (run-experiments `(
-                     (ingredient-list-recursive-all-heuristic
+                     (recipes-recursive-all-heuristic
                       ((:anti-unification-mode . :heuristic)
                        (:partial-analysis-mode . :heuristic)
-                       (:experiment-name . ingredient-list-recursive-all-heuristic)))                     
-                     (ingredient-list-recursive-au-exhaustive-pa-heuristic
+                       (:experiment-name . recipes-recursive-all-heuristic)))                     
+                     (recipes-recursive-au-exhaustive-pa-heuristic
                       ((:anti-unification-mode . :exhaustive)
                        (:partial-analysis-mode . :heuristic)
-                       (:experiment-name . ingredient-list-recursive-au-exhaustive-pa-heuristic)))
-                     (ingredient-list-recursive-au-heuristic-pa-exhaustive
+                       (:experiment-name . recipes-recursive-au-exhaustive-pa-heuristic)))
+                     (recipes-recursive-au-heuristic-pa-exhaustive
                       ((:anti-unification-mode . :heuristic)
                        (:partial-analysis-mode . :exhaustive)
-                       (:experiment-name . ingredient-list-recursive-au-heuristic-pa-exhaustive)))
-                     (ingredient-list-recursive-all-exhaustive
+                       (:experiment-name . recipes-recursive-au-heuristic-pa-exhaustive)))
+                     (recipes-recursive-all-exhaustive
                       ((:anti-unification-mode . :exhaustive)
                        (:partial-analysis-mode . :exhaustive)
-                       (:experiment-name . ingredient-list-recursive-all-exhaustive)))
+                       (:experiment-name . recipes-recursive-all-exhaustive)))
                      )
                    :shared-configuration `((:comprehend-all-n . 2)
                                            (:shuffle-data-p . nil)
+                                           (:sort-data-p . t)
                                            (:number-of-epochs . 30)
                                            (:repair-recursively . t)
                                            (:max-nr-of-nodes . 5000)
                                            (:allow-cxns-with-no-strings . nil)
                                            (:corpus-directory . ,(babel-pathname :directory '("experiments" "grammar-learning" "cooking" "data")))
-                                           (:corpus-file . ,(make-pathname :name "benchmark-ingredients-cleaned" :type "jsonl"))
+                                           (:corpus-file . ,(make-pathname :name "benchmark-recipes-cleaned" :type "jsonl"))
                                            (:output-dir . ,(babel-pathname :directory '("systems" "pattern-finding" "raw-data"))))
-                   :number-of-interactions (- (* 30 263) 1)
+                   :number-of-interactions (- (* 30 469) 1)
                    :number-of-series 1
                    :monitors (append '("print-a-dot-for-each-interaction"
                                        "summarize-results-after-n-interactions")
@@ -138,11 +139,28 @@
 
 
 (create-graph-for-single-strategy
- :experiment-name "default-configurations-non-recursive-mre"
+ :experiment-name "ingredient-list-recursive-au-heuristic-pa-exhaustive"
  :measure-names '("communicative-success" "grammar-size")
  :y-axis '(1 2) :y1-max 1
  :xlabel "Number of observations"
  :y1-label "Communicative Success"
  :y2-label "Grammar Size"
  :captions '("communicative success" "grammar size")
+ :open nil)
+
+(create-graph-for-single-strategy
+ :experiment-name "ingredient-list-recursive-au-heuristic-pa-exhaustive"
+ :measure-names '("repair-usage-add-categorial-links"
+                  "repair-usage-anti-unify-cipn"
+                  "repair-usage-anti-unify-cxns"
+                  "repair-usage-add-cxn")
+ :y-axis '(1) :y1-max 1
+ :xlabel "Number of observations"
+ :y1-label "Repair Usage"
+ ;:y2-label "Grammar Size"
+ :captions '("add categorial links"
+             "partial analysis"
+             "anti-unifcation"
+             "add cxn")
+ :end 263
  :open nil)

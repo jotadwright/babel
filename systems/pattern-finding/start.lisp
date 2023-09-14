@@ -28,10 +28,13 @@
                               (:anti-unification-mode . :heuristic)
                               (:partial-analysis-mode . :heuristic)
                               (:allow-cxns-with-no-strings . nil)
-                              (:repair-recursively . nil)
+                              (:repair-recursively . t)
                               (:max-nr-of-nodes . 2000)
                               (:corpus-file . ,(make-pathname :directory '(:relative "val")
                                                               :name "stage-1" :type "jsonl"))))))
+
+;; => with AU-mode + PA-mode :exhaustive; interaction 16 needs more nodes...
+;; => try out: push meets predicates to delta's when connected?
 
 ;; use sequences as form-representation
 ;; also requires different cxn supplier!
@@ -52,18 +55,10 @@
 
 (length (corpus *experiment*))
 
-;;; INTERACTION 15: not enough nodes in the sandbox cxn inventory...
-
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
 (run-series *experiment* 100)
-
-;; is de sanity check wel correct?
-;; interactie 9: cube-rubber-of-the cxn geleerd
-;; observatie 9: What size is the purple rubber sphere?
-;; interactie 14: anti-unificatie met cube-rubber-of-the cxn
-;; geen overlap met observatie 9...
 
 ;;;; Showing the cxn inventory and categorial network
 
@@ -71,6 +66,8 @@
 (defparameter *categorial-network* (categorial-network *cxn-inventory*))
 (add-element (make-html *cxn-inventory* :sort-by-type-and-score t))
 (add-element (make-html (categorial-network *cxn-inventory*)))
+
+(setf *cxn* (find-cxn 'rubber-the-of-cube-item-based-cxn-1-apply-last *cxn-inventory*))
 
 ;;;; Manually trying out sentences
 
@@ -86,7 +83,7 @@
 ;;;; Time travel
 
 (go-back-n-interactions *experiment* 1)
-(remove-cxns-learned-at *experiment* 13)
+(remove-cxns-learned-at *experiment* 9)
 
 (defun go-back-n-interactions (experiment n)
   (setf (interactions experiment)
