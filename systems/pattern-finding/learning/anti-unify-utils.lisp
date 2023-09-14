@@ -270,33 +270,59 @@
 ;; anti-unify utils ;;
 ;;;;;;;;;;;;;;;;;;;;;;
 
-(defun push-meets-to-deltas (anti-unification-result)
+(defun push-meets-to-deltas (anti-unification-result pattern-top-args source-top-args)
   (with-slots (generalisation
                pattern-bindings
                source-bindings
                pattern-delta
                source-delta) anti-unification-result
-    (let ((generalisation-meets
-           (find-all 'meets generalisation :key #'first))
-          (generalisation-string-vars
-           (remove-duplicates (mapcar #'second (find-all 'string generalisation :key #'first)))))
-      (dolist (meets-predicate generalisation-meets)
-        (let ((left-var (second meets-predicate))
-              (right-var (third meets-predicate)))
-          (when (and (not (find left-var generalisation-string-vars))
-                     (not (find right-var generalisation-string-vars)))
-          (let* ((meets-predicate-in-source
-                  (list 'meets
-                        (first (rassoc left-var source-bindings))
-                        (first (rassoc right-var source-bindings))))
-                 (meets-predicate-in-pattern
-                  (list 'meets
-                        (first (rassoc left-var pattern-bindings))
-                        (first (rassoc right-var pattern-bindings)))))
-            (push meets-predicate-in-source source-delta)
-            (push meets-predicate-in-pattern pattern-delta)
-            (setf generalisation (remove meets-predicate generalisation :test #'equal))))))
-      anti-unification-result)))
+    (let* ((generalisation-meets
+            (find-all 'meets generalisation :key #'first))
+           (generalisation-string-vars
+            (remove-duplicates (mapcar #'second (find-all 'string generalisation :key #'first))))
+           (source-delta-string-vars
+            (remove-duplicates (mapcar #'second (find-all 'string source-delta :key #'first))))
+           (pattern-delta-string-vars
+            (remove-duplicates (mapcar #'second (find-all 'string pattern-delta :key #'first))))
+           (potential-meets-to-move
+            (loop for meets-predicate in generalisation-meets
+                  for left-var = (second meets-predicate)
+                  for right-var = (third meets-predicate)
+                  when (and (not (find left-var generalisation-string-vars))
+                            (not (find right-var generalisation-string-vars)))
+                  collect meets-predicate)))
+      (loop for meets-predicate in potential-meets-to-move
+            for left-var = (second meets-predicate)
+            for right-var = (third meets-predicate)
+            for connected-in-source
+              = (or (find (first (rassoc left-var source-bindings)) source-delta-string-vars)
+                    (find (first (rassoc right-var source-bindings)) source-delta-string-vars))
+            for connected-in-pattern
+              = (or (find (first (rassoc left-var pattern-bindings)) pattern-delta-string-vars)
+                    (find (first (rassoc right-var pattern-bindings)) pattern-delta-string-vars))
+            when (and connected-in-source connected-in-pattern)
+            do (push (list 'meets
+                           (first (rassoc left-var source-bindings))
+                           (first (rassoc right-var source-bindings)))
+                     source-delta)
+               (push (list 'meets
+                           (first (rassoc left-var pattern-bindings))
+                           (first (rassoc right-var pattern-bindings)))
+                     pattern-delta)
+               (setf generalisation (remove meets-predicate generalisation :test #'equal))
+            unless (or (find-anywhere left-var generalisation)
+                       (find (first (rassoc left-var pattern-bindings)) pattern-top-args)
+                       (find (first (rassoc left-var source-bindings)) source-top-args))
+             do (progn
+                  (setf source-bindings (remove left-var source-bindings :key #'cdr))
+                  (setf pattern-bindings (remove left-var pattern-bindings :key #'cdr)))
+            unless (or (find-anywhere right-var generalisation)
+                       (find (first (rassoc right-var pattern-bindings)) pattern-top-args)
+                       (find (first (rassoc right-var source-bindings)) source-top-args))
+              do (progn
+                   (setf source-bindings (remove right-var source-bindings :key #'cdr))
+                   (setf pattern-bindings (remove right-var pattern-bindings :key #'cdr)))))
+    anti-unification-result))
 
 (defun rerename-pattern-variables (anti-unification-result renamings)
   (with-slots (generalisation

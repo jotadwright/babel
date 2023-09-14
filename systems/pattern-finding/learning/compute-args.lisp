@@ -158,6 +158,7 @@
                                  (holistic-form-top-args
                                   (restore-original-input generalisation source-bindings source-delta)
                                   (get-configuration (cxn-inventory anti-unified-cxn) :form-representation-formalism)))))
+        (setf anti-unification-result (push-meets-to-deltas anti-unification-result pattern-top-args source-top-args))
         (multiple-value-bind (gen-binding-vars pattern-binding-vars source-binding-vars)
             (loop for (pattern-var . generalisation-var) in (reverse pattern-bindings)
                   for (source-var . nil) in (reverse source-bindings)
