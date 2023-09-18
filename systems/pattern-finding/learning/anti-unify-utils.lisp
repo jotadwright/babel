@@ -156,6 +156,10 @@
       (setf valid-anti-unification-results
             (loop for au-result in valid-anti-unification-results
                   collect (rerename-pattern-variables au-result renamings)))
+      ;; intern everything
+      (setf valid-anti-unification-results
+            (loop for au-result in valid-anti-unification-results
+                  collect (intern-au-result au-result)))
       (sort valid-anti-unification-results #'< :key #'fcg::cost))))
 
 
@@ -247,6 +251,10 @@
       (setf valid-anti-unification-results
             (loop for au-result in valid-anti-unification-results
                   collect (rerename-pattern-variables au-result renamings)))
+      ;; intern everything
+      (setf valid-anti-unification-results
+            (loop for au-result in valid-anti-unification-results
+                  collect (intern-au-result au-result)))
       (sort valid-anti-unification-results #'< :key #'fcg::cost))))
 
 (defmethod anti-unify-meaning (source-meaning (cipn cip-node) &key max-au-cost)
@@ -268,11 +276,35 @@
       (setf valid-anti-unification-results
             (loop for au-result in valid-anti-unification-results
                   collect (rerename-pattern-variables au-result renamings)))
+      ;; intern everything
+      (setf valid-anti-unification-results
+            (loop for au-result in valid-anti-unification-results
+                  collect (intern-au-result au-result)))
       (sort valid-anti-unification-results #'< :key #'fcg::cost))))
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; anti-unify utils ;;
 ;;;;;;;;;;;;;;;;;;;;;;
+
+(defun intern-au-result (anti-unification-result)
+  (with-slots (generalisation
+               pattern-bindings
+               source-bindings
+               pattern-delta
+               source-delta) anti-unification-result
+    (setf generalisation
+          (loop for predicate in generalisation
+                collect (loop for elem in predicate
+                              if (variable-p elem)
+                              collect (internal-symb elem)
+                              else collect elem)))
+    (setf pattern-bindings
+          (loop for (pvar . gvar) in pattern-bindings
+                collect (cons pvar (internal-symb gvar))))
+    (setf source-bindings
+          (loop for (svar . gvar) in source-bindings
+                collect (cons svar (internal-symb gvar))))
+    anti-unification-result))
 
 (defun push-meets-to-deltas (anti-unification-result pattern-top-args source-top-args)
   (with-slots (generalisation

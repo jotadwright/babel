@@ -31,10 +31,9 @@
                               (:repair-recursively . t)
                               (:max-nr-of-nodes . 2000)
                               (:corpus-file . ,(make-pathname :directory '(:relative "val")
-                                                              :name "stage-1" :type "jsonl"))))))
+                                                              :name "stage-1-clean" :type "jsonl"))))))
 
 ;; => with AU-mode + PA-mode :exhaustive; interaction 16 needs more nodes...
-;; => try out: push meets predicates to delta's when connected?
 
 ;; use sequences as form-representation
 ;; also requires different cxn supplier!
@@ -58,7 +57,7 @@
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 100)
+(run-series *experiment* 20)
 
 ;;;; Showing the cxn inventory and categorial network
 

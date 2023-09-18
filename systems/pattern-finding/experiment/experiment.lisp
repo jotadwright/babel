@@ -101,7 +101,10 @@
   (read-from-string meaning))
 
 (defmethod pre-process-meaning-data (data (mode (eql :irl)))
-  (fresh-variables (read-from-string data)))
+  ;(fresh-variables (read-from-string data)))
+  (let ((meaning (read-from-string data)))
+    (inc-var-ids meaning)
+    meaning))
 
 (defmethod pre-process-meaning-data (meaning (mode (eql :amr)))
   (let ((*package* (find-package "GL-DATA"))
@@ -127,9 +130,14 @@
               (let ((raw-data (stream->list stream)))
                 (loop for raw-line in raw-data
                       for line = (decode-json-from-string raw-line)
-                      collect (cons (cdr (assoc :utterance line))
-                                    (pre-process-meaning-data (cdr (assoc :meaning line))
+                      for utterance = (cdr (assoc :utterance line))
+                      for meaning = (cdr (assoc :meaning line))
+                      collect (cons utterance
+                                    (pre-process-meaning-data meaning
                                                               meaning-representation)))))))
+      (setf file-data
+            (loop for (utterance . meaning) in file-data
+                  collect (cons utterance (fresh-variables meaning))))
       (when (and shufflep sortp)
         (error "Cannot shuffle and sort the data"))
       (when remove-duplicates-p

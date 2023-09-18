@@ -161,7 +161,7 @@
     (let* ((form-top-args
             (or
              (loop for arg in (cipn-form-top-args anti-unified-cipn)
-                   collect (map-var-from-pattern-to-source (make-symbol (mkstr (variablify arg))) form-anti-unification))
+                   collect (map-var-from-pattern-to-source (variablify arg) form-anti-unification))
              (holistic-form-top-args observation-form (get-configuration cxn-inventory :form-representation-formalism))))
            (meaning-top-args
             (or
@@ -172,7 +172,7 @@
             (sort
              (loop for (category . args) in (cipn-form-slot-args anti-unified-cipn :by-category-p t)
                    collect (cons category
-                                 (loop for arg in args collect (make-symbol (mkstr (variablify arg))))))
+                                 (loop for arg in args collect (variablify arg))))
              #'string< :key #'car))
            (meaning-slot-args
             (sort
@@ -241,7 +241,7 @@
            (form-top-arg-groups
             (loop for (category . args) in (cipn-form-top-args anti-unified-cipn :by-category-p t)
                   collect (cons category
-                                (loop for arg in args collect (make-symbol (mkstr (variablify arg)))))))
+                                (loop for arg in args collect (variablify arg)))))
            (meaning-top-arg-groups
             (loop for (category . args) in (cipn-meaning-top-args anti-unified-cipn :by-category-p t)
                   collect (cons category

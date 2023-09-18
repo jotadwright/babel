@@ -539,33 +539,54 @@
 ;; Variablify
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun inc-var-id (var)
+  (let ((name (format nil "~a" (get-base-name var :remove-question-mark nil)))
+        (id (parse-integer (last-elt (split-string (format nil "~a" var) "-")))))
+    (if (gethash name utils::*nid-table*)
+      (when (>= id (gethash name utils::*nid-table*))
+        (setf (gethash name utils::*nid-table*) id))
+      (setf (gethash name utils::*nid-table*) id))))
+    
+
+(defun inc-var-ids (meaning-network)
+  (loop for predicate in meaning-network
+        do (loop for el in predicate
+                      do (when (variable-p el)
+                                (inc-var-id el)))
+        finally (return meaning-network)))
+
+
 (defun fresh-variables (set-of-predicates)
-  (let* ((all-variables (find-all-anywhere-if #'variable-p set-of-predicates))
-         (unique-variables (remove-duplicates all-variables))
-         (renamings (loop for var in unique-variables
-                          for base-name = (get-base-name var)
-                          collect (cons var (make-var base-name)))))
-    (values (substitute-bindings renamings set-of-predicates)
-            renamings)))
+  (labels ((subst-bindings (bindings)
+             (loop for predicate in set-of-predicates
+                   collect (loop for elem in predicate
+                                 for rplc = (assoc elem bindngs)
+                                 if rplc collect (cdr rplc)
+                                 else collect elem))))
+    (let* ((all-variables (find-all-anywhere-if #'variable-p set-of-predicates))
+           (unique-variables (remove-duplicates all-variables))
+           (renamings (loop for var in unique-variables
+                            for base-name = (get-base-name var)
+                            collect (cons var (internal-symb (make-var base-name))))))
+      (values (subst-bindings renamings set-of-predicates)
+              renamings))))
 
 
 (defun variablify-form-constraints-with-constants (form-constraints-with-constants)
   "Variablify the constants in the form constraints"
-  (labels ((symbol-variablify (symbol)
-             (make-symbol (upcase (mkstr (variablify symbol))))))
-    (loop for form-constraint in form-constraints-with-constants
-          for constraint = (first form-constraint)
-          collect (cons constraint
-                        (case constraint
-                          (string (list (symbol-variablify (second form-constraint))
+  (loop for form-constraint in form-constraints-with-constants
+        for constraint = (first form-constraint)
+        collect (cons constraint
+                      (case constraint
+                        (string (list (variablify (second form-constraint))
+                                      (third form-constraint)))
+                        (meets (mapcar #'variablify (rest form-constraint)))
+                        (top-arg (list (variablify (second form-constraint))
+                                       (third form-constraint)))
+                        (slot-arg (list (variablify (second form-constraint))
                                         (third form-constraint)))
-                          (meets (mapcar #'symbol-variablify (rest form-constraint)))
-                          (top-arg (list (symbol-variablify (second form-constraint))
-                                         (third form-constraint)))
-                          (slot-arg (list (symbol-variablify (second form-constraint))
-                                          (third form-constraint)))
-                          (sequence (cons (second form-constraint)
-                                          (mapcar #'symbol-variablify (cddr form-constraint)))))))))
+                        (sequence (cons (second form-constraint)
+                                        (mapcar #'variablify (cddr form-constraint))))))))
 
 
 (defun fresh-variablify-form-constraints-with-constants (form-constraints-with-constants)
@@ -574,7 +595,7 @@
    (const . var) bindings lists."
   (labels ((substitute-constants (bindings x)
              (if (atom x)
-               (let ((y (assoc x bindings :test #'eq)))
+               (let ((y (assoc x bindings)))
                  (if (and y (not (eq (cdr y) x)))
                    (substitute-constants bindings (cdr y))
                    x))
@@ -590,7 +611,7 @@
            (renamings (loop for const in unique-constants
                             for base-name = (get-base-name const)
                             unless (variable-p const)
-                            collect (cons const (if (numberp const) (make-var) (make-var base-name))))))
+                            collect (cons const (internal-symb (if (numberp const) (make-var) (make-var base-name)))))))
       (values (substitute-constants renamings form-constraints-with-constants)
               renamings))))
 
