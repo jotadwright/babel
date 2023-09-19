@@ -10,10 +10,11 @@
   (activate-monitor trace-interactions-in-wi-verbose))
 
 (progn
-  (deactivate-all-monitors)
+  (monitors::deactivate-all-monitors)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
   ;(activate-monitor show-type-hierarchy-after-n-interactions)
+  (activate-monitor display-metrics)
   )
 
 ;; make experiment
@@ -25,14 +26,15 @@
   (defparameter *experiment*
     (make-instance 'pattern-finding-experiment
                    :entries `((:comprehend-all-n . 2)
-                              (:shuffle-data-p . nil)
+                              (:shuffle-data-p . t)
                               (:number-of-epochs . 20)
-                              (:repair-recursively . t)
+                              (:repair-recursively . nil)
                               (:allow-cxns-with-no-strings . nil)
-                              (:max-nr-of-nodes . 2000)
+                              (:max-nr-of-nodes . 5000)
                               (:alignment-strategy . :lateral-inhibition)
                               (:anti-unification-mode . :heuristic)
                               (:partial-analysis-mode . :heuristic)
+                              (:push-meets-to-deltas . t)
                               (:corpus-directory . ,(babel-pathname :directory '("experiments" "grammar-learning" "cooking" "data")))
                               (:corpus-file . ,(make-pathname :name "benchmark-ingredients-cleaned" :type "jsonl"))))))
 
@@ -46,9 +48,9 @@
                               (:shuffle-data-p . nil)
                               (:sort-data-p . t)
                               (:number-of-epochs . 20)
-                              (:repair-recursively . t)
+                              (:repair-recursively . nil)
                               (:allow-cxns-with-no-strings . nil)
-                              (:max-nr-of-nodes . 2000)
+                              (:max-nr-of-nodes . 5000)
                               (:alignment-strategy . :lateral-inhibition)
                               (:anti-unification-mode . :heuristic)
                               (:partial-analysis-mode . :heuristic)
@@ -58,11 +60,12 @@
 (length (corpus *experiment*))
 
 (run-interaction *experiment*)
-(run-series *experiment* 469)
+(run-series *experiment* 10)
+(run-series *experiment* (* 19 263))
 (run-series *experiment* (length (corpus *experiment*)))         
 
 (defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
-(add-element (make-html *cxn-inventory* :sort-by-type-and-score t))
+(add-element (make-html *cxn-inventory* :sort-by-type-and-score t))s
 (add-element (make-html (categorial-network *cxn-inventory*)))
 
 ;;;; RESULTS
@@ -102,34 +105,34 @@
 (defun run-training ()
   (wi::reset)
   (run-experiments `(
-                     (recipes-recursive-all-heuristic
+                     (recipes-non-recursive-all-heuristic
                       ((:anti-unification-mode . :heuristic)
                        (:partial-analysis-mode . :heuristic)
-                       (:experiment-name . recipes-recursive-all-heuristic)))                     
-                     (recipes-recursive-au-exhaustive-pa-heuristic
+                       (:experiment-name . recipes-non-recursive-all-heuristic)))                     
+                     (recipes-non-recursive-au-exhaustive-pa-heuristic
                       ((:anti-unification-mode . :exhaustive)
                        (:partial-analysis-mode . :heuristic)
-                       (:experiment-name . recipes-recursive-au-exhaustive-pa-heuristic)))
-                     (recipes-recursive-au-heuristic-pa-exhaustive
+                       (:experiment-name . recipes-non-recursive-au-exhaustive-pa-heuristic)))
+                     (recipes-non-recursive-au-heuristic-pa-exhaustive
                       ((:anti-unification-mode . :heuristic)
                        (:partial-analysis-mode . :exhaustive)
-                       (:experiment-name . recipes-recursive-au-heuristic-pa-exhaustive)))
-                     (recipes-recursive-all-exhaustive
+                       (:experiment-name . recipes-non-recursive-au-heuristic-pa-exhaustive)))
+                     (recipes-non-recursive-all-exhaustive
                       ((:anti-unification-mode . :exhaustive)
                        (:partial-analysis-mode . :exhaustive)
-                       (:experiment-name . recipes-recursive-all-exhaustive)))
+                       (:experiment-name . recipes-non-recursive-all-exhaustive)))
                      )
                    :shared-configuration `((:comprehend-all-n . 2)
                                            (:shuffle-data-p . nil)
                                            (:sort-data-p . t)
-                                           (:number-of-epochs . 30)
-                                           (:repair-recursively . t)
+                                           (:number-of-epochs . 10)
+                                           (:repair-recursively . nil)
                                            (:max-nr-of-nodes . 5000)
                                            (:allow-cxns-with-no-strings . nil)
                                            (:corpus-directory . ,(babel-pathname :directory '("experiments" "grammar-learning" "cooking" "data")))
                                            (:corpus-file . ,(make-pathname :name "benchmark-recipes-cleaned" :type "jsonl"))
                                            (:output-dir . ,(babel-pathname :directory '("systems" "pattern-finding" "raw-data"))))
-                   :number-of-interactions (- (* 30 469) 1)
+                   :number-of-interactions (- (* 10 469) 1)
                    :number-of-series 1
                    :monitors (append '("print-a-dot-for-each-interaction"
                                        "summarize-results-after-n-interactions")

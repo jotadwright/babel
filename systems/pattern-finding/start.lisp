@@ -15,6 +15,14 @@
   ;(activate-monitor show-type-hierarchy-after-n-interactions)
   )
 
+;; TO DO
+;; Reduce complexity (turn off partial analysis, only apply
+;; repairs recursively for holistic parts, ...) and see what
+;; types of cxns are being learned. Are the cxns learned
+;; through anti-unification compatible with those learned
+;; through partial analysis? 
+
+
 ;; default: use string and meets as form-representation
 (progn
   (wi::reset)
@@ -32,8 +40,6 @@
                               (:max-nr-of-nodes . 2000)
                               (:corpus-file . ,(make-pathname :directory '(:relative "val")
                                                               :name "stage-1-clean" :type "jsonl"))))))
-
-;; => with AU-mode + PA-mode :exhaustive; interaction 16 needs more nodes...
 
 ;; use sequences as form-representation
 ;; also requires different cxn supplier!
