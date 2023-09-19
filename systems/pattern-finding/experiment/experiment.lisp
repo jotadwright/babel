@@ -54,6 +54,7 @@
 (define-configuration-default-value :partial-analysis-mode :exhaustive) ; :exhaustive or :heuristic
 (define-configuration-default-value :run-sanity-check nil)
 (define-configuration-default-value :repair-recursively t)
+(define-configuration-default-value :push-meets-to-deltas nil)
 
 ;; Misc
 (define-configuration-default-value :categorial-network-export-interval 1000)
