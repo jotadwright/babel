@@ -540,19 +540,21 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun inc-var-id (var)
-  (let ((name (format nil "~a" (get-base-name var :remove-question-mark nil)))
-        (id (parse-integer (last-elt (split-string (format nil "~a" var) "-")))))
-    (if (gethash name utils::*nid-table*)
-      (when (>= id (gethash name utils::*nid-table*))
-        (setf (gethash name utils::*nid-table*) id))
-      (setf (gethash name utils::*nid-table*) id))))
+  (let ((name (get-base-name var :remove-question-mark nil))
+        (id (parse-integer (last-elt (split-string (format nil "~a" var) "-"))
+                           :junk-allowed t)))
+    (when id
+      (if (gethash name utils::*nid-table*)
+        (when (>= id (gethash name utils::*nid-table*))
+          (setf (gethash name utils::*nid-table*) id))
+        (setf (gethash name utils::*nid-table*) id)))))
     
 
 (defun inc-var-ids (meaning-network)
   (loop for predicate in meaning-network
         do (loop for el in predicate
-                      do (when (variable-p el)
-                                (inc-var-id el)))
+                 when (variable-p el)
+                 do (inc-var-id el))
         finally (return meaning-network)))
 
 
@@ -560,16 +562,15 @@
   (labels ((subst-bindings (bindings)
              (loop for predicate in set-of-predicates
                    collect (loop for elem in predicate
-                                 for rplc = (assoc elem bindngs)
-                                 if rplc collect (cdr rplc)
+                                 for subst = (assoc elem bindings)
+                                 if subst collect (cdr subst)
                                  else collect elem))))
     (let* ((all-variables (find-all-anywhere-if #'variable-p set-of-predicates))
            (unique-variables (remove-duplicates all-variables))
            (renamings (loop for var in unique-variables
                             for base-name = (get-base-name var)
                             collect (cons var (internal-symb (make-var base-name))))))
-      (values (subst-bindings renamings set-of-predicates)
-              renamings))))
+      (values (subst-bindings renamings) renamings))))
 
 
 (defun variablify-form-constraints-with-constants (form-constraints-with-constants)
@@ -593,14 +594,12 @@
   "Variablify the constants in the form constraints with fresh variables.
    Uses a locally defined version of substitute-bindings that can handle
    (const . var) bindings lists."
-  (labels ((substitute-constants (bindings x)
-             (if (atom x)
-               (let ((y (assoc x bindings)))
-                 (if (and y (not (eq (cdr y) x)))
-                   (substitute-constants bindings (cdr y))
-                   x))
-               (cons (substitute-constants bindings (car x))
-                     (substitute-constants bindings (cdr x))))))
+  (labels ((subst-constants (bindings)
+             (loop for form-constraint in form-constraints-with-constants
+                   collect (loop for elem in form-constraint
+                                 for subst = (assoc elem bindings)
+                                 if subst collect (cdr subst)
+                                 else collect elem))))
     (let* ((all-constants (loop for form-constraint in form-constraints-with-constants
                                 for constraint = (first form-constraint)
                                 append (case constraint
@@ -612,8 +611,7 @@
                             for base-name = (get-base-name const)
                             unless (variable-p const)
                             collect (cons const (internal-symb (if (numberp const) (make-var) (make-var base-name)))))))
-      (values (substitute-constants renamings form-constraints-with-constants)
-              renamings))))
+      (values (subst-constants renamings) renamings))))
 
 
 ;;;;;
