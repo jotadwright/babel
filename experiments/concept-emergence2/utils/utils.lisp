@@ -37,6 +37,14 @@
         (configuration (make-configuration :entries (configuration experiment))))
   (set-configuration experiment :switch-condition :none))
 
+(defun find-agent (id experiment)
+  "Given an integer id, returns the associated agent"
+  (let ((agent (loop for agent in (agents experiment)
+                     for found-id = (second (split-sequence:split-sequence #\- (mkstr (id agent))))
+                       do (when (equal (mkstr id) found-id)
+                         (return agent)))))
+    agent))
+
 (defun list-to-hash-table (lst &key (key #'identity))
   "Creates a hash table given a list."
   (loop with tbl = (make-hash-table)
@@ -59,7 +67,7 @@
 
 (defun generate-csv-for-tuning (filename exp-prefix default-config tuned-params)
   (with-open-file (str (namestring (merge-pathnames (format nil "~a.csv" filename)
-                                                    (asdf:system-relative-pathname "cle" "batch/data/")
+                                                    (asdf:system-relative-pathname "cle" "batch/data-train/")
                                                     ))
                        :direction :output
                        :if-exists :supersede
@@ -119,10 +127,10 @@
   "Loads and returns the store object in the given directory." 
   (let ((store-path (merge-pathnames (make-pathname :name name :type "store")
                                      store-dir)))
-    (cl-store:restore store-path)))     
+    (cl-store:restore store-path)))
 
-#|(generate-csv-for-tuning "tuning2"
-                         "tune-mid-august2"
+#|(generate-csv-for-tuning "tune-clevr"
+                         "tune-clevr"
                          `((:id . "?")
                            (:exp-name . "?")
                            (:nr-of-series . 5)
@@ -144,19 +152,18 @@
                            (:entrenchment-incf . 0.1)
                            (:entrenchment-decf . -0.1)
                            (:entrenchment-li . -0.02)
-                           (:trash-concepts . nil)
+                           (:trash-concepts . t)
                            (:weight-update-strategy . :j-interpolation)
                            (:initial-weight . 0)
                            (:weight-incf . 1)
-                           (:weight-decf . -1)
-                           (:switch-condition . :after-n-interactions)
-                           (:switch-conditions-after-n-interactions . 250000)
+                           (:weight-decf . -5)
+                           (:switch-condition . :none)
+                           (:switch-conditions-after-n-interactions . 0)
                            (:stage-parameters ,'((:do-nothing . t))))
-                         `(;(:similarity-threshold 0.0 0.01 0.05); 0.1 0.2)
+                         `((:similarity-threshold 0.0 0.001 0.005 0.01 0.05 0.1 0.2 0.3)
                            (:initial-weight 0 35)
-                           (:weight-decf -1 -5 -10 -20)
-                           (:entrenchment-li -0.001 -0.005 -0.01 -0.02); -0.05 -0.1)
-                           (:trash-concepts nil t)
+                           (:weight-decf -1 -2 -3 -5)
+                           (:entrenchment-li -0.0001 -0.0005 -0.001 -0.005 -0.01 -0.02 -0.05)
                            ))|#
 
 

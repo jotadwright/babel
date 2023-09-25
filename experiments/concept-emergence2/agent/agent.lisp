@@ -57,7 +57,9 @@
         (sensor-noise (noise-in-sensor agent attr (get-configuration (experiment agent) :sensor-noise)))
         (observation-noise (noise-in-observation agent attr (get-configuration (experiment agent) :observation-noise))))
     (if raw-observation-val
-      (+ raw-observation-val sensor-noise observation-noise)
+      (if (or (> sensor-noise 0) (> observation-noise 0))
+        (min (max 0 (+ raw-observation-val sensor-noise observation-noise)) 1)
+        raw-observation-val)
       nil)))
 
 (defmethod perceive-object-val ((agent cle-agent) (object cle-object) attr)
@@ -106,7 +108,7 @@
   "Determines a standard deviation for each sensor at each observation."
   (loop with remaining-channels = (set-difference (get-configuration experiment :available-channels) disabled-channels)
         for channel in remaining-channels
-        for shift = (random-gaussian 0 (get-configuration experiment :observation-std))
+        for shift = (get-configuration experiment :observation-std)
         collect (cons channel shift)))
 
 (defmethod noise-in-observation ((agent cle-agent) (attr symbol) (mode (eql :none)))

@@ -1,15 +1,11 @@
-#!/usr/bin/env python
-
-import os
 import argparse
+import os
+
 import matplotlib.pyplot as plt
-
 from matplotlib.figure import figaspect
-from utils import GREAT_GNUPLOT_COLORS, BABEL_PATHNAME
-from utils import pathname_name, pathname_directory
-from utils import get_error_bar_distance
-from plot_raw_evo_data import collect_data_for_evo_plot
-
+from read_evo import collect_data_for_evo_plot
+from utils import (BABEL_PATHNAME, GREAT_GNUPLOT_COLORS,
+                   get_error_bar_distance, pathname_directory, pathname_name)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--raw-file-paths', required=True, nargs='+',
@@ -50,7 +46,7 @@ parser.add_argument('--plot-directory', default=None, type=str,
 parser.add_argument('--graphic-type', default='pdf', type=str,
                     choices=['pdf', 'png', 'svg', 'ps'],
                     help='Type of the graphic file.')
-parser.add_argument('--file-type', default='csv', type=str,
+parser.add_argument('--file-type', default='csv', type=str, required=True,
                     help='Type of the raw data files.')
 parser.add_argument('--only-x-last-interactions', default=None, type=int,
                     help='Only plot the x last interactions.')

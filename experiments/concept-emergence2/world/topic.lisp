@@ -56,22 +56,41 @@
         (sample-scene experiment (get-configuration experiment :scene-sampling))
         (sample-topic experiment (get-configuration experiment :topic-sampling))))))
 
+(defmethod sample-topic (experiment (mode (eql :discr-color)))
+  "Only objects that can be distinguished using a single metadata dimension can serve as topic."
+  (let* ((interaction (current-interaction experiment))
+         (agent (first (interacting-agents experiment)))
+         (cle-scene (find-data agent 'context))
+         (dataset (parse-keyword (get-configuration experiment :dataset)))
+         (candidate-topics (filter-discriminative-topics dataset (objects cle-scene) :attribute :color)))
+    (if candidate-topics
+      (loop with cle-topic = (random-elt candidate-topics)
+            for agent in (interacting-agents experiment)
+            do (set-data agent 'topic cle-topic))
+      (progn
+        (sample-scene experiment (get-configuration experiment :scene-sampling))
+        (sample-topic experiment (get-configuration experiment :topic-sampling))))))
+
 ;; --------------------
 ;; + Helper functions +
 ;; --------------------
-(defun filter-discriminative-topics (dataset context)
+(defun filter-discriminative-topics (dataset context &key attribute)
   "Determines which objects in the context are discriminative."
   (loop for object in context
-        when (is-discriminative dataset object (remove object context))
+        when (is-discriminative dataset object (remove object context) :attribute attribute)
         collect object))
 
-(defun is-discriminative (dataset object other-objects)
+(defun is-discriminative (dataset object other-objects &key (attribute nil))
   "Checks if the object has a single channel dimension that is different from all other objects."
   (loop for (attr . val) in (description object)
+        
         do (when (is-channel-available dataset attr (attributes object))
-             (let ((discriminative (loop for other-object in other-objects
-                                         for other-val = (assqv attr (description other-object))
-                                         always (not (equal val other-val)))))
+             (let ((discriminative (cond ((and attribute (not (eq attr attribute)))
+                                          nil)
+                                         (t
+                                          (loop for other-object in other-objects
+                                                for other-val = (assqv attr (description other-object))
+                                                always (not (equal val other-val)))))))
                (when discriminative
                  (return t))))))
 

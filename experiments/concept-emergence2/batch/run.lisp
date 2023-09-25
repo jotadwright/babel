@@ -14,6 +14,19 @@
           when (find key (list :exp-name :dataset :dataset-split))
             do (rplacd (assoc key config)
                        (string-downcase (string (assqv key config)))))
+    (when (assoc :stage-parameters config)
+      (let ((stage-params (assqv :stage-parameters config)))
+        (loop for stage-param in stage-params
+              do (when (assoc :switch-dataset stage-param)
+                   (rplacd (assoc :switch-dataset stage-param)
+                           (string-downcase (string (assqv :switch-dataset stage-param)))))
+              do (when (assoc :switch-dataset-split stage-param)
+                   (rplacd (assoc :switch-dataset-split stage-param)
+                           (string-downcase (string (assqv :switch-dataset-split stage-param)))))
+              do (when (and (assoc :switch-available-channels stage-param) (keywordp (assqv :switch-available-channels stage-param)))
+                   (rplacd (assoc :switch-available-channels stage-param)
+                           (get-all-channels (assqv :switch-available-channels stage-param))))
+                 )))
     config))
 
 (defun fixed-config ()
@@ -55,6 +68,6 @@
                                                "concept-emergence2"
                                                "logging"
                                                ,(assqv :exp-name config)))
-      :heap-size 12248))))
+      :heap-size 60000))))
 
 (run-parallel #+sbcl (rest sb-ext:*posix-argv*))

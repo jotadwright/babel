@@ -1,12 +1,9 @@
-#!/usr/bin/env python
-
 import os
-import pandas as pd
-
 from collections import OrderedDict
-from utils import BABEL_PATHNAME
-from utils import apply_window_over_each_series
-from utils import apply_average_across_series
+
+import pandas as pd
+from utils import (BABEL_PATHNAME, apply_average_across_series,
+                   apply_window_over_each_series)
 
 
 def read_raw_alist_data(path, file_type):

@@ -23,7 +23,7 @@ module purge
 module load SBCL/2.2.1-GCCcore-10.3.0
 
 # run script
-sbcl --dynamic-space-size 16000 --load $VSC_HOME/concept-emergence2/batch/run.lisp \
+sbcl --dynamic-space-size 60000 --load $VSC_HOME/concept-emergence2/batch/run.lisp \
     exp-name $exp_name \
     nr-of-series $nr_of_series \
     nr-of-interactions $nr_of_interactions \

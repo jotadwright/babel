@@ -2,14 +2,13 @@
 
 (in-package :cle)
 
-
 ;; experiments with entrenchment values - keep the same
 (progn
   (defparameter *baseline-simulated*
     (make-configuration
      :entries `(
                 ;; monitoring
-                (:dot-interval . 100)
+                (:dot-interval . 10)
                 (:usage-table-window . 100)
                 (:save-distribution-history . nil)
                 ;; setup interacting agents
@@ -19,26 +18,26 @@
                 (:dataset . "clevr")
                 (:dataset-split . "train")
                 ;(:data-fname . "all.lisp")
-                (:available-channels ,@(get-all-channels :all))
+                (:available-channels ,@(get-all-channels :clevr))
                 ;; disable channels
-                (:disable-channels . :none)
+                (:disable-channels . :split-by-color)
                 (:amount-disabled-channels . 0)
                 ;; noised channels
-                (:sensor-noise . :none)
-                (:sensor-std . 0.0)
-                (:observation-noise . :none)
-                (:observation-std . 0.0)
+                (:sensor-noise . :shift)
+                (:sensor-std . 0.75)
+                (:observation-noise . :shift)
+                (:observation-std . 0.75)
                 ;; scene sampling
                 (:scene-sampling . :random)
-                (:topic-sampling . :discriminative)
+                (:topic-sampling . :random)
                 ;; general strategy
                 (:align . t)
                 (:similarity-threshold . 0.0)
                 ;; entrenchment of constructions
                 (:initial-cxn-entrenchement . 0.5)
                 (:entrenchment-incf . 0.1)
-                (:entrenchment-decf . -0.1)
-                (:entrenchment-li . -0.01) ;; lateral inhibition
+                (:entrenchment-decf . -0.01)
+                (:entrenchment-li . -0.02) ;; lateral inhibition
                 (:trash-concepts . t)
                 ;; concept representations
                 (:concept-representation . :distribution)
@@ -48,12 +47,12 @@
                 (:weight-update-strategy . :j-interpolation)
                 (:initial-weight . 0)
                 (:weight-incf . 1)
-                (:weight-decf . -1)
+                (:weight-decf . -5)
                 ;; staging
-                (:switch-condition . :none) ; :after-n-interactions)
-                (:switch-conditions-after-n-interactions . 200) 
+                (:switch-condition . :after-n-interactions) ; :after-n-interactions)
+                (:switch-conditions-after-n-interactions . 2500) 
                 (:stage-parameters
-                 ((:switch-disable-channels ,'area ,'bb-area))
+                 ((:switch-disable-channels-half . 15))
                  )
                 ;; saving
                 (:experiment-name . "test")
@@ -63,27 +62,100 @@
   (notify reset-monitors)
   (wi::reset))
 
-;; 1. run x interactions
-(notify reset-monitors)
+(progn
+  (wi::reset)
+  (notify reset-monitors)
+  (deactivate-all-monitors)
+  (activate-monitor export-communicative-success)
+  (activate-monitor export-lexicon-coherence)
+    ;(activate-monitor export-unique-form-usage)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (format t "~%---------- NEW GAME ----------~%")
+  (time
+   (loop for i from 1 to 1000
+         do (run-interaction *experiment*))))
 
 (progn
   (wi::reset)
   (deactivate-all-monitors)
-  (activate-monitor export-communicative-success)
-  (activate-monitor export-lexicon-coherence)
-  ;(activate-monitor export-unique-form-usage)
-  (activate-monitor print-a-dot-for-each-interaction)
-  (format t "~%---------- NEW GAME ----------~%")
-  (time
-   (loop for i from 1 to 10000
-         do (run-interaction *experiment*))))
+  (activate-monitor trace-interaction-in-web-interface)
+  (loop for idx from 1 to 1
+        do (run-interaction *experiment*)))
+
+(display-lexicon (find-agent 1 *experiment*) :sort t)
+
+
+
+(progn
+  
+
+  (progn
+    (set-configuration *experiment* :dot-interval 10)
+    #|(set-configuration *experiment* :scene-sampling :random)
+  (set-configuration *experiment* :topic-sampling :random)
+  (set-configuration *experiment* :dataset "clevr")
+  (set-configuration *experiment* :dataset-split "train")
+  (set-configuration *experiment* :available-channels (get-all-channels :clevr))
+  (set-configuration *experiment* :align nil)|#
+  ;(initialise-world *experiment*)
+    (setup-next-condition *experiment*))
+
+  (progn
+    (format t "~% words so far: ~a" utils::*words-so-far*)
+    (setf utils::*words-so-far* nil)
+    (loop for agent in (agents *experiment*)
+          do (loop for cxn in (lexicon agent)
+                   do (setf utils::*words-so-far* (push (form cxn) utils::*words-so-far*)))
+          do (loop for cxn in (trash agent)
+                   do (setf utils::*words-so-far* (push (form cxn) utils::*words-so-far*))))
+    (setf utils::*words-so-far* (remove-duplicates utils::*words-so-far* :test #'equal))
+    (format t "~% after words so far: ~a" utils::*words-so-far*))
+  
+
+
+
+  (progn
+    (loop for agent in (agents *experiment*)
+          do (loop for cxn in (lexicon agent)
+                   do (format t "~%~a: ~a" (id agent) (form cxn))))
+    (format t "~% TRASH")
+    (loop for agent in (agents *experiment*)
+          do (loop for cxn in (trash agent)
+                   do (format t "~%~a: ~a" (id agent) (form cxn)))))
+
+  )
+
+
+
+#|(loop with lst = (list 1 2 3)
+      for obj in lst
+      do (format t "~% ~a, ~a" obj lst))
+(count "target" (loop for i from 1 to 10
+                      collect (assqv :function (description (find-anomaly (find-agent i *experiment*))))) :test #'equal)
+(description obj)
+(loop for agent in (agents *experiment*)
+      do (format t "~%~% ===== agent ~a" (id agent))
+      do (loop for k being the hash-key of (disabled-channels agent)
+               do (print k)))
+
+
+
+
+;; 1. run x interactions
+(notify reset-monitors)
+
+(add-cxn-to-interface (find-in-lexicon (find-agent 4 *experiment*) "tufede"))
+
+(loop for agent in (agents *experiment*)
+      do (add-cxn-to-interface (find-in-lexicon agent "kibuni")))
+
 
 (progn
   (wi::reset)
   (deactivate-all-monitors)
   ;(activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor trace-interaction-in-web-interface)
-  (loop for idx from 1 to 10
+  (loop for idx from 1 to 15
         do (run-interaction *experiment*)))
 
 ;;;;
@@ -101,63 +173,22 @@
                                           :type "store")))
   (fix-configuration *experiment*))
 
-(set-configuration *experiment* :align nil)
-
-(progn
-  (set-configuration *experiment* :dot-interval 10)
-  (set-configuration *experiment* :scene-sampling :random)
-  (set-configuration *experiment* :topic-sampling :random)
-  (set-configuration *experiment* :dataset "cogent")
-  (set-configuration *experiment* :dataset-split "valB")
-  (set-configuration *experiment* :available-channels `(
-             ,'xpos ,'ypos
-             ,'width ,'height
-             ,'angle
-             ,'corners
-             ,'area ,'relative-area
-             ,'bb-area ,'bb-area-ratio
-             ,'wh-ratio
-             ,'circle-distance
-             ,'white-level ,'black-level
-             ,'lab-mean-l ,'lab-mean-a ,'lab-mean-b
-             ,'lab-std-l ,'lab-std-a ,'lab-std-b
-             ;,'rgb-mean-r ,'rgb-mean-g ,'rgb-mean-b
-             ;,'rgb-std-r ,'rgb-std-g ,'rgb-std-b
-             ))
-  (initialise-world *experiment*))
-
-(loop for agent in (agents *experiment*)
-      for lexicon = (lexicon agent)
-      do (setf (noise-in-each-sensor agent)
-               (determine-noise-in-sensor *experiment*
-                                          nil
-                                          (get-configuration *experiment* :sensor-noise)))
-      do (setf (noise-in-each-observation agent)
-               (determine-noise-in-observation *experiment*
-                                               nil
-                                               (get-configuration *experiment* :sensor-noise)))
-      do (loop for cxn in lexicon
-               for prototypes = (prototypes (meaning cxn))
-               do (loop for prototype in prototypes
-                        if (eq (channel prototype) 'color-mean-l)
-                          do (setf (channel prototype) 'lab-mean-l)
-                        if (eq (channel prototype) 'color-mean-a)
-                          do (setf (channel prototype) 'lab-mean-a)
-                        if (eq (channel prototype) 'color-mean-b)
-                          do (setf (channel prototype) 'lab-mean-b)
-                        if (eq (channel prototype) 'color-std-l)
-                          do (setf (channel prototype) 'lab-std-l)
-                        if (eq (channel prototype) 'color-std-a)
-                          do (setf (channel prototype) 'lab-std-a)
-                        if (eq (channel prototype) 'color-std-b)
-                          do (setf (channel prototype) 'lab-std-b))))
-               
-      
-
-(objects (current-scene (world *experiment*)))
-
 
 ;;;;
+
+(loop for agent in (agents *experiment*)
+      for res = (find-in-lexicon agent "kibuni")
+      if res
+        do (add-element `((h3) ,(format nil " agent id: ~a" (id agent))))
+           (add-cxn-to-interface res :certainty-threshold 0.0))
+
+(setf popo (find-agent 10 *experiment*))
+
+
+(setf didi (find-in-lexicon (find-agent 10 *experiment*) "tizaso"))
+(add-cxn-to-interface (find-in-lexicon (find-agent 10 *experiment*) "tizaso") :certainty-threshold 0.0)
+
+(car (find-best-concept (find-agent 7 *experiment*)))
 
 (get-configuration (first (agents *experiment*)) :strategy)
 
@@ -199,8 +230,12 @@
   )
 
 
+(loop for i from 23 to 32
+        
+      do (add-cxn-to-interface (find-in-lexicon (find-agent i *experiment*) "warimi")))
+(add-cxn-to-interface (find-in-lexicon (find-agent 25 *experiment*) "warimi"))
 
-(add-cxn-to-interface (find-in-lexicon (find-agent 62) "beponi"))
+(display-lexicon (find-agent 103 *experiment*) :sort t)
 
 
 
@@ -231,11 +266,6 @@
       do (switch-channel-availability agent 'area)
       do (switch-channel-availability agent 'height))
 
-(display-lexicon 
-
-
-
-(+ 1 2)
 ;; display lexicon
 (display-lexicon (first (agents *experiment*)) :sort t :entrenchment-threshold 0.5)
 (display-lexicon (second (agents *experiment*)) :sort t :entrenchment-threshold 0.5)
@@ -737,3 +767,4 @@ is-discriminative
 
 
 
+|#
