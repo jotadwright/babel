@@ -57,6 +57,8 @@
                                                             )
                                                :name store
                                                :type "store"))))
+             (format t "~% EXP-NAME = ~a" (assqv :exp-name config)) ;; log exp-name
+             (setf *random-state* (make-random-state t)) ;; reset random state
              ;; set-up
              (set-configuration experiment :scene-sampling (assqv :scene-sampling config))
              (set-configuration experiment :topic-sampling (assqv :topic-sampling config))
