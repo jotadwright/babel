@@ -44,7 +44,10 @@
                  :description (rest (assoc :description s-expr))))
 
 (defclass cle-object (entity)
-  ((attributes
+  ((id
+    :initarg :id :accessor id :initform (make-id "OBJ") :type symbol
+    :documentation "id of the object.")
+   (attributes
     :documentation "The attributes of the object (a-list)."
     :type hash-table :accessor attributes :initarg :attributes)
    (description
@@ -72,8 +75,9 @@
 
 (defmethod print-object ((cle-object cle-object) stream)
   (pprint-logical-block (stream nil)
-    (format stream "<cle-object:~
+    (format stream "<~a:~
                         ~:_ attributes: ~{~,2f~^, ~}"
+            (id cle-object)
             (reverse (loop for channel being the hash-keys of (attributes cle-object)
                              using (hash-value value)
                            collect (cons channel value))))
