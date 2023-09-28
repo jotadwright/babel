@@ -3,10 +3,10 @@ id,exp_name,nr_of_series,nr_of_interactions,population_size,dataset,dataset_spli
 2,cogent,10,1000000,10,cogent,trainA,:cogent,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
 3,winery,10,1000000,10,winery,train,:winery,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
 4,credit,10,1000000,10,credit,train,:credit,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
-5,half-defect-1,10,1000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:after-n-interactions,500000,(((:switch-disable-channels-half . 1)))
-6,half-defect-5,10,1000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:after-n-interactions,500000,(((:switch-disable-channels-half . 5)))
-7,half-defect-10,10,1000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:after-n-interactions,500000,(((:switch-disable-channels-half . 10)))
-8,half-defect-15,10,1000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:after-n-interactions,500000,(((:switch-disable-channels-half . 15)))
+5,defect-1,10,1000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:after-n-interactions,500000,(((:switch-disable-channels-half . 1)))
+6,defect-5,10,1000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:after-n-interactions,500000,(((:switch-disable-channels-half . 5)))
+7,defect-10,10,1000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:after-n-interactions,500000,(((:switch-disable-channels-half . 10)))
+8,defect-15,10,1000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:after-n-interactions,500000,(((:switch-disable-channels-half . 15)))
 9,hetero-1,10,1000000,10,clevr,train,:clevr,:random,1,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
 10,hetero-5,10,1000000,10,clevr,train,:clevr,:random,5,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
 11,hetero-10,10,1000000,10,clevr,train,:clevr,:random,10,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
