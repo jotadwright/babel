@@ -1,7 +1,7 @@
 id,exp_name,nr_of_interactions,dataset,dataset_split,available_channels,scene_sampling,topic_sampling
 1,clevr,100000,clevr,test,:clevr,:random,:random
-2,cogenta,100000,cogent,testA,:cogent,:random,:random
-3,cogentb,100000,cogent,testB,:cogent,:random,:random
+2,cogenta,100000,cogent,testa,:cogent,:random,:random
+3,cogentb,100000,cogent,testb,:cogent,:random,:random
 4,winery,100000,winery,test,:winery,:random,:random
 5,credit,100000,credit,test,:credit,:random,:random
 6,defect-1,100000,clevr,test,:clevr,:random,:random
