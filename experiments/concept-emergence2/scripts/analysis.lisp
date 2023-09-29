@@ -7,38 +7,38 @@
 ;; + Graph creation +
 ;; ------------------
 (graph-batch-experiments2 "2023-8-mid_august4"
-                         "ra"
-                         "clevr"
-                         `()
-                         `()
+                          "ra"
+                          "clevr"
+                          `()
+                          `()
                          ;:plot :communicative-success
                          ;:plot :lexicon-coherence
-                         :plot :unique-form-usage
-                         :y-min 0
-                         :y-max 100
+                          :plot :unique-form-usage
+                          :y-min 0
+                          :y-max 100
                          ;:plot :lexicon-size
                          ;:y-max 10
-                         :start  950000
-                         :end   1000000
-                         :average-windows 5000
-                         )
+                          :start  950000
+                          :end   1000000
+                          :average-windows 5000
+                          )
 
 (get-statistics "2023-8-mid_august3"
                 "tuning2"
                 `(
-                 (:similarity-threshold 0.0)
-                 (:initial-weight 0 35)
-                 (:weight-decf -1 -5 -10 -20)
-                 (:entrenchment-li -0.001 -0.005 -0.01 -0.02); -0.05 -0.1)
-                 (:trash-concepts nil t)
-                 )
+                  (:similarity-threshold 0.0)
+                  (:initial-weight 0 35)
+                  (:weight-decf -1 -5 -10 -20)
+                  (:entrenchment-li -0.001 -0.005 -0.01 -0.02); -0.05 -0.1)
+                  (:trash-concepts nil t)
+                  )
                          
                 `(;(:similarity-threshold 0.0 0.01 0.05); 0.1 0.2)
-                 (:initial-weight 0 35)
-                 (:weight-decf -1 -5 -10 -20)
-                 (:entrenchment-li -0.001 -0.005 -0.01 -0.02); -0.05 -0.1)
-                 (:trash-concepts t)
-                 )
+                  (:initial-weight 0 35)
+                  (:weight-decf -1 -5 -10 -20)
+                  (:entrenchment-li -0.001 -0.005 -0.01 -0.02); -0.05 -0.1)
+                  (:trash-concepts t)
+                  )
                 )
 
 ;;;;;;;;;;;;;
