@@ -43,11 +43,14 @@
                    :entries `((:comprehend-all-n . 2)
                               (:shuffle-data-p . nil)
                               (:number-of-epochs . 5)
-                              (:learner-cxn-supplier . :hashed-scored-labeled) ;; do NOT ignore cxns with negative score...
+                              (:anti-unification-mode . :heuristic)
+                              (:partial-analysis-mode . :heuristic)
+                              (:allow-cxns-with-no-strings . nil)
+                              (:repair-recursively . nil)
+                              (:max-nr-of-nodes . 2000)
                               (:corpus-directory . ,(babel-pathname :directory '("systems" "postmodern-parser"
                                                                                  "data")))
                               (:corpus-file . ,(make-pathname :name "geography-for-pf" :type "jsonl"))))))
-
 (run-interaction *experiment*)
 
 (run-series *experiment* 100)
