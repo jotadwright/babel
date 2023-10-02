@@ -22,8 +22,6 @@
     ,'wh-ratio
     ,'circle-distance
     ,'white-level ,'black-level
-    ,'lab-mean-l ,'lab-mean-a ,'lab-mean-b
-    ,'lab-std-l ,'lab-std-a ,'lab-std-b
     ,'rgb-mean-r ,'rgb-mean-g ,'rgb-mean-b
     ,'rgb-std-r ,'rgb-std-g ,'rgb-std-b
     ))
