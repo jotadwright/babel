@@ -33,7 +33,20 @@
          (*cxn-inventory* (grammar (first (agents *experiment*)))))
     (values *experiment* *cxn-inventory*)))
 
+;; for old fcg
+(progn
+  (wi::reset)
+  (notify reset-monitors)
+  (reset-id-counters)
+  (defparameter *experiment*
+    (make-instance 'pattern-finding-experiment
+                   :entries `((:number-of-epochs . 5)
+                              (:comprehend-all-n . 2)
+                              (:shuffle-data-p . nil)
+                              (:corpus-directory . ,(babel-pathname :directory '("systems" "postmodern-parser" "data")))
+                              (:corpus-file . ,(make-pathname :name "geography-for-pf" :type "jsonl"))))))
 
+;; for new fcg
 (progn
   (wi::reset)
   (notify reset-monitors)
@@ -48,8 +61,7 @@
                               (:allow-cxns-with-no-strings . nil)
                               (:repair-recursively . nil)
                               (:max-nr-of-nodes . 2000)
-                              (:corpus-directory . ,(babel-pathname :directory '("systems" "postmodern-parser"
-                                                                                 "data")))
+                              (:corpus-directory . ,(babel-pathname :directory '("systems" "postmodern-parser" "data")))
                               (:corpus-file . ,(make-pathname :name "geography-for-pf" :type "jsonl"))))))
 (run-interaction *experiment*)
 
