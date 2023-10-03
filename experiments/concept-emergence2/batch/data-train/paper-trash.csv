@@ -1,0 +1,11 @@
+id,exp_name,nr_of_series,nr_of_interactions,population_size,dataset,dataset_split,available_channels,disable_channels,amount_disabled_channels,sensor_noise,sensor_std,observation_noise,observation_std,scene_sampling,topic_sampling,similarity_threshold,align,entrenchment_incf,entrenchment_decf,entrenchment_li,trash_concepts,weight_update_strategy,initial_weight,weight_incf,weight_decf,switch_condition,switch_conditions_after_n_interactions,stage_parameters
+1,clevr-10m,5,10000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+2,clevr-100m,5,100000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+3,pop-10,5,10000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+4,pop-16,5,10000000,16,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+5,pop-32,5,10000000,32,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+6,pop-64,5,10000000,64,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+7,pop-128,5,10000000,128,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+8,pop-256,5,10000000,256,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+9,pop-512,5,10000000,512,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+10,pop-1024,5,10000000,1024,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil

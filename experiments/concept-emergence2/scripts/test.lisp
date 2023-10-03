@@ -3,23 +3,115 @@
 (in-package :cle)
 
 
-;; credit fraud
+/Users/jerome/Projects/plot-babel-fast/storage/v2/all-september/ra/experiments/4-shift/shift-1/2023-09-18_23h56m40s-exp-c/stores/1-history.store
+
 (progn 
     (setf *experiment* (cl-store:restore (babel-pathname :directory `("experiments"
                                                                       "concept-emergence2"
                                                                       "storage"
                                                                       "experiments"
-                                                                      "7-supervised"
-                                                                      "credit-fraud"
-                                                                      "2023-09-12_0h32m23s-exp-c"
+                                                                      "3-defect"
+                                                                      "half-defect-10"
+                                                                      "2023-09-8_20h27m22s-exp-c"
                                                                       "stores")
                                                          :name "1-history"
                                                          :type "store")))
     (set-configuration *experiment* :dot-interval 10)
-    (set-configuration *experiment* :dataset-split "train")
-    (set-configuration *experiment* :topic-sampling :random)
+    (set-configuration *experiment* :dataset-split "val")
+    ;(set-configuration *experiment* :topic-sampling :random)
     (set-configuration *experiment* :align nil)
     (initialise-world *experiment*))
+
+(set-configuration *experiment* :align t)
+
+(progn
+  (wi::reset)
+  (notify reset-monitors)
+  (deactivate-all-monitors)
+  (activate-monitor export-communicative-success)
+  (activate-monitor export-lexicon-coherence)
+    ;(activate-monitor export-unique-form-usage)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor trace-interaction-in-web-interface)
+  (format t "~%---------- NEW GAME ----------~%")
+  (time
+   (loop with count = 0
+         for i from 1 to 1
+         do (run-interaction *experiment*))))
+
+
+(display-lexicon (find-agent 1 *experiment*) :sort t)
+(display-lexicon (find-agent 8 *experiment*) :sort t)
+
+
+(setf tuples (list (list
+                    (interacting-agents (first (interactions *experiment*)))
+                    (index (find-data (first (interacting-agents (first (interactions *experiment*)))) 'context))
+                   
+                    (find-data (first (interacting-agents (first (interactions *experiment*)))) 'topic))))
+
+
+(progn
+  (wi::reset)
+  (deactivate-all-monitors)
+  (activate-monitor trace-interaction-in-web-interface)
+  (loop for idx from 1 to 1
+        do (run-interaction *experiment*
+                            :scene (second (first tuples))
+                            ;:topic (third (first tuples))
+                            :agents (list (find-agent 9 *experiment*) (find-agent 1 *experiment*))
+                            )))
+
+
+(setf ag1 (find-agent 1 *experiment*))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(display-lexicon (find-agent 1 *experiment*) :sort t)
+
+
+(progn 
+    (setf *experiment* (cl-store:restore (babel-pathname :directory `("experiments"
+                                                                      "concept-emergence2"
+                                                                      "storage"
+                                                                      "test"
+                                                                      "continual-stage1-clevr")
+                                                         :name "2-history"
+                                                         :type "store")))
+    (set-configuration *experiment* :dot-interval 10)
+    ;(set-configuration *experiment* :dataset-split "test")
+    ;(set-configuration *experiment* :topic-sampling :random)
+    (set-configuration *experiment* :align nil)
+    (initialise-world *experiment*))
+
+(display-lexicon (find-agent 1 *experiment*) :sort t)
+
+(progn
+  (wi::reset)
+  (notify reset-monitors)
+  (deactivate-all-monitors)
+  (activate-monitor export-communicative-success)
+  (activate-monitor export-lexicon-coherence)
+    ;(activate-monitor export-unique-form-usage)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (format t "~%---------- NEW GAME ----------~%")
+  (time
+   (loop for i from 1 to 10000
+         do (run-interaction *experiment*))))
+
 
 ;; phase 1
 (progn 
@@ -107,7 +199,7 @@
 
 res
 
-(defun cp3 (bad-cxns)
+(defun cp3 (bad-cxns)ru
   (loop with ht = (make-hash-table :test #'equal)
         for ugly-cxn in bad-cxns
         for cxn = (car ugly-cxn)  
@@ -256,10 +348,53 @@ res
 (weighted-similarity (find-agent 1 *experiment*) obj3 (meaning finaro))
 
 
+(setf master-ht (make-hash-table :test #'equal))
 
 
-(display-lexicon (find-agent 1 *experiment*) :sort t)
-(display-lexicon (find-agent 8 *experiment*) :sort t)
+(loop for agent in (list (first (agents *experiment*)))
+      for sensor-ht = (loop  with sensors-ht = (make-hash-table :test #'equal)
+                             for cxn in (lexicon agent)
+                             do (loop for key being the hash-keys of (prototypes (meaning cxn))
+                                        using (hash-value prototype)
+                                      do (format t "~% form: ~a -> ~a" (form cxn) prototype)
+                                      if (and (> (weight prototype) 0.1) (gethash (channel prototype) sensors-ht))
+                                        do (incf (gethash (channel prototype) sensors-ht))
+                                      else if (and (> (weight prototype) 0.1) (not (gethash (channel prototype) sensors-ht)))
+                                             do (setf (gethash (channel prototype) sensors-ht) 1))
+                             finally (return sensors-ht))
+      do (loop for key being the hash-keys of sensors-ht
+                 using (hash-value count)
+               if (gethash key master-ht)
+                 do (setf (gethash key master-ht) (cons count (gethash key master-ht)))
+               else
+                 do (setf (gethash key master-ht) (list count))))
+
+(display-lexicon (find-agent 1 *experiment*) :sort t :certainty-threshold 0.0)
+
+(loop for key being the hash-keys of (disabled-channels (find-agent 1 *experiment*))
+      collect key)
+
+
+
+
+
+;; => (CLE::BB-AREA CLE::BB-AREA-RATIO CLE::XPOS CLE::RELATIVE-AREA CLE::BLACK-LEVEL CLE::RGB-MEAN-R CLE::RGB-MEAN-B CLE::RGB-STD-R CLE::RGB-STD-B CLE::CIRCLE-DISTANCE)
+
+(loop for agent in (agents *experiment*)
+      for disabled = (loop for key being the hash-keys of (disabled-channels agent)
+                           collect key)
+      collect disabled)
+
+((CLE::BB-AREA CLE::BB-AREA-RATIO CLE::XPOS CLE::RELATIVE-AREA CLE::BLACK-LEVEL CLE::RGB-MEAN-R CLE::RGB-MEAN-B CLE::RGB-STD-R CLE::RGB-STD-B CLE::CIRCLE-DISTANCE)
+ (CLE::AREA CLE::RGB-MEAN-G CLE::RGB-STD-G CLE::BB-AREA-RATIO CLE::WH-RATIO CLE::BLACK-LEVEL CLE::CORNERS CLE::YPOS CLE::WHITE-LEVEL CLE::CIRCLE-DISTANCE)
+ (CLE::RGB-MEAN-G CLE::BB-AREA-RATIO CLE::XPOS UTILS:WIDTH CLE::RELATIVE-AREA CLE::WH-RATIO CLE::YPOS CLE::WHITE-LEVEL CLE::CIRCLE-DISTANCE UTILS:HEIGHT)
+ (CLE::RGB-MEAN-G CLE::BB-AREA-RATIO CLE::RELATIVE-AREA CLE::WH-RATIO CLE::BLACK-LEVEL CLE::WHITE-LEVEL CLE::RGB-MEAN-R CLE::RGB-MEAN-B CLE::RGB-STD-R CLE::RGB-STD-B)
+ (CLE::AREA CLE::RGB-STD-G CLE::XPOS CLE::ANGLE CLE::RELATIVE-AREA CLE::WH-RATIO CLE::WHITE-LEVEL CLE::RGB-MEAN-B CLE::RGB-STD-R CLE::CIRCLE-DISTANCE) NIL NIL NIL NIL NIL)
+      
+
+
+
+
 
 (defun majority-vote ()
   (let ((big-ht (loop with ht = (make-hash-table)

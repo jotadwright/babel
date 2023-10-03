@@ -26,13 +26,16 @@
    (usage-table
     :documentation "Keeps track of the cxns used with a sliding window."
     :type usage-table :accessor usage-table :initarg :usage-table)
-    ))
+   (perceived-objects
+    :documentation "Stores perceived objects"
+    :type perceived-objects :accessor perceived-objects :initform (make-hash-table))))
   
 (defmethod clear-agent ((agent cle-agent))
   "Clear the slots of the agent for the next interaction."
   (setf (blackboard agent) nil
         (utterance agent) nil
         (invented-or-adopted agent) nil
+        (perceived-objects agent) (make-hash-table)
         (communicated-successfully agent) nil))
 
 (defmethod find-in-lexicon ((agent cle-agent) (form string))
@@ -53,14 +56,34 @@
    The raw observation is the true value in that channel of the object.
    The sensor-noise term is a fixed shift (in either direction).
    The observation noise term is different for every observation."
-  (let ((raw-observation-val (get-object-val object attr))
-        (sensor-noise (noise-in-sensor agent attr (get-configuration (experiment agent) :sensor-noise)))
-        (observation-noise (noise-in-observation agent attr (get-configuration (experiment agent) :observation-noise))))
-    (if raw-observation-val
-      (if (or (> sensor-noise 0) (> observation-noise 0))
-        (min (max 0 (+ raw-observation-val sensor-noise observation-noise)) 1)
-        raw-observation-val)
-      nil)))
+  (if (and (gethash (id object) (perceived-objects agent))
+           (gethash attr (gethash (id object) (perceived-objects agent))))
+    ;; CASE 1: object found + existing attr
+    (gethash attr (gethash (id object) (perceived-objects agent)))
+    ;; CASE 2: if could not find entry directly
+    (let* ((raw-observation-val (get-object-val object attr))
+           (sensor-noise (noise-in-sensor agent attr (get-configuration (experiment agent) :sensor-noise)))
+           (observation-noise (noise-in-observation agent attr (get-configuration (experiment agent) :observation-noise)))
+           (final-val (if raw-observation-val
+                        ;; case 1: could find a value for the attribute
+                        (if (and (zerop sensor-noise) (zerop observation-noise))
+                          ;; no noise to add, return the raw (true) observation
+                          raw-observation-val
+                          ;; add the noise, but cap final result between 0 and 1
+                          (min (max 0 (+ raw-observation-val sensor-noise observation-noise)) 1))
+                        ;; case 2: return nil
+                        nil)))
+      (if (gethash (id object) (perceived-objects agent))
+        ;; case 2A: object existed, but no entry
+        (setf (gethash attr (gethash (id object) (perceived-objects agent))) final-val)
+        ;; CASE 2B: object did not exist
+        (progn
+          ;; first create object
+          (setf (gethash (id object) (perceived-objects agent)) (make-hash-table))
+          ;; then set value
+          (setf (gethash attr (gethash (id object) (perceived-objects agent))) final-val)))
+      ;; in both cases return the final-value
+      (gethash attr (gethash (id object) (perceived-objects agent))))))
 
 (defmethod perceive-object-val ((agent cle-agent) (object cle-object) attr)
   "Perceives the value in a given sensor 'attr' of a given object.

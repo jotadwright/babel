@@ -20,13 +20,13 @@
                 ;(:data-fname . "all.lisp")
                 (:available-channels ,@(get-all-channels :clevr))
                 ;; disable channels
-                (:disable-channels . :split-by-color)
-                (:amount-disabled-channels . 0)
+                (:disable-channels . :fixed)
+                (:amount-disabled-channels . 15)
                 ;; noised channels
-                (:sensor-noise . :shift)
-                (:sensor-std . 0.75)
+                (:sensor-noise . :none)
+                (:sensor-std . 0.0)
                 (:observation-noise . :shift)
-                (:observation-std . 0.75)
+                (:observation-std . 0.01)
                 ;; scene sampling
                 (:scene-sampling . :random)
                 (:topic-sampling . :random)
@@ -36,7 +36,7 @@
                 ;; entrenchment of constructions
                 (:initial-cxn-entrenchement . 0.5)
                 (:entrenchment-incf . 0.1)
-                (:entrenchment-decf . -0.01)
+                (:entrenchment-decf . -0.1)
                 (:entrenchment-li . -0.02) ;; lateral inhibition
                 (:trash-concepts . t)
                 ;; concept representations
@@ -49,11 +49,9 @@
                 (:weight-incf . 1)
                 (:weight-decf . -5)
                 ;; staging
-                (:switch-condition . :after-n-interactions) ; :after-n-interactions)
+                (:switch-condition . :none) ; :after-n-interactions)
                 (:switch-conditions-after-n-interactions . 2500) 
-                (:stage-parameters
-                 ((:switch-disable-channels-half . 15))
-                 )
+                (:stage-parameters nil)
                 ;; saving
                 (:experiment-name . "test")
                 (:output-dir . "test")
@@ -72,7 +70,7 @@
   (activate-monitor print-a-dot-for-each-interaction)
   (format t "~%---------- NEW GAME ----------~%")
   (time
-   (loop for i from 1 to 1000
+   (loop for i from 1 to 50000
          do (run-interaction *experiment*))))
 
 (progn
