@@ -30,6 +30,14 @@
                    :score (get-configuration (experiment agent) :initial-cxn-entrenchement)
                    :history (list (cons interaction-number scene-idx)))))
 
+(defmethod reset-cxn (agent cxn object)
+  (let ((scene-idx (index (current-scene (world (experiment agent)))))
+        (interaction-number (interaction-number (current-interaction (experiment agent)))))
+
+    (setf (meaning cxn) (make-concept agent object (get-configuration (experiment agent) :concept-representation)))
+    (setf (score cxn) (get-configuration (experiment agent) :initial-cxn-entrenchement))
+    (setf (history cxn) (list (cons interaction-number scene-idx)))))
+
 (defmethod copy-object ((cxn cxn))
   (make-instance 'cxn
                  :id (id cxn)

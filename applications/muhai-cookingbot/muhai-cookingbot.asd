@@ -16,8 +16,9 @@
   :serial t
   :components ((:file "package")
                (:file "parse-yaml")
-               (:file "ontology-generated")
-               (:file "vr-primitives")
+               (:file "ontology")
+               ;(:file "ontology-generated")
+               ;(:file "vr-primitives")
                (:file "primitives")
                (:file "vr-requests")
                (:file "visualisations")

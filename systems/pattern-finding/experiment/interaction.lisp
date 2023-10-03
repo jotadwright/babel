@@ -79,6 +79,7 @@
                         :gold-standard-meaning (meaning agent)
                         :n (get-configuration experiment :comprehend-all-n))
       (declare (ignore meanings))
+(print cipns)
       (let* ((solution-cipn (first cipns))
              (competing-cipns (rest cipns))
              (applied-cxns (original-applied-constructions solution-cipn))
