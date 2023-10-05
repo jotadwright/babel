@@ -16,10 +16,13 @@
     :documentation "Array keeping track of the usage in a sliding window."
     :type simple-vector :accessor window :initarg :window)
    (window-size
+    :documentation "Size of the sliding window."
     :type int :accessor window-size :initarg :window-size)
    (head
+    "Index of the oldest element in the window."
     :type int :accessor head :initform 0)
    (tail
+    "Index of the newest element in the window."
     :type int :accessor tail :initform 0)))
 
 (defun create-usage-table (window-size)
