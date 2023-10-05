@@ -2,17 +2,25 @@
 (in-package :pf)
 
 (progn
-  (deactivate-all-monitors)
-  (activate-monitor trace-fcg)
-  (activate-monitor print-a-dot-for-each-interaction)
-  (activate-monitor trace-interactions-in-wi))
-
+  (monitors::deactivate-all-monitors)
+  (monitors::activate-monitor trace-fcg)
+  (monitors::activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor trace-interactions-in-wi)
+  (activate-monitor trace-interactions-in-wi-verbose))
 
 (progn
   (deactivate-all-monitors)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor summarize-results-after-n-interactions)
-  (activate-monitor show-type-hierarchy-after-n-interactions))
+  ;(activate-monitor show-type-hierarchy-after-n-interactions)
+  )
+
+;; TO DO
+;; Reduce complexity (turn off partial analysis, only apply
+;; repairs recursively for holistic parts, ...) and see what
+;; types of cxns are being learned. Are the cxns learned
+;; through anti-unification compatible with those learned
+;; through partial analysis? 
 
 
 
@@ -32,8 +40,14 @@
     (make-instance 'pattern-finding-experiment
                    :entries `((:comprehend-all-n . 2)
                               (:shuffle-data-p . nil)
+                              (:number-of-epochs . 1)
+                              (:anti-unification-mode . :heuristic)
+                              (:partial-analysis-mode . :heuristic)
+                              (:allow-cxns-with-no-strings . nil)
+                              (:repair-recursively . t)
+                              (:max-nr-of-nodes . 2000)
                               (:corpus-file . ,(make-pathname :directory '(:relative "val")
-                                                              :name "stage-1" :type "jsonl"))))))
+                                                              :name "stage-1-clean" :type "jsonl"))))))
 
 ;; use sequences as form-representation
 ;; also requires different cxn supplier!
@@ -44,9 +58,11 @@
   (defparameter *experiment*
     (make-instance 'pattern-finding-experiment
                    :entries `((:form-representation . :sequences)
-                              (:learner-cxn-supplier . :ordered-by-label-and-positive-score)
+                              (:learner-cxn-supplier . :cxn-sets-positive-scores)
                               (:comprehend-all-n . 2)
                               (:shuffle-data-p . nil)
+                              (:number-of-epochs . 1)
+                              (:repair-recursively . nil)
                               (:corpus-file . ,(make-pathname :directory '(:relative "val")
                                                               :name "stage-1" :type "jsonl"))))))
 
@@ -55,13 +71,16 @@
 ;;;; Running interactions             
 
 (run-interaction *experiment*)
-(run-series *experiment* 100)
+(run-series *experiment* 20)
 
 ;;;; Showing the cxn inventory and categorial network
 
 (defparameter *cxn-inventory* (grammar (first (agents *experiment*))))
+(defparameter *categorial-network* (categorial-network *cxn-inventory*))
 (add-element (make-html *cxn-inventory* :sort-by-type-and-score t))
 (add-element (make-html (categorial-network *cxn-inventory*)))
+
+(setf *cxn* (find-cxn 'rubber-the-of-cube-item-based-cxn-1-apply-last *cxn-inventory*))
 
 ;;;; Manually trying out sentences
 
@@ -77,7 +96,7 @@
 ;;;; Time travel
 
 (go-back-n-interactions *experiment* 1)
-(remove-cxns-learned-at *experiment* 8)
+(remove-cxns-learned-at *experiment* 9)
 
 (defun go-back-n-interactions (experiment n)
   (setf (interactions experiment)
@@ -91,9 +110,7 @@
                       (constructions (grammar (learner experiment))))))
     (loop with grammar = (grammar (learner experiment))
           for cxn in learned-at-cxns
-          for alter-ego-cxn = (alter-ego-cxn cxn grammar)
-          do (delete-cxn (name cxn) grammar :key #'name)
-             (delete-cxn (name alter-ego-cxn) grammar :key #'name))))
+          do (delete-cxn-and-grammatical-categories cxn grammar))))
 
 
 ;;;; Changing the order of repairs on the fly

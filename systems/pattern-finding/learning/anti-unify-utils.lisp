@@ -4,25 +4,29 @@
 ;; anti-unify form ;;
 ;;;;;;;;;;;;;;;;;;;;;
 
-(defgeneric anti-unify-form (source-form thing &key max-au-cost)
+(defgeneric anti-unify-form (source-form thing &key max-au-cost no-string-cxns)
   (:documentation "Anti-unify the observation with the given thing on the form side"))
 
-(defmethod anti-unify-form (source-form thing &key max-au-cost)
+(defmethod anti-unify-form (source-form thing &key max-au-cost (no-string-cxns t))
   (let ((form-representation (get-configuration
                               (typecase thing
                                 (fcg-construction (cxn-inventory thing))
                                 (cip-node (construction-inventory thing)))
                               :form-representation-formalism)))
-    (anti-unify-form-aux source-form thing form-representation :max-au-cost max-au-cost)))
+    (anti-unify-form-aux source-form thing form-representation
+                         :max-au-cost max-au-cost
+                         :no-string-cxns no-string-cxns)))
 
+;;;;;;;;;;;;;;;
+;; sequences ;;
+;;;;;;;;;;;;;;;
 
-(defmethod anti-unify-form-aux (source-form (cxn fcg-construction) (mode (eql :sequences)) &key max-au-cost)
+(defmethod anti-unify-form-aux (source-form (cxn fcg-construction) (mode (eql :sequences)) &key max-au-cost (no-string-cxns t))
+  (declare (ignore no-string-cxns))
   (multiple-value-bind (possible-pattern-forms sequence-boundaries)
       (render-all (extract-form-predicates cxn) :render-sequences)
     (let* ((possible-pattern-forms
-            (mapcar #'(lambda (lst)
-                        (list-of-strings->string lst :separator ""))
-                    possible-pattern-forms))
+            (mapcar #'(lambda (lst) (list-of-strings->string lst :separator "")) possible-pattern-forms))
            (source-form
             ;; !! 'first' is an assumption that will not work when adding recursion
             (first
@@ -65,7 +69,6 @@
                 (pattern-delta au-result) (subst replacement slot-var (pattern-delta au-result))
                 (source-delta au-result) (subst replacement slot-var (source-delta au-result))))))))
 
-
 (defun instantiate-slot-boundaries (set-of-sequence-predicates bindings)
   (let ((index 0)
         positions)
@@ -87,7 +90,13 @@
 ; (sequence-boundaries '((sequence "what color is the " ?lb ?rb)))
 ; => ((?lb 0) (?rb 18))
 
-(defmethod anti-unify-form-aux (source-form (cipn cip-node) (mode (eql :sequences)) &key max-au-cost)
+; ===> '("what" (?var-1 ?var-2) "is the" (?rb ?var) "?")
+;      '((?var-1 ?var-2) . color) ((?rb ?var-3) . "ball"))
+
+
+
+(defmethod anti-unify-form-aux (source-form (cipn cip-node) (mode (eql :sequences)) &key max-au-cost (no-string-cxns t))
+  (declare (ignore no-string-cxns))
   (let* (;; render all possible forms for source
          (possible-source-forms
           (mapcar #'(lambda (lst) (list-of-strings->string lst :separator ""))
@@ -112,9 +121,14 @@
       (setf valid-anti-unification-results
             (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
                        valid-anti-unification-results)))
-    (sort valid-anti-unification-results #'< :key #'fcg::cost)))        
+    (sort valid-anti-unification-results #'< :key #'fcg::cost)))
 
-(defmethod anti-unify-form-aux (source-form (cxn fcg-construction) (mode (eql :string+meets)) &key max-au-cost)
+
+;;;;;;;;;;;;;;;;;;
+;; string+meets ;;
+;;;;;;;;;;;;;;;;;;
+
+(defmethod anti-unify-form-aux (source-form (cxn fcg-construction) (mode (eql :string+meets)) &key max-au-cost (no-string-cxns t))
   ;; assign fresh variables to the pattern
   ;; but keep the renaming!
   (multiple-value-bind (pattern-form renamings)
@@ -125,18 +139,32 @@
            ;; remove invalid anti-unification results
            (valid-anti-unification-results
             (remove-if-not #'valid-au-result-p anti-unification-results)))
-      ;; restore original variables
-      (setf valid-anti-unification-results
-            (loop for au-result in valid-anti-unification-results
-                  collect (rerename-pattern-variables au-result renamings)))
       ;; remove anti-unification results with high cost
       (when max-au-cost
         (setf valid-anti-unification-results
               (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
                          valid-anti-unification-results)))
+      ;; remove anti-unification-results with no strings in them (when set)
+      (unless no-string-cxns
+        (setf valid-anti-unification-results
+              (remove-if-not #'(lambda (au-result)
+                                 (and (find 'string (generalisation au-result) :key #'first)
+                                      (find 'string (source-delta au-result) :key #'first)
+                                      (find 'string (pattern-delta au-result) :key #'first)))
+                             valid-anti-unification-results)))
+      ;; restore original variables
+      (setf valid-anti-unification-results
+            (loop for au-result in valid-anti-unification-results
+                  collect (rerename-pattern-variables au-result renamings)))
+      ;; intern everything
+      (setf valid-anti-unification-results
+            (loop for au-result in valid-anti-unification-results
+                  collect (intern-au-result au-result)))
       (sort valid-anti-unification-results #'< :key #'fcg::cost))))
 
-(defmethod anti-unify-form-aux (source-form (cipn cip-node) (mode (eql :string+meets)) &key max-au-cost)
+
+#|
+(defmethod anti-unify-form-aux (source-form (cipn cip-node) (mode (eql :string+meets)) &key max-au-cost (no-string-cxns t))
   (let* (;; extract pattern form
          (pattern-form
           (variablify-form-constraints-with-constants
@@ -154,68 +182,48 @@
       (setf valid-anti-unification-results
             (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
                        valid-anti-unification-results)))
+    ;; remove anti-unification-results with no strings in them (when set)
+    (unless no-string-cxns
+        (setf valid-anti-unification-results
+              (remove-if-not #'(lambda (au-result)
+                                 (and (find 'string (generalisation au-result) :key #'first)
+                                      (find 'string (source-delta au-result) :key #'first)))
+                             valid-anti-unification-results)))
     (sort valid-anti-unification-results #'< :key #'fcg::cost)))
-
-
-#|
-(defgeneric add-form-arg-predicates (set-of-predicates thing)
-  (:documentation "Extract args from thing and add them as predicates
-                   to the set of predicates."))
-
-(defmethod add-form-arg-predicates (set-of-predicates (cxn fcg-construction))
-  ;; top-args = args from contributing unit
-  (loop for unit in (contributing-part cxn)
-        for form-args = (first (fcg-unit-feature-value unit 'form-args))
-        for category = (extract-category-unit unit)
-        when (and form-args category)
-        do (loop for arg in form-args
-                 do (push (list 'top-arg arg category) set-of-predicates)))
-  ;; slot-args = args from units that represent slots
-  (loop for unit in (extract-slot-units cxn)
-        for form-args = (remove-duplicates (first (fcg-unit-feature-value unit 'form-args)))
-        for category = (extract-category-unit unit)
-        when (and form-args category)
-        do (loop for arg in form-args
-                 do (push (list 'slot-arg arg category) set-of-predicates)))
-  set-of-predicates)
-
-(defmethod add-form-arg-predicates (set-of-predicates (args blackboard))
-  ;; not used at the moment!!
-  ;; will be necessary for recursion...
-  (loop for arg in (find-data args :top-lvl-form-args)
-        do (push (list 'top-arg arg) set-of-predicates))
-  (loop for arg in (find-data args :slot-form-args)
-        do (push (list 'slot-arg arg) set-of-predicates))
-  set-of-predicates)
-
-(defmethod add-form-arg-predicates (set-of-predicates (cipn cip-node))
-  ;; top-args = args from slot-units that do not have 'form' and 'meaning' feature
-  (let* ((ts-units (fcg-get-transient-unit-structure cipn))
-         (root-unit (get-root ts-units))
-         (all-slot-units (get-child-units (remove root-unit ts-units)))
-         (open-slot-units
-          (loop for unit in all-slot-units
-                unless (and (unit-feature unit 'form) (unit-feature unit 'meaning))
-                collect unit)))
-    (loop for unit in open-slot-units
-          for form-args = (unit-feature-value unit 'form-args)
-          for category = (extract-category-unit unit)
-          when (and form-args category)
-          do (loop for arg in form-args
-                   do (push (list 'top-arg arg category) set-of-predicates))))
-  ;; slots-args = args from all top level units
-  (let* ((ts-units (fcg-get-transient-unit-structure cipn))
-         (root-unit (get-root ts-units))
-         (top-lvl-units (remove-child-units (remove root-unit ts-units))))
-    (loop for unit in top-lvl-units
-          for form-args = (unit-feature-value unit 'form-args)
-          for category = (extract-category-unit unit)
-          when (and form-args category)
-          do (loop for arg in form-args
-                   do (push (list 'slot-arg arg category) set-of-predicates))))
-  ;; return set of predicates
-  set-of-predicates)
 |#
+
+
+(defmethod anti-unify-form-aux (source-form (cipn cip-node) (mode (eql :string+meets)) &key max-au-cost (no-string-cxns t))
+  (let* (;; extract pattern form
+         (pattern-form
+          (variablify-form-constraints-with-constants
+           (loop for unit in (fcg-get-transient-unit-structure cipn)
+                 unless (eql (unit-name unit) 'fcg::root)
+                 append (unit-feature-value unit 'form))))
+         ;; extract remaining form from root (shortcut!)
+         (form-in-root
+          (variablify-form-constraints-with-constants
+           (form-predicates-in-root cipn)))
+         ;; make au-result
+         (au-result
+          (make-instance 'fcg::anti-unification-result
+                         :pattern pattern-form
+                         :source source-form
+                         :generalisation pattern-form
+                         :pattern-delta nil
+                         :source-delta form-in-root
+                         :cost (length form-in-root))))
+    ;; apply filters
+    (when max-au-cost
+      (when (> (length form-in-root) max-au-cost)
+        (setf au-result nil)))
+    (unless no-string-cxns
+      (unless (find 'string form-in-root :key #'first)
+        (setf au-result nil)))
+    (when au-result
+      (list au-result))))
+
+                        
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;; anti-unify meaning ;;
@@ -225,122 +233,132 @@
   (:documentation "Anti-unify the observation with the given cxn on the meaning side."))
 
 (defmethod anti-unify-meaning (source-meaning (cxn fcg-construction) &key max-au-cost)
+  ;; assign fresh variables to pattern
   (multiple-value-bind (pattern-meaning renamings)
       (fresh-variables (extract-meaning-predicates cxn))
-    (let* ((anti-unification-results
+    (let* (;; anti unify
+           (anti-unification-results
             (anti-unify-predicate-network pattern-meaning source-meaning))
+           ;; remove invalid anti-unification results
            (valid-anti-unification-results
             (remove-if-not #'valid-au-result-p anti-unification-results)))
+      ;; remove anti-unification results with high cost
       (when max-au-cost
         (setf valid-anti-unification-results
               (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
                          valid-anti-unification-results)))
+      ;; restore original variables
       (setf valid-anti-unification-results
             (loop for au-result in valid-anti-unification-results
                   collect (rerename-pattern-variables au-result renamings)))
+      ;; intern everything
+      (setf valid-anti-unification-results
+            (loop for au-result in valid-anti-unification-results
+                  collect (intern-au-result au-result)))
       (sort valid-anti-unification-results #'< :key #'fcg::cost))))
 
 (defmethod anti-unify-meaning (source-meaning (cipn cip-node) &key max-au-cost)
+  ;; assign fresh variables to pattern
   (multiple-value-bind (pattern-meaning renamings)
       (fresh-variables (fcg-extract-meanings cipn))
-    (let* ((anti-unification-results
+    (let* (;; anti-unify
+           (anti-unification-results
             (anti-unify-predicate-network pattern-meaning source-meaning))
-           ;; when are AU results valid/invalid in the case of partial analysis?
+           ;; remove invalid anti-unification results
            (valid-anti-unification-results
             (remove-if-not #'valid-au-result-p anti-unification-results)))
+      ;; remove anti-unification results with high cost
       (when max-au-cost
         (setf valid-anti-unification-results
               (remove-if #'(lambda (au-result) (> (fcg::cost au-result) max-au-cost))
                          valid-anti-unification-results)))
+      ;; restore original variables
       (setf valid-anti-unification-results
             (loop for au-result in valid-anti-unification-results
                   collect (rerename-pattern-variables au-result renamings)))
+      ;; intern everything
+      (setf valid-anti-unification-results
+            (loop for au-result in valid-anti-unification-results
+                  collect (intern-au-result au-result)))
       (sort valid-anti-unification-results #'< :key #'fcg::cost))))
-
-#|
-(defgeneric add-meaning-arg-predicates (set-of-predicates thing)
-  (:documentation "Extract args from thing and add them as predicates
-                   to the set of predicates."))
-
-(defmethod add-meaning-arg-predicates (set-of-predicates (cxn fcg-construction))
-  ;; top-args = args from contributing unit
-  (loop for unit in (contributing-part cxn)
-        for meaning-args = (first (fcg-unit-feature-value unit 'meaning-args))
-        for category = (extract-category-unit unit)
-        when (and meaning-args category)
-        do (loop for arg in meaning-args
-                 do (push (list 'top-arg arg category) set-of-predicates)))
-  ;; slot-args = args from units that represent slots
-  (loop for unit in (extract-slot-units cxn)
-        for meaning-args = (remove-duplicates (first (fcg-unit-feature-value unit 'meaning-args)))
-        for category = (extract-category-unit unit)
-        when (and meaning-args category)
-        do (loop for arg in meaning-args
-                 do (push (list 'slot-arg arg category) set-of-predicates)))
-  set-of-predicates)
-
-(defmethod add-meaning-arg-predicates (set-of-predicates (args blackboard))
-  ;; not used at the moment!!
-  ;; will be necessary for recursion...
-  (loop for arg in (find-data args :top-lvl-meaning-args)
-        do (push (list 'top-arg arg) set-of-predicates))
-  (loop for arg in (find-data args :slot-meaning-args)
-        do (push (list 'slot-arg arg) set-of-predicates))
-  set-of-predicates)
-
-(defmethod add-meaning-arg-predicates (set-of-predicates (cipn cip-node))
-  ;; top-args = args from slot-units that do not have 'form' and 'meaning' feature
-  (let* ((ts-units (fcg-get-transient-unit-structure cipn))
-         (root-unit (get-root ts-units))
-         (all-slot-units (get-child-units (remove root-unit ts-units)))
-         (open-slot-units
-          (loop for unit in all-slot-units
-                unless (and (unit-feature unit 'form) (unit-feature unit 'meaning))
-                collect unit)))
-    (loop for unit in open-slot-units
-          for meaning-args = (unit-feature-value unit 'meaning-args)
-          for category = (extract-category-unit unit)
-          when (and meaning-args category)
-          do (loop for arg in meaning-args
-                   do (push (list 'top-arg arg category) set-of-predicates))))
-  ;; slots-args = args from all top level units
-  (let* ((ts-units (fcg-get-transient-unit-structure cipn))
-         (root-unit (get-root ts-units))
-         (top-lvl-units (remove-child-units (remove root-unit ts-units))))
-    (loop for unit in top-lvl-units
-          for meaning-args = (unit-feature-value unit 'meaning-args)
-          for category = (extract-category-unit unit)
-          when (and meaning-args category)
-          do (loop for arg in meaning-args
-                   do (push (list 'slot-arg arg category) set-of-predicates))))
-  ;; return set of predicates
-  set-of-predicates)
-|#
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; anti-unify utils ;;
 ;;;;;;;;;;;;;;;;;;;;;;
 
-#|
-(defun initialize-sequence-predicates (form-anti-unification)
+(defun intern-au-result (anti-unification-result)
   (with-slots (generalisation
+               pattern-bindings
+               source-bindings
                pattern-delta
-               source-delta) form-anti-unification
-    (let* ((generalisation-sequences
-            (loop for elem in generalisation
-                  if (stringp elem)
-                    collect (list 'sequence elem (make-var 'lb) (make-var 'rb))
-                  else collect elem))
-           (pattern-delta-sequences
-            (loop for (var . seq) in pattern-delta
-                  collect (cons var (list 'sequence seq (make-var 'lb) (make-var 'rb)))))
-           (source-delta-sequences
-            (loop for (var . seq) in source-delta
-                  collect (cons var (list 'sequence seq (make-var 'lb) (make-var 'rb))))))
-      (setf generalisation generalisation-sequences
-            pattern-delta pattern-delta-sequences
-            source-delta source-delta-sequences))))
-|#
+               source-delta) anti-unification-result
+    (setf generalisation
+          (loop for predicate in generalisation
+                collect (loop for elem in predicate
+                              if (variable-p elem)
+                              collect (internal-symb elem)
+                              else collect elem)))
+    (setf pattern-bindings
+          (loop for (pvar . gvar) in pattern-bindings
+                collect (cons pvar (internal-symb gvar))))
+    (setf source-bindings
+          (loop for (svar . gvar) in source-bindings
+                collect (cons svar (internal-symb gvar))))
+    anti-unification-result))
+
+(defun push-meets-to-deltas (anti-unification-result pattern-top-args source-top-args)
+  (with-slots (generalisation
+               pattern-bindings
+               source-bindings
+               pattern-delta
+               source-delta) anti-unification-result
+    (let* ((generalisation-meets
+            (find-all 'meets generalisation :key #'first))
+           (generalisation-string-vars
+            (remove-duplicates (mapcar #'second (find-all 'string generalisation :key #'first))))
+           (source-delta-string-vars
+            (remove-duplicates (mapcar #'second (find-all 'string source-delta :key #'first))))
+           (pattern-delta-string-vars
+            (remove-duplicates (mapcar #'second (find-all 'string pattern-delta :key #'first))))
+           (potential-meets-to-move
+            (loop for meets-predicate in generalisation-meets
+                  for left-var = (second meets-predicate)
+                  for right-var = (third meets-predicate)
+                  when (and (not (find left-var generalisation-string-vars))
+                            (not (find right-var generalisation-string-vars)))
+                  collect meets-predicate)))
+      (loop for meets-predicate in potential-meets-to-move
+            for left-var = (second meets-predicate)
+            for right-var = (third meets-predicate)
+            for connected-in-source
+              = (or (find (first (rassoc left-var source-bindings)) source-delta-string-vars)
+                    (find (first (rassoc right-var source-bindings)) source-delta-string-vars))
+            for connected-in-pattern
+              = (or (find (first (rassoc left-var pattern-bindings)) pattern-delta-string-vars)
+                    (find (first (rassoc right-var pattern-bindings)) pattern-delta-string-vars))
+            when (and connected-in-source connected-in-pattern)
+            do (push (list 'meets
+                           (first (rassoc left-var source-bindings))
+                           (first (rassoc right-var source-bindings)))
+                     source-delta)
+               (push (list 'meets
+                           (first (rassoc left-var pattern-bindings))
+                           (first (rassoc right-var pattern-bindings)))
+                     pattern-delta)
+               (setf generalisation (remove meets-predicate generalisation :test #'equal))
+            unless (or (find-anywhere left-var generalisation)
+                       (find (first (rassoc left-var pattern-bindings)) pattern-top-args)
+                       (find (first (rassoc left-var source-bindings)) source-top-args))
+             do (progn
+                  (setf source-bindings (remove left-var source-bindings :key #'cdr))
+                  (setf pattern-bindings (remove left-var pattern-bindings :key #'cdr)))
+            unless (or (find-anywhere right-var generalisation)
+                       (find (first (rassoc right-var pattern-bindings)) pattern-top-args)
+                       (find (first (rassoc right-var source-bindings)) source-top-args))
+              do (progn
+                   (setf source-bindings (remove right-var source-bindings :key #'cdr))
+                   (setf pattern-bindings (remove right-var pattern-bindings :key #'cdr)))))
+    anti-unification-result))
 
 (defun rerename-pattern-variables (anti-unification-result renamings)
   (with-slots (generalisation
@@ -416,62 +434,21 @@
                 (> cxn-score-1 cxn-score-2)
                 (< combined-cost-1 combined-cost-2))))))
 
-
-#|
-(defun remove-arg-predicates (set-of-predicates)
-  "Remove both top-args and slot-args predicates
-   from the set of predicates."
-  (let ((predicates (copy-list set-of-predicates)))
-    (loop for predicate in '(top-arg slot-arg)
-          do (setf predicates (remove predicate predicates :key #'first)))
-    predicates))
-
-(defun correct-au-cost (anti-unification-result)
-  "Remove the cost of the top-arg and slot-arg predicates from
-   the total anti-unification cost"
-  (with-slots (g pb sb pattern-delta source-delta cost) anti-unification-result
-    (declare (ignore g pb sb))
-    (- cost (+ (count 'top-arg pattern-delta :key #'first)
-               (count 'slot-arg pattern-delta :key #'first)
-               (count 'top-arg source-delta :key #'first)
-               (count 'slot-arg source-delta :key #'first)))))
-
-(defun copy-arg-predicates (anti-unification-result)
-  "Copy arg predicates from the pattern delta to the source delta;
-   only copy predicates that include variables that can be found in
-   the source bindings"
-  ;; this unless clause might be dangerous when adding recursion...
-  (unless (or (find 'top-arg (source-delta anti-unification-result) :key #'first)
-              (find 'slot-arg (source-delta anti-unification-result) :key #'first))
-    (let* ((top-arg-predicates (find-all 'top-arg (pattern-delta anti-unification-result) :key #'first))
-           (slot-arg-predicates (find-all 'slot-arg (pattern-delta anti-unification-result) :key #'first)))
-      (loop for predicate in (append top-arg-predicates slot-arg-predicates)
-            for var = (second predicate)
-            for gen-var = (rest (assoc var (pattern-bindings anti-unification-result)))
-            for source-var = (first (rassoc gen-var (source-bindings anti-unification-result)))
-            do (push (list (first predicate) (or source-var var) (third predicate))
-                     (source-delta anti-unification-result))))))
-
-
-(defun group-slot-args-into-units (predicates)
-  "Group slot-arg predicates that have the same category as their
-   third argument. This will be used to make units in the resulting cxn"
-  (let* ((slot-arg-predicates (find-all 'slot-arg predicates :key #'first))
-         (unique-categories (remove-duplicates (mapcar #'third slot-arg-predicates))))
-    (loop for category in unique-categories
-          collect (cons category
-                        (loop for predicate in slot-arg-predicates
-                              when (eql (last-elt predicate) category)
-                                collect (second predicate))))))
-
-(defun group-top-args-into-units (predicates)
-  "Group top-arg predicates that have the same category as their
-   third argument. This will be used to make units in the resulting cxn"
-  (let* ((top-arg-predicates (find-all 'top-arg predicates :key #'first))
-         (unique-categories (remove-duplicates (mapcar #'third top-arg-predicates))))
-    (loop for category in unique-categories
-          collect (cons category
-                        (loop for predicate in top-arg-predicates
-                              when (eql (last-elt predicate) category)
-                                collect (second predicate))))))
-|#
+(defun initialize-sequence-predicates (form-anti-unification)
+  (with-slots (generalisation
+               pattern-delta
+               source-delta) form-anti-unification
+    (let* ((generalisation-sequences
+            (loop for elem in generalisation
+                  if (stringp elem)
+                    collect (list 'sequence elem (make-var 'lb) (make-var 'rb))
+                  else collect elem))
+           (pattern-delta-sequences
+            (loop for (var . seq) in pattern-delta
+                  collect (cons var (list 'sequence seq (make-var 'lb) (make-var 'rb)))))
+           (source-delta-sequences
+            (loop for (var . seq) in source-delta
+                  collect (cons var (list 'sequence seq (make-var 'lb) (make-var 'rb))))))
+      (setf generalisation generalisation-sequences
+            pattern-delta pattern-delta-sequences
+            source-delta source-delta-sequences))))

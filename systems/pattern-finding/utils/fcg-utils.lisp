@@ -168,16 +168,21 @@
                                      (pf::meaning-args sequence)
                                      (subunits set)
                                      (footprints set))
-                     :fcg-configurations ((:de-render-mode . ,(case form-representation
+                     :fcg-configurations ((:construction-inventory-processor-mode . :heuristic-search)
+                                          (:node-expansion-mode . :full-expansion)
+                                          (:cxn-supplier-mode . ,cxn-supplier-mode)
+                                          (:search-algorithm . :best-first)
+                                          (:heuristics :nr-of-applied-cxns :cxn-score)
+                                          (:heuristic-value-mode . :sum-heuristics-and-parent)
+
+                                          (:de-render-mode . ,(case form-representation
                                                                 (:string+meets :de-render-string-meets-no-punct)
                                                                 (:sequences :de-render-sequence)))
                                           (:render-mode . ,(case form-representation
                                                              (:string+meets :generate-and-test)
                                                              (:sequences :render-sequences)))
-                                          (:cxn-supplier-mode . ,cxn-supplier-mode)
                                           (:meaning-representation-formalism . ,meaning-representation)
                                           (:form-representation-formalism . ,form-representation)
-                                          
                                           (:parse-goal-tests :no-strings-in-root
                                                              :no-applicable-cxns
                                                              :connected-semantic-network
@@ -185,10 +190,10 @@
                                                              :non-gold-standard-meaning)
                                           (:node-tests :restrict-nr-of-nodes
                                                        :restrict-search-depth
-                                                       :check-duplicate)
-                                          (:parse-order routine)
+                                                       :check-duplicate-strict)
+                                          (:parse-order routine-apply-first routine-apply-last)
+                                          (:production-order routine-apply-first routine-apply-last)
                                           (:max-nr-of-nodes . 250)
-                                          (:production-order routine)
                                           (:category-linking-mode . ,category-linking-mode)
                                           (:update-categorial-links . nil)
                                           (:consolidate-repairs . nil)
@@ -238,6 +243,7 @@
       ;; non-sequential normal comprehend
       (second (multiple-value-list (comprehend utterance :gold-standard-meaning gold-standard-meaning :cxn-inventory temp-cxn-inventory :silent t))))))
 
+
 (defun apply-in-sandbox (initial-node
                          original-cxn-inventory
                          &key (cxns-to-add nil)
@@ -255,6 +261,7 @@
                    '<- :notify nil)
       (declare (ignore cip))
       solution)))
+
 
 (defun ordered-fcg-apply (processing-cxns-to-apply initial-node direction cxn-inventory)
   "Apply a list of processing cxns in the order they appear in the list. Returns the solution cipn."

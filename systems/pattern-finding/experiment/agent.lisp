@@ -23,7 +23,12 @@
                         (initial-link-weight :initial-categorial-link-weight)
                         (repairs :repairs)
                         (max-au-cost :max-au-cost)
-                        (cxn-supplier-mode :learner-cxn-supplier)) experiment
+                        (allow-cxns-with-no-strings :allow-cxns-with-no-strings)
+                        (cxn-supplier-mode :learner-cxn-supplier)
+                        (anti-unification-mode :anti-unification-mode)
+                        (partial-analysis-mode :partial-analysis-mode)
+                        (repair-recursively :repair-recursively)
+                        (push-meets :push-meets-to-deltas)) experiment
     (let* ((grammar-name (make-const "pattern-finding-grammar"))
            (cxn-inventory
             (eval `(def-fcg-constructions ,grammar-name
@@ -38,24 +43,29 @@
                                      (form-args sequence)
                                      (meaning-args sequence)
                                      (subunits set)
-                                     (footprints set))
-                     :fcg-configurations ((:de-render-mode . ,(case form-representation
+                                     (footprints set))                     
+                     :fcg-configurations ((:construction-inventory-processor-mode . :heuristic-search)
+                                          (:node-expansion-mode . :full-expansion)
+                                          (:cxn-supplier-mode . ,cxn-supplier-mode)
+                                          (:search-algorithm . :best-first)
+                                          (:heuristics :nr-of-applied-cxns :cxn-score)
+                                          (:heuristic-value-mode . :sum-heuristics-and-parent)
+
+                                          (:de-render-mode . ,(case form-representation
                                                                 (:string+meets :de-render-string-meets-no-punct)
                                                                 (:sequences :de-render-sequence)))
                                           (:render-mode . ,(case form-representation
                                                              (:string+meets :generate-and-test)
                                                              (:sequences :render-sequences)))
-                                          (:cxn-supplier-mode . ,cxn-supplier-mode)
 
                                           (:meaning-representation-formalism . ,meaning-representation)
                                           (:form-representation-formalism . ,form-representation)
-
-                                          (:parse-order routine)
-                                          (:production-order routine)
+                                          (:parse-order routine-apply-first routine-apply-last)
+                                          (:production-order routine-apply-first routine-apply-last)
                                           (:hash-mode . :hash-string-meaning)
                                           (:node-tests :restrict-nr-of-nodes
                                                        :restrict-search-depth
-                                                       :check-duplicate)
+                                                       :check-duplicate-strict)
                                           (:parse-goal-tests :no-strings-in-root
                                                              :no-applicable-cxns
                                                              :connected-semantic-network
@@ -72,12 +82,17 @@
                                           (:initial-categorial-link-weight . ,initial-link-weight)
                                           (:ignore-transitive-closure . t)
                                           (:max-au-cost . ,max-au-cost)
-                                          (:ignore-nil-hashes . nil))
+                                          (:allow-cxns-with-no-strings . ,allow-cxns-with-no-strings)
+                                          (:ignore-nil-hashes . nil)
+                                          (:anti-unification-mode . ,anti-unification-mode)
+                                          (:partial-analysis-mode . ,partial-analysis-mode)
+                                          (:repair-recursively . ,repair-recursively)
+                                          (:push-meets-to-deltas . ,push-meets))
                      :diagnostics (pf::diagnose-non-gold-standard-meaning
                                    pf::diagnose-non-gold-standard-utterance)
                      :repairs ,repairs
                      :visualization-configurations ((:show-constructional-dependencies . nil)
-                                                    (:show-categorial-network . t))))))
+                                                    (:show-categorial-network . nil))))))
       cxn-inventory)))
      
 
