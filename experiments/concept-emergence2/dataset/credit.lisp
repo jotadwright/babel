@@ -5,6 +5,7 @@
 ;; ----------------------
 
 (defun credit-channels ()
+  "CREDIT-FRAUD dataset."
   (reverse `(,'V1
              ,'V2
              ,'V3

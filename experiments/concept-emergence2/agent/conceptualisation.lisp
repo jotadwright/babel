@@ -39,6 +39,7 @@
       applied-cxn)))
 
 (defmethod hearer-conceptualise ((agent cle-agent))
+  "Conceptualise the topic as the hearer"
   (if (length= (lexicon agent) 0)
     nil
     (destructuring-bind (applied-cxn . competitors) (find-best-concept agent)

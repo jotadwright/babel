@@ -5,6 +5,7 @@
 ;; ----------------------
 
 (defmethod get-all-channels ((mode (eql :beans)))
+  "BEANS dataset."
   (reverse `(,'area
              ,'perimeter
              ,'major-axis-length
