@@ -130,8 +130,8 @@
                                  configurations ontology
                                  (primitive-inventory *irl-primitives*))
   ;; check the input
-  (when (and (null topic) (null meaning))
-    (error "Must provide either :topic or :meaning"))
+  ;(when (and (null topic) (null meaning))
+  ;  (error "Must provide either :topic or :meaning"))
   (unless (or chunks (get-data ontology 'chunks))
     (error "Composer has no chunks to work with. Either provide :chunks
             or place 'chunks in the ontology"))
