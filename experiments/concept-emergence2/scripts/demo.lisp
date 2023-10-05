@@ -20,8 +20,8 @@
                 ;(:data-fname . "all.lisp")
                 (:available-channels ,@(get-all-channels :clevr))
                 ;; disable channels
-                (:disable-channels . :none)
-                (:amount-disabled-channels . 0)
+                (:disable-channels . :fixed)
+                (:amount-disabled-channels . 15)
                 ;; noised channels
                 (:sensor-noise . :none)
                 (:sensor-std . 0.0)

@@ -12,3 +12,6 @@ id,exp_name,nr_of_series,nr_of_interactions,population_size,dataset,dataset_spli
 11,hetero-10,10,1000000,10,clevr,train,:clevr,:random,10,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
 12,hetero-15,10,1000000,10,clevr,train,:clevr,:random,15,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
 13,continual-cl-wi,10,2000000,10,clevr,train,:all,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:after-n-interactions,1000000,(((:switch-dataset . winery)(:switch-dataset-split . train) (:switch-scene-sampling . :random) (:switch-topic-sampling . :random)(:switch-available-channels . :all)))
+14,homo-1,10,1000000,10,clevr,train,:clevr,:fixed,1,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+15,homo-5,10,1000000,10,clevr,train,:clevr,:fixed,5,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+16,homo-10,10,1000000,10,clevr,train,:clevr,:fixed,10,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
