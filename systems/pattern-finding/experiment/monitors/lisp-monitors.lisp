@@ -47,7 +47,7 @@
                 :class 'gnuplot-display
                 :documentation "Plots the communicative success."
                 :data-sources '((average record-communicative-success)
-                                (average record-lexicon-size))
+                                record-lexicon-size)
                 :update-interval 100
                 :caption '("communicative success"
                            "grammar size")
@@ -153,140 +153,48 @@
     (record-value monitor (average (mapcar #'cxn-score item-based-cxns)))))
 
 
-;; nr of item-based cxns with slots 
-(define-monitor record-num-item-based-1
-                :class 'data-recorder)
-
-(define-monitor export-num-item-based-1
-                :class 'lisp-data-file-writer
-                :data-sources '(record-num-item-based-1)
-                :file-name (babel-pathname :name "num-item-based-1" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
-                :add-time-and-experiment-to-file-name nil)
-
-(define-event-handler (record-num-item-based-1 interaction-finished)
-  (record-value
-   monitor
-   (count 1 (get-cxns-of-type (learner experiment) 'pf::item-based)
-          :key #'item-based-number-of-slots :test #'=)))
-
-(define-monitor record-num-item-based-2
-                :class 'data-recorder)
-
-(define-monitor export-num-item-based-2
-                :class 'lisp-data-file-writer
-                :data-sources '(record-num-item-based-2)
-                :file-name (babel-pathname :name "num-item-based-2" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
-                :add-time-and-experiment-to-file-name nil)
-
-(define-event-handler (record-num-item-based-2 interaction-finished)
-  (record-value
-   monitor
-   (count 2 (get-cxns-of-type (learner experiment) 'pf::item-based)
-          :key #'item-based-number-of-slots :test #'=)))
-
-(define-monitor record-num-item-based-3
-                :class 'data-recorder)
-
-(define-monitor export-num-item-based-3
-                :class 'lisp-data-file-writer
-                :data-sources '(record-num-item-based-3)
-                :file-name (babel-pathname :name "num-item-based-3" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
-                :add-time-and-experiment-to-file-name nil)
-
-(define-event-handler (record-num-item-based-3 interaction-finished)
-  (record-value
-   monitor
-   (count 3 (get-cxns-of-type (learner experiment) 'pf::item-based)
-          :key #'item-based-number-of-slots :test #'=)))
-
-(define-monitor record-num-item-based-4
-                :class 'data-recorder)
-
-(define-monitor export-num-item-based-4
-                :class 'lisp-data-file-writer
-                :data-sources '(record-num-item-based-4)
-                :file-name (babel-pathname :name "num-item-based-4" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
-                :add-time-and-experiment-to-file-name nil)
-
-(define-event-handler (record-num-item-based-4 interaction-finished)
-  (record-value
-   monitor
-   (count 4 (get-cxns-of-type (learner experiment) 'pf::item-based)
-          :key #'item-based-number-of-slots :test #'=)))
-
-(define-monitor record-num-item-based-5
-                :class 'data-recorder)
-
-(define-monitor export-num-item-based-5
-                :class 'lisp-data-file-writer
-                :data-sources '(record-num-item-based-5)
-                :file-name (babel-pathname :name "num-item-based-5" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
-                :add-time-and-experiment-to-file-name nil)
-
-(define-event-handler (record-num-item-based-5 interaction-finished)
-  (record-value
-   monitor
-   (count 5 (get-cxns-of-type (learner experiment) 'pf::item-based)
-          :key #'item-based-number-of-slots :test #'=)))
-
-(define-monitor record-num-item-based-6
-                :class 'data-recorder)
-
-(define-monitor export-num-item-based-6
-                :class 'lisp-data-file-writer
-                :data-sources '(record-num-item-based-6)
-                :file-name (babel-pathname :name "num-item-based-6" :type "lisp"
-                                           :directory '("experiments" "clevr-grammar-learning" "raw-data"))
-                :add-time-and-experiment-to-file-name nil)
-
-(define-event-handler (record-num-item-based-6 interaction-finished)
-  (record-value
-   monitor
-   (count 6 (get-cxns-of-type (learner experiment) 'pf::item-based)
-          :key #'item-based-number-of-slots :test #'=)))
-
-
-
-
 ;; repair monitors
-(define-monitor record-repair-usage-nothing->holophrase
+(define-monitor record-repair-usage-add-cxn
                 :class 'data-recorder)
 
-(define-monitor export-repair-usage-nothing->holophrase
+(define-monitor export-repair-usage-add-cxn
                 :class 'lisp-data-file-writer
-                :data-sources '(record-repair-usage-nothing->holophrase)
-                :file-name (babel-pathname :name "repair-usage-nothing-to-holophrase" :type "lisp"
+                :data-sources '(record-repair-usage-add-cxn)
+                :file-name (babel-pathname :name "repair-usage-add-cxn" :type "lisp"
                                            :directory '("systems" "pattern-finding" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
-(define-event-handler (record-repair-usage-nothing->holophrase interaction-finished)
-  (record-value
-   monitor
-   (if (string= (first (repair-buffer experiment)) "h")
-     1
-     0)))
+(define-event-handler (record-repair-usage-add-cxn interaction-finished)
+  (record-value monitor (if (string= (find-data interaction :applied-repair) "h") 1 0)))
 
-(define-monitor record-repair-usage-anti-unification
+
+(define-monitor record-repair-usage-anti-unify-cxns
                 :class 'data-recorder)
 
-(define-monitor export-repair-usage-anti-unification
+(define-monitor export-repair-usage-anti-unify-cxns
                 :class 'lisp-data-file-writer
-                :data-sources '(record-repair-usage-anti-unification)
-                :file-name (babel-pathname :name "repair-usage-anti-unification" :type "lisp"
+                :data-sources '(record-repair-usage-anti-unify-cxns)
+                :file-name (babel-pathname :name "repair-usage-anti-unify-cxns" :type "lisp"
                                            :directory '("systems" "pattern-finding" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
-(define-event-handler (record-repair-usage-anti-unification interaction-finished)
-  (record-value
-   monitor
-   (if (string= (first (repair-buffer experiment)) "a")
-     1
-     0)))
+(define-event-handler (record-repair-usage-anti-unify-cxns interaction-finished)
+  (record-value monitor (if (string= (find-data interaction :applied-repair) "a") 1 0)))
+
+
+(define-monitor record-repair-usage-anti-unify-cipn
+                :class 'data-recorder)
+
+(define-monitor export-repair-usage-anti-unify-cipn
+                :class 'lisp-data-file-writer
+                :data-sources '(record-repair-usage-anti-unify-cipn)
+                :file-name (babel-pathname :name "repair-usage-anti-unify-cipn" :type "lisp"
+                                           :directory '("systems" "pattern-finding" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-repair-usage-anti-unify-cipn interaction-finished)
+  (record-value monitor (if (string= (find-data interaction :applied-repair) "p") 1 0)))
+
 
 (define-monitor record-repair-usage-add-categorial-links
                 :class 'data-recorder)
@@ -299,11 +207,7 @@
                 :add-time-and-experiment-to-file-name nil)
 
 (define-event-handler (record-repair-usage-add-categorial-links interaction-finished)
-  (record-value
-   monitor
-   (if (string= (first (repair-buffer experiment)) "c")
-     1
-     0)))
+  (record-value monitor (if (string= (find-data interaction :applied-repair) "l") 1 0)))
 
 
 ;;;; Number of nodes in the type hierarchy
@@ -321,11 +225,7 @@
                 :add-time-and-experiment-to-file-name nil)
 
 (define-event-handler (record-number-of-nodes interaction-finished)
-  (record-value monitor
-                  (length
-                   (categories
-                    (grammar
-                     (learner experiment))))))
+  (record-value monitor (length (categories (grammar (learner experiment))))))
 
 
 ;;;; Number of edges in the type hierarchy
@@ -343,11 +243,7 @@
                 :add-time-and-experiment-to-file-name nil)
 
 (define-event-handler (record-number-of-edges interaction-finished)
-  (record-value monitor
-                (length
-                 (links
-                  (grammar
-                   (learner experiment))))))
+  (record-value monitor (length (links (grammar (learner experiment))))))
 
 
   
@@ -358,15 +254,10 @@
     "export-avg-cxn-score"
     "export-number-of-nodes"
     "export-number-of-edges"
-    "export-num-item-based-1"
-    "export-num-item-based-2"
-    "export-num-item-based-3"
-    "export-num-item-based-4"
-    "export-num-item-based-5"
-    "export-num-item-based-6"
-    "export-repair-usage-nothing->holophrase"
+    "export-repair-usage-add-cxn"
     "export-repair-usage-add-categorial-links"
-    "export-repair-usage-anti-unification"
+    "export-repair-usage-anti-unify-cxns"
+    "export-repair-usage-anti-unify-cipn"
     "export-number-of-holostic-cxns"
     "export-number-of-item-based-cxns"
     "export-avg-holostic-cxn-score"
