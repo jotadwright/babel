@@ -46,6 +46,7 @@
 (defun run-parallel (args)
   (let* ((config (append (fixed-config)
                          (parse-config args))))
+    (setf *random-state* (make-random-state t))
     (time
      (run-parallel-batch-for-grid-search
       :asdf-system "cle"
