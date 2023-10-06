@@ -34,7 +34,7 @@
     ;; --------------
     (:dot-interval . 5000)
     ;(:record-every-x-interactions . 100)
-    (:usage-table-window . 5000)
+    (:usage-table-window . 1000)
     (:save-distribution-history . nil)
     (:interacting-agents-strategy . :standard)
     (:initial-cxn-entrenchement . 0.5)
