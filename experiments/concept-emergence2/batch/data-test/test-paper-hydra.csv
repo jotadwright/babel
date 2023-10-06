@@ -18,3 +18,12 @@ id,exp_name,nr_of_interactions,dataset,dataset_split,available_channels,scene_sa
 17,homo-1,100000,clevr,test,:clevr,:random,:random
 18,homo-5,100000,clevr,test,:clevr,:random,:random
 19,homo-10,100000,clevr,test,:clevr,:random,:random
+20,homo-15,100000,clevr,test,:clevr,:random,:random
+21,shift-01,100000,clevr,test,:clevr,:random,:random
+22,shift-1,100000,clevr,test,:clevr,:random,:random
+23,shift-10,100000,clevr,test,:clevr,:random,:random
+24,shift-20,100000,clevr,test,:clevr,:random,:random
+25,noise-01,100000,clevr,test,:clevr,:random,:random
+26,noise-1,100000,clevr,test,:clevr,:random,:random
+27,noise-10,100000,clevr,test,:clevr,:random,:random
+28,noise-20,100000,clevr,test,:clevr,:random,:random
