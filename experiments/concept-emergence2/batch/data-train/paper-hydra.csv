@@ -15,3 +15,4 @@ id,exp_name,nr_of_series,nr_of_interactions,population_size,dataset,dataset_spli
 14,homo-1,10,1000000,10,clevr,train,:clevr,:fixed,1,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
 15,homo-5,10,1000000,10,clevr,train,:clevr,:fixed,5,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
 16,homo-10,10,1000000,10,clevr,train,:clevr,:fixed,10,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+17,homo-15,10,1000000,10,clevr,train,:clevr,:fixed,15,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
