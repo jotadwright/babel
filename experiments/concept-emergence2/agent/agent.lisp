@@ -49,7 +49,7 @@
 ;; + NOISE +
 ;; ---------
 
-(defmethod perceive-object-val ((agent cle-agent) (object cle-object) attr)
+(defmethod perceive-object-val2 ((agent cle-agent) (object cle-object) attr)
   "Perceives the value in a given sensor 'attr' of a given object.
 
    This reading can be affected by two types of noise.
@@ -85,7 +85,7 @@
       ;; in both cases return the final-value
       (gethash attr (gethash (id object) (perceived-objects agent))))))
 
-(defmethod perceive-object-val2 ((agent cle-agent) (object cle-object) attr)
+(defmethod perceive-object-val ((agent cle-agent) (object cle-object) attr)
   (get-object-val object attr))
 
 ;; -------------------
@@ -141,4 +141,6 @@
 ;; helper function
 (defun random-gaussian (mean st-dev)
   "Returns a random number from a gaussian distribution with the given mean and standard deviation."
-  (distributions:from-standard-normal (distributions:draw-standard-normal) mean st-dev))
+  ;(distributions:from-standard-normal (distributions:draw-standard-normal) mean st-dev)
+  0
+  )
