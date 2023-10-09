@@ -1,35 +1,6 @@
 ;(ql:quickload :muhai-cookingbot)
 
-
-
-;;;; manually linking chunks
-
-(in-package :muhai-cookingbot)
-
-(defparameter *meaning-to-link*
-  '((fetch-and-proportion ?bowl-with-butter
-                          ?ks-out ?ks-in
-                          ?empty-bowl
-                          ?butter-concept
-                          ?quantity ?unit)
-    (bind ingredient ?b1 butter)
-    (bind quantity ?b2 230)
-    (bind unit ?b3 g)))
-
-(defparameter *meaning-to-link*
-  `((fetch-and-proportion ?bowl-with-butter
-                          ?ks-out ?ks-in
-                          ?empty-bowl
-                          ?butter-concept
-                          ?quantity ?unit)
-    (bind kitchen-state ?ks ,(make-instance 'kitchen-state))))
-
-(add-element (make-html (create-chunk-from-irl-program *meaning-to-link*)))
-
-;; add other heuristics:
-;; - when making a binding (A . B), consider the path length from A to B in the ontology, shorter paths are better
-;; - prefer bindings to input arguments of primitives rather than output arguments
-;; => or just use the composer to execute programs and see what happens!
+(in-package :irl)
 
 (defun nr-connected-components (chunk)
   (multiple-value-bind (connectedp num-components components)
@@ -46,6 +17,111 @@
 (defun nr-open-variables (chunk)
   (length (get-open-vars (irl-program chunk))))
 
+(defun ontological-vector (type vectors)
+  (gethash type vectors))
+
+;; cannot check the ontological distance of the bindings
+;; as the bindings are not available here!
+;; alternative is to check ontological distance as
+;; :chunk-evaluation-score-mode
+(defun ontological-distance-new-link (chunk composer)
+  (if (find-data chunk :new-links)
+    (let* ((new-links (find-data chunk :new-links))
+           (var-a (caar new-links))
+           (type-a (cdar new-links))
+           (var-b (cadr new-links))
+           (type-b (cddr new-links))
+           (ontological-vectors
+            (find-data composer :ontological-vectors)))
+      (cosine-similarity
+       (ontological-vector type-a ontological-vectors)
+       (ontological-vector type-b ontological-vectors)))
+    0.0))
+
+(defmethod node-cost ((node chunk-composer-node)
+                      (composer chunk-composer)
+                      (mode (eql :best-linked-chunk)))
+  ;; nodes have a lower cost when
+  ;; 1) fewer connected components
+  ;; 2) fewer open variables
+  ;; 3) less ontological distance
+  (+ (nr-connected-components (chunk node))
+     ;(nr-repeated-variable (chunk node))  ; filtered by chunk-node-test
+     (nr-open-variables (chunk node))
+     (- 1 (ontological-distance-new-link (chunk node) composer))))
+
+(defmethod chunk-node-test ((node chunk-composer-node)
+                            (composer chunk-composer)
+                            (mode (eql :valid-irl-program)))
+  (let* ((bind-statements (find-all 'bind (irl-program (chunk node)) :key #'first))
+         (primitives (set-difference (irl-program (chunk node)) bind-statements :test #'equal)))
+    (and
+     ;; primitives cannot have the same argument twice
+     (loop for primitive in primitives
+           always (length= (rest primitive)
+                           (remove-duplicates (rest primitive))))
+     ;; the same variable cannot be bound multiple times
+     (length= (mapcar #'third bind-statements)
+              (remove-duplicates (mapcar #'third bind-statements))))))
+
+(defmethod chunk-evaluation-goal-test ((result chunk-evaluation-result)
+                                       (composer chunk-composer)
+                                       (mode (eql :duplicate-solutions)))
+  ;; a solution is a duplicate when
+  ;; 1) the irl programs are equivalent
+  ;; 2) the bindings are all equivalent
+  (loop for solution in (solutions composer)
+        never (loop for solution-binding in (bindings solution)
+                        for result-binding in (bindings result)
+                        always (and (eql (var solution-binding)
+                                         (var result-binding))
+                                    (muhai-cookingbot::similar-entities (value solution-binding)
+                                                                        (value result-binding))))))
+
+    
+(in-package :muhai-cookingbot)
+
+(activate-monitor trace-irl)
+
+(defparameter *meaning-to-link*
+  `((fetch-and-proportion ?bowl-with-butter
+                          ?ks-out ?ks-in
+                          ?empty-bowl
+                          ?butter-concept
+                          ?quantity ?unit)
+    (bind ingredient ?b1 ,(make-instance 'butter :is-concept t))
+    (bind quantity ?b2 ,(make-instance 'quantity :value 230))
+    (bind unit ?b3 ,(make-instance 'g))
+    (bind kitchen-state ?b4 ,*full-kitchen*)))
+
+
+(defparameter *composer*
+  (let ((ontological-vectors (make-ontology-vectors))
+        (composer
+         (make-chunk-composer
+          :topic nil :meaning nil
+          :initial-chunk (create-chunk-from-irl-program *meaning-to-link*)
+          :chunks (mapcar #'create-chunk-from-primitive (primitives-list *irl-primitives*))
+          :configurations '((:chunk-expansion-modes :link-open-variables)
+                            (:node-cost-mode . :best-linked-chunk)
+                            (:chunk-evaluation-score-mode . :uniform)
+                            (:chunk-node-tests :restrict-search-depth :check-duplicate :valid-irl-program)
+                            (:chunk-evaluation-goal-tests :duplicate-solutions))
+          :ontology nil
+          :primitive-inventory *irl-primitives*)))
+    (set-data composer :ontological-vectors ontological-vectors)
+    composer))
+
+
+;(get-next-solutions *composer*)
+;(get-all-solutions *composer*)
+
+
+
+
+
+
+#|
 (defun sort-queue (queue new-nodes)
   (sort (append queue new-nodes)
         #'(lambda (chunk-1 chunk-2)
@@ -88,7 +164,6 @@
         do (setf queue (sort-queue queue good-children))
         finally (return solutions)))
 
-#|
 (defparameter *linked-open-variables-rec*
   (link-open-variables-recursively
     (create-chunk-from-irl-program *meaning-to-link*)))
@@ -102,106 +177,4 @@
                  (nr-repeated-variable chunk)
                  (length (get-open-vars (irl-program chunk))))
       do (add-element (make-html chunk :expand-initially t)))
-|#
-
-
-
-;;;;
-;;;; using the composer
-;;;;
-
-(in-package :irl)
-
-(defmethod node-cost ((node chunk-composer-node)
-                      (composer chunk-composer)
-                      (mode (eql :best-linked-chunk)))
-  (+ (muhai-cookingbot::nr-connected-components (chunk node))
-     (muhai-cookingbot::nr-repeated-variable (chunk node))
-     (muhai-cookingbot::nr-open-variables (chunk node))))
-
-(defmethod chunk-node-test ((node chunk-composer-node)
-                            (composer chunk-composer)
-                            (mode (eql :valid-irl-program)))
-  (let* ((bind-statements (find-all 'bind (irl-program (chunk node)) :key #'first))
-         (primitives (set-difference (irl-program (chunk node)) bind-statements :test #'equal)))
-    (and
-     ;; primitives cannot have the same argument twice
-     (loop for primitive in primitives
-           always (length= (rest primitive)
-                           (remove-duplicates (rest primitive))))
-     ;; the same variable cannot be bound multiple times
-     (length= (mapcar #'third bind-statements)
-              (remove-duplicates (mapcar #'third bind-statements))))))
-
-    
-(in-package :muhai-cookingbot)
-
-(activate-monitor trace-irl)
-
-(defparameter *meaning-to-link*
-  `((fetch-and-proportion ?bowl-with-butter
-                          ?ks-out ?ks-in
-                          ?empty-bowl
-                          ?butter-concept
-                          ?quantity ?unit)
-    (bind ingredient ?b1 ,(make-instance 'butter :is-concept t))
-    (bind quantity ?b2 ,(make-instance 'quantity :value 230))
-    (bind unit ?b3 ,(make-instance 'g))
-    (bind kitchen-state ?b4 ,*full-kitchen*)))
-
-
-(defparameter *composer*
-  (make-chunk-composer
-   :topic nil :meaning nil
-   :initial-chunk (create-chunk-from-irl-program *meaning-to-link*)
-   :chunks (mapcar #'create-chunk-from-primitive (primitives-list *irl-primitives*))
-   :configurations '((:chunk-expansion-modes :link-open-variables)
-                     (:node-cost-mode . :best-linked-chunk)
-                     (:chunk-evaluation-score-mode . :uniform)
-                     (:chunk-node-tests :restrict-search-depth :check-duplicate :valid-irl-program))
-   :ontology nil
-   :primitive-inventory *irl-primitives*))
-
-(get-next-solutions *composer*)
-
-
-
-#|
-(defmethod initialize-instance :after ((composer chunk-composer) &key)
-  ;; add hashed-nodes to the composer blackboard
-  (set-data composer 'hashed-nodes (make-hash-table))
-  ;; max depth for composer search process
-  (set-configuration composer :max-search-depth 10)
-  ;; How to arange the queue
-  (set-configuration composer :queue-mode :best-first)
-  ;; A list of functions that are called on the chunk
-  ;; of each search node to create new chunks.
-  (set-configuration composer :chunk-expansion-modes
-                     '(:combine-program))
-  ;; A list of functions that is called whenever a new
-  ;; node is created to filter out bad nodes.
-  (set-configuration composer :chunk-node-tests
-                     '(:restrict-search-depth
-                       :check-duplicate))
-  ;; A function that is called whenever a new node is
-  ;; created to rate the node. Returns a float.
-  ;; lower == better
-  (set-configuration composer :node-cost-mode
-                     :short-programs-with-few-primitives-and-open-vars)
-  ;; Computes a score for a chunk, a float
-  ;; between 0 (very bad) and 1 (very good).
-  (set-configuration composer :chunk-score-mode
-                     :source-chunks-average)
-  ;; A function that is called before chunk evaluation
-  ;; to add things to the irl program. Gets the chunk
-  ;; and returns a new chunk or nil when the wrapping
-  ;; failed.
-  (set-configuration composer :chunk-wrapper :identity)
-  ;; A list of functions that are called after chunk
-  ;; evaluation. Returns t when the result is a good  one
-  (set-configuration composer :chunk-evaluation-goal-tests '(:identity))
-  ;; A function that is called after chunk evaluation
-  ;; to compute a score for a result (higher == better).
-  (set-configuration composer :chunk-evaluation-score-mode
-                     :chunk-and-binding-score-with-few-duplicates))
 |#
