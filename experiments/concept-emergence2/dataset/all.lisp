@@ -1,6 +1,7 @@
 (in-package :cle)
 
 (defmethod get-all-channels ((mode (eql :all)))
+  "Continual learning experiment with CLEVR and WINE"
   `(
     ,'fixed-acidity
     ,'volatile-acidity

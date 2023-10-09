@@ -4,7 +4,7 @@
 ;; + Alignment +
 ;; -------------
 
-;; event
+;; events
 (define-event event-align-start (agent cle-agent))
 (define-event event-align-cxn
               (reason string)

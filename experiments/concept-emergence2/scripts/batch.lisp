@@ -16,7 +16,7 @@
        :package "cle"
        :experiment-class "cle-experiment"
        :number-of-interactions 10000
-       :number-of-series 5
+       :number-of-series 3
        :monitors (list "export-communicative-success"
                        "export-lexicon-coherence"
                        "export-experiment-configurations"
@@ -29,7 +29,7 @@
                 ;; monitoring
                                (:dot-interval . 10)
                 ;(:record-every-x-interactions . 100) ;; important for fast logging
-                               (:usage-table-window . 1000000)
+                               (:usage-table-window . 1000)
                                (:save-distribution-history . nil)
                                ;; setup interacting agents
                                (:interacting-agents-strategy . :standard)
@@ -49,7 +49,7 @@
                                (:observation-std . 0.0)
                                ;; scene sampling
                                (:scene-sampling . :random)
-                               (:topic-sampling . :discriminative)
+                               (:topic-sampling . :random)
                                ;; general strategy
                                (:align . t)
                                (:similarity-threshold . 0.0)
@@ -69,7 +69,7 @@
                                (:weight-incf . 1)
                                (:weight-decf . -5)
                                ;; staging
-                               (:switch-condition . :after-n-interactions) ; :after-n-interactions)
+                               (:switch-condition . :none) ; :after-n-interactions)
                                (:switch-conditions-after-n-interactions . 2500)
                                (:stage-parameters
                                 ((:switch-dataset . "winery")

@@ -18,9 +18,9 @@
                (:file "parse-yaml")
                (:file "ontology")
                ;(:file "ontology-generated")
-               ;(:file "vr-primitives")
                (:file "primitives")
                (:file "vr-requests")
+               ;(:file "vr-primitives")
                (:file "visualisations")
                (:module personal-dynamic-memory
                 :serial t

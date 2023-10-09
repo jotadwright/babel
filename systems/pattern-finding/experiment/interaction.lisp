@@ -49,7 +49,7 @@
   (let ((all-node-statuses (mappend #'statuses (cons cipn (all-parents cipn)))))
     (if (not (find 'added-by-repair all-node-statuses))
       (if success? "." "x")
-      (cond ((member 'nothing->holistic all-node-statuses) "h")
+      (cond ((member 'add-cxn all-node-statuses) "h")
             ((member 'anti-unify-cxns all-node-statuses) "a")
             ((member 'anti-unify-cipn all-node-statuses) "p")
             ((member 'add-categorial-links all-node-statuses) "l")))))
@@ -63,6 +63,53 @@
 
 (define-event constructions-chosen (constructions list))
 (define-event cipn-statuses (cipn-statuses list))
+
+(defun run-sanity-check (experiment agent cipn)
+  ;; gather the anti-unified cxns, check in which interaction they were learned
+  ;; and comprehend the utterances from those interactions again.
+  ;; Check if there is a solution cipn that includes cxns that were learned in
+  ;; this interaction, as the anti-unification repair should replace anti-unified cxns
+  ;; with equivalents.
+  (let* ((anti-unified-cxns (find-data (blackboard (construction-inventory cipn)) :anti-unified-cxns))
+         (observations-to-check
+          (remove-duplicates
+           (loop for cxn in anti-unified-cxns
+                 for learned-at = (attr-val cxn :learned-at)
+                 for repair-type = (attr-val cxn :repair)
+                 for observation-num = (parse-integer (subseq learned-at 1))
+                 ;unless (eql repair-type 'anti-unify-cipn)
+                 collect observation-num)))
+         (afr (restart-data (first (fixes (first (problems cipn))))))
+         (new-cxns
+          (loop with interaction-nr = (interaction-number (current-interaction experiment))
+                for cxn in (append (afr-cxns-to-apply afr) (afr-cxns-to-consolidate afr))
+                when (string= (format nil "@~a" interaction-nr) (attr-val cxn :learned-at))
+                collect cxn)))
+    (when observations-to-check
+      (assert
+          (loop for n in observations-to-check
+                for sample = (nth (- n 1) (corpus experiment))
+                for utterance = (car sample)
+                for gold-meaning = (cdr sample)
+                for cip-nodes
+                  = (progn
+                      (set-configuration (grammar agent) :update-categorial-links nil)
+                      (set-configuration (grammar agent) :use-meta-layer nil)
+                      (set-configuration (grammar agent) :consolidate-repairs nil)
+                      (set-configuration (grammar agent) :max-nr-of-nodes 5000)
+                      (multiple-value-bind (meanings cip-nodes cip)
+                          (comprehend-all utterance :cxn-inventory (grammar agent)
+                                          :gold-standard-meaning gold-meaning)
+                        (set-configuration (grammar agent) :max-nr-of-nodes 1000)
+                        (set-configuration (grammar agent) :update-categorial-links t)
+                        (set-configuration (grammar agent) :use-meta-layer t)
+                        (set-configuration (grammar agent) :consolidate-repairs t)
+                        cip-nodes))
+                always (loop for node in cip-nodes
+                             for node-applied-cxns = (original-applied-constructions node)
+                             thereis (and (succeeded-cipn-p node)
+                                          (intersection node-applied-cxns new-cxns))))))))
+                         
 
 (defmethod interact ((experiment pattern-finding-experiment)
                      interaction &key)
@@ -87,8 +134,12 @@
         ;; notify
         (notify constructions-chosen applied-cxns)
         (notify cipn-statuses (statuses solution-cipn))
+        ;; run santiy check...
+        (when (and (get-configuration experiment :run-sanity-check)
+                   (null successp))
+          (run-sanity-check experiment agent solution-cipn))
         ;; run alignment
-        (run-alignment agent solution-cipn competing-cipns
+        (run-alignment agent solution-cipn competing-cipns successp
                        (get-configuration agent :alignment-strategy))
         ;; update the :last-used property of the cxns
         (dolist (cxn applied-cxns)
