@@ -93,6 +93,9 @@
    ;; "Cut cooked bacon into pieces."
    ;; there will be many possible solutions...
    ;; and no information from language can be used by the composer to make the right link... :-(
+
+   ;; add more information to the meaning representation of the instructions
+   ;; that can be used to reduce the number of options for linking accessible entities
    )
  *pdm*)
 

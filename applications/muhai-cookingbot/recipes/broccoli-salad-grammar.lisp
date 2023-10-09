@@ -1,151 +1,7 @@
 ;(ql:quickload :muhai-cookingbot)
-
 (in-package :muhai-cookingbot)
 
-(defparameter *initial-kitchen-state* 
-  (make-instance 
-   'kitchen-state
-   :contents
-   (list (make-instance 'fridge
-                        :contents (list
-                                   (make-instance 'medium-bowl
-                                                  :used T
-                                                  :contents (list (make-instance 'lime-juice :amount
-                                                                                 (make-instance 'amount
-                                                                                                :unit (make-instance 'muhai-cookingbot::l)
-                                                                                                :quantity (make-instance 'quantity
-                                                                                                                         :value 0.5)))))
-                                   (make-instance 'medium-bowl
-                                                  :used T
-                                                  :contents (list (make-instance 'mayonnaise :amount
-                                                                                 (make-instance 'amount
-                                                                                                :unit (make-instance 'g)
-                                                                                                :quantity (make-instance 'quantity
-                                                                                                                         :value 500)))))))
-         (make-instance 'pantry
-                        :contents (list  (make-instance 'medium-bowl
-                                                        :used T
-                                                        :contents (list (make-instance 'white-sugar :amount
-                                                                                       (make-instance 'amount
-                                                                                                      :unit (make-instance 'g)
-                                                                                                      :quantity (make-instance 'quantity
-                                                                                                                               :value 1000)))))
-                                         (make-instance 'medium-bowl
-                                                        :used T
-                                                        :contents (list (make-instance 'cider-vinegar :amount
-                                                                                       (make-instance 'amount
-                                                                                                      :unit (make-instance 'ml)
-                                                                                                      :quantity (make-instance 'quantity
-                                                                                                                               :value 500)))))
-                                         (make-instance 'medium-bowl
-                                                        :used T
-                                                        :contents (list (make-instance 'red-bell-pepper :amount
-                                                                                       (make-instance 'amount
-                                                                                                      :unit (make-instance 'piece)
-                                                                                                      :quantity (make-instance 'quantity
-                                                                                                                               :value 10)))))                                          
-                                         (make-instance 'medium-bowl
-                                                        :used T
-                                                        :contents (list (make-instance 'extra-virgin-olive-oil :amount
-                                                                                       (make-instance 'amount
-                                                                                                      :unit (make-instance 'g)
-                                                                                                      :quantity (make-instance 'quantity
-                                                                                                                               :value 50)))))                                         
-                                         (make-instance 'medium-bowl
-                                                        :used T
-                                                        :contents (list (make-instance 'ground-black-pepper :amount
-                                                                                       (make-instance 'amount
-                                                                                                      :unit (make-instance 'g)
-                                                                                                      :quantity (make-instance 'quantity
-                                                                                                                               :value 500)))))
-                                         (make-instance 'medium-bowl
-                                                        :used T
-                                                        :contents (list (make-instance 'jalapeno :amount
-                                                                                       (make-instance 'amount
-                                                                                                      :unit (make-instance 'piece)
-                                                                                                      :quantity (make-instance 'quantity
-                                                                                                                               :value 5)))))
-
-                                         (make-instance 'medium-bowl
-                                                        :used T
-                                                        :contents (list (make-instance 'grated-mozzarella :amount
-                                                                                       (make-instance 'amount
-                                                                                                      :unit (make-instance 'g)
-                                                                                                      :quantity (make-instance 'quantity
-                                                                                                                               :value 500)))))
-                                         (make-instance 'medium-bowl
-                                                        :used T
-                                                        :contents (list (make-instance 'ground-black-pepper :amount
-                                                                                       (make-instance 'amount
-                                                                                                      :unit (make-instance 'g)
-                                                                                                      :quantity (make-instance 'quantity
-                                                                                                                               :value 500)))))
-                                         (make-instance 'medium-bowl
-                                                        :used T
-                                                        :contents (list (make-instance 'red-onion :amount
-                                                                                       (make-instance 'amount
-                                                                                                      :unit (make-instance 'piece)
-                                                                                                      :quantity (make-instance 'quantity
-                                                                                                                               :value 5)))))
-                                         (make-instance 'medium-bowl
-                                                        :used T
-                                                        :contents (list (make-instance 'cooked-bacon :amount
-                                                                                       (make-instance 'amount
-                                                                                                      :unit (make-instance 'g)
-                                                                                                      :quantity (make-instance 'quantity
-                                                                                                                               :value 500)))))
-                                         (make-instance 'medium-bowl
-                                                        :used T
-                                                        :contents (list (make-instance 'broccoli :amount
-                                                                                       (make-instance 'amount
-                                                                                                      :unit (make-instance 'piece)
-                                                                                                      :quantity (make-instance 'quantity
-                                                                                                                               :value 2)))))
-                                         (make-instance 'medium-bowl
-                                                        :used T
-                                                        :contents (list (make-instance 'frozen-corn :amount
-                                                                                       (make-instance 'amount
-                                                                                                      :unit (make-instance 'g)
-                                                                                                      :quantity (make-instance 'quantity
-                                                                                                                               :value 500)))))))
-         (make-instance 'kitchen-cabinet
-                        :contents (list
-                                   ;; bowls
-                                   (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
-                                   (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
-                                   (make-instance 'large-bowl) (make-instance 'large-bowl) (make-instance 'large-bowl)
-                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
-                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
-                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
-                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
-                                   (make-instance 'medium-bowl) (make-instance 'medium-bowl) (make-instance 'medium-bowl)
-                                   (make-instance 'small-bowl) (make-instance 'small-bowl) (make-instance 'small-bowl)
-
-                                   ;; bowl-lids
-                                   (make-instance 'medium-bowl-lid) (make-instance 'medium-bowl-lid) (make-instance 'medium-bowl-lid)
-                                   (make-instance 'large-bowl-lid) (make-instance 'large-bowl-lid) (make-instance 'large-bowl-lid)
-
-                                   ;; jars
-                                   (make-instance 'jar) (make-instance 'jar) (make-instance 'jar)
-
-                                   ;; jar-lids
-                                   (make-instance 'jar-lid) (make-instance 'jar-lid) (make-instance 'jar-lid)
-
-                                   ;; wrapping
-                                   (make-instance 'plastic-wrap)
-
-                                   ;; tools
-                                   (make-instance 'whisk) (make-instance 'whisk) (make-instance 'whisk)
-                                   (make-instance 'wooden-spoon) (make-instance 'wooden-spoon) (make-instance 'wooden-spoon)
-                                   (make-instance 'knife) (make-instance 'knife) (make-instance 'knife)
-                                   (make-instance 'cutting-board) (make-instance 'cutting-board)
-                                   (make-instance 'cutting-board) (make-instance 'cutting-board)
-                                   
-
-                                   ;; baking equipment
-                                   (make-instance 'cookie-sheet)
-                                   (make-instance 'baking-tray)
-                                   (make-instance 'baking-paper))))))
+(load (babel-pathname :directory '("applications" "muhai-cookingbot" "recipes") :name "broccoli-salad-kitchen-state" :type "lisp"))
 
 ;; cxn inventory
 (def-fcg-constructions broccoli-salad-grammar
@@ -177,43 +33,27 @@
 ;; unit cxns ;;
 ;;;;;;;;;;;;;;;
 
-(def-fcg-cxn gram-cxn
-             ((?gram-unit
-               (ontology g)
-               (boundaries (left ?gram-unit)
-                           (right ?gram-unit)))
-              <-
-              (?gram-unit
-               --
-               (lex-id gram)))
-             :feature-types ((ontology default :lookup-in-ontology)))
-
-(def-fcg-cxn grams-morph-cxn
+(def-fcg-cxn grams-cxn
              ((?grams-unit
-               (lex-id gram))
+               (ontology g)
+               (boundaries (left ?grams-unit)
+                           (right ?grams-unit)))
               <-
               (?grams-unit
                --
-               (HASH form ((string ?grams-unit "grams"))))))
-
-(def-fcg-cxn tablespoon-cxn
-             ((?tablespoon-unit
-               (ontology tablespoon)
-               (boundaries (left ?tablespoon-unit)
-                           (right ?tablespoon-unit)))
-              <-
-              (?tablespoon-unit
-               --
-               (lex-id tablespoon)))
+               (HASH form ((string ?grams-unit "grams")))))
              :feature-types ((ontology default :lookup-in-ontology)))
 
-(def-fcg-cxn tablespoons-morph-cxn
+(def-fcg-cxn tablespoons-cxn
              ((?tablespoons-unit
-               (lex-id tablespoon))
+               (ontology tablespoon)
+               (boundaries (left ?tablespoons-unit)
+                           (right ?tablespoons-unit)))
               <-
               (?tablespoons-unit
                --
-               (HASH form ((string ?tablespoons-unit "tablespoons"))))))
+               (HASH form ((string ?tablespoons-unit "tablespoons")))))
+             :feature-types ((ontology default :lookup-in-ontology)))
 
 (def-fcg-cxn head-cxn
              ((?head-unit
@@ -223,16 +63,8 @@
               <-
               (?head-unit
                --
-               (lex-id head)))
+               (HASH form ((string ?head-unit "head")))))
              :feature-types ((ontology default :lookup-in-ontology)))
-
-(def-fcg-cxn head-morph-cxn
-             ((?head-unit
-               (lex-id head))
-              <-
-              (?head-unit
-               --
-               (HASH form ((string ?head-unit "head"))))))
 
 ;; Quantity-cxn ;;
 ;;;;;;;;;;;;;;;;;;
@@ -254,9 +86,18 @@
 ;; ingredient cxns ;;
 ;;;;;;;;;;;;;;;;;;;;;
 
-(def-fcg-cxn fresh-broccoli-cxn
+(def-fcg-cxn broccoli-cxn
+             ((?broccoli-unit
+               (ontology broccoli))
+              <-
+              (?broccoli-unit
+               --
+               (lex-id broccoli)))
+             :feature-types ((ontology default :lookup-in-ontology)))
+
+(def-fcg-cxn fresh-broccoli-morph-cxn
              ((?fresh-broccoli-unit
-               (ontology broccoli)
+               (lex-id broccoli)
                (boundaries (left ?fresh-unit)
                            (right ?broccoli-unit))
                (subunits (?fresh-unit ?broccoli-unit)))
@@ -269,8 +110,17 @@
                (HASH form ((string ?broccoli-unit "broccoli"))))
               (?fresh-broccoli-unit
                --
-               (HASH form ((meets ?fresh-unit ?broccoli-unit)))))
-             :feature-types ((ontology default :lookup-in-ontology)))
+               (HASH form ((meets ?fresh-unit ?broccoli-unit))))))
+
+(def-fcg-cxn broccoli-morph-cxn
+             ((?broccoli-unit
+               (lex-id broccoli)
+               (boundaries (left ?broccoli-unit)
+                           (right ?broccoli-unit)))
+              <-
+              (?broccoli-unit
+               --
+               (HASH form ((string ?broccoli-unit "broccoli"))))))
 
 
 (def-fcg-cxn red-onion-cxn
@@ -292,11 +142,32 @@
              :feature-types ((ontology default :lookup-in-ontology)))
 
 
-(def-fcg-cxn cooked-bacon-cxn
+(def-fcg-cxn onions-cxn
+             ((?onions-unit
+               (ontology onion)
+               (boundaries (left ?onions-unit)
+                           (right ?onions-unit)))
+              <-
+              (?onions-unit
+               --
+               (HASH form ((string ?onions-unit "onions")))))
+             :feature-types ((ontology default :lookup-in-ontology)))
+
+
+(def-fcg-cxn bacon-cxn
+             ((?bacon-unit
+               (ontology cooked-bacon))
+              <-
+              (?bacon-unit
+               --
+               (lex-id bacon)))
+             :feature-types ((ontology default :lookup-in-ontology)))
+
+(def-fcg-cxn cooked-bacon-morph-cxn
              ((?cooked-bacon-unit
-               (ontology cooked-bacon)
                (boundaries (left ?cooked-unit)
                            (right ?bacon-unit))
+               (lex-id bacon)
                (subunits (?cooked-unit ?bacon-unit)))
               <-
               (?cooked-unit
@@ -307,7 +178,28 @@
                (HASH form ((string ?bacon-unit "bacon"))))
               (?cooked-bacon-unit
                --
-               (HASH form ((meets ?cooked-unit ?bacon-unit)))))
+               (HASH form ((meets ?cooked-unit ?bacon-unit))))))
+
+(def-fcg-cxn bacon-morph-cxn
+             ((?bacon-unit
+               (boundaries (left ?bacon-unit)
+                           (right ?bacon-unit))
+               (lex-id bacon))
+              <-
+              (?bacon-unit
+               --
+               (HASH form ((string ?bacon-unit "bacon"))))))
+
+
+(def-fcg-cxn vinegar-cxn
+             ((?vinegar-unit
+               (ontology vinegar)
+               (boundaries (left ?vinegar-unit)
+                           (right ?vinegar-unit)))
+              <-
+              (?vinegar-unit
+               --
+               (HASH form ((string ?vinegar-unit "vinegar")))))
              :feature-types ((ontology default :lookup-in-ontology)))
 
 
@@ -332,14 +224,32 @@
 
 (def-fcg-cxn mayonnaise-cxn
              ((?mayonnaise-unit
-               (ontology mayonnaise)
+               (ontology mayonnaise))
+              <-
+              (?mayonnaise-unit
+               --
+               (lex-id mayo)))
+             :feature-types ((ontology default :lookup-in-ontology)))
+
+(def-fcg-cxn mayonnaise-morph-cxn
+             ((?mayonnaise-unit
+               (lex-id mayo)
                (boundaries (left ?mayonnaise-unit)
                            (right ?mayonnaise-unit)))
               <-
               (?mayonnaise-unit
                --
-               (HASH form ((string ?mayonnaise-unit "mayonnaise")))))
-             :feature-types ((ontology default :lookup-in-ontology)))
+               (HASH form ((string ?mayonnaise-unit "mayonnaise"))))))
+
+(def-fcg-cxn mayo-morph-cxn
+             ((?mayonnaise-unit
+               (lex-id mayo)
+               (boundaries (left ?mayonnaise-unit)
+                           (right ?mayonnaise-unit)))
+              <-
+              (?mayonnaise-unit
+               --
+               (HASH form ((string ?mayonnaise-unit "mayo"))))))
 
 
 (def-fcg-cxn sugar-cxn
@@ -354,9 +264,18 @@
              :feature-types ((ontology default :lookup-in-ontology)))
 
 
-(def-fcg-cxn grated-mozzarella-cheese-cxn
+(def-fcg-cxn mozzarella-cxn
+             ((?mozzarella-unit
+               (ontology grated-mozzarella))
+              <-
+              (?mozzarella-unit
+               --
+               (lex-id mozza)))
+             :feature-types ((ontology default :lookup-in-ontology)))
+
+(def-fcg-cxn grated-mozzarella-cheese-morph-cxn
              ((?grated-mozzarella-unit
-               (ontology grated-mozzarella)
+               (lex-id mozza)
                (boundaries (left ?grated-unit)
                            (right ?cheese-unit))
                (subunits (?grated-unit ?mozzarella-unit ?cheese-unit)))
@@ -373,19 +292,17 @@
               (?grated-mozzarella-unit
                --
                (HASH form ((meets ?grated-unit ?mozzarella-unit)
-                           (meets ?mozzarella-unit ?cheese-unit)))))
-             :feature-types ((ontology default :lookup-in-ontology)))
+                           (meets ?mozzarella-unit ?cheese-unit))))))
 
-(def-fcg-cxn broccoli-cxn
-             ((?broccoli-unit
-               (ontology broccoli)
-               (boundaries (left ?broccoli-unit)
-                           (right ?broccoli-unit)))
+(def-fcg-cxn mozzarella-morph-cxn
+             ((?mozzarella-unit
+               (lex-id mozza)
+               (boundaries (left ?mozzarella-unit)
+                           (right ?mozzarella-unit)))
               <-
-              (?broccoli-unit
+              (?mozzarella-unit
                --
-               (HASH form ((string ?broccoli-unit "broccoli")))))
-             :feature-types ((ontology default :lookup-in-ontology)))
+               (HASH form ((string ?mozzarella-unit "mozzarella"))))))
 
 
 (def-fcg-cxn quantity-unit-ingredient-cxn
@@ -467,88 +384,9 @@
                (HASH form ((meets ?x-unit-in-utterance-right ?comma-unit)
                            (meets ?comma-unit ?chopped-unit))))))
 
-;; cut-cxn with morphs 'cut' and 'chop up', meaning cut
-;; pieces-cxn and bite-size-pieces-cxn (no meaning)
-;; verb-x-into-y-cxn
 
-(def-fcg-cxn ingredient-in-world-cxn
-             ((?x-ingredient-unit
-               (referent (args (?container-with-x)))
-               (ontology (ontological-class ?ontological-class-utterance)
-                         (ontological-types ?ontological-types))
-               (subunits (?x-unit-in-utterance))
-               (boundaries (left ?x-unit-in-utterance-left)
-                           (right ?x-unit-in-utterance-right)))
-              <-
-              (?x-unit-in-utterance
-               --
-               (boundaries (left ?x-unit-in-utterance-left)
-                           (right ?x-unit-in-utterance-right))
-               (ontology (ontological-class ?ontological-class-utterance)
-                         (ontological-types ?ontological-types)))
-              (?x-unit-in-world
-               --
-               (ontological-types (not kitchen-state))
-               (properties (contents ((ontological-class ?ontological-class-world))))
-               (binding-variable ?container-with-x)))
-             :feature-types ((ontological-class default :compare-ontological-vectors)))
-
-
-;; to do: replace x-in-world and x-in-utterance units
-;; with result from ingredient-in-world-cxn
-;; to do: make sure that the ingredient has a property
-;; that matches with the verb (cuttable)
-
-(def-fcg-cxn cut-x-into-pattern-cxn
-             ((?clause-unit
-               (meaning ((cut ?output-container ?output-kitchen-state ?kitchen-state-in
-                              ?container-with-x chopped ?cutting-tool ?cutting-surface)))
-               (output-args (arg1 ?output-container)
-                            (kitchen-state ?output-kitchen-state))
-               (boundaries (left ?verb-unit-left)
-                           (right ?pattern-unit-right))
-               (subunits (?ks-unit ?cut-verb-unit ?x-in-utterance-unit ?into-unit ?pattern-unit)))
-              <-
-              (?ks-unit
-               --
-               (ontological-class kitchen-state)
-               (binding-variable ?kitchen-state-in))
-              (?cut-verb-unit
-               --
-               (lex-id cut)
-               (boundaries (left ?verb-unit-left)
-                           (right ?verb-unit-right)))
-              ;(?verb-unit
-              ; --
-              ; (ontology (ontological-class ?property))
-              ; (boundaries (left ?verb-unit-left)
-              ;             (right ?verb-unit-right))
-              ; (input-args (kitchen-state ?kitchen-state-in)
-              ;             (arg1 ?container-with-x)))
-              (?x-in-utterance-unit
-               --
-               (boundaries (left ?x-unit-in-utterance-left)
-                           (right ?x-unit-in-utterance-right))
-               (ontology (ontological-class ?ontological-class-utterance)
-                         (ontological-types ?ontological-types)))
-              (?x-in-world-unit
-               --
-               (ontological-types (not kitchen-state))
-               (properties (contents ((ontological-class ?ontological-class-world))))
-               (binding-variable ?container-with-x))
-              (?into-unit
-               --
-               (HASH form ((string ?into-unit "into")
-                           (meets ?verb-unit-right ?x-unit-in-utterance-left)
-                           (meets ?x-unit-in-utterance-right ?into-unit)
-                           (meets ?into-unit ?pattern-unit-left))))
-              ;; pattern can also be done via ontology?
-              (?pattern-unit
-               --
-               (lex-id chopped)
-               (boundaries (left ?pattern-unit-left)
-                           (right ?pattern-unit-right))))
-             :feature-types ((ontological-class default :compare-ontological-vectors)))
+;; instructions 1-2 cxns ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def-fcg-cxn cut-morph-cxn
              ((?cut-unit
@@ -577,41 +415,28 @@
                --
                (HASH form ((meets ?chop-unit ?up-unit))))))
 
-#|
-(def-fcg-cxn cut-cxn
+(def-fcg-cxn cutting-verb-cxn
              ((?cut-unit
-               (ontology cuttable)
-               (input-args (kitchen-state ?input-kitchen-state)
-                           (arg1 ?input-container))
-               (output-args (kitchen-state ?output-kitchen-state)
-                            (arg1 ?output-container)))
+               (ontology cuttable))
               <-
               (?cut-unit
-               (HASH meaning ((cut ?output-container ?output-kitchen-state ?input-kitchen-state
-                                   ?input-container chopped ?cutting-tool ?cutting-surface)))
                --
-               (boundaries (left ?left-cut-unit)
-                           (right ?right-cut-unit))
                (lex-id cut)))
              :feature-types ((ontology default :lookup-in-ontology)))
-|#
-
 
 (def-fcg-cxn pieces-morph-cxn
              ((?pieces-unit
-               (lex-id chopped)
+               (lex-id chopped-pattern)
                (boundaries (left ?pieces-unit)
                            (right ?pieces-unit)))
               <-
               (?pieces-unit
                --
-               (HASH form ((string ?pieces-unit "pieces")))))
-             :feature-types ((ontology default :lookup-in-ontology)))
-               
+               (HASH form ((string ?pieces-unit "pieces"))))))
 
 (def-fcg-cxn bite-size-pieces-morph-cxn
              ((?bite-size-pieces-unit
-               (lex-id chopped)
+               (lex-id chopped-pattern)
                (boundaries (left ?bite-unit)
                            (right ?pieces-unit))
                (subunits (?bite-unit ?size-unit ?pieces-unit)))
@@ -628,51 +453,102 @@
               (?bite-size-pieces-unit
                --
                (HASH form ((meets ?bite-unit ?size-unit)
-                           (meets ?size-unit ?pieces-unit)))))
+                           (meets ?size-unit ?pieces-unit))))))
+
+(def-fcg-cxn chopped-pattern-cxn
+             ((?chopped-pattern
+               (ontology chopped))
+              <-
+              (?chopped-pattern
+               --
+               (lex-id chopped-pattern)))
              :feature-types ((ontology default :lookup-in-ontology)))
 
-;; large-bowl-cxn (fetch)
-;; x-and-y-ingredients (transfer-contents)
-;; x-comma-y-ingredients (transfer-contents)
-;; mix-Xs-in-Container-cxn (mix)
+(def-fcg-cxn cutting-verb-ingredient-into-pattern-cxn
+             ;; match ingredient in utterance to ingredient in world
+             ;; make sure that ingredient in world has cuttable property (from the verb)
+             ;; connect the kitchen state to the input of CUT
+             ((?clause-unit
+               (meaning ((cut ?output-container ?output-kitchen-state ?kitchen-state-in
+                              ?container-with-x ?pattern-class ?cutting-tool ?cutting-surface)))
+               (boundaries (left ?verb-unit-left)
+                           (right ?pattern-unit-right))
+               (subunits (?cut-verb-unit ?x-in-utterance-unit ?into-unit ?pattern-unit)))
+              <-
+              (?ks-unit
+               --
+               (ontological-class kitchen-state)
+               (binding-variable ?kitchen-state-in))
+              (?cut-verb-unit
+               --
+               (ontology (ontological-class ?property))
+               (boundaries (left ?verb-unit-left)
+                           (right ?verb-unit-right)))
+              (?x-in-utterance-unit
+               --
+               (boundaries (left ?x-unit-in-utterance-left)
+                           (right ?x-unit-in-utterance-right))
+               (ontology (ontological-class ?ontological-class-utterance)
+                         (ontological-types (?property))))
+              (?x-in-world-unit
+               --
+               (properties
+                (contents ((ontological-class ?ontological-class-world)
+                           (ontological-types (?ontological-class-utterance ?property)))))
+               (binding-variable ?container-with-x))
+              (?into-unit
+               --
+               (HASH form ((string ?into-unit "into")
+                           (meets ?verb-unit-right ?x-unit-in-utterance-left)
+                           (meets ?x-unit-in-utterance-right ?into-unit)
+                           (meets ?into-unit ?pattern-unit-left))))
+              (?pattern-unit
+               --
+               (ontology (ontological-class ?pattern-class)
+                         (ontological-types (pattern)))
+               (boundaries (left ?pattern-unit-left)
+                           (right ?pattern-unit-right)))
+              )
+             :feature-types ((ontological-class default :compare-ontological-vectors)))
+
+
+;; instructions 3-4 cxns ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 #|
-; (transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-large-bowl-1 ?large-bowl-1 ?chopped-broccoli ?quantity-a ?unit-a)
-(def-fcg-cxn x-and-y-ingredients
-             ((?x-and-y-ingredients-unit
-               (subunits (?x-ingredient-unit ?and-unit ?y-ingredient-unit))
-               (boundaries (left ?ingredient-x-unit-left)
-                           (right ?ingredient-y-unit-right))
-               (meaning ((transfer-contents ?output-container-y ?rest-y ?output-ks-y
-                                            ?input-ks-y ?new-container ?input-container-y ?quantity-y ?unit-y)
-                         (transfer-contents 
-               )
-              <-
-              (?x-ingredient-unit
-               --
-               (referent (args (?input-container-x)))
-               (ontology (ontological-types (?property-x)))
-               (boundaries (left ?ingredient-x-unit-left)
-                           (right ?ingredient-x-unit-right)))
-              (?and-unit
-               --
-               (HASH form ((string ?and-unit "and")
-                           (meets ?ingredient-x-unit-right ?and-unit)
-                           (meets ?and-unit ?ingredient-y-unit-left))))
-              (?y-ingredient-unit
-               --
-               (referent (args (?input-container-y)))
-               (ontology (ontological-types (?property-y)))
-               (boundaries (left ?ingredient-y-unit-left)
-                           (right ?ingredient-y-unit-right)))))
-               |#
+(def-fcg-cxn base-ingredients-list-cxn
+             ;; ingredients X 'and' Y
+             ;; match ingredient in utterance to ingredient in world
+             ;; => have to adapt 'compare-ontological-vectors' to handle multiple ontological vectors in one cxn?
+             ;; meaning: transfer contents
+             ;; make ingredient-list-unit
+             ;; keep track of input and output container
+             )
 
+(def-fcg-cxn ingredients-list-cxn
+             ;; match on ingredient + ingredient-list-unit
+             ;; match ingredient in utterance to ingredient in world
+             ;; meaning: transfer contents
+             ;; keep track of input and output container
+             )
 
-;; in-separate-Container-combine-Ingredients (mix)
+(def-fcg-cxn large-bowl-cxn
+             ;; meaning: fetch
+             ;; connect the kitchen state to the input of FETCH
+             ;; keep track of the output container
+             )
 
-;; pour-implicit-over-explicit (transfer-contents)
-;; toss-to-coat (mingle)
-;; X-and-y-actions
+(def-fcg-cxn mix-ingredient-list-into-container-cxn
+             ;; connect everything together
+             ;; add MINGLE
+             )
+
+(def-fcg-cxn in-seperate-container-mix-ingredient-list-cxn
+             ;; connect everything together
+             ;; add MIX
+             )
+|#
+
 
 ;; Running the recipe
 (activate-monitor trace-fcg)
@@ -699,11 +575,13 @@
 
                             ;;;; Instructions
                             "cut cooked bacon into pieces"
-                            "chop up broccoli into bite size pieces"
-                            ;"mix broccoli , onions , bacon and mozzarella in large bowl"
-                            ;"in separate large bowl combine vinegar , sugar and mayo"
-                            ;"pour over broccoli mixture and toss to coat"
+                            "chop up broccoli into bite size pieces" ;; => CUTTING-VERB INGREDIENT into PATTERN
+                            ;"mix broccoli , onions , bacon and mozzarella in large bowl"  ;; => mix INGREDIENT-LIST in CONTAINER
+                            ;"in separate large bowl combine vinegar , sugar and mayo"  ;; => in separate CONTAINER combine INGREDIENT-LIST
+                            ;"pour over broccoli mixture and toss to coat"  ;; => pour IMPLICIT over 
                             ;"best if made a day ahead and stored in the refrigerator"
+
+                            ;; INGREDIENT-LIST cxn has transfer-contents as meaning
                             
                             "end"
                             )
