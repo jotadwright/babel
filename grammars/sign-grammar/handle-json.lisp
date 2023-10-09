@@ -62,7 +62,7 @@
         (meaning-variables '())
         (new-split-meaning '())
         (new-form nil)
-        (keyword-list '("LARGEST" "POPULATION"  "FEWEST" "MOST" "COUNT" "?_" "ELEVATION" "DENSITY" "CAPITAL" "AREA" "PLACE" "SMALLEST" "MAJOR" "LARGEST" "PLACEID" "CITYID" "SHORTEST" "LONGEST" "TRAVERSE" "ANSWER" "?C"  "COUNTRYID" "?A" "?D" "CITY" "LOC" "?B" "CONST" "STATEID" "HIGHEST" "?E" "?F" "HIGHER" "HIGH_POINT" "STATE" "NEXT_TO" "?G" "?H" "?I" "?J" "?K" "?L" "RIVERID" "LEN" "?M" "LOWEST" "?N" "SIZE" "?O" "?P" "RIVER" "LOW_POINT" "LOWER" "LAKE")))
+        (keyword-list '("LARGEST" "POPULATION"  "FEWEST" "MOST" "COUNT" "?_" "ELEVATION" "DENSITY" "CAPITAL" "AREA" "PLACE" "SMALLEST" "MAJOR" "PLACEID" "CITYID" "SHORTEST" "LONGEST" "TRAVERSE" "ANSWER" "?C"  "COUNTRYID" "?A" "?D" "CITY" "LOC" "?B" "CONST" "STATEID" "HIGHEST" "?E" "?F" "HIGHER" "HIGH_POINT" "STATE" "NEXT_TO" "?G" "?H" "?I" "?J" "?K" "?L" "RIVERID" "LEN" "?M" "LOWEST" "?N" "SIZE" "?O" "?P" "RIVER" "LOW_POINT" "LOWER" "LAKE" "NOT" "USA" "SUM" "MOUNTAIN" "0")))
     (loop with change-form? = nil
           for item in split-meaning
           do (when (NOT (string= item ""))
@@ -83,7 +83,7 @@
                (loop with form = (cdr (assoc :utterance json))
                      for variable in meaning-variables
                      for variable-name = (car variable)
-                     for variable-value = (cdr variable)
+                     for variable-value = (string-replace (cdr variable) "_" " ")
                      do (setf form (string-replace form variable-value variable-name))
                      finally (setf new-form form)
                      )
@@ -98,18 +98,23 @@
   (first (split-sequence::split-sequence #\space (fourth (split-sequence::split-sequence #\( meaning)))))
 
 (defun find-predicate-types (meaning)
-  (loop with output = '()
-        with predicate-list = '("LARGEST" "POPULATION"  "FEWEST" "MOST" "COUNT" "ELEVATION" "DENSITY" "CAPITAL" "AREA" "PLACE" "SMALLEST" "MAJOR" "LARGEST" "PLACEID" "CITYID" "SHORTEST" "LONGEST" "TRAVERSE" "COUNTRYID" "CITY" "LOC" "STATEID" "HIGHEST" "HIGHER" "HIGH_POINT" "STATE" "NEXT_TO"  "RIVERID" "LEN"  "LOWEST"  "SIZE" "RIVER" "LOW_POINT" "LOWER" "LAKE")
+  (loop with scores = '()
+        with output = '()
+        with counter = 0
+        with predicate-list = '("LARGEST" "POPULATION"  "FEWEST" "MOST" "COUNT" "ELEVATION" "DENSITY" "CAPITAL" "AREA" "PLACE" "SMALLEST" "MAJOR" "PLACEID" "CITYID" "SHORTEST" "LONGEST" "TRAVERSE" "COUNTRYID" "CITY" "LOC" "STATEID" "HIGHEST" "HIGHER" "HIGH_POINT" "STATE" "NEXT_TO"  "RIVERID" "LEN"  "LOWEST"  "SIZE" "RIVER" "LOW_POINT" "LOWER" "LAKE" "NOT" "SUM" "MOUNTAIN")
         for predicate in (split-sequence::split-sequence #\( meaning)
         for predicate-name = (first (split-sequence::split-sequence #\space predicate))
         do (when (member predicate-name predicate-list :test #'string=)
              (pushend predicate-name output))
-        finally (return (loop with output-per-type = '()
+           (unless (string= predicate "") (incf counter))
+           (setf scores (loop with output-per-type = '()
                               for predicate in predicate-list
                               do (if (member predicate output :test #'string=)
                                    (pushend 1 output-per-type)
                                    (pushend 0 output-per-type))
-                              finally (return output-per-type)))))
+                              finally (return output-per-type)))
+           (pushend counter scores)
+        finally (return scores)))
 
 (defun compare-cdr (cons-1 cons-2)
   (string= (cdr cons-1) (cdr cons-2)))
@@ -147,7 +152,7 @@
                           :direction :output
                           :if-does-not-exist :create
                           :if-exists :overwrite)
-    (format stream "english form,meaning,variables,#variations,queried attribute,largest,population,fewest,most,count,elevation,density,capital,area,place,smallest,major,largest,placeid,cityid,shortest,longest,traverse,countryid,city,loc,stateid,highest,higher,high_point,state,next-to,riverid,len,lowest,size,river,low_point,lower,lake~%")
+    (format stream "english form,meaning,variables,#variations,queried attribute,largest,population,fewest,most,count,elevation,density,capital,area,place,smallest,major,placeid,cityid,shortest,longest,traverse,countryid,city,loc,stateid,highest,higher,high_point,state,next-to,riverid,len,lowest,size,river,low_point,lower,lake,not,sum,mountain~%")
     (loop for item in geoquery-items
           do (format stream (concatenate 'string (format nil "~a,~a,~a,~a,~a," (eng item) (meaning item) (variables item) (nr-of-variations item) (queried-attribute item)) (format nil "~{~A~^,~}~%" (predicate-types item))))))))
         
