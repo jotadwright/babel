@@ -1,17 +1,18 @@
 id,exp_name,nr_of_series,nr_of_interactions,population_size,dataset,dataset_split,available_channels,disable_channels,amount_disabled_channels,sensor_noise,sensor_std,observation_noise,observation_std,scene_sampling,topic_sampling,similarity_threshold,align,entrenchment_incf,entrenchment_decf,entrenchment_li,trash_concepts,weight_update_strategy,initial_weight,weight_incf,weight_decf,switch_condition,switch_conditions_after_n_interactions,stage_parameters
-1,clevr,10,1000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
-2,cogent,10,1000000,10,cogent,traina,:cogent,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
-3,winery,10,1000000,10,winery,train,:winery,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
-4,credit,10,1000000,10,credit,train,:credit,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
-5,defect-1,10,1000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:after-n-interactions,500000,(((:switch-disable-channels-half . 1)))
-6,defect-5,10,1000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:after-n-interactions,500000,(((:switch-disable-channels-half . 5)))
-7,defect-10,10,1000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:after-n-interactions,500000,(((:switch-disable-channels-half . 10)))
-8,defect-15,10,1000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:after-n-interactions,500000,(((:switch-disable-channels-half . 15)))
-9,hetero-1,10,1000000,10,clevr,train,:clevr,:random,1,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
-10,hetero-5,10,1000000,10,clevr,train,:clevr,:random,5,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
-11,hetero-10,10,1000000,10,clevr,train,:clevr,:random,10,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
-12,hetero-15,10,1000000,10,clevr,train,:clevr,:random,15,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
-13,continual-cl-wi,10,2000000,10,clevr,train,:all,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:after-n-interactions,1000000,(((:switch-dataset . winery)(:switch-dataset-split . train) (:switch-scene-sampling . :random) (:switch-topic-sampling . :random)(:switch-available-channels . :all)))
-14,homo-1,10,1000000,10,clevr,train,:clevr,:fixed,1,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
-15,homo-5,10,1000000,10,clevr,train,:clevr,:fixed,5,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
-16,homo-10,10,1000000,10,clevr,train,:clevr,:fixed,10,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+1,clevr,1,1000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+2,cogent,1,1000000,10,cogent,traina,:cogent,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+3,winery,1,1000000,10,winery,train,:winery,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+4,credit,1,1000000,10,credit,train,:credit,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+5,defect-1,1,1000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:after-n-interactions,500000,(((:switch-disable-channels-half . 1)))
+6,defect-5,1,1000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:after-n-interactions,500000,(((:switch-disable-channels-half . 5)))
+7,defect-10,1,1000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:after-n-interactions,500000,(((:switch-disable-channels-half . 10)))
+8,defect-15,1,1000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:after-n-interactions,500000,(((:switch-disable-channels-half . 15)))
+9,hetero-1,1,1000000,10,clevr,train,:clevr,:random,1,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+10,hetero-5,1,1000000,10,clevr,train,:clevr,:random,5,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+11,hetero-10,1,1000000,10,clevr,train,:clevr,:random,10,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+12,hetero-15,1,1000000,10,clevr,train,:clevr,:random,15,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+13,continual-cl-wi,1,2000000,10,clevr,train,:all,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:after-n-interactions,1000000,(((:switch-dataset . winery)(:switch-dataset-split . train) (:switch-scene-sampling . :random) (:switch-topic-sampling . :random)(:switch-available-channels . :all)))
+14,homo-1,1,1000000,10,clevr,train,:clevr,:fixed,1,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+15,homo-5,1,1000000,10,clevr,train,:clevr,:fixed,5,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+16,homo-10,1,1000000,10,clevr,train,:clevr,:fixed,10,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+17,homo-15,1,1000000,10,clevr,train,:clevr,:fixed,15,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
