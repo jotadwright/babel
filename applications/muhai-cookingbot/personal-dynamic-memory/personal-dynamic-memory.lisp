@@ -100,18 +100,25 @@
   (mapcar #'instantiate-non-variables-in-irl-primitive irl-program))
 
 (defun instantiate-non-variables-in-irl-primitive (irl-primitive)
-  (loop for el in (rest irl-primitive)
-        if (variable-p el)
-        collect el into args
-        else collect
-        (cond ((numberp el)
-               (make-instance 'quantity :value el))
-              ((listp el)
-               (make-instance 'list-of-kitchen-entities :items el))
-              (t
-               (make-instance el :is-concept t)))
-        into args
-        finally (return (cons (first irl-primitive) args))))
+  (if (eql (first irl-primitive) 'bind)
+    (list 'bind (second irl-primitive)
+          (third irl-primitive)
+          (case (second irl-primitive)
+            (quantity (make-instance 'quantity :value (fourth irl-primitive)))
+            (ingredient (make-instance (fourth irl-primitive) :is-concept t))
+            (t (make-instance (fourth irl-primitive)))))
+    (loop for el in (rest irl-primitive)
+          if (variable-p el)
+            collect el into args
+          else collect
+              (cond ((numberp el)
+                     (make-instance 'quantity :value el))
+                    ((listp el)
+                     (make-instance 'list-of-kitchen-entities :items el))
+                    (t
+                     (make-instance el :is-concept t)))
+              into args
+          finally (return (cons (first irl-primitive) args)))))
 
 (defun irl-bindings-to-bind-statements (list-of-irl-bindings)
   "Transforms a list of IRL bindings into a ((bind class ?var object)) statement."
