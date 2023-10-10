@@ -15,6 +15,7 @@
                   (arg1 set)
                   (referents set)
                   (contents set-of-feature-value-pairs)
+                  (components set-of-feature-value-pairs)
                   (footprints set)
                   (items set-of-feature-value-pairs))
   :fcg-configurations ((:de-render-mode . :de-render-recipe-utterance)
@@ -468,6 +469,7 @@
              ;; match ingredient in utterance to ingredient in world
              ;; make sure that ingredient in world has cuttable property (from the verb)
              ;; connect the kitchen state to the input of CUT
+             ;; add the cutting pattern to CUT
              ((?clause-unit
                (meaning ((cut ?output-container ?output-kitchen-state ?kitchen-state-in
                               ?container-with-x ?pattern-class ?cutting-tool ?cutting-surface)))
@@ -515,39 +517,373 @@
 ;; instructions 3-4 cxns ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-#|
+
 (def-fcg-cxn base-ingredients-list-cxn
              ;; ingredients X 'and' Y
              ;; match ingredient in utterance to ingredient in world
-             ;; => have to adapt 'compare-ontological-vectors' to handle multiple ontological vectors in one cxn?
-             ;; meaning: transfer contents
+             ;; meaning: 2x transfer contents
              ;; make ingredient-list-unit
              ;; keep track of input and output container
-             )
+             ((?ingredient-list-unit
+               (boundaries (left ?x-unit-in-utterance-left)
+                           (right ?y-unit-in-utterance-right))
+               (subunits (?x-in-utterance-unit ?and-unit ?y-in-utterance-unit))
+               (input-args (kitchen-state ?ks-in)
+                           (arg1 ?new-container))
+               (output-args (kitchen-state ?ks-out)
+                            (arg1 ?output-x))
+               (meaning ((transfer-contents ?output-y ?rest-y ?ks-mid ?ks-in ?new-container ?container-with-y ?quantity-y ?unit-y)
+                         (transfer-contents ?output-x ?rest-x ?ks-out ?ks-mid ?output-y ?container-with-x ?quantity-x ?unit-x)))
+               )
+              <-
+              (?x-in-utterance-unit
+               --
+               (boundaries (left ?x-unit-in-utterance-left)
+                           (right ?x-unit-in-utterance-right))
+               (ontology (ontological-class ?ontological-class-utterance-x)))
+              (?x-in-world-unit
+               --
+               (properties
+                (contents ((ontological-class ?ontological-class-world-x))))
+               (binding-variable ?container-with-x))
+              (?and-unit
+               --
+               (HASH form ((string ?and-unit "and")
+                           (meets ?x-unit-in-utterance-right ?and-unit)
+                           (meets ?and-unit ?y-unit-in-utterance-left))))
+              (?y-in-utterance-unit
+               --
+               (boundaries (left ?y-unit-in-utterance-left)
+                           (right ?y-unit-in-utterance-right))
+               (ontology (ontological-class ?ontological-class-utterance-y)))
+              (?y-in-world-unit
+               --
+               (properties
+                (contents ((ontological-class ?ontological-class-world-y))))
+               (binding-variable ?container-with-y)))
+             :feature-types ((ontological-class default :compare-ontological-vectors)))
+
+
 
 (def-fcg-cxn ingredients-list-cxn
              ;; match on ingredient + ingredient-list-unit
              ;; match ingredient in utterance to ingredient in world
-             ;; meaning: transfer contents
+             ;; meaning: 1x transfer contents
              ;; keep track of input and output container
-             )
+             ((?new-ingredient-list
+               (boundaries (left ?x-unit-in-utterance-left)
+                           (right ?ingredient-list-right))
+               (subunits (?x-in-utterance-unit ?comma-unit ?ingredient-list-unit))
+               (input-args (kitchen-state ?ks-in)
+                           (arg1 ?new-container))
+               (output-args (kitchen-state ?ks-out)
+                            (arg1 ?output-container))
+               (meaning ((transfer-contents ?container-mid ?rest-x ?ks-mid ?ks-in ?new-container ?container-with-x ?quantity-x ?unit-x))))
+              (?ingredient-list-unit
+               (superunit ?new-ingredient-list))
+              <-
+              (?x-in-utterance-unit
+               --
+               (boundaries (left ?x-unit-in-utterance-left)
+                           (right ?x-unit-in-utterance-right))
+               (ontology (ontological-class ?ontological-class-utterance)))
+              (?x-in-world-unit
+               --
+               (properties
+                (contents ((ontological-class ?ontological-class-world))))
+               (binding-variable ?container-with-x))
+              (?comma-unit
+               --
+               (HASH form ((string ?comma-unit ",")
+                           (meets ?x-unit-in-utterance-right ?comma-unit)
+                           (meets ?comma-unit ?ingredient-list-left))))
+              (?ingredient-list-unit
+               --
+               (superunit nil)
+               (boundaries (left ?ingredient-list-left)
+                           (right ?ingredient-list-right))
+               (input-args (kitchen-state ?ks-mid)
+                           (arg1 ?container-mid))
+               (output-args (kitchen-state ?ks-out)
+                            (arg1 ?output-container))))
+             :feature-types ((ontological-class default :compare-ontological-vectors)))
+
 
 (def-fcg-cxn large-bowl-cxn
              ;; meaning: fetch
              ;; connect the kitchen state to the input of FETCH
              ;; keep track of the output container
-             )
+             ((?large-bowl-unit
+               (ontology large-bowl)
+               (boundaries (left ?large-unit)
+                           (right ?bowl-unit))
+               (subunits (?large-unit ?bowl-unit))
+               (meaning ((fetch ?large-bowl ?ks-out ?ks-in large-bowl 1)))
+               (input-args (kitchen-state ?ks-in))
+               (output-args (kitchen-state ?ks-out)
+                            (arg1 ?large-bowl)))
+              <-
+              (?ks-unit
+               --
+               (ontological-class kitchen-state)
+               (binding-variable ?ks-in))
+              (?large-unit
+               --
+               (HASH form ((string ?large-unit "large"))))
+              (?bowl-unit
+               --
+               (HASH form ((string ?bowl-unit "bowl"))))
+              (?large-bowl-unit
+               --
+               (HASH form ((meets ?large-unit ?bowl-unit)))))
+             :feature-types ((ontology default :lookup-in-ontology)))
+
 
 (def-fcg-cxn mix-ingredient-list-into-container-cxn
-             ;; connect everything together
-             ;; add MINGLE
-             )
+             ;; connect FETCH from container to input of ingredient list
+             ;; add MINGLE and connect to output of ingredient list
+             ((?clause-unit
+               (boundaries (left ?mix-unit)
+                           (right ?container-right))
+               (subunits (?mix-unit ?ingredient-list-unit ?in-unit ?container-unit))
+               (meaning ((mingle ?bowl-with-mixture ?ks-with-mixture ?ks-il-out ?container-il-out ?mingling-tool))))
+              <-
+              (?mix-unit
+               --
+               (HASH form ((string ?mix-unit "mix")
+                           (meets ?mix-unit ?ingredient-list-left))))
+              (?ingredient-list-unit
+               --
+               (superunit nil)
+               (boundaries (left ?ingredient-list-left)
+                           (right ?ingredient-list-right))
+               (input-args (kitchen-state ?ks-connect)
+                           (arg1 ?container-connect))
+               (output-args (kitchen-state ?ks-il-out)
+                            (arg1 ?container-il-out)))
+              (?in-unit
+               --
+               (HASH form ((string ?into-unit "in")
+                           (meets ?ingredient-list-right ?in-unit)
+                           (meets ?in-unit ?container-left))))
+              (?container-unit
+               --
+               (ontology (ontological-types (container)))
+               (boundaries (left ?container-left)
+                           (right ?container-right))
+               (input-args (kitchen-state ?ks-container-in))
+               (output-args (kitchen-state ?ks-connect)
+                            (arg1 ?container-connect)))))
 
-(def-fcg-cxn in-seperate-container-mix-ingredient-list-cxn
-             ;; connect everything together
-             ;; add MIX
-             )
-|#
+
+
+(def-fcg-cxn in-seperate-container-combine-ingredient-list-cxn
+             ;; connect FETCH from container to input of ingredient list
+             ;; add MIX and connect to output of ingredient list
+             ((?clause-unit
+               (boundaries (left ?in-unit)
+                           (right ?ingredient-list-right))
+               (subunits (?in-unit ?separate-unit ?container-unit ?combine-unit ?ingredient-list-unit))
+               (meaning ((mix ?dressing ?ks-with-dressing ?ks-il-out ?container-il-out ?mixing-tool))))
+              <-
+              (?in-unit
+               --
+               (HASH form ((string ?in-unit "in")
+                           (meets ?in-unit ?separate-unit))))
+              (?separate-unit
+               --
+               (HASH form ((string ?separate-unit "separate")
+                           (meets ?separate-unit ?container-left))))
+              (?container-unit
+               --
+               (ontology (ontological-types (container)))
+               (boundaries (left ?container-left)
+                           (right ?container-right))
+               (input-args (kitchen-state ?ks-container-in))
+               (output-args (kitchen-state ?ks-connect)
+                            (arg1 ?container-connect)))
+              (?combine-unit
+               --
+               (HASH form ((string ?combine-unit "combine")
+                           (meets ?container-right ?combine-unit)
+                           (meets ?combine-unit ?ingredient-list-left))))
+              (?ingredient-list-unit
+               --
+               (superunit nil)
+               (boundaries (left ?ingredient-list-left)
+                           (right ?ingredient-list-right))
+               (input-args (kitchen-state ?ks-connect)
+                           (arg1 ?container-connect))
+               (output-args (kitchen-state ?ks-il-out)
+                            (arg1 ?container-il-out)))))
+
+;; instructions 5 cxns ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def-fcg-cxn x-mixture-cxn
+             ;; find a mixture that contains ingredient x (using ontological vectors)
+             ;; match x-in-utterance with one of the contents of a mixture
+             ;; percolate the binding variable
+             ((?x-mixture-unit
+               (boundaries (left ?x-unit-in-utterance-left)
+                           (right ?mixture-unit))
+               (subunits (?x-in-utterance-unit ?mixture-unit))
+               (binding-variable ?container-with-x))
+              <-
+              (?x-in-utterance-unit
+               --
+               (boundaries (left ?x-unit-in-utterance-left)
+                           (right ?x-unit-in-utterance-right))
+               (ontology (ontological-class ?ontological-class-utterance)))
+              (?mixture-unit
+               --
+               (HASH form ((string ?mixture-unit "mixture")
+                           (meets ?x-unit-in-utterance-right ?mixture-unit))))
+              (?x-mixture-in-world-unit
+               --
+               (properties
+                (contents
+                 ((ontological-types (mixture))
+                  (properties
+                   (components
+                    ((ontological-class ?ontological-class-world)))))))
+               (binding-variable ?container-with-x)))
+              :feature-types ((ontological-class default :compare-ontological-vectors)))
+
+
+(def-fcg-cxn toss-to-coat-cxn
+             ;; add MINGLE and percolate the input/output args
+             ((?toss-to-coat-unit
+               (boundaries (left ?toss-unit)
+                           (right ?coat-unit))
+               (subunits (?toss-unit ?to-unit ?coat-unit))
+               (meaning ((mingle ?mingled-mix ?ks-out ?ks-in ?container ?tool)))
+               (input-args (kitchen-state ?ks-in)
+                           (arg1 ?container))
+               (output-args (kitchen-state ?ks-out)
+                            (arg1 ?mingled-mix)))
+              <-
+              (?toss-unit
+               --
+               (HASH form ((string ?toss-unit "toss"))))
+              (?to-unit
+               --
+               (HASH form ((string ?to-unit "to"))))
+              (?coat-unit
+               --
+               (HASH form ((string ?coat-unit "coat"))))
+              (?toss-to-coat-unit
+               --
+               (HASH form ((meets ?toss-unit ?to-unit)
+                           (meets ?to-unit ?coat-unit))))))
+
+
+(def-fcg-cxn pour-implicit-over-x-mixture
+             ;; resolve implicit as a homogeneous mixture
+             ;; pour over other ingredient x
+             ((?pour-over-x-unit
+               (boundaries (left ?pour-unit)
+                           (right ?x-mixture-right))
+               (subunits (?pour-unit ?over-unit ?x-mixture-unit))
+               (meaning ((transfer-contents ?output-container ?rest ?ks-out ?ks-in ?container-with-x ?container-with-ellipsis ?quantity ?unit)))
+               (input-args (kitchen-state ?ks-in)
+                           (arg1 ?container-with-x))
+               (output-args (kitchen-state ?ks-out)
+                            (arg1 ?output-container)))
+              <-
+              (?ks-unit
+               --
+               (ontological-class kitchen-state)
+               (binding-variable ?ks-in))
+              (?pour-unit
+               --
+               (HASH form ((string ?pour-unit "pour")
+                           (meets ?pour-unit ?over-unit))))
+              (?ellipsis-in-world-unit
+               --
+               (properties
+                (contents
+                 ((ontological-class homogeneous-mixture))))
+               (binding-variable ?container-with-ellipsis))
+              (?over-unit
+               --
+               (HASH form ((string ?over-unit "over")
+                           (meets ?over-unit ?x-mixture-left))))
+              (?x-mixture-unit
+               --
+               (boundaries (left ?x-mixture-left)
+                           (right ?x-mixture-right))
+               (binding-variable ?container-with-x))))
+
+
+
+(def-fcg-cxn X-and-Y-actions-cxn
+             ;; connect actions X and Y together in terms of kitchen states
+             ((?clause-unit
+               (boundaries (left ?clause-x-left)
+                           (right ?clause-y-right))
+               (subunits (?clause-X-unit ?and-unit ?clause-Y-unit)))
+              <-
+              (?clause-X-unit
+               --
+               (boundaries (left ?clause-x-left)
+                           (right ?clause-x-right))
+               (output-args (kitchen-state ?ks-connect)
+                            (arg1 ?container-connect)))
+              (?and-unit
+               --
+               (HASH form ((string ?and-unit "and")
+                           (meets ?clause-x-right ?and-unit)
+                           (meets ?and-unit ?clause-y-left))))
+              (?clause-Y-unit
+               --
+               (boundaries (left ?clause-y-left)
+                           (right ?clause-y-right))
+               (input-args (kitchen-state ?ks-connect)
+                           (arg1 ?container-connect)))))
+
+;; instruction 6 cxns ;;
+;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def-fcg-cxn store-in-the-refrigerator-cxn
+             ((?clause-unit
+               (boundaries (left ?store)
+                           (right ?refrigerator))
+               (meaning ((refrigerate ?container-out ?ks-out ?ks-in ?container-with-ellipsis ?fridge 24 hour))))
+              <-
+              (?ks-unit
+               --
+               (ontological-class kitchen-state)
+               (binding-variable ?ks-in))
+              (?clause-unit
+               --
+               (HASH form ((string ?best-unit-1 "best")
+                           (string ?if-unit-1 "if")
+                           (string ?made-unit-1 "made")
+                           (string ?a-unit-1 "a")
+                           (string ?day-unit-1 "day")
+                           (string ?ahead-unit-1 "ahead")
+                           (string ?and-unit-1 "and")
+                           (string ?stored-unit-1 "stored")
+                           (string ?in-unit-1 "in")
+                           (string ?the-unit-1 "the")
+                           (string ?refrigerator-unit-1 "refrigerator")
+                           (meets ?best-unit-1 ?if-unit-1)
+                           (meets ?if-unit-1 ?made-unit-1)
+                           (meets ?made-unit-1 ?a-unit-1)
+                           (meets ?a-unit-1 ?day-unit-1)
+                           (meets ?day-unit-1 ?ahead-unit-1)
+                           (meets ?ahead-unit-1 ?and-unit-1)
+                           (meets ?and-unit-1 ?stored-unit-1)
+                           (meets ?stored-unit-1 ?in-unit-1)
+                           (meets ?in-unit-1 ?the-unit-1)
+                           (meets ?the-unit-1 ?refrigerator-unit-1))))
+              (?ellipsis-in-world
+               --
+               (properties
+                (contents
+                 ((ontological-types (mixture)))))
+               (binding-variable ?container-with-ellipsis))))
 
 
 ;; Running the recipe
@@ -576,12 +912,10 @@
                             ;;;; Instructions
                             "cut cooked bacon into pieces"
                             "chop up broccoli into bite size pieces" ;; => CUTTING-VERB INGREDIENT into PATTERN
-                            ;"mix broccoli , onions , bacon and mozzarella in large bowl"  ;; => mix INGREDIENT-LIST in CONTAINER
-                            ;"in separate large bowl combine vinegar , sugar and mayo"  ;; => in separate CONTAINER combine INGREDIENT-LIST
-                            ;"pour over broccoli mixture and toss to coat"  ;; => pour IMPLICIT over 
-                            ;"best if made a day ahead and stored in the refrigerator"
-
-                            ;; INGREDIENT-LIST cxn has transfer-contents as meaning
+                            "mix broccoli , onions , bacon and mozzarella in large bowl"  ;; => mix INGREDIENT-LIST in CONTAINER
+                            "in separate large bowl combine vinegar , sugar and mayo"  ;; => in separate CONTAINER combine INGREDIENT-LIST
+                            "pour over broccoli mixture and toss to coat"  ;; => pour IMPLICIT over 
+                            "best if made a day ahead and stored in the refrigerator"
                             
                             "end"
                             )

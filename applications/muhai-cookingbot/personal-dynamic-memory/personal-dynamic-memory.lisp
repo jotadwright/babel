@@ -61,7 +61,7 @@
                    when bindings-list
                      do (push (make-instance 'world-state
                                            :accessible-entities bindings-list
-                                             :personal-dynamic-memory personal-dynamic-memory)
+                                           :personal-dynamic-memory personal-dynamic-memory)
                             (world-states personal-dynamic-memory))
                         (setf meaning-network (append meaning-network (reverse parsed-meaning)))
                         (setf final-set-of-bindings bindings-list)))
@@ -85,7 +85,7 @@
                                                                              (available-at (find v bindings-list :key #'var)))
                                                                    collect (find v bindings-list :key #'var)))
                                                          resulting-bindings-lists)))
-    (values resulting-bindings-with-open-variables parsed-meaning )))
+    (values resulting-bindings-with-open-variables parsed-meaning)))
 
 
 

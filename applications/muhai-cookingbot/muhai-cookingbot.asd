@@ -16,11 +16,11 @@
   :serial t
   :components ((:file "package")
                (:file "parse-yaml")
-               (:file "ontology")
-               ;(:file "ontology-generated")
+               ;(:file "ontology")
+               (:file "ontology-generated")
                (:file "primitives")
                (:file "vr-requests")
-               ;(:file "vr-primitives")
+               (:file "vr-primitives")
                (:file "visualisations")
                (:module personal-dynamic-memory
                 :serial t
