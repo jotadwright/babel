@@ -5,7 +5,7 @@
       :initarg :id
       :accessor id
       :initform nil)
-   (name :type string
+   (name :type symbol
       :initarg :name
       :accessor name
       :initform nil)
@@ -859,7 +859,7 @@
   (:documentation "A jar lid. Used to cover/close a jar."))
 
 
-(defclass kitchen-floor (container kitchen-entity)
+(defclass kitchen-floor (kitchen-entity)
   ()
   (:documentation "The floor."))
 

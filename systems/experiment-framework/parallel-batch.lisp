@@ -911,7 +911,7 @@ name."
     
     (loop for config in configurations and index from 0 to (length configurations)
           for config-name = (internal-symb (upcase (list-of-strings->string
-                                                    (list current-date "exp" (mkstr index))
+                                                    (list current-date "exp" (mkstr index) (mkstr (random 10) (random 10) (random 10) (random 10) (random 10)))
                                                     :separator "-")))
           for experiment = (list config-name (append config (list (cons :experiment-name (mkstr config-name))
                                                                   (cons :output-dir (last-elt (pathname-directory output-dir))))))

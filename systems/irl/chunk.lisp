@@ -9,7 +9,7 @@
           create-chunk-from-primitive
           create-chunk-from-irl-program))
 
-(defclass chunk ()
+(defclass chunk (blackboard)
   ((id :initarg :id :initform (make-id 'chunk) :accessor id :type symbol)
    (irl-program 
     :initarg :irl-program :initform nil :accessor irl-program :type list

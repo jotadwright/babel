@@ -1,6 +1,7 @@
 (in-package :cle)
 
 (defmethod get-all-channels ((mode (eql :clevr)))
+  "CLEVR dataset."
   (reverse `(
              ,'xpos ,'ypos
              ,'width ,'height
@@ -42,6 +43,7 @@
       (:ZPOS (if (member 'ypos continuous-attributes) t nil)))))
 
 (defmethod get-all-channels ((mode (eql :cogent)))
+  "CLEVR COGENT dataset."
   (reverse `(
              ,'xpos ,'ypos
              ,'width ,'height

@@ -29,25 +29,32 @@
 (define-configuration-default-value :max-number-of-nodes 1000)
 (define-configuration-default-value :initial-categorial-link-weight 0.0)
 (define-configuration-default-value :category-linking-mode :neighbours)
-(define-configuration-default-value :learner-cxn-supplier :hashed-labeled-positive-scores)
+(define-configuration-default-value :learner-cxn-supplier :cxn-sets-hashed-positive-scores) ;:hashed-labeled-positive-scores)
 
 ;; Learning Operators
 (define-configuration-default-value :repairs 
                                     '(add-categorial-links
                                       anti-unify-cipn
                                       anti-unify-cxns                                   
-                                      nothing->holistic))
+                                      add-cxn))
 
 ;; Strategies and scores
 (define-configuration-default-value :initial-cxn-score 0.5)
 (define-configuration-default-value :cxn-incf-score 0.1)
 (define-configuration-default-value :cxn-decf-score 0.1)
 (define-configuration-default-value :evaluation-grammar nil)
+;; :lateral-inhibition or :most-recent-generalisation
 (define-configuration-default-value :alignment-strategy :lateral-inhibition)
 (define-configuration-default-value :remove-cxn-on-lower-bound nil)
 (define-configuration-default-value :max-au-cost 10)
 (define-configuration-default-value :comprehend-all-n nil)
 (define-configuration-default-value :determine-interacting-agents-mode :corpus-learner)
+(define-configuration-default-value :allow-cxns-with-no-strings t)
+(define-configuration-default-value :anti-unification-mode :exhaustive) ; :exhaustive or :heuristic
+(define-configuration-default-value :partial-analysis-mode :exhaustive) ; :exhaustive or :heuristic
+(define-configuration-default-value :run-sanity-check nil)
+(define-configuration-default-value :repair-recursively t)
+(define-configuration-default-value :push-meets-to-deltas nil)
 
 ;; Misc
 (define-configuration-default-value :categorial-network-export-interval 1000)
@@ -95,7 +102,10 @@
   (read-from-string meaning))
 
 (defmethod pre-process-meaning-data (data (mode (eql :irl)))
-  (fresh-variables (read-from-string data)))
+  ;(fresh-variables (read-from-string data)))
+  (let ((meaning (read-from-string data)))
+    (inc-var-ids meaning)
+    meaning))
 
 (defmethod pre-process-meaning-data (meaning (mode (eql :amr)))
   (let ((*package* (find-package "GL-DATA"))
@@ -121,9 +131,14 @@
               (let ((raw-data (stream->list stream)))
                 (loop for raw-line in raw-data
                       for line = (decode-json-from-string raw-line)
-                      collect (cons (cdr (assoc :utterance line))
-                                    (pre-process-meaning-data (cdr (assoc :meaning line))
+                      for utterance = (cdr (assoc :utterance line))
+                      for meaning = (cdr (assoc :meaning line))
+                      collect (cons utterance
+                                    (pre-process-meaning-data meaning
                                                               meaning-representation)))))))
+      (setf file-data
+            (loop for (utterance . meaning) in file-data
+                  collect (cons utterance (fresh-variables meaning))))
       (when (and shufflep sortp)
         (error "Cannot shuffle and sort the data"))
       (when remove-duplicates-p

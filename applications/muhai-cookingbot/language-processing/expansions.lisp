@@ -44,10 +44,17 @@
         (t
          (loop 
           for bindings-list in bindings
-          for ontological-class-from-ts  = source
-          for ontological-class-from-bindings = (if (string= (get-base-name value) "ONTOLOGICAL-CLASS-UTTERANCE")
-                                                  (cdr (assoc "ONTOLOGICAL-CLASS-WORLD" bindings-list :key #'get-base-name :test #'string=))
-                                                  (cdr (assoc "ONTOLOGICAL-CLASS-UTTERANCE" bindings-list :key #'get-base-name :test #'string=)))
+          for ontological-class-from-ts = source
+          ;; extension: when you find ontological-class-utterance-suffix
+          ;; look for ontological-class-world-suffix
+          ;; or vice-versa
+          ;; this way, there can be multiple ontological vectors compared in the same cxn
+          for ontological-class-from-bindings
+              = (cond ((string= (get-base-name value) "ONTOLOGICAL-CLASS-UTTERANCE")
+                       (cdr (assoc "ONTOLOGICAL-CLASS-WORLD" bindings-list :key #'get-base-name :test #'string=)))
+                      ((string= (get-base-name value) "ONTOLOGICAL-CLASS-WORLD")
+                       (cdr (assoc "ONTOLOGICAL-CLASS-UTTERANCE" bindings-list :key #'get-base-name :test #'string=))))
+              
           if (and ontological-class-from-ts
                   ontological-class-from-bindings
                   (> (cosine-similarity (ontological-vector ontological-class-from-ts cxn-inventory)

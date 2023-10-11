@@ -41,14 +41,14 @@
             ;; if part of the contributing prototypes -> reward
             if (member (channel prototype) best-subset :key #'channel)
               do (progn
-                 ;(update-history-weight agent prototype (get-configuration (experiment agent) :weight-incf))        
+                   ;(update-history-weight agent prototype (get-configuration (experiment agent) :weight-incf))        
                    (update-weight prototype
                                   (get-configuration (experiment agent) :weight-incf)
                                   (get-configuration (experiment agent) :weight-update-strategy)))
-              ;; otherwise -> punish
+            ;; otherwise -> punish
             else
               do (progn
-                 ;(update-history-weight agent prototype (get-configuration (experiment agent) :weight-decf))        
+                   ;(update-history-weight agent prototype (get-configuration (experiment agent) :weight-decf))        
                    (update-weight prototype
                                   (get-configuration (experiment agent) :weight-decf)
                                   (get-configuration (experiment agent) :weight-update-strategy)))))))
@@ -136,6 +136,8 @@
 ;; + Weighted Similarity table +
 ;; -----------------------------
 (defun weighted-similarity-with-table (object list-of-prototypes table)
+  "Compute the weighted similarity between the object and the
+   list of prototypes, using the given similarity table."
   (loop for prototype in list-of-prototypes
         for channel = (channel prototype)
         for ws = (get-ws object channel table)

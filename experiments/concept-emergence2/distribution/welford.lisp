@@ -9,8 +9,8 @@
     :initarg :M2 :accessor M2 :initform nil :type number))
   (:documentation "Gaussian distribution using Welford's online algorithm"))
 
-;; Constructor
 (defmethod make-distribution (agent observation (mode (eql :gaussian-welford)))
+  "Create a gaussian distribution that will be updated using welford's online algorithm."
   (let* ((M2 (get-configuration (experiment agent) :M2))
          (nr-of-samples 1)
          (st-dev (sqrt (/ M2 nr-of-samples)))
@@ -27,9 +27,9 @@
                    :history history 
                    :M2 M2)))
 
-;; Update
 (defmethod update-distribution ((new-observation number)
                                 (distribution gaussian-welford))
+  "Update the gaussian distribution using welford's online algorithm."
   ;; Step 1: increment nr-of-samples
   (incf (nr-of-samples distribution))
   ;; Step 2: update using welford's algorithm

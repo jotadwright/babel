@@ -5,6 +5,7 @@
 ;; ----------------------
 
 (defmethod get-all-channels ((mode (eql :winery)))
+  "WINE dataset."
   (reverse `(
              ,'fixed-acidity
              ,'volatile-acidity
