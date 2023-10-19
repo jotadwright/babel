@@ -8,11 +8,12 @@
                :web-interface
                :irl
                :fcg
-               :cl-json
                :closer-mop
                :nlp-tools
                :dexador
-               :yason)
+               :com.inuoe.jzon
+               :alexandria
+               :assoc-utils)
   :serial t
   :components ((:file "package")
                (:file "parse-yaml")

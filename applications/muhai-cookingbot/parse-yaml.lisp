@@ -1,3 +1,5 @@
+(in-package :muhai-cookingbot)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; calls the python ontology generator ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -14,5 +16,6 @@
                                              '("applications" "muhai-cookingbot")
                                              :name "ontology-generated"
                                              :type "lisp"))))
-    (utils:exec-and-return "python3" python-program "-i" infile "-o" outfile)))
+    (unless (probe-file outfile)
+      (utils:exec-and-return "python3" python-program "-i" infile "-o" outfile))))
 (generate-ontology-from-yaml)

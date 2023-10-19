@@ -156,16 +156,13 @@
                                                         :value 18))))
   (:documentation "Representation of the state of the kitchen."))
 
-(defmethod initialize-instance :after ((orig kitchen-state) &key)
-  (when (null (arrangement orig)) (setf (arrangement orig) (make-instance 'sectionalized)))
-  (when (null (find 'kitchen-cabinet (contents orig) :test (lambda (x y) (eq x (type-of y))))) (setf (contents orig) (cons (make-instance 'kitchen-cabinet) (contents orig))))
-  (when (null (find 'pantry (contents orig) :test (lambda (x y) (eq x (type-of y))))) (setf (contents orig) (cons (make-instance 'pantry) (contents orig))))
-  (when (null (find 'fridge (contents orig) :test (lambda (x y) (eq x (type-of y))))) (setf (contents orig) (cons (make-instance 'fridge) (contents orig))))
-  (when (null (find 'freezer (contents orig) :test (lambda (x y) (eq x (type-of y))))) (setf (contents orig) (cons (make-instance 'freezer) (contents orig))))
-  (when (null (find 'oven (contents orig) :test (lambda (x y) (eq x (type-of y))))) (setf (contents orig) (cons (make-instance 'oven) (contents orig))))
-  (when (null (find 'counter-top (contents orig) :test (lambda (x y) (eq x (type-of y))))) (setf (contents orig) (cons (make-instance 'counter-top) (contents orig))))
-  (when (null (find 'microwave (contents orig) :test (lambda (x y) (eq x (type-of y))))) (setf (contents orig) (cons (make-instance 'microwave) (contents orig))))
-  (when (null (find 'stove (contents orig) :test (lambda (x y) (eq x (type-of y))))) (setf (contents orig) (cons (make-instance 'stove) (contents orig)))))
+(defmethod initialize-instance :after ((ks kitchen-state) &key)
+  (unless (arrangement ks)
+    (setf (arrangement ks) (make-instance 'sectionalized)))
+  (loop for appliance in '(kitchen-cabinet pantry fridge freezer oven counter-top microwave stove kitchen-sink)
+        unless (find appliance (contents ks) :key #'type-of)
+          do (push (make-instance appliance :name (lisp->camel-case (mkstr appliance)))
+                   (contents ks))))
 
 (defmethod copy-object-content ((original kitchen-state) (copy kitchen-state))
   (setf (constraints copy) (copy-object (loop for item in (constraints original) collect item)))
@@ -451,7 +448,7 @@
   (setf (dipped-in copy) (copy-object (dipped-in original))))
 
 
-(defclass dough (homogeneous-mixture flattenable bakeable shapeable cuttable)
+(defclass dough (homogeneous-mixture)
   ()
   (:documentation "A type of homogeneous mixture used to create pastry, bread, cakes and similar."))
 
@@ -470,7 +467,6 @@
 (defclass sprinklable (kitchen-entity)
   ()
   (:documentation "Something that can be sprinkled over something."))
-
 
 (defclass mixture (ingredient beatable cuttable mashable meltable mixable can-be-sprinkled-with siftable sprinklable bakeable shapeable dippable spreadable boilable liquefiable can-be-sprinkled-on can-be-spread-upon has-temperature shakeable)
   ((components 
@@ -806,6 +802,17 @@
   (setf (arrangement copy) (copy-object (arrangement original))))
 
 
+(defclass kitchen-sink (container conceptualizable)
+  ((arrangement 
+      :initarg :arrangement
+      :accessor arrangement
+      :initform (make-instance 'side-to-side)))
+  (:documentation "The kitchen-sink"))
+
+(defmethod copy-object-content ((original kitchen-sink) (copy kitchen-sink))
+  (setf (arrangement copy) (copy-object (arrangement original))))
+
+
 (defclass fork (can-mix can-beat can-mash reusable can-mingle)
   ()
   (:documentation "A fork; can be used for mixing, beating, mashing."))
@@ -859,9 +866,9 @@
   (:documentation "A jar lid. Used to cover/close a jar."))
 
 
-(defclass kitchen-floor (kitchen-entity)
-  ()
-  (:documentation "The floor."))
+;(defclass kitchen-floor (kitchen-entity)
+;  ()
+;  (:documentation "The floor."))
 
 
 (defclass kitchen-cabinet (container)
@@ -1364,16 +1371,13 @@
       :initarg :components
       :accessor components
       :initform (list (make-instance 'crushed-pineapple 
-:amount (make-instance 'amount
-                                                      :quantity (make-instance 'quantity
-                                                                               :value 0)
-                                                      :unit (make-instance 'percent
-                                                                           )))(make-instance 'syrup 
-:amount (make-instance 'amount
-                                                      :quantity (make-instance 'quantity
-                                                                               :value 0)
-                                                      :unit (make-instance 'percent
-                                                                           ))))))
+                                     :amount (make-instance 'amount
+                                                            :quantity (make-instance 'quantity :value 0)
+                                                            :unit (make-instance 'percent)))
+                      (make-instance 'syrup 
+                                     :amount (make-instance 'amount
+                                                            :quantity (make-instance 'quantity :value 0)
+                                                            :unit (make-instance 'percent))))))
   (:documentation "Crushed-pineapple in sryup."))
 
 (defmethod copy-object-content ((original crushed-pineapple-in-syrup) (copy crushed-pineapple-in-syrup))

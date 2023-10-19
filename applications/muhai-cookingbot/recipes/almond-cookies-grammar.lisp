@@ -1378,21 +1378,21 @@
       (process-utterances '(;;;; Ingredients
                             "230 grams butter , room temperature"
                             "120 grams sugar"
-                            "4 grams vanilla extract"
-                            "4 grams almond extract"
-                            "340 grams flour"
-                            "120 grams almond flour"
-                            "30 grams powdered sugar"
+                            ;"4 grams vanilla extract"
+                            ;"4 grams almond extract"
+                            ;"340 grams flour"
+                            ;"120 grams almond flour"
+                            ;"30 grams powdered sugar"
 
                             ;;;; Instructions
                             "beat the butter and the sugar together until light and fluffy"
-                            "add the vanilla and almond extracts and mix"
-                            "add the flour and the almond flour"
-                            "mix thoroughly"
-                            "take generous tablespoons of the dough and roll it into a small ball , about an inch in diameter , and then shape it into a crescent shape"
-                            "place onto a parchment paper lined baking sheet"
-                            "bake at 175 �C for 15 - 20 minutes" ; or until a light golden brown
-                            "dust with powdered sugar"
+                            ;"add the vanilla and almond extracts and mix"
+                            ;"add the flour and the almond flour"
+                            ;"mix thoroughly"
+                            ;"take generous tablespoons of the dough and roll it into a small ball , about an inch in diameter , and then shape it into a crescent shape"
+                            ;"place onto a parchment paper lined baking sheet"
+                            ;"bake at 175 �C for 15 - 20 minutes" ; or until a light golden brown
+                            ;"dust with powdered sugar"
                             "end"
                             )
                             ; *pdm*

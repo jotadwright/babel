@@ -96,6 +96,16 @@
 ;; and 'add-element' transfers that to the web interface
 ;(add-element (make-html *initial-kitchen-state* :expand-initially t))
 
+(defparameter *mini-recipe*
+  '((get-kitchen ?kitchen)
+    (fetch-and-proportion ?proportioned-butter ?ks-with-butter ?kitchen ?target-container-1 butter 230 g)
+    (bring-to-temperature ?warm-butter ?ks-with-warm-butter ?ks-with-butter ?proportioned-butter ?room-temp-quantity ?room-temp-unit)
+    (fetch-and-proportion ?proportioned-sugar ?ks-with-sugar ?ks-with-warm-butter ?target-container-2 white-sugar 120 g)
+    (transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-sugar ?empty-container-a ?warm-butter ?quantity-a ?unit-a)
+    (transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?proportioned-sugar ?quantity-b ?unit-b)
+    (beat ?beaten-mixture ?ks-with-beaten-mixture ?output-ks-b ?output-container-b ?mixing-tool)))
+    
+
 (defparameter *almond-cookies-recipe*
   '((get-kitchen ?kitchen)
     
@@ -160,7 +170,7 @@
 ;; ======================
 
 (defparameter *extended-recipe*
-  (append-meaning-and-irl-bindings *almond-cookies-recipe* nil))
+  (append-meaning-and-irl-bindings *mini-recipe* nil))
 
 ;; ======================
 ;; Evaluate the recipe
@@ -171,6 +181,11 @@
 ;(clear-output)
 
 ;(evaluate-irl-program *extended-recipe* nil)
+
+(let* ((bindings (first (evaluate-irl-program *extended-recipe* nil :silent t)))
+       (ks (value (find '?ks-with-beaten-mixture bindings :key #'var)))
+       (counter-top (counter-top ks)))
+  (add-element (make-html counter-top)))
 
 ;; ======================
 ;; Visualise the recipe
