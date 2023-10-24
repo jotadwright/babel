@@ -159,10 +159,11 @@
 (defmethod initialize-instance :after ((ks kitchen-state) &key)
   (unless (arrangement ks)
     (setf (arrangement ks) (make-instance 'sectionalized)))
-  (loop for appliance in '(kitchen-cabinet pantry fridge freezer oven counter-top microwave stove kitchen-sink)
-        unless (find appliance (contents ks) :key #'type-of)
-          do (push (make-instance appliance :name (lisp->camel-case (mkstr appliance)))
-                   (contents ks))))
+  ;(loop for appliance in '(kitchen-cabinet pantry fridge freezer oven counter-top microwave stove kitchen-sink)
+  ;      unless (find appliance (contents ks) :key #'type-of)
+  ;        do (push (make-instance appliance :name (lisp->camel-case (mkstr appliance)))
+  ;                 (contents ks)))
+  )
 
 (defmethod copy-object-content ((original kitchen-state) (copy kitchen-state))
   (setf (constraints copy) (copy-object (loop for item in (constraints original) collect item)))
@@ -175,6 +176,22 @@
 (defclass vr-kitchen-state (container)
   ()
   (:documentation "Representation of the Abe-sim kitchen state."))
+
+(defclass vr-kitchen-floor (kitchen-entity)
+  ((contents 
+    :initarg :contents
+    :accessor contents
+    :initform nil)))
+
+(defclass potted-plant (kitchen-entity) ())
+(defclass chair (kitchen-entity) ())
+(defclass trash-can (kitchen-entity) ())
+(defclass vr-kitchen-ceiling (kitchen-entity) ())
+(defclass north-wall (kitchen-entity) ())
+(defclass east-wall (kitchen-entity) ())
+(defclass south-wall (kitchen-entity) ())
+(defclass west-wall (kitchen-entity) ())
+(defclass table (kitchen-entity) ())
 
 
 (defclass aggregate (kitchen-entity)
@@ -944,6 +961,9 @@
 (defmethod copy-object-content ((original peel) (copy peel))
   (setf (peel-of copy) (copy-object (peel-of original))))
 
+(defclass potato-peel (peel) ()
+  (:documentation "The peel of a potato"))
+
 
 (defclass rolling-pin (can-flatten reusable)
   ()
@@ -984,6 +1004,9 @@
   ()
   (:documentation "A table spoon, used for eating liquid or mostly liquid food, but can also be used for other purposes such as spreading jam."))
 
+(defclass masher (can-mash reusable)
+  ()
+  (:documentation "A masher, used for mashing stuff"))
 
 (defclass whisk (can-mix can-beat can-mingle reusable)
   ()
@@ -1118,6 +1141,10 @@
 (defclass cooked-bacon (ingredient cuttable)
   ()
   (:documentation "Cooked bacon."))
+
+(defclass bacon (ingredient cuttable)
+  ()
+  (:documentation "bacon"))
 
 
 (defclass cooked-chicken (ingredient cuttable)

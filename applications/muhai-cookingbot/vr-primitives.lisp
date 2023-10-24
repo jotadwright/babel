@@ -21,178 +21,290 @@
 ;;                  HELP FUNCTIONS                          ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; 'MayonnaiseParticle', 'DressingParticle', 'CiderVinegarParticle', 'PotatoParticle',
+;; 'MayonnaiseJar'}
 
 ;; TODO: A way in VR kitchen to search for 'sugar' and it returns the container with 'sugar' in it
 ;; TODO: Type names in the VR kitchen should be ontology with the yaml ontology so this mapping can be removed.
-(defvar *type-mapping* '((sugar-bag              . sugar)
-                         (butter-bag             . butter)
-                         (vanilla-extract-bag    . vanilla-extract)
-                         (almond-extract-bag     . almond-extract)
-                         (butterparticle         . butter-particle)
-                         (sugarparticle          . sugar-particle)
-                         (flourparticle          . flour-particle)
-                         (almondflourparticle    . almond-flour-particle)
-                         (vanillaextractparticle . vanilla-extract-particle)
-                         (almondextractparticle  . almond-extract-particle)
-                         (kitchen-cabinet        . kitchen-cabinet)
-                         (baking-sheet           . baking-paper)
-                         (kitchenstove           . oven)
-                         (kitchen-counter        . counter-top)
-                         (spoon                  . wooden-spoon)
-                         (shaker                 . sugar-shaker)
-                         (sugar-bag              . white-sugar)
-                         ;(floor                  . kitchen-floor)
-                         (flour-bag              . all-purpose-flour)
-                         (almond-flour-bag       . almond-flour)
-                         ;(fridgedoor             . fridge-door)
-                         ;(kitchenstovedoor       . kitchen-stove-door)
-                         ;(freezerdoor            . freezer-door)
-                         (doughclump             . dough)
-                         (abe                    . agent)
-                         (powdered-white-sugar   . sugar)))
+(defparameter *type-mapping*
+  '(;; bags
+    (sugar-bag              . sugar)
+    (butter-bag             . butter)
+    (vanilla-extract-bag    . vanilla-extract)
+    (almond-extract-bag     . almond-extract)
+    (flour-bag              . all-purpose-flour)
+    (almond-flour-bag       . almond-flour)
+    (grated-mozzarella-bag  . grated-mozzarella)
+    ;; particles
+    ;; ingredients
+    (chopped-cooked-bacon    . cooked-bacon)
+    (broccoli                . broccoli)
+    (chopped-broccoli        . broccoli)
+    (peeled-red-onion        . red-onion)
+    (peeled-potato           . potato)
+    ;; appliances/tool/utensils
+    (baking-sheet           . baking-paper)
+    (kitchen-counter        . counter-top)
+    (spoon                  . wooden-spoon)
+    (cooking-knife          . knife)
+    ;; misc
+    (floor                  . vr-kitchen-floor)
+    (ceiling                . vr-kitchen-ceiling)
+    (abe                    . agent)
+    (doughclump             . dough)))
 
+(defparameter *property-mapping*
+  '((chopped-cooked-bacon (is-cut . chopped))
+    (chopped-broccoli (is-cut . chopped))
+    (peeled-red-onion (peeled . t))
+    (peeled-potato (peeled . t))))
+    
+;; TODO: A way to know that if you want to portion ingredient X, you can find it in some object of type Y
+(defparameter *source-mapping*
+  '((sugar . sugar-bag)))
 
 (defun map-type (type)
   (or (cdr (assoc type *type-mapping*))
-      (find-class type nil)))
+      ;; only return <type> when there is a class with this name
+      (when (find-class type nil) type)
+      ;; as a backup, just return a kitchen-entity
+      (progn (format t "~%Type ~a not found" type)
+        'kitchen-entity)))
 
+(defun map-properties (type)
+  (cdr (assoc type *property-mapping*)))
 
 (defun rmap-type (type)
   (or (car (rassoc type *type-mapping*))
-      (find-class type nil)))
+      type))
 
 
-(defun find-entity-by-name (name entity)
-  (if (string= (name entity) name)
-    entity
-    (when (slot-exists-p entity 'contents)
-      (loop for content in (contents entity)
-            when (find-entity-by-name name content)
-            return it))))
+
+(defun sym->string (s &key from-first)
+  "Convert a keyword symbol name to a camelCase string."
+  (lisp->camel-case (mkstr s) :from-first from-first))
+  
+(defun string->sym (s)
+  "Convert a camelCase string to a keyword symbol name."
+  (make-kw (camel-case->lisp s)))
 
 
-(defun find-empty-container-of-type (type entity)
-  (if (and (slot-exists-p entity 'contents)
-           (eq (contents entity) nil)
-           (eq (type-of entity) type))
-    entity
-    (when (slot-exists-p entity 'contents)
-      (loop for content in (contents entity)
-            when (find-empty-container-of-type type content)
-            return it))))
 
+(defun sym-name (o)
+  "Converts a name used by the VR interface (a camelCased string)
+   into the name of an IRL object (i.e. a keyword symbol)."
+  (string->sym (gethash "name" o)))
+
+(defun sym-type (o)
+  "Converts the type record of a vr object description
+   into the type of an object."
+  (map-type (intern (upcase (camel-case->lisp (gethash "type" o))))))
+
+(defun sym-properties (o)
+  (map-properties (intern (upcase (camel-case->lisp (gethash "type" o))))))
+
+
+
+(defun vr-name (o)
+  "Converts the name of an IRL object (i.e. a keyword symbol)
+   into a name used by the VR interface (a camelCased string)."
+  (name o))
+
+(defun vr-contents (o)
+  "Retrieves a list of camelCased strings that are the vr-names
+   of objects directly contained in an IRL container."
+  (mapcar #'vr-name (contents o)))
+
+(defun vr-type (o)
+  "Converts the type of an object into a camelCased string."
+  (sym->string (rmap-type (type-of o)) :from-first t))
+
+(defmethod vr-shape ((o shape))
+  "Converts an IRL shape object into a camelCased string."
+  (sym->string (type-of o)))
+
+(defmethod vr-pattern ((p pattern))
+  "Converts an IRL pattern object into a camelCased string."
+  (sym->string (type-of p)))
+
+(defmethod vr-quantity ((q quantity))
+  "Converts an IRL quantity object into a camelCased string."
+  (value q))
+
+(defmethod vr-unit ((u unit))
+  "Converts an IRL unit object into a camelCased string."
+  (sym->string (type-of u)))
+
+
+
+
+
+(defun sim-find-object-by-vr-name (obj-name root)
+  "Find an object by its vr-name in the IRL kitchen"
+  (if (string= (sym->string (name root)) obj-name)
+      root
+      (when (slot-exists-p root 'contents)
+        (loop for child in (contents root)
+              when (sim-find-object-by-vr-name obj-name child)
+                return it))))
+
+(defun find-kitchen-entity-vr (type kitchen-state &key unused)
+  "Return an IRL object of the given type from the symbolic state (if one exists)."
+  (labels ((test-used-fn (obj)
+             (if unused
+               ;; something is unused if it has a slot 'used and its value is NIL
+               ;; OR when something has a slot 'contents and those are non-empty
+               (or (and (slot-exists-p obj 'used)
+                        (null (used obj)))
+                   (and (slot-exists-p obj 'contents)
+                        (null (contents obj))))
+               T))
+           (traverse (type node)
+             (if (and (eq (type-of node) type)
+                      (test-used-fn node))
+                 node
+                 (when (slot-exists-p node 'contents)
+                   (loop for child in (contents node)
+                         when (traverse type child)
+                           return it)))))
+    (traverse type kitchen-state)))
+
+(defun find-unused-kitchen-entity-vr (type kitchen-state)
+  "Return an IRL container of the given type from the symbolic state that is not currently used (if one exists)."
+  (find-kitchen-entity-vr type kitchen-state :unused T))
+
+(defun find-source (concept kitchen-state)
+  "Return an object that is able to generate objects of a given type during a portioning action."
+  (let* ((source-type (cdr (assoc concept *source-mapping*))))
+    (find-kitchen-entity-vr source-type kitchen-state)))
+
+
+
+
+(defun vr->sym-temperature (vr-name kitchen-state)
+  "Retrieve the temperature value (in degrees C) of an object and convert it to an amount."
+  (let* ((obj (sim-find-object-by-vr-name vr-name kitchen-state))
+         (vr-data (simulation-data obj))
+         (csv (gethash "customStateVariables" vr-data))
+         (vr-temperature (gethash "temperature" csv)))
+    (when (numberp vr-temperature)
+      (make-instance 'amount
+                     :quantity (make-instance 'quantity :value vr-temperature)
+                     :unit (make-instance 'degrees-celsius)))))
+  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                          ;;
 ;;               TO SYMBOLIC                                ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun set-object-slots (object alist list-of-slots-to-set)
-  (loop for slot in (closer-mop:class-slots (class-of object))
+(defun set-sym-object-slots (sym-object custom-state-variables)
+  "When the <custom-state-variables> (hash table) of the VR simulator
+   specify a slot that is present in the CLOS <object>,
+   set the slot!"
+  (loop for slot in (closer-mop:class-slots (class-of sym-object))
         for slot-name = (closer-mop:slot-definition-name slot)
         for slot-key-accessor = (car (closer-mop:slot-definition-initargs slot))
-        when (and alist (alistp alist)
-                  (member slot-key-accessor alist :key #'car)
-                  (member slot-name list-of-slots-to-set))
-        do (setf (slot-value object slot-name)
-                 (intern (cdr (assoc slot-key-accessor alist))))))
+        for vr-key = (sym->string slot-key-accessor)
+        when (gethash vr-key custom-state-variables)
+        do (setf (slot-value sym-object slot-name)
+                 ;; TO DO: depending on the slot-name
+                 ;; make the appropriate IRL object!
+                 (gethash vr-key custom-state-variables))))
 
-(defun make-object (type simulation-data name)
-  (when type
-    (let* ((custom-state-variables
-            (cdr (assoc :custom-state-variables simulation-data)))
-           (substance
-            (when (and custom-state-variables
-                       (alistp custom-state-variables))
-              (cdr (assoc :substance custom-state-variables))))
-           (object-type (map-type (read-from-string (camel-case->lisp (or substance type)))))
-           (object
-            (when object-type
-              (make-instance object-type
-                             :simulation-data simulation-data
-                             :name name))))
-      (set-object-slots object custom-state-variables '(persistent-id))
-      object)))
+(defun vr-to-symbolic-kitchen (vr-kitchen)
+  "Converts the world state formed used in AbeSim to a symbolic IRL kitchen"
+  (labels ((make-sym-object (vr-object name)
+             (let* ((type (sym-type vr-object))
+                    (properties (sym-properties vr-object))
+                    (csv (gethash "customStateVariables" vr-object))
+                    (sym-object (make-instance type :name name
+                                               :simulation-data vr-object)))
+               (loop for (slot-name . value) in properties
+                     do (setf (slot-value sym-object slot-name)
+                              (if (or (eq value t) (eq value nil))
+                                value
+                                (make-instance value))))
+               (set-sym-object-slots sym-object csv)
+               sym-object)))
+    (let* ((sym-kitchen (make-instance 'kitchen-state))
+           (kconstraints-alist
+            (loop for key in (alexandria:hash-table-keys vr-kitchen)
+                  for vr-object = (gethash key vr-kitchen)
+                  for name = (sym-name vr-object)
+                  when (string= "kcon" (gethash "simtype" vr-object))
+                  collect (cons name vr-object)))
+           (ktrees-alist
+            ;; make IRL objects
+            (loop for key in (alexandria:hash-table-keys vr-kitchen)
+                  for vr-object = (gethash key vr-kitchen)
+                  for name = (gethash "name" vr-object)
+                  when (string= "ktree" (gethash "simtype" vr-object))
+                  collect (cons name (make-sym-object vr-object name)))))
+      ;; make sure all IRL object is in the contents of another IRL object
+      (loop for (nil . sym-object) in ktrees-alist
+            for vr-data = (simulation-data sym-object)
+            for at = (gethash "at" vr-data)
+            for parent = (assoc at ktrees-alist :test #'string=)
+            for container = (if parent (cdr parent) sym-kitchen)
+            do (push sym-object (contents container)))
+      ;; simply store the constraints
+      (setf (constraints sym-kitchen) kconstraints-alist)
+      sym-kitchen)))
 
-(defun vr-to-symbolic-kitchen (lst)
-  (labels ((triple-name     (x) (first x))
-           (triple-parent   (x) (second x))
-           (triple-object   (x) (third x))
-           (constraint?     (x) (string= "kcon" (cdr (assoc :simtype x))))
-           (object?         (x) (string= "ktree" (cdr (assoc :simtype x)))))
-    ;; Find the correct keys and values in the JSON to construct the classes
-    (let ((objects
-           (loop for (key . properties) in lst
-                 for type     = (cdr (assoc :type properties))
-                 for parent   = (cdr (assoc :at properties))
-                 for name     = (cdr (assoc :name properties))
-                 for object   = (when (object? properties) (make-object type properties name))
-                 when object
-                 collect (list name parent object)))
-          (constraints
-           (loop for item in lst
-                 when (constraint? (cdr item))
-                 collect item)))
-      (make-instance 'kitchen-state
-                     :contents (loop for triple in objects
-                                     for parent-object
-                                       = (triple-object
-                                          (find (triple-parent triple) objects
-                                                :key #'triple-name :test #'string=))
-                                     if parent-object
-                                     do (push (triple-object triple) (contents parent-object))
-                                     else collect (triple-object triple))
-                     :constraints constraints))))
-
+(defun read-kitchen-state (vr-response &optional (keyname "kitchenStateOut"))
+  (vr-to-symbolic-kitchen (gethash keyname vr-response)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                          ;;
 ;;               TO VR                                      ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun set-vr-object-slots (sym-object custom-state-variables)
+  "Loop over the slots of an IRL object and store its values
+   in the custom-state-variables hash table"
+  (loop for slot in (closer-mop:class-slots (class-of sym-object))
+        for slot-name = (closer-mop:slot-definition-name slot)
+        for slot-key-accessor = (car (closer-mop:slot-definition-initargs slot))
+        for slot-value = (slot-value sym-object slot-name)
+        for vr-key = (sym->string slot-key-accessor)
+        unless (member slot-name '(simulation-data contents))
+        do (setf (gethash vr-key custom-state-variables)
+                 ;; TO DO: depending on the slot-value
+                 ;; make the appropriate VR object!
+                 (typecase slot-value
+                   (amount (let ((hash (make-hash-table :test #'string=)))
+                             (setf (gethash "quantity" hash) (value (quantity slot-value)))
+                             (setf (gethash "unit" hash) (vr-type (unit slot-value)))
+                             hash))
+                   (pattern (vr-pattern slot-value))
+                   (symbol slot-value)
+                   (string slot-value)
+                   (number slot-value)
+                   (t slot-value)))))
 
-(defun iter-slots (object)
-  (loop for slot in (closer-mop:class-slots (class-of object))
-        for slot-name    = (closer-mop:slot-definition-name slot)
-        for slot-initarg = (car (closer-mop:slot-definition-initargs slot))
-        for slot-value   = (slot-value object slot-name)
-
-        ;; TODO we will need to send properties too if the simulator accepts them
-        unless (or (eq slot-name 'simulation-data)
-                   (eq slot-name 'amount)
-                   (eq slot-name 'quantity)
-                   (eq slot-name 'arrangement)
-                   (eq slot-name 'contents)
-                   (eq slot-name 'temperature))
-          collect (cons slot-initarg  slot-value)))
-
-(defun slots-to-alist (object)
-  (let ((alist-vr-properties (simulation-data object))
-        (alist-slots (iter-slots object)))
-    (loop for (key . value) in alist-vr-properties
-          if (eq key :custom-state-variables)
-            collect (cons key (if (eql value 'empty-hash) alist-slots (append value alist-slots)))
-          else
-            collect (cons key value))))
-
-(defun symbolic-to-vr-kitchen (kitchen)
-  (labels ((has-contents (o) (slot-exists-p o 'contents))
-           (sim-my-traverse (root)
-             (let ((curr-edges '()))
-               (if (has-contents root)
-                   (dolist (child  (contents root))
-                     (setf curr-edges (append curr-edges
-                                              (list (list root child))
-                                              (sim-my-traverse child)))))
-               curr-edges))
-           (sim-transform (edge-tuple)
-             (let ((object (cadr edge-tuple)))
-               (cons (make-kw (camel-case->lisp (name object)))
-                     (slots-to-alist object)))))
-    (let* ((edges (sim-my-traverse kitchen))
-           (transformed-edges (mapcar #'sim-transform edges)))
-      (append (remove-if #'(lambda (x) (equal x '(:nil))) transformed-edges)
-              (constraints kitchen)))))
-
+(defun symbolic-to-vr-kitchen (sym-obj &key (vr-kitchen nil) (parent nil))
+  "Converts a symbolic IRL kitchen to the world state format used in AbeSim.
+   Note that the top-level kitchen-state object will not appear in the conversion;
+   this is fine, a kitchen-state object will be generated automatically when reading back to IRL."
+  (labels ((add-to-vr-kitchen (sym-obj vr-kitchen simtype)
+             (let* ((vr-data (simulation-data sym-obj))
+                    (obj-vr-name (gethash "name" vr-data))
+                    (dummy (setf (gethash obj-vr-name vr-kitchen) vr-data))
+                    (vr-obj-record (gethash obj-vr-name vr-kitchen)))
+               (setf (gethash "at" vr-obj-record) (if parent parent 'null))
+               (setf (gethash "type" vr-obj-record) (vr-type sym-obj))
+               (setf (gethash "simtype" vr-obj-record) simtype)
+               (set-vr-object-slots sym-obj (gethash "customStateVariables" vr-obj-record))
+               (symbolic-to-vr-kitchen sym-obj :vr-kitchen vr-kitchen :parent obj-vr-name))))
+    (let* ((vr-kitchen (if vr-kitchen vr-kitchen (make-hash-table :test #'string=))))
+      (when (slot-exists-p sym-obj 'contents)
+        (loop for content-obj in (contents sym-obj)
+              do (add-to-vr-kitchen content-obj vr-kitchen "ktree")))
+      (when (slot-exists-p sym-obj 'constraints)
+        (loop for (name . vr-constraint) in (constraints sym-obj)
+              do (setf (gethash name vr-kitchen) vr-constraint)))
+      (unless parent
+        vr-kitchen))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                          ;;
@@ -202,39 +314,139 @@
 
 
 ;;                                                          ;;
+;;                 TO GET TIME                              ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprimitive get-time ((time-output double-float))
+  ((=> time-output)
+   (bind (time-output 1.0 (request-to-get-time) 0.0)))
+  :primitive-inventory *vr-primitives*)
+
+;;                                                          ;;
+;;                   TO WAIT                                ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprimitive wait ((time-to-wait double-float)
+                    (time-unit string)
+                    (kitchen-in kitchen-state)
+                    (kitchen-out kitchen-state))
+  ((time-to-wait time-unit kitchen-in
+    => kitchen-out)
+   (let* ((kitchen-to-send (symbolic-to-vr-kitchen kitchen-in))
+          ;; TO DO: request-to-wait, wrong number of arguments
+          (response (request-to-wait time-to-wait))
+          (new-kitchen-state (read-kitchen-state response)))
+     (bind (kitchen-out 1.0 new-kitchen-state 0.0))))
+  :primitive-inventory *vr-primitives*)
+
+;;                                                          ;;
+;;              TO LEAVE FOR TIME                           ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprimitive leave-for-time ((container transferable-container)
+                              (time-to-wait double-float)
+                              (time-unit string)
+                              (kitchen-in kitchen-state)
+                              (kitchen-out kitchen-state))
+  ((container time-to-wait time-unit kitchen-in 
+    => kitchen-out)
+   (let* ((kitchen-to-send (symbolic-to-vr-kitchen kitchen-in))
+          (response (request-to-leave-for-time (vr-name container) time-to-wait time-unit kitchen-to-send))
+          (new-kitchen-state (read-kitchen-state response)))
+     (bind (kitchen-out 1.0 new-kitchen-state 0.0))))
+  :primitive-inventory *vr-primitives*)
+
+;;                                                          ;;
+;;           TO BRING TO TEMPERATURE                        ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprimitive bring-to-temperature ((container transferable-container)
+                                    (temperature double-float)
+                                    (temperature-unit string)
+                                    (kitchen-in kitchen-state)
+                                    (kitchen-out kitchen-state))
+  ((container temperature temperature-unit kitchen-in
+    => kitchen-out)
+   (let* ((kitchen-to-send (symbolic-to-vr-kitchen kitchen-in))
+          (response (request-to-bring-to-temperature (vr-name container) temperature temperature-unit kitchen-to-send))
+          (new-kitchen-state (read-kitchen-state response)))
+     (bind (kitchen-out 1.0 new-kitchen-state 0.0))))
+  :primitive-inventory *vr-primitives*)
+
+;;                                                          ;;
+;;               TO PREHEAT OVEN                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprimitive preheat-oven ((oven oven)
+                            (temperature double-float)
+                            (temperature-unit string)
+                            (kitchen-in kitchen-state)
+                            (kitchen-out kitchen-state))
+  ((temperature temperature-unit kitchen-in oven
+    => kitchen-out)
+   (let* ((kitchen-to-send (symbolic-to-vr-kitchen kitchen-in))
+          (response (request-to-preheat-oven (vr-name oven) temperature temperature-unit kitchen-to-send))
+          (new-kitchen-state (read-kitchen-state response)))
+     (bind (kitchen-out 1.0 new-kitchen-state 0.0))))
+  :primitive-inventory *vr-primitives*)
+
+;;                                                          ;;
 ;;                    TO GET                                ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
 (defprimitive get-kitchen ((kitchen kitchen-state))
   ((=> kitchen)
-   (let* ((kitchen-variable-name 'kitchen)
-          (response-result (assqv :kitchen (list (request-get-kitchen kitchen-variable-name))))
-          (new-kitchen-state (vr-to-symbolic-kitchen response-result))
-          (new-kitchen-time (request-to-get-time)))
-     (bind (kitchen 1.0 new-kitchen-state new-kitchen-time))))
+   (let* ((response (request-get-kitchen "kitchenStateOut"))
+          (new-kitchen-state (read-kitchen-state response)))
+     (bind (kitchen 1.0 new-kitchen-state 0.0))))
   :primitive-inventory *vr-primitives*)
-
 
 ;;                                                          ;;
 ;;                    TO SET                                ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
 (defprimitive set-kitchen ((kitchen-in kitchen-state)
                            (kitchen-out kitchen-state))
-
-  ((kitchen-in => kitchen-out)
+  ((kitchen-in
+    =>
+    kitchen-out)
    (let* ((kitchen-to-send (symbolic-to-vr-kitchen kitchen-in)))
      (request-set-kitchen kitchen-to-send)
      (bind (kitchen-out 1.0 kitchen-in 0.0))))
   :primitive-inventory *vr-primitives*)
 
+;;                                                          ;;
+;;                      TO FETCH                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprimitive fetch ((thing-fetched kitchen-entity)
+                     (kitchen-state-out kitchen-state)
+                     (kitchen-state-in kitchen-state)
+                     (concept-to-fetch conceptualizable)
+                     (quantity quantity)) ;;what if this is more than 1?
+  ;; Case 1: Fetch object from somewhere in the kitchen and place it on the countertop
+  ((kitchen-state-in
+    concept-to-fetch
+    quantity
+    =>
+    kitchen-state-out
+    thing-fetched)
+   (let* ((res-get-location (request-get-location 'item (rmap-type (type-of concept-to-fetch)) (symbolic-to-vr-kitchen kitchen-state-in)))
+          (item-name (vr-name (find-kitchen-entity-vr concept-to-fetch kitchen-state-in)))
+          (vr-result (request-to-fetch item-name (symbolic-to-vr-kitchen kitchen-state-in)))
+          (thing-fetched-available-at (request-to-get-time))
+          (kitchen-state-available-at thing-fetched-available-at)
+          (fetched-obj-vr-name (gethash "fetchedObject" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (fetched-object-instance (sim-find-object-by-vr-name fetched-obj-vr-name new-kitchen-state)))
+     ;; TODO: Is a fetched thing on countertop used or not?
+     (bind (thing-fetched 1.0 fetched-object-instance thing-fetched-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+  :primitive-inventory *vr-primitives*)
 
 ;;                                                          ;;
 ;;                 TO FETCH AND PROPORTION                  ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 (defprimitive fetch-and-proportion ((container-with-ingredient container)
                                     (kitchen-state-out kitchen-state)
@@ -244,7 +456,7 @@
                                     (quantity quantity)
                                     (unit unit))
 
-  ;; Takes a specified amount of an ingredient from somewhere in the kitchen and places it in
+  ;; Takes a specified amount of an ingredient from somewhere in the kitchen and places it in a container
   ((kitchen-state-in
     ingredient-concept
     quantity
@@ -256,45 +468,34 @@
 
    (let* ((current-kitchen-time (kitchen-time kitchen-state-in))
           (unused-container
-           ;; find an unused container of type medium-bowl
-           (find-empty-container-of-type 'medium-bowl kitchen-state-in)) 
-          (vr-fetch-result 
-           ;; place the unused container on the countertop
-           (request-to-fetch (slot-value unused-container 'name)
+           (find-unused-kitchen-entity-vr 'medium-bowl kitchen-state-in))
+          (vr-result-fetch
+           (request-to-fetch (vr-name unused-container)
                              (symbolic-to-vr-kitchen kitchen-state-in)))
-          (ks-after-fetch
-           ;; parse the new kitchen state
-           (vr-to-symbolic-kitchen (assqv :kitchen-state-out vr-fetch-result)))
+          (ks-after-fetch (read-kitchen-state vr-result-fetch))
+          ;; TO DO: declare source for everything?
+          ;(source (find-source ingredient-concept ks-after-fetch))
+          ;(source-vr-name (vr-name source))
           (ingredient-concept-type
            (rmap-type (type-of ingredient-concept)))
-          (vr-portion-result
-           ;; portion the ingredient in the unused container
+          (vr-result-portion
            (request-to-portion ingredient-concept-type
-                               (slot-value unused-container 'name)
-                               (value quantity)
-                               (symbolic-to-vr-kitchen ks-after-fetch)))
-          (ks-after-portion
-           ;; parse new kitchen state
-           (vr-to-symbolic-kitchen (assqv :kitchen-state-out vr-portion-result)))
-          (output-container-name
-           (assqv :output-container vr-portion-result))
-          (output-container
-           (find-entity-by-name output-container-name ks-after-portion))
+                               (vr-name unused-container)
+                               (value quantity)))
+          (new-kitchen-state (read-kitchen-state vr-result-portion))
+          (output-container-vr-name (gethash "outputContainer" vr-result-portion))
+          (output-container-object (sim-find-object-by-vr-name output-container-vr-name new-kitchen-state))
           (container-available-at (request-to-get-time))
           (kitchen-state-available-at container-available-at))
-
-     ;; TODO: This can be set in the VR kitchen for consistency
-     (setf (slot-value output-container 'used) t)
+     (setf (slot-value output-container-object 'used) t)
      (bind (target-container 1.0 unused-container current-kitchen-time)
-           (container-with-ingredient 1.0 output-container container-available-at)
-           (kitchen-state-out 1.0 ks-after-portion kitchen-state-available-at))))
+           (container-with-ingredient 1.0 output-container-object container-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
   :primitive-inventory *vr-primitives*)
-
 
 ;;                                                          ;;
 ;;                    TO TRANSFER                           ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 (defprimitive transfer-contents ((container-with-all-ingredients transferable-container)
                                  (container-with-rest transferable-container)
@@ -304,7 +505,6 @@
                                  (container-with-input-ingredients transferable-container)
                                  (quantity quantity)
                                  (unit unit))
-
   ;; Case in which the target container is not given in the input-kitchen-state and no quantity and unit are given
   ((kitchen-state-in
     container-with-input-ingredients
@@ -315,39 +515,26 @@
     kitchen-state-out
     quantity
     unit)
-
-   (let* ((current-kitchen-time (kitchen-time kitchen-state-in))
-          (unused-container
-           (find-empty-container-of-type 'medium-bowl kitchen-state-in))
-          (vr-transfer-result
-           (request-to-transfer (name container-with-input-ingredients)
-                                (name unused-container)
-                                (symbolic-to-vr-kitchen kitchen-state-in)))
+   (let* ((total-amount nil)
+          (new-kitchen-state nil)
+          (unused-container (find-unused-kitchen-entity-vr 'medium-bowl kitchen-state-in))
+          (container-with-input-ingredients-vr-name (vr-name container-with-input-ingredients))
+          (vr-result (request-to-transfer container-with-input-ingredients-vr-name
+                                          (vr-name unused-container)
+                                          (symbolic-to-vr-kitchen kitchen-state-in)))
           (container-available-at (request-to-get-time))
           (kitchen-state-available-at container-available-at)
-          (container-with-rest-name
-           (assqv :container-with-rest vr-transfer-result))
-          (container-with-all-ingredients-name
-           (assqv :container-with-all-ingredients vr-transfer-result))
-          (vr-ks-after-transfer
-           (assqv :kitchen-state-out vr-transfer-result))
-          (ks-after-transfer
-           (vr-to-symbolic-kitchen vr-ks-after-transfer))
-          (original-container
-           (find-entity-by-name container-with-rest-name ks-after-transfer))
-          (resulting-contents
-           (find-entity-by-name container-with-all-ingredients-name ks-after-transfer)))
-
-     (setf (slot-value resulting-contents 'used) t)
-
-     (bind (target-container 1.0 resulting-contents current-kitchen-time)
-           (container-with-all-ingredients 1.0 resulting-contents container-available-at)
+          (container-with-all-ingredients-vr-name (gethash "containerWithAllIngredients" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (original-container (sim-find-object-by-vr-name container-with-input-ingredients-vr-name new-kitchen-state))
+          (destination-container (sim-find-object-by-vr-name container-with-all-ingredients-vr-name new-kitchen-state)))
+     (setf (slot-value destination-container 'used) t)
+     (bind (target-container 0.0  destination-container nil)
+           (container-with-all-ingredients 1.0 destination-container container-available-at)
            (container-with-rest 1.0 original-container container-available-at)
-           (kitchen-state-out 1.0 ks-after-transfer kitchen-state-available-at)
-           (quantity 1.0 (make-instance 'quantity :value (value (quantity (amount container-with-input-ingredients)))) current-kitchen-time)
-           (unit 1.0 (make-instance (type-of (unit (amount container-with-input-ingredients)))) current-kitchen-time))))
-
-
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           (quantity 0.0 (make-instance 'quantity :value 100) nil)
+           (unit 0.0 (make-instance 'unit) nil))))
   ;; Case in which the target container is given in the input-kitchen-state and no quantity and unit are given
   ((kitchen-state-in
     container-with-input-ingredients
@@ -358,46 +545,62 @@
     kitchen-state-out
     quantity
     unit)
-
-   (let* ((current-kitchen-time (kitchen-time kitchen-state-in))
-          (vr-transfer-result
-           (request-to-transfer (name container-with-input-ingredients)
-                                (name target-container)
-                                (symbolic-to-vr-kitchen kitchen-state-in)))
+   (let* ((container-with-input-ingredients-vr-name (vr-name container-with-input-ingredients))
+          (vr-result (request-to-transfer container-with-input-ingredients-vr-name
+                                          (vr-name target-container)
+                                          (symbolic-to-vr-kitchen kitchen-state-in)))
           (container-available-at (request-to-get-time))
           (kitchen-state-available-at container-available-at)
-          (container-with-rest-name (assqv :container-with-rest vr-transfer-result))
-          (container-with-all-ingredients-name (assqv :container-with-all-ingredients vr-transfer-result))
-          (vr-ks-after-transfer
-           (assqv :kitchen-state-out vr-transfer-result))
-          (ks-after-transfer
-           (vr-to-symbolic-kitchen vr-ks-after-transfer))
-          (original-container
-           (find-entity-by-name container-with-rest-name ks-after-transfer))
-          (resulting-contents
-           (find-entity-by-name container-with-all-ingredients-name ks-after-transfer)))
-
-     (setf (slot-value resulting-contents 'used) t)
-     
-     (bind (container-with-all-ingredients 1.0 resulting-contents container-available-at)
-           (container-with-rest 1.0 original-container container-available-at)
-           (kitchen-state-out 1.0 ks-after-transfer kitchen-state-available-at)
-           (quantity 1.0 (make-instance 'quantity :value (value (quantity (amount container-with-input-ingredients)))) current-kitchen-time)
-           (unit 1.0 (make-instance (type-of (unit (amount container-with-input-ingredients)))) current-kitchen-time))))
+          (container-with-rest-name (name container-with-input-ingredients))
+          (container-with-all-ingredients-vr-name (gethash "containerWithAllIngredients" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (original-container (sim-find-object-by-vr-name container-with-input-ingredients-vr-name new-kitchen-state))
+          (destination-container (sim-find-object-by-vr-name container-with-all-ingredients-vr-name new-kitchen-state)))
+     (setf (slot-value destination-container 'used) t)
+     (bind (container-with-all-ingredients 1.0 destination-container nil)
+       (container-with-rest 1.0 original-container container-available-at)
+       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+       (quantity 0.0  (make-instance 'quantity :value 100) nil)
+       (unit 0.0 (make-instance 'unit) nil))))
   :primitive-inventory *vr-primitives*)
 
+;;                                                          ;;
+;;               TO PORTION AND ARRANGE                     ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprimitive portion-and-arrange ((container-with-portions transferable-container)
+                                   (kitchen-state-out kitchen-state)
+                                   (kitchen-state-in kitchen-state)
+                                   (input-container transferable-container)
+                                   (destination transferable-container))
+  ((kitchen-state-in
+    input-container
+    destination
+    =>
+    kitchen-state-out
+    container-with-portions)
+   (let* ((input-container-vr-name (vr-name input-container))
+          (destination-vr-name (vr-name destination))
+          (vr-result (request-to-portion-and-arrange input-container-vr-name
+                                                     destination-vr-name
+                                                     (symbolic-to-vr-kitchen kitchen-state-in)))
+          (portions-available-at (request-to-get-time))
+          (kitchen-state-available-at portions-available-at)
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (container-with-portions-instance (sim-find-object-by-vr-name destination-vr-name new-kitchen-state)))
+     (bind (container-with-portions 1.0 container-with-portions-instance portions-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+  :primitive-inventory *vr-primitives*)
 
 ;;                                                          ;;
 ;;                    TO MIX                                ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 (defprimitive mix ((container-with-mixture transferable-container)
                    (kitchen-state-out kitchen-state)
                    (kitchen-state-in kitchen-state)
                    (container-with-input-ingredients transferable-container)
                    (mixing-tool can-mix))
-
   ;;Case 1: Mixing tool not specified, use a whisk
   ((kitchen-state-in
     container-with-input-ingredients
@@ -405,23 +608,20 @@
     kitchen-state-out
     container-with-mixture
     mixing-tool)
-
-   (let* ((res (request-to-mix (slot-value container-with-input-ingredients 'name)
-                               'whisk
-                               (symbolic-to-vr-kitchen kitchen-state-in)))
+   (let* ((tool-vr-name (vr-name (find-kitchen-entity-vr 'whisk kitchen-state-in)))
+          (vr-result (request-to-mix (vr-name container-with-input-ingredients)
+                                     tool-vr-name
+                                     (symbolic-to-vr-kitchen kitchen-state-in)))
           (container-available-at (request-to-get-time))
           (kitchen-state-available-at container-available-at)
-          (container-with-mixture-name (cdr (assoc :container-with-mixture res)))
-          (new-kitchen-state (vr-to-symbolic-kitchen (cdr (assoc :kitchen-state-out res))))
-          (target-whisk-instance (find-entity-by-name "whisk" new-kitchen-state))
-          (container-with-new-mixture (find-entity-by-name container-with-mixture-name new-kitchen-state)))
-
+          (container-with-mixture-vr-name (gethash "containerWithMixture" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (target-whisk-instance (sim-find-object-by-vr-name tool-vr-name new-kitchen-state))
+          (container-with-new-mixture (sim-find-object-by-vr-name container-with-mixture-vr-name new-kitchen-state)))
      (setf (slot-value container-with-new-mixture 'used) t)
-
      (bind (mixing-tool 0.0 target-whisk-instance nil)
-       (container-with-mixture 1.0 container-with-new-mixture container-available-at)
-       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
-
+           (container-with-mixture 1.0 container-with-new-mixture container-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
   ;;Case 2: Mixing tool specified
   ((kitchen-state-in
     container-with-input-ingredients
@@ -429,35 +629,78 @@
     =>
     kitchen-state-out
     container-with-mixture)
-
-   (let* ((res (request-to-mix (slot-value container-with-input-ingredients 'name)
-                               (slot-value mixing-tool 'name)
-                               (symbolic-to-vr-kitchen kitchen-state-in)))
+   (let* ((vr-result (request-to-mix (vr-name container-with-input-ingredients)
+                                     (vr-name mixing-tool)
+                                     (symbolic-to-vr-kitchen kitchen-state-in)))
           (container-available-at (request-to-get-time))
           (kitchen-state-available-at container-available-at)
-          (container-with-mixture-name (cdr (assoc :container-with-mixture res)))
-          (new-kitchen-state (vr-to-symbolic-kitchen (cdr (assoc :kitchen-state-out res))))
-          (container-with-new-mixture (find-entity-by-name container-with-mixture-name new-kitchen-state)))
-
+          (container-with-mixture-vr-name (gethash "containerWithMixture" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (container-with-new-mixture (sim-find-object-by-vr-name container-with-mixture-vr-name new-kitchen-state)))
      (setf (slot-value container-with-new-mixture 'used) t)
-
-     (bind (container-with-mixture 1.0 container-with-input-ingredients-instance container-available-at)
-       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
-
+     (bind (container-with-mixture 1.0 container-with-new-mixture container-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
   :primitive-inventory *vr-primitives*)
 
+;;                                                          ;;
+;;                    TO MINGLE                             ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprimitive mingle ((container-with-mixture transferable-container)
+                      (kitchen-state-out kitchen-state)
+                      (kitchen-state-in kitchen-state)
+                      (container-with-input-ingredients transferable-container)
+                      (mingling-tool can-mingle))
+  ;;Case 1: Mingling tool not specified, use a whisk
+  ((kitchen-state-in
+    container-with-input-ingredients
+    =>
+    kitchen-state-out
+    container-with-mixture
+    mingling-tool)
+   (let* ((tool-vr-name (vr-name (find-kitchen-entity-vr 'whisk kitchen-state-in)))
+          (vr-result (request-to-mingle (vr-name container-with-input-ingredients)
+                                        tool-vr-name
+                                        (symbolic-to-vr-kitchen kitchen-state-in)))
+          (container-available-at (request-to-get-time))
+          (kitchen-state-available-at container-available-at)
+          (container-with-mixture-vr-name (gethash "containerWithMixture" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (target-whisk-instance (sim-find-object-by-vr-name tool-vr-name new-kitchen-state))
+          (container-with-new-mixture (sim-find-object-by-vr-name container-with-mixture-vr-name new-kitchen-state)))
+     (setf (slot-value container-with-new-mixture 'used) t)
+     (bind (mingling-tool 0.0 target-whisk-instance nil)
+           (container-with-mixture 1.0 container-with-new-mixture container-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+  ;;Case 2: Mingling tool specified
+  ((kitchen-state-in
+    container-with-input-ingredients
+    mingling-tool
+    =>
+    kitchen-state-out
+    container-with-mixture)
+   (let* ((vr-result (request-to-mingle (vr-name container-with-input-ingredients)
+                                        (vr-name mingling-tool)
+                                        (symbolic-to-vr-kitchen kitchen-state-in)))
+          (container-available-at (request-to-get-time))
+          (kitchen-state-available-at container-available-at)
+          (container-with-mixture-vr-name (gethash "containerWithMixture" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (container-with-new-mixture (sim-find-object-by-vr-name container-with-mixture-vr-name new-kitchen-state)))
+     (setf (slot-value container-with-new-mixture 'used) t)
+     (bind (container-with-mixture 1.0 container-with-new-mixture container-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+  :primitive-inventory *vr-primitives*)
 
 ;;                                                          ;;
 ;;                    TO BEAT                               ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 (defprimitive beat ((container-with-mixture transferable-container)
                     (kitchen-state-out kitchen-state)
                     (kitchen-state-in kitchen-state)
                     (container-with-input-ingredients transferable-container)
                     (beating-tool can-beat))
-
   ;;Case 1: Mixing tool not specified, use a spoon
   ((kitchen-state-in
     container-with-input-ingredients
@@ -465,58 +708,21 @@
     kitchen-state-out
     container-with-mixture
     beating-tool)
-
-   (let* ((res (request-to-beat (slot-value container-with-input-ingredients 'name) 'spoon (symbolic-to-vr-kitchen kitchen-state-in)))
+   (let* ((tool-vr-name (vr-name (find-kitchen-entity-vr 'spoon kitchen-state-in)))
+          (vr-result (request-to-beat (vr-name container-with-input-ingredients)
+                                      tool-vr-name
+                                      (symbolic-to-vr-kitchen kitchen-state-in)))
           (container-available-at (request-to-get-time))
           (kitchen-state-available-at container-available-at)
-          (container-with-mixture-name (cdr (assoc :container-with-mixture res)))
-          (new-kitchen-state (vr-to-symbolic-kitchen (cdr (assoc :kitchen-state-out res))))
-          (target-beating-tool-instance (find-entity-by-name "spoon" new-kitchen-state))
-          (container-with-new-mixture (find-entity-by-name container-with-mixture-name new-kitchen-state)))
-
+          (container-with-mixture-vr-name (gethash "containerWithIngredientsBeaten" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (target-beating-tool-instance (sim-find-object-by-vr-name tool-vr-name new-kitchen-state))
+          (container-with-new-mixture (sim-find-object-by-vr-name container-with-mixture-vr-name new-kitchen-state)))
      (setf (slot-value container-with-new-mixture 'used) t)
-
      (bind (beating-tool 0.0 target-beating-tool-instance nil)
-       (container-with-mixture 1.0 container-with-new-mixture container-available-at)
-       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+           (container-with-mixture 1.0 container-with-new-mixture container-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
   :primitive-inventory *vr-primitives*)
-
-
-;;                                                          ;;
-;;                      TO FETCH                            ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-(defprimitive fetch ((thing-fetched kitchen-entity)
-                     (kitchen-state-out kitchen-state)
-                     (kitchen-state-in kitchen-state)
-                     (concept-to-fetch conceptualizable)
-                     (quantity quantity)) ;;what if this is more than 1?
-
-  ;; Case 1: Fetch object from somewhere in the kitchen and place it on the countertop
-  ((kitchen-state-in
-    concept-to-fetch
-    quantity
-    =>
-    kitchen-state-out
-    thing-fetched)
-
-   (let* ((res-get-location (request-get-location 'item (rmap-type (type-of concept-to-fetch)) (symbolic-to-vr-kitchen kitchen-state-in)))
-          (item-name (cdr (assoc :item res-get-location)))
-          (res (request-to-fetch item-name (symbolic-to-vr-kitchen kitchen-state-in)))
-          (thing-fetched-available-at (request-to-get-time))
-          (kitchen-state-available-at thing-fetched-available-at)
-          (fetched-obj-name (cdr (assoc :fetched-object res)))
-          (fetched-kitchen-alist (cdr (assoc :kitchen-state-out res)))
-          (new-kitchen-state (vr-to-symbolic-kitchen fetched-kitchen-alist))
-          (fetched-object-instance (find-entity-by-name fetched-obj-name new-kitchen-state)))
-
-     ;; TODO: Is a fetched thing on countertop used or not?
-
-     (bind (thing-fetched 1.0 fetched-object-instance thing-fetched-available-at)
-       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
-  :primitive-inventory *vr-primitives*)
-
 
 ;;                                                          ;;
 ;;                    TO LINE                               ;;
@@ -537,58 +743,47 @@
     kitchen-state-out
     lined-thing)
 
-   (let* ((res (request-to-line (slot-value thing-to-be-lined 'name)
-                                'baking-paper
-                                (symbolic-to-vr-kitchen kitchen-state-in)))
+   (let* ((baking-paper-vr-name (vr-name (find-kitchen-entity-vr 'baking-paper kitchen-state-in)))
+          (vr-result (request-to-line (vr-name thing-to-be-lined)
+                                      baking-paper-vr-name
+                                      (symbolic-to-vr-kitchen kitchen-state-in)))
           (container-available-at (request-to-get-time))
           (kitchen-state-available-at container-available-at)
-          (lined-thing-name (cdr (assoc :lined-baking-tray res)))
-          (kitchen-state-alist (cdr (assoc :kitchen-state-out res)))
-          (new-kitchen-state (vr-to-symbolic-kitchen kitchen-state-alist))
-          (target-tray (find-entity-by-name lined-thing-name new-kitchen-state))
-          (new-baking-paper (find-entity-by-name "baking-paper" new-kitchen-state))) ;; default: baking-paper
-
+          (lined-thing-vr-name (gethash "linedBakingTray" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (target-tray (sim-find-object-by-vr-name lined-thing-vr-name new-kitchen-state))
+          (new-baking-paper (sim-find-object-by-vr-name baking-paper-vr-name new-kitchen-state))) ;; default: baking-paper
      ;; TODO: This can be set in the VR kitchen for consistency
      (setf (slot-value thing-to-be-lined 'used) t)
      (setf (slot-value thing-to-be-lined 'lined-with) new-baking-paper)
-
      (bind (lining-material 1.0 new-baking-paper kitchen-state-available-at)
-       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-       (lined-thing 1.0 target-tray container-available-at))))
-
-
-  ;; Case 1
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           (lined-thing 1.0 target-tray container-available-at))))
+  ;; Case 2
   ((kitchen-state-in
     lining-material
     thing-to-be-lined
     =>
     kitchen-state-out
     lined-thing)
-
-   (let* ((res (request-to-line (slot-value thing-to-be-lined 'name)
-                                (slot-value lining-material 'name)
-                                (symbolic-to-vr-kitchen kitchen-state-in)))
+   (let* ((vr-result (request-to-line (vr-name thing-to-be-lined)
+                                      (vr-name lining-material)
+                                      (symbolic-to-vr-kitchen kitchen-state-in)))
           (container-available-at (request-to-get-time))
           (kitchen-state-available-at container-available-at)
-          (lined-thing-name (cdr (assoc :lined-baking-tray res)))
-          (kitchen-state-alist (cdr (assoc :kitchen-state-out res)))
-          (new-kitchen-state (vr-to-symbolic-kitchen kitchen-state-alist))
-          (target-thing-to-be-lined (find-entity-by-name lined-thing-name new-kitchen-state)))
-
+          (lined-thing-vr-name (gethash "linedBakingTray" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (target-thing-to-be-lined (sim-find-object-by-vr-name lined-thing-vr-name new-kitchen-state)))
      ;; TODO: This can be set in the VR kitchen for consistency
-     (setf (slot-value target-tray 'used) t)
-     (setf (slot-value target-tray 'lined-with) lining-material)
-
+     (setf (slot-value target-thing-to-be-lined 'used) t)
+     (setf (slot-value target-thing-to-be-lined 'lined-with) lining-material)
      (bind (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-       (lined-thing 1.0 target-thing-to-be-lined container-available-at))))
-
+           (lined-thing 1.0 target-thing-to-be-lined container-available-at))))
   :primitive-inventory *vr-primitives*)
-
 
 ;;                                                          ;;
 ;;                    TO SHAPE                              ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 (defprimitive shape ((shaped-portions kitchen-entity)
                      (kitchen-state-out kitchen-state)
@@ -596,7 +791,6 @@
                      (portion kitchen-entity)
                      (container kitchen-entity)
                      (shape shape))
-
   ((kitchen-state-in
     portion
     container
@@ -604,33 +798,26 @@
     =>
     shaped-portions
     kitchen-state-out)
-
-   (let* ((res (request-to-shape (slot-value portion 'name)
-                                 (slot-value container 'name)
-                                 (symbolic-to-vr-kitchen kitchen-state-in)))
+   (let* ((container-vr-name (vr-name container))
+          (vr-result (request-to-shape (vr-contents container)
+                                       (vr-shape shape)
+                                       (symbolic-to-vr-kitchen kitchen-state-in)))
           (shaped-portions-available-at (request-to-get-time))
           (kitchen-state-available-at shaped-portions-available-at)
-          (list-of-new-portion-names (cdr (assoc :shaped-portions res)))
-          (new-kitchen-state-alist (cdr (assoc :kitchen-state-out res)))
-          (new-kitchen-state (vr-to-symbolic-kitchen new-kitchen-state-alist))
+          (new-kitchen-state (read-kitchen-state vr-result))
           ;; TODO we dont need a list of portion names they already all sit in the baking tray
           ;; (list-of-portions (loop for name in list-of-new-portion-names
-          ;;                        collect (find-entity-by-name name new-kitchen-state)))
+          ;;                        collect (sim-find-object-by-name name new-kitchen-state)))
           ;;(new-portions (make-instance 'list-of-kitchen-entities :items list-of-portions)))
           ;; NOTE convert lisp to camel case because find object by name does lisp to camel to find in jsondata
-          (container-camel-name (lisp-to-camel-case (symbol-name (slot-value container 'name))))
-          (container-with-new-portions (find-entity-by-name container-camel-name new-kitchen-state)))
-
+          (container-with-new-portions (sim-find-object-by-vr-name container-vr-name new-kitchen-state)))
      (bind (shaped-portions 1.0 container-with-new-portions shaped-portions-available-at)
-       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
-
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
   :primitive-inventory *vr-primitives*)
-
 
 ;;                                                          ;;
 ;;                      TO BAKE                             ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 (defprimitive bake ((thing-baked transferable-container)
                     (kitchen-state-out kitchen-state)
@@ -641,7 +828,6 @@
                     (time-to-bake-unit unit)
                     (target-temperature-quantity quantity)
                     (target-temperature-unit unit))
-
   ;; Case 1: Preheated oven is not given
   ((kitchen-state-in
     thing-to-bake
@@ -653,25 +839,21 @@
     kitchen-state-out
     thing-baked
     oven-to-bake-in)
-
-   ;; TODO maybe get oven name instead string "kitchenstove"
-
-   (let* ((res (request-to-bake (lisp-to-camel-case (symbol-name (slot-value thing-to-bake 'name)))
-                                "kitchenStove"
-                                "counterTop"
-                                (symbolic-to-vr-kitchen kitchen-state-in)))
+   (let* ((oven-vr-name (vr-name (find-kitchen-entity-vr 'oven kitchen-state-in)))
+          (countertop-vr-name (vr-name (find-kitchen-entity-vr 'countertop kitchen-state-in)))
+          (vr-result (request-to-bake (vr-name thing-to-bake)  ;;(lisp-to-camel-case (symbol-name (slot-value thing-to-bake 'name)))
+                                      oven-vr-name
+                                      countertop-vr-name
+                                      (symbolic-to-vr-kitchen kitchen-state-in)))
           (thing-baked-available-at (request-to-get-time))
           (kitchen-state-available-at thing-baked-available-at)
-          (thing-baked-name (cdr (assoc :thing-baked res)))
-          (destination-name (cdr (assoc :output-destination-container res)))
-          (kitchen-state-alist (cdr (assoc :kitchen-state-out res)))
-          (new-kitchen-state (vr-to-symbolic-kitchen kitchen-state-alist))
-          (thing-baked-instance (find-entity-by-name thing-baked-name new-kitchen-state)))
-
+          (thing-baked-vr-name (gethash "thingBaked" vr-result))
+          (destination-vr-name (gethash "outputDestinationContainer" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (thing-baked-instance (sim-find-object-by-vr-name thing-baked-vr-name new-kitchen-state)))
      (bind (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-       (thing-baked 1.0 thing-baked-instance thing-baked-available-at)
-       (oven-to-bake-in 0.0 (find-entity-by-name "kitchenStove" kitchen-state-in) nil))))
-
+           (thing-baked 1.0 thing-baked-instance thing-baked-available-at)
+           (oven-to-bake-in 0.0 (sim-find-object-by-vr-name oven-vr-name kitchen-state-in) nil))))
   ;; Case 2: Preheated oven is available, temperature not mentioned
   ((kitchen-state-in
     thing-to-bake
@@ -683,28 +865,273 @@
     thing-baked
     target-temperature-quantity
     target-temperature-unit)
-
-
    ;; baked things never actually enter the oven!
-   (let* ((res (request-to-bake (slot-value thing-to-bake 'name)
-                                "kitchenStove"
-                                "counterTop"
-                                (symbolic-to-vr-kitchen kitchen-state-in)))
+   (let* ((oven-vr-name (vr-name oven-to-bake-in))
+          (countertop-vr-name (vr-name (find-kitchen-entity-vr 'countertop kitchen-state-in)))
+          (vr-result (request-to-bake (vr-name thing-to-bake)
+                                      oven-vr-name
+                                      countertop-vr-name
+                                      (symbolic-to-vr-kitchen kitchen-state-in)))
           (thing-baked-available-at (request-to-get-time))
           (kitchen-state-available-at thing-baked-available-at)
-          (thing-baked-name (cdr (assoc :thing-baked res)))
-          (destination-name (cdr (assoc :output-destination-container res)))
-          (kitchen-state-alist (cdr (assoc :kitchen-state-out res)))
-          (new-kitchen-state (make-instance 'kitchen-state :contents (vr-to-symbolic-kitchen kitchen-state-alist)))
-          (thing-baked-instance (find-entity-by-name thing-baked-name new-kitchen-state)))
-
-
+          (thing-baked-vr-name (gethash "thingBaked" vr-result))
+          (destination-vr-name (gethash "outputDestinationContainer" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (oven-temperature (vr->sym-temperature oven-vr-name new-kitchen-state))
+          (thing-baked-instance (sim-find-object-by-vr-name thing-baked-vr-name new-kitchen-state)))
      (bind (kitchen-state-out 1.0 kitchen-state-in kitchen-state-available-at)
-       (thing-baked 1.0 thing-baked-instance thing-baked-available-at)
-       (target-temperature-quantity 0.0 (quantity oven-temperature) nil)
-       (target-temperature-unit 0.0 (unit oven-temperature) nil))))
+           (thing-baked 1.0 thing-baked-instance thing-baked-available-at)
+           (target-temperature-quantity 0.0 (quantity oven-temperature) nil)
+           (target-temperature-unit 0.0 (unit oven-temperature) nil))))
   :primitive-inventory *vr-primitives*)
 
+;;                                                          ;;
+;;                      TO FRY                              ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprimitive fry ((thing-fried transferable-container)
+                   (kitchen-state-out kitchen-state)
+                   (kitchen-state-in kitchen-state)
+                   (thing-to-fry transferable-container)
+                   (stove-to-fry-on oven)
+                   (time-to-fry-quantity quantity)
+                   (time-to-fry-unit unit)
+                   (target-temperature-quantity quantity)
+                   (target-temperature-unit unit))
+  ;; Case 1: Preheated oven is not given
+  ((kitchen-state-in
+    thing-to-fry
+    time-to-fry-quantity
+    time-to-fry-unit
+    target-temperature-quantity
+    target-temperature-unit
+    =>
+    kitchen-state-out
+    thing-fried
+    stove-to-fry-on)
+   (let* ((stove-vr-name (vr-name (find-kitchen-entity-vr 'oven kitchen-state-in)))
+          (countertop-vr-name (vr-name (find-kitchen-entity-vr 'countertop kitchen-state-in)))
+          (vr-result (request-to-fry (vr-name thing-to-fry)
+                                     stove-vr-name
+                                     (vr-quantity target-temperature-quantity) ;; TODO: need to add unit here too
+                                     (vr-quantity time-to-fry-quantity)
+                                     (vr-unit time-to-fry-unit)
+                                     (symbolic-to-vr-kitchen kitchen-state-in)))
+          (thing-fried-available-at (request-to-get-time))
+          (kitchen-state-available-at thing-fried-available-at)
+          (thing-fried-vr-name (gethash "thingFried" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (thing-fried-instance (sim-find-object-by-vr-name thing-fried-vr-name new-kitchen-state)))
+     (bind (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           (thing-fried 1.0 thing-fried-instance thing-fried-available-at)
+           (stove-to-fry-on 0.0 (sim-find-object-by-vr-name stove-vr-name kitchen-state-in) nil))))
+  ;; Case 2: Preheated oven is available, temperature not mentioned
+  ((kitchen-state-in
+    thing-to-fry
+    time-to-fry-quantity
+    time-to-fry-unit
+    stove-to-fry-on
+    =>
+    kitchen-state-out
+    thing-fried
+    target-temperature-quantity
+    target-temperature-unit)
+   ;; baked things never actually enter the oven!
+   (let* ((stove-vr-name (vr-name stove-to-fry-on))
+          (countertop-vr-name (vr-name (find-kitchen-entity-vr 'countertop kitchen-state-in)))
+          ;; TO DO: wrong number of arguments!!
+          (vr-result (request-to-fry (vr-name thing-to-fry)
+                                     stove-vr-name
+                                     countertop-vr-name
+                                     (symbolic-to-vr-kitchen kitchen-state-in)))
+          (thing-fried-available-at (request-to-get-time))
+          (kitchen-state-available-at thing-fried-available-at)
+          (thing-fried-vr-name (gethash "thingFried" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (stove-temperature (vr->sym-temperature stove-vr-name kitchen-state-in))
+          (thing-fried-instance (sim-find-object-by-vr-name thing-fried-vr-name new-kitchen-state)))
+     (bind (kitchen-state-out 1.0 kitchen-state-in kitchen-state-available-at)
+           (thing-fried 1.0 thing-fried-instance thing-fried-available-at)
+           (target-temperature-quantity 0.0 (quantity stove-temperature) nil)
+           (target-temperature-unit 0.0 (unit stove-temperature) nil))))
+  :primitive-inventory *vr-primitives*)
+
+;;                                                          ;;
+;;                      TO BOIL                             ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprimitive boil ((thing-boiled transferable-container)
+                    (kitchen-state-out kitchen-state)
+                    (kitchen-state-in kitchen-state)
+                    (thing-to-boil transferable-container)
+                    (stove-to-boil-on oven)
+                    (time-to-boil-quantity quantity)
+                    (time-to-boil-unit unit))
+  ((kitchen-state-in
+    thing-to-boil
+    time-to-boil-quantity
+    time-to-boil-unit
+    =>
+    kitchen-state-out
+    thing-boiled
+    stove-to-boil-on)
+   (let* ((stove-vr-name (vr-name (find-kitchen-entity-vr 'oven kitchen-state-in)))
+          (countertop-vr-name (vr-name (find-kitchen-entity-vr 'countertop kitchen-state-in)))
+          (vr-result (request-to-boil (vr-name thing-to-boil)
+                                      stove-vr-name
+                                      100
+                                      (vr-quantity time-to-boil-quantity)
+                                      (vr-unit time-to-boil-unit)
+                                      countertop-vr-name
+                                      (symbolic-to-vr-kitchen kitchen-state-in)))
+          (thing-boiled-available-at (request-to-get-time))
+          (kitchen-state-available-at thing-boiled-available-at)
+          (thing-boiled-vr-name (gethash "thingBoiled" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (thing-boiled-instance (sim-find-object-by-vr-name thing-boiled-vr-name new-kitchen-state)))
+     (bind (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           (thing-boiled 1.0 thing-boiled-instance thing-boiled-available-at)
+           (stove-to-boil-on 0.0 (sim-find-object-by-vr-name stove-vr-name kitchen-state-in) nil))))
+  :primitive-inventory *vr-primitives*)
+
+;;                                                          ;;
+;;                      TO MELT                             ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprimitive melt ((container-with-output-ingredients transferable-container)
+                    (kitchen-state-out kitchen-state)
+                    (kitchen-state-in kitchen-state)
+                    (container-with-input-ingredients transferable-container)
+                    (melting-tool oven))
+  ((kitchen-state-in
+    container-with-input-ingredients
+    =>
+    kitchen-state-out
+    container-with-output-ingredients
+    melting-tool)
+   (let* ((stove-vr-name (vr-name (find-kitchen-entity-vr 'oven kitchen-state-in)))
+          (countertop-vr-name (vr-name (find-kitchen-entity-vr 'countertop kitchen-state-in)))
+          (vr-result (request-to-melt (vr-name container-with-input-ingredients)
+                                      stove-vr-name
+                                      (symbolic-to-vr-kitchen kitchen-state-in)))
+          (thing-melted-available-at (request-to-get-time))
+          (kitchen-state-available-at thing-melted-available-at)
+          (container-with-output-ingredients-vr-name (gethash "containerWithMeltedIngredients" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (thing-melted-instance (sim-find-object-by-vr-name container-with-output-ingredients-vr-name new-kitchen-state)))
+     (bind (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           (container-with-output-ingredients 1.0 thing-melted-instance thing-melted-available-at)
+           (melting-tool 0.0 (sim-find-object-by-vr-name stove-vr-name kitchen-state-in) nil))))
+  :primitive-inventory *vr-primitives*)
+
+;;                                                          ;;
+;;                      TO WASH                             ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprimitive wash ((thing-washed transferable-container)
+                    (kitchen-state-out kitchen-state)
+                    (kitchen-state-in kitchen-state)
+                    (thing-to-wash transferable-container)
+                    (washing-tool sink))
+  ((kitchen-state-in
+    thing-to-wash
+    =>
+    kitchen-state-out
+    thing-washed
+    washing-tool)
+   (let* ((sink-vr-name (vr-name (find-kitchen-entity-vr 'sink kitchen-state-in)))
+          (countertop-vr-name (vr-name (find-kitchen-entity-vr 'countertop kitchen-state-in)))
+          (vr-result (request-to-wash (vr-name thing-to-wash)
+                                      sink-vr-name
+                                      countertop-vr-name
+                                      (symbolic-to-vr-kitchen kitchen-state-in)))
+          (thing-washed-available-at (request-to-get-time))
+          (kitchen-state-available-at thing-washed-available-at)
+          (thing-washed-vr-name (gethash "thingWashed" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (thing-washed-instance (sim-find-object-by-vr-name thing-washed-vr-name new-kitchen-state)))
+     (bind (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           (thing-washed 1.0 thing-washed-instance thing-washed-available-at)
+           (washing-tool 0.0 (sim-find-object-by-vr-name sink-vr-name kitchen-state-in) nil))))
+  :primitive-inventory *vr-primitives*)
+
+;;                                                          ;;
+;;                      TO PLACE                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprimitive place ((thing-placed fetchable)
+                     (kitchen-state-out kitchen-state)
+                     (kitchen-state-in kitchen-state)
+                     (destination container)
+                     (thing-to-place fetchable))
+  ((kitchen-state-in
+    thing-to-place
+    destination
+    =>
+    kitchen-state-out
+    thing-placed)
+   (let* ((vr-result (request-to-place (vr-name thing-to-place)
+                                       (vr-name destination)
+                                       (symbolic-to-vr-kitchen kitchen-state-in)))
+          (thing-placed-available-at (request-to-get-time))
+          (kitchen-state-available-at thing-placed-available-at)
+          (thing-placed-vr-name (gethash "placedObject" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (thing-placed-instance (sim-find-object-by-vr-name thing-placed-vr-name new-kitchen-state)))
+     (bind (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           (thing-placed 1.0 thing-placed-instance thing-placed-available-at))))
+  :primitive-inventory *vr-primitives*)
+
+;;                                                          ;;
+;;                      TO COVER                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprimitive cover ((thing-covered coverable)
+                     (kitchen-state-out kitchen-state)
+                     (kitchen-state-in kitchen-state)
+                     (thing-to-cover coverable)
+                     (covering can-cover))
+  ((kitchen-state-in
+    thing-to-cover
+    covering
+    =>
+    kitchen-state-out
+    thing-covered)
+   (let* ((vr-result (request-to-cover (vr-name thing-to-cover)
+                                       (vr-name covering)
+                                       (symbolic-to-vr-kitchen kitchen-state-in)))
+          (thing-covered-available-at (request-to-get-time))
+          (kitchen-state-available-at thing-covered-available-at)
+          (thing-covered-vr-name (gethash "coveredObject" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (thing-covered-instance (sim-find-object-by-vr-name thing-covered-vr-name new-kitchen-state)))
+     (bind (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           (thing-covered 1.0 thing-covered-instance thing-covered-available-at))))
+  :primitive-inventory *vr-primitives*)
+
+;;                                                          ;;
+;;                     TO UNCOVER                           ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprimitive uncover ((thing-uncovered coverable)
+                       (kitchen-state-out kitchen-state)
+                       (kitchen-state-in kitchen-state)
+                       (thing-to-uncover coverable))
+  ((kitchen-state-in
+    thing-to-uncover
+    =>
+    kitchen-state-out
+    thing-uncovered)
+   (let* ((vr-result (request-to-uncover (vr-name thing-to-uncover)
+                                         (symbolic-to-vr-kitchen kitchen-state-in)))
+          (thing-uncovered-available-at (request-to-get-time))
+          (kitchen-state-available-at thing-uncovered-available-at)
+          (thing-uncovered-vr-name (gethash "uncoveredObject" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (thing-uncovered-instance (sim-find-object-by-vr-name thing-uncovered-vr-name new-kitchen-state)))
+     (bind (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           (thing-uncovered 1.0 thing-uncovered-instance thing-uncovered-available-at))))
+  :primitive-inventory *vr-primitives*)
 
 ;;                                                          ;;
 ;;                    TO SPRINKLE                           ;;
@@ -716,128 +1143,149 @@
                         (kitchen-state-in kitchen-state)
                         (object transferable-container)
                         (topping-container container))
-
   ((kitchen-state-in
     object
-    =>
     topping-container
+    =>
     kitchen-state-out
     sprinkled-object)
-
-   ;; TODO get sprinkler using get-location instead of just string
-   (let* ((result (request-to-sprinkle (slot-value object 'name) "sugarShaker" (symbolic-to-vr-kitchen kitchen-state-in)))
+   (let* ((object-vr-name (vr-name object))
+          (topping-vr-name (vr-name topping-container))
+          (vr-result (request-to-sprinkle object-vr-name
+                                          topping-vr-name
+                                          (symbolic-to-vr-kitchen kitchen-state-in)))
           (sprinkled-object-available-at (request-to-get-time))
           (kitchen-state-available-at sprinkled-object-available-at)
-          (sprinkled-object-name (cdr (assoc :sprinkled-object result)))
-          (kitchen-state-alist (cdr (assoc :kitchen-state-out result)))
-          (new-kitchen-state (vr-to-symbolic-kitchen kitchen-state-alist))
-          (sprinkled-object-instance (find-entity-by-name sprinkled-object-name new-kitchen-state))
-          (sprinkler-instance (find-entity-by-name "sugarShaker" new-kitchen-state)))
+          (sprinkled-object-vr-name (gethash "sprinkledObject" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (sprinkled-object-instance (sim-find-object-by-vr-name sprinkled-object-vr-name new-kitchen-state)))
      (bind (sprinkled-object 1.0 sprinkled-object-instance sprinkled-object-available-at)
-       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-       (topping-container 1.0 sprinkler-instance nil))))
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
   :primitive-inventory *vr-primitives*)
 
+;;                                                          ;;
+;;                     TO FLOUR                             ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprimitive flour ((floured-object transferable-container)
+                     (kitchen-state-out kitchen-state)
+                     (kitchen-state-in kitchen-state)
+                     (object transferable-container)
+                     (topping-container container))
+  ((kitchen-state-in
+    object
+    topping-container
+    =>
+    kitchen-state-out
+    floured-object)
+   (let* ((object-vr-name (vr-name object))
+          (topping-vr-name (vr-name topping-container))
+          (vr-result (request-to-flour object-vr-name
+                                       topping-vr-name
+                                       (symbolic-to-vr-kitchen kitchen-state-in)))
+          (floured-object-available-at (request-to-get-time))
+          (kitchen-state-available-at floured-object-available-at)
+          (floured-object-vr-name (gethash "flouredObject" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (floured-object-instance (sim-find-object-by-vr-name floured-object-vr-name new-kitchen-state)))
+     (bind (floured-object 1.0 floured-object-instance floured-object-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+  :primitive-inventory *vr-primitives*)
+
+;;                                                          ;;
+;;                     TO GREASE                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprimitive grease ((greased-object transferable-container)
+                      (kitchen-state-out kitchen-state)
+                      (kitchen-state-in kitchen-state)
+                      (object transferable-container)
+                      (topping-container container))
+  ((kitchen-state-in
+    object
+    topping-container
+    =>
+    kitchen-state-out
+    greased-object)
+   (let* ((object-vr-name (vr-name object))
+          (topping-vr-name (vr-name topping-container))
+          (vr-result (request-to-grease object-vr-name
+                                        topping-vr-name
+                                        (symbolic-to-vr-kitchen kitchen-state-in)))
+          (greased-object-available-at (request-to-get-time))
+          (kitchen-state-available-at greased-object-available-at)
+          (greased-object-vr-name (gethash "greasedContainer" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (greased-object-instance (sim-find-object-by-vr-name greased-object-vr-name new-kitchen-state)))
+     (bind (greased-object 1.0 greased-object-instance greased-object-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+  :primitive-inventory *vr-primitives*)
 
 ;;                                                          ;;
 ;;                      TO CUT                              ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; TODO: What about cutting board in the VR kitchen?
-(defprimitive cut ((cut-object transferable-container)
+(defprimitive cut ((cut-portions list)
                    (kitchen-state-out kitchen-state)
                    (kitchen-state-in kitchen-state)
-                   (object transferable-container)
+                   (object cuttable)
                    (cut-pattern cutting-pattern)
                    (cutting-tool can-cut)
                    (cutting-surface can-be-cut-on))
-
   ;; Case 1: cutting tool not given (use a knife), cut-pattern given, cutting-surface not given
-  ;; TODO: cutting-board
-  ((kitchen-state-in object cut-pattern => cut-object kitchen-state-out cutting-tool cutting-surface)
-
-   (let* ((result (request-to-cut (slot-value object 'name)
-                                  'knife
-                                  (slot-value cut-pattern 'name)
-                                  (symbolic-to-vr-kitchen kitchen-state-in)))
+  ((kitchen-state-in object cut-pattern => cut-portions kitchen-state-out cutting-tool cutting-surface)
+   (let* ((knife-vr-name (vr-name (find-kitchen-entity-vr 'can-cut kitchen-state-in)))
+          (cutting-board-vr-name (vr-name (find-kitchen-entity-vr 'can-be-cut-on kitchen-state-in)))
+          (countertop-vr-name (vr-name (find-kitchen-entity-vr 'countertop kitchen-state-in)))
+          (vr-result (request-to-place cutting-board-vr-name
+                                    countertop-vr-name
+                                    (symbolic-to-vr-kitchen kitchen-state-in)))
+          (vr-result (request-to-place (vr-name object)
+                                    cutting-board-vr-name
+                                    nil)) ;; no need to reset state since performing actions immediately after one another
+          (vr-result (request-to-cut (vr-name object)
+                                  knife-vr-name
+                                  (vr-pattern cut-pattern)
+                                  nil))
           (cut-object-available-at (request-to-get-time))
           (kitchen-state-available-at cut-object-available-at)
-          (cut-object-name (cdr (assoc :cut-object result)))
-          (kitchen-state-alist (cdr (assoc :kitchen-state-out result)))
-          (new-kitchen-state (vr-to-symbolic-kitchen kitchen-state-alist))
-          (cut-object-instance (find-entity-by-name cut-object-name new-kitchen-state))
-          (cutting-tool-instance (find-entity-by-name "knife" new-kitchen-state)))
-
-     (bind (cut-object 1.0 new-container container-available-at)
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (cutting-location (sim-find-object-by-vr-name cutting-board-vr-name new-kitchen-state))
+          (cut-portions-vr-names (vr-contents cutting-location))
+          (cut-portions-instances (mapcar (lambda (x) (sim-find-object-by-vr-name x new-kitchen-state)) cut-portions-vr-names))
+          (cutting-tool-instance (sim-find-object-by-vr-name knife-vr-name new-kitchen-state)))
+     (bind (cut-portions 1.0 cut-portions-instances cut-object-available-at)
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-           (cutting-tool 0.0 new-knife container-available-at)
-           (cutting-surface 0.0 new-cutting-board container-available-at))))
-
-  ;; Case 3: cutting tool not given (use a knife), cut-pattern given, cutting-surface given
-  ;; TODO: cutting-board
-  ((kitchen-state-in object cut-pattern cutting-surface => cut-object kitchen-state-out cutting-tool)
-
-   (let* ((result (request-to-cut (slot-value object 'name)
-                                  'knife
-                                  (slot-value cut-pattern 'name)
-                                  (symbolic-to-vr-kitchen kitchen-state-in)))
-          (cut-object-available-at (request-to-get-time))
-          (kitchen-state-available-at cut-object-available-at)
-          (cut-object-name (cdr (assoc :cut-object result)))
-          (kitchen-state-alist (cdr (assoc :kitchen-state-out result)))
-          (new-kitchen-state (vr-to-symbolic-kitchen kitchen-state-alist))
-          (cut-object-instance (find-entity-by-name cut-object-name new-kitchen-state))
-          (cutting-tool-instance (find-entity-by-name "knife" new-kitchen-state)))
-
-     (bind (cut-object 1.0 cut-object-instance cut-object-available-at)
-           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-           (cutting-tool 1.0 cutting-tool-instance cut-object-available-at))))
-
-
-  ;; Case 2: cutting tool given, cut-pattern given, cutting-surface not given
-  ;; TODO: cutting-board
-  ((kitchen-state-in object cut-pattern cutting-tool => cut-object kitchen-state-out cutting-surface)
-   (let* ((result (request-to-cut (slot-value object 'name)
-                                  (slot-value cutting-tool 'name)
-                                  (slot-value cut-pattern 'name)
-                                  (symbolic-to-vr-kitchen kitchen-state-in)))
-          (cut-object-available-at (request-to-get-time))
-          (kitchen-state-available-at cut-object-available-at)
-          (cut-object-name (cdr (assoc :cut-object result)))
-          (kitchen-state-alist (cdr (assoc :kitchen-state-out result)))
-          (new-kitchen-state (vr-to-symbolic-kitchen kitchen-state-alist))
-          (cut-object-instance (find-entity-by-name cut-object-name new-kitchen-state))
-          (cutting-tool-instance (find-entity-by-name (slot-value cuttin-tool 'name) new-kitchen-state)))
-
-     (bind (cut-object 1.0 cut-object-instance cut-object-available-at)
-           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-           (cutting-surface 0.0 new-cutting-board container-available-at))))
-
+           (cutting-tool 0.0 cutting-tool-instance cut-object-available-at)
+           (cutting-surface 0.0 cutting-location cut-object-available-at))))
   ;; Case 4: cutting tool given, cut-pattern given, cutting surface given
-  ;; TODO: cutting-board
-  ((kitchen-state-in object cut-pattern cutting-tool cutting-surface => cut-object kitchen-state-out)
-
-   (let* ((result (request-to-cut (slot-value object 'name)
-                                  (slot-value cutting-tool 'name)
-                                  (slot-value cut-pattern 'name)
-                                  (symbolic-to-vr-kitchen kitchen-state-in)))
+  ((kitchen-state-in object cut-pattern cutting-tool cutting-surface => cut-portions kitchen-state-out)
+   (let* ((knife-vr-name (vr-name cutting-tool))
+          (cutting-board-vr-name (vr-name cutting-surface))
+          (countertop-vr-name (vr-name (find-kitchen-entity-vr 'countertop kitchen-state-in)))
+          (vr-result (request-to-place cutting-board-vr-name
+                                    countertop-vr-name
+                                    (symbolic-to-vr-kitchen kitchen-state-in)))
+          (vr-result (request-to-place (vr-name object)
+                                    cutting-board-vr-name
+                                    nil)) ;; no need to reset state since performing actions immediately after one another
+          (vr-result (request-to-cut (vr-name object)
+                                  knife-vr-name
+                                  (vr-pattern cut-pattern)
+                                  nil))
           (cut-object-available-at (request-to-get-time))
           (kitchen-state-available-at cut-object-available-at)
-          (cut-object-name (cdr (assoc :cut-object result)))
-          (kitchen-state-alist (cdr (assoc :kitchen-state-out result)))
-          (new-kitchen-state (vr-to-symbolic-kitchen kitchen-state-alist))
-          (cut-object-instance (find-entity-by-name cut-object-name new-kitchen-state))
-          (cutting-tool-instance (find-entity-by-name (slot-value cuttin-tool 'name) new-kitchen-state)))
-
-     (bind (cut-object 1.0 cut-object-instance cut-object-available-at)
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (cutting-location (sim-find-object-by-vr-name cutting-board-vr-name new-kitchen-state))
+          (cut-portions-vr-names (vr-contents cutting-location))
+          (cut-portions-instances (mapcar (lambda (x) (sim-find-object-by-vr-name x new-kitchen-state)) cut-portions-vr-names)))
+     (bind (cut-portions 1.0 cut-portions-instances cut-object-available-at)
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
-
   :primitive-inventory *vr-primitives*)
 
 ;;                                                          ;;
 ;;                      TO REFRIGERATE                      ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 (defprimitive refrigerate ((container-with-ingredients-at-temperature transferable-container)
                            (kitchen-state-out kitchen-state)
@@ -846,8 +1294,7 @@
                            (refrigerator fridge)
                            (cooling-quantity quantity)
                            (cooling-unit time-unit))
-
-  ;; Case 1: refrigerator and cooling time (quantity and unit) are not given, use one hour as cooling time
+  ;; Case 1: refrigerator and cooling time (quantity and unit) are not given, use 0 as cooling time; this allows the command to finish once the item is in the refrigerator
   ((kitchen-state-in
     container-with-ingredients
     =>
@@ -856,80 +1303,215 @@
     refrigerator
     kitchen-state-out
     container-with-ingredients-at-temperature)
-
-   (let* ((new-cooling-quantity (make-instance 'quantity :value 1))
-          (new-cooling-unit (make-instance 'hour))
-          (result (request-to-refrigerate (slot-value container-with-ingredients 'name)
-                                          'refrigerator
-                                          (value new-cooling-quantity)
-                                          new-cooling-unit))
+   (let* ((refrigerator-vr-name (vr-name (find-kitchen-entity-vr 'fridge kitchen-state-in)))
+          (new-cooling-quantity (make-instance 'quantity :value 0))
+          (new-cooling-unit (make-instance 'minute))
+          (vr-result (request-to-refrigerate (vr-name container-with-ingredients)
+                                             refrigerator-vr-name
+                                             0
+                                             "min"))
           (cooled-object-available-at (request-to-get-time))
-          (kitchen-state-available-at cut-object-available-at)
-          (cooled-object-name (cdr (assoc :container-with-ingredients-at-temperature result)))
-          (kitchen-state-alist (cdr (assoc :kitchen-state-out result)))
-          (new-kitchen-state (vr-to-symbolic-kitchen kitchen-state-alist))
-          (cooled-object-instance (find-entity-by-name cooled-object-name new-kitchen-state))
-          (new-fridge-instance (find-entity-by-name "fridge" new-kitchen-state)))
-
-
-
+          (kitchen-state-available-at cooled-object-available-at)
+          (cooled-object-vr-name (gethash "containerWithIngredientsAtTemperature" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (cooled-object-instance (sim-find-object-by-vr-name cooled-object-vr-name new-kitchen-state))
+          (new-fridge-instance (sim-find-object-by-vr-name refrigerator-vr-name new-kitchen-state)))
      (bind (container-with-ingredients-at-temperature 1.0 cooled-object-instance cooled-object-available-at)
-       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-       (refrigerator 0.0 new-fridge-instance kitchen-state-available-at)
-       (cooling-quantity 0.0 new-cooling-quantity nil)
-       (cooling-unit 0.0 new-cooling-unit nil))))
-
-
-  ;; Case 2: refrigerator is not given, cooling time (quantity and unit) is given
-  ((kitchen-state-in
-    container-with-ingredients
-    cooling-quantity
-    cooling-unit
-    =>
-    refrigerator
-    kitchen-state-out
-    container-with-ingredients-at-temperature)
-
-   (let* ((result (request-to-refrigerate (slot-value container-with-ingredients 'name)
-                                          'refrigerator
-                                          (value cooling-quantity) ;; 1
-                                          cooling-unit))           ;; 'hour
-          (cooled-object-available-at (request-to-get-time))
-          (kitchen-state-available-at cut-object-available-at)
-          (cooled-object-name (cdr (assoc :container-with-ingredients-at-temperature result)))
-          (kitchen-state-alist (cdr (assoc :kitchen-state-out result)))
-          (new-kitchen-state (vr-to-symbolic-kitchen kitchen-state-alist))
-          (cooled-object-instance (find-entity-by-name cooled-object-name new-kitchen-state))
-          (new-fridge-instance (find-entity-by-name "fridge" new-kitchen-state)))
-
-     (bind (refrigerator 0.0 new-fridge-instance kitchen-state-available-at)
-       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-       (container-with-ingredients-at-temperature 1.0 cooled-object-instance cooled-object-available-at))))
-
-
-  ;; Case 3: refrigerator, cooling time (quantity and unit) are all given
-  ((kitchen-state-in
-    container-with-ingredients
-    refrigerator
-    cooling-quantity
-    cooling-unit
-    =>
-    kitchen-state-out
-    container-with-ingredients-at-temperature)
-
-   (let* ((result (request-to-refrigerate (slot-value container-with-ingredients 'name)
-                                          (slot-value refrigerator 'name)
-                                          (value cooling-quantity) ;; 1
-                                          cooling-unit))           ;; 'hour
-          (cooled-object-available-at (request-to-get-time))
-          (kitchen-state-available-at cut-object-available-at)
-          (cooled-object-name (cdr (assoc :container-with-ingredients-at-temperature result)))
-          (kitchen-state-alist (cdr (assoc :kitchen-state-out result)))
-          (new-kitchen-state (vr-to-symbolic-kitchen kitchen-state-alist))
-          (cooled-object-instance (find-entity-by-name cooled-object-name new-kitchen-state))
-          (new-fridge-instance (find-entity-by-name "fridge" new-kitchen-state)))
-
-     (bind (container-with-ingredients-at-temperature 1.0 cooled-object-instance cooled-object-available-at)
-       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
-
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           (refrigerator 0.0 new-fridge-instance kitchen-state-available-at)
+           (cooling-quantity 0.0 new-cooling-quantity nil)
+           (cooling-unit 0.0 new-cooling-unit nil))))
   :primitive-inventory *vr-primitives*)
+
+;;                                                          ;;
+;;                      TO PEEL                             ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprimitive peel ((container-for-peels transferable-container)
+                    (output-container-for-peeled transferable-container)
+                    (peeling-tool can-peel)
+                    (kitchen-state-out kitchen-state)
+                    (kitchen-state-in kitchen-state)
+                    (input-container-for-peeled transferable-container)
+                    (object peelable))
+  ((kitchen-state-in object input-container-for-peeled => peeling-tool container-for-peels output-container-for-peeled kitchen-state-out)
+   (let* ((tool-vr-name (vr-name (find-kitchen-entity-vr 'can-peel kitchen-state-in)))
+          (peeled-container-vr-name (vr-name input-container-for-peeled))
+          (container-for-peels-vr-name (vr-name (find-unused-kitchen-entity-vr 'medium-bowl kitchen-state-in)))
+          (countertop-vr-name (vr-name (find-kitchen-entity-vr 'countertop kitchen-state-in)))
+          (vr-result (request-to-place container-for-peels-vr-name
+                                    countertop-vr-name
+                                    (symbolic-to-vr-kitchen kitchen-state-in)))
+          (vr-result (request-to-peel (vr-name object)
+                                   tool-vr-name
+                                   container-for-peels-vr-name
+                                   peeled-container-vr-name
+                                   nil))
+          (peeled-object-available-at (request-to-get-time))
+          (kitchen-state-available-at peeled-object-available-at)
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (output-container-for-peeled-instance (sim-find-object-by-vr-name peeled-container-vr-name new-kitchen-state))
+          (container-for-peels-instance (sim-find-object-by-vr-name container-for-peels-vr-name new-kitchen-state))
+          (peeling-tool-instance (sim-find-object-by-vr-name tool-vr-name new-kitchen-state)))
+     (bind (output-container-for-peeled 1.0 output-container-for-peeled-instance peeled-object-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           (peeling-tool 0.0 peeling-tool-instance peeled-object-available-at)
+           (container-for-peels 0.0 container-for-peels-instance peeled-object-available-at))))
+  :primitive-inventory *vr-primitives*)
+  
+;;                                                          ;;
+;;                      TO SEED                             ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprimitive seed ((container-for-seeds transferable-container)
+                    (output-container-for-seeded transferable-container)
+                    (seeding-tool can-seed)
+                    (kitchen-state-out kitchen-state)
+                    (kitchen-state-in kitchen-state)
+                    (input-container-for-seeded transferable-container)
+                    (object seedable))
+  ((kitchen-state-in object input-container-for-seeded => seeding-tool container-for-seeds output-container-for-seeded kitchen-state-out)
+   (let* ((tool-vr-name (vr-name (find-kitchen-entity-vr 'can-seed kitchen-state-in)))
+          (seeded-container-vr-name (vr-name input-container-for-seeded))
+          (container-for-seeds-vr-name (vr-name (find-unused-kitchen-entity-vr 'medium-bowl kitchen-state-in)))
+          (countertop-vr-name (vr-name (find-kitchen-entity-vr 'countertop kitchen-state-in)))
+          (vr-result (request-to-place container-for-seeds-vr-name
+                                    countertop-vr-name
+                                    (symbolic-to-vr-kitchen kitchen-state-in)))
+          (vr-result (request-to-seed (vr-name object)
+                                   tool-vr-name
+                                   container-for-seeds-vr-name
+                                   seeded-container-vr-name
+                                   nil))
+          (seeded-object-available-at (request-to-get-time))
+          (kitchen-state-available-at seeded-object-available-at)
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (output-container-for-seeded-instance (sim-find-object-by-vr-name seeded-container-vr-name new-kitchen-state))
+          (container-for-seeds-instance (sim-find-object-by-vr-name container-for-seeds-vr-name new-kitchen-state))
+          (seeding-tool-instance (sim-find-object-by-vr-name tool-vr-name new-kitchen-state)))
+     (bind (output-container-for-seeded 1.0 output-container-for-seeded-instance seeded-object-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           (seeding-tool 0.0 seeding-tool-instance seeded-object-available-at)
+           (container-for-seeds 0.0 container-for-seeds-instance seeded-object-available-at))))
+  :primitive-inventory *vr-primitives*)
+
+;;                                                          ;;
+;;                   TO GET LOCATION                        ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprimitive get-location ((location-out transferable-container)
+                            (kitchen-state-out kitchen-state)
+                            (kitchen-state-in kitchen-state)
+                            (location-type conceptualizable))
+  ((kitchen-state-in
+    location-type
+    =>
+    kitchen-state-out
+    location-out)
+   (let* ((location-vr-type (vr-type location-type))
+          (vr-result (request-to-get-location "location"
+                                         location-vr-type
+                                         (symbolic-to-vr-kitchen kitchen-state-in)))
+          (location-available-at (request-to-get-time))
+          (kitchen-state-available-at location-available-at)
+          (location-vr-name (gethash "location" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (location-instance (sim-find-object-by-vr-name location-vr-name new-kitchen-state)))
+     (bind (location-out 1.0 location-instance location-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+  :primitive-inventory *vr-primitives*)
+
+;;                                                          ;;
+;;                     TO FLATTEN                           ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprimitive flatten ((flattened-object transferable-container)
+                       (kitchen-state-out kitchen-state)
+                       (kitchen-state-in kitchen-state)
+                       (object transferable-container)
+                       (flattening-tool can-flatten))
+  ((kitchen-state-in
+    object
+    =>
+    kitchen-state-out
+    flattening-tool
+    flattened-object)
+   (let* ((object-vr-name (vr-name object))
+          (tool-vr-name (vr-name (find-kitchen-entity-vr 'can-flatten kitchen-state-in)))
+          (vr-results (mapcar (lambda (x)
+                                (request-to-flatten (vr-name x)
+                                         tool-vr-name
+                                         (symbolic-to-vr-kitchen kitchen-state-in)))
+                              (vr-contents object)))
+          (vr-result (car vr-results))
+          (flattened-object-available-at (request-to-get-time))
+          (kitchen-state-available-at flattened-object-available-at)
+          (flattened-object-vr-name (gethash "containerWithFlattenedItems" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (flattened-object-instance (sim-find-object-by-vr-name flattened-object-vr-name new-kitchen-state)))
+     (bind (flattened-object 1.0 flattened-object-instance flattened-object-available-at)
+           (flattening-tool 1.0 (sim-find-object-by-vr-name tool-vr-name new-kitchen-state) flattened-object-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+  :primitive-inventory *vr-primitives*)
+
+;;                                                          ;;
+;;                      TO GRIND                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprimitive grind ((ground-object transferable-container)
+                     (kitchen-state-out kitchen-state)
+                     (kitchen-state-in kitchen-state)
+                     (object transferable-container)
+                     (grinding-tool can-grind))
+  ((kitchen-state-in
+    object
+    =>
+    kitchen-state-out
+    grinding-tool
+    ground-object)
+   (let* ((object-vr-name (vr-name object))
+          (tool-vr-name (vr-name (find-kitchen-entity-vr 'can-grind kitchen-state-in)))
+          (vr-result (request-to-grind object-vr-name
+                                       tool-vr-name
+                                       (symbolic-to-vr-kitchen kitchen-state-in)))
+          (ground-object-available-at (request-to-get-time))
+          (kitchen-state-available-at ground-object-available-at)
+          (ground-object-vr-name (gethash "containerWithGroundIngredients" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (ground-object-instance (sim-find-object-by-vr-name ground-object-vr-name new-kitchen-state)))
+     (bind (ground-object 1.0 ground-object-instance ground-object-available-at)
+           (grinding-tool 1.0 (sim-find-object-by-vr-name tool-vr-name new-kitchen-state) ground-object-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+  :primitive-inventory *vr-primitives*)
+
+;;                                                          ;;
+;;                      TO MASH                             ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprimitive mash ((mashed-object transferable-container)
+                    (kitchen-state-out kitchen-state)
+                    (kitchen-state-in kitchen-state)
+                    (object transferable-container)
+                    (mashing-tool can-mash))
+  ((kitchen-state-in
+    object
+    =>
+    kitchen-state-out
+    mashing-tool
+    mashed-object)
+   (let* ((object-vr-name (vr-name object))
+          (tool-vr-name (vr-name (find-kitchen-entity-vr 'can-mash kitchen-state-in)))
+          (vr-result (request-to-mash object-vr-name
+                                      tool-vr-name
+                                      (symbolic-to-vr-kitchen kitchen-state-in)))
+          (mashed-object-available-at (request-to-get-time))
+          (kitchen-state-available-at mashed-object-available-at)
+          (mashed-object-vr-name (gethash "mashedIngredient" vr-result))
+          (new-kitchen-state (read-kitchen-state vr-result))
+          (mashed-object-instance (sim-find-object-by-vr-name mashed-object-vr-name new-kitchen-state)))
+     (bind (mashed-object 1.0 mashed-object-instance mashed-object-available-at)
+           (mashing-tool 1.0 (sim-find-object-by-vr-name tool-vr-name new-kitchen-state) mashed-object-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+  :primitive-inventory *vr-primitives*)
+
+

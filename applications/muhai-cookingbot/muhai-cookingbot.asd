@@ -11,6 +11,8 @@
                :closer-mop
                :nlp-tools
                :dexador
+               :trivial-features
+               :float-features
                :com.inuoe.jzon
                :alexandria
                :assoc-utils)

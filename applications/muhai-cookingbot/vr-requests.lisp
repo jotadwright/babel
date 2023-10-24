@@ -7,19 +7,15 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defparameter *kitchen-host* "http://127.0.0.1:54321")
 
-
-
 (defun send-request (route content &key (host *kitchen-host*) (timeout 3600))
   "Send curl request and returns the answer."
-  (let* ((url (format nil "~a/abe-sim-command/~a" host route))
+  (let* ((url (mkstr host route))
          (response (dex:post url
                              :headers '(("content-type" . "application/json"))
                              :content content
                              :connect-timeout timeout
                              :read-timeout timeout)))
-    (assqv :response
-           (hash-table-alist
-            (jzon:parse response :key-fn #'(lambda (key) (make-kw (camel-case->lisp key))))))))
+    (jzon:parse response)))
 
 (defun encode-request (data)
   (jzon:stringify (alist-hash-table data)))
@@ -33,13 +29,18 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-get-kitchen ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun request-get-kitchen (kitchen-state-variable)
-  (let ((response (send-request "/abe-sim-command/to-get-kitchen"
-                                (encode-request `(("kitchenStateIn" . ,kitchen-state-variable))))))
-    (when response
-      (handler-case  (cons kitchen-state-variable (gethash kitchen-state-variable (gethash "response" response)))
-        (error (e) (format t
-                           "Error in response from abe-sim api service (route: to-get-kitchen): ~S.~&"
-                           e))))))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-get-kitchen"
+                         (encode-request `(("kitchenStateIn" . ,kitchen-state-variable))))))
+
+  
+;  (let ((response (send-request "/abe-sim-command/to-get-kitchen"
+;                                (encode-request `(("kitchenStateIn" . ,kitchen-state-variable))))))
+;    (when response
+;      (handler-case  (cons kitchen-state-variable (gethash kitchen-state-variable (gethash "response" response)))
+;        (error (e) (format t
+;                           "Error in response from abe-sim api service (route: to-get-kitchen): ~S.~&"
+;                           e))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-set-kitchen  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun request-set-kitchen (kitchen-state-in)
@@ -143,7 +144,7 @@
   (gethash "response"
            (send-request "/abe-sim-command/to-melt"
                          (encode-request `(("containerWithInputIngredients" . ,container-with-input-ingredients)
-                                           ("melting-tool"                  . ,oven)
+                                           ("melting-tool"                  . ,melting-tool)
                                            ("kitchenStateIn"            . ,kitchen-state-in)
                                            ("setWorldState"             . ,(not (not kitchen-state-in))))))))
 
@@ -213,7 +214,7 @@
                                            ("setWorldState"  . ,(not (not kitchen-state-in))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-get-location ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun request-get-location (available-location-variable type &optional (kitchen-state-in nil))
+(defun request-to-get-location (available-location-variable type &optional (kitchen-state-in nil))
   (gethash "response"
            (send-request "/abe-sim-command/to-get-location"
                          (encode-request `(("availableLocation" . ,available-location-variable)
