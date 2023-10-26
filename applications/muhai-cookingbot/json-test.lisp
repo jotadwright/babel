@@ -20,6 +20,11 @@
 (jzon:stringify *vr-ks* :stream (babel-pathname :directory '(".tmp") :name "test" :type "json"))
 
 
+
+
+
+
+
 (monitors::activate-monitor trace-irl)
 
 (evaluate-irl-program
@@ -27,10 +32,11 @@
   '((get-kitchen ?kitchen)
     (fetch-and-proportion ?proportioned-broccoli ?ks-with-broccoli ?kitchen ?target-container-1 broccoli 1 piece)
     (fetch-and-proportion ?proportioned-onion ?ks-with-onion ?ks-with-broccoli ?target-container-2 red-onion 50 g)
-    (peel ?peeled-onion ?peelings ?ks-with-peeled-onion ?ks-with-onion ?proportioned-onion ?knife)
-    (cut ?chopped-onion ?ks-with-chopped-onion ?ks-with-peeled-onion ?peeled-onion chopped ?knife ?cutting-board-1)
+    (peel ?peeled-onion ?peelings ?ks-with-peeled-onion ?ks-with-onion ?proportioned-onion ?knife-1)
+    (cut ?chopped-onion ?ks-with-chopped-onion ?ks-with-peeled-onion ?peeled-onion chopped ?knife-2 ?cutting-board-1)
     ))
- nil :primitive-inventory *vr-primitives*)
+ nil
+ :primitive-inventory *vr-primitives*)
 
 (defparameter *broccoli-salad*
   '((get-kitchen ?kitchen)

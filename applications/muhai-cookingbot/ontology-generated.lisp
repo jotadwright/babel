@@ -964,6 +964,9 @@
 (defclass potato-peel (peel) ()
   (:documentation "The peel of a potato"))
 
+(defclass red-onion-peel (peel) ()
+  (:documentation "The peel of a red onion"))
+
 
 (defclass rolling-pin (can-flatten reusable)
   ()
@@ -1688,7 +1691,8 @@
 
 
 (defclass red-onion (ingredient cuttable peelable)
-  ()
+  ((elements :initarg :elements :accessor elements :initform nil
+             :documentation "cut elements"))
   (:documentation "Red onion."))
 
 
