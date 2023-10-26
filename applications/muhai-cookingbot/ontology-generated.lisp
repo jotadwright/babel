@@ -1237,7 +1237,7 @@
   (:documentation "A tool to separate eggs into egg yolks and egg whites."))
 
 
-(defclass cutting-board (can-be-cut-on reusable)
+(defclass cutting-board (can-be-cut-on reusable fetchable conceptualizable container)
   ()
   (:documentation "An object where ingredients can be safely cut on."))
 
@@ -2103,6 +2103,18 @@
 (defclass degrees-celsius (unit)
   ()
   (:documentation "Unit: degrees Celsius."))
+
+
+(defclass heap (kitchen-entity)
+  ((particles
+    :initarg :particles
+    :accessor particles
+    :initform nil))
+  (:documentation "A collection of particles"))
+
+(defclass red-onion-heap (heap red-onion)
+  ()
+  (:documentation "A collection of red onion particles"))
 
 
 (defclass failed-object (arrangement-pattern can-cover can-cut can-mash can-mingle can-mix can-peel can-seed can-spread can-be-cut-on can-drain coverable-container fridge kitchen-state lineable list-of-kitchen-entities oven stove quantity shape sift time-unit transferable-container)

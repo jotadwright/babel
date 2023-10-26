@@ -57,9 +57,10 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-get-time ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun request-to-get-time ()
-  (let ((time (gethash "response"
-                       (send-request "/abe-sim-command/to-get-time"
-                                     (encode-request `())))))
+  (let ((time (gethash "time"
+                       (gethash "response"
+                                (send-request "/abe-sim-command/to-get-time"
+                                              (encode-request `()))))))
     time))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-wait ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
