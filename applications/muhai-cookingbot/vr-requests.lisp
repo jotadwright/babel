@@ -6,6 +6,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defparameter *kitchen-host* "http://127.0.0.1:54321")
+;(defparameter *kitchen-host* "http://134.184.26.72:54321")
 
 (defun send-request (route content &key (host *kitchen-host*) (timeout 3600))
   "Send curl request and returns the answer."

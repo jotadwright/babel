@@ -27,16 +27,92 @@
 
 (monitors::activate-monitor trace-irl)
 
+;; (1) fetch the broccoli + cut it (WORKS)
 (evaluate-irl-program
  (instantiate-non-variables-in-irl-program
   '((get-kitchen ?kitchen)
     (fetch-and-proportion ?proportioned-broccoli ?ks-with-broccoli ?kitchen ?target-container-1 broccoli 1 piece)
-    (fetch-and-proportion ?proportioned-onion ?ks-with-onion ?ks-with-broccoli ?target-container-2 red-onion 50 g)
+    (cut ?chopped-broccoli ?ks-with-chopped-broccoli ?ks-with-broccoli ?proportioned-broccoli chopped ?knife ?cutting-board-3)
+    ))
+ nil
+ :primitive-inventory *vr-primitives*)
+
+;; (2) fetch the red onion + peel it + cut it (WORKS)
+(evaluate-irl-program
+ (instantiate-non-variables-in-irl-program
+  '((get-kitchen ?kitchen)
+    (fetch-and-proportion ?proportioned-onion ?ks-with-onion ?kitchen ?target-container-2 red-onion 50 g)
     (peel ?peeled-onion ?peelings ?ks-with-peeled-onion ?ks-with-onion ?proportioned-onion ?knife-1)
     (cut ?chopped-onion ?ks-with-chopped-onion ?ks-with-peeled-onion ?peeled-onion chopped ?knife-2 ?cutting-board-1)
     ))
  nil
  :primitive-inventory *vr-primitives*)
+
+;; (3) fetch the cooked bacon + cut it (WORKS)
+(evaluate-irl-program
+ (instantiate-non-variables-in-irl-program
+  '((get-kitchen ?kitchen)
+    (fetch-and-proportion ?proportioned-bacon ?ks-with-bacon ?kitchen ?target-container-3 bacon 450 g)
+    (cut ?chopped-bacon ?ks-with-chopped-bacon ?ks-with-bacon ?proportioned-bacon chopped ?knife ?cutting-board-2)
+    ))
+ nil
+ :primitive-inventory *vr-primitives*)
+
+
+;; (4) fetch cheese (WORKS)
+(evaluate-irl-program
+ (instantiate-non-variables-in-irl-program
+  '((get-kitchen ?kitchen)
+    (fetch-and-proportion ?proportioned-cheese ?ks-with-grated-cheese ?kitchen ?target-container-7 grated-mozzarella 170 g)))
+ nil
+ :primitive-inventory *vr-primitives*)
+
+
+;; (5) 1 + 3 + 4 + transfer everything in a large bowl + mingle
+(evaluate-irl-program
+ (instantiate-non-variables-in-irl-program
+  '((get-kitchen ?kitchen)
+    (fetch-and-proportion ?proportioned-broccoli ?ks-with-broccoli ?kitchen ?target-container-1 broccoli 1 piece)
+    (cut ?chopped-broccoli ?ks-with-chopped-broccoli ?ks-with-broccoli ?proportioned-broccoli chopped ?knife ?cutting-board-3)
+    (fetch-and-proportion ?proportioned-bacon ?ks-with-bacon ?ks-with-chopped-broccoli ?target-container-3 bacon 450 g)
+    (cut ?chopped-bacon ?ks-with-chopped-bacon ?ks-with-bacon ?proportioned-bacon chopped ?knife ?cutting-board-2)
+    (fetch-and-proportion ?proportioned-cheese ?ks-with-grated-cheese ?ks-with-chopped-bacon ?target-container-7 grated-mozzarella 170 g)
+    (fetch ?large-bowl-1 ?ks-with-large-bowl-1 ?ks-with-grated-cheese large-bowl 1)
+    (transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-large-bowl-1 ?large-bowl-1 ?chopped-broccoli ?quantity-a ?unit-a)
+    (transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?chopped-onion ?quantity-b ?unit-b)
+    (transfer-contents ?output-container-c ?rest-c ?output-ks-c ?output-ks-b ?output-container-b ?proportioned-cheese ?quantity-c ?unit-c)
+    (mingle ?broccoli-mixture ?ks-with-broccoli-mixture ?output-ks-c ?output-container-c ?mingling-tool)
+    ))
+ nil
+ :primitive-inventory *vr-primitives*)
+
+;; (5) fetch vinegar, sugar, and mayo + transfer in a large bowl + mix
+(evaluate-irl-program
+ (instantiate-non-variables-in-irl-program
+  '((get-kitchen ?kitchen)
+    (fetch-and-proportion ?proportioned-vinegar ?ks-with-vinegar ?ks-with-bacon ?target-container-4 cider-vinegar 2.5 tablespoon)
+    (fetch-and-proportion ?proportioned-mayo ?ks-with-mayo ?ks-with-vinegar ?target-container-5 mayonnaise 230 g)
+    (fetch-and-proportion ?proportioned-sugar ?ks-with-sugar ?ks-with-mayo ?target-container-6 white-sugar 70 g)
+    (fetch ?large-bowl-2 ?ks-with-large-bowl-2 ?ks-with-broccoli-mixture large-bowl 1)
+    (transfer-contents ?output-container-d ?rest-d ?output-ks-d ?ks-with-large-bowl-2 ?large-bowl-2 ?proportioned-vinegar ?quantity-d ?unit-d)
+    (transfer-contents ?output-container-e ?rest-e ?output-ks-e ?output-ks-d ?output-container-d ?proportioned-sugar ?quantity-e ?unit-e)
+    (transfer-contents ?output-container-f ?rest-f ?output-ks-f ?output-ks-e ?output-container-e ?proportioned-mayo ?quantity-f ?unit-f)
+    (mix ?dressing ?ks-with-dressing ?output-ks-f ?output-container-f ?mixing-tool)
+    ))
+ nil
+ :primitive-inventory *vr-primitives*)
+
+;; (6) 4 + 5
+(evaluate-irl-program
+ (instantiate-non-variables-in-irl-program *broccoli-salad*)
+ nil :primitive-inventory *vr-primitives*)
+
+
+
+
+
+
+
 
 (defparameter *broccoli-salad*
   '((get-kitchen ?kitchen)

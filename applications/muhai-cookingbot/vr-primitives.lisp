@@ -15,12 +15,6 @@
 
 (def-irl-primitives vr-inventory :primitive-inventory *vr-primitives*)
 
-
-;; both MayonnaiseParticle and CiderVinegarParticle has type DressingParticle; so cannot distinguish them?
-;; need much more bowls in the initial kitchen state!!
-;; for cutting ingredients, there are no types RedOnionParticle, BaconParticle, BroccoliParticle?
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                          ;;
 ;;                  HELP FUNCTIONS                          ;;
@@ -30,13 +24,13 @@
 ;; TODO: Type names in the VR kitchen should be ontology with the yaml ontology so this mapping can be removed.
 (defparameter *type-mapping*
   '(;; bags
-    (sugar-bag              . sugar)
+    ;(sugar-bag              . sugar)
     (butter-bag             . butter)
     (vanilla-extract-bag    . vanilla-extract)
     (almond-extract-bag     . almond-extract)
     (flour-bag              . all-purpose-flour)
     (almond-flour-bag       . almond-flour)
-    (grated-mozzarella-bag  . grated-mozzarella)
+    ;(grated-mozzarella-bag  . grated-mozzarella)
     ;; ingredients
     (peeled-red-onion        . red-onion)
     ;; appliances/tool/utensils
@@ -56,8 +50,12 @@
     
 ;; TODO: A way to know that if you want to portion ingredient X, you can find it in some object of type Y
 (defparameter *source-mapping*
-  '((sugar      . sugar-bag)
-    (mayonnaise . mayonnaise-jar)))
+  '((sugar             . sugar-bag)
+    (mayonnaise        . mayonnaise-jar)
+    (cider-vinegar     . cider-vinegar)
+    (white-sugar       . sugar-bag)
+    (mozzarella        . mozzarella-bag)
+    (grated-mozzarella . grated-mozzarella-bag)))
 
 (defun map-type (type)
   (or (cdr (assoc type *type-mapping*))
@@ -199,6 +197,15 @@
       (make-instance 'amount
                      :quantity (make-instance 'quantity :value vr-temperature)
                      :unit (make-instance 'degrees-celsius)))))
+
+
+
+(defun get-kitchen-to-send (sym-state sym-blackboard)
+  (unless (equal (find-data sym-blackboard :current-state) sym-state)
+    (symbolic-to-vr-kitchen sym-state)))
+
+(defun update-current-state (sym-state sym-blackboard)
+  (set-data sym-blackboard :current-state sym-state))
   
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                          ;;
@@ -217,57 +224,39 @@
 ;;       if a combination of solids and liquids; heteogeneous mixture
 ;;       for solid ingredients, set cut to T
 
-(defun handle-chopped-collection (collection)
-  (let* ((simulation-type
+(defun replace-collection-by-ingredient (collection)
+  (let* ((raw-type-name
           (gethash "type" (simulation-data (first collection))))
-         (base-ingredient-type
-          (map-type
-           (intern
-            (upcase
-             (camel-case->lisp
-              (subseq simulation-type 7))))))
-         (base-ingredient-instance
-          (make-instance base-ingredient-type
-                         :is-cut (make-instance 'chopped)
-                         :elements collection)))
-    base-ingredient-instance))
-
-
-(defun handle-particle-collection (collection)
-  (let* ((simulation-type
-          (gethash "type" (simulation-data (first collection))))
-         (base-ingredient-type
-          (map-type
-           (intern
-            (upcase
-             (camel-case->lisp
-              (subseq simulation-type 0
-                      (- (length simulation-type) 8)))))))
-         (base-ingredient-instance
-          (make-instance base-ingredient-type
-                         :elements collection)))
-    base-ingredient-instance))
-
+         (clean-type-name
+          (string-replace (string-replace raw-type-name "Chopped" "")
+                          "Particle" ""))
+         (clean-type
+          (map-type (intern (upcase (camel-case->lisp clean-type-name)))))
+         (ingredient
+          (make-instance clean-type :elements collection)))
+    (when (search "Chopped" raw-type-name)
+      (setf (is-cut ingredient) (make-instance 'chopped)))
+    (list ingredient)))
 
 (defun handle-ingredient-collections (kitchen)
   (labels ((simulation-type (obj)
              (gethash "type" (simulation-data obj)))
+           (simulation-name (obj)
+             (gethash "name" (simulation-data obj)))
            (all-contents-same-vr-type-p (contents)
              (let ((vr-types (mapcar #'simulation-type contents)))
                (length= (remove-duplicates vr-types :test #'string=) 1)))
+           (all-contents-collection-type-p (contents)
+             (let ((vr-names (mapcar #'simulation-name contents)))
+               (every #'(lambda (name) (search "_" name)) vr-names)))
            (traverse (node)
              (if (and (slot-exists-p node 'contents)
                       ;; all contents have the same type
-                      (> (length (contents node)) 1)
-                      (all-contents-same-vr-type-p (contents node)))
-               (cond (;; the type is ChoppedX
-                      (every #'(lambda (type) (search "Chopped" type))
-                             (mapcar #'simulation-type (contents node)))
-                      (setf (contents node) (handle-chopped-collection (contents node))))
-                     (;; the type is XParticle
-                      (every #'(lambda (type) (search "Particle" type))
-                             (mapcar #'simulation-type (contents node)))
-                      (setf (contents node) (handle-particle-collection (contents node)))))
+                      (all-contents-same-vr-type-p (contents node))
+                      ;; all contents are of a collection type
+                      (all-contents-collection-type-p (contents node)))
+               (setf (contents node)
+                     (replace-collection-by-ingredient (contents node)))
                (when (slot-exists-p node 'contents)
                  (dolist (child (contents node))
                    (traverse child))))))
@@ -560,7 +549,7 @@
           ;; if ingredients do not have a source (like sugar has sugarBag)
           ;; simply place the ingredient in the unused container
           ;; (ignoring quantity and unit...)
-          (source (find-source ingredient-concept ks-after-fetch)))
+          (source (find-source (type-of ingredient-concept) ks-after-fetch)))
      (if source
        (let* ((source-vr-name (vr-name source))
               (vr-result-portion
@@ -1364,13 +1353,11 @@
           (new-kitchen-state-1 (read-kitchen-state vr-result-1))
           (cutting-location
            (sim-find-object-by-vr-name cutting-board-vr-name new-kitchen-state-1))
-          (cut-object (contents cutting-location))
+          (cut-object
+           (find-if #'(lambda (c) (eql (type-of c) (type-of cuttable-object)))
+                    (contents cutting-location)))
           (cut-portions-vr-names
            (mapcar #'vr-name (elements cut-object)))
-          ;(cut-portions-instances
-          ; (mapcar (lambda (x) (sim-find-object-by-vr-name x new-kitchen-state)) cut-portions-vr-names))
-          ;(cut-portions-container
-          ; (sim-find-object-by-vr-name (vr-name object-to-cut) new-kitchen-state))
           (vr-result-2
            (loop with response = nil
                  for portion in cut-portions-vr-names
