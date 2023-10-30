@@ -19,7 +19,8 @@
                :cl-json
                :com.inuoe.jzon)
   :components ((:file "package")
-               (:file "repairs"))
+               (:file "repairs")
+               (:file "general functions"))
   :description "Pattern finding for SQL.")
 
 ;; :irl :com.inuoe.jzon :web-interface
