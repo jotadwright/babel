@@ -1123,6 +1123,9 @@
              :documentation "cut elements"))
   (:documentation "Broccoli."))
 
+(defclass chopped-broccoli (broccoli)
+  ())
+
 
 (defclass banana (ingredient mashable)
   ()
@@ -1152,6 +1155,9 @@
   ((elements :initarg :elements :accessor elements :initform nil
              :documentation "cut elements"))
   (:documentation "bacon"))
+
+(defclass chopped-bacon (bacon)
+  ())
 
 
 (defclass cooked-chicken (ingredient cuttable)
@@ -1632,9 +1638,12 @@
              :documentation "cut elements"))
   (:documentation "Mayonnaise."))
 
-(defclass mayonnaise-jar (ingredient)
+(defclass mayonnaise-jar (mayonnaise)
   ()
   (:documentation "A jar of mayonnaise"))
+
+(defclass mayonnaise-particle (mayonnaise)
+  ())
 
 
 (defclass liquid (boilable)
@@ -1711,6 +1720,9 @@
              :documentation "cut elements"))
   (:documentation "Red onion."))
 
+(defclass chopped-red-onion (red-onion)
+  ())
+
 
 (defclass red-pepper-flakes (spice)
   ()
@@ -1775,6 +1787,15 @@
   (:documentation "Cooking oil."))
 
 
+(defclass dressing (ingredient liquid)
+  ()
+  (:documentation "Dressing"))
+
+
+(defclass dressing-particle (dressing)
+  ())
+
+
 (defclass coarse-salt (salt)
   ()
   (:documentation "Coarse salt."))
@@ -1804,6 +1825,12 @@
   ()
   (:documentation "Cider vinegar."))
 
+(defclass cider-vinegar-bottle (cider-vinegar)
+  ())
+
+(defclass cider-vinegar-particle (cider-vinegar)
+  ())
+
 
 (defclass extra-virgin-olive-oil (olive-oil)
   ()
@@ -1824,14 +1851,17 @@
   ()
   (:documentation "Spice."))
 
-(defclass sugar-bag (spice ingredient mixable)
-  ()
-  (:documentation "a bag of sugar"))
-
 (defclass sugar (spice ingredient mixable)
   ((elements :initarg :elements :accessor elements :initform nil
              :documentation "cut elements"))
   (:documentation "Sugar."))
+
+(defclass sugar-bag (sugar)
+  ()
+  (:documentation "a bag of sugar"))
+
+(defclass sugar-particle (sugar)
+  ())
 
 
 (defclass brown-sugar (sugar)

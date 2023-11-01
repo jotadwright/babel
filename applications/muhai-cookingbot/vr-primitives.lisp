@@ -8,6 +8,12 @@
 ;;                                                             ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; transfer-contents; lots of particles seem to be spilled!
+;; request-to-mix; takes very long time?
+
+;; make class 'dispenser', with subclasses sugar-bag, mayonnaise-jar, etc.
+;; and slot 'dispenses', which contains the concept of sugar, mayonnaise, etc.
+
 
 ;; Defining the VR primitive inventory  ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -24,15 +30,14 @@
 ;; TODO: Type names in the VR kitchen should be ontology with the yaml ontology so this mapping can be removed.
 (defparameter *type-mapping*
   '(;; bags
-    ;(sugar-bag              . sugar)
     (butter-bag             . butter)
     (vanilla-extract-bag    . vanilla-extract)
     (almond-extract-bag     . almond-extract)
     (flour-bag              . all-purpose-flour)
     (almond-flour-bag       . almond-flour)
-    ;(grated-mozzarella-bag  . grated-mozzarella)
     ;; ingredients
     (peeled-red-onion        . red-onion)
+    (cider-vinegar           . cider-vinegar-bottle)
     ;; appliances/tool/utensils
     (baking-sheet           . baking-paper)
     (kitchen-counter        . counter-top)
@@ -52,7 +57,7 @@
 (defparameter *source-mapping*
   '((sugar             . sugar-bag)
     (mayonnaise        . mayonnaise-jar)
-    (cider-vinegar     . cider-vinegar)
+    (cider-vinegar     . cider-vinegar-bottle)
     (white-sugar       . sugar-bag)
     (mozzarella        . mozzarella-bag)
     (grated-mozzarella . grated-mozzarella-bag)))
@@ -132,57 +137,92 @@
 
 
 
+(defmethod traverse-sym-kitchen ((kitchen-state kitchen-state) &key do-fn collect-fn)
+  (loop for elem in (contents kitchen-state)
+        if do-fn
+        do (traverse-sym-kitchen elem :do-fn do-fn :collect-fn collect-fn)
+        else
+        append (remove nil (traverse-sym-kitchen elem :do-fn do-fn :collect-fn collect-fn))))
+  
+(defmethod traverse-sym-kitchen (node &key do-fn collect-fn)
+  (if do-fn
+    (progn (funcall do-fn node)
+      (when (slot-exists-p node 'contents)
+        (loop for child in (contents node)
+              do (traverse-sym-kitchen child :do-fn do-fn :collect-fn collect-fn))))
+    (cons (funcall collect-fn node)
+          (when (slot-exists-p node 'contents)
+            (loop for child in (contents node)
+                  append (traverse-sym-kitchen child :do-fn do-fn :collect-fn collect-fn))))))
 
-(defun sim-find-object-by-vr-name (obj-name root)
+
+
+(defun sim-find-object-by-vr-name (vr-name kitchen-state)
   "Find an object by its vr-name in the IRL kitchen"
-  (if (string= (name root) obj-name)
-      root
-      (when (slot-exists-p root 'contents)
-        (loop for child in (contents root)
-              when (sim-find-object-by-vr-name obj-name child)
-                return it))))
+  (let ((found-entities
+         (traverse-sym-kitchen kitchen-state
+                               :collect-fn #'(lambda (entity)
+                                               (when (string= (name entity) vr-name)
+                                                 entity)))))
+    (unless (null found-entities)
+      (first found-entities))))
 
 (defun find-kitchen-entity-with-content (object kitchen-state)
-  (labels ((traverse (object parent)            
-             (if (and (slot-exists-p parent 'contents)
-                      (member object (contents parent)))
-               parent
-               (when (slot-exists-p parent 'contents)
-                 (loop for child in (contents parent)
-                       when (traverse object child)
-                       return it)))))
-    (traverse object kitchen-state)))
+  "Find a kitchen entity that has <object> as its contents"
+  (let ((found-entities
+         (traverse-sym-kitchen kitchen-state
+                               :collect-fn #'(lambda (entity)
+                                               (when (and (slot-exists-p entity 'contents)
+                                                          (member object (contents entity)))
+                                                 entity)))))
+    (unless (null found-entities)
+      (first found-entities))))
+
+(defun find-all-kitchen-entities-vr (type kitchen-state)
+  (let ((found-entities
+         (traverse-sym-kitchen kitchen-state
+                               :collect-fn #'(lambda (entity)
+                                               (when (subtypep (type-of entity) type)
+                                                 entity)))))
+    found-entities))
 
 (defun find-kitchen-entity-vr (type kitchen-state &key unused)
   "Return an IRL object of the given type from the symbolic state (if one exists)."
-  (labels ((test-used-fn (obj)
-             (if unused
-               ;; something is unused if it has a slot 'used and its value is NIL
-               ;; OR when something has a slot 'contents and those are non-empty
-               (or (and (slot-exists-p obj 'used)
-                        (null (used obj)))
-                   (and (slot-exists-p obj 'contents)
-                        (null (contents obj))))
-               T))
-           (traverse (type node)
-             (if (and ;(eq (type-of node) type)
-                      (subtypep (type-of node) type)
-                      (test-used-fn node))
-                 node
-                 (when (slot-exists-p node 'contents)
-                   (loop for child in (contents node)
-                         when (traverse type child)
-                           return it)))))
-    (traverse type kitchen-state)))
+  (let ((found-entities
+         (traverse-sym-kitchen kitchen-state
+                               :collect-fn #'(lambda (entity)
+                                               (when (and (subtypep (type-of entity) type)
+                                                          (if unused
+                                                            (and (slot-exists-p entity 'used)
+                                                                 (slot-exists-p entity 'contents)
+                                                                 (null (used entity))
+                                                                 (null (contents entity)))
+                                                            T))
+                                                 entity)))))
+    (unless (null found-entities)
+      (first found-entities))))
 
 (defun find-unused-kitchen-entity-vr (type kitchen-state)
   "Return an IRL container of the given type from the symbolic state that is not currently used (if one exists)."
   (find-kitchen-entity-vr type kitchen-state :unused T))
 
+(defun find-kitchen-cabinet-with-most-space (kitchen-state)
+  "Find the kitchen cabinet that has the most space"
+  (let ((kitchen-cabinets
+         (traverse-sym-kitchen kitchen-state
+                               :collect-fn #'(lambda (entity)
+                                               (when (eql (type-of entity) 'kitchen-cabinet)
+                                                 entity)))))
+    (the-smallest
+     #'(lambda (cabinet)
+         (length (contents cabinet)))
+     kitchen-cabinets)))
+
 (defun find-source (concept kitchen-state)
   "Return an object that is able to generate objects of a given type during a portioning action."
   (let* ((source-type (cdr (assoc concept *source-mapping*))))
-    (find-kitchen-entity-vr source-type kitchen-state)))
+    (when source-type
+      (find-kitchen-entity-vr source-type kitchen-state))))
 
 
 
@@ -212,18 +252,7 @@
 ;;               TO SYMBOLIC                                ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  
-;; TO DO: handle collections of particles/chopped things
-;; if a container has a list of particles as contents
-;;    if all particles are of the same type
-;;       make an instance of that ingredient (and keep the particles in a slot?)
-;;       if the ingredient is a solid, set cut to T
-;;    if particles are of a different type
-;;       if the ingredients are all solids; heterogeneous mixture
-;;       if the ingredients are all liquids; homogeneous mixture
-;;       if a combination of solids and liquids; heteogeneous mixture
-;;       for solid ingredients, set cut to T
-
+#|
 (defun replace-collection-by-ingredient (collection)
   (let* ((raw-type-name
           (gethash "type" (simulation-data (first collection))))
@@ -248,19 +277,17 @@
                (length= (remove-duplicates vr-types :test #'string=) 1)))
            (all-contents-collection-type-p (contents)
              (let ((vr-names (mapcar #'simulation-name contents)))
-               (every #'(lambda (name) (search "_" name)) vr-names)))
-           (traverse (node)
-             (if (and (slot-exists-p node 'contents)
-                      ;; all contents have the same type
-                      (all-contents-same-vr-type-p (contents node))
-                      ;; all contents are of a collection type
-                      (all-contents-collection-type-p (contents node)))
-               (setf (contents node)
-                     (replace-collection-by-ingredient (contents node)))
-               (when (slot-exists-p node 'contents)
-                 (dolist (child (contents node))
-                   (traverse child))))))
-    (traverse kitchen)))
+               (every #'(lambda (name) (search "_" name)) vr-names))))
+    (traverse-sym-kitchen
+     kitchen
+     :do-fn
+     #'(lambda (entity)
+         (when (and (slot-exists-p entity 'contents)
+                    (all-contents-same-vr-type-p (contents entity))
+                    (all-contents-collection-type-p (contents entity)))
+           (setf (contents entity)
+                 (replace-collection-by-ingredient (contents entity))))))))
+|#
 
 (defun set-sym-object-slots (sym-object custom-state-variables)
   "When the <custom-state-variables> (hash table) of the VR simulator
@@ -314,7 +341,7 @@
             for container = (if parent (cdr parent) sym-kitchen)
             do (push sym-object (contents container)))
       ;; handle collections of the same ingredient (particles, chopped things, etc.)
-      (handle-ingredient-collections sym-kitchen)
+      ; (handle-ingredient-collections sym-kitchen)
       ;; simply store the constraints
       (setf (constraints sym-kitchen) kconstraints-alist)
       sym-kitchen)))
@@ -507,7 +534,7 @@
    (let* ((item-name
            (vr-name (find-kitchen-entity-vr (type-of concept-to-fetch) kitchen-state-in)))
           (vr-result
-           (request-to-fetch item-name (symbolic-to-vr-kitchen kitchen-state-in)))
+           (request-to-fetch item-name))
           (thing-fetched-available-at (request-to-get-time))
           (kitchen-state-available-at thing-fetched-available-at)
           (fetched-obj-vr-name (gethash "fetchedObject" vr-result))
@@ -637,9 +664,9 @@
     quantity
     unit)
    (let* ((container-with-input-ingredients-vr-name (vr-name container-with-input-ingredients))
-          (vr-result (request-to-transfer container-with-input-ingredients-vr-name
-                                          (vr-name target-container)
-                                          (symbolic-to-vr-kitchen kitchen-state-in)))
+          (vr-result
+           (request-to-transfer container-with-input-ingredients-vr-name
+                                (vr-name target-container)))
           (container-available-at (request-to-get-time))
           (kitchen-state-available-at container-available-at)
           (container-with-rest-name (name container-with-input-ingredients))
@@ -649,10 +676,10 @@
           (destination-container (sim-find-object-by-vr-name container-with-all-ingredients-vr-name new-kitchen-state)))
      (setf (slot-value destination-container 'used) t)
      (bind (container-with-all-ingredients 1.0 destination-container nil)
-       (container-with-rest 1.0 original-container container-available-at)
-       (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-       (quantity 0.0  (make-instance 'quantity :value 100) nil)
-       (unit 0.0 (make-instance 'unit) nil))))
+           (container-with-rest 1.0 original-container container-available-at)
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
+           (quantity 0.0 (make-instance 'quantity :value 100) nil)
+           (unit 0.0 (make-instance 'unit) nil))))
   :primitive-inventory *vr-primitives*)
 
 ;;                                                          ;;
@@ -699,10 +726,11 @@
     kitchen-state-out
     container-with-mixture
     mixing-tool)
-   (let* ((tool-vr-name (vr-name (find-kitchen-entity-vr 'whisk kitchen-state-in)))
-          (vr-result (request-to-mix (vr-name container-with-input-ingredients)
-                                     tool-vr-name
-                                     (symbolic-to-vr-kitchen kitchen-state-in)))
+   (let* ((tool-vr-name
+           (vr-name (find-kitchen-entity-vr 'whisk kitchen-state-in)))
+          (vr-result
+           (request-to-mix (vr-name container-with-input-ingredients)
+                           tool-vr-name))
           (container-available-at (request-to-get-time))
           (kitchen-state-available-at container-available-at)
           (container-with-mixture-vr-name (gethash "containerWithMixture" vr-result))
@@ -750,9 +778,9 @@
     container-with-mixture
     mingling-tool)
    (let* ((tool-vr-name (vr-name (find-kitchen-entity-vr 'whisk kitchen-state-in)))
-          (vr-result (request-to-mingle (vr-name container-with-input-ingredients)
-                                        tool-vr-name
-                                        (symbolic-to-vr-kitchen kitchen-state-in)))
+          (vr-result
+           (request-to-mingle (vr-name container-with-input-ingredients)
+                              tool-vr-name))
           (container-available-at (request-to-get-time))
           (kitchen-state-available-at container-available-at)
           (container-with-mixture-vr-name (gethash "containerWithMixture" vr-result))
@@ -1317,16 +1345,21 @@
 ;;                      TO CUT                              ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defprimitive cut ((cut-object container)
+(defparameter *cut-mapping*
+  '((broccoli . chopped-broccoli)
+    (red-onion . chopped-red-onion)
+    (bacon . chopped-bacon)))
+
+(defprimitive cut ((cut-object transferable-container)
                    (kitchen-state-out kitchen-state)
                    (kitchen-state-in kitchen-state)
-                   (object-to-cut container)
+                   (container-with-cuttable transferable-container)
                    (cut-pattern cutting-pattern)
                    (cutting-tool can-cut)
                    (cutting-surface can-be-cut-on))
   ;; Case 1: cutting tool not given (use a knife), cut-pattern given, cutting-surface not given (use cutting board)
   ((kitchen-state-in
-    object-to-cut
+    container-with-cuttable
     cut-pattern
     =>
     cut-object
@@ -1340,7 +1373,7 @@
           (countertop-vr-name
            (vr-name (find-kitchen-entity-vr 'counter-top kitchen-state-in)))
           (cuttable-object
-           (first (contents object-to-cut)))
+           (first (contents container-with-cuttable)))
           (vr-result-1
            (progn
              (request-to-place cutting-board-vr-name
@@ -1351,35 +1384,40 @@
                              knife-vr-name
                              (vr-pattern cut-pattern))))
           (new-kitchen-state-1 (read-kitchen-state vr-result-1))
-          (cutting-location
-           (sim-find-object-by-vr-name cutting-board-vr-name new-kitchen-state-1))
-          (cut-object
-           (find-if #'(lambda (c) (eql (type-of c) (type-of cuttable-object)))
-                    (contents cutting-location)))
-          (cut-portions-vr-names
-           (mapcar #'vr-name (elements cut-object)))
+          (cut-objects
+           (find-all-kitchen-entities-vr (rest (assoc (type-of cuttable-object) *cut-mapping*))
+                                         new-kitchen-state-1))
+          (cut-objects-vr-names (mapcar #'vr-name cut-objects))
+          (kitchen-cabinet-vr-name
+           (vr-name (find-kitchen-cabinet-with-most-space new-kitchen-state-1)))
           (vr-result-2
-           (loop with response = nil
-                 for portion in cut-portions-vr-names
-                 do (setf response (request-to-place portion (vr-name object-to-cut)))
-                 finally (return response)))
+           (loop for name in cut-objects-vr-names
+                 do (request-to-place name (vr-name container-with-cuttable))
+                 finally
+                   (return
+                    (request-to-place (vr-name container-with-cuttable)
+                                      kitchen-cabinet-vr-name))))
           (new-kitchen-state-2 (read-kitchen-state vr-result-2))
           (cut-object-available-at (request-to-get-time))
           (kitchen-state-available-at cut-object-available-at)
           (cutting-tool-instance
            (sim-find-object-by-vr-name knife-vr-name new-kitchen-state-2))
           (cut-portions-container
-           (sim-find-object-by-vr-name (vr-name object-to-cut) new-kitchen-state-2))
+           (sim-find-object-by-vr-name (vr-name container-with-cuttable) new-kitchen-state-2))
           (cutting-location-2
            (sim-find-object-by-vr-name cutting-board-vr-name new-kitchen-state-2)))
+     (loop for portion in (contents cut-portions-container)
+           do (setf (slot-value portion 'is-cut)
+                    (make-instance (type-of cut-pattern))))
+     (setf (slot-value cut-portions-container 'used) t)
      (bind (cut-object 1.0 cut-portions-container cut-object-available-at)
            (kitchen-state-out 1.0 new-kitchen-state-2 kitchen-state-available-at)
            (cutting-tool 0.0 cutting-tool-instance cut-object-available-at)
            (cutting-surface 0.0 cutting-location-2 cut-object-available-at))))
   
   ;; Case 4: cutting tool given, cut-pattern given, cutting surface given
-  ((kitchen-state-in
-    object-to-cut
+  #|((kitchen-state-in
+    container-with-cuttable
     cut-pattern
     cutting-tool
     cutting-surface
@@ -1392,10 +1430,10 @@
           (vr-result (request-to-place cutting-board-vr-name
                                     countertop-vr-name
                                     (symbolic-to-vr-kitchen kitchen-state-in)))
-          (vr-result (request-to-place (vr-name object-to-cut)
+          (vr-result (request-to-place (vr-name container-with-cuttable)
                                     cutting-board-vr-name
                                     nil)) ;; no need to reset state since performing actions immediately after one another
-          (vr-result (request-to-cut (vr-name object-to-cut)
+          (vr-result (request-to-cut (vr-name container-with-cuttable)
                                   knife-vr-name
                                   (vr-pattern cut-pattern)
                                   nil))
@@ -1406,7 +1444,7 @@
           (cut-portions-vr-names (vr-contents cutting-location))
           (cut-portions-instances (mapcar (lambda (x) (sim-find-object-by-vr-name x new-kitchen-state)) cut-portions-vr-names)))
      (bind (cut-object 1.0 cut-portions-instances cut-object-available-at)
-           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
+           (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))|#
   :primitive-inventory *vr-primitives*)
 
 ;;                                                          ;;
@@ -1478,14 +1516,18 @@
            (vr-name (find-unused-kitchen-entity-vr 'medium-bowl kitchen-state-in)))
           (countertop-vr-name
            (vr-name (find-kitchen-entity-vr 'counter-top kitchen-state-in)))
+          (kitchen-cabinet-vr-name
+           (vr-name (find-kitchen-cabinet-with-most-space kitchen-state-in)))
           (vr-result
-           (request-to-place container-for-peels-vr-name
-                             countertop-vr-name))
-          (vr-result
-           (request-to-peel object-to-peel-vr-name
-                            tool-vr-name
-                            container-for-peels-vr-name
-                            peeled-container-vr-name))
+           (progn
+             (request-to-place container-for-peels-vr-name
+                               countertop-vr-name)
+             (request-to-peel object-to-peel-vr-name
+                              tool-vr-name
+                              container-for-peels-vr-name
+                              peeled-container-vr-name)
+             (request-to-place container-for-peels-vr-name
+                               kitchen-cabinet-vr-name)))
           (peeled-object-available-at (request-to-get-time))
           (kitchen-state-available-at peeled-object-available-at)
           (new-kitchen-state (read-kitchen-state vr-result))
@@ -1495,6 +1537,8 @@
            (sim-find-object-by-vr-name container-for-peels-vr-name new-kitchen-state))
           (peeling-tool-instance
            (sim-find-object-by-vr-name tool-vr-name new-kitchen-state)))
+     (setf (slot-value output-container-for-peeled-instance 'used) t)
+     (setf (slot-value container-for-peels-instance 'used) t)
      (bind (output-container-for-peeled 1.0 output-container-for-peeled-instance peeled-object-available-at)
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
            (peeling-tool 0.0 peeling-tool-instance peeled-object-available-at)

@@ -1,31 +1,7 @@
 (ql:quickload :muhai-cookingbot)
 (in-package :muhai-cookingbot)
 
-(defparameter *ks*
-  (parse-namestring "/Users/jensnevens/Downloads/dbgWS/bsWS25.log"))
-  ;(babel-pathname :directory '("applications" "muhai-cookingbot")
-  ;                :name "almondCookiesInitialState" :type "json"))
-
-(defparameter *data*
-  (with-open-file (stream *ks* :direction :input)
-    (jzon:parse stream))) ;:key-fn #'(lambda (key) (make-kw (camel-case->lisp key))))))
-
-;(defparameter *alist-data* (hash-table->alist-rec *data*))
-
-(defparameter *symbolic-ks* (vr-to-symbolic-kitchen *data*))
-(defparameter *vr-ks* (symbolic-to-vr-kitchen *symbolic-ks*))
-
-; (defparameter *hash-data* (alist->hash-table-rec *vr-ks*))
-
-(jzon:stringify *vr-ks* :stream (babel-pathname :directory '(".tmp") :name "test" :type "json"))
-
-
-
-
-
-
-
-(monitors::activate-monitor trace-irl)
+(monitors::activate-monitor irl::trace-irl)
 
 ;; (1) fetch the broccoli + cut it (WORKS)
 (evaluate-irl-program
@@ -68,32 +44,46 @@
  :primitive-inventory *vr-primitives*)
 
 
-;; (5) 1 + 3 + 4 + transfer everything in a large bowl + mingle
+;; (5) 1 + 2 + 3 + 4 + transfer everything in a large bowl + mingle (WORKS)
 (evaluate-irl-program
  (instantiate-non-variables-in-irl-program
   '((get-kitchen ?kitchen)
+    ;; fetch + cut broccoli
     (fetch-and-proportion ?proportioned-broccoli ?ks-with-broccoli ?kitchen ?target-container-1 broccoli 1 piece)
-    (cut ?chopped-broccoli ?ks-with-chopped-broccoli ?ks-with-broccoli ?proportioned-broccoli chopped ?knife ?cutting-board-3)
-    (fetch-and-proportion ?proportioned-bacon ?ks-with-bacon ?ks-with-chopped-broccoli ?target-container-3 bacon 450 g)
-    (cut ?chopped-bacon ?ks-with-chopped-bacon ?ks-with-bacon ?proportioned-bacon chopped ?knife ?cutting-board-2)
-    (fetch-and-proportion ?proportioned-cheese ?ks-with-grated-cheese ?ks-with-chopped-bacon ?target-container-7 grated-mozzarella 170 g)
+    (cut ?chopped-broccoli ?ks-with-chopped-broccoli ?ks-with-broccoli ?proportioned-broccoli chopped ?knife-1 ?cutting-board-1)
+    ;; fetch + peel + cut red onion
+    (fetch-and-proportion ?proportioned-onion ?ks-with-onion ?ks-with-chopped-broccoli ?target-container-2 red-onion 50 g)
+    (peel ?peeled-onion ?peelings ?ks-with-peeled-onion ?ks-with-onion ?proportioned-onion ?knife-2)
+    (cut ?chopped-onion ?ks-with-chopped-onion ?ks-with-peeled-onion ?peeled-onion chopped ?knife-3 ?cutting-board-2)
+    ;; fetch + cut bacon
+    (fetch-and-proportion ?proportioned-bacon ?ks-with-bacon ?ks-with-chopped-onion ?target-container-3 bacon 450 g)
+    (cut ?chopped-bacon ?ks-with-chopped-bacon ?ks-with-bacon ?proportioned-bacon chopped ?knife-4 ?cutting-board-3)
+    ;; fetch cheese
+    (fetch-and-proportion ?proportioned-cheese ?ks-with-grated-cheese ?ks-with-chopped-bacon ?target-container-4 grated-mozzarella 170 g)
+    ;; fetch large bowl
     (fetch ?large-bowl-1 ?ks-with-large-bowl-1 ?ks-with-grated-cheese large-bowl 1)
+    ;; transfer everything into the large bowl
     (transfer-contents ?output-container-a ?rest-a ?output-ks-a ?ks-with-large-bowl-1 ?large-bowl-1 ?chopped-broccoli ?quantity-a ?unit-a)
     (transfer-contents ?output-container-b ?rest-b ?output-ks-b ?output-ks-a ?output-container-a ?chopped-onion ?quantity-b ?unit-b)
-    (transfer-contents ?output-container-c ?rest-c ?output-ks-c ?output-ks-b ?output-container-b ?proportioned-cheese ?quantity-c ?unit-c)
-    (mingle ?broccoli-mixture ?ks-with-broccoli-mixture ?output-ks-c ?output-container-c ?mingling-tool)
+    (transfer-contents ?output-container-c ?rest-c ?output-ks-c ?output-ks-b ?output-container-b ?chopped-bacon ?quantity-c ?unit-c)
+    (transfer-contents ?output-container-d ?rest-d ?output-ks-d ?output-ks-c ?output-container-c ?proportioned-cheese ?quantity-d ?unit-d)
+    ;; mingle
+    (mingle ?broccoli-mixture ?ks-with-broccoli-mixture ?output-ks-d ?output-container-d ?mingling-tool)
     ))
  nil
  :primitive-inventory *vr-primitives*)
+;; possible optimizations for cut primitive:
+;; - use to-transfer instead of to-place loop; but cutting board can container other stuff (e.g. leftover peels)
+;; - check if the cutting-board is already on the countertop; avoids a to-place request
 
 ;; (5) fetch vinegar, sugar, and mayo + transfer in a large bowl + mix
 (evaluate-irl-program
  (instantiate-non-variables-in-irl-program
   '((get-kitchen ?kitchen)
-    (fetch-and-proportion ?proportioned-vinegar ?ks-with-vinegar ?ks-with-bacon ?target-container-4 cider-vinegar 2.5 tablespoon)
-    (fetch-and-proportion ?proportioned-mayo ?ks-with-mayo ?ks-with-vinegar ?target-container-5 mayonnaise 230 g)
-    (fetch-and-proportion ?proportioned-sugar ?ks-with-sugar ?ks-with-mayo ?target-container-6 white-sugar 70 g)
-    (fetch ?large-bowl-2 ?ks-with-large-bowl-2 ?ks-with-broccoli-mixture large-bowl 1)
+    (fetch-and-proportion ?proportioned-vinegar ?ks-with-vinegar ?kitchen ?target-container-1 cider-vinegar 35 ml)
+    (fetch-and-proportion ?proportioned-mayo ?ks-with-mayo ?ks-with-vinegar ?target-container-2 mayonnaise 230 g)
+    (fetch-and-proportion ?proportioned-sugar ?ks-with-sugar ?ks-with-mayo ?target-container-3 white-sugar 70 g)
+    (fetch ?large-bowl-2 ?ks-with-large-bowl-2 ?ks-with-sugar large-bowl 1)
     (transfer-contents ?output-container-d ?rest-d ?output-ks-d ?ks-with-large-bowl-2 ?large-bowl-2 ?proportioned-vinegar ?quantity-d ?unit-d)
     (transfer-contents ?output-container-e ?rest-e ?output-ks-e ?output-ks-d ?output-container-d ?proportioned-sugar ?quantity-e ?unit-e)
     (transfer-contents ?output-container-f ?rest-f ?output-ks-f ?output-ks-e ?output-container-e ?proportioned-mayo ?quantity-f ?unit-f)
