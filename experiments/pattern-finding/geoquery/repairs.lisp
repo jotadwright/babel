@@ -39,22 +39,28 @@
 
 ;(make-cxn-name "give me the cities in usa")
 
+(def-fcg-constructions geo-grammar)
+
 (defun learn-holophrase (form-string meaning-predicates)
   "Learning a holophrastic cxn ; takes as argument a form (a question in natural language) and a meaning (a predicate network)."  
-    (let* ((cxn-name (make-cxn-name form-string))
-           (cxn-cat (format nil "~a-cat" cxn-name))
-           (holistic-cxn (def-fcg-cxn cxn-name
-                                      ((?holistic-unit
-                                        (category cxn-cat)
-                                        (meaning-args (irl:get-target-var meaning))
-                                        (form-args (?left-1 ?right-1)))
-                                       <--
-                                       (?holistic-unit
-                                        (HASH meaning (meaning-predicates))
-                                        --
-                                        (HASH form ((sequence form-string ?left-1 ?right-1)))))))
-                                       
-      holistic-cxn)))
+    (let* ((cxn-name (make-symbol (make-cxn-name form-string)))
+           (cxn-cat (make-symbol (format nil "~a-cat" (make-cxn-name form-string))))
+           (holistic-cxn (make-instance 'fcg-construction
+                        :name cxn-name
+                        :contributing-part (list (make-instance 'contributing-unit
+                                                                :name '?holistic-unit
+                                                                :unit-structure `((category ,cxn-cat)
+                                                                                  (form-args (?left-1 ?right-1))
+                                                                                  (meaning-args (irl:get-target-var meaning)))))
+                        :conditional-part (list (make-instance 'conditional-unit
+                                                               :name '?holistic-unit
+                                                               :formulation-lock `((HASH meaning ,meaning-predicates))
+                                                               :comprehension-lock `((HASH form ((sequence ,form-string ?left-1 ?right-1))))))
+                        :attributes `((:cxn-cat . ,cxn-cat) (:sequence . ,form-string) (:meaning ,@meaning-predicates))
+                        :description "A geo construction"
+                        :cxn-inventory *fcg-constructions*)))
+      (add-cxn holistic-cxn *fcg-constructions*)
+      (add-category cxn-cat *fcg-constructions*)))
 
 ;(learn-holophrase "what is capital of iowa" '((DOT ?COLUMN-1 ?ALIAS-0 ?COLUMN-3) (DOT ?COLUMN-2 ?ALIAS-0 ?COLUMN-4) (EQUALS ?FILTER-0 ?COLUMN-2 ?COMPARATOR-0) (WHERE ?FILTER-1 ?FILTER-0) (AS ?FILTER-2 ?TABLE-0 ?ALIAS-0) (FROM ?FILTER-3 ?FILTER-2) (SELECT ?RESULT-0 ?COLUMN-1 ?FILTER-3 ?FILTER-1) (BIND COLUMN ?COLUMN-4 STATE_NAME) (BIND COLUMN ?COLUMN-3 CAPITAL) (BIND CONCEPT ?COMPARATOR-0 iowa) (BIND CONCEPT ?ALIAS-0 STATEALIAS0) (BIND TABLE ?TABLE-0 STATE)))
 
