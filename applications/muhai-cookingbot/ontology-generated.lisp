@@ -955,7 +955,9 @@
   ((peel-of 
       :initarg :peel-of
       :accessor peel-of
-      :initform nil))
+      :initform nil)
+   (elements :initarg :elements :accessor elements :initform nil
+             :documentation "cut elements"))
   (:documentation "For peels of an object."))
 
 (defmethod copy-object-content ((original peel) (copy peel))
@@ -963,6 +965,9 @@
 
 (defclass potato-peel (peel) ()
   (:documentation "The peel of a potato"))
+
+(defclass red-onion-peel (peel) ()
+  (:documentation "The peel of a red onion"))
 
 
 (defclass rolling-pin (can-flatten reusable)
@@ -1114,8 +1119,12 @@
 
 
 (defclass broccoli (ingredient cuttable)
-  ()
+  ((elements :initarg :elements :accessor elements :initform nil
+             :documentation "cut elements"))
   (:documentation "Broccoli."))
+
+(defclass chopped-broccoli (broccoli)
+  ())
 
 
 (defclass banana (ingredient mashable)
@@ -1143,8 +1152,12 @@
   (:documentation "Cooked bacon."))
 
 (defclass bacon (ingredient cuttable)
-  ()
+  ((elements :initarg :elements :accessor elements :initform nil
+             :documentation "cut elements"))
   (:documentation "bacon"))
+
+(defclass chopped-bacon (bacon)
+  ())
 
 
 (defclass cooked-chicken (ingredient cuttable)
@@ -1435,10 +1448,17 @@
   ()
   (:documentation "Radish."))
 
+(defclass mozzarella-bag (ingredient cuttable)
+  ()
+  (:documentation "a bag of grated mozzarella"))
 
 (defclass grated-mozzarella (ingredient cuttable)
-  ()
+  ((elements :initarg :elements :accessor elements :initform nil
+             :documentation "cut elements"))
   (:documentation "Grated mozzarella."))
+
+(defclass grated-mozzarella-bag (ingredient cuttable)
+  ())
 
 
 (defclass green-cabbage (ingredient cuttable)
@@ -1614,8 +1634,16 @@
 
 
 (defclass mayonnaise (ingredient)
-  ()
+  ((elements :initarg :elements :accessor elements :initform nil
+             :documentation "cut elements"))
   (:documentation "Mayonnaise."))
+
+(defclass mayonnaise-jar (mayonnaise)
+  ()
+  (:documentation "A jar of mayonnaise"))
+
+(defclass mayonnaise-particle (mayonnaise)
+  ())
 
 
 (defclass liquid (boilable)
@@ -1688,8 +1716,12 @@
 
 
 (defclass red-onion (ingredient cuttable peelable)
-  ()
+  ((elements :initarg :elements :accessor elements :initform nil
+             :documentation "cut elements"))
   (:documentation "Red onion."))
+
+(defclass chopped-red-onion (red-onion)
+  ())
 
 
 (defclass red-pepper-flakes (spice)
@@ -1755,6 +1787,15 @@
   (:documentation "Cooking oil."))
 
 
+(defclass dressing (ingredient liquid)
+  ()
+  (:documentation "Dressing"))
+
+
+(defclass dressing-particle (dressing)
+  ())
+
+
 (defclass coarse-salt (salt)
   ()
   (:documentation "Coarse salt."))
@@ -1784,6 +1825,12 @@
   ()
   (:documentation "Cider vinegar."))
 
+(defclass cider-vinegar-bottle (cider-vinegar)
+  ())
+
+(defclass cider-vinegar-particle (cider-vinegar)
+  ())
+
 
 (defclass extra-virgin-olive-oil (olive-oil)
   ()
@@ -1804,10 +1851,17 @@
   ()
   (:documentation "Spice."))
 
-
 (defclass sugar (spice ingredient mixable)
-  ()
+  ((elements :initarg :elements :accessor elements :initform nil
+             :documentation "cut elements"))
   (:documentation "Sugar."))
+
+(defclass sugar-bag (sugar)
+  ()
+  (:documentation "a bag of sugar"))
+
+(defclass sugar-particle (sugar)
+  ())
 
 
 (defclass brown-sugar (sugar)
@@ -2103,18 +2157,6 @@
 (defclass degrees-celsius (unit)
   ()
   (:documentation "Unit: degrees Celsius."))
-
-
-(defclass heap (kitchen-entity)
-  ((particles
-    :initarg :particles
-    :accessor particles
-    :initform nil))
-  (:documentation "A collection of particles"))
-
-(defclass red-onion-heap (heap red-onion)
-  ()
-  (:documentation "A collection of red onion particles"))
 
 
 (defclass failed-object (arrangement-pattern can-cover can-cut can-mash can-mingle can-mix can-peel can-seed can-spread can-be-cut-on can-drain coverable-container fridge kitchen-state lineable list-of-kitchen-entities oven stove quantity shape sift time-unit transferable-container)

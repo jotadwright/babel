@@ -10,25 +10,37 @@
   (list
    '((:form . "give me the cities in usa")
      (:meaning . ((DOT ?COLUMN-1 ?ALIAS-0 ?COLUMN-2) (AS ?FILTER-0 ?TABLE-0 ?ALIAS-0) (FROM ?FILTER-1 ?FILTER-0) (SELECT ?RESULT-0 ?COLUMN-1 ?FILTER-1) (BIND COLUMN ?COLUMN-2 CITY_NAME) (BIND CONCEPT ?ALIAS-0 CITYALIAS0) (BIND TABLE ?TABLE-0 CITY) (?result-1))))
-   '((:form . "give me all the states of usa")
-     (:meaning . ((DOT ?COLUMN-1 ?ALIAS-0 ?COLUMN-2) (AS ?FILTER-0 ?TABLE-0 ?ALIAS-0) (FROM ?FILTER-1 ?FILTER-0) (SELECT ?RESULT-0 ?COLUMN-1 ?FILTER-1) (BIND COLUMN ?COLUMN-2 STATE_NAME) (BIND CONCEPT ?ALIAS-0 STATEALIAS0) (BIND TABLE ?TABLE-0 STATE))))
    '((:form . "give me the states in usa")
      (:meaning . ((DOT ?COLUMN-1 ?ALIAS-0 ?COLUMN-2) (AS ?FILTER-0 ?TABLE-0 ?ALIAS-0) (FROM ?FILTER-1 ?FILTER-0) (SELECT ?RESULT-0 ?COLUMN-1 ?FILTER-1) (BIND COLUMN ?COLUMN-2 STATE_NAME) (BIND CONCEPT ?ALIAS-0 STATEALIAS0) (BIND TABLE ?TABLE-0 STATE))))
-   '((:form . "give me all the lakes in usa")
+   '((:form . "give me all the states of usa")
+     (:meaning . ((DOT ?COLUMN-1 ?ALIAS-0 ?COLUMN-2) (AS ?FILTER-0 ?TABLE-0 ?ALIAS-0) (FROM ?FILTER-1 ?FILTER-0) (SELECT ?RESULT-0 ?COLUMN-1 ?FILTER-1) (BIND COLUMN ?COLUMN-2 STATE_NAME) (BIND CONCEPT ?ALIAS-0 STATEALIAS0) (BIND TABLE ?TABLE-0 STATE))))
+   '((:form . "give me all the lakes of us")
      (:meaning . ((DOT ?COLUMN-1 ?ALIAS-0 ?COLUMN-2) (AS ?FILTER-0 ?TABLE-0 ?ALIAS-0) (FROM ?FILTER-1 ?FILTER-0) (SELECT ?RESULT-0 ?COLUMN-1 ?FILTER-1) (BIND COLUMN ?COLUMN-2 LAKE_NAME) (BIND CONCEPT ?ALIAS-0 LAKEALIAS0) (BIND TABLE ?TABLE-0 LAKE))))
    '((:form . "give me all the cities in usa")
-     (:meaning . ((DOT ?COLUMN-1 ?ALIAS-0 ?COLUMN-2) (AS ?FILTER-0 ?TABLE-0 ?ALIAS-0) (FROM ?FILTER-1 ?FILTER-0) (SELECT ?RESULT-0 ?COLUMN-1 ?FILTER-1) (BIND COLUMN ?COLUMN-2 CITY_NAME) (BIND CONCEPT ?ALIAS-0 CITYALIAS0) (BIND TABLE ?TABLE-0 CITY))))))
+     (:meaning . ((DOT ?COLUMN-1 ?ALIAS-0 ?COLUMN-2) (AS ?FILTER-0 ?TABLE-0 ?ALIAS-0) (FROM ?FILTER-1 ?FILTER-0) (SELECT ?RESULT-0 ?COLUMN-1 ?FILTER-1) (BIND COLUMN ?COLUMN-2 CITY_NAME) (BIND CONCEPT ?ALIAS-0 CITYALIAS0) (BIND TABLE ?TABLE-0 CITY))))
+   '((:form . "list the states")
+     (:meaning . ((DOT ?COLUMN-1 ?ALIAS-0 ?COLUMN-2) (AS ?FILTER-0 ?TABLE-0 ?ALIAS-0) (FROM ?FILTER-1 ?FILTER-0) (SELECT ?RESULT-0 ?COLUMN-1 ?FILTER-1) (BIND COLUMN ?COLUMN-2 STATE_NAME) (BIND CONCEPT ?ALIAS-0 STATEALIAS0) (BIND TABLE ?TABLE-0 STATE))))
+   '((:form . "name all the lakes of us")
+     (:meaning . ((DOT ?COLUMN-1 ?ALIAS-0 ?COLUMN-2) (AS ?FILTER-0 ?TABLE-0 ?ALIAS-0) (FROM ?FILTER-1 ?FILTER-0) (SELECT ?RESULT-0 ?COLUMN-1 ?FILTER-1) (BIND COLUMN ?COLUMN-2 LAKE_NAME) (BIND CONCEPT ?ALIAS-0 LAKEALIAS0) (BIND TABLE ?TABLE-0 LAKE))))))
 
 #|(loop for example in *corpus-sample*
       do (print (cdr (assoc ':form example))))|#
 
-;; tests sur un extrait du fichier
-(defparameter *test* "{\"utterance\":\"what is capital of iowa\", \"meaning\":\"((DOT ?COLUMN-1 ?ALIAS-0 ?COLUMN-3) (DOT ?COLUMN-2 ?ALIAS-0 ?COLUMN-4) (EQUALS ?FILTER-0 ?COLUMN-2 ?COMPARATOR-0) (WHERE ?FILTER-1 ?FILTER-0) (AS ?FILTER-2 ?TABLE-0 ?ALIAS-0) (FROM ?FILTER-3 ?FILTER-2) (SELECT ?RESULT-0 ?COLUMN-1 ?FILTER-3 ?FILTER-1) (BIND COLUMN ?COLUMN-4 STATE_NAME) (BIND COLUMN ?COLUMN-3 CAPITAL) (BIND CONCEPT ?COMPARATOR-0 iowa) (BIND CONCEPT ?ALIAS-0 STATEALIAS0) (BIND TABLE ?TABLE-0 STATE))\", \"len\": 12}" )
+#|(loop for example in *corpus-sample*
+      do (learn-holophrase (cdr (assoc ':form example)) (cdr (assoc ':meaning example))))|#
 
+;; ------------------------------------------------------------------------------------- ;;
+;; ------------------------------------------------------------------------------------- ;;
+
+;(learn-holophrase "name all the lakes of us" '((DOT ?COLUMN-1 ?ALIAS-0 ?COLUMN-2) (AS ?FILTER-0 ?TABLE-0 ?ALIAS-0) (FROM ?FILTER-1 ?FILTER-0) (SELECT ?RESULT-0 ?COLUMN-1 ?FILTER-1) (BIND COLUMN ?COLUMN-2 LAKE_NAME) (BIND CONCEPT ?ALIAS-0 LAKEALIAS0) (BIND TABLE ?TABLE-0 LAKE)))
+
+(loop for example in *corpus-sample*
+      do (learn-holophrase (cdr (assoc ':form example)) (cdr (assoc ':meaning example))))
+;; ------------------------------------------------------------------------------------- ;;
+;; ------------------------------------------------------------------------------------- ;;
+
+;; the whole corpus : 
 (defparameter *corpus* "/Users/ajouglar/babel/systems/postmodern-parser/data/geography-for-pf.jsonl")
-
-(defun remove-last-character (str)
-  (subseq str 0 (- (length str) 1)))
 
 (with-open-file (stream *corpus* :direction :input :external-format :utf-8 :element-type :default)
   (loop for line = (read-line stream nil nil)
@@ -41,20 +53,36 @@
                (learn-holophrase utterance (read meaning))))))
 
 ;(add-element (make-html (constructions-list *fcg-constructions*)))
+;(length (constructions-list *fcg-constructions*))
 
-(comprehend "give me the cities in usa")
+;; ------------------------------------------------------------------------------------- ;;
+;; ------------------------------------------------------------------------------------- ;;
 
-(loop for example in *corpus-sample*
-      do (learn-holophrase (cdr (assoc ':form example)) (cdr (assoc ':meaning example))))
+(ql:quickload "pattern-finding")
+(in-package :pf)
 
-(find-cxn "give me the cities in usa" *fcg-constructions*)
-(learn-holophrase "give me the cities in usa" '((DOT ?COLUMN-1 ?ALIAS-0 ?COLUMN-2) (AS ?FILTER-0 ?TABLE-0 ?ALIAS-0) (FROM ?FILTER-1 ?FILTER-0) (SELECT ?RESULT-0 ?COLUMN-1 ?FILTER-1) (BIND COLUMN ?COLUMN-2 CITY_NAME) (BIND CONCEPT ?ALIAS-0 CITYALIAS0) (BIND TABLE ?TABLE-0 CITY)))
+(progn
+  (wi::reset)
+  (notify reset-monitors)
+  (reset-id-counters)
+  (defparameter *experiment*
+    (make-instance 'pattern-finding-experiment
+                   :entries `((:number-of-epochs . 5)
+                              (:comprehend-all-n . 2)
+                              (:shuffle-data-p . nil)
+                              (:corpus-directory . ,(babel-pathname :directory '("systems" "postmodern-parser" "data")))
+                              (:corpus-file . ,(make-pathname :name "geography-for-pf" :type "jsonl"))))))
 
+(run-interaction *experiment*)
 
+(run-series *experiment* 100)
+
+(run-series *experiment* (length (corpus *experiment*)))
 
 
 ;; ------------------------------------------------------------------------------------- ;;
 ;; ------------------------------------------------------------------------------------- ;;
+
 
 (def-fcg-constructions fcg-constructions
   :feature-types ((form set-of-predicates :handle-regex-sequences)
@@ -73,7 +101,7 @@
                        (:heuristics :nr-of-applied-cxns :nr-of-units-matched) ;; list of heuristic functions (modes of #'apply-heuristic)
                        (:heuristic-value-mode . :sum-heuristics-and-parent) ;; how to use results of heuristic functions for scoring a node
                       ; (:hash-mode . :hash-string-meaning)
-                       (:de-render-mode . :de-render-sequence)
+                       (:de-render-mode . :de-render-string-meets)
                        (:render-mode . :render-sequences)
                        (:category-linking-mode . :neighbours)
                        (:parse-goal-tests :no-applicable-cxns :connected-semantic-network)))
@@ -95,6 +123,8 @@
                               (BIND TABLE ?TABLE-0 CITY)))
                --
                (HASH form ((sequence "give me the cities in usa" ?left-1 ?right-1))))))
+
+(comprehend "give me the cities in usa" :construction-inventory *fcg-constructions*)
 
 (def-fcg-cxn give-me-the-slot-1-in-usa-cxn-1
              ((?item-based-unit
