@@ -54,6 +54,7 @@
 
 ;(add-element (make-html (constructions-list *fcg-constructions*)))
 ;(length (constructions-list *fcg-constructions*))
+;(clear *fcg-constructions*)
 
 ;; ------------------------------------------------------------------------------------- ;;
 ;; ------------------------------------------------------------------------------------- ;;
@@ -130,28 +131,26 @@
              ((?item-based-unit
                (category give-me-the-slot-1-in-usa-cxn-cat-1)
                (meaning-args (?RESULT-0))
-               (form-args (?left-1 ?right-02))
+               (form-args (?left-1 ?right-2))
                (subunits (?slot-1)))
               <-
               (?item-based-unit
                (HASH meaning ((DOT ?COLUMN-1 ?ALIAS-0 ?COLUMN-2)
                               (AS ?FILTER-0 ?TABLE-0 ?ALIAS-0)
                               (FROM ?FILTER-1 ?FILTER-0)
-                              (SELECT ?RESULT-0 ?COLUMN-1 ?FILTER-1)
-                              (BIND CONCEPT ?ALIAS-0 CITYALIAS0)
-                              (BIND TABLE ?TABLE-0 CITY)))
+                              (SELECT ?RESULT-0 ?COLUMN-1 ?FILTER-1)))
                --
                (HASH form ((sequence "give me the " ?left-1 ?right-1)
                            (sequence " in usa" ?left-2 ?right-2))))
               (?slot-1
                (category give-me-the-slot-1-in-usa-slot-1-cat-1)
-               (meaning-args (?TABLE-0))
+               (meaning-args (?COLUMN-2 ?TABLE-0 ?ALIAS-0))
                --
                (form-args (?right-1 ?left-2))
                (category give-me-the-slot-1-in-usa-slot-1-cat-1)
                )))
 
-(fcg::print-anti-unification-results (anti-unify-predicate-network '((DOT ?COLUMN-1 ?ALIAS-0 ?COLUMN-2)
+#|(fcg::print-anti-unification-results (anti-unify-predicate-network '((DOT ?COLUMN-1 ?ALIAS-0 ?COLUMN-2)
                                 (AS ?FILTER-0 ?TABLE-0 ?ALIAS-0)
                                 (FROM ?FILTER-1 ?FILTER-0)
                                 (SELECT ?RESULT-0 ?COLUMN-1 ?FILTER-1)
@@ -164,7 +163,7 @@
                                 (SELECT ?RESULT-0 ?COLUMN-1 ?FILTER-1)
                                 (BIND COLUMN ?COLUMN-2 STATE_NAME)
                                 (BIND CONCEPT ?ALIAS-0 STATEALIAS0)
-                                (BIND TABLE ?TABLE-0 STATE))))
+                                (BIND TABLE ?TABLE-0 STATE))))|#
 
 #|(irl:get-target-var '((DOT ?COLUMN-1 ?ALIAS-0 ?COLUMN-2)
                         (AS ?FILTER-0 ?TABLE-0 ?ALIAS-0)
@@ -177,10 +176,10 @@
              ((?holistic-unit
                (category states-cxn-cat-1)
                (form-args (?left-1 ?right-1))
-               (meaning-args (?COLUMN-2)))
+               (meaning-args (?COLUMN-2 ?TABLE-0 ?ALIAS-0)))
               <-
               (?holistic-unit
-               (HASH meaning ((BIND TABLE ?TABLE-0 ?state)))
+               (HASH meaning ((BIND TABLE ?TABLE-0 STATE) (BIND COLUMN ?COLUMN-2 STATE_NAME) (BIND CONCEPT ?ALIAS-0 STATEALIAS0)))
                --
                (HASH form ((sequence "states" ?left-1 ?right-1))))))
 
@@ -188,10 +187,10 @@
              ((?holistic-unit
                (category cities-cxn-cat-1)
                (form-args (?left-1 ?right-1))
-               (meaning-args (?COLUMN-2)))
+               (meaning-args (?COLUMN-2 ?TABLE-0 ?ALIAS-0)))
               <-
               (?holistic-unit
-               (HASH meaning ((BIND TABLE ?TABLE-0 ?city)))
+               (HASH meaning ((BIND TABLE ?TABLE-0 CITY) (BIND COLUMN ?COLUMN-2 CITY_NAME) (BIND CONCEPT ?ALIAS-0 CITYALIAS0)))
                --
                (HASH form ((sequence "cities" ?left-1 ?right-1))))))
 
@@ -199,10 +198,10 @@
              ((?holistic-unit
                (category lakes-cxn-cat-1)
                (form-args (?left-1 ?right-1))
-               (meaning-args (?COLUMN-2)))
+               (meaning-args (?COLUMN-2 ?TABLE-0 ?ALIAS-0)))
               <-
               (?holistic-unit
-               (HASH meaning ((BIND TABLE ?TABLE-0 ?lake)))
+               (HASH meaning ((BIND TABLE ?TABLE-0 LAKE) (BIND COLUMN ?COLUMN-2 LAKE_NAME) (BIND CONCEPT ?ALIAS-0 LAKEALIAS0)))
                --
                (HASH form ((sequence "lakes" ?left-1 ?right-1))))))
 
@@ -219,7 +218,7 @@
   (add-link 'cities-cxn-cat-1 'give-me-the-slot-1-in-usa-slot-1-cat-1 *fcg-constructions*)
   (add-link 'lakes-cxn-cat-1 'give-me-the-slot-1-in-usa-slot-1-cat-1 *fcg-constructions*)))
 
-;; (comprehend-all "give me the cities in usa")
+;; (comprehend "give me the cities in usa")
 ;; (comprehend-all "give me the states in usa")
 
 
