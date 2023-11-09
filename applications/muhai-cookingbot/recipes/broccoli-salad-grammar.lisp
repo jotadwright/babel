@@ -157,7 +157,7 @@
 
 (def-fcg-cxn bacon-cxn
              ((?bacon-unit
-               (ontology cooked-bacon))
+               (ontology bacon))
               <-
               (?bacon-unit
                --
@@ -255,7 +255,7 @@
 
 (def-fcg-cxn sugar-cxn
              ((?sugar-unit
-               (ontology sugar)
+               (ontology white-sugar)
                (boundaries (left ?sugar-unit)
                            (right ?sugar-unit)))
               <-
@@ -894,9 +894,11 @@
 
 (defparameter *init-op* `((get-kitchen ,(make-var 'kitchen-state))))
 
-(defparameter *pdm* (initialise-personal-dynamic-memory
-                    *fcg-constructions*
-                    *init-op*))
+(defparameter *pdm*
+  (initialise-personal-dynamic-memory
+   *fcg-constructions*
+   *init-op*
+   :primitive-inventory *vr-primitives*))
 
 (defparameter *output*
   (multiple-value-bind (final-set-of-bindings meaning-network)
@@ -919,9 +921,5 @@
                             
                             "end"
                             )
-                            ; *pdm*
-                          (initialise-personal-dynamic-memory
-                           *fcg-constructions*
-                           *init-op*)
-                          )
+                          *pdm*)
     (append *init-op* meaning-network)))

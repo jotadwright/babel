@@ -77,12 +77,6 @@
 ;; - use to-transfer instead of to-place loop; but cutting board can container other stuff (e.g. leftover peels)
 ;; - check if the cutting-board is already on the countertop; avoids a to-place request
 
-(evaluate-irl-program
- (instantiate-non-variables-in-irl-program
-  '((get-kitchen ?kitchen)
-    (fetch-and-proportion ?proportioned-mayo ?ks-with-mayo ?kitchen ?target-container-2 mayonnaise 230 g)))
-  nil :primitive-inventory *vr-primitives*)
-
 ;; (5) fetch vinegar, sugar, and mayo + transfer in a large bowl + mix
 (evaluate-irl-program
  (instantiate-non-variables-in-irl-program

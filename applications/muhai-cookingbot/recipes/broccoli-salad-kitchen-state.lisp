@@ -87,7 +87,7 @@
                                                                                                                                :value 5)))))
                                          (make-instance 'medium-bowl
                                                         :used T
-                                                        :contents (list (make-instance 'cooked-bacon :amount
+                                                        :contents (list (make-instance 'bacon :amount
                                                                                        (make-instance 'amount
                                                                                                       :unit (make-instance 'g)
                                                                                                       :quantity (make-instance 'quantity

@@ -161,8 +161,8 @@
     (setf (arrangement ks) (make-instance 'sectionalized)))
   ;(loop for appliance in '(kitchen-cabinet pantry fridge freezer oven counter-top microwave stove kitchen-sink)
   ;      unless (find appliance (contents ks) :key #'type-of)
-  ;        do (push (make-instance appliance :name (lisp->camel-case (mkstr appliance)))
-  ;                 (contents ks)))
+  ;      do (push (make-instance appliance :name (lisp->camel-case (mkstr appliance)))
+  ;               (contents ks)))
   )
 
 (defmethod copy-object-content ((original kitchen-state) (copy kitchen-state))
