@@ -60,6 +60,8 @@
       (add-cxn holistic-cxn *fcg-constructions*)
       (add-category cxn-cat *fcg-constructions*)))
 
+;(learn-holophrase "name all the lakes of us" '((DOT ?COLUMN-1 ?ALIAS-0 ?COLUMN-2) (AS ?FILTER-0 ?TABLE-0 ?ALIAS-0) (FROM ?FILTER-1 ?FILTER-0) (SELECT ?RESULT-0 ?COLUMN-1 ?FILTER-1) (BIND COLUMN ?COLUMN-2 LAKE_NAME) (BIND CONCEPT ?ALIAS-0 LAKEALIAS0) (BIND TABLE ?TABLE-0 LAKE)))
+
 ;(learn-holophrase "what is capital of iowa" '((DOT ?COLUMN-1 ?ALIAS-0 ?COLUMN-3) (DOT ?COLUMN-2 ?ALIAS-0 ?COLUMN-4) (EQUALS ?FILTER-0 ?COLUMN-2 ?COMPARATOR-0) (WHERE ?FILTER-1 ?FILTER-0) (AS ?FILTER-2 ?TABLE-0 ?ALIAS-0) (FROM ?FILTER-3 ?FILTER-2) (SELECT ?RESULT-0 ?COLUMN-1 ?FILTER-3 ?FILTER-1) (BIND COLUMN ?COLUMN-4 STATE_NAME) (BIND COLUMN ?COLUMN-3 CAPITAL) (BIND CONCEPT ?COMPARATOR-0 iowa) (BIND CONCEPT ?ALIAS-0 STATEALIAS0) (BIND TABLE ?TABLE-0 STATE)))
 
 ;(comprehend "what is capital of iowa" :construction-inventory *fcg-constructions*)

@@ -73,7 +73,7 @@
 ;tests 
 (defparameter *sorted-reorganized-data* (reorganize-by-id *reorganized-data*))
 (fcg::print-anti-unification-results
- (anti-unify-predicate-network
+ (fcg::anti-unify-predicate-network
   ;; what is the largest state bordering texas
   (fresh-variables '((DOT ?COLUMN-1 ?ALIAS-1 ?COLUMN-9)
     (DOT ?COLUMN-2 ?ALIAS-2 ?COLUMN-9)
@@ -166,3 +166,31 @@
   (fresh-variables '((DOT ?COLUMN-1 ?ALIAS-0 ?COLUMN-3) (DOT ?COLUMN-2 ?ALIAS-0 ?COLUMN-4) (EQUALS ?FILTER-0 ?COLUMN-2 ?COMPARATOR-0) (WHERE ?FILTER-1 ?FILTER-0) (AS ?FILTER-2 ?TABLE-0 ?ALIAS-0) (FROM ?FILTER-3 ?FILTER-2) (DISTINCT ?AGGREGATOR-0 ?COLUMN-1) (SELECT ?RESULT-0 ?AGGREGATOR-0 ?FILTER-3 ?FILTER-1) (BIND COLUMN ?COLUMN-4 RIVER-NAME) (BIND COLUMN ?COLUMN-3 LENGTH) (BIND CONCEPT ?COMPARATOR-0 colorado) (BIND CONCEPT ?ALIAS-0 RIVERALIAS0) (BIND TABLE ?TABLE-0 RIVER)))
   ;; how long is the delaware river
   (fresh-variables '((DOT ?COLUMN-1 ?ALIAS-0 ?COLUMN-3) (DOT ?COLUMN-2 ?ALIAS-0 ?COLUMN-4) (EQUALS ?FILTER-0 ?COLUMN-2 ?COMPARATOR-0) (WHERE ?FILTER-1 ?FILTER-0) (AS ?FILTER-2 ?TABLE-0 ?ALIAS-0) (FROM ?FILTER-3 ?FILTER-2) (DISTINCT ?AGGREGATOR-0 ?COLUMN-1) (SELECT ?RESULT-0 ?AGGREGATOR-0 ?FILTER-3 ?FILTER-1) (BIND COLUMN ?COLUMN-4 RIVER-NAME) (BIND COLUMN ?COLUMN-3 LENGTH) (BIND CONCEPT ?COMPARATOR-0 delaware) (BIND CONCEPT ?ALIAS-0 RIVERALIAS0) (BIND TABLE ?TABLE-0 RIVER)))))
+
+;; ------------------------------------------------------------------------------------- ;;
+;; ------------------------------------------------------------------------------------- ;;
+;;                                 TEST WITH PF-PACKAGE                                  ;;
+;; ------------------------------------------------------------------------------------- ;;
+;; ------------------------------------------------------------------------------------- ;;
+
+(ql:quickload "pattern-finding")
+(in-package :pf)
+
+(progn
+  (wi::reset)
+  (notify reset-monitors)
+  (reset-id-counters)
+  (defparameter *experiment*
+    (make-instance 'pattern-finding-experiment
+                   :entries `((:number-of-epochs . 5)
+                              (:comprehend-all-n . 2)
+                              (:shuffle-data-p . nil)
+                              (:corpus-directory . ,(babel-pathname :directory '("systems" "postmodern-parser" "data")))
+                              (:corpus-file . ,(make-pathname :name "geography-for-pf" :type "jsonl"))))))
+
+(run-interaction *experiment*)
+
+(run-series *experiment* 100)
+
+(run-series *experiment* (length (corpus *experiment*)))
+
