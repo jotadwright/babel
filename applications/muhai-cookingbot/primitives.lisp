@@ -4321,32 +4321,38 @@
 
 ;; create a copy of the ingredient with g as its unit
 (defmethod convert-to-g ((ingredient ingredient) &key &allow-other-keys)
-  (let ((copied-ingredient (copy-object ingredient)))
-    (when (not (eq (type-of (unit (amount copied-ingredient))) 'g))
-      (let ((ingredient-type (type-of copied-ingredient))
-            (source-unit-type (type-of (unit (amount copied-ingredient)))))
-        (when (eq source-unit-type 'ml)
-          (setf source-unit-type 'l)
-          (setf (value (quantity (amount copied-ingredient))) (/ (value (quantity (amount copied-ingredient))) 1000))
-          (setf (unit (amount copied-ingredient)) (make-instance 'l)))
-        (when (eq source-unit-type 'tablespoon)
-          (setf source-unit-type 'teaspoon)
-          (setf (value (quantity (amount copied-ingredient))) (* (value (quantity (amount copied-ingredient))) 3))
-          (setf (unit (amount copied-ingredient)) (make-instance 'teaspoon)))      
+  (let ((converted-ingredient (copy-object ingredient)))
+    (unless (eq (type-of (unit (amount converted-ingredient))) 'g)
+      (let ((ingredient-type (type-of converted-ingredient))
+            (source-unit-type (type-of (unit (amount converted-ingredient)))))
+        (case source-unit-type
+          (ml
+           (setf source-unit-type 'l)
+           (setf (value (quantity (amount converted-ingredient)))
+                 (/ (value (quantity (amount converted-ingredient))) 1000))
+           (setf (unit (amount converted-ingredient)) (make-instance 'l)))
+          (tablespoon
+           (setf source-unit-type 'teaspoon)
+           (setf (value (quantity (amount converted-ingredient)))
+                 (* (value (quantity (amount converted-ingredient))) 3))
+           (setf (unit (amount converted-ingredient)) (make-instance 'teaspoon))))
         (multiple-value-bind (conversion-rates found) (gethash ingredient-type *conversion-table-for-g*)
           (unless found
             (error "The ingredient ~S has no entry in the conversion table!" ingredient-type))
           (let* ((conversion-rate (assoc source-unit-type conversion-rates))
-                 (converted-value (if (null conversion-rate)
-                                    (error "The ingredient ~S has no entry in the conversion table for unit ~S!" ingredient-type source-unit-type)
-                                    (* (value (quantity (amount copied-ingredient)))
-                                       (rest conversion-rate)))))
-            (setf (amount copied-ingredient)
+                 (converted-value
+                  (if (null conversion-rate)
+                    (error "The ingredient ~S has no entry in the conversion table for unit ~S!"
+                           ingredient-type source-unit-type)
+                    (* (value (quantity (amount converted-ingredient)))
+                       (rest conversion-rate)))))
+            (setf (amount converted-ingredient)
                   (make-instance 'amount
                                  :unit (make-instance 'g)
                                  :quantity (make-instance 'quantity
                                                           :value converted-value)))))))
-    copied-ingredient))
+     converted-ingredient))
+        
 
 (defmethod convert-to-temperature ((stove stove) (stove-mode stove-mode))
   (cond ((eql (type-of stove-mode) 'low-heat)

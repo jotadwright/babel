@@ -3,8 +3,9 @@
 
 (monitors::activate-monitor irl::trace-irl)
 
+
 ;; (1) fetch the broccoli + cut it (WORKS)
-(evaluate-irl-program
+(irl::evaluate-irl-program
  (instantiate-non-variables-in-irl-program
   '((get-kitchen ?kitchen)
     (fetch-and-proportion ?proportioned-broccoli ?ks-with-broccoli ?kitchen ?target-container-1 broccoli 1 piece)
@@ -76,11 +77,17 @@
 ;; - use to-transfer instead of to-place loop; but cutting board can container other stuff (e.g. leftover peels)
 ;; - check if the cutting-board is already on the countertop; avoids a to-place request
 
+(evaluate-irl-program
+ (instantiate-non-variables-in-irl-program
+  '((get-kitchen ?kitchen)
+    (fetch-and-proportion ?proportioned-mayo ?ks-with-mayo ?kitchen ?target-container-2 mayonnaise 230 g)))
+  nil :primitive-inventory *vr-primitives*)
+
 ;; (5) fetch vinegar, sugar, and mayo + transfer in a large bowl + mix
 (evaluate-irl-program
  (instantiate-non-variables-in-irl-program
   '((get-kitchen ?kitchen)
-    (fetch-and-proportion ?proportioned-vinegar ?ks-with-vinegar ?kitchen ?target-container-1 cider-vinegar 35 ml)
+    (fetch-and-proportion ?proportioned-vinegar ?ks-with-vinegar ?kitchen ?target-container-1 cider-vinegar 2.5 tablespoon)
     (fetch-and-proportion ?proportioned-mayo ?ks-with-mayo ?ks-with-vinegar ?target-container-2 mayonnaise 230 g)
     (fetch-and-proportion ?proportioned-sugar ?ks-with-sugar ?ks-with-mayo ?target-container-3 white-sugar 70 g)
     (fetch ?large-bowl-2 ?ks-with-large-bowl-2 ?ks-with-sugar large-bowl 1)

@@ -6,7 +6,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defparameter *kitchen-host* "http://127.0.0.1:54321")
-;(defparameter *kitchen-host* "https://134.184.26.77:54321")
+;(defparameter *kitchen-host* "http://134.184.26.36:54321")
 
 (defun send-request (route content &key (host *kitchen-host*) (timeout 3600))
   "Send curl request and returns the answer."
@@ -62,7 +62,7 @@
                        (gethash "response"
                                 (send-request "/abe-sim-command/to-get-time"
                                               (encode-request `()))))))
-    time))
+    (round time)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-wait ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun request-to-wait (frames-to-wait)

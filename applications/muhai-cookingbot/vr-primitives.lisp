@@ -578,17 +578,29 @@
           ;; (ignoring quantity and unit...)
           (source (find-source (type-of ingredient-concept) ks-after-fetch)))
      (if source
-       (let* ((source-vr-name (vr-name source))
+       (let* ((ingredient-in-g
+               (convert-to-g
+                (make-instance (type-of ingredient-concept)
+                               :amount (make-instance 'amount
+                                                      :quantity quantity
+                                                      :unit unit))))
+              (source-vr-name (vr-name source))
               (vr-result-portion
                (request-to-portion source-vr-name
                                    (vr-name unused-container)
-                                   (value quantity)))
+                                   (value (quantity (amount ingredient-in-g)))))
               (new-kitchen-state (read-kitchen-state vr-result-portion))
               (output-container-vr-name (gethash "outputContainer" vr-result-portion))
               (output-container-object (sim-find-object-by-vr-name output-container-vr-name new-kitchen-state))
               (container-available-at (request-to-get-time))
               (kitchen-state-available-at container-available-at))
          (setf (slot-value output-container-object 'used) t)
+         (loop with num-portions = (length (contents output-container-object))
+               for portion in (contents output-container-object)
+               for value = (round (float (/ (value quantity) num-portions)))
+               do (setf (amount portion)
+                        (make-instance 'amount :unit unit
+                                       :quantity (make-instance 'quantity :value value))))
          (bind (target-container 1.0 unused-container current-kitchen-time)
                (container-with-ingredient 1.0 output-container-object container-available-at)
                (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)))
@@ -606,6 +618,8 @@
               (container-available-at (request-to-get-time))
               (kitchen-state-available-at container-available-at))
          (setf (slot-value output-container-object 'used) t)
+         (setf (amount placed-object)
+               (make-instance 'amount :quantity quantity :unit unit))
          (bind (target-container 1.0 unused-container current-kitchen-time)
                (container-with-ingredient 1.0 output-container-object container-available-at)
                (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))))
@@ -1374,6 +1388,8 @@
            (vr-name (find-kitchen-entity-vr 'counter-top kitchen-state-in)))
           (cuttable-object
            (first (contents container-with-cuttable)))
+          (cuttable-object-in-grams
+           (convert-to-g cuttable-object))
           (vr-result-1
            (progn
              (request-to-place cutting-board-vr-name
@@ -1406,9 +1422,16 @@
            (sim-find-object-by-vr-name (vr-name container-with-cuttable) new-kitchen-state-2))
           (cutting-location-2
            (sim-find-object-by-vr-name cutting-board-vr-name new-kitchen-state-2)))
-     (loop for portion in (contents cut-portions-container)
+     (loop with total-grams = (value (quantity (amount cuttable-object-in-grams)))
+           with num-portions = (length (contents cut-portions-container))
+           for portion in (contents cut-portions-container)
+           for portion-weight = (round (float (/ total-grams num-portions)))
            do (setf (slot-value portion 'is-cut)
-                    (make-instance (type-of cut-pattern))))
+                    (make-instance (type-of cut-pattern)))
+              (setf (amount portion)
+                    (make-instance 'amount :unit (make-instance 'g)
+                                   :quantity (make-instance 'quantity
+                                                            :value portion-weight))))
      (setf (slot-value cut-portions-container 'used) t)
      (bind (cut-object 1.0 cut-portions-container cut-object-available-at)
            (kitchen-state-out 1.0 new-kitchen-state-2 kitchen-state-available-at)
@@ -1510,8 +1533,10 @@
            (vr-name (find-kitchen-entity-vr 'can-peel kitchen-state-in)))
           (peeled-container-vr-name
            (vr-name input-container-for-peeled))
+          (object-to-peel
+           (first (contents input-container-for-peeled)))
           (object-to-peel-vr-name
-           (vr-name (first (contents input-container-for-peeled))))
+           (vr-name object-to-peel))
           (container-for-peels-vr-name
            (vr-name (find-unused-kitchen-entity-vr 'medium-bowl kitchen-state-in)))
           (countertop-vr-name
@@ -1533,12 +1558,16 @@
           (new-kitchen-state (read-kitchen-state vr-result))
           (output-container-for-peeled-instance
            (sim-find-object-by-vr-name peeled-container-vr-name new-kitchen-state))
+          (peeled-instance
+           (first (contents output-container-for-peeled-instance)))
           (container-for-peels-instance
            (sim-find-object-by-vr-name container-for-peels-vr-name new-kitchen-state))
           (peeling-tool-instance
            (sim-find-object-by-vr-name tool-vr-name new-kitchen-state)))
      (setf (slot-value output-container-for-peeled-instance 'used) t)
      (setf (slot-value container-for-peels-instance 'used) t)
+     (setf (amount peeled-instance)
+           (copy-object (amount object-to-peel)))
      (bind (output-container-for-peeled 1.0 output-container-for-peeled-instance peeled-object-available-at)
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
            (peeling-tool 0.0 peeling-tool-instance peeled-object-available-at)

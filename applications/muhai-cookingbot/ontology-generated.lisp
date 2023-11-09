@@ -955,9 +955,7 @@
   ((peel-of 
       :initarg :peel-of
       :accessor peel-of
-      :initform nil)
-   (elements :initarg :elements :accessor elements :initform nil
-             :documentation "cut elements"))
+      :initform nil))
   (:documentation "For peels of an object."))
 
 (defmethod copy-object-content ((original peel) (copy peel))
@@ -1119,8 +1117,7 @@
 
 
 (defclass broccoli (ingredient cuttable)
-  ((elements :initarg :elements :accessor elements :initform nil
-             :documentation "cut elements"))
+  ()
   (:documentation "Broccoli."))
 
 (defclass chopped-broccoli (broccoli)
@@ -1152,8 +1149,7 @@
   (:documentation "Cooked bacon."))
 
 (defclass bacon (ingredient cuttable)
-  ((elements :initarg :elements :accessor elements :initform nil
-             :documentation "cut elements"))
+  ()
   (:documentation "bacon"))
 
 (defclass chopped-bacon (bacon)
@@ -1453,8 +1449,7 @@
   (:documentation "a bag of grated mozzarella"))
 
 (defclass grated-mozzarella (ingredient cuttable)
-  ((elements :initarg :elements :accessor elements :initform nil
-             :documentation "cut elements"))
+  ()
   (:documentation "Grated mozzarella."))
 
 (defclass grated-mozzarella-bag (ingredient cuttable)
@@ -1634,8 +1629,7 @@
 
 
 (defclass mayonnaise (ingredient)
-  ((elements :initarg :elements :accessor elements :initform nil
-             :documentation "cut elements"))
+  ()
   (:documentation "Mayonnaise."))
 
 (defclass mayonnaise-jar (mayonnaise)
@@ -1716,8 +1710,7 @@
 
 
 (defclass red-onion (ingredient cuttable peelable)
-  ((elements :initarg :elements :accessor elements :initform nil
-             :documentation "cut elements"))
+  ()
   (:documentation "Red onion."))
 
 (defclass chopped-red-onion (red-onion)
@@ -1852,8 +1845,7 @@
   (:documentation "Spice."))
 
 (defclass sugar (spice ingredient mixable)
-  ((elements :initarg :elements :accessor elements :initform nil
-             :documentation "cut elements"))
+  ()
   (:documentation "Sugar."))
 
 (defclass sugar-bag (sugar)
