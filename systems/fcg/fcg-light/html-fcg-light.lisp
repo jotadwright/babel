@@ -870,7 +870,7 @@ is replaced with replacement."
                    (add-element '((br)))
                    (add-element `((a :href ,(format nil "javascript:ajax_show_anti_unification_result('~a','~a');" 
                                                     anti-unify-result (read-from-string formulation?))
-                                     :title "apply to *saved-cfs* in formulation") "Show entire anti-unification anlysis")))
+                                     :title "apply to *saved-cfs* in formulation") "Show entire anti-unification analysis")))
                   (t
                    (add-element `((h4) "Anti-Unification yielded multiple analyses, only the most probable one is shown."))
                    (add-element `((a :href ,(format nil "javascript:ajax_show_anti_unification_result('~a','~a');" 
@@ -887,7 +887,7 @@ is replaced with replacement."
         (let ((solution (first anti-unify-result)))
           (add-element `((hr)))
           (add-element `((h3) ,(string-append "*** Anti-Unification Result ***")))
-          (add-element `((h4) "Resulting Mathching Pattern: "))
+          (add-element `((h4) "Resulting Matching Pattern: "))
           (add-element (make-html (make-instance 'processing-construction
                                                  :name 'resulting-pattern
                                                  :domain 'sem-syn
@@ -2051,7 +2051,7 @@ div.fcg-light-construction-inventory-sep { padding-left:0px; padding-right:0px;p
                                                            anti-unify-result  (if (equal (car-direction (cipn-car cip-node)) '->)
                                                                                 "t"
                                                                                 "nil"))
-                                            :title "apply to *saved-cfs* in formulation") "Show entire anti-unification anlysis")))
+                                            :title "apply to *saved-cfs* in formulation") "Show entire anti-unification analysis")))
                          (t
                           (add-element `((h4) "Anti-Unification yielded multiple analyses, only the most probable one is shown."))
                           (add-element `((a :href ,(format nil "javascript:ajax_show_anti_unification_result('~a','~a');" 
@@ -2140,7 +2140,7 @@ div.fcg-light-construction-inventory-sep { padding-left:0px; padding-right:0px;p
                                                            anti-unify-result  (if (equal (car-direction (cipn-car cip-node)) '->)
                                                                                 "t"
                                                                                 "nil"))
-                                            :title "apply to *saved-cfs* in formulation") "Show entire anti-unification anlysis")))
+                                            :title "apply to *saved-cfs* in formulation") "Show entire anti-unification analysis")))
                          (t
                           (add-element `((h4) "Anti-Unification yielded multiple analyses, only the most probable one is shown."))
                           (add-element `((a :href ,(format nil "javascript:ajax_show_anti_unification_result('~a','~a');" 
