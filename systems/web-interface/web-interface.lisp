@@ -266,7 +266,8 @@
 			     *requests* nil)
     (render-xml (append (list '(requests)) (reverse result)))))
 
-(define-js 'request-handling "
+(define-js 'request-handling
+           (format nil "
 // handles the response from lisp and then polls the next requests after 200 ms
 function requestsCallBack (result) {
   if (result) 
@@ -286,9 +287,8 @@ function requestsCallBack (result) {
         while (request.firstChild) {
           var firstChild = request.firstChild;
           document.getElementById('content').appendChild(firstChild);
-        //content_changed(firstChild);
         }
-        window.scrollTo(0,100000000);
+        ~a
         break;
       case 'replace-element-content': case 'REPLACE-ELEMENT-CONTENT':
         var id = request.getElementsByTagName('id')[0].firstChild.nodeValue;
@@ -321,7 +321,7 @@ function getRequests () {
 function initializeRequestsQueue () {
   window.setTimeout(getRequests,500);
 }
-")
+" (if cl-user::*automatically-scroll-to-bottom* "window.scrollTo(0,100000000);" "")))
 
 ;; #########################################################
 ;; the main page
