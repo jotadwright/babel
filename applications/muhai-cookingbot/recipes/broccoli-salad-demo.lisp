@@ -21,8 +21,6 @@
     (monitors::activate-monitor measuring-understanding::questions-solved-by-mental-simulation)
     (monitors::activate-monitor measuring-understanding::questions-solved-by-grammar)
     (activate-monitor measuring-understanding::questions-introduced-by-grammar)
-    (activate-monitor measuring-understanding::questions-introduced-by-ontology)
-    (activate-monitor measuring-understanding::questions-solved-by-ontology)
     (activate-monitor measuring-understanding::node-names-fcg)
     (activate-monitor measuring-understanding::node-names-irl)
     (activate-vis-js)
@@ -65,4 +63,4 @@
 
 
 
-; (run-recipe :vr? nil :inn? t)
+(run-recipe :vr? nil :inn? nil)
