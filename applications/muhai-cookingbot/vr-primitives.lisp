@@ -661,7 +661,7 @@
           (original-container (sim-find-object-by-vr-name container-with-input-ingredients-vr-name new-kitchen-state))
           (destination-container (sim-find-object-by-vr-name container-with-all-ingredients-vr-name new-kitchen-state)))
      (setf (slot-value destination-container 'used) t)
-     (bind (target-container 0.0  destination-container nil)
+     (bind (target-container 0.0 destination-container nil)
            (container-with-all-ingredients 1.0 destination-container container-available-at)
            (container-with-rest 1.0 original-container container-available-at)
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
@@ -677,7 +677,8 @@
     kitchen-state-out
     quantity
     unit)
-   (let* ((container-with-input-ingredients-vr-name (vr-name container-with-input-ingredients))
+   (let* ((current-kitchen-time (kitchen-time kitchen-state-in))
+          (container-with-input-ingredients-vr-name (vr-name container-with-input-ingredients))
           (vr-result
            (request-to-transfer container-with-input-ingredients-vr-name
                                 (vr-name target-container)))
@@ -687,13 +688,16 @@
           (container-with-all-ingredients-vr-name (gethash "containerWithAllIngredients" vr-result))
           (new-kitchen-state (read-kitchen-state vr-result))
           (original-container (sim-find-object-by-vr-name container-with-input-ingredients-vr-name new-kitchen-state))
-          (destination-container (sim-find-object-by-vr-name container-with-all-ingredients-vr-name new-kitchen-state)))
+          (destination-container (sim-find-object-by-vr-name container-with-all-ingredients-vr-name new-kitchen-state))
+          (total-quantity
+           (loop for elem in (contents container-with-input-ingredients)
+                 sum (value (quantity (amount elem))))))
      (setf (slot-value destination-container 'used) t)
-     (bind (container-with-all-ingredients 1.0 destination-container nil)
+     (bind (container-with-all-ingredients 1.0 destination-container current-kitchen-time)
            (container-with-rest 1.0 original-container container-available-at)
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at)
-           (quantity 0.0 (make-instance 'quantity :value 100) nil)
-           (unit 0.0 (make-instance 'unit) nil))))
+           (quantity 1.0 (make-instance 'quantity :value total-quantity) current-kitchen-time)
+           (unit 1.0 (make-instance 'g) current-kitchen-time))))
   :primitive-inventory *vr-primitives*)
 
 ;;                                                          ;;
@@ -740,7 +744,8 @@
     kitchen-state-out
     container-with-mixture
     mixing-tool)
-   (let* ((tool-vr-name
+   (let* ((current-kitchen-time (kitchen-time kitchen-state-in))
+          (tool-vr-name
            (vr-name (find-kitchen-entity-vr 'whisk kitchen-state-in)))
           (vr-result
            (request-to-mix (vr-name container-with-input-ingredients)
@@ -752,7 +757,7 @@
           (target-whisk-instance (sim-find-object-by-vr-name tool-vr-name new-kitchen-state))
           (container-with-new-mixture (sim-find-object-by-vr-name container-with-mixture-vr-name new-kitchen-state)))
      (setf (slot-value container-with-new-mixture 'used) t)
-     (bind (mixing-tool 0.0 target-whisk-instance nil)
+     (bind (mixing-tool 1.0 target-whisk-instance current-kitchen-time)
            (container-with-mixture 1.0 container-with-new-mixture container-available-at)
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
   ;;Case 2: Mixing tool specified
@@ -791,7 +796,8 @@
     kitchen-state-out
     container-with-mixture
     mingling-tool)
-   (let* ((tool-vr-name (vr-name (find-kitchen-entity-vr 'whisk kitchen-state-in)))
+   (let* ((current-kitchen-time (kitchen-time kitchen-state-in))
+          (tool-vr-name (vr-name (find-kitchen-entity-vr 'whisk kitchen-state-in)))
           (vr-result
            (request-to-mingle (vr-name container-with-input-ingredients)
                               tool-vr-name))
@@ -802,7 +808,7 @@
           (target-whisk-instance (sim-find-object-by-vr-name tool-vr-name new-kitchen-state))
           (container-with-new-mixture (sim-find-object-by-vr-name container-with-mixture-vr-name new-kitchen-state)))
      (setf (slot-value container-with-new-mixture 'used) t)
-     (bind (mingling-tool 0.0 target-whisk-instance nil)
+     (bind (mingling-tool 1.0 target-whisk-instance current-kitchen-time)
            (container-with-mixture 1.0 container-with-new-mixture container-available-at)
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
   ;;Case 2: Mingling tool specified
@@ -1481,7 +1487,8 @@
                            (refrigerator fridge)
                            (cooling-quantity quantity)
                            (cooling-unit time-unit))
-  ;; Case 1: refrigerator and cooling time (quantity and unit) are not given, use 0 as cooling time; this allows the command to finish once the item is in the refrigerator
+  ;; Case 1: refrigerator and cooling time (quantity and unit) are not given,
+  ;; use 0 as cooling time; this allows the command to finish once the item is in the refrigerator
   ((kitchen-state-in
     container-with-ingredients
     =>
