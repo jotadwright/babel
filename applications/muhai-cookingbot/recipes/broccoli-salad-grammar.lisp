@@ -1,7 +1,7 @@
 ;(ql:quickload :muhai-cookingbot)
+;(ql:quickload :measuring-understanding)
 (in-package :muhai-cookingbot)
 
-(load (babel-pathname :directory '("applications" "muhai-cookingbot" "recipes") :name "broccoli-salad-kitchen-state" :type "lisp"))
 
 ;; cxn inventory
 (def-fcg-constructions broccoli-salad-grammar
@@ -885,41 +885,3 @@
                  ((ontological-types (mixture)))))
                (binding-variable ?container-with-ellipsis))))
 
-
-;; Running the recipe
-(activate-monitor trace-fcg)
-(activate-monitor trace-irl)
-
-(clear-output)
-
-(defparameter *init-op* `((get-kitchen ,(make-var 'kitchen-state))))
-
-(defparameter *pdm*
-  (initialise-personal-dynamic-memory
-   *fcg-constructions*
-   *init-op*
-   :primitive-inventory *vr-primitives*))
-
-(defparameter *output*
-  (multiple-value-bind (final-set-of-bindings meaning-network)
-      (process-utterances '(;;;; Ingredients
-                            "1 head fresh broccoli"
-                            "50 grams red onion , chopped"
-                            "450 grams cooked bacon"
-                            "2.5 tablespoons cider vinegar"   ;"2 1/2 tablespoons cider vinegar"
-                            "230 grams mayonnaise"
-                            "70 grams sugar"
-                            "170 grams grated mozzarella cheese"
-
-                            ;;;; Instructions
-                            "cut cooked bacon into pieces"
-                            "chop up broccoli into bite size pieces" ;; => CUTTING-VERB INGREDIENT into PATTERN
-                            "mix broccoli , onions , bacon and mozzarella in large bowl"  ;; => mix INGREDIENT-LIST in CONTAINER
-                            "in separate large bowl combine vinegar , sugar and mayo"  ;; => in separate CONTAINER combine INGREDIENT-LIST
-                            "pour over broccoli mixture and toss to coat"  ;; => pour IMPLICIT over 
-                            "best if made a day ahead and stored in the refrigerator"
-                            
-                            "end"
-                            )
-                          *pdm*)
-    (append *init-op* meaning-network)))

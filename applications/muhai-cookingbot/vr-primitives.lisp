@@ -8,12 +8,6 @@
 ;;                                                             ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; transfer-contents; lots of particles seem to be spilled!
-;; request-to-mix; takes very long time?
-
-;; make class 'dispenser', with subclasses sugar-bag, mayonnaise-jar, etc.
-;; and slot 'dispenses', which contains the concept of sugar, mayonnaise, etc.
-
 
 ;; Defining the VR primitive inventory  ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -252,43 +246,6 @@
 ;;               TO SYMBOLIC                                ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-#|
-(defun replace-collection-by-ingredient (collection)
-  (let* ((raw-type-name
-          (gethash "type" (simulation-data (first collection))))
-         (clean-type-name
-          (string-replace (string-replace raw-type-name "Chopped" "")
-                          "Particle" ""))
-         (clean-type
-          (map-type (intern (upcase (camel-case->lisp clean-type-name)))))
-         (ingredient
-          (make-instance clean-type :elements collection)))
-    (when (search "Chopped" raw-type-name)
-      (setf (is-cut ingredient) (make-instance 'chopped)))
-    (list ingredient)))
-
-(defun handle-ingredient-collections (kitchen)
-  (labels ((simulation-type (obj)
-             (gethash "type" (simulation-data obj)))
-           (simulation-name (obj)
-             (gethash "name" (simulation-data obj)))
-           (all-contents-same-vr-type-p (contents)
-             (let ((vr-types (mapcar #'simulation-type contents)))
-               (length= (remove-duplicates vr-types :test #'string=) 1)))
-           (all-contents-collection-type-p (contents)
-             (let ((vr-names (mapcar #'simulation-name contents)))
-               (every #'(lambda (name) (search "_" name)) vr-names))))
-    (traverse-sym-kitchen
-     kitchen
-     :do-fn
-     #'(lambda (entity)
-         (when (and (slot-exists-p entity 'contents)
-                    (all-contents-same-vr-type-p (contents entity))
-                    (all-contents-collection-type-p (contents entity)))
-           (setf (contents entity)
-                 (replace-collection-by-ingredient (contents entity))))))))
-|#
-
 (defun set-sym-object-slots (sym-object custom-state-variables)
   "When the <custom-state-variables> (hash table) of the VR simulator
    specify a slot that is present in the CLOS <object>,
@@ -319,7 +276,7 @@
                                 (make-instance value))))
                (set-sym-object-slots sym-object csv)
                sym-object)))
-    (let* ((sym-kitchen (make-instance 'kitchen-state))
+    (let* ((sym-kitchen (make-instance 'kitchen-state :dry-run t))
            (kconstraints-alist
             (loop for key in (alexandria:hash-table-keys vr-kitchen)
                   for vr-object = (gethash key vr-kitchen)
@@ -340,8 +297,6 @@
             for parent = (assoc at ktrees-alist :test #'string=)
             for container = (if parent (cdr parent) sym-kitchen)
             do (push sym-object (contents container)))
-      ;; handle collections of the same ingredient (particles, chopped things, etc.)
-      ; (handle-ingredient-collections sym-kitchen)
       ;; simply store the constraints
       (setf (constraints sym-kitchen) kconstraints-alist)
       sym-kitchen)))

@@ -156,14 +156,14 @@
                                                         :value 18))))
   (:documentation "Representation of the state of the kitchen."))
 
-(defmethod initialize-instance :after ((ks kitchen-state) &key)
+(defmethod initialize-instance :after ((ks kitchen-state) &key dry-run)
   (unless (arrangement ks)
     (setf (arrangement ks) (make-instance 'sectionalized)))
-  ;(loop for appliance in '(kitchen-cabinet pantry fridge freezer oven counter-top microwave stove kitchen-sink)
-  ;      unless (find appliance (contents ks) :key #'type-of)
-  ;      do (push (make-instance appliance :name (lisp->camel-case (mkstr appliance)))
-  ;               (contents ks)))
-  )
+  (unless dry-run
+    (loop for appliance in '(kitchen-cabinet pantry fridge freezer oven counter-top microwave stove kitchen-sink)
+          unless (find appliance (contents ks) :key #'type-of)
+            do (push (make-instance appliance :name (lisp->camel-case (mkstr appliance)))
+                     (contents ks)))))
 
 (defmethod copy-object-content ((original kitchen-state) (copy kitchen-state))
   (setf (constraints copy) (copy-object (loop for item in (constraints original) collect item)))
