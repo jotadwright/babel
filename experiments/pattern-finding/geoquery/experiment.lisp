@@ -7,12 +7,42 @@
   (:documentation "A grammar learning experiment regarding geoquery for sql."))
 
 (defclass pf-for-sql-agent (agent)
-  ((lexicon
-    :documentation "The lexicon of the agent"
-    :initarg :lexicon
-    :accessor lexicon
-    :initform *fcg-constructions*
-    :type construction-inventory)))
+  ((grammar :initarg :grammar :initform nil
+            :accessor grammar)))
+
+;; ----------------------
+;; + Before Interaction +
+;; ----------------------
+
+(define-event interaction-before-finished
+  (utterance string) (gold-standard-meaning t))
+
+(defun make-agent-cxn-set ()
+    (let* ((grammar-name (make-const "pf-for-sql-grammar"))
+           (cxn-inventory
+            (eval `(fcg:def-fcg-constructions ,grammar-name
+                     :cxn-inventory ,grammar-name
+                     :hashed t
+                     :feature-types ((form set-of-predicates :handle-regex-sequences)
+                                     (meaning set-of-predicates)
+                                     (form-args sequence)
+                                     (meaning-args sequence)
+                                     (subunits set)
+                                     (footprints set))     
+                     :fcg-configurations (;; to activate heuristic search
+                                          (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
+                                          (:node-expansion-mode . :full-expansion) ;; always fully expands node immediately
+                                          (:cxn-supplier-mode . :hashed) ;; use hashing
+                                          ;; for using heuristics
+                                          (:search-algorithm . :best-first) ;; :depth-first, :breadth-first
+                                          (:heuristics :nr-of-applied-cxns :nr-of-units-matched) ;; list of heuristic functions (modes of #'apply-heuristic)
+                                          (:heuristic-value-mode . :sum-heuristics-and-parent) ;; how to use results of heuristic functions for scoring a node
+                      ; (:hash-mode . :hash-string-meaning)
+                                          (:de-render-mode . :de-render-sequence)
+                                          (:render-mode . :render-sequences)
+                                          (:category-linking-mode . :neighbours)
+                                          (:parse-goal-tests :no-applicable-cxns :connected-semantic-network))))))
+      cxn-inventory))
 
 (defmethod make-agents ((experiment pf-for-sql-experiment))
   "A method that creates two agents in the experiment : a tutor and a learner."
@@ -22,13 +52,16 @@
                                                :id agent-id
                                                :experiment 'experiment))))
     (setf (population experiment) agents)
-    (setf (discourse-role (first (population experiment))) 'tutor-agent)
-    (setf (discourse-role (second (population experiment))) 'learner-agent)))
+    (setf tutor-agent (first (population experiment)))
+    (setf learner-agent (second (population experiment)))
+    (setf (discourse-role tutor-agent) 'tutor-agent)
+    (setf (discourse-role learner-agent) 'learner-agent)
+    (setf (grammar learner-agent) (make-agent-cxn-set))))
 
-(defun load-corpus (corpus)
+(defun load-corpus ()
   "A function to load the jsonl file : returns a list of utterance-meaning pairs."
   (let ((file-data '()))
-    (with-open-file (stream corpus :direction :input :external-format :utf-8 :element-type :default)
+    (with-open-file (stream "/Users/ajouglar/babel/systems/postmodern-parser/data/geography-for-pf.jsonl" :direction :input :external-format :utf-8 :element-type :default)
       (loop for line = (read-line stream nil nil)
             while line
             do (let*
@@ -36,54 +69,60 @@
                     (data (com.inuoe.jzon:parse processed-line))
                     (utterance (gethash "utterance" data)))
                  (with-input-from-string (meaning (gethash "meaning" data))
-                   (push-end (list `(:utterance ,utterance) `( :meaning ,meaning)) file-data)))))
+                   (pushend (list `(:utterance ,utterance) `(:meaning ,(read meaning))) file-data)))))
     file-data))
 
-(defmethod initialize-instance :after ((experiment pf-for-sql-experiment) (corpus-path string) &key)
+(defmethod initialize-instance :after ((experiment pf-for-sql-experiment) &key)
   "Create the population and load the corpus."
-  (set-configuration experiment :current-stage 0)
-  (setf (agents experiment) (make-agents experiment))
-  (setf (corpus experiment) (load-corpus corpus-path)))
+  ;; set the corpus of the experiment
+  (setf (corpus experiment) (load-corpus))
+  ;; set the population of the experiment
+  (make-agents experiment)
+  (print (population experiment)))
 
-(defmethod interact ((experiment pf-for-sql-experiment) (interaction interaction) &key)
-  "the different steps of an interaction between the given agents"
+(defun interact (experiment interaction)
+  "The different steps of an interaction between the given agents ('interact' is called by 'run-interaction' in the experimentation-framework package)"
   ;1) initializes instances
-  (let* ((tutor (first interacting-agents))
-         (learner (second interacting-agents))
-         (utterance))
-    ;(activate-monitors experiment interaction)
-  ;2) The tutor speaks an utterance
-    (setf (utterance tutor) (first (corpus experiment)))
-    (setf utterance (assoc ':utterance (utterance tutor)))
-  ;3) the hearer either proposes a meaning or fails to understand anything
-    (setf (utterance hearer) (comprehend utterance :cxn-inventory (lexicon agent))))
-  ;4) if he doesn't know any word for it it creates one
-    (unless (applied-cxn speaker)
-      (multiple-value-bind (utterance applied-cxn)
-          (invent speaker)
-        (setf (utterance speaker) utterance)
-        (setf (applied-cxn speaker) applied-cxn)))
-  ;5) in any case, the hearer hears a word a tries to make sense out of it
-    (setf (utterance hearer) (utterance speaker))
-    (notify conceptualisation-finished speaker)
-    (multiple-value-bind (meaning solution cip)
-        (comprehend (utterance hearer) :cxn-inventory (lexicon hearer))
-      (setf (pointed-object hearer) (first meaning))
-      (setf (applied-cxn hearer) (first (applied-constructions solution))))
-    (notify parsing-finished hearer)
-  ;6) the hearer tells the speaker what he understood
-    (when (pointed-object hearer)
-      (setf (pointed-object speaker) (pointed-object hearer)))
-    (notify interpretation-finished hearer)
- ;7) if the speaker and the hearer referred to the same object, there is communicative success
- ; if not, there is not communicative success
-    (setf (communicated-successfully speaker) (determine-success speaker (pointed-object speaker)))
-    (setf (communicated-successfully hearer) (communicated-successfully speaker))
-    (setf (topic hearer) (topic speaker))
-    (unless (pointed-object hearer)
-      (setf (applied-cxn hearer)(naming-game-adopt (hearer interaction) (utterance hearer))) 
-      (notify adoptation-finished hearer))
- ;8 the agents perform the alignment according to the above function
-    (perform-alignment interaction)
-    (notify align-finished)
-    ))
+  (let* ((tutor-agent (first (population experiment)))
+         (learner-agent (second (population experiment)))
+         (utterance)
+         (feedback))
+  ;; 2) The tutor speaks an utterance
+    (setf (utterance tutor-agent) (first (corpus experiment)))
+    (print (first (corpus experiment)))
+    (setf utterance (second (assoc ':utterance (utterance tutor-agent))))
+  ;; 3) The learner agent first has an empty cxn set, so it can't understand,
+  ;; so the tutor gives feedback and the learner stores a holophrase
+    (notify interaction-before-finished utterance (cdr (assoc ':meaning (utterance tutor-agent))))
+    (print (interaction-number interaction))
+    (if (= (interaction-number interaction) 1)
+      (progn
+        (setf feedback (cdr (assoc ':meaning (utterance tutor-agent))))
+        (learn-holophrase utterance feedback (grammar learner-agent))))))
+      #|(multiple-value-bind (meanings cipns)
+        (comprehend-all (utterance agent)
+                        :cxn-inventory (grammar agent)
+                        :gold-standard-meaning (meaning agent)
+                        :n (get-configuration experiment :comprehend-all-n))
+        (declare (ignore meanings))
+      (let* ((solution-cipn (first cipns))
+             (competing-cipns (rest cipns))
+             (applied-cxns (original-applied-constructions solution-cipn))
+             (successp (determine-communicative-success solution-cipn)))
+        ;; notify
+        (notify constructions-chosen applied-cxns)
+        (notify cipn-statuses (statuses solution-cipn))
+        ;; run santiy check...
+        (when (and (get-configuration experiment :run-sanity-check)
+                   (null successp))
+          (run-sanity-check experiment agent solution-cipn))
+        ;; run alignment
+        (run-alignment agent solution-cipn competing-cipns successp
+                       (get-configuration agent :alignment-strategy))
+        ;; update the :last-used property of the cxns
+        (dolist (cxn applied-cxns)
+          (set-cxn-last-used agent cxn))
+        ;; store applied repair
+        (set-data interaction :applied-repair (get-last-repair-symbol solution-cipn successp))
+        ;; set the success of the agent
+        (setf (communicated-successfully agent) successp)))|#

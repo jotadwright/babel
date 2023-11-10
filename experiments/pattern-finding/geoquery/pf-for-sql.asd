@@ -20,7 +20,9 @@
                :com.inuoe.jzon)
   :components ((:file "package")
                (:file "repairs")
-               (:file "utils"))
+               (:file "utils")
+               (:file "experiment")
+               (:file "web-monitors"))
   :description "Pattern finding for SQL.")
 
 ;; :irl :com.inuoe.jzon :web-interface

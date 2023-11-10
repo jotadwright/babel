@@ -1,32 +1,6 @@
 (in-package :pf-for-sql)
 
-#|(progn
-  (deactivate-all-monitors)
-  (activate-monitor trace-fcg)
-  (activate-monitor print-a-dot-for-each-interaction))|#
-
-#|(def-fcg-constructions experiment-parameters
-  :feature-types ((form sequence)
-                  (meaning set-of-predicates)
-                  (form-args sequence)
-                  (meaning-args sequence)
-                  (subunits set))
-  :fcg-configurations (;; to activate heuristic search
-                       (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
-                       (:node-expansion-mode . :full-expansion) ;; always fully expands node immediately
-                       (:cxn-supplier-mode . :all-cxns) 
-                       ;; for using heuristics
-                       (:search-algorithm . :best-first) ;; :depth-first, :breadth-first
-                       (:heuristics :nr-of-applied-cxns :nr-of-units-matched) ;; list of heuristic functions (modes of #'apply-heuristic)
-                       (:heuristic-value-mode . :sum-heuristics-and-parent) ;; how to use results of heuristic functions for scoring a node
-                     ;  (:hash-mode . :hash-sequence-meaning)
-                       (:de-render-mode . :de-render-sequence)
-                       (:render-mode . :render-sequences)
-                       (:category-linking-mode . :neighbours)
-                       (:parse-goal-tests :no-applicable-cxns :connected-semantic-network)))|#
-
-
-;; First repair : learning a holophrastic contruction ;;
+;; First repair : learning a holophrastic contruction
 
 (defun make-cxn-name (form-string)
   (let* ((parts (uiop:split-string form-string :separator " "))
@@ -39,7 +13,13 @@
 
 ;(make-cxn-name "give me the cities in usa")
 
-(defun learn-holophrase (form-string meaning-predicates)
+(defun find-equivalent-cxn (form-string meaning-predicates cxn-inventory)
+  (loop for cxn in (constructions cxn-inventory)
+        when (and (string= (attr-val cxn :sequence) form-string)
+                  (equalp (attr-val cxn :meaning) meaning-predicates))
+          return cxn))
+
+(defun learn-holophrase (form-string meaning-predicates agent-grammar)
   "Learning a holophrastic cxn ; takes as argument a form (a question in natural language) and a meaning (a predicate network)."  
     (let* ((cxn-name (make-symbol (make-cxn-name form-string)))
            (cxn-cat (make-symbol (format nil "~a-cat" (make-cxn-name form-string))))
@@ -56,9 +36,10 @@
                                                                :comprehension-lock `((HASH form ((sequence ,form-string ?left-1 ?right-1))))))
                         :attributes `((:cxn-cat . ,cxn-cat) (:sequence . ,form-string) (:meaning ,@meaning-predicates))
                         :description "A geo construction"
-                        :cxn-inventory *fcg-constructions*)))
-      (add-cxn holistic-cxn *fcg-constructions*)
-      (add-category cxn-cat *fcg-constructions*)))
+                        :cxn-inventory agent-grammar)))
+      ;(unless (find-equivalent-cxn form-string meaning-predicates agent-grammar)
+      (add-cxn holistic-cxn agent-grammar)
+      (add-category cxn-cat agent-grammar)))
 
 ;(learn-holophrase "name all the lakes of us" '((DOT ?COLUMN-1 ?ALIAS-0 ?COLUMN-2) (AS ?FILTER-0 ?TABLE-0 ?ALIAS-0) (FROM ?FILTER-1 ?FILTER-0) (SELECT ?RESULT-0 ?COLUMN-1 ?FILTER-1) (BIND COLUMN ?COLUMN-2 LAKE_NAME) (BIND CONCEPT ?ALIAS-0 LAKEALIAS0) (BIND TABLE ?TABLE-0 LAKE)))
 

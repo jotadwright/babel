@@ -1,14 +1,6 @@
 (ql:quickload :pf-for-sql)
 (in-package :pf-for-sql)
 
-(progn
-  (deactivate-all-monitors)
-  (activate-monitor trace-fcg)
-  (activate-monitor print-a-dot-for-each-interaction))
-
-#|(loop for example in *corpus-sample*
-      do (print (cdr (assoc ':form example))))|#
-
 #|                          Utils :
 
 (add-element (make-html (constructions-list *fcg-constructions*)))
@@ -63,6 +55,9 @@
      (:meaning . ((DOT ?COLUMN-1 ?ALIAS-0 ?COLUMN-2) (AS ?FILTER-0 ?TABLE-0 ?ALIAS-0) (FROM ?FILTER-1 ?FILTER-0) (SELECT ?RESULT-0 ?COLUMN-1 ?FILTER-1) (BIND COLUMN ?COLUMN-2 LAKE_NAME) (BIND CONCEPT ?ALIAS-0 LAKEALIAS0) (BIND TABLE ?TABLE-0 LAKE))))))
 
 #|(loop for example in *corpus-sample*
+      do (print (cdr (assoc ':form example))))|#
+
+#|(loop for example in *corpus-sample*
       do (learn-holophrase (cdr (assoc ':form example)) (cdr (assoc ':meaning example))))|#
 
 (comprehend "what is the capital of usa" :cxn-inventory *fcg-constructions*)
@@ -80,9 +75,24 @@
              (with-input-from-string (meaning (gethash "meaning" data))
                (learn-holophrase utterance (read meaning))))))|#
 
+(progn
+  (wi::reset)
+  (deactivate-all-monitors)
+  (activate-monitor trace-fcg)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor trace-interactions-in-wi)
+  (clear *fcg-constructions*)
+  (defparameter *experiment*
+    (make-instance 'pf-for-sql-experiment
+                   :entries `((:number-of-epochs . 5)
+                              (:comprehend-all-n . 2)
+                              (:shuffle-data-p . nil)
+                              (:max-nr-of-nodes . 50)))))
+
+(run-interaction *experiment*)
 ;; ------------------------------------------------------------------------------------- ;;
 ;; ------------------------------------------------------------------------------------- ;;
-;;                                        EXAMPLES                                       ;;
+;;                                        Examples                                       ;;
 ;; ------------------------------------------------------------------------------------- ;;
 ;; ------------------------------------------------------------------------------------- ;;
 
@@ -104,7 +114,7 @@
                --
                (HASH form ((sequence "give me the cities in usa" ?left-1 ?right-1))))))
 
-;(comprehend "give me the cities in usa" :construction-inventory *fcg-constructions*)
+;(comprehend "give me the cities in us" :construction-inventory *fcg-constructions*)
 
 (def-fcg-cxn give-me-the-slot-1-in-usa-cxn-1
              ((?item-based-unit
