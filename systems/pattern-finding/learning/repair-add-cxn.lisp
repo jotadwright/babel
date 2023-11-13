@@ -7,7 +7,6 @@
 (defclass add-cxn (add-cxns-and-categorial-links) 
   ((trigger :initform 'fcg::new-node)))
 
-
 (defmethod repair ((repair add-cxn)
                    (problem non-gold-standard-meaning)
                    (node cip-node)
