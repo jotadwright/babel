@@ -1,6 +1,6 @@
 (in-package :pf-for-sql)
 
-(defclass pf-for-sql-experiment (experiment)
+(defclass pf-for-sql-experiment (experiment) 
   ((corpus :initarg :corpus :initform nil 
            :accessor corpus :type list
            :documentation "A list of question-answer (the answer is predicate network here) pairs."))
@@ -8,16 +8,24 @@
 
 (defclass pf-for-sql-agent (agent)
   ((grammar :initarg :grammar :initform nil
+            :type (or null fcg-construction-set)
             :accessor grammar)))
 
-;; ----------------------
-;; + Before Interaction +
-;; ----------------------
+;;------------------------;;
+;; Setting up interaction ;;
+;;------------------------;;
 
 (define-event interaction-before-finished
   (utterance string) (gold-standard-meaning t))
 
-(defun make-agent-cxn-set ()
+;; Learning Operators
+(define-configuration-default-value :repairs 
+                                    '(add-categorial-links
+                                      add-item-based                                   
+                                      add-holophrase))
+
+(defun make-agent-cxn-set (experiment)
+  (with-configurations ((repairs :repairs)) experiment
     (let* ((grammar-name (make-const "pf-for-sql-grammar"))
            (cxn-inventory
             (eval `(fcg:def-fcg-constructions ,grammar-name
@@ -41,8 +49,12 @@
                                           (:de-render-mode . :de-render-sequence)
                                           (:render-mode . :render-sequences)
                                           (:category-linking-mode . :neighbours)
-                                          (:parse-goal-tests :no-applicable-cxns :connected-semantic-network))))))
-      cxn-inventory))
+                                          (:parse-goal-tests :no-applicable-cxns :connected-semantic-network)
+                                          )
+                     :diagnostics (pf::diagnose-non-gold-standard-meaning
+                                   pf::diagnose-non-gold-standard-utterance)
+                     :repairs ,repairs))))
+      cxn-inventory)))
 
 (defmethod make-agents ((experiment pf-for-sql-experiment))
   "A method that creates two agents in the experiment : a tutor and a learner."
@@ -56,7 +68,7 @@
     (setf learner-agent (second (population experiment)))
     (setf (discourse-role tutor-agent) 'tutor-agent)
     (setf (discourse-role learner-agent) 'learner-agent)
-    (setf (grammar learner-agent) (make-agent-cxn-set))))
+    (setf (grammar learner-agent) (make-agent-cxn-set experiment))))
 
 (defun load-corpus ()
   "A function to load the jsonl file : returns a list of utterance-meaning pairs."
@@ -94,9 +106,8 @@
   ;; 3) The learner agent first has an empty cxn set, so it can't understand,
   ;; so the tutor gives feedback and the learner stores a holophrase
     (notify interaction-before-finished utterance (first (cdr (assoc ':meaning (utterance tutor-agent)))))
-    (print (interaction-number interaction))
     (if (= (interaction-number interaction) 1)
-      (progn
-        (setf feedback (cdr (assoc ':meaning (utterance tutor-agent))))
+      (progn ;; first repair is adding a holophrase for the first utterance
+        (setf feedback (first (cdr (assoc ':meaning (utterance tutor-agent)))))
         (learn-holophrase utterance feedback (grammar learner-agent)))
-      (print "ok"))))
+      (add-element (make-html (constructions-list (grammar learner-agent)))))))
