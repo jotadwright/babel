@@ -964,8 +964,13 @@
 (defclass potato-peel (peel) ()
   (:documentation "The peel of a potato"))
 
-(defclass red-onion-peel (peel) ()
+(defclass red-onion-peel (peel)
+  ((elements
+    :initarg :elements :initform nil :type list :accessor elements))
   (:documentation "The peel of a red onion"))
+
+(defmethod copy-object-content ((original red-onion-peel) (copy red-onion-peel))
+  (setf (elements copy) (mapcar #'copy-object (elements original))))
 
 
 (defclass rolling-pin (can-flatten reusable)
@@ -1117,8 +1122,12 @@
 
 
 (defclass broccoli (ingredient cuttable)
-  ()
+  ((elements
+    :initarg :elements :initform nil :type list :accessor elements))
   (:documentation "Broccoli."))
+
+(defmethod copy-object-content ((original broccoli) (copy broccoli))
+  (setf (elements copy) (mapcar #'copy-object (elements original))))
 
 (defclass chopped-broccoli (broccoli)
   ())
@@ -1149,8 +1158,12 @@
   (:documentation "Cooked bacon."))
 
 (defclass bacon (ingredient cuttable)
-  ()
+  ((elements
+    :initarg :elements :initform nil :type list :accessor elements))
   (:documentation "bacon"))
+
+(defmethod copy-object-content ((original bacon) (copy bacon))
+  (setf (elements copy) (mapcar #'copy-object (elements original))))
 
 (defclass chopped-bacon (bacon)
   ())
@@ -1449,8 +1462,12 @@
   (:documentation "a bag of grated mozzarella"))
 
 (defclass grated-mozzarella (ingredient cuttable)
-  ()
+  ((elements
+    :initarg :elements :initform nil :type list :accessor elements))
   (:documentation "Grated mozzarella."))
+
+(defmethod copy-object-content ((original grated-mozzarella) (copy grated-mozzarella))
+  (setf (elements copy) (mapcar #'copy-object (elements original))))
 
 (defclass grated-mozzarella-bag (ingredient cuttable)
   ())
@@ -1629,8 +1646,12 @@
 
 
 (defclass mayonnaise (ingredient)
-  ()
+  ((elements
+    :initarg :elements :initform nil :type list :accessor elements))
   (:documentation "Mayonnaise."))
+
+(defmethod copy-object-content ((original mayonnaise) (copy mayonnaise))
+  (setf (elements copy) (mapcar #'copy-object (elements original))))
 
 (defclass mayonnaise-jar (mayonnaise)
   ()
@@ -1710,8 +1731,12 @@
 
 
 (defclass red-onion (ingredient cuttable peelable)
-  ()
+  ((elements
+    :initarg :elements :initform nil :type list :accessor elements))
   (:documentation "Red onion."))
+
+(defmethod copy-object-content ((original red-onion) (copy red-onion))
+  (setf (elements copy) (mapcar #'copy-object (elements original))))
 
 (defclass chopped-red-onion (red-onion)
   ())
@@ -1815,8 +1840,12 @@
 
 
 (defclass cider-vinegar (vinegar)
-  ()
+  ((elements
+    :initarg :elements :initform nil :type list :accessor elements))
   (:documentation "Cider vinegar."))
+
+(defmethod copy-object-content ((original cider-vinegar) (copy cider-vinegar))
+  (setf (elements copy) (mapcar #'copy-object (elements original))))
 
 (defclass cider-vinegar-bottle (cider-vinegar)
   ())
@@ -1912,8 +1941,12 @@
 
 
 (defclass white-sugar (sugar)
-  ()
+  ((elements
+    :initarg :elements :initform nil :type list :accessor elements))
   (:documentation "Plain white sugar."))
+
+(defmethod copy-object-content ((original white-sugar) (copy white-sugar))
+  (setf (elements copy) (mapcar #'copy-object (elements original))))
 
 
 (defclass white-vinegar (vinegar)

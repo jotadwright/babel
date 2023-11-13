@@ -73,9 +73,7 @@
     ))
  nil
  :primitive-inventory *vr-primitives*)
-;; possible optimizations for cut primitive:
-;; - use to-transfer instead of to-place loop; but cutting board can container other stuff (e.g. leftover peels)
-;; - check if the cutting-board is already on the countertop; avoids a to-place request
+
 
 ;; (5) fetch vinegar, sugar, and mayo + transfer in a large bowl + mix
 (evaluate-irl-program
@@ -88,11 +86,12 @@
     (transfer-contents ?output-container-d ?rest-d ?output-ks-d ?ks-with-large-bowl-2 ?large-bowl-2 ?proportioned-vinegar ?quantity-d ?unit-d)
     (transfer-contents ?output-container-e ?rest-e ?output-ks-e ?output-ks-d ?output-container-d ?proportioned-sugar ?quantity-e ?unit-e)
     (transfer-contents ?output-container-f ?rest-f ?output-ks-f ?output-ks-e ?output-container-e ?proportioned-mayo ?quantity-f ?unit-f)
-    ;; returns DressingParticle
     (mix ?dressing ?ks-with-dressing ?output-ks-f ?output-container-f ?mixing-tool)
     ))
  nil
  :primitive-inventory *vr-primitives*)
+
+
 
 ;; (6) 4 + 5
 (evaluate-irl-program
@@ -117,7 +116,7 @@
     ;; cut the peeled onion (stays in the same bowl)
     (cut ?chopped-onion ?ks-with-chopped-onion ?ks-with-peeled-onion ?peeled-onion chopped ?knife ?cutting-board-1)
     ;; fetch an empty bowl and place the cooked-bacon in the bowl
-    (fetch-and-proportion ?proportioned-bacon ?ks-with-bacon ?ks-with-chopped-onion ?target-container-3 cooked-bacon 450 g)
+    (fetch-and-proportion ?proportioned-bacon ?ks-with-bacon ?ks-with-chopped-onion ?target-container-3 bacon 450 g)
     ;; fetch an empty bowl and portion 2.5 tablespoons of cider vinegar in the bowl (ciderVinegarBottle)
     (fetch-and-proportion ?proportioned-vinegar ?ks-with-vinegar ?ks-with-bacon ?target-container-4 cider-vinegar 2.5 tablespoon)
     ;; fetch an empty bowl and portion 230g of mayonnaise in the bowl (mayonnaiseJar)
@@ -139,7 +138,7 @@
     ;; transfer the cheese into the same bowl
     (transfer-contents ?output-container-c ?rest-c ?output-ks-c ?output-ks-b ?output-container-b ?proportioned-cheese ?quantity-c ?unit-c)
     ;; mingle the contents of the bowl (becomes hetereogeneous mixture)
-    (mingle ?broccoli-mixture ?ks-with-broccoli-mixture ?output-ks-c ?output-container-c ?mingling-tool)
+    (mingle ?broccoli-mixture ?ks-with-broccoli-mixture ?output-ks-c ?output-container-c ?mingling-tool-1)
     ;; fetch another large bowl
     (fetch ?large-bowl-2 ?ks-with-large-bowl-2 ?ks-with-broccoli-mixture large-bowl 1)
     ;; transfer the vinegar, sugar, and mayo into that bowl and mix (becomes homogenerous mixture)
@@ -149,6 +148,6 @@
     (mix ?dressing ?ks-with-dressing ?output-ks-f ?output-container-f ?mixing-tool)
     ;; transfer the dressing to the bowl with broccoli, onion, and cheese + mingle (become heterogeneous mixture)
     (transfer-contents ?output-container-g ?rest-g ?output-ks-g ?ks-with-dressing ?broccoli-mixture ?dressing ?quantity-g ?unit-g)
-    (mingle ?broccoli-salad ?ks-with-broccoli-salad ?output-ks-g ?output-container-g ?mingling-tool)
+    (mingle ?broccoli-salad ?ks-with-broccoli-salad ?output-ks-g ?output-container-g ?mingling-tool-2)
     ;; place the bowl in the fridge
     (refrigerate ?cooled-salad ?ks-with-cooled-salad ?ks-with-broccoli-salad ?broccoli-salad ?fridge 24 hour)))
