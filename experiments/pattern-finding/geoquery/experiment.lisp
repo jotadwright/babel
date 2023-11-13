@@ -89,40 +89,14 @@
          (feedback))
   ;; 2) The tutor speaks an utterance
     (setf (utterance tutor-agent) (first (corpus experiment)))
-    (print (first (corpus experiment)))
+    ;; (print (first (corpus experiment)))
     (setf utterance (second (assoc ':utterance (utterance tutor-agent))))
   ;; 3) The learner agent first has an empty cxn set, so it can't understand,
   ;; so the tutor gives feedback and the learner stores a holophrase
-    (notify interaction-before-finished utterance (cdr (assoc ':meaning (utterance tutor-agent))))
+    (notify interaction-before-finished utterance (first (cdr (assoc ':meaning (utterance tutor-agent)))))
     (print (interaction-number interaction))
     (if (= (interaction-number interaction) 1)
       (progn
         (setf feedback (cdr (assoc ':meaning (utterance tutor-agent))))
-        (learn-holophrase utterance feedback (grammar learner-agent))))))
-      #|(multiple-value-bind (meanings cipns)
-        (comprehend-all (utterance agent)
-                        :cxn-inventory (grammar agent)
-                        :gold-standard-meaning (meaning agent)
-                        :n (get-configuration experiment :comprehend-all-n))
-        (declare (ignore meanings))
-      (let* ((solution-cipn (first cipns))
-             (competing-cipns (rest cipns))
-             (applied-cxns (original-applied-constructions solution-cipn))
-             (successp (determine-communicative-success solution-cipn)))
-        ;; notify
-        (notify constructions-chosen applied-cxns)
-        (notify cipn-statuses (statuses solution-cipn))
-        ;; run santiy check...
-        (when (and (get-configuration experiment :run-sanity-check)
-                   (null successp))
-          (run-sanity-check experiment agent solution-cipn))
-        ;; run alignment
-        (run-alignment agent solution-cipn competing-cipns successp
-                       (get-configuration agent :alignment-strategy))
-        ;; update the :last-used property of the cxns
-        (dolist (cxn applied-cxns)
-          (set-cxn-last-used agent cxn))
-        ;; store applied repair
-        (set-data interaction :applied-repair (get-last-repair-symbol solution-cipn successp))
-        ;; set the success of the agent
-        (setf (communicated-successfully agent) successp)))|#
+        (learn-holophrase utterance feedback (grammar learner-agent)))
+      (print "ok"))))

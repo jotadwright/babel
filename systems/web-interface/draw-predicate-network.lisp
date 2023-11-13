@@ -238,7 +238,6 @@ div.predicate-network-svg > svg { margin-left:-8px;margin-right:-8px;margin-top:
       (warn "Could not draw predicate networks - Graphviz-Dot not installed.")
       (html-pprint predicate-network))))
 
-
 (defun predicate-network-with-wiki-links->svg (predicate-network &key draw-arrows (topic nil) (only-variables t)
                                                                  (extensional-meanings nil))
   "renders predicate networks, i.e., irl programs,
