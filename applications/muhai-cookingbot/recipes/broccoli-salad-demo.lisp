@@ -13,9 +13,11 @@
   ;; reset stuff
   (clear-output)
   (reset-id-counters)
+  
   ;; activate monitors
   (activate-monitor trace-fcg)
   (activate-monitor trace-irl)
+  
   ;; activate INN
   (when inn?
     (monitors::activate-monitor measuring-understanding::questions-solved-by-mental-simulation)
@@ -25,6 +27,7 @@
     (activate-monitor measuring-understanding::questions-solved-by-ontology)
     (activate-monitor measuring-understanding::node-names-fcg)
     (activate-monitor measuring-understanding::node-names-irl)
+    (activate-monitor measuring-understanding::draw-irl-program)
     (activate-vis-js)
 
     (setf measuring-understanding::*time* 0.1)
@@ -36,6 +39,8 @@
                    ,(wi::make-vis-network :element-id "narrativeNetwork"
                                           :nodes nil
                                           :edges nil))))
+
+  ;; run recipe
   (let* ((init-op `((get-kitchen ,(make-var 'kitchen-state))))
          (primitive-inventory (if vr? *vr-primitives* *irl-primitives*))
          (pdm (initialise-personal-dynamic-memory
@@ -45,18 +50,18 @@
                             "1 head fresh broccoli"
                             "50 grams red onion , chopped"
                             "450 grams cooked bacon"
-                            "2.5 tablespoons cider vinegar"
-                            "230 grams mayonnaise"
-                            "70 grams sugar"
+                            ;"2.5 tablespoons cider vinegar"
+                            ;"230 grams mayonnaise"
+                            ;"70 grams sugar"
                             "170 grams grated mozzarella cheese"
 
                             ;;;; Instructions
                             "cut cooked bacon into pieces"
                             "chop up broccoli into bite size pieces"
                             "mix broccoli , onions , bacon and mozzarella in large bowl"
-                            "in separate large bowl combine vinegar , sugar and mayo"
-                            "pour over broccoli mixture and toss to coat" 
-                            "best if made a day ahead and stored in the refrigerator"
+                            ;"in separate large bowl combine vinegar , sugar and mayo"
+                            ;"pour over broccoli mixture and toss to coat" 
+                            ;"best if made a day ahead and stored in the refrigerator"
                             
                             "end")
                           pdm)
@@ -65,4 +70,13 @@
 
 
 
-; (run-recipe :vr? nil :inn? t)
+
+
+;; TO DO
+;; to incorporate grammar with vr simulator
+;; redesign parts/particles/chopped things
+;; so that an entity of the ingredient is made
+;; and contains the elements
+
+
+; (run-recipe :vr? t :inn? nil)

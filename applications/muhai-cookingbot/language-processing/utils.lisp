@@ -47,7 +47,9 @@ class itself, optionally with an upper bound."
           (setf (gethash (class-name class) ontology-hash-table) class-vector)
           finally (return ontology-hash-table))))
 
-;; (setf *A* (make-ontology-vectors))
+;(setf *vectors* (make-ontology-vectors))
+;(cosine-similarity (ontological-vector 'broccoli *fcg-constructions*)
+;                   (ontological-vector 'chopped-broccoli *fcg-constructions*))
 
     
 
