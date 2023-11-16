@@ -7,6 +7,10 @@
 (length (constructions-list *fcg-constructions*))
 (clear *fcg-constructions*) |#
 
+(ql:quickload :irl)
+(in-package :irl)
+(draw-irl-program '((DOT ?COLUMN-1 ?ALIAS-0 ?COLUMN-2) (AS ?FILTER-0 ?TABLE-0 ?ALIAS-0) (FROM ?FILTER-1 ?FILTER-0) (SELECT ?RESULT-0 ?COLUMN-1 ?FILTER-1) (BIND COLUMN ?COLUMN-2 CITY_NAME) (BIND CONCEPT ?ALIAS-0 CITYALIAS0) (BIND TABLE ?TABLE-0 CITY)) :open t)
+
 ;; ------------------------------------------------------------------------------------- ;;
 ;; ------------------------------------------------------------------------------------- ;;
 ;;                                   TESTING EXPERIMENT                                  ;;
@@ -90,6 +94,8 @@
                               (:max-nr-of-nodes . 50)))))
 
 (run-interaction *experiment*)
+
+
 ;; ------------------------------------------------------------------------------------- ;;
 ;; ------------------------------------------------------------------------------------- ;;
 ;;                                        Examples                                       ;;

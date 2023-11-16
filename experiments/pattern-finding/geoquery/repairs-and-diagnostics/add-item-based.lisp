@@ -4,16 +4,8 @@
 ;; ITEM-BASED ;;
 ;;------------;;
 
-;; Problem class: demo-unknown-words inherits from problem
-(defclass unknown-words (problem)
-  ())
-
-;; Diagnostic class: demo-diagnose-unknown-words inherits from diagnostic
-(defclass demo-diagnose-unknown-words (diagnostic)
-  ((trigger :initform 'new-node)))
-
 ;; Repair class: demo-add-lexical-cxn inherits from repair
-(defclass demo-add-lexical-cxn (repair) 
+(defclass add-item-based (repair) 
   ((trigger :initform 'new-node)))
 
 ; Second repair : make an item based cxn. For the moment, they are of one slot only

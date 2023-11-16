@@ -4,16 +4,23 @@
 ;; HOLOPHRASE ;;
 ;;------------;;
 
-(defclass unknown-utterance (problem)
-  ())
-
-(defclass diagnose-unknown-utterance (diagnostic)
-  ((trigger :initform 'fcg:new-node)))
-
 (defclass add-holophrase (repair) 
-  ((trigger :initform 'fcg:new-node)))
+  ((trigger :initform 'new-node)))
 
-(defmethod diagnose ((diagnostic diagnose-unknown-words) (node cip-node)
+(defmethod repair ((repair add-holophrase)
+                   (problem non-gold-standard-meaning)
+                   (node cip-node)
+                   &key &allow-other-keys)
+  "Repair by making a new holophrase construction."
+  (when (and (initial-node-p node)
+             (form-constraints-with-variables (random-elt (get-data problem :utterances))
+                                              (get-configuration (construction-inventory node) :de-render-mode)))
+    (make-instance 'fcg::cxn-fix
+                   :repair repair
+                   :problem problem
+                   :restart-data (create-holistic-cxn problem node))))
+
+(defmethod diagnose ((diagnostic diagnose-non-gold-standard-meaning) (node cip-node)
                      &key &allow-other-keys)
   "Diagnose that the fully expanded structure contains untreated strings"
   (when (fully-expanded? node)
@@ -42,7 +49,7 @@
                   (equalp (attr-val cxn :meaning) meaning-predicates))
           return cxn))
 
-(defun learn-holophrase (form-string meaning-predicates agent-grammar)
+(defun learn-holophrase (form-string meaning-predicates)
   "Learning a holophrastic cxn ; takes as argument a form (a question in natural language) and a meaning (a predicate network)."  
     (let* ((cxn-name (make-symbol (make-cxn-name form-string)))
            (cxn-cat (make-symbol (format nil "~a-cat" (make-cxn-name form-string))))

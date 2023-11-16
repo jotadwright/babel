@@ -19,10 +19,14 @@
                :cl-json
                :com.inuoe.jzon)
   :components ((:file "package")
-               (:file "repairs")
                (:file "utils")
                (:file "experiment")
-               (:file "web-monitors"))
+               (:file "web-monitors")
+               (:module repairs-and-diagnostics
+                :serial t
+                :components ((:file "diagnostics")
+                             (:file "add-holophrase")
+                             (:file "add-item-based"))))
   :description "Pattern finding for SQL.")
 
 ;; :irl :com.inuoe.jzon :web-interface

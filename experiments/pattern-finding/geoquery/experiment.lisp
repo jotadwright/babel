@@ -15,13 +15,9 @@
 ;; Setting up interaction ;;
 ;;------------------------;;
 
-(define-event interaction-before-finished
-  (utterance string) (gold-standard-meaning t))
-
 ;; Learning Operators
 (define-configuration-default-value :repairs 
-                                    '(add-categorial-links
-                                      add-item-based                                   
+                                    '(add-item-based                                   
                                       add-holophrase))
 
 (defun make-agent-cxn-set (experiment)
@@ -40,6 +36,7 @@
                      :fcg-configurations (;; to activate heuristic search
                                           (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
                                           (:node-expansion-mode . :full-expansion) ;; always fully expands node immediately
+                                          (:use-meta-layer . t)
                                           (:cxn-supplier-mode . :hashed) ;; use hashing
                                           ;; for using heuristics
                                           (:search-algorithm . :best-first) ;; :depth-first, :breadth-first
@@ -47,12 +44,11 @@
                                           (:heuristic-value-mode . :sum-heuristics-and-parent) ;; how to use results of heuristic functions for scoring a node
                       ; (:hash-mode . :hash-string-meaning)
                                           (:de-render-mode . :de-render-sequence)
-                                          (:render-mode . :render-sequences)
+                                          (:render-mode . :render-sequence)
                                           (:category-linking-mode . :neighbours)
                                           (:parse-goal-tests :no-applicable-cxns :connected-semantic-network)
                                           )
-                     :diagnostics (pf::diagnose-non-gold-standard-meaning
-                                   pf::diagnose-non-gold-standard-utterance)
+                     :diagnostics (diagnose-non-gold-standard-meaning)
                      :repairs ,repairs))))
       cxn-inventory)))
 
@@ -92,22 +88,27 @@
   (make-agents experiment)
   (print (population experiment)))
 
+(define-event interaction-before-finished ;; used in interact method to display utterance and meaning
+  (utterance string) (gold-standard-meaning t))
+
 (defun interact (experiment interaction)
   "The different steps of an interaction between the given agents ('interact' is called by 'run-interaction' in the experimentation-framework package)"
   ;1) initializes instances
   (let* ((tutor-agent (first (population experiment)))
          (learner-agent (second (population experiment)))
          (utterance)
-         (feedback))
-  ;; 2) The tutor speaks an utterance
-    (setf (utterance tutor-agent) (first (corpus experiment)))
-    ;; (print (first (corpus experiment)))
+         (gold-standard-meaning))
+  ;; 2) The tutor agent chooses a sample out of the corpus
+    (setf (utterance tutor-agent) (nth (- (interaction-number interaction) 1) (corpus experiment)))
+  ;; 3) He pronounces the utterance
     (setf utterance (second (assoc ':utterance (utterance tutor-agent))))
-  ;; 3) The learner agent first has an empty cxn set, so it can't understand,
-  ;; so the tutor gives feedback and the learner stores a holophrase
+    (setf gold-standard-meaning (second (assoc ':meaning (utterance tutor-agent))))
+  ;; we indicate in the web interface which utterance is chosen and its gold standard meaning
     (notify interaction-before-finished utterance (first (cdr (assoc ':meaning (utterance tutor-agent)))))
-    (if (= (interaction-number interaction) 1)
+  ;; the learner agent tries to understand
+    (comprehend-all utterance :cxn-inventory (grammar learner-agent) :gold-standard-meaning gold-standard-meaning :n 1)))
+    #|(if (= (interaction-number interaction) 1)
       (progn ;; first repair is adding a holophrase for the first utterance
-        (setf feedback (first (cdr (assoc ':meaning (utterance tutor-agent)))))
-        (learn-holophrase utterance feedback (grammar learner-agent)))
-      (add-element (make-html (constructions-list (grammar learner-agent)))))))
+        (setf gold-standard-meaning (first (cdr (assoc ':meaning (utterance tutor-agent)))))
+        (learn-holophrase utterance gold-standard-meaning (grammar learner-agent)))
+      (add-element (make-html (constructions-list (grammar learner-agent)))))))|#
