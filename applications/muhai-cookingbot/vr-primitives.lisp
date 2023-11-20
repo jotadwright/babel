@@ -213,10 +213,11 @@
                                :collect-fn #'(lambda (entity)
                                                (when (eql (type-of entity) 'kitchen-cabinet)
                                                  entity)))))
-    (the-smallest
-     #'(lambda (cabinet)
-         (length (contents cabinet)))
-     kitchen-cabinets)))
+    (first kitchen-cabinets)))
+    ;(the-smallest
+    ; #'(lambda (cabinet)
+    ;     (length (contents cabinet)))
+    ; kitchen-cabinets)))
 
 (defun find-source (concept kitchen-state)
   "Return an object that is able to generate objects of a given type during a portioning action."
@@ -258,7 +259,8 @@
          (base-type-name
           (string-replace (string-replace type-name "Chopped" "") "Particle" ""))
          (base-type
-          (map-type (intern (upcase (camel-case->lisp base-type-name)))))
+          ;(map-type (intern (upcase (camel-case->lisp base-type-name))))
+          (intern (upcase (camel-case->lisp base-type-name))))
          (ingredient
           (make-instance base-type :elements collection)))
     (when (search "Chopped" type-name)
@@ -534,7 +536,11 @@
     kitchen-state-out
     thing-fetched)
    (let* ((item-name
-           (vr-name (find-kitchen-entity-vr (type-of concept-to-fetch) kitchen-state-in)))
+           (vr-name
+            (or (find-unused-kitchen-entity-vr (type-of concept-to-fetch) kitchen-state-in)
+                (find-unused-kitchen-entity-vr (first (closer-mop:class-direct-superclasses (class-of concept-to-fetch)))
+                                               kitchen-state-in))))
+           ;(vr-name (find-kitchen-entity-vr (type-of concept-to-fetch) kitchen-state-in)))
           (vr-result
            (request-to-fetch item-name))
           (thing-fetched-available-at (request-to-get-time))
@@ -592,7 +598,7 @@
               (vr-result-portion
                (request-to-portion source-vr-name
                                    (vr-name unused-container)
-                                   (value (quantity (amount ingredient-in-g)))))
+                                   (* 2 (value (quantity (amount ingredient-in-g))))))
               (vr-result-place
                (request-to-place (gethash "outputContainer" vr-result-portion)
                                  kitchen-cabinet-vr-name))
@@ -766,6 +772,9 @@
           (target-whisk-instance (sim-find-object-by-vr-name tool-vr-name new-kitchen-state))
           (container-with-new-mixture (sim-find-object-by-vr-name container-with-mixture-vr-name new-kitchen-state)))
      (setf (slot-value container-with-new-mixture 'used) t)
+     (setf (slot-value container-with-new-mixture 'contents)
+           (make-instance 'homogeneous-mixture :components
+                          (contents container-with-new-mixture)))
      (bind (mixing-tool 1.0 target-whisk-instance current-kitchen-time)
            (container-with-mixture 1.0 container-with-new-mixture container-available-at)
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
@@ -817,6 +826,9 @@
           (target-whisk-instance (sim-find-object-by-vr-name tool-vr-name new-kitchen-state))
           (container-with-new-mixture (sim-find-object-by-vr-name container-with-mixture-vr-name new-kitchen-state)))
      (setf (slot-value container-with-new-mixture 'used) t)
+     (setf (slot-value container-with-new-mixture 'contents)
+           (make-instance 'heterogeneous-mixture :components
+                          (contents container-with-new-mixture)))
      (bind (mingling-tool 1.0 target-whisk-instance current-kitchen-time)
            (container-with-mixture 1.0 container-with-new-mixture container-available-at)
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
