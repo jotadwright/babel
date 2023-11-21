@@ -347,7 +347,8 @@
       (handle-ingredient-collections sym-kitchen)
       
       ;; simply store the constraints
-      (setf (constraints sym-kitchen) kconstraints-alist)
+      ;(setf (constraints sym-kitchen) kconstraints-alist)
+      
       sym-kitchen)))
 
 (defun read-kitchen-state (vr-response &optional (keyname "kitchenStateOut"))
@@ -773,8 +774,9 @@
           (container-with-new-mixture (sim-find-object-by-vr-name container-with-mixture-vr-name new-kitchen-state)))
      (setf (slot-value container-with-new-mixture 'used) t)
      (setf (slot-value container-with-new-mixture 'contents)
-           (make-instance 'homogeneous-mixture :components
-                          (contents container-with-new-mixture)))
+           (list
+            (make-instance 'homogeneous-mixture :components
+                           (contents container-with-new-mixture))))
      (bind (mixing-tool 1.0 target-whisk-instance current-kitchen-time)
            (container-with-mixture 1.0 container-with-new-mixture container-available-at)
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))
@@ -827,8 +829,9 @@
           (container-with-new-mixture (sim-find-object-by-vr-name container-with-mixture-vr-name new-kitchen-state)))
      (setf (slot-value container-with-new-mixture 'used) t)
      (setf (slot-value container-with-new-mixture 'contents)
-           (make-instance 'heterogeneous-mixture :components
-                          (contents container-with-new-mixture)))
+           (list
+            (make-instance 'heterogeneous-mixture :components
+                           (contents container-with-new-mixture))))
      (bind (mingling-tool 1.0 target-whisk-instance current-kitchen-time)
            (container-with-mixture 1.0 container-with-new-mixture container-available-at)
            (kitchen-state-out 1.0 new-kitchen-state kitchen-state-available-at))))

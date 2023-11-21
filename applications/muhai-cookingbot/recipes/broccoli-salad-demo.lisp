@@ -30,7 +30,7 @@
     (activate-monitor measuring-understanding::draw-irl-program)
     (activate-vis-js)
 
-    (setf measuring-understanding::*time* 0.1)
+    (setf measuring-understanding::*time* 0.3)
 
     (measuring-understanding::initialize-values)
     (setf measuring-understanding::*visual-dialog-inn*
@@ -46,37 +46,34 @@
          (pdm (initialise-personal-dynamic-memory
                *fcg-constructions* init-op :primitive-inventory primitive-inventory)))
     (multiple-value-bind (final-set-of-bindings meaning-network)
-      (process-utterances '(;;;; Ingredients
-                            "1 head fresh broccoli"
-                            "50 grams red onion , chopped"
-                            "450 grams cooked bacon"
-                            ;"2.5 tablespoons cider vinegar"
-                            ;"230 grams mayonnaise"
-                            ;"70 grams sugar"
-                            "170 grams grated mozzarella cheese"
-
-                            ;;;; Instructions
-                            "cut cooked bacon into pieces"
-                            "chop up broccoli into bite size pieces"
-                            "mix broccoli , onions , bacon and mozzarella in large bowl"
-                            ;"in separate large bowl combine vinegar , sugar and mayo"
-                            ;"pour over broccoli mixture and toss to coat" 
-                            ;"best if made a day ahead and stored in the refrigerator"
-                            
-                            "end")
-                          pdm)
+      (unwind-protect
+          (process-utterances '(;;;; Ingredients
+                                "1 head fresh broccoli"
+                                "50 grams red onion , chopped"
+                                "450 grams cooked bacon"
+                                "2.5 tablespoons cider vinegar"
+                                "230 grams mayonnaise"
+                                "70 grams sugar"
+                                "170 grams grated mozzarella cheese"
+                                
+                                
+                                ;;;; Instructions
+                                "cut cooked bacon into pieces"
+                                "chop up broccoli into bite size pieces"
+                                "mix broccoli , onions , bacon and mozzarella in large bowl"
+                                "in separate large bowl combine vinegar , sugar and mayo"
+                                "pour over broccoli mixture and toss to coat" 
+                                ;"best if made a day ahead and stored in the refrigerator"
+                                
+                                "end")
+                              pdm)
+        (values nil (load-earlier-result)))
       (declare (ignore final-set-of-bindings))
-    (append init-op meaning-network))))
-
-
-
-
-
-;; TO DO
-;; to incorporate grammar with vr simulator
-;; redesign parts/particles/chopped things
-;; so that an entity of the ingredient is made
-;; and contains the elements
+      (let ((full-recipe (append init-op meaning-network)))
+        (show-metrics-on-web-interface
+         (evaluate-solution 
+          full-recipe *broccoli-salad-gold-standard*))))))
 
 
 ; (run-recipe :vr? t :inn? nil)
+; (create-static-html-page "Broccoli Salad" (run-recipe :vr? t :inn? nil))
