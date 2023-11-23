@@ -44,21 +44,40 @@
         (t
          (loop 
           for bindings-list in bindings
-          for ontological-class-from-ts  = source
-          for ontological-class-from-bindings = (if (string= (get-base-name value) "ONTOLOGICAL-CLASS-UTTERANCE")
-                                                  (cdr (assoc "ONTOLOGICAL-CLASS-WORLD" bindings-list :key #'get-base-name :test #'string=))
-                                                  (cdr (assoc "ONTOLOGICAL-CLASS-UTTERANCE" bindings-list :key #'get-base-name :test #'string=)))
+          for ontological-class-from-ts = source
+          for value-base-name = (get-base-name value)
+          for ontological-class-from-bindings
+              = (cond ((search "ONTOLOGICAL-CLASS-UTTERANCE" value-base-name)
+                       (let* ((suffix (when (> (length value-base-name) (length "ONTOLOGICAL-CLASS-UTTERANCE"))
+                                        (subseq value-base-name (1+ (length "ONTOLOGICAL-CLASS-UTTERANCE")))))
+                              (search-for (if suffix
+                                            (format nil "ONTOLOGICAL-CLASS-WORLD-~a" (upcase suffix))
+                                            "ONTOLOGICAL-CLASS-WORLD")))
+                         (cdr (assoc search-for bindings-list :key #'get-base-name :test #'string=))))
+                      ((search "ONTOLOGICAL-CLASS-WORLD" value-base-name)
+                       (let* ((suffix (when (> (length value-base-name) (length "ONTOLOGICAL-CLASS-WORLD"))
+                                        (subseq value-base-name (1+ (length "ONTOLOGICAL-CLASS-WORLD")))))
+                              (search-for (if suffix
+                                            (format nil "ONTOLOGICAL-CLASS-UTTERANCE-~a" (upcase suffix))
+                                            "ONTOLOGICAL-CLASS-UTTERANCE")))
+                         (cdr (assoc search-for bindings-list :key #'get-base-name :test #'string=)))))
+          ;for ontological-class-from-bindings
+          ;    = (cond ((string= (get-base-name value) "ONTOLOGICAL-CLASS-UTTERANCE")
+          ;             (cdr (assoc "ONTOLOGICAL-CLASS-WORLD" bindings-list :key #'get-base-name :test #'string=)))
+          ;            ((string= (get-base-name value) "ONTOLOGICAL-CLASS-WORLD")
+          ;             (cdr (assoc "ONTOLOGICAL-CLASS-UTTERANCE" bindings-list :key #'get-base-name :test #'string=))))
+              
           if (and ontological-class-from-ts
                   ontological-class-from-bindings
                   (> (cosine-similarity (ontological-vector ontological-class-from-ts cxn-inventory)
                                         (ontological-vector ontological-class-from-bindings cxn-inventory))
-                     0.9))
+                     0.88))
           collect bindings-list into new-bindings
           else if (and ontological-class-from-ts
                        ontological-class-from-bindings
                        (<= (cosine-similarity (ontological-vector ontological-class-from-ts cxn-inventory)
                                               (ontological-vector ontological-class-from-bindings cxn-inventory))
-                           0.9))
+                           0.88))
           collect +fail+ into new-bindings
           else
           collect bindings-list into new-bindings

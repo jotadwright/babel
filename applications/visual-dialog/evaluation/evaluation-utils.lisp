@@ -144,9 +144,9 @@
 
 (defun collect-problematic-middle-scenes ()
   (let* ((ontology (build-ontology))
-         (world (make-instance 'world :configuration '((:dataset . :clevr)
-                                                       (:datasplit . :train)
-                                                       (:mode . :symbolic))))
+         (world (make-instance 'world :entries '((:dataset . :clevr)
+                                                 (:datasplit . :train)
+                                                 (:mode . :symbolic))))
          (multiple-middles
           (loop with i = 0
                 for scene in (scenes world)

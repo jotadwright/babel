@@ -21,8 +21,8 @@
 ;;no construction inventory is used. Typically to draw units or
 ;;transient structures manually.
 (defvar *default-visualization-configuration*
-  (make-instance 'configuration
-                 :configuration '(;; Show cfs and cxn as coupled feature structure?
+  (make-configuration
+                 :entries '(;; Show cfs and cxn as coupled feature structure?
                                   (:coupled-mode . t)
                                   ;; show expanded nodes in fcg search tree or below
                                   (:expand-nodes-in-search-tree . t)

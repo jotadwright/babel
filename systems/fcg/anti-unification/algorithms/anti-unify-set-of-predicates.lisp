@@ -8,17 +8,21 @@
 ;; Anti-unifying sets of predicates ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defconstant +alphabet+ "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+(defparameter *alphabet* "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 (defparameter *alphabet-index* 0)
 (defun next-au-var ()
-  (let ((c (mkstr (char +alphabet+ *alphabet-index*))))
+  (let ((c (mkstr (char *alphabet* *alphabet-index*))))
     (incf *alphabet-index*)
     (when (= *alphabet-index* 26)
       (setf *alphabet-index* 0))
     c))
 
 (defclass anti-unification-result ()
-  ((generalisation
+  ((pattern
+    :accessor pattern :initarg :pattern :initform nil)
+   (source
+    :accessor source :initarg :source :initform nil)
+   (generalisation
     :accessor generalisation :initarg :generalisation :type list :initform nil)
    (pattern-bindings
     :accessor pattern-bindings :initarg :pattern-bindings :type list :initform nil)
@@ -57,6 +61,8 @@
                                       resulting-source-delta)
                     (anti-unify-predicate-sequence pattern-in-alignment source-in-alignment nil nil nil pattern-delta source-delta)
                   (make-instance 'anti-unification-result
+                                 :pattern pattern
+                                 :source source
                                  :generalisation resulting-generalisation
                                  :pattern-bindings resulting-pattern-bindings
                                  :source-bindings resulting-source-bindings

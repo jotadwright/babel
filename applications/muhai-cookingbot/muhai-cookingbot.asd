@@ -8,16 +8,22 @@
                :web-interface
                :irl
                :fcg
-               :cl-json
                :closer-mop
                :nlp-tools
-               :dexador)
+               :dexador
+               :trivial-features
+               :float-features
+               :com.inuoe.jzon
+               :alexandria
+               :assoc-utils)
   :serial t
   :components ((:file "package")
+               (:file "parse-yaml")
+               ;(:file "ontology")
                (:file "ontology-generated")
-               (:file "vr-primitives")
                (:file "primitives")
                (:file "vr-requests")
+               (:file "vr-primitives")
                (:file "visualisations")
                (:module personal-dynamic-memory
                 :serial t

@@ -6,22 +6,20 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defparameter *kitchen-host* "http://127.0.0.1:54321")
+;(defparameter *kitchen-host* "http://134.184.26.36:54321")
 
-(defun send-request (route json &key (host *kitchen-host*) (connection-timeout 3600))
+(defun send-request (route content &key (host *kitchen-host*) (timeout 3600))
   "Send curl request and returns the answer."
-  (let* ((url (concatenate 'string *kitchen-host* route))
-         (response (dex:post (concatenate 'string *kitchen-host* route)
+  (let* ((url (mkstr host route))
+         (response (dex:post url
                              :headers '(("content-type" . "application/json"))
-                             :content json
-                             :read-timeout 2000)))
-    (cl-json::decode-json-from-string response)))
+                             :content content
+                             :connect-timeout timeout
+                             :read-timeout timeout)))
+    (jzon:parse response)))
 
-
-(defun symbol-keyword (x)
-  (intern (string-upcase x) :keyword))
-
-(defun cdrassoc (key alist)
-  (cdr (assoc key alist)))
+(defun encode-request (data)
+  (jzon:stringify (alist-hash-table data)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -30,207 +28,342 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-get-time ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun request-to-get-time ()
-  (let ((time (cdr (assoc :response
-                          (send-request "/abe-sim-command/to-get-time"
-                                        (cl-json:encode-json-to-string `()))))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-get-kitchen ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-get-kitchen (kitchen-state-variable)
+  (gethash "response"
+           (send-request "/abe-sim-command/to-get-kitchen"
+                         (encode-request `(("kitchenStateIn" . ,kitchen-state-variable))))))
+
+  
+;  (let ((response (send-request "/abe-sim-command/to-get-kitchen"
+;                                (encode-request `(("kitchenStateIn" . ,kitchen-state-variable))))))
+;    (when response
+;      (handler-case  (cons kitchen-state-variable (gethash kitchen-state-variable (gethash "response" response)))
+;        (error (e) (format t
+;                           "Error in response from abe-sim api service (route: to-get-kitchen): ~S.~&"
+;                           e))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-set-kitchen  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-set-kitchen (kitchen-state-in)
+  (gethash  "response"
+            (send-request "/abe-sim-command/to-set-kitchen"
+                          (encode-request `(("kitchenStateIn" . ,kitchen-state-in))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-cancel ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-to-cancel ()
+  (let ((time (gethash "response"
+                       (send-request "/abe-sim-command/to-cancel"
+                                     (encode-request `())))))
     time))
 
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-get-time ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-to-get-time ()
+  (let ((time (gethash "time"
+                       (gethash "response"
+                                (send-request "/abe-sim-command/to-get-time"
+                                              (encode-request `()))))))
+    (round time)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-wait ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun request-to-wait (frames)
-  (cdr (assoc :response
-              (send-request "/abe-sim-command/to-wait"
-                            (cl-json:encode-json-to-string `((:frames . ,frames)))))))
+(defun request-to-wait (frames-to-wait)
+  (gethash "response"
+           (send-request "/abe-sim-command/to-wait"
+                         (encode-request `(("frames" . ,frames-to-wait))))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-cut ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-to-cut (object cutting-tool cutting-pattern &optional (kitchen-state-in nil))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-cut"
+                         (encode-request `(("object"         . ,object)
+                                           ("cuttingTool"    . ,cutting-tool)
+                                           ("cutPattern"     . ,cutting-pattern)
+                                           ("kitchenStateIn" . ,kitchen-state-in)
+                                           ("setWorldState"  . ,(not (not kitchen-state-in))))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-refrigerate ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-to-refrigerate (container-with-ingredients refrigerator cooling-quantity cooling-unit &optional (kitchen-state-in nil))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-refrigerate"
+                         (encode-request `(("containerWithIngredients" . ,container-with-ingredients)
+                                           ("refrigerator"             . ,refrigerator)
+                                           ("coolingQuantity"          . ,cooling-quantity)
+                                           ("coolingUnit"              . ,cooling-unit)
+                                           ("kitchenStateIn"           . ,kitchen-state-in)
+                                           ("setWorldState"            . ,(not (not kitchen-state-in))))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-flour ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-to-flour (container-to-flour ingredient-to-flour-with &optional (kitchen-state-in nil))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-flour"
+                         (encode-request `(("containerToFlour"      . ,container-to-flour)
+                                           ("ingredientToFlourWith" . ,ingredient-to-flour-with)
+                                           ("kitchenStateIn"        . ,kitchen-state-in)
+                                           ("setWorldState"         . ,(not (not kitchen-state-in))))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-grease ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-to-grease (container-to-grease ingredient-to-grease-with &optional (kitchen-state-in nil))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-grease"
+                         (encode-request `(("containerToGrease"      . ,container-to-grease)
+                                           ("ingredientToGreaseWith" . ,ingredient-to-grease-with)
+                                           ("kitchenStateIn"         . ,kitchen-state-in)
+                                           ("setWorldState"          . ,(not (not kitchen-state-in))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-sprinkle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun request-to-sprinkle (object topping-container &optional (kitchen-state-in nil))
-  (cdr (assoc :response
-              (send-request "/abe-sim-command/to-sprinkle"
-                            (cl-json:encode-json-to-string `((:object . ,object)
-                                                             (:topping-container . ,topping-container)
-                                                             (:kitchen-state-in . ,kitchen-state-in)
-                                                             (:set-world-state . ,(not (not kitchen-state-in)))))))))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-sprinkle"
+                         (encode-request `(("object"           . ,object)
+                                           ("toppingContainer" . ,topping-container)
+                                           ("kitchenStateIn"   . ,kitchen-state-in)
+                                           ("setWorldState"    . ,(not (not kitchen-state-in))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-bake ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun request-to-bake (thing-to-bake oven input-destination-container &optional (kitchen-state-in nil))
-  (cdr (assoc :response
-              (send-request "/abe-sim-command/to-bake"
-                            (cl-json:encode-json-to-string `((:thing-to-bake . ,thing-to-bake)
-                                                             (:oven . ,oven)
-                                                             (:input-destination-container . ,input-destination-container)
-                                                             (:kitchen-state-in . ,kitchen-state-in)
-                                                             (:set-world-state . ,(not (not kitchen-state-in)))))))))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-bake"
+                         (encode-request `(("thingToBake"               . ,thing-to-bake)
+                                           ("oven"                      . ,oven)
+                                           ("inputDestinationContainer" . ,input-destination-container)
+                                           ("kitchenStateIn"            . ,kitchen-state-in)
+                                           ("setWorldState"             . ,(not (not kitchen-state-in))))))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-shape ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun request-to-shape (container-with-dough destination &optional (kitchen-state-in nil))
-  (cdr (assoc :response
-              (send-request "/abe-sim-command/to-shape"
-                            (cl-json:encode-json-to-string `((:container-with-dough . ,container-with-dough)
-                                                             (:destination . ,destination)
-                                                             (:kitchen-state-in . ,kitchen-state-in)
-                                                             (:set-world-state . ,(not (not kitchen-state-in)))))))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-boil ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-to-boil (thing-to-boil stove heatingMode time-to-boil-quantity time-to-boil-unit destination &optional (kitchen-state-in nil))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-boil"
+                         (encode-request `(("thingToBoil"        . ,thing-to-boil)
+                                           ("stoveToBoilOn"      . ,stove)
+                                           ("heatingMode"        . ,heatingMode)
+                                           ("timeToBoilQuantity" . ,time-to-boil-quantity)
+                                           ("timeToBoilUnit"     . ,time-to-boil-unit)
+                                           ("destination"        . ,destination)
+                                           ("kitchenStateIn"     . ,kitchen-state-in)
+                                           ("setWorldState"      . ,(not (not kitchen-state-in))))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-melt ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-to-melt (container-with-input-ingredients melting-tool &optional (kitchen-state-in nil))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-melt"
+                         (encode-request `(("containerWithInputIngredients" . ,container-with-input-ingredients)
+                                           ("melting-tool"                  . ,melting-tool)
+                                           ("kitchenStateIn"            . ,kitchen-state-in)
+                                           ("setWorldState"             . ,(not (not kitchen-state-in))))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-wash ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-to-wash (thing-to-wash sink destination &optional (kitchen-state-in nil))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-wash"
+                         (encode-request `(("thingToWash"               . ,thing-to-wash)
+                                           ("sink"                      . ,sink)
+                                           ("inputDestinationContainer" . ,destination)
+                                           ("kitchenStateIn"            . ,kitchen-state-in)
+                                           ("setWorldState"             . ,(not (not kitchen-state-in))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-line ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun request-to-line (baking-tray baking-paper &optional (kitchen-state-in nil))
-  (cdr (assoc :response
-              (send-request "/abe-sim-command/to-line"
-                            (cl-json:encode-json-to-string `((:baking-tray . ,baking-tray)
-                                                             (:baking-paper . ,baking-paper)
-                                                             (:kitchen-state-in . ,kitchen-state-in)
-                                                             (:set-world-state . ,(not (not kitchen-state-in)))))))))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-line"
+                         (encode-request `(("bakingTray"     . ,baking-tray)
+                                           ("bakingPaper"    . ,baking-paper)
+                                           ("kitchenStateIn" . ,kitchen-state-in)
+                                           ("setWorldState"  . ,(not (not kitchen-state-in))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-mix  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun request-to-mix (container-with-input-ingredients mixing-tool &optional (kitchen-state-in nil))
-  (cdr (assoc :response
-              (send-request "/abe-sim-command/to-mix"
-                            (cl-json:encode-json-to-string `((:container-with-input-ingredients . ,container-with-input-ingredients)
-                                                             (:mixing-tool . ,mixing-tool)
-                                                             (:kitchen-state-in . ,kitchen-state-in)
-                                                             (:set-world-state . ,(not (not kitchen-state-in)))))))))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-mix"
+                         (encode-request `(("containerWithInputIngredients" . ,container-with-input-ingredients)
+                                           ("mixingTool"                    . ,mixing-tool)
+                                           ("kitchenStateIn"                . ,kitchen-state-in)
+                                           ("setWorldState"                 . ,(not (not kitchen-state-in))))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-beat  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun request-to-beat (container-with-input-ingredients beating-tool &optional (kitchen-state-in nil))
-  (cdr (assoc :response
-              (send-request "/abe-sim-command/to-beat"
-                            (cl-json:encode-json-to-string `((:container-with-input-ingredients . ,container-with-input-ingredients)
-                                                             (:beating-tool . ,beating-tool)
-                                                             (:kitchen-state-in . ,kitchen-state-in)
-                                                             (:set-world-state . ,(not (not kitchen-state-in)))))))))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-beat"
+                         (encode-request `(("containerWithInputIngredients" . ,container-with-input-ingredients)
+                                           ("beatingTool"                   . ,beating-tool)
+                                           ("kitchenStateIn"                . ,kitchen-state-in)
+                                           ("setWorldState"                 . ,(not (not kitchen-state-in))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-transfer ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun request-to-transfer (container-with-input-ingredients target-container &optional (kitchen-state-in nil)) ;
-  (cdr (assoc :response
-              (send-request "/abe-sim-command/to-transfer"
-                            (cl-json:encode-json-to-string `((:container-with-input-ingredients . ,container-with-input-ingredients)
-                                                             (:target-container . ,target-container)
-                                                             (:kitchen-state-in . ,kitchen-state-in)
-                                                             (:set-world-state . ,(not (not kitchen-state-in)))))))))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-transfer"
+                         (encode-request `(("containerWithInputIngredients" . ,container-with-input-ingredients)
+                                           ("targetContainer"               . ,target-container)
+                                           ("kitchenStateIn"                . ,kitchen-state-in)
+                                           ("setWorldState"                 . ,(not (not kitchen-state-in))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-portion ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun request-to-portion (container-with-ingredient target-container quantity &optional (kitchen-state-in nil))
-  (cdr (assoc :response (send-request
-   "/abe-sim-command/to-portion"
-
-               (cl-json:encode-json-to-string `((:container-with-ingredient . ,container-with-ingredient)
-                                                (:target-container . ,target-container)
-                                                (:quantity . ,quantity)
-                                                (:kitchen-state-in . ,kitchen-state-in)
-                                                (:set-world-state . ,(not (not kitchen-state-in)))))))))
+  (gethash "response" 
+           (send-request "/abe-sim-command/to-portion"
+                         (encode-request `(("containerWithIngredient" . ,container-with-ingredient)
+                                           ("targetContainer"         . ,target-container)
+                                           ("quantity"                . ,quantity)
+                                           ("kitchenStateIn"          . ,kitchen-state-in)
+                                           ("setWorldState"           . ,(not (not kitchen-state-in))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-fetch ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun request-to-fetch (object &optional (kitchen-state-in nil))
-  (cdr (assoc :response
-              (send-request "/abe-sim-command/to-fetch"
-                            (cl-json:encode-json-to-string `((:object . ,object)
-                                                             (:kitchen-state-in . ,kitchen-state-in)
-                                                             (:set-world-state . ,(not (not kitchen-state-in))) ))))))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-fetch"
+                         (encode-request `(("object"         . ,object)
+                                           ("kitchenStateIn" . ,kitchen-state-in)
+                                           ("setWorldState"  . ,(not (not kitchen-state-in))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-get-location ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun request-get-location (available-location-variable type &optional (kitchen-state-in nil))
-  (cdr (assoc :response
-              (send-request "/abe-sim-command/to-get-location"
-                            (cl-json:encode-json-to-string `((:available-location . ,available-location-variable)
-                                                             (:type . ,type)
-                                                             (:kitchen-state-in . ,kitchen-state-in)
-                                                             (:set-world-state . ,(not (not kitchen-state-in)))))))))
+(defun request-to-get-location (available-location-variable type &optional (kitchen-state-in nil))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-get-location"
+                         (encode-request `(("availableLocation" . ,available-location-variable)
+                                           ("type"              . ,type)
+                                           ("kitchenStateIn"    . ,kitchen-state-in)
+                                           ("setWorldState"     . ,(not (not kitchen-state-in))))))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-get-kitchen ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun request-get-kitchen (kitchen-state-variable)
-  (let ((response (send-request "/abe-sim-command/to-get-kitchen"
-                                (cl-json:encode-json-to-string `((:kitchen-state-in . ,kitchen-state-variable))))))
-    (when response (handler-case  (assoc (symbol-keyword kitchen-state-variable) (cdr (assoc :response response)))
-                     (error (e) (format t
-                                        "Error in response from abe-sim api service (route: to-get-kitchen): ~S.~&"
-                                        e))))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-leave-for-time ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-to-leave-for-time (container quantity unit &optional (kitchen-state-in nil))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-leave-for-time"
+                         (encode-request `(("containerWithIngredients" . ,container)
+                                           ("coolingQuantity"          . ,quantity)
+                                           ("timeUnit"                 . ,unit)
+                                           ("kitchenStateIn"           . ,kitchen-state-in)
+                                           ("setWorldState"            . ,(not (not kitchen-state-in))))))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-set-kitchen  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun request-set-kitchen ( kitchen-state-in )
-  (cdr (assoc  :response
-               (send-request "/abe-sim-command/to-set-kitchen"
-                             (progn ;(break)
-                               (cl-json:encode-json-to-string `((:kitchen-state-in . ,kitchen-state-in))))))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-bring-to-temperature ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-to-bring-to-temperature (container quantity unit &optional (kitchen-state-in nil))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-bring-to-temperature"
+                         (encode-request `(("containerWithIngredients" . ,container)
+                                           ("temperatureQuantity"      . ,quantity)
+                                           ("temperatureUnit"          . ,unit)
+                                           ("kitchenStateIn"           . ,kitchen-state-in)
+                                           ("setWorldState"            . ,(not (not kitchen-state-in))))))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-preheat-oven ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-to-preheat-oven (oven quantity unit &optional (kitchen-state-in nil))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-preheat-oven"
+                         (encode-request `(("oven"           . ,oven)
+                                           ("quantity"       . ,quantity)
+                                           ("unit"           . ,unit)
+                                           ("kitchenStateIn" . ,kitchen-state-in)
+                                           ("setWorldState"  . ,(not (not kitchen-state-in))))))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-fry ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-to-fry (thingToFry stoveToFryOn heatingMode timeToFryQuantity timeToFryUnit &optional (kitchen-state-in nil))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-fry"
+                         (encode-request `(("thingToFry"        . ,thingToFry)
+                                           ("stoveToFryOn"      . ,stoveToFryOn)
+                                           ("heatingMode"       . ,heatingMode)
+                                           ("timeToFryQuantity" . ,timeToFryQuantity)
+                                           ("timeToFryUnit"     . ,timeToFryUnit)
+                                           ("kitchenStateIn"    . ,kitchen-state-in)
+                                           ("setWorldState"     . ,(not (not kitchen-state-in))))))))
 
-;;                             execute commands                                             ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-place ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-to-place (object container &optional (kitchen-state-in nil))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-place"
+                         (encode-request `(("object"         . ,object)
+                                           ("container"      . ,container)
+                                           ("kitchenStateIn" . ,kitchen-state-in)
+                                           ("setWorldState"  . ,(not (not kitchen-state-in))))))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-cover ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-to-cover (object cover &optional (kitchen-state-in nil))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-cover"
+                         (encode-request `(("object"         . ,object)
+                                           ("cover"          . ,cover)
+                                           ("kitchenStateIn" . ,kitchen-state-in)
+                                           ("setWorldState"  . ,(not (not kitchen-state-in))))))))
 
-;(defvar *shaped-kitchen-state* (cdr (request-get-kitchen "?kitchen-state-1")))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-uncover ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-to-uncover (object &optional (kitchen-state-in nil))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-uncover"
+                         (encode-request `(("object"         . ,object)
+                                           ("kitchenStateIn" . ,kitchen-state-in)
+                                           ("setWorldState"  . ,(not (not kitchen-state-in))))))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-peel ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-to-peel (inputIngredient peelingTool containerForPeels containerForPeeledIngredient &optional (kitchen-state-in nil))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-peel"
+                         (encode-request `(("inputIngredient"              . ,inputIngredient)
+                                           ("peelingTool"                  . ,peelingTool)
+                                           ("containerForPeels"            . ,containerForPeels)
+                                           ("containerForPeeledIngredient" . ,containerForPeeledIngredient)
+                                           ("kitchenStateIn"               . ,kitchen-state-in)
+                                           ("setWorldState"                . ,(not (not kitchen-state-in))))))))
 
-;;; command 1: get the kitchen state
-;(defparameter  world-state (cdr (to-get-kitchen "?kitchen-state-1" )))
-;world-state
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-seed ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-to-seed (inputIngredient seedingTool containerForSeeds containerForSeededIngredient &optional (kitchen-state-in nil))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-seed"
+                         (encode-request `(("inputIngredient"              . ,inputIngredient)
+                                           ("seedingTool"                  . ,seedingTool)
+                                           ("containerForSeeds"            . ,containerForSeeds)
+                                           ("containerForSeededIngredient" . ,containerForSeededIngredient)
+                                           ("kitchenStateIn"               . ,kitchen-state-in)
+                                           ("setWorldState"                . ,(not (not kitchen-state-in))))))))
 
-;;; command 2: set the kitchen state
-;(defparameter response-set-state (to-set-kitchen world-state))
-;; response-set-state
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-flatten ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-to-flatten (portion flatteningTool &optional (kitchen-state-in nil))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-flatten"
+                         (encode-request `(("portion"        . ,portion)
+                                           ("flatteningTool" . ,flatteningTool)
+                                           ("kitchenStateIn" . ,kitchen-state-in)
+                                           ("setWorldState"  . ,(not (not kitchen-state-in))))))))
 
-;; ;;;command 3: get location
-;; (defparameter response-get-location (to-get-location "?available-countertop" "CounterTop"))
-;; response-get-location
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-grind ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-to-grind (inputIngredient grindingTool &optional (kitchen-state-in nil))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-grind"
+                         (encode-request `(("containerWithIngredientsToBeGround" . ,inputIngredient)
+                                           ("grindingTool"                       . ,grindingTool)
+                                           ("kitchenStateIn"                     . ,kitchen-state-in)
+                                           ("setWorldState"                      . ,(not (not kitchen-state-in))))))))
 
-;; ;; command 4: fetch bowl to countertop
-;; ;; {'object': 'mediumBowl1', 'kitchenStateIn': None, 'setWorldState': False}
-;; (defparameter response-fetch-bowl (to-fetch "mediumBowl1"))
-;; response-fetch-bowl
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-mash ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-to-mash (inputIngredient mashingTool &optional (kitchen-state-in nil))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-mash"
+                         (encode-request `(("inputIngredient" . ,inputIngredient)
+                                           ("mashingTool"     . ,mashingTool)
+                                           ("kitchenStateIn"  . ,kitchen-state-in)
+                                           ("setWorldState"   . ,(not (not kitchen-state-in))))))))
 
-;; ;; command 5: proportion 134g of sugarBag in mediumBowl1
-;; ;;  {'containerWithIngredient': 'sugarBag', 'targetContainer': 'mediumBowl1', 'quantity': 134, 'kitchenStateIn': None, 'setWorldState': False}
-;; (defparameter response-sugar-in-bowl (to-portion "sugarBag" "mediumBowl1" 134))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-mingle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-to-mingle (containerWithInputIngredients minglingTool &optional (kitchen-state-in nil))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-mingle"
+                         (encode-request `(("containerWithInputIngredients" . ,containerWithInputIngredients)
+                                           ("minglingTool"                  . ,minglingTool)
+                                           ("kitchenStateIn"                . ,kitchen-state-in)
+                                           ("setWorldState"                 . ,(not (not kitchen-state-in))))))))
 
-;; ;; command 6: proportion 134g of butterBag in mediumBowl2
-;; ;; {'containerWithIngredient': 'butterBag', 'targetContainer': 'mediumBowl2', 'quantity': 226, 'kitchenStateIn': None, 'setWorldState': False}
-;; (defparameter response-butter-in-bowl (to-portion "butterBag" "mediumBowl2" 134))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-portion-and-arrange ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-to-portion-and-arrange (containerWithDough destination &optional (kitchen-state-in nil))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-portion-and-arrange"
+                         (encode-request `(("containerWithDough" . ,containerWithDough)
+                                           ("destination"        . ,destination)
+                                           ("kitchenStateIn"     . ,kitchen-state-in)
+                                           ("setWorldState"      . ,(not (not kitchen-state-in))))))))
 
-;; ;; Command 7: fetch bowl to countertop
-;; (defparameter response-fetch-bowl-3 (to-fetch "mediumBowl3"))
-;; response-fetch-bowl-3
-
-;; ;; Command 8: transfer bowl1 contents to bowl3
-;; ;; {'containerWithInputIngredients': 'mediumBowl1', 'targetContainer': 'mediumBowl3', 'kitchenStateIn': None, 'setWorldState': False}
-;; (defparameter response-transfer-1 (to-transfer "mediumBowl1" "mediumBowl3"))
-;; response-transfer-1
-
-;; ;; {'object': 'mediumBowl1', 'kitchenStateIn': None, 'setWorldState': None} LISP
-;; ;; {'object': 'mediumBowl1', 'kitchenStateIn': None, 'setWorldState': False} py
-
-;; ;; Command 9: transfer bowl2 contents to bowl3
-;; ;; {'containerWithInputIngredients': 'mediumBowl2', 'targetContainer': 'mediumBowl3', 'kitchenStateIn': None, 'setWorldState': False}
-;; (defparameter response-transfer-2 (to-transfer  "mediumBowl2" "mediumBowl3"))
-;; response-transfer-1
-
-;; ;; Command 10: mixing
-;; ;; {'containerWithInputIngredients': 'mediumBowl3', 'mixingTool': 'whisk', 'kitchenStateIn': None, 'setWorldState': False}
-;; (defparameter response-mixing-1 (to-mix "mediumBowl3" "whisk"))
-;; response-mixing-1
-
-;; ;; Command 11: lining
-;; ;; {'bakingTray': 'bakingTray1', 'bakingPaper': 'bakingSheet1', 'kitchenStateIn': None, 'setWorldState': False}
-;; (defparameter response-lining-1 (to-line "bakingTray1" "bakingSheet1"))
-
-
-;; ;; Command 12: shaping
-;; ;; {'containerWithDough': 'mediumBowl3', 'destination': 'bakingTray1', 'kitchenStateIn': None, 'setWorldState': False}
-;; (defparameter response-shape-1 (to-shape "mediumBowl3" "bakingTray1"))
-
-;; ;; TO WAIT
-;; ;; {'frames': 1000}
-;; (defparameter response-wait-1 (to-wait 1000))
-
-;; ;; Command 13: baking
-;; ;; {'thingToBake': 'bakingTray1', 'oven': 'kitchenStove', 'inputDestinationContainer': 'counterTop', 'kitchenStateIn': None, 'setWorldState': False}
-;; (defparameter response-bake-1 (to-bake "bakingTray1" "kitchenStove" "counterTop"))
-
-
-;; ;; Command 14: sprinkling
-;; ;; {'object': 'bakingTray1', 'toppingContainer': 'sugarShaker', 'kitchenStateIn': None, 'setWorldState': False}
-;; (defparameter response-sprinkling (to-sprinkle "bakingTray1" "sugarShaker"))
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; to-shape ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun request-to-shape (portions shape &optional (kitchen-state-in nil))
+  (gethash "response"
+           (send-request "/abe-sim-command/to-shape"
+                         (encode-request `(("portions"       . ,portions)
+                                           ("shape"          . ,shape)
+                                           ("kitchenStateIn" . ,kitchen-state-in)
+                                           ("setWorldState"  . ,(not (not kitchen-state-in))))))))

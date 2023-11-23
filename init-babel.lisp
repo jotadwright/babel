@@ -53,6 +53,9 @@
 ;; when t, then the web-interface is automatically started upon compiling
 (defvar *automatically-start-web-interface* t)
 
+;; when t, the web interface will always scroll to the bottom when adding new elements
+(defvar *automatically-scroll-to-bottom* t)
+
 ;; in some lisps *print-pretty* is t by default, that means everything
 ;; passed to format, print, mkstr, etc or everything returned from an
 ;; evaluation is pprinted. The monitors and other printing mechanisms

@@ -1,18 +1,18 @@
 (in-package :cle)
 
-;; --------------------
-;; + CXN -> s-dot +
-;; --------------------
+;; ----------------
+;; + cxn -> s-dot +
+;; ----------------
 
 (defparameter *white* "#FFFFFF")
 (defparameter *red* "#E32D2D")
 (defparameter *green* "#26AD26")
 (defparameter *black* "#000000")
 
-(defgeneric cxn->s-dot-diff (cxn delta &key highlight-green highlight-red certainty-threshold)
+(defgeneric cxn->s-dot-diff (cxn delta &key highlight-green highlight-red certainty-threshold disabled-channels)
   (:documentation "Display a cxn using s-dot."))
 
-(defmethod cxn->s-dot-diff ((cxn cxn) (previous-copy cxn) &key highlight-green highlight-red (certainty-threshold 0.1))
+(defmethod cxn->s-dot-diff ((cxn cxn) (previous-copy cxn) &key highlight-green highlight-red (certainty-threshold 0.1) (disabled-channels nil))
   (let ((g '(((s-dot::ranksep "0.3")
               (s-dot::nodesep "0.5")
               (s-dot::margin "0")
@@ -48,26 +48,33 @@
      g)
 
     ;; feature-channels nodes
-    (loop for prototype in (prototypes (meaning cxn))
-          for previous-prototype in (prototypes (meaning previous-copy))
+    (loop for prototype in (reverse (get-prototypes (meaning cxn)))
+          for previous-prototype in (reverse (get-prototypes (meaning previous-copy)))
           for record = (prototype->s-dot-diff prototype
                                               previous-prototype
                                               :green (member (channel prototype) highlight-green)
                                               :red (member (channel prototype) highlight-red))
-          when (> (weight prototype) 0.1)
+          when (and (if disabled-channels
+                      (not (gethash (channel prototype) disabled-channels))
+                      t)
+                    (>= (weight previous-prototype) 0.1))
             do (push record g))
     ;; edges between cxn node and feature-channels
-    (loop for prototype in (prototypes (meaning cxn))
-          for previous-prototype in (prototypes (meaning previous-copy))
-          for delta = (- (weight prototype) (weight previous-prototype))
-          when (> (weight previous-prototype) 0.1)
+    (loop for prototype in (get-prototypes (meaning cxn))
+          for previous-prototype in (get-prototypes (meaning previous-copy))
+          for delta = (- (weight-val prototype) (weight-val previous-prototype))
+          when (and (if disabled-channels
+                      (not (gethash (channel prototype) disabled-channels))
+                      t)
+                    (>= (weight previous-prototype) 0.1))
             do (push
                 `(s-dot::edge
                   ((s-dot::from ,(mkdotstr (id (meaning cxn))))
                    (s-dot::to ,(mkdotstr (downcase (channel prototype))))
-                   (s-dot::label ,(format nil "~,2f~a" (float (weight prototype)) (cond ((> delta 0) (format nil " (+~,2f)" (float delta)))
-                                                                                        ((< delta 0) (format nil " (~,2f)" (float delta)))
-                                                                                        (t ""))))
+                   (s-dot::label ,(format nil "~,2f" (float (weight prototype))
+                                          #|(cond ((> delta 0) (format nil " (+~,2f)" (float delta)))
+                                                ((< delta 0) (format nil " (~,2f)" (float delta)))
+                                                (t ""))|#))
                    (s-dot::labelfontname #+(or :win32 :windows) "Sans"
                                          #-(or :win32 :windows) "Arial")
                    (s-dot::fontcolor ,(cond ((> delta 0) *green*)
@@ -108,8 +115,6 @@
 (defmethod prototype->s-dot-diff ((prototype prototype) (previous-prototype prototype) &key green red)
   (let* ((st-dev (st-dev (distribution prototype)))
          (prev-st-dev (st-dev (distribution previous-prototype)))
-         ;(lower-bound (- (mean (distribution prototype)) (* 3 st-dev)))
-         ;(upper-bound (+ (mean (distribution prototype)) (* 3 st-dev)))
          )
     `(s-dot::record
       ((s-dot::fontsize "9.5")
@@ -123,7 +128,8 @@
                     (s-dot::label ,(format nil "~a: ~,3f~a ~~ ~,3f~a"
                                            (downcase (mkdotstr (channel prototype)))
                                            (mean (distribution prototype))
-                                           (let ((delta (- (mean (distribution prototype)) (mean (distribution previous-prototype)))))
+                                           (let ((delta (- (mean (distribution prototype))
+                                                           (mean (distribution previous-prototype)))))
                                              (cond ((> delta 0) (format nil " (+~,3f)" (float delta)))
                                                    ((< delta 0) (format nil " (~,3f)" (float delta)))
                                                    (t " (+0.000)")))

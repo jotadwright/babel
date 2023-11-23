@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import os
 
 # The same gnuplot colors as used in plot-raw-data

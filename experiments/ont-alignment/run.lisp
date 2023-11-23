@@ -9,8 +9,6 @@
 ;(disconnect-toplevel)
 ;(connect-toplevel "db2_actors_films_simple_table.db" "postgres" "postgres" "localhost")
 
-;(type-of (execute-postmodern-query '(:select actor film :from actorsfilms)))
-
 ;(execute-postmodern-query '(:select (:count film) :from actorsfilms :where (:= actor "Gerard Depardieu")))
 ;(execute-postmodern-query '(:select (:count actor) (:avg year) :from actorsfilms))
 ;(execute-postmodern-query '(:select film :from actorsfilms :where (:in actor (:set "Gérard Depardieu" "Fred Astaire"))))
@@ -24,7 +22,6 @@
 '((bind ?select-clause actor)
   (select ?result ?select-clause ?from-clause ?join-clause-1 ?where-clause ?group-by-clause)
   (bind table ?from-clause actorsfilms))
-
 
 ;; '(:select actor film :from actorsfilms)
 (defparameter *first-test*
@@ -171,6 +168,50 @@
   (dot ?column-5 ?table-2 ?column-6)
   (bind column ?column-6 year)
   (bind concept ?comparator-1 2021))
+
+;; (execute-postmodern-query '(:select film :from films :where (:in film_id (:select film_id :from years :where (:= year 2021)))))
+'((bind column ?select-clause film)
+  (select ?result-1 ?select-clause-1 ?from-clause-1 ?join-clause-1 ?where-clause-1 ?group-by-clause-1)
+  (bind table ?from-clause-1 films)
+  (select ?result-2 ?select-clause-2 ?from-clause-2 ?join-clause-2 ?where-clause-2 ?group-by-clause-2)
+  (bind table ?from-clause-2 years)
+  (bind column ?column-1 film_id)
+  (bind column ?column-2 year)
+  (where ?where-clause-1 ?filter-1)
+  (in ?filter-1 ?column-1 ?result-2)
+  (where ?where-clause-2 ?filter-2)
+  (equals ?filter-2 ?column-2 ?comparator-1)
+  (bind concept ?comparator-1 2021))
+
+;(disconnect-toplevel)
+;(connect-toplevel "geography.db" "postgres" "postgres" "localhost")
+
+;; "SELECT CITYalias0.CITY_NAME FROM CITY AS CITYalias0 WHERE CITYalias0.POPULATION = ( SELECT MAX( CITYalias1.POPULATION ) FROM CITY AS CITYalias1 WHERE CITYalias1.STATE_NAME = \"state_name0\" ) AND CITYalias0.STATE_NAME = \"state_name0\" ;
+;; (execute-postmodern-query '(:select CITYalias0.CITY_NAME :from (:as CITY CITYalias0) :where (:and (:= CITYalias0.POPULATION (:select (:max CITYalias1.POPULATION) :from (:as CITY CITYalias1) :where (:= CITYalias1.STATE_NAME "wyoming"))) (:= CITYalias0.STATE_NAME "wyoming"))))
+'((dot ?column-1 ?alias-1 ?column-2)
+  (bind concept ?alias-1 CITYalias0)
+  (bind column ?column-2 CITY_NAME)
+  (select ?result-1 ?select-clause-1 ?from-clause-1 ?join-clause-1 ?where-clause-1 ?group-by-clause-1)
+  (as ?from-clause-1 ?table-1 ?alias-1)
+  (where ?where-clause-1 ?filter-1)
+  (and ?filter-1 ?filter-2 ?filter-3)
+  (equals ?filter-2 ?column-3 ?result-2)
+  (dot ?column-3 ?alias-1 ?column-4)
+  (bind column ?column-4 POPULATION)
+  (select ?result-2 ?select-clause-2 ?from-clause-2 ?join-clause-2 ?where-clause-2 ?group-by-clause-2)
+  (max ?select-clause-2 ?column-5)
+  (dot ?column-5 ?alias-2 ?column-4)
+  (bind concept ?alias-2 CITYalias1)
+  (as ?from-clause-2 ?table-1 ?alias-2)
+  (where ?where-clause-2 ?filter-4)
+  (equals ?filter-4 ?column-6 ?comparator-1)
+  (dot ?column-6 ?alias-2 ?column-7)
+  (dot column ?column-7 STATE_NAME)
+  (bind concept ?comparator-1 "wyoming")
+  (equals ?filter-4 ?column-8 ?comparator-1)
+  (dot ?column-8 ?alias-1 ?column-7))
+
+;need to change : select-clause, from-clause (need :as possible), dot predicate (can take an alias as a second argument)
 
 ;; (execute-postmodern-query '(:select (:distinct film) :from films :inner-join years :on (:= films.film_id years.film_id) :where (:= years.year 2021)))
 '((distinct ?select-clause ?column-1)
@@ -494,6 +535,8 @@
 
 ;(ql:quickload :irl)
 ;(irl:draw-irl-program *test-network* :open t)
+
+
 
 
  

@@ -3,6 +3,7 @@
 ;; ----------------
 ;; + F-Divergence +
 ;; ----------------
+
 (defgeneric f-divergence (distribution1 distribution2 mode &key &allow-other-keys)
   (:documentation "Returns the f-divergence between two distributions."))
 
@@ -23,17 +24,17 @@
   "Quantifies the hellinger distance between two probability distributions.
 
    It forms a bounded metric on the space of probability distributions
-     over a given probability space. Maximum distance 1 is achieved when P
-     assigns probability zero to every set to which Q assigns a positive
-     probability, and vice versa."
-  (if (and (eq sigma1 0.0)
-           (eq sigma2 0.0))
+     over a given probability space. Maximum distance 1 is achieved when
+     P assigns probability zero to every set to which Q assigns a positive probability,
+     and vice versa."
+  (if (and (zerop sigma1)
+           (zerop sigma2))
     ;; if both distributions are Dirac distributions with zero sigma, return maximal distance of 1
     1.0
     ;; otherwise perform distance calculation
-    (sqrt (- 1
+    (realpart (sqrt (- 1
              (sqrt (*
                     (/ (* 2 sigma1 sigma2)
                        (+ (expt sigma1 2) (expt sigma2 2)))
                     (exp (* -1/2 (/ (expt (- mu1 mu2) 2)
-                                    (+ (expt sigma1 2) (expt sigma2 2)))))))))))
+                                    (+ (expt sigma1 2) (expt sigma2 2))))))))))))

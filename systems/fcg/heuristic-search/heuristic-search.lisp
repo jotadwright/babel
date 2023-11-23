@@ -50,6 +50,7 @@
    the next solution is found."
   (when notify (notify cip-started cip))
   (loop with solution = nil
+        with non-succeeded-solution-p = nil
         with search-algorithm = (get-configuration cip :search-algorithm)
         for node = (pop (queue cip))
         when node
@@ -107,12 +108,13 @@
         (unless (or solution
                     (succeeded-nodes cip))
           (setf solution (get-last-cip-node cip))
+          (setf non-succeeded-solution-p t)
           ;; make-sure goal-tests are run!
           (progn
             (cip-run-goal-tests solution cip)
             (push 'goal-test-failed (statuses solution))))
         (when notify (notify cip-finished solution cip))
-        (return (values solution cip))))
+        (return (values solution cip non-succeeded-solution-p))))
 
 
 (defmethod expand-cip-node ((node cip-node) (mode (eql :full-expansion)))

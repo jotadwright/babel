@@ -20,23 +20,46 @@
                (:module utils
                 :serial t
                 :components ((:file "cxn-supplier")
-                             (:file "goal-tests")
                              (:file "render-and-de-render")
+                             (:file "goal-tests")
+                             (:file "node-tests")
                              (:file "fcg-utils")
                              (:file "utils")))
-               (:module experiment-setup
-                :serial t
-                :components ((:file "experiment")
-                             (:file "agent")
-                             (:file "alignment")
-                             (:file "interaction")))
                (:module learning
                 :serial t
-                :components ((:file "problems-and-diagnostics")
-                             (:file "handle-fix")
+                :components ((:file "handle-fix")
+                             (:file "problems-diagnostics")
+                             (:file "cxn-skeletons")
+                             (:file "handle-potential-holistic-cxn")
+                             (:file "compute-args")
+                             (:file "anti-unify-utils")
+                             (:file "make-cxns")
                              (:file "repair-add-categorial-links")
-                             (:file "repair-anti-unify-cxns")))
-               )
+                             (:file "repair-add-cxn")
+                             (:file "repair-anti-unify-cxns")
+                             (:file "repair-anti-unify-cipn")))
+               (:module experiment
+                :serial t
+                :components ( (:file "run-helpers")
+                              (:file "agent")
+                              (:file "alignment")
+                              (:file "experiment")
+                              (:file "interaction")
+                              (:module monitors
+                               :serial t
+                               :components ((:file "utils")
+                                            (:file "web-monitors")
+                                            (:file "export-monitors")
+                                            (:file "lisp-monitors")))))
+               (:module tests
+                :serial t
+                :components ((:file "utils"))
+               ;              (:module irl
+               ;               :serial t
+               ;               :components ((:file "test-substitutions")
+               ;                            (:file "test-additions")
+               ;                            (:file "test-deletions"))
+                ))
   :description "A Common Lisp package for learning construction grammars.")
 
 

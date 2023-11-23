@@ -16,22 +16,34 @@
                :test-framework
                :meta-layer-learning
                :irl
-               :fcg 
-               :clevr-world
+               :fcg
                :cl-mop
-               :cl-json)
+               :cl-json
+               :cl-jonathan
+               ;:distributions
+               )
   :serial t
   :components ((:file "package")
+               (:module "dataset"
+                :serial t
+                :components ((:file "all")
+                             (:file "clevr")
+                             (:file "winery")
+                             (:file "credit")
+                             (:file "beans")
+                             ))
                (:module "world"
                 :serial t
-                :components ((:file "clevr")
-                             (:file "import")
+                :components ((:file "world")
+                             (:file "object")
                              (:file "scene")
                              (:file "topic")
+                             (:file "utils")
                              ))
                (:module "agent"
                 :serial t
-                :components ((:file "agent")
+                :components ((:file "utils")
+                             (:file "agent")
                              (:file "adoption")
                              (:file "alignment")
                              (:file "invention")
@@ -57,6 +69,7 @@
                (:module "distribution"
                 :serial t
                 :components ((:file "gaussian")
+                             (:file "welford")
                              (:file "divergence")
                              ))
                (:module "interaction"
@@ -66,15 +79,17 @@
                              (:file "before")
                              (:file "during")
                              (:file "after")
-                             (:file "run")))
+                             (:file "run")
+                             (:file "switch")))
                (:module "utils"
                 :serial t
-                :components ((:file "utils")))
+                :components ((:file "analysis")
+                             (:file "graph")
+                             (:file "utils")))
                (:module "web"
                 :serial t
                 :components ((:file "html")
                              (:file "s-dot")
                              (:file "s-dot-diff")
-                             (:file "utils")
                              (:file "web-monitor")
                              (:file "monitors")))))

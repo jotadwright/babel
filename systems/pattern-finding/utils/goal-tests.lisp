@@ -1,4 +1,4 @@
-(in-package :pattern-finding)
+(in-package :pf)
 
 ;;;;;;;;;;;;;;;;;;;
 ;; CIP Goal Test ;;

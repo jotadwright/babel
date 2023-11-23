@@ -100,6 +100,7 @@
    (list *almond-crescent-cookies-gold-standard*)
    :metrics *all-metrics*))
 (show-metrics-on-web-interface (first *perfect-solution*))
+;; dish approx score 1
 
 
 ;; operations are presented in a different order in the file
@@ -113,6 +114,7 @@
    (list *almond-crescent-cookies-gold-standard*)
    :metrics *all-metrics*))
 (show-metrics-on-web-interface (first *perfect-permuted-sequence*))
+;; dish approx score 1
 
 
 ;; almond extract is added to the bowl first before the vanilla extract is added
@@ -125,6 +127,7 @@
    (list *almond-crescent-cookies-gold-standard*)
    :metrics *all-metrics*))
 (show-metrics-on-web-interface (first *perfect-switched-operations*))
+;; dish approx score 1
 
 
 ;; using always new tools instead of reusing the same tools
@@ -137,6 +140,7 @@
    (list *almond-crescent-cookies-gold-standard*)
    :metrics *all-metrics*))
 (show-metrics-on-web-interface (first *missing-tool-reuse*))
+;; dish approx score 1
 
 
 ;; missing the unspecified operation of letting the butter get
@@ -148,8 +152,9 @@
                                 "examples" "evaluation")
                 :name "missing-minor-implicit" :type "solution")
    (list *almond-crescent-cookies-gold-standard*)
-   :metrics *all-metrics*))
+   :metrics '(dish-approximation-score)))
 (show-metrics-on-web-interface (first *missing-minor-implicit*))
+;; dish approx score 0.99
 
 
 ;;  MISSING STEPS: putting the cookies on a lined baking tray,
@@ -161,8 +166,9 @@
                                 "examples" "evaluation")
                    :name "partial-failure" :type "solution")
    (list *almond-crescent-cookies-gold-standard*)
-   :metrics *all-metrics*))
+   :metrics '(dish-approximation-score)))
 (show-metrics-on-web-interface (first *partial-failure*))
+;; dish approx score 0.82
 
 
 ;; used cocoa-powder instead of sugar   
@@ -173,8 +179,9 @@
                                 "examples" "evaluation")
                    :name "wrong-ingredient" :type "solution")
    (list *almond-crescent-cookies-gold-standard*)
-   :metrics *all-metrics*))
+   :metrics '(dish-approximation-score)))
 (show-metrics-on-web-interface (first *wrong-ingredient*))
+;; dish approx score 0.75
 
 
 ;; additional operations occur in order to make some chocolate dip,
@@ -186,8 +193,9 @@
                                 "examples" "evaluation")
                    :name "additional-side-dish" :type "solution")
    (list *almond-crescent-cookies-gold-standard*)
-   :metrics *all-metrics*))
+   :metrics '(dish-approximation-score)))
 (show-metrics-on-web-interface (first *additional-side-dish*))
+;; dish approx score 1
 
 
 ;; additional operations in order to make some chocolate
@@ -199,8 +207,9 @@
                                 "examples" "evaluation")
                    :name "extended-main-dish" :type "solution")
    (list *almond-crescent-cookies-gold-standard*)
-   :metrics *all-metrics*))
+   :metrics '(dish-approximation-score)))
 (show-metrics-on-web-interface (first *extended-main-dish*))
+;; dish approx score 0.87
 
 
 ;; only steps that have been recognized were fetching tools
@@ -211,6 +220,7 @@
                                 "examples" "evaluation")
                    :name "no-cooking" :type "solution")
    (list *almond-crescent-cookies-gold-standard*)
-   :metrics *all-metrics*))
+   :metrics '(dish-approximation-score)))
 (show-metrics-on-web-interface (first *no-cooking*))
+;; dish approx score 0
 

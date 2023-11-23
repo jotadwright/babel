@@ -22,6 +22,8 @@
                                               resulting-source-delta)
                             (anti-unify-aligned-strings pattern-in-alignment source-in-alignment)
                           (make-instance 'anti-unification-result
+                                         :pattern pattern
+                                         :source source
                                          :generalisation (generalisation-chars->strings resulting-generalisation)
                                          :pattern-delta (loop for (var . chars) in resulting-pattern-delta
                                                               collect (cons var (coerce chars 'string)))
@@ -119,8 +121,22 @@
 
 ;(anti-unify-strings "GCATGCG" "GATTACA")
 ;(anti-unify-strings "What size is the cube?" "What size is the red cube?")
-;(anti-unify-strings "What size is the blue cube?" "What size is the red cube?")
+;(print-anti-unification-results (anti-unify-strings "What size is the blue cube?" "What size is the red cube?"))
 ;(anti-unify-strings "What is the color of the sphere?" "What is the size of the cube?")
+
+#|
+(length
+ (remove-if #'(lambda (x) (< (score x) 0))
+            (maximal-string-alignments "The tiny shiny cylinder has what color?"
+                                       "What is the material of the big purple object?")))
+(length
+ (anti-unify-strings "The tiny shiny cylinder has what color?"
+                     "What is the material of the big purple object?"))
+
+=> 3196800 possible alignments 
+=> 0 possible alignments with positive score
+|#
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Maximal string alignments ;;
@@ -143,6 +159,10 @@
     ;; Fill in the scores for the first row and the first column.
     (setf-matrix-column scores 0 (list->array (mapcar #'- (iota (abs (* gap (+ nx 1))) :step (abs gap)))))
     (setf-matrix-row scores 0 (list->array (mapcar #'- (iota (abs (* gap (+ ny 1))) :step (abs gap)))))
+    ;; Fill in the pointers for the first row and the first column.
+    (setf-matrix-column pointers 0 (make-array (list (+ nx 1)) :initial-element '(:top)))
+    (setf-matrix-row pointers 0 (make-array (list (+ ny 1)) :initial-element '(:left)))
+    (setf (aref pointers 0 0) nil)
 
     ;; Calculate the score for each cell by looking at the left cell, the top cell
     ;; and the top-left cell and adding the appropriate score for match, mismatch
@@ -244,6 +264,28 @@
 (mapcar #'print-string-alignments
         (maximal-string-alignments "What is the color of the sphere?"
                                    "What is the size of the cube?"))
+
+(mapcar #'print-string-alignments
+        (maximal-string-alignments "How large is the sphere?"
+                                   "What size is the cube?"))
+
+(length
+ (maximal-string-alignments "The tiny shiny cylinder has what color?"
+                            "What is the color of the large shiny sphere?"))
+=> 216 possible alignments
+
+(length
+ (maximal-string-alignments "The tiny shiny cylinder has what color?"
+                            "What is the material of the big purple object?"))
+=> 3196800 possible alignments 
+==> 
+
+(length
+ (anti-unify-predicate-network
+  (form-constraints-with-meets (split "The tiny shiny cylinder has what color?" #\space) :variables t)
+  (form-constraints-with-meets (split "What is the material of the big purple object?" #\space) :variables t)))
+=> 40320 anti-unification results
+
 |#
 
 
@@ -278,10 +320,12 @@
                                    (nth (- pos-in-gen 1) generalisation-predicates))
             for right-neighbour = (unless (= pos-in-gen (- (length generalisation) 1))
                                     (nth (+ pos-in-gen 1) generalisation-predicates))
-            if (and (string= pattern-elem "") left-neighbour right-neighbour)
+            if (string= pattern-elem "")
             do (let ((fresh-var (make-var (next-au-var))))
-                 (push (cons fresh-var (third right-neighbour)) pattern-bindings)
-                 (push (cons fresh-var (fourth left-neighbour)) pattern-bindings))
+                 (when right-neighbour
+                   (push (cons fresh-var (third right-neighbour)) pattern-bindings))
+                 (when left-neighbour
+                   (push (cons fresh-var (fourth left-neighbour)) pattern-bindings)))
             else
             do (let ((pattern-left-boundary (make-var (next-au-var)))
                      (pattern-right-boundary (make-var (next-au-var))))
@@ -321,7 +365,8 @@
                      :source-bindings source-bindings
                      :pattern-delta pattern-delta-predicates
                      :source-delta source-delta-predicates
-                     :cost cost))))
+                     :cost (+ (length pattern-delta-predicates)
+                              (length source-delta-predicates))))))
 
 #|
 
@@ -341,5 +386,8 @@
 
 (anti-unify-strings "What is the color of the sphere?" "What is the size of the cube?"
                     :to-sequence-predicates-p t)
+
+(setf *test*
+      (anti-unify-strings "what size is the cube?" "what color is the"))
   
 |#

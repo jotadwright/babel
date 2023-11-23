@@ -113,154 +113,154 @@
   ;;;;;;;;;;;
 
 
-    (def-fcg-cxn gram-cxn
-               ((?gram-unit
-                 (ontology g)
-                 (boundaries (left ?gram-unit)
-                             (right ?gram-unit)))
-                <-
-                (?gram-unit
-                 --
-                 (lex-id gram)))
-               :feature-types ((ontology default :lookup-in-ontology)))
+(def-fcg-cxn gram-cxn
+             ((?gram-unit
+               (ontology g)
+               (boundaries (left ?gram-unit)
+                           (right ?gram-unit)))
+              <-
+              (?gram-unit
+               --
+               (lex-id gram)))
+             :feature-types ((ontology default :lookup-in-ontology)))
 
-  (def-fcg-cxn grams-morph-cxn
-               ((?grams-unit
-                 (lex-id gram))
-                <-
-                (?grams-unit
-                 --
-                 (HASH form ((string ?grams-unit "grams"))))))
+(def-fcg-cxn grams-morph-cxn
+             ((?grams-unit
+               (lex-id gram))
+              <-
+              (?grams-unit
+               --
+               (HASH form ((string ?grams-unit "grams"))))))
 
-  (def-fcg-cxn gram-morph-cxn
-               ((?gram-unit
-                 (lex-id gram))
-                <-
-                (?gram-unit
-                 --
-                 (HASH form ((string ?gram-unit "gram"))))))
+(def-fcg-cxn gram-morph-cxn
+             ((?gram-unit
+               (lex-id gram))
+              <-
+              (?gram-unit
+               --
+               (HASH form ((string ?gram-unit "gram"))))))
 
-  (def-fcg-cxn g-morph-cxn
-               ((?gram-unit
-                 (lex-id gram))
-                <-
-                (?gram-unit
-                 --
-                 (HASH form ((string ?gram-unit "g"))))))
-
-
- (def-fcg-cxn degrees-celsius-cxn
-               ((?degrees-celsius-unit
-                 (ontology degrees-celsius)
-                 (boundaries (left ?degrees-celsius-unit)
-                             (right ?degrees-celsius-unit)))
-                <-
-                (?degrees-celsius-unit
-                 --
-                 (lex-id degrees-celsius)))
-               :feature-types ((ontology default :lookup-in-ontology)))
-
- (def-fcg-cxn �C-morph-cxn
-               ((?degrees-celsius-unit
-                 (lex-id degrees-celsius))
-                <-
-                (?degrees-celsius-unit
-                 --
-                 (HASH form ((string ?degrees-celsius-unit "�C"))))))
- 
-
-  (def-fcg-cxn cup-cxn
-               ((?cup-unit
-                 (ontology cup)
-                 (boundaries (left ?cup-unit)
-                             (right ?cup-unit)))
-                <-
-                (?cup-unit
-                 --
-                 (lex-id cup)))
-               :feature-types ((ontology default :lookup-in-ontology)))
-
-  (def-fcg-cxn cups-morph-cxn
-               ((?cups-unit
-                 (lex-id cup))
-                <-
-                (?cups-unit
-                 --
-                 (HASH form ((string ?cups-unit "cups"))))))
-
-  (def-fcg-cxn cup-morph-cxn
-               ((?cup-unit
-                 (lex-id cup))
-                <-
-                (?cup-unit
-                 --
-                 (HASH form ((string ?cup-unit "cup"))))))
+(def-fcg-cxn g-morph-cxn
+             ((?gram-unit
+               (lex-id gram))
+              <-
+              (?gram-unit
+               --
+               (HASH form ((string ?gram-unit "g"))))))
 
 
-  (def-fcg-cxn tablespoon-cxn
-               ((?tablespoon-unit
-                 (ontology tablespoon)
-                 (boundaries (left ?tablespoon-unit)
-                             (right ?tablespoon-unit)))
-                <-
-                (?tablespoon-unit
-                 --
-                 (lex-id tablespoon)))
-               :feature-types ((ontology default :lookup-in-ontology)))
+(def-fcg-cxn degrees-celsius-cxn
+             ((?degrees-celsius-unit
+               (ontology degrees-celsius)
+               (boundaries (left ?degrees-celsius-unit)
+                           (right ?degrees-celsius-unit)))
+              <-
+              (?degrees-celsius-unit
+               --
+               (lex-id degrees-celsius)))
+             :feature-types ((ontology default :lookup-in-ontology)))
 
-  (def-fcg-cxn tablespoons-morph-cxn
-               ((?tablespoons-unit
-                 (lex-id tablespoon))
-                <-
-                (?tablespoons-unit
-                 --
-                 (HASH form ((string ?tablespoons-unit "tablespoons"))))))
+(def-fcg-cxn �C-morph-cxn
+             ((?degrees-celsius-unit
+               (lex-id degrees-celsius))
+              <-
+              (?degrees-celsius-unit
+               --
+               (HASH form ((string ?degrees-celsius-unit "�C"))))))
 
 
-  (def-fcg-cxn minute-cxn
-               ((?minute-unit
-                 (ontology minute)
-                 (boundaries (left ?minute-unit)
-                             (right ?minute-unit)))
-                <-
-                (?minute-unit
-                 --
-                 (lex-id minute)))
-               :feature-types ((ontology default :lookup-in-ontology)))
+(def-fcg-cxn cup-cxn
+             ((?cup-unit
+               (ontology cup)
+               (boundaries (left ?cup-unit)
+                           (right ?cup-unit)))
+              <-
+              (?cup-unit
+               --
+               (lex-id cup)))
+             :feature-types ((ontology default :lookup-in-ontology)))
 
-  (def-fcg-cxn minutes-morph-cxn
-               ((?minutes-unit
-                 (lex-id minute))
-                <-
-                (?minutes-unit
-                 --
-                 (HASH form ((string ?minutes-unit "minutes"))))))
+(def-fcg-cxn cups-morph-cxn
+             ((?cups-unit
+               (lex-id cup))
+              <-
+              (?cups-unit
+               --
+               (HASH form ((string ?cups-unit "cups"))))))
 
-  (def-fcg-cxn minute-morph-cxn
-               ((?minute-unit
-                 (lex-id minute))
-                <-
-                (?minute-unit
-                 --
-                 (HASH form ((string ?minute-unit "minute"))))))
+(def-fcg-cxn cup-morph-cxn
+             ((?cup-unit
+               (lex-id cup))
+              <-
+              (?cup-unit
+               --
+               (HASH form ((string ?cup-unit "cup"))))))
+
+
+(def-fcg-cxn tablespoon-cxn
+             ((?tablespoon-unit
+               (ontology tablespoon)
+               (boundaries (left ?tablespoon-unit)
+                           (right ?tablespoon-unit)))
+              <-
+              (?tablespoon-unit
+               --
+               (lex-id tablespoon)))
+             :feature-types ((ontology default :lookup-in-ontology)))
+
+(def-fcg-cxn tablespoons-morph-cxn
+             ((?tablespoons-unit
+               (lex-id tablespoon))
+              <-
+              (?tablespoons-unit
+               --
+               (HASH form ((string ?tablespoons-unit "tablespoons"))))))
+
+
+(def-fcg-cxn minute-cxn
+             ((?minute-unit
+               (ontology minute)
+               (boundaries (left ?minute-unit)
+                           (right ?minute-unit)))
+              <-
+              (?minute-unit
+               --
+               (lex-id minute)))
+             :feature-types ((ontology default :lookup-in-ontology)))
+
+(def-fcg-cxn minutes-morph-cxn
+             ((?minutes-unit
+               (lex-id minute))
+              <-
+              (?minutes-unit
+               --
+               (HASH form ((string ?minutes-unit "minutes"))))))
+
+(def-fcg-cxn minute-morph-cxn
+             ((?minute-unit
+               (lex-id minute))
+              <-
+              (?minute-unit
+               --
+               (HASH form ((string ?minute-unit "minute"))))))
 
   
 ;; Quantity-cxn ;;
 ;;;;;;;;;;;;;;;;;;
 
-  (def-fcg-cxn quantity-cxn
-               ((?quantity-unit
-                 (value ?quantity)
-                 (ontology quantity)
-                 (boundaries (left ?quantity-unit)
-                             (right ?quantity-unit)))
-                <-
-                (?quantity-unit
-                 --
-                 (HASH form ((string ?quantity-unit ?quantity)))))
-               :feature-types ((form set-of-predicates :number)
-                               (value default :parse-integer)
-                               (ontology default :lookup-in-ontology)))
+(def-fcg-cxn quantity-cxn
+             ((?quantity-unit
+               (value ?quantity)
+               (ontology quantity)
+               (boundaries (left ?quantity-unit)
+                           (right ?quantity-unit)))
+              <-
+              (?quantity-unit
+               --
+               (HASH form ((string ?quantity-unit ?quantity)))))
+             :feature-types ((form set-of-predicates :number)
+                             (value default :parse-integer)
+                             (ontology default :lookup-in-ontology)))
 
 
 
@@ -316,120 +316,120 @@
                (HASH form ((meets ?powdered-unit ?sugar-unit)))))
              :feature-types ((ontology default :lookup-in-ontology)))
 
-  (def-fcg-cxn sugar-cxn
-               ((?sugar-unit
-                 (ontology white-sugar)
-                 (boundaries (left ?sugar-unit)
-                             (right ?sugar-unit)))
-                <-
-                (?sugar-unit
-                 --
-                 (HASH form ((string ?sugar-unit "sugar")))))
-               :feature-types ((ontology default :lookup-in-ontology)))
+(def-fcg-cxn sugar-cxn
+             ((?sugar-unit
+               (ontology white-sugar)
+               (boundaries (left ?sugar-unit)
+                           (right ?sugar-unit)))
+              <-
+              (?sugar-unit
+               --
+               (HASH form ((string ?sugar-unit "sugar")))))
+             :feature-types ((ontology default :lookup-in-ontology)))
 
-  (def-fcg-cxn flour-cxn
-               ((?flour-unit
-                 (ontology all-purpose-flour)
-                 (boundaries (left ?flour-unit)
-                             (right ?flour-unit)))
-                <-
-                (?flour-unit
-                 --
-                 (HASH form ((string ?flour-unit "flour")))))
-               :feature-types ((ontology default :lookup-in-ontology)))
+(def-fcg-cxn flour-cxn
+             ((?flour-unit
+               (ontology all-purpose-flour)
+               (boundaries (left ?flour-unit)
+                           (right ?flour-unit)))
+              <-
+              (?flour-unit
+               --
+               (HASH form ((string ?flour-unit "flour")))))
+             :feature-types ((ontology default :lookup-in-ontology)))
 
-  (def-fcg-cxn almond-extract-lex-cxn
-               ((?almond-extract-unit
-                 (ontology almond-extract))
-                <-
-                (?almond-extract-unit
-                 --
-                 (lex-id almond-extract)))
-               :feature-types ((ontology default :lookup-in-ontology)))
+(def-fcg-cxn almond-extract-lex-cxn
+             ((?almond-extract-unit
+               (ontology almond-extract))
+              <-
+              (?almond-extract-unit
+               --
+               (lex-id almond-extract)))
+             :feature-types ((ontology default :lookup-in-ontology)))
 
-  (def-fcg-cxn almond-extract-morph-cxn
-               ((?almond-extract-unit
-                 (lex-id almond-extract)
-                 (boundaries (left ?almond-unit)
-                             (right ?extract-unit))
-                 (subunits (?almond-unit ?extract-unit)))
-                <-
-                (?almond-unit
-                 --
-                 (HASH form ((string ?almond-unit "almond"))))
-                (?extract-unit
-                 --
-                 (HASH form ((string ?extract-unit "extract"))))
-                (?almond-extract-unit
-                 --
-                 (HASH form ((meets ?almond-unit ?extract-unit))))))
+(def-fcg-cxn almond-extract-morph-cxn
+             ((?almond-extract-unit
+               (lex-id almond-extract)
+               (boundaries (left ?almond-unit)
+                           (right ?extract-unit))
+               (subunits (?almond-unit ?extract-unit)))
+              <-
+              (?almond-unit
+               --
+               (HASH form ((string ?almond-unit "almond"))))
+              (?extract-unit
+               --
+               (HASH form ((string ?extract-unit "extract"))))
+              (?almond-extract-unit
+               --
+               (HASH form ((meets ?almond-unit ?extract-unit))))))
 
-  (def-fcg-cxn almond-flour-cxn
-               ((?almond-flour-unit
-                 (ontology almond-flour)
-                 (boundaries (left ?almond-unit)
-                             (right ?flour-unit))
-                 (subunits (?almond-unit ?flour-unit)))
-                <-
-                (?almond-unit
-                 --
-                 (HASH form ((string ?almond-unit "almond"))))
-                (?flour-unit
-                 --
-                 (HASH form ((string ?flour-unit "flour"))))
-                (?almond-flour-unit
-                 --
-                 (HASH form ((meets ?almond-unit ?flour-unit)))))
-               :feature-types ((ontology default :lookup-in-ontology)))
+(def-fcg-cxn almond-flour-cxn
+             ((?almond-flour-unit
+               (ontology almond-flour)
+               (boundaries (left ?almond-unit)
+                           (right ?flour-unit))
+               (subunits (?almond-unit ?flour-unit)))
+              <-
+              (?almond-unit
+               --
+               (HASH form ((string ?almond-unit "almond"))))
+              (?flour-unit
+               --
+               (HASH form ((string ?flour-unit "flour"))))
+              (?almond-flour-unit
+               --
+               (HASH form ((meets ?almond-unit ?flour-unit)))))
+             :feature-types ((ontology default :lookup-in-ontology)))
 
-  (def-fcg-cxn vanilla-cxn
-               ((?vanilla-unit
-                 (ontology vanilla)
-                 (boundaries (left ?vanilla-unit)
-                             (right ?vanilla-unit)))
-                <-
-                (?vanilla-unit
-                 --
-                 (HASH form ((string ?vanilla-unit "vanilla")))))
-               :feature-types ((ontology default :lookup-in-ontology)))
+(def-fcg-cxn vanilla-cxn
+             ((?vanilla-unit
+               (ontology vanilla)
+               (boundaries (left ?vanilla-unit)
+                           (right ?vanilla-unit)))
+              <-
+              (?vanilla-unit
+               --
+               (HASH form ((string ?vanilla-unit "vanilla")))))
+             :feature-types ((ontology default :lookup-in-ontology)))
 
-  (def-fcg-cxn almond-cxn
-               ((?almond-unit
-                 (ontology almond)
-                 (boundaries (left ?almond-unit)
-                             (right ?almond-unit)))
-                <-
-                (?almond-unit
-                 --
-                 (HASH form ((string ?almond-unit "almond")))))
-               :feature-types ((ontology default :lookup-in-ontology)))
-  
+(def-fcg-cxn almond-cxn
+             ((?almond-unit
+               (ontology almond)
+               (boundaries (left ?almond-unit)
+                           (right ?almond-unit)))
+              <-
+              (?almond-unit
+               --
+               (HASH form ((string ?almond-unit "almond")))))
+             :feature-types ((ontology default :lookup-in-ontology)))
 
-  (def-fcg-cxn vanilla-extract-lex-cxn
-               ((?vanilla-extract-unit
-                 (ontology vanilla-extract))
-                <-
-                (?vanilla-extract-unit
-                 --
-                 (lex-id vanilla-extract)))
-               :feature-types ((ontology default :lookup-in-ontology)))
 
-  (def-fcg-cxn vanilla-extract-morph-cxn
-               ((?vanilla-extract-unit
-                 (lex-id vanilla-extract)
-                 (subunits (?vanilla-unit ?extract-unit))
-                 (boundaries (left ?vanilla-unit)
-                             (right ?extract-unit)))
-                <-
-                (?vanilla-unit
-                 --
-                 (HASH form ((string ?vanilla-unit "vanilla"))))
-                (?extract-unit
-                 --
-                 (HASH form ((string ?extract-unit "extract"))))
-                (?vanilla-extract-unit
-                 --
-                 (HASH form ((meets ?vanilla-unit ?extract-unit))))))
+(def-fcg-cxn vanilla-extract-lex-cxn
+             ((?vanilla-extract-unit
+               (ontology vanilla-extract))
+              <-
+              (?vanilla-extract-unit
+               --
+               (lex-id vanilla-extract)))
+             :feature-types ((ontology default :lookup-in-ontology)))
+
+(def-fcg-cxn vanilla-extract-morph-cxn
+             ((?vanilla-extract-unit
+               (lex-id vanilla-extract)
+               (subunits (?vanilla-unit ?extract-unit))
+               (boundaries (left ?vanilla-unit)
+                           (right ?extract-unit)))
+              <-
+              (?vanilla-unit
+               --
+               (HASH form ((string ?vanilla-unit "vanilla"))))
+              (?extract-unit
+               --
+               (HASH form ((string ?extract-unit "extract"))))
+              (?vanilla-extract-unit
+               --
+               (HASH form ((meets ?vanilla-unit ?extract-unit))))))
 
 
   (def-fcg-cxn extract-cxn
@@ -1378,21 +1378,21 @@
       (process-utterances '(;;;; Ingredients
                             "230 grams butter , room temperature"
                             "120 grams sugar"
-                            "4 grams vanilla extract"
-                            "4 grams almond extract"
-                            "340 grams flour"
-                            "120 grams almond flour"
-                            "30 grams powdered sugar"
+                            ;"4 grams vanilla extract"
+                            ;"4 grams almond extract"
+                            ;"340 grams flour"
+                            ;"120 grams almond flour"
+                            ;"30 grams powdered sugar"
 
                             ;;;; Instructions
                             "beat the butter and the sugar together until light and fluffy"
-                            "add the vanilla and almond extracts and mix"
-                            "add the flour and the almond flour"
-                            "mix thoroughly"
-                            "take generous tablespoons of the dough and roll it into a small ball , about an inch in diameter , and then shape it into a crescent shape"
-                            "place onto a parchment paper lined baking sheet"
-                            "bake at 175 �C for 15 - 20 minutes" ; or until a light golden brown
-                            "dust with powdered sugar"
+                            ;"add the vanilla and almond extracts and mix"
+                            ;"add the flour and the almond flour"
+                            ;"mix thoroughly"
+                            ;"take generous tablespoons of the dough and roll it into a small ball , about an inch in diameter , and then shape it into a crescent shape"
+                            ;"place onto a parchment paper lined baking sheet"
+                            ;"bake at 175 �C for 15 - 20 minutes" ; or until a light golden brown
+                            ;"dust with powdered sugar"
                             "end"
                             )
                             ; *pdm*
@@ -1402,10 +1402,20 @@
                           )
     (append *init-op* meaning-network)))
 
-(length *output*)
+;; accessible entities = language comprehension that takes into account the entities in the world.
+;; after comprehension, the resulting meaning representation is executed in the world
+;; and the resulting referent is made available as an accessible entity for the next
+;; comprehension. This allows to resolve references such as 'the butter' already during
+;; language comprehension! How is this done? Through ontological vectors!
+
+;; ontological vectors
+;; to match the X from the utterance with the X from the world
+;; compute the cosine similarity between their ontological vectors
+;; these are one-hot encodings of the ontological classes
+;; if the similarity is greater than 0.9, there is a match.
 
 
-
+#|
 
 (defparameter *filepath* "C:\\Users\\robin\\Projects\\babel\\applications\\muhai-cookingbot\\test.lisp")
 (defparameter *recipe-title* "almond-crescent-cookies")
@@ -1424,5 +1434,6 @@
     (dolist (prim-op meaning-network)
       (format output-stream "~(~a~)~%" prim-op))
     (close output-stream)))
+|#
 
 ;(write-to-file *recipe-title* *output* *filepath*)

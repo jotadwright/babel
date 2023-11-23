@@ -162,6 +162,15 @@
             (set-difference network-2 non-overlapping-continuous-predicates-2 :test #'equal)
             )))
 
+(defmethod diff-meaning-networks (network-1 network-2 (mode (eql :cooking)))
+  (multiple-value-bind (non-overlapping-meaning-observation
+                        non-overlapping-meaning-cxn)
+      (diff-meaning-networks network-1 network-2 :amr)
+    (values non-overlapping-meaning-observation
+            non-overlapping-meaning-cxn
+            (set-difference network-1 non-overlapping-meaning-observation :test #'equal)
+            (set-difference network-2 non-overlapping-meaning-cxn :test #'equal))))
+
 
 (defun add-dummy-end-meets (form-constraints)
   (append form-constraints

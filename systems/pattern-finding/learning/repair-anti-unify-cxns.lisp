@@ -1,5 +1,8 @@
-(in-package :pattern-finding)
+(in-package :pf)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Repair anti-unify cxns ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defclass anti-unify-cxns (add-cxns-and-categorial-links) 
   ((trigger :initform 'fcg::new-node)))
@@ -9,9 +12,14 @@
                    (problem non-gold-standard-meaning)
                    (node cip-node)
                    &key &allow-other-keys)
-  "Repair by anti-unifying the observation with the subset of cxns
-   that results in the smallest generalisation."
-  (let ((cxns-and-categorial-links (create-cxns-by-anti-unification problem node)))
+  (let ((cxns-and-categorial-links
+         (do-repair
+          (get-data problem :utterance)
+          (get-data problem :meaning)
+          (make-blackboard)
+          (construction-inventory node)
+          node
+          'anti-unify-cxns)))
     (when cxns-and-categorial-links
       (make-instance 'fcg::cxn-fix
                      :repair repair
@@ -19,312 +27,619 @@
                      :restart-data cxns-and-categorial-links))))
 
 
-(defun create-cxns-by-anti-unification (problem node)
-  (do-repair
-   (get-data problem :utterance)
-   (get-data problem :meaning)
-   nil
-   nil
-   (construction-inventory node)
-   node
-   'anti-unify-cxns))
+(defmethod do-repair (observation-form observation-meaning (args blackboard) (cxn-inventory construction-inventory) node (repair-type (eql 'anti-unify-cxns)))
+  (when (constructions cxn-inventory)
+    (let* ((mode (get-configuration cxn-inventory :anti-unification-mode))
+           (new-cxns-and-links (find-cxns-and-anti-unify observation-form observation-meaning args (original-cxn-set cxn-inventory) mode)))
+      (when new-cxns-and-links
+        (destructuring-bind (cxns-to-apply
+                             cxns-to-consolidate
+                             cats-to-add
+                             cat-links-to-add
+                             top-level-category
+                             anti-unified-cxns) new-cxns-and-links
+          (apply-fix :form-constraints observation-form
+                     :cxns-to-apply cxns-to-apply
+                     :cxns-to-consolidate cxns-to-consolidate
+                     :categories-to-add cats-to-add
+                     :categorial-links cat-links-to-add
+                     :top-level-category top-level-category
+                     :node node
+                     :repair-name repair-type
+                     :anti-unified-cxns anti-unified-cxns))))))
 
 
-(defmethod do-repair (observation-form observation-meaning form-args meaning-args
-                                       (cxn-inventory construction-inventory)
-                                       node (repair-type (eql 'anti-unify-cxns)))
-  ;; call to apply-fix in the end
-  )
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; find cxns and anti-unify ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(define-event learn-from-anti-unification (anti-unification-results list))
 
+(defgeneric sort-cxns-for-anti-unification (form meaning list-of-cxns mode)
+  (:documentation "Sort cxns for anti-unification"))
 
+(defmethod sort-cxns-for-anti-unification (form meaning list-of-cxns (mode (eql :score)))
+  (sort list-of-cxns #'> :key #'get-cxn-score))
 
+(defmethod sort-cxns-for-anti-unification (form meaning list-of-cxns (mode (eql :form-coverage)))
+  (sort list-of-cxns #'>
+        #'(lambda (cxn)
+            (let ((cxn-string-predicates (find-all 'string (extract-form-predicates cxn) :key #'first))
+                  (obs-string-predicates (find-all 'string form :key #'first)))
+              (length (intersection cxn-string-predicates obs-string-predicates :key #'second :test #'string=))))))
 
+(defgeneric find-cxns-and-anti-unify (observation-form observation-meaning args cxn-inventory mode)
+  (:documentation "Given form and meaning of an observation and a cxn inventory,
+   find the cxn that leads to the smallest generalisation
+   and learn new cxn(s) from this generalisation."))
 
-
-;; TO DO
-;; Information from partial analysis is now NOT used
-;; Find the best partial analysis node and try to learn from that one??
-;; How to define "the best" partial analysis?
-
-;; Taking the lowest anti-unification cost with partial analyses is not
-;; a good solution, since the cost will be high instead of low! With
-;; partial analyses, the generalisation are the parts that are identical,
-;; while the rest is in the delta's. Often there will be more in the rest
-;; than in the overlap.
-
-
-(defun anti-unify-form (observation set-of-cxns)
-  "Anti-unify the observation with the given set of cxns
-   on the form side."
-  ;; anti-unify-string requires string, so need to render the observation and the cxn forms
-  ;; but rendering can return multiple solutions, so try out all combinations
-  (let* ((possible-source-forms (first (render-all observation :render-sequences)))
-         (cxn-forms (loop for cxn in set-of-cxns
-                          append (fcg::extract-form-predicates cxn)))
-         (possible-target-forms (first (render-all cxn-forms :render-sequences)))
-         (anti-unification-results
-          (loop for (pattern-form source-form) in (combinations possible-source-forms possible-target-forms)
-                append (fcg::anti-unify-strings pattern-form source-form :to-sequence-predicates-p t))))
-    (first (sort anti-unification-results #'< :key #'fcg::cost))))
-
-(defun anti-unify-meaning (source-meaning set-of-cxns)
-  "Anti-unify the observation with the given set of cxns
-   on the meaning side."
-  (let* ((pattern-meaning (loop for cxn in set-of-cxns
-                                append (fcg::extract-meaning-predicates cxn)))
-         (anti-unification-results
-          (fcg::anti-unify-predicate-network pattern-meaning source-meaning)))
-    (first anti-unification-results)))
-
-(defun sort-anti-unification-results (list-of-anti-unification-results)
-  "Sort the anti-unifcation results based on cost (of both form- and
-   meaning-anti-unification) and avg cxn score as a tie breaker."
-  (labels ((total-au-cost (combined-anti-unification-result)
-             (let ((avg-cxn-score (average (mapcar #'cxn-score (first combined-anti-unification-result))))
-                   (form-au-cost (fcg::cost (second combined-anti-unification-result)))
-                   (meaning-au-cost (fcg::cost (third combined-anti-unification-result))))
-               (+ form-au-cost meaning-au-cost (- 1 avg-cxn-score)))))
-    (sort list-of-anti-unification-results #'< :key #'total-au-cost)))
-
-(defun find-cxns-and-anti-unify (observation-form observation-meaning cxn-inventory)
-  "Given form and meaning of an observation and a cxn inventory,
-   find the set of cxns that leads to the smallest generalisation
-   and learn new cxn(s) from this generalisation."
-  (if (null (constructions cxn-inventory))
-    ;; if the cxn inventory is empty, immediately learn a holistic cxn
-    ;; for the entire observation
-    (make-holistic-cxn observation-form observation-meaning cxn-inventory)
-    (let* (;; 1) select cxns by hasing the observation according to processing direction
-           ;;    How to hash cxns using the sequence predicates?
-           ;;    The :test function of the hash table should be substringp
-           ;(hash-compatible-cxns
-           ; (case processing-direction
-           ;   (<- (constructions-for-anti-unification-hashed observation-form nil cxn-inventory))
-           ;   (-> (constructions-for-anti-unification-hashed nil observation-meaning cxn-inventory))))
+(defmethod find-cxns-and-anti-unify (observation-form observation-meaning (args blackboard) (cxn-inventory fcg-construction-set) (mode (eql :heuristic)))
+  (let* (;; 1) select cxns by hasing the observation
+         ;;    only form is provided since we are learning in comprehension
+         (hash-compatible-cxns
+          (constructions-for-anti-unification-hashed observation-form nil cxn-inventory))
          
-           ;; 2) make powerset of (hash compatible) cxns, sort by length and by score
-           (routine-cxns-with-positive-score
-            (remove-if-not #'non-zero-cxn-p (remove-if-not #'routine-cxn-p (constructions cxn-inventory))))
-           (cxn-sets-for-anti-unification
-            (sort (all-subsets routine-cxns-with-positive-score)
-                  #'(lambda (cxn-set-1 cxn-set-2)
-                      ;; if two cxn sets have the same length
-                      ;; take the one with the highest average score
-                      (if (length= cxn-set-1 cxn-set-2)
-                        (let ((avg-score-1 (average (mapcar #'get-cxn-score cxn-set-1)))
-                              (avg-score-2 (average (mapcar #'get-cxn-score cxn-set-2))))
-                          (> avg-score-1 avg-score-2))
-                        (length> cxn-set-1 cxn-set-2)))))
-           
-           ;; 3) anti-unify each set of cxns with the observation
-           ;;    and take the one with lowest cost
-           (least-general-generalisation
-            (loop for set-of-cxns in cxn-sets-for-anti-unification
-                  for best-form-anti-unification-result
-                    = (anti-unify-form observation-form set-of-cxns)
-                  for best-meaning-anti-unification-result
-                    = (anti-unify-meaning observation-meaning set-of-cxns)
-                  when (and best-form-anti-unification-result
-                            best-meaning-anti-unification-result)
-                  collect (list set-of-cxns
-                                best-form-anti-unification-result
-                                best-meaning-anti-unification-result)
-                      into anti-unification-results
-                  finally (return (first (sort-anti-unification-results anti-unification-results)))))
-           
-           ;; 4) learn cxn(s) from the anti-unification results
-           ;;    - no anti-unification results -> learn holistic
-           ;;    - yes anti-unification results -> learn cxns for generalisation and delta's
-           (new-cxn-and-links
-            (if least-general-generalisation
-              (make-cxns-from-generalisations least-general-generalisation
-                                              observation-form
-                                              observation-meaning
-                                              cxn-inventory)
-              (make-holistic-cxn observation-form observation-meaning cxn-inventory))))
-    new-cxn-and-links)))
+         ;; 2) filter hash-compatible cxns for routine cxns with a positive score
+         (filtered-hash-compatible-cxns
+          (remove-if-not #'non-zero-cxn-p
+                         (remove-if-not #'routine-cxn-p
+                                        hash-compatible-cxns)))
 
-(defun make-cxns-from-generalisations (anti-unification-results observation-form observation-meaning cxn-inventory)
-  (destructuring-bind (anti-unified-cxns
+         ;; 3) sort filtered-hash-compatible-cxns according to the anti-unification-order-heuristic
+         (sorted-cxns
+          (sort-cxns-for-anti-unification
+           observation-form observation-meaning
+           filtered-hash-compatible-cxns
+           :score)))
+           ;(get-configuration cxn-inventory :anti-unification-order)))
+
+     ;; 4) anti-unify and learn cxns
+     (loop with max-au-cost = (get-configuration cxn-inventory :max-au-cost)
+           with no-string-cxns = (get-configuration cxn-inventory :allow-cxns-with-no-strings)
+           for cxn in sorted-cxns
+           ;; returns all valid form anti unification results
+           for form-anti-unification-results
+             = (anti-unify-form observation-form cxn
+                                :max-au-cost max-au-cost
+                                :no-string-cxns no-string-cxns)
+           ;; returns all valid meaning anti unification results
+           for meaning-anti-unification-results
+             = (anti-unify-meaning observation-meaning cxn
+                                   :max-au-cost max-au-cost)
+           ;; make all combinations and filter for valid combinations
+           for all-anti-unification-combinations
+             = (remove-if-not #'valid-au-combination-p
+                              (combinations meaning-anti-unification-results
+                                            form-anti-unification-results))
+           for combinations-with-cxns
+             = (loop for combo in all-anti-unification-combinations
+                     collect (cons cxn combo))
+           ;; sort combinations in terms of cost and cxn score
+           for new-cxns-and-links
+             = (when combinations-with-cxns
+                 (loop for generalisation in (sort-anti-unification-combinations combinations-with-cxns)
+                       for new-cxns-and-links
+                         = (make-cxns-from-generalisation generalisation args cxn-inventory)
+                       when new-cxns-and-links
+                         return new-cxns-and-links))
+           when new-cxns-and-links
+             return new-cxns-and-links)))
+
+  
+(defmethod find-cxns-and-anti-unify (observation-form observation-meaning (args blackboard) (cxn-inventory fcg-construction-set) (mode (eql :exhaustive)))
+  (let* (;; 1) select cxns by hasing the observation
+         ;;    only form is provided since we are learning in comprehension
+         (hash-compatible-cxns
+          (constructions-for-anti-unification-hashed observation-form nil cxn-inventory))
+         
+         ;; 2) filter hash-compatible cxns for routine cxns with a positive score
+         (filtered-hash-compatible-cxns
+          (remove-if-not #'non-zero-cxn-p
+                         (remove-if-not #'routine-cxn-p
+                                        hash-compatible-cxns)))
+           
+         ;; 3) find the least general generalisation through anti-unification
+         (least-general-generalisations
+          (loop with max-au-cost = (get-configuration cxn-inventory :max-au-cost)
+                with no-string-cxns = (get-configuration cxn-inventory :allow-cxns-with-no-strings)
+                for cxn in filtered-hash-compatible-cxns
+                ;; returns all valid form anti unification results
+                for form-anti-unification-results
+                  = (anti-unify-form observation-form cxn
+                                     :max-au-cost max-au-cost
+                                     :no-string-cxns no-string-cxns)
+                ;; returns all valid meaning anti unification results
+                for meaning-anti-unification-results
+                  = (anti-unify-meaning observation-meaning cxn :max-au-cost max-au-cost)
+                ;; make all combinations and filter for valid combinations
+                for all-anti-unification-combinations
+                  = (remove-if-not #'valid-au-combination-p
+                                   (combinations meaning-anti-unification-results
+                                                 form-anti-unification-results))
+                when all-anti-unification-combinations
+                ;; store all valid combinations with the cxn used for anti unification
+                append (loop for combo in all-anti-unification-combinations
+                             collect (cons cxn combo))
+                into anti-unification-results
+                ;; return the best anti unification combination (costs and cxn score)
+                finally (return (sort-anti-unification-combinations anti-unification-results)))))
+
+    ;; 4) learn cxns(s) from the anti-unification results
+    (when least-general-generalisations      
+      (dolist (generalisation least-general-generalisations)
+        (let* ((new-cxns-and-links
+                (make-cxns-from-generalisation generalisation args cxn-inventory)))
+          (when new-cxns-and-links
+            (notify learn-from-anti-unification generalisation)
+            (return new-cxns-and-links)))))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; make cxns from generalisation ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun make-cxns-from-generalisation (anti-unification-results args cxn-inventory)
+  (destructuring-bind (anti-unified-cxn
                        form-anti-unification
                        meaning-anti-unification) anti-unification-results
-    (let* ((cxn-inventory (original-cxn-set cxn-inventory))
-           ;; all form-args and meaning-args
-           (top-lvl-form-args (get-unconnected-vars observation-form))
-           (top-lvl-meaning-args (get-unconnected-vars observation-meaning))
-           (slot-form-args (compute-slot-args form-anti-unification))
-           (slot-meaning-args (compute-slot-args meaning-anti-unification))
-           ;; lex classes (top-lvl and slot)
-           ;; dispatch to helper functions to make generalisation-cxn and delta cxns
-           )
-      )))
+    (let* (;; form-args and meaning-args
+           (form-args (compute-form-args form-anti-unification anti-unified-cxn args))
+           (meaning-args (compute-meaning-args meaning-anti-unification anti-unified-cxn args))
+           ;; holistic cxn from generalisation
+           (generalisation-cxns-and-links
+            (let ((recursion-args
+                   (make-blackboard
+                    :data-fields (list (cons :top-lvl-form-args (find-data form-args :generalisation-top-lvl-args))
+                                       (cons :top-lvl-meaning-args (find-data meaning-args :generalisation-top-lvl-args))))))
+              (handle-potential-holistic-cxn (generalisation form-anti-unification)
+                                             (generalisation meaning-anti-unification)
+                                             recursion-args cxn-inventory))
+            ;(make-holistic-cxn (generalisation form-anti-unification)
+            ;                   (generalisation meaning-anti-unification)
+            ;                   (find-data form-args :generalisation-top-lvl-args)
+            ;                   (find-data meaning-args :generalisation-top-lvl-args)
+            ;                   cxn-inventory)
+            )
+           ;; item-based cxn from source delta
+           (source-delta-cxns-and-links
+            (let ((recursion-args
+                   (make-blackboard
+                    :data-fields (list (cons :top-lvl-form-args (find-data form-args :source-top-lvl-args))
+                                       (cons :top-lvl-meaning-args (find-data meaning-args :source-top-lvl-args))
+                                       (cons :slot-form-args (find-data form-args :source-slot-args))
+                                       (cons :slot-meaning-args (find-data meaning-args :source-slot-args))
+                                       (cons :slot-filler-cats (cons (afr-top-lvl-category generalisation-cxns-and-links)
+                                                                     (find-data args :slot-filler-cats)))
+                                       (cons :original-slot-cats (find-data args :original-slot-cats))))))
+              (handle-potential-holistic-cxn (source-delta form-anti-unification)
+                                             (source-delta meaning-anti-unification)
+                                             recursion-args cxn-inventory))
+            ;(make-item-based-cxn (source-delta form-anti-unification)
+            ;                     (source-delta meaning-anti-unification)
+            ;                     (find-data form-args :source-top-lvl-args)
+            ;                     (find-data meaning-args :source-top-lvl-args)
+            ;                     (find-data form-args :source-slot-args)
+            ;                     (find-data meaning-args :source-slot-args)
+            ;                     cxn-inventory)
+            )
+           (top-level-category (afr-top-lvl-category source-delta-cxns-and-links))
+           ;; item-based cxn from pattern delta
+           (original-slot-cats
+            (neighbouring-categories
+             (extract-top-category-cxn anti-unified-cxn)
+             (categorial-network cxn-inventory)))
+           (pattern-delta-cxns-and-links
+            (when (and (pattern-delta form-anti-unification)
+                       (pattern-delta meaning-anti-unification))
+              (let ((recursion-args
+                     (make-blackboard
+                      :data-fields (list (cons :top-lvl-form-args (find-data form-args :pattern-top-lvl-args))
+                                         (cons :top-lvl-meaning-args (find-data meaning-args :pattern-top-lvl-args))
+                                         (cons :slot-form-args (find-data form-args :pattern-slot-args))
+                                         (cons :slot-meaning-args (find-data meaning-args :pattern-slot-args))
+                                         (cons :slot-filler-cats (cons (afr-top-lvl-category generalisation-cxns-and-links)
+                                                                       (find-data args :slot-filler-cats)))
+                                         (cons :original-slot-cats (or (find-data args :original-slot-cats)
+                                                                       original-slot-cats))))))
+                (handle-potential-holistic-cxn (pattern-delta form-anti-unification)
+                                               (pattern-delta meaning-anti-unification)
+                                               recursion-args cxn-inventory))
+              ;(make-item-based-cxn (pattern-delta form-anti-unification)
+              ;                     (pattern-delta meaning-anti-unification)
+              ;                     (find-data form-args :pattern-top-lvl-args)
+              ;                     (find-data meaning-args :pattern-top-lvl-args)
+              ;                     (find-data form-args :pattern-slot-args)
+              ;                     (find-data meaning-args :pattern-slot-args)
+              ;                     cxn-inventory)
+              ))
+           (pattern-delta-slot-categories
+            (when pattern-delta-cxns-and-links
+              (remove (afr-top-lvl-category pattern-delta-cxns-and-links)
+                      (afr-categories-to-add pattern-delta-cxns-and-links))))
+           ;; build results
+           (cxns-to-apply
+            (append
+             (afr-cxns-to-apply source-delta-cxns-and-links)
+             (afr-cxns-to-apply generalisation-cxns-and-links)))
+           (cxns-to-consolidate
+            (append
+             (afr-cxns-to-consolidate source-delta-cxns-and-links)
+             (afr-cxns-to-consolidate generalisation-cxns-and-links)
+             (when pattern-delta-cxns-and-links
+               (append (afr-cxns-to-apply pattern-delta-cxns-and-links)
+                       (afr-cxns-to-consolidate pattern-delta-cxns-and-links)))))
+           (categories-to-add
+            (append
+             (afr-categories-to-add source-delta-cxns-and-links)
+             (afr-categories-to-add generalisation-cxns-and-links)
+             (when pattern-delta-cxns-and-links
+               (afr-categories-to-add pattern-delta-cxns-and-links))))
+           (categorial-links
+            (append
+             (afr-categorial-links source-delta-cxns-and-links)
+             (afr-categorial-links generalisation-cxns-and-links)
+             ; + top lvl category of generalisation cxn <-> (first) slot category of source delta cxn
+             ; => handled at the end of recursion!
+             ;(list (cons (afr-top-lvl-category generalisation-cxns-and-links) (first source-delta-slot-categories)))
+             ; + top lvl category of source delta cxn <-> slots that are filled by top lvl category of original source
+             ; => handled at the end of recursion!
+             ;(loop for original-slot in (find-data args :original-slot-cats)
+             ;      collect (cons (afr-top-lvl-category source-delta-cxns-and-links) original-slot))
+             ; + fillers of slots of original source <-> (rest of) slots of source delta cxn
+             ; => handled at the end of recursion
+             ;(loop for filler in (find-data args :slot-filler-cats)
+             ;      for slot in (rest source-delta-slot-categories)
+             ;      collect (cons filler slot))
+             (when pattern-delta-cxns-and-links
+               (append (afr-categorial-links pattern-delta-cxns-and-links)
+                       ; + top lvl category of generalisation cxn <-> (first) slot category of pattern delta cxn
+                       ; => handled at the end of recursion
+                       ;(list (cons (afr-top-lvl-category generalisation-cxns-and-links) (first pattern-delta-slot-categories)))
+                       ; + top lvl category of pattern delta cxn <-> slots that are filled by top lvl category of pattern
+                       ; => handled at the end of recursion!
+                       ;(link-filler-to-previous-slots
+                       ; anti-unified-cxn
+                       ; (afr-top-lvl-category pattern-delta-cxns-and-links)
+                       ; cxn-inventory)
+                       ; + fillers of slots of pattern <-> (rest of) slots of pattern delta cxn
+                       (link-slots-to-previous-fillers
+                        anti-unified-cxn
+                        (rest pattern-delta-slot-categories)
+                        cxn-inventory)))))
+           (anti-unified-cxns
+            (cons anti-unified-cxn
+                  (append (afr-anti-unified-cxns generalisation-cxns-and-links)
+                          (afr-anti-unified-cxns source-delta-cxns-and-links)
+                          (when pattern-delta-cxns-and-links
+                            (afr-anti-unified-cxns pattern-delta-cxns-and-links))))))
+      (list cxns-to-apply
+            cxns-to-consolidate
+            categories-to-add
+            categorial-links
+            top-level-category
+            anti-unified-cxns))))
+
+(defun link-filler-to-previous-slots (anti-unified-cxn filler-category cxn-inventory)
+  (let* ((anti-unified-cxn-top-category (extract-top-category-cxn anti-unified-cxn))
+         (filling-slot-categories (neighbouring-categories anti-unified-cxn-top-category (categorial-network cxn-inventory))))
+    (loop for slot in filling-slot-categories
+          collect (cons slot filler-category))))
+
+(defun link-slots-to-previous-fillers (anti-unified-cxn slot-categories cxn-inventory)
+  (let* ((anti-unified-cxn-slot-categories (extract-slot-categories-item-based-cxn anti-unified-cxn))
+         (filler-categories (loop for slot-category in anti-unified-cxn-slot-categories
+                                  collect (neighbouring-categories slot-category (categorial-network cxn-inventory)))))
+    (loop for slot in slot-categories
+          for fillers in filler-categories
+          append (loop for filler in fillers
+                       collect (cons filler slot)))))
 
 
-(defun compute-slot-args (anti-unification-result)
-  (with-slots (generalisation
-               pattern-bindings
-               source-bindings
-               pattern-delta
-               source-delta) anti-unification-result
-    (let* ((cxn-args (make-blackboard))
-          ;; unique vars in deltas
-          (pattern-delta-vars
-           (remove-duplicates (find-all-anywhere-if #'variable-p pattern-delta)))
-          (source-delta-vars
-           (remove-duplicates (find-all-anywhere-if #'variable-p source-delta)))
-          ;; vars that connect delta's to generalisation
-          (pattern-delta-connection-vars
-           (loop for var in pattern-delta-vars
-                 when (assoc var pattern-bindings)
-                 collect var))
-          (source-delta-connection-vars
-           (loop for var in source-delta-vars
-                 when (assoc var source-bindings)
-                 collect var))
-          ;; vars that were decoupled
-          (pattern-delta-decoupled-link-vars
-            (loop for (binding . rest) on pattern-bindings
-                  when (find (car binding) rest :key #'car :test #'equalp)
-                  collect (car binding)))
-          (source-delta-decoupled-link-vars
-            (loop for (binding . rest) on source-bindings
-                  when (find (car binding) rest :key #'car :test #'equalp)
-                  collect (car binding)))
-          ;; lengths of vars
-          (length-all-pattern-delta-vars
-            (reduce #'+ (mapcar #'length (list pattern-delta-connection-vars
-                                               pattern-delta-decoupled-link-vars))))
-          (length-all-source-delta-vars
-           (reduce #'+ (mapcar #'length (list source-delta-connection-vars
-                                              source-delta-decoupled-link-vars)))))
-      ;; the pattern-cxn, source-cxn, and slot-unit in the generalisation cxn
-      ;; need to have the same number of args
-      (multiple-value-bind (longest-delta-key other-delta-key longest-bindings other-bindings)
-          (if (> length-all-pattern-delta-vars length-all-source-delta-vars)
-            (values :pattern-args :source-args pattern-bindings source-bindings)
-            (values :source-args :pattern-args source-bindings pattern-bindings))
-        ;; handle connection vars
-        (loop with longest-var-list = (case longest-delta-key
-                                        (:pattern-args pattern-delta-connection-vars)
-                                        (:source-args source-delta-connection-vars))
-              for var in longest-var-list
-              for var-in-generalisation = (rest (assoc var longest-bindings))
-              for var-in-other-delta = (first (rassoc var-in-generalisation other-bindings))
-              do (push-data cxn-args longest-delta-key var)
-                 (push-data cxn-args :generalisation-slot-args var-in-generalisation)
-                 (push-data cxn-args other-delta-key var-in-other-delta))
-        ;; handle decoupled link vars
-        (loop with longest-var-list = (case longest-delta-key
-                                        (:pattern-args pattern-delta-decoupled-link-vars)
-                                        (:source-args source-delta-decoupled-link-vars))
-              for var in longest-var-list
-              for vars-in-generalisation = (mapcar #'cdr (find-all var longest-bindings :key #'car))
-              for vars-in-other-delta = (loop for v in vars-in-generalisation
-                                              collect (first (rassoc v other-bindings)))
-              for vars-in-longest-delta = (make-list (length vars-in-generalisation) :initial-element var)
-              do (loop for x in vars-in-longest-delta
-                       for y in vars-in-generalisation
-                       for z in vars-in-other-delta
-                       unless (and (member x (get-data cxn-args longest-delta-key))
-                                   (member y (get-data cxn-args :generalisation-slot-args))
-                                   (member z (get-data cxn-args other-delta-key)))
-                       do (push-data cxn-args longest-delta-key x)
-                          (push-data cxn-args :generalisation-slot-args y)
-                          (push-data cxn-args other-delta-key z)))
-        ;; return result
-        (data-fields cxn-args)))))
+#|
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; make cxns from holophrase generalisation ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun make-cxns-from-holophrase-generalisation (anti-unification-results args cxn-inventory)
+  "When anti-unifying with a holophrase cxn, make
+   1) an item-based cxn from the generalisation,
+   2) a holistic cxn from the source delta, and
+   3) a holistic cxn from the pattern delta (can be empty!).
+   The cxns from both delta's fill the slot of the cxn from the generalisation."
+  (destructuring-bind (anti-unified-cxn
+                       form-anti-unification
+                       meaning-anti-unification) anti-unification-results
+    (let* (;; all form-args and meaning-args
+           (form-args (compute-form-args form-anti-unification anti-unified-cxn args))
+           (meaning-args (compute-meaning-args meaning-anti-unification anti-unified-cxn args))
+           ;; item-based cxn from generalisation
+           (generalisation-cxns-and-categories
+            (make-generalisation-cxn (generalisation form-anti-unification)
+                                     (generalisation meaning-anti-unification)
+                                     (find-data form-args :generalisation-top-lvl-args)
+                                     (find-data meaning-args :generalisation-top-lvl-args)
+                                     (find-data form-args :generalisation-slot-args)
+                                     (find-data meaning-args :generalisation-slot-args)
+                                     cxn-inventory))
+           (generalisation-slot-categories
+            (remove (afr-top-lvl-category generalisation-cxns-and-categories)
+                    (afr-categories-to-add generalisation-cxns-and-categories)))
+           ;; holistic cxn from source delta
+           (source-delta-cxns-and-categories
+            (let ((recursion-args
+                   (make-blackboard
+                    :data-fields
+                    (list (cons :top-lvl-form-args (find-data form-args :source-top-lvl-args))
+                          (cons :top-lvl-meaning-args (find-data meaning-args :source-top-lvl-args))))))
+              (handle-potential-holistic-cxn (source-delta form-anti-unification)
+                                             (source-delta meaning-anti-unification)
+                                             recursion-args cxn-inventory)))
+           ;; holistic cxn from pattern delta
+           (pattern-delta-cxns-and-categories
+            (when (and (pattern-delta form-anti-unification)
+                       (pattern-delta meaning-anti-unification))
+              (let ((recursion-args
+                     (make-blackboard
+                      :data-fields
+                      (list (cons :top-lvl-form-args (find-data form-args :pattern-top-lvl-args))
+                            (cons :top-lvl-meaning-args (find-data meaning-args :pattern-top-lvl-args))))))
+                (handle-potential-holistic-cxn (pattern-delta form-anti-unification)
+                                               (pattern-delta meaning-anti-unification)
+                                               recursion-args cxn-inventory))))
+           ;; build results
+           (cxns-to-apply
+            ;; holistic cxn source delta apply-first + item-based cxn generalisation apply-last
+            (append (afr-cxns-to-apply source-delta-cxns-and-categories)
+                    (afr-cxns-to-apply generalisation-cxns-and-categories)))
+           (cxns-to-consolidate
+            ;; holistic cxn source delta apply-last + item-based cxn generalisation apply-first
+            ;; + holistic cxn pattern delta apply-first and apply-last
+            (append (afr-cxns-to-consolidate source-delta-cxns-and-categories)
+                    (afr-cxns-to-consolidate generalisation-cxns-and-categories)
+                    (when pattern-delta-cxns-and-categories
+                      (append (afr-cxns-to-apply pattern-delta-cxns-and-categories)
+                              (afr-cxns-to-consolidate pattern-delta-cxns-and-categories)))))
+           (categories-to-add
+            ;; top lvl category source delta cxn + top lvl category generalisation cxn
+            ;; + slot category generalisation cxn + top-lvl category pattern delta cxn
+            (append (afr-categories-to-add source-delta-cxns-and-categories)
+                    (afr-categories-to-add generalisation-cxns-and-categories)
+                    (when pattern-delta-cxns-and-categories
+                      (afr-categories-to-add pattern-delta-cxns-and-categories))))
+           (links-to-add
+            ;; link between slot of generalisation cxn and source delta cxn
+            ;; + link between slot of generalisation cxn and pattern delta cxn
+            (append (loop for slot-cat in generalisation-slot-categories
+                          collect (cons (afr-top-lvl-category source-delta-cxns-and-categories) slot-cat))
+                    (afr-categorial-links source-delta-cxns-and-categories)
+                    (afr-categorial-links generalisation-cxns-and-categories)
+                    (when pattern-delta-cxns-and-categories
+                      (append (loop for slot-cat in generalisation-slot-categories
+                                    collect (cons (afr-top-lvl-category pattern-delta-cxns-and-categories) slot-cat))
+                              (afr-categorial-links pattern-delta-cxns-and-categories))))))
+      (list cxns-to-apply cxns-to-consolidate categories-to-add links-to-add))))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; make cxns from holistic generalisation ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun make-cxns-from-holistic-generalisation (anti-unification-results args cxn-inventory)
+  "When anti-unifying with a holistic cxn, make
+   1) a holistic cxn from the generalisation,
+   2) an item-based cxn from the source delta, and
+   3) an item-based cxn from the pattern delta (can be empty!)
+   The cxn from the generalisation fills the slot of both the source delta cxn
+   and the pattern delta cxn.
+   Also add links such that the pattern delta cxn fills the same slots as
+   the original holistic cxn used for anti-unification! This ensures that
+   the previous observations are now also covered with these new cxns."
+  (destructuring-bind (anti-unified-cxn
+                       form-anti-unification
+                       meaning-anti-unification) anti-unification-results
+    (let* (;; all form-args and meaning-args
+           (form-args (compute-form-args form-anti-unification anti-unified-cxn args))
+           (meaning-args (compute-meaning-args meaning-anti-unification anti-unified-cxn args))
+           ;; holistic cxn from generalisation
+           (generalisation-cxns-and-categories
+            (let ((recursion-args
+                   (make-blackboard
+                    :data-fields
+                    (list (cons :top-lvl-form-args (find-data form-args :generalisation-slot-args))
+                          (cons :top-lvl-meaning-args (find-data meaning-args :generalisation-slot-args))))))
+              (handle-potential-holistic-cxn (generalisation form-anti-unification)
+                                             (generalisation meaning-anti-unification)
+                                             recursion-args cxn-inventory)))
+           ;; item-based cxn from source delta
+           (source-delta-cxns-and-categories
+            (make-generalisation-cxn (source-delta form-anti-unification)
+                                     (source-delta meaning-anti-unification)
+                                     (find-data form-args :source-slot-args)
+                                     (find-data meaning-args :source-slot-args)
+                                     (find-data form-args :source-top-lvl-args)
+                                     (find-data meaning-args :source-top-lvl-args)
+                                     cxn-inventory))
+           (source-delta-slot-categories
+            (remove (afr-top-lvl-category source-delta-cxns-and-categories)
+                    (afr-categories-to-add source-delta-cxns-and-categories)))
+           ;; item-based cxn from pattern delta
+           (pattern-delta-cxns-and-categories
+            (when (and (pattern-delta form-anti-unification)
+                       (pattern-delta meaning-anti-unification))
+              (make-generalisation-cxn (pattern-delta form-anti-unification)
+                                       (pattern-delta meaning-anti-unification)
+                                       (find-data form-args :pattern-slot-args)
+                                       (find-data meaning-args :pattern-slot-args)
+                                       (find-data form-args :pattern-top-lvl-args)
+                                       (find-data meaning-args :pattern-top-lvl-args)
+                                       cxn-inventory)))
+           (pattern-delta-slot-categories
+            (when pattern-delta-cxns-and-categories
+              (remove (afr-top-lvl-category pattern-delta-cxns-and-categories)
+                      (afr-categories-to-add pattern-delta-cxns-and-categories))))
+           ;; build results
+           (cxns-to-apply
+            ;; holistic generalisation cxn apply-first + item-based source delta cxn apply-last
+            (append (afr-cxns-to-apply generalisation-cxns-and-categories)
+                    (afr-cxns-to-apply source-delta-cxns-and-categories)))
+           (cxns-to-consolidate
+            ;; holistic generalisation cxn apply-last + item-based source delta cxn apply-first
+            ;; + item-based pattern delta cxn apply-last and apply-first
+            (append (afr-cxns-to-consolidate generalisation-cxns-and-categories)
+                    (afr-cxns-to-consolidate source-delta-cxns-and-categories)
+                    (when pattern-delta-cxns-and-categories
+                      (append (afr-cxns-to-apply pattern-delta-cxns-and-categories)
+                              (afr-cxns-to-consolidate pattern-delta-cxns-and-categories)))))
+           (categories-to-add
+            ;; top lvl category generalisation cxn + top lvl category source delta cxn
+            ;; + slot category source delta cxn + top lvl category pattern delta cxn
+            ;; + slot category pattern delta cxn
+            (append (afr-categories-to-add generalisation-cxns-and-categories)
+                    (afr-categories-to-add source-delta-cxns-and-categories)
+                    (when pattern-delta-cxns-and-categories
+                      (afr-categories-to-add pattern-delta-cxns-and-categories))))
+           ;; link generalisation cxn to slot of source delta cxn
+           ;; + link generalisation cxn to slot of pattern delta cxn
+           ;; + link pattern delta cxn to slots that were filled by anti-unified cxn
+           (links-to-add
+            (append (loop for slot-cat in source-delta-slot-categories
+                          collect (cons (afr-top-lvl-category generalisation-cxns-and-categories) slot-cat))
+                    (afr-categorial-links generalisation-cxns-and-categories)
+                    (afr-categorial-links source-delta-cxns-and-categories)
+                    (when pattern-delta-cxns-and-categories
+                      (append (loop for slot-cat in pattern-delta-slot-categories
+                                    collect (cons (afr-top-lvl-category generalisation-cxns-and-categories) slot-cat))
+                              (afr-categorial-links pattern-delta-cxns-and-categories)
+                              (link-filler-to-previous-slots
+                               anti-unified-cxn
+                               (afr-top-lvl-category pattern-delta-cxns-and-categories)
+                               cxn-inventory))))))
+      (list cxns-to-apply cxns-to-consolidate categories-to-add links-to-add))))
+
+(defun link-filler-to-previous-slots (anti-unified-cxn filler-category cxn-inventory)
+  (let* ((anti-unified-cxn-category (extract-top-category-holistic-cxn anti-unified-cxn))
+         (filling-slot-categories (neighbouring-categories anti-unified-cxn-category (categorial-network cxn-inventory))))
+    (loop for slot in filling-slot-categories
+          collect (cons slot filler-category))))
           
-        
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; make cxns from item-based generalisation ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun make-cxns-from-item-based-generalisation (anti-unification-results args cxn-inventory)
+  "When anti-unifying with an item-based cxn, make
+   1) an item-based cxn from the generalisation,
+   2) a holistic cxn from the source delta, and
+   3) an item-based cxn from the pattern delta (can be empty!)
+   The cxns from both delta's fill the slot of the cxn from the generalisation.
+   Also add links such that the slots of the pattern delta cxn take the same
+   fillers as the slots of the original item-based cxn used for anti-unification!
+   This ensures that the previous observations are now also covered with these
+   new cxns."
+  (destructuring-bind (anti-unified-cxn
+                       form-anti-unification
+                       meaning-anti-unification) anti-unification-results
+    (let* (;; all form-args and meaning-args
+           (form-args (compute-form-args form-anti-unification anti-unified-cxn args))
+           (meaning-args (compute-meaning-args meaning-anti-unification anti-unified-cxn args))
+           ;; item-based cxn from generalisation
+           (generalisation-cxns-and-categories
+            (make-generalisation-cxn (generalisation form-anti-unification)
+                                     (generalisation meaning-anti-unification)
+                                     (find-data form-args :generalisation-top-lvl-args)
+                                     (find-data meaning-args :generalisation-top-lvl-args)
+                                     (find-data form-args :generalisation-slot-args)
+                                     (find-data meaning-args :generalisation-slot-args)
+                                     cxn-inventory))
+           (generalisation-slot-categories
+            (remove (afr-top-lvl-category generalisation-cxns-and-categories)
+                    (afr-categories-to-add generalisation-cxns-and-categories)))
+           ;; holistic cxn from source delta
+           (source-delta-cxns-and-categories
+            (let ((recursion-args
+                   (make-blackboard
+                    :data-fields
+                    (list (cons :top-lvl-form-args (find-data form-args :source-top-lvl-args))
+                          (cons :top-lvl-meaning-args (find-data meaning-args :source-top-lvl-args))))))
+              (handle-potential-holistic-cxn (source-delta form-anti-unification)
+                                             (source-delta meaning-anti-unification)
+                                             recursion-args cxn-inventory)))
+           ;; item-based cxn from pattern delta
+           (pattern-delta-form-arg-groups
+            (loop for unit in (extract-slot-units anti-unified-cxn)
+                  collect (cons (extract-category-unit unit)
+                                (first (fcg-unit-feature-value unit 'form-args)))))
+           (pattern-delta-meaning-arg-groups
+            (loop for unit in (extract-slot-units anti-unified-cxn)
+                  collect (cons (extract-category-unit unit)
+                                (first (fcg-unit-feature-value unit 'meaning-args)))))
+           (pattern-delta-cxns-and-categories
+            (when (and (pattern-delta form-anti-unification)
+                       (pattern-delta meaning-anti-unification))
+              (make-generalisation-cxn-with-n-units (pattern-delta form-anti-unification)
+                                                    (pattern-delta meaning-anti-unification)
+                                                    (find-data form-args :pattern-top-lvl-args)
+                                                    (find-data meaning-args :pattern-top-lvl-args)
+                                                    (find-data form-args :pattern-slot-args)
+                                                    (find-data meaning-args :pattern-slot-args)
+                                                    pattern-delta-form-arg-groups
+                                                    pattern-delta-meaning-arg-groups
+                                                    cxn-inventory)))
+           ;; build results
+           (cxns-to-apply
+            ;; holistic cxn source delta apply-first + item-based cxn generalisation apply-last
+            (append (afr-cxns-to-apply source-delta-cxns-and-categories)
+                    (afr-cxns-to-apply generalisation-cxns-and-categories)))
+           (cxns-to-consolidate
+            ;; holistic cxn source delta apply-last + item-based cxn generalisation apply-first
+            ;; + item-based cxn pattern delta apply-last and apply-first
+            (append (afr-cxns-to-consolidate source-delta-cxns-and-categories)
+                    (afr-cxns-to-consolidate generalisation-cxns-and-categories)
+                    (when pattern-delta-cxns-and-categories
+                      (append (afr-cxns-to-apply pattern-delta-cxns-and-categories)
+                              (afr-cxns-to-consolidate pattern-delta-cxns-and-categories)))))
+           (categories-to-add
+            ;; top lvl category source delta cxn + top lvl category generalisation cxn
+            ;; + slot category generalisation cxn
+            ;; + top lvl category pattern delta cxn + slot categories pattern delta cxn
+            (append (afr-categories-to-add source-delta-cxns-and-categories)
+                    (afr-categories-to-add generalisation-cxns-and-categories)
+                    (when pattern-delta-cxns-and-categories
+                      (afr-categories-to-add pattern-delta-cxns-and-categories))))
+           (links-to-add
+            ;; link between slot of generalisation cxn and source delta cxn
+            ;; + link between slot of generalisation cxn and pattern delta cxn
+            ;; + link between slots of pattern delta cxn and fillers of anti-unified item-based cxn!
+            (append (loop for slot-cat in generalisation-slot-categories
+                          collect (cons (afr-top-lvl-category source-delta-cxns-and-categories) slot-cat))
+                    (afr-categorial-links source-delta-cxns-and-categories)
+                    (afr-categorial-links generalisation-cxns-and-categories)
+                    (when pattern-delta-cxns-and-categories
+                      (append (loop for slot-cat in generalisation-slot-categories
+                                    collect (cons (afr-top-lvl-category pattern-delta-cxns-and-categories) slot-cat))
+                              (afr-categorial-links pattern-delta-cxns-and-categories)
+                              (link-slots-to-previous-fillers
+                               pattern-delta-meaning-arg-groups
+                               (first (afr-cxns-to-apply pattern-delta-cxns-and-categories))
+                               cxn-inventory))))))
+      (list cxns-to-apply cxns-to-consolidate categories-to-add links-to-add))))
 
-        
-(defun make-holistic-cxn (form meaning cxn-inventory)
-  (let* (;(cxn-inventory (original-cxn-set cxn-inventory))
-         ;; make the cxn names
-         (cxn-name
-          (make-cxn-name form cxn-inventory :add-numeric-tail t))
-         (cxn-name-apply-last
-          (intern (upcase (format nil "~a-apply-last" cxn-name))))
-         (cxn-name-apply-first
-          (intern (upcase (format nil "~a-apply-first" cxn-name))))
-         ;; unit name
-         (unit-name-holistic-cxn
-          (make-unit-name (mkstr cxn-name) cxn-inventory :trim-cxn-suffix t))
-         ;; lex class
-         (lex-class-holistic-cxn
-          (make-lex-class cxn-name :trim-cxn-suffix t))
-         ;; temp cxn inventory
-         (cxn-inventory-copy
-          (copy-object cxn-inventory))
-         ;; args
-         (meaning-args (get-unconnected-vars meaning))
-         (form-args (get-unconnected-vars form))
-         ;; apply first cxn
-         (holistic-cxn-apply-first
-          (second
-           (multiple-value-list
-            (eval
-             (holistic-cxn-apply-first-skeleton cxn-name cxn-name-apply-first
-                                                unit-name-holistic-cxn lex-class-holistic-cxn
-                                                form meaning form-args meaning-args
-                                                (get-configuration cxn-inventory :initial-cxn-score)
-                                                cxn-inventory-copy)))))
-         ;; apply last cxn
-         (holistic-cxn-apply-last
-          (second
-           (multiple-value-list
-            (eval
-             (holistic-cxn-apply-last-skeleton cxn-name cxn-name-apply-last
-                                               unit-name-holistic-cxn lex-class-holistic-cxn
-                                               form meaning form-args meaning-args
-                                               (get-configuration cxn-inventory :initial-cxn-score)
-                                               cxn-inventory-copy)))))
-         (cxns-to-apply (list holistic-cxn-apply-first))
-         (cxns-to-consolidate (list holistic-cxn-apply-last))
-         (cats-to-add (list lex-class-holistic-cxn))
-         (links-to-add nil))
-
-    (list cxns-to-apply cxns-to-consolidate cats-to-add links-to-add)))
-        
-(defun holistic-cxn-apply-first-skeleton (bare-cxn-name cxn-name unit-name lex-class
-                                                        form meaning form-args meaning-args
-                                                        initial-cxn-score cxn-inventory)
-  `(def-fcg-cxn ,cxn-name
-               ((,unit-name
-                 (form-args ,form-args)
-                 (meaning-args ,meaning-args)
-                 (syn-cat (phrase-type holistic)
-                          (lex-class ,lex-class)))
-                <-
-                (,unit-name
-                 (HASH meaning ,meaning)
-                 --
-                 (HASH form ,form)))
-               :attributes (:label fcg::routine
-                            :cxn-type holistic
-                            :bare-cxn-name ,bare-cxn-name)
-               :score ,initial-cxn-score
-               :cxn-inventory ,cxn-inventory))
-
-(defun holistic-cxn-apply-last-skeleton (bare-cxn-name cxn-name unit-name lex-class
-                                                       form meaning form-args meaning-args
-                                                       initial-cxn-score cxn-inventory)
-  `(def-fcg-cxn ,cxn-name
-                (<-
-                 (,unit-name
-                  (HASH meaning ,meaning)
-                  (meaning-args ,meaning-args)
-                  (syn-cat (phrase-type holistic)
-                           (lex-class ,lex-class))
-                  --
-                  (HASH form ,form)
-                  (form-args ,form-args)
-                  (syn-cat (phrase-type holistic)
-                           (lex-class ,lex-class))))
-                :attributes (:label fcg::meta-only
-                             :cxn-type holistic
-                             :bare-cxn-name ,bare-cxn-name)
-                :score ,initial-cxn-score
-                :cxn-inventory ,cxn-inventory))
-  
+(defun link-slots-to-previous-fillers (arg-groups new-cxn cxn-inventory)
+  "Link the slots of the new item-based cxn to the fillers of the slots of
+   the item-based cxn that was used for anti-unification. To know which slot
+   should take which fillers, use the grammatical category that is present in
+   the top-arg/slot-arg predicates."
+  (loop for arg-group in arg-groups
+        for category-anti-unified-cxn = (first arg-group)
+        for args = (rest arg-group)
+        for fillers-anti-unified-cxn-slots
+          = (neighbouring-categories category-anti-unified-cxn (categorial-network cxn-inventory))
+        for unit = (loop for unit in (conditional-part new-cxn)
+                         when (or (equal args (first (fcg-unit-feature-value unit 'meaning-args)))
+                                  (equal args (first (fcg-unit-feature-value unit 'form-args))))
+                           return unit)
+        for unit-category = (extract-category-unit unit)
+        append (loop for filler in fillers-anti-unified-cxn-slots
+                     collect (cons filler unit-category))))
+|#

@@ -4,149 +4,72 @@
 ;; + Comparing OBJECT <-> CONCEPT +
 ;; --------------------------------
 
-(defmethod weighted-similarity ((object cle-object) (concept concept))
+(defmethod weighted-similarity ((agent cle-agent) (object cle-object) (concept concept))
   "Compute the weighted similarity between an object and a concept."
-  (loop for prototype in (prototypes concept)
-        for exemplar = (get-channel-val object (channel prototype))
-        for similarity = (exemplar-similarity exemplar prototype)
-        collect (* (weight prototype) similarity) into weighted-similarities
-        finally (return (average weighted-similarities))))
+  (loop with prototypes = (get-available-prototypes agent concept)
+        with ledger = (loop for prototype in prototypes sum (weight prototype))
+        for prototype in prototypes
+        for observation = (perceive-object-val agent object (channel prototype))
+        for similarity = (observation-similarity observation prototype)
+        if (and similarity (not (zerop ledger)))
+          sum (* (/ (weight prototype) ledger) similarity))) ;; ledger could be factored out, but kept for clarity
 
 ;; ----------------------------------
 ;; + Comparing OBJECT <-> PROTOTYPE +
 ;; ----------------------------------
+(defmethod observation-similarity ((observation null) (prototype prototype))
+  "Similarity is nil if no observation is available."
+  nil)
 
-(defmethod exemplar-similarity ((exemplar number) (prototype prototype))
-  "Similarity on the level of a single prototype."
-  ;; similarity measure between [-inf,1]
+(defmethod observation-similarity ((observation number) (prototype prototype))
+  "Similarity [0,1] on the level of a single prototype.
+   
+   The similarity is computed by comparing the observation to the prototype's
+   distribution. The similarity is the probability of the observation given the
+   prototype's distribution."
   (let* ((distribution (distribution prototype))
+         (mean (mean distribution))
          (st-dev (st-dev distribution))
-         (z-score (if (not (eq st-dev 0.0))
-                    ;; z-score formula + absolute value
-                    (abs (/ (- exemplar (mean distribution)) st-dev))
+         (z-score (if (not (zerop st-dev))
+                    (/ (- observation mean) st-dev)
                     0))
-         (max-z-score 2)
-         (sim (/ (- max-z-score z-score) max-z-score)))
+         (sim (z-score-to-probability z-score)))
     sim))
+
+(defun z-score-to-probability (z-score)
+  "Convert a z-score to a probability."
+  (exp (- (abs z-score))))
 
 ;; -------------------------------
 ;; + Similarity between CONCEPTS +
 ;; -------------------------------
+(defmethod similar-concepts ((agent cle-agent) (concept1 concept) (concept2 concept))
+  "Compute the similarity between two concepts.
+   
+   The overall similarity is computed by measuring the weighted similarity between
+    all pairs of prototypes from the two concepts. The weights of each prototype are
+    normalised by the sum of all weights of the prototypes in the concept."
+  (loop with ledger1 = (loop for proto in (get-available-prototypes agent concept1) sum (weight proto))
+        with ledger2 = (loop for proto in (get-available-prototypes agent concept2) sum (weight proto))
+        for proto1 in (get-available-prototypes agent concept1)
+        for proto2 = (gethash (channel proto1) (prototypes concept2))
+        if (and proto2 (not (zerop ledger1)) (not (zerop ledger2)))
+          sum (similar-prototypes proto1 proto2 ledger1 ledger2)))
 
-(defmethod similar-concepts-p ((concept1 concept) (concept2 concept) (mode (eql :standard))
-                               &key
-                               activation
-                               &allow-other-keys)
-  "True iff if the average pair-wise similarity between prototypes is higher than some threshold."
-  (let ((similarity-score (similar-concepts concept1 concept2 :standard)))
-    (>= similarity-score activation)))
-
-(defmethod similar-concepts ((concept1 concept) (concept2 concept) (mode (eql :standard)) &key &allow-other-keys)
-  "Pairwise similarity of two concepts using prototypes."
-  (loop with concept1-weight-sum = (loop for proto in (prototypes concept1) sum (weight proto))
-        with concept2-weight-sum = (loop for proto in (prototypes concept2) sum (weight proto))
-        for proto1 in (prototypes concept1)
-        for proto2 in (prototypes concept2)
-        for avg-weight = (/ (+ (/ (weight proto1) concept1-weight-sum)
-                               (/ (weight proto2) concept2-weight-sum))
-                            2)
-        for prototype-similarity = (- 1 (f-divergence (distribution proto1) (distribution proto2) :hellinger))
-        for sim-score = (* avg-weight prototype-similarity)
-        sum sim-score))
-
-;; ----------------------------------
-;; + Comparing CONCEPT <-> CONCEPT  +
-;; ----------------------------------
-
-;; main algorithm - TODO fix readability
-(defun find-similar-concepts-into-sets (cxns &key activation)
-  "Filters a list of concepts based on similarity and entrenchement."
-  (let* ((clean-concepts (loop for cxn in cxns collect (assqv :cxn cxn)))
-         ;; find the tuples
-         (found-sets (multiple-value-bind
-                              (uniques similar-tuples)
-                              (find-similar-concepts clean-concepts :activation activation)
-                           (let* ((similar-sets (find-similar-sets similar-tuples))
-                                  (unique-sets (loop for unique in uniques collect (list unique))))
-                             (append unique-sets similar-sets))))
-         ;; add previous removed info back to set information
-         (res (loop for set in found-sets
-                    for new-set = (loop for el in set collect (find el
-                                                                    cxns
-                                                                    :test #'(lambda (x other) (equal x (assqv :cxn other)))))
-                    collect new-set)))
-    res))
-
-;; step 1 - calculate distances and flag similars as tuples
-(defun find-similar-concepts (lst &key (acc '()) (flagged '()) activation)
-  "Given a list of concepts, returns all unique concepts.
-   similar concepts are filtered based on the entrenchment score."
-  (if (not lst)
-    (values acc flagged)
-    (let* ((first (first lst))
-           (rest (rest lst))
-           (unique-p (loop for second in rest
-                           if (similar-concepts-p (meaning first) (meaning second) :standard :activation activation)
-                             do (progn
-                                  (setf flagged (cons (cons first second) flagged))
-                                  (return nil))
-                           finally
-                             (return t))))
-      (let ((not-flagged-p (loop for (one . two) in flagged
-                                 never (or (equal first one) (equal first two)))))
-        (if (and unique-p not-flagged-p)
-          (find-similar-concepts rest :acc (cons first acc) :flagged flagged :activation activation) ;; here check to skip
-          (find-similar-concepts rest :acc acc :flagged flagged :activation activation))))))
-
-;; step 2 - merge common tuples into sets
-(defun find-similar-sets (tuples)
-  "Merges a list of tuples into a list of sets.
-
-   For example,
-       input: ((a b) (b c) (g e) (f c) (g d))
-       output: ((a b c f) (g e d))."
-  (let* ((similar-sets '())) ;; initialize first set
-      (loop for (c1 . c2) in tuples ;; iterate over rest
-            for change = nil
-            do (loop named inner
-                     for set in similar-sets and idx from 0 do
-                       (let ((mem-c1-p (if (member c1 set) t nil))
-                              (mem-c2-p (if (member c2 set) t nil)))
-                          (when (and mem-c1-p (not mem-c2-p))
-                            (setf (nth idx similar-sets) (cons c2 (nth idx similar-sets)))
-                            (setf change t)
-                            (return-from inner))
-                          (when (and (not mem-c1-p) mem-c2-p)
-                            (setf (nth idx similar-sets) (cons c1 (nth idx similar-sets)))
-                            (setf change t)
-                            (return-from inner))))
-            when (not change)
-              do (setf similar-sets (cons (list c1 c2) similar-sets)))
-      similar-sets))
-
-;; step 3 - select the best entrenched concept within a set 
-(defun select-best-entrenched-concept (similar-set)
-  "Given a set of concepts, returns the best entrenched concept."
-  (loop with best-val = -1
-        with best-triple = nil
-        for triple in similar-set
-        for concept = (assqv :cxn triple)
-        do (when (or (not best-triple) (< best-val (score concept)))
-             (setf best-val (score concept)
-                   best-triple triple))
-        finally
-          (return best-triple)))
-
-;; Alternative
-
-(defmethod similar-concepts ((concept1 concept) (concept2 concept) (mode (eql :times)) &key &allow-other-keys)
-  (loop with concept1-weight-sum = (loop for proto in (prototypes concept1) sum (weight proto))
-        with concept2-weight-sum = (loop for proto in (prototypes concept2) sum (weight proto))
-        for proto1 in (prototypes concept1)
-        for proto2 in (prototypes concept2)
-        for avg-weight = (/ (+ (/ (weight proto1) concept1-weight-sum)
-                               (/ (weight proto2) concept2-weight-sum))
-                            2)
-        for prototype-similarity = (- 1 (f-divergence (distribution proto1) (distribution proto2) :hellinger))
-        for sim-score = (* avg-weight prototype-similarity)
-        sum sim-score))
+(defmethod similar-prototypes ((proto1 prototype) (proto2 prototype) (ledger1 number) (ledger2 number))
+  "Calculates the similarity between two prototypes.
+   
+   The similarity corresponds to a product t-norm of
+    1. the average weight of the two prototypes
+    2. the similarity of the weights
+    3. the complement of the hellinger distance between the two prototypes' distributions."
+  (let (;; take the average weight
+        (avg-weight (/ (+ (/ (weight proto1) ledger1)
+                          (/ (weight proto2) ledger2))
+                       2))
+        ;; similarity of the weights
+        (weight-similarity (- 1 (abs (- (/ (weight proto1) ledger1) (/ (weight proto2) ledger2)))))
+        ;; take complement of distance (1-h) so that it becomes a similarity metric
+        (prototype-similarity (- 1 (f-divergence (distribution proto1) (distribution proto2) :hellinger))))
+    ;; multiple all three
+    (* avg-weight weight-similarity prototype-similarity)))

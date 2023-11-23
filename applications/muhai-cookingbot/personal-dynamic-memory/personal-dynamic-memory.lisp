@@ -15,6 +15,11 @@
             :initarg :grammar
             :initform *fcg-constructions*
             :documentation "The grammar of the agent.")
+   (primitives :type primitive-inventory
+               :accessor primitives
+               :initarg :primitives
+               :initform *irl-primitives*
+               :documentation "The primitives of the agent.")
    (world-states :type list
                  :accessor world-states
                  :initarg :world-states
@@ -27,13 +32,18 @@
   (loop for ws in (world-states pdm)
         do (setf (personal-dynamic-memory ws) pdm)))
 
-(defun initialise-personal-dynamic-memory (grammar initial-irl-program)
+(defun initialise-personal-dynamic-memory (grammar initial-irl-program &key (primitive-inventory *irl-primitives*))
   "Helper function for initialising a pdm."
   (set-data (blackboard grammar) :ontology-hash-table (make-ontology-vectors))
-  (make-instance 'personal-dynamic-memory
-                 :world-states (list (make-instance 'world-state
-                                                    :accessible-entities (first (evaluate-irl-program initial-irl-program nil))))
-                 :grammar grammar))
+  (let* ((initial-accessible-entities
+          (first (evaluate-irl-program initial-irl-program nil
+                                       :primitive-inventory primitive-inventory)))
+         (initial-world-state
+          (make-instance 'world-state :accessible-entities initial-accessible-entities)))
+    (make-instance 'personal-dynamic-memory
+                   :world-states (list initial-world-state)
+                   :grammar grammar
+                   :primitives primitive-inventory)))
 
 (defclass world-state ()
   ((accessible-entities :type list
@@ -51,17 +61,18 @@
 
 (defun process-utterances (list-of-utterances personal-dynamic-memory &key silent)
   (loop with cxn-inventory = (grammar personal-dynamic-memory)
+        with primitive-inventory = (primitives personal-dynamic-memory)
         with meaning-network = nil
         with final-set-of-bindings = nil
         for utterance in list-of-utterances
         for current-world-state = (first (world-states personal-dynamic-memory))
         do (multiple-value-bind (bindings-lists parsed-meaning)
-               (understand-and-execute utterance cxn-inventory current-world-state :silent silent)
+               (understand-and-execute utterance current-world-state cxn-inventory primitive-inventory :silent silent)
              (loop for bindings-list in bindings-lists
                    when bindings-list
                      do (push (make-instance 'world-state
                                            :accessible-entities bindings-list
-                                             :personal-dynamic-memory personal-dynamic-memory)
+                                           :personal-dynamic-memory personal-dynamic-memory)
                             (world-states personal-dynamic-memory))
                         (setf meaning-network (append meaning-network (reverse parsed-meaning)))
                         (setf final-set-of-bindings bindings-list)))
@@ -69,23 +80,27 @@
 
         
 (defun understand-and-execute (utterance
-                               cxn-inventory
                                world-state
+                               cxn-inventory
+                               primitive-inventory
                                &key silent)
-  (let* ((comprehension-result (multiple-value-list (understand utterance cxn-inventory world-state :silent silent)))
+  (let* ((comprehension-result
+          (multiple-value-list (understand utterance cxn-inventory world-state :silent silent)))
          (parsed-meaning (first comprehension-result))
          (existing-bindings (accessible-entities world-state))
          (extended-meaning (append-meaning-and-irl-bindings parsed-meaning existing-bindings))
-         (resulting-bindings-lists (evaluate-irl-program extended-meaning nil))
+         (resulting-bindings-lists
+          (evaluate-irl-program extended-meaning nil :primitive-inventory primitive-inventory))
          (open-variables (get-unconnected-vars extended-meaning))
-         (resulting-bindings-with-open-variables (mapcar #'(lambda (bindings-list)
-                                                             (loop for v in open-variables
-                                                                   when (and (or (find v existing-bindings :key #'var)
-                                                                                 (find v (all-variables parsed-meaning)))
-                                                                             (available-at (find v bindings-list :key #'var)))
-                                                                   collect (find v bindings-list :key #'var)))
-                                                         resulting-bindings-lists)))
-    (values resulting-bindings-with-open-variables parsed-meaning )))
+         (resulting-bindings-with-open-variables
+          (mapcar #'(lambda (bindings-list)
+                      (loop for v in open-variables
+                            when (and (or (find v existing-bindings :key #'var)
+                                          (find v (all-variables parsed-meaning)))
+                                      (available-at (find v bindings-list :key #'var)))
+                              collect (find v bindings-list :key #'var)))
+                  resulting-bindings-lists)))
+    (values resulting-bindings-with-open-variables parsed-meaning)))
 
 
 
@@ -100,18 +115,25 @@
   (mapcar #'instantiate-non-variables-in-irl-primitive irl-program))
 
 (defun instantiate-non-variables-in-irl-primitive (irl-primitive)
-  (loop for el in (rest irl-primitive)
-        if (variable-p el)
-        collect el into args
-        else collect
-        (cond ((numberp el)
-               (make-instance 'quantity :value el))
-              ((listp el)
-               (make-instance 'list-of-kitchen-entities :items el))
-              (t
-               (make-instance el :is-concept t)))
-        into args
-        finally (return (cons (first irl-primitive) args))))
+  (if (eql (first irl-primitive) 'bind)
+    (list 'bind (second irl-primitive)
+          (third irl-primitive)
+          (case (second irl-primitive)
+            (quantity (make-instance 'quantity :value (fourth irl-primitive)))
+            (ingredient (make-instance (fourth irl-primitive) :is-concept t))
+            (t (make-instance (fourth irl-primitive)))))
+    (loop for el in (rest irl-primitive)
+          if (variable-p el)
+            collect el into args
+          else collect
+              (cond ((numberp el)
+                     (make-instance 'quantity :value el))
+                    ((listp el)
+                     (make-instance 'list-of-kitchen-entities :items el))
+                    (t
+                     (make-instance el :is-concept t)))
+              into args
+          finally (return (cons (first irl-primitive) args)))))
 
 (defun irl-bindings-to-bind-statements (list-of-irl-bindings)
   "Transforms a list of IRL bindings into a ((bind class ?var object)) statement."

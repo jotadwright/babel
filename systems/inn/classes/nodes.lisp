@@ -261,24 +261,34 @@
     (cons (first list-of-classes) 
           (inn-get-all-subclasses
            (append (rest list-of-classes)
-                   (clos:class-direct-subclasses (first list-of-classes)))))))
+                   (closer-mop:class-direct-subclasses (first list-of-classes)))))))
 
 (defun inn-node-structures ()
   "Return the list of inn-node structures."
   (let ((class (find-class 'inn-node)))
     (inn-get-all-subclasses (list class))))
 
+#+lispworks
 (defun get-structure-descriptor (class)
   (let ((the-class (if (symbolp class) (find-class class) class)))
     (slot-value the-class 'clos::wrapper)))
 
+#+lispworks
 (defun get-inn-node-constructor (class)
   (svref (get-structure-descriptor class) 13))
-;; (get-inn-node-constructor 'inn-node)
 
-(defun get-inn-node-slot-descriptors 
-       (class 
-        &optional (the-ignorable '(graph-utils::value 
+
+#+sbcl
+(defun get-inn-node-constructor (class)
+  (slot-value (find-class class) 'sb-pcl::defstruct-constructor))
+
+;(get-inn-node-constructor 'inn-node)
+
+
+#+lispworks
+(defun get-inn-node-slot-descriptors
+       (class
+        &optional (the-ignorable '(graph-utils::value
                                    graph-utils::weight
                                    graph-utils::id
                                    type label description
@@ -288,9 +298,27 @@
     (loop for slot-descriptor in slot-descriptors
           for name = (slot-value slot-descriptor 'structure::name)
           unless (member name the-ignorable)
-            collect 
-              (list name 
+            collect
+              (list name
                     (slot-value slot-descriptor 'structure::default)))))
+
+#+sbcl
+(defun get-inn-node-slot-descriptors 
+       (class 
+        &optional (the-ignorable '(graph-utils::value 
+                                   graph-utils::weight
+                                   graph-utils::id
+                                   type label description
+                                   color shape attributes
+                                   cluster-ids)))
+  (let ((slot-descriptors (slot-value (find-class class) 'sb-pcl::slots)))
+    (loop for slot-descriptor in slot-descriptors
+          for name = (slot-value slot-descriptor 'sb-pcl::name)
+          unless (member name the-ignorable)
+            collect (list name
+                    (slot-value slot-descriptor 'sb-pcl::initform)))))
+
+;; (get-inn-node-slot-descriptors 'inn-node)
 
 ;;; Deprecated: helper macro
 ;;;

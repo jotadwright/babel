@@ -2,7 +2,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                         ;;
-;; Web service underlying de CCxG explorer ;;
+;; Web service underlying the CCxG explorer ;;
 ;;                                         ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -15,7 +15,7 @@
 (load-propbank-annotations 'ewt :ignore-stored-data nil)
 (load-propbank-annotations 'ontonotes :ignore-stored-data nil)
 
-;; Creating CCxG explorer annoatations
+;; Creating CCxG explorer annotations
 (make-ccxg-explorer-annotations-for-propbank-sentences :ontonotes
                                                        (append (train-split *ontonotes-annotations*)
                                                                (dev-split *ontonotes-annotations*)

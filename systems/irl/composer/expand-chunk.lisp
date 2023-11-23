@@ -130,8 +130,11 @@
                                     (substitute-variables 
                                      chunk (list (cons open-var-id other-open-var-id)))))
                                (setf (open-vars new-chunk)
-                                     (delete (find other-open-var-id (open-vars new-chunk) :key #'car)
+                                     (remove (find other-open-var-id (open-vars new-chunk) :key #'car)
                                              (open-vars new-chunk)))
+                               (set-data new-chunk :new-links
+                                         (cons (cons open-var-id open-var-type)
+                                               (cons other-open-var-id other-open-var-type)))
                                new-chunk))))
 
 (defmethod expand-chunk ((chunk chunk) (composer chunk-composer)

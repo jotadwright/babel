@@ -46,4 +46,4 @@
     (generate-morphological-constructions *CLEVR*))
 
 ;; This is to be able to call comprehend and formulate without specifying the cxn-inventory
-(setf *fcg-constructions* *CLEVR*)
+; (setf *fcg-constructions* *CLEVR*)

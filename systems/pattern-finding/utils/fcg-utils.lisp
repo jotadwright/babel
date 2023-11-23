@@ -1,29 +1,17 @@
 (in-package :fcg)
 
-(export '(extract-meaning-predicates extract-form-predicates
-          create-cxn-inventory-for-sandbox apply-in-sandbox comprehend-in-sandbox
-          ordered-fcg-apply))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Extracting form and meaning from fcg-constructions ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun initial-node (node)
-  "returns the first node in the cip"
-  (if (all-parents node)
-    (last-elt (all-parents node))
-    node))
-
-(defun find-feature-value (feature unit-body)
-  (loop for feature-value in unit-body
-        when (equal (feature-name feature-value) feature)
-        return  (second feature-value)))
-
-(defun find-hashed-feature-value (feature unit-body)
-  (loop for feature-value in unit-body
-        when (and (equal (first feature-value) 'HASH)
-                  (equal (second feature-value) feature))
-        return (third feature-value)))
-
-;; ------------------------------
-;; + extract meaning predicates +
-;; ------------------------------
+(export '(extract-meaning-predicates
+          extract-form-predicates
+          ordered-fcg-apply
+          comprehend-in-sandbox
+          apply-in-sandbox
+          initial-node
+          cxn-score
+          create-cxn-inventory-for-sandbox))
 
 (defgeneric extract-meaning-predicates (object))
 
@@ -42,9 +30,7 @@
   (append (find-feature-value 'meaning unit-body)
           (find-hashed-feature-value 'meaning unit-body)))
 
-;; ---------------------------
-;; + extract form predicates +
-;; ---------------------------
+;; (extract-meaning-predicates (first (constructions *fcg-constructions*)))
 
 (defgeneric extract-form-predicates (object))
 
@@ -63,6 +49,29 @@
   (append (find-feature-value 'form unit-body)
           (find-hashed-feature-value 'form unit-body)))
 
+;; (extract-form-predicates (first (constructions *fcg-constructions*)))
+
+(defun find-feature-value (feature unit-body)
+  (loop for feature-value in unit-body
+        when (equal (feature-name feature-value) feature)
+        return  (second feature-value)))
+
+(defun find-hashed-feature-value (feature unit-body)
+  (loop for feature-value in unit-body
+        when (and (equal (first feature-value) 'HASH)
+                  (equal (second feature-value) feature))
+        return (third feature-value)))
+
+(defun initial-node (node)
+  "returns the first node in the cip"
+  (if (all-parents node)
+    (last-elt (all-parents node))
+    node))
+
+(defun cxn-score (cxn)
+  (attr-val cxn :score))
+
+
 
 ;;
 ;; comprehend and formulate
@@ -74,11 +83,12 @@
                                  (silent nil))
   (let* ((de-render-mode (get-configuration cxn-inventory :de-render-mode))
          (meaning-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
+         (form-formalism (get-configuration cxn-inventory :form-representation-formalism))
          (initial-cfs (de-render utterance de-render-mode :cxn-inventory cxn-inventory))
          (processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
     ;; Add utterance and meaning to blackboard
     (set-data initial-cfs :utterance
-              (pf::form-constraints-with-variables utterance de-render-mode))
+              (pf::form-constraints-with-variables utterance de-render-mode form-formalism))
     (set-data initial-cfs :meaning
               (pf::meaning-predicates-with-variables gold-standard-meaning meaning-formalism))
     ;; Notification
@@ -104,12 +114,13 @@
   "comprehend the input utterance with a given FCG grammar, obtaining all possible combinations"
   (let* ((de-render-mode (get-configuration cxn-inventory :de-render-mode))
          (meaning-formalism (get-configuration cxn-inventory :meaning-representation-formalism))
+         (form-formalism (get-configuration cxn-inventory :form-representation-formalism))
          (initial-cfs (de-render utterance de-render-mode :cxn-inventory cxn-inventory))
          (processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
     
     ;; Add utterance and meaning to blackboard
     (set-data initial-cfs :utterance
-              (pf::form-constraints-with-variables utterance de-render-mode))
+              (pf::form-constraints-with-variables utterance de-render-mode form-formalism))
     (set-data initial-cfs :meaning
               (pf::meaning-predicates-with-variables gold-standard-meaning meaning-formalism))
     ;; Notification
@@ -137,50 +148,69 @@
                                          (categories-to-add nil)
                                          (categorial-links-to-add nil)
                                          (category-linking-mode :categories-exist))
-  (with-configurations ((cxn-supplier :learner-cxn-supplier)
-                        (de-render-mode :de-render-mode)
-                        (meaning-representation :meaning-representation)
-                        (initial-link-weight :initial-categorial-link-weight))
+  (with-configurations ((meaning-representation :meaning-representation-formalism)
+                        (form-representation :form-representation-formalism)
+                        (initial-link-weight :initial-categorial-link-weight)
+                        (cxn-supplier-mode :cxn-supplier-mode))
       original-cxn-inventory
     (let* ((inventory-name (gensym))
            (temp-cxn-inventory
             (eval `(def-fcg-constructions ,inventory-name
                      :cxn-inventory ,inventory-name
-                     :hashed t
-                     :feature-types ((pf::form-args sequence)
-                                     (pf::meaning-args sequence)
-                                     (form set-of-predicates)
+                     :hashed ,(case form-representation
+                                (:string+meets t)
+                                (:sequences nil))
+                     :feature-types (,(case form-representation
+                                        (:string+meets '(form set-of-predicates))
+                                        (:sequences '(form set-of-predicates :handle-regex-sequences)))
                                      (meaning set-of-predicates)
+                                     (pf::form-args sequence)
+                                     (pf::meaning-args sequence)
                                      (subunits set)
                                      (footprints set))
-                     :fcg-configurations ((:node-tests :restrict-nr-of-nodes
-                                                       :restrict-search-depth
-                                                       :check-duplicate)
-                                          (:cxn-supplier-mode . ,cxn-supplier)
+                     :fcg-configurations ((:construction-inventory-processor-mode . :heuristic-search)
+                                          (:node-expansion-mode . :full-expansion)
+                                          (:cxn-supplier-mode . ,cxn-supplier-mode)
+                                          (:search-algorithm . :best-first)
+                                          (:heuristics :nr-of-applied-cxns :cxn-score)
+                                          (:heuristic-value-mode . :sum-heuristics-and-parent)
+
+                                          (:de-render-mode . ,(case form-representation
+                                                                (:string+meets :de-render-string-meets-no-punct)
+                                                                (:sequences :de-render-sequence)))
+                                          (:render-mode . ,(case form-representation
+                                                             (:string+meets :generate-and-test)
+                                                             (:sequences :render-sequences)))
+                                          (:meaning-representation-formalism . ,meaning-representation)
+                                          (:form-representation-formalism . ,form-representation)
                                           (:parse-goal-tests :no-strings-in-root
                                                              :no-applicable-cxns
                                                              :connected-semantic-network
                                                              :connected-structure
                                                              :non-gold-standard-meaning)
-                                          (:de-render-mode . ,de-render-mode)
-                                          (:parse-order routine)
+                                          (:node-tests :restrict-nr-of-nodes
+                                                       :restrict-search-depth
+                                                       :check-duplicate-strict)
+                                          (:parse-order routine-apply-first routine-apply-last)
+                                          (:production-order routine-apply-first routine-apply-last)
                                           (:max-nr-of-nodes . 250)
-                                          (:production-order routine)
-                                          (:meaning-representation-formalism . ,meaning-representation)
-                                          (:render-mode . :generate-and-test)
                                           (:category-linking-mode . ,category-linking-mode)
                                           (:update-categorial-links . nil)
                                           (:consolidate-repairs . nil)
                                           (:use-meta-layer . nil)
                                           (:initial-categorial-link-weight . ,initial-link-weight)
                                           (:ignore-transitive-closure . t)
-                                          (:hash-mode . :hash-string-meaning))))))
+                                          (:hash-mode . :hash-string-meaning)
+                                          (:ignore-nil-hashes . nil))
+                     :visualization-configurations ,(entries (visualization-configuration original-cxn-inventory))))))
       (add-categories categories-to-add (categorial-network temp-cxn-inventory)
                       :recompute-transitive-closure nil)
       (dolist (categorial-link categorial-links-to-add)
-        (add-categories (list (car categorial-link) (cdr categorial-link)) (categorial-network temp-cxn-inventory)
+        (add-categories (list (car categorial-link) (cdr categorial-link))
+                        (categorial-network temp-cxn-inventory)
                         :recompute-transitive-closure nil)
-        (add-link (car categorial-link) (cdr categorial-link) (categorial-network temp-cxn-inventory)
+        (add-link (car categorial-link) (cdr categorial-link)
+                  (categorial-network temp-cxn-inventory)
                   :recompute-transitive-closure nil))
       (dolist (cxn cxns-to-add)
         (add-cxn cxn temp-cxn-inventory))
@@ -213,6 +243,7 @@
       ;; non-sequential normal comprehend
       (second (multiple-value-list (comprehend utterance :gold-standard-meaning gold-standard-meaning :cxn-inventory temp-cxn-inventory :silent t))))))
 
+
 (defun apply-in-sandbox (initial-node
                          original-cxn-inventory
                          &key (cxns-to-add nil)
@@ -231,6 +262,7 @@
       (declare (ignore cip))
       solution)))
 
+
 (defun ordered-fcg-apply (processing-cxns-to-apply initial-node direction cxn-inventory)
   "Apply a list of processing cxns in the order they appear in the list. Returns the solution cipn."
   (with-disabled-monitor-notifications
@@ -247,9 +279,9 @@
 
 
 (defmethod formulate (meaning &key
-                              (cxn-inventory *fcg-constructions*)
-                              (gold-standard-utterance nil)
-                              (silent nil))
+                            (cxn-inventory *fcg-constructions*)
+                            (gold-standard-utterance nil)
+                            (silent nil))
   (let ((initial-cfs (create-initial-structure meaning
                                                (get-configuration cxn-inventory :create-initial-structure-mode)))
         (processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))

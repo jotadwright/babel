@@ -1,4 +1,3 @@
-
 (ql:quickload :grammar-learning)
 (in-package :grammar-learning)
 
@@ -28,8 +27,6 @@
   (activate-monitor print-a-dot-for-each-interaction)
   ;(activate-monitor export-categorial-network-evolution-to-jsonl)
   (activate-monitor export-type-hierarchy-to-json))
-
-
 
 ;; full logging
 (progn
@@ -71,11 +68,8 @@
                                      (:remove-cxn-on-lower-bound . t)
                                      (:alignment-strategy . :lateral-inhibition)
                                      (:de-render-mode . :de-render-string-meets-no-punct)
-                                     (:corpus-files-root . ,(merge-pathnames
-                                                             (make-pathname :directory '(:relative "geoquery"))
-                                                             cl-user:*babel-corpora*))
-                                     (:corpus-data-file . ,(make-pathname
-                                                            :name "geoquery_en" :type "jsonl")))))))
+                                     (:corpus-files-root . ,(babel-pathname :directory '("systems" "postmodern-parser" "data")))
+                                     (:corpus-data-file . ,(make-pathname :name "geography-for-pf" :type "jsonl")))))))
 
 (defun create-lexicon-experiment ()
   (wi::reset)

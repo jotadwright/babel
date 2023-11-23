@@ -1,0 +1,11 @@
+id,exp_name,nr_of_interactions,dataset,dataset_split,available_channels,scene_sampling,topic_sampling
+1,clevr-10m,100000,clevr,test,:clevr,:random,:random
+2,clevr-100m,100000,clevr,test,:clevr,:random,:random
+3,pop-10,100000,clevr,test,:clevr,:random,:random
+4,pop-16,100000,clevr,test,:clevr,:random,:random
+5,pop-32,100000,clevr,test,:clevr,:random,:random
+6,pop-64,100000,clevr,test,:clevr,:random,:random
+7,pop-128,100000,clevr,test,:clevr,:random,:random
+8,pop-256,100000,clevr,test,:clevr,:random,:random
+9,pop-512,100000,clevr,test,:clevr,:random,:random
+10,pop-1024,100000,clevr,test,:clevr,:random,:random
