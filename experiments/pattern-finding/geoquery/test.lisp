@@ -160,15 +160,6 @@
                                 (BIND CONCEPT ?ALIAS-0 STATEALIAS0)
                                 (BIND TABLE ?TABLE-0 STATE))))|#
 
-
-
-#|(irl:get-target-var '((DOT ?COLUMN-1 ?ALIAS-0 ?COLUMN-2)
-                        (AS ?FILTER-0 ?TABLE-0 ?ALIAS-0)
-                        (FROM ?FILTER-1 ?FILTER-0)
-                        (SELECT ?RESULT-0 ?COLUMN-1 ?FILTER-1)
-                        (BIND CONCEPT ?ALIAS-0 CITYALIAS0)
-                        (BIND TABLE ?TABLE-0 CITY)))|#
-
 (def-fcg-cxn states-cxn-1
              ((?holistic-unit
                (category states-cxn-cat-1)
