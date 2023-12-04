@@ -272,6 +272,12 @@
        collect (third el)))
                ; FIXME this doesn't work for multiple tags per tag feature
 
+(defun get-sequences (unit &optional (ignore-tags nil))
+  (loop for el in (feature-value (unit-feature unit 'form ignore-tags))
+       when (and (consp el)
+		 (eql (first el) 'sequence))
+       collect (second el)))
+
 (defun get-string (unit &optional (ignore-tags nil))
   (third
    (find 'string 
