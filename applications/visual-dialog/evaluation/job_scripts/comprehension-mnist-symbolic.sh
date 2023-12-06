@@ -3,8 +3,8 @@
 #SBATCH --job-name=comprehension_mnist_symbolic
 #SBATCH --ntasks=1 
 #SBATCH --mem-per-cpu=20gb
-#SBATCH --error /user/brussel/101/vsc10168/comprehension-mnist-symbolic/comprehension-mnist-symbolic-%a.err
-#SBATCH --output /user/brussel/101/vsc10168/comprehension-mnist-symbolic/comprehension-mnist-symbolic-%a.log
+#SBATCH --error /user/brussel/101/vsc10168/logs/comprehension-mnist-symbolic-%a.err
+#SBATCH --output /user/brussel/101/vsc10168/logs/comprehension-mnist-symbolic-%a.log
 #SBATCH --array=0-99
 
 
@@ -16,7 +16,7 @@ mkdir -p $TMPDIR
 cd $VSC_DATA/Babel3/applications/visual-dialog/evaluation/job_scripts/
 
 module purge
-module load SBCL/2.2.1-GCCcore-10.3.0 
+module load SBCL/2.3.11-GCCcore-11.3.0 
 
 START=$SLURM_ARRAY_TASK_ID
 END=$SLURM_ARRAY_TASK_ID
