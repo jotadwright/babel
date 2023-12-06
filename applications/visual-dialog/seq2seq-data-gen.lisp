@@ -4,15 +4,24 @@
 (defparameter *clevr-data-path*
   (parse-namestring "/Users/jensnevens/corpora/CLEVR-v1.0/"))
 
-(defparameter *world*
+(defparameter *mnist-data-path*
+  (parse-namestring "/Users/jensnevens/corpora/MNIST-Dialog/"))
+
+(defparameter *clevr-val-world*
   (make-instance 'world
                  :entries '((:dataset .  :clevr)
                             (:datasplit . :val)
                             (:mode . :symbolic))))
 
+(defparameter *mnist-val-world*
+  (make-instance 'world
+                 :entries '((:dataset . :mnist)
+                            (:datasplit . :val)
+                            (:mode . :symbolic))))
+
 (activate-monitor trace-fcg)
 
-(comprehend-dialogs 0 0 *world*)
+(comprehend-dialogs 0 0 *mnist-val-world*)
 
 
 
