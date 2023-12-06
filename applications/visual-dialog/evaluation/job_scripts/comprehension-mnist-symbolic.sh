@@ -5,7 +5,7 @@
 #SBATCH --mem-per-cpu=20gb
 #SBATCH --error /user/brussel/101/vsc10168/comprehension-mnist-symbolic/comprehension-mnist-symbolic-%a.err
 #SBATCH --output /user/brussel/101/vsc10168/comprehension-mnist-symbolic/comprehension-mnist-symbolic-%a.log
-#SBATCH --array=0-149
+#SBATCH --array=0-99
 
 
 cd $SLURM_SUBMIT_DIR
