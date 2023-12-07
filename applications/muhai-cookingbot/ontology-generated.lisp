@@ -1874,8 +1874,12 @@
   (:documentation "Spice."))
 
 (defclass sugar (spice ingredient mixable)
-  ()
+  ((elements
+    :initarg :elements :initform nil :type list :accessor elements))
   (:documentation "Sugar."))
+
+(defmethod copy-object-content ((original sugar) (copy sugar))
+  (setf (elements copy) (mapcar #'copy-object (elements original))))
 
 (defclass sugar-bag (sugar)
   ()

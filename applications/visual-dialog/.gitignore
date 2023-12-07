@@ -1,4 +1,5 @@
 evaluation/results/*
+evaluation/comprehension-results/*
 measures/*.pdf
 measures/data
 measures/.ipynb_checkpoints

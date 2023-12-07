@@ -350,10 +350,10 @@
       (>= (first lr-pair-2) (second lr-pair-1))))
 
 
-(defun calculate-index-list (list-of-intervals)
+#|(defun calculate-index-list (list-of-intervals)
   (loop for (start end) in list-of-intervals
         append (loop for i from start to end
-                      collect i)))
+                      collect i)))|#
 
 ;; (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30)
 ;; (2 3 4 21 22 23 24 25 26 27 28 29)
@@ -365,7 +365,7 @@
        (> (abs (- pos-1 pos-2))
           1)))
 
-(defun calculate-unmatched-intervals (matched-intervals root-intervals)
+#|(defun calculate-unmatched-intervals (matched-intervals root-intervals)
   "Calculates which spans in the root's form feature have not been matched by the current cxn application."
   (let* ((root-sequence-indices (calculate-index-list (sort root-intervals #'< :key #'first)))
          (cxn-sequence-indices (calculate-index-list (sort matched-intervals #'< :key #'first))))
@@ -410,10 +410,88 @@
                  ;; IF we are not yet constructing an interval, THEN start a new interval
                  (setf current-interval (list root-sequence-index))))
             
-             finally (return intervals))))
+             finally (return intervals))))|#
 
 ;(test-calculate-unmatched-root-intervals)
-;;(calculate-unmatched-intervals '((19 22)) '((0 4) (12 28)))
+
+(defun calculate-index-list (list-of-intervals)
+  (let ((lists-of-indexes '()))
+    (loop for (start end) in list-of-intervals
+          for index-list = '()
+          do (loop for i from start to end
+                   do (pushend i index-list))
+             (pushend index-list lists-of-indexes))
+    lists-of-indexes))
+
+;; (calculate-index-list '((0 6) (7 12) (15 25)))
+
+;; what we had: '(0 1 2 3 4 5 6 7 8 9 10 11 12 15 16 17 18 19 20 21 22 23 24 25)
+;; what we want: '((0 1 2 3 4 5 6) (7 8 9 10 11 12) (15 16 17 18 19 20 21 22 23 24 25))
+
+(defun remove-element-by-index (lst index)
+  (if (zerop index)
+      (cdr lst)  ; If index is 0, remove the first element
+      (setf (cdr (nthcdr (1- index) lst)) (cddr (nthcdr (1- index) lst))))
+  lst)
+
+(defun has-jump-in-interval (numbers)
+  "Check if there is a jump in the interval between consecutive numbers."
+  (let* ((differences (mapcar #'(lambda (x y) (abs (- x y)))
+                              numbers
+                              (cdr numbers)))
+         (max-difference (apply #'max differences)))
+    (> max-difference 1)))
+
+(defun find-continuous-sublists (list-of-numbers)
+  "Find continuous sublists in the interval between consecutive numbers."
+  (let ((sublists '())
+        (sublist '()))
+    (loop for i in list-of-numbers
+          for pos-i = (position i list-of-numbers)
+          do (pushend i sublist)
+             (when (not (= i (first (last list-of-numbers))))
+               (if (> (abs (- (nth (+ pos-i 1) list-of-numbers) i)) 1)
+                 (progn
+                   (pushend sublist sublists)
+                   (setf sublist '()))))
+             (pop list-of-numbers)
+             (when (and sublist (= (length list-of-numbers) 0))
+               (pushend sublist sublists)))
+    sublists))
+
+(defun calculate-unmatched-intervals (matched-intervals root-intervals)
+  "Calculates which spans in the root's form feature have not been matched by the current cxn application."
+  (let* ((root-sequence-indices (calculate-index-list (sort root-intervals #'< :key #'first)))
+         (cxn-sequence-indices (calculate-index-list (sort matched-intervals #'< :key #'first)))
+         (new-sequence-indices '())
+         (new-indices '()))
+     ;;(print root-sequence-indices) ;; ex: '((0 1 2 3 4 5 6) (7 8 9 10 11 12) (15 16 17 18 19 20 21 22 23 24 25)) 
+     ;;(print cxn-sequence-indices))) ;; ex: '((2 3 4 5))
+     (loop for root-sequence-index in root-sequence-indices
+           do (loop for cxn-sequence-index in cxn-sequence-indices
+                    do (when (subsetp cxn-sequence-index root-sequence-index)
+                         (when (not (= (first cxn-sequence-index) (first root-sequence-index)))
+                           (setf cxn-sequence-index (cdr cxn-sequence-index)))
+                         (when (not (= (first (last cxn-sequence-index)) (first (last root-sequence-index))))
+                           (setf cxn-sequence-index (reverse (cdr (reverse  cxn-sequence-index)))))
+                         (setf root-sequence-index (sort (set-difference root-sequence-index cxn-sequence-index) #'<))))
+              (when root-sequence-index
+                (if (has-jump-in-interval root-sequence-index)
+                  (progn (setf root-sequence-index-sublists (find-continuous-sublists root-sequence-index))
+                    (loop for root-sequence-index-sublist in root-sequence-index-sublists
+                          do (pushend root-sequence-index-sublist new-sequence-indices)))
+                  (pushend root-sequence-index new-sequence-indices))))
+     
+    (loop for new-sequence-index in new-sequence-indices
+          do (setf list-of-endpoints (list (first new-sequence-index) (first (last new-sequence-index))))
+             (pushend list-of-endpoints new-indices))
+    (setq new-indices (sort new-indices #'(lambda (x y) (< (first x) (first y)))))
+    new-indices))
+
+;; test: 
+;; (recompute-root-sequence-features-based-on-bindings '((SEQUENCE "chairm" 0 6) (SEQUENCE "n of " 7 12) (SEQUENCE " committee" 15 25)) '((#:?AIR-UNIT-790 . #:AIR-UNIT-87) (#:?TAG-42752 FORM ((SEQUENCE "air" 2 5))) (#:?LEFT-14848 . 2) (#:?RIGHT-14848 . 5)))
+
+;; (recompute-root-sequence-features-based-on-bindings '((SEQUENCE "she " 0 4) (SEQUENCE " " 7 8) (SEQUENCE " " 9 10)) '((#:?SHE-UNIT-4909 . #:SHE-UNIT-181) (#:?TAG-408114 FORM ((SEQUENCE "she" 0 3))) (#:?LEFT-157585 . 0) (#:?RIGHT-157585 . 3)))
 
 (defun recompute-root-sequence-features-based-on-bindings (root-sequence-features bindings)
   "Makes new set of sequence predicates based on the indices that are present in the bindings."
@@ -437,6 +515,9 @@
                          if (overlapping-lr-pairs-p (list start end) (list left right))
                            collect (let ((unmatched-substring (subseq string normalised-left normalised-right)))
                                      `(,feat-name ,unmatched-substring ,left ,right)))))))
+
+#|(recompute-root-sequence-features-based-on-bindings '((SEQUENCE "foolish child th" 0 16) (SEQUENCE "t she " 17 23))
+                                                    '((#:?SHE-UNIT-698 . #:SHE-UNIT-59) (#:?TAG-49046 FORM ((SEQUENCE "she" 19 22))) (#:?LEFT-18848 . 19) (#:?RIGHT-18848 . 22)))|#
 
 
 (defun remove-tag-from-added (tag-variable pattern added bindings &key cxn-inventory)
