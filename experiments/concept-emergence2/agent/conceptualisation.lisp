@@ -32,7 +32,7 @@
   (let* ((discriminative-features (get-symbolic-discriminative-feature (parse-keyword (get-configuration (experiment agent) :dataset))
                                                                        (find-data agent 'topic)
                                                                        (find-data agent 'context)))
-         (form (random-elt discriminative-features))
+         (form (cdr (random-elt discriminative-features)))
          (applied-cxn (make-instance 'cxn
                                      :form form
                                      :meaning nil
