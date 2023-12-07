@@ -12,24 +12,24 @@
                 (:usage-table-window . 100)
                 (:save-distribution-history . nil)
                 ;; setup interacting agents
-                (:interacting-agents-strategy . :standard)
-                (:population-size . 10)
+                (:population-size . 2)
                 ;; setup data scene
+                (:setting . :tutor-learner)
                 (:dataset . "clevr")
                 (:dataset-split . "train")
                 ;(:data-fname . "all.lisp")
                 (:available-channels ,@(get-all-channels :clevr))
                 ;; disable channels
-                (:disable-channels . :fixed)
-                (:amount-disabled-channels . 15)
+                (:disable-channels . :none)
+                (:amount-disabled-channels . 0)
                 ;; noised channels
                 (:sensor-noise . :none)
                 (:sensor-std . 0.0)
-                (:observation-noise . :shift)
-                (:observation-std . 0.01)
+                (:observation-noise . :none)
+                (:observation-std . 0.0)
                 ;; scene sampling
                 (:scene-sampling . :random)
-                (:topic-sampling . :random)
+                (:topic-sampling . :discriminative)
                 ;; general strategy
                 (:align . t)
                 (:similarity-threshold . 0.0)
@@ -70,7 +70,7 @@
   (activate-monitor print-a-dot-for-each-interaction)
   (format t "~%---------- NEW GAME ----------~%")
   (time
-   (loop for i from 1 to 50000
+   (loop for i from 1 to 10000
          do (run-interaction *experiment*))))
 
 (progn

@@ -11,7 +11,7 @@
   ;; 1. reset agents
   (determine-interacting-agents experiment
                                 (current-interaction experiment)
-                                (get-configuration experiment :interacting-agents-strategy)
+                                (get-configuration experiment :setting)
                                 :agents agents)
   (loop for agent in (interacting-agents experiment)
         do (clear-agent agent))
