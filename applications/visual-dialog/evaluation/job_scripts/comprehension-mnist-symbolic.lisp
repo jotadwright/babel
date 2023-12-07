@@ -16,7 +16,7 @@
     (let ((start (* (parse-integer (getf arg-plist 'start)) 100))
           (end (+ 99 (* (parse-integer (getf arg-plist 'end)) 100)))
           (world (make-instance 'world :entries '((:dataset .  :mnist)
-                                                  (:datasplit . :val)
+                                                  (:datasplit . :train)
                                                   (:mode . :symbolic)))))
       (comprehend-dialogs start end world))))
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --time=2:00:00
+#SBATCH --time=24:00:00
 #SBATCH --job-name=comprehension_clevr_symbolic
 #SBATCH --ntasks=1 
 #SBATCH --mem-per-cpu=20gb
