@@ -428,20 +428,36 @@
 ;; what we had: '(0 1 2 3 4 5 6 7 8 9 10 11 12 15 16 17 18 19 20 21 22 23 24 25)
 ;; what we want: '((0 1 2 3 4 5 6) (7 8 9 10 11 12) (15 16 17 18 19 20 21 22 23 24 25))
 
-(defun copy-to-end (l end)
-  "copy the list l from beginning to the element at position end - 1"
-  (if (zerop end)
-      nil
-      (cons (car l) (copy-to-end (cdr l) (1- end)))))
+(defun remove-element-by-index (lst index)
+  (if (zerop index)
+      (cdr lst)  ; If index is 0, remove the first element
+      (setf (cdr (nthcdr (1- index) lst)) (cddr (nthcdr (1- index) lst))))
+  lst)
 
-(defun my-subseq (l start &optional (end (length l)))
-  "copy the list l from the element at position start to the element at position end - 1"
-  (if (zerop start)
-      (copy-to-end l end)
-      (my-subseq (cdr l) (1- start) (1- end))))
+(defun has-jump-in-interval (numbers)
+  "Check if there is a jump in the interval between consecutive numbers."
+  (let* ((differences (mapcar #'(lambda (x y) (abs (- x y)))
+                              numbers
+                              (cdr numbers)))
+         (max-difference (apply #'max differences)))
+    (> max-difference 1)))
 
-(defun split-in-two (list count)
-  (values (my-subseq list 0 count) (my-subseq list count)))
+(defun find-continuous-sublists (list-of-numbers)
+  "Find continuous sublists in the interval between consecutive numbers."
+  (let ((sublists '())
+        (sublist '()))
+    (loop for i in list-of-numbers
+          for pos-i = (position i list-of-numbers)
+          do (pushend i sublist)
+             (when (not (= i (first (last list-of-numbers))))
+               (if (> (abs (- (nth (+ pos-i 1) list-of-numbers) i)) 1)
+                 (progn
+                   (pushend sublist sublists)
+                   (setf sublist '()))))
+             (pop list-of-numbers)
+             (when (and sublist (= (length list-of-numbers) 0))
+               (pushend sublist sublists)))
+    sublists))
 
 (defun calculate-unmatched-intervals (matched-intervals root-intervals)
   "Calculates which spans in the root's form feature have not been matched by the current cxn application."
@@ -449,38 +465,28 @@
          (cxn-sequence-indices (calculate-index-list (sort matched-intervals #'< :key #'first)))
          (new-sequence-indices '())
          (new-indices '()))
-    ;; (print root-sequence-indices) ;; ex: '((0 1 2 3 4 5 6) (7 8 9 10 11 12) (15 16 17 18 19 20 21 22 23 24 25)) 
-    ;; (print cxn-sequence-indices) ;; ex: '((2 3 4 5)) 
-    (loop for cxn-sequence-index in cxn-sequence-indices
-          do (loop for root-sequence-index in root-sequence-indices
-                   do (if (and cxn-sequence-indices
-                                 (subsetp cxn-sequence-index root-sequence-index))
-                        (progn
-                          (setf first-elem (+ 1 (position (first cxn-sequence-index) root-sequence-index)))
-                          (setf cxn-sequence-indices (cdr cxn-sequence-indices))
-                          (setf cxn-sequence-index (cdr cxn-sequence-index))
-                          (setf cxn-sequence-index (reverse (cdr (reverse  cxn-sequence-index))))
-                          (setf difference-list (sort (set-difference root-sequence-index cxn-sequence-index) #'<))
-                          (multiple-value-bind (sublist1 sublist2) (split-in-two difference-list first-elem)
-                          (push sublist2 new-sequence-indices)
-                          (push sublist1 new-sequence-indices)))
-                        (pushend root-sequence-index new-sequence-indices))))
+     ;;(print root-sequence-indices) ;; ex: '((0 1 2 3 4 5 6) (7 8 9 10 11 12) (15 16 17 18 19 20 21 22 23 24 25)) 
+     ;;(print cxn-sequence-indices))) ;; ex: '((2 3 4 5))
+     (loop for root-sequence-index in root-sequence-indices
+           do (loop for cxn-sequence-index in cxn-sequence-indices
+                    do (when (subsetp cxn-sequence-index root-sequence-index)
+                         (when (not (= (first cxn-sequence-index) (first root-sequence-index)))
+                           (setf cxn-sequence-index (cdr cxn-sequence-index)))
+                         (when (not (= (first (last cxn-sequence-index)) (first (last root-sequence-index))))
+                           (setf cxn-sequence-index (reverse (cdr (reverse  cxn-sequence-index)))))
+                         (setf root-sequence-index (sort (set-difference root-sequence-index cxn-sequence-index) #'<))))
+              (when root-sequence-index
+                (if (has-jump-in-interval root-sequence-index)
+                  (progn (setf root-sequence-index-sublists (find-continuous-sublists root-sequence-index))
+                    (loop for root-sequence-index-sublist in root-sequence-index-sublists
+                          do (pushend root-sequence-index-sublist new-sequence-indices)))
+                  (pushend root-sequence-index new-sequence-indices))))
+     
     (loop for new-sequence-index in new-sequence-indices
           do (setf list-of-endpoints (list (first new-sequence-index) (first (last new-sequence-index))))
              (pushend list-of-endpoints new-indices))
     (setq new-indices (sort new-indices #'(lambda (x y) (< (first x) (first y)))))
     new-indices))
-
-;; (calculate-unmatched-intervals '((2 5)) '((0 6) (7 12) (15 25)))
-;; expected: '((0 2) (5 6) (7 12) (15 25))
-
-;; (calculate-unmatched-intervals '((3 7)) '((0 8) (10 15) (16 25)))
-
-;; (calculate-unmatched-intervals '((19 22)) '((0 16) (17 23)))
-;; expected: '((0 16) (17 19) (22 23))
-
-;;(calculate-unmatched-intervals '((19 22)) '((0 4) (12 28)))
-;; expected: ((0 4) (12 19) (22 28))
 
 ;; test: 
 ;; (recompute-root-sequence-features-based-on-bindings '((SEQUENCE "chairm" 0 6) (SEQUENCE "n of " 7 12) (SEQUENCE " committee" 15 25)) '((#:?AIR-UNIT-790 . #:AIR-UNIT-87) (#:?TAG-42752 FORM ((SEQUENCE "air" 2 5))) (#:?LEFT-14848 . 2) (#:?RIGHT-14848 . 5)))
