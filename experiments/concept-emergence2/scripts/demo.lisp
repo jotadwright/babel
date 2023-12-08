@@ -80,8 +80,14 @@
   (loop for idx from 1 to 1
         do (run-interaction *experiment*)))
 
-(display-lexicon (find-agent 1 *experiment*) :sort t)
+(display-lexicon (second (agents *experiment*)) :sort t)
 
+(loop for cxn in (lexicon (second (agents *experiment*)))
+      collect (form cxn))
+
+(setf ffff (find-in-lexicon (second (agents *experiment*)) "small"))
+
+(add-cxn-to-interface (find-in-lexicon (second (agents *experiment*)) "small") :certainty-threshold 0.0)
 
 
 (progn
