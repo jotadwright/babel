@@ -46,7 +46,23 @@
 
   (test-equalp (calculate-unmatched-intervals '((2 12) (17 25) (29 30))
                                               '((0 25) (29 30)))
-               '((0 2) (12 17))))
+               '((0 2) (12 17)))
+  
+  (test-equalp (calculate-unmatched-intervals '((2 5))
+                                              '((0 6) (7 12) (15 25)))
+               '((0 2) (5 6) (7 12) (15 25)))
+
+  (test-equalp (calculate-unmatched-intervals '((3 7))
+                                              '((0 8) (10 15) (16 25)))
+               '((0 3) (7 8) (10 15) (16 25)))
+
+  (test-equalp (calculate-unmatched-intervals '((19 22))
+                                              '((0 16) (17 23)))
+               '((0 16) (17 19) (22 23)))
+  
+  (test-equalp (calculate-unmatched-intervals '((19 22))
+                                              '((0 4) (12 28)))
+               '((0 4) (12 19) (22 28))))
 
 ;;(test-calculate-unmatched-root-intervals)
 
