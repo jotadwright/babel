@@ -150,7 +150,7 @@
                       (string= (form speaker-cxn) (form hearer-cxn))
                       nil)))
     ;; notify
-    (notify event-coherence-p experiment coherence speaker-cxn hearer-cxn)
+    ;(notify event-coherence-p experiment coherence speaker-cxn hearer-cxn) ;; TODO
     ;; return
     coherence))
 
