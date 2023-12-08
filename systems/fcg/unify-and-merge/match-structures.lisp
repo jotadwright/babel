@@ -553,7 +553,9 @@
                           (let* ((excluded-positions (loop for i from car-equality-position to cdr-equality-position collect i))
                                 (excluded-items (loop for i in excluded-positions collect (nth i expanded-interval))))
                             (loop for excluded-item in excluded-items
-                                  do (setf expanded-interval (remove excluded-item expanded-interval)))))))
+                                  do (setf expanded-interval (remove excluded-item expanded-interval)))
+                            (setf car-equality-position nil)
+                            (setf cdr-equality-position nil)))))
              (when expanded-interval 
                (setf collapsed-intervals (collapse-intervals expanded-interval))
                (loop for collapsed-interval in collapsed-intervals
@@ -567,6 +569,8 @@
 
 ;; (calculate-unmatched-intervals '((29 30) (0 4)) '((0 12) (17 30)))
 ;; expected: '((4 12) (17 29))
+
+;; (calculate-unmatched-intervals '((0 4) (29 30)) '((0 12) (17 30)))
 
 ;; test: 
 ;; (recompute-root-sequence-features-based-on-bindings '((SEQUENCE "chairm" 0 6) (SEQUENCE "n of " 7 12) (SEQUENCE " committee" 15 25)) '((#:?AIR-UNIT-790 . #:AIR-UNIT-87) (#:?TAG-42752 FORM ((SEQUENCE "air" 2 5))) (#:?LEFT-14848 . 2) (#:?RIGHT-14848 . 5)))
@@ -595,6 +599,24 @@
                          if (overlapping-lr-pairs-p (list start end) (list left right))
                            collect (let ((unmatched-substring (subseq string normalised-left normalised-right)))
                                      `(,feat-name ,unmatched-substring ,left ,right)))))))
+
+#|(recompute-root-sequence-features-based-on-bindings '((sequence
+                                                                              what is the
+                                                                              0
+                                                                              12)
+                                                                             (sequence
+                                                                               of the cube?
+                                                                              17
+                                                                              30))
+                                                                           '((?left-cxn
+                                                                              . 29)
+                                                                             (?right-cxn
+                                                                              . 30)
+                                                                             (?left-2
+                                                                              . 0)
+                                                                             (?right-2
+                                                                              . 4)))|#
+
 
 #|(recompute-root-sequence-features-based-on-bindings '((SEQUENCE "foolish child th" 0 16) (SEQUENCE "t she " 17 23))
                                                     '((#:?SHE-UNIT-698 . #:SHE-UNIT-59) (#:?TAG-49046 FORM ((SEQUENCE "she" 19 22))) (#:?LEFT-18848 . 19) (#:?RIGHT-18848 . 22)))|#
