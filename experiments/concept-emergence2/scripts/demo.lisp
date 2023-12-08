@@ -38,7 +38,7 @@
                 (:entrenchment-incf . 0.1)
                 (:entrenchment-decf . -0.1)
                 (:entrenchment-li . -0.02) ;; lateral inhibition
-                (:trash-concepts . t)
+                (:trash-concepts . nil)
                 ;; concept representations
                 (:concept-representation . :distribution)
                 (:distribution . :gaussian-welford)
