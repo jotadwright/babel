@@ -21,13 +21,14 @@
 
 (activate-monitor trace-fcg)
 
-(comprehend-dialogs 0 0 *clevr-val-world*)
+(comprehend-dialogs 0 5 *clevr-val-world*)
 
 
 (defun add-irl-program-to-web-interface (irl-program)
   (add-element `((div) ,(irl-program->svg (read-from-string (mkstr (shuffle irl-program)))))))
 
 
+#|
 ;; how about the previous purple thing
 (clevr-meaning->rpn
  '((QUERY ?SPECIFIC-ATTRIBUTE-942 ?ONETARGET-155 ?SCENE-4087 ?ATTRIBUTE-1546)
@@ -59,13 +60,12 @@
    (EXIST ?YES-111 ?UNIQUE-443)
    (SEGMENT-SCENE ?SOURCE-104 ?SCENE-887)))
 
-(add-irl-program-to-web-interface
+(clevr-meaning->rpn
  '((BIND MATERIAL-CATEGORY ?MATERIAL-1140 RUBBER) (FILTER-BY-ATTRIBUTE ?TARGET-62712 ?SOURCE-26703 ?SCENE-70466 ?OBJECT-16540) (BIND SPATIAL-RELATION-CATEGORY ?RELATION-16345 FRONT) (BIND SHAPE-CATEGORY ?ROUND-34 SPHERE) (FILTER-BY-ATTRIBUTE ?TARGET-62292 ?SOURCE-26527 ?SCENE-69996 ?OBJECT-16442) (BIND SHAPE-CATEGORY ?OBJECT-16442 THING) (SELECT-ONE ?UNIQUE-43506 ?TARGET-62373) (FILTER-BY-ATTRIBUTE ?TARGET-62373 ?TARGET-62292 ?SCENE-70087 ?ROUND-34) (BIND SHAPE-CATEGORY ?OBJECT-16540 THING) (SELECT-ONE ?UNIQUE-43813 ?TARGET-62774) (FILTER-BY-ATTRIBUTE ?TARGET-62774 ?TARGET-62712 ?SCENE-70529 ?MATERIAL-1140) (EXIST ?YES-10366 ?UNIQUE-43813) (BIND BOOLEAN-CATEGORY ?YES-10366 YES) (SEGMENT-SCENE ?SOURCE-26527 ?SCENE-70999) (IMMEDIATE-RELATE ?SOURCE-26703 ?UNIQUE-43506 ?SOURCE-26527 ?SCENE-70756 ?RELATION-16345)))
 ;; segmentScene segmentScene filter_shape[thing] filter_shape[sphere] selectOne immediateRelate_front filter_shape[thing] filter_material[rubber] selectOne exist[yes]
 
 
 
-#|
 (add-element
  `((div)
    ,(irl-program->svg 
