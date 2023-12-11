@@ -29,15 +29,16 @@
 ;; -----------------------------
 (defmethod speaker-conceptualise ((agent cle-agent) (mode (eql :tutor-learner)))
   "Conceptualise the topic of the interaction."
-  (let* ((discriminative-features (get-symbolic-discriminative-feature (parse-keyword (get-configuration (experiment agent) :dataset))
-                                                                       (find-data agent 'topic)
-                                                                       (find-data agent 'context)))
+  (let* ((discriminative-features (get-symbolic-discriminative-feature
+                                   (parse-keyword (get-configuration (experiment agent) :dataset))
+                                   (find-data agent 'topic)
+                                   (find-data agent 'context)))
          (form (cdr (random-elt discriminative-features)))
          (applied-cxn (make-instance 'cxn
                                      :form form
                                      :meaning nil
                                      :score (get-configuration (experiment agent) :initial-cxn-entrenchement)
-                                     :history (list (cons 0 0))))) ;;  (make-cxn2 agent (cdr symbolic-feature))
+                                     :history (list (cons 0 0)))))
     (set-data agent 'meaning-competitors nil)
     (set-data agent 'applied-cxn applied-cxn)
     applied-cxn))
