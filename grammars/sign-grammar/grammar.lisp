@@ -336,7 +336,100 @@
                            (temporal-relation ?fs-guadalupe-1 ?fbuoy-montagne-1 during)
                            (temporal-relation ?pt-3 ?fbuoy-montagne-1 finishes))))))
                            
+(def-fcg-cxn answer-len-const-riverid-rio_grande-1-cxn
+             (<-
+              (?answer-len-const-riverid-rio_grande-1-unit
+               (HASH meaning ((ANSWER ?C ?A ?D)(LEN ?D ?B ?A)(CONST ?D ?B ?E)(RIVERID ?E ?F)(RIO_GRANDE ?F)))
+               --
+               (HASH form (;EAU --> dominant hand
+                           (left-hand-articulation ?eau-1 eau)
+                           ;DSM-RIVIERE --> two-handed, location = midssp
+                           (left-hand-articulation ?dsm-riviere-1 dsm-riviere)
+                           (location ?dsm-riviere-1 midssp)
+                           (right-hand-articulation ?dsm-riviere-2 dsm-riviere)
+                           (location ?dsm-riviere-2 midssp)
+                           (temporal-relation ?dsm-riviere-1 ?dsm-riviere-2 equals)
+                           ;PT --> dominant-hand, location = midssp, modification = back-front
+                           (left-hand-articulation ?pt-1 pt)
+                           (location ?pt-1 midssp)
+                           (modification ?pt-1 back-front)
+                           ;NOM.1 --> two-handed
+                           (left-hand-articulation ?nom.1-1 nom.1)
+                           (right-hand-articulation ?nom.1-2 nom.1)
+                           (temporal-relation ?nom.1-1 ?nom.1-2 equals)
+                           ;FS-RIO-GRANDE --> dominant hand
+                           (left-hand-articulation ?fs-rio-grande-1 fs-rio-grande)
+                           ;DSS-RIVIERE --> dominant hand, location = midssp
+                           (left-hand-articulation ?dss-riviere-1 dss-riviere)
+                           (location ?dss-riviere-1 midssp)
+                           ;COMBIEN --> dominant hand
+                           (left-hand-articulation ?combien-1 combien)
+                           ;KILOMETRE --> dominant hand
+                           (left-hand-articulation ?kilometre-1 kilometre)
+                           (right-hand-articulation ?fbuoy-dsm-riviere-1 fbuoy-dsm-riviere)
+                           (right-hand-articulation ?fbuoy-dsm-riviere-2 fbuoy-dsm-riviere)
+                           ;MEETS
+                           (meets ?eau-1 ?dsm-riviere-1)
+                           (meets ?dsm-riviere-1 ?pt-1)
+                           (meets ?pt-1 ?nom.11)
+                           (meets ?nom.1-1 ?fs-rio-grande-1)
+                           (meets ?fs-rio-grande-1 ?dss-riviere-1)
+                           (meets ?dss-riviere-1 ?combien-1)
+                           (meets ?combien-1 ?kilometre-1)
+                           ;FBUOY temporal relations
+                           (temporal-relation ?pt-1 ?fbuoy-dsm-riviere-1 equals)
+                           (temporal-relation ?dss-riviere-1 ?fbuoy-dsm-riviere-2 starts)
+                           (temporal-relation ?combien-1 ?fbuoy-dsm-riviere-2 during)
+                           (temporal-relation ?kilometre-1 ?fbuoy-dsm-riviere-2 finishes)
+                           )))))
 
+(def-fcg-cxn answer-population-largest-city-1-cxn
+             (<-
+              (?answer-population-largest-city-1-unit
+               (HASH meaning ((ANSWER ?C ?A ?D)(POPULATION ?D ?B ?A)(LARGEST ?D ?B ?E)(CITY ?E ?B)))
+               --
+               (HASH form (;DANS --> two-handed
+                           (left-hand-articulation ?dans-1 dans)
+                           (right-hand-articulation ?dans-2 dans)
+                           (temporal-relation ?dans-1 ?dans-2 equals)
+                           ;NS-AMERIQUE.FRITES --> two-handed
+                           (left-hand-articulation ?ns-amerique.frites-1 ns-amerique.frites)
+                           (right-hand-articulation ?ns-amerique.frites-2 ns-amerique.frites)
+                           (temporal-relation ?ns-amerique.frites-1 ?ns-amerique.frites-2 equals)
+                           ;IL-Y-A --> dominant hand
+                           (left-hand-articulation ?il-y-a-1 il-y-a)
+                           ;VILLE --> two-handed
+                           (left-hand-articulation ?ville-1 ville)
+                           (right-hand-articulation ?ville-2 ville)
+                           (temporal-relation ?ville-1 ?ville-2 equals)
+                           ;BEAUCOUP.F --> dominant hand
+                           (left-hand-articulation ?beaucoup.f-1 beaucoup.f)
+                           ;PERSONNE.HUMAIN --> two-handed
+                           (left-hand-articulation ?personne.humain-1 personne.humain)
+                           (right-hand-articulation ?personne.humain-2 personne.humain)
+                           (temporal-relation ?personne.humain-1 ?personne.humain-2 equals)
+                           ;HABITER --> two-handed, modification = reduplicated
+                           (left-hand-articulation ?habiter-1 habiter)
+                           (modification ?habiter-1 reduplicated)
+                           (right-hand-articulation ?habiter-2 habiter)
+                           (modification ?habiter2 reduplicated)
+                           (temporal-relation ?habiter-1 ?habiter2 equals)
+                           ;COMBIEN --> dominant hand
+                           (left-hand-articulation ?combien-1 combien)
+                           ;PALM-UP --> two-handed
+                           (left-hand-articulation ?palm-up-1 palm-up)
+                           (right-hand-articulation ?palm-up-2 palm-up)
+                           (temporal-relation ?palm-up-1 ?palm-up-2 equals)
+                           ;MEETS
+                           (meets ?dans-1 ?ns-amerique.frites-1)
+                           (meets ?ns-amerique.frites-1 ?il-y-a-1)
+                           (meets ?il-y-a-1 ?ville-1)
+                           (meets ?ville-1 ?beaucoup.f-1)
+                           (meets ?beaucoup.f-1 ?personne.humain-1)
+                           (meets ?personne.humain-1 ?habiter-1)
+                           (meets ?habiter-1 ?combien-1)
+                           (meets ?combien-1 ?palm-up-1))))))
+                           
 
 ;------------------------------;
 ; + item-based constructions + ;
@@ -758,11 +851,99 @@
                (category answer-elevation-const-placeid-slot1-1-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
                            (lh-rightmost ?slot1-lh-right)))))
+
+(def-fcg-cxn answer-len-const-riverid-slot1-1-cxn
+             (<-
+              (?answer-len-const-riverid-slot1-1-unit
+               (HASH meaning ((ANSWER ?C ?A ?D)(LEN ?D ?B ?A)(CONST ?D ?B ?E)(RIVERID ?E ?F)))
+               --
+               (HASH form (;EAU --> dominant hand
+                           (left-hand-articulation ?eau-1 eau)
+                           ;DSM-RIVIERE --> two-handed, location = midssp
+                           (left-hand-articulation ?dsm-riviere-1 dsm-riviere)
+                           (location ?dsm-riviere-1 midssp)
+                           (right-hand-articulation ?dsm-riviere-2 dsm-riviere)
+                           (location ?dsm-riviere-2 midssp)
+                           (temporal-relation ?dsm-riviere-1 ?dsm-riviere-2 equals)
+                           ;PT --> dominant-hand, location = midssp, modification = back-front
+                           (left-hand-articulation ?pt-1 pt)
+                           (location ?pt-1 midssp)
+                           (modification ?pt-1 back-front)
+                           ;NOM.1 --> two-handed
+                           (left-hand-articulation ?nom.1-1 nom.1)
+                           (right-hand-articulation ?nom.1-2 nom.1)
+                           (temporal-relation ?nom.1-1 ?nom.1-2 equals)
+                           
+                           ;DSS-RIVIERE --> dominant hand, location = midssp
+                           (left-hand-articulation ?dss-riviere-1 dss-riviere)
+                           (location ?dss-riviere-1 midssp)
+                           ;COMBIEN --> dominant hand
+                           (left-hand-articulation ?combien-1 combien)
+                           ;KILOMETRE --> dominant hand
+                           (left-hand-articulation ?kilometre-1 kilometre)
+                           (right-hand-articulation ?fbuoy-dsm-riviere-1 fbuoy-dsm-riviere)
+                           (right-hand-articulation ?fbuoy-dsm-riviere-2 fbuoy-dsm-riviere)
+                           ;MEETS
+                           (meets ?eau-1 ?dsm-riviere-1)
+                           (meets ?dsm-riviere-1 ?pt-1)
+                           (meets ?pt-1 ?nom.1-1)
+                           (meets ?nom.1-1 ?slot1-lh-left)
+                           (meets ?slot1-lh-right ?dss-riviere-1)
+                           (meets ?dss-riviere-1 ?combien-1)
+                           (meets ?combien-1 ?kilometre-1)
+                           ;FBUOY temporal relations
+                           (temporal-relation ?pt-1 ?fbuoy-dsm-riviere-1 equals)
+                           (temporal-relation ?dss-riviere-1 ?fbuoy-dsm-riviere-2 starts)
+                           (temporal-relation ?combien-1 ?fbuoy-dsm-riviere-2 during)
+                           (temporal-relation ?kilometre-1 ?fbuoy-dsm-riviere-2 finishes)
+                           )))
+              (?slot1-unit
+               (meaning-args ((target ?F)))
+               --
+               (category answer-len-const-riverid-slot1-1-slot1-cat)
+               (boundaries (lh-leftmost ?slot1-lh-left)
+                           (lh-rightmost ?slot1-lh-right)))))
                
 
 ;----------------------------;
 ; + holistic constructions + ;
 ;----------------------------;
+
+(def-fcg-cxn rio_grande-1-cxn
+             ((?rio_grande-1-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-rio-grande-1)
+                           (lh-rightmost ?fs-rio-grande-1))
+               (category rio_grande-1-cat))
+              <-
+              (?rio_grande-1-unit
+               (HASH meaning ((RIO_GRANDE ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-rio-grande-1 fs-rio-grande))))))
+
+(def-fcg-cxn mississipi-1-cxn
+             ((?mississipi-1-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-mississipi-1)
+                           (lh-rightmost ?fs-mississipi-1))
+               (category mississipi-1-cat))
+              <-
+              (?mississipi-1-unit
+               (HASH meaning ((MISSISSIPI ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-mississipi-1 fs-mississipi))))))
+
+(def-fcg-cxn columbia-1-cxn
+             ((?columbia-1-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-columbia-1)
+                           (lh-rightmost ?fs-columbia-1))
+               (category columbia-1-cat))
+              <-
+              (?columbia-1-unit
+               (HASH meaning ((COLUMBIA ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-columbia-1 fs-columbia))))))
 
 (def-fcg-cxn guadalupe_peak-1-cxn
              ((?guadalupe_peak-1-unit
@@ -1045,6 +1226,7 @@
                   answer-size-const-stateid-slot1-1-slot1-cat
                   answer-size-const-cityid-slot1-1-slot1-cat
                   answer-elevation-const-placeid-slot1-1-slot1-cat
+                  answer-len-const-riverid-slot1-1-slot1-cat
                   alaska-1-cat
                   california-1-cat
                   florida-1-cat
@@ -1061,7 +1243,10 @@
                   san_antonio-1-cat
                   guadalupe_peak-1-cat
                   mount_mckinley-1-cat
-                  death_valley-1-cat)
+                  death_valley-1-cat
+                  rio_grande-1-cat
+                  mississipi-1-cat
+                  columbia-1-cat)
                 *fcg-constructions*)
 
 (progn
@@ -1086,4 +1271,7 @@
   (add-link 'san_antonio-1-cat 'answer-size-const-cityid-slot1-1-slot1-cat *fcg-constructions*)
   (add-link 'guadalupe_peak-1-cat 'answer-elevation-const-placeid-slot1-1-slot1-cat *fcg-constructions*)
   (add-link 'death_valley-1-cat 'answer-elevation-const-placeid-slot1-1-slot1-cat *fcg-constructions*)
-  (add-link 'mount_mckinley-1-cat 'answer-elevation-const-placeid-slot1-1-slot1-cat *fcg-constructions*))
+  (add-link 'mount_mckinley-1-cat 'answer-elevation-const-placeid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'rio_grande-1-cat 'answer-len-const-riverid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'columbia-1-cat 'answer-len-const-riverid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'mississipi-1-cat 'answer-len-const-riverid-slot1-1-slot1-cat *fcg-constructions*))

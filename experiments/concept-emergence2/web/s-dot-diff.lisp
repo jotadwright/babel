@@ -48,7 +48,7 @@
      g)
 
     ;; feature-channels nodes
-    (loop for prototype in (reverse (get-prototypes (meaning cxn)))
+    (loop for prototype in (get-prototypes (meaning cxn))
           for previous-prototype = (gethash (channel prototype) (prototypes (meaning previous-copy)))
           for record = (prototype->s-dot-diff prototype
                                               previous-prototype
