@@ -114,13 +114,22 @@
   (let ((memory-vars
          (loop for var in (get-open-vars irl-program)
                for base-name = (downcase (get-base-name var))
-               for predicate = (first (find-all var irl-program :test #'member)) ;; ???
+               for predicates = (find-all var irl-program :test #'member)
                when (and (not (string= base-name "scene"))
-                         (input-position-p var predicate))
+                         (every #'(lambda (p) (input-position-p var p)) predicates))
                collect var)))
     (when memory-vars
       (loop for memory-var in memory-vars
-            do (push `(get-memory ,memory-var) irl-program)))
+            for predicates = (find-all memory-var irl-program :test #'member)
+            if (length= predicates 1)
+              do (push `(get-memory ,memory-var) irl-program)
+            else
+              do (let ((new-vars (loop repeat (length predicates) collect (make-var 'memory))))
+                   (loop for new-var in new-vars
+                         for p in predicates
+                         do (setf irl-program (remove p irl-program :test #'equal))
+                            (push `(get-memory ,new-var) irl-program)
+                            (push (subst new-var memory-var p) irl-program)))))
     irl-program))
 
 
