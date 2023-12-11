@@ -414,14 +414,14 @@
 
 ;(test-calculate-unmatched-root-intervals)
 
-(defun calculate-index-list (list-of-intervals)
+#|(defun calculate-index-list (list-of-intervals)
   (let ((lists-of-indexes '()))
     (loop for (start end) in list-of-intervals
           for index-list = '()
           do (loop for i from start to end
                    do (pushend i index-list))
              (pushend index-list lists-of-indexes))
-    lists-of-indexes))
+    lists-of-indexes))|#
 
 ;; (calculate-index-list '((0 6) (7 12) (15 25)))
 
@@ -433,61 +433,6 @@
       (cdr lst)  ; If index is 0, remove the first element
       (setf (cdr (nthcdr (1- index) lst)) (cddr (nthcdr (1- index) lst))))
   lst)
-
-#|(defun has-jump-in-interval (numbers)
-  "Check if there is a jump in the interval between consecutive numbers."
-  (let* ((differences (mapcar #'(lambda (x y) (abs (- x y)))
-                              numbers
-                              (cdr numbers)))
-         (max-difference (apply #'max differences)))
-    (> max-difference 1)))|#
-
-#|(defun find-continuous-sublists (list-of-numbers)
-  "Find continuous sublists in the interval between consecutive numbers."
-  (let ((sublists '())
-        (sublist '()))
-    (loop for i in list-of-numbers
-          for pos-i = (position i list-of-numbers)
-          do (pushend i sublist)
-             (when (not (= i (first (last list-of-numbers))))
-               (if (> (abs (- (nth (+ pos-i 1) list-of-numbers) i)) 1)
-                 (progn
-                   (pushend sublist sublists)
-                   (setf sublist '()))))
-             (pop list-of-numbers)
-             (when (and sublist (= (length list-of-numbers) 0))
-               (pushend sublist sublists)))
-    sublists))|#
-
-#|(defun calculate-unmatched-intervals (matched-intervals root-intervals)
-  "Calculates which spans in the root's form feature have not been matched by the current cxn application."
-  (let* ((root-sequence-indices (calculate-index-list (sort root-intervals #'< :key #'first)))
-         (cxn-sequence-indices (calculate-index-list (sort matched-intervals #'< :key #'first)))
-         (new-sequence-indices '())
-         (new-indices '()))
-     ;;(print root-sequence-indices) ;; ex: '((0 1 2 3 4 5 6) (7 8 9 10 11 12) (15 16 17 18 19 20 21 22 23 24 25)) 
-     ;;(print cxn-sequence-indices))) ;; ex: '((2 3 4 5))
-     (loop for root-sequence-index in root-sequence-indices
-           do (loop for cxn-sequence-index in cxn-sequence-indices
-                    do (when (subsetp cxn-sequence-index root-sequence-index)
-                         (when (not (= (first cxn-sequence-index) (first root-sequence-index)))
-                           (setf cxn-sequence-index (cdr cxn-sequence-index)))
-                         (when (not (= (first (last cxn-sequence-index)) (first (last root-sequence-index))))
-                           (setf cxn-sequence-index (reverse (cdr (reverse  cxn-sequence-index)))))
-                         (setf root-sequence-index (sort (set-difference root-sequence-index cxn-sequence-index) #'<))))
-              (when root-sequence-index
-                (if (has-jump-in-interval root-sequence-index)
-                  (progn (setf root-sequence-index-sublists (find-continuous-sublists root-sequence-index))
-                    (loop for root-sequence-index-sublist in root-sequence-index-sublists
-                          do (pushend root-sequence-index-sublist new-sequence-indices)))
-                  (pushend root-sequence-index new-sequence-indices))))
-     
-    (loop for new-sequence-index in new-sequence-indices
-          do (setf list-of-endpoints (list (first new-sequence-index) (first (last new-sequence-index))))
-             (pushend list-of-endpoints new-indices))
-    (setq new-indices (sort new-indices #'(lambda (x y) (< (first x) (first y)))))
-    new-indices))|#
-
 
 (defun expand-interval (interval)
   "from a given interval expands it into a list of adjacent cons cells"
@@ -599,24 +544,6 @@
                          if (overlapping-lr-pairs-p (list start end) (list left right))
                            collect (let ((unmatched-substring (subseq string normalised-left normalised-right)))
                                      `(,feat-name ,unmatched-substring ,left ,right)))))))
-
-#|(recompute-root-sequence-features-based-on-bindings '((sequence
-                                                                              what is the
-                                                                              0
-                                                                              12)
-                                                                             (sequence
-                                                                               of the cube?
-                                                                              17
-                                                                              30))
-                                                                           '((?left-cxn
-                                                                              . 29)
-                                                                             (?right-cxn
-                                                                              . 30)
-                                                                             (?left-2
-                                                                              . 0)
-                                                                             (?right-2
-                                                                              . 4)))|#
-
 
 #|(recompute-root-sequence-features-based-on-bindings '((SEQUENCE "foolish child th" 0 16) (SEQUENCE "t she " 17 23))
                                                     '((#:?SHE-UNIT-698 . #:SHE-UNIT-59) (#:?TAG-49046 FORM ((SEQUENCE "she" 19 22))) (#:?LEFT-18848 . 19) (#:?RIGHT-18848 . 22)))|#
