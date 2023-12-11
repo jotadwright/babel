@@ -414,14 +414,14 @@
 
 ;(test-calculate-unmatched-root-intervals)
 
-(defun calculate-index-list (list-of-intervals)
+#|(defun calculate-index-list (list-of-intervals)
   (let ((lists-of-indexes '()))
     (loop for (start end) in list-of-intervals
           for index-list = '()
           do (loop for i from start to end
                    do (pushend i index-list))
              (pushend index-list lists-of-indexes))
-    lists-of-indexes))
+    lists-of-indexes))|#
 
 ;; (calculate-index-list '((0 6) (7 12) (15 25)))
 
@@ -544,24 +544,6 @@
                          if (overlapping-lr-pairs-p (list start end) (list left right))
                            collect (let ((unmatched-substring (subseq string normalised-left normalised-right)))
                                      `(,feat-name ,unmatched-substring ,left ,right)))))))
-
-#|(recompute-root-sequence-features-based-on-bindings '((sequence
-                                                                              what is the
-                                                                              0
-                                                                              12)
-                                                                             (sequence
-                                                                               of the cube?
-                                                                              17
-                                                                              30))
-                                                                           '((?left-cxn
-                                                                              . 29)
-                                                                             (?right-cxn
-                                                                              . 30)
-                                                                             (?left-2
-                                                                              . 0)
-                                                                             (?right-2
-                                                                              . 4)))|#
-
 
 #|(recompute-root-sequence-features-based-on-bindings '((SEQUENCE "foolish child th" 0 16) (SEQUENCE "t she " 17 23))
                                                     '((#:?SHE-UNIT-698 . #:SHE-UNIT-59) (#:?TAG-49046 FORM ((SEQUENCE "she" 19 22))) (#:?LEFT-18848 . 19) (#:?RIGHT-18848 . 22)))|#
