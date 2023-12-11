@@ -210,7 +210,7 @@
 
 (def-fcg-cxn answer-size-const-stateid-alaska-1-cxn
              (<-
-              (answer-size-const-stateid-alaska-1-unit
+              (?answer-size-const-stateid-alaska-1-unit
                (HASH meaning ((ANSWER ?C ?A ?D)(SIZE ?D ?B ?A)(CONST ?D ?B ?E)(STATEID ?E ?F)(ALASKA ?F)))
                --
                (HASH form (;FS-ALASKA --> dominant hand
@@ -531,12 +531,140 @@
                            (rh-rightmost ?slot1-rh-right))
                (location rssp))))
               
-             
+(def-fcg-cxn answer-size-const-stateid-slot1-1-cxn
+             (<-
+              (?answer-size-const-stateid-slot1-1-unit
+               (HASH meaning ((ANSWER ?C ?A ?D)(SIZE ?D ?B ?A)(CONST ?D ?B ?E)(STATEID ?E ?F)))
+               --
+               (HASH form (;PT5 --> dominant hand, location = middsp, modification = cercle
+                           (left-hand-articulation ?pt5-1 pt5)
+                           (location ?pt5-1 midssp)
+                           (modification ?pt5-1 cercle)
+                           ;COMBIEN --> dominant hand
+                           (left-hand-articulation ?combien-1 combien)
+                           ;METRE-CARRE --> dominant hand
+                           (left-hand-articulation ?metre-carre-1 metre-carre)
+                           ;DSH-MESURER --> two-handed, location = midssp
+                           (left-hand-articulation ?dsh-mesurer-1 dsh-mesurer)
+                           (location ?dsh-mesurer-1 midssp)
+                           (right-hand-articulation ?dsh-mesurer-2 dsh-mesurer)
+                           (location ?dsh-mesurer-2 midssp)
+                           (temporal-relation ?dsh-mesurer-1 ?dsh-mesurer-2 equals)
+                           ;DSS-GRAND-ENTITE-GEOGRAPHIQUE --> two-handed, location = right
+                           (left-hand-articulation ?dss-grand-entite-geographique-1 dss-grand-entite-geographique)
+                           (location ?dss-grand-entite-geographique-1 midssp)
+                           (modification ?dss-grand-entite-geographique-1 **)
+                           (right-hand-articulation ?dss-grand-entite-geographique-2 dss-grand-entite-geographique)
+                           (location ?dss-grand-entite-geographique-2 midssp)
+                           (modification ?dss-grand-entite-geographique-2 **)
+                           (temporal-relation ?dss-grand-entite-geographique-1 ?dss-grand-entite-geographique-2 equals)
+                           ;FBUOY-GRAND-ENTITE-GEOGRAPHIQUE --> non dominant hand, location = midssp
+                           (right-hand-articulation ?fbuoy-grand-entite-geographique-1 fbuoy-grand-entite-geographique)
+                           (location ?fbuoy-grand-entite-geographique-1 midssp)
+                           ;MEETS
+                           (meets ?slot1-lh-right ?pt5-1)
+                           (meets ?pt5-1 ?combien-1)
+                           (meets ?combien-1 ?metre-carre-1)
+                           (meets ?metre-carre-1 ?dsh-mesurer-1)
+                           (meets ?dsh-mesurer-1 ?dss-grand-entite-geographique-1)
+                           ;FBUOY temporal relations
+                           (temporal-relation ?pt5-1 ?fbuoy-grand-entite-geographique-1 starts)
+                           (temporal-relation ?combien-1 ?fbuoy-grand-entite-geographique-1 during)
+                           (temporal-relation ?metre-carre-1 ?fbuoy-grand-entite-geographique-1 finishes))))
+              (?slot1
+               (meaning-args ((target ?F)))
+               --
+               (category answer-size-const-stateid-slot1-1-slot1-cat)
+               (boundaries (lh-rightmost ?slot1-lh-right)))))             
                
 
-;---------------------------;
-; + lexical constructions + ;
-;---------------------------;
+;----------------------------;
+; + holistic constructions + ;
+;----------------------------;
+
+(def-fcg-cxn alaska-cxn
+             ((?alaska-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-alaska-1)
+                           (lh-rightmost ?fs-alaska-1))
+               (category alaska-cat))
+              <-
+              (?alaska-unit
+               (HASH meaning ((ALASKA ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-alaska-1 fs-alaska))))))
+
+(def-fcg-cxn california-cxn
+             ((?california-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-california-1)
+                           (lh-rightmost ?fs-california-1))
+               (category california-cat))
+              <-
+              (?alaska-unit
+               (HASH meaning ((CALIFORNIA ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-california-1 fs-california))))))
+
+(def-fcg-cxn florida-cxn
+             ((?florida-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-florida-1)
+                           (lh-rightmost ?fs-florida-1))
+               (category florida-cat))
+              <-
+              (?alaska-unit
+               (HASH meaning ((FLORIDA ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-florida-1 fs-florida))))))
+
+(def-fcg-cxn massachusetts-cxn
+             ((?massachusetts-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-massachusetts-1)
+                           (lh-rightmost ?fs-massachusetts-1))
+               (category massachusetts-cat))
+              <-
+              (?alaska-unit
+               (HASH meaning ((MASSACHUSETTS ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-massachusetts-1 fs-massachusetts))))))
+
+(def-fcg-cxn new_mexico-cxn
+             ((?new_mexico-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-new-mexico-1)
+                           (lh-rightmost ?fs-new-mexico-1))
+               (category new_mexico-cat))
+              <-
+              (?alaska-unit
+               (HASH meaning ((NEW_MEXICO ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-new-mexico-1 fs-new-mexico))))))
+
+(def-fcg-cxn north_dakota-cxn
+             ((?north_dakota-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-north-dakota-1)
+                           (lh-rightmost ?fs-north-dakota-1))
+               (category north_dakota-cat))
+              <-
+              (?alaska-unit
+               (HASH meaning ((NORTH_DAKOTA ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-north-dakota-1 fs-north-dakota))))))
+
+(def-fcg-cxn texas-cxn
+             ((?texas-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-texas-1)
+                           (lh-rightmost ?fs-texas-1))
+               (category texas-cat))
+              <-
+              (?alaska-unit
+               (HASH meaning ((TEXAS ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-texas-1 fs-texas))))))
 
 (def-fcg-cxn state-cxn
              ((?state-unit
@@ -608,7 +736,15 @@
                   capital-cat
                   answer-area-largest-slot1-1-slot1-cat
                   answer-population-largest-density-slot1-1-slot1-cat
-                  answer-largest-state-slot1-2-slot1-cat)
+                  answer-largest-state-slot1-2-slot1-cat
+                  answer-size-const-stateid-slot1-1-slot1-cat
+                  alaska-cat
+                  california-cat
+                  florida-cat
+                  massachusetts-cat
+                  new_mexico-cat
+                  north_dakota-cat
+                  texas-cat)
                 *fcg-constructions*)
 
 (progn
@@ -616,4 +752,11 @@
   (add-link 'state-cat 'answer-largest-state-slot1-2-slot1-cat *fcg-constructions*)
   (add-link 'state-cat 'answer-largest-slot1-1-slot1-cat *fcg-constructions*)
   (add-link 'capital-cat 'answer-largest-slot1-1-slot1-cat *fcg-constructions*)
-  (add-link 'state-cat 'answer-area-largest-slot1-1-slot1-cat *fcg-constructions*))
+  (add-link 'state-cat 'answer-area-largest-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'alaska-cat 'answer-size-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'california-cat 'answer-size-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'florida-cat 'answer-size-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'massachusetts-cat 'answer-size-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'new_mexico-cat 'answer-size-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'north_dakota-cat 'answer-size-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'texas-cat 'answer-size-const-stateid-slot1-1-slot1-cat *fcg-constructions*))
