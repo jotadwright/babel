@@ -2,8 +2,7 @@
 
 (defmethod get-all-channels ((mode (eql :all)))
   "Continual learning experiment with CLEVR and WINE"
-  `(
-    ,'fixed-acidity
+  `(,'fixed-acidity
     ,'volatile-acidity
     ,'citric-acid
     ,'residual-sugar
