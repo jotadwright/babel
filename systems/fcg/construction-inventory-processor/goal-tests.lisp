@@ -78,6 +78,15 @@ left in the root unit (formulation only)."
     (set-data (goal-test-data node) 'meaning-in-root-unit meaning-in-root-unit)
     (not meaning-in-root-unit)))
 
+(defmethod cip-goal-test ((node cip-node) (mode (eql :no-sequence-in-root)))
+  "The node is a valid solution when there is are no string features
+left in the root unit's form predicates (comprehension only)."
+  (let ((sequence-in-root (get-sequences (assoc 'root
+                                               (left-pole-structure
+                                                (car-resulting-cfs (cipn-car node)))))))
+    (set-data (goal-test-data node) 'sequence-in-root sequence-in-root)
+    (not sequence-in-root)))
+
 (defmethod cip-goal-test ((node cip-node) (mode (eql :no-strings-in-root)))
   "The node is a valid solution when there is are no string features
 left in the root unit's form predicates (comprehension only)."

@@ -4,16 +4,37 @@
 ;; + Determine interacting agents +
 ;; --------------------------------
 
-(defmethod determine-interacting-agents (experiment (interaction interaction) (mode (eql :standard))
+(defmethod determine-interacting-agents (experiment (interaction interaction) (mode (eql :emergence))
                                                     &key (agents nil)
                                                     &allow-other-keys)
   "This default implementation randomly chooses two interacting agents
-   and adds the discourse roles speaker and hearer to them"
+   and adds the discourse roles speaker and hearer to them.
+
+   Corresponds to the emergent scenario."
   (declare (ignore mode))
   ;; random or not?
   (if (not agents)
     ;; set two random interacting agents
     (setf (interacting-agents interaction) (random-elts (agents experiment) 2))
+    ;; set the specified agents
+    (setf (interacting-agents interaction) agents))
+  
+  ;; set discourse-role
+  (loop for a in (interacting-agents interaction)
+        for d in '(speaker hearer)
+        do (setf (discourse-role a) d))
+  (notify interacting-agents-determined experiment interaction))
+
+(defmethod determine-interacting-agents (experiment (interaction interaction) (mode (eql :tutor-learner))
+                                                    &key (agents nil)
+                                                    &allow-other-keys)
+  "Tutor-learner setting."
+  (declare (ignore mode))
+  ;; random or not?
+  (if (not agents)
+    ;; set two random interacting agents
+    (setf (interacting-agents interaction) (list (first (agents experiment))
+                                                 (second (agents experiment))))
     ;; set the specified agents
     (setf (interacting-agents interaction) agents))
   

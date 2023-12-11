@@ -21,13 +21,32 @@
   (notify event-conceptualisation-start agent)
   ;; conceptualise ifo the role
   (case (discourse-role agent)
-    (speaker (speaker-conceptualise agent))
+    (speaker (speaker-conceptualise agent (get-configuration (experiment agent) :setting)))
     (hearer (hearer-conceptualise agent))))
 
-;; -------------
-;; + Algorithm +
-;; -------------
-(defmethod speaker-conceptualise ((agent cle-agent))
+;; -----------------------------
+;; + Algorithm - tutor-learner +
+;; -----------------------------
+(defmethod speaker-conceptualise ((agent cle-agent) (mode (eql :tutor-learner)))
+  "Conceptualise the topic of the interaction."
+  (let* ((discriminative-features (get-symbolic-discriminative-feature
+                                   (parse-keyword (get-configuration (experiment agent) :dataset))
+                                   (find-data agent 'topic)
+                                   (find-data agent 'context)))
+         (form (cdr (random-elt discriminative-features)))
+         (applied-cxn (make-instance 'cxn
+                                     :form form
+                                     :meaning nil
+                                     :score (get-configuration (experiment agent) :initial-cxn-entrenchement)
+                                     :history (list (cons 0 0)))))
+    (set-data agent 'meaning-competitors nil)
+    (set-data agent 'applied-cxn applied-cxn)
+    applied-cxn))
+
+;; -------------------------
+;; + Algorithm - emergence +
+;; -------------------------
+(defmethod speaker-conceptualise ((agent cle-agent) (mode (eql :emergence)))
   "Conceptualise the topic of the interaction."
   (if (length= (lexicon agent) 0)
     nil
@@ -132,7 +151,7 @@
                       (string= (form speaker-cxn) (form hearer-cxn))
                       nil)))
     ;; notify
-    (notify event-coherence-p experiment coherence speaker-cxn hearer-cxn)
+    ;(notify event-coherence-p experiment coherence speaker-cxn hearer-cxn) ;; TODO
     ;; return
     coherence))
 

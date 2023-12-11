@@ -73,5 +73,6 @@
                 :components ((:file "experiments")
                              (:file "evaluation")
                              (:file "evaluation-utils")
+                             (:file "rpn")
                              ))
                (:file "html")))

@@ -119,45 +119,51 @@
 
 (defun comprehend-dialogs (start-scene end-scene world)
   "comprehend all dialogs from start-scene to end-scene, write meaning representation to file"
-  (ensure-directories-exist
-   (babel-pathname :directory `("applications" "visual-dialog" "evaluation" "comprehension-results"
-                                ,(format nil "~a-~a" (get-configuration world :dataset) (get-configuration world :datasplit)))))
-                 (with-open-file (str (make-file-name-with-time 
-                                       (babel-pathname
-                                        :directory `("applications" "visual-dialog" "evaluation" "comprehension-results"
-                                                     ,(format nil "~a-~a" (get-configuration world :dataset) (get-configuration world :datasplit)))
-                                        :name (format nil "evaluation-~a-~a" start-scene end-scene)
-                                        :type "csv"))
-                       :direction :output
-                       :if-exists :supersede
-                       :if-does-not-exist :create)
-    (unwind-protect
-        (let* ((ontology
-                (build-ontology))
-               (number-of-dialogs
-                (compute-number-of-dialogs world))
-               (results
-                 (loop for scene from start-scene to end-scene
-                       append (progn
-                                (format t "comprehension of scene ~a~%" scene)
-                                (loop for dialog from 0 to number-of-dialogs
-                                      for (questions meanings) = (multiple-value-list (comprehend-dialog :scene-index scene :dialog-index dialog :world world :ontology ontology))
-                                      do (progn
-                                           (loop for question in questions
-                                                   for meaning in meanings  
-                                                 do (format str "~a, ~a~%" question meaning) (force-output str))))))))))))
+  (let ((directory `("applications" "visual-dialog" "evaluation" "comprehension-results"
+                     ,(format nil "~a-~a" (get-configuration world :dataset)
+                              (get-configuration world :datasplit)))))
+    (ensure-directories-exist
+     (babel-pathname :directory directory))
+    (with-open-file (str (make-file-name-with-time 
+                          (babel-pathname
+                           :directory directory
+                           :name (format nil "evaluation-~a-~a" start-scene end-scene)
+                           :type "csv"))
+                         :direction :output
+                         :if-exists :supersede
+                         :if-does-not-exist :create)
+      (let* ((ontology (build-ontology))
+             (number-of-dialogs (compute-number-of-dialogs world)))
+        (unwind-protect
+            (loop for scene from start-scene to end-scene
+                  do (format t "comprehension of scene ~a~%" scene)
+                     (loop for dialog from 0 to number-of-dialogs
+                           for (questions meanings)
+                             = (multiple-value-list
+                                (comprehend-dialog :scene-index scene
+                                                   :dialog-index dialog
+                                                   :world world
+                                                   :ontology ontology))
+                           do (loop for question in questions
+                                    for meaning in meanings
+                                    for rpn = (clevr-meaning->rpn meaning)
+                                    do (format str "~a, ~a, ~a~%" question meaning rpn)
+                                       (force-output str)))))))))
 
 
 (defun comprehend-dialog (&key scene-index dialog-index world ontology (silent t))
   "comprehend dialog of specified scene and dialog-index, returns meaning"
   (let* ((scene-pathname (get-scene-pathname-by-index scene-index world))
          (dataset (get-configuration world :dataset))
-         (dialog (get-dialog-by-index scene-index dialog-index world dataset))
-         meanings questions)
+         (dialog (get-dialog-by-index scene-index dialog-index world dataset)))
     (loop for question in dialog
+          for question-index from 1
           for (meaning cipn) = (multiple-value-list (comprehend question))
           if (find 'fcg::succeeded (statuses cipn))
             collect meaning into meanings
             and collect question into questions
+          else
+            do (format t "Comprehension failed (scene ~a; dialog ~a; question ~a)"
+                       scene-pathname dialog-index question-index)
           finally (return (values questions meanings)))))
 

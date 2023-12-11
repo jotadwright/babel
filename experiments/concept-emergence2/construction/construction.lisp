@@ -30,6 +30,16 @@
                    :score (get-configuration (experiment agent) :initial-cxn-entrenchement)
                    :history (list (cons interaction-number scene-idx)))))
 
+(defmethod make-cxn2 (agent form)
+  "Creates a new construction."
+  (let ((scene-idx (index (current-scene (world (experiment agent)))))
+        (interaction-number (interaction-number (current-interaction (experiment agent)))))
+    (make-instance 'cxn
+                   :form form
+                   :meaning nil
+                   :score (get-configuration (experiment agent) :initial-cxn-entrenchement)
+                   :history (list (cons interaction-number scene-idx)))))
+
 (defmethod reset-cxn (agent cxn object)
   "Resets the meaning and score of a cxn."
   (let ((scene-idx (index (current-scene (world (experiment agent)))))

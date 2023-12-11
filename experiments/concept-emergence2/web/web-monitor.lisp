@@ -5,13 +5,19 @@
 ;; --------------------------
 
 ;; Add cxn to wi
-(defun add-cxn-to-interface (cxn &key certainty-threshold disabled-channels)
-  (add-element
-   `((div :style ,(format nil "margin-left: 50px;"))
-     ,(s-dot->svg
-       (cxn->s-dot cxn
-                   :certainty-threshold certainty-threshold
-                   :disabled-channels disabled-channels)))))
+(defun add-cxn-to-interface (cxn &key (certainty-threshold 0.1) disabled-channels)
+  (if (meaning cxn)
+    (add-element
+     `((div :style ,(format nil "margin-left: 50px;"))
+       ,(s-dot->svg
+         (cxn->s-dot cxn
+                     :certainty-threshold certainty-threshold
+                     :disabled-channels disabled-channels))))
+    (add-element
+     `((h4) ,(format nil " Tutor used form: ~a"
+                     
+                     (downcase (mkstr (form cxn)))
+                     )))))
 
 (defun add-cxn-diff-to-interface (cxn previous-copy &key certainty-threshold)
   (add-element
@@ -56,13 +62,14 @@
 (defun show-in-wi (args)
   (add-element `((h4) ,(format nil "~{~a~^, ~}" args))))
 
-(defun show-scene (dataset context topic)
+(defun show-scene (dataset split context topic)
   (add-element `((h2) ,(format nil "Scene: ~a" (file-namestring (get-image-fpath context)))))
   (add-element `((div :class "image" :style ,(format nil "margin-left: 50px; margin-bottom: 20px; width: fit-content; border-radius: 8px; overflow: hidden; border: 1px; border-color: #000000; box-shadow: 8px 8px 12px 1px rgb(0 0 0 / 10%);"))
                  ((img :src ,(string-append
                               cl-user::*localhost-user-dir*
                               (concatenate 'string
-                                           "val/"
+                                           split
+                                           "/"
                                            (file-namestring (get-image-fpath context))))))))
   (add-element `((table :style ,(format nil "margin-left: 50px;"))
                  ((tr) ((td) ,(make-html context
@@ -120,7 +127,8 @@
 ;; ---------------------------
 
 (define-event-handler (trace-interaction-in-web-interface event-context-determined)
-  (show-scene (parse-keyword (get-configuration experiment :dataset)) 
+  (show-scene (parse-keyword (get-configuration experiment :dataset))
+              (get-configuration experiment :dataset-split)
               (get-data (speaker experiment) 'context)
               (get-data (speaker experiment) 'topic)))
 
@@ -240,7 +248,8 @@
 
 (define-event-handler (trace-interaction-in-web-interface event-adopt-start)
   (add-element
-   `((h3) ,(format nil "Hearer will adopt a new cxn for the form \"~a\"" (form cxn)))))
+   `((h3) ,(format nil "Hearer will adopt a new cxn for the form \"~a\"" (form cxn))))
+  (add-cxn-to-interface cxn))
 
 (define-event-handler (trace-interaction-in-web-interface event-align-cxn)
   (add-element

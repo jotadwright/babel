@@ -843,10 +843,7 @@ div.hash-table > table > tbody > tr > td { padding-left:5px; padding-bottom:2px;
                          using (hash-value value)
                          collect `((tr)
                                    ((td) ,(get-highlighted-element key :if-string-print-as-string nil))
-                                   ((td)
-                                    ,@(loop for el  in value
-                                            collect `((td)
-                                                      ,(get-highlighted-element el :if-string-print-as-string nil))))))))))))
+                                   ((td) ,(make-html value))))))))))
     `((div :class "hash-table" :style ,(format nil "border:0px solid"))
       ,(make-expandable/collapsable-element 
         element-id-1 (make-id 'hash-table) collapsed-version

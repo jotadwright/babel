@@ -52,14 +52,14 @@
           when (and (if disabled-channels
                       (not (gethash (channel prototype) disabled-channels))
                       t)
-                    (>= (weight prototype) 0.1))
+                    (>= (weight prototype) certainty-threshold))
             do (push record g))
     ;; edges between cxn node and feature-channels
     (loop for prototype in (get-prototypes (meaning cxn))
           when (and (if disabled-channels
                       (not (gethash (channel prototype) disabled-channels))
                       t)
-                    (>= (weight prototype) 0.1))
+                    (>= (weight prototype) certainty-threshold))
             do (push
                 `(s-dot::edge
                   ((s-dot::from ,(mkdotstr (id (meaning cxn))))
