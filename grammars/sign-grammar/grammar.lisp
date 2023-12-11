@@ -383,6 +383,54 @@
                            (temporal-relation ?kilometre-1 ?fbuoy-dsm-riviere-2 finishes)
                            )))))
 
+(def-fcg-cxn answer-population-largest-city-1-cxn
+             (<-
+              (?answer-population-largest-city-1-unit
+               (HASH meaning ((ANSWER ?C ?A ?D)(POPULATION ?D ?B ?A)(LARGEST ?D ?B ?E)(CITY ?E ?B)))
+               --
+               (HASH form (;DANS --> two-handed
+                           (left-hand-articulation ?dans-1 dans)
+                           (right-hand-articulation ?dans-2 dans)
+                           (temporal-relation ?dans-1 ?dans-2 equals)
+                           ;NS-AMERIQUE.FRITES --> two-handed
+                           (left-hand-articulation ?ns-amerique.frites-1 ns-amerique.frites)
+                           (right-hand-articulation ?ns-amerique.frites-2 ns-amerique.frites)
+                           (temporal-relation ?ns-amerique.frites-1 ?ns-amerique.frites-2 equals)
+                           ;IL-Y-A --> dominant hand
+                           (left-hand-articulation ?il-y-a-1 il-y-a)
+                           ;VILLE --> two-handed
+                           (left-hand-articulation ?ville-1 ville)
+                           (right-hand-articulation ?ville-2 ville)
+                           (temporal-relation ?ville-1 ?ville-2 equals)
+                           ;BEAUCOUP.F --> dominant hand
+                           (left-hand-articulation ?beaucoup.f-1 beaucoup.f)
+                           ;PERSONNE.HUMAIN --> two-handed
+                           (left-hand-articulation ?personne.humain-1 personne.humain)
+                           (right-hand-articulation ?personne.humain-2 personne.humain)
+                           (temporal-relation ?personne.humain-1 ?personne.humain-2 equals)
+                           ;HABITER --> two-handed, modification = reduplicated
+                           (left-hand-articulation ?habiter-1 habiter)
+                           (modification ?habiter-1 reduplicated)
+                           (right-hand-articulation ?habiter-2 habiter)
+                           (modification ?habiter2 reduplicated)
+                           (temporal-relation ?habiter-1 ?habiter2 equals)
+                           ;COMBIEN --> dominant hand
+                           (left-hand-articulation ?combien-1 combien)
+                           ;PALM-UP --> two-handed
+                           (left-hand-articulation ?palm-up-1 palm-up)
+                           (right-hand-articulation ?palm-up-2 palm-up)
+                           (temporal-relation ?palm-up-1 ?palm-up-2 equals)
+                           ;MEETS
+                           (meets ?dans-1 ?ns-amerique.frites-1)
+                           (meets ?ns-amerique.frites-1 ?il-y-a-1)
+                           (meets ?il-y-a-1 ?ville-1)
+                           (meets ?ville-1 ?beaucoup.f-1)
+                           (meets ?beaucoup.f-1 ?personne.humain-1)
+                           (meets ?personne.humain-1 ?habiter-1)
+                           (meets ?habiter-1 ?combien-1)
+                           (meets ?combien-1 ?palm-up-1))))))
+                           
+
 ;------------------------------;
 ; + item-based constructions + ;
 ;------------------------------;
