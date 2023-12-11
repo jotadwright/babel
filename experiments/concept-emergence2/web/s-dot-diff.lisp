@@ -49,7 +49,7 @@
 
     ;; feature-channels nodes
     (loop for prototype in (reverse (get-prototypes (meaning cxn)))
-          for previous-prototype in (reverse (get-prototypes (meaning previous-copy)))
+          for previous-prototype = (gethash (channel prototype) (prototypes (meaning previous-copy)))
           for record = (prototype->s-dot-diff prototype
                                               previous-prototype
                                               :green (member (channel prototype) highlight-green)
@@ -61,7 +61,7 @@
             do (push record g))
     ;; edges between cxn node and feature-channels
     (loop for prototype in (get-prototypes (meaning cxn))
-          for previous-prototype in (get-prototypes (meaning previous-copy))
+          for previous-prototype = (gethash (channel prototype) (prototypes (meaning previous-copy)))
           for delta = (- (weight-val prototype) (weight-val previous-prototype))
           when (and (if disabled-channels
                       (not (gethash (channel prototype) disabled-channels))
@@ -72,9 +72,8 @@
                   ((s-dot::from ,(mkdotstr (id (meaning cxn))))
                    (s-dot::to ,(mkdotstr (downcase (channel prototype))))
                    (s-dot::label ,(format nil "~,2f" (float (weight prototype))
-                                          #|(cond ((> delta 0) (format nil " (+~,2f)" (float delta)))
-                                                ((< delta 0) (format nil " (~,2f)" (float delta)))
-                                                (t ""))|#))
+                                          (cond ((> delta 0) (format nil " (+~,2f)" (float delta)))
+                                                ((< delta 0) (format nil " (~,2f)" (float delta))))))
                    (s-dot::labelfontname #+(or :win32 :windows) "Sans"
                                          #-(or :win32 :windows) "Arial")
                    (s-dot::fontcolor ,(cond ((> delta 0) *green*)

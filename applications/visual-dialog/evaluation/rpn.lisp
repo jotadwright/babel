@@ -4,34 +4,55 @@
 ;;;; -----
 
 (defun all-linked-predicates (predicate var irl-program)
-  "Find the next predicate, given a variable"
+  "Find the linked predicates, given a variable.
+   Ignore all ?scene variables."
   (let ((var-base-name (downcase (get-base-name var))))
     (when (and (member var predicate)
                (not (string= var-base-name "scene")))
       (remove predicate (find-all var irl-program :test #'member) :test #'equal))))
 
 (defun linked-bind-statement (predicate irl-program)
-  "Get the bind-predicate linked to the given predicate"
-  (let* ((var (last-elt predicate))
-         (all-linked (all-linked-predicates predicate var irl-program))
-         (binding-list (remove-if-not #'(lambda (pred)
-                                          (eql (first pred) 'bind))
-                                      all-linked)))
-    (when binding-list
-      (first binding-list))))
+  "Get the bind-predicate linked to the given predicate.
+   Bind statements are typically linked to the last argument
+   of the predicate, but can also be the first argument in
+   the case of a caption."
+  (loop for var in (list (second predicate) (last-elt predicate))
+        for linked-predicates = (all-linked-predicates predicate var irl-program)
+        when (find 'bind linked-predicates :key #'first)
+        return it))
 
 (defun input-vars (predicate)
   "Get the (possibly multiple) input variable(s) of a predicate"
   (unless (eql (first predicate) 'bind)
-    (if (member (first predicate) '(query relate extreme-relate immediate-relate))
-      (subseq predicate 2 (- (length predicate) 1))    
-      (subseq predicate 2))))
+    (subseq predicate 2)))
 
 (defun output-position-p (variable predicate)
   (eql (second predicate) variable))
 
 (defun input-position-p (variable predicate)
   (find variable (subseq predicate 2)))
+
+(defun get-caption-bind-statement-var (irl-program)
+  (let ((all-bind-statements (find-all 'bind irl-program :key #'first)))
+    (loop for bind-statement in all-bind-statements
+          for connected-predicate
+            = (first (all-linked-predicates bind-statement (third bind-statement) irl-program))
+          when (eql (third bind-statement) (second connected-predicate))
+          return (third bind-statement))))
+
+(defun get-target-const (irl-program)
+  (let* ((bind-statements (find-all 'bind irl-program :key #'first))
+         (predicates (set-difference irl-program bind-statements :test #'equal))
+         (args (mappend #'cdr predicates))
+         (consts (remove-if #'variable-p args)))
+    (loop for const in consts
+          for target-pred = (find const irl-program :key #'second :test #'eql)
+          when target-pred return const)))
+
+(defun get-target-var-dialog (irl-program)
+  (or (get-target-var irl-program)
+      (get-caption-bind-statement-var irl-program)
+      (get-target-const irl-program)))
 
 
 ;;;; 1. VARIABLIFY PROGRAM
@@ -59,28 +80,10 @@
 ;;;; ---------------------
 
 (defun preprocess-program (irl-program)
-  "Preprocess the meaning network for evaluation. Make sure the final
-   predicate remains at the end of the meaning network. If comprehension
-   was not successful, there could be multiple top-units. When this is
-   the case, don't even bother to process the network further."
-  (let ((target-var (get-target-var irl-program)))
-    (unless target-var
-      (setf irl-program (remove-caption-bind-statement irl-program)))
-    (filter-things
-     (duplicate-sub-networks 
-      (add-get-memory
-       (duplicate-context irl-program))))))
-
-
-(defun remove-caption-bind-statement (irl-program)
-  (let* ((all-bind-statements (find-all 'bind irl-program :key #'first)))
-    (loop for bind-statement in all-bind-statements
-          for connected-predicate
-            = (first (all-linked-predicates bind-statement (third bind-statement) irl-program))
-          when (eql (third bind-statement) (second connected-predicate))
-          do (setf irl-program
-                   (remove bind-statement irl-program :test #'equal)))
-    irl-program))
+  "Preprocess the meaning network before translating it to RPN."
+  (duplicate-sub-networks 
+   (add-get-memory
+    (duplicate-context irl-program))))  
 
 
 (defun duplicate-context (irl-program)
@@ -108,16 +111,29 @@
 (defun add-get-memory (irl-program)
   "Find an open variable that is used as input and is not ?scene,
    this variable is used for the conversation memory."
-  (let ((memory-var
+  (let ((memory-vars
          (loop for var in (get-open-vars irl-program)
                for base-name = (downcase (get-base-name var))
-               for predicate = (first (find-all var irl-program :test #'member)) ;; ???
+               for predicates = (find-all var irl-program :test #'member)
                when (and (not (string= base-name "scene"))
-                         (input-position-p var predicate))
-               return var)))
-    (push `(get-memory ,memory-var) irl-program)))
+                         (every #'(lambda (p) (input-position-p var p)) predicates))
+               collect var)))
+    (when memory-vars
+      (loop for memory-var in memory-vars
+            for predicates = (find-all memory-var irl-program :test #'member)
+            if (length= predicates 1)
+              do (push `(get-memory ,memory-var) irl-program)
+            else
+              do (let ((new-vars (loop repeat (length predicates) collect (make-var 'memory))))
+                   (loop for new-var in new-vars
+                         for p in predicates
+                         do (setf irl-program (remove p irl-program :test #'equal))
+                            (push `(get-memory ,new-var) irl-program)
+                            (push (subst new-var memory-var p) irl-program)))))
+    irl-program))
 
 
+#|
 (defun filter-things (irl-program)
   "Remove 'filter' predicate bound to the shape 'thing' since this
    is not used in the CLEVR corpus. These predicates
@@ -145,6 +161,7 @@
                  (setf irl-program (remove incoming-predicate irl-program :test #'equal))
                  (push (subst new-linking-var input-var incoming-predicate) irl-program))))
     irl-program))
+|#
 
 
 (defun traverse-meaning-network (meaning-network first-predicate &key next-predicate-fn do-fn)
@@ -216,7 +233,7 @@
 ;;;; -----------------
 
 (defun program->rpn (irl-program)
-  (let* ((target-var (get-target-var irl-program))
+  (let* ((target-var (get-target-var-dialog irl-program))
          (target-predicate (find target-var irl-program :key #'second :test #'eql))
          (stack (list target-predicate))
          processed
@@ -224,32 +241,36 @@
     (loop while stack
           for current-predicate = (pop stack)
           for in-vars = (input-vars current-predicate)
-          for bind-statement = (linked-bind-statement current-predicate irl-program)    
+          for bind-statement = (linked-bind-statement current-predicate irl-program) 
           do (progn
                (push (predicate->polish current-predicate bind-statement) rpn)
                (dolist (var (reverse in-vars))
                  (when (variable-p var)
                    (let ((all-linked (all-linked-predicates current-predicate var irl-program)))
                      (dolist (p all-linked)
-                       (when p
-                         (unless (or (find p stack :test #'equal)
-                                     (find p processed :test #'equal)
-                                     (eql (first p) 'bind))
-                           (push p stack)))))))
+                       (unless (or (find p stack :test #'equal)
+                                   (find p processed :test #'equal)
+                                   (eql (first p) 'bind))
+                         (push p stack))))))
                (push current-predicate processed)))
     rpn))
 
 (defun predicate->polish (predicate bind-statement)
   "Write a predicate in polish notation"
-  (if bind-statement
-    (if (eql (first predicate) 'clevr-dialog-grammar::filter-by-attribute)
-      (list 'filter
-            (read-from-string (downcase (first (split (mkstr (second bind-statement)) #\-))))
-            (fourth bind-statement))
-      (list (first predicate) (fourth bind-statement)))
-    (if (eql (first predicate) 'clevr-dialog-grammar::filter-by-attribute)
-      (list 'filter)
-      (list (first predicate)))))
+  (cond ((and bind-statement
+              (eql (first predicate) 'filter-by-attribute))
+         (list 'filter
+               (read-from-string (downcase (first (split (mkstr (second bind-statement)) #\-))))
+               (fourth bind-statement)))
+        (bind-statement
+         (if (eql (second predicate) (third bind-statement))
+           (list (first predicate) nil (fourth bind-statement))
+           (list (first predicate) (fourth bind-statement))))
+        ((eql (first predicate) 'filter-by-attribute)
+         (list 'filter))
+        ((not (variable-p (second predicate)))
+         (list (first predicate) nil (second predicate)))
+        (t (list (first predicate)))))
          
 
 ;;;; 4. RPN -> STRING
@@ -269,10 +290,14 @@
                          (lisp->camel-case (downcase (first elem)) :from-first nil)
                          (downcase (second elem))))
                 ((= (length elem) 3)
-                 (format nil "~a_~a[~a]"
-                         (downcase (first elem))
-                         (downcase (second elem))
-                         (downcase (third elem))))))))
+                 (if (second elem)
+                   (format nil "~a_~a[~a]"
+                           (lisp->camel-case (downcase (mkstr (first elem))) :from-first nil)
+                           (downcase (second elem))
+                           (downcase (third elem)))
+                   (format nil "~a[~a]"
+                           (lisp->camel-case (downcase (mkstr (first elem))) :from-first nil)
+                           (downcase (third elem)))))))))
 
 
 ;;;; #### MAIN ####
@@ -291,10 +316,13 @@
    - RPN to list of string; using the facebook notation,
      e.g. get-context filter_color[red]
    - list of string to single string"
-  (list-of-strings->string 
-   (rpn->str
-    (program->rpn
-     (preprocess-program
-      (read-from-string
-       (mkstr irl-program)))))))
-      ;(variablify-program irl-program))))))
+  (let ((primitives
+         (remove-if #'(lambda (pred) (eql (first pred) 'bind)) irl-program))
+        (rpn
+         (program->rpn
+          (preprocess-program
+           (read-from-string
+            (mkstr irl-program))))))
+    (assert (length>= rpn primitives))
+    (list-of-strings->string 
+     (rpn->str rpn))))

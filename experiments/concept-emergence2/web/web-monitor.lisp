@@ -5,7 +5,7 @@
 ;; --------------------------
 
 ;; Add cxn to wi
-(defun add-cxn-to-interface (cxn &key certainty-threshold disabled-channels)
+(defun add-cxn-to-interface (cxn &key (certainty-threshold 0.1) disabled-channels)
   (if (meaning cxn)
     (add-element
      `((div :style ,(format nil "margin-left: 50px;"))
@@ -248,7 +248,8 @@
 
 (define-event-handler (trace-interaction-in-web-interface event-adopt-start)
   (add-element
-   `((h3) ,(format nil "Hearer will adopt a new cxn for the form \"~a\"" (form cxn)))))
+   `((h3) ,(format nil "Hearer will adopt a new cxn for the form \"~a\"" (form cxn))))
+  (add-cxn-to-interface cxn))
 
 (define-event-handler (trace-interaction-in-web-interface event-align-cxn)
   (add-element
