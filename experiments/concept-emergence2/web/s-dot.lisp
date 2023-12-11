@@ -45,7 +45,7 @@
                      (s-dot::fontcolor "#AA0000"))))
      g)
     ;; feature-channels nodes
-    (loop for prototype in (reverse (get-prototypes (meaning cxn)))
+    (loop for prototype in (get-prototypes (meaning cxn))
           for record = (prototype->s-dot prototype
                                          :green (member (channel prototype) highlight-green)
                                          :red (member (channel prototype) highlight-red))
