@@ -5,7 +5,7 @@
 ;; --------------------------
 
 ;; Add cxn to wi
-(defun add-cxn-to-interface (cxn &key certainty-threshold disabled-channels)
+(defun add-cxn-to-interface (cxn &key (certainty-threshold 0.1) disabled-channels)
   (if (meaning cxn)
     (add-element
      `((div :style ,(format nil "margin-left: 50px;"))
