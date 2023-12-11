@@ -293,6 +293,51 @@
 
 
 
+(def-fcg-cxn answer-elevation-const-placeid-guadalupe_peak-1-cxn
+             (<-
+              (?answer-elevation-const-placeid-guadalupe_peak-1-unit
+               (HASH meaning ((ANSWER ?C ?A ?D)(ELEVATION ?D ?B ?A)(CONST ?D ?B ?E)(PLACEID ?E ?F)(GUADALUPE_PEAK ?F)))
+               --
+               (HASH form (;MONTAGNE --> two-handed
+                           (left-hand-articulation ?montagne-1 montagne)
+                           (right-hand-articulation ?montagne-2 montagne)
+                           (temporal-relation ?montagne-1 ?montagne-2 equals)
+                           ;PT --> dominant hand, location = right
+                           (left-hand-articulation ?pt-1 pt)
+                           (location ?pt-1 rssp)
+                           ;PT --> dominant hand, location = right, modification = down-up
+                           (left-hand-articulation ?pt-2 pt)
+                           (location ?pt-2 rssp)
+                           (modification ?pt-2 down-up)
+                           ;FS-GUADALUPE --> dominant hand
+                           (left-hand-articulation ?fs-guadalupe-1 fs-guadalupe)
+                           ;PT --> dominant hand, location = right, modification = down-up
+                           (left-hand-articulation ?pt-3 pt)
+                           (location ?pt-3 rssp)
+                           (modification ?pt-3 down-up)
+                           ;COMBIEN --> dominant hand
+                           (left-hand-articulation ?combien-1 combien)
+                           ;METRE --> two-handed
+                           (left-hand-articulation ?metre-1 metre)
+                           (right-hand-articulation ?metre-2 metre)
+                           (temporal-relation ?metre-1 ?metre-2 equals)
+                           ;FBUOY-MONTAGE --> non-dominant hand
+                           (right-hand-articulation ?fbuoy-montagne-1 fbuoy-montagne)
+                           ;MEETS
+                           (meets ?montagne-1 ?pt-1)
+                           (meets ?pt-1 ?pt-2)
+                           (meets ?pt-2 ?fs-guadalupe-1)
+                           (meets ?fs-guadalupe-1 ?pt-3)
+                           (meets ?pt-3 ?combien-1)
+                           (meets ?combien-1 ?metre-1)
+                           ;FBUOY temporal relations
+                           (temporal-relation ?pt-1 ?fbuoy-montagne-1 starts)
+                           (temporal-relation ?pt-2 ?fbuoy-montagne-1 during)
+                           (temporal-relation ?fs-guadalupe-1 ?fbuoy-montagne-1 during)
+                           (temporal-relation ?pt-3 ?fbuoy-montagne-1 finishes))))))
+                           
+
+
 ;------------------------------;
 ; + item-based constructions + ;
 ;------------------------------;
@@ -664,11 +709,96 @@
                (category answer-size-const-cityid-slot1-1-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
                            (lh-rightmost ?slot1-lh-right)))))
+
+(def-fcg-cxn answer-elevation-const-placeid-slot1-1-cxn
+             ((?answer-elevation-const-placeid-slot1-1-unit
+               (subunits (?slot1-unit)))
+              <-
+              (?answer-elevation-const-placeid-slot1-1-unit
+               (HASH meaning ((ANSWER ?C ?A ?D)(ELEVATION ?D ?B ?A)(CONST ?D ?B ?E)(PLACEID ?E ?F)))
+               --
+               (HASH form (;MONTAGNE --> two-handed
+                           (left-hand-articulation ?montagne-1 montagne)
+                           (right-hand-articulation ?montagne-2 montagne)
+                           (temporal-relation ?montagne-1 ?montagne-2 equals)
+                           ;PT --> dominant hand, location = right
+                           (left-hand-articulation ?pt-1 pt)
+                           (location ?pt-1 rssp)
+                           ;PT --> dominant hand, location = right, modification = down-up
+                           (left-hand-articulation ?pt-2 pt)
+                           (location ?pt-2 rssp)
+                           (modification ?pt-2 down-up)
+                           ;PT --> dominant hand, location = right, modification = down-up
+                           (left-hand-articulation ?pt-3 pt)
+                           (location ?pt-3 rssp)
+                           (modification ?pt-3 down-up)
+                           ;COMBIEN --> dominant hand
+                           (left-hand-articulation ?combien-1 combien)
+                           ;METRE --> two-handed
+                           (left-hand-articulation ?metre-1 metre)
+                           (right-hand-articulation ?metre-2 metre)
+                           (temporal-relation ?metre-1 ?metre-2 equals)
+                           ;FBUOY-MONTAGE --> non-dominant hand
+                           (right-hand-articulation ?fbuoy-montagne-1 fbuoy-montagne)
+                           ;MEETS
+                           (meets ?montagne-1 ?pt-1)
+                           (meets ?pt-1 ?pt-2)
+                           (meets ?pt-2 ?slot1-lh-left)
+                           (meets ?slot1-lh-right ?pt-3)
+                           (meets ?pt-3 ?combien-1)
+                           (meets ?combien-1 ?metre-1)
+                           ;FBUOY temporal relations
+                           (temporal-relation ?pt-1 ?fbuoy-montagne-1 starts)
+                           (temporal-relation ?pt-2 ?fbuoy-montagne-1 during)
+                           (temporal-relation ?slot1-lh-left ?fbuoy-montagne-1 during)
+                           (temporal-relation ?pt-3 ?fbuoy-montagne-1 finishes))))
+              (?slot1-unit
+               (meaning-args ((target ?F)))
+               --
+               (category answer-elevation-const-placeid-slot1-1-slot1-cat)
+               (boundaries (lh-leftmost ?slot1-lh-left)
+                           (lh-rightmost ?slot1-lh-right)))))
                
 
 ;----------------------------;
 ; + holistic constructions + ;
 ;----------------------------;
+
+(def-fcg-cxn guadalupe_peak-1-cxn
+             ((?guadalupe_peak-1-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-guadalupe-1)
+                           (lh-rightmost ?fs-guadalupe-1))
+               (category guadalupe_peak-1-cat))
+              <-
+              (?guadalupe_peak-1-unit
+               (HASH meaning ((GUADALUPE_PEAK ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-guadalupe-1 fs-guadalupe))))))
+
+(def-fcg-cxn mount_mckinley-1-cxn
+             ((?mount_mckinley-1-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-mckinley-1)
+                           (lh-rightmost ?fs-mckinley-1))
+               (category mount_mckinley-1-cat))
+              <-
+              (?mount_mckinley-1-unit
+               (HASH meaning ((MOUNT_MCKINLEY ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-mckinley-1 fs-mckinley))))))
+
+(def-fcg-cxn death_valley-1-cxn
+             ((?death_valley-1-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-death-valley-1)
+                           (lh-rightmost ?fs-death-valley-1))
+               (category death_valley-1-cat))
+              <-
+              (?death_valley-1-unit
+               (HASH meaning ((DEATH_VALLEY ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-death-valley-1 fs-death-valley))))))
 
 (def-fcg-cxn new_york-1-cxn
              ((?new_york-1-unit
@@ -914,6 +1044,7 @@
                   answer-largest-state-slot1-2-slot1-cat
                   answer-size-const-stateid-slot1-1-slot1-cat
                   answer-size-const-cityid-slot1-1-slot1-cat
+                  answer-elevation-const-placeid-slot1-1-slot1-cat
                   alaska-1-cat
                   california-1-cat
                   florida-1-cat
@@ -927,7 +1058,10 @@
                   houston-1-cat
                   phoenix-1-cat
                   philadelphia-1-cat
-                  san_antonio-1-cat)
+                  san_antonio-1-cat
+                  guadalupe_peak-1-cat
+                  mount_mckinley-1-cat
+                  death_valley-1-cat)
                 *fcg-constructions*)
 
 (progn
@@ -949,4 +1083,7 @@
   (add-link 'houston-1-cat 'answer-size-const-cityid-slot1-1-slot1-cat *fcg-constructions*)
   (add-link 'phoenix-1-cat 'answer-size-const-cityid-slot1-1-slot1-cat *fcg-constructions*)
   (add-link 'philadelphia-1-cat 'answer-size-const-cityid-slot1-1-slot1-cat *fcg-constructions*)
-  (add-link 'san_antonio-1-cat 'answer-size-const-cityid-slot1-1-slot1-cat *fcg-constructions*))
+  (add-link 'san_antonio-1-cat 'answer-size-const-cityid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'guadalupe_peak-1-cat 'answer-elevation-const-placeid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'death_valley-1-cat 'answer-elevation-const-placeid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'mount_mckinley-1-cat 'answer-elevation-const-placeid-slot1-1-slot1-cat *fcg-constructions*))
