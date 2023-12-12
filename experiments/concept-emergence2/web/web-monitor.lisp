@@ -19,7 +19,7 @@
                      (downcase (mkstr (form cxn)))
                      )))))
 
-(defun add-cxn-diff-to-interface (cxn previous-copy &key certainty-threshold)
+(defun add-cxn-diff-to-interface (cxn previous-copy &key (certainty-threshold 0.1))
   (add-element
    `((div :style ,(format nil "margin-left: 50px;"))
      ,(s-dot->svg
