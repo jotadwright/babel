@@ -322,6 +322,7 @@
                 (let ((new-feature (if (eq (feature-name original-feature) 'form)
                                      (make-feature 'form
                                                    (sort (recompute-root-sequence-features-based-on-bindings
+                                                          (cddr (second (third (second (third feature)))))
                                                           (feature-value original-feature)
                                                           bindings) #'< :key #'third))
                                      (make-feature (feature-name original-feature)
@@ -522,18 +523,55 @@
 
 ;; (recompute-root-sequence-features-based-on-bindings '((SEQUENCE "she " 0 4) (SEQUENCE " " 7 8) (SEQUENCE " " 9 10)) '((#:?SHE-UNIT-4909 . #:SHE-UNIT-181) (#:?TAG-408114 FORM ((SEQUENCE "she" 0 3))) (#:?LEFT-157585 . 0) (#:?RIGHT-157585 . 3)))
 
-(defun recompute-root-sequence-features-based-on-bindings (root-sequence-features bindings)
-  "Makes new set of sequence predicates based on the indices that are present in the bindings."
-  (let* ((matched-positions (sort (loop for (nil . value) in bindings
+(defun divide-sequence (list-of-positions)
+  "for a given list of sorted positions, retrieves a list of intervals"
+  (let ((sorted-list (sort list-of-positions #'<))
+        (interval '())
+        (intervals-list '()))
+    (loop for elem in sorted-list
+          do (when (= (length interval) 2)
+               (pushend interval intervals-list)
+               (setf interval nil))
+             (pushend elem interval))
+    (pushend interval intervals-list) ;; for the last pair that is not pushed in the list by the loop
+    intervals-list))
+
+;; (divide-sequence '(2 5 4 3))
+
+;; changed code in the following function:
+#|(matched-positions (sort (loop for (nil . value) in bindings
                                         when (numberp value)
                                           collect value) #'<))
-         (matched-intervals (loop for interval on matched-positions by #'cddr
-                                  collect interval))
-         (non-matched-intervals
-          (calculate-unmatched-intervals matched-intervals (mapcar #'(lambda (feat)
-                                                                       (list (third feat) (fourth feat)))
-                                                                   root-sequence-features))))
+(matched-intervals (loop for interval on matched-positions by #'cddr
+                                  collect interval))|#
 
+#|(matched-positions (loop for (nil . value) in bindings
+                                        when (numberp value)
+                                          collect value))
+         (matched-intervals (divide-sequence matched-positions))|#
+
+(defun recompute-root-sequence-features-based-on-bindings (feature root-sequence-features bindings)
+  "Makes new set of sequence predicates based on the indices that are present in the bindings."
+  (let* ((matched-positions '())
+         (matched-intervals '())
+         (non-matched-intervals))
+
+    ;; taking care of matched-positions:
+    (loop for (name . value) in bindings
+                do (loop for boundary-name in feature
+                         do (when (eq boundary-name name)
+                              (pushend value matched-positions))))
+    (sort matched-positions  #'<)
+    
+    ;; taking care of matched-invervals:
+    (loop for interval on matched-positions by #'cddr
+          do (pushend interval matched-intervals))
+
+    ;; taking care of non-matched-intervals:
+    (setf non-matched-intervals (calculate-unmatched-intervals matched-intervals (mapcar #'(lambda (feat)
+                                                                                             (list (third feat) (fourth feat)))
+                                                                                         root-sequence-features)))
+    
     ;; Based on the non-matched intervals (e.g. '((0 4) (12 28))), create sequence new features to add to the root
     (when non-matched-intervals
       (loop for (feat-name string start end) in root-sequence-features ;;(sequence "what is the color of the cube?" 12 18)
@@ -547,6 +585,12 @@
 
 #|(recompute-root-sequence-features-based-on-bindings '((SEQUENCE "foolish child th" 0 16) (SEQUENCE "t she " 17 23))
                                                     '((#:?SHE-UNIT-698 . #:SHE-UNIT-59) (#:?TAG-49046 FORM ((SEQUENCE "she" 19 22))) (#:?LEFT-18848 . 19) (#:?RIGHT-18848 . 22)))|#
+
+#|(recompute-root-sequence-features-based-on-bindings '((SEQUENCE " " 1 2) (SEQUENCE " " 5 6))
+                                                    '((#:?X-BE-UNIT-11704 . #:X-BE-UNIT-815) (#:?TAG-141244 FCG:FORM NIL) (#:?TO-BE-RIGHT-4737 . 5) (#:?TO-BE-LEFT-4737 . 2) (#:?TO-BE-STRING-4737 . "was") (#:?TO-BE-UNIT-18073 . #:WAS-UNIT-1210) (#:?SUBJECT-RIGHT-6008 . 1) (#:?SUBJECT-LEFT-6008 . 0) (#:?SUBJECT-STRING-6008 . "I") (#:?NUMBER-32839 . FCG::SINGULAR) (#:?SUBJECT-UNIT-19164 . #:I-UNIT-1692)))|#
+
+#|(recompute-root-sequence-features-based-on-bindings '((SEQUENCE " " 3 4) (SEQUENCE " " 12 13) (SEQUENCE " " 18 19) (SEQUENCE " " 22 23))
+'((#:?NOUN-PHRASE-4074 . #:NOUN-PHRASE-15) (#:?TAG-141672 FCG:FORM NIL) (#:?NOUN-RIGHT-8920 . 28) (#:?NOUN-LEFT-8920 . 23) (#:?NOUN-STRING-8825 . "mouse") (#:?NOUN-38 . #:MOUSE-WORD-6) (#:?ARTICLE-RIGHT-30 . 22) (#:?ARTICLE-LEFT-30 . 19) (#:?ARTICLE-STRING-30 . "the") (#:?ARTICLE-31 . #:THE-WORD-16)))|#
 
 
 (defun remove-tag-from-added (tag-variable pattern added bindings &key cxn-inventory)
