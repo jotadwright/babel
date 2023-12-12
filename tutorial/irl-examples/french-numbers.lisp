@@ -298,7 +298,6 @@
                                       :fcg-configurations ((:parse-order lex phrasal)
                                                            (:production-order lex phrasal)
                                                            (:render-mode . :render-with-scope)
-                                                           (:create-initial-structure-mode . :replace-variables-with-symbols)
                                                            (:production-goal-tests :no-applicable-cxns :connected-structure)
                                                            (:parse-goal-tests :no-applicable-cxns :connected-semantic-network))))
 
