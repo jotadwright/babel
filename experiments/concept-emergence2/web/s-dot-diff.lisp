@@ -73,7 +73,7 @@
                                                          (symbol-name (channel y)))))
           for prototype in prototypes
           for previous-prototype = (gethash (channel prototype) (prototypes (meaning previous-copy)))
-          for delta = (- (weight-val prototype) (weight-val previous-prototype))
+          for delta = (- (weight prototype) (weight previous-prototype))
           when (and (if disabled-channels
                       (not (gethash (channel prototype) disabled-channels))
                       t)
