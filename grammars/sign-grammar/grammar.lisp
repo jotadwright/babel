@@ -429,8 +429,148 @@
                            (meets ?personne.humain-1 ?habiter-1)
                            (meets ?habiter-1 ?combien-1)
                            (meets ?combien-1 ?palm-up-1))))))
-                           
 
+
+(def-fcg-cxn answer-population-largest-city-2-cxn
+             (<-
+              (?answer-population-largest-city-2-unit
+               (HASH meaning ((ANSWER ?C ?A ?D)(POPULATION ?D ?B ?A)(LARGEST ?D ?B ?E)(CITY ?E ?B)))
+               --
+               (HASH form (;DANS --> two-handed
+                           (left-hand-articulation ?dans-1 dans)
+                           (right-hand-articulation ?dans-2 dans)
+                           (temporal-relation ?dans-1 ?dans-2 equals)
+                           ;NS-AMERIQUE.FRITES --> two-handed
+                           (left-hand-articulation ?ns-amerique.frites-1 ns-amerique.frites)
+                           (right-hand-articulation ?ns-amerique.frites-2 ns-amerique.frites)
+                           (temporal-relation ?ns-amerique.frites-1 ?ns-amerique.frites-2 equals)
+                           ;PT --> dominant-hand, location = rssp
+                           (left-hand-articulation ?pt-1 pt)
+                           (location ?pt-1 rssp)
+                           ;IL-Y-A --> dominant hand
+                           (left-hand-articulation ?il-y-a-1 il-y-a)
+                           ;GRAND.5 --> two-handed
+                           (left-hand-articulation ?grand.5-1 grand.5)
+                           (right-hand-articulation ?grand.5-2 grand.5)
+                           (temporal-relation ?grand.5-1 ?grand.5-2 equals)
+                           ;VILLE --> two-handed
+                           (left-hand-articulation ?ville-1 ville)
+                           (right-hand-articulation ?ville-2 ville)
+                           (temporal-relation ?ville-1 ?ville-2 equals)
+                           ;PERSONNE.HUMAIN --> two-handed
+                           (left-hand-articulation ?personne.humain-1 personne.humain)
+                           (right-hand-articulation ?personne.humain-2 personne.humain)
+                           (temporal-relation ?personne.humain-1 ?personne.humain-2 equals)
+                           ;HABITER --> two-handed, modification = reduplicated
+                           (left-hand-articulation ?habiter-1 habiter)
+                           (modification ?habiter-1 reduplicated)
+                           (right-hand-articulation ?habiter-2 habiter)
+                           (modification ?habiter2 reduplicated)
+                           (temporal-relation ?habiter-1 ?habiter2 equals)
+                           ;COMBIEN --> two-handed
+                           (left-hand-articulation ?combien-1 combien)
+                           (right-hand-articulation ?combien-2 combien)
+                           (temporal-relation ?combien-1 ?combien-2 equals)
+                           ;PALM-UP --> two-handed
+                           (left-hand-articulation ?palm-up-1 palm-up)
+                           (meets ?dans-1 ?ns-amerique.frites-1)
+                           (meets ?ns-amerique.frites-1 ?pt-1)
+                           (meets ?pt-1 ?il-y-a-1)
+                           (meets ?il-y-a-1 ?grand.5-1)
+                           (meets ?grand.5-1 ?ville-1)
+                           (meets ?ville-1 ?personne.humain-1)
+                           (meets ?personne.humain-1 ?habiter-1)
+                           (meets ?habiter-1 ?combien-1)
+                           (meets ?combien-1 ?palm-up-1))))))
+
+(def-fcg-cxn answer-population-largest-city-3-cxn
+             (<-
+              (?answer-population-largest-city-3-unit
+               (HASH meaning ((ANSWER ?C ?A ?D)(POPULATION ?D ?B ?A)(LARGEST ?D ?B ?E)(CITY ?E ?B)))
+               --
+               (HASH form (;DANS --> two-handed
+                           (left-hand-articulation ?dans-1 dans)
+                           (right-hand-articulation ?dans-2 dans)
+                           (temporal-relation ?dans-1 ?dans-2 equals)
+                           ;NS-AMERIQUE.FRITES --> two-handed
+                           (left-hand-articulation ?ns-amerique.frites-1 ns-amerique.frites)
+                           (right-hand-articulation ?ns-amerique.frites-2 ns-amerique.frites)
+                           (temporal-relation ?ns-amerique.frites-1 ?ns-amerique.frites-2 equals)
+                           ;IL-Y-A --> dominant hand
+                           (left-hand-articulation ?il-y-a-1 il-y-a)
+                           ;GRAND.5 --> two-handed
+                           (left-hand-articulation ?grand.5-1 grand.5)
+                           (right-hand-articulation ?grand.5-2 grand.5)
+                           (temporal-relation ?grand.5-1 ?grand.5-2 equals)
+                           ;VILLE --> two-handed
+                           (left-hand-articulation ?ville-1 ville)
+                           (right-hand-articulation ?ville-2 ville)
+                           (temporal-relation ?ville-1 ?ville-2 equals)
+                           ;COMBIEN --> two-handed
+                           (left-hand-articulation ?combien-1 combien)
+                           (right-hand-articulation ?combien-2 combien)
+                           (temporal-relation ?combien-1 ?combien-2 equals)
+                            ;PERSONNE.HUMAIN --> two-handed
+                           (left-hand-articulation ?personne.humain-1 personne.humain)
+                           (right-hand-articulation ?personne.humain-2 personne.humain)
+                           (temporal-relation ?personne.humain-1 ?personne.humain-2 equals)
+                           ;HABITER --> two-handed, modification = reduplicated
+                           (left-hand-articulation ?habiter-1 habiter)
+                           (modification ?habiter-1 reduplicated)
+                           (right-hand-articulation ?habiter-2 habiter)
+                           (modification ?habiter2 reduplicated)
+                           (temporal-relation ?habiter-1 ?habiter2 equals)
+                           ;DANS --> two-handed
+                           (left-hand-articulation ?dans-3 dans)
+                           (right-hand-articulation ?dans-4 dans)
+                           (temporal-relation ?dans-3 ?dans-4 equals)
+                           ;COMBIEN --> two-handed
+                           (left-hand-articulation ?combien-3 combien)
+                           (right-hand-articulation ?combien-4 combien)
+                           (temporal-relation ?combien-3 ?combien-4 equals)
+                           ;MEETS
+                           (meets ?dans-1 ?ns-amerique.frites-1)
+                           (meets ?ns-amerique.frites-1 ?il-y-a-1)
+                           (meets ?il-y-a-1 ?grand.5-1)
+                           (meets ?grand.5-1 ?ville-1)
+                           (meets ?ville-1 ?combien-1)
+                           (meets ?combien-1 ?personne.humain-1)
+                           (meets ?personne.humain-1 ?habiter-1)
+                           (meets ?habiter-1 ?dans-3)
+                           (meets ?dans-3 ?combien-3)
+                           )))))
+
+(def-fcg-cxn answer-population-const-stateid-alabama-1-cxn
+             (<-
+              (?answer-population-const-stateid-alabama-1
+               (HASH meaning ((ANSWER ?C ?A ?D)(POPULATION ?D ?B ?A)(CONST ?D ?B ?E)(STATEID ?E ?F)(ALABAMA ?F)))
+               --
+               (HASH form (;DANS --> two-handed
+                           (left-hand-articulation ?dans-1 dans)
+                           (right-hand-articulation ?dans-2 dans)
+                           (temporal-relation ?dans-1 ?dans-2 equals)
+                           ;FS-ALABAMA --> dominant hand
+                           (left-hand-articulation ?fs-alabama-1 fs-alabama)
+                           ;COMBIEN --> two-handed
+                           (left-hand-articulation ?combien-1 combien)
+                           ;HABITER --> two-handed, modification = reduplicated
+                           (left-hand-articulation ?habiter-1 habiter)
+                           (right-hand-articulation ?habiter-2 habiter)
+                           (temporal-relation ?habiter-1 ?habiter2 equals)
+                           ;DANS --> two-handed
+                           (left-hand-articulation ?dans-3 dans)
+                           (right-hand-articulation ?dans-4 dans)
+                           (temporal-relation ?dans-3 ?dans-4 equals)
+                           ;COMBIEN --> two-handed
+                           (left-hand-articulation ?combien-3 combien)
+                           (right-hand-articulation ?combien-4 combien)
+                           (temporal-relation ?combien-3 ?combien-4 equals)
+                           ;MEETS
+                           (meets ?dans-1 ?fs-alabama-1)
+                           (meets ?fs-alabama-1 ?combien-1)
+                           (meets ?combien-1 ?habiter-1)
+                           (meets ?habiter-1 ?dans-3)
+                           (meets ?dans-3 ?combien-3))))))
 ;------------------------------;
 ; + item-based constructions + ;
 ;------------------------------;
@@ -903,11 +1043,230 @@
                (category answer-len-const-riverid-slot1-1-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
                            (lh-rightmost ?slot1-lh-right)))))
+
+
+(def-fcg-cxn answer-population-const-stateid-slot1-1
+             ((?answer-population-const-stateid-alabama-1
+               (subunits (?slot1-unit)))
+              <-
+              (?answer-population-const-stateid-alabama-1
+               (HASH meaning ((ANSWER ?C ?A ?D)(POPULATION ?D ?B ?A)(CONST ?D ?B ?E)(STATEID ?E ?F)))
+               --
+               (HASH form (;DANS --> two-handed
+                           (left-hand-articulation ?dans-1 dans)
+                           (right-hand-articulation ?dans-2 dans)
+                           (temporal-relation ?dans-1 ?dans-2 equals)
+                           ;COMBIEN --> two-handed
+                           (left-hand-articulation ?combien-1 combien)
+                           ;HABITER --> two-handed, modification = reduplicated
+                           (left-hand-articulation ?habiter-1 habiter)
+                           (right-hand-articulation ?habiter-2 habiter)
+                           (temporal-relation ?habiter-1 ?habiter2 equals)
+                           ;DANS --> two-handed
+                           (left-hand-articulation ?dans-3 dans)
+                           (right-hand-articulation ?dans-4 dans)
+                           (temporal-relation ?dans-3 ?dans-4 equals)
+                           ;COMBIEN --> two-handed
+                           (left-hand-articulation ?combien-3 combien)
+                           (right-hand-articulation ?combien-4 combien)
+                           (temporal-relation ?combien-3 ?combien-4 equals)
+                           ;MEETS
+                           (meets ?dans-1 ?slot1-lh-left)
+                           (meets ?slot1-lh-right ?combien-1)
+                           (meets ?combien-1 ?habiter-1)
+                           (meets ?habiter-1 ?dans-3)
+                           (meets ?dans-3 ?combien-3))))
+              (?slot1-unit
+               (meaning-args ((target ?F)))
+               --
+               (category answer-population-const-stateid-slot1-1-slot1-cat)
+               (boundaries (lh-leftmost ?slot1-lh-left)
+                           (lh-rightmost ?slot1-lh-right)))))
                
 
 ;----------------------------;
 ; + holistic constructions + ;
 ;----------------------------;
+
+(def-fcg-cxn alabama-1-cxn
+             ((?alabama-1-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-alabama-1)
+                           (lh-rightmost ?fs-alabama-1))
+               (category alabama-1-cat))
+              <-
+              (?alabama-1-unit
+               (HASH meaning ((alabama ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-alabama-1 fs-alabama))))))
+
+(def-fcg-cxn arizona-1-cxn
+             ((?arizona-1-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-arizona-1)
+                           (lh-rightmost ?fs-arizona-1))
+               (category arizona-1-cat))
+              <-
+              (?arizona-1-unit
+               (HASH meaning ((arizona ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-arizona-1 fs-arizona))))))
+
+(def-fcg-cxn idaho-1-cxn
+             ((?idaho-1-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-idaho-1)
+                           (lh-rightmost ?fs-idaho-1))
+               (category idaho-1-cat))
+              <-
+              (?idaho-1-unit
+               (HASH meaning ((idaho ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-idaho-1 fs-idaho))))))
+
+(def-fcg-cxn illinois-1-cxn
+             ((?illinois-1-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-illinois-1)
+                           (lh-rightmost ?fs-illinois-1))
+               (category illinois-1-cat))
+              <-
+              (?illinois-1-unit
+               (HASH meaning ((illinois ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-illinois-1 fs-illinois))))))
+
+(def-fcg-cxn kansas-1-cxn
+             ((?kansas-1-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-kansas-1)
+                           (lh-rightmost ?fs-kansas-1))
+               (category kansas-1-cat))
+              <-
+              (?kansas-1-unit
+               (HASH meaning ((kansas ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-kansas-1 fs-kansas))))))
+
+(def-fcg-cxn maine-1-cxn
+             ((?maine-1-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-maine-1)
+                           (lh-rightmost ?fs-maine-1))
+               (category maine-1-cat))
+              <-
+              (?maine-1-unit
+               (HASH meaning ((maine ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-maine-1 fs-maine))))))
+
+(def-fcg-cxn maryland-1-cxn
+             ((?maryland-1-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-maryland-1)
+                           (lh-rightmost ?fs-maryland-1))
+               (category maryland-1-cat))
+              <-
+              (?maryland-1-unit
+               (HASH meaning ((maryland ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-maryland-1 fs-maryland))))))
+
+(def-fcg-cxn minnesota-1-cxn
+             ((?minnesota-1-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-minnesota-1)
+                           (lh-rightmost ?fs-minnesota-1))
+               (category minnesota-1-cat))
+              <-
+              (?minnesota-1-unit
+               (HASH meaning ((minnesota ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-minnesota-1 fs-minnesota))))))
+
+(def-fcg-cxn missouri-1-cxn
+             ((?missouri-1-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-missouri-1)
+                           (lh-rightmost ?fs-missouri-1))
+               (category missouri-1-cat))
+              <-
+              (?missouri-1-unit
+               (HASH meaning ((missouri ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-missouri-1 fs-missouri))))))
+
+(def-fcg-cxn montana-1-cxn
+             ((?montana-1-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-montana-1)
+                           (lh-rightmost ?fs-montana-1))
+               (category montana-1-cat))
+              <-
+              (?montana-1-unit
+               (HASH meaning ((montana ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-montana-1 fs-montana))))))
+
+(def-fcg-cxn new_hampshire-1-cxn
+             ((?new_hampshire-1-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-new-hampshire-1)
+                           (lh-rightmost ?fs-new-hampshire-1))
+               (category new_hampshire-1-cat))
+              <-
+              (?new_hampshire-1-unit
+               (HASH meaning ((new_hampshire ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-new-hampshire-1 fs-new-hampshire))))))
+
+(def-fcg-cxn oregon-1-cxn
+             ((?oregon-1-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-oregon-1)
+                           (lh-rightmost ?fs-oregon-1))
+               (category oregon-1-cat))
+              <-
+              (?oregon-1-unit
+               (HASH meaning ((oregon ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-oregon-1 fs-oregon))))))
+
+(def-fcg-cxn rhode_island-1-cxn
+             ((?rhode_island-1-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-rhode-island-1)
+                           (lh-rightmost ?fs-rhode-island-1))
+               (category rhode_island-1-cat))
+              <-
+              (?rhode_island-1-unit
+               (HASH meaning ((rhode-island ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-rhode-island-1 fs-rhode-island))))))
+
+(def-fcg-cxn south_dakota-1-cxn
+             ((?south_dakota-1-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-south-dakota-1)
+                           (lh-rightmost ?fs-south-dakota-1))
+               (category south_dakota-1-cat))
+              <-
+              (?south_dakota-1-unit
+               (HASH meaning ((south-dakota ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-south-dakota-1 fs-south-dakota))))))
+
+(def-fcg-cxn washington-1-cxn
+             ((?washington-1-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-washington-1)
+                           (lh-rightmost ?fs-washington-1))
+               (category washington-1-cat))
+              <-
+              (?washington-1-unit
+               (HASH meaning ((washington ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-washington-1 fs-washington))))))
 
 (def-fcg-cxn rio_grande-1-cxn
              ((?rio_grande-1-unit
@@ -1152,6 +1511,18 @@
                --
                (HASH form ((left-hand-articulation ?fs-texas-1 fs-texas))))))
 
+(def-fcg-cxn utah-1-cxn
+             ((?utah-1-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-utah-1)
+                           (lh-rightmost ?fs-utah-1))
+               (category utah-1-cat))
+              <-
+              (?utah-1-unit
+               (HASH meaning ((UTAH ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-utah-1 fs-utah))))))
+
 (def-fcg-cxn state-1-cxn
              ((?state-1-unit
                (meaning-args ((partial-network ?D)
@@ -1227,6 +1598,7 @@
                   answer-size-const-cityid-slot1-1-slot1-cat
                   answer-elevation-const-placeid-slot1-1-slot1-cat
                   answer-len-const-riverid-slot1-1-slot1-cat
+                  answer-population-const-stateid-slot1-1-slot1-cat
                   alaska-1-cat
                   california-1-cat
                   florida-1-cat
@@ -1246,7 +1618,23 @@
                   death_valley-1-cat
                   rio_grande-1-cat
                   mississipi-1-cat
-                  columbia-1-cat)
+                  columbia-1-cat
+                  alabama-1-cat
+                  arizona-1-cat
+                  idaho-1-cat
+                  illinois-1-cat
+                  kansas-1-cat
+                  maine-1-cat
+                  maryland-1-cat
+                  minnesota-1-cat
+                  missouri-1-cat
+                  montana-1-cat
+                  new_hampshire-1-cat
+                  oregon-1-cat
+                  rhode_island-1-cat
+                  utah-1-cat
+                  washington-1-cat
+                  south_dakota-1-cat)
                 *fcg-constructions*)
 
 (progn
@@ -1274,4 +1662,24 @@
   (add-link 'mount_mckinley-1-cat 'answer-elevation-const-placeid-slot1-1-slot1-cat *fcg-constructions*)
   (add-link 'rio_grande-1-cat 'answer-len-const-riverid-slot1-1-slot1-cat *fcg-constructions*)
   (add-link 'columbia-1-cat 'answer-len-const-riverid-slot1-1-slot1-cat *fcg-constructions*)
-  (add-link 'mississipi-1-cat 'answer-len-const-riverid-slot1-1-slot1-cat *fcg-constructions*))
+  (add-link 'mississipi-1-cat 'answer-len-const-riverid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'alabama-1-cat 'answer-population-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'alaska-1-cat 'answer-population-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'arizona-1-cat 'answer-population-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'idaho-1-cat 'answer-population-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'illinois-1-cat 'answer-population-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'kansas-1-cat 'answer-population-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'maine-1-cat 'answer-population-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'maryland-1-cat 'answer-population-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'minnesota-1-cat 'answer-population-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'mississipi-1-cat 'answer-population-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'missouri-1-cat 'answer-population-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'montana-1-cat 'answer-population-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'new_mexico-1-cat 'answer-population-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'new_hampshire-1-cat 'answer-population-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'oregon-1-cat 'answer-population-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'rhode_island-1-cat 'answer-population-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'south_dakota-1-cat 'answer-population-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'texas-1-cat 'answer-population-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'utah-1-cat 'answer-population-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'washington-1-cat 'answer-population-const-stateid-slot1-1-slot1-cat *fcg-constructions*))
