@@ -48,7 +48,7 @@
     (loop with prototypes = (sort (get-prototypes (meaning cxn))
                                   (lambda (x y) (string< (symbol-name (channel x))
                                                          (symbol-name (channel y)))))
-          for prototype in prototypes
+          for prototype in (reverse prototypes)
           for record = (prototype->s-dot prototype
                                          :green (member (channel prototype) highlight-green)
                                          :red (member (channel prototype) highlight-red))
