@@ -15,8 +15,8 @@
   :hierarchy-features (subunits)
   :diagnostics ()
   :repairs ()
-  :fcg-configurations ((:parse-goal-tests :no-applicable-cxns)
-                       (:production-goal-tests :no-applicable-cxns)
+  :fcg-configurations ((:parse-goal-tests :no-applicable-cxns :connected-semantic-network)
+                       (:production-goal-tests :no-applicable-cxns :no-meaning-in-root :connected-structure)
                        (:node-tests :check-duplicate :restrict-nr-of-nodes :restrict-search-depth)
                        (:max-number-of-nodes . 200)
                        (:max-search-depth . 50)
@@ -542,7 +542,7 @@
 
 (def-fcg-cxn answer-population-const-stateid-alabama-1-cxn
              (<-
-              (?answer-population-const-stateid-alabama-1
+              (?answer-population-const-stateid-alabama-1-unit
                (HASH meaning ((ANSWER ?C ?A ?D)(POPULATION ?D ?B ?A)(CONST ?D ?B ?E)(STATEID ?E ?F)(ALABAMA ?F)))
                --
                (HASH form (;DANS --> two-handed
@@ -571,6 +571,71 @@
                            (meets ?combien-1 ?habiter-1)
                            (meets ?habiter-1 ?dans-3)
                            (meets ?dans-3 ?combien-3))))))
+
+(def-fcg-cxn answer-population-const-stateid-alabama-2-cxn
+             (<-
+              (?answer-population-const-stateid-alabama-2-unit
+               (HASH meaning ((ANSWER ?C ?A ?D)(POPULATION ?D ?B ?A)(CONST ?D ?B ?E)(STATEID ?E ?F)(ALABAMA ?F)))
+               --
+               (HASH form (;DANS --> two-handed
+                           (left-hand-articulation ?dans-1 dans)
+                           (right-hand-articulation ?dans-2 dans)
+                           (temporal-relation ?dans-1 ?dans-2 equals)
+                           ;NS-AMERIQUE.LAVER-VISAGe --> dominant hand
+                           (left-hand-articulation ?ns-amerique.laver-visage-1 ns-amerique.laver-visage)
+                           ;IL-Y-A --> dominant hand
+                           (left-hand-articulation ?il-y-a-1 il-y-a)
+                           ;DSS-GRAND-ENTITE-GEOGRAPHIQUE --> two-handed, location = right
+                           (left-hand-articulation ?dss-grand-entite-geographique-1 dss-grand-entite-geographique)
+                           (location ?dss-grand-entite-geographique-1 rssp)
+                           (right-hand-articulation ?dss-grand-entite-geographique-2 dss-grand-entite-geographique)
+                           (location ?dss-grand-entite-geographique-2 rssp)
+                           (temporal-relation ?dss-grand-entite-geographique-1 ?dss-grand-entite-geographique-2 equals)
+                           ;DSS-PETIT-ENTITE-GEOGRAPHIQUE --> dominant hand, location = right, modification = reduplicated
+                           (left-hand-articulation ?dss-petit-entite-geographique-1 dss-petit-entite-geographique)
+                           (location ?dss-petit-entite-geographique-1 rssp)
+                           (modification ?dss-petit-entite-geographique-1 reduplicated)
+                           ;UN --> dominant hand
+                           (left-hand-articulation ?un-1 un)
+                           ;PT --> dominant hand, location = rssp
+                           (left-hand-articulation ?pt-1 pt)
+                           (location ?pt-1 rssp)
+                           ;FS-ALABAMA --> dominant hand
+                           (left-hand-articulation ?fs-alabama-1 fs-alabama)
+                           ;COMBIEN --> two-handed
+                           (left-hand-articulation ?combien-1 combien)
+                           ;HABITER --> two-handed, modification = reduplicated
+                           (left-hand-articulation ?habiter-1 habiter)
+                           (right-hand-articulation ?habiter-2 habiter)
+                           (temporal-relation ?habiter-1 ?habiter2 equals)
+                           ;DANS --> two-handed
+                           (left-hand-articulation ?dans-3 dans)
+                           (right-hand-articulation ?dans-4 dans)
+                           (temporal-relation ?dans-3 ?dans-4 equals)
+                           ;COMBIEN --> two-handed
+                           (left-hand-articulation ?combien-3 combien)
+                           (right-hand-articulation ?combien-4 combien)
+                           (temporal-relation ?combien-3 ?combien-4 equals)
+                           ;FBUOY-GRAND-ENTITE-GEOGRAPHIQUE --> non-dominant hand, location = rssp
+                           (right-hand-articulation ?fbuoy-grand-entite-geographique-1 fbuoy-grand-entite-geographique)
+                           ;MEETS
+                           (meets ?dans-1 ?ns-amerique.laver-visage-1)
+                           (meets ?ns-amerique.laver-visage-1 ?il-y-a-1)
+                           (meets ?il-y-a-1 ?dss-grand-entite-geographique-1)
+                           (meets ?dss-grand-entite-geographique-1 ?dss-petit-entite-geographique-1)
+                           (meets ?dss-petit-entite-geographique-1 ?un-1)
+                           (meets ?un-1 ?pt-1)
+                           (meets ?pt-1 ?fs-alabama-1)
+                           (meets ?fs-alabama-1 ?combien-1)
+                           (meets ?combien-1 ?habiter-1)
+                           (meets ?habiter-1 ?dans-3)
+                           (meets ?dans-3 ?combien-3)
+                           ;FBUOY temporal relations
+                           (temporal-relation ?dss-petit-entite-geographique-1 ?fbuoy-grand-entite-geographique-1 starts)
+                           (temporal-relation ?un-1 ?fbuoy-grand-entite-geographique-1 during)
+                           (temporal-relation ?pt-1 ?fbuoy-grand-entite-geographique-1 finishes))))))
+                           
+                           
 ;------------------------------;
 ; + item-based constructions + ;
 ;------------------------------;
@@ -1045,7 +1110,7 @@
                            (lh-rightmost ?slot1-lh-right)))))
 
 
-(def-fcg-cxn answer-population-const-stateid-slot1-1
+(def-fcg-cxn answer-population-const-stateid-slot1-1-cxn
              ((?answer-population-const-stateid-alabama-1
                (subunits (?slot1-unit)))
               <-
@@ -1080,6 +1145,76 @@
                (meaning-args ((target ?F)))
                --
                (category answer-population-const-stateid-slot1-1-slot1-cat)
+               (boundaries (lh-leftmost ?slot1-lh-left)
+                           (lh-rightmost ?slot1-lh-right)))))
+
+(def-fcg-cxn answer-population-const-stateid-slot1-2-cxn
+             ((?answer-population-const-stateid-slot1-2-unit
+               (subunits (?slot1-unit)))
+              <-
+              (?answer-population-const-stateid-slot1-2-unit
+               (HASH meaning ((ANSWER ?C ?A ?D)(POPULATION ?D ?B ?A)(CONST ?D ?B ?E)(STATEID ?E ?F)))
+               --
+               (HASH form (;DANS --> two-handed
+                           (left-hand-articulation ?dans-1 dans)
+                           (right-hand-articulation ?dans-2 dans)
+                           (temporal-relation ?dans-1 ?dans-2 equals)
+                           ;NS-AMERIQUE.LAVER-VISAGe --> dominant hand
+                           (left-hand-articulation ?ns-amerique.laver-visage-1 ns-amerique.laver-visage)
+                           ;IL-Y-A --> dominant hand
+                           (left-hand-articulation ?il-y-a-1 il-y-a)
+                           ;DSS-GRAND-ENTITE-GEOGRAPHIQUE --> two-handed, location = right
+                           (left-hand-articulation ?dss-grand-entite-geographique-1 dss-grand-entite-geographique)
+                           (location ?dss-grand-entite-geographique-1 rssp)
+                           (right-hand-articulation ?dss-grand-entite-geographique-2 dss-grand-entite-geographique)
+                           (location ?dss-grand-entite-geographique-2 rssp)
+                           (temporal-relation ?dss-grand-entite-geographique-1 ?dss-grand-entite-geographique-2 equals)
+                           ;DSS-PETIT-ENTITE-GEOGRAPHIQUE --> dominant hand, location = right, modification = reduplicated
+                           (left-hand-articulation ?dss-petit-entite-geographique-1 dss-petit-entite-geographique)
+                           (location ?dss-petit-entite-geographique-1 rssp)
+                           (modification ?dss-petit-entite-geographique-1 reduplicated)
+                           ;UN --> dominant hand
+                           (left-hand-articulation ?un-1 un)
+                           ;PT --> dominant hand, location = rssp
+                           (left-hand-articulation ?pt-1 pt)
+                           (location ?pt-1 rssp)
+                           ;COMBIEN --> two-handed
+                           (left-hand-articulation ?combien-1 combien)
+                           ;HABITER --> two-handed, modification = reduplicated
+                           (left-hand-articulation ?habiter-1 habiter)
+                           (right-hand-articulation ?habiter-2 habiter)
+                           (temporal-relation ?habiter-1 ?habiter2 equals)
+                           ;DANS --> two-handed
+                           (left-hand-articulation ?dans-3 dans)
+                           (right-hand-articulation ?dans-4 dans)
+                           (temporal-relation ?dans-3 ?dans-4 equals)
+                           ;COMBIEN --> two-handed
+                           (left-hand-articulation ?combien-3 combien)
+                           (right-hand-articulation ?combien-4 combien)
+                           (temporal-relation ?combien-3 ?combien-4 equals)
+                           ;FBUOY-GRAND-ENTITE-GEOGRAPHIQUE --> non-dominant hand, location = rssp
+                           (right-hand-articulation ?fbuoy-grand-entite-geographique-1 fbuoy-grand-entite-geographique)
+                           (location ?fbuoy-grand-entite-geographique-1 rssp)
+                           ;MEETS
+                           (meets ?dans-1 ?ns-amerique.laver-visage-1)
+                           (meets ?ns-amerique.laver-visage-1 ?il-y-a-1)
+                           (meets ?il-y-a-1 ?dss-grand-entite-geographique-1)
+                           (meets ?dss-grand-entite-geographique-1 ?dss-petit-entite-geographique-1)
+                           (meets ?dss-petit-entite-geographique-1 ?un-1)
+                           (meets ?un-1 ?pt-1)
+                           (meets ?pt-1 ?slot1-lh-left)
+                           (meets ?slot1-lh-right ?combien-1)
+                           (meets ?combien-1 ?habiter-1)
+                           (meets ?habiter-1 ?dans-3)
+                           (meets ?dans-3 ?combien-3)
+                           ;FBUOY temporal relations
+                           (temporal-relation ?dss-petit-entite-geographique-1 ?fbuoy-grand-entite-geographique-1 starts)
+                           (temporal-relation ?un-1 ?fbuoy-grand-entite-geographique-1 during)
+                           (temporal-relation ?pt-1 ?fbuoy-grand-entite-geographique-1 finishes))))
+              (?slot1-unit
+               (meaning-args ((target ?F)))
+               --
+               (category answer-population-const-stateid-slot1-2-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
                            (lh-rightmost ?slot1-lh-right)))))
                
@@ -1599,6 +1734,7 @@
                   answer-elevation-const-placeid-slot1-1-slot1-cat
                   answer-len-const-riverid-slot1-1-slot1-cat
                   answer-population-const-stateid-slot1-1-slot1-cat
+                  answer-population-const-stateid-slot1-2-slot1-cat
                   alaska-1-cat
                   california-1-cat
                   florida-1-cat
@@ -1682,4 +1818,24 @@
   (add-link 'south_dakota-1-cat 'answer-population-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
   (add-link 'texas-1-cat 'answer-population-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
   (add-link 'utah-1-cat 'answer-population-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
-  (add-link 'washington-1-cat 'answer-population-const-stateid-slot1-1-slot1-cat *fcg-constructions*))
+  (add-link 'washington-1-cat 'answer-population-const-stateid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'alabama-1-cat 'answer-population-const-stateid-slot1-2-slot1-cat *fcg-constructions*)
+  (add-link 'alaska-1-cat 'answer-population-const-stateid-slot1-2-slot1-cat *fcg-constructions*)
+  (add-link 'arizona-1-cat 'answer-population-const-stateid-slot1-2-slot1-cat *fcg-constructions*)
+  (add-link 'idaho-1-cat 'answer-population-const-stateid-slot1-2-slot1-cat *fcg-constructions*)
+  (add-link 'illinois-1-cat 'answer-population-const-stateid-slot1-2-slot1-cat *fcg-constructions*)
+  (add-link 'kansas-1-cat 'answer-population-const-stateid-slot1-2-slot1-cat *fcg-constructions*)
+  (add-link 'maine-1-cat 'answer-population-const-stateid-slot1-2-slot1-cat *fcg-constructions*)
+  (add-link 'maryland-1-cat 'answer-population-const-stateid-slot1-2-slot1-cat *fcg-constructions*)
+  (add-link 'minnesota-1-cat 'answer-population-const-stateid-slot1-2-slot1-cat *fcg-constructions*)
+  (add-link 'mississipi-1-cat 'answer-population-const-stateid-slot1-2-slot1-cat *fcg-constructions*)
+  (add-link 'missouri-1-cat 'answer-population-const-stateid-slot1-2-slot1-cat *fcg-constructions*)
+  (add-link 'montana-1-cat 'answer-population-const-stateid-slot1-2-slot1-cat *fcg-constructions*)
+  (add-link 'new_mexico-1-cat 'answer-population-const-stateid-slot1-2-slot1-cat *fcg-constructions*)
+  (add-link 'new_hampshire-1-cat 'answer-population-const-stateid-slot1-2-slot1-cat *fcg-constructions*)
+  (add-link 'oregon-1-cat 'answer-population-const-stateid-slot1-2-slot1-cat *fcg-constructions*)
+  (add-link 'rhode_island-1-cat 'answer-population-const-stateid-slot1-2-slot1-cat *fcg-constructions*)
+  (add-link 'south_dakota-1-cat 'answer-population-const-stateid-slot1-2-slot1-cat *fcg-constructions*)
+  (add-link 'texas-1-cat 'answer-population-const-stateid-slot1-2-slot1-cat *fcg-constructions*)
+  (add-link 'utah-1-cat 'answer-population-const-stateid-slot1-2-slot1-cat *fcg-constructions*)
+  (add-link 'washington-1-cat 'answer-population-const-stateid-slot1-2-slot1-cat *fcg-constructions*))
