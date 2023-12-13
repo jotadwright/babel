@@ -61,9 +61,8 @@
 	       :size (hash-table-size source)
 	       :rehash-size (hash-table-rehash-size source)
 	       :rehash-threshold (hash-table-rehash-threshold source))))
-    (maphash #'(lambda (key val)
-		 (setf (gethash key copy) val))
-	     source)
+    (maphash #'(lambda (key val) (setf (gethash key copy) (copy-object val)))
+             source)
     copy))
 
 ;;;; Example.

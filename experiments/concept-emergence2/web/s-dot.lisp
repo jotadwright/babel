@@ -45,21 +45,27 @@
                      (s-dot::fontcolor "#AA0000"))))
      g)
     ;; feature-channels nodes
-    (loop for prototype in (reverse (get-prototypes (meaning cxn)))
+    (loop with prototypes = (sort (get-prototypes (meaning cxn))
+                                  (lambda (x y) (string< (symbol-name (channel x))
+                                                         (symbol-name (channel y)))))
+          for prototype in (reverse prototypes)
           for record = (prototype->s-dot prototype
                                          :green (member (channel prototype) highlight-green)
                                          :red (member (channel prototype) highlight-red))
           when (and (if disabled-channels
                       (not (gethash (channel prototype) disabled-channels))
                       t)
-                    (>= (weight prototype) 0.1))
+                    (>= (weight prototype) certainty-threshold))
             do (push record g))
     ;; edges between cxn node and feature-channels
-    (loop for prototype in (get-prototypes (meaning cxn))
+    (loop with prototypes = (sort (get-prototypes (meaning cxn))
+                                  (lambda (x y) (string< (symbol-name (channel x))
+                                                         (symbol-name (channel y)))))
+          for prototype in prototypes
           when (and (if disabled-channels
                       (not (gethash (channel prototype) disabled-channels))
                       t)
-                    (>= (weight prototype) 0.1))
+                    (>= (weight prototype) certainty-threshold))
             do (push
                 `(s-dot::edge
                   ((s-dot::from ,(mkdotstr (id (meaning cxn))))

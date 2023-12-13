@@ -69,19 +69,27 @@
 
 (deftest test-recompute-root-sequence-features-based-on-bindings ()
   
-  (test-equalp (recompute-root-sequence-features-based-on-bindings '((sequence "what is the color of the cube?" 0 30))
-                                                    '((?left-cxn . 8) (?right-cxn . 11)))
+  (test-equalp (recompute-root-sequence-features-based-on-bindings '(?left-cxn ?right-cxn)
+                                                                   '((sequence "what is the color of the cube?" 0 30))
+                                                                   '((?left-cxn . 8) (?right-cxn . 11)))
                '((SEQUENCE "what is " 0 8) (SEQUENCE " color of the cube?" 11 30)))
 
-  (test-equalp (recompute-root-sequence-features-based-on-bindings '((sequence "what is the " 0 12)
+  (test-equalp (recompute-root-sequence-features-based-on-bindings '(?left-cxn ?right-cxn)
+                                                                   '((sequence "what is the " 0 12)
                                                                      (sequence " of the cube?" 17 30))
-                                                    '((?left-cxn . 29) (?right-cxn . 30)))
+                                                                   '((?left-cxn . 29) (?right-cxn . 30)))
                '((SEQUENCE "what is the " 0 12) (SEQUENCE " of the cube" 17 29)))
 
-  (test-equalp (recompute-root-sequence-features-based-on-bindings '((sequence "what is the " 0 12)
+  (test-equalp (recompute-root-sequence-features-based-on-bindings '(?right-2 ?left-cxn ?right-cxn ?left-2)
+                                                                   '((sequence "what is the " 0 12)
                                                                      (sequence " of the cube?" 17 30))
                                                                    '((?left-cxn . 29) (?right-cxn . 30)
                                                                      (?left-2 . 0) (?right-2 . 4)))
-               '((SEQUENCE " is the " 4 12) (SEQUENCE " of the cube" 17 29))))
+               '((SEQUENCE " is the " 4 12) (SEQUENCE " of the cube" 17 29)))
+  
+  (test-equalp (recompute-root-sequence-features-based-on-bindings '(?SUBJECT-RIGHT-10378 ?TO-BE-LEFT-6253)
+                                                                   '((SEQUENCE " " 1 2) (SEQUENCE " ch" 5 8) (SEQUENCE "irm" 9 12) (SEQUENCE " of " 14 18) (SEQUENCE " committee" 21 31))
+                                                                   '((?X-BE-UNIT-15438 . #:X-BE-UNIT-1088) (?TAG-271548 FCG:FORM NIL) (?TO-BE-RIGHT-6253 . 5) (?TO-BE-LEFT-6253 . 2) (?TO-BE-STRING-6253 . "was") (?TO-BE-UNIT-23889 . #:WAS-UNIT-1580) (?SUBJECT-RIGHT-10378 . 1) (?SUBJECT-LEFT-10378 . 0) (?SUBJECT-STRING-10378 . "I") (?NUMBER-47265 . FCG::SINGULAR) (?SUBJECT-UNIT-27834 . #:I-UNIT-2165)))
+               '((SEQUENCE " ch" 5 8) (SEQUENCE "irm" 9 12) (SEQUENCE " of " 14 18) (SEQUENCE " committee" 21 31))))
 
 ;;(test-recompute-root-sequence-features-based-on-bindings)

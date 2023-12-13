@@ -78,7 +78,9 @@
     (format stream "<~a:~
                         ~:_ attributes: ~{~,2f~^, ~}"
             (id cle-object)
-            (reverse (loop for channel being the hash-keys of (attributes cle-object)
-                             using (hash-value value)
-                           collect (cons channel value))))
+            (sort (loop for channel being the hash-keys of (attributes obj)
+                          using (hash-value value)
+                        collect (cons channel value))
+                  (lambda (x y) (string< (symbol-name x) (symbol-name y)))
+                  :key #'car))
     (format stream ">")))

@@ -2,19 +2,18 @@
 
 (defmethod get-all-channels ((mode (eql :clevr)))
   "CLEVR dataset."
-  (reverse `(
-             ,'xpos ,'ypos
-             ,'width ,'height
-             ,'angle
-             ,'corners
-             ,'area ,'relative-area
-             ,'bb-area ,'bb-area-ratio
-             ,'wh-ratio
-             ,'circle-distance
-             ,'white-level ,'black-level
-             ,'rgb-mean-r ,'rgb-mean-g ,'rgb-mean-b
-             ,'rgb-std-r ,'rgb-std-g ,'rgb-std-b
-             )))
+  `(,'xpos ,'ypos
+    ,'width ,'height
+    ,'angle
+    ,'corners
+    ,'area ,'relative-area
+    ,'bb-area ,'bb-area-ratio
+    ,'wh-ratio
+    ,'circle-distance
+    ,'white-level ,'black-level
+    ,'lab-mean-l ,'lab-mean-a ,'lab-mean-b
+    ,'lab-std-l ,'lab-std-a ,'lab-std-b
+    ))
 
 (defmethod is-channel-available ((mode (eql :clevr)) symbolic-attribute raw-attributes)
   (let ((continuous-attributes (loop for key being the hash-keys of raw-attributes
@@ -26,6 +25,12 @@
                   (if (member 'rgb-std-r continuous-attributes) t nil)
                   (if (member 'rgb-std-g continuous-attributes) t nil)
                   (if (member 'rgb-std-b continuous-attributes) t nil)
+                  (if (member 'lab-mean-l continuous-attributes) t nil)
+                  (if (member 'lab-mean-a continuous-attributes) t nil)
+                  (if (member 'lab-mean-b continuous-attributes) t nil)
+                  (if (member 'lab-std-l continuous-attributes) t nil)
+                  (if (member 'lab-std-a continuous-attributes) t nil)
+                  (if (member 'lab-std-b continuous-attributes) t nil)
                   ))
       (:SIZE (or (if (member 'width continuous-attributes) t nil)
                  (if (member 'height continuous-attributes) t nil)
@@ -44,7 +49,7 @@
 
 (defmethod get-all-channels ((mode (eql :cogent)))
   "CLEVR COGENT dataset."
-  (reverse `(
+  `(
              ,'xpos ,'ypos
              ,'width ,'height
              ,'angle
@@ -56,7 +61,7 @@
              ,'white-level ,'black-level
              ,'rgb-mean-r ,'rgb-mean-g ,'rgb-mean-b
              ,'rgb-std-r ,'rgb-std-g ,'rgb-std-b
-             )))
+             ))
 
 (defmethod is-channel-available ((mode (eql :cogent)) symbolic-attribute raw-attributes)
   (let ((continuous-attributes (loop for key being the hash-keys of raw-attributes
