@@ -36,8 +36,8 @@
                 ;; entrenchment of constructions
                 (:initial-cxn-entrenchement . 0.5)
                 (:entrenchment-incf . 0.1)
-                (:entrenchment-decf . -0.1)
-                (:entrenchment-li . -0.02) ;; lateral inhibition
+                (:entrenchment-decf . -0.01)
+                (:entrenchment-li . -0.001) ;; lateral inhibition
                 (:trash-concepts . nil)
                 ;; concept representations
                 (:concept-representation . :distribution)
@@ -47,7 +47,7 @@
                 (:weight-update-strategy . :j-interpolation)
                 (:initial-weight . 0)
                 (:weight-incf . 1)
-                (:weight-decf . -5)
+                (:weight-decf . -1)
                 ;; staging
                 (:switch-condition . :none) ; :after-n-interactions)
                 (:switch-conditions-after-n-interactions . 2500) 

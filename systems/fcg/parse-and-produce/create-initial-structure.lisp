@@ -35,10 +35,6 @@
                                      (mode (eql :root-mode)))
   (create-initial-structure meaning t))
 
-(defmethod create-initial-structure ((meaning list)
-                                     (mode (eql :root-mode-replace-variables-with-symbols)))
-  (create-initial-structure (replace-variables-with-symbols meaning) t))
-
 ;; ############################################################################
 ;; Initial structures for one-pole-mode
 ;; ############################################################################
