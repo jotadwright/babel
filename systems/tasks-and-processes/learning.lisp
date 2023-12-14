@@ -79,5 +79,5 @@
 ;; ----------------------------------------------------------------------------
 
 (defclass task-w-learning (task object-w-learning)
-  ((configuration :initform '((:run-task-process-class . process-w-learning)))))
+  ((configuration :initform (make-configuration :entries '((:run-task-process-class . process-w-learning))))))
 

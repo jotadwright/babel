@@ -560,12 +560,12 @@
     (loop for (name . value) in bindings
                 do (loop for boundary-name in feature
                          do (when (eq boundary-name name)
-                              (pushend value matched-positions))))
+                              (push value matched-positions))))
     (sort matched-positions  #'<)
     
     ;; taking care of matched-invervals:
     (loop for interval on matched-positions by #'cddr
-          do (pushend interval matched-intervals))
+          do (push interval matched-intervals))
 
     ;; taking care of non-matched-intervals:
     (setf non-matched-intervals (calculate-unmatched-intervals matched-intervals (mapcar #'(lambda (feat)
