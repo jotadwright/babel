@@ -37,7 +37,7 @@
                 (:initial-cxn-entrenchement . 0.5)
                 (:entrenchment-incf . 0.1)
                 (:entrenchment-decf . -0.01)
-                (:entrenchment-li . -0.001) ;; lateral inhibition
+                (:entrenchment-li . -0.02) ;; lateral inhibition
                 (:trash-concepts . nil)
                 ;; concept representations
                 (:concept-representation . :distribution)
