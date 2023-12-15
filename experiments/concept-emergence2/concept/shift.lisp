@@ -133,17 +133,15 @@
 
 
 ;; -----------------------------
-;; + Weighted Similarity table +
+;; + Similarity table +
 ;; -----------------------------
-(defun weighted-similarity-with-table (object list-of-prototypes table)
+(defmethod similarity-with-table ((prototypes list) (object cle-object) (table hash-table))
   "Compute the weighted similarity between the object and the
    list of prototypes, using the given similarity table."
-  (loop for prototype in list-of-prototypes
-        for channel = (channel prototype)
-        for ws = (get-ws object channel table)
-        collect ws into weighted-similarities
-        ;; TODO: INCORRECT!!!!
-        finally (return (average weighted-similarities))))
+  (loop with ledger = (loop for prototype in prototypes sum (weight prototype))
+        for prototype in prototypes
+        for similarity = (get-ws object (channel prototype) table)
+        sum similarity))
 
 ;; ----------------------------------
 ;; + Find discriminating attributes +
@@ -155,15 +153,15 @@
         (best-subset nil))
     (loop with context = (remove topic (objects (get-data agent 'context)))
           for subset in subsets
-          for topic-similarity = (weighted-similarity-with-table topic
-                                                                 subset
-                                                                 similarity-table)
-          for best-other-similarity = (loop for object in context
-                                            maximize (weighted-similarity-with-table object
-                                                                                     subset
-                                                                                     similarity-table))
+          for topic-sim = (similarity-with-table subset
+                                                 topic
+                                                 similarity-table)
+          for best-other-sim = (loop for object in context
+                                     maximize (similarity-with-table subset
+                                                                     object
+                                                                     similarity-table))
           for discriminative-power = (abs (- topic-sim best-other-sim))
-          when (and (> topic-similarity best-other-similarity)
+          when (and (> topic-sim best-other-sim)
                     (> discriminative-power best-score))
             ;; note: we do not multiply here by the score, as the cxn score is a constant here
             do (progn
