@@ -16,7 +16,7 @@
                 ;; setup data scene
                 (:setting . :tutor-learner)
                 (:dataset . "clevr")
-                (:dataset-split . "train")
+                (:dataset-split . "val")
                 ;(:data-fname . "all.lisp")
                 (:available-channels ,@(get-all-channels :clevr))
                 ;; disable channels
