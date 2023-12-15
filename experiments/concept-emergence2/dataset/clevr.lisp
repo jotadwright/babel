@@ -7,7 +7,7 @@
     ,'angle
     ,'corners
     ,'area ,'relative-area
-    ,'bb-area ,'bb-area-ratio
+    ,'bb-area-ratio
     ,'wh-ratio
     ,'circle-distance
     ,'white-level ,'black-level
