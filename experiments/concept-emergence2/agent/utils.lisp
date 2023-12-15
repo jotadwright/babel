@@ -60,9 +60,7 @@
         (setf (aref (window usage-table) (head usage-table)) form)
         ;; update head and tail indexes
         (setf (head usage-table) (mod (+ (head usage-table) 1) (window-size usage-table)))
-        (setf (tail usage-table) (mod (+ (tail usage-table) 1) (window-size usage-table)))
-        )
-      )))
+        (setf (tail usage-table) (mod (+ (tail usage-table) 1) (window-size usage-table)))))))
 
 (defun unique-forms-in-window (agent)
   (hash-table-count (usage-counts (usage-table agent))))
