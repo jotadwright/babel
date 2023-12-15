@@ -138,8 +138,7 @@
 (defmethod similarity-with-table ((prototypes list) (object cle-object) (table hash-table))
   "Compute the weighted similarity between the object and the
    list of prototypes, using the given similarity table."
-  (loop with ledger = (loop for prototype in prototypes sum (weight prototype))
-        for prototype in prototypes
+  (loop for prototype in prototypes
         for similarity = (get-ws object (channel prototype) table)
         sum similarity))
 
