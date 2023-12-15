@@ -354,7 +354,7 @@
              ((?x-cousin-y-removed-unit
                (syn-class (cat N)
                           (max -))
-               (args (?x))
+               (args (?b))
                (boundaries (?x-unit ?removed-unit))
                (subunits (?x-unit ?cousin-unit ?y-unit ?removed-unit)))
               <-
@@ -366,57 +366,37 @@
                --
                (syn-cat (cat A)
                         (min +))
-               (HASH form ((sequence ?x-unit ?x-left ?x-right))))
+               (boundaries (?x-left ?x-right)))
               (?cousin-unit
-               (HASH meaning ((grand-child-of-same-grand-parents ?x)))
+               (sem-cat (cat person))
+               (args (?y))
                --
-               (HASH form ((sequence "cousin" ?cousin-left ?cousin-right))))
+               (syn-cat (cat N)
+                        (max -)
+                        (number singular))
+               (boundaries (?cousin-left ?cousin-right)))
               (?y-unit
-               (syn-cat (cat Adv)
-                        (min +))
                (sem-cat (sem-class times))
-               (args (?x))
+               (args (?z))
                --
                (syn-cat (cat Adv)
                         (min +))
-               (HASH form ((sequence ?y-unit ?y-left ?y-right))))
+               (boundaries (?y-left ?y-right)))
               (?removed-unit
-               (HASH meaning ((distant-in-relationship ?x)))
+               (args (?a))
                --
-               (HASH form ((sequence "removed" ?removed-left ?removed-right))))
+               (syn-cat (cat Adj)
+                        (min +))
+               (boundaries (?removed-left ?removed-right)))
               (?x-cousin-y-removed-unit
-               (HASH meaning ((y-generational-step ?y)))
+               (HASH meaning ((y-generational-step ?x ?y ?z ?a)))
                --
                (HASH form ((sequence " " ?x-right ?cousin-left)
                            (sequence " " ?cousin-right ?y-left)
                            (sequence " " ?y-right ?removed-left)))))
               :cxn-inventory *fillmores-cxns*)
 
-(def-fcg-cxn x-cousin-y-removed-cxn
-             ((?x-cousin-y-removed-unit
-               (syn-class (cat N)
-                          (max -))
-               (args (?x))
-               (boundaries (?cousin-unit ?removed-unit))
-               (subunits (?cousin-unit ?removed-unit))
-               (sequences ((sequence "cousin" ?cousin-left ?cousin-right)
-                           (sequence "removed" ?removed-left ?removed-right))))
-              <-
-              (?cousin-unit
-               (HASH meaning ((grand-child-of-same-grand-parents ?x)))
-               --
-               (HASH form ((sequence "cousin" ?cousin-left ?cousin-right))))
-              (?removed-unit
-               (HASH meaning ((distant-in-relationship ?x)))
-               --
-               (HASH form ((sequence "removed" ?removed-left ?removed-right))))
-              (?x-cousin-y-removed-unit
-               (HASH meaning ((y-generational-step ?y)))
-               --
-               (HASH form ((sequence " " ?cousin-right ?removed-left)))))
-              :cxn-inventory *fillmores-cxns*)
-
-;; (comprehend-and-formulate "cousin removed" :cxn-inventory *fillmores-cxns*)
+;; (comprehend-and-formulate "second cousin once removed" :cxn-inventory *fillmores-cxns*)
 
 ;-----------;
 ;  TO GIVE  ;
@@ -498,158 +478,153 @@
 ;; 2) interrogation: "was she here", "is it thursday"
 ;; 3) scope of negation: "never have I lied"
 
-
-#|(def-fcg-cxn inversion-max-V-cxn
+(def-fcg-cxn inversion-max-V-cxn
              ((?inversion-unit
                (syn-cat (cat V)
                         (max +)
+                        (min -)
                         (inv +)
                         (infl tense))
-               (args (?x ?y))
-               (boundaries (?verb-unit ?complement-unit))
+               (args (?a))
+               (boundaries (?verb-left ?complement-right))
                (subunits (?verb-unit ?subject-unit ?complement-unit)))
               <-
               (?verb-unit
-               (syn-cat (cat V)
-                        (min +)
-                        (aux +))
-               (args (?x ?y))
-               --
-               (sequences ((sequence ?verb-string ?verb-left ?verb-right))))
-              (?subject-unit
-               (syn-cat (role S))
                (args (?x))
                --
-               (sequences ((sequence ?subject-string ?subject-left ?subject-right))))
-              (?complement-unit
+               (syn-cat (cat V)
+                        (max -)
+                        (min +)
+                        (aux +))
+               (boundaries (?verb-left ?verb-right)))
+              (?subject-unit
                (args (?y))
-               ;;according to Fillmore, the category of this unit is undefined and takes whatever category is given by the complement
                --
-               (sequences ((sequence ?complement-string ?complement-left ?complement-right))))
+               (syn-cat (max +)
+                        (role S))
+               (boundaries (?subject-left ?subject-right)))
+              (?complement-unit
+               (args (?z))
+               --
+               (syn-cat ;;(cat ?cat) according to Fillmore, the category satys undefined and takes whatever category is given by the complement, so we don't add anything
+                        (max -))
+               (boundaries (?complement-left ?complement-right)))
               (?inversion-unit
+               (HASH meaning ((hypothesis-x ?a ?x ?y ?z)))
                --
                (HASH form ((sequence " " ?verb-right ?subject-left)
                            (sequence " " ?subject-right ?complement-left)))))
-             :cxn-inventory *fillmores-cxns*)|#
-
-;; (comprehend-and-formulate "were she here" :cxn-inventory *fillmores-cxns*)
-;; (comprehend-and-formulate "has she lied" :cxn-inventory *fillmores-cxns*) ; as in "never have I lied"
-;; (comprehend-and-formulate "was she here" :cxn-inventory *fillmores-cxns*)
-
-(def-fcg-cxn never-cxn
-             ((?never-unit
-               (syn-cat (cat Adv)
-                        (min +))
-               (sem-cat (sem-class negation))
-               (args (?x))
-               (sequences ((sequence "never" ?left ?right))))
-              <-
-              (?never-unit
-               (HASH meaning ((not-been-a-time ?x)))
-               --
-               (HASH form ((sequence "never" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
 
+;; (comprehend-and-formulate "were she here" :cxn-inventory *fillmores-cxns*)
+;; (comprehend-and-formulate "have I lied" :cxn-inventory *fillmores-cxns*) ; as in "never have I lied"
+;; (comprehend-and-formulate "was she here" :cxn-inventory *fillmores-cxns*)
+
 (def-fcg-cxn never-x-cxn
-             ((?never-x-unit)
+             ((?never-x-unit
+               (args (?x))
+               (subunits (?never-unit ?inversion-unit))
+               (boundaries (?never-left ?inversion-right)))
               <-
-              (?never-x-unit)))
+              (?never-unit
+               (sem-cat (sem-class negation))
+               (args (?x))
+               --
+               (syn-cat (cat Adv)
+                        (min +)))
+              (?inversion-unit
+               (args (?y))
+               --
+               (syn-cat (cat V)
+                        (max +)
+                        (min -)
+                        (inv +)
+                        (infl tense)))
+              (?never-x-unit
+               (HASH meaning ((never-smth ?x ?y)))
+               --
+               (HASH form ((sequence " " ?never-right ?inversion-left)))))
+             :cxn-inventory *fillmores-cxns*)
+
+;; (comprehend-and-formulate "never have I lied" :cxn-inventory *fillmores-cxns*)
+
 
 ;;----------------------;;
 ;; non maximal V-phrase ;;
 ;;----------------------;;
 
-(def-fcg-cxn remove-cxn
-             ((?remove-unit
-               (syn-cat (cat V)
-                        (min +))
-               (lexeme remove)
-               (args (?x ?y))
-               (sequences (sequence "removed" ?left ?right)))
-              <-
-              (?remove-unit
-               (HASH meaning ((remove.01 ?x ?y)))
-               --
-               (HASH form ((sequence "removed" ?left ?right)))))
-             :cxn-inventory *fillmores-cxns*)
-
-(def-fcg-cxn from-cxn
-             ((?from-unit
-               (syn-cat (cat Prep)
-                        (min +))
-               (args (?x))
-               (sequences ((sequence "from" ?left ?right))))
-              <-
-              (?from-unit
-               (HASH meaning ((from ?x)))
-               --
-               (HASH form ((sequence "from" ?left ?right)))))
-             :cxn-inventory *fillmores-cxns*)
-
 (def-fcg-cxn pronoun-headed-cxn
              ((?pronoun-headed-unit
                (syn-cat (cat P)
-                        (max +))
-               (args (?y))
-               (boundaries (?from-unit ?noun-unit))
-               (subunits (?from-unit ?noun-unit)))
+                        (max +)
+                        (min -))
+               (args (?a))
+               (boundaries (?from-left ?np-right))
+               (subunits (?from-unit ?np-unit)))
               <-
               (?from-unit
+               (args (?x))
+               --
                (syn-cat (cat Prep)
+                        (max -)
                         (min +))
-               (args (?x))
+               (boundaries (?from-left ?from-right)))
+              (?np-unit
+               (args (?y))
                --
-               (sequences ((sequence ?from-string ?from-left ?from-right))))
-              (?noun-unit
-               (syn-cat (cat N)
+               (syn-cat (cat N)  
                         (max +))
-               (args (?x))
-               --
-               (sequences ((sequence ?noun-string ?noun-left ?noun-right))))
+               (boundaries (?np-left ?np-right)))
               (?pronoun-headed-unit
-               (HASH meaning ((from-smth ?x ?y)))
+               (HASH meaning ((from-smth ?a ?x ?y)))
                --
-               (HASH form ((sequence " " ?from-right ?noun-left)))))
+               (HASH form ((sequence " " ?from-right ?np-left)))))
               :cxn-inventory *fillmores-cxns*)
+
+;; (comprehend "from the book" :cxn-inventory *fillmores-cxns*)
 
 (def-fcg-cxn non-max-remove-phrase-cxn
              ((?non-max-remove-phrase-unit
                (syn-cat (cat V)
-                        (max -)) ;; non-maximal verb headed phrase, typically missing a subject
-               (args (?x ?y))
-               (boundaries (?verb-unit ?pronoun-phrase-unit))
-               (subunits (?verb-unit ?noun-unit ?pronoun-phrase-unit)))
+                        (max -)
+                        (min -)) ;; non-maximal verb headed phrase, typically missing a subject
+               (args (?a))
+               (boundaries (?verb-left ?pp-right))
+               (subunits (?verb-unit ?np-unit ?pronoun-phrase-unit)))
               <-
               (?verb-unit
-               (syn-cat (cat V)
-                        (min +))
-               (lexeme remove)
-               (args (?x ?y))
-               --
-               (sequences ((sequence ?verb-unit ?verb-left ?verb-right))))
-              (?noun-unit
-               (syn-cat (cat N)
-                        (max +))
                (args (?x))
+               (lexeme remove)
                --
-               (sequences ((sequence ?noun-unit ?noun-left ?noun-right))))
-              (?pronoun-phrase-unit
-               (syn-cat (cat P)
-                        (max +))
+               (syn-cat (cat V)
+                        (max -)
+                        (min +))
+               (boundaries (?verb-left ?verb-right)))
+              (?np-unit
                (args (?y))
                --
-               (sequences ((sequence ?pronoun-phrase-string ?pronoun-left ?pronoun-right))))
-              (?non-max-remove-phrase-unit
-               (HASH meaning (()))
+               (syn-cat (cat N)  
+                        (max +))
+               (boundaries (?np-left ?np-right)))
+              (?pronoun-phrase-unit
+               (args (?z))
                --
-               (HASH form ((sequence " " ?verb-right ?noun-left)
-                           (sequence " " ?noun-right ?pronoun-left)))))
+               (syn-cat (cat P)
+                        (max +)
+                        (min -))
+               (boundaries (?pp-left ?pp-right)))
+              (?non-max-remove-phrase-unit
+               (HASH meaning ((removed-smth-from-smth ?a ?x ?y ?z)))
+               --
+               (HASH form ((sequence " " ?verb-right ?np-left)
+                           (sequence " " ?np-right ?pp-left)))))
              :cxn-inventory *fillmores-cxns*)
+
 
 ;; (comprehend-and-formulate "removed the bottle from the book" :cxn-inventory *fillmores-cxns*)
 
 
-;;---------------;;
+#|;;---------------;;
 ;; TO CONTRIBUTE ;;
 ;;---------------;;
 
@@ -662,7 +637,7 @@
               (?contribute-unit
                (HASH meaning ((contribute.01 ?S-A-N ?O-P-N ?C-R-P))) ;; valence : Subject agent noun-headed phrase; optional: Object patient noun-headed phrase, complement recipient "to" + pronoun-headed phrase
                --
-               )))
+               )))|#
 
 ;;------------;;
 ;; wh phrases ;;

@@ -280,6 +280,7 @@
              ((?I-unit
                (syn-cat (cat P)
                         (max +)
+                        (min +)
                         (role S)
                         (number singular)) ; means it is a pronoun-headed phrase
                (args (?x))
@@ -295,11 +296,11 @@
              ((?she-unit
                (syn-cat (cat P)
                         (max +) ;; means it is a pronoun-headed phrase
+                        (min +)
                         (role S)
                         (number singular)) ;; role S is an implementation of page 43 of the article where S is for subject and
                                   ;; caracterizes anything capable of filling the role "subject"
                (args (?x))
-               (sequences ((sequence "she" ?left ?right)))
                (boundaries (?left ?right)))
               <-
               (?she-unit
@@ -433,11 +434,11 @@
              ((?she-unit
                (syn-cat (cat P)
                         (max +) ;; means it is a pronoun-headed phrase
+                        (min +)
                         (role S)
                         (number singular)) ;; role S is an implementation of page 43 of the article where S is for subject and
                                   ;; caracterizes anything capable of filling the role "subject"
                (args (?x))
-               (sequences ((sequence "she" ?left ?right)))
                (boundaries (?left ?right)))
               <-
               (?she-unit
@@ -493,9 +494,10 @@
                (syn-cat (cat N)
                         (max -)
                         (number singular))
+               (sem-cat (cat person))
                (morph-form (starts-with consonant))
                (args (?x))
-               (sequences ((sequence "child" ?left-1 ?right-1))))
+               (boundaries (?left-1 ?right-1)))
                <-
                (?child-unit
                 (HASH meaning ((child ?x)))
@@ -547,6 +549,19 @@
                (HASH form ((sequence "remove" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
 
+(def-fcg-cxn removed-cxn
+             ((?removed-unit
+               (syn-cat (cat Adj)
+                        (min +))
+               (args (?x))
+               (boundaries (?left ?right)))
+              <-
+              (?removed-unit
+               (HASH meaning ((distant-in-relationship ?x)))
+               --
+               (HASH form ((sequence "removed" ?left ?right)))))
+             :cxn-inventory *fillmores-cxns*)
+
 (def-fcg-cxn second-cxn
              ((?second-unit
                (syn-cat (cat A)
@@ -555,12 +570,28 @@
                         (starts-with consonant))
                (sem-cat (sem-class degrees))
                (args (?x))
-               (sequences ((sequence "second" ?left ?right))))
+               (boundaries (?left ?right)))
               <-
               (?second-unit
                (HASH meaning ((degree-2 ?x)))
                --
                (HASH form ((sequence "second" ?left ?right)))))
+             :cxn-inventory *fillmores-cxns*)
+
+(def-fcg-cxn cousin-cxn
+             ((?cousin-unit
+               (syn-cat (cat N)
+                        (max -)
+                        (number singular))
+               (sem-cat (cat person))
+               (morph-form (starts-with consonant))
+               (args (?x))
+               (boundaries (?left-1 ?right-1)))
+               <-
+               (?cousin-unit
+                (HASH meaning ((grand-child-of-same-grand-parents ?x)))
+                --
+                (HASH form ((sequence "cousin" ?left-1 ?right-1)))))
              :cxn-inventory *fillmores-cxns*)
 
 (def-fcg-cxn once-cxn
@@ -569,7 +600,7 @@
                         (min +))
                (sem-cat (sem-class times))
                (args (?x))
-               (sequences ((sequence "once" ?left ?right))))
+               (boundaries (?left ?right)))
               <-
               (?once-unit
                (HASH meaning ((times-1 ?x)))
@@ -613,14 +644,15 @@
 (def-fcg-cxn were-cxn
              ((?were-unit
                (syn-cat (cat V)
+                        (max -)
                         (min +)
                         (aux +))
-               (args (?x ?y))
+               (args (?x))
                (lexeme be)
-               (sequences ((sequence "were" ?left ?right))))
+               (boundaries (?left ?right)))
                <-
                (?were-unit
-                (HASH meaning ((be.02 ?x ?y))) ;;be.02 has existential meaning as "there is no parking space"
+                (HASH meaning ((be.02 ?x))) ;;be.02 has existential meaning as "there is no parking space"
                 --
                 (HASH form ((sequence "were" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -628,10 +660,11 @@
 (def-fcg-cxn here-cxn
              ((?here-unit
                (syn-cat (cat Adv)
+                        (max -)
                         (min +))
                (sem-cat (sem-class places))
                (args (?x))
-               (sequences ((sequence "here" ?left ?right))))
+               (boundaries (?left ?right)))
               <-
               (?here-unit
                (HASH meaning ((current-place ?x)))
@@ -654,16 +687,75 @@
                 (HASH form ((sequence "has" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
 
+(def-fcg-cxn have-cxn
+             ((?have-unit
+               (syn-cat (cat V)
+                        (max -)
+                        (min +)
+                        (aux +))
+               (args (?x))
+               (lexeme have)
+               (boundaries (?left ?right)))
+               <-
+               (?have-unit
+                (HASH meaning ((has.01 ?x))) ;;have.01 = auxiliary
+                --
+                (HASH form ((sequence "have" ?left ?right)))))
+             :cxn-inventory *fillmores-cxns*)
+
 (def-fcg-cxn lied-cxn
              ((?lied-unit
                (syn-cat (cat V)
                         (min +))
                (args (?y))
                (lexeme lie)
-               (sequences ((sequence "lied" ?left ?right))))
+               (boundaries (?left ?right)))
                <-
                (?lied-unit
                 (HASH meaning ((lie.08 ?y))) ;;lie.08 = tell a falsehood
                 --
                 (HASH form ((sequence "lied" ?left ?right)))))
+             :cxn-inventory *fillmores-cxns*)
+
+(def-fcg-cxn remove-cxn
+             ((?remove-unit
+               (syn-cat (cat V)
+                        (max -)
+                        (min +))
+               (lexeme remove)
+               (args (?x))
+               (boundaries (?left ?right)))
+              <-
+              (?remove-unit
+               (HASH meaning ((remove.01 ?x)))
+               --
+               (HASH form ((sequence "removed" ?left ?right)))))
+             :cxn-inventory *fillmores-cxns*)
+
+(def-fcg-cxn from-cxn
+             ((?from-unit
+               (syn-cat (cat Prep)
+                        (max -)
+                        (min +))
+               (args (?x))
+               (boundaries (?left ?right)))
+              <-
+              (?from-unit
+               (HASH meaning ((from ?x)))
+               --
+               (HASH form ((sequence "from" ?left ?right)))))
+             :cxn-inventory *fillmores-cxns*)
+
+(def-fcg-cxn never-cxn
+             ((?never-unit
+               (syn-cat (cat Adv)
+                        (min +))
+               (sem-cat (sem-class negation))
+               (args (?x))
+               (boundaries (?left ?right)))
+              <-
+              (?never-unit
+               (HASH meaning ((not-been-a-time ?x)))
+               --
+               (HASH form ((sequence "never" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
