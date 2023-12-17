@@ -1,7 +1,21 @@
 (in-package :cle)
 
 (defmethod get-all-channels ((mode (eql :clevr)))
-  "CLEVR dataset."
+  "CLEVR dataset -> jens' tutor-learner"
+  `(,'xpos ,'ypos ,'zpos
+    ,'width ,'height
+    ,'angle
+    ,'corners
+    ,'area ,'relative-area
+    ,'bb-area-ratio
+    ,'wh-ratio
+    ,'circle-distance
+    ,'white-level ,'black-level
+    ,'lab-mean-l ,'lab-mean-a ,'lab-mean-b
+))
+
+#|(defmethod get-all-channels ((mode (eql :clevr)))
+  "CLEVR dataset -> AAMAS"
   `(,'xpos ,'ypos
     ,'width ,'height
     ,'angle
@@ -11,9 +25,9 @@
     ,'wh-ratio
     ,'circle-distance
     ,'white-level ,'black-level
-    ,'lab-mean-l ,'lab-mean-a ,'lab-mean-b
-    ,'lab-std-l ,'lab-std-a ,'lab-std-b
-    ))
+    ,'rgb-mean-l ,'rgb-mean-a ,'rgb-mean-b
+    ,'rgb-std-l ,'rgb-std-a ,'rgb-std-b
+    ))|#
 
 (defmethod is-channel-available ((mode (eql :clevr)) symbolic-attribute raw-attributes)
   (let ((continuous-attributes (loop for key being the hash-keys of raw-attributes
@@ -44,8 +58,8 @@
                   (if (member 'wh-ratio continuous-attributes) t nil)))
       (:MATERIAL (or (if (member 'white-level continuous-attributes) t nil)
                      (if (member 'black-level continuous-attributes) t nil)))
-      (:XPOS (if (member 'xpos continuous-attributes) t nil))
-      (:ZPOS (if (member 'ypos continuous-attributes) t nil)))))
+      (:HPOS (if (member 'xpos continuous-attributes) t nil))
+      (:VPOS (if (member 'zpos continuous-attributes) t nil)))))
 
 (defmethod get-all-channels ((mode (eql :cogent)))
   "CLEVR COGENT dataset."
