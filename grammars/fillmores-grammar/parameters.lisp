@@ -19,7 +19,7 @@
                        ;; goal tests for comprehension
                        (:parse-goal-tests
                         :no-sequence-in-root
-                        :no-applicable-cxns ;; succeeds if no more cxns can apply
+                        ;; :no-applicable-cxns ;; succeeds if no more cxns can apply
                         :connected-semantic-network ;; succeeds if the semantic network is fully connected
                         :connected-structure) ;; succeeds if all units are connected
                        ;; goal tests for formulation
