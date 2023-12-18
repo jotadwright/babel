@@ -33,7 +33,6 @@
                --
                (syn-cat (cat N)
                         (max -)
-                        (min ?min)
                         (number ?number))
                (morph-form (starts-with ?starts-with))
                (boundaries (?noun-left ?noun-right)))
@@ -80,14 +79,14 @@
                         (max -)
                         (min -)
                         (number singular))
-               (sem-cat (cat unique-role))
+               (sem-cat (sem-class unique-role))
                (args (?a))
                (subunits (?person-unit ?of-unit ?whole-unit))
                (boundaries (?person-left ?complement-right)))
               <-
               (?person-unit
                (args (?x))
-               (sem-cat (cat person))
+               (sem-cat (sem-class person))
                --
                (syn-cat (cat N)
                         (max -)
@@ -105,7 +104,6 @@
                --
                (syn-cat (cat N)
                         (max +)
-                        (min ?min)
                         (number singular))
                (boundaries (?complement-left ?complement-right)))
               (?person-of-whole-unit
@@ -139,16 +137,16 @@
                (boundaries (?subject-left ?subject-right)))
               (?copula-unit
                (args (?y))
-               (lexeme be)
                --
                (syn-cat (cat V)
                         (max -)
                         (min +)
                         (aux +)
                         (number singular))
+               (morph-cat (lexeme be))
                (boundaries (?copula-left ?copula-right)))
               (?role-unit
-               (sem-cat (cat unique-role))
+               (sem-cat (sem-class unique-role))
                (args (?z))
                --
                (syn-cat (cat N)
@@ -227,13 +225,12 @@
               (?that-unit
                (args (?b))
                --
-               (syn-cat (clause that-clause))
+               (syn-cat (cat Conj))
                (boundaries (?that-left ?that-right)))
               (?subject-unit
                (args (?c))
                --
-               (syn-cat (cat ?cat)
-                        (max +)
+               (syn-cat (max +)
                         (role S)
                         (number ?number))
                (boundaries (?subject-left ?subject-right)))
@@ -269,7 +266,7 @@
               <-
               (?verb-unit
                (args (?x))
-               (lexeme be)
+               (morph-cat (lexeme be))
                --
                (syn-cat (cat V)
                         (max -)
@@ -323,7 +320,7 @@
                         (role S)
                         (number ?number))
                (morph-cat (person ?person))
-               (boundaries ?subject-left ?subject-right))
+               (boundaries (?subject-left ?subject-right)))
               (?verb-unit
                (args (?y))
                --
@@ -333,13 +330,16 @@
                (morph-cat (person ?person))
                (boundaries (?verb-left ?verb-right)))
               (?subject-predicate-unit
-               (HASH meaning ((subject-verb ?a ?x ?y)))
+               (HASH meaning ((svo ?a ?x ?y)))
                --
                (HASH form ((sequence " " ?subject-right ?verb-left)))))
              :cxn-inventory *fillmores-cxns*)
 
 ;; (comprehend "she removes the bottle from the book" :cxn-inventory *fillmores-cxns*)
+;; (comprehend-and-formulate "she removes the bottle from the book" :cxn-inventory *fillmores-cxns*)
+
 ;; (comprehend "I removed the bottle from the book" :cxn-inventory *fillmores-cxns*)
+;; (comprehend-and-formulate "I removed the bottle from the book" :cxn-inventory *fillmores-cxns*)
 
 ;; (comprehend-and-formulate "she goes" :cxn-inventory *fillmores-cxns*)
 
@@ -359,8 +359,8 @@
                (syn-class (cat N)
                           (max -))
                (args (?b))
-               (boundaries (?x-unit ?removed-unit))
-               (subunits (?x-unit ?cousin-unit ?y-unit ?removed-unit)))
+               (subunits (?x-unit ?cousin-unit ?y-unit ?removed-unit))
+               (boundaries (?x-left ?removed-right)))
               <-
               (?x-unit
                (syn-cat (cat A)
@@ -372,7 +372,7 @@
                         (min +))
                (boundaries (?x-left ?x-right)))
               (?cousin-unit
-               (sem-cat (cat person))
+               (sem-cat (sem-class person))
                (args (?y))
                --
                (syn-cat (cat N)
@@ -389,7 +389,7 @@
               (?removed-unit
                (args (?a))
                --
-               (syn-cat (cat Adj)
+               (syn-cat (cat A)
                         (min +))
                (boundaries (?removed-left ?removed-right)))
               (?x-cousin-y-removed-unit
@@ -443,7 +443,7 @@
                (boundaries (?object-left ?object-right)))             
               (?to-unit
                (args (?a))
-               (sem-cat (cat destination))
+               (sem-cat (sem-class destination))
                --
                (syn-cat (cat Prep)
                         (max -)
@@ -451,7 +451,7 @@
                (boundaries (?to-left ?to-right)))
               (?complement-recipient
                (args (?b))
-               (sem-cat (cat person))
+               (sem-cat (sem-class person)) ;; can be a moral person, e.g. "the school"
                --
                (syn-cat (cat N)
                         (max +))
@@ -466,6 +466,7 @@
              :cxn-inventory *fillmores-cxns*)
 
 ;;(comprehend "she gives a book to Joe" :cxn-inventory *fillmores-cxns*)
+;;(comprehend-and-formulate "she gives a book to Joe" :cxn-inventory *fillmores-cxns*)
 
 ;; it's the for "she passes something to Joe", "I do something to Joe"
              
@@ -522,6 +523,9 @@
 
 (def-fcg-cxn never-x-cxn
              ((?never-x-unit
+               (syn-class (cat V)
+                          (max +)
+                          (min -))
                (args (?x))
                (subunits (?never-unit ?inversion-unit))
                (boundaries (?never-left ?inversion-right)))
@@ -680,7 +684,10 @@
              :cxn-inventory *fillmores-cxns*)
 
 ;; (comprehend "where have I lied" :cxn-inventory *fillmores-cxns*)
+;; (comprehend-and-formulate "where have I lied" :cxn-inventory *fillmores-cxns*)
+
 ;; (comprehend "why was she here" :cxn-inventory *fillmores-cxns*)
+;; (comprehend-and-formulate "why was she here" :cxn-inventory *fillmores-cxns*)
 
 ;;---------------;;
 ;; worth knowing ;;
@@ -728,7 +735,6 @@
                         (min -))
                (morph-cat (person ?person)
                           (tense ?tense))
-               (morph-cat (person ?person))
                (args (?a))
                (subunits (?verb-unit ?worth-unit))
                (boundaries (?verb-left ?worth-right)))
@@ -792,8 +798,8 @@
               (args (?y))
               --
               (syn-cat (cat N)
-                        (max -)
-                        (min +))
+                       (max -)
+                       (min +))
               (boundaries (?best-left ?best-right)))
              (?ones-best-unit
               (HASH meaning ((ones-best ?a ?x ?y)))
@@ -817,6 +823,9 @@
               <-
               (?do-unit
                (args (?x))
+               (morph-cat (lexeme do)
+                          (person ?person)
+                          (tense ?tense))
                --
                (syn-cat (cat V)
                         (min +))
