@@ -20,13 +20,13 @@
                 ;(:data-fname . "all.lisp")
                 (:available-channels ,@(get-all-channels :clevr))
                 ;; disable channels
-                (:disable-channels . :fixed)
-                (:amount-disabled-channels . 15)
+                (:disable-channels . :none)
+                (:amount-disabled-channels . 0)
                 ;; noised channels
                 (:sensor-noise . :none)
                 (:sensor-std . 0.0)
-                (:observation-noise . :shift)
-                (:observation-std . 0.01)
+                (:observation-noise . :none)
+                (:observation-std . 0.0)
                 ;; scene sampling
                 (:scene-sampling . :random)
                 (:topic-sampling . :random)

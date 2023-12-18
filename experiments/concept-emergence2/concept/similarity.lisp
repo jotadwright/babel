@@ -12,7 +12,8 @@
         for observation = (perceive-object-val agent object (channel prototype))
         for similarity = (observation-similarity observation prototype)
         if (and similarity (not (zerop ledger)))
-          sum (* (/ (weight prototype) ledger) similarity))) ;; ledger could be factored out, but kept for clarity
+        ;; note: ledger could be factored out
+          sum (* (/ (weight prototype) ledger) similarity)))
 
 ;; ----------------------------------
 ;; + Comparing OBJECT <-> PROTOTYPE +
