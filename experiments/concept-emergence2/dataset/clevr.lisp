@@ -2,19 +2,19 @@
 
 (defmethod get-all-channels ((mode (eql :clevr)))
   "CLEVR dataset."
-  (reverse `(
-             ,'xpos ,'ypos
-             ,'width ,'height
-             ,'angle
-             ,'corners
-             ,'area ,'relative-area
-             ,'bb-area ,'bb-area-ratio
-             ,'wh-ratio
-             ,'circle-distance
-             ,'white-level ,'black-level
-             ,'rgb-mean-r ,'rgb-mean-g ,'rgb-mean-b
-             ,'rgb-std-r ,'rgb-std-g ,'rgb-std-b
-             )))
+  `(,'xpos
+    ,'ypos
+    ,'width ,'height
+    ,'angle
+    ,'corners
+    ,'area ,'relative-area
+    ,'bb-area ,'bb-area-ratio
+    ,'wh-ratio
+    ,'circle-distance
+    ,'white-level ,'black-level
+    ,'rgb-mean-r ,'rgb-mean-g ,'rgb-mean-b
+    ,'rgb-std-r ,'rgb-std-g ,'rgb-std-b
+    ))
 
 (defmethod is-channel-available ((mode (eql :clevr)) symbolic-attribute raw-attributes)
   (let ((continuous-attributes (loop for key being the hash-keys of raw-attributes
