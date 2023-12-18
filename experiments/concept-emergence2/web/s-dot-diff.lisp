@@ -12,12 +12,7 @@
 (defgeneric cxn->s-dot-diff (cxn delta &key highlight-green highlight-red certainty-threshold disabled-channels)
   (:documentation "Display a cxn using s-dot."))
 
-(defmethod cxn->s-dot-diff ((cxn cxn) (previous-copy cxn)
-                            &key
-                            highlight-green
-                            highlight-red
-                            (certainty-threshold 0.1)
-                            (disabled-channels nil))
+(defmethod cxn->s-dot-diff ((cxn cxn) (previous-copy cxn) &key highlight-green highlight-red (certainty-threshold 0.1) (disabled-channels nil))
   (let ((g '(((s-dot::ranksep "0.3")
               (s-dot::nodesep "0.5")
               (s-dot::margin "0")
@@ -53,11 +48,8 @@
      g)
 
     ;; feature-channels nodes
-    (loop with prototypes = (sort (get-prototypes (meaning cxn))
-                                  (lambda (x y) (string< (symbol-name (channel x))
-                                                         (symbol-name (channel y)))))
-          for prototype in (reverse prototypes)
-          for previous-prototype = (gethash (channel prototype) (prototypes (meaning previous-copy)))
+    (loop for prototype in (reverse (get-prototypes (meaning cxn)))
+          for previous-prototype in (reverse (get-prototypes (meaning previous-copy)))
           for record = (prototype->s-dot-diff prototype
                                               previous-prototype
                                               :green (member (channel prototype) highlight-green)
@@ -65,26 +57,24 @@
           when (and (if disabled-channels
                       (not (gethash (channel prototype) disabled-channels))
                       t)
-                    (>= (weight previous-prototype) certainty-threshold))
+                    (>= (weight previous-prototype) 0.1))
             do (push record g))
     ;; edges between cxn node and feature-channels
-    (loop with prototypes = (sort (get-prototypes (meaning cxn))
-                                  (lambda (x y) (string< (symbol-name (channel x))
-                                                         (symbol-name (channel y)))))
-          for prototype in prototypes
-          for previous-prototype = (gethash (channel prototype) (prototypes (meaning previous-copy)))
-          for delta = (- (weight prototype) (weight previous-prototype))
+    (loop for prototype in (get-prototypes (meaning cxn))
+          for previous-prototype in (get-prototypes (meaning previous-copy))
+          for delta = (- (weight-val prototype) (weight-val previous-prototype))
           when (and (if disabled-channels
                       (not (gethash (channel prototype) disabled-channels))
                       t)
-                    (>= (weight previous-prototype) certainty-threshold))
+                    (>= (weight previous-prototype) 0.1))
             do (push
                 `(s-dot::edge
                   ((s-dot::from ,(mkdotstr (id (meaning cxn))))
                    (s-dot::to ,(mkdotstr (downcase (channel prototype))))
                    (s-dot::label ,(format nil "~,2f" (float (weight prototype))
-                                          (cond ((> delta 0) (format nil " (+~,2f)" (float delta)))
-                                                ((< delta 0) (format nil " (~,2f)" (float delta))))))
+                                          #|(cond ((> delta 0) (format nil " (+~,2f)" (float delta)))
+                                                ((< delta 0) (format nil " (~,2f)" (float delta)))
+                                                (t ""))|#))
                    (s-dot::labelfontname #+(or :win32 :windows) "Sans"
                                          #-(or :win32 :windows) "Arial")
                    (s-dot::fontcolor ,(cond ((> delta 0) *green*)
@@ -124,7 +114,8 @@
 
 (defmethod prototype->s-dot-diff ((prototype prototype) (previous-prototype prototype) &key green red)
   (let* ((st-dev (st-dev (distribution prototype)))
-         (prev-st-dev (st-dev (distribution previous-prototype))))
+         (prev-st-dev (st-dev (distribution previous-prototype)))
+         )
     `(s-dot::record
       ((s-dot::fontsize "9.5")
        (s-dot::fontname #+(or :win32 :windows) "Sans"

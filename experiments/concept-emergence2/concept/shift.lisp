@@ -133,14 +133,16 @@
 
 
 ;; -----------------------------
-;; + Similarity table +
+;; + Weighted Similarity table +
 ;; -----------------------------
-(defmethod similarity-with-table ((prototypes list) (object cle-object) (table hash-table))
+(defun weighted-similarity-with-table (object list-of-prototypes table)
   "Compute the weighted similarity between the object and the
    list of prototypes, using the given similarity table."
-  (loop for prototype in prototypes
-        for similarity = (get-ws object (channel prototype) table)
-        sum similarity))
+  (loop for prototype in list-of-prototypes
+        for channel = (channel prototype)
+        for ws = (get-ws object channel table)
+        collect ws into weighted-similarities
+        finally (return (average weighted-similarities))))
 
 ;; ----------------------------------
 ;; + Find discriminating attributes +
@@ -148,23 +150,22 @@
 (defun find-most-discriminating-subset (agent subsets topic similarity-table)
   "Find the subset that maximizes the difference in similarity
    between the topic and the best other object."
-  (let ((best-score -1)
-        (best-subset nil))
-    (loop with context = (remove topic (objects (get-data agent 'context)))
-          for subset in subsets
-          for topic-sim = (similarity-with-table subset
-                                                 topic
-                                                 similarity-table)
-          for best-other-sim = (loop for object in context
-                                     maximize (similarity-with-table subset
-                                                                     object
-                                                                     similarity-table))
-          for discriminative-power = (abs (- topic-sim best-other-sim))
-          when (and (> topic-sim best-other-sim)
-                    (> discriminative-power best-score))
-            ;; note: we do not multiply here by the score, as the cxn score is a constant here
-            do (progn
-                 (setf best-subset subset)
-                 (setf best-score discriminative-power)))
+  (let ((context (remove topic (objects (get-data agent 'context))))
+        (best-subset nil)
+        (largest-diff 0)
+        (best-similarity 0))
+    (dolist (subset subsets)
+      (let ((topic-similarity (weighted-similarity-with-table topic subset similarity-table)))
+        (when (> topic-similarity 0)
+          (let* ((best-other-similarity
+                  (loop for object in context
+                        maximize (weighted-similarity-with-table object subset similarity-table)))
+                 (diff (- topic-similarity best-other-similarity)))
+            (when (and (> topic-similarity best-other-similarity) 
+                       (> diff largest-diff)
+                       (> topic-similarity best-similarity))
+              (setf best-subset subset
+                    largest-diff diff
+                    best-similarity topic-similarity))))))
     (notify event-found-subset-to-reward best-subset)
     best-subset))

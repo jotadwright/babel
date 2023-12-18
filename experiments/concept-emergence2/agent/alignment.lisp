@@ -14,20 +14,13 @@
 (defmethod align ((agent cle-agent))
   (notify event-align-start agent)
   (case (discourse-role agent)
-    (speaker (speaker-alignment agent (get-configuration (experiment agent) :setting)))
+    (speaker (speaker-alignment agent))
     (hearer (hearer-alignment agent))))
 
-;; -------------------------------------
-;; + Speaker Alignment - tutor-learner +
-;; -------------------------------------
-(defmethod speaker-alignment ((agent cle-agent) (mode (eql :tutor-learner)))
-  "Speaker is not aligned in the tutor-learner setting."
-  )
-
-;; ---------------------------------
-;; + Speaker Alignment - emergence +
-;; ---------------------------------
-(defmethod speaker-alignment ((agent cle-agent) (mode (eql :emergence)))
+;; ---------------------
+;; + Speaker Alignment +
+;; ---------------------
+(defmethod speaker-alignment ((agent cle-agent))
   "Speaker alignment."
   (let* ((topic (find-data agent 'topic))
          (applied-cxn (find-data agent 'applied-cxn))

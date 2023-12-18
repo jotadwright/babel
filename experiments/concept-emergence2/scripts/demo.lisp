@@ -8,37 +8,37 @@
     (make-configuration
      :entries `(
                 ;; monitoring
-                (:dot-interval . 100)
+                (:dot-interval . 10)
                 (:usage-table-window . 100)
                 (:save-distribution-history . nil)
                 ;; setup interacting agents
-                (:population-size . 2)
+                (:interacting-agents-strategy . :standard)
+                (:population-size . 10)
                 ;; setup data scene
-                (:setting . :tutor-learner)
                 (:dataset . "clevr")
-                (:dataset-split . "val")
+                (:dataset-split . "train")
                 ;(:data-fname . "all.lisp")
                 (:available-channels ,@(get-all-channels :clevr))
                 ;; disable channels
-                (:disable-channels . :none)
-                (:amount-disabled-channels . 0)
+                (:disable-channels . :fixed)
+                (:amount-disabled-channels . 15)
                 ;; noised channels
                 (:sensor-noise . :none)
                 (:sensor-std . 0.0)
-                (:observation-noise . :none)
-                (:observation-std . 0.0)
+                (:observation-noise . :shift)
+                (:observation-std . 0.01)
                 ;; scene sampling
                 (:scene-sampling . :random)
-                (:topic-sampling . :discriminative)
+                (:topic-sampling . :random)
                 ;; general strategy
                 (:align . t)
                 (:similarity-threshold . 0.0)
                 ;; entrenchment of constructions
                 (:initial-cxn-entrenchement . 0.5)
                 (:entrenchment-incf . 0.1)
-                (:entrenchment-decf . -0.01)
+                (:entrenchment-decf . -0.1)
                 (:entrenchment-li . -0.02) ;; lateral inhibition
-                (:trash-concepts . nil)
+                (:trash-concepts . t)
                 ;; concept representations
                 (:concept-representation . :distribution)
                 (:distribution . :gaussian-welford)
@@ -47,7 +47,7 @@
                 (:weight-update-strategy . :j-interpolation)
                 (:initial-weight . 0)
                 (:weight-incf . 1)
-                (:weight-decf . -1)
+                (:weight-decf . -5)
                 ;; staging
                 (:switch-condition . :none) ; :after-n-interactions)
                 (:switch-conditions-after-n-interactions . 2500) 
@@ -70,90 +70,8 @@
   (activate-monitor print-a-dot-for-each-interaction)
   (format t "~%---------- NEW GAME ----------~%")
   (time
-   (loop for i from 1 to 10000
+   (loop for i from 1 to 50000
          do (run-interaction *experiment*))))
-
-(loop with res = '()
-      for i from 1 to 10
-      do (progn
-           (setf *baseline-simulated*
-                 (make-configuration
-                  :entries `(
-                ;; monitoring
-                             (:dot-interval . 100)
-                             (:usage-table-window . 100)
-                             (:save-distribution-history . nil)
-                             ;; setup interacting agents
-                             (:population-size . 2)
-                             ;; setup data scene
-                             (:setting . :tutor-learner)
-                             (:dataset . "clevr")
-                             (:dataset-split . "val")
-                ;(:data-fname . "all.lisp")
-                             (:available-channels ,@(get-all-channels :clevr))
-                             ;; disable channels
-                             (:disable-channels . :none)
-                             (:amount-disabled-channels . 0)
-                             ;; noised channels
-                             (:sensor-noise . :none)
-                             (:sensor-std . 0.0)
-                             (:observation-noise . :none)
-                             (:observation-std . 0.0)
-                             ;; scene sampling
-                             (:scene-sampling . :random)
-                             (:topic-sampling . :discriminative)
-                             ;; general strategy
-                             (:align . t)
-                             (:similarity-threshold . 0.0)
-                             ;; entrenchment of constructions
-                             (:initial-cxn-entrenchement . 0.5)
-                             (:entrenchment-incf . 0.1)
-                             (:entrenchment-decf . -0.01)
-                             (:entrenchment-li . -0.02) ;; lateral inhibition
-                             (:trash-concepts . nil)
-                             ;; concept representations
-                             (:concept-representation . :distribution)
-                             (:distribution . :gaussian-welford)
-                             (:M2 . 0.5) ;; only for gaussian-welford
-                             ;; prototype weight inits
-                             (:weight-update-strategy . :interpolation)
-                             (:initial-weight . 0)
-                             (:weight-incf . 1)
-                             (:weight-decf . -1)
-                             ;; staging
-                             (:switch-condition . :none) ; :after-n-interactions)
-                             (:switch-conditions-after-n-interactions . 2500) 
-                             (:stage-parameters nil)
-                             ;; saving
-                             (:experiment-name . "test")
-                             (:output-dir . "test")
-                             )))
-           (setf *experiment* (make-instance 'cle-experiment :configuration *baseline-simulated*))
-           (notify reset-monitors)
-           (wi::reset))
-         (progn
-           (wi::reset)
-           (notify reset-monitors)
-           (deactivate-all-monitors)
-           (activate-monitor export-communicative-success)
-           (activate-monitor export-lexicon-coherence)
-    ;(activate-monitor export-unique-form-usage)
-           ;(activate-monitor print-a-dot-for-each-interaction)
-           ;(format t "~%---------- NEW GAME ----------~%")
-           
-           (loop for i from 1 to 5000
-                 do (run-interaction *experiment*))
-           (let* ((interaction (first (interactions *experiment*)))
-                  (comm-success (caaar (monitors::get-average-values (monitors::get-monitor 'record-communicative-success))))
-                  (coherence (caaar (monitors::get-average-values (monitors::get-monitor 'record-lexicon-coherence)))))
-             (setf res (cons (* 100 (float comm-success)) res))
-             (format t
-                     ". ==========>>>>> (~a / ~a)~%"
-                     (interaction-number interaction)
-                     (if comm-success
-                       (format nil "~,vf%" 1 (* 100 (float comm-success)))
-                       "NIL"))))
-      finally (format t "~a => ~a~%" res (average res)))
 
 (progn
   (wi::reset)
@@ -162,14 +80,8 @@
   (loop for idx from 1 to 1
         do (run-interaction *experiment*)))
 
-(display-lexicon (second (agents *experiment*)) :sort t)
+(display-lexicon (find-agent 1 *experiment*) :sort t)
 
-(loop for cxn in (lexicon (second (agents *experiment*)))
-      collect (form cxn))
-
-(setf ffff (find-in-lexicon (second (agents *experiment*)) "small"))
-
-(add-cxn-to-interface (find-in-lexicon (second (agents *experiment*)) "small") :certainty-threshold 0.0)
 
 
 (progn
