@@ -11,16 +11,16 @@
 
 ;; maximal phrases: (max +) and (min -)
 ;; minimal phrases: (max -) and (min -) 
-;; lexical items: (max -) (min +)
+;; lexical items that cannot be used alone (non maximal phrases): (max -) (min +)
 ;; lexical items that are also maximal phrases: (max +) (min +)
 
 (def-fcg-cxn joe-cxn
              ((?joe-unit
-               (syn-cat (cat N)
-                        (max +) ;; because the external syntax of Joe is that of a maximal phrase
-                        (min +)
-                        (role S);; because "joe" is a lexical item
-                        (number singular))
+               (syn-cat (lex-class (cat N)
+                                   (max +) ;; because the external syntax of Joe is that of a maximal phrase
+                                   (min +)
+                                   (role S));; because "joe" is a lexical item
+                        (agreement (number singular)))
                (sem-cat (sem-class person))
                (morph-form (starts-with consonant))
                (args (?x))
@@ -36,11 +36,11 @@
 
 (def-fcg-cxn I-cxn
              ((?I-unit
-               (syn-cat (cat P)
-                        (max +)
-                        (min +)
-                        (role S)
-                        (number singular)) ; means it is a pronoun-headed phrase
+               (syn-cat (lex-class (cat P)
+                                   (max +)
+                                   (min +)
+                                   (role S))
+                        (agreement (number singular))) ; means it is a pronoun-headed phrase
                (morph-cat (person 1st))
                (args (?x))
                (boundaries (?left ?right)))
@@ -53,12 +53,12 @@
 
 (def-fcg-cxn she-cxn
              ((?she-unit
-               (syn-cat (cat P)
-                        (max +) ;; means it is a pronoun-headed phrase
-                        (min +)
-                        (role S)
-                        (number singular)) ;; role S is an implementation of page 43 of the article where S is for subject and caracterizes anything capable of filling the role "subject"
-               (morph-cat (person 3rd))
+               (syn-cat (lex-class (cat P)
+                                   (max +) ;; means it is a pronoun-headed phrase
+                                   (min +)
+                                   (role S))
+                        (agreement (number singular)
+                                   (person 3rd))) ;; role S is an implementation of page 43 of the article where S is for subject and caracterizes anything capable of filling the role "subject"
                (args (?x))
                (boundaries (?left ?right)))
               <-
@@ -72,13 +72,14 @@
 
 (def-fcg-cxn her-cxn
              ((?her-unit
-               (syn-cat (cat N)
-                        (max -)
-                        (min +)
-                        (role det))
-               (morph-cat (morph poss)
-                          (subcat pronoun)
-                          (person 3rd))
+               (syn-cat (lex-class (cat N)
+                                   (max -)
+                                   (min +)
+                                   (role det)
+                                   (subcat pronoun))
+                        (agreement (number ?number)
+                                   (person 3rd)))
+               (morph-cat (morph poss))
                (args (?x))
                (boundaries (?left ?right)))
                <-
@@ -93,10 +94,10 @@
 
 (def-fcg-cxn air-cxn
              ((?air-unit
-               (syn-cat (cat N)
-                        (max ?undefined) ;; (max  ) becomes (max ?undefined) because if not the feature is not recognized in FCG
-                        (min +)
-                        (number singular))
+               (syn-cat (lex-class (cat N)
+                                   (max ?undefined) ;; (max  ) becomes (max ?undefined) because if not the feature is not recognized in FCG
+                                   (min +))
+                        (agreement (number singular)))
                (morph-form (starts-with vowel))
                (args (?x))
                (boundaries (?left ?right)))
@@ -109,10 +110,10 @@
 
 (def-fcg-cxn rice-cxn
              ((?rice-unit
-               (syn-cat (cat N)
-                        (max ?undefined)
-                        (min +)
-                        (number singular))
+               (syn-cat (lex-class (cat N)
+                                   (max ?undefined)
+                                   (min +))
+                        (agreement (number singular)))
                (morph-form (starts-with consonant))
                (args (?x))
                (boundaries (?left ?right)))
@@ -125,10 +126,10 @@
 
 (def-fcg-cxn intelligence-cxn
              ((?intelligence-unit
-               (syn-cat (cat N)
-                        (max ?undefined)
-                        (min +)
-                        (number singular))
+               (syn-cat (lex-class (cat N)
+                                   (max ?undefined)
+                                   (min +))
+                        (agreement (number singular)))
                (morph-form (starts-with vowel))
                (args (?x))
                (boundaries (?left ?right)))
@@ -141,10 +142,10 @@
 
 (def-fcg-cxn intelligences-cxn
              ((?intelligences-unit
-               (syn-cat (cat N)
-                        (max ?undefined)
-                        (min +)
-                        (number plural))
+               (syn-cat (lex-class (cat N)
+                                   (max ?undefined)
+                                   (min +))
+                        (agreement (number plural)))
                (morph-form (starts-with vowel))
                (args (?x))
                (boundaries (?left ?right)))
@@ -161,10 +162,10 @@
 
 (def-fcg-cxn pen-cxn
              ((?pen-unit
-               (syn-cat (cat N)
-                        (max -)
-                        (min +)
-                        (number singular))
+               (syn-cat (lex-class (cat N)
+                                   (max -)
+                                   (min +))
+                        (agreement (number singular)))
                (morph-form (starts-with consonant))
                (args (?x))
                (boundaries (?left ?right)))
@@ -177,10 +178,10 @@
 
 (def-fcg-cxn book-cxn
              ((?book-unit
-               (syn-cat (cat N)
-                        (max -)
-                        (min +)
-                        (number singular))
+               (syn-cat (lex-class (cat N)
+                                   (max -)
+                                   (min +))
+                        (agreement (number singular)))
                (morph-form (starts-with consonant))
                (args (?x))
                (boundaries (?left ?right)))
@@ -193,10 +194,10 @@
 
 (def-fcg-cxn bottle-cxn
              ((?bottle-unit
-               (syn-cat (cat N)
-                        (max -)
-                        (min +)
-                        (number singular))
+               (syn-cat (lex-class (cat N)
+                                   (max -)
+                                   (min +))
+                        (agreement (number singular)))
                (morph-form (starts-with consonant))
                (args (?x))
                (boundaries (?left ?right)))
@@ -209,10 +210,10 @@
 
 (def-fcg-cxn bottles-cxn
              ((?bottles-unit
-               (syn-cat (cat N)
-                        (max ?undefined) ;; when they are made plural, count nouns are "de-marked" to reuse Fillmore's expression
-                        (min +)
-                        (number plural))
+               (syn-cat (lex-class (cat N)
+                                   (max ?undefined) ;; when they are made plural, count nouns are "de-marked" to reuse Fillmore's expression
+                                   (min +))
+                        (agreement (number plural)))
                (morph-form (starts-with consonant))
                (args (?x))
                (boundaries (?left ?right)))
@@ -232,10 +233,10 @@
 
 (def-fcg-cxn the-cxn
              ((?the-unit
-               (syn-cat (role det)
-                        (cat Art) ;;for article
-                        (number ?number)
-                        (definiteness definite))
+               (syn-cat (lex-class (role det)
+                                   (cat Art)) ;;for article
+                        (agreement (number ?number)))
+               (sem-cat (definiteness definite))
                (morph-form (starts-with ?starts-with))
                (args (?x))
                (sequences ((sequence "the" ?left ?right))))
@@ -248,10 +249,10 @@
 
 (def-fcg-cxn a-cxn
              ((?a-unit
-               (syn-cat (role det)
-                        (cat Art) ;;for article
-                        (number singular)
-                        (definiteness indefinite))
+               (syn-cat (lex-class (role det)
+                                   (cat Art)) ;;for article
+                        (agreement (number singular)))
+               (sem-cat (definiteness indefinite))
                (morph-form (starts-with consonant))
                (args (?x))
                (sequences ((sequence "a" ?left ?right))))
@@ -264,10 +265,10 @@
 
 (def-fcg-cxn an-cxn
              ((?an-unit
-               (syn-cat (role det)
-                        (cat Art)
-                        (number singular)
-                        (definiteness indefinite))
+               (syn-cat (lex-class (role det)
+                                   (cat Art))
+                        (agreement (number singular)))
+               (sem-cat (definiteness indefinite))
                (morph-form (starts-with vowel))
                (args (?x))
                (sequences ((sequence "an" ?left ?right))))
@@ -280,10 +281,10 @@
 
 (def-fcg-cxn my-cxn
              ((?my-unit
-               (syn-cat (role det)
-                        (cat PN) ;; possessive nominal
-                        (number ?number)
-                        (definiteness ?definiteness))
+               (syn-cat (lex-class (role det)
+                                   (cat PN)) ;; possessive nominal
+                        (agreement (number ?number)))
+               (sem-cat (definiteness ?definiteness))
                (morph-form (starts-with ?starts-with))
                (args (?x))
                (sequences ((sequence "my" ?left ?right))))
@@ -296,10 +297,10 @@
 
 (def-fcg-cxn this-cxn
              ((?this-unit
-               (syn-cat (role det)
-                        (cat Dem) ;;for demonstrative
-                        (number singular)
-                        (definiteness definite))
+               (syn-cat (lex-class (role det)
+                                   (cat Dem)) ;;for demonstrative
+                        (agreement (number singular)))
+               (sem-cat (definiteness definite))
                (morph-form (starts-with ?starts-with))
                (args (?x))
                (sequences ((sequence "this" ?left ?right))))
@@ -312,10 +313,10 @@
 
 (def-fcg-cxn these-cxn
              ((?this-unit
-               (syn-cat (role det)
-                        (cat Dem)
-                        (number plural)
-                        (definiteness definite))
+               (syn-cat (lex-class (role det)
+                                   (cat Dem))
+                        (agreement (number plural)))
+               (sem-cat (definiteness definite))
                (morph-form (starts-with ?starts-with))
                (args (?x))
                (sequences ((sequence "these" ?left ?right))))
@@ -333,10 +334,10 @@
 
 (def-fcg-cxn chairman-cxn
              ((?chairman-unit
-               (syn-cat (cat N)
-                        (max -)
-                        (min +)
-                        (number singular))
+               (syn-cat (lex-class (cat N)
+                                   (max -)
+                                   (min +))
+                        (agreement (number singular)))
                (sem-cat (sem-class person))
                (morph-form (starts-with consonant))
                (args (?x))
@@ -350,10 +351,10 @@
 
 (def-fcg-cxn president-cxn
              ((?president-unit
-               (syn-cat (cat N)
-                        (max -)
-                        (min +)
-                        (number singular))
+               (syn-cat (lex-class (cat N)
+                                   (max -)
+                                   (min +))
+                        (agreement (number singular)))
                (sem-cat (sem-class person))
                (morph-form (starts-with consonant))
                (args (?x))
@@ -367,10 +368,10 @@
 
 (def-fcg-cxn committee-cxn
              ((?committee-unit
-               (syn-cat (cat N)
-                        (max -)
-                        (min +)
-                        (number singular))
+               (syn-cat (lex-class (cat N)
+                                   (max -)
+                                   (min +))
+                        (agreement (number singular)))
                (sem-cat (sem-class person)) ;; because moral person
                (morph-form (starts-with consonant))
                (args (?x))
@@ -384,10 +385,10 @@
 
 (def-fcg-cxn club-cxn
              ((?club-unit
-               (syn-cat (cat N)
-                        (max -)
-                        (min +)
-                        (number singular))
+               (syn-cat (lex-class (cat N)
+                                   (max -)
+                                   (min +))
+                        (agreement (number singular)))
                (sem-cat (sem-class person)) ;; because moral person
                (morph-form (starts-with consonant))
                (args (?x))
@@ -401,10 +402,10 @@
 
 (def-fcg-cxn child-cxn
              ((?child-unit
-               (syn-cat (cat N)
-                        (max -)
-                        (min +)
-                        (number singular))
+               (syn-cat (lex-class (cat N)
+                                   (max -)
+                                   (min +))
+                        (agreement (number singular)))
                (sem-cat (sem-class person))
                (morph-form (starts-with consonant))
                (args (?x))
@@ -420,9 +421,10 @@
 
 (def-fcg-cxn cousin-cxn
              ((?cousin-unit
-               (syn-cat (cat N)
-                        (max -)
-                        (number singular))
+               (syn-cat (lex-class (cat N)
+                                   (max -)
+                                   (min +))
+                        (agreement (number singular)))
                (sem-cat (sem-class person))
                (morph-form (starts-with consonant))
                (args (?x))
@@ -436,9 +438,10 @@
 
 (def-fcg-cxn best-cxn
              ((?best-unit
-               (syn-cat (cat N)
-                        (max -)
-                        (min +))
+               (syn-cat (lex-class (cat N)
+                                   (max -)
+                                   (min +)))
+               (morph-cat (starts-with consonant))
                (args (?x))
                (boundaries (?left ?right)))
               <-
@@ -450,10 +453,9 @@
 
 (def-fcg-cxn foolish-cxn
              ((?foolish-unit
-               (syn-cat (cat A)
-                        (max -)
-                        (min +)
-                        (number ?number))
+               (syn-cat (lex-class (cat A)
+                                   (max -)
+                                   (min +)))
                (morph-form (starts-with consonant))
                (args (?x))
                (boundaries (?left-1 ?right-1)))
@@ -468,9 +470,10 @@
 
 (def-fcg-cxn removed-cxn
              ((?removed-unit
-               (syn-cat (cat A)
-                        (max -)
-                        (min +))
+               (syn-cat (lex-class (cat A)
+                                   (max -)
+                                   (min +)))
+               (morph-cat (starts-with consonant))
                (args (?x))
                (boundaries (?left ?right)))
               <-
@@ -482,10 +485,10 @@
 
 (def-fcg-cxn second-cxn
              ((?second-unit
-               (syn-cat (cat A)
-                        (max -)
-                        (min +)
-                        (starts-with consonant))
+               (syn-cat (lex-class (cat A)
+                                   (max -)
+                                   (min +)))
+               (morph-cat (starts-with consonant))
                (sem-cat (sem-class degrees))
                (args (?x))
                (boundaries (?left ?right)))
@@ -498,8 +501,9 @@
 
 (def-fcg-cxn once-cxn
              ((?once-unit
-               (syn-cat (cat Adv)
-                        (min +))
+               (syn-cat (lex-class (cat Adv)
+                                   (max -)
+                                   (min +)))
                (sem-cat (sem-class times))
                (args (?x))
                (boundaries (?left ?right)))
@@ -512,7 +516,9 @@
 
 (def-fcg-cxn that-cxn
              ((?that-unit
-               (syn-cat (cat Conj)) ;; for conjunction (clause that-clause))
+               (syn-cat (lex-class (cat Conj)
+                                   (max -)
+                                   (min +))) ;; for conjunction (clause that-clause))
                (args (?y))
                (boundaries (?left-1 ?right-1)))
               <-
@@ -526,9 +532,9 @@
 
 (def-fcg-cxn to-cxn
              ((?to-unit
-               (syn-cat (cat Prep)
-                        (max -)
-                        (min +))
+               (syn-cat (lex-class (cat Prep)
+                                   (max -)
+                                   (min +)))
                (sem-cat (sem-class destination))
                (args (?x))
                (boundaries (?left ?right)))
@@ -541,14 +547,14 @@
 
 (def-fcg-cxn goes-cxn
              ((?goes-unit
-               (syn-cat (cat V)
-                        (max -)
-                        (min +)
-                        (aux -)
-                        (number singular))
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min +)
+                                   (aux -))
+                        (agreement (person 3rd)                       
+                                   (number singular)))
                (morph-cat (lexeme go)
-                          (tense present)
-                          (person 3rd))
+                          (tense present))
                (args (?x))
                (boundaries (?left ?right)))
                <-
@@ -575,13 +581,14 @@
 
 (def-fcg-cxn gives-cxn
              ((?give-unit
-               (syn-cat (cat V)
-                        (max -)
-                        (min +)
-                        (number singular))
-               (morph-cat (lexeme GIVE)
-                          (tense Present)
-                          (person 3rd))
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min +)
+                                   (aux -))
+                        (agreement (person 3rd)
+                                   (number singular))
+               (morph-cat (lexeme give)
+                          (tense present))
                (args (?x))
                (boundaries (?left ?right)))
               <-
@@ -593,13 +600,14 @@
 
 (def-fcg-cxn were-cxn
              ((?were-unit
-               (syn-cat (cat V)
-                        (max -)
-                        (min +)
-                        (aux +))
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min +)
+                                   (aux +))
+                        (agreement (person ?person)
+                                   (number ?number)))
                (morph-cat (lexeme be)
-                          (tense past)
-                          (person ?person))
+                          (tense subj)) ;;for subjunctive
                (args (?x))
                (boundaries (?left ?right)))
                <-
@@ -611,31 +619,33 @@
 
 (def-fcg-cxn has-cxn
              ((?has-unit
-               (syn-cat (cat V)
-                        (max -)
-                        (min +)
-                        (aux +))
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min +)
+                                   (aux +))
+                        (agreement (person 3rd)
+                                   (number singular)))
                (morph-cat (lexeme have)
-                          (tense present)
-                          (person 3rd))
-               (args (?x ?y))
+                          (tense present))
+               (args (?x))
                (boundaries (?left ?right)))
                <-
                (?has-unit
-                (HASH meaning ((have.01 ?x ?y))) ;;have.01 = auxiliary
+                (HASH meaning ((have.01 ?x))) ;;have.01 = auxiliary
                 --
                 (HASH form ((sequence "has" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
 
 (def-fcg-cxn have-cxn
              ((?have-unit
-               (syn-cat (cat V)
-                        (max -)
-                        (min +)
-                        (aux +))
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min +)
+                                   (aux +))
+                        (agreement (person 1st)
+                                   (number singular)))
                (morph-cat (lexeme have)
                           (tense present))
-                          ;;(person ?person)) ;;to be fixed
                (args (?x))
                (boundaries (?left ?right)))
                <-
@@ -647,13 +657,14 @@
 
 (def-fcg-cxn lied-cxn
              ((?lied-unit
-               (syn-cat (cat V)
-                        (max -)
-                        (min +)
-                        (number ?number))
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min +)
+                                   (aux -))
+                        (agreement (person ?person)
+                                   (number ?number))
                (morph-cat (lexeme lie)
-                          (tense past)
-                          (person ?person))
+                          (tense preterit))
                (args (?y))
                (boundaries (?left ?right)))
                <-
@@ -665,11 +676,13 @@
 
 (def-fcg-cxn remove-cxn
              ((?remove-unit
-               (syn-cat (cat V)
-                        (max -)
-                        (min +))
-               (morph-cat (tense past)
-                          (person ?person)
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min +)
+                                   (aux -))
+                        (agreement (person ?person)
+                                   (number ?number)))
+               (morph-cat (tense preterit)
                           (lexeme remove))
                (args (?x))
                (boundaries (?left ?right)))
@@ -682,11 +695,13 @@
 
 (def-fcg-cxn removes-cxn
              ((?removes-unit
-               (syn-cat (cat V)
-                        (max -)
-                        (min +))
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min +)
+                                   (aux -))
+                        (agreement (person 3rd)
+                                   (number singular)))
                (morph-cat (tense present)
-                          (person 3rd)
                           (lexeme remove))
                (args (?x))
                (boundaries (?left ?right)))
@@ -699,11 +714,13 @@
 
 (def-fcg-cxn does-cxn
              ((?does-unit
-               (syn-cat (cat V)
-                        (max -)
-                        (min +))
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min +)
+                                   (aux +))
+                        (agreement (person 3rd)
+                                   (number singular)))
                (morph-cat (lexeme do)
-                          (person 3rd)
                           (tense present))
                (args (?x))
                (boundaries (?left ?right)))
@@ -718,14 +735,14 @@
 
 (def-fcg-cxn is-cxn
              ((?is-unit
-               (syn-cat (cat V)
-                        (max -)
-                        (min +)
-                        (aux +)
-                        (number singular))
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min +)
+                                   (aux +))
+                        (agreement (person 3rd)
+                                   (number singular)))
                (morph-cat (lexeme be)
-                          (tense present)
-                          (person 3rd))
+                          (tense present))
                (args (?x))
                (boundaries (?left ?right)))
                <-
@@ -737,14 +754,14 @@
 
 (def-fcg-cxn was-cxn
              ((?was-unit
-               (syn-cat (cat V)
-                        (max -)
-                        (min +)
-                        (aux +)
-                        (number singular))
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min +)
+                                   (aux +))
+                        (agreement (person 3rd)
+                                   (number singular)))
                (morph-cat (lexeme be)
-                          (tense past)
-                          (person 3rd))
+                          (tense past))
                (args (?x))
                (boundaries (?left ?right)))
                <-
@@ -759,11 +776,52 @@
 
 ;; (comprehend-and-formulate "was" :cxn-inventory *fillmores-cxns*)
 
+(def-fcg-cxn contributed-cxn
+             ((?contributed-unit
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min +)
+                                   (aux -))
+                        (agreement (person ?person)
+                                   (number ?number)))
+               (morph-cat (tense preterit)
+                          (lexeme contribute))
+               (sem-cat (sem-class contribute))
+               (args (?x))
+               (boundaries (?left ?right)))
+              <-
+              (?contributed-unit
+               (HASH meaning ((contribute.01 ?x)))
+               --
+               (HASH form ((sequence "contributed" ?left ?right)))))
+             :cxn-inventory *fillmores-cxns*)
+
+(def-fcg-cxn knowing-cxn
+             ((?knowing-unit
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min +)
+                                   (aux -))
+                        (agreement (person ?person)
+                                   (number ?number)))
+               (morph-cat (lexeme remove)
+                          (tense gerund)) ;; for gerundive
+               (args (?x))
+               (boundaries (?left ?right)))
+              <-
+              (?knowing-unit
+               (HASH meaning ((knowing.01 ?x)))
+               --
+               (HASH form ((sequence "knowing" ?left ?right)))))
+             :cxn-inventory *fillmores-cxns*)
+
+;; (comprehend-and-formulate "knowing" :cxn-inventory *fillmores-cxns*)
+
 (def-fcg-cxn worth-cxn
              ((?worth-unit
-               (syn-cat (cat A)
-                        (max -)
-                        (min +))
+               (syn-cat (lex-class (cat A)
+                                   (max -)
+                                   (min +)))
                (args (?x))
                (morph-cat (lexeme worth))
                (boundaries (?left ?right)))
@@ -776,30 +834,11 @@
 
 ;; (comprehend-and-formulate "worth" :cxn-inventory *fillmores-cxns*)
 
-(def-fcg-cxn knowing-cxn
-             ((?knowing-unit
-               (syn-cat (cat V)
-                        (max -)
-                        (min +))
-               (morph-cat (lexeme remove)
-                          (person ?person)
-                          (tense ing))
-               (args (?x))
-               (boundaries (?left ?right)))
-              <-
-              (?knowing-unit
-               (HASH meaning ((knowing.01 ?x)))
-               --
-               (HASH form ((sequence "knowing" ?left ?right)))))
-             :cxn-inventory *fillmores-cxns*)
-
-;; (comprehend-and-formulate "knowing" :cxn-inventory *fillmores-cxns*)
-
 (def-fcg-cxn of-cxn
              ((?of-unit
-               (syn-cat (cat Prep)
-                        (max -)
-                        (min +))
+               (syn-cat (lex-class (cat Prep)
+                                   (max -)
+                                   (min +)))
                (args (?y))
                (boundaries (?left ?right)))
               <-
@@ -811,9 +850,9 @@
 
 (def-fcg-cxn from-cxn
              ((?from-unit
-               (syn-cat (cat Prep)
-                        (max -)
-                        (min +))
+               (syn-cat (lex-class (cat Prep)
+                                   (max -)
+                                   (min +)))
                (args (?x))
                (boundaries (?left ?right)))
               <-
@@ -825,10 +864,10 @@
 
 (def-fcg-cxn never-cxn
              ((?never-unit
-               (syn-cat (cat Adv)
-                        (max -)
-                        (min +)
-                        (WH -))
+               (syn-cat (lex-class (cat Adv)
+                                   (max -)
+                                   (min +)
+                                   (WH -)))
                (sem-cat (sem-class negation))
                (args (?x))
                (boundaries (?left ?right)))
@@ -841,9 +880,10 @@
 
 (def-fcg-cxn here-cxn
              ((?here-unit
-               (syn-cat (cat Adv)
-                        (max -)
-                        (min +))
+               (syn-cat (lex-class (cat Adv)
+                                   (max -)
+                                   (min +)
+                                   (wh -)))
                (sem-cat (sem-class places))
                (args (?x))
                (boundaries (?left ?right)))
@@ -856,10 +896,10 @@
 
 (def-fcg-cxn where-cxn
              ((?where-unit
-               (syn-cat (cat Adv)
-                        (max -)
-                        (min +)
-                        (WH +))
+               (syn-cat (lex-class (cat Adv)
+                                   (max -)
+                                   (min +)
+                                   (WH +)))
                (args (?x))
                (boundaries (?left ?right)))
               <-
@@ -871,10 +911,10 @@
 
 (def-fcg-cxn why-cxn
              ((?why-unit
-               (syn-cat (cat Adv)
-                        (max -)
-                        (min +)
-                        (WH +))
+               (syn-cat (lex-class (cat Adv)
+                                   (max -)
+                                   (min +)
+                                   (WH +)))
                (args (?x))
                (boundaries (?left ?right)))
               <-

@@ -1,5 +1,4 @@
 (in-package :fcg)
-(activate-monitor trace-fcg)
 
 ;-----------------;
 ;determination cxn;
@@ -10,30 +9,30 @@
 
 (def-fcg-cxn determination-cxn
              ((?determination-unit
-               (syn-cat (cat N)  
-                        (max +)
-                        (min -)
-                        (number ?number))
+               (syn-cat (lex-class (cat N)  
+                                   (max +)
+                                   (min -))
+                        (agreement (number ?number)))
                (args (?z))
                (subunits (?det-unit ?noun-unit))
                (boundaries (?det-left ?noun-right)))
               <-
               (?det-unit
-               (syn-cat (role det)
-                        (number ?number))
+               (syn-cat (lex-class (role det))
+                        (agreement (number ?number)))
                (morph-form (starts-with ?starts-with))
                (args (?x))
                --
-               (syn-cat (role det)
-                        (number ?number))
+               (syn-cat (lex-class (role det))
+                        (agreement (number ?number)))
                (morph-form (starts-with ?starts-with))
                (sequences ((sequence ?det-string ?det-left ?det-right))))
               (?noun-unit
                (args (?y))
                --
-               (syn-cat (cat N)
-                        (max -)
-                        (number ?number))
+               (syn-cat (lex-class (cat N)
+                                   (max -))
+                        (agreement (number ?number)))
                (morph-form (starts-with ?starts-with))
                (boundaries (?noun-left ?noun-right)))
               (?determination-unit
@@ -53,7 +52,7 @@
 (comprehend-and-formulate "my rice" :cxn-inventory *fillmores-cxns*)
 (comprehend-and-formulate "this intelligence" :cxn-inventory *fillmores-cxns*)
 (comprehend-and-formulate "this rice" :cxn-inventory *fillmores-cxns*)
-(comprehend-and-formulate "the air" :cxn-inventory *fillmores-cxns*)
+(comprehend-and-formulate "the book" :cxn-inventory *fillmores-cxns*)
 (comprehend-and-formulate "this pen" :cxn-inventory *fillmores-cxns*)
 (comprehend-and-formulate "a book" :cxn-inventory *fillmores-cxns*)
 (comprehend-and-formulate "an intelligence" :cxn-inventory *fillmores-cxns*)
@@ -75,10 +74,10 @@
 
 (def-fcg-cxn person-of-whole-cxn
              ((?person-of-whole-unit
-               (syn-cat (cat N)
-                        (max -)
-                        (min -)
-                        (number singular))
+               (syn-cat (lex-class (cat N)
+                                   (max -)
+                                   (min -))
+                        (agreement (number singular)))
                (sem-cat (sem-class unique-role))
                (args (?a))
                (subunits (?person-unit ?of-unit ?whole-unit))
@@ -88,26 +87,26 @@
                (args (?x))
                (sem-cat (sem-class person))
                --
-               (syn-cat (cat N)
-                        (max -)
-                        (min +)
-                        (number singular))
+               (syn-cat (lex-class (cat N)
+                                   (max -)
+                                   (min +))
+                        (agreement (number singular)))
                (boundaries (?person-left ?person-right)))
               (?of-unit
                (args (?y))
                --
-               (syn-cat (cat Prep)
-                        (min +))
+               (syn-cat (lex-class (cat Prep)
+                                   (min +)))
                (boundaries (?of-left ?of-right)))
               (?whole-unit
                (args (?z))
                --
-               (syn-cat (cat N)
-                        (max +)
-                        (number singular))
+               (syn-cat (lex-class (cat N)
+                                   (max +))
+                        (agreement (number singular)))
                (boundaries (?complement-left ?complement-right)))
               (?person-of-whole-unit
-               (HASH meaning ((person-of-whole ?a ?x ?y ?z)))
+               (HASH meaning ((part-of ?a ?x ?y ?z)))
                --
                (HASH form ((sequence " " ?person-right ?of-left)
                            (sequence " " ?of-right ?complement-left)))))
@@ -121,9 +120,9 @@
 
 (def-fcg-cxn unique-role-cxn
              ((?unique-role-unit
-               (syn-cat (cat V)
-                        (max +)
-                        (min -))
+               (syn-cat (lex-class (cat V)
+                                   (max +)
+                                   (min -)))
                (args (?a))
                (subunits (?subject-unit ?copula-unit ?role-unit))
                (boundaries (?subject-left ?role-right)))
@@ -131,31 +130,31 @@
               (?subject-unit
                (args (?x))
                --
-               (syn-cat (max +)
-                        (role S)
-                        (number singular))
+               (syn-cat (lex-class (max +)
+                                   (role S))
+                        (agreement (number singular)))
                (boundaries (?subject-left ?subject-right)))
               (?copula-unit
                (args (?y))
                --
-               (syn-cat (cat V)
-                        (max -)
-                        (min +)
-                        (aux +)
-                        (number singular))
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min +)
+                                   (aux +))
+                        (agreement (number singular)))
                (morph-cat (lexeme be))
                (boundaries (?copula-left ?copula-right)))
               (?role-unit
                (sem-cat (sem-class unique-role))
                (args (?z))
                --
-               (syn-cat (cat N)
-                        (max -)
-                        (min -)
-                        (number singular))
+               (syn-cat (lex-class (cat N)
+                                   (max -)
+                                   (min -))
+                        (agreement (number singular)))
                (boundaries (?role-left ?role-right)))
               (?unique-role-unit
-               (HASH meaning ((x-unique-role ?a ?x ?y ?z)))
+               (HASH meaning ((have-unique-role ?a ?x ?y ?z))) ;;adaptation of "have-rel-role" in amr
                --
                (HASH form ((sequence " " ?subject-right ?copula-left)
                            (sequence " " ?copula-right ?role-left)))))
@@ -172,10 +171,10 @@
 
 (def-fcg-cxn modified-count-noun-cxn
              ((?modified-count-noun-unit
-               (syn-cat (cat N)
-                        (max -)
-                        (min -)
-                        (number ?number))
+               (syn-cat (lex-class (cat N)
+                                   (max -)
+                                   (min -))
+                        (agreement (number ?number)))
                (morph-form (starts-with ?starts-with))
                (args (?z))
                (subunits (?adj-unit ?noun-unit))
@@ -184,22 +183,22 @@
               (?adj-unit
                (args (?y))
                --
-               (syn-cat (cat A)
-                        (max -)
-                        (min +)
-                        (number ?number))
+               (syn-cat (lex-class (cat A)
+                                   (max -)
+                                   (min +))
+                        (agreement (number ?number)))
                (morph-form (starts-with ?starts-with))
                (boundaries (?adj-left ?adj-right)))
               (?noun-unit
                (args (?x))
                --
-               (syn-cat (cat N)
-                        (max -)
-                        (min +)
-                        (number ?number))
+               (syn-cat (lex-class (cat N)
+                                   (max -)
+                                   (min +))
+                        (agreement (number ?number)))
                (boundaries (?noun-left ?noun-right)))
               (?modified-count-noun-unit
-               (HASH meaning ((domain ?z ?y ?x))) ;; = the domain of the adjective (?y) is the noun (?x)
+               (HASH meaning ((domain ?z ?y ?x))) ;; = the domain (from amr) of the adjective (?y) is the noun (?x)
                --
                (HASH form ((sequence " " ?adj-right ?noun-left)))))
               :cxn-inventory *fillmores-cxns*)
@@ -208,8 +207,8 @@
 
 (def-fcg-cxn fronting-to-that-cxn
              ((?fronting-to-that-unit
-               (syn-cat (cat V) ;; checking which head-type is that cxn
-                        (max +))
+               (syn-cat (lex-class (cat V) ;; checking which head-type is that cxn
+                                   (max +)))
                (args (?z ?a ?b))
                (boundaries (?modified-noun-left ?copula-right))
                (subunits (?modified-noun-unit ?that-unit ?subject-unit ?copula-unit)))
@@ -217,34 +216,35 @@
               (?modified-noun-unit
                (args (?a))
                --
-               (syn-cat (cat N)
-                        (max -)
-                        (min -)
-                        (number ?number))
+               (syn-cat (lex-class (cat N)
+                                   (max -)
+                                   (min -))
+                        (agreement (number ?number)))
                (boundaries (?modified-noun-left ?modified-noun-right)))
               (?that-unit
                (args (?b))
                --
-               (syn-cat (cat Conj))
+               (syn-cat (lex-class (cat Conj)
+                                   (min +)))
                (boundaries (?that-left ?that-right)))
               (?subject-unit
                (args (?c))
                --
-               (syn-cat (max +)
-                        (role S)
-                        (number ?number))
+               (syn-cat (lex-class (max +)
+                                   (role S))
+                        (agreement (number ?number)))
                (boundaries (?subject-left ?subject-right)))
               (?copula-unit
                (args (?d))
                --
-               (syn-cat (cat V)
-                        (max -)
-                        (min +)
-                        (aux +)
-                        (number ?number))
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min +)
+                                   (aux +))
+                        (agreement (number ?number)))
                (boundaries (?copula-left ?copula-right)))
               (?fronting-to-that-unit
-               (HASH meaning ((focus-on-non-maximal-nominal-phrase ?z ?a ?b ?c ?d)))
+               (HASH meaning ((have-mod ?z ?a ?b ?c ?d))) ;;but focus on non-maximal headed-phrase
                --
                (HASH form ((sequence " " ?modified-noun-right ?that-left)
                            (sequence " " ?that-right ?subject-left)
@@ -256,10 +256,10 @@
 
 (def-fcg-cxn be-smth-cxn
              ((?be-smth-unit
-               (syn-cat (cat V)
-                        (max -)
-                        (min -))
-               (morph-cat (person ?person))
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min -))
+                        (agreement (person ?person)))
                (args (?a))
                (boundaries (?verb-left ?np-right))
                (subunits (?verb-unit ?noun-phrase)))
@@ -268,22 +268,22 @@
                (args (?x))
                (morph-cat (lexeme be))
                --
-               (syn-cat (cat V)
-                        (max -)
-                        (min +)
-                        (aux ?aux)
-                        (number ?number))
-               (morph-cat (person ?person))
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min +)
+                                   (aux ?aux))
+                        (agreement (number ?number)
+                                   (person ?person)))
                (boundaries (?verb-left ?verb-right)))
               (?noun-phrase
                (args (?y))
                --
-               (syn-cat (cat N)  
-                        (max +)
-                        (number ?number))
+               (syn-cat (lex-class (cat N)  
+                                   (max +))
+                        (agreement (number ?number)))
                (boundaries (?np-left ?np-right))) 
               (?be-smth-unit
-               (HASH meaning ((fill-meaning ?a ?x ?y)))
+               (HASH meaning ((have-mod ?a ?x ?y)))
                --
                (HASH form ((sequence " " ?verb-right ?np-left)))))
              :cxn-inventory *fillmores-cxns*)
@@ -305,32 +305,34 @@
 
 (def-fcg-cxn subject-predicate-cxn
              ((?subject-predicate-unit
-               (syn-cat (cat V)
-                        (max +)
-                        (infl tense)
-                        (number ?number))
+               (syn-cat (lex-class (cat V)
+                                   (max +)
+                                   (infl tense))
+                        (agreement (number ?number)))
                (args (?a))
                (boundaries (?subject-left ?verb-right))
-               (subunits (?subject-unit ?verb-unit)))
+               (subunits (?subject-unit ?verb-unit))
+               (?verb-unit
+                (dependents (?subject-unit))))
               <-
               (?subject-unit
                (args (?x))
                --
-               (syn-cat (max +)
-                        (role S)
-                        (number ?number))
-               (morph-cat (person ?person))
+               (syn-cat (lex-class (max +)
+                                   (role S))
+                        (agreement (number ?number)
+                                   (person ?person)))
                (boundaries (?subject-left ?subject-right)))
               (?verb-unit
                (args (?y))
                --
-               (syn-cat (cat V)
-                        (max -)
-                        (min -)) ;; non-maximal verb headed phrase, typically missing a subject
-               (morph-cat (person ?person))
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min -)) ;; non-maximal verb headed phrase, typically missing a subject
+                        (agreement (person ?person)))
                (boundaries (?verb-left ?verb-right)))
               (?subject-predicate-unit
-               (HASH meaning ((svo ?a ?x ?y)))
+               (HASH meaning ((have-mod ?a ?x ?y)))
                --
                (HASH form ((sequence " " ?subject-right ?verb-left)))))
              :cxn-inventory *fillmores-cxns*)
@@ -340,8 +342,6 @@
 
 ;; (comprehend "I removed the bottle from the book" :cxn-inventory *fillmores-cxns*)
 ;; (comprehend-and-formulate "I removed the bottle from the book" :cxn-inventory *fillmores-cxns*)
-
-;; (comprehend-and-formulate "she goes" :cxn-inventory *fillmores-cxns*)
 
 ;------------;
 ;once removed;
@@ -356,44 +356,44 @@
 
 (def-fcg-cxn x-cousin-y-removed-cxn
              ((?x-cousin-y-removed-unit
-               (syn-class (cat N)
-                          (max -))
+               (syn-class (lex-class (cat N)
+                                     (max -)))
                (args (?b))
                (subunits (?x-unit ?cousin-unit ?y-unit ?removed-unit))
                (boundaries (?x-left ?removed-right)))
               <-
               (?x-unit
-               (syn-cat (cat A)
-                        (min +))
+               (syn-cat (lex-class (cat A)
+                                   (min +)))
                (sem-cat (sem-class degrees))
                (args (?x))
                --
-               (syn-cat (cat A)
-                        (min +))
+               (syn-cat (lex-class (cat A)
+                                   (min +)))
                (boundaries (?x-left ?x-right)))
               (?cousin-unit
                (sem-cat (sem-class person))
                (args (?y))
                --
-               (syn-cat (cat N)
-                        (max -)
-                        (number singular))
+               (syn-cat (lex-class (cat N)
+                                   (max -))
+                        (agreement (number singular)))
                (boundaries (?cousin-left ?cousin-right)))
               (?y-unit
                (sem-cat (sem-class times))
                (args (?z))
                --
-               (syn-cat (cat Adv)
-                        (min +))
+               (syn-cat (lex-class (cat Adv)
+                                   (min +)))
                (boundaries (?y-left ?y-right)))
               (?removed-unit
                (args (?a))
                --
-               (syn-cat (cat A)
-                        (min +))
+               (syn-cat (lex-class (cat A)
+                                   (min +)))
                (boundaries (?removed-left ?removed-right)))
               (?x-cousin-y-removed-unit
-               (HASH meaning ((y-generational-step ?x ?y ?z ?a)))
+               (HASH meaning ((y-generational-step ?b ?x ?y ?z ?a)))
                --
                (HASH form ((sequence " " ?x-right ?cousin-left)
                            (sequence " " ?cousin-right ?y-left)
@@ -411,9 +411,9 @@
 
 (def-fcg-cxn x-y-smth-to-smn-cxn
              ((?x-y-smth-to-smn-unit
-               (syn-cat (cat V)
-                        (max +)
-                        (min -))
+               (syn-cat (lex-class (cat V)
+                                   (max +)
+                                   (min -)))
                (args (?c))
                (subunits (?subject-unit ?verb-unit ?object-unit ?to-unit ?complement-recipient))
                (boundaries (?subject-left ?complement-right)))
@@ -421,40 +421,40 @@
               (?subject-unit
                (args (?x))
                --
-               (syn-cat (max +)
-                        (role S)
-                        (number ?number))
-               (morph-cat (person ?person))
+               (syn-cat (lex-class (max +)
+                                   (role S))
+                        (agreement (number ?number)
+                                   (person ?person)))
                (boundaries (?subject-left ?subject-right)))
               (?verb-unit
                (args (?y))
                --
-               (syn-cat (cat V)
-                        (max -)
-                        (min +)
-                        (number ?number))
-               (morph-cat (person ?person))
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min +))
+                        (agreement (number ?number)
+                                   (person ?person)))
                (boundaries (?verb-left ?verb-right))) ;;which types of verbs can fill this? explain, do, give,...
               (?object-unit
                (args (?z))
                --
-               (syn-cat (cat N)  
-                        (max +))
+               (syn-cat (lex-class (cat N)  
+                                   (max +)))
                (boundaries (?object-left ?object-right)))             
               (?to-unit
                (args (?a))
                (sem-cat (sem-class destination))
                --
-               (syn-cat (cat Prep)
-                        (max -)
-                        (min +))
+               (syn-cat (lex-class (cat Prep)
+                                   (max -)
+                                   (min +)))
                (boundaries (?to-left ?to-right)))
               (?complement-recipient
                (args (?b))
                (sem-cat (sem-class person)) ;; can be a moral person, e.g. "the school"
                --
-               (syn-cat (cat N)
-                        (max +))
+               (syn-cat (lex-class (cat N)
+                                   (max +)))
                (boundaries (?complement-left ?complement-right)))
               (?x-y-smth-to-smn-unit
                (HASH meaning ((giving-smth-to-smn ?c ?x ?y ?z ?a ?b)))
@@ -481,34 +481,36 @@
 
 (def-fcg-cxn inversion-max-V-cxn
              ((?inversion-unit
-               (syn-cat (cat V)
-                        (max +)
-                        (min -)
-                        (inv +)
-                        (infl tense))
+               (syn-cat (lex-class (cat V)
+                                   (max +)
+                                   (min -)
+                                   (inv +)
+                                   (infl tense)))
                (args (?a))
                (boundaries (?verb-left ?complement-right))
-               (subunits (?verb-unit ?subject-unit ?complement-unit)))
+               (subunits (?verb-unit ?subject-unit ?complement-unit))
+               (?verb-unit
+                (dependents (?subject-unit ?complement-unit))))
               <-
               (?verb-unit
                (args (?x))
                --
-               (syn-cat (cat V)
-                        (max -)
-                        (min +)
-                        (aux +))
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min +)
+                                   (aux +)))
                (boundaries (?verb-left ?verb-right)))
               (?subject-unit
                (args (?y))
                --
-               (syn-cat (max +)
-                        (role S))
+               (syn-cat (lex-class (max +)
+                                   (role S)))
                (boundaries (?subject-left ?subject-right)))
               (?complement-unit
                (args (?z))
                --
                (syn-cat ;;(cat ?cat) according to Fillmore, the category satys undefined and takes whatever category is given by the complement, so we don't add anything
-                        (max -))
+                        (lex-class (max -)))
                (boundaries (?complement-left ?complement-right)))
               (?inversion-unit
                (HASH meaning ((hypothesis-x ?a ?x ?y ?z)))
@@ -523,9 +525,9 @@
 
 (def-fcg-cxn never-x-cxn
              ((?never-x-unit
-               (syn-class (cat V)
-                          (max +)
-                          (min -))
+               (syn-class (lex-class (cat V)
+                                     (max +)
+                                     (min -)))
                (args (?x))
                (subunits (?never-unit ?inversion-unit))
                (boundaries (?never-left ?inversion-right)))
@@ -534,19 +536,19 @@
                (sem-cat (sem-class negation))
                (args (?x))
                --
-               (syn-cat (cat Adv)
-                        (max -)
-                        (min +)
-                        (WH -))
+               (syn-cat (lex-class (cat Adv)
+                                   (max -)
+                                   (min +)
+                                   (WH -)))
                (boundaries (?never-left ?never-right)))
               (?inversion-unit
                (args (?y))
                --
-               (syn-cat (cat V)
-                        (max +)
-                        (min -)
-                        (inv +)
-                        (infl tense))
+               (syn-cat (lex-class (cat V)
+                                   (max +)
+                                   (min -)
+                                   (inv +)
+                                   (infl tense)))
                (boundaries (?inversion-left ?inversion-right)))
               (?never-x-unit
                (HASH meaning ((never-smth ?x ?y)))
@@ -561,29 +563,31 @@
 ;; non maximal V-phrase ;;
 ;;----------------------;;
 
-(def-fcg-cxn pronoun-headed-cxn
-             ((?pronoun-headed-unit
-               (syn-cat (cat P)
-                        (max +)
-                        (min -))
+(def-fcg-cxn prep-headed-cxn
+             ((?prep-headed-unit
+               (syn-cat (lex-class (cat P)
+                                   (max +)
+                                   (min -)))
                (args (?a))
+               (subunits (?from-unit ?np-unit))
                (boundaries (?from-left ?np-right))
-               (subunits (?from-unit ?np-unit)))
+               (?from-unit
+                (dependents (?np-unit))))
               <-
               (?from-unit
                (args (?x))
                --
-               (syn-cat (cat Prep)
-                        (max -)
-                        (min +))
+               (syn-cat (lex-class (cat Prep)
+                                   (max -)
+                                   (min +)))
                (boundaries (?from-left ?from-right)))
               (?np-unit
                (args (?y))
                --
-               (syn-cat (cat N)  
-                        (max +))
+               (syn-cat (lex-class (cat N)  
+                                   (max +)))
                (boundaries (?np-left ?np-right)))
-              (?pronoun-headed-unit
+              (?prep-headed-unit
                (HASH meaning ((from-smth ?a ?x ?y)))
                --
                (HASH form ((sequence " " ?from-right ?np-left)))))
@@ -594,35 +598,38 @@
 
 (def-fcg-cxn non-max-remove-phrase-cxn
              ((?non-max-remove-phrase-unit
-               (syn-cat (cat V)
-                        (max -)
-                        (min -)) ;; non-maximal verb headed phrase, typically missing a subject
-               (morph-cat (person ?person))
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min -))
+                        (agreement (person ?person)
+                                   (number ?number))) ;; non-maximal verb headed phrase, typically missing a subject
                (args (?a))
+               (subunits (?verb-unit ?np-unit ?prep-phrase-unit))
                (boundaries (?verb-left ?pp-right))
-               (subunits (?verb-unit ?np-unit ?pronoun-phrase-unit)))
+               (?verb-unit
+                (dependents (?np-unit ?prep-phrase-unit))))
               <-
               (?verb-unit
                (args (?x))
-               (morph-cat (lexeme remove)
-                          (person ?person))
                --
-               (syn-cat (cat V)
-                        (max -)
-                        (min +))
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min +))
+                        (agreement (person ?person)))
+               (morph-cat (lexeme remove))
                (boundaries (?verb-left ?verb-right)))
               (?np-unit
                (args (?y))
                --
-               (syn-cat (cat N)  
-                        (max +))
+               (syn-cat (lex-class (cat N)  
+                                   (max +)))
                (boundaries (?np-left ?np-right)))
-              (?pronoun-phrase-unit
+              (?prep-phrase-unit
                (args (?z))
                --
-               (syn-cat (cat P)
-                        (max +)
-                        (min -))
+               (syn-cat (lex-class (cat P)
+                                   (max +)
+                                   (min -)))
                (boundaries (?pp-left ?pp-right)))
               (?non-max-remove-phrase-unit
                (HASH meaning ((remove-smth-from-smth ?a ?x ?y ?z)))
@@ -635,20 +642,106 @@
 ;; (comprehend-and-formulate "removes the bottle from the book" :cxn-inventory *fillmores-cxns*)
 
 
-#|;;---------------;;
+;;---------------;;
 ;; TO CONTRIBUTE ;;
 ;;---------------;;
 
-(def-fcg-cxn contribute-cxn
-             ((?contribute-unit
-               (syn-cat (cat V)
-                        (min +))
-               (lexeme contribute))
+;; the verb "to contribute" can appear in multiple types of cxns:
+;; the construction: subject + contribute
+;; the construction: subject + contribute + object (thing being contributed) (without the "to" complement because of conversational givenness)
+;; the construction: subject + contribute + complement (recipient with "to") (without the object: indefinite interpretation)
+;; the construction: subject + contribute + object + complement (with "to")
+
+;; we exemplify the second one:
+(def-fcg-cxn contribute-smth-cxn
+             ((?contribute-smth-unit
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min -))
+                        (agreement (person ?person)))
+               (args (?a))
+               (subunits (?contribute-unit ?object-unit))
+               (boundaries (?contribute-left ?object-right)))
               <-
               (?contribute-unit
-               (HASH meaning ((contribute.01 ?S-A-N ?O-P-N ?C-R-P))) ;; valence : Subject agent noun-headed phrase; optional: Object patient noun-headed phrase, complement recipient "to" + pronoun-headed phrase
+               (args (?x))
+               (sem-cat (sem-class contribute))
                --
-               )))|#
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min +)
+                                   (aux -))
+                        (agreement (person ?person)
+                                   (number ?number)))
+               (morph-cat (lexeme contribute))
+               (boundaries (?contribute-left ?contribute-right)))
+              (?object-unit
+               (args (?y))
+               --
+               (syn-cat (lex-class (cat N)  
+                                   (max +)))
+               (boundaries (?object-left ?object-right)))
+              (?contribute-smth-unit
+               (HASH meaning ((contribute-smth ?a ?x ?y)))
+               --
+               (HASH form ((sequence " " ?contribute-right ?object-left)))))
+             :cxn-inventory *fillmores-cxns*)
+
+;; (comprehend "contributed a book" :cxn-inventory *fillmores-cxns*)
+;; (comprehend-and-formulate "contributed a book" :cxn-inventory *fillmores-cxns*)
+
+;; (comprehend "she contributed a book" :cxn-inventory *fillmores-cxns*)
+;; (comprehend-and-formulate "she contributed a book" :cxn-inventory *fillmores-cxns*)
+
+;; we exemplify the third one:
+(def-fcg-cxn contribute-to-cxn
+             ((?contribute-to-unit
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min -))
+                        (agreement (person ?person)))
+               (args (?a))
+               (subunits (?contribute-unit ?to-unit ?complement-unit))
+               (boundaries (?contribute-left ?complement-right)))
+              <-
+              (?contribute-unit
+               (args (?x))
+               (sem-cat (sem-class contribute))
+               --
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min +)
+                                   (aux -))
+                        (agreement (person ?person)
+                                   (number ?number)))
+               (morph-cat (lexeme contribute))
+               (boundaries (?contribute-left ?contribute-right)))
+              (?to-unit
+               (args (?y))
+               (sem-cat (sem-class destination))
+               --
+               (syn-cat (lex-class (cat Prep)
+                                   (max -)
+                                   (min +)))
+               (boundaries (?to-left ?to-right)))
+              (?complement-unit
+               (args (?z))
+               --
+               (syn-cat (lex-class (cat N)  
+                                   (max +)))
+               (boundaries (?complement-left ?complement-right)))
+              (?contribute-to-unit
+               (HASH meaning ((contribute-to ?a ?x ?y ?z)))
+               --
+               (HASH form ((sequence " " ?contribute-right ?to-left)
+                           (sequence " " ?to-right ?complement-left)))))
+             :cxn-inventory *fillmores-cxns*)
+
+;; (comprehend "contributed to this book" :cxn-inventory *fillmores-cxns*)
+;; (comprehend-and-formulate "contributed to this book" :cxn-inventory *fillmores-cxns*)
+
+;; (comprehend "she contributed to this book" :cxn-inventory *fillmores-cxns*)
+;; (comprehend-and-formulate "she contributed to this book" :cxn-inventory *fillmores-cxns*)
 
 ;;------------;;
 ;; wh phrases ;;
@@ -656,26 +749,28 @@
 
 (def-fcg-cxn wh-phrase-cxn
              ((?wh-phrase-unit
-               (syn-cat (cat V)
-                        (max +)
-                        (WH +))
+               (syn-cat (lex-class (cat V)
+                                   (max +)
+                                   (WH +)))
                (args (?a))
                (subunits (?wh-unit ?vp-unit))
-               (boundaries (?wh-left ?vp-right)))
+               (boundaries (?wh-left ?vp-right))
+               (?vp-unit
+                (dependents (?wh-unit))))
               <-
               (?wh-unit
                (args (?x))
                --
-               (syn-cat (cat Adv)
-                        (max -)
-                        (min +)
-                        (WH +))               
+               (syn-cat (lex-class (cat Adv)
+                                   (max -)
+                                   (min +)
+                                   (WH +)))    
                (boundaries (?wh-left ?wh-right)))
               (?vp-unit
                (args (?y))
                --
-               (syn-cat (cat V)
-                        (min -)) ;; max and inv are not spcified because they are not necessary
+               (syn-cat (lex-class (cat V)
+                                   (min -))) ;; max and inv are not specified because they are not necessary
                (boundaries (?vp-left ?vp-right)))
               (?wh-phrase-unit
                (HASH meaning ((wh-smth ?a ?x ?y)))
@@ -695,9 +790,9 @@
 
 (def-fcg-cxn worth-ing-cxn
              ((?worth-ing-unit
-               (syn-cat (cat A)
-                        (max +)
-                        (min -))
+               (syn-cat (lex-class (cat A)
+                                   (max +)
+                                   (min -)))
                (sem-cat (sem-class worth))
                (args (?a))
                (subunits (?worth-unit ?ing-unit))
@@ -706,18 +801,18 @@
               (?worth-unit
                (args (?x))
                --
-               (syn-cat (cat A)
-                        (max -)
-                        (min +))
+               (syn-cat (lex-class (cat A)
+                                   (max -)
+                                   (min +)))
                (morph-cat (lexeme worth))
                (boundaries (?worth-left ?worth-right)))
               (?ing-unit
                (args (?y))
                --
-               (syn-cat (cat V)
-                        (max -)
-                        (min +))
-               (morph-cat (tense ing))
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min +)))
+               (morph-cat (tense gerund))
                (boundaries (?ing-left ?ing-right)))
               (?worth-ing-unit
                (HASH meaning ((worth-x ?a ?x ?y)))
@@ -730,11 +825,11 @@
 
 (def-fcg-cxn be-worth-ing-cxn
              ((?be-worth-ing-unit
-               (syn-cat (cat V)
-                        (max -)
-                        (min -))
-               (morph-cat (person ?person)
-                          (tense ?tense))
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min -))
+                        (agreement (person ?person)))
+               (morph-cat (tense ?tense))
                (args (?a))
                (subunits (?verb-unit ?worth-unit))
                (boundaries (?verb-left ?worth-right)))
@@ -742,21 +837,21 @@
               (?verb-unit
                (args (?x))
                --
-               (syn-cat (cat V)
-                        (max -)
-                        (min +)
-                        (aux +))
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min +)
+                                   (aux +))
+                        (agreement (person ?person)))
                (morph-cat (lexeme be)
-                          (tense ?tense)
-                          (person ?person))
+                          (tense ?tense))
                (boundaries (?verb-left ?verb-right)))
               (?worth-unit
                (args (?y))
                (sem-cat (sem-class worth))
                --
-               (syn-cat (cat A)
-                        (max +)
-                        (min -))
+               (syn-cat (lex-class (cat A)
+                                   (max +)
+                                   (min -)))
                (boundaries (?worth-left ?worth-right)))
               (?be-worth-ing-unit
                (HASH meaning ((be-worthy-of ?a ?x ?y)))
@@ -776,9 +871,9 @@
 
 (def-fcg-cxn ones-best-cxn
              ((?ones-best-unit
-              (syn-cat (cat N)
-                       (max +))
-              (morph-cat (person ?person))
+              (syn-cat (lex-class (cat N)
+                                  (max +))
+                       (agreement (person ?person)))
               (args (?a))
               (subunits (?possessive-unit ?best-unit))
               (boundaries (?possessive-left ?best-right)))
@@ -786,20 +881,20 @@
              (?possessive-unit
               (args (?x))
               --
-              (syn-cat (cat N)
-                       (max -)
-                       (min +)
-                       (role det))
-              (morph-cat (morph poss)
-                         (subcat pronoun)
-                         (person ?person))
+              (syn-cat (lex-class (cat N)
+                                  (max -)
+                                  (min +)
+                                  (role det)
+                                  (subcat pronoun))
+                       (agreement (person ?person))
+              (morph-cat (morph poss))
               (boundaries (?possessive-left ?possessive-right)))
              (?best-unit
               (args (?y))
               --
-              (syn-cat (cat N)
-                       (max -)
-                       (min +))
+              (syn-cat (lex-class (cat N)
+                                  (max -)
+                                  (min +)))
               (boundaries (?best-left ?best-right)))
              (?ones-best-unit
               (HASH meaning ((ones-best ?a ?x ?y)))
@@ -812,33 +907,32 @@
 
 (def-fcg-cxn do-ones-best-cxn
              ((?do-ones-best-unit
-               (syn-cat (cat V)
-                        (max -)
-                        (min -))
-               (morph-cat (person ?person)
-                          (tense ?tense))
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min -))
+                        (agreement (number ?number)
+                                   (person ?person)))
+               (morph-cat (tense ?tense))
                (args (?x))
                (subunits (?do-unit ?ones-best-unit))
                (boundaries (?do-left ?ones-best-right)))
               <-
               (?do-unit
                (args (?x))
-               (morph-cat (lexeme do)
-                          (person ?person)
-                          (tense ?tense))
                --
-               (syn-cat (cat V)
-                        (min +))
+               (syn-cat (lex-class (cat V)
+                                   (min +))
+                        (agreement (number ?number)
+                                   (person ?person)))
                (morph-cat (lexeme do)
-                          (person ?person)
                           (tense ?tense))
                (boundaries (?do-left ?do-right)))
               (?ones-best-unit
                (args (?y))
                --
-               (syn-cat (cat N)
-                        (max +))
-               (morph-cat (person ?person))
+               (syn-cat (lex-class (cat N)
+                                   (max +))
+                        (agreement (person ?person)))
                (boundaries (?ones-best-left ?ones-best-right)))
               (?do-ones-best-unit
                (HASH meaning ((give-ones-best ?x ?y)))
@@ -854,5 +948,26 @@
 
 ;; "I did my best"
 ;; "she did her best"
-              
+
+;;-------------;;
+;; The x the y ;;
+;;-------------;;
+
+;; this cxns aims to map onto any sentence that combines the + comparative + complement + the + comparative + complement
+;; ex: "The sooner you learn how to pronounce her name, the more likely is she to go out with you"
+
+;; we'll exemplify the first example given by Fillmore.
+
+;; more-cxn
+;; sooner-cxn
+;; you-cxn
+;; learn-cxn
+;; how-cxn
+;; 
+
+(def-fcg-cxn the-x-the-y-cxn
+             (?the-x-the-y-unit)
+             <-
+             (?the-x-the-y-unit))
+
               

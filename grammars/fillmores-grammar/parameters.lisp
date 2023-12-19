@@ -31,3 +31,5 @@
                                    ;(:hide-features . (footprints superunits))
                                    (:with-search-debug-data . t))|#
   :hierarchy-features (subunits dependents))
+
+(activate-monitor trace-fcg)
