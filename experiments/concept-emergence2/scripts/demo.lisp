@@ -12,9 +12,9 @@
                 (:usage-table-window . 100)
                 (:save-distribution-history . nil)
                 ;; setup interacting agents
-                (:population-size . 2)
+                (:interacting-agents-strategy . :standard)
+                (:population-size . 10)
                 ;; setup data scene
-                (:setting . :tutor-learner)
                 (:dataset . "clevr")
                 (:dataset-split . "train")
                 ;(:data-fname . "all.lisp")
@@ -29,16 +29,16 @@
                 (:observation-std . 0.0)
                 ;; scene sampling
                 (:scene-sampling . :random)
-                (:topic-sampling . :discriminative)
+                (:topic-sampling . :random)
                 ;; general strategy
                 (:align . t)
                 (:similarity-threshold . 0.0)
                 ;; entrenchment of constructions
                 (:initial-cxn-entrenchement . 0.5)
                 (:entrenchment-incf . 0.1)
-                (:entrenchment-decf . -0.01)
-                (:entrenchment-li . -0.001) ;; lateral inhibition
-                (:trash-concepts . nil)
+                (:entrenchment-decf . -0.1)
+                (:entrenchment-li . -0.02) ;; lateral inhibition
+                (:trash-concepts . t)
                 ;; concept representations
                 (:concept-representation . :distribution)
                 (:distribution . :gaussian-welford)
@@ -47,7 +47,7 @@
                 (:weight-update-strategy . :j-interpolation)
                 (:initial-weight . 0)
                 (:weight-incf . 1)
-                (:weight-decf . -1)
+                (:weight-decf . -5)
                 ;; staging
                 (:switch-condition . :none) ; :after-n-interactions)
                 (:switch-conditions-after-n-interactions . 2500) 
@@ -70,7 +70,7 @@
   (activate-monitor print-a-dot-for-each-interaction)
   (format t "~%---------- NEW GAME ----------~%")
   (time
-   (loop for i from 1 to 10000
+   (loop for i from 1 to 50000
          do (run-interaction *experiment*))))
 
 (progn
@@ -80,14 +80,8 @@
   (loop for idx from 1 to 1
         do (run-interaction *experiment*)))
 
-(display-lexicon (second (agents *experiment*)) :sort t)
+(display-lexicon (find-agent 1 *experiment*) :sort t)
 
-(loop for cxn in (lexicon (second (agents *experiment*)))
-      collect (form cxn))
-
-(setf ffff (find-in-lexicon (second (agents *experiment*)) "small"))
-
-(add-cxn-to-interface (find-in-lexicon (second (agents *experiment*)) "small") :certainty-threshold 0.0)
 
 
 (progn

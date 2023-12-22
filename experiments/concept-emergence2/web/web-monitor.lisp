@@ -6,18 +6,12 @@
 
 ;; Add cxn to wi
 (defun add-cxn-to-interface (cxn &key (certainty-threshold 0.1) disabled-channels)
-  (if (meaning cxn)
-    (add-element
-     `((div :style ,(format nil "margin-left: 50px;"))
-       ,(s-dot->svg
-         (cxn->s-dot cxn
-                     :certainty-threshold certainty-threshold
-                     :disabled-channels disabled-channels))))
-    (add-element
-     `((h4) ,(format nil " Tutor used form: ~a"
-                     
-                     (downcase (mkstr (form cxn)))
-                     )))))
+  (add-element
+   `((div :style ,(format nil "margin-left: 50px;"))
+     ,(s-dot->svg
+       (cxn->s-dot cxn
+                   :certainty-threshold certainty-threshold
+                   :disabled-channels disabled-channels)))))
 
 (defun add-cxn-diff-to-interface (cxn previous-copy &key (certainty-threshold 0.1))
   (add-element

@@ -56,7 +56,7 @@
     (loop with prototypes = (sort (get-prototypes (meaning cxn))
                                   (lambda (x y) (string< (symbol-name (channel x))
                                                          (symbol-name (channel y)))))
-          for prototype in (reverse prototypes)
+          for prototype in prototypes
           for previous-prototype = (gethash (channel prototype) (prototypes (meaning previous-copy)))
           for record = (prototype->s-dot-diff prototype
                                               previous-prototype
