@@ -26,7 +26,7 @@
   (setf (cdr (last list)) list)
   list)
 
-(defparameter *alphabet* (make-circular-list (coerce "ABCDEFGHIJKLMNOPQRSTUVWXYZ" 'list)))
+(defparameter *alphabet* (make-circular-list (mapcar #'mkstr '(A B C D E F G H I J K L M N O P Q R S T U V W X Y Z))))
 
 (defun next-au-var ()
   (pop *alphabet*))
