@@ -56,8 +56,8 @@
    generalisation, pattern-bindings, source-bindings, pattern-delta and source-delta."
   
   ;; Assert that all predicates are unique in pattern and source (just to be safe)
-  ;(assert (= (length pattern) (length (remove-duplicates pattern :test #'equalp))))
-  ;(assert (= (length source) (length (remove-duplicates source :test #'equalp))))
+  (assert (= (length pattern) (length (remove-duplicates pattern :test #'equalp))))
+  (assert (= (length source) (length (remove-duplicates source :test #'equalp))))
 
   ;; Loop over all possible alignments of predicates in pattern and source and anti-unify them...
   (loop with possible-alignments = (identify-possible-alignments pattern source
