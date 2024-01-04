@@ -8,8 +8,21 @@
 ;; Anti-unifying sets of predicates ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;;; Jens - 04/01/2024
+;;;; The global variable *alpahbet* is implemented as a circular list
+;;;; by having the cdr of the last cons-cell in the list point to the
+;;;; start of the list instead of to NIL. This allows to cycle through
+;;;; the alphabet by each time calling 'pop'. However, this makes it
+;;;; impossible to print the variable *alphabet* (as it would be
+;;;; infinitely long). So do not try this, unless you want LispWorks
+;;;; to be blocked...
+;;;; You _can_ print *alphabet* when setting the system variable
+;;;; *print-circle* to T, but this has other effects that are not
+;;;; desirable. For instance, the predicate (F ?B ?B) would be printed
+;;;; as (F #1=?B #1#). 
+
 (defun make-circular-list (list)
-  (setf *print-circle* t)
+  ;(setf *print-circle* t)
   (setf (cdr (last list)) list)
   list)
 
