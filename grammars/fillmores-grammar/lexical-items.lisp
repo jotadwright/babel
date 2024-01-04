@@ -40,8 +40,9 @@
                                    (max +)
                                    (min +)
                                    (role S))
-                        (agreement (number singular))) ; means it is a pronoun-headed phrase
-               (morph-cat (person 1st))
+                        (agreement (number singular)
+                                   (person 1st))) ; means it is a pronoun-headed phrase
+               (sem-cat (sem-class person))
                (args (?x))
                (boundaries (?left ?right)))
               <-
@@ -59,6 +60,7 @@
                                    (role S))
                         (agreement (number singular)
                                    (person 3rd))) ;; role S is an implementation of page 43 of the article where S is for subject and caracterizes anything capable of filling the role "subject"
+               (sem-cat (sem-class person))
                (args (?x))
                (boundaries (?left ?right)))
               <-
@@ -79,6 +81,7 @@
                                    (subcat pronoun))
                         (agreement (number ?number)
                                    (person 3rd)))
+               (sem-cat (sem-class person))
                (morph-cat (morph poss))
                (args (?x))
                (boundaries (?left ?right)))
@@ -239,7 +242,7 @@
                (sem-cat (definiteness definite))
                (morph-form (starts-with ?starts-with))
                (args (?x))
-               (sequences ((sequence "the" ?left ?right))))
+               (boundaries (?left ?right)))
               <-
               (?the-unit
                (HASH meaning ((unique ?x)))
@@ -255,10 +258,10 @@
                (sem-cat (definiteness indefinite))
                (morph-form (starts-with consonant))
                (args (?x))
-               (sequences ((sequence "a" ?left ?right))))
+               (boundaries (?left ?right)))
               <-
               (?a-unit
-               (HASH meaning ((instance-of ?x)))
+               (HASH meaning ((instance ?x)))
                --
                (HASH form ((sequence "a" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -271,10 +274,10 @@
                (sem-cat (definiteness indefinite))
                (morph-form (starts-with vowel))
                (args (?x))
-               (sequences ((sequence "an" ?left ?right))))
+               (boundaries (?left ?right)))
               <-
               (?an-unit
-               (HASH meaning ((instance-of ?x)))
+               (HASH meaning ((instance ?x)))
                --
                (HASH form ((sequence "an" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -287,7 +290,7 @@
                (sem-cat (definiteness ?definiteness))
                (morph-form (starts-with ?starts-with))
                (args (?x))
-               (sequences ((sequence "my" ?left ?right))))
+               (boundaries (?left ?right)))
               <-
               (?my-unit
                (HASH meaning ((possessive-nominal-first-pers ?x)))
@@ -303,7 +306,7 @@
                (sem-cat (definiteness definite))
                (morph-form (starts-with ?starts-with))
                (args (?x))
-               (sequences ((sequence "this" ?left ?right))))
+               (boundaries (?left ?right)))
               <-
               (?this-unit
                (HASH meaning ((demonstrative-close-object ?x)))
@@ -319,7 +322,7 @@
                (sem-cat (definiteness definite))
                (morph-form (starts-with ?starts-with))
                (args (?x))
-               (sequences ((sequence "these" ?left ?right))))
+               (boundaries (?left ?right)))
               <-
               (?this-unit
                (HASH meaning ((demonstrative-close-objects ?x)))
@@ -579,25 +582,6 @@
                (HASH form ((sequence "remove" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)|#
 
-(def-fcg-cxn gives-cxn
-             ((?give-unit
-               (syn-cat (lex-class (cat V)
-                                   (max -)
-                                   (min +)
-                                   (aux -))
-                        (agreement (person 3rd)
-                                   (number singular))
-               (morph-cat (lexeme give)
-                          (tense present))
-               (args (?x))
-               (boundaries (?left ?right)))
-              <-
-              (?give-unit
-               (HASH meaning ((give.01 ?x))) ;;a giver, a given entity, a gived entity
-               --
-               (HASH form ((sequence "gives" ?left ?right)))))
-             :cxn-inventory *fillmores-cxns*)
-
 (def-fcg-cxn were-cxn
              ((?were-unit
                (syn-cat (lex-class (cat V)
@@ -650,7 +634,7 @@
                (boundaries (?left ?right)))
                <-
                (?have-unit
-                (HASH meaning ((have.01 ?x))) ;;have.01 = auxiliary
+                (HASH meaning ((have.01 ?x ?a) (tense ?a present))) ;;have.01 = auxiliary
                 --
                 (HASH form ((sequence "have" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -660,9 +644,7 @@
                (syn-cat (lex-class (cat V)
                                    (max -)
                                    (min +)
-                                   (aux -))
-                        (agreement (person ?person)
-                                   (number ?number))
+                                   (aux -)))
                (morph-cat (lexeme lie)
                           (tense preterit))
                (args (?y))
@@ -688,7 +670,7 @@
                (boundaries (?left ?right)))
               <-
               (?remove-unit
-               (HASH meaning ((remove.01 ?x)))
+               (HASH meaning ((remove.01 ?x ?y) (tense ?y preterit)))
                --
                (HASH form ((sequence "removed" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -707,7 +689,7 @@
                (boundaries (?left ?right)))
               <-
               (?removes-unit
-               (HASH meaning ((remove.01 ?x)))
+               (HASH meaning ((remove.01 ?x ?y) (tense ?y present)))
                --
                (HASH form ((sequence "removes" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -747,7 +729,7 @@
                (boundaries (?left ?right)))
                <-
                (?is-unit
-                (HASH meaning ((be.01 ?x)))
+                (HASH meaning ((be.01 ?x ?a) (tense ?a present)))
                 --
                 (HASH form ((sequence "is" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -766,14 +748,50 @@
                (boundaries (?left ?right)))
                <-
                (?was-unit
-                (HASH meaning ((be.01 ?x)))
+                (HASH meaning ((be.01 ?x ?a) (tense ?a past)))
+                --
+                (HASH form ((sequence "was" ?left ?right)))))
+             :cxn-inventory *fillmores-cxns*)
+
+(def-fcg-cxn gives-cxn
+             ((?gives-unit
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min +)
+                                   (aux -))
+                        (agreement (person 3rd)
+                                   (number singular)))
+               (morph-cat (lexeme give)
+                          (tense present))
+               (args (?x))
+               (boundaries (?left ?right)))
+               <-
+               (?gives-unit
+                (HASH meaning ((give.01 ?x ?a) (tense ?a present))) ;;a giver, a given entity, a gived entity
+                --
+                (HASH form ((sequence "gives" ?left ?right)))))
+             :cxn-inventory *fillmores-cxns*)
+
+(def-fcg-cxn was-cxn
+             ((?was-unit
+               (syn-cat (lex-class (cat V)
+                                   (max -)
+                                   (min +)
+                                   (aux +))
+                        (agreement (person 1st)
+                                   (number singular)))
+               (morph-cat (lexeme be)
+                          (tense past))
+               (args (?x))
+               (boundaries (?left ?right)))
+               <-
+               (?was-unit
+                (HASH meaning ((be.01 ?x ?a) (tense ?a past)))
                 --
                 (HASH form ((sequence "was" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
 
 ;; (comprehend "was" :cxn-inventory *fillmores-cxns*)
-;; (formulate '((be.01 ?x)) :cxn-inventory *fillmores-cxns*)
-
 ;; (comprehend-and-formulate "was" :cxn-inventory *fillmores-cxns*)
 
 (def-fcg-cxn contributed-cxn
@@ -857,7 +875,7 @@
                (boundaries (?left ?right)))
               <-
               (?from-unit
-               (HASH meaning ((from ?x)))
+               (HASH meaning ((origin ?x)))
                --
                (HASH form ((sequence "from" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)

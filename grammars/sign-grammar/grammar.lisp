@@ -72,14 +72,17 @@
 ;-----------------------------
 ; New repairs that are needed:
 ;-----------------------------
-;1) relaxing on location: if no solution is found, but a cxn exists that has as only difference that one constant is diferent throughout (a location constant, e.g. right is replaced by left everywhere), then the cxn is duplicated and right is replaced by a variable everywhere. Since in an itembased cxn, the location of the slot is kept by default (e.g. right), if there is some agreement between parts of the rest of the item-based cxn and the slot, there will be agreement between them through the variable. --> but: how do we extract the location of a slot?? --> just look for any instance of a location predicate?
+;1) when a construction already exists in the inventory, and a new observation has the same meaning and form, except for the location which is different (e.g. all instances of left are replaced by instances of right)
+;2) when a construction already exists in the inventory, and a new observation has the same meaning and form, but one sign is added (e.g. pointing sign, dans, personne + habiter vs. habiter.
+;3) sometimes type of topic is specified and sometimes not (e.g. ville boulder vs. Arizona) --> but both constructions might be possible for both maybe?
+
 
 
 ;--------------------------------;
 ; + Holophrastic constructions + ;
 ;--------------------------------;
 
-; example #11_0: "what is the largest state in the us?" ((ANSWER ?B ?A ?C)(LARGEST ?C ?A ?D)(STATE ?D ?A))
+; holophrase for example 11_0
 (def-fcg-cxn answer-largest-state-1-cxn
              (<-
               (?answer-largest-state-unit
@@ -634,7 +637,130 @@
                            (temporal-relation ?dss-petit-entite-geographique-1 ?fbuoy-grand-entite-geographique-1 starts)
                            (temporal-relation ?un-1 ?fbuoy-grand-entite-geographique-1 during)
                            (temporal-relation ?pt-1 ?fbuoy-grand-entite-geographique-1 finishes))))))
-                           
+
+(def-fcg-cxn answer-population-const-countryid-usa-1-cxn
+                      (<-
+                       (?answer-population-const-countryid-usa-1-unit
+                        (HASH meaning ((ANSWER ?C ?A ?D)(POPULATION ?D ?B ?A)(CONST ?D ?B ?E)(COUNTRYID ?E ?F)(USA ?F)))
+                        --
+                        (HASH form (;NS-AMERIQUE.LAVER-VISAGE --> dominant hand
+                                    (left-hand-articulation ?ns-amerique.laver-visage-1 ns-amerique.laver-visage)
+                                    ;DSS-GRAND-ENTITE-GEOGRAPHIQUE --> two-handed, location = right
+                                    (left-hand-articulation ?dss-grand-entite-geographique-1 dss-grand-entite-geographique)
+                                    (location ?dss-grand-entite-geographique-1 rssp)
+                                    (right-hand-articulation ?dss-grand-entite-geographique-2 dss-grand-entite-geographique)
+                                    (location ?dss-grand-entite-geographique-2 rssp)
+                                    (temporal-relation ?dss-grand-entite-geographique-1 ?dss-grand-entite-geographique-2 equals)
+                                    ;PT5 --> dominant hand, location = right, modification = cercle
+                                    (left-hand-articulation ?pt5-1 pt5)
+                                    (location ?pt5-1 rssp)
+                                    (modification ?pt5-1 cercle)
+                                    ;COMBIEN --> dominant handle
+                                    (left-hand-articulation ?combien-1 combien)
+                                    ;PERSONNE.HUMAIN --> two-handed
+                                    (left-hand-articulation ?personne.humain-1 personne.humain)
+                                    (right-hand-articulation ?personne.humain-2 personne.humain)
+                                    (temporal-relation ?personne.humain-1 ?personne.humain-2 equals)
+                                    ;TOTAL --> two-handed
+                                    (left-hand-articulation ?total-1 total)
+                                    (right-hand-articulation ?total-2 total)
+                                    (temporal-relation ?total-1 ?total-2 equals)
+                                    ;FBUOY-GRAND-ENTITE-GEOGRAPHIQUE --> non-dominant hand, location = rssp
+                                    (right-hand-articulation ?fbuoy-grand-entite-geographique-1 fbuoy-grand-entite-geographique)
+                                    (location ?fbuoy-grand-entite-geographique-1 rssp)
+                                    ;MEETS
+                                    (meets ?ns-amerique.laver-visage-1 ?dss-grand-entite-geographique-1)
+                                    (meets ?dss-grand-entite-geographique-1 ?pt5-1)
+                                    (meets ?pt5-1 ?combien-1)
+                                    (meets ?combien-1 ?personne.humain-1)
+                                    (meets ?personne.humain-1 ?total-1)
+                                    ;FBUOY temporal relations
+                                    (temporal-relation ?pt5-1 ?fbuoy-grand-entite-geographique-1 equals)
+                                    )))))
+
+
+(def-fcg-cxn answer-population-const-countryid-usa-2-cxn
+             (<-
+              (?answer-population-const-countryid-usa-2-unit
+               (HASH meaning ((ANSWER ?C ?A ?D)(POPULATION ?D ?B ?A)(CONST ?D ?B ?E)(COUNTRYID ?E ?F)(USA ?F)))
+               --
+               (HASH form (;NS-AMERIQUE.FRITES --> two-handed
+                           (left-hand-articulation ?ns-amerique.frites-1 ns-amerique.frites)
+                           (right-hand-articulation ?ns-amerique.frites-2 ns-amerique.frites)
+                           (temporal-relation ?ns-amerique.frites-1 ?ns-amerique.frites-2 equals)
+                           ;DSS-GRAND-ENTITE-GEOGRAPHIQUE --> two-handed, location = right
+                           (left-hand-articulation ?dss-grand-entite-geographique-1 dss-grand-entite-geographique)
+                           (location ?dss-grand-entite-geographique-1 rssp)
+                           (right-hand-articulation ?dss-grand-entite-geographique-2 dss-grand-entite-geographique)
+                           (location ?dss-grand-entite-geographique-2 rssp)
+                           (temporal-relation ?dss-grand-entite-geographique-1 ?dss-grand-entite-geographique-2 equals)
+                           ;PT --> dominant hand, location = rssp, modification = cercle
+                           (left-hand-articulation ?pt5-1 pt5)
+                           (location ?pt5-1 rssp)
+                           (modification ?pt5-1 cercle)
+                           ;COMPLET.F --> dominant hand
+                           (left-hand-articulation ?complet.f-1 complet.f)
+                           ;COMBIEN --> dominant hand
+                           (left-hand-articulation ?combien-1 combien)
+                           ;PERSONNE.HUMAIN --> two-handed
+                           (left-hand-articulation ?personne.humain-1 personne.humain)
+                           (right-hand-articulation ?personne.humain-2 personne.humain)
+                           (temporal-relation ?personne.humain-1 ?personne.humain-2 equals)
+                           ;HABITER --> two-handed, modification = reduplicated
+                           (left-hand-articulation ?habiter-1 habiter)
+                           (right-hand-articulation ?habiter-2 habiter)
+                           (temporal-relation ?habiter-1 ?habiter2 equals)
+                           ;FBUOY-GRAND-ENTITE-GEOGRAPHIQUE --> non-dominant hand, location = rssp
+                           (right-hand-articulation ?fbuoy-grand-entite-geographique-1 fbuoy-grand-entite-geographique)
+                           (location ?fbuoy-grand-entite-geographique-1 rssp)
+                           ;MEETS
+                           (meets ?ns-amerique.frites-1 ?dss-grand-entite-geographique-1)
+                           (meets ?dss-grand-entite-geographique-1 ?pt5-1)
+                           (meets ?pt5-1 ?complet.f-1)
+                           (meets ?complet.f-1 ?combien-1)
+                           (meets ?combien-1 ?personne.humain-1)
+                           (meets ?personne.humain-1 ?habiter-1)
+                           ;FBUOY temporal relations
+                           (temporal-relation ?pt5-1 ?fbuoy-grand-entite-geographique-1 starts)
+                           (temporal-relation ?complet.f-1 ?fbuoy-grand-entite-geographique-1 finishes)
+                           )))))
+
+(def-fcg-cxn answer-area-const-countryid-usa-1-cxn
+             (<-
+              (?answer-area-const-countryid-usa-1-unit
+               (HASH meaning ((ANSWER ?C ?A ?D)(AREA ?D ?B ?A)(CONST ?D ?B ?E)(COUNTRYID ?E ?F)(USA ?F)))
+               --
+               (HASH form (;NS-AMERIQUE.FRITES --> two-handed
+                           (left-hand-articulation ?ns-amerique.frites-1 ns-amerique.frites)
+                           (right-hand-articulation ?ns-amerique.frites-2 ns-amerique.frites)
+                           (temporal-relation ?ns-amerique.frites-1 ?ns-amerique.frites-2 equals)
+                           ;DSS-GRAND-ENTITE-GEOGRAPHIQUE --> two-handed, location = right
+                           (left-hand-articulation ?dss-grand-entite-geographique-1 dss-grand-entite-geographique)
+                           (location ?dss-grand-entite-geographique-1 rssp)
+                           (right-hand-articulation ?dss-grand-entite-geographique-2 dss-grand-entite-geographique)
+                           (location ?dss-grand-entite-geographique-2 rssp)
+                           (temporal-relation ?dss-grand-entite-geographique-1 ?dss-grand-entite-geographique-2 equals)
+                           ;PT5 --> dominant hand, location = right, modification = cercle
+                           (left-hand-articulation ?pt5-1 pt5)
+                           (location ?pt5-1 rssp)
+                           (modification ?pt5-1 cercle)
+                           ;COMBIEN --> dominant hand
+                           (left-hand-articulation ?combien-1 combien)
+                           ;METRE-CARRE --> dominant hand
+                           (left-hand-articulation ?metre-carre-1 metre-carre)
+                           ;MEETS
+                           (meets ?ns-amerique.frites-1 ?dss-grand-entite-geographique-1)
+                           (meets ?dss-grand-entite-geographique-1 ?pt5-1)
+                           (meets ?pt5-1 ?combien-1)
+                           (meets ?combien-1 ?metre-carre-1)
+                           ;FBUOY temporal relations
+                           (temporal-relation ?pt5-1 ?fbuoy-grand-entite-geographique-1 starts)
+                           (temporal-relation ?combien-1 ?fbuoy-grand-entite-geographique-1 during)
+                           (temporal-relation ?metre-carre-1 ?fbuoy-grand-entite-geographique-1 finishes)
+                           )))))
+
+
+
                            
 ;------------------------------;
 ; + item-based constructions + ;
@@ -691,12 +817,14 @@
               (?slot1-unit
                (meaning-args ((partial-network ?D)
                               (target ?A)))
+               
                --
                (category answer-largest-slot1-1-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
                            (lh-rightmost ?slot1-lh-right)
                            (rh-rightmost ?slot1-rh-right))
-               (location rssp))))
+               (location rssp)
+               )))
 
 
 (def-fcg-cxn answer-area-largest-slot1-1-cxn
@@ -765,7 +893,8 @@
                (boundaries (lh-leftmost ?slot1-lh-left)
                            (lh-rightmost ?slot1-lh-right)
                            (rh-rightmost ?slot1-rh-right))
-               (location rssp))))
+               (location rssp)
+               )))
 
 (def-fcg-cxn answer-population-largest-density-slot1-1-cxn
              ((?answer-population-largest-density-slot1-unit
@@ -784,7 +913,7 @@
                            (temporal-relation ?ns-amerique.frites-1 ?ns-amerique.frites-2 equals)
                            ;IL-Y-A --> dominant hand
                            (left-hand-articulation ?il-y-a-1 il-y-a)
-                            ;UN --> dominant hand
+                           ;UN --> dominant hand
                            (left-hand-articulation ?un-1 un)
                            ;PT --> dominant hand, location = location-1, modification = cercle
                            (left-hand-articulation ?pt-1 pt)
@@ -846,14 +975,15 @@
                 (boundaries (lh-leftmost ?slot1-lh-left)
                             (lh-rightmost ?slot1-lh-right)
                             (rh-rightmost ?slot1-rh-right))
-                (location midssp))))
+                (location midssp)
+                )))
 
 
-(def-fcg-cxn answer-largest-state-slot1-2-cxn
-             ((?answer-largest-state-slot1-2-unit
+(def-fcg-cxn answer-largest-slot1-2-cxn
+             ((?answer-largest-slot1-2-unit
                (subunits (?slot1-unit)))
               <-
-              (?answer-largest-state-slot1-2-unit
+              (?answer-largest-slot1-2-unit
                (HASH meaning ((ANSWER ?B ?A ?C)(LARGEST ?C ?A ?D)))
                --
                (HASH form (;DANS --> two-handed
@@ -910,11 +1040,12 @@
                (meaning-args ((partial-network ?D)
                                (target ?A)))
                --
-               (category answer-largest-state-slot1-2-slot1-cat)
+               (category answer-largest-slot1-2-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
                            (lh-rightmost ?slot1-lh-right)
                            (rh-rightmost ?slot1-rh-right))
-               (location rssp))))
+               (location rssp)
+               )))
               
 (def-fcg-cxn answer-size-const-stateid-slot1-1-cxn
              ((?answer-size-const-stateid-slot1-1-unit
@@ -959,10 +1090,12 @@
                            (temporal-relation ?combien-1 ?fbuoy-grand-entite-geographique-1 during)
                            (temporal-relation ?metre-carre-1 ?fbuoy-grand-entite-geographique-1 finishes))))
               (?slot1-unit
-               (meaning-args ((target ?F)))
+                (meaning-args ((target ?F)))
                --
                (category answer-size-const-stateid-slot1-1-slot1-cat)
-               (boundaries (lh-rightmost ?slot1-lh-right)))))
+               (boundaries (lh-rightmost ?slot1-lh-right))
+               )))
+
 
 (def-fcg-cxn answer-size-const-cityid-slot1-1-cxn
              ((?answer-size-const-cityid-slot1-1-unit
@@ -1006,7 +1139,8 @@
                --
                (category answer-size-const-cityid-slot1-1-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
-                           (lh-rightmost ?slot1-lh-right)))))
+                           (lh-rightmost ?slot1-lh-right))
+               )))
 
 (def-fcg-cxn answer-elevation-const-placeid-slot1-1-cxn
              ((?answer-elevation-const-placeid-slot1-1-unit
@@ -1055,7 +1189,8 @@
                --
                (category answer-elevation-const-placeid-slot1-1-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
-                           (lh-rightmost ?slot1-lh-right)))))
+                           (lh-rightmost ?slot1-lh-right))
+               )))
 
 (def-fcg-cxn answer-len-const-riverid-slot1-1-cxn
              (<-
@@ -1107,14 +1242,15 @@
                --
                (category answer-len-const-riverid-slot1-1-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
-                           (lh-rightmost ?slot1-lh-right)))))
+                           (lh-rightmost ?slot1-lh-right))
+               )))
 
 
 (def-fcg-cxn answer-population-const-stateid-slot1-1-cxn
-             ((?answer-population-const-stateid-alabama-1
+             ((?answer-population-const-stateid-slot1-1
                (subunits (?slot1-unit)))
               <-
-              (?answer-population-const-stateid-alabama-1
+              (?answer-population-const-stateid-slot1-1
                (HASH meaning ((ANSWER ?C ?A ?D)(POPULATION ?D ?B ?A)(CONST ?D ?B ?E)(STATEID ?E ?F)))
                --
                (HASH form (;DANS --> two-handed
@@ -1146,7 +1282,57 @@
                --
                (category answer-population-const-stateid-slot1-1-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
-                           (lh-rightmost ?slot1-lh-right)))))
+                           (lh-rightmost ?slot1-lh-right))
+               )))
+
+(def-fcg-cxn answer-population-const-slot1-slot2-1-cxn
+             ((?answer-population-const-slot1-slot2-1
+               (subunits (?slot1-unit ?slot2-unit)))
+              <-
+              (?answer-population-const-slot1-slot2-1
+               (HASH meaning ((ANSWER ?C ?A ?D)(POPULATION ?D ?B ?A)(CONST ?D ?B ?E)))
+               --
+               (HASH form (;DANS --> two-handed
+                           (left-hand-articulation ?dans-1 dans)
+                           (right-hand-articulation ?dans-2 dans)
+                           (temporal-relation ?dans-1 ?dans-2 equals)
+                           ;PT --> dominant hand, location = right
+                           (left-hand-articulation ?pt-1 pt)
+                           (location ?pt-1 rssp)
+                           ;COMBIEN --> two-handed
+                           (left-hand-articulation ?combien-1 combien)
+                           ;HABITER --> two-handed, modification = reduplicated
+                           (left-hand-articulation ?habiter-1 habiter)
+                           (right-hand-articulation ?habiter-2 habiter)
+                           (temporal-relation ?habiter-1 ?habiter2 equals)
+                           ;DANS --> two-handed
+                           (left-hand-articulation ?dans-3 dans)
+                           (right-hand-articulation ?dans-4 dans)
+                           (temporal-relation ?dans-3 ?dans-4 equals)
+                           ;COMBIEN --> two-handed
+                           (left-hand-articulation ?combien-3 combien)
+                           ;MEETS
+                           (meets ?dans-1 ?slot1-lh-left)
+                           (meets ?slot1-lh-right ?slot2-lh-left)
+                           (meets ?slot2-lh-right ?pt-1)
+                           (meets ?pt-1 ?combien-1)
+                           (meets ?combien-1 ?habiter-1)
+                           (meets ?habiter-1 ?dans-3)
+                           (meets ?dans-3 ?combien-3))))
+              (?slot1-unit
+               (meaning-args ((target ?E)
+                              (embedded-network ?F)))
+               --
+               (category answer-population-const-slot1-slot2-1-slot1-cat)
+               (boundaries (lh-leftmost ?slot1-lh-left)
+                           (lh-rightmost ?slot1-lh-right))
+               )
+              (?slot2-unit
+               (meaning-args ((target ?F)))
+               --
+               (category answer-population-const-slot1-slot2-1-slot2-cat)
+               (boundaries (lh-leftmost ?slot2-lh-left)
+                           (lh-rightmost ?slot2-lh-right)))))
 
 (def-fcg-cxn answer-population-const-stateid-slot1-2-cxn
              ((?answer-population-const-stateid-slot1-2-unit
@@ -1216,12 +1402,294 @@
                --
                (category answer-population-const-stateid-slot1-2-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
-                           (lh-rightmost ?slot1-lh-right)))))
+                           (lh-rightmost ?slot1-lh-right))
+               )))
+
+(def-fcg-cxn answer-highest-place-loc-slot1-1-cxn
+             ((?answer-highest-place-loc-slot1-1-unit
+               (subunits (slot1-unit)))
+              <-
+              (?answer-highest-place-loc-slot1-1-unit
+               (HASH meaning ((ANSWER ?C ?A ?D)(HIGHEST ?D ?A ?E)(PLACE ?E ?A)(LOC ?E ?A ?B)))
+               --
+               (HASH form (;DANS --> two-handed
+                           (left-hand-articulation ?dans-1 dans)
+                           (right-hand-articulation ?dans-2 dans)
+                           (temporal-relation ?dans-1 ?dans-2 equals)
+                           ;NS-AMERIQUE.FRITES --> two-handed
+                           (left-hand-articulation ?ns-amerique.frites-1 ns-amerique.frites)
+                           (right-hand-articulation ?ns-amerique.frites-2 ns-amerique.frites)
+                           (temporal-relation ?ns-amerique.frites-1 ?ns-amerique.frites-2 equals)
+                           ;IL-Y-A --> dominant hand
+                           (left-hand-articulation ?il-y-a-1 il-y-a)
+                           ;ETAT --> two-handed
+                           (left-hand-articulation ?etat-1 etat)
+                           (right-hand-articulation ?etat-2 etat)
+                           (temporal-relation ?etat-1 ?etat-2 equals)
+                           ;UN --> dominant hand
+                           (left-hand-articulation ?un-1 un)
+                           ;DUMMY-TAG --> dominant hand (will have to be replaced once the annotation is modified)
+                           (left-hand-articulation ?dummy-tag-1 dummy-tag)
+                           ;UN --> dominant hand, modification = reduplicated
+                           (left-hand-articulation ?un-2 ?un)
+                           (modification ?un-2 reduplicated)
+                           ;POSS --> dominant hand, location = midssp, modification = reduplicated
+                           (left-hand-articulation ?poss-1 poss)
+                           (location ?poss-1 midssp)
+                           (modification ?poss-1 reduplicated)
+                           ;QUOI --> dominant hand
+                           (left-hand-articulation ?quoi-1 quoi)
+                           ;HAUT --> dominant hand
+                           (left-hand-articulation ?haut-1 haut)
+                           ;MAXIMUM --> two-handed
+                           (left-hand-articulation ?maximum-1 maximum)
+                           (right-hand-articulation ?maximum-2 maximum)
+                           (temporal-relation ?maximum-1 ?maximum-2 equals)
+                           ;QUOI --> dominant hand
+                           (left-hand-articulation ?quoi-2 quoi)
+                           ;PT --> dominant hand, location = midssp, modification = reduplicated
+                           (left-hand-articulation ?pt-1 pt)
+                           (location ?pt-1 midssp)
+                           (modification ?pt-1 reduplicated)
+                           ;POSS --> dominant hand, location = midssp, modification = reduplicated
+                           (left-hand-articulation ?poss-2 poss)
+                           (location ?poss-2 midssp)
+                           (modification ?poss-2 reduplicated)
+                           ;fbuoy-grand-entite-geographique --> non-dominant hand, location = midssp
+                           (right-hand-articulation ?fbuoy-grand-entite-geographique-2 fbuoy-grand-entite-geographique)
+                           (location ?fbuoy-grand-entite-geographique-1 midssp)
+                           ;MEETS
+                           (meets ?dans-1 ?ns-amerique.frites-1)
+                           (meets ?ns-amerique.frites-1 ?il-y-a-1)
+                           (meets ?il-y-a-1 ?etat-1)
+                           (meets ?etat-1 ?slot1-lh-left)
+                           (meets ?slot1-lh-right ?un-1)
+                           (meets ?un-1 ?dummy-tag-1)
+                           (meets ?dummy-tag-1 ?un-2)
+                           (meets ?un-2 ?poss-1)
+                           (meets ?poss-1 ?quoi-1)
+                           (meets ?quoi-1 ?haut-1)
+                           (meets ?haut-1 ?maximum-1)
+                           (meets ?maximum-1 ?quoi-2)
+                           (meets ?quoi-2 ?pt-1)
+                           (meets ?pt-1 ?poss-2)
+                           ;FBUOY temporal relations
+                           (temporal-relation ?un-1 ?slot1-rh-right during)
+                           (temporal-relation ?dummy-tag-1 ?slot1-rh-right during)
+                           (temporal-relation ?un-2 ?slot1-rh-right during)
+                           (temporal-relation ?poss-1 ?slot1-rh-right during)
+                           (temporal-relation ?quoi-1 ?slot1-rh-right during)
+                           (temporal-relation ?haut-1 ?slot1-rh-right finishes)
+                           (temporal-relation ?quoi-2 ?fbuoy-grand-entite-geographique-2 starts)
+                           (temporal-relation ?pt-1 ?fbuoy-grand-entite-geographique-2 during)
+                           (temporal-relation ?poss-2 ?fbuoy-grand-entite-geographique-2 finishes)
+                           )))
+             (?slot1-unit
+              (meaning-args ((target ?B)
+                             (partial-network ?E)))
+               --
+               (category answer-highest-place-loc-slot1-1-slot1-cat)
+               (boundaries
+                (lh-leftmost ?slot1-lh-left)
+                (lh-rightmost ?slot1-lh-right)
+                (rh-leftmost ?slot1-rh-left)
+                (rh-rightmost ?slot1-rh-right)
+                ))
+             ))
+
+(def-fcg-cxn answer-largest-population-slot1-1-cxn
+             ((?answer-largest-population-slot1-1-unit
+               (subunits (?slot1-unit)))
+              <-
+              (?answer-largest-population-slot1-1-unit
+               (HASH meaning ((ANSWER ?C ?A ?D)(LARGEST ?D ?B ?E)(POPULATION ?E ?A ?B)))
+               --
+               (HASH form (;DANS --> two-handed
+                           (left-hand-articulation ?dans-1 dans)
+                           (right-hand-articulation ?dans-2 dans)
+                           (temporal-relation ?dans-1 ?dans-2 equals)
+                           ;NS-AMERIQUE.FRITES --> two-handed
+                           (left-hand-articulation ?ns-amerique.frites-1 ns-amerique.frites)
+                           (right-hand-articulation ?ns-amerique.frites-2 ns-amerique.frites)
+                           (temporal-relation ?ns-amerique.frites-1 ?ns-amerique.frites-2 equals)
+                           ;DSS-GRAND-ENTITE-GEOGRAPHIQUE --> two-handed, location = ?location-1
+                           (left-hand-articulation ?dss-grand-entite-geographique-1 dss-grand-entite-geographique)
+                           (right-hand-articulation ?dss-grand-entite-geographique-2 dss-grand-entite-geographique)
+                           (location ?dss-grand-entite-geographique-1 rssp)
+                           (location ?dss-grand-entite-geographique-2 rssp)
+                           (temporal-relation ?dss-grand-entite-geographique-1 ?dss-grand-entite-geographique-2 equals)
+                           ;IL-Y-A --> dominant hand
+                           (left-hand-articulation ?il-y-a-1 il-y-a)
+                           ;UN --> dominant hand
+                           (left-hand-articulation ?un-1 un)
+                           ;PT --> dominant hand, location = rssp
+                           (left-hand-articulation ?pt-1 pt)
+                           (location ?pt-1 rssp)
+                           ;PLUS.P --> dominant hand
+                           (left-hand-articulation ?plus.p-1 plus.p)
+                           ;PERSONNE.HUMAIN --> two-handed
+                           (left-hand-articulation ?personne.humain-1 personne.humain)
+                           (right-hand-articulation ?personne.humain-2 personne.humain)
+                           (temporal-relation ?personne.humain-1 ?personne.humain-2 equals)
+                           ;HABITER --> two-handed, modification = reduplicated
+                           (left-hand-articulation ?habiter-1 habiter)
+                           (right-hand-articulation ?habiter-2 habiter)
+                           (temporal-relation ?habiter-1 ?habiter-2 equals)
+                           ;OU-LIEU.O --> two-handed
+                           (left-hand-articulation ?ou-lieu.5-1 ou-lieu.5)
+                           (right-hand-articulation ?ou-lieu.5-2 ou-lieu.5)
+                           (temporal-relation ?ou-lieu.5-1 ?ou-lieu.5-2 equals)
+                           ;MEETS
+                           (meets ?dans-1 ?ns-amerique.frites-1)
+                           (meets ?ns-amerique.frites-1 ?dss-grand-entite-geographique-1)
+                           (meets ?dss-grand-entite-geographique-1 ?il-y-a-1)
+                           (meets ?il-y-a-1 ?slot1-lh-left)
+                           (meets ?slot1-lh-right ?un-1)
+                           (meets ?un-1 ?pt-1)
+                           (meets ?pt-1 ?plus.p-1)
+                           (meets ?plus.p-1 ?personne.humain-1)
+                           (meets ?personne.humain-1 ?habiter-1)
+                           (meets ?habiter-1 ?ou-lieu.o-1)
+                           ;FBUOY temporal relations
+                           (temporal-relation ?un-1 ?slot1-rh-right during)
+                           (temporal-relation ?pt-2 ?slot1-rh-right during)
+                           (temporal-relation ?plus.p ?slot1-rh-right finishes)
+                           )))
+              (?slot1-unit
+               (meaning-args ((target ?E)
+                             (partial-network ?A)))
+               --
+               (category answer-largest-population-slot1-1-slot1-cat)
+               (boundaries
+                (lh-leftmost ?slot1-lh-left)
+                (lh-rightmost ?slot1-lh-right)
+                (rh-rightmost ?slot1-rh-right)))
+              ))
+
+
+
+                                              
                
 
 ;----------------------------;
 ; + holistic constructions + ;
 ;----------------------------;
+
+
+(def-fcg-cxn new_york-2-cxn
+             ((?new_york-2-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-new-york-1)
+                           (lh-rightmost ?fs-new-york-1))
+               (category new_york-2-cat))
+              <-
+              (?new_york-2-unit
+               (HASH meaning ((NEW_YORK ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-new-york-1 fs-new-york))))))
+
+(def-fcg-cxn boulder-2-cxn
+             ((?boulder-2-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-boulder-1)
+                           (lh-rightmost ?fs-bouder-1))
+               (category boulder-2-cat))
+              <-
+              (?boulder-2-unit
+               (HASH meaning ((BOULDER ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-boulder-1 fs-boulder))))))
+
+(def-fcg-cxn los_angeles-2-cxn
+             ((?los_angeles-2-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-los-angeles-1)
+                           (lh-rightmost ?fs-los-angeles-1))
+               (category los_angeles-2-cat))
+              <-
+              (?los_angeles-2-unit
+               (HASH meaning ((LOS_ANGELES ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-los-angeles-1 fs-los-angeles))))))
+
+(def-fcg-cxn chicago-2-cxn
+             ((?chicago-2-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-chicago-1)
+                           (lh-rightmost ?fs-chicago-1))
+               (category chicago-2-cat))
+              <-
+              (?chicago-2-unit
+               (HASH meaning ((CHICAGO ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-chicago-1 fs-chicago))))))
+
+(def-fcg-cxn houston-2-cxn
+             ((?houston-2-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-houston-1)
+                           (lh-rightmost ?fs-houston-1))
+               (category houston-2-cat))
+              <-
+              (?houston-2-unit
+               (HASH meaning ((HOUSTON ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-houston-1 fs-houston))))))
+
+(def-fcg-cxn phoenix-2-cxn
+             ((?phoenix-2-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-phoenix-1)
+                           (lh-rightmost ?fs-phoenix-1))
+               (category phoenix-2-cat))
+              <-
+              (?phoenix-2-unit
+               (HASH meaning ((PHOENIX ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-phoenix-1 fs-phoenix))))))
+
+(def-fcg-cxn philadelphia-2-cxn
+             ((?philadelphia-2-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-philadelphia-1)
+                           (lh-rightmost ?fs-philadelphia-1))
+               (category philadelphia-2-cat))
+              <-
+              (?philadelphia-2-unit
+               (HASH meaning ((PHILADELPHIA ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-philadelphia-1 fs-philadelphia))))))
+
+
+(def-fcg-cxn san_antonio-2-cxn
+             ((?san_antonio-2-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?fs-san-antonio-1)
+                           (lh-rightmost ?fs-san-antonio-1))
+               (category san_antonio-2-cat))
+              <-
+              (?san_antonio-2-unit
+               (HASH meaning ((SAN_ANTONIO ?A)))
+               --
+               (HASH form ((left-hand-articulation ?fs-san-antonio-1 fs-san-antonio))))))
+
+(def-fcg-cxn cityid-1-cxn
+             ((?cityid-1-unit
+               (meaning-args ((target ?A)
+                              (embedded-network ?B)))
+               (boundaries (lh-leftmost ?ville-1)
+                           (lh-rightmost ?nom.1-1))
+               (category cityid-1-cat))
+               <-
+               (?cityid-1-unit
+                (HASH meaning ((CITYID ?A ?B ?_)))
+                --
+                (HASH form ((left-hand-articulation ?ville-1 ville)
+                            (right-hand-articulation ?ville-2 ville)
+                            (temporal-relation ?ville-1 ?ville-2 equals)
+                            (left-hand-articulation ?nom.1-1 nom.1)
+                            (right-hand-articulation ?nom.1-2 nom.1)
+                            (temporal-relation ?nom-1 ?nom.1-2 equals))))))
 
 (def-fcg-cxn alabama-1-cxn
              ((?alabama-1-unit
@@ -1488,6 +1956,18 @@
                (HASH form ((left-hand-articulation ?ns-new-york.y-loc-1 ns-new-york.y-loc)
                            (right-hand-articulation ?ns-new-york.y-loc-2 ns-new-york.y-loc))))))
 
+(def-fcg-cxn boulder-1-cxn
+             ((?boulder-1-unit
+               (meaning-args ((target ?A)))
+               (boundaries (lh-leftmost ?ns-boulder-1)
+                           (lh-rightmost ?ns-bouder-1))
+               (category boulder-1-cat))
+              <-
+              (?boulder-1-unit
+               (HASH meaning ((BOULDER ?A)))
+               --
+               (HASH form ((left-hand-articulation ?ns-boulder-1 ns-boulder))))))
+
 (def-fcg-cxn los_angeles-1-cxn
              ((?los_angeles-1-unit
                (meaning-args ((target ?A)))
@@ -1719,6 +2199,42 @@
                            (temporal-relation ?pt-1 ?fbuoy-grand-entite-geographique-1 starts)
                            )))))
 
+(def-fcg-cxn city-1-cxn
+             ((?city-1-unit
+               (meaning-args ((partial-network ?D)
+                              (target ?A)))
+               (boundaries (lh-leftmost ?different-1)
+                           (lh-rightmost ?pt-1)
+                           (rh-leftmost ?different-2)
+                           (rh-rightmost ?fbuoy-grand-entite-geographique-1))
+               (category city-1-cat)
+               (location rssp))
+              <-
+              (?city-1-unit
+               (HASH meaning ((CITY ?D ?A)))
+               --
+               (HASH form (;DIFFERENT --> two-handed
+                           (left-hand-articulation ?different-1 different)
+                           (right-hand-articulation ?different-2 different)
+                           (temporal-relation ?different-1 ?different-2 equals)
+                           ;VILLE --> two-handed
+                           (left-hand-articulation ?ville-1 ville)
+                           (right-hand-articulation ?ville-2 ville)
+                           (temporal-relation ?ville-1 ?ville-2 equals)
+                           ;PT --> dominant hand, location = ?location-1, modification = reduplicated
+                           (left-hand-articulation ?pt-1 pt)
+                           (location ?pt-1 rssp)
+                           (modification ?pt-1 reduplicated)
+                           ;FBUOY-GRAND-ENTITE-GEOGRAPHIQUE, location = ?location-1
+                           (right-hand-articulation ?fbuoy-grand-entite-geographique-1 fbuoy-grand-entite-geographique)
+                           (location ?fbuoy-grand-entite-geographique-1 rssp)
+                           ;MEETS
+                           (meets ?different-1 ?ville-1)
+                           (meets ?ville-1 ?pt-1)
+                           ;FBUOY temporal relation
+                           (temporal-relation ?pt-1 ?fbuoy-grand-entite-geographique-1 starts)
+                           )))))
+
 ;------------------------;
 ; + categorial network + ;
 ;------------------------;
@@ -1726,15 +2242,20 @@
 (add-categories '(answer-largest-slot1-1-slot1-cat
                   state-1-cat
                   capital-1-cat
+                  city-1-cat
                   answer-area-largest-slot1-1-slot1-cat
                   answer-population-largest-density-slot1-1-slot1-cat
-                  answer-largest-state-slot1-2-slot1-cat
+                  answer-largest-slot1-2-slot1-cat
                   answer-size-const-stateid-slot1-1-slot1-cat
                   answer-size-const-cityid-slot1-1-slot1-cat
                   answer-elevation-const-placeid-slot1-1-slot1-cat
                   answer-len-const-riverid-slot1-1-slot1-cat
                   answer-population-const-stateid-slot1-1-slot1-cat
                   answer-population-const-stateid-slot1-2-slot1-cat
+                  answer-population-const-slot1-slot2-1-slot1-cat
+                  answer-population-const-slot1-slot2-1-slot2-cat
+                  answer-highest-place-loc-slot1-1-slot1-cat
+                  answer-largest-population-slot1-1-slot1-cat
                   alaska-1-cat
                   california-1-cat
                   florida-1-cat
@@ -1744,11 +2265,20 @@
                   texas-1-cat
                   new_york-1-cat
                   los_angeles-1-cat
+                  boulder-1-cat
                   chicago-1-cat
                   houston-1-cat
                   phoenix-1-cat
                   philadelphia-1-cat
                   san_antonio-1-cat
+                  new_york-2-cat
+                  los_angeles-2-cat
+                  chicago-2-cat
+                  houston-2-cat
+                  phoenix-2-cat
+                  boulder-2-cat
+                  philadelphia-2-cat
+                  san_antonio-2-cat
                   guadalupe_peak-1-cat
                   mount_mckinley-1-cat
                   death_valley-1-cat
@@ -1770,12 +2300,14 @@
                   rhode_island-1-cat
                   utah-1-cat
                   washington-1-cat
-                  south_dakota-1-cat)
+                  south_dakota-1-cat
+                  cityid-1-cat
+                  area-1-cat)
                 *fcg-constructions*)
 
 (progn
   (add-link 'state-1-cat 'answer-population-largest-density-slot1-1-slot1-cat *fcg-constructions*)
-  (add-link 'state-1-cat 'answer-largest-state-slot1-2-slot1-cat *fcg-constructions*)
+  (add-link 'state-1-cat 'answer-largest-slot1-2-slot1-cat *fcg-constructions*)
   (add-link 'state-1-cat 'answer-largest-slot1-1-slot1-cat *fcg-constructions*)
   (add-link 'capital-1-cat 'answer-largest-slot1-1-slot1-cat *fcg-constructions*)
   (add-link 'state-1-cat 'answer-area-largest-slot1-1-slot1-cat *fcg-constructions*)
@@ -1792,6 +2324,7 @@
   (add-link 'houston-1-cat 'answer-size-const-cityid-slot1-1-slot1-cat *fcg-constructions*)
   (add-link 'phoenix-1-cat 'answer-size-const-cityid-slot1-1-slot1-cat *fcg-constructions*)
   (add-link 'philadelphia-1-cat 'answer-size-const-cityid-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'boulder-1-cat 'answer-size-const-cityid-slot1-1-slot1-cat *fcg-constructions*)
   (add-link 'san_antonio-1-cat 'answer-size-const-cityid-slot1-1-slot1-cat *fcg-constructions*)
   (add-link 'guadalupe_peak-1-cat 'answer-elevation-const-placeid-slot1-1-slot1-cat *fcg-constructions*)
   (add-link 'death_valley-1-cat 'answer-elevation-const-placeid-slot1-1-slot1-cat *fcg-constructions*)
@@ -1838,4 +2371,87 @@
   (add-link 'south_dakota-1-cat 'answer-population-const-stateid-slot1-2-slot1-cat *fcg-constructions*)
   (add-link 'texas-1-cat 'answer-population-const-stateid-slot1-2-slot1-cat *fcg-constructions*)
   (add-link 'utah-1-cat 'answer-population-const-stateid-slot1-2-slot1-cat *fcg-constructions*)
-  (add-link 'washington-1-cat 'answer-population-const-stateid-slot1-2-slot1-cat *fcg-constructions*))
+  (add-link 'washington-1-cat 'answer-population-const-stateid-slot1-2-slot1-cat *fcg-constructions*)
+  (add-link 'cityid-1-cat 'answer-population-const-slot1-slot2-1-slot1-cat *fcg-constructions*)
+  (add-link 'boulder-2-cat 'answer-population-const-slot1-slot2-1-slot2-cat *fcg-constructions*)
+  (add-link 'new_york-2-cat 'answer-population-const-slot1-slot2-1-slot2-cat *fcg-constructions*)
+  (add-link 'los_angeles-2-cat 'answer-population-const-slot1-slot2-1-slot2-cat *fcg-constructions*)
+  (add-link 'chicago-2-cat 'answer-population-const-slot1-slot2-1-slot2-cat *fcg-constructions*)
+  (add-link 'houston-2-cat 'answer-population-const-slot1-slot2-1-slot2-cat *fcg-constructions*)
+  (add-link 'phoenix-2-cat 'answer-population-const-slot1-slot2-1-slot2-cat *fcg-constructions*)
+  (add-link 'philadelphia-2-cat 'answer-population-const-slot1-slot2-1-slot2-cat *fcg-constructions*)
+  (add-link 'san_antonio-2-cat 'answer-population-const-slot1-slot2-1-slot2-cat *fcg-constructions*)
+  (add-link 'state-1-cat 'answer-highest-place-loc-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'capital-1-cat 'answer-largest-population-slot1-1-slot1-cat *fcg-constructions*)
+  (add-link 'city-1-cat 'answer-largest-population-slot1-1-slot1-cat *fcg-constructions*))
+
+
+#| 
+(def-fcg-cxn answer-largest-slot1-slot2-1-cxn
+             ((?answer-largest-slot1-slot2-1-unit
+               (subunits (?slot1-unit)))
+              <-
+              (?answer-largest-slot1-slot2-1-unit
+               (HASH meaning ((ANSWER ?B ?A ?C)(LARGEST ?C ?A ?D)))
+               --
+               (HASH form (;NS-AMERIQUE.FRITES --> two-handed
+                           (left-hand-articulation ?ns-amerique.frites-1 ns-amerique.frites)
+                           (right-hand-articulation ?ns-amerique.frites-2 ns-amerique.frites)
+                           (temporal-relation ?ns-amerique.frites-1 ?ns-amerique.frites-2 equals)
+                           ;DSS-GRAND-ENTITE-GEOGRAPHIQUE --> two-handed, location = ?location-1
+                           (left-hand-articulation ?dss-grand-entite-geographique-1 dss-grand-entite-geographique)
+                           (right-hand-articulation ?dss-grand-entite-geographique-2 dss-grand-entite-geographique)
+                           (location ?dss-grand-entite-geographique-1 rssp)
+                           (location ?dss-grand-entite-geographique-2 rssp)
+                           (temporal-relation ?dss-grand-entite-geographique-1 ?dss-grand-entite-geographique-2 equals)
+                           ;IL-Y-A --> dominant hand
+                           (left-hand-articulation ?il-y-a-1 il-y-a)
+                           ;UN --> dominant hand
+                           (left-hand-articulation ?un-1 un)
+                           ;PT --> dominant hand, location = ?location-1
+                           (left-hand-articulation ?pt-1 pt)
+                           (location ?pt-1 rssp)
+                           ;PLUS.P --> dominant hand
+                           (left-hand-articulation ?plus.p-1 plus.p)
+                           ;OU-LIEU.O --> two-handed
+                           (left-hand-articulation ?ou-lieu.o-1 ou-lieu.o)
+                           (right-hand-articulation ?ou-lieu.o-2 ou-lieu.o)
+                           (temporal-relation ?ou-lieu.o-1 ?ou-lieu.o-2 equals)
+                           ;MEETS
+                           (meets ?ns-amerique.frites-1 ?dss-grand-entite-geographique-1)
+                           (meets ?dss-grand-entite-geographique-1 ?il-y-a-1)
+                           (meets ?il-y-a-1 ?slot1-lh-left)
+                           (meets ?slot1-lh-right ?un-1)
+                           (meets ?un-1 ?pt-1)
+                           (meets ?pt-1 ?plus.p-1)
+                           (meets ?plus.p-1 ?grand.5-1)
+                           (meets ?grand.5-1 ?ou-lieu.o-1)
+                           ;FBUOY temporal relations
+                           (temporal-relation ?un-1 ?slot1-rh-right during)
+                           (temporal-relation ?pt-1 ?slot1-rh-right during)
+                           (temporal-relation ?plus.p-1 ?slot1-rh-right finishes)
+                           )))
+              (?slot1-unit
+               (meaning-args ((partial-network ?D) ;(CAPITAL ?D ?A)
+                              (target ?A)))
+               
+               --
+               (category answer-largest-slot1-1-slot1-cat)
+               (boundaries (lh-leftmost ?slot1-lh-left)
+                           (lh-rightmost ?slot1-lh-right)
+                           (rh-rightmost ?slot1-rh-right))
+               (location rssp)
+               )
+              (?slot2-unit
+               (meaning-args ((partial-network ?D)
+                              (target ?A)
+                              (embedded-network ?))
+               
+               --
+               (category answer-largest-slot1-1-slot1-cat)
+               (boundaries (lh-leftmost ?slot1-lh-left)
+                           (lh-rightmost ?slot1-lh-right)
+                           (rh-rightmost ?slot1-rh-right))
+               (location rssp)
+               )))
+|# 
