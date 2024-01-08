@@ -563,19 +563,19 @@ element for which the sought value satisfies the test"
 ;; (sublist-position '(c d) '(a b c d))
 ;; ==> 2
 
-(defun group-by (sequence fn &key (test #'eql))
+(defun group-by (sequence group-fn &key (test #'eql))
   "applies fn to each elem of sequence. the elems for which fn
    yields the same value are grouped together. use :test to
    compare the results of applying fn to each elem."
-  (loop with result = nil
+  (loop with groups = nil
         for elem in sequence
-        for key = (funcall fn elem)
-        if (assoc key result :test test)
-        do (push elem (cdr (assoc key result :test test)))
+        for key = (funcall group-fn elem)
+        if (assoc key groups :test test)
+        do (push elem (cdr (assoc key groups :test test)))
         else
-        do (push (cons key (list elem)) result)
+        do (push (cons key (list elem)) groups)
         finally
-        (return result)))
+        (return groups)))
 
 ;; (group-by '((3) (1 2) (1) (1 3) (2) (1 2 3) (2 3)) #'length :test #'=)
 ;; ==> ((3 (1 2 3))
