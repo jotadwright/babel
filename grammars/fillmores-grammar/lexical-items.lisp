@@ -87,7 +87,7 @@
                (boundaries (?left ?right)))
                <-
                (?her-unit
-                (HASH meaning ((3rd-poss-p ?x)))
+                (HASH meaning ((3rd-poss-fem ?x)))
                 --
                 (HASH form ((sequence "her" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -634,7 +634,7 @@
                (boundaries (?left ?right)))
                <-
                (?have-unit
-                (HASH meaning ((have.01 ?x ?a) (tense ?a present))) ;;have.01 = auxiliary
+                (HASH meaning ((have.01 ?x) (tense ?x present))) ;;have.01 = auxiliary
                 --
                 (HASH form ((sequence "have" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
