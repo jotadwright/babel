@@ -82,8 +82,8 @@
                                  :source-bindings resulting-source-bindings
                                  :pattern-delta resulting-pattern-delta
                                  :source-delta resulting-source-delta
-                                 :cost (anti-unification-cost resulting-pattern-bindings
-                                                              resulting-source-bindings
+                                 :cost (anti-unification-cost pattern source
+                                                              resulting-generalisation
                                                               resulting-pattern-delta
                                                               resulting-source-delta)))
           into results
@@ -174,6 +174,8 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
 ; (anti-unify-predicate-sequence '(a b c) '(a d c))
 ; (anti-unify-predicate-sequence '(a b c b) '(a d c e))
 
+
+#|
 (defun anti-unification-cost (pattern-bindings source-bindings pattern-delta source-delta)
   "The anti-unification cost is the sum of the number of predicates in the deltas and the number of variables that have
    been bound to more than 1 variable in the generalisation."
@@ -187,6 +189,32 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
        nr-of-predicates-in-source-delta
        nr-of-bindings-to-multiple-vars-in-pattern
        nr-of-bindings-to-multiple-vars-in-source)))
+|#
+
+
+
+(defun anti-unification-cost (pattern source generalisation pattern-delta source-delta)
+  "Count the number of missing predicates (missing delta's) and count
+   the number of missing variable links (total number of links in pattern and source
+   minus the number of links in the generalisation)."
+  (let* ((all-pattern-args (mappend #'cdr pattern))
+         (all-source-args (mappend #'cdr source))
+         (all-generalisation-args (mappend #'cdr generalisation))
+         (number-of-links-in-pattern
+          (loop for (arg . rest) on all-pattern-args
+                sum (count arg rest)))
+         (number-of-links-in-source
+          (loop for (arg . rest) on all-source-args
+                sum (count arg rest)))
+         (number-of-links-in-generalisation
+          (loop for (arg . rest) in all-generalisation-args
+                sum (count arg rest)))
+         (nr-of-predicates-in-pattern-delta (length pattern-delta))
+         (nr-of-predicates-in-source-delta (length source-delta)))
+    (+ nr-of-predicates-in-pattern-delta
+       nr-of-predicates-in-source-delta
+       (- number-of-links-in-pattern number-of-links-in-generalisation)
+       (- number-of-links-in-source number-of-links-in-generalisation))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
