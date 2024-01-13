@@ -207,7 +207,7 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
           (loop for (arg . rest) on all-source-args
                 sum (count arg rest)))
          (number-of-links-in-generalisation
-          (loop for (arg . rest) in all-generalisation-args
+          (loop for (arg . rest) on all-generalisation-args
                 sum (count arg rest)))
          (nr-of-predicates-in-pattern-delta (length pattern-delta))
          (nr-of-predicates-in-source-delta (length source-delta)))
