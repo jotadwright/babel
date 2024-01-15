@@ -1,0 +1,6 @@
+id,exp_name,nr_of_interactions,dataset,dataset_split,available_channels,scene_sampling,topic_sampling
+1,ablation-avg-sim-hel,100000,clevr,test,:clevr,:random,:random
+2,ablation-avg-sim,100000,clevr,test,:clevr,:random,:random
+3,ablation-avg-hel,100000,clevr,test,:clevr,:random,:random
+4,ablation-sim-hel,100000,clevr,test,:clevr,:random,:random
+5,ablation-unweighted,100000,clevr,test,:clevr,:random,:random

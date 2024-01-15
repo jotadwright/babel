@@ -8,14 +8,28 @@
 ;; Anti-unifying sets of predicates ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *alphabet* "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-(defparameter *alphabet-index* 0)
+;;;; Jens - 04/01/2024
+;;;; The global variable *alpahbet* is implemented as a circular list
+;;;; by having the cdr of the last cons-cell in the list point to the
+;;;; start of the list instead of to NIL. This allows to cycle through
+;;;; the alphabet by each time calling 'pop'. However, this makes it
+;;;; impossible to print the variable *alphabet* (as it would be
+;;;; infinitely long). So do not try this, unless you want LispWorks
+;;;; to be blocked...
+;;;; You _can_ print *alphabet* when setting the system variable
+;;;; *print-circle* to T, but this has other effects that are not
+;;;; desirable. For instance, the predicate (F ?B ?B) would be printed
+;;;; as (F #1=?B #1#). 
+
+(defun make-circular-list (list)
+  ;(setf *print-circle* t)
+  (setf (cdr (last list)) list)
+  list)
+
+(defparameter *alphabet* (make-circular-list (mapcar #'mkstr '(A B C D E F G H I J K L M N O P Q R S T U V W X Y Z))))
+
 (defun next-au-var ()
-  (let ((c (mkstr (char *alphabet* *alphabet-index*))))
-    (incf *alphabet-index*)
-    (when (= *alphabet-index* 26)
-      (setf *alphabet-index* 0))
-    c))
+  (pop *alphabet*))
 
 (defclass anti-unification-result ()
   ((pattern
@@ -68,8 +82,8 @@
                                  :source-bindings resulting-source-bindings
                                  :pattern-delta resulting-pattern-delta
                                  :source-delta resulting-source-delta
-                                 :cost (anti-unification-cost resulting-pattern-bindings
-                                                              resulting-source-bindings
+                                 :cost (anti-unification-cost pattern source
+                                                              resulting-generalisation
                                                               resulting-pattern-delta
                                                               resulting-source-delta)))
           into results
@@ -160,6 +174,8 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
 ; (anti-unify-predicate-sequence '(a b c) '(a d c))
 ; (anti-unify-predicate-sequence '(a b c b) '(a d c e))
 
+
+#|
 (defun anti-unification-cost (pattern-bindings source-bindings pattern-delta source-delta)
   "The anti-unification cost is the sum of the number of predicates in the deltas and the number of variables that have
    been bound to more than 1 variable in the generalisation."
@@ -173,6 +189,32 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
        nr-of-predicates-in-source-delta
        nr-of-bindings-to-multiple-vars-in-pattern
        nr-of-bindings-to-multiple-vars-in-source)))
+|#
+
+
+
+(defun anti-unification-cost (pattern source generalisation pattern-delta source-delta)
+  "Count the number of missing predicates (missing delta's) and count
+   the number of missing variable links (total number of links in pattern and source
+   minus the number of links in the generalisation)."
+  (let* ((all-pattern-args (mappend #'cdr pattern))
+         (all-source-args (mappend #'cdr source))
+         (all-generalisation-args (mappend #'cdr generalisation))
+         (number-of-links-in-pattern
+          (loop for (arg . rest) on all-pattern-args
+                sum (count arg rest)))
+         (number-of-links-in-source
+          (loop for (arg . rest) on all-source-args
+                sum (count arg rest)))
+         (number-of-links-in-generalisation
+          (loop for (arg . rest) on all-generalisation-args
+                sum (count arg rest)))
+         (nr-of-predicates-in-pattern-delta (length pattern-delta))
+         (nr-of-predicates-in-source-delta (length source-delta)))
+    (+ nr-of-predicates-in-pattern-delta
+       nr-of-predicates-in-source-delta
+       (- number-of-links-in-pattern number-of-links-in-generalisation)
+       (- number-of-links-in-source number-of-links-in-generalisation))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

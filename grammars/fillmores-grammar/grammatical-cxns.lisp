@@ -36,7 +36,7 @@
                (morph-form (starts-with ?starts-with))
                (boundaries (?noun-left ?noun-right)))
               (?determination-unit
-               (HASH meaning ((determining ?z ?x ?y)))
+               (HASH meaning ((noun-phrase ?z ?x ?y)))
                --
                (HASH form ((sequence " " ?det-right ?noun-left)))))
              :cxn-inventory *fillmores-cxns*)
@@ -93,7 +93,7 @@
                         (agreement (number singular)))
                (boundaries (?person-left ?person-right)))
               (?of-unit
-               (args (?y))
+               (args (?y)) ;; I include the "of" particule into the meaning of the whole, if I don't the comprehension does not work
                --
                (syn-cat (lex-class (cat Prep)
                                    (min +)))
@@ -106,7 +106,7 @@
                         (agreement (number singular)))
                (boundaries (?complement-left ?complement-right)))
               (?part-of-unit
-               (HASH meaning ((part-of ?a ?x ?y ?z)))
+               (HASH meaning ((have-org-role ?a ?y ?b) (arg1 ?b ?x) (arg2 ?b ?z))) ;;have-org-role in amr
                --
                (HASH form ((sequence " " ?person-right ?of-left)
                            (sequence " " ?of-right ?complement-left)))))
@@ -154,7 +154,7 @@
                         (agreement (number singular)))
                (boundaries (?role-left ?role-right)))
               (?unique-role-unit
-               (HASH meaning ((copula ?a ?y ?arg-1 ?arg-2) (topic ?arg-1 ?x) (role ?arg-2 ?z))) ;;adaptation of "have-rel-role" in amr
+               (HASH meaning ((person ?a ?y ?p) (?arg0 ?p ?x) (?arg0-of ?p ?z))) ;;adaptation of "have-org-role" in amr
                --
                (HASH form ((sequence " " ?subject-right ?copula-left)
                            (sequence " " ?copula-right ?role-left)))))
@@ -197,7 +197,7 @@
                         (agreement (number ?number)))
                (boundaries (?noun-left ?noun-right)))
               (?modified-count-noun-unit
-               (HASH meaning ((domain ?z ?y ?x))) ;; = the domain (from amr) of the adjective (?y) is the noun (?x)
+               (HASH meaning ((arg1 ?z ?y ?x)))
                --
                (HASH form ((sequence " " ?adj-right ?noun-left)))))
               :cxn-inventory *fillmores-cxns*)
@@ -244,7 +244,7 @@
                (morph-cat (lexeme be))
                (boundaries (?copula-left ?copula-right)))
               (?fronting-to-that-unit
-               (HASH meaning ((copula ?z ?d ?arg-1 ?arg-2) (topic ?arg-1 ?c) (comment ?complement ?a) (fronting ?arg-2 ?b ?complement))) ;;but focus on non-maximal headed-phrase
+               (HASH meaning ((arg0-that ?z ?a ?b ?c ?d))) ;;modified arg0 to fit the that structure
                --
                (HASH form ((sequence " " ?modified-noun-right ?that-left)
                            (sequence " " ?that-right ?subject-left)
@@ -260,7 +260,8 @@
                                    (max -)
                                    (min -))
                         (agreement (person ?person)))
-               (args (?a ?arg-1))
+               (morph-cat (tense ?tense))
+               (args (?a ?subject))
                (boundaries (?verb-left ?np-right))
                (subunits (?verb-unit ?noun-phrase)))
               <-
@@ -283,7 +284,7 @@
                         (agreement (number ?number)))
                (boundaries (?np-left ?np-right))) 
               (?be-smth-unit
-               (HASH meaning ((copula ?a ?x ?arg-1 ?arg-2) (comment ?arg-2 ?y)))
+               (HASH meaning ((arg1 ?a ?y ?x ?subject))) ;;and we add the verb to allow comprehension
                --
                (HASH form ((sequence " " ?verb-right ?np-left)))))
              :cxn-inventory *fillmores-cxns*)
@@ -315,7 +316,7 @@
                 (dependents (?subject-unit))))
               <-
               (?subject-unit
-               (args (?x))
+               (args (?subject))
                --
                (syn-cat (lex-class (max +)
                                    (role S))
@@ -323,7 +324,7 @@
                                    (person ?person)))
                (boundaries (?subject-left ?subject-right)))
               (?verb-unit
-               (args (?y ?arg-1))
+               (args (?y ?subject))
                --
                (syn-cat (lex-class (cat V)
                                    (max -)
@@ -332,7 +333,7 @@
                (morph-cat (tense ?tense))
                (boundaries (?verb-left ?verb-right)))
               (?subject-predicate-unit
-               (HASH meaning ((topic ?x ?arg-1)))
+               (HASH meaning ((topic ?x ?subject)))
                --
                (HASH form ((sequence " " ?subject-right ?verb-left)))))
              :cxn-inventory *fillmores-cxns*)
@@ -393,7 +394,7 @@
                                    (min +)))
                (boundaries (?removed-left ?removed-right)))
               (?x-cousin-y-removed-unit
-               (HASH meaning ((domain ?horizontal-step ?x ?y) (domain ?vertical-step ?z ?a) (domain ?b ?horizontal-step ?vertical-step)))
+               (HASH meaning ((arg1 ?horizontal-step ?x ?y) (domain ?vertical-step ?z ?a) (domain ?b ?horizontal-step ?vertical-step)))
                --
                (HASH form ((sequence " " ?x-right ?cousin-left)
                            (sequence " " ?cousin-right ?y-left)

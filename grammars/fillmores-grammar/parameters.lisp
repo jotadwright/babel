@@ -16,6 +16,7 @@
                   (boundaries sequence))
   :fcg-configurations ((:de-render-mode . :de-render-sequence)
                        (:render-mode . :render-sequences)
+                       (:max-number-of-nodes . 2000)
                        ;; goal tests for comprehension
                        (:parse-goal-tests
                         :no-sequence-in-root
