@@ -295,12 +295,12 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
                                                  :source-remaining (remove matching-source-predicate source-remaining))
                                   queue)))
                  (when (or (null matching-source-predicates)
-                           (> (length (find-all first-pattern-predicate (rest pattern-remaining)
-                                                :test (lambda (pattern-predicate remaining-pattern-predicate)
-                                                        (matching-predicates pattern-predicate remaining-pattern-predicate
-                                                                             :allow-generalisation-over-constants
-                                                                             allow-generalisation-over-constants))))
-                              (length matching-source-predicates)))
+                           (>= (length (find-all first-pattern-predicate (rest pattern-remaining)
+                                                 :test (lambda (pattern-predicate remaining-pattern-predicate)
+                                                         (matching-predicates pattern-predicate remaining-pattern-predicate
+                                                                              :allow-generalisation-over-constants
+                                                                              allow-generalisation-over-constants))))
+                               (length matching-source-predicates)))
                    (push (make-instance 'predicate-alignment-state
                                         :pattern-predicates pattern-predicates
                                         :source-predicates source-predicates
