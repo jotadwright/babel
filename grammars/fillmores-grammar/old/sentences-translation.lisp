@@ -31,3 +31,11 @@
      (setf *object-in* (penman->object sentence))
      (setf *predicates* (object->predicates *object-in*))
      (print *predicates*))
+
+(penman->predicates '(r / resign.01 :arg0 (h / have-org-role-91 :arg1 (c / club) :arg2 (p /president))))
+;; ((RESIGN.01 R) (HAVE-ORG-ROLE-91 H) (CLUB C) (NIL P) (:ARG0 R H) (:ARG1 H C) (:ARG2 H P))
+
+(print (penman->predicates '(h / have-org-role-91 :arg0 (s / she) :arg1 (c / club) :arg2 (m / member))))
+;;((REMOVE.01 R) (I I) (BOTTLE B) (BOOK B2) (:ARG0 R I) (:ARG1 R B) (:ARG2 R B2))
+
+(print (penman->predicates '(v / vote.01 :arg0 (s / she) :condition (s :arg1-of (b / be-located-at-91 :arg2 (h / here))))))
