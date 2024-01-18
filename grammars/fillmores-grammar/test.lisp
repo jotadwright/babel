@@ -1,4 +1,5 @@
-(in-package :fcg)
+(ql:quickload :fillmores-grammar)
+(in-package :fillmores-grammar)
 
 #| This code is an implementation of examples described in the article
    "The Mechanisms of 'Construction Grammar'" by Charles J. Fillmore (1988) |#

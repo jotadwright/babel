@@ -27,7 +27,7 @@
                (boundaries (?left ?right)))
               <-
               (?joe-unit
-               (HASH meaning ((joe ?x)))
+               (HASH meaning ((PERSON P) (NAME N) (:NAME P N) (:OP1 N "Joe")))
                --
                (HASH form ((sequence "Joe" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -47,7 +47,7 @@
                (boundaries (?left ?right)))
               <-
               (?I-unit
-               (HASH meaning ((1st-pp ?x)))
+               (HASH meaning ((I ?i)))
                --
                (HASH form ((sequence "I" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -65,7 +65,7 @@
                (boundaries (?left ?right)))
               <-
               (?she-unit
-               (HASH meaning ((3rd-fem-pp ?x)))
+               (HASH meaning ((she ?s)))
                --
                (HASH form ((sequence "she" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -87,7 +87,7 @@
                (boundaries (?left ?right)))
                <-
                (?her-unit
-                (HASH meaning ((3rd-poss-fem ?x)))
+                (HASH meaning ((she ?s)))
                 --
                 (HASH form ((sequence "her" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -102,11 +102,11 @@
                                    (min +))
                         (agreement (number singular)))
                (morph-form (starts-with vowel))
-               (args (?x))
+               (args (?a))
                (boundaries (?left ?right)))
                <-
               (?air-unit
-               (HASH meaning ((air ?x)))
+               (HASH meaning ((air ?a)))
                --
                (HASH form ((sequence "air" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -118,11 +118,11 @@
                                    (min +))
                         (agreement (number singular)))
                (morph-form (starts-with consonant))
-               (args (?x))
+               (args (?r))
                (boundaries (?left ?right)))
                <-
               (?rice-unit
-               (HASH meaning ((rice ?x)))
+               (HASH meaning ((rice ?r)))
                --
                (HASH form ((sequence "rice" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -134,11 +134,11 @@
                                    (min +))
                         (agreement (number singular)))
                (morph-form (starts-with vowel))
-               (args (?x))
+               (args (?i))
                (boundaries (?left ?right)))
                <-
               (?intelligence-unit
-               (HASH meaning ((intelligence ?x)))
+               (HASH meaning ((intelligence ?i)))
                --
                (HASH form ((sequence "intelligence" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -150,11 +150,11 @@
                                    (min +))
                         (agreement (number plural)))
                (morph-form (starts-with vowel))
-               (args (?x))
+               (args (?i))
                (boundaries (?left ?right)))
                <-
               (?intelligences-unit
-               (HASH meaning ((intelligences ?x)))
+               (HASH meaning ((intelligences ?i)))
                --
                (HASH form ((sequence "intelligences" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -170,11 +170,11 @@
                                    (min +))
                         (agreement (number singular)))
                (morph-form (starts-with consonant))
-               (args (?x))
+               (args (?p))
                (boundaries (?left ?right)))
                <-
               (?pen-unit
-               (HASH meaning ((pen ?x)))
+               (HASH meaning ((pen ?p)))
                --
                (HASH form ((sequence "pen" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -186,11 +186,11 @@
                                    (min +))
                         (agreement (number singular)))
                (morph-form (starts-with consonant))
-               (args (?x))
+               (args (?b))
                (boundaries (?left ?right)))
                <-
               (?book-unit
-               (HASH meaning ((book ?x)))
+               (HASH meaning ((book ?b)))
                --
                (HASH form ((sequence "book" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -202,11 +202,11 @@
                                    (min +))
                         (agreement (number singular)))
                (morph-form (starts-with consonant))
-               (args (?x))
+               (args (?b))
                (boundaries (?left ?right)))
                <-
               (?bottle-unit
-               (HASH meaning ((bottle ?x)))
+               (HASH meaning ((bottle ?b)))
                --
                (HASH form ((sequence "bottle" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -218,11 +218,11 @@
                                    (min +))
                         (agreement (number plural)))
                (morph-form (starts-with consonant))
-               (args (?x))
+               (args (?b))
                (boundaries (?left ?right)))
                <-
               (?bottles-unit
-               (HASH meaning ((bottles ?x)))
+               (HASH meaning ((bottles ?b)))
                --
                (HASH form ((sequence "bottles" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -241,11 +241,11 @@
                         (agreement (number ?number)))
                (sem-cat (definiteness definite))
                (morph-form (starts-with ?starts-with))
-               (args (?x))
+               (args (?t))
                (boundaries (?left ?right)))
               <-
               (?the-unit
-               (HASH meaning ((unique ?x)))
+               (HASH meaning ((unique ?t)))
                --
                (HASH form ((sequence "the" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -257,11 +257,11 @@
                         (agreement (number singular)))
                (sem-cat (definiteness indefinite))
                (morph-form (starts-with consonant))
-               (args (?x))
+               (args (?a))
                (boundaries (?left ?right)))
               <-
               (?a-unit
-               (HASH meaning ((instance ?x)))
+               (HASH meaning ((instance ?a)))
                --
                (HASH form ((sequence "a" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -273,11 +273,11 @@
                         (agreement (number singular)))
                (sem-cat (definiteness indefinite))
                (morph-form (starts-with vowel))
-               (args (?x))
+               (args (?a))
                (boundaries (?left ?right)))
               <-
               (?an-unit
-               (HASH meaning ((instance ?x)))
+               (HASH meaning ((instance ?a)))
                --
                (HASH form ((sequence "an" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -289,11 +289,11 @@
                         (agreement (number ?number)))
                (sem-cat (definiteness ?definiteness))
                (morph-form (starts-with ?starts-with))
-               (args (?x))
+               (args (?i))
                (boundaries (?left ?right)))
               <-
               (?my-unit
-               (HASH meaning ((possessive-nominal-first-pers ?x)))
+               (HASH meaning ((I ?i)))
                --
                (HASH form ((sequence "my" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -309,7 +309,7 @@
                (boundaries (?left ?right)))
               <-
               (?this-unit
-               (HASH meaning ((demonstrative-close-object ?x)))
+               (HASH meaning ((this ?t) (:mod ?x ?t)))))
                --
                (HASH form ((sequence "this" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -325,7 +325,7 @@
                (boundaries (?left ?right)))
               <-
               (?this-unit
-               (HASH meaning ((demonstrative-close-objects ?x)))
+               (HASH meaning ((these ?t) (:mod ?x ?t)))
                --
                (HASH form ((sequence "these" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -343,11 +343,11 @@
                         (agreement (number singular)))
                (sem-cat (sem-class person))
                (morph-form (starts-with consonant))
-               (args (?x))
+               (args (?c))
                (boundaries (?left ?right)))
                <-
               (?chairman-unit
-               (HASH meaning ((chairman ?x)))
+               (HASH meaning ((chairman ?c)))
                --
                (HASH form ((sequence "chairman" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -360,11 +360,11 @@
                         (agreement (number singular)))
                (sem-cat (sem-class person))
                (morph-form (starts-with consonant))
-               (args (?x))
+               (args (?p))
                (boundaries (?left ?right)))
                <-
               (?president-unit
-               (HASH meaning ((president ?x)))
+               (HASH meaning ((president ?p)))
                --
                (HASH form ((sequence "president" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -377,11 +377,11 @@
                         (agreement (number singular)))
                (sem-cat (sem-class person)) ;; because moral person
                (morph-form (starts-with consonant))
-               (args (?x))
+               (args (?c))
                (boundaries (?left ?right)))
                <-
               (?committee-unit
-               (HASH meaning ((committee ?x)))
+               (HASH meaning ((committee ?c)))
                --
                (HASH form ((sequence "committee" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -394,11 +394,11 @@
                         (agreement (number singular)))
                (sem-cat (sem-class person)) ;; because moral person
                (morph-form (starts-with consonant))
-               (args (?x))
+               (args (?c))
                (boundaries (?left ?right)))
                <-
               (?club-unit
-               (HASH meaning ((club ?x)))
+               (HASH meaning ((club ?c)))
                --
                (HASH form ((sequence "club" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -411,11 +411,11 @@
                         (agreement (number singular)))
                (sem-cat (sem-class person))
                (morph-form (starts-with consonant))
-               (args (?x))
+               (args (?c))
                (boundaries (?left-1 ?right-1)))
                <-
                (?child-unit
-                (HASH meaning ((child ?x)))
+                (HASH meaning ((child ?c)))
                 --
                 (HASH form ((sequence "child" ?left-1 ?right-1)))))
              :cxn-inventory *fillmores-cxns*)
@@ -430,11 +430,11 @@
                         (agreement (number singular)))
                (sem-cat (sem-class person))
                (morph-form (starts-with consonant))
-               (args (?x))
+               (args (?c))
                (boundaries (?left-1 ?right-1)))
                <-
                (?cousin-unit
-                (HASH meaning ((grand-child-of-same-grand-parents ?x)))
+                (HASH meaning ((cousin ?c)))
                 --
                 (HASH form ((sequence "cousin" ?left-1 ?right-1)))))
              :cxn-inventory *fillmores-cxns*)
@@ -445,11 +445,11 @@
                                    (max -)
                                    (min +)))
                (morph-cat (starts-with consonant))
-               (args (?x))
+               (args (?h))
                (boundaries (?left ?right)))
               <-
               (?best-unit
-               (HASH meaning ((best ?x)))
+               (HASH meaning ((have-degree-91 ?h) (good.03 ?g) (most ?m) (:arg2 ?h ?g) (:arg3 ?h ?m)))
                --
                (HASH form ((sequence "best" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -460,11 +460,11 @@
                                    (max -)
                                    (min +)))
                (morph-form (starts-with consonant))
-               (args (?x))
+               (args (?f))
                (boundaries (?left-1 ?right-1)))
               <-
               (?foolish-unit
-               (HASH meaning ((foolish ?x)))
+               (HASH meaning ((foolish ?f)))
                --
                (HASH form ((sequence "foolish" ?left-1 ?right-1)))))
              :cxn-inventory *fillmores-cxns*)
@@ -477,44 +477,13 @@
                                    (max -)
                                    (min +)))
                (morph-cat (starts-with consonant))
-               (args (?x))
+               (args (?r))
                (boundaries (?left ?right)))
               <-
               (?removed-unit
-               (HASH meaning ((distant-in-relationship ?x)))
+               (HASH meaning ((removed ?r)))
                --
                (HASH form ((sequence "removed" ?left ?right)))))
-             :cxn-inventory *fillmores-cxns*)
-
-(def-fcg-cxn second-cxn
-             ((?second-unit
-               (syn-cat (lex-class (cat A)
-                                   (max -)
-                                   (min +)))
-               (morph-cat (starts-with consonant))
-               (sem-cat (sem-class degrees))
-               (args (?x))
-               (boundaries (?left ?right)))
-              <-
-              (?second-unit
-               (HASH meaning ((degree-2 ?x)))
-               --
-               (HASH form ((sequence "second" ?left ?right)))))
-             :cxn-inventory *fillmores-cxns*)
-
-(def-fcg-cxn once-cxn
-             ((?once-unit
-               (syn-cat (lex-class (cat Adv)
-                                   (max -)
-                                   (min +)))
-               (sem-cat (sem-class times))
-               (args (?x))
-               (boundaries (?left ?right)))
-              <-
-              (?once-unit
-               (HASH meaning ((times-1 ?x)))
-               --
-               (HASH form ((sequence "once" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
 
 (def-fcg-cxn that-cxn
@@ -522,11 +491,11 @@
                (syn-cat (lex-class (cat Conj)
                                    (max -)
                                    (min +))) ;; for conjunction (clause that-clause))
-               (args (?y))
+               (args (?t))
                (boundaries (?left-1 ?right-1)))
               <-
               (?that-unit
-               (HASH meaning ((relative ?y)))
+               (HASH meaning ((that ?t)))
                --
                (HASH form ((sequence "that" ?left-1 ?right-1)))))
              :cxn-inventory *fillmores-cxns*)
@@ -543,7 +512,7 @@
                (boundaries (?left ?right)))
               <-
               (?to-unit
-               (HASH meaning ((destination ?x)))
+               (HASH meaning ((to ?t)))
                --
                (HASH form ((sequence "to" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -558,11 +527,11 @@
                                    (number singular)))
                (morph-cat (lexeme go)
                           (tense present))
-               (args (?x))
+               (args (?g))
                (boundaries (?left ?right)))
                <-
                (?goes-unit
-                (HASH meaning ((go.01 ?x)))
+                (HASH meaning ((go.01 ?g)))
                 --
                 (HASH form ((sequence "goes" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -592,32 +561,13 @@
                                    (number ?number)))
                (morph-cat (lexeme be)
                           (tense subj)) ;;for subjunctive
-               (args (?x))
+               (args (?b))
                (boundaries (?left ?right)))
                <-
                (?were-unit
-                (HASH meaning ((be.02 ?x))) ;;be.02 has existential meaning as "there is no parking space"
+                (HASH meaning ((be.02 ?b))) ;;be.02 has existential meaning as "there is no parking space"
                 --
                 (HASH form ((sequence "were" ?left ?right)))))
-             :cxn-inventory *fillmores-cxns*)
-
-(def-fcg-cxn has-cxn
-             ((?has-unit
-               (syn-cat (lex-class (cat V)
-                                   (max -)
-                                   (min +)
-                                   (aux +))
-                        (agreement (person 3rd)
-                                   (number singular)))
-               (morph-cat (lexeme have)
-                          (tense present))
-               (args (?x))
-               (boundaries (?left ?right)))
-               <-
-               (?has-unit
-                (HASH meaning ((have.01 ?x))) ;;have.01 = auxiliary
-                --
-                (HASH form ((sequence "has" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
 
 (def-fcg-cxn have-cxn
@@ -630,11 +580,11 @@
                                    (number singular)))
                (morph-cat (lexeme have)
                           (tense present))
-               (args (?x))
+               (args (?h))
                (boundaries (?left ?right)))
                <-
                (?have-unit
-                (HASH meaning ((have.01 ?x) (tense ?x present))) ;;have.01 = auxiliary
+                (HASH meaning ((have.01 ?h))) ;;have.01 = auxiliary
                 --
                 (HASH form ((sequence "have" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
@@ -647,17 +597,17 @@
                                    (aux -)))
                (morph-cat (lexeme lie)
                           (tense preterit))
-               (args (?y))
+               (args (?l))
                (boundaries (?left ?right)))
                <-
                (?lied-unit
-                (HASH meaning ((lie.08 ?y))) ;;lie.08 = tell a falsehood
+                (HASH meaning ((lie.08 ?l))) ;;lie.08 = tell a falsehood
                 --
                 (HASH form ((sequence "lied" ?left ?right)))))
              :cxn-inventory *fillmores-cxns*)
 
-(def-fcg-cxn remove-cxn
-             ((?remove-unit
+(def-fcg-cxn removed2-cxn
+             ((?removed-unit
                (syn-cat (lex-class (cat V)
                                    (max -)
                                    (min +)
@@ -669,7 +619,7 @@
                (args (?x))
                (boundaries (?left ?right)))
               <-
-              (?remove-unit
+              (?removed-unit
                (HASH meaning ((remove.01 ?x ?y) (tense ?y preterit)))
                --
                (HASH form ((sequence "removed" ?left ?right)))))
@@ -715,7 +665,7 @@
 
 ;; (comprehend-and-formulate "does" :cxn-inventory *fillmores-cxns*)
 
-(def-fcg-cxn is-cxn
+#| (def-fcg-cxn is-cxn
              ((?is-unit
                (syn-cat (lex-class (cat V)
                                    (max -)
@@ -940,4 +890,4 @@
                (HASH meaning ((reason ?x)))
                --
                (HASH form ((sequence "why" ?left ?right)))))
-             :cxn-inventory *fillmores-cxns*)
+             :cxn-inventory *fillmores-cxns*) |#
