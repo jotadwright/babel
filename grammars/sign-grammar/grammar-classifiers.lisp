@@ -315,13 +315,13 @@
 
 (def-fcg-cxn alaska-1-cxn 
              ((?alaska-1-unit
-               (meaning-args (?H))
+               (meaning-args (?F))
                (boundaries (lh-leftmost ?fs-alaska-1)
                            (lh-rightmost ?fs-alaska-1))
                (category alaska-1-cat))
               <-
               (?alaska-1-unit
-               (HASH meaning ((ALASKA ?H)))
+               (HASH meaning ((ALASKA ?F)))
                --
                (HASH form ((left-hand-articulation ?fs-alaska-1 fs-alaska)
                            ))
@@ -330,7 +330,7 @@
 (def-fcg-cxn slot1-stateid-const-1-cxn
              ((?slot1-stateid-const-1-unit
                (subunits (?slot1-unit))
-               (meaning-args (?E ?B))
+               (meaning-args (?D ?B))
                (category slot1-stateid-const-1-cat)
                (spatial-agreement ?location)
                (boundaries (lh-leftmost ?slot1-lh-left)
@@ -339,22 +339,74 @@
                            (rh-rightmost ?dss-entite-geographique.ground-1)))
               <-
               (?slot1-stateid-const-1-unit
-               (HASH meaning ((CONST ?E ?B ?F)(STATEID ?F ?H)))
+               (HASH meaning ((CONST ?D ?B ?E)(STATEID ?E ?F)))
                
                --
                (HASH form ((right-hand-articulation ?dss-entite-geographique.ground-1 dss-entite-geographique.ground)
                            (main-location ?dss-entite-geographique.ground-1 ?location)
-                           (coincides-relation ?slot1-lh-right ?dss-entite-geographique.ground-1 meets)
+                           (meets ?slot1-lh-right ?dss-entite-geographique.ground-1)
                            ))
                )
               (?slot1-unit
-               (meaning-args (?H))
+               (meaning-args (?F))
                (category slot1-stateid-const-1-slot1-cat)
                --
                (boundaries (lh-leftmost ?slot1-lh-left)
                            (lh-rightmost ?slot1-lh-right))
                )
               ))
+
+(def-fcg-cxn slot1-size-answer-1-cxn
+             ((?slot1-size-answer-1-unit
+               (subunits (?slot1-unit))
+               (category slot1-size-answer-1-cat)
+               (spatial-agreement ?location)
+               (boundaries (lh-leftmost ?slot1-lh-left)
+                           (lh-rightmost ?metre-carre-1)
+                           (rh-leftmost ?slot1-rh-left)
+                           (rh-rightmost ?dss-entite-geographique.ground-2)))
+              <-
+              (?slot1-size-answer-1-unit
+               (HASH meaning ((ANSWER ?C ?A ?B)(SIZE ?B ?D ?A)))
+               --
+               (HASH form ((left-hand-articulation ?surface-1 surface)
+                           (main-location ?surface-1 ?location)
+                           (minor-location ?surface-1 i)
+                           (left-hand-articulation ?combien-1 combien)
+                           (left-hand-articulation ?metre-carre-1 metre-carre)
+                           (left-hand-articulation ?dsh-mesurer-1 dsh-mesurer)
+                           (main-location ?dsh-mesurer-1 ?location)
+                           (right-hand-articulation ?dsh-mesurer-2 dsh-mesurer)
+                           (main-location ?dsh-mesurer-2 ?location)
+                           (coincides-relation ?dsh-mesurer-1 ?dsh-mesurer-2 equals)
+                           (left-hand-articulation ?dss-entite-geographique.ground-1 dss-entite-geographique.ground)
+                           (main-location ?dss-entite-geographique.ground-1 ?location)
+                           (modification ?dss-entite-geographique.ground-1 **)
+                           (right-hand-articulation ?dss-entite-geographique.ground-2 dss-entite-geographique.ground)
+                           (modification ?dss-entite-geographique.ground-2 **)
+                           (main-location ?dss-entite-geographique.ground-2 ?location)
+                           (coincides-relation ?dss-entite-geographique.ground-1 ?dss-entite-geographique.ground-2 equals)
+                           (meets ?dsh-mesurer-1 ?dss-entite-geographique.ground-1)
+                           (meets ?dsh-mesurer-1 ?dss-entite-geographique.ground-2)
+                           (meets ?metre-carre-1 ?dsh-mesurer-1)
+                           (meets ?metre-carre-1 ?dsh-mesurer-2)
+                           (meets ?surface-1 ?combien-1)
+                           (meets ?combien-1 ?metre-carre-1)
+                           (coincides-relation ?surface-1 ?slot1-rh-right ?relation-1)
+                           (meets ?slot1-lh-right ?surface-1)
+                           (coincides-relation ?combien-1 ?slot1-rh-right during)
+                           (coincides-relation ?metre-carre-1 ?slot1-rh-right finishes)
+                           )))
+              (?slot1-unit
+               (meaning-args (?D ?B))
+               (category slot1-size-answer-1-slot1-cat)
+               --
+               (boundaries (lh-leftmost ?slot1-lh-left)
+                           (lh-rightmost ?slot1-lh-right)
+                           (rh-leftmost ?slot1-rh-left)
+                           (rh-rightmost ?slot1-rh-right))
+               (spatial-agreement ?location)
+               )))
 
 ;16_0_NEW_YORK
 
@@ -406,39 +458,7 @@
                            (lh-rightmost ?slot1-lh-right))
                )))
 
-(def-fcg-cxn slot1-size-answer-1-cxn
-             ((?slot1-size-answer-1-unit
-               (subunits (?slot1-unit))
-               (category slot1-size-answer-1-cat)
-               (spatial-agreement ?location)
-               (boundaries (lh-leftmost ?slot1-lh-left)
-                           (lh-rightmost ?metre-carre-1)
-                           (rh-leftmost ?slot1-rh-left)
-                           (rh-rightmost ?dss-entite-geographique.ground-2)))
-              <-
-              (?slot1-size-answer-1-unit
-               (HASH meaning ((ANSWER ?C ?A ?D)(SIZE ?D ?A ?B)))
-               --
-               (HASH form ((left-hand-articulation ?surface-1 surface)
-                           (main-location ?surface-1 ?location)
-                           (left-hand-articulation ?combien-1 combien)
-                           (left-hand-articulation ?metre-carre-1 metre-carre)
-                           (meets ?surface-1 ?combien-1)
-                           (meets ?combien-1 ?metre-carre-1)
-                           (coincides-relation ?surface-1 ?slot1-rh-right ?relation-1)
-                           ;(coincides-relation ?combien-1 ?slot1-rh-right during)
-                           ;(coincides-relation ?metre-carre-1 ?slot1-rh-right finishes)
-                           )))
-              (?slot1-unit
-               (meaning-args (?E ?B))
-               (category slot1-size-answer-1-slot1-cat)
-               --
-               (boundaries (lh-leftmost ?slot1-lh-left)
-                           (lh-rightmost ?slot1-lh-right)
-                           (rh-leftmost ?slot1-rh-left)
-                           (rh-rightmost ?slot1-rh-right))
-               (spatial-agreement ?location)
-               )))
+
 
 ;18_0_GUADALUPE-PEAK
 
