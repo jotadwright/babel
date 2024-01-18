@@ -62,6 +62,29 @@
                            ))
                )))
 
+(def-fcg-cxn usa-2-cxn
+             ((?usa-2-unit
+               (meaning-args (?G))
+               (boundaries (lh-leftmost ?dans-1)
+                           (lh-rightmost ?ns-amerique.frites-1)
+                           (rh-leftmost ?dans-2)
+                           (rh-rightmost ?ns-amerique.frites-2))
+               (category usa-2-cat))
+              <-
+              (?usa-2-unit
+               (HASH meaning ((USA ?G)))
+               --
+               (HASH form ((left-hand-articulation ?dans-1 dans)
+                           (right-hand-articulation ?dans-2 dans)
+                           (coincides-relation ?dans-1 ?dans-2 equals)
+                           (left-hand-articulation ?ns-amerique.frites-1 ns-amerique.frites)
+                           (right-hand-articulation ?ns-amerique.frites-2 ns-amerique.frites)
+                           (coincides-relation ?ns-amerique.frites-1 ?ns-amerique.frites-2 equals)
+                           (meets ?dans-1 ?ns-amerique.frites-1)
+                           (meets ?dans-1 ?ns-amerique.frites-2)
+                           ))
+               )))
+
 (def-fcg-cxn slot1-countryid-const-1-cxn
              ((?slot1-countryid-const-1-unit
                (subunits (?slot1-unit))
@@ -91,7 +114,9 @@
                --
                (category slot1-countryid-const-1-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
-                           (lh-rightmost ?slot1-lh-right))
+                           (lh-rightmost ?slot1-lh-right)
+                           (rh-leftmost ?slot1-rh-left)
+                           (rh-rightmost ?slot1-rh-right))
                )
               ))
 
@@ -103,7 +128,7 @@
                (boundaries (lh-leftmost ?slot1-lh-left)
                            (lh-rightmost ?dss-entite-geographique.figure-1)
                            (rh-leftmost ?slot1-rh-left)
-                           (rh-rightmost ?dss-entite-geographique.ground-1))
+                           (rh-rightmost ?slot1-rh-right))
                (spatial-agreement ?location))
               <-
               (?slot1-loc-state-1-unit
@@ -173,6 +198,54 @@
                            ))
               ))
 
+(def-fcg-cxn slot1-largest-2-cxn
+             ((?slot1-largest-2-unit
+               (subunits (?slot1-unit))
+               (meaning-args (?D ?E))
+               (category slot1-largest-2-cat)
+               (boundaries (lh-leftmost ?slot1-lh-left)
+                           (lh-rightmost ?pt-1)
+                           (rh-leftmost ?slot1-rh-left)
+                           (rh-rightmost ?dss-entite-geographique.ground-1))
+               (spatial-agreement ?location))
+              <-
+              (?slot1-largest-2-unit
+               (HASH meaning ((LARGEST ?D ?E ?A)))
+               --
+               (HASH form ((left-hand-articulation ?grand.5-1 grand.5)
+                           (right-hand-articulation ?grand.5-2 grand.5)
+                           (coincides-relation ?grand.5-1 ?grand.5-2 equals)
+                           (left-hand-articulation ?plus.p-1 plus.p)
+                           (left-hand-articulation ?grand.5-3 grand.5)
+                           (right-hand-articulation ?grand.5-4 grand.5)
+                           (coincides-relation ?grand.5-3 ?grand.5-4 equals)
+                           (left-hand-articulation ?pt-1 pt)
+                           (main-location ?pt-1 ?Location)
+                           (modification ?pt-1 circle)
+                           (right-hand-articulation ?dss-entite-geographique.ground-1 dss-entite-geographique.ground)
+                           (main-location ?dss-entite-geographique.ground-1 ?location)
+                           (meets ?slot1-lh-right ?grand.5-1)
+                           (meets ?slot1-lh-right ?grand.5-2)
+                           (meets ?grand.5-1 ?plus.p-1)
+                           (meets ?plus.p-1 ?grand.5-3)
+                           (meets ?plus.p-1 ?grand.5-4)
+                           (meets ?grand.5-3 ?pt-1)
+                           (meets ?grand.5-3 ?dss-entite-geographique.ground-1)
+                           (coincides-relation ?pt-1 ?dss-entite-geographique.ground-1 starts)
+                           ))
+               )
+              (?slot1-unit
+               (meaning-args (?E ?A))
+               --
+               (category slot1-largest-2-slot1-cat)
+               (spatial-agreement ?location)
+               (boundaries (lh-leftmost ?slot1-lh-left)
+                           (lh-rightmost ?slot1-lh-right)
+                           (rh-leftmost ?slot1-rh-left)
+                           (rh-rightmost ?slot1-rh-right)
+                           ))
+              ))
+
 (def-fcg-cxn slot1-answer-1-cxn
              ((?slot1-answer-1-unit
                (subunits (?slot1-unit))
@@ -198,6 +271,37 @@
                (meaning-args (?D ?A))
                --
                (category slot1-answer-1-slot1-cat)
+               (spatial-agreement ?location)
+               (boundaries (lh-leftmost ?slot1-lh-left)
+                           (lh-rightmost ?slot1-lh-right)
+                           (rh-leftmost ?slot1-rh-left)
+                           (rh-rightmost ?slot1-rh-right)
+                           ))
+              ))
+
+(def-fcg-cxn slot1-answer-2-cxn
+             ((?slot1-answer-2-unit
+               (subunits (?slot1-unit))
+               (category slot1-answer-2-cat)
+               (boundaries (lh-leftmost ?slot1-lh-left)
+                           (lh-rightmost ?ou-lieu.o-1)
+                           (rh-leftmost ?slot1-rh-left)
+                           (rh-rightmost ?slot1-rh-right))
+               (spatial-agreement ?location))
+              <-
+              (?slot1-answer-2-unit
+               (HASH meaning ((ANSWER ?C ?D ?A)))
+               
+               --
+               (HASH form ((left-hand-articulation ?ou-lieu.o-1 ou-lieu.o)
+                           (meets ?slot1-lh-right ?ou-lieu.o-1)
+                           (coincides-relation ?ou-lieu.o-1 ?slot1-rh-right finishes)
+                           ))
+               )
+              (?slot1-unit
+               (meaning-args (?D ?A))
+               --
+               (category slot1-answer-2-slot1-cat)
                (spatial-agreement ?location)
                (boundaries (lh-leftmost ?slot1-lh-left)
                            (lh-rightmost ?slot1-lh-right)
@@ -432,6 +536,7 @@
              
 
 (add-categories '(usa-1-cat
+                  usa-2-cat
                   alaska-1-cat
                   new_york-1-cat
                   slot1-countryid-const-1-cat
@@ -450,11 +555,16 @@
                   slot1-largest-1-slot1-cat
                   slot1-loc-state-1-cat
                   slot1-answer-1-slot1-cat
-                  slot1-largest-1-cat)
+                  slot1-largest-1-cat
+                  slot1-largest-2-cat
+                  slot1-largest-2-slot1-cat
+                  slot1-largest-2-cat
+                  slot1-answer-2-slot1-cat)
                 *fcg-constructions*)
 
 (progn
   (add-link 'usa-1-cat 'slot1-countryid-const-1-slot1-cat *fcg-constructions*)
+  (add-link 'usa-2-cat 'slot1-countryid-const-1-slot1-cat *fcg-constructions*)
   (add-link 'slot1-countryid-const-1-cat 'slot1-loc-state-1-slot1-cat *fcg-constructions*)
   (add-link 'alaska-1-cat 'slot1-stateid-const-1-slot1-cat *fcg-constructions*)
   (add-link 'new_york-1-cat 'slot1-cityid-const-1-slot1-cat *fcg-constructions*)
@@ -463,4 +573,6 @@
   (add-link 'const-placeid-slot1-1-slot1-cat 'guadalupe_peak-1-cat *fcg-constructions*)
   (add-link 'const-placeid-slot1-1-cat 'slot1-elevation-1-slot1-cat *fcg-constructions*)
   (add-link 'slot1-largest-1-slot1-cat 'slot1-loc-state-1-cat *fcg-constructions*)
-  (add-link 'slot1-answer-1-slot1-cat 'slot1-largest-1-cat *fcg-constructions*))
+  (add-link 'slot1-answer-1-slot1-cat 'slot1-largest-1-cat *fcg-constructions*)
+  (add-link 'slot1-largest-2-slot1-cat 'slot1-loc-state-1-cat *fcg-constructions*)
+  (add-link 'slot1-largest-2-cat 'slot1-answer-2-slot1-cat *fcg-constructions*))
