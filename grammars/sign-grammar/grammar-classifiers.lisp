@@ -10,7 +10,7 @@
                   (footprints set)
                   (form-args set-of-predicates)
                   (form set-of-predicates)
-                  (meaning-args set)
+                  (meaning-args default)
                   (meaning set-of-predicates))
   :hierarchy-features (subunits)
   :diagnostics ()
@@ -42,11 +42,11 @@
                                  (:select-subfeatures . nil))
   
   )
-
+;answer(A,largest(A,(state(A),loc(A,B),const(B,countryid(usa)))))
 ; 11_0 & 11_1
 (def-fcg-cxn usa-1-cxn
              ((?usa-1-unit
-               (meaning-args (?G))
+               (meaning-args (layer ?usa-layer))
                (boundaries (lh-leftmost ?ns-amerique.frites-1)
                            (lh-rightmost ?ns-amerique.frites-1)
                            (rh-leftmost ?ns-amerique.frites-2)
@@ -54,7 +54,7 @@
                (category usa-1-cat))
               <-
               (?usa-1-unit
-               (HASH meaning ((USA ?G)))
+               (HASH meaning ((USA ?usa-layer)))
                --
                (HASH form ((left-hand-articulation ?ns-amerique.frites-1 ns-amerique.frites)
                            (right-hand-articulation ?ns-amerique.frites-2 ns-amerique.frites)
@@ -64,7 +64,7 @@
 
 (def-fcg-cxn usa-2-cxn
              ((?usa-2-unit
-               (meaning-args (?G))
+               (meaning-args (layer ?usa-layer))
                (boundaries (lh-leftmost ?dans-1)
                            (lh-rightmost ?ns-amerique.frites-1)
                            (rh-leftmost ?dans-2)
@@ -72,7 +72,7 @@
                (category usa-2-cat))
               <-
               (?usa-2-unit
-               (HASH meaning ((USA ?G)))
+               (HASH meaning ((USA ?usa-layer)))
                --
                (HASH form ((left-hand-articulation ?dans-1 dans)
                            (right-hand-articulation ?dans-2 dans)
@@ -88,7 +88,8 @@
 (def-fcg-cxn slot1-countryid-const-1-cxn
              ((?slot1-countryid-const-1-unit
                (subunits (?slot1-unit))
-               (meaning-args (?E ?B))
+               (meaning-args (target ?const-target)
+                             (layer ?const-layer))
                (category slot1-countryid-const-1-cat)
                (spatial-agreement ?location)
                (boundaries (lh-leftmost ?slot1-lh-left)
@@ -97,7 +98,7 @@
                            (rh-rightmost ?dss-entite-geographique.ground-2)))
               <-
               (?slot1-countryid-const-1-unit
-               (HASH meaning ((CONST ?E ?B ?F)(COUNTRYID ?F ?G)))
+               (HASH meaning ((CONST ?const-layer ?const-target ?countryid-layer)(COUNTRYID ?countryid-layer ?slot1-layer)))
                
                --
                (HASH form ((left-hand-articulation ?dss-entite-geographique.ground-1 dss-entite-geographique.ground)
@@ -110,7 +111,7 @@
                            ))
                )
               (?slot1-unit
-               (meaning-args (?G))
+               (meaning-args (layer ?slot1-layer))
                --
                (category slot1-countryid-const-1-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
@@ -123,7 +124,8 @@
 (def-fcg-cxn slot1-loc-state-1-cxn
              ((?slot1-loc-state-1-unit
                (subunits (?slot1-unit))
-               (meaning-args (?B ?A))
+               (meaning-args (target ?loc-target)
+                             (layer ?slot1-layer))
                (category slot1-loc-state-1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
                            (lh-rightmost ?dss-entite-geographique.figure-1)
@@ -132,7 +134,7 @@
                (spatial-agreement ?location))
               <-
               (?slot1-loc-state-1-unit
-               (HASH meaning ((LOC ?B ?A ?E)(STATE ?B ?A)))
+               (HASH meaning ((LOC ?slot1-layer ?loc-target ?slot1-target)(STATE ?slot1-layer ?loc-target)))
                
                --
                (HASH form ((left-hand-articulation ?il-y-a-1 il-y-a)
@@ -147,7 +149,8 @@
                            ))
                )
               (?slot1-unit
-               (meaning-args (?E ?B))
+               (meaning-args (target ?slot1-target)
+                             (layer ?slot1-layer))
                --
                (category slot1-loc-state-1-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
@@ -159,7 +162,8 @@
 (def-fcg-cxn slot1-largest-1-cxn
              ((?slot1-largest-1-unit
                (subunits (?slot1-unit))
-               (meaning-args (?D ?E))
+               (meaning-args (target ?slot1-target)
+                             (layer ?largest-layer))
                (category slot1-largest-1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
                            (lh-rightmost ?grand.5-1)
@@ -168,7 +172,7 @@
                (spatial-agreement ?location))
               <-
               (?slot1-largest-1-unit
-               (HASH meaning ((LARGEST ?D ?E ?A)))
+               (HASH meaning ((LARGEST ?largest-layer ?slot1-target ?slot1-layer)))
                --
                (HASH form ((left-hand-articulation ?un-1 un)
                            (left-hand-articulation ?pt-1 pt)
@@ -187,7 +191,8 @@
                            ))
                )
               (?slot1-unit
-               (meaning-args (?E ?A))
+               (meaning-args (target ?slot1-target)
+                             (layer ?slot1-layer))
                --
                (category slot1-largest-1-slot1-cat)
                (spatial-agreement ?location)
@@ -201,7 +206,8 @@
 (def-fcg-cxn slot1-largest-2-cxn
              ((?slot1-largest-2-unit
                (subunits (?slot1-unit))
-               (meaning-args (?D ?E))
+               (meaning-args (target ?slot1-target)
+                             (layer ?largest-layer))
                (category slot1-largest-2-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
                            (lh-rightmost ?pt-1)
@@ -210,7 +216,7 @@
                (spatial-agreement ?location))
               <-
               (?slot1-largest-2-unit
-               (HASH meaning ((LARGEST ?D ?E ?A)))
+               (HASH meaning ((LARGEST ?largest-layer ?slot1-target ?slot1-layer)))
                --
                (HASH form ((left-hand-articulation ?grand.5-1 grand.5)
                            (right-hand-articulation ?grand.5-2 grand.5)
@@ -235,7 +241,8 @@
                            ))
                )
               (?slot1-unit
-               (meaning-args (?E ?A))
+                (meaning-args (target ?slot1-target)
+                              (layer ?slot1-layer))
                --
                (category slot1-largest-2-slot1-cat)
                (spatial-agreement ?location)
@@ -257,7 +264,7 @@
                (spatial-agreement ?location))
               <-
               (?slot1-answer-1-unit
-               (HASH meaning ((ANSWER ?C ?D ?A)))
+               (HASH meaning ((ANSWER ?answer-layer ?slot1-target ?slot1-layer)))
                
                --
                (HASH form ((left-hand-articulation ?ou-lieu.o-1 ou-lieu.o)
@@ -268,7 +275,8 @@
                            ))
                )
               (?slot1-unit
-               (meaning-args (?D ?A))
+               (meaning-args (target ?slot1-target)
+                             (layer ?slot1-layer))
                --
                (category slot1-answer-1-slot1-cat)
                (spatial-agreement ?location)
@@ -290,7 +298,7 @@
                (spatial-agreement ?location))
               <-
               (?slot1-answer-2-unit
-               (HASH meaning ((ANSWER ?C ?D ?A)))
+               (HASH meaning ((ANSWER ?answer-layer ?slot1-target ?slot1-layer)))
                
                --
                (HASH form ((left-hand-articulation ?ou-lieu.o-1 ou-lieu.o)
@@ -299,7 +307,8 @@
                            ))
                )
               (?slot1-unit
-               (meaning-args (?D ?A))
+              (meaning-args (target ?slot1-target)
+                            (layer ?slot1-layer))
                --
                (category slot1-answer-2-slot1-cat)
                (spatial-agreement ?location)
@@ -310,18 +319,18 @@
                            ))
               ))
 
-
+;answer(A,(size(B,A),const(B,stateid(alaska))))
 ; 15_0_ALASKA
 
 (def-fcg-cxn alaska-1-cxn 
              ((?alaska-1-unit
-               (meaning-args (?F))
+               (meaning-args (layer ?alaska-layer))
                (boundaries (lh-leftmost ?fs-alaska-1)
                            (lh-rightmost ?fs-alaska-1))
                (category alaska-1-cat))
               <-
               (?alaska-1-unit
-               (HASH meaning ((ALASKA ?F)))
+               (HASH meaning ((ALASKA ?alaska-layer)))
                --
                (HASH form ((left-hand-articulation ?fs-alaska-1 fs-alaska)
                            ))
@@ -330,7 +339,8 @@
 (def-fcg-cxn slot1-stateid-const-1-cxn
              ((?slot1-stateid-const-1-unit
                (subunits (?slot1-unit))
-               (meaning-args (?D ?B))
+               (meaning-args (target ?const-target)
+                             (layer ?const-layer))
                (category slot1-stateid-const-1-cat)
                (spatial-agreement ?location)
                (boundaries (lh-leftmost ?slot1-lh-left)
@@ -339,7 +349,7 @@
                            (rh-rightmost ?dss-entite-geographique.ground-1)))
               <-
               (?slot1-stateid-const-1-unit
-               (HASH meaning ((CONST ?D ?B ?E)(STATEID ?E ?F)))
+               (HASH meaning ((CONST ?const-layer ?const-target ?stateid-layer)(STATEID ?stateid-layer ?slot1-layer)))
                
                --
                (HASH form ((right-hand-articulation ?dss-entite-geographique.ground-1 dss-entite-geographique.ground)
@@ -348,7 +358,7 @@
                            ))
                )
               (?slot1-unit
-               (meaning-args (?F))
+               (meaning-args (layer ?slot1-layer))
                (category slot1-stateid-const-1-slot1-cat)
                --
                (boundaries (lh-leftmost ?slot1-lh-left)
@@ -360,7 +370,8 @@
              ((?slot1-size-1-unit
                (subunits (?slot1-unit))
                (category slot1-size-1-cat)
-               (meaning-args (?B ?A))
+               (meaning-args (target ?size-target)
+                             (layer ?slot1-layer))
                (spatial-agreement ?location)
                (boundaries (lh-leftmost ?slot1-lh-left)
                            (lh-rightmost ?surface-1)
@@ -368,7 +379,7 @@
                            (rh-rightmost ?slot1-rh-right)))
               <-
               (?slot1-size-1-unit
-               (HASH meaning ((SIZE ?B ?D ?A)))
+               (HASH meaning ((SIZE ?slot1-layer ?slot1-target ?size-target)))
                --
                (HASH form ((left-hand-articulation ?surface-1 surface)
                            (main-location ?surface-1 ?location)
@@ -377,7 +388,8 @@
                            (meets ?slot1-lh-right ?surface-1)
                            )))
               (?slot1-unit
-               (meaning-args (?D ?B))
+               (meaning-args (target ?slot1-target)
+                             (layer ?slot1-layer))
                --
                (category slot1-size-1-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
@@ -398,7 +410,7 @@
                            (rh-rightmost ?dss-entite-geographique.ground-2)))
               <-
               (?slot1-answer-3-unit
-               (HASH meaning ((ANSWER ?C ?B ?A)))
+               (HASH meaning ((ANSWER ?answer-layer ?slot1-target ?slot1-layer)))
                --
                (HASH form ((left-hand-articulation ?combien-1 combien)
                            (left-hand-articulation ?metre-carre-1 metre-carre)
@@ -424,7 +436,8 @@
                            (coincides-relation ?metre-carre-1 ?slot1-rh-right finishes)
                            )))
               (?slot1-unit
-               (meaning-args (?B ?A))
+               (meaning-args (target ?slot1-target)
+                             (layer ?slot1-layer))
                --
                (category slot1-answer-3-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
@@ -435,19 +448,19 @@
                )
               ))
              
-
+;answer(A,(size(B,A),const(B,cityid('new york',_))))
 ;16_0_NEW_YORK
 
 (def-fcg-cxn new_york-1-cxn 
              ((?new_york-1-unit
-               (meaning-args (?F))
+               (meaning-args (layer ?new_york-layer))
                (boundaries (lh-leftmost ?pt-1)
                            (lh-rightmost ?ns-new-york.y-loc-1))
                (spatial-agreement ?location)
                (category new_york-1-cat))
               <-
               (?new_york-1-unit
-               (HASH meaning ((NEW_YORK ?F)))
+               (HASH meaning ((NEW_YORK ?new_york-layer)))
                --
                (HASH form ((left-hand-articulation ?pt-1 pt)
                            (main-location ?pt-1 ?location)
@@ -462,7 +475,8 @@
 (def-fcg-cxn slot1-cityid-const-1-cxn
              ((?slot1-cityid-const-1-unit
                (subunits (?slot1-unit))
-               (meaning-args (?D ?B))
+               (meaning-args (target ?const-target)
+                             (layer ?const-layer))
                (category slot1-cityid-const-1-cat)
                (spatial-agreement ?location)
                (boundaries (lh-leftmost ?slot1-lh-left)
@@ -471,7 +485,7 @@
                            (rh-rightmost ?dss-entite-geographique.ground-2)))
               <-
               (?slot1-cityid-const-1-unit
-               (HASH meaning ((CONST ?D ?B ?E)(CITYID ?E ?F ?_)))
+               (HASH meaning ((CONST ?const-layer ?const-target ?cityid-layer)(CITYID ?cityid-layer ?slot1-layer ?empty)))
                
                --
                (HASH form ((left-hand-articulation ?dss-entite-geographique.ground-1 dss-entite-geographique.ground)
@@ -484,7 +498,7 @@
                            ))
                )
               (?slot1-unit
-               (meaning-args (?F))
+               (meaning-args (layer ?slot1-layer))
                --
                (spatial-agreement ?location)
                (category slot1-cityid-const-1-slot1-cat)
@@ -503,7 +517,7 @@
                            (rh-rightmost ?slot1-rh-right)))
               <-
               (?slot1-answer-4-unit
-               (HASH meaning ((ANSWER ?C ?D ?A)))
+               (HASH meaning ((ANSWER ?answer-layer ?slot1-target ?slot1-layer)))
                --
                (HASH form ((left-hand-articulation ?combien-1 combien)
                            (left-hand-articulation ?metre-carre-1 metre-carre)
@@ -511,7 +525,8 @@
                            (meets ?combien-1 ?metre-carre-1)
                            )))
               (?slot1-unit
-               (meaning-args (?D ?B))
+               (meaning-args (target ?slot1-target)
+                             (layer ?slot1-layer))
                --
                (category slot1-answer-4-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
@@ -522,17 +537,18 @@
                )
               ))
 
+;answer(A,(elevation(B,A),const(B,placeid('guadalupe peak'))))
 ;18_0_GUADALUPE-PEAK
 
 (def-fcg-cxn guadalupe_peak-1-cxn
              ((?guadalupe_peak-1-unit
-               (meaning-args (?F))
+               (meaning-args (layer ?guadalupe_peak-layer))
                (boundaries (lh-leftmost ?fs-guadalupe-1)
                            (lh-rightmost ?fs-guadalupe-1))
                (category guadalupe_peak-1-cat))
                <-
               (?guadalupe_peak-1-unit
-               (HASH meaning ((GUADALUPE_PEAK ?F)))
+               (HASH meaning ((GUADALUPE_PEAK ?guadalupe_peak-layer)))
                --
                (HASH form ((left-hand-articulation ?fs-guadalupe-1 fs-guadalupe)))
                )))
@@ -540,7 +556,8 @@
 (def-fcg-cxn const-placeid-slot1-1-cxn
              ((?const-placeid-slot1-1-unit
                (subunits (?slot1-unit))
-               (meaning-args (?D ?B))
+               (meaning-args (target ?const-target)
+                             (layer ?const-layer))
                (category const-placeid-slot1-1-cat)
                (spatial-agreement ?location)
                (boundaries (lh-leftmost ?montagne-1)
@@ -549,7 +566,7 @@
                            (rh-rightmost ?montagne-2)))
               <-
               (?const-placeid-slot1-1-unit
-               (HASH meaning ((CONST ?D ?B ?E)(PLACEID ?E ?F)))
+               (HASH meaning ((CONST ?const-layer ?const-target ?placeid-layer)(PLACEID ?placeid-layer ?slot1-layer)))
                
                --
                (HASH form ((left-hand-articulation ?montagne-1 montagne)
@@ -569,7 +586,7 @@
                            (coincides-relation ?slot1-lh-left ?montagne-2 during)
                            )))
               (?slot1-unit
-               (meaning-args (?F))
+               (meaning-args (layer ?slot1-layer))
                (category const-placeid-slot1-1-slot1-cat)
                --
                (boundaries (lh-leftmost ?slot1-lh-left)
@@ -580,7 +597,8 @@
 (def-fcg-cxn slot1-elevation-1-cxn
              ((?slot1-elevation-1-unit
                (subunits (?slot1-unit))
-               (meaning-args (?A ?D))
+               (meaning-args (target ?elevation-target)
+                             (layer ?slot1-layer))
                (category slot1-elevation-1-cat)
                (spatial-agreement ?location)
                (boundaries (lh-leftmost ?slot1-lh-left)
@@ -589,7 +607,7 @@
                            (rh-rightmost ?slot1-rh-right)))
               <-
               (?slot1-elevation-1-unit
-               (HASH meaning ((ELEVATION ?D ?B ?A)))
+               (HASH meaning ((ELEVATION ?slot1-layer ?slot1-target ?elevation-target)))
                
                --
                (HASH form ((left-hand-articulation ?pt-1 pt)
@@ -599,13 +617,48 @@
                            (coincides-relation ?pt-1 ?slot1-rh-right finishes)
                            )))
               (?slot1-unit
-               (meaning-args (?D ?B))
+               (meaning-args (target ?slot1-target)
+                             (layer ?slot1-layer))
                (category slot1-elevation-1-slot1-cat)
                --
                (boundaries (lh-leftmost ?slot1-lh-left)
                            (lh-rightmost ?slot1-lh-right)
                            (rh-leftmost ?slot1-rh-left)
                            (rh-rightmost ?slot1-rh-right))
+               )
+              ))
+
+(def-fcg-cxn slot1-answer-5-cxn
+             ((?slot1-answer-5-unit
+               (subunits (?slot1-unit))
+               (category slot1-answer-5-cat)
+               (spatial-agreement ?location)
+               (boundaries (lh-leftmost ?slot1-lh-left)
+                           (lh-rightmost ?metre-1)
+                           (rh-leftmost ?slot1-rh-left)
+                           (rh-rightmost ?metre-2)))
+              <-
+              (?slot1-answer-5-unit
+               (HASH meaning ((ANSWER ?answer-layer ?slot1-target ?slot1-layer)))
+               --
+               (HASH form ((left-hand-articulation ?combien-1 combien)
+                           (left-hand-articulation ?metre-1 metre)
+                           (right-hand-articulation ?metre-2 metre)
+                           (coincides-relation ?metre-1 ?metre-2 equals)
+                           (meets ?slot1-lh-right ?combien-1)
+                           (meets ?combien-1 ?metre-1)
+                           (meets ?combien-1 ?metre-2)
+                           )))
+              (?slot1-unit
+               (meaning-args (target ?slot1-target)
+                             (layer ?slot1-layer))
+               --
+               (category slot1-answer-5-slot1-cat)
+               (boundaries (lh-leftmost ?slot1-lh-left)
+                           (lh-rightmost ?slot1-lh-right)
+                           (rh-leftmost ?slot1-rh-left)
+                           (rh-rightmost ?slot1-rh-right))
+               (spatial-agreement ?location)
                )
               ))
 
@@ -636,7 +689,9 @@
                   slot1-answer-2-slot1-cat
                   slot1-answer-3-slot1-cat
                   slot1-size-1-cat
-                  slot1-answer-4-slot1-cat)
+                  slot1-answer-4-slot1-cat
+                  slot1-answer-5-slot1-cat
+                  slot1-elevation-1-cat)
                 *fcg-constructions*)
 
 (progn
@@ -655,4 +710,5 @@
   (add-link 'slot1-largest-2-cat 'slot1-answer-2-slot1-cat *fcg-constructions*)
   (add-link 'slot1-answer-3-slot1-cat 'slot1-size-1-cat *fcg-constructions*)
   (add-link 'slot1-size-1-slot1-cat 'slot1-cityid-const-1-cat *fcg-constructions*)
-  (add-link 'slot1-answer-4-slot1-cat 'slot1-size-1-cat *fcg-constructions*))
+  (add-link 'slot1-answer-4-slot1-cat 'slot1-size-1-cat *fcg-constructions*)
+  (add-link 'slot1-answer-5-slot1-cat 'slot1-elevation-1-cat *fcg-constructions*))
