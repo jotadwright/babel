@@ -581,6 +581,7 @@
                            (modification ?pt-2 down-up)
                            (meets ?montagne-1 ?pt-1)
                            (meets ?pt-1 ?pt-2)
+                           (meets ?pt-2 ?slot1-lh-left)
                            (coincides-relation ?pt-1 ?montagne-2 during)
                            (coincides-relation ?pt-2 ?montagne-2 during)
                            (coincides-relation ?slot1-lh-left ?montagne-2 during)
