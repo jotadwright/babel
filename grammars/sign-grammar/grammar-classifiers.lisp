@@ -112,6 +112,7 @@
                )
               (?slot1-unit
                (meaning-args (layer ?slot1-layer))
+               (category slot1-countryid-const-1-slot1-cat)
                --
                (category slot1-countryid-const-1-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
@@ -151,6 +152,7 @@
               (?slot1-unit
                (meaning-args (target ?slot1-target)
                              (layer ?slot1-layer))
+               (category slot1-loc-state-1-slot1-cat)
                --
                (category slot1-loc-state-1-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
@@ -193,6 +195,7 @@
               (?slot1-unit
                (meaning-args (target ?slot1-target)
                              (layer ?slot1-layer))
+               (category slot1-largest-1-slot1-cat)
                --
                (category slot1-largest-1-slot1-cat)
                (spatial-agreement ?location)
@@ -243,14 +246,15 @@
               (?slot1-unit
                 (meaning-args (target ?slot1-target)
                               (layer ?slot1-layer))
-               --
-               (category slot1-largest-2-slot1-cat)
-               (spatial-agreement ?location)
-               (boundaries (lh-leftmost ?slot1-lh-left)
-                           (lh-rightmost ?slot1-lh-right)
-                           (rh-leftmost ?slot1-rh-left)
-                           (rh-rightmost ?slot1-rh-right)
-                           ))
+                (category slot1-largest-2-slot1-cat)
+                --
+                (category slot1-largest-2-slot1-cat)
+                (spatial-agreement ?location)
+                (boundaries (lh-leftmost ?slot1-lh-left)
+                            (lh-rightmost ?slot1-lh-right)
+                            (rh-leftmost ?slot1-rh-left)
+                            (rh-rightmost ?slot1-rh-right)
+                            ))
               ))
 
 (def-fcg-cxn slot1-answer-1-cxn
@@ -277,6 +281,7 @@
               (?slot1-unit
                (meaning-args (target ?slot1-target)
                              (layer ?slot1-layer))
+               (category slot1-answer-1-slot1-cat)
                --
                (category slot1-answer-1-slot1-cat)
                (spatial-agreement ?location)
@@ -309,6 +314,7 @@
               (?slot1-unit
               (meaning-args (target ?slot1-target)
                             (layer ?slot1-layer))
+              (category slot1-answer-2-slot1-cat)
                --
                (category slot1-answer-2-slot1-cat)
                (spatial-agreement ?location)
@@ -361,6 +367,7 @@
                (meaning-args (layer ?slot1-layer))
                (category slot1-stateid-const-1-slot1-cat)
                --
+               (category slot1-stateid-const-1-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
                            (lh-rightmost ?slot1-lh-right))
                )
@@ -390,6 +397,7 @@
               (?slot1-unit
                (meaning-args (target ?slot1-target)
                              (layer ?slot1-layer))
+                (category slot1-size-1-slot1-cat)
                --
                (category slot1-size-1-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
@@ -438,6 +446,7 @@
               (?slot1-unit
                (meaning-args (target ?slot1-target)
                              (layer ?slot1-layer))
+               (category slot1-answer-3-slot1-cat)
                --
                (category slot1-answer-3-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
@@ -499,6 +508,7 @@
                )
               (?slot1-unit
                (meaning-args (layer ?slot1-layer))
+               (category slot1-cityid-const-1-slot1-cat)
                --
                (spatial-agreement ?location)
                (category slot1-cityid-const-1-slot1-cat)
@@ -527,6 +537,7 @@
               (?slot1-unit
                (meaning-args (target ?slot1-target)
                              (layer ?slot1-layer))
+               (category slot1-answer-4-slot1-cat)
                --
                (category slot1-answer-4-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
@@ -590,6 +601,7 @@
                (meaning-args (layer ?slot1-layer))
                (category const-placeid-slot1-1-slot1-cat)
                --
+                (category const-placeid-slot1-1-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
                            (lh-rightmost ?slot1-lh-right))
                )
@@ -622,6 +634,7 @@
                              (layer ?slot1-layer))
                (category slot1-elevation-1-slot1-cat)
                --
+               (category slot1-elevation-1-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
                            (lh-rightmost ?slot1-lh-right)
                            (rh-leftmost ?slot1-rh-left)
@@ -653,6 +666,7 @@
               (?slot1-unit
                (meaning-args (target ?slot1-target)
                              (layer ?slot1-layer))
+                (category slot1-answer-5-slot1-cat)
                --
                (category slot1-answer-5-slot1-cat)
                (boundaries (lh-leftmost ?slot1-lh-left)
@@ -663,10 +677,147 @@
                )
               ))
 
+; 23_RIO-GRANDE
+; answer(A,(len(B,A),const(B,riverid('rio grande'))))
+
+(def-fcg-cxn rio_grande-1-cxn 
+             ((?rio_grande-1-unit
+               (meaning-args (layer ?rio_grande-layer))
+               (boundaries (lh-leftmost ?fs-rio-grande-1)
+                           (lh-rightmost ?fs-rio-grande-1))
+               (category rio_grande-1-cat))
+              <-
+              (?rio_grande-1-unit
+               (HASH meaning ((RIO_GRANDE ?rio_grande-layer)))
+               --
+               (HASH form ((left-hand-articulation ?fs-rio-grande-1 fs-rio-grande)
+                           ))
+               )))
+
+(def-fcg-cxn const-riverid-slot1-1-cxn
+             ((?const-riverid-slot1-1-unit
+               (meaning-args (target ?const-target)
+                             (layer ?const-layer))
+               (subunits (?slot1-unit))
+               (boundaries (lh-leftmost ?eau-1)
+                           (lh-rightmost ?slot1-lh-right)
+                           (rh-leftmost ?dsm-riviere-1)
+                           (rh-rightmost ?nom.1-1))
+               (category const-riverid-slot1-1-cat)
+               (spatial-agreement ?location))
+              <-
+              (?const-riverid-slot1-1-unit
+               (HASH meaning ((CONST ?const-layer ?const-target ?riverid-layer)(RIVERID ?riverid-layer ?slot1-layer)))
+               --
+               (HASH form ((left-hand-articulation ?eau-1 eau)
+                           (left-hand-articulation ?dsm-riviere-1 dsm-riviere)
+                           (main-location ?dsm-riviere-1 ?location)
+                           (right-hand-articulation ?dsm-riviere-2 dsm-riviere)
+                           (main-location ?dsm-riviere-2 ?location)
+                           (coincides-relation ?dsm-riviere-1 ?dsm-riviere-2 starts)
+                           (left-hand-articulation ?pt-1 pt)
+                           (main-location ?pt-1 ?location)
+                           (modification ?pt-1 back-front)
+                           (left-hand-articulation ?nom.1-1 nom.1)
+                           (right-hand-articulation ?nom.1-2 nom.1)
+                           (coincides-relation ?nom.1-1 ?nom.1-2 equals)
+                           (meets ?dsm-riviere-1 ?pt-1)
+                           (meets ?pt-1 ?nom.1-1)
+                           (meets ?pt-1 ?nom.1-2)
+                           (meets ?nom.1-1 ?slot1-lh-left)
+                           (meets ?eau-1 ?dsm-riviere-1)
+                           (meets ?eau-1 ?dsm-riviere-2)
+                           (coincides-relation ?pt-1 ?dsm-riviere-2 finishes)
+                           ))
+               )
+              (?slot1-unit
+               (meaning-args (layer ?slot1-layer))
+                (category const-riverid-slot1-1-slot1-cat)
+               --
+               (category const-riverid-slot1-1-slot1-cat)
+               (boundaries (lh-leftmost ?slot1-lh-left)
+                           (lh-rightmost ?slot1-lh-right))
+               )
+              ))
+
+(def-fcg-cxn slot1-len-1-cxn
+             ((?slot1-len-1-unit
+               (meaning-args (target ?len-target)
+                             (layer ?slot1-layer))
+               (subunits (?slot1-unit))
+               (boundaries (lh-leftmost ?slot1-lh-left)
+                           (lh-rightmost ?dss-riviere-1)
+                           (rh-leftmost ?slot1-rh-left)
+                           (rh-rightmost ?fbuoy-dsm-riviere-1))
+               (category slot1-len-1-cat)
+               (spatial-agreement ?location))
+              <-
+              (?slot1-len-1-unit
+               (HASH meaning ((LEN ?slot1-layer ?slot1-target ?len-target)))
+               --
+               (HASH form ((left-hand-articulation ?dss-riviere-1 dss-riviere)
+                           (main-location ?dss-riviere-1 ?location)
+                           (right-hand-articulation ?fbuoy-dsm-riviere-1 fbuoy-dsm-riviere)
+                           (main-location ?fbuoy-dsm-riviere-1 ?location)
+                           (coincides-relation ?dss-riviere-1 ?fbuoy-dsm-riviere-1 starts)
+                           (meets ?slot1-lh-right ?dss-riviere-1)
+                           (meets ?slot1-lh-right ?fbuoy-dsm-riviere-1)
+                           ))
+               )
+              (?slot1-unit
+               (meaning-args (layer ?slot1-layer)
+                             (target ?slot1-target))
+               (category slot1-len-1-slot1-cat)
+               --
+               (category slot1-len-1-slot1-cat)
+               (boundaries (lh-leftmost ?slot1-lh-left)
+                           (lh-rightmost ?slot1-lh-right)
+                           (rh-leftmost ?slot1-rh-left)
+                           (rh-rightmost ?slot1-rh-right))
+               )
+              ))
+
+(def-fcg-cxn slot1-answer-6-cxn
+             ((?slot1-answer-6-unit
+               (subunits (?slot1-unit))
+               (category slot1-answer-6-cat)
+               (spatial-agreement ?location)
+               (boundaries (lh-leftmost ?slot1-lh-left)
+                           (lh-rightmost ?kilometre-1)
+                           (rh-leftmost ?slot1-rh-left)
+                           (rh-rightmost ?slot1-rh-right)))
+              <-
+              (?slot1-answer-6-unit
+               (HASH meaning ((ANSWER ?answer-layer ?slot1-target ?slot1-layer)))
+               --
+               (HASH form ((left-hand-articulation ?combien-1 combien)
+                           (left-hand-articulation ?kilometre-1 kilometre)
+                           (meets ?slot1-lh-right ?combien-1)
+                           (meets ?combien-1 ?kilometre-1)
+                           (coincides-relation ?combien-1 ?slot1-rh-right during)
+                           (coincides-relation ?kilometre-1 ?slot1-rh-right finishes)
+                           )))
+              (?slot1-unit
+               (meaning-args (target ?slot1-target)
+                             (layer ?slot1-layer))
+                (category slot1-answer-6-slot1-cat)
+               --
+               (category slot1-answer-6-slot1-cat)
+               (boundaries (lh-leftmost ?slot1-lh-left)
+                           (lh-rightmost ?slot1-lh-right)
+                           (rh-leftmost ?slot1-rh-left)
+                           (rh-rightmost ?slot1-rh-right))
+               (spatial-agreement ?location)
+               )
+              ))
+
+
+
 (add-categories '(usa-1-cat
                   usa-2-cat
                   alaska-1-cat
                   new_york-1-cat
+                  rio_grande-1-cat
                   slot1-countryid-const-1-cat
                   slot1-countryid-const-1-slot1-cat
                   slot1-loc-state-1-cat
@@ -692,7 +843,12 @@
                   slot1-size-1-cat
                   slot1-answer-4-slot1-cat
                   slot1-answer-5-slot1-cat
-                  slot1-elevation-1-cat)
+                  slot1-elevation-1-cat
+                  const-riverid-slot1-1-slot1-cat
+                  const-riverid-slot1-1-cat
+                  slot1-len-1-slot1-cat
+                  slot1-answer-6-slot1-cat
+                  slot1-len-1-cat)
                 *fcg-constructions*)
 
 (progn
@@ -712,4 +868,7 @@
   (add-link 'slot1-answer-3-slot1-cat 'slot1-size-1-cat *fcg-constructions*)
   (add-link 'slot1-size-1-slot1-cat 'slot1-cityid-const-1-cat *fcg-constructions*)
   (add-link 'slot1-answer-4-slot1-cat 'slot1-size-1-cat *fcg-constructions*)
-  (add-link 'slot1-answer-5-slot1-cat 'slot1-elevation-1-cat *fcg-constructions*))
+  (add-link 'slot1-answer-5-slot1-cat 'slot1-elevation-1-cat *fcg-constructions*)
+  (add-link 'const-riverid-slot1-1-slot1-cat 'rio_grande-1-cat *fcg-constructions*)
+  (add-link 'const-riverid-slot1-1-cat 'slot1-len-1-slot1-cat *fcg-constructions*)
+  (add-link 'slot1-answer-6-slot1-cat 'slot1-len-1-cat *fcg-constructions*))
