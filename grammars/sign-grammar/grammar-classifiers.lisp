@@ -851,7 +851,6 @@
                (meaning-args (layer ?largest-layer)
                              (target ?population-target))
                (category slot1-population-largest-1-cat)
-               (spatial-agreement ?location)
                (boundaries (lh-leftmost ?slot1-lh-left)
                            (lh-rightmost ?habiter-1)
                            (rh-leftmost ?slot1-rh-left)
@@ -885,7 +884,6 @@
                            (lh-rightmost ?slot1-lh-right)
                            (rh-leftmost ?slot1-rh-left)
                            (rh-rightmost ?slot1-rh-right))
-               (spatial-agreement ?location)
                )
               ))
 
@@ -894,7 +892,6 @@
              ((?slot1-answer-7-unit
                (subunits (?slot1-unit))
                (category slot1-answer-7-cat)
-               (spatial-agreement ?location)
                (boundaries (lh-leftmost ?slot1-lh-left)
                            (lh-rightmost ?palm-up-1)
                            (rh-leftmost ?slot1-rh-left)
@@ -921,10 +918,154 @@
                            (lh-rightmost ?slot1-lh-right)
                            (rh-leftmost ?slot1-rh-left)
                            (rh-rightmost ?slot1-rh-right))
-               (spatial-agreement ?location)
                )
               ))
 
+;35_1
+;answer(A,(population(B,A),largest(B,city(B))))
+
+(def-fcg-cxn largest-1-cxn
+             ((?largest-1-unit
+               (meaning-args (layer ?largest-layer)
+                             (target ?largest-target)
+                             (embedded-layer ?embedded-layer))
+               (boundaries (lh-leftmost ?grand.5-1)
+                           (lh-rightmost ?grand.5-1)
+                           (rh-leftmost ?grand.5-2)
+                           (rh-rightmost ?grand.5-2))
+               (category largest-1-cat))
+              <-
+              (?largest-1-unit
+               (HASH meaning ((LARGEST ?largest-layer ?largest-target ?embedded-layer)))
+               --
+               (HASH form ((left-hand-articulation ?grand.5-1 grand.5)
+                           (right-hand-articulation ?grand.5-2 grand.5)
+                           (coincides-relation ?grand.5-1 ?grand.5-2 equals)
+               )))))
+
+
+(def-fcg-cxn population-1-cxn
+             ((?population-1-unit
+               (meaning-args (layer ?population-layer)
+                             (target ?population-target)
+                             (embedded-target ?embedded-target))
+               (boundaries (lh-leftmost ?personne.humain-1)
+                           (lh-rightmost ?dans-1)
+                           (rh-leftmost ?personne.humain-2)
+                           (rh-rightmost ?dans-2))
+               (category population-1-cat))
+              <-
+              (?population-1-unit
+               (HASH meaning ((POPULATION ?population-layer ?embedded-target ?population-target)))
+               --
+               (HASH form ((left-hand-articulation ?personne.humain-1 personne.humain)
+                           (right-hand-articulation ?personne.humain-2 personne.humain)
+                           (coincides-relation ?personne.humain-1 ?personne.humain-2 equals)
+                           (left-hand-articulation ?habiter-1 habiter)
+                           (modification ?habiter-1 reduplicated)
+                           (right-hand-articulation ?habiter-2 habiter)
+                           (modification ?habiter-2 reduplicated)
+                           (coincides-relation ?habiter-1 ?habiter-2 equals)
+                           (left-hand-articulation ?dans-1 dans)
+                           (right-hand-articulation ?dans-2 dans)
+                           (coincides-relation ?dans-1 ?dans-2 equals)
+                           (meets ?personne.humain-1 ?habiter-1)
+                           (meets ?personne.humain-1 ?habiter-2)
+                           (meets ?habiter-1 ?dans-1)
+                           (meets ?habiter-1 ?dans-2)
+               )))))
+
+(def-fcg-cxn slot1-slot2-answer-1-cxn
+             ((?slot1-slot2-answer-1-unit
+               (subunits (?slot1-unit ?slot2-unit))
+               (category slot1-slot2-answer-1-cat)
+               (boundaries (lh-leftmost ?slot1-lh-left)
+                           (lh-rightmost ?combien-2)
+                           (rh-leftmost ?slot1-rh-left)
+                           (rh-rightmost ?slot2-rh-right)))
+              <-
+              (?slot1-slot2-answer-1-unit
+               (HASH meaning ((ANSWER ?answer-layer ?slot2-target ?slot1-layer)))
+               --
+               (HASH form ((left-hand-articulation ?combien-1 combien)
+                           (left-hand-articulation ?combien-2 combien)
+                           (meets ?slot1-lh-right ?combien-1)
+                           (meets ?combien-1 ?slot2-lh-left)
+                           (meets ?combien-1 ?slot2-rh-left)
+                           (meets ?slot2-lh-right ?combien-2)
+                           )))
+              (?slot1-unit
+               (meaning-args (target ?slot1-target)
+                             (layer ?slot1-layer))
+                (category slot1-slot2-answer-1-slot1-cat)
+               --
+               (category slot1-slot2-answer-1-slot1-cat)
+               (boundaries (lh-leftmost ?slot1-lh-left)
+                           (lh-rightmost ?slot1-lh-right)
+                           (rh-leftmost ?slot1-rh-left)
+                           (rh-rightmost ?slot1-rh-right))
+               (spatial-agreement ?location))
+              (?slot2-unit
+               (meaning-args (target ?slot2-target)
+                             (embedded-target ?slot1-target)
+                             (layer ?slot1-layer))
+               (category slot1-slot2-answer-1-slot2-cat)
+               --
+               (category slot1-slot2-answer-1-slot2-cat)
+               (boundaries
+                (lh-leftmost ?slot2-lh-left)
+                (lh-rightmost ?slot2-lh-right)
+                (rh-leftmost ?slot2-rh-left)
+                (rh-rightmost ?slot2-rh-right)
+               )
+               )
+              ))
+
+(def-fcg-cxn slot1-city-1-cxn
+             ((?slot1-city-1-unit
+               (subunits (?slot1-unit))
+               (category slot1-city-1-cat)
+               (meaning-args (layer ?slot1-layer)
+                             (target ?slot1-target))
+               (boundaries (lh-leftmost ?dans-1)
+                           (lh-rightmost ?ville-1)
+                           (rh-leftmost ?dans-2)
+                           (rh-rightmost ?ville-2)))
+              <-
+              (?slot1-city-1-unit
+               (HASH meaning ((CITY ?slot1-embedded-layer ?slot1-target)))
+               --
+               (HASH form ((left-hand-articulation ?dans-1 dans)
+                           (right-hand-articulation ?dans-2 dans)
+                           (coincides-relation ?dans-1 ?dans-2 equals)
+                           (left-hand-articulation ?ns-amerique.frites-1 ns-amerique.frites)
+                           (right-hand-articulation ?ns-amerique.frites-2 ns-amerique.frites)
+                           (coincides-relation ?ns-amerique.frites-1 ?ns-amerique.frites-2 equals)
+                           (left-hand-articulation ?il-y-a-1 il-y-a)
+                           (left-hand-articulation ?ville-1 ville)
+                           (right-hand-articulation ?ville-2 ville)
+                           (coincides-relation ?ville-1 ?ville-2 equals)
+                           (meets ?dans-1 ?ns-amerique.frites-1)
+                           (meets ?dans-1 ?ns-amerique.frites-2)
+                           (meets ?ns-amerique.frites-1 ?il-y-a-1)
+                           (meets ?il-y-a-1 ?slot1-lh-left)
+                           (meets ?il-y-a-1 ?slot1-rh-left)
+                           (meets ?slot1-lh-right ?ville-1)
+                           (meets ?slot1-lh-right ?ville-2)
+                           )))
+              (?slot1-unit
+               (meaning-args (target ?slot1-target)
+                             (layer ?slot1-layer)
+                             (embedded-layer ?slot1-embedded-layer))
+                (category slot1-city-1-slot1-cat)
+               --
+               (category slot1-city-1-slot1-cat)
+               (boundaries (lh-leftmost ?slot1-lh-left)
+                           (lh-rightmost ?slot1-lh-right)
+                           (rh-leftmost ?slot1-rh-left)
+                           (rh-rightmost ?slot1-rh-right))
+               )
+              ))
 
 (add-categories '(usa-1-cat
                   usa-2-cat
@@ -965,7 +1106,13 @@
                   slot1-population-largest-1-slot1-cat
                   city-1-cat
                   slot1-answer-7-slot1-cat
-                  slot1-population-largest-1-cat)
+                  slot1-population-largest-1-cat
+                  slot1-city-1-slot1-cat
+                  largest-1-cat
+                  slot1-slot2-answer-1-slot1-cat
+                  slot1-city-1-cat
+                  slot1-slot2-answer-1-slot2-cat
+                  population-1-cat)
                 *fcg-constructions*)
 
 (progn
@@ -990,4 +1137,7 @@
   (add-link 'const-riverid-slot1-1-cat 'slot1-len-1-slot1-cat *fcg-constructions*)
   (add-link 'slot1-answer-6-slot1-cat 'slot1-len-1-cat *fcg-constructions*)
   (add-link 'slot1-population-largest-1-slot1-cat 'city-1-cat *fcg-constructions*)
-  (add-link 'slot1-answer-7-slot1-cat 'slot1-population-largest-1-cat *fcg-constructions*))
+  (add-link 'slot1-answer-7-slot1-cat 'slot1-population-largest-1-cat *fcg-constructions*)
+  (add-link 'slot1-city-1-slot1-cat 'largest-1-cat *fcg-constructions*)
+  (add-link 'slot1-slot2-answer-1-slot1-cat 'slot1-city-1-cat *fcg-constructions*)
+  (add-link 'slot1-slot2-answer-1-slot2-cat 'population-1-cat *fcg-constructions*))
