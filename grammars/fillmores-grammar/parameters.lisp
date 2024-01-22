@@ -1,5 +1,4 @@
-(ql:quickload :fcg)
-(in-package :fcg)
+(in-package :fillmores-grammar)
 
 (defvar *fillmores-cxns*)
 
