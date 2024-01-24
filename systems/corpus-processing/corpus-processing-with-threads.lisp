@@ -105,64 +105,68 @@
             list-of-thread-batches))
     
     ;; process each thread-batch with LispWorks
-    #+LISPWORKS (let* ((mailbox (make-mailbox :name "batch-mailbox"))
-                (thread-list (mapcar #'(lambda (thread-batch)
-                                         (process-run-function "line-processing" '() #'process-list-of-lines
-                                                               function function-kwargs thread-batch mailbox))
-                                     list-of-thread-batches))
-                (mailbox-messages nil))
-           ;; Wait for messages
-           (mp:process-wait "waiting for threads to finish..." 'all-threads-dead thread-list)
-           ;; Read batches from mailbox
-           (while (not (mp:mailbox-empty-p mailbox))
-             (push (mp:mailbox-read mailbox) mailbox-messages))
-           ;; Write batches to outputfile
-           (dolist (list-of-lines (sort mailbox-messages #'< :key #'car))
-             (write-to-file outputfile (cdr list-of-lines) write-empty-lines-p))
-           ;; Kill processes
-           (dolist (thread thread-list)
-             (mp:process-kill thread)))
+    #+LISPWORKS
+    (let* ((mailbox (make-mailbox :name "batch-mailbox"))
+           (thread-list (mapcar #'(lambda (thread-batch)
+                                    (process-run-function "line-processing" '() #'process-list-of-lines
+                                                          function function-kwargs thread-batch mailbox))
+                                list-of-thread-batches))
+           (mailbox-messages nil))
+      ;; Wait for messages
+      (mp:process-wait "waiting for threads to finish..." 'all-threads-dead thread-list)
+      ;; Read batches from mailbox
+      (while (not (mp:mailbox-empty-p mailbox))
+        (push (mp:mailbox-read mailbox) mailbox-messages))
+      ;; Write batches to outputfile
+      (dolist (list-of-lines (sort mailbox-messages #'< :key #'car))
+        (write-to-file outputfile (cdr list-of-lines) write-empty-lines-p))
+      ;; Kill processes
+      (dolist (thread thread-list)
+        (mp:process-kill thread)))
 
     ;; process each thread-batch with CCL
-    #+CCL (let* ((mailbox nil)
-                 (thread-list (loop for thread-batch in list-of-thread-batches
-                                 for process = (ccl:make-process "line-processing")
-                                 do (ccl:process-preset process #'process-list-of-lines
-                                                        function function-kwargs thread-batch)
-                                 do (ccl:process-enable process)
-                                 collect process)))
-            ;; Wait for messages
-            (ccl:process-wait "waiting for threads to finish..." 'all-threads-dead thread-list)
-            ;; Read batches from mailbox
-            (loop for thread in thread-list
-               do (push (ccl:join-process thread) mailbox))
-            ;; Write batches to outputfile
-            (dolist (list-of-lines (sort mailbox #'< :key #'car))
-              (write-to-file outputfile (cdr list-of-lines) write-empty-lines-p))
-            ;; Kill processes
-            (dolist (thread thread-list)
-              (ccl:process-kill thread)))
+    #+CCL
+    (let* ((mailbox nil)
+           (thread-list (loop for thread-batch in list-of-thread-batches
+                              for process = (ccl:make-process "line-processing")
+                              do (ccl:process-preset process #'process-list-of-lines
+                                                     function function-kwargs thread-batch)
+                              do (ccl:process-enable process)
+                              collect process)))
+      ;; Wait for messages
+      (ccl:process-wait "waiting for threads to finish..." 'all-threads-dead thread-list)
+      ;; Read batches from mailbox
+      (loop for thread in thread-list
+            do (push (ccl:join-process thread) mailbox))
+      ;; Write batches to outputfile
+      (dolist (list-of-lines (sort mailbox #'< :key #'car))
+        (write-to-file outputfile (cdr list-of-lines) write-empty-lines-p))
+      ;; Kill processes
+      (dolist (thread thread-list)
+        (ccl:process-kill thread)))
             
     ;; process each thread-batch with SBCL
-    #+SBCL (let* ((mailbox (sb-concurrency:make-mailbox :name "batch-mailbox"))
-                  (thread-list (loop for thread-batch in list-of-thread-batches
-                                  for process = (sb-thread:make-thread #'process-list-of-lines :name "line-processing"
-                                                                       :arguments (list function function-kwargs thread-batch mailbox))
-                                  collect process))
-                  (mailbox-messages nil))
-             ;; Wait for messages
-             (loop while t
-                when (all-threads-dead thread-list)
-                return nil)
-             ;; Read batches from mailbox
-             (while (not (sb-concurrency:mailbox-empty-p mailbox))
-               (push (sb-concurrency:receive-message mailbox) mailbox-messages))
-             ;; Write batches to outputfile
-             (dolist (list-of-lines (sort mailbox-messages #'< :key #'car))
-               (write-to-file outputfile (cdr list-of-lines) write-empty-lines-p))
-             ;; Kill processes
-             (dolist (thread thread-list)
-               (sb-thread:terminate-thread thread)))))
+    #+SBCL
+    (let* ((mailbox (sb-concurrency:make-mailbox :name "batch-mailbox"))
+           (thread-list (loop for thread-batch in list-of-thread-batches
+                              for process = (sb-thread:make-thread #'process-list-of-lines :name "line-processing"
+                                                                   :arguments (list function function-kwargs thread-batch mailbox))
+                              collect process))
+           (mailbox-messages nil))
+      ;; Wait for messages
+      (loop while t
+            when (all-threads-dead thread-list)
+              return nil)
+      ;; Read batches from mailbox
+      (while (not (sb-concurrency:mailbox-empty-p mailbox))
+        (push (sb-concurrency:receive-message mailbox) mailbox-messages))
+      ;; Write batches to outputfile
+      (dolist (list-of-lines (sort mailbox-messages #'< :key #'car))
+        (write-to-file outputfile (cdr list-of-lines) write-empty-lines-p))
+      ;; Kill processes
+      (dolist (thread thread-list)
+        (when (sb-thread:thread-alive-p thread)
+          (sb-thread:terminate-thread thread))))))
 
 (defun process-list-of-lines (function function-kwargs list-of-lines &optional mailbox)
   "applies function to list-of-lines and returns the processed list-of-lines"
