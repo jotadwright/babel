@@ -204,7 +204,12 @@
    (initial-transient-structure 
     :type coupled-feature-structure 
     :accessor initial-transient-structure
-    :documentation "The initial transient structure for the utterance."))
+    :documentation "The initial transient structure for the utterance.")
+   (language
+    :type string
+    :accessor language
+    :initarg :language
+    :documentation "The language of the corpus."))
   (:documentation "Representation of a conll sentence."))
 
 (defmethod print-object ((s conll-sentence) (stream t))
@@ -220,7 +225,10 @@
   ;; sentence string
   (setf (sentence-string sentence) (format nil "~{~a~^ ~}" (mapcar #'token-string (tokens sentence))))
   ;; syntactic anlysis
-  (setf (syntactic-analysis sentence) (nlp-tools:get-penelope-syntactic-analysis (format nil "~{~a~^ ~}" (mapcar #'token-string (tokens sentence)))))
+  (setf (syntactic-analysis sentence) (nlp-tools:get-penelope-syntactic-analysis
+                                       (format nil "~{~a~^ ~}" (mapcar #'token-string (tokens sentence)))
+                                       :model (cond ((string= (language sentence) "fr") "fr_benepar")
+                                                    ((string= (language sentence) "en") "en_benepar"))))
   ;; initial transient structure
   (setf (initial-transient-structure sentence) (create-initial-transient-structure-based-on-benepar-analysis (syntactic-analysis sentence)))
   ;; propbank frames
@@ -361,7 +369,7 @@
         finally
         (return sentences)))
 
-(defun read-propbank-conll-file (pathname)
+(defun read-propbank-conll-file (pathname &key (language "en"))
   "Reads a propbank-conll file and returns a list of conll-sentence objects."
   (let* ((conll-lines (with-open-file (inputstream pathname :direction :input)
                        (uiop/stream:read-file-lines inputstream)))
@@ -388,7 +396,7 @@
           if (and previous-sentence-id
                   (not (= sentence-id previous-sentence-id)))
           do
-          (setf conll-sentences (append conll-sentences (list (make-instance 'conll-sentence :tokens current-sentence-tokens))))
+          (setf conll-sentences (append conll-sentences (list (make-instance 'conll-sentence :tokens current-sentence-tokens :language language))))
           (setf current-sentence-tokens (list conll-token))
           (setf previous-sentence-id sentence-id)
           else
@@ -396,7 +404,7 @@
           (setf current-sentence-tokens (append current-sentence-tokens (list conll-token)))
           (setf previous-sentence-id sentence-id)
           finally
-          (progn (setf conll-sentences (append conll-sentences (list (make-instance 'conll-sentence :tokens current-sentence-tokens))))
+          (progn (setf conll-sentences (append conll-sentences (list (make-instance 'conll-sentence :tokens current-sentence-tokens :language language))))
                 (return conll-sentences)))))
 
 (defun get-corpus-file-lists (corpus-name)
