@@ -21,8 +21,8 @@
 ;; Loading the Propbank annotations (takes a couple of minutes)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(load-propbank-annotations 'ewt :ignore-stored-data nil) ; *ewt-annotations*
-(load-propbank-annotations 'ontonotes :ignore-stored-data nil) ; *ontonotes-annotations*
+(load-propbank-annotations 'ewt :ignore-stored-data nil)
+(load-propbank-annotations 'ontonotes :ignore-stored-data nil)
 
 
 ;; Storing and restoring grammars
@@ -118,7 +118,6 @@
 
 
 ;(subseq (shuffle (append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*))) 0 1000))
-
 
 (learn-propbank-grammar
  (subseq *train-corpus* 0 10000)
