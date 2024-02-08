@@ -27,6 +27,68 @@
                                                              :name "ewt-annotations"
                                                              :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store"))
 
+;; French data
+(defparameter *french-training-set* nil "Will contain the processed conll-sentences.")
+(defparameter *french-propbank-directory* nil "Directory where French data and models are stored.")
+(defparameter *french-training-data* nil "A conll-file.")
+(defparameter *french-training-storage* nil "For storing the 
+
+(setf *french-propbank-directory* (babel-pathname :directory '("grammars/propbank-grammar/propbank-annotations/french"))
+      *french-training-data* (merge-pathnames "french-propbank-train.conll" *french-propbank-directory*)
+      *french-training-storage* (merge-pathnames (make-pathname :name "french-propbank-training"
+                                                                :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
+                                                 *french-propbank-directory*))
+
+(defun load-french-training-set (&key from-scratch save-after-loading)
+  "Temporary French-specific loading function. To be integrated."
+  (cond ((and (not from-scratch)
+              (probe-file *french-training-storage*))
+         (setf *french-training-set* (cl-store:restore *french-training-storage*)))
+        ((probe-file *french-training-data*)
+         (setf *french-training-set* (read-propbank-conll-file *french-training-data* :language "fr")))
+        (t
+         (error (format nil "No training data found in directory ~a" *french-propbank-directory*))))
+  (when save-after-loading
+    (cl-store:store *french-training-set* *french-training-storage*))
+  *french-training-set*)
+;; (load-french-training-set :from-scratch t :save-after-loading t)
+  
+(defun load-propbank-annotations (corpus-name &key (store-data t) ignore-stored-data)
+  "Loads ProbBank annotations and stores the result. It is loaded from a pb-annotations.store file if it
+   is available, from the raw pb-annoation files otherwise. :store-data nil avoids storing the data,
+   ignore-stored-data t forces to load the data from the original files."
+  (let ((corpus-annotations-storage-file (get-corpus-annotations-storage-file corpus-name)))
+    (if (and (probe-file corpus-annotations-storage-file)
+             (not ignore-stored-data))
+      ;; Option 1: Load from storage file if file exists ignore-stored-data is nil.
+      (case corpus-name
+        (ewt (setf *ewt-annotations* (cl-store:restore corpus-annotations-storage-file)))
+        (ontonotes (setf *ontonotes-annotations* (cl-store:restore corpus-annotations-storage-file))))
+      ;; Option 2: Load from original propbank files.
+      (case corpus-name
+        (ewt (setf *ewt-annotations* (load-propbank-annotations-from-files corpus-name)))
+        (ontonotes (setf *ontonotes-annotations* (load-propbank-annotations-from-files corpus-name)))))
+    ;; Store the data into an *fn-data-storage-file*
+    (if (and store-data (or ignore-stored-data
+                            (not (probe-file corpus-annotations-storage-file))))
+      (case corpus-name
+        (ewt (cl-store:store *ewt-annotations* corpus-annotations-storage-file))
+        (ontonotes (cl-store:store *ontonotes-annotations* corpus-annotations-storage-file))))
+
+    (format nil "Loaded ~a annotated sentences into ~a"
+            (+ (length (train-split (case corpus-name
+                                      (ewt *ewt-annotations*)
+                                      (ontonotes *ontonotes-annotations*))))
+               (length (dev-split (case corpus-name
+                                    (ewt *ewt-annotations*)
+                                    (ontonotes *ontonotes-annotations*))))
+               (length (test-split (case corpus-name
+                                     (ewt *ewt-annotations*)
+                                     (ontonotes *ontonotes-annotations*)))))
+            (case corpus-name
+              (ewt '*ewt-annotations*)
+              (ontonotes '*ontonotes-annotations*)))))
+
 ;;;;;;;;;;;;;
 ;; Classes ;;
 ;;;;;;;;;;;;;
@@ -225,10 +287,12 @@
   ;; sentence string
   (setf (sentence-string sentence) (format nil "~{~a~^ ~}" (mapcar #'token-string (tokens sentence))))
   ;; syntactic anlysis
-  (setf (syntactic-analysis sentence) (nlp-tools:get-penelope-syntactic-analysis
-                                       (format nil "~{~a~^ ~}" (mapcar #'token-string (tokens sentence)))
-                                       :model (cond ((string= (language sentence) "fr") "fr_benepar")
-                                                    ((string= (language sentence) "en") "en_benepar"))))
+  (setf (syntactic-analysis sentence) (let ((list-of-tokens (mapcar #'token-string (tokens sentence))))
+                                        (nlp-tools:get-penelope-syntactic-analysis
+                                         (if (string= (language sentence) "fr") list-of-tokens ;; If we are parsing in French keep list of tokens
+                                           ;; If not we provide a string (but perhaps this should also be changed)
+                                           (format nil "~{~a~^ ~}" (mapcar #'token-string (tokens sentence))))
+                                         :model (format nil "~a_benepar" (language sentence))))) ; "fr_benepar" or "en_benepar"
   ;; initial transient structure
   (setf (initial-transient-structure sentence) (create-initial-transient-structure-based-on-benepar-analysis (syntactic-analysis sentence)))
   ;; propbank frames
@@ -306,7 +370,6 @@
   (case corpus-name
     (ewt *ewt-annotations-storage-file*)
     (ontonotes *ontonotes-annotations-storage-file*)))
-
 
 (defun load-propbank-annotations (corpus-name &key (store-data t) ignore-stored-data)
   "Loads ProbBank annotations and stores the result. It is loaded from a pb-annotations.store file if it

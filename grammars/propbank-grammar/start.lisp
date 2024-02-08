@@ -21,8 +21,8 @@
 ;; Loading the Propbank annotations (takes a couple of minutes)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(load-propbank-annotations 'ewt :ignore-stored-data nil)
-(load-propbank-annotations 'ontonotes :ignore-stored-data nil)
+(load-propbank-annotations 'ewt :ignore-stored-data nil) ; *ewt-annotations*
+(load-propbank-annotations 'ontonotes :ignore-stored-data nil) ; *ontonotes-annotations*
 
 
 ;; Storing and restoring grammars
@@ -117,6 +117,25 @@
 (defparameter *train-corpus* (train-split *ontonotes-annotations*))
 
 
+
+;;; Testing French propbank
+;;; -----------------------
+(defparameter *french-training-set* nil)
+(setf *french-training-set* (load-french-training-set :from-scratch nil :save-after-loading nil))
+
+(learn-propbank-grammar *french-training-set*
+                        :excluded-rolesets '("be.01" "be.02" "be.03"
+                                             "do.01" "do.02" "do.04" "do.11" "do.12"
+                                             "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
+                                             "get.03" "get.06" "get.24")
+                        :cxn-inventory '*french-propbank-grammar*
+                        :model "fr_benepar"
+                        :fcg-configuration *training-configuration*)
+(activate-monitor trace-fcg)
+(comprehend-and-extract-frames (nth 3 *french-training-set*) :cxn-inventory *french-propbank-grammar*)
+
+
+
 ;(subseq (shuffle (append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*))) 0 1000))
 
 (learn-propbank-grammar
@@ -126,6 +145,7 @@
                       "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
                       "get.03" "get.06" "get.24")
  :cxn-inventory '*propbank-ontonotes-learned-cxn-inventory-no-aux-all-strategies*
+ :model "en_benepar"
  :fcg-configuration *training-configuration*)
 
 ;(add-element (make-html (find-cxn 'V\(IN\)+ARGM-ADV\(SBAR\:LIKE\)-11+3-CXN *propbank-ontonotes-learned-cxn-inventory-no-aux-all-strategies*)))
