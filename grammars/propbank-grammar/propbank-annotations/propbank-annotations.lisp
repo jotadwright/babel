@@ -31,7 +31,7 @@
 (defparameter *french-training-set* nil "Will contain the processed conll-sentences.")
 (defparameter *french-propbank-directory* nil "Directory where French data and models are stored.")
 (defparameter *french-training-data* nil "A conll-file.")
-(defparameter *french-training-storage* nil "For storing the 
+(defparameter *french-training-storage* nil "For storing the training set.")
 
 (setf *french-propbank-directory* (babel-pathname :directory '("grammars/propbank-grammar/propbank-annotations/french"))
       *french-training-data* (merge-pathnames "french-propbank-train.conll" *french-propbank-directory*)
