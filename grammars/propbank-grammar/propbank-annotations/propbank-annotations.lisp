@@ -32,12 +32,19 @@
 (defparameter *french-propbank-directory* nil "Directory where French data and models are stored.")
 (defparameter *french-training-data* nil "A conll-file.")
 (defparameter *french-training-storage* nil "For storing the training set.")
+(defparameter *french-problem-data* nil "Small corpus of problematic sentences.")
+(defparameter *french-problem-set* nil "Small corpus of problematic sentences.")
 
 (setf *french-propbank-directory* (babel-pathname :directory '("grammars/propbank-grammar/propbank-annotations/french"))
       *french-training-data* (merge-pathnames "french-propbank-train.conll" *french-propbank-directory*)
       *french-training-storage* (merge-pathnames (make-pathname :name "french-propbank-training"
                                                                 :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
-                                                 *french-propbank-directory*))
+                                                 *french-propbank-directory*)
+      *french-problem-data* (merge-pathnames "french-problem-data.conll" *french-propbank-directory*))
+
+(defun load-french-problem-set ()
+  (setf *french-problem-set* (read-propbank-conll-file *french-problem-data* :language "fr")))
+;; (load-french-problem-set)
 
 (defun load-french-training-set (&key from-scratch save-after-loading)
   "Temporary French-specific loading function. To be integrated."

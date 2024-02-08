@@ -123,6 +123,7 @@
 (defparameter *french-training-set* nil)
 (setf *french-training-set* (load-french-training-set :from-scratch nil :save-after-loading nil))
 
+;; Working on the full training data:
 (learn-propbank-grammar *french-training-set*
                         :excluded-rolesets '("be.01" "be.02" "be.03"
                                              "do.01" "do.02" "do.04" "do.11" "do.12"
@@ -131,8 +132,20 @@
                         :cxn-inventory '*french-propbank-grammar*
                         :model "fr_benepar"
                         :fcg-configuration *training-configuration*)
-(activate-monitor trace-fcg)
-(comprehend-and-extract-frames (nth 3 *french-training-set*) :cxn-inventory *french-propbank-grammar*)
+; (activate-monitor trace-fcg)
+; (comprehend-and-extract-frames (nth 3 *french-training-set*) :cxn-inventory *french-propbank-grammar*)
+
+;; Only the problem sentences:
+(load-french-problem-set)
+(learn-propbank-grammar *french-problem-set*
+                        :excluded-rolesets '("be.01" "be.02" "be.03"
+                                             "do.01" "do.02" "do.04" "do.11" "do.12"
+                                             "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
+                                             "get.03" "get.06" "get.24")
+                        :cxn-inventory '*french-propbank-grammar*
+                        :model "fr_benepar"
+                        :fcg-configuration *training-configuration*)
+;; (comprehend-and-extract-frames (first *french-problem-set*) :cxn-inventory *french-propbank-grammar*)
 
 
 
