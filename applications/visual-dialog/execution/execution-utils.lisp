@@ -24,6 +24,15 @@
       (push (caption dialog) questions)
     questions))
 
+(defmethod get-dialog-by-index (scene-index dialog-index world (dataset (eql :gqa)))
+  "returns a list of questions based on a scene-index and dialog-index"
+  (let* ((dialog-set-path (nth scene-index (dialog-sets world)))
+         (dialog-set (dialogs (load-object 'gqa-dialog-set dialog-set-path)))
+         (dialog (nth dialog-index dialog-set))
+         (questions (questions dialog)))
+      (push (caption dialog) questions)
+    questions))
+
 (defmethod get-dialog-by-index (scene-index dialog-index world (dataset (eql :mnist)))
   "returns a list of questions based on a scene-index and dialog-index"
   (let* ((dialog-set-path (nth scene-index (dialog-sets world)))
@@ -49,6 +58,14 @@
   "returns a list of answers based on a scene-index and dialog-index"
   (let* ((dialog-set-path (nth scene-index (dialog-sets world)))
          (dialog-set (dialogs (load-object 'clevr-dialog-set dialog-set-path)))
+         (dialog (nth dialog-index dialog-set))
+         (answers (answers dialog)))
+    answers))
+
+(defmethod get-gold-answers-by-index (scene-index dialog-index world (dataset (eql :gqa)))
+  "returns a list of answers based on a scene-index and dialog-index"
+  (let* ((dialog-set-path (nth scene-index (dialog-sets world)))
+         (dialog-set (dialogs (load-object 'gqa-dialog-set dialog-set-path)))
          (dialog (nth dialog-index dialog-set))
          (answers (answers dialog)))
     answers))

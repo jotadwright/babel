@@ -14,8 +14,9 @@
      
            ((length= object-list 1)
             (bind (target-world-model 1.0 (make-instance 'world-model
-                                                       ;  :id (id source-set)
+                                                         :id (id source-set)
                                                          :set-items (list (make-instance 'turn
+                                                                                         :id (id (first (set-items source-set)))
                                                                                          :object-set (make-instance 'object-set
                                                                                                                     :objects (list (first (collect-objects-from-world-model source-set))))))))))
            (t
@@ -25,9 +26,10 @@
                        (bind (target-world-model ;score
                               1.0
                                                  (make-instance 'world-model
-                                                                   ;   :id (id source-set)
+                                                                      :id (id source-set)
                                                                       :set-items
                                                                       (list (make-instance 'turn
+                                                                                           :id (id (first (set-items source-set)))
                                                                                            :object-set (make-instance 'object-set
                                                                                                                       :objects (list object)))))))))))))
      

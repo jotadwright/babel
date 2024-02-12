@@ -15,7 +15,9 @@
        (when object-set
          (bind (target-set 1.0 (make-instance 'world-model
                                               :id 'context
-                                              :set-items (list (make-instance 'turn :object-set (make-instance 'object-set :objects object-set)))))))))
+                                              :set-items (list (make-instance 'turn
+                                                                              :id (id (first (set-items context-set)))
+                                                                              :object-set (make-instance 'object-set :objects object-set)))))))))
   )
   :primitive-inventory (*symbolic-primitives* *subsymbolic-primitives*))
    
