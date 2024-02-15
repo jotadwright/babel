@@ -40,7 +40,7 @@
   "Evaluates a bind statement by searching for values in the
    ontology or by binding the value in the bind statement."
   (declare (ignore class))
-  (let ((entity (find-entity-by-id ontology value)))
+  (let ((entity (find-entity-by-id ontology value :type class)))
     (cond (entity (progn (assert (typep entity class))
                     (make-instance 'binding :var var
                                    :score 1.0 :value entity

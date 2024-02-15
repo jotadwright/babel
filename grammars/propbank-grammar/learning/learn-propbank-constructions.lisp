@@ -8,32 +8,40 @@
 ;;                                                              ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(def-fcg-constructions propbank-learned ;; formerly called "propbank-learned-english"
+  :visualization-configurations ((:show-constructional-dependencies . nil)
+                                 (:show-categorial-network . nil)
+                                 (:hide-attributes . t)
+                                 (:hide-features . nil))
+  :hierarchy-features (constituents dependents)
+  :feature-types ((constituents sequence)
+                  (dependents sequence)
+                  (span sequence)
+                  (syn-class set)
+                  (args set-of-predicates)
+                  (word-order set-of-predicates)
+                  (meaning set-of-predicates)
+                  (footprints set))
+  :hashed t)
+;; (make-propbank-learned-cxns)
+
 (defun learn-propbank-grammar (list-of-propbank-sentences &key
                                                           (selected-rolesets nil)
                                                           (excluded-rolesets nil)
                                                           (cxn-inventory '*propbank-learned-cxn-inventory*)
+                                                          (model "en_benepar")
                                                           (fcg-configuration nil))
+  
   "Learns a PropBank grammar based on a corpus of PropBank-annotated sentences."
-  (let ((cxn-inventory (eval `(def-fcg-constructions propbank-learned-english
-                                :fcg-configurations ,fcg-configuration
-                                :visualization-configurations ((:show-constructional-dependencies . nil)
-                                                               (:show-categorial-network . nil)
-                                                               (:hide-attributes . t)
-                                                               (:hide-features . nil))
-                                :hierarchy-features (constituents dependents)
-                                :feature-types ((constituents sequence)
-                                                (dependents sequence)
-                                                (span sequence)
-                                                (syn-class set)
-                                                (args set-of-predicates)
-                                                (word-order set-of-predicates)
-                                                (meaning set-of-predicates)
-                                                (footprints set))
-                                :cxn-inventory ,cxn-inventory
-                                :hashed t))))
-    
+  ;; Remi 7/02/'24: Getting the def-fcg-constructions out of this function.
+  ;; Initializing the inventory
+  (let ((cxn-inventory (eval `(setf ,cxn-inventory (make-propbank-learned-cxns)))))
+    (set-configurations (configuration cxn-inventory) fcg-configuration)
+    (unless (get-configuration cxn-inventory :model)
+      (set-configuration cxn-inventory :model model))
     (set-data (blackboard cxn-inventory) :training-corpus-size 0)
     
+    ;; Training the grammar
     (loop for sentence in list-of-propbank-sentences
           for sentence-number from 1
           for training-corpus-size = (get-data (blackboard cxn-inventory) :training-corpus-size)

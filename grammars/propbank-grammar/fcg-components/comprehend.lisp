@@ -36,9 +36,15 @@
             (values 'time-out 'time-out 'time-out)))
       (values meaning cip-node cip))))
 
-(defmethod comprehend ((utterance string) &key (syntactic-analysis nil) (cxn-inventory *fcg-constructions*)  (silent nil) (selected-rolesets nil) (timeout 60))
-  (let ((initial-cfs (de-render utterance (get-configuration cxn-inventory :de-render-mode)
-                                :cxn-inventory cxn-inventory :syntactic-analysis syntactic-analysis)))
+(defmethod comprehend ((utterance string) 
+                       &key (syntactic-analysis nil) 
+                       (cxn-inventory *fcg-constructions*)  (silent nil) (selected-rolesets nil) (timeout 60))
+  (let* ((syntactic-analysis (nlp-tools:get-penelope-syntactic-analysis utterance
+                                                                       :model (or (get-configuration cxn-inventory :model)
+                                                                                  "en_benepar")))
+         (initial-cfs (de-render utterance (get-configuration cxn-inventory :de-render-mode)
+                                 :model (or (get-configuration cxn-inventory :model) "en_benepar")
+                                 :cxn-inventory cxn-inventory :syntactic-analysis syntactic-analysis)))
     (unless silent (monitors:notify parse-started (listify utterance) initial-cfs))
     (multiple-value-bind (meaning cip-node cip)
         (handler-case (trivial-timeout:with-timeout (timeout)

@@ -28,6 +28,7 @@
                          :id 'conversation-memory
                          :set-items (list
                                      (make-instance 'turn
+                                                    :id (format nil "turn-1")
                                                     :timestamp 1
                                                     :question-type 'caption
                                                     :question input-sentence
@@ -55,6 +56,7 @@
     (setf new-world-model (make-instance 'world-model
                                          :id 'conversation-memory
                                          :set-items (list (make-instance 'turn
+                                                                         :id (format nil "turn-1")
                                                                          :timestamp 1
                                                                          :question-type 'caption
                                                                          :question input-sentence
@@ -82,6 +84,7 @@
     ;(setf new-object-list (find-attributes-of-several-object attribute-variable-list context-binding new-object-list list-of-bindings))
     (setf new-world-model (make-instance 'world-model :id 'conversation-memory
                                          :set-items (list (make-instance 'turn
+                                                                         :id (format nil "turn-1")
                                                                          :timestamp 1
                                                                          :question-type 'caption
                                                                          :question input-sentence
@@ -113,6 +116,7 @@
     (setf new-world-model (make-instance 'world-model
                                          :id 'conversation-memory
                                          :set-items (list (make-instance 'turn
+                                                                         :id (format nil "turn-1")
                                                                          :timestamp 1
                                                                          :question-type 'caption
                                                                          :question input-sentence

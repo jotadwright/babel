@@ -1,4 +1,4 @@
-(in-package :fcg)
+(in-package :fillmores-grammar)
 
 ;-----------------;
 ;determination cxn;
@@ -9,17 +9,17 @@
 
 (def-fcg-cxn determination-cxn
              ((?determination-unit
-               (syn-cat (lex-class (cat N)  
-                                   (max +)
-                                   (min -))
-                        (agreement (number ?number)))
-               (args (?z))
+               (cat N)  
+               (max +)
+               (min -)
+               (agreement (number ?number))
+               (args (?x))
                (subunits (?det-unit ?noun-unit))
                (boundaries (?det-left ?noun-right)))
               <-
               (?det-unit
-               (syn-cat (lex-class (role det))
-                        (agreement (number ?number)))
+               (role det)
+               (agreement (number ?number))
                (morph-form (starts-with ?starts-with))
                (args (?x))
                --
@@ -28,15 +28,15 @@
                (morph-form (starts-with ?starts-with))
                (boundaries (?det-left ?det-right)))
               (?noun-unit
-               (args (?y))
+               (args (?x))
                --
-               (syn-cat (lex-class (cat N)
-                                   (max -))
-                        (agreement (number ?number)))
+               (cat N)
+               (max -)
+               (agreement (number ?number))
                (morph-form (starts-with ?starts-with))
                (boundaries (?noun-left ?noun-right)))
               (?determination-unit
-               (HASH meaning ((noun-phrase ?z ?x ?y)))
+               
                --
                (HASH form ((sequence " " ?det-right ?noun-left)))))
              :cxn-inventory *fillmores-cxns*)
@@ -45,19 +45,11 @@
 ;; but mass noun can also be used as proper noun, which as maximal phrase (which is why their maximilality is left undefined)
 
 #|;; correct:
-(comprehend-and-formulate "my pen" :cxn-inventory *fillmores-cxns*)
-(comprehend-and-formulate "my air" :cxn-inventory *fillmores-cxns*)
-(comprehend-and-formulate "this air" :cxn-inventory *fillmores-cxns*)
-(comprehend-and-formulate "my bottle" :cxn-inventory *fillmores-cxns*)
-(comprehend-and-formulate "my rice" :cxn-inventory *fillmores-cxns*)
-(comprehend-and-formulate "this intelligence" :cxn-inventory *fillmores-cxns*)
-(comprehend-and-formulate "this rice" :cxn-inventory *fillmores-cxns*)
-(comprehend-and-formulate "the book" :cxn-inventory *fillmores-cxns*)
-(comprehend-and-formulate "this pen" :cxn-inventory *fillmores-cxns*)
-(comprehend-and-formulate "a book" :cxn-inventory *fillmores-cxns*)
-(comprehend-and-formulate "an intelligence" :cxn-inventory *fillmores-cxns*)
+(comprehend-and-formulate "my book" :cxn-inventory *fillmores-cxns*)
+(comprehend-and-formulate "this book" :cxn-inventory *fillmores-cxns*)
+(comprehend-and-formulate "the air" :cxn-inventory *fillmores-cxns*)
 (comprehend-and-formulate "an air" :cxn-inventory *fillmores-cxns*)
-(comprehend-and-formulate "the club" :cxn-inventory *fillmores-cxns*)
+(comprehend-and-formulate "a book" :cxn-inventory *fillmores-cxns*)
 
 (comprehend-and-formulate "a foolish child" :cxn-inventory *fillmores-cxns*)
 

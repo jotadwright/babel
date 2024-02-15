@@ -13,14 +13,14 @@
 
 
 (defmethod de-render ((utterance string) (mode (eql :de-render-constituents-dependents))
-                      &key (syntactic-analysis nil) (tokenize? t) &allow-other-keys)
+                      &key (syntactic-analysis nil) (tokenize? t) (model "en_benepar") &allow-other-keys)
   "De-renders an utterance as a combination of Spacy dependency structure and benepar constituency structure."
   (let ((syntactic-analysis (cond (syntactic-analysis)
                                   (tokenize?
-                                   (nlp-tools:get-penelope-syntactic-analysis utterance))
+                                   (nlp-tools:get-penelope-syntactic-analysis utterance :model model))
                                   ((not tokenize?)
                                    (nlp-tools:get-penelope-syntactic-analysis
-                                    (split-sequence:split-sequence #\Space utterance :remove-empty-subseqs t))))))
+                                    (split-sequence:split-sequence #\Space utterance :remove-empty-subseqs t) :model model)))))
     (create-initial-transient-structure-based-on-benepar-analysis syntactic-analysis)))
 
 

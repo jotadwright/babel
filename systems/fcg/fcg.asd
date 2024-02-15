@@ -117,7 +117,6 @@
                                (:file "anti-unify-fcg-specialise")
                                (:file "pro-unification")
                                (:file "anti-unify-set-of-predicates")
-                               (:file "anti-unify-set-of-predicates-efficient")
                                (:file "anti-unify-strings")))
                  (:file "calculate-source-patterns")
                  (:file "anti-unification-cost")

@@ -17,9 +17,9 @@
          (bind (target-set 1.0 computed-set))
          (bind (target-set 1.0
                            (make-instance 'world-model
-                                          :id (id source-set)
                                           :set-items (list
                                                       (make-instance 'turn
+                                                                     :id (id (first (set-items source-set)))
                                                                      :object-set (make-instance 'object-set :id 'empty-set))))))))
      (let ((source-object-id-list (collect-objects-id-from-world-model source-set))
            (source-object-list (collect-objects-from-world-model source-set)))
@@ -58,6 +58,7 @@
                                                             :set-items
                                                             (list
                                                              (make-instance 'turn
+                                                                            :id (id (first (set-items source-set)))
                                                                             :timestamp 'permanent
                                                                             :object-set
                                                                             (make-instance 'object-set
@@ -69,7 +70,8 @@
 
 (defmethod filter-by-category ((set world-model)
                                (attribute-category attribute))
-  (multiple-value-bind (last-set last-timestamp) (the-biggest #'timestamp (set-items set))
+  (multiple-value-bind (last-set last-timestamp)
+      (the-biggest #'timestamp (set-items set))
     (if (or (equal (id attribute-category)
                    'thing)
             (equal (id attribute-category)
@@ -77,6 +79,7 @@
       ;if thing or number, return new world model with same object-set
       (make-instance 'world-model
                      :set-items (list (make-instance 'turn
+                                                     :id (id last-set)
                                                      :object-set (copy-object (object-set last-set)))))
       ;else filter objects on attribute-category and return new world model with filtered-objects
       (let ((filtered-objects
@@ -88,5 +91,7 @@
                    collect object)))
       (when filtered-objects
         (make-instance 'world-model
+                       
                        :set-items (list (make-instance 'turn
+                                                       :id (id last-set)
                                                        :object-set (make-instance 'object-set :objects filtered-objects)))))))))

@@ -6,8 +6,6 @@
 
 ;(export '(query))
 
-         
-
 (defprimitive query ((target-category attribute)
                      (source-object-set world-model)
                      (scene pathname-entity)
@@ -56,13 +54,18 @@
   "Given an object and an attribute; get the attribute
    from the object and create a category from it."
   (let* ((attr (attribute attribute-category))
-         (spec-attr (cdr (assoc (intern (string attr) "KEYWORD") (attributes object)))))
+         (spec-attr (cdr (assoc (intern (string attr) "KEYWORD") (attributes object))))
+         )
     "yellow and cyan are bgcolors AND colors, so make sure that the right attribute-category is made"
-    (if (not (and (or (eq spec-attr 'yellow)
-                      (eq spec-attr 'cyan))
-                  (eq attr 'bgcolor)))
-      (find-entity-by-id ontology spec-attr)
-      (make-instance 'bgcolor-category :id spec-attr :bgcolor spec-attr))))
+    (if (not spec-attr)
+      (make-instance (intern (upcase (format nil "~a-category" (symbol-name (id attribute-category)))) "CLEVR-DIALOG-GRAMMAR")
+                     :id 'none
+                     (intern (upcase (format nil "~a-category" (symbol-name (id attribute-category)))) "KEYWORD") 'none)
+      (if (not (and (or (eq spec-attr 'yellow)
+                        (eq spec-attr 'cyan))
+                    (eq attr 'bgcolor)))
+        (find-entity-by-id ontology spec-attr)
+        (make-instance 'bgcolor-category :id spec-attr :bgcolor spec-attr)))))
   
 
  
