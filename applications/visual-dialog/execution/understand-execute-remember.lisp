@@ -28,6 +28,7 @@
         (make-instance 'world-model
                      :id 'conversation-memory
                      :set-items (list (make-instance 'turn
+                                                     :id (format nil "turn-1")
                                                      :timestamp 1)))))))
 
 (defun understand-execute-remember-first-question (scene-pathname input-sentence ontology &key (silent t))
@@ -55,6 +56,7 @@
         (setf memory (make-instance 'world-model
                                     :id 'conversation-memory
                                     :set-items (list (make-instance 'turn
+                                                                    :id (format nil "turn-1")
                                                                     :timestamp 1
                                                                     :question-type question
                                                                     :question input-sentence
@@ -119,6 +121,7 @@
                        (if (equal (question-type last-set) 'count-objects)
                          (update-memory-count-or-exist irl-program target-primitive source-value new-object-set solutions ))))
                 (setf new-item (make-instance 'turn
+                                              :id (format nil "turn-~a" (+ last-timestamp 1))
                                               :timestamp (+ last-timestamp 1)
                                               :object-set new-object-set
                                               :question-type question

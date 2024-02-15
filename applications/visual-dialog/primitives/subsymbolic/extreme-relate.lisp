@@ -40,6 +40,7 @@
                                         :set-items
                                         (list
                                          (make-instance 'turn
+                                                        :id (id (first (set-items source)))
                                                         :timestamp 'permanent
                                                         :object-set
                                                         (make-instance 'object-set

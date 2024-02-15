@@ -10,8 +10,7 @@
                               (spatial-relation spatial-relation-category))
   ;; first case; given source-object and spatial relation, compute the target set
   ((source-set spatial-relation scene => target-set)
-   (let* (
-          (relation-list nil)
+   (let* ((relation-list nil)
           (id-right nil)
           (object-right nil))
      (cond ((eql (spatial-relation spatial-relation) 'right)

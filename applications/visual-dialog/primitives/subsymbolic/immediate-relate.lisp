@@ -46,10 +46,12 @@
                                     (make-instance 'world-model
                                                    :id (id source)
                                                    :set-items (list (make-instance 'turn
+                                                                                   :id (id (first (set-items source)))
                                                                                    :object-set (make-instance 'object-set :objects objects-with-attn)))))))
                     (bind (target 1.0 (make-instance 'world-model
                                                      :id (id source)
                                                      :set-items (list (make-instance 'turn
+                                                                                     :id (id (first (set-items source)))
                                                                                      :object-set (make-instance 'object-set :id 'empty-set))))))))))))
    
    :primitive-inventory *subsymbolic-primitives*)
