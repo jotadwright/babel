@@ -7,6 +7,12 @@
     :accessor id
     :initform nil
     :type symbol)
+   (geoquery-ids
+    :documentation "the identifiers of the geoquery items"
+    :initarg :geoquery-ids
+    :accessor geoquery-ids
+    :initform nil
+    :type string)
    (eng
     :documentation "english form"
     :initarg :eng
@@ -25,6 +31,18 @@
     :accessor meaning
     :initform nil
     :type list)
+   (prolog
+    :documentation "prolog of the geoquery-item"
+    :initarg :prolog
+    :accessor prolog
+    :initform nil
+    :type string)
+   (first-variant
+    :documentation "first variant of the geoquery-item"
+    :initarg :first-variant
+    :accessor first-variant
+    :initform nil
+    :type string)
    (variables
     :documentation "The list of variables in the form"
     :initarg :variables
@@ -59,6 +77,7 @@
 
 (defun make-templated-item (json)
   (let ((split-meaning (split-sequence::split-sequence #\( (cdr (assoc :meaning json))))
+        (prolog (cdr (assoc :geo-prolog json)))
         (meaning-variables '())
         (new-split-meaning '())
         (new-form nil)
@@ -88,7 +107,11 @@
                      finally (setf new-form form)
                      )
                (setf new-form (cdr (assoc :utterance json)))))
-    `(,new-form ,(format nil "((~{~A~^(~}" new-split-meaning) ,meaning-variables)))
+    (loop with new-prolog = prolog
+          for meaning-variable in meaning-variables
+          do (setf new-prolog (string-replace new-prolog (cdr meaning-variable) "?X"))
+          finally (setf prolog (string-replace new-prolog "," "%")))
+    `(,new-form ,(format nil "((~{~A~^(~}" new-split-meaning),prolog ,meaning-variables)))
 
 
 (defun compare-meaning (meaning geoquery-item)
@@ -126,7 +149,8 @@
           for templated-item = (make-templated-item item)
           for templated-form = (first templated-item)
           for templated-meaning = (second templated-item)
-          for variables = (third templated-item)
+          for templated-prolog = (third templated-item)
+          for variables = (fourth templated-item)
           for existing-template-in-output = (find templated-meaning output :test #'compare-meaning)
           do (if existing-template-in-output
                (progn (setf variables (loop with new-variables = '()
@@ -134,12 +158,16 @@
                                             do (unless (member variable (variables existing-template-in-output) :test #'compare-cdr)
                                                  (pushend variable new-variables))
                                             finally (return new-variables)))
-                 (when variables (setf (variables existing-template-in-output) (append (variables existing-template-in-output) variables))
-                   (incf (nr-of-variations existing-template-in-output))))
+                 (when variables (setf (variables existing-template-in-output) (append (variables existing-template-in-output) variables)))
+                   (incf (nr-of-variations existing-template-in-output))
+                   (setf (geoquery-ids existing-template-in-output)(concatenate 'string (geoquery-ids existing-template-in-output) ";" (string (cdr (assoc :id item))))))
                (pushend (make-instance 'geoquery-item
                                        :id (make-id)
+                                       :geoquery-ids (string (cdr (assoc :id item)))
                                        :eng templated-form
+                                       :first-variant (cdr (assoc :utterance item)) 
                                        :meaning templated-meaning
+                                       :prolog templated-prolog
                                        :variables variables
                                        :queried-attribute (find-queried-attribute templated-meaning)
                                        :predicate-types (find-predicate-types templated-meaning)) output)))
@@ -152,8 +180,8 @@
                           :direction :output
                           :if-does-not-exist :create
                           :if-exists :overwrite)
-    (format stream "english form,meaning,variables,#variations,queried attribute,largest,population,fewest,most,count,elevation,density,capital,area,place,smallest,major,placeid,cityid,shortest,longest,traverse,countryid,city,loc,stateid,highest,higher,high_point,state,next-to,riverid,len,lowest,size,river,low_point,lower,lake,not,sum,mountain~%")
+    (format stream "english form,meaning,prolog,variables,first-variant#variations,queried attribute,ids,largest,population,fewest,most,count,elevation,density,capital,area,place,smallest,major,placeid,cityid,shortest,longest,traverse,countryid,city,loc,stateid,highest,higher,high_point,state,next-to,riverid,len,lowest,size,river,low_point,lower,lake,not,sum,mountain,~%")
     (loop for item in geoquery-items
-          do (format stream (concatenate 'string (format nil "~a,~a,~a,~a,~a," (eng item) (meaning item) (variables item) (nr-of-variations item) (queried-attribute item)) (format nil "~{~A~^,~}~%" (predicate-types item))))))))
+          do (format stream (concatenate 'string (format nil "~a,~a,~a,~a,~a,~a,~a,~a" (eng item) (meaning item) (prolog item)(first-variant item)(variables item) (nr-of-variations item) (queried-attribute item) (geoquery-ids item)) (format nil "~{~A~^,~}~%" (predicate-types item))))))))
         
 ;(geoquery-items->csv (file->geoquery-items "/Users/liesbetdevos/Projects/Corpora/geoquery/geoquery_en.jsonl"))
