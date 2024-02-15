@@ -50,33 +50,29 @@
 
 (export 'find-entity-by-id)
 
-(defgeneric find-entity-by-id (thing id &optional type)
+(defgeneric find-entity-by-id (thing id &key &allow-other-keys)
   (:documentation "Finds an entity in thing by its id"))
 
-(defmethod find-entity-by-id ((thing t) (id symbol) &optional (type 'entity type-supplied-p))
+(defmethod find-entity-by-id ((thing t) (id symbol) &key (type 'entity))
+  (declare (ignore type))
   nil)
 
-(defmethod find-entity-by-id ((entity entity) (id symbol) &optional (type 'entity type-supplied-p))
+(defmethod find-entity-by-id ((entity entity) (id symbol) &key (type 'entity))
   (when (and (irl-equal (id entity) id)
-             (and type-supplied-p (typep entity type)))
+             (typep entity type))
     entity))
 
-(defmethod find-entity-by-id ((blackboard blackboard) (id symbol) &optional (type 'entity type-supplied-p))
+(defmethod find-entity-by-id ((blackboard blackboard) (id symbol) &key (type 'entity))
   (loop for field in (data-fields blackboard)
-        thereis (if type-supplied-p
-                  (find-entity-by-id (cdr field) id type)
-                  (find-entity-by-id (cdr field) id))))
+        thereis (find-entity-by-id (cdr field) id :type type)))
 
-(defmethod find-entity-by-id ((cons cons) (id symbol) &optional (type 'entity type-supplied-p))
+(defmethod find-entity-by-id ((cons cons) (id symbol) &key (type 'entity))
   (if (and (typep (car cons) 'entity)
            (irl-equal (id (car cons)) id)
-           (and type-supplied-p (typep (car cons) type)))
+           (typep (car cons) type))
     (car cons)
-    (if type-supplied-p
-      (or (find-entity-by-id (car cons) id type)
-          (find-entity-by-id (cdr cons) id type))
-      (or (find-entity-by-id (car cons) id)
-          (find-entity-by-id (cdr cons) id)))))
+    (or (find-entity-by-id (car cons) id :type type)
+        (find-entity-by-id (cdr cons) id :type type))))
 
 
 

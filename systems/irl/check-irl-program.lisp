@@ -34,7 +34,7 @@
                  (let ((value 
                         (or (when (typep value-expr 'entity) value-expr)
                             (when (symbolp value-expr)
-                              (or (find-entity-by-id ontology value-expr type)
+                              (or (find-entity-by-id ontology value-expr :type type)
                                   (error "Could not find an entity with id ~a in ontology" value-expr)))
                             (error
                              "Expected symbol or entity as value in ~a:~%got: ~a"
