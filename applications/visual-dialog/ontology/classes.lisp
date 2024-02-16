@@ -253,12 +253,12 @@
                                  (make-instance 'object-set
                                                 :objects (loop for object in (objects (current-scene world))
                                                                collect (copy-object-no-relations object))
-                                                :scene-configuration (if (or (eql (get-configuration world :dataset) :clevr)
-                                                                             (eql (get-configuration world :dataset) :gqa))
-                                                                       (make-clevr-scene-configuration world)
-                                                                       (make-mnist-scene-configuration world)
-                                                )
-                                                )))))
+                                                :scene-configuration (cond ((eql (get-configuration world :dataset) :clevr)
+                                                                            (make-clevr-scene-configuration world))
+                                                                           ((eql (get-configuration world :dataset) :gqa)
+                                                                            (make-gqa-scene-configuration world))
+                                                                           ((eql (get-configuration world :dataset) :mnist)
+                                                                            (make-mnist-scene-configuration world))))))))
 
 ;; ################################
 ;; relation set

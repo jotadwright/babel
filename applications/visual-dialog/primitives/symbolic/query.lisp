@@ -54,7 +54,11 @@
   "Given an object and an attribute; get the attribute
    from the object and create a category from it."
   (let* ((attr (attribute attribute-category))
-         (spec-attr (cdr (assoc (intern (string attr) "KEYWORD") (attributes object))))
+         (spec-attr (if (cdr (assoc (intern (string attr) "KEYWORD") (attributes object)))
+                      (cdr (assoc (intern (string attr) "KEYWORD") (attributes object)))
+                      ;(cdr (assoc (intern (last-elt (split-sequence::split-sequence #\- (string attr))) "KEYWORD") (attributes object)))
+                      (cdr (assoc (intern (format nil "GQA-~a" (string attr)) "KEYWORD") (attributes object)))
+                      ))
          )
     "yellow and cyan are bgcolors AND colors, so make sure that the right attribute-category is made"
     (if (not spec-attr)

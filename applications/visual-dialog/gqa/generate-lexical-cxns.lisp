@@ -69,7 +69,7 @@
 ;;juist
 
 (defmethod add-adjective-lex-cxn (cxn-inventory attribute category)
-  (let ((cxn-name (internal-symb (upcase (format nil "~a-lex-cxn" (hyphenize attribute)))))
+  (let ((cxn-name (internal-symb (upcase (format nil "~a-adj-lex-cxn" (hyphenize attribute)))))
         (unit-name (make-var (upcase (format nil "~a-unit" (hyphenize attribute)))))
         (out-var (make-var category))
         (category-name (internal-symb (upcase (format nil "gqa-~a-category" category)))))
@@ -91,7 +91,7 @@
                                      :meaning ,(internal-symb (upcase (hyphenize attribute))))))))
 
 (defmethod add-adjectives-lex-cxn (cxn-inventory attribute category)
-  (let* ((cxn-name (internal-symb (upcase (format nil "~a-lex-cxn" (hyphenize attribute)))))
+  (let* ((cxn-name (internal-symb (upcase (format nil "~a-adj-lex-cxn" (hyphenize attribute)))))
         (unit-name (make-var (upcase (format nil "~a-unit" (hyphenize attribute)))))
         (out-var (make-var category))
         (category-name (internal-symb (upcase (format nil "gqa-~a-category" category))))

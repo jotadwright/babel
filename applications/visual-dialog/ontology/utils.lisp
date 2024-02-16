@@ -419,6 +419,16 @@
                  :immediate-front (get-relations-list world 'front)
                  :middle (get-middle-objects world)))
 
+(defmethod make-gqa-scene-configuration ((world world))
+  (make-instance 'relation-set
+                 :leftmost (get-extremes world 'left)
+                 :rightmost (get-extremes world 'right)
+                 :most-in-front (get-extremes world 'front)
+                 :most-in-back (get-extremes world 'back)
+                 :immediate-right (get-relations-list-gqa world 'right)
+                 :immediate-front (get-relations-list-gqa world 'front)
+                 :middle (get-middle-objects world)))
+
 (defmethod make-mnist-scene-configuration ((world world))
   (make-instance 'relation-set
                  :immediate-right (list (rest (second (relationships (first (objects (current-scene world)))))))
@@ -436,7 +446,7 @@
                 (push (id object) id-list)))
      id-list))
 
-(defmethod get-extremes ((world world) direction)
+#|(defmethod get-extremes ((world world) direction)
   (let ((id nil))
     (cond ((eql direction 'left) (loop for object in (objects (current-scene world))
                                        do (if (not (second (fourth (relationships object))))
@@ -450,9 +460,9 @@
           ((eql direction 'back) (loop for object in (objects (current-scene world))
                                        do (if (not (second (second (relationships object))))
                                             (setf id (id object))))))
-    id))
+    id))|#
 
-(defmethod get-extremes ((world world) direction)
+#|(defmethod get-extremes ((world world) direction)
   (let ((id nil))
     (cond ((eql direction 'left) (loop for object in (objects (current-scene world))
                                        do (if (not (second  (assoc 'left (relationships object))))
@@ -466,7 +476,23 @@
           ((eql direction 'back) (loop for object in (objects (current-scene world))
                                        do (if (not (second (assoc 'back (relationships object))))
                                             (setf id (id object))))))
-    id))
+    id))|#
+
+(defmethod get-extremes ((world world) direction)
+  (let (idlist)
+    (cond ((eql direction 'left) (loop for object in (objects (current-scene world))
+                                       do (if (not (second  (assoc 'left (relationships object))))
+                                            (push (id object) idlist))))
+          ((eql direction 'right) (loop for object in (objects (current-scene world))
+                                        do (if (not (second (assoc 'right (relationships object))))
+                                             (push (id object) idlist))))
+          ((eql direction 'front) (loop for object in (objects (current-scene world))
+                                        do (if (not (second (assoc 'front (relationships object))))
+                                             (push (id object) idlist))))
+          ((eql direction 'back) (loop for object in (objects (current-scene world))
+                                       do (if (not (second (assoc 'back (relationships object))))
+                                            (push (id object) idlist)))))
+    idlist))
 
 (defmethod get-relations-list ((world world) direction)
   (let ((relations-list nil) (number 0))
@@ -497,6 +523,18 @@
                                              (push (list (id object) el) relations-list)))))))))
     relations-list))
 
+(defmethod get-relations-list-gqa ((world world) direction)
+  (loop for obj in (objects (current-scene world)) 
+            for objs-right = (rest (assoc 'right (relationships obj)))
+            for length-of-objects-to-the-right = (loop for obj-id in objs-right
+                                                       for obj-right = (find obj-id (objects (current-scene world)) :key #'id)
+                                                       for objs-right-of-obj-right = (rest (assoc 'right (relationships obj-right)))
+                                                       collect (length objs-right-of-obj-right))
+            for position-obj-with-most-right = (extremum-position length-of-objects-to-the-right)
+            if position-obj-with-most-right
+            collect (list (id obj) (nth position-obj-with-most-right objs-right))))
+
+
 
 
 ;; ################################
@@ -507,14 +545,14 @@
   "removes newlines inside string"
   (cl-ppcre:regex-replace-all "'s" string " 's"))
 
-(defmethod find-entity-by-id ((thing t) (id fixnum))
+(defmethod find-entity-by-id ((thing t) (id fixnum) &key (type 'entity))
   nil)
 
-(defmethod find-entity-by-id ((blackboard blackboard) (id fixnum))
+(defmethod find-entity-by-id ((blackboard blackboard) (id fixnum) &key (type 'entity))
   (loop for field in (data-fields blackboard)
         thereis (find-entity-by-id (cdr field) id)))
 
-(defmethod find-entity-by-id ((cons cons) (id fixnum))
+(defmethod find-entity-by-id ((cons cons) (id fixnum) &key (type 'entity))
   (if (and (typep (car cons) 'entity)
            (typep (car cons) 'fixnum)
            (= (id (car cons)) id))
@@ -522,7 +560,7 @@
     (or (find-entity-by-id (car cons) id)
         (find-entity-by-id (cdr cons) id))))
 
-(defmethod find-entity-by-id ((entity entity) (id fixnum))
+(defmethod find-entity-by-id ((entity entity) (id fixnum) &key (type 'entity))
   (when (and (typep (id entity) 'fixnum)
              (= (id entity) id))
     entity))

@@ -7,10 +7,13 @@
          (object-in-memory (if source-value
                              (find (id source-value) (objects new-object-set) :test #'equal :key #'id)))
          (category-and-attribute (cons (intern (symbol-name attribute-value) "KEYWORD")
-                                       (if (numberp (slot-value target-value attribute-value))
+                                       (if (equal attribute-value 'digit-category) ;(numberp (slot-value target-value attribute-value))
                                          (internal-symb (upcase (format nil "~r" (slot-value target-value attribute-value))))
-                                         (slot-value target-value attribute-value)))))
-    (if (not (equal (id target-value) 'none))
+                                         (slot-value target-value (intern (symbol-name (first (get-category-slot-name target-value))) "CLEVR-DIALOG-GRAMMAR"))
+                                         ))
+
+                                 ))
+  (if source-value  ; (if (not (equal (id target-value) 'none))
       (if object-in-memory
         (progn 
           (if (symbolp (attributes object-in-memory))
@@ -22,6 +25,11 @@
                                            :attention (attention source-value))))
             (push new-object (objects new-object-set))))))
     new-object-set))
+
+(defun get-category-slot-name (cl)
+(loop for slot-name in (get-slot-names cl)
+        if (not (equal slot-name 'ID))
+        collect  slot-name))
 
 (defun update-memory-count-or-exist (irl-program target-primitive source-value new-object-set solutions )
   "updates history when question type is count or exist, sets mentioned object of the queried object to T"

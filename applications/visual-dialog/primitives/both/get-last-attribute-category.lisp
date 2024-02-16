@@ -6,7 +6,7 @@
   ((source-set => attribute)
    (multiple-value-bind (last-set last-timestamp) (the-biggest #'timestamp (set-items source-set))
      (let* ((answer (answer last-set))
-           (attribute-category (answer-to-attribute-category answer)))
+            (attribute-category (first (answer-to-attribute-category answer ontology))))
        (if attribute-category
          (bind (attribute 1.0 (make-instance 'attribute-category
                                              :attribute attribute-category)))
@@ -43,8 +43,11 @@
    (equal-entity-last-attr attribute source-set))
   :primitive-inventory (*symbolic-primitives* *subsymbolic-primitives*))
 
-(defun answer-to-attribute-category (answer)
-  (cond ((or (equal answer 'cube)
+(defun answer-to-attribute-category (answer ontology)
+  (loop for slot-name in (get-slot-names (find-entity-by-id ontology answer))
+        if (not (equal slot-name 'ID))
+        collect slot-name)
+  #|(cond ((or (equal answer 'cube)
              (equal answer 'cylinder)
              (equal answer 'sphere))
          'shape)
@@ -65,7 +68,8 @@
          'color)
         ((equal answer 'none)
          (random-elt (list 'color 'shape 'size 'material)))
-        ))
+        )|#
+  )
 
 (defun equal-entity-last-attr (attribute source-set)
   (multiple-value-bind (last-set last-timestamp) (the-biggest #'timestamp (set-items source-set))
