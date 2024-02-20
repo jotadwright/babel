@@ -40,16 +40,18 @@
               (setf relation-list (loop for item in (reverse (first (immediate-front (scene-configuration (object-set  (first (set-items context)))))))
                                         collect (reverse item))))))
      (if relation-list
-       (progn 
+       (let (obj-right-list obj-right-id-list) 
          (loop for item in relation-list
                do (progn
                     (if (eq (car item) (id source-object))
-                      (setf id-right (cdr item)))))
-         (loop for object in (objects (object-set (first (set-items context))))
-               do (if (eq (id object) (car id-right))
-                    (setf object-right object)))
-         (if object-right
-           (bind (target-set 1.0 (make-instance 'world-model :set-items (list (make-instance 'turn :object-set (make-instance 'object-set :objects (list object-right)))))))
+                      (push  (cdr item) obj-right-id-list))))
+         (loop for el in obj-right-id-list 
+               do (loop for object in (objects (object-set (first (set-items context))))
+                        do (if (eq (id object) (car el))
+                             (push  object obj-right-list))))
+         (if obj-right-list
+           (loop for obj in obj-right-list
+                  collect (bind (target-set 1.0 (make-instance 'world-model :set-items (list (make-instance 'turn :object-set (make-instance 'object-set :objects (list obj))))))))
            (bind (target-set 1.0 (make-instance 'world-model :set-items (list (make-instance 'turn :object-set (make-instance 'object-set :id 'empty-set)))))))))))
   :primitive-inventory *symbolic-primitives*)
      

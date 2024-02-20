@@ -41,9 +41,29 @@
              (if (object-set last-set)
                (loop for object in (objects (object-set last-set))
                      for attr-cat = (intern (string-replace (type-of attribute-category) "-category" "") "KEYWORD")
+                     for attr-cat-without-gqa = (intern (string-replace (symbol-name attr-cat) "GQA-" "") "KEYWORD")
+                     for attr-cat-with-gqa = (intern (format nil "GQA-~a" (symbol-name attr-cat)) "KEYWORD")
+                     for attr-id-without-gqa = (intern (string-replace (symbol-name (id attribute-category)) "GQA-" "") "CLEVR-DIALOG-GRAMMAR")
+                     for attr-id-with-gqa = (intern (format nil "GQA-~a" (id attribute-category)) "CLEVR-DIALOG-GRAMMAR")
                      if (and (listp (attributes object))
-                             (equal (id attribute-category)
-                                    (cdr (assoc attr-cat (attributes object)))))
+                             (or (equal (id attribute-category)
+                                        (cdr (assoc attr-cat (attributes object))))
+                                 (equal (id attribute-category)
+                                        (cdr (assoc attr-cat-without-gqa (attributes object))))
+                                 (equal (id attribute-category)
+                                        (cdr (assoc attr-cat-with-gqa (attributes object))))
+                                 (equal attr-id-with-gqa
+                                        (cdr (assoc attr-cat (attributes object))))
+                                 (equal attr-id-with-gqa
+                                        (cdr (assoc attr-cat-without-gqa (attributes object))))
+                                 (equal attr-id-with-gqa
+                                        (cdr (assoc attr-cat-with-gqa (attributes object))))
+                                 (equal attr-id-without-gqa
+                                        (cdr (assoc attr-cat (attributes object))))
+                                 (equal attr-id-without-gqa
+                                        (cdr (assoc attr-cat-without-gqa (attributes object))))
+                                 (equal attr-id-without-gqa
+                                        (cdr (assoc attr-cat-with-gqa (attributes object))))))
                        collect object))))
       (when filtered-objects
         (make-instance 'world-model

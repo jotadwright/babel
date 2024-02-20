@@ -64,7 +64,7 @@
     (if (not spec-attr)
       (make-instance (intern (upcase (format nil "~a-category" (symbol-name (id attribute-category)))) "CLEVR-DIALOG-GRAMMAR")
                      :id 'none
-                     (intern (upcase (format nil "~a-category" (symbol-name (id attribute-category)))) "KEYWORD") 'none)
+                     (intern (upcase (format nil "~a" (symbol-name (id attribute-category)))) "KEYWORD") 'none)
       (if (not (and (or (eq spec-attr 'yellow)
                         (eq spec-attr 'cyan))
                     (eq attr 'bgcolor)))

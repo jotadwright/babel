@@ -229,10 +229,15 @@
          ((equal answer 'yellow-bg) "yellow")
          ((equal answer 'silver-bg) "silver")
          (answer)))
+(if (and (not (numberp answer))
+                 ;                                 (= (search "gqa-" answer) 0))
+                 ;                          (last-elt (split-sequence:split-sequence #\- answer)) answer)
 
 (defun check-answers (gold-answers computed-answers)
   (loop for g-a in gold-answers
         for c-a in computed-answers
+        for cleaned-c-a = (if (and (symbolp c-a) (equal (search "GQA-" (symbol-name c-a)) 0))
+                            (last-elt (split-sequence::split-sequence #\- (symbol-name c-a))))
         collect (cond
                  ((and (equal g-a "none")
                        (equal c-a 'zero))
@@ -249,6 +254,11 @@
                  ((and (stringp g-a)
                        (check-if-bgcolor (symbolp c-a))
                        (equalp g-a (check-if-bgcolor c-a)))
+                  1)
+                 ((and cleaned-c-a
+                       (stringp g-a)
+                       (symbolp c-a)
+                       (equalp g-a cleaned-c-a))
                   1)
                  ((and (stringp g-a)
                        (symbolp c-a)

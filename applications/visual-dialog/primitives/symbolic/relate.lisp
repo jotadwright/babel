@@ -14,12 +14,8 @@
    (let* (;(context (get-data ontology 'context))
           ;(context (cdr (find (pathname scene) (get-data ontology 'segmented-scene) :test #'equal :key #'first)))
           (context segmented-scene)
-          (relation-list nil)
-          (id-list nil)
-          (id-right nil)
-          (object-right nil)
-          (object-list)
-          (source-object (first (collect-objects-from-world-model source-world-model))))     
+          (source-object (first (collect-objects-from-world-model source-world-model)))
+          relation-list id-list id-right object-right object-list)    
      (cond ((eql (spatial-relation spatial-relation) 'right)
             (setf relation-list (immediate-right (scene-configuration (object-set (first (set-items context)))))))
            ((eql (spatial-relation spatial-relation) 'left)
@@ -31,7 +27,7 @@
             (setf relation-list (loop for item in (reverse (immediate-front (scene-configuration (object-set  (first (set-items context))))))
                                       collect (reverse item)))))
 
-     (if relation-list
+#|     (if relation-list
        (progn 
          (loop for item in relation-list
                do (progn
@@ -45,12 +41,15 @@
                              (if (eq (car item2) id-right)
                                (progn
                                  (push (car (cdr item2)) id-list)
-                                 (setf id-right (car (cdr item2))))))))))
-
+                                 (setf id-right (car (cdr item2))))))))))|#
+     (if relation-list
+       (setf id-list (collect-all-right-of (id source-object) relation-list)))
+     
      (loop for id in id-list
            do (loop for object in (objects (object-set (first (set-items context))))
                     do (if (eq (id object) id)
                          (push object object-list))))
+     
      (if object-list
        (bind (target-set 1.0 (make-instance 'world-model
                                             :set-items (list (make-instance 'turn
@@ -62,3 +61,11 @@
                                                                                                        :id 'empty-set)))))))))
   :primitive-inventory *symbolic-primitives*)
      
+
+
+(defun collect-all-right-of (id immediate-list)
+  (let ((imms (find-all id immediate-list :key #'car)))
+    (if imms
+      (loop for imm in imms 
+            append (cons (last-elt imm) (collect-all-right-of (last-elt imm) immediate-list)))
+      nil)))

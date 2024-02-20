@@ -14,9 +14,9 @@
     (if (not silent)
       (progn 
         (add-element `((h1) ,(format nil "Dialog ~a" dialog-index)))
-        (if (eq dataset :clevr)
+        (if (or (eq dataset :clevr) (eq dataset :gqa))
           (add-element `((h3) ,(format nil "Caption: ~a" (first dialog)))))
-        (loop for question in (if (equal (get-configuration world :world) :clevr) (rest dialog) dialog)
+        (loop for question in (if (or (equal (get-configuration world :world) :clevr) (eq dataset :gqa)) (rest dialog) dialog)
               for answer in computed-answers
               for gold-answer in gold-answers
               for a in correct-answers
