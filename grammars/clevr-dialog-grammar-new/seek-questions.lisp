@@ -226,7 +226,7 @@
                               (segment-scene ?segmented-scene ?scene)
                               (query ?specific-attribute ?unique ?scene ?attribute)))
                --
-               (HASH form ((meets ?if-unit ?there-unit) (meets ?there-unit ?is-unit) (meets ?is-unit ?leftmost-unit) (meets ?rightmost-unit ?what-unit) (meets ?what-unit ?is2-unit) (meets ?is2-unit ?its-unit) (meets ?its-unit ?y-unit))))
+               (HASH form ((meets ?if-unit ?there-unit) (meets ?there-unit ?is-unit) (meets ?is-unit ?leftmost-unit) (meets ?rightmost-unit ?what-unit) (meets ?what-unit ?is2-unit) (meets ?is2-unit ?its-unit) (meets ?its-unit ?leftmost-y-unit))))
               (?if-unit
                --
                (HASH form ((string ?if-unit "if"))))
@@ -264,11 +264,15 @@
               (?y-unit
                (args ((target ?attribute)))
                (sem-cat (sem-class attribute))
-               (syn-cat (syn-class noun))
+               (syn-cat (syn-class noun)
+                        (leftmost-unit ?leftmost-y-unit)
+                        (rightmost-unit ?rightmost-y-unit))
                --
                (args ((target ?attribute)))
                (sem-cat (sem-class attribute))
-               (syn-cat (syn-class noun)))
+               (syn-cat (syn-class noun)
+                        (leftmost-unit ?leftmost-y-unit)
+                        (rightmost-unit ?rightmost-y-unit)))
               (scene-unit
                --
                (scene ?scene)))
@@ -284,7 +288,7 @@
                               (segment-scene ?segmented-scene ?scene)
                               (query ?specific-attribute ?unique ?scene ?attribute)))
                --
-               (HASH form ((meets ?if-unit ?there-unit) (meets ?there-unit ?is-unit) (meets ?is-unit ?leftmost-unit) (meets ?rightmost-unit ?what-unit) (meets ?what-unit ?y-unit) (meets ?y-unit ?is2-unit) (meets ?is2-unit ?it-unit))))
+               (HASH form ((meets ?if-unit ?there-unit) (meets ?there-unit ?is-unit) (meets ?is-unit ?leftmost-unit) (meets ?rightmost-unit ?what-unit) (meets ?what-unit ?leftmost-y-unit) (meets ?rightmost-y-unit ?is2-unit) (meets ?is2-unit ?it-unit))))
               (?if-unit
                --
                (HASH form ((string ?if-unit "if"))))
@@ -316,11 +320,16 @@
               (?y-unit
                (args ((target ?attribute)))
                (sem-cat (sem-class attribute))
-               (syn-cat (syn-class noun))
+               (syn-cat (syn-class noun)
+                        (leftmost-unit ?leftmost-y-unit)
+                        (rightmost-unit ?rightmost-y-unit)
+                        )
                --
                (args ((target ?attribute)))
                (sem-cat (sem-class attribute))
-               (syn-cat (syn-class noun)))
+               (syn-cat (syn-class noun)
+                        (leftmost-unit ?leftmost-y-unit)
+                        (rightmost-unit ?rightmost-y-unit)))
               (?is2-unit
                --
                (HASH form ((string ?is2-unit "is"))))

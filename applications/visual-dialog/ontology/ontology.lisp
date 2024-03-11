@@ -123,7 +123,7 @@
     (loop for attribute in '(shape size material color timestamp digit bgcolor style number)
           do (add-category-to-ontology ontology attribute 'attribute))
     ;;manually add number
-    (loop for int from 0 to 16
+    (loop for int from 0 to 50
           do (push-data ontology 'digits
                         (make-instance 'digit-category :id (internal-symb (upcase (format nil "~r" int))) 
                                        :digit int)))

@@ -104,15 +104,16 @@
 
 (defun collect-attributes (s-expr)
   (loop for attr in s-expr
-          collect (cons (intern (upcase (format nil "GQA-~a" (symbol-name (car attr)))) "KEYWORD")
+          collect (cons (intern (upcase (format nil "GQA-~a" (hyphenize (symbol-name (car attr))))) "KEYWORD")
                         (key->gqa-symbol s-expr (car attr)))))
 
 (defun key->gqa-symbol (s-expr key)
   (internal-symb
    (upcase
-    (format nil "gqa-~a"
-     (rest
-      (assoc key s-expr))))))
+    (hyphenize 
+     (format nil "gqa-~a"
+             (rest
+              (assoc key s-expr)))))))
 
 (defmethod s-expr->object ((type (eql 'clevr-scene)) s-expr
                            &key directory filename dataset)
@@ -525,14 +526,17 @@
 
 (defmethod get-relations-list-gqa ((world world) direction)
   (loop for obj in (objects (current-scene world)) 
-            for objs-right = (rest (assoc 'right (relationships obj)))
-            for length-of-objects-to-the-right = (loop for obj-id in objs-right
-                                                       for obj-right = (find obj-id (objects (current-scene world)) :key #'id)
-                                                       for objs-right-of-obj-right = (rest (assoc 'right (relationships obj-right)))
-                                                       collect (length objs-right-of-obj-right))
-            for position-obj-with-most-right = (extremum-position length-of-objects-to-the-right)
-            if position-obj-with-most-right
-            collect (list (id obj) (nth position-obj-with-most-right objs-right))))
+        for objs-right = (rest (assoc 'right (relationships obj)))
+        for length-of-objects-to-the-right = (loop for obj-id in objs-right
+                                                   for obj-right = (find obj-id (objects (current-scene world)) :key #'id)
+                                                   for objs-right-of-obj-right = (rest (assoc 'right (relationships obj-right)))
+                                                   collect (cons obj-id (length objs-right-of-obj-right)))
+        for highest = (cdr (extremum length-of-objects-to-the-right :key #'cdr))
+        for objs-with-most-right = (find-all highest length-of-objects-to-the-right :key #'cdr)
+        if objs-with-most-right
+            append (loop for o in objs-with-most-right
+                            collect (list (id obj) (car o)))))
+         ; collect (list (id obj) (nth position-obj-with-most-right objs-right))))
 
 
 

@@ -16,7 +16,7 @@
         (add-element `((h1) ,(format nil "Dialog ~a" dialog-index)))
         (if (or (eq dataset :clevr) (eq dataset :gqa))
           (add-element `((h3) ,(format nil "Caption: ~a" (first dialog)))))
-        (loop for question in (if (or (equal (get-configuration world :world) :clevr) (eq dataset :gqa)) (rest dialog) dialog)
+        (loop for question in (if (or (eq dataset :clevr) (eq dataset :gqa)) (rest dialog) dialog)
               for answer in computed-answers
               for gold-answer in gold-answers
               for a in correct-answers
@@ -86,7 +86,11 @@
                        :if-does-not-exist :create)
     (unwind-protect
         (let* ((ontology
-                (build-ontology))
+                (if (eq (get-configuration world :dataset) :gqa)
+                  (make-blackboard :data-fields
+                          (append (data (visual-dialog::build-gqa-ontology))
+                                  (data (build-ontology))))
+                  (build-ontology)))
                (number-of-dialogs
                 (compute-number-of-dialogs world))
                (results
