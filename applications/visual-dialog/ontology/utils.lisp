@@ -491,7 +491,7 @@
                                         do (if (not (second (assoc 'front (relationships object))))
                                              (push (id object) idlist))))
           ((eql direction 'back) (loop for object in (objects (current-scene world))
-                                       do (if (not (second (assoc 'back (relationships object))))
+                                       do (if (not (second (assoc 'behind (relationships object))))
                                             (push (id object) idlist)))))
     idlist))
 
