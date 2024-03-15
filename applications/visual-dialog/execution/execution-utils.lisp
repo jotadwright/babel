@@ -43,7 +43,8 @@
 
 (defun compute-number-of-dialogs (world)
   "mnist has 3 dialogs, clevr 5"
-  (if (eql (get-configuration world :dataset) :clevr)
+  (if (or (eql (get-configuration world :dataset) :clevr)
+          (eql (get-configuration world :dataset) :gqa))
     4 2))
 
 (defmethod get-gold-answers-by-index (scene-index dialog-index world (dataset (eql :mnist)))
@@ -194,7 +195,7 @@
 
 ;;;;;;;; EVALUATION UTILS
 
-(defun check-if-number (answer)
+#|(defun check-if-number (answer)
   (cond ((eq answer 'zero) 0)
         ((eq answer 'one) 1)
         ((eq answer 'two) 2)
@@ -206,9 +207,26 @@
         ((eq answer 'eight) 8)
         ((eq answer 'nine) 9)
         ((eq answer 'ten) 10)
-        (answer)))
+        ((eq answer 'eleven) 10)
+        ((eq answer 'twelve) 10)
+        ((eq answer 'thirteen) 10)
+        ((eq answer 'fourteen) 10)
+        ((eq answer 'fifteen) 10)
+        ((eq answer 'sixteen) 10)
+        ((eq answer 'seventeen) 10)
+        ((eq answer 'eighteen) 10)
+        ((eq answer 'nineteen) 10)
+        ((eq answer 'twenty) 10)
+        (answer)))|#
 
-(defun check-if-string-is-number (answer)
+(defun check-if-number (answer)
+  (let* ((string-number (downcase (symbol-name answer)))
+         (int-number (number-string-to-int string-number)))
+    (if int-number
+      int-number
+      answer)))
+  
+#|(defun check-if-string-is-number (answer)
    (cond ((equal answer "0") 0)
          ((equal answer "1") 1)
          ((equal answer "2") 2)
@@ -220,7 +238,19 @@
          ((equal answer "8") 8)
          ((equal answer "9") 9)
          ((equal answer "10") 10)
-         (answer)))
+         (answer)))|#
+
+(defun check-if-string-is-number (answer)
+  (if (number-string-to-int answer)
+    (number-string-to-int answer)
+    answer))
+
+(defun number-string-to-int (number)
+  (let ((numbers 
+         (loop for i from 0 to 1000
+               for number = (format nil "~r" i)
+               collect (cons number i))))
+    (rest (assoc  number numbers :test #'string=))))
 
 (defun check-if-bgcolor (answer)
    (cond ((equal answer 'white-bg) "white")
@@ -229,9 +259,6 @@
          ((equal answer 'yellow-bg) "yellow")
          ((equal answer 'silver-bg) "silver")
          (answer)))
-(if (and (not (numberp answer))
-                 ;                                 (= (search "gqa-" answer) 0))
-                 ;                          (last-elt (split-sequence:split-sequence #\- answer)) answer)
 
 (defun check-answers (gold-answers computed-answers)
   (loop for g-a in gold-answers
@@ -243,10 +270,12 @@
                        (equal c-a 'zero))
                   1)
                  ((and (numberp g-a)
+                       (not (equal c-a "IRL-FAILED"))
                        (numberp (check-if-number c-a))
                        (= g-a (check-if-number c-a)))
                   1)
                  ((and (stringp g-a)
+                       (not (equal c-a "IRL-FAILED"))
                        (numberp (check-if-number c-a))
                        (equal (check-if-string-is-number g-a)
                               (check-if-number c-a)))

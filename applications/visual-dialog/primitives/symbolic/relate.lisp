@@ -47,7 +47,8 @@
      
      (loop for id in id-list
            do (loop for object in (objects (object-set (first (set-items context))))
-                    do (if (eq (id object) id)
+                    do (if (and (eq (id object) id)
+                                (not (find (id object) object-list :key #'id)))
                          (push object object-list))))
      
      (if object-list
