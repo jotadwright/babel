@@ -319,21 +319,22 @@
 		    (push value-element feature-value)))
               (when feature-value
                 ;; we add newly constructed feature to new-unit
-                (setf boundaries '())
-                (loop for elem in (third (second (third feature)))
-                      do (when (consp elem)
-                           (push (first (cddr elem)) boundaries)
-                           (push (second (cddr elem)) boundaries)))
-                (let ((new-feature (if (eq (feature-name original-feature) 'form)
-                                     (make-feature 'form
-                                                   (sort (recompute-root-sequence-features-based-on-bindings
-                                                          boundaries
-                                                          (feature-value original-feature)
-                                                          bindings) #'< :key #'third))
-                                     (make-feature (feature-name original-feature)
-                                                   feature-value))))
-                  (push new-feature
-                        (unit-features new-root)))))))))
+                (let (boundaries)
+                  (loop for elem in (third (second (third feature)))
+                        do (when (consp elem)
+                             (push (first (cddr elem)) boundaries)
+                             (push (second (cddr elem)) boundaries)))
+                  (let* ((new-form-value (sort (recompute-root-sequence-features-based-on-bindings
+                                                            boundaries
+                                                            (feature-value original-feature)
+                                                            bindings) #'< :key #'third))
+                         (new-feature (if (and (eq (feature-name original-feature) 'form)
+                                               new-form-value)
+                                       (make-feature 'form new-form-value)
+                                       (make-feature (feature-name original-feature)
+                                                     feature-value))))
+                    (push new-feature
+                          (unit-features new-root))))))))))
 
     
     ;; we loop over all features in source-unit and 'copy' all features
@@ -436,7 +437,7 @@
                                  (setf car-equality-position (position i expanded-interval)))
                                (when (equal (cdr i) (first (cdr matched-interval)))
                                  (setf cdr-equality-position (position i expanded-interval))))
-                      (if car-equality-position
+                      (if (and car-equality-position cdr-equality-position)
                         (progn 
                           (let* ((excluded-positions (loop for i from car-equality-position to cdr-equality-position collect i))
                                 (excluded-items (loop for i in excluded-positions collect (nth i expanded-interval))))
@@ -445,9 +446,9 @@
                             (setf car-equality-position nil)
                             (setf cdr-equality-position nil)))))
              (when expanded-interval 
-               (setf collapsed-intervals (collapse-intervals expanded-interval))
+               (let ((collapsed-intervals (collapse-intervals expanded-interval)))
                (loop for collapsed-interval in collapsed-intervals
-                     do (pushend collapsed-interval final-intervals))))
+                     do (pushend collapsed-interval final-intervals)))))
     final-intervals))
                    
 ;; using cons cells of the intervals
@@ -494,15 +495,17 @@
 
 (defun recompute-root-sequence-features-based-on-bindings (feature root-sequence-features bindings)
   "Makes new set of sequence predicates based on the indices that are present in the bindings."
-  (let* ((matched-positions '())
-         (matched-intervals '())
-         (non-matched-intervals))
+  (let (matched-positions matched-intervals non-matched-intervals)
 
     ;; taking care of matched-positions:
     (loop for (name . value) in bindings
-                do (loop for boundary-name in feature
-                         do (when (eq boundary-name name)
-                              (push value matched-positions))))
+          do (loop for boundary-name in feature
+                   do (when (eq boundary-name name)
+                        (push value matched-positions))))
+    
+    (when (find-if #'variable-p matched-positions)
+      (setf matched-positions (remove-if #'variable-p matched-positions)))
+    
     (sort matched-positions  #'<)
     
     ;; taking care of matched-invervals:
