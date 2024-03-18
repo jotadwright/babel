@@ -83,14 +83,6 @@
                                                             (bind shape-category ?shape-6 cube)
                                                             (count ?number-6 ?set-7)))))
 
-;;---DEBUGGING SEQUENCES ------------------------------------------------
-(progn
-  (setf *fcg-constructions* (make-sandbox-grammar-cxns))
-  (induce-cxns *what-size-is-the-cube* (induce-cxns *how-many-red-cubes-are-there* nil))
-  (comprehend (form-string *what-size-is-the-cube*)))
-;;-----------------------------------------------------------------------
-
-
 ;; Deletion
 ;;--------------
 
@@ -99,7 +91,7 @@
 
   (induce-cxns *how-many-cubes-are-there* holophrastic-how-many-red-cubes-are-there)
 
-  (comprehend (form *how-many-cubes-are-there*)) ;;TO DO: Always add holophrastic cxn
+  (comprehend-all (form-string *how-many-cubes-are-there*)) ;;TO DO: Always add holophrastic cxn
   (comprehend-all (form-string *how-many-red-cubes-are-there*)))
 
 
@@ -111,7 +103,7 @@
 
   (induce-cxns *how-many-red-cubes-are-there* holophrastic-how-many-cubes-are-there)
 
-  (comprehend (form-string *how-many-cubes-are-there*))
+  (comprehend-all (form-string *how-many-cubes-are-there*))
   (comprehend-all (form-string *how-many-red-cubes-are-there*)))
 
 
