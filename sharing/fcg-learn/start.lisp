@@ -11,7 +11,6 @@
 ;; Examples for testing
 ;;#########################################################################
 
-
 (def-fcg-constructions sandbox-grammar
   :feature-types ((form set-of-predicates :handle-regex-sequences)
                   (meaning set-of-predicates)
@@ -32,16 +31,16 @@
                        (:de-render-mode . :de-render-sequence)
                        (:render-mode . :render-sequences)
                        (:category-linking-mode . :neighbours)
-                       (:parse-goal-tests :no-applicable-cxns :connected-semantic-network :no-sequence-in-root)))
+                       (:parse-goal-tests :no-applicable-cxns :connected-semantic-network :no-sequence-in-root))
+  :visualization-configurations ((:show-constructional-dependencies . nil)
+                                 (:show-categorial-network . t)))
 
 
 
 ;;++++++++++++++++++++++++++++++++++++++++++++
 ;; Substitution
 ;;++++++++++++++++++++++++++++++++++++++++++++
-
-(setf *fcg-constructions*  (make-sandbox-grammar-cxns))
-  
+ 
 (defparameter *what-color-is-the-cube* '((:form . "what color is the cube?")
                                          (:meaning . ((get-context ?context-1)
                                                       (filter ?set-1 ?context-1 ?shape-1)
@@ -58,14 +57,13 @@
                                                      (query ?target-2 ?object-2 ?attribute-2)
                                                      (bind attribute-category ?attribute-2 size)))))
 
+(let ((*fcg-constructions* (make-sandbox-grammar-cxns))
+      (holophrastic-what-color-is-the-cube (induce-cxns *what-color-is-the-cube* nil)))
 
-(defparameter *holophrastic-what-color-is-the-cube*
-  (learn-holophrastic-cxn `((sequence ,(form *what-color-is-the-cube*) ?left ?right)) (meaning *what-color-is-the-cube*)))
+  (induce-cxns *what-size-is-the-cube* holophrastic-what-color-is-the-cube)
 
-(induce-cxns *what-size-is-the-cube* *holophrastic-what-color-is-the-cube*)
-
-(comprehend-all (form *what-color-is-the-cube*))
-(comprehend-all (form *what-size-is-the-cube*))
+  (comprehend-all (form-string *what-color-is-the-cube*))
+  (comprehend-all (form-string *what-size-is-the-cube*)))
 
 ;;++++++++++++++++++++++++++++++++++++++++++++
 ;; Deletion + addition
@@ -85,35 +83,42 @@
                                                             (bind shape-category ?shape-6 cube)
                                                             (count ?number-6 ?set-7)))))
 
+;;---DEBUGGING SEQUENCES ------------------------------------------------
+(progn
+  (setf *fcg-constructions* (make-sandbox-grammar-cxns))
+  (induce-cxns *what-size-is-the-cube* (induce-cxns *how-many-red-cubes-are-there* nil))
+  (comprehend (form-string *what-size-is-the-cube*)))
+;;-----------------------------------------------------------------------
+
+
 ;; Deletion
 ;;--------------
-(setf *fcg-constructions*  (make-sandbox-grammar-cxns))
-(defparameter *holophrastic-how-many-red-cubes-are-there* (learn-holophrastic-cxn `((sequence ,(form *how-many-red-cubes-are-there*) ?left ?right))
-                                                                                  (meaning *how-many-red-cubes-are-there*)))
 
-(induce-cxns *how-many-cubes-are-there* *holophrastic-how-many-red-cubes-are-there*)
+(let ((*fcg-constructions* (make-sandbox-grammar-cxns))
+      (holophrastic-how-many-red-cubes-are-there (induce-cxns *how-many-red-cubes-are-there* nil)))
 
-(comprehend (form *how-many-cubes-are-there*)) ;;TO DO: Always add holophrastic cxn
-(comprehend-all (form *how-many-red-cubes-are-there*))
+  (induce-cxns *how-many-cubes-are-there* holophrastic-how-many-red-cubes-are-there)
+
+  (comprehend (form *how-many-cubes-are-there*)) ;;TO DO: Always add holophrastic cxn
+  (comprehend-all (form-string *how-many-red-cubes-are-there*)))
 
 
 ;; Addition
 ;;--------------
-(setf *fcg-constructions*  (make-sandbox-grammar-cxns))
 
-(defparameter *holophrastic-how-many-cubes-are-there* (learn-holophrastic-cxn `((sequence ,(form *how-many-cubes-are-there*) ?left ?right))
-                                                                              (meaning *how-many-cubes-are-there*)))
+(let ((*fcg-constructions* (make-sandbox-grammar-cxns))
+      (holophrastic-how-many-cubes-are-there (induce-cxns *how-many-cubes-are-there* nil)))
 
-(induce-cxns *how-many-red-cubes-are-there* *holophrastic-how-many-cubes-are-there*)
+  (induce-cxns *how-many-red-cubes-are-there* holophrastic-how-many-cubes-are-there)
 
-;;(comprehend (form *how-many-cubes-are-there*))
-(comprehend-all (form *how-many-red-cubes-are-there*))
+  (comprehend (form-string *how-many-cubes-are-there*))
+  (comprehend-all (form-string *how-many-red-cubes-are-there*)))
 
 
 ;;++++++++++++++++++++++++++++++++++++++++++++
 ;; Filler to slot repair
 ;;++++++++++++++++++++++++++++++++++++++++++++
-(progn
+
 (defparameter *what-size-is-the-sphere* '((:form . "what size is the sphere?")
                                         (:meaning . ((get-context ?context-3)
                                                      (filter ?set-3 ?context-3 ?shape-3)
@@ -130,16 +135,6 @@
                                                       (query ?target-4 ?object-4 ?attribute-4)
                                                       (bind attribute-category ?attribute-4 size)))))
 
-(setf *fcg-constructions*  (make-sandbox-grammar-cxns))
-
-(defparameter *holophrastic-what-size-is-the-sphere* (learn-holophrastic-cxn `((sequence ,(form *what-size-is-the-sphere*) ?left ?right))
-                                                                           (meaning *what-size-is-the-sphere*)))
-
-(induce-cxns *what-size-is-the-block* *holophrastic-what-size-is-the-sphere*)
-(comprehend (form *what-size-is-the-block*))
-
-(defparameter *block-cxn* (find-cxn "block" *fcg-constructions* :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
-
 (defparameter *what-color-is-the-block* '((:form . "what color is the block?")
                                          (:meaning . ((get-context ?context-5)
                                                       (filter ?set-5 ?context-5 ?shape-5)
@@ -148,15 +143,28 @@
                                                       (query ?target-5 ?object-5 ?attribute-5)
                                                       (bind attribute-category ?attribute-5 color)))))
 
-(induce-cxns *what-color-is-the-block* *block-cxn*)
 
-(comprehend (form *what-color-is-the-block*))
-)
+(let ((*fcg-constructions* (make-sandbox-grammar-cxns))
+      (holophrastic-what-size-is-the-sphere (induce-cxns *what-size-is-the-sphere* nil))
+      (block-cxn nil))
+
+  (induce-cxns *what-size-is-the-block* holophrastic-what-size-is-the-sphere)
+  (comprehend (form-string *what-size-is-the-block*))
+
+  (setf block-cxn (find-cxn "block" *fcg-constructions*
+                            :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
+
+  (induce-cxns *what-color-is-the-block* block-cxn)
+
+  (comprehend (form-string *what-color-is-the-block*)))
+
+
 
 ;;++++++++++++++++++++++++++++++++++++++++++++
 ;; AMR examples
 ;;++++++++++++++++++++++++++++++++++++++++++++
 
+(progn
 (defparameter *amr-1* `((:form . "Hotel rooms available as of this weekend")
                         (:meaning . ,(amr:penman->predicates
                                       '(a / available-02
@@ -213,38 +221,36 @@
                                            :time (s5 / service-06
                                                     :ARG1 (f2 / funeral)))
                                        :variablify? t))))
+)
+
+;; Learning 'omorrow-cxn'
+(let ((*fcg-constructions*  (make-sandbox-grammar-cxns))
+      (holophrastic-amr-cxn-1 (induce-cxns *amr-1* nil))
+      (holophrastic-amr-cxn-2 (induce-cxns *amr-2* nil))
+      (holophrastic-amr-cxn-3 (induce-cxns *amr-3* nil))
+      (holophrastic-amr-cxn-6 (induce-cxns *amr-6* nil))
+      (ommorrow-cxn nil))
+
+  (induce-cxns *amr-2* holophrastic-amr-cxn-1)
+
+  (comprehend-all (form-string *amr-1*))
+  (comprehend-all (form-string *amr-2*))
+
+  (setf ommorrow-cxn (find-cxn "omorrow" *fcg-constructions*
+                               :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
+
+  (induce-cxns *amr-3* ommorrow-cxn)
+  (induce-cxns *amr-4* holophrastic-amr-cxn-3)
+
+  (comprehend-all (form-string *amr-4*))
+  (comprehend-all (form-string *amr-3*))
+  
+  (induce-cxns *amr-5* holophrastic-amr-cxn-6)
+
+  (comprehend-all (form-string *amr-5*))
+  (comprehend-all (form-string *amr-3*)))
 
 
-
-
-(setf *fcg-constructions*  (make-sandbox-grammar-cxns))
-
-(defparameter *holophrastic-amr-cxn-1* (learn-holophrastic-cxn `((sequence ,(form *amr-1*) ?left ?right)) (meaning *amr-1*)))
-(defparameter *holophrastic-amr-cxn-2* (learn-holophrastic-cxn `((sequence ,(form *amr-2*) ?left ?right)) (meaning *amr-2*)))
-
-(add-element (make-html *holophrastic-amr-cxn-1*))
-
-(induce-cxns *amr-2* *holophrastic-amr-cxn-1*)
-
-(comprehend-all (form *amr-1*))
-(comprehend (form *amr-2*))
-
-(defparameter *omorrow-cxn* (find-cxn "omorrow" *fcg-constructions* :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
-(defparameter *holophrastic-amr-cxn-3* (learn-holophrastic-cxn `((sequence ,(form *amr-3*) ?left ?right)) (meaning *amr-3*)))
-
-(induce-cxns *amr-3* *omorrow-cxn*)
-(induce-cxns *amr-4* *holophrastic-amr-cxn-3*)
-
-(comprehend-all (form *amr-4*))
-(comprehend-all (form *amr-3*))
-
-
-(defparameter *holophrastic-amr-cxn-4* (learn-holophrastic-cxn `((sequence ,(form *amr-6*) ?left ?right)) (meaning *amr-6*)))
-
-(induce-cxns *amr-5* *holophrastic-amr-cxn-4*)
-
-(comprehend-all (form *amr-5*))
-(comprehend-all (form *amr-3*))
 
 
 ;;++++++++++++++++++++++++++++++++++++++++++++
@@ -260,15 +266,12 @@
 
 (progn
   (setf *fcg-constructions*  (make-sandbox-grammar-cxns))
-  (defparameter *cxn-1* (learn-holophrastic-cxn  `((sequence ,(form *amr-simple-1*) ?left ?right)) (meaning *amr-simple-1*)))
+  (defparameter *cxn-1* (induce-cxns *amr-simple-1* nil))
   (add-element (make-html *cxn-1*))
   (induce-cxns *amr-simple-2* *cxn-1*)
-  (comprehend-all (form *amr-simple-1*)) ;; here construction doesn't apply
-; (comprehend (form *amr-simple-2*))
+  (comprehend-all (form-string *amr-simple-1*)) ;; here construction doesn't apply
+; (comprehend (form-string *amr-simple-2*))
   )
-
-
-
 
 
 
