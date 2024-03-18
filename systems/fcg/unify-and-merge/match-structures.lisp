@@ -328,11 +328,11 @@
                                                             boundaries
                                                             (feature-value original-feature)
                                                             bindings) #'< :key #'third))
-                         (new-feature (if (and (eq (feature-name original-feature) 'form)
+                         (new-feature (when (and (eq (feature-name original-feature) 'form)
                                                new-form-value)
-                                       (make-feature 'form new-form-value)
-                                       (make-feature (feature-name original-feature)
-                                                     feature-value))))
+                                       (make-feature 'form new-form-value))))
+                                       ;;(make-feature (feature-name original-feature)
+                                         ;;            feature-value))))
                     (push new-feature
                           (unit-features new-root))))))))))
 
@@ -493,6 +493,12 @@
                                           collect value))
          (matched-intervals (divide-sequence matched-positions))|#
 
+(defun lookup-binding (target-var bindings)
+  (let ((binding (cdr (assoc target-var bindings))))
+    (if (variable-p binding)
+      (lookup-binding binding bindings)
+      binding)))
+          
 (defun recompute-root-sequence-features-based-on-bindings (feature root-sequence-features bindings)
   "Makes new set of sequence predicates based on the indices that are present in the bindings."
   (let (matched-positions matched-intervals non-matched-intervals)
@@ -504,7 +510,10 @@
                         (push value matched-positions))))
     
     (when (find-if #'variable-p matched-positions)
-      (setf matched-positions (remove-if #'variable-p matched-positions)))
+      (setf matched-positions (loop for position in matched-positions
+                                    if (variable-p position)
+                                      collect (lookup-binding position bindings) ;;lookup binding recursively
+                                    else collect position)))
     
     (sort matched-positions  #'<)
     
@@ -513,9 +522,10 @@
           do (push interval matched-intervals))
 
     ;; taking care of non-matched-intervals:
-    (setf non-matched-intervals (calculate-unmatched-intervals matched-intervals (mapcar #'(lambda (feat)
-                                                                                             (list (third feat) (fourth feat)))
-                                                                                         root-sequence-features)))
+    (setf non-matched-intervals
+          (calculate-unmatched-intervals matched-intervals (mapcar #'(lambda (feat)
+                                                                       (list (third feat) (fourth feat)))
+                                                                   root-sequence-features)))
     
     ;; Based on the non-matched intervals (e.g. '((0 4) (12 28))), create sequence new features to add to the root
     (when non-matched-intervals
