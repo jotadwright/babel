@@ -58,9 +58,9 @@
                                                      (bind attribute-category ?attribute-2 size)))))
 
 (let ((*fcg-constructions* (make-sandbox-grammar-cxns))
-      (holophrastic-what-color-is-the-cube (induce-cxns *what-color-is-the-cube* nil)))
+      (holophrastic-what-color-is-the-cube (induce-cxns *what-color-is-the-cube* nil :cxn-inventory *fcg-constructions*)))
 
-  (induce-cxns *what-size-is-the-cube* holophrastic-what-color-is-the-cube)
+  (induce-cxns *what-size-is-the-cube* holophrastic-what-color-is-the-cube :cxn-inventory *fcg-constructions*)
 
   (comprehend-all (form-string *what-color-is-the-cube*))
   (comprehend-all (form-string *what-size-is-the-cube*)))
@@ -87,9 +87,9 @@
 ;;--------------
 
 (let ((*fcg-constructions* (make-sandbox-grammar-cxns))
-      (holophrastic-how-many-red-cubes-are-there (induce-cxns *how-many-red-cubes-are-there* nil)))
+      (holophrastic-how-many-red-cubes-are-there (induce-cxns *how-many-red-cubes-are-there* nil :cxn-inventory *fcg-constructions*)))
 
-  (induce-cxns *how-many-cubes-are-there* holophrastic-how-many-red-cubes-are-there)
+  (induce-cxns *how-many-cubes-are-there* holophrastic-how-many-red-cubes-are-there :cxn-inventory *fcg-constructions*)
 
   (comprehend-all (form-string *how-many-cubes-are-there*)) ;;TO DO: Always add holophrastic cxn
   (comprehend-all (form-string *how-many-red-cubes-are-there*)))
@@ -99,9 +99,9 @@
 ;;--------------
 
 (let ((*fcg-constructions* (make-sandbox-grammar-cxns))
-      (holophrastic-how-many-cubes-are-there (induce-cxns *how-many-cubes-are-there* nil)))
+      (holophrastic-how-many-cubes-are-there (induce-cxns *how-many-cubes-are-there* nil :cxn-inventory *fcg-constructions*)))
 
-  (induce-cxns *how-many-red-cubes-are-there* holophrastic-how-many-cubes-are-there)
+  (induce-cxns *how-many-red-cubes-are-there* holophrastic-how-many-cubes-are-there :cxn-inventory *fcg-constructions*)
 
   (comprehend-all (form-string *how-many-cubes-are-there*))
   (comprehend-all (form-string *how-many-red-cubes-are-there*)))
@@ -137,18 +137,27 @@
 
 
 (let ((*fcg-constructions* (make-sandbox-grammar-cxns))
-      (holophrastic-what-size-is-the-sphere (induce-cxns *what-size-is-the-sphere* nil))
-      (block-cxn nil))
+      (holophrastic-what-size-is-the-sphere (induce-cxns *what-size-is-the-sphere* nil :cxn-inventory *fcg-constructions*))
+      block-cxn what-color-is-the-X-cxn what-size-is-the-X-cxn)
 
-  (induce-cxns *what-size-is-the-block* holophrastic-what-size-is-the-sphere)
-  (comprehend (form-string *what-size-is-the-block*))
+  (induce-cxns *what-size-is-the-block* holophrastic-what-size-is-the-sphere :cxn-inventory *fcg-constructions*)
+  (comprehend-all (form-string *what-size-is-the-block*))
 
   (setf block-cxn (find-cxn "block" *fcg-constructions*
                             :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
 
-  (induce-cxns *what-color-is-the-block* block-cxn)
+  (induce-cxns *what-color-is-the-block* block-cxn :cxn-inventory *fcg-constructions*)
 
-  (comprehend (form-string *what-color-is-the-block*)))
+  (comprehend-all (form-string *what-color-is-the-block*))
+
+  (setf what-color-is-the-X-cxn (find-cxn "what color is the " *fcg-constructions*
+                                          :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
+  (setf what-size-is-the-X-cxn (find-cxn "what size is the " *fcg-constructions*
+                                          :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
+
+  ;;TO DO: anti-unify two constructions but first anti-unify sets of sequence predicates!
+  ;; (induce-cxns what-size-is-the-X-cxn what-color-is-the-X-cxn) 
+  )
 
 
 
@@ -217,13 +226,13 @@
 
 ;; Learning 'omorrow-cxn'
 (let ((*fcg-constructions*  (make-sandbox-grammar-cxns))
-      (holophrastic-amr-cxn-1 (induce-cxns *amr-1* nil))
-      (holophrastic-amr-cxn-2 (induce-cxns *amr-2* nil))
-      (holophrastic-amr-cxn-3 (induce-cxns *amr-3* nil))
-      (holophrastic-amr-cxn-6 (induce-cxns *amr-6* nil))
+      (holophrastic-amr-cxn-1 (induce-cxns *amr-1* nil :cxn-inventory *fcg-constructions*))
+      (holophrastic-amr-cxn-2 (induce-cxns *amr-2* nil :cxn-inventory *fcg-constructions*))
+      (holophrastic-amr-cxn-3 (induce-cxns *amr-3* nil :cxn-inventory *fcg-constructions*))
+      (holophrastic-amr-cxn-6 (induce-cxns *amr-6* nil :cxn-inventory *fcg-constructions*))
       (ommorrow-cxn nil))
 
-  (induce-cxns *amr-2* holophrastic-amr-cxn-1)
+  (induce-cxns *amr-2* holophrastic-amr-cxn-1 :cxn-inventory *fcg-constructions*)
 
   (comprehend-all (form-string *amr-1*))
   (comprehend-all (form-string *amr-2*))
@@ -231,13 +240,13 @@
   (setf ommorrow-cxn (find-cxn "omorrow" *fcg-constructions*
                                :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
 
-  (induce-cxns *amr-3* ommorrow-cxn)
-  (induce-cxns *amr-4* holophrastic-amr-cxn-3)
+  (induce-cxns *amr-3* ommorrow-cxn :cxn-inventory *fcg-constructions*)
+  (induce-cxns *amr-4* holophrastic-amr-cxn-3 :cxn-inventory *fcg-constructions*)
 
   (comprehend-all (form-string *amr-4*))
   (comprehend-all (form-string *amr-3*))
   
-  (induce-cxns *amr-5* holophrastic-amr-cxn-6)
+  (induce-cxns *amr-5* holophrastic-amr-cxn-6 :cxn-inventory *fcg-constructions*)
 
   (comprehend-all (form-string *amr-5*))
   (comprehend-all (form-string *amr-3*)))
@@ -258,9 +267,9 @@
 
 (progn
   (setf *fcg-constructions*  (make-sandbox-grammar-cxns))
-  (defparameter *cxn-1* (induce-cxns *amr-simple-1* nil))
+  (defparameter *cxn-1* (induce-cxns *amr-simple-1* nil :cxn-inventory *fcg-constructions*))
   (add-element (make-html *cxn-1*))
-  (induce-cxns *amr-simple-2* *cxn-1*)
+  (induce-cxns *amr-simple-2* *cxn-1* :cxn-inventory *fcg-constructions*)
   (comprehend-all (form-string *amr-simple-1*)) ;; here construction doesn't apply
 ; (comprehend (form-string *amr-simple-2*))
   )
