@@ -30,6 +30,7 @@
                              (:file "clevr")
                              (:file "winery")
                              (:file "credit")
+                             (:file "gqaglove50")
                              (:file "beans")
                              ))
                (:module "world"

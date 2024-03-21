@@ -15,10 +15,10 @@
                 (:interacting-agents-strategy . :standard)
                 (:population-size . 10)
                 ;; setup data scene
-                (:dataset . "clevr")
+                (:dataset . "gqaglove50")
                 (:dataset-split . "train")
                 ;(:data-fname . "all.lisp")
-                (:available-channels ,@(get-all-channels :clevr))
+                (:available-channels ,@(get-all-channels :gqaglove50))
                 ;; disable channels
                 (:disable-channels . :none)
                 (:amount-disabled-channels . 0)
@@ -70,7 +70,7 @@
   (activate-monitor print-a-dot-for-each-interaction)
   (format t "~%---------- NEW GAME ----------~%")
   (time
-   (loop for i from 1 to 50000
+   (loop for i from 1 to 100000
          do (run-interaction *experiment*))))
 
 (progn
