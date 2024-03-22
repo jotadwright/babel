@@ -12,7 +12,7 @@
                                         &key
                                         (dataset nil)
                                         (dataset-split nil))
-  (let ((datapath (merge-pathnames (make-pathname :directory `(:relative ,dataset))
+  (let ((datapath (merge-pathnames (make-pathname :directory `(:relative "concept-emergence2" ,dataset))
                                    cl-user:*babel-corpora*)))
     ;; check for *clevr-data-path*
     (unless (probe-file datapath)
