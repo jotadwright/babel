@@ -1,10 +1,52 @@
 (in-package :fcg)
 
-(export '(anti-unify-strings))
+(export '(anti-unify-sequences
+          anti-unify-strings))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Anti-unify strings ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun anti-unify-sequences (pattern source)
+  "Anti-unify sets of sequence predicates.
+   1. Render all pattern sequences
+   2. Render all source sequences
+   3. Anti-unify all combinations of pattern-strings and source-strings
+   4. Remove duplicate results
+   5. Transform the result back to sequence predicates"
+  ;; to do: improve anti-unify sequences to have full reversibility, up to the original variables.
+  (multiple-value-bind (pattern-renders pattern-boundaries) (render-all pattern :render-sequences)
+    (multiple-value-bind (source-renders source-boundaries) (render-all source :render-sequences)  
+      (let* ((all-anti-unification-results
+              (loop for pattern-render in pattern-renders
+                    for pattern-string = (list-of-strings->string pattern-render :separator "")
+                    append (loop for source-render in source-renders
+                                 for source-string = (list-of-strings->string source-render :separator "")
+                                 append (loop with possible-alignments = (maximal-string-alignments pattern-string source-string)
+                                              for alignment in possible-alignments
+                                              for pattern-in-alignment = (aligned-pattern alignment)
+                                              for source-in-alignment = (aligned-source alignment)
+                                              collect (multiple-value-bind (resulting-generalisation
+                                                                            resulting-pattern-delta
+                                                                            resulting-source-delta)
+                                                          (anti-unify-aligned-strings pattern-in-alignment source-in-alignment)
+                                                        (let ((au-result (make-instance 'string-au-result
+                                                                                        :pattern pattern
+                                                                                        :source source
+                                                                                        :generalisation (generalisation-chars->strings resulting-generalisation)
+                                                                                        :pattern-delta (loop for (var . chars) in resulting-pattern-delta
+                                                                                                             collect (cons var (coerce chars 'string)))
+                                                                                        :source-delta (loop for (var . chars) in resulting-source-delta
+                                                                                                            collect (cons var (coerce chars 'string))))))
+                                                          (setf (cost au-result) (anti-unification-cost au-result))
+                                                          au-result))))))
+             (unique-sorted-results
+              (sort (remove-duplicates all-anti-unification-results
+                                       :test #'duplicate-string-anti-unification-results)
+                    #'< :key #'cost)))
+        (mapcar #'string-anti-unification-result->sequence-predicates unique-sorted-results)))))
+                   
+          
   
 (defun anti-unify-strings (pattern source &key to-sequence-predicates-p)
   "Anti-unify strings by (1) using needleman-wunsch to compute the
@@ -21,16 +63,16 @@
                                               resulting-pattern-delta
                                               resulting-source-delta)
                             (anti-unify-aligned-strings pattern-in-alignment source-in-alignment)
-                          (make-instance 'anti-unification-result
-                                         :pattern pattern
-                                         :source source
-                                         :generalisation (generalisation-chars->strings resulting-generalisation)
-                                         :pattern-delta (loop for (var . chars) in resulting-pattern-delta
-                                                              collect (cons var (coerce chars 'string)))
-                                         :source-delta (loop for (var . chars) in resulting-source-delta
-                                                             collect (cons var (coerce chars 'string)))
-                                         :cost (+ (length resulting-pattern-delta)
-                                                  (length resulting-source-delta))))))
+                          (let ((au-result (make-instance 'string-au-result
+                                                          :pattern pattern
+                                                          :source source
+                                                          :generalisation (generalisation-chars->strings resulting-generalisation)
+                                                          :pattern-delta (loop for (var . chars) in resulting-pattern-delta
+                                                                               collect (cons var (coerce chars 'string)))
+                                                          :source-delta (loop for (var . chars) in resulting-source-delta
+                                                                              collect (cons var (coerce chars 'string))))))
+                            (setf (cost au-result) (anti-unification-cost au-result))
+                            au-result))))
          (unique-sorted-results
           (sort (remove-duplicates all-anti-unification-results
                                    :test #'duplicate-string-anti-unification-results)
@@ -119,8 +161,10 @@
       (push (coerce (reverse buffer) 'string) result))
     (reverse result)))
 
-;(anti-unify-strings "GCATGCG" "GATTACA")
-;(anti-unify-strings "What size is the cube?" "What size is the red cube?")
+
+                 
+;(print-anti-unification-results (anti-unify-strings "GCATGCG" "GATTACA" :to-sequence-predicates-p t))
+;(print-anti-unification-results (anti-unify-strings "What size is the cube?" "What size is the red cube?" :to-sequence-predicates-p t))
 ;(print-anti-unification-results (anti-unify-strings "What size is the blue cube?" "What size is the red cube?"))
 ;(anti-unify-strings "What is the color of the sphere?" "What is the size of the cube?")
 
@@ -252,6 +296,8 @@
   (format t "~%~s" (coerce (aligned-source string-alignment) 'string))
   (format t "~%Score: ~a" (score string-alignment)))
 
+
+                 
 #| 
 (mapcar #'print-string-alignments
         (maximal-string-alignments "GATTACA" "GCATGCG"))
@@ -288,8 +334,21 @@
 
 |#
 
+;;;;;;;;;;
+;; Cost ;;
+;;;;;;;;;;
 
+(defmethod anti-unification-cost ((au-result string-au-result))
+  "Cost of a string anti-unification result."
+  ;; TO DO: determine cost
+  (+ (length (pattern-delta au-result))
+     (length (source-delta au-result))))
 
+(defmethod anti-unification-cost ((au-result sequences-au-result))
+  "Cost of a string anti-unification result."
+  ;; TO DO: determine cost
+  (+ (length (pattern-delta au-result))
+     (length (source-delta au-result))))
 
 
 
@@ -359,17 +418,19 @@
                    (push (cons source-left-boundary (fourth left-neighbour)) source-bindings))))
       ;; make an anti-unification result
       ;; remove the NIL placeholders
-      (make-instance 'anti-unification-result
+      (make-instance 'sequences-au-result
+                     :pattern (pattern string-anti-unification-result)
+                     :source (source string-anti-unification-result)
                      :generalisation (remove nil generalisation-predicates)
                      :pattern-bindings pattern-bindings
                      :source-bindings source-bindings
                      :pattern-delta pattern-delta-predicates
                      :source-delta source-delta-predicates
-                     :cost (+ (length pattern-delta-predicates)
-                              (length source-delta-predicates))))))
+                     :cost cost))))
+
+
 
 #|
-
 (setf *test* (anti-unify-strings "GCATGCG" "GATTACA" :to-sequence-predicates-p t))
 
 ;; check that the anti-unification results have the same structure as on the meaning side
@@ -391,3 +452,43 @@
       (anti-unify-strings "what size is the cube?" "what color is the"))
   
 |#
+
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Reversibility check ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun merge-adjacent-sequence-predicates (sequence-predicates)
+  "When there are adjacent sequence predicates, merge them together."
+  (loop for predicate in sequence-predicates
+        for left-bound = (third predicate)
+        for right-bound = (fourth predicate)
+        for adjacent-left = (find left-bound sequence-predicates :key #'fourth)
+        for adjacent-right = (find right-bound sequence-predicates :key #'third)
+        if adjacent-left
+          return (let* ((new-predicate `(sequence ,(mkstr (second adjacent-left) (second predicate))
+                                                  ,(third adjacent-left) ,(fourth predicate)))
+                        (updated-predicates
+                         (cons new-predicate (remove adjacent-left (remove predicate sequence-predicates :test #'equal) :test #'equal))))
+                   (merge-adjacent-sequence-predicates updated-predicates))
+        else if adjacent-right
+           return (let* ((new-predicate `(sequence ,(mkstr (second predicate) (second adjacent-right))
+                                                   ,(third predicate) ,(fourth adjacent-right)))
+                         (updated-predicates
+                          (cons new-predicate (remove adjacent-right (remove predicate sequence-predicates :test #'equal) :test #'equal))))
+                    (merge-adjacent-sequence-predicates updated-predicates))
+        else return sequence-predicates))
+
+(defmethod compute-network-from-anti-unification-result ((au-result sequences-au-result) pattern-or-source)
+  "Returns original network based on generalisation, bindings-list and delta."  
+  (let* ((generalisation (generalisation au-result))
+         (bindings-key (case pattern-or-source
+                         (pattern #'pattern-bindings)
+                         (source #'source-bindings)))
+         (delta-key (case pattern-or-source
+                      (pattern #'pattern-delta)
+                      (source #'source-delta)))
+         (bindings-list (funcall bindings-key au-result))
+         (delta (funcall delta-key au-result)))
+    (merge-adjacent-sequence-predicates
+     (append (substitute-bindings (reverse-bindings bindings-list) generalisation)
+             delta))))

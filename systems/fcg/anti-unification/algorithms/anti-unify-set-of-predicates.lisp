@@ -63,6 +63,14 @@
 (defclass predicate-network-au-result (anti-unification-result) ()
   (:documentation "Subclass of anti-unification result for predicate networks"))
 
+(defclass string-au-result (anti-unification-result) ()
+  (:documentation "Subclass of anti-unification result for strings"))
+
+(defclass sequences-au-result (anti-unification-result) ()
+  (:documentation "Subclass of anti-unification result for sequence predicates"))
+
+
+
 (defun anti-unify-predicate-network (pattern source &key allow-generalisation-over-constants)
   "Anti-unifies pattern with source. Returns 5 values:
    generalisation, pattern-bindings, source-bindings, pattern-delta and source-delta."
