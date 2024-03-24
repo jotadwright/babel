@@ -476,7 +476,7 @@
                          (updated-predicates
                           (cons new-predicate (remove adjacent-right (remove predicate sequence-predicates :test #'equal) :test #'equal))))
                     (merge-adjacent-sequence-predicates updated-predicates))
-        else return sequence-predicates))
+        finally (return sequence-predicates)))
 
 (defmethod compute-network-from-anti-unification-result ((au-result sequences-au-result) pattern-or-source)
   "Returns original network based on generalisation, bindings-list and delta."  
