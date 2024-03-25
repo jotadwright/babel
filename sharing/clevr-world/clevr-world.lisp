@@ -210,7 +210,7 @@
    #'equal-entity compares the IDs of the objects"
   (permutation-of? (objects set-1) (objects set-2) :test #'equal-entity))
 
-(defmethod find-entity-by-id ((set clevr-object-set) (id symbol))
+(defmethod find-entity-by-id ((set clevr-object-set) (id symbol) &key)
   "Find an entity in the set"
   (find id (objects set) :key #'id))
 
