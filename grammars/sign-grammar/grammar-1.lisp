@@ -1,4 +1,8 @@
-(in-package :sign-grammar)
+(ql:quickload :slp)
+(in-package :slp)
+
+;(monitors::activate-monitor trace-fcg)
+;(monitors::activate-monitor trace-irl)
 
 ;;------------------------;;
 ;; Grammar configurations ;;
@@ -2454,4 +2458,18 @@
                            (rh-rightmost ?slot1-rh-right))
                (location rssp)
                )))
-|# 
+|#
+
+
+;------------------------------------
+; + comprehending signed utterances +
+;------------------------------------
+
+;(comprehend (xmls->predicates (read-elan "/Users/liesbetdevos/Projects/geoquery-sign/250-dataset/26_19_0.eaf")))
+;(formulate-all '((ANSWER ?C ?A ?D)(POPULATION ?D ?B ?A)(LARGEST ?D ?B ?E)(CITY ?E ?B)))
+
+
+;----------------------------------------------------------
+; + Visualise the categorial network in the web interface +
+;----------------------------------------------------------
+;(add-element (make-html (categorial-network *fcg-constructions*)))
