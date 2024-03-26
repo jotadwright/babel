@@ -1,0 +1,7 @@
+id,exp_name,nr_of_series,nr_of_interactions,population_size,dataset,dataset_split,available_channels,disable_channels,amount_disabled_channels,sensor_noise,sensor_std,observation_noise,observation_std,scene_sampling,topic_sampling,similarity_threshold,align,entrenchment_incf,entrenchment_decf,entrenchment_li,trash_concepts,weight_update_strategy,initial_weight,weight_incf,weight_decf,switch_condition,switch_conditions_after_n_interactions,stage_parameters
+1,gqaglove50-1,1,1000000,10,gqaglove50,train,:gqaglove50,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+2,gqaglove50-2,1,1000000,10,gqaglove50,train,:gqaglove50,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.2,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+3,gqaglove50-3,1,1000000,10,gqaglove50,train,:gqaglove50,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.3,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil
+4,gqaglove50-4,1,1000000,10,gqaglove50,train,:gqaglove50,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.01,t,:j-interpolation,0,1,-5,:none,0,nil
+5,gqaglove50-5,1,1000000,10,gqaglove50,train,:gqaglove50,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.005,t,:j-interpolation,0,1,-5,:none,0,nil
+6,gqaglove50-6,1,1000000,10,gqaglove50,train,:gqaglove50,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.001,t,:j-interpolation,0,1,-5,:none,0,nil
