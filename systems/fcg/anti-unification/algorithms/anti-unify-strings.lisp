@@ -15,39 +15,66 @@
    4. Remove duplicate results
    5. Transform the result back to sequence predicates"
   ;; to do: improve anti-unify sequences to have full reversibility, up to the original variables.
-  (multiple-value-bind (pattern-renders pattern-boundaries) (render-all pattern :render-sequences)
-    (multiple-value-bind (source-renders source-boundaries) (render-all source :render-sequences)  
+  (multiple-value-bind (pattern-renders all-pattern-boundaries) (render-all pattern :render-sequences)
+    (multiple-value-bind (source-renders all-source-boundaries) (render-all source :render-sequences)  
       (let* ((all-anti-unification-results
               (loop for pattern-render in pattern-renders
+                    for pattern-boundaries in all-pattern-boundaries
                     for pattern-string = (list-of-strings->string pattern-render :separator "")
                     append (loop for source-render in source-renders
                                  for source-string = (list-of-strings->string source-render :separator "")
-                                 append (loop with possible-alignments = (maximal-string-alignments pattern-string source-string)
+                                 for source-boundaries in all-source-boundaries 
+                                 append (loop with possible-alignments = (maximal-sequence-alignments pattern-string source-string pattern-boundaries source-boundaries)
                                               for alignment in possible-alignments
                                               for pattern-in-alignment = (aligned-pattern alignment)
                                               for source-in-alignment = (aligned-source alignment)
+                                              for pattern-boundaries = (aligned-pattern-boundaries alignment)
+                                              for source-boundaries = (aligned-source-boundaries alignment)
                                               collect (multiple-value-bind (resulting-generalisation
                                                                             resulting-pattern-delta
-                                                                            resulting-source-delta)
-                                                          (anti-unify-aligned-strings pattern-in-alignment source-in-alignment)
-                                                        (let ((au-result (make-instance 'string-au-result
+                                                                            resulting-source-delta
+                                                                            resulting-pattern-bindings
+                                                                            resulting-source-bindings)
+                                                          (anti-unify-aligned-sequences pattern-in-alignment source-in-alignment pattern-boundaries source-boundaries)
+                                                        (let ((au-result (make-instance 'sequences-au-result
                                                                                         :pattern pattern
                                                                                         :source source
-                                                                                        :generalisation (generalisation-chars->strings resulting-generalisation)
-                                                                                        :pattern-delta (loop for (var . chars) in resulting-pattern-delta
-                                                                                                             collect (cons var (coerce chars 'string)))
-                                                                                        :source-delta (loop for (var . chars) in resulting-source-delta
-                                                                                                            collect (cons var (coerce chars 'string))))))
+                                                                                        :generalisation (merge-adjacent-sequence-predicates resulting-generalisation)
+                                                                                        :pattern-delta (merge-adjacent-sequence-predicates resulting-pattern-delta)
+                                                                                        :source-delta (merge-adjacent-sequence-predicates resulting-source-delta)
+                                                                                        :pattern-bindings (remove-bindings-not-in-generalisation  resulting-pattern-bindings (merge-adjacent-sequence-predicates resulting-generalisation))
+                                                                                        :source-bindings (remove-bindings-not-in-generalisation resulting-source-bindings (merge-adjacent-sequence-predicates resulting-generalisation))
+                                                                                        )))
                                                           (setf (cost au-result) (anti-unification-cost au-result))
                                                           au-result))))))
              (unique-sorted-results
-              (sort (remove-duplicates all-anti-unification-results
-                                       :test #'duplicate-string-anti-unification-results)
-                    #'< :key #'cost)))
-        (mapcar #'string-anti-unification-result->sequence-predicates unique-sorted-results)))))
-                   
-          
-  
+              (sort all-anti-unification-results #'< :key #'cost)))
+        unique-sorted-results))))
+
+(defun remove-bindings-not-in-generalisation (bindings generalisation-list)
+  (let ((generalisation-vars (loop for seq in generalisation-list
+                                   append (list (third seq) (fourth seq)))))
+  (loop for binding in bindings
+          if (find (cdr binding) generalisation-vars)
+          collect binding)))
+
+
+;;(print-anti-unification-results (anti-unify-sequences '((sequence "the red cube" ?l1 ?r1)) '((sequence "the cube" ?l2 ?r2))))
+
+;;(print-anti-unification-results (anti-unify-sequences '((sequence "the red cube" ?l1 ?r1)) '((sequence "the blue cube" ?l2 ?r2))))
+
+;;(print-anti-unification-results (anti-unify-sequences '((sequence "ABA" ?l1 ?r1)) '((sequence "A" ?l2 ?r2))))
+
+;;(print-anti-unification-results (anti-unify-sequences '((sequence "Give me the cities in Virginia" ?l1 ?r1)) '((sequence "How large is Texas" ?l2 ?r2))))
+
+;;(print-anti-unification-results (anti-unify-sequences '((sequence "A" ?l1 ?r1) (sequence "BA" ?l2 ?r2)) '((sequence "A" ?l3 ?r3))))
+
+;;(setf *res* (anti-unify-strings  "Give me the cities in Virginia"  "How large is Texas" :to-sequence-predicates-p t))
+
+;; (setf *result* (anti-unify-sequences '((sequence "the red cube" ?l1 ?r1)) '((sequence "the pink cube" ?l2 ?r2))))
+;(setf *result* (anti-unify-sequences '((sequence "the red cube" ?l1 ?r1)) '((sequence "the cube" ?l2 ?r2))))
+
+
 (defun anti-unify-strings (pattern source &key to-sequence-predicates-p)
   "Anti-unify strings by (1) using needleman-wunsch to compute the
    maximal alignments, (2) make generalisations of overlapping characters
@@ -133,6 +160,43 @@
             pattern-delta
             source-delta)))
 
+(defun anti-unify-aligned-sequences (pattern source pattern-boundaries source-boundaries)
+  "Takes Needleman-Wunsch ALIGNED sequences and outputs a generalisation with bindings (deltas)"
+  (let (generalisation pattern-delta source-delta
+        pattern-bindings source-bindings)
+    (loop for pattern-char in pattern
+          for source-char in source
+          for pattern-bounds in pattern-boundaries
+          for source-bounds in source-boundaries
+          do (if (eql pattern-char source-char)
+               ;; same chars, put them in generalisation, rename variables
+               (let* ((renamed-left-gen-boundary (rename-boundary (car pattern-bounds) pattern-bindings))
+                      (renamed-right-gen-boundary (rename-boundary (cdr pattern-bounds) pattern-bindings))
+                      (gen `(sequence ,(mkstr pattern-char) ,renamed-left-gen-boundary ,renamed-right-gen-boundary)))
+                 (push gen generalisation)
+                 (setf pattern-bindings
+                       (adjoin (cons (car pattern-bounds) renamed-left-gen-boundary) pattern-bindings :test 'equal))
+                 (setf pattern-bindings
+                       (adjoin (cons (cdr pattern-bounds) renamed-right-gen-boundary) pattern-bindings :test 'equal))
+                 (setf source-bindings
+                       (adjoin (cons (car source-bounds) renamed-left-gen-boundary) source-bindings :test 'equal))
+                 (setf source-bindings
+                       (adjoin (cons (cdr source-bounds) renamed-right-gen-boundary) source-bindings :test 'equal)))
+               ;; different characters, push to delta, only if char is not #'_
+               (let ((pattern-delta-pred `(sequence ,(mkstr pattern-char) ,(car pattern-bounds) ,(cdr pattern-bounds)))
+                     (source-delta-pred `(sequence ,(mkstr source-char) ,(car source-bounds) ,(cdr source-bounds))))
+                 (if (not (equal pattern-char #\_)) (push pattern-delta-pred pattern-delta))
+                 (if (not (equal source-char #\_)) (push source-delta-pred source-delta)))))
+    (values (reverse generalisation)
+            (reverse pattern-delta)
+            (reverse source-delta)
+            pattern-bindings
+            source-bindings)))
+
+(defun rename-boundary (boundary current-binding-list)
+  (if (assoc boundary current-binding-list)
+    (cdr (assoc boundary current-binding-list))
+    (make-var 'gb)))
 
 (defun duplicate-string-anti-unification-results (au-1 au-2)
   (and (loop for (nil . pd-1) in (pattern-delta au-1)
@@ -229,6 +293,48 @@
       (all-biggest #'score alignments))))
 
 
+(defgeneric maximal-sequence-alignments (pattern source pattern-boundaries source-boundaries &key match mismatch gap)
+  (:documentation "Computes the maximal alignments of two input strings using the Needleman-Wunsch algorithm"))
+
+
+(defmethod maximal-sequence-alignments ((pattern string) (source string) (pattern-boundaries list) (source-boundaries list) &key (match 1) (mismatch -1) (gap -1))
+  (maximal-sequence-alignments (coerce pattern 'list) (coerce source 'list) pattern-boundaries source-boundaries
+                             :match match :mismatch mismatch :gap gap))
+
+
+(defmethod maximal-sequence-alignments ((pattern list) (source list) (pattern-boundaries list) (source-boundaries list) &key (match 1) (mismatch -1) (gap -1))
+  (let* ((nx (length pattern))
+         (ny (length source))
+         (scores (make-array (list (+ nx 1) (+ ny 1))))
+         (pointers (make-array (list (+ nx 1) (+ ny 1)))))
+    ;; Fill in the scores for the first row and the first column.
+    (setf-matrix-column scores 0 (list->array (mapcar #'- (iota (abs (* gap (+ nx 1))) :step (abs gap)))))
+    (setf-matrix-row scores 0 (list->array (mapcar #'- (iota (abs (* gap (+ ny 1))) :step (abs gap)))))
+    ;; Fill in the pointers for the first row and the first column.
+    (setf-matrix-column pointers 0 (make-array (list (+ nx 1)) :initial-element '(:top)))
+    (setf-matrix-row pointers 0 (make-array (list (+ ny 1)) :initial-element '(:left)))
+    (setf (aref pointers 0 0) nil)
+
+    ;; Calculate the score for each cell by looking at the left cell, the top cell
+    ;; and the top-left cell and adding the appropriate score for match, mismatch
+    ;; or gap.
+    (loop for i from 0 below nx
+          do (loop for j from 0 below ny
+                   do (let* ((candidate-scores
+                              (compute-candidate-scores pattern source i j scores
+                                                        :match match :mismatch mismatch :gap gap))
+                             (best-score (apply #'max (mapcar #'cdr candidate-scores)))
+                             (origin (mapcar #'car (find-all best-score candidate-scores :key #'cdr :test #'=))))
+                        (setf (aref scores (+ i 1) (+ j 1)) best-score)
+                        (setf (aref pointers (+ i 1) (+ j 1)) origin))))
+
+    ;; Trace back pointers from the bottom-right cell to the top-left cell.
+    ;; Cells may contain multiple pointers, so there may be multiple paths.
+    ;; Return all alignments with the highest score.
+    (let ((alignments (extract-sequence-alignments pattern source pointers pattern-boundaries source-boundaries
+                                          :match match :mismatch mismatch :gap gap)))
+      (all-biggest #'score alignments))))
+
 (defun compute-candidate-scores (pattern source i j scores &key (match 1) (mismatch -1) (gap -1))
   `((:top-left . ,(if (eql (nth i pattern) (nth j source))
                     (+ (aref scores i j) match)
@@ -242,6 +348,10 @@
     :initarg :aligned-pattern :accessor aligned-pattern :initform nil :type list)
    (aligned-source
     :initarg :aligned-source :accessor aligned-source :initform nil :type list)
+   (aligned-pattern-boundaries
+    :initarg :aligned-pattern-boundaries :accessor aligned-pattern-boundaries :initform nil :type list)
+   (aligned-source-boundaries
+    :initarg :aligned-source-boundaries :accessor aligned-source-boundaries :initform nil :type list)
    (i :initarg :i :accessor i :initform 0 :type number)
    (j :initarg :j :accessor j :initform 0 :type number)
    (score :initarg :score :accessor score :initform 0 :type number)))
@@ -291,6 +401,81 @@
         finally (return (sort solutions #'> :key #'score))))
 
 
+(defun extract-sequence-alignments (pattern source pointers pattern-boundaries source-boundaries &key (match 1) (mismatch -1) (gap -1))
+  (loop with solutions = nil
+        with queue = (list (make-initial-string-alignment-state
+                            (length pattern) (length source)))
+        while queue
+        for state = (pop queue)
+        do (with-slots (aligned-pattern aligned-source aligned-pattern-boundaries aligned-source-boundaries i j score) state
+             (if (null (aref pointers i j))
+               (push state solutions)
+               (loop for pointer in (aref pointers i j)
+                     for next-state
+                     = (cond ((eql pointer :top-left)
+                              (let* ((expanded-pattern (cons (nth (- i 1) pattern) aligned-pattern))
+                                     (expanded-source (cons (nth (- j 1) source) aligned-source))
+                                     (matchp (eql (nth (- i 1) pattern) (nth (- j 1) source)))
+                                     (current-left-source-boundary (car (first aligned-source-boundaries)))
+                                     (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
+                                     (source-boundary-vars (make-boundary-vars j source-boundaries current-left-source-boundary) )
+                                     (pattern-boundary-vars (make-boundary-vars i pattern-boundaries current-left-pattern-boundary))
+                                     (current-left-source-boundary (car source-boundary-vars))
+                                     (current-left-pattern-boundary (car pattern-boundary-vars)))
+                                (make-instance 'string-alignment-state
+                                               :aligned-pattern expanded-pattern
+                                               :aligned-source expanded-source
+                                               :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
+                                               :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
+                                               :i (- i 1) :j (- j 1)
+                                               :score (+ score (if matchp match mismatch)))))
+                             ((eql pointer :top)
+                              (let* ((expanded-pattern (cons (nth (- i 1) pattern) aligned-pattern))
+                                     (expanded-source (cons #\_ aligned-source))
+                                     (current-left-source-boundary (car (first aligned-source-boundaries)))
+                                     (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
+                                     (source-boundary-vars (make-boundary-vars nil source-boundaries current-left-source-boundary :gap t))
+                                     (pattern-boundary-vars (make-boundary-vars i pattern-boundaries current-left-pattern-boundary))
+                                     (current-left-source-boundary (car source-boundary-vars))
+                                     (current-left-pattern-boundary (car pattern-boundary-vars)))
+                                (make-instance 'string-alignment-state
+                                               :aligned-pattern expanded-pattern
+                                               :aligned-source expanded-source
+                                               :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
+                                               :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
+                                               :i (- i 1) :j j
+                                               :score (+ score gap))))
+                             ((eql pointer :left)
+                              (let* ((expanded-pattern (cons #\_ aligned-pattern))
+                                     (expanded-source (cons (nth (- j 1) source) aligned-source))
+                                     (current-left-source-boundary (car (first aligned-source-boundaries)))
+                                     (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
+                                     (source-boundary-vars (make-boundary-vars j source-boundaries current-left-source-boundary))
+                                     (pattern-boundary-vars (make-boundary-vars nil pattern-boundaries current-left-pattern-boundary :gap t))
+                                     (current-left-source-boundary (car source-boundary-vars))
+                                     (current-left-pattern-boundary (car pattern-boundary-vars)))
+                                (make-instance 'string-alignment-state
+                                               :aligned-pattern expanded-pattern
+                                               :aligned-source expanded-source
+                                               :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
+                                               :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
+                                               :i i :j (- j 1)
+                                               :score (+ score gap)))))
+                     do (push next-state queue))))
+        finally (return (sort solutions #'> :key #'score))))
+
+(defun make-boundary-vars (position boundaries current-left &key (gap nil))
+  (let ((right-boundary-var (if position  (car (rassoc position  boundaries))))
+        (left-boundary-var (if position (car (rassoc (- position 1) boundaries)))))
+    (cond ((and (not right-boundary-var) (not current-left))
+           (setf right-boundary-var (make-var 'rb)))
+          ((and (not right-boundary-var) current-left)
+           (setf right-boundary-var current-left)))
+    (if (not left-boundary-var)
+      (setf left-boundary-var (if gap current-left (make-var 'lb))))
+    (cons left-boundary-var right-boundary-var)))
+
+     
 (defun print-string-alignments (string-alignment)
   (format t "~%~%~s" (coerce (aligned-pattern string-alignment) 'string))
   (format t "~%~s" (coerce (aligned-source string-alignment) 'string))

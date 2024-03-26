@@ -16,4 +16,5 @@
                :slp)
   :serial t
   :components ((:file "package")
-               (:file "create-dataset")))
+               (:file "create-dataset")
+               (:file "learn")))
