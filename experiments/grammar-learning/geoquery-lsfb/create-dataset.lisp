@@ -1,4 +1,4 @@
-(in-package :sign-grammar)
+(in-package :geoquery-lsfb)
 
 (defparameter *default-output-json*
   (babel-pathname :directory '("grammars" "sign-grammar" "data" "LSFB-geoquery.json")))
@@ -37,4 +37,4 @@
 
               
       
-    ;(make-json-dataset)
+;(make-json-dataset)

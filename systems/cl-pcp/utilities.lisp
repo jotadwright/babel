@@ -36,11 +36,36 @@
 (defun write-line-to-stream (outputstream result)
   "Writes a line to a stream and flushes."
   (format outputstream "~a~%" result)
-  (force-output outputstream))
+  (force-output outputstream)
+  (finish-output outputstream))
 
+(defun safe-delete-file (file &key (max-attempts 10))
+  (let ((file-deleted-p
+         (loop with successful = nil
+               for attempts from 1
+               until (or successful (> attempts max-attempts))
+               do
+                 (setf successful
+                       (handler-case (delete-file file)
+                         (file-error (error) nil)))
+                 (sleep 0.1)
+               finally (return successful))))
+    (unless file-deleted-p
+      (error "Could not delete the file ~a" file))))
+         
 ;; For demo purposes.
 (defun use-cpu (load)
   "Uses CPU for about load seconds (on i7)."
+  (loop for i from 1 upto (* load 1000000000)
+        do (* i load)
+        finally (return load)))
+
+;; For demo purposes.
+(defun use-cpu-with-kwargs (load &key symbol-key string-key number-key list-key)
+  (print symbol-key)
+  (print string-key)
+  (print number-key)
+  (print list-key)
   (loop for i from 1 upto (* load 1000000000)
         do (* i load)
         finally (return load)))

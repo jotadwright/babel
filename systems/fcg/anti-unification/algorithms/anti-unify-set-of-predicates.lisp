@@ -31,25 +31,45 @@
 (defun next-au-var ()
   (pop *alphabet*))
 
+
 (defclass anti-unification-result ()
   ((pattern
-    :accessor pattern :initarg :pattern :initform nil)
+    :accessor pattern :initarg :pattern :initform nil
+    :documentation "The original pattern")
    (source
-    :accessor source :initarg :source :initform nil)
+    :accessor source :initarg :source :initform nil
+    :documentation "The original source")
    (generalisation
-    :accessor generalisation :initarg :generalisation :type list :initform nil)
+    :accessor generalisation :initarg :generalisation :type list :initform nil
+    :documentation "The generalisation")
    (pattern-bindings
-    :accessor pattern-bindings :initarg :pattern-bindings :type list :initform nil)
+    :accessor pattern-bindings :initarg :pattern-bindings :type list :initform nil
+    :documentation "Bindings to go back to the original pattern")
    (source-bindings
-    :accessor source-bindings :initarg :source-bindings :type list :initform nil)
+    :accessor source-bindings :initarg :source-bindings :type list :initform nil
+    :documentation "Bindings to go back to the original source")
    (pattern-delta
-    :accessor pattern-delta :initarg :pattern-delta :type list :initform nil)
+    :accessor pattern-delta :initarg :pattern-delta :type list :initform nil
+    :documentation "Part of pattern not in generalisation")
    (source-delta
-    :accessor source-delta :initarg :source-delta :type list :initform nil)
+    :accessor source-delta :initarg :source-delta :type list :initform nil
+    :documentation "Part of source not in generalisation")
    (cost
-    :accessor cost :initarg :cost :type number :initform 0))
+    :accessor cost :initarg :cost :type number :initform 0
+    :documentation "Cost of the generalisation"))
   (:documentation "Result of anti-unification consists of a generalisation,
                    delta's, bindings lists, and a cost."))
+
+(defclass predicate-network-au-result (anti-unification-result) ()
+  (:documentation "Subclass of anti-unification result for predicate networks"))
+
+(defclass string-au-result (anti-unification-result) ()
+  (:documentation "Subclass of anti-unification result for strings"))
+
+(defclass sequences-au-result (anti-unification-result) ()
+  (:documentation "Subclass of anti-unification result for sequence predicates"))
+
+
 
 (defun anti-unify-predicate-network (pattern source &key allow-generalisation-over-constants)
   "Anti-unifies pattern with source. Returns 5 values:
@@ -74,22 +94,22 @@
                                       resulting-pattern-delta
                                       resulting-source-delta)
                     (anti-unify-predicate-sequence pattern-in-alignment source-in-alignment nil nil nil pattern-delta source-delta)
-                  (make-instance 'anti-unification-result
-                                 :pattern pattern
-                                 :source source
-                                 :generalisation resulting-generalisation
-                                 :pattern-bindings resulting-pattern-bindings
-                                 :source-bindings resulting-source-bindings
-                                 :pattern-delta resulting-pattern-delta
-                                 :source-delta resulting-source-delta
-                                 :cost (anti-unification-cost pattern source
-                                                              resulting-generalisation
-                                                              resulting-pattern-delta
-                                                              resulting-source-delta)))
+                  (let ((au-result (make-instance 'predicate-network-au-result
+                                                  :pattern pattern
+                                                  :source source
+                                                  :generalisation resulting-generalisation
+                                                  :pattern-bindings resulting-pattern-bindings
+                                                  :source-bindings resulting-source-bindings
+                                                  :pattern-delta resulting-pattern-delta
+                                                  :source-delta resulting-source-delta)))
+                    (setf (cost au-result) (anti-unification-cost au-result))
+                    au-result))
           into results
         ;; Sort results based on increasing cost.
         finally (return (sort results #'< :key #'cost))))
-  
+
+
+
 (defun anti-unify-predicate (pattern
                              source
                              &optional
@@ -134,6 +154,8 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
               pattern-delta
               source-delta)))))
 
+
+
 (defun anti-unify-predicate-sequence (pattern
                                       source
                                       &optional
@@ -175,46 +197,27 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
 ; (anti-unify-predicate-sequence '(a b c b) '(a d c e))
 
 
-#|
-(defun anti-unification-cost (pattern-bindings source-bindings pattern-delta source-delta)
+
+(defgeneric anti-unification-cost (au-result)
+  (:documentation "Compute the cost of the anti-unification result"))
+
+(defmethod anti-unification-cost ((au-result predicate-network-au-result))
   "The anti-unification cost is the sum of the number of predicates in the deltas and the number of variables that have
    been bound to more than 1 variable in the generalisation."
-  (let ((nr-of-predicates-in-pattern-delta (length pattern-delta))
-        (nr-of-predicates-in-source-delta (length source-delta))
-        (nr-of-bindings-to-multiple-vars-in-pattern (loop for (binding . rest) on  pattern-bindings
-                                                          count (find (car binding) rest :key #'car :test #'equalp)))
-        (nr-of-bindings-to-multiple-vars-in-source (loop for (binding . rest) on  source-bindings
-                                                         count (find (car binding) rest :key #'car :test #'equalp))))
-    (+ nr-of-predicates-in-pattern-delta
-       nr-of-predicates-in-source-delta
-       nr-of-bindings-to-multiple-vars-in-pattern
-       nr-of-bindings-to-multiple-vars-in-source)))
-|#
-
-
-
-(defun anti-unification-cost (pattern source generalisation pattern-delta source-delta)
-  "Count the number of missing predicates (missing delta's) and count
-   the number of missing variable links (total number of links in pattern and source
-   minus the number of links in the generalisation)."
-  (let* ((all-pattern-args (mappend #'cdr pattern))
-         (all-source-args (mappend #'cdr source))
-         (all-generalisation-args (mappend #'cdr generalisation))
-         (number-of-links-in-pattern
-          (loop for (arg . rest) on all-pattern-args
-                sum (count arg rest)))
-         (number-of-links-in-source
-          (loop for (arg . rest) on all-source-args
-                sum (count arg rest)))
-         (number-of-links-in-generalisation
-          (loop for (arg . rest) on all-generalisation-args
-                sum (count arg rest)))
-         (nr-of-predicates-in-pattern-delta (length pattern-delta))
-         (nr-of-predicates-in-source-delta (length source-delta)))
-    (+ nr-of-predicates-in-pattern-delta
-       nr-of-predicates-in-source-delta
-       (- number-of-links-in-pattern number-of-links-in-generalisation)
-       (- number-of-links-in-source number-of-links-in-generalisation))))
+  (with-slots (pattern-bindings source-bindings
+               pattern-delta source-delta) au-result          
+    (let ((nr-of-predicates-in-pattern-delta (length pattern-delta))
+          (nr-of-predicates-in-source-delta (length source-delta))
+          (nr-of-bindings-to-multiple-vars-in-pattern
+           (loop for (binding . rest) on  pattern-bindings
+                 count (find (car binding) rest :key #'car :test #'equalp)))
+          (nr-of-bindings-to-multiple-vars-in-source
+           (loop for (binding . rest) on  source-bindings
+                 count (find (car binding) rest :key #'car :test #'equalp))))
+      (+ nr-of-predicates-in-pattern-delta
+         nr-of-predicates-in-source-delta
+         nr-of-bindings-to-multiple-vars-in-pattern
+         nr-of-bindings-to-multiple-vars-in-source))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -318,6 +321,8 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
                                 (bind character-cat ?mean-cat mean) (filter ?mean-dogs ?dogs ?mean-cat) (count ?mean-dogs)))
 |#
 
+
+
 (defun matching-predicates (predicate-1 predicate-2 &key allow-generalisation-over-constants)
   "Returns t if predicate-1 and predicate-2 can be aligned: same feature name and same arity.
    By default, returns nil if a constant occurs in one predicate and the same constant does
@@ -349,10 +354,10 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
 (defun print-anti-unification-results (list-of-anti-unification-results &optional (stream t))
   "Prints a list of anti-unification results."
 
-  ;; Double check
-  (assert (loop with ori-pattern = (compute-network-from-anti-unification-result (first list-of-anti-unification-results) 'pattern)
-                with ori-source = (compute-network-from-anti-unification-result (first list-of-anti-unification-results) 'source)
-                for a-u-result in (rest list-of-anti-unification-results)
+  ;; Check reversibility of generalisation
+  (assert (loop for a-u-result in list-of-anti-unification-results
+                for ori-pattern = (pattern a-u-result)
+                for ori-source = (source a-u-result)
                 for this-ori-pattern = (compute-network-from-anti-unification-result a-u-result 'pattern)
                 for this-ori-source = (compute-network-from-anti-unification-result a-u-result 'source)
                 always (and (equivalent-predicate-networks this-ori-pattern ori-pattern)
@@ -387,11 +392,15 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
              (let ((*print-pretty* t))
                (format stream "~(~a~)~%~%~%" source-delta)))))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Reversibility check ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun compute-network-from-anti-unification-result (au-result pattern-or-source)
+(defgeneric compute-network-from-anti-unification-result (au-result pattern-or-source)
+  (:documentation "Returns original network based on generalisation, bindings-list and delta."))
+
+(defmethod compute-network-from-anti-unification-result ((au-result predicate-network-au-result) pattern-or-source)
   "Returns original network based on generalisation, bindings-list and delta."  
   (let* ((generalisation (generalisation au-result))
          (bindings-key (case pattern-or-source
@@ -405,6 +414,8 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
     (append (substitute-bindings (reverse-bindings bindings-list) generalisation)
             delta)))
 
+
+
 (defmethod copy-object-content ((au-result anti-unification-result) (copy anti-unification-result))
   ;; shallow copy
   (setf (generalisation copy) (generalisation au-result)
@@ -413,5 +424,4 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
         (pattern-delta copy) (pattern-delta au-result)
         (source-delta copy) (source-delta au-result)
         (cost copy) (cost au-result)))
-                            
-    
+                           

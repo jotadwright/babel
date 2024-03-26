@@ -41,7 +41,7 @@
 ;; Substitution
 ;;++++++++++++++++++++++++++++++++++++++++++++
  
-(defparameter *what-color-is-the-cube* '((:form . "what color is the cube?")
+(defparameter *what-color-is-the-cube* '((:form . ((sequence "what color is the cube?" ?l1 ?r1)))
                                          (:meaning . ((get-context ?context-1)
                                                       (filter ?set-1 ?context-1 ?shape-1)
                                                       (bind shape-category ?shape-1 cube)
@@ -49,7 +49,7 @@
                                                       (query ?target-1 ?object-1 ?attribute-1)
                                                       (bind attribute-category ?attribute-1 color)))))
 
-(defparameter *what-size-is-the-cube* '((:form . "what size is the cube?")
+(defparameter *what-size-is-the-cube* '((:form . ((sequence "what size is the cube?" ?l2 ?r2)))
                                         (:meaning . ((get-context ?context-2)
                                                      (filter ?set-2 ?context-2 ?shape-2)
                                                      (bind shape-category ?shape-2 cube)
@@ -69,13 +69,13 @@
 ;; Deletion + addition
 ;;++++++++++++++++++++++++++++++++++++++++++++
 
-(defparameter *how-many-cubes-are-there* '((:form . "how many cubes are there?")
+(defparameter *how-many-cubes-are-there* '((:form . ((sequence "how many cubes are there?" ?l3 ?r3)))
                                            (:meaning . ((get-context ?context-5)
                                                         (filter ?set-5 ?context-5 ?shape-5)
                                                         (bind shape-category ?shape-5 cube)
                                                         (count ?number-5 ?set-5)))))
 
-(defparameter *how-many-red-cubes-are-there* '((:form . "how many red cubes are there?")
+(defparameter *how-many-red-cubes-are-there* '((:form . ((sequence "how many red cubes are there?" ?l4 ?r4)))
                                                (:meaning . ((get-context ?context-6)
                                                             (filter ?set-6 ?context-6 ?color-6)
                                                             (bind shape-category ?color-6 red)
@@ -111,7 +111,7 @@
 ;; Filler to slot repair
 ;;++++++++++++++++++++++++++++++++++++++++++++
 
-(defparameter *what-size-is-the-sphere* '((:form . "what size is the sphere?")
+(defparameter *what-size-is-the-sphere* '((:form . ((sequence "what size is the sphere?" ?l5 ?r5)))
                                         (:meaning . ((get-context ?context-3)
                                                      (filter ?set-3 ?context-3 ?shape-3)
                                                      (bind shape-category ?shape-3 sphere)
@@ -119,7 +119,7 @@
                                                      (query ?target-3 ?object-3 ?attribute-3)
                                                      (bind attribute-category ?attribute-3 size)))))
 
-(defparameter *what-size-is-the-block* '((:form . "what size is the block?")
+(defparameter *what-size-is-the-block* '((:form . ((sequence "what size is the block?" ?l6 ?r6)))
                                          (:meaning . ((get-context ?context-4)
                                                       (filter ?set-4 ?context-4 ?shape-4)
                                                       (bind shape-category ?shape-4 cube)
@@ -127,7 +127,7 @@
                                                       (query ?target-4 ?object-4 ?attribute-4)
                                                       (bind attribute-category ?attribute-4 size)))))
 
-(defparameter *what-color-is-the-block* '((:form . "what color is the block?")
+(defparameter *what-color-is-the-block* '((:form . ((sequence "what color is the block?" ?l7 ?r7)))
                                          (:meaning . ((get-context ?context-5)
                                                       (filter ?set-5 ?context-5 ?shape-5)
                                                       (bind shape-category ?shape-5 cube)
@@ -166,7 +166,7 @@
 ;;++++++++++++++++++++++++++++++++++++++++++++
 
 (progn
-(defparameter *amr-1* `((:form . "Hotel rooms available as of this weekend")
+(defparameter *amr-1* `((:form . ((sequence "Hotel rooms available as of this weekend" ?l8 ?r8)))
                         (:meaning . ,(amr:penman->predicates
                                       '(a / available-02
                                           :ARG2 (r / room
@@ -176,7 +176,7 @@
                                                             :mod (t / this))))
                                       :variablify? t))))
 
-(defparameter *amr-2* `((:form . "Hotel rooms available as of tomorrow")
+(defparameter *amr-2* `((:form . ((sequence "Hotel rooms available as of tomorrow" ?l9 ?r9)))
                         (:meaning .  ,(amr:penman->predicates 
                                        '(a3 / available-02
                                             :ARG2 (r2 / room
@@ -185,7 +185,7 @@
                                                       :op1 (t2 / tomorrow)))
                                        :variablify? t))))
 
-(defparameter *amr-3* `((:form . "Gonna be winter again tomorrow and Sunday")
+(defparameter *amr-3* `((:form . ((sequence "Gonna be winter again tomorrow and Sunday" ?l10 ?r10)))
                         (:meaning .  ,(amr:penman->predicates 
                                        '(w / winter
                                            :time (a5 / and
@@ -195,7 +195,7 @@
                                            :mod (a6 / again))
                                        :variablify? t))))
 
-(defparameter *amr-4* `((:form . "Gonna be winter again Saturday and Sunday")
+(defparameter *amr-4* `((:form . ((sequence "Gonna be winter again Saturday and Sunday" ?l11 ?r11)))
                         (:meaning .  ,(amr:penman->predicates 
                                        '(w2 / winter
                                            :time (a7 / and
@@ -206,7 +206,7 @@
                                            :mod (a7 / again))
                                        :variablify? t))))
 
-(defparameter *amr-5* `((:form . "The man will be buried at a funeral service tomorrow")
+(defparameter *amr-5* `((:form . ((sequence "The man will be buried at a funeral service tomorrow" ?l12 ?r12)))
                         (:meaning .  ,(amr:penman->predicates 
                                        '(b / bury-01
                                            :ARG1 (m / man)
@@ -215,7 +215,7 @@
                                                     :time (t4 / tomorrow)))
                                        :variablify? t))))
 
-(defparameter *amr-6* `((:form . "The man will be buried at a funeral service")
+(defparameter *amr-6* `((:form . ((sequence "The man will be buried at a funeral service" ?l13 ?r13)))
                         (:meaning .  ,(amr:penman->predicates 
                                        '(b2 / bury-01
                                            :ARG1 (m2 / man)

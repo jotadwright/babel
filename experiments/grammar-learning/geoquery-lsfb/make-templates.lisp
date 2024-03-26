@@ -1,4 +1,4 @@
-(in-package :sign-grammar)
+(in-package :geoquery-sign)
 
 (defclass geoquery-item ()
   ((id
