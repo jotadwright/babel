@@ -38,7 +38,10 @@
                 (:entrenchment-incf . 0.1)
                 (:entrenchment-decf . -0.1)
                 (:entrenchment-li . -0.02) ;; lateral inhibition
-                (:trash-concepts . t)
+                ;; new options
+                (:trash-threshold . 0.0)
+                (:slow-threshold . 0.5)
+                (:conceptualisation-heuristics . :heuristic-2)
                 ;; concept representations
                 (:concept-representation . :distribution)
                 (:distribution . :gaussian-welford)
@@ -72,6 +75,8 @@
   (time
    (loop for i from 1 to 100000
          do (run-interaction *experiment*))))
+
+(lexicon-size (lexicon (first (agents *experiment*))))
 
 (progn
   (wi::reset)

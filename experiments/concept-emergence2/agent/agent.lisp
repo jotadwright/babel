@@ -7,10 +7,7 @@
 (defclass cle-agent (agent)
   ((lexicon
     :documentation "The agent's lexicon."
-    :type list :accessor lexicon :initform nil)
-   (trash
-    :documentation "The lexicon trash, contains cxns with an entrenchment score of zero."
-    :type list :accessor trash :initform nil)
+    :type lexicon :accessor lexicon :initarg :lexicon :initform nil)
    (disabled-channels
     :documentation "Disabled/defected channels."
     :type hash-table :accessor disabled-channels :initarg :disabled-channels :initform nil)
@@ -40,10 +37,10 @@
 
 (defmethod find-in-lexicon ((agent cle-agent) (form string))
   "Finds constructions with the given form in the lexicon of the given agent."
-  (let ((result (find form (lexicon agent) :key #'form :test #'string=)))
-    (if result
-      result
-      (find form (trash agent) :key #'form :test #'string=))))
+  (find-form-in-lexicon (lexicon agent) form))
+
+(defmethod empty-lexicon-p ((agent cle-agent))
+  (eq (lexicon-size (lexicon agent)) 0))
 
 ;; ---------
 ;; + NOISE +

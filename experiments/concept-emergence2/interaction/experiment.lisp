@@ -47,6 +47,7 @@
          (disabled-channels-hash (list-to-hash-table disabled-channels))
          (new-agent (make-instance 'cle-agent
                                    :experiment experiment
+                                   :lexicon (make-instance 'lexicon :configuration (configuration experiment))
                                    :disabled-channels disabled-channels-hash
                                    :noise-in-each-sensor sensor-noise
                                    :noise-in-each-observation observation-noise
