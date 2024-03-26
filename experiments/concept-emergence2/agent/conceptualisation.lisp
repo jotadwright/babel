@@ -45,8 +45,10 @@
     (destructuring-bind (hypothetical-cxn . competitors) (find-best-concept agent (get-configuration (experiment agent) :conceptualisation-heuristics))
       ;; competitors: ALL discriminative concepts (thus both the hypothetical and competitors but NOT the interpreted cxn!)
       (let ((competitors (remove (find-data agent 'applied-cxn)
-                                 (cons hypothetical-cxn competitors)
-                                 :test #'(lambda (x y) (equal x y))))) ;; TODO: test nodig? 
+                                 (if hypothetical-cxn
+                                   (cons hypothetical-cxn competitors)
+                                   competitors))))
+        ;; :test #'(lambda (x y) (equal x y))))) TODO: test nodig? 
         (set-data agent 'meaning-competitors competitors))
       ;; set the hypothetical-cxn slot
       (set-data agent 'hypothetical-cxn hypothetical-cxn)
