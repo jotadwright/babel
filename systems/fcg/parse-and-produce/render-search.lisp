@@ -260,9 +260,8 @@ string constraint with the variable ?Y."
           for c in (used-string-constraints render-state)
           do (push (cons (third c) index) bindings)
              (incf index (length (second c)))
-             (push (cons (fourth c) index) bindings)
-             (incf index))
-    (reverse bindings)))          
+             (push (cons (fourth c) index) bindings))
+    (reverse bindings)))      
 
 (defmethod render-all ((form-constraints list) (mode (eql :render-sequences)) &key &allow-other-keys)
   (let* ((sequence-constraints (remove-if-not #'stringp form-constraints :key #'second))
@@ -282,3 +281,5 @@ string constraint with the variable ?Y."
                      do (push (instantiate-boundaries valid-state) boundaries-bindings)
                         (push (render valid-state :render-sequences) solutions)))
     (values solutions boundaries-bindings)))
+
+
