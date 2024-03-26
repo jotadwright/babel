@@ -29,9 +29,9 @@
 ;; -------------
 (defmethod speaker-conceptualise ((agent cle-agent))
   "Conceptualise the topic of the interaction."
-  (if (length= (lexicon agent) 0)
+  (if (empty-lexicon-p agent)
     nil
-    (destructuring-bind (applied-cxn . competitors) (find-best-concept agent)
+    (destructuring-bind (applied-cxn . competitors) (find-best-concept agent (get-configuration (experiment agent) :conceptualisation-heuristics))
       ;; set competitors
       (set-data agent 'meaning-competitors competitors)
       ;; set the applied-cxn slot
@@ -40,82 +40,79 @@
 
 (defmethod hearer-conceptualise ((agent cle-agent))
   "Conceptualise the topic as the hearer"
-  (if (length= (lexicon agent) 0)
+  (if (empty-lexicon-p agent)
     nil
-    (destructuring-bind (applied-cxn . competitors) (find-best-concept agent)
-      applied-cxn)))
+    (destructuring-bind (hypothetical-cxn . competitors) (find-best-concept agent (get-configuration (experiment agent) :conceptualisation-heuristics))
+      ;; competitors: ALL discriminative concepts (thus both the hypothetical and competitors but NOT the interpreted cxn!)
+      (let ((competitors (remove (find-data agent 'applied-cxn)
+                                 (cons hypothetical-cxn competitors)
+                                 :test #'(lambda (x y) (equal x y))))) ;; TODO: test nodig? 
+        (set-data agent 'meaning-competitors competitors))
+      ;; set the hypothetical-cxn slot
+      (set-data agent 'hypothetical-cxn hypothetical-cxn)
+      hypothetical-cxn)))
 
-(defun find-best-concept (agent)
-  "Finds the best concept (and its direct competitors) for a given scene and topic.
+(defgeneric find-best-concept (agent mode)
+  (:documentation "Finds the best concept (and its direct competitors) for a given scene and topic.")
+  )
+
+(defmethod find-best-concept ((agent cle-agent) (mode (eql :heuristic-1)))
+  """Waterfall lazy stopping - with trash"""
+  (destructuring-bind (fast-score fast-cxn fast-comps) (search-inventory agent :fast)
+    (if fast-cxn
+      ;; level 1: FAST memory
+      (cons fast-cxn fast-comps)
+      (destructuring-bind (slow-score slow-cxn slow-comps) (search-inventory agent :slow)
+        (if slow-cxn
+          ;; level 2: SLOW memory
+          (cons slow-cxn slow-comps)
+          (destructuring-bind (trash-score trash-cxn trash-comps) (search-inventory agent :trash)
+            ;; level 3: TRASH (trash competitors should not be punished as they already have 0 entrenchment)
+            (cons trash-cxn nil)))))))
+
+(defmethod find-best-concept ((agent cle-agent) (mode (eql :heuristic-2)))
+  """Waterfall lazy stopping - no trash"""
+  (destructuring-bind (fast-score fast-cxn fast-comps) (search-inventory agent :fast)
+    (if fast-cxn
+      ;; level 1: FAST memory
+      (cons fast-cxn fast-comps)
+      (destructuring-bind (slow-score slow-cxn slow-comps) (search-inventory agent :slow)
+        (if slow-cxn
+          ;; level 2: SLOW memory
+          (cons slow-cxn slow-comps)
+          (cons nil nil))))))
+
+;; --------------------------------------------
+;; + Conceptualisation through discrimination +
+;; --------------------------------------------
+
+(defun search-inventory (agent inventory-name)
+  """Searches an inventory for a concept.
 
    The best concept corresponds to the concept that maximises
-   the multiplication of its entrenchment score and its discriminative power."
-  (let* ((threshold (get-configuration (experiment agent) :similarity-threshold))
-         (topic (get-data agent 'topic))
-         (context (remove topic (objects (get-data agent 'context))))
-         (best-score -1)
-         (best-cxn nil)
-         (competitors '()))
-    ;; case 1: look only at entrenched concepts first
-    ;; this heuristic is possible as the score is based on the multiplication
-    (loop for cxn in (lexicon agent)
-          for concept = (meaning cxn)
-          for topic-sim = (weighted-similarity agent topic concept)
-          for best-other-sim = (loop for object in context
-                                     maximize (weighted-similarity agent object concept))
-          for discriminative-power = (abs (- topic-sim best-other-sim))
-          if (and (> topic-sim (+ best-other-sim threshold))
-                  (> (* discriminative-power (score cxn)) best-score))
-            do (progn
-                 (when best-cxn
-                   (setf competitors (cons best-cxn competitors)))
-                 (setf best-score (* discriminative-power (score cxn)))
-                 (setf best-cxn cxn))
-          else
-            do (setf competitors (cons cxn competitors)))
-    (if best-cxn
-      (cons best-cxn competitors)
-      ;; case 2: if no cxn is found -> look in trash
-      (let* ((best-score -1)
-             (best-cxn nil))
-        (loop for cxn in (trash agent)
-              for concept = (meaning cxn)
-              for topic-sim = (weighted-similarity agent topic concept)
-              for best-other-sim = (loop for object in context maximize (weighted-similarity agent object concept))
-              for discriminative-power = (abs (- topic-sim best-other-sim))
-              if (and (> topic-sim (+ best-other-sim threshold))
-                      (> discriminative-power best-score))
-                do (progn
-                     (setf best-score discriminative-power)
-                     (setf best-cxn cxn)))
-        (cons best-cxn competitors)))))
-
-;; ----------------------------------
-;; + Search discriminative concepts +
-;; ----------------------------------
-(defmethod search-discriminative-concepts ((agent cle-agent))
-  "Function to only determine the competitors of a cxn.
-
-   Only used by the hearer when it punishes in the case of success
-   the competitors of the applied cxn.
-   Therefore, this function will only look into the lexicon for
-   competitors as all competitors in the trash already have an
-   entrenchment score of zero."
-  (let ((threshold (get-configuration (experiment agent) :similarity-threshold))
-        (topic (get-data agent 'topic))
-        (context (objects (get-data agent 'context)))
-        (discriminating-cxns '()))
-    (loop for cxn in (lexicon agent)
-          for concept = (meaning cxn)
-          for topic-sim = (weighted-similarity agent topic concept)
-          for best-other-sim = (loop for object in context
-                                     maximize (weighted-similarity agent object concept))
-          when (> topic-sim (+ best-other-sim threshold))
-            do (setf discriminating-cxns (cons (list (cons :cxn cxn)
-                                                     (cons :topic-sim topic-sim)
-                                                     (cons :best-other-sim best-other-sim))
-                                               discriminating-cxns)))
-    discriminating-cxns))
+   the multiplication of its entrenchment score and its discriminative power."""
+  (loop with similarity-threshold = (get-configuration (experiment agent) :similarity-threshold)
+        with topic = (get-data agent 'topic)
+        with context = (remove topic (objects (get-data agent 'context)))
+        with best-score = -1
+        with best-cxn = nil
+        with competitors = '()
+        for cxn in (get-inventory (lexicon agent) inventory-name)
+        for concept = (meaning cxn)
+        for topic-sim = (weighted-similarity agent topic concept)
+        for best-other-sim = (loop for object in context
+                                   maximize (weighted-similarity agent object concept))
+        for discriminative-power = (abs (- topic-sim best-other-sim))
+        if (and (> topic-sim (+ best-other-sim similarity-threshold))
+                (> (* discriminative-power (score cxn)) best-score))
+          do (progn
+               (when best-cxn
+                 (setf competitors (cons best-cxn competitors)))
+               (setf best-score (* discriminative-power (score cxn)))
+               (setf best-cxn cxn))
+        else
+          do (setf competitors (cons cxn competitors))
+        finally (return (list best-score best-cxn competitors))))
 
 ;; ---------------------
 ;; + Lexicon coherence +
@@ -127,7 +124,9 @@
    the same utterance for the given topic inside the context
    (must be measured before alignment!)."
   (let* ((speaker-cxn (find-data speaker 'applied-cxn))
-         (hearer-cxn (conceptualise hearer))
+         (hearer-cxn (if (conceptualised-p hearer)
+                       (find-data hearer 'hypothetical-cxn)
+                       (conceptualise hearer)))
          (coherence (if (and speaker-cxn hearer-cxn)
                       (string= (form speaker-cxn) (form hearer-cxn))
                       nil)))
@@ -138,4 +137,6 @@
 
 ;; helper function
 (defun conceptualised-p (agent)
-  (find-data agent 'applied-cxn))
+  (case (discourse-role agent)
+    (speaker (find-data agent 'applied-cxn))
+    (hearer (find-data agent 'hypothetical-cxn))))
