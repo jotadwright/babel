@@ -34,6 +34,35 @@
                                          h m s)))
                              (setf *start-time* (get-universal-time)))))
 
+;; ----------
+;; + Timing +
+;; ----------
+
+(defvar *timer* nil)
+(define-monitor record-time
+                :class 'data-recorder
+                :average-window 0
+                :documentation "Cumulative elapsed time.")
+
+(define-monitor export-record-time
+                :class 'lisp-data-file-writer
+                :documentation "Exports run time."
+                :data-sources '(record-time)
+                :file-name (babel-pathname :name "record-time" :type "lisp"
+                                           :directory '("experiments" "concept-emergence2" "logging"))
+                :add-time-and-experiment-to-file-name nil
+                :column-separator " "
+                :comment-string "#")
+
+(define-event-handler (record-time interaction-finished)
+                      (cond ((or (= (interaction-number interaction) 1) (not *start-time*))
+                             (setf *timer* (get-universal-time)))
+                            ((= (mod (interaction-number interaction)
+                                     (get-configuration experiment :dot-interval))
+                                0)
+                             (multiple-value-bind (h m s) (seconds-to-hours-minutes-seconds (- (get-universal-time) *timer*))
+                               (record-value monitor (list h m s))))))
+
 ;; -------------------------
 ;; + Communicative success +
 ;; -------------------------
