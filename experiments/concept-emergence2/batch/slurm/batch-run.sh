@@ -2,5 +2,5 @@
 
 for i in $(seq $1);
 do
-    sbatch slurm/paper-hydra.sh
+    sbatch slurm/ce3-runtime.sh
 done
