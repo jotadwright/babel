@@ -55,13 +55,12 @@
                 :comment-string "#")
 
 (define-event-handler (record-time interaction-finished)
-                      (cond ((or (= (interaction-number interaction) 1) (not *start-time*))
-                             (setf *timer* (get-universal-time)))
-                            ((= (mod (interaction-number interaction)
-                                     (get-configuration experiment :dot-interval))
-                                0)
-                             (multiple-value-bind (h m s) (seconds-to-hours-minutes-seconds (- (get-universal-time) *timer*))
-                               (record-value monitor (list h m s))))))
+  (cond ((or (= (interaction-number interaction) 1) (not *timer*))
+         (setf *timer* (get-universal-time)))
+        ((= (mod (interaction-number interaction)
+                 (get-configuration experiment :dot-interval))
+            0)
+         (record-value monitor (- (get-universal-time) *timer*)))))
 
 ;; -------------------------
 ;; + Communicative success +

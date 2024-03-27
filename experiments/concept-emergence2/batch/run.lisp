@@ -59,7 +59,8 @@
                       "export-unique-form-usage"
                       "export-experiment-configurations"
                       "export-experiment-store"
-                      "print-a-dot-for-each-interaction")
+                      "print-a-dot-for-each-interaction"
+                      "export-record-time")
       ;; actual configuration
       :shared-configuration config
       ;; configuration is empty as we are not grid searching
