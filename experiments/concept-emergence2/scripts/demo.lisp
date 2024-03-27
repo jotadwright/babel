@@ -15,10 +15,10 @@
                 (:interacting-agents-strategy . :standard)
                 (:population-size . 10)
                 ;; setup data scene
-                (:dataset . "gqaglove50")
+                (:dataset . "clevr")
                 (:dataset-split . "train")
                 ;(:data-fname . "all.lisp")
-                (:available-channels ,@(get-all-channels :gqaglove50))
+                (:available-channels ,@(get-all-channels :clevr))
                 ;; disable channels
                 (:disable-channels . :none)
                 (:amount-disabled-channels . 0)
@@ -40,8 +40,8 @@
                 (:entrenchment-li . -0.02) ;; lateral inhibition
                 ;; new options
                 (:trash-threshold . 0.0)
-                (:slow-threshold . 0.5)
-                (:conceptualisation-heuristics . :heuristic-2)
+                (:slow-threshold . 0.3)
+                (:conceptualisation-heuristics . :heuristic-1)
                 ;; concept representations
                 (:concept-representation . :distribution)
                 (:distribution . :gaussian-welford)
@@ -71,9 +71,10 @@
   (activate-monitor export-lexicon-coherence)
     ;(activate-monitor export-unique-form-usage)
   (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor record-time)
   (format t "~%---------- NEW GAME ----------~%")
   (time
-   (loop for i from 1 to 100000
+   (loop for i from 1 to 2500
          do (run-interaction *experiment*))))
 
 (lexicon-size (lexicon (first (agents *experiment*))))
