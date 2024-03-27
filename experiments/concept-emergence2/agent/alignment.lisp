@@ -68,7 +68,8 @@
                 ;; 2. shift concept of applied-cxn to topic
                 (shift-concept agent topic (meaning applied-cxn))
                 ;; 3. find and punish meaning competitors
-                (conceptualise agent)
+                (when (not (conceptualised-p agent))
+                  (conceptualise agent))
                 ;(decide-competitors-hearer agent applied-cxn)
                 (loop for other-cxn in (find-data agent 'meaning-competitors)
                       for similarity = (similar-concepts agent (meaning applied-cxn) (meaning other-cxn))
