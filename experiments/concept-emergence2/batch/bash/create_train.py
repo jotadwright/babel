@@ -38,7 +38,9 @@ sbcl --dynamic-space-size 16000 --load run.lisp \\
     entrenchment-incf {entrenchment_incf} \\
     entrenchment-decf {entrenchment_decf} \\
     entrenchment-li {entrenchment_li} \\
-    trash-concepts {trash_concepts} \\
+    trash-threshold {trash_threshold} \\
+    slow-threshold {slow_threshold} \\
+    conceptualisation-heuristics {conceptualisation_heuristics} \\
     weight-update-strategy {weight_update_strategy} \\
     initial-weight {initial_weight} \\
     weight-incf {weight_incf} \\
