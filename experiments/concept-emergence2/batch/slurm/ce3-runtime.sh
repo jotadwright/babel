@@ -6,14 +6,14 @@
 #SBATCH	--ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=8G
-#SBATCH --array=1-12
+#SBATCH --array=1-3,7-9
 
 # load atools
 module purge
 module load atools/1.5.1-GCCcore-11.2.0
 
 # read input data from csv
-source <(aenv --data $VSC_HOME/concept-emergence2/batch/data-train/new-hydra.csv --sniff 4096)
+source <(aenv --data $VSC_HOME/concept-emergence2/batch/data-train/ce3-runtime.csv --sniff 4096)
 
 # load sbcl
 module purge
