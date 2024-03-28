@@ -13,7 +13,7 @@
   ;; check the upper boundary
   (when (> (score cxn) upper-bound)
     (setf (score cxn) upper-bound))
-  (when (<= (score cxn) lower-bound)
+  (when (< (score cxn) lower-bound)
     (setf (score cxn) lower-bound))
   (update-lexicon-inventory (lexicon agent) cxn))
 
