@@ -7,13 +7,13 @@
 (defclass lexicon ()
   ((fast-inventory
     :documentation "Fast-access constructions."
-    :type list :accessor fast-inventory :initform nil)
+    :type hash-table :accessor fast-inventory :initform (make-hash-table :test 'equal))
    (slow-inventory
     :documentation "Slow-access constructions."
-    :type list :accessor slow-inventory :initform nil)
+    :type hash-table :accessor slow-inventory :initform (make-hash-table :test 'equal))
    (trash-inventory
     :documentation "Trashed constructions."
-    :type list :accessor trash-inventory :initform nil)
+    :type hash-table :accessor trash-inventory :initform (make-hash-table :test 'equal))
    (configuration
     :documentation "Configuration of the lexicon"
     :type object :accessor configuration :initform nil)))
@@ -29,40 +29,28 @@
   ;;     slow-threshold: POS
   (cond ((<= (score cxn) (get-configuration (configuration lexicon) :trash-threshold))
          ;; assumes that score lower-bound is never negative (after update)
-         (progn
-           (push cxn (trash-inventory lexicon))
-           (setf (slow-inventory lexicon) (remove cxn (slow-inventory lexicon)))
-           (setf (fast-inventory lexicon) (remove cxn (fast-inventory lexicon)))))
+         (setf (gethash (form cxn) (trash-inventory lexicon)) cxn)
+         (remhash (form cxn) (fast-inventory lexicon))
+         (remhash (form cxn) (slow-inventory lexicon)))
         ((>= (score cxn) (get-configuration (configuration lexicon) :slow-threshold))
-         (progn
-           (push cxn (fast-inventory lexicon))
-           (setf (slow-inventory lexicon) (remove cxn (slow-inventory lexicon)))
-           (setf (trash-inventory lexicon) (remove cxn (trash-inventory lexicon)))))
+         (setf (gethash (form cxn) (fast-inventory lexicon)) cxn)
+         (remhash (form cxn) (slow-inventory lexicon))
+         (remhash (form cxn) (trash-inventory lexicon)))
         (t
-         (progn
-           (push cxn (slow-inventory lexicon))
-           (setf (fast-inventory lexicon) (remove cxn (fast-inventory lexicon)))
-           (setf (trash-inventory lexicon) (remove cxn (trash-inventory lexicon)))))))
+         (setf (gethash (form cxn) (slow-inventory lexicon)) cxn)
+         (remhash (form cxn) (fast-inventory lexicon))
+         (remhash (form cxn) (trash-inventory lexicon)))))
 
 (defmethod find-form-in-lexicon ((lexicon lexicon) (form string))
   "Waterfall search through the inventories."
-  (let ((fast (find-in-inventory (fast-inventory lexicon) form)))
-    (if fast
-      fast
-      (let ((slow (find-in-inventory (slow-inventory lexicon) form)))
-        (if slow
-          slow
-          (let ((trash (find-in-inventory (trash-inventory lexicon) form)))
-            trash))))))
-
-(defmethod find-in-inventory ((inventory list) (form string))
-  (find form inventory :key #'form :test #'string=))
+  (loop for inventory-name in (list :fast :slow :trash)
+        for inventory = (get-inventory lexicon inventory-name)
+        do (let ((cxn (gethash form inventory)))
+           (if cxn (return cxn)))))
 
 (defmethod lexicon-size ((lexicon lexicon))
-  (+ (length (fast-inventory lexicon)) (length (slow-inventory lexicon))))
-
-(defmethod lexicon-trash-size ((lexicon lexicon))
-  (length (lexicon trash-inventory)))
+  (+ (hash-table-count (fast-inventory lexicon))
+     (hash-table-count (slow-inventory lexicon))))
 
 (defmethod get-inventory ((lexicon lexicon) key &key (sorted nil))
   (let ((inventory (case key
