@@ -2,11 +2,11 @@
 #SBATCH --job-name=runtime
 #SBATCH --error=/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/runtime_%a_e.txt
 #SBATCH --output=/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/runtime_%a_o.txt
-#SBATCH --time=30:00:00
+#SBATCH --time=120:00:00
 #SBATCH	--ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=8G
-#SBATCH --array=1-3,7-9
+#SBATCH --array=1-16
 
 # load atools
 module purge
