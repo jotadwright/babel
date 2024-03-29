@@ -20,9 +20,9 @@
       (let* ((all-anti-unification-results
               (loop for pattern-render in pattern-renders
                     for pattern-boundaries in all-pattern-boundaries
-                    for pattern-string = (list-of-strings->string pattern-render :separator "")
+                    for pattern-string = (list-of-strings->string pattern-render :separator "_")
                     append (loop for source-render in source-renders
-                                 for source-string = (list-of-strings->string source-render :separator "")
+                                 for source-string = (list-of-strings->string source-render :separator "_")
                                  for source-boundaries in all-source-boundaries 
                                  append (loop with possible-alignments = (maximal-sequence-alignments pattern-string source-string pattern-boundaries source-boundaries)
                                               for alignment in possible-alignments
@@ -51,28 +51,28 @@
               (sort all-anti-unification-results #'< :key #'cost)))
         unique-sorted-results))))
 
-(defun remove-bindings-not-in-generalisation (bindings generalisation-list)
-  (let ((generalisation-vars (loop for seq in generalisation-list
-                                   append (list (third seq) (fourth seq)))))
-  (loop for binding in bindings
-          if (find (cdr binding) generalisation-vars)
-          collect binding)))
 
 
-;;(print-anti-unification-results (anti-unify-sequences '((sequence "the red cube" ?l1 ?r1)) '((sequence "the cube" ?l2 ?r2))))
+;;(print-anti-unification-results (anti-unify-sequences '((sequence "what size is the cube" ?l1 ?r1)) '((sequence "what color is the cube" ?l3 ?r3))))
+
+;;(print-anti-unification-results (anti-unify-sequences '((sequence "onelittle" ?l1 ?r1)) '((sequence "twolittle" ?l3 ?r3))))
 
 ;;(print-anti-unification-results (anti-unify-sequences '((sequence "the red cube" ?l1 ?r1)) '((sequence "the blue cube" ?l2 ?r2))))
 
-;;(print-anti-unification-results (anti-unify-sequences '((sequence "ABA" ?l1 ?r1)) '((sequence "A" ?l2 ?r2))))
+;;(print-anti-unification-results (anti-unify-sequences '((sequence "the cube" ?l1 ?r1)) '((sequence "the red cube" ?l2 ?r2))))
 
-;;(print-anti-unification-results (anti-unify-sequences '((sequence "Give me the cities in Virginia" ?l1 ?r1)) '((sequence "How large is Texas" ?l2 ?r2))))
+;;(print-anti-unification-results (anti-unify-sequences '((sequence "the red cube" ?l1 ?r1)) '((sequence "the cube" ?l2 ?r2))))
+
+;;(print-anti-unification-results (anti-unify-sequences '((sequence "ABA" ?l1 ?r1)) '((sequence "A" ?l2 ?r2))))
 
 ;;(print-anti-unification-results (anti-unify-sequences '((sequence "A" ?l1 ?r1) (sequence "BA" ?l2 ?r2)) '((sequence "A" ?l3 ?r3))))
 
-;;(setf *res* (anti-unify-strings  "Give me the cities in Virginia"  "How large is Texas" :to-sequence-predicates-p t))
+;;(print-anti-unification-results (anti-unify-sequences '((sequence "A" ?l1 ?r1) (sequence "BA" ?l2 ?r2)) '((sequence "AB" ?l3 ?r3))))
 
-;; (setf *result* (anti-unify-sequences '((sequence "the red cube" ?l1 ?r1)) '((sequence "the pink cube" ?l2 ?r2))))
-;(setf *result* (anti-unify-sequences '((sequence "the red cube" ?l1 ?r1)) '((sequence "the cube" ?l2 ?r2))))
+;; (print-anti-unification-results (anti-unify-sequences '((sequence "AA" ?l1 ?r1)) '((sequence "ABA" ?l2 ?r2))))
+
+;; what do we want from reversibility check in this case? 
+;; (print-anti-unification-results (anti-unify-sequences '((sequence "the " ?l1 ?r1) (sequence "orange" ?r1 ?l2) (sequence " cube" ?l2 ?r2)) '((sequence "the yellow cube" ?l3 ?r3))))
 
 
 (defun anti-unify-strings (pattern source &key to-sequence-predicates-p)
@@ -170,10 +170,10 @@
           for source-bounds in source-boundaries
           do (if (eql pattern-char source-char)
                ;; same chars, put them in generalisation, rename variables
-               (let* ((renamed-left-gen-boundary (rename-boundary (car pattern-bounds) pattern-bindings))
-                      (renamed-right-gen-boundary (rename-boundary (cdr pattern-bounds) pattern-bindings))
+               (let* ((renamed-left-gen-boundary (rename-boundary (car pattern-bounds) (car source-bounds) pattern-bindings source-bindings))
+                      (renamed-right-gen-boundary (rename-boundary (cdr pattern-bounds) (cdr source-bounds) pattern-bindings source-bindings))
                       (gen `(sequence ,(mkstr pattern-char) ,renamed-left-gen-boundary ,renamed-right-gen-boundary)))
-                 (push gen generalisation)
+                 (if (not (equal pattern-char #\_)) (push gen generalisation))
                  (setf pattern-bindings
                        (adjoin (cons (car pattern-bounds) renamed-left-gen-boundary) pattern-bindings :test 'equal))
                  (setf pattern-bindings
@@ -187,16 +187,24 @@
                      (source-delta-pred `(sequence ,(mkstr source-char) ,(car source-bounds) ,(cdr source-bounds))))
                  (if (not (equal pattern-char #\_)) (push pattern-delta-pred pattern-delta))
                  (if (not (equal source-char #\_)) (push source-delta-pred source-delta)))))
+    (setf pattern-bindings (loop for binding in pattern-bindings if (car binding) collect binding))
+    (setf source-bindings (loop for binding in source-bindings if (car binding) collect binding))
     (values (reverse generalisation)
             (reverse pattern-delta)
             (reverse source-delta)
-            pattern-bindings
-            source-bindings)))
+            (reverse pattern-bindings)
+            (reverse source-bindings))))
 
-(defun rename-boundary (boundary current-binding-list)
-  (if (assoc boundary current-binding-list)
-    (cdr (assoc boundary current-binding-list))
-    (make-var 'gb)))
+(defun rename-boundary (pattern-boundary source-boundary pattern-bindings source-bindings)
+  (let ((gen-var-pattern (cdr (assoc pattern-boundary pattern-bindings)))
+        (gen-var-source (cdr (assoc source-boundary source-bindings))))
+  (if (and gen-var-pattern gen-var-source
+       (equal
+        gen-var-pattern
+        gen-var-source))
+    (cdr (assoc pattern-boundary pattern-bindings))
+    (make-var 'gb))))
+  
 
 (defun duplicate-string-anti-unification-results (au-1 au-2)
   (and (loop for (nil . pd-1) in (pattern-delta au-1)
@@ -463,6 +471,17 @@
                                                :score (+ score gap)))))
                      do (push next-state queue))))
         finally (return (sort solutions #'> :key #'score))))
+
+;;;;;;;;;;;
+;; UTILS ;;
+;;;;;;;;;;;
+
+(defun remove-bindings-not-in-generalisation (bindings generalisation-list)
+  (let ((generalisation-vars (loop for seq in generalisation-list
+                                   append (list (third seq) (fourth seq)))))
+  (loop for binding in bindings
+          if (find (cdr binding) generalisation-vars)
+          collect binding)))
 
 (defun make-boundary-vars (position boundaries current-left &key (gap nil))
   (let ((right-boundary-var (if position  (car (rassoc position  boundaries))))
