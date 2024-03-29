@@ -52,7 +52,7 @@
    the multiplication of its entrenchment score and its discriminative power."
   (loop with all-competitors = nil
         for inventory-name in (list :fast :slow :trash)
-        for (best-score best-cxn competitors) = (search-inventory agent inventory-name)
+        for (best-score best-cxn competitors) = (search-inventory agent inventory-name :all-competitors-p t)
         if best-cxn
           do (return (cons best-cxn
                            ;; trash competitors do not need to be punished
@@ -79,11 +79,9 @@
    entrenchment score of zero."
   (loop with all-competitors = nil
         for inventory-name in (list :fast :slow)
-        for (best-score best-cxn competitors) = (search-inventory agent inventory-name)
+        for (best-score best-cxn competitors) = (search-inventory agent inventory-name :all-competitors-p nil)
         if best-cxn
           do (setf all-competitors (append all-competitors competitors (list best-cxn)))
-        else
-          do (setf all-competitors (append all-competitors competitors))
         finally
           (return all-competitors)))
 
@@ -99,7 +97,7 @@
 ;; + Conceptualisation through discrimination +
 ;; --------------------------------------------
 
-(defun search-inventory (agent inventory-name)
+(defun search-inventory (agent inventory-name &key (all-competitors-p t))
   """Searches an inventory for a concept.
 
    The best concept corresponds to the concept that maximises
@@ -124,7 +122,8 @@
                (setf best-score (* discriminative-power (score cxn)))
                (setf best-cxn cxn))
         else
-          do (setf competitors (cons cxn competitors))
+          do (when all-competitors-p
+               (setf competitors (cons cxn competitors)))
         finally (return (list best-score best-cxn competitors))))
 
 ;; ---------------------
