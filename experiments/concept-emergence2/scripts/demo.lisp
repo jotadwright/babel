@@ -40,8 +40,10 @@
                 (:entrenchment-li . -0.02) ;; lateral inhibition
                 ;; new options
                 (:trash-threshold . 0.0)
-                (:slow-threshold . 0.3)
+                (:slow-threshold . -0.1)
                 (:conceptualisation-heuristics . :heuristic-1)
+                (:speaker-competitors . t)
+                (:hearer-competitors . nil)
                 ;; concept representations
                 (:concept-representation . :distribution)
                 (:distribution . :gaussian-welford)

@@ -31,7 +31,9 @@
   "Conceptualise the topic of the interaction."
   (if (empty-lexicon-p agent)
     nil
-    (destructuring-bind (applied-cxn . competitors) (find-best-concept agent (get-configuration (experiment agent) :conceptualisation-heuristics))
+    (destructuring-bind (applied-cxn . competitors) (find-best-concept agent 
+                                                                       (get-configuration (experiment agent) :conceptualisation-heuristics)
+                                                                       :all-competitors-p (get-configuration (experiment agent) :speaker-competitors))
       ;; set competitors
       (set-data agent 'meaning-competitors competitors)
       ;; set the applied-cxn slot
@@ -42,17 +44,25 @@
   "Conceptualise the topic as the hearer"
   (if (empty-lexicon-p agent)
     nil
-    (destructuring-bind (applied-cxn . competitors) (find-best-concept agent (get-configuration (experiment agent) :conceptualisation-heuristics))
-      applied-cxn)))
+    (destructuring-bind (hypothetical-cxn . competitors) (find-best-concept agent 
+                                                                       (get-configuration (experiment agent) :conceptualisation-heuristics)
+                                                                       :all-competitors-p (get-configuration (experiment agent) :hearer-competitors))
+      (let ((all-competitors (remove (find-data agent 'applied-cxn)
+                                 (if hypothetical-cxn
+                                   (cons hypothetical-cxn competitors)
+                                   competitors))))
+        (set-data agent 'meaning-competitors all-competitors))
+      (set-data agent 'hypothetical-cxn hypothetical-cxn)
+      hypothetical-cxn)))
 
-(defmethod find-best-concept ((agent cle-agent) (mode (eql :heuristic-1)))
+(defmethod find-best-concept ((agent cle-agent) (mode (eql :heuristic-1)) &key all-competitors-p)
   "Finds the best concept (and its direct competitors) for a given scene and topic.
 
    The best concept corresponds to the concept that maximises
    the multiplication of its entrenchment score and its discriminative power."
   (loop with all-competitors = nil
         for inventory-name in (list :fast :slow :trash)
-        for (best-score best-cxn competitors) = (search-inventory agent inventory-name :all-competitors-p t)
+        for (best-score best-cxn competitors) = (search-inventory agent inventory-name :all-competitors-p all-competitors-p)
         if best-cxn
           do (return (cons best-cxn
                            ;; trash competitors do not need to be punished
@@ -66,38 +76,11 @@
           ;; if nothing is found, return nil nil
           (return (cons nil nil))))
 
-;; ----------------------------------
-;; + Search discriminative concepts +
-;; ----------------------------------
-(defmethod search-discriminative-concepts ((agent cle-agent))
-  "Function to only determine the competitors of a cxn.
-
-   Only used by the hearer when it punishes in the case of success
-   the competitors of the applied cxn.
-   Therefore, this function will only look into the lexicon for
-   competitors as all competitors in the trash already have an
-   entrenchment score of zero."
-  (loop with all-competitors = nil
-        for inventory-name in (list :fast :slow)
-        for (best-score best-cxn competitors) = (search-inventory agent inventory-name :all-competitors-p nil)
-        if best-cxn
-          do (setf all-competitors (append all-competitors competitors (list best-cxn)))
-        finally
-          (return all-competitors)))
-
-
-(defmethod decide-competitors-hearer (agent applied-cxn &key &allow-other-keys)
-  "Determines the meaning competitors of a hearer agent: all similar concepts that are discriminative."
-  (let* ((candidates (search-discriminative-concepts agent))
-         (competitors (remove applied-cxn candidates :test #'(lambda (x y) (equal x y)))))
-    (set-data agent 'meaning-competitors competitors)))
-
-
 ;; --------------------------------------------
 ;; + Conceptualisation through discrimination +
 ;; --------------------------------------------
 
-(defun search-inventory (agent inventory-name &key (all-competitors-p t))
+(defun search-inventory (agent inventory-name &key all-competitors-p)
   """Searches an inventory for a concept.
 
    The best concept corresponds to the concept that maximises
@@ -136,7 +119,10 @@
    the same utterance for the given topic inside the context
    (must be measured before alignment!)."
   (let* ((speaker-cxn (find-data speaker 'applied-cxn))
-         (hearer-cxn (conceptualise hearer))
+         (hearer-cxn (if (conceptualised-p hearer)
+                       (find-data hearer 'hypothetical-cxn)
+                       (conceptualise hearer)))
+         ;; (hearer-cxn (conceptualise hearer))
          (coherence (if (and speaker-cxn hearer-cxn)
                       (string= (form speaker-cxn) (form hearer-cxn))
                       nil)))
@@ -147,4 +133,6 @@
 
 ;; helper function
 (defun conceptualised-p (agent)
-  (find-data agent 'applied-cxn))
+  (case (discourse-role agent)
+    (speaker (find-data agent 'applied-cxn))
+    (hearer (find-data agent 'hypothetical-cxn))))

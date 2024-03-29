@@ -16,7 +16,7 @@
        :package "cle"
        :experiment-class "cle-experiment"
        :number-of-interactions 10000
-       :number-of-series 3
+       :number-of-series 1
        :monitors (list "export-communicative-success"
                        "export-lexicon-coherence"
                        "export-experiment-configurations"
@@ -28,7 +28,7 @@
        ;; default configuration settings
        :shared-configuration `(
                 ;; monitoring
-                               (:dot-interval . 1000)
+                               (:dot-interval . 100)
                 ;(:record-every-x-interactions . 100) ;; important for fast logging
                                (:usage-table-window . 1000)
                                (:save-distribution-history . nil)
@@ -36,10 +36,10 @@
                                (:interacting-agents-strategy . :standard)
                                (:population-size . 10)
                                ;; setup data scene
-                               (:dataset . "clevr")
+                               (:dataset . "gqaglove50")
                                (:dataset-split . "train")
                 ;(:data-fname . "all.lisp")
-                               (:available-channels ,@(get-all-channels :clevr))
+                               (:available-channels ,@(get-all-channels :gqaglove50))
                                ;; disable channels
                                (:disable-channels . :none)
                                (:amount-disabled-channels . 0)
@@ -62,6 +62,8 @@
                                (:trash-threshold . 0.0)
                                (:slow-threshold . 0.3)
                                (:conceptualisation-heuristics . :heuristic-1)
+                               (:speaker-competitors . t)
+                               (:hearer-competitors . nil)
                                ;; concept representations
                                (:concept-representation . :distribution)
                                (:distribution . :gaussian-welford)

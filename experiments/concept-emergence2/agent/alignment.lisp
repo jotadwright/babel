@@ -68,7 +68,7 @@
                 ;; 2. shift concept of applied-cxn to topic
                 (shift-concept agent topic (meaning applied-cxn))
                 ;; 3. find and punish meaning competitors
-                (decide-competitors-hearer agent applied-cxn)
+                (conceptualise agent)
                 (loop for other-cxn in (find-data agent 'meaning-competitors)
                       for similarity = (similar-concepts agent (meaning applied-cxn) (meaning other-cxn))
                       for delta = (* similarity (get-configuration (experiment agent) :entrenchment-li))
