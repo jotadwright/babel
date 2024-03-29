@@ -42,47 +42,58 @@
   "Conceptualise the topic as the hearer"
   (if (empty-lexicon-p agent)
     nil
-    (destructuring-bind (hypothetical-cxn . competitors) (find-best-concept agent (get-configuration (experiment agent) :conceptualisation-heuristics))
-      ;; competitors: ALL discriminative concepts (thus both the hypothetical and competitors but NOT the interpreted cxn!)
-      (let ((competitors (remove (find-data agent 'applied-cxn)
-                                 (if hypothetical-cxn
-                                   (cons hypothetical-cxn competitors)
-                                   competitors))))
-        ;; :test #'(lambda (x y) (equal x y))))) TODO: test nodig? 
-        (set-data agent 'meaning-competitors competitors))
-      ;; set the hypothetical-cxn slot
-      (set-data agent 'hypothetical-cxn hypothetical-cxn)
-      hypothetical-cxn)))
-
-(defgeneric find-best-concept (agent mode)
-  (:documentation "Finds the best concept (and its direct competitors) for a given scene and topic.")
-  )
+    (destructuring-bind (applied-cxn . competitors) (find-best-concept agent (get-configuration (experiment agent) :conceptualisation-heuristics))
+      applied-cxn)))
 
 (defmethod find-best-concept ((agent cle-agent) (mode (eql :heuristic-1)))
-  """Waterfall lazy stopping - with trash"""
-  (destructuring-bind (fast-score fast-cxn fast-comps) (search-inventory agent :fast)
-    (if fast-cxn
-      ;; level 1: FAST memory
-      (cons fast-cxn fast-comps)
-      (destructuring-bind (slow-score slow-cxn slow-comps) (search-inventory agent :slow)
-        (if slow-cxn
-          ;; level 2: SLOW memory
-          (cons slow-cxn slow-comps)
-          (destructuring-bind (trash-score trash-cxn trash-comps) (search-inventory agent :trash)
-            ;; level 3: TRASH (trash competitors should not be punished as they already have 0 entrenchment)
-            (cons trash-cxn nil)))))))
+  "Finds the best concept (and its direct competitors) for a given scene and topic.
 
-(defmethod find-best-concept ((agent cle-agent) (mode (eql :heuristic-2)))
-  """Waterfall lazy stopping - no trash"""
-  (destructuring-bind (fast-score fast-cxn fast-comps) (search-inventory agent :fast)
-    (if fast-cxn
-      ;; level 1: FAST memory
-      (cons fast-cxn fast-comps)
-      (destructuring-bind (slow-score slow-cxn slow-comps) (search-inventory agent :slow)
-        (if slow-cxn
-          ;; level 2: SLOW memory
-          (cons slow-cxn slow-comps)
-          (cons nil nil))))))
+   The best concept corresponds to the concept that maximises
+   the multiplication of its entrenchment score and its discriminative power."
+  (loop with all-competitors = nil
+        for inventory-name in (list :fast :slow :trash)
+        for (best-score best-cxn competitors) = (search-inventory agent inventory-name)
+        if best-cxn
+          do (return (cons best-cxn
+                           ;; trash competitors do not need to be punished
+                           (if (eq inventory-name :trash)
+                             all-competitors
+                             (append all-competitors competitors))))
+        else
+          ;; compound competitors
+          do (setf all-competitors (append all-competitors competitors))
+        finally
+          ;; if nothing is found, return nil nil
+          (return (cons nil nil))))
+
+;; ----------------------------------
+;; + Search discriminative concepts +
+;; ----------------------------------
+(defmethod search-discriminative-concepts ((agent cle-agent))
+  "Function to only determine the competitors of a cxn.
+
+   Only used by the hearer when it punishes in the case of success
+   the competitors of the applied cxn.
+   Therefore, this function will only look into the lexicon for
+   competitors as all competitors in the trash already have an
+   entrenchment score of zero."
+  (loop with all-competitors = nil
+        for inventory-name in (list :fast :slow)
+        for (best-score best-cxn competitors) = (search-inventory agent inventory-name)
+        if best-cxn
+          do (setf all-competitors (append all-competitors competitors (list best-cxn)))
+        else
+          do (setf all-competitors (append all-competitors competitors))
+        finally
+          (return all-competitors)))
+
+
+(defmethod decide-competitors-hearer (agent applied-cxn &key &allow-other-keys)
+  "Determines the meaning competitors of a hearer agent: all similar concepts that are discriminative."
+  (let* ((candidates (search-discriminative-concepts agent))
+         (competitors (remove applied-cxn candidates :test #'(lambda (x y) (equal x y)))))
+    (set-data agent 'meaning-competitors competitors)))
+
 
 ;; --------------------------------------------
 ;; + Conceptualisation through discrimination +
@@ -99,7 +110,7 @@
         with best-score = -1
         with best-cxn = nil
         with competitors = '()
-        for cxn in (get-inventory (lexicon agent) inventory-name)
+        for cxn being the hash-values of (get-inventory (lexicon agent) inventory-name)
         for concept = (meaning cxn)
         for topic-sim = (weighted-similarity agent topic concept)
         for best-other-sim = (loop for object in context
@@ -126,9 +137,7 @@
    the same utterance for the given topic inside the context
    (must be measured before alignment!)."
   (let* ((speaker-cxn (find-data speaker 'applied-cxn))
-         (hearer-cxn (if (conceptualised-p hearer)
-                       (find-data hearer 'hypothetical-cxn)
-                       (conceptualise hearer)))
+         (hearer-cxn (conceptualise hearer))
          (coherence (if (and speaker-cxn hearer-cxn)
                       (string= (form speaker-cxn) (form hearer-cxn))
                       nil)))
@@ -139,6 +148,4 @@
 
 ;; helper function
 (defun conceptualised-p (agent)
-  (case (discourse-role agent)
-    (speaker (find-data agent 'applied-cxn))
-    (hearer (find-data agent 'hypothetical-cxn))))
+  (find-data agent 'applied-cxn))
