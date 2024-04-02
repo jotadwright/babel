@@ -44,6 +44,8 @@ sbcl --dynamic-space-size 70000 --load $VSC_HOME/concept-emergence2/batch/run.li
     trash-threshold $trash_threshold \
     slow-threshold $slow_threshold \
     conceptualisation-heuristics $conceptualisation_heuristics \
+    speaker-competitors $speaker_competitors \
+    hearer-competitors $hearer_competitors \
     weight-update-strategy $weight_update_strategy \
     initial-weight $initial_weight \
     weight-incf $weight_incf \
