@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=runtime
-#SBATCH --error=/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/runtime_%a_e.txt
-#SBATCH --output=/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/runtime_%a_o.txt
+#SBATCH --error=/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/runtime_%a_%A_e.txt
+#SBATCH --output=/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/runtime_%a_%A_o.txt
 #SBATCH --time=120:00:00
 #SBATCH	--ntasks=1
 #SBATCH --cpus-per-task=1

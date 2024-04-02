@@ -70,6 +70,6 @@
                                                "concept-emergence2"
                                                "logging"
                                                ,(assqv :exp-name config)))
-      :heap-size 60000))))
+      :heap-size 70000))))
 
 (run-parallel #+sbcl (rest sb-ext:*posix-argv*))
