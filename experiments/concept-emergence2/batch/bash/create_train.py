@@ -41,6 +41,8 @@ sbcl --dynamic-space-size 16000 --load run.lisp \\
     trash-threshold {trash_threshold} \\
     slow-threshold {slow_threshold} \\
     conceptualisation-heuristics {conceptualisation_heuristics} \\
+    speaker-competitors {speaker_competitors} \\
+    hearer-competitors {hearer_competitors} \\
     weight-update-strategy {weight_update_strategy} \\
     initial-weight {initial_weight} \\
     weight-incf {weight_incf} \\
