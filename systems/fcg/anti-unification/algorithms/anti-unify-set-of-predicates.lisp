@@ -70,7 +70,6 @@
   (:documentation "Subclass of anti-unification result for sequence predicates"))
 
 
-
 (defun anti-unify-predicate-network (pattern source &key allow-generalisation-over-constants)
   "Anti-unifies pattern with source. Returns 5 values:
    generalisation, pattern-bindings, source-bindings, pattern-delta and source-delta."
@@ -153,6 +152,7 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
               (extend-bindings source var source-bindings)
               pattern-delta
               source-delta)))))
+
 
 
 
@@ -367,10 +367,10 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
   (format stream "------------------------------------------------------------~%")
   (format stream "- Pattern:~%~%")
   (let ((*print-pretty* t))
-             (format stream "~(~a~)~%~%" (compute-network-from-anti-unification-result (first list-of-anti-unification-results) 'pattern)))
+             (format stream "~(~a~)~%~%" (pattern (first list-of-anti-unification-results))))
   (format stream "- Source:~%~%")
   (let ((*print-pretty* t))
-    (format stream "~(~a~)~%~%" (compute-network-from-anti-unification-result (first list-of-anti-unification-results) 'source)))
+    (format stream "~(~a~)~%~%" (source (first list-of-anti-unification-results))))
   (format stream "------------------------------------------------------------~%~%")
   (loop for a-u-result in list-of-anti-unification-results
         for i from 1 upto (length list-of-anti-unification-results)
@@ -390,7 +390,13 @@ generalisation, pattern-bindings, source-bindings, pattern-delta and source-delt
                (format stream "~(~a~)~%~%" pattern-delta))
              (format stream "- Source delta:~%~%")
              (let ((*print-pretty* t))
-               (format stream "~(~a~)~%~%~%" source-delta)))))
+               (format stream "~(~a~)~%~%~%" source-delta))
+             (format stream "- Computed Pattern:~%~%")
+             (let ((*print-pretty* t))
+             (format stream "~(~a~)~%~%" (compute-network-from-anti-unification-result a-u-result 'pattern)))
+             (format stream "- Computed Source:~%~%")
+             (let ((*print-pretty* t))
+               (format stream "~(~a~)~%~%" (compute-network-from-anti-unification-result a-u-result 'source))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
