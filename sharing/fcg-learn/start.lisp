@@ -107,6 +107,10 @@
   (comprehend-all (form-string *how-many-red-cubes-are-there*)))
 
 
+;;++++++++++++++++++++++++++++++++++++++++++++
+;; Deletion + Existing slot-cxn -> filler-cxn
+;;++++++++++++++++++++++++++++++++++++++++++++
+
 (defparameter *how-many-blue-cubes-are-there* '((:form . ((sequence "how many blue cubes are there?" ?l40 ?r40)))
                                                 (:meaning . ((get-context ?context-60)
                                                              (filter ?set-60 ?context-60 ?color-60)
@@ -115,17 +119,29 @@
                                                              (bind shape-category ?shape-60 cube)
                                                              (count ?number-60 ?set-70)))))
 
-;; Deletion + Existing slot-cxn -> filler-cxn
-;;-------------------------------------------
+(defparameter *is-there-a-blue-cube* '((:form . ((sequence "is there a blue cube?" ?l41 ?r41)))
+                                                (:meaning . ((get-context ?context-61)
+                                                             (filter ?set-61 ?context-61 ?color-61)
+                                                             (bind shape-category ?color-61 blue)
+                                                             (filter ?set-71 ?set-61 ?shape-61)
+                                                             (bind shape-category ?shape-61 cube)
+                                                             (unique ?object ?set-71)
+                                                             (exist ?boolean ?object)))))
 
 (let* ((*fcg-constructions* (make-sandbox-grammar-cxns))
        (holophrastic-how-many-red-cubes-are-there (induce-cxns *how-many-red-cubes-are-there* nil :cxn-inventory *fcg-constructions*))
-       (item-based-cxn (induce-cxns *how-many-cubes-are-there* holophrastic-how-many-red-cubes-are-there :cxn-inventory *fcg-constructions*)))
+       (item-based-cxn (induce-cxns *how-many-cubes-are-there* holophrastic-how-many-red-cubes-are-there :cxn-inventory *fcg-constructions*))
+       blue-filler-cxn)
 
   (induce-cxns *how-many-blue-cubes-are-there* item-based-cxn :cxn-inventory *fcg-constructions*)
 
   (comprehend-all (form-string *how-many-blue-cubes-are-there*))
 
+  (setf blue-filler-cxn (find-cxn "blue " *fcg-constructions*
+                           :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
+  
+  (induce-cxns *is-there-a-blue-cube* blue-filler-cxn :cxn-inventory *fcg-constructions*)
+  (comprehend-all (form-string *is-there-a-blue-cube*))
   )
 
 
