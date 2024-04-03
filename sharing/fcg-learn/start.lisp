@@ -91,7 +91,7 @@
 
   (induce-cxns *how-many-cubes-are-there* holophrastic-how-many-red-cubes-are-there :cxn-inventory *fcg-constructions*)
 
-  (comprehend-all (form-string *how-many-cubes-are-there*)) ;;TO DO: Always add holophrastic cxn
+  (comprehend-all (form-string *how-many-cubes-are-there*))
   (comprehend-all (form-string *how-many-red-cubes-are-there*)))
 
 
@@ -105,6 +105,29 @@
 
   (comprehend-all (form-string *how-many-cubes-are-there*))
   (comprehend-all (form-string *how-many-red-cubes-are-there*)))
+
+
+(defparameter *how-many-blue-cubes-are-there* '((:form . ((sequence "how many blue cubes are there?" ?l40 ?r40)))
+                                                (:meaning . ((get-context ?context-60)
+                                                             (filter ?set-60 ?context-60 ?color-60)
+                                                             (bind shape-category ?color-60 blue)
+                                                             (filter ?set-70 ?set-60 ?shape-60)
+                                                             (bind shape-category ?shape-60 cube)
+                                                             (count ?number-60 ?set-70)))))
+
+;; Deletion + Existing slot-cxn -> filler-cxn
+;;-------------------------------------------
+
+(let* ((*fcg-constructions* (make-sandbox-grammar-cxns))
+       (holophrastic-how-many-red-cubes-are-there (induce-cxns *how-many-red-cubes-are-there* nil :cxn-inventory *fcg-constructions*))
+       (item-based-cxn (induce-cxns *how-many-cubes-are-there* holophrastic-how-many-red-cubes-are-there :cxn-inventory *fcg-constructions*)))
+
+  (induce-cxns *how-many-blue-cubes-are-there* item-based-cxn :cxn-inventory *fcg-constructions*)
+
+  (comprehend-all (form-string *how-many-blue-cubes-are-there*))
+
+  )
+
 
 
 ;;++++++++++++++++++++++++++++++++++++++++++++
