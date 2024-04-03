@@ -319,12 +319,8 @@
 		    (push value-element feature-value)))
               (when feature-value
                 ;; we add newly constructed feature to new-unit
-                (let (boundaries)
-                  (loop for elem in (third (second (third feature)))
-                        do (when (consp elem)
-                             (push (first (cddr elem)) boundaries)
-                             (push (second (cddr elem)) boundaries)))
-                  (let* ((new-form-value (sort (recompute-root-sequence-features-based-on-bindings
+                  (let* ((boundaries (flatten (mapcar #'(lambda (x) (rest (rest x))) (feature-value (remove-special-operators (get-tag tag-variable pattern-unit) bindings)))))
+                         (new-form-value (sort (recompute-root-sequence-features-based-on-bindings
                                                             boundaries
                                                             (feature-value original-feature)
                                                             bindings) #'< :key #'third))
@@ -334,7 +330,7 @@
                                        ;;(make-feature (feature-name original-feature)
                                          ;;            feature-value))))
                     (push new-feature
-                          (unit-features new-root))))))))))
+                          (unit-features new-root)))))))))
 
     
     ;; we loop over all features in source-unit and 'copy' all features
@@ -538,7 +534,7 @@
                            collect (let ((unmatched-substring (subseq string normalised-left normalised-right)))
                                      `(,feat-name ,unmatched-substring ,left ,right)))))))
 
-#|(recompute-root-sequence-features-based-on-bindings '((SEQUENCE "foolish child th" 0 16) (SEQUENCE "t she " 17 23))
+#|(recompute-root-sequence-features-based-on-bindings '((SEQUENCE "foolish child th" 0 16) (SEQUENCE "t she " 17 23)) 
                                                     '((#:?SHE-UNIT-698 . #:SHE-UNIT-59) (#:?TAG-49046 FORM ((SEQUENCE "she" 19 22))) (#:?LEFT-18848 . 19) (#:?RIGHT-18848 . 22)))|#
 
 #|(recompute-root-sequence-features-based-on-bindings '((SEQUENCE " " 1 2) (SEQUENCE " " 5 6))
