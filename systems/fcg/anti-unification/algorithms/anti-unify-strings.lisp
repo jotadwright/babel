@@ -75,6 +75,10 @@
 ;; (print-anti-unification-results (anti-unify-sequences '((sequence "the " ?l1 ?r1) (sequence "orange" ?r1 ?l2) (sequence " cube" ?l2 ?r2)) '((sequence "the yellow cube" ?l3 ?r3))))
 
 
+;;(print-anti-unification-results (anti-unify-sequences '((sequence "what size is the block?" ?l6 ?r6)) '((sequence "what size is the sphere?" ?l7 ?r7))))
+;;(print-anti-unification-results (anti-unify-sequences '((sequence "what size is the cube?" ?l6 ?r6)) '((sequence "what color is the cube?" ?l7 ?r7))))
+
+
 (defun anti-unify-strings (pattern source &key to-sequence-predicates-p)
   "Anti-unify strings by (1) using needleman-wunsch to compute the
    maximal alignments, (2) make generalisations of overlapping characters
@@ -427,9 +431,7 @@
                                      (current-left-source-boundary (car (first aligned-source-boundaries)))
                                      (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
                                      (source-boundary-vars (make-boundary-vars j source-boundaries current-left-source-boundary) )
-                                     (pattern-boundary-vars (make-boundary-vars i pattern-boundaries current-left-pattern-boundary))
-                                     (current-left-source-boundary (car source-boundary-vars))
-                                     (current-left-pattern-boundary (car pattern-boundary-vars)))
+                                     (pattern-boundary-vars (make-boundary-vars i pattern-boundaries current-left-pattern-boundary)))
                                 (make-instance 'string-alignment-state
                                                :aligned-pattern expanded-pattern
                                                :aligned-source expanded-source
@@ -443,9 +445,7 @@
                                      (current-left-source-boundary (car (first aligned-source-boundaries)))
                                      (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
                                      (source-boundary-vars (make-boundary-vars nil source-boundaries current-left-source-boundary :gap t))
-                                     (pattern-boundary-vars (make-boundary-vars i pattern-boundaries current-left-pattern-boundary))
-                                     (current-left-source-boundary (car source-boundary-vars))
-                                     (current-left-pattern-boundary (car pattern-boundary-vars)))
+                                     (pattern-boundary-vars (make-boundary-vars i pattern-boundaries current-left-pattern-boundary)))
                                 (make-instance 'string-alignment-state
                                                :aligned-pattern expanded-pattern
                                                :aligned-source expanded-source
@@ -459,9 +459,7 @@
                                      (current-left-source-boundary (car (first aligned-source-boundaries)))
                                      (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
                                      (source-boundary-vars (make-boundary-vars j source-boundaries current-left-source-boundary))
-                                     (pattern-boundary-vars (make-boundary-vars nil pattern-boundaries current-left-pattern-boundary :gap t))
-                                     (current-left-source-boundary (car source-boundary-vars))
-                                     (current-left-pattern-boundary (car pattern-boundary-vars)))
+                                     (pattern-boundary-vars (make-boundary-vars nil pattern-boundaries current-left-pattern-boundary :gap t)))
                                 (make-instance 'string-alignment-state
                                                :aligned-pattern expanded-pattern
                                                :aligned-source expanded-source
@@ -661,7 +659,7 @@
 ;; Reversibility check ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun merge-adjacent-sequence-predicates (sequence-predicates)
+#|(defun merge-adjacent-sequence-predicates (sequence-predicates)
   "When there are adjacent sequence predicates, merge them together."
   (loop for predicate in sequence-predicates
         for left-bound = (third predicate)
@@ -680,7 +678,30 @@
                          (updated-predicates
                           (cons new-predicate (remove adjacent-right (remove predicate sequence-predicates :test #'equal) :test #'equal))))
                     (merge-adjacent-sequence-predicates updated-predicates))
-        finally (return (reverse sequence-predicates))))
+        finally (return sequence-predicates)))|#
+
+
+(defun merge-adjacent-sequence-predicates (sequence-predicates)
+  "When there are adjacent sequence predicates, merge them together."
+  (loop for predicate in sequence-predicates
+        for left-bound = (third predicate)
+        for right-bound = (fourth predicate)
+        for adjacent-left = (find left-bound sequence-predicates :key #'fourth)
+        for adjacent-right = (find right-bound sequence-predicates :key #'third)
+        if adjacent-left
+          return (let ((new-predicate `(sequence ,(mkstr (second adjacent-left) (second predicate))
+                                                 ,(third adjacent-left) ,(fourth predicate)))
+                       (copied-sequence-predicates (copy-list sequence-predicates)))
+                   (setf (nth (position predicate copied-sequence-predicates) copied-sequence-predicates) new-predicate)
+                   (merge-adjacent-sequence-predicates (remove adjacent-left copied-sequence-predicates :test #'equal)))
+        else if adjacent-right
+           return (let ((new-predicate `(sequence ,(mkstr (second predicate) (second adjacent-right))
+                                                  ,(third predicate) ,(fourth adjacent-right)))
+                        (copied-sequence-predicates (copy-list sequence-predicates)))
+                    (setf (nth (position predicate copied-sequence-predicates) copied-sequence-predicates) new-predicate)
+                    (merge-adjacent-sequence-predicates (remove adjacent-right copied-sequence-predicates :test #'equal)))
+        finally (return sequence-predicates)))
+
 
 (defmethod compute-network-from-anti-unification-result ((au-result sequences-au-result) pattern-or-source)
   "Returns original network based on generalisation, bindings-list and delta."  
