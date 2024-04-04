@@ -30,16 +30,16 @@
   (cond ((<= (score cxn) (get-configuration (configuration lexicon) :trash-threshold))
          ;; assumes that score lower-bound is never negative (after update)
          (setf (gethash (form cxn) (trash-inventory lexicon)) cxn)
-         (remhash (form cxn) (fast-inventory lexicon))
-         (remhash (form cxn) (slow-inventory lexicon)))
+         (remhash (form cxn) (get-inventory lexicon :fast))
+         (remhash (form cxn) (get-inventory lexicon :slow)))
         ((>= (score cxn) (get-configuration (configuration lexicon) :slow-threshold))
          (setf (gethash (form cxn) (fast-inventory lexicon)) cxn)
-         (remhash (form cxn) (slow-inventory lexicon))
-         (remhash (form cxn) (trash-inventory lexicon)))
+         (remhash (form cxn) (get-inventory lexicon :slow))
+         (remhash (form cxn) (get-inventory lexicon :trash)))
         (t
          (setf (gethash (form cxn) (slow-inventory lexicon)) cxn)
-         (remhash (form cxn) (fast-inventory lexicon))
-         (remhash (form cxn) (trash-inventory lexicon)))))
+         (remhash (form cxn) (get-inventory lexicon :fast))
+         (remhash (form cxn) (get-inventory lexicon :trash)))))
 
 (defmethod find-form-in-lexicon ((lexicon lexicon) (form string))
   "Waterfall search through the inventories."
@@ -49,14 +49,12 @@
            (if cxn (return cxn)))))
 
 (defmethod lexicon-size ((lexicon lexicon))
-  (+ (hash-table-count (fast-inventory lexicon))
-     (hash-table-count (slow-inventory lexicon))))
+  (+ (hash-table-count (get-inventory lexicon :fast))
+     (hash-table-count (get-inventory lexicon :slow))))
 
-(defmethod get-inventory ((lexicon lexicon) key &key (sorted nil))
+(defmethod get-inventory ((lexicon lexicon) key)
   (let ((inventory (case key
                      (:fast (fast-inventory lexicon))
                      (:slow (slow-inventory lexicon))
                      (:trash (trash-inventory lexicon)))))
-    (if sorted
-      (sort inventory #'(lambda (x y) (> (score x) (score y))))
-      inventory)))
+    inventory))

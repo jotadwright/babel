@@ -20,44 +20,26 @@
        (cxn->s-dot-diff cxn previous-copy
                         :certainty-threshold certainty-threshold)))))
 
-(defun display-inventory (inventory name &key (entrenchment-threshold 0) (certainty-threshold 0))
-  (add-element `((h3) ,(format nil "Lexicon ~a:" name)))
-  (loop for cxn in inventory and idx from 0
-        do (add-element
-            `((h4) ,(format nil "CXN ~a w score ~a [n: ~a, l: ~a]"
-                            idx
-                            (score cxn)
-                            (length (history cxn))
-                            (first (history cxn))
-                            )))
-        when (>= (score cxn) entrenchment-threshold)
-          do (add-cxn-to-interface cxn :certainty-threshold certainty-threshold :disabled-channels (disabled-channels agent))))
-
-;;;; Show lexicon in web interface
 (defun display-lexicon (agent &key (entrenchment-threshold 0) (certainty-threshold 0) (sort nil))
-  (if (empty-lexicon-p agent)
-    (add-element `((h3) ,(format nil "Lexicon is empty!")))
-    (progn
-      (display-inventory (get-inventory (lexicon agent) :fast :sorted sort)
-                         "fast"
-                         :entrenchment-threshold entrenchment-threshold
-                         :certainty-threshold certainty-threshold)
-      (display-inventory (get-inventory (lexicon agent) :slow :sorted sort)
-                         "slow"
-                         :entrenchment-threshold entrenchment-threshold
-                         :certainty-threshold certainty-threshold))))
-
-#|(defun display-lexicon-simple (agent)
+  "Shows the lexicon in web interface."
   (if (empty-lexicon-p agent)
     (add-element
-     `((h4) ,(format nil "Lexicon is empty!")))
-    (loop for cxn in (lexicon agent)
-          for i from 1
-          do (add-element
-              `((h4) ,(format nil " -> ~a: (~a, ~a)"
-                              i
-                              (downcase (mkstr (form cxn)))
-                              (downcase (mkstr (score cxn)))))))))|#
+     `((h3) ,(format nil "Lexicon is empty!")))
+    (let* ((lexicon (loop for cxn being the hash-values of (get-inventory (lexicon agent) :fast) collect cxn))
+           (new-lexicon (if sort
+                          (sort lexicon #'(lambda (x y) (> (score x) (score y))))
+                          new-lexicon)))
+      (add-element `((h3) ,(format nil "Lexicon:")))
+      (loop for cxn in lexicon and idx from 0
+            do (add-element
+                `((h4) ,(format nil "CXN ~a w score ~a [n: ~a, l: ~a]"
+                                idx
+                                (score cxn)
+                                (length (history cxn))
+                                (first (history cxn))
+                                )))
+            when (>= (score cxn) entrenchment-threshold)
+              do (add-cxn-to-interface cxn :certainty-threshold certainty-threshold :disabled-channels (disabled-channels agent))))))
 
 (defun show-in-wi (args)
   (add-element `((h4) ,(format nil "~{~a~^, ~}" args))))
