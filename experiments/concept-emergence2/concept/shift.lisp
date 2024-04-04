@@ -94,7 +94,7 @@
   (let* ((rest-attr (loop for el in all-attr
                           if (not (find (channel el) subset-attr))
                             collect el)))
-    (if (length> rest-attr 6)
+    (if (length> rest-attr 6) ;; HEURISTIC TO AVOID COMBINATORIAL EXPLOSION
       (list (loop for el in all-attr
                   if (find (channel el) subset-attr)
                     collect el))
