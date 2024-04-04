@@ -94,8 +94,13 @@
         for cxn being the hash-values of (get-inventory (lexicon agent) inventory-name)
         for concept = (meaning cxn)
         for topic-sim = (weighted-similarity agent topic concept)
-        for best-other-sim = (loop for object in context
-                                   maximize (weighted-similarity agent object concept))
+        for best-other-sim = (loop named bos-loop
+                                   for object in context
+                                   for other-sim = (weighted-similarity agent object concept)
+                                   when (<= topic-sim other-sim)
+                                     ;; lazy stopping
+                                     do (return-from bos-loop other-sim)
+                                   maximize other-sim)
         for discriminative-power = (abs (- topic-sim best-other-sim))
         if (and (> topic-sim (+ best-other-sim similarity-threshold))
                 (> (* discriminative-power (score cxn)) best-score))
