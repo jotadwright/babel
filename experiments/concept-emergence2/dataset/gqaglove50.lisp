@@ -62,3 +62,9 @@
 
 (defmethod is-channel-available ((mode (eql :gqaglove50)) symbolic-attribute raw-attributes)
   t)
+
+(defmethod get-all-channels ((mode (eql :gqaglove50-small)))
+  (gqaglove50-channels))
+
+(defmethod is-channel-available ((mode (eql :gqaglove50-small)) symbolic-attribute raw-attributes)
+  t)
