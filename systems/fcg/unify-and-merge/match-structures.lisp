@@ -319,16 +319,16 @@
 		    (push value-element feature-value)))
               (when feature-value
                 ;; we add newly constructed feature to new-unit
-                  (let* ((boundaries (flatten (mapcar #'(lambda (x) (rest (rest x))) (feature-value (remove-special-operators (get-tag tag-variable pattern-unit) bindings)))))
-                         (new-form-value (sort (recompute-root-sequence-features-based-on-bindings
+                  (let* ((boundaries (flatten (mapcar #'(lambda (x) (if (equal (feature-name x) 'SEQUENCE) (rest (rest x)))) (feature-value (remove-special-operators (get-tag tag-variable pattern-unit) bindings)))))
+                         (new-form-value (if boundaries (sort (recompute-root-sequence-features-based-on-bindings
                                                             boundaries
                                                             (feature-value original-feature)
-                                                            bindings) #'< :key #'third))
-                         (new-feature (when (and (eq (feature-name original-feature) 'form)
+                                                            bindings) #'< :key #'third)))
+                         (new-feature (if (and (eq (feature-name original-feature) 'form)
                                                new-form-value)
-                                       (make-feature 'form new-form-value))))
-                                       ;;(make-feature (feature-name original-feature)
-                                         ;;            feature-value))))
+                                       (make-feature 'form new-form-value)
+                                       (make-feature (feature-name original-feature)
+                                                     feature-value))))
                     (push new-feature
                           (unit-features new-root)))))))))
 
