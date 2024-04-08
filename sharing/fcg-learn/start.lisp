@@ -78,7 +78,7 @@
 (defparameter *how-many-red-cubes-are-there* '((:form . ((sequence "how many red cubes are there?" ?l4 ?r4)))
                                                (:meaning . ((get-context ?context-6)
                                                             (filter ?set-6 ?context-6 ?color-6)
-                                                            (bind shape-category ?color-6 red)
+                                                            (bind color-category ?color-6 red)
                                                             (filter ?set-7 ?set-6 ?shape-6)
                                                             (bind shape-category ?shape-6 cube)
                                                             (count ?number-6 ?set-7)))))
@@ -86,7 +86,7 @@
 ;; Deletion
 ;;--------------
 
-(let ((*fcg-constructions* (make-sandbox-grammar-cxns))
+(let (;(*fcg-constructions* (make-sandbox-grammar-cxns))
       (holophrastic-how-many-red-cubes-are-there (induce-cxns *how-many-red-cubes-are-there* nil :cxn-inventory *fcg-constructions*)))
 
   (induce-cxns *how-many-cubes-are-there* holophrastic-how-many-red-cubes-are-there :cxn-inventory *fcg-constructions*)
@@ -114,36 +114,81 @@
 (defparameter *how-many-blue-cubes-are-there* '((:form . ((sequence "how many blue cubes are there?" ?l40 ?r40)))
                                                 (:meaning . ((get-context ?context-60)
                                                              (filter ?set-60 ?context-60 ?color-60)
-                                                             (bind shape-category ?color-60 blue)
+                                                             (bind color-category ?color-60 blue)
                                                              (filter ?set-70 ?set-60 ?shape-60)
                                                              (bind shape-category ?shape-60 cube)
                                                              (count ?number-60 ?set-70)))))
 
+(defparameter *how-many-blue-spheres-are-there* '((:form . ((sequence "how many blue spheres are there?" ?l42 ?r42)))
+                                                  (:meaning . ((get-context ?context-62)
+                                                               (filter ?set-62 ?context-62 ?color-62)
+                                                               (bind color-category ?color-62 blue)
+                                                               (filter ?set-72 ?set-62 ?shape-62)
+                                                               (bind shape-category ?shape-62 sphere)
+                                                               (count ?number-62 ?set-72)))))
+
+(defparameter *blue-spheres* '((:form . ((sequence "blue spheres" ?l43 ?r43)))
+                               (:meaning . ((filter ?set-63 ?context-63 ?color-63)
+                                            (bind color-category ?color-63 blue)
+                                            (filter ?set-73 ?set-63 ?shape-63)
+                                            (bind shape-category ?shape-63 sphere)))))
+
 (defparameter *is-there-a-blue-cube* '((:form . ((sequence "is there a blue cube?" ?l41 ?r41)))
-                                                (:meaning . ((get-context ?context-61)
-                                                             (filter ?set-61 ?context-61 ?color-61)
-                                                             (bind shape-category ?color-61 blue)
-                                                             (filter ?set-71 ?set-61 ?shape-61)
-                                                             (bind shape-category ?shape-61 cube)
-                                                             (unique ?object ?set-71)
-                                                             (exist ?boolean ?object)))))
+                                       (:meaning . ((get-context ?context-61)
+                                                    (filter ?set-61 ?context-61 ?color-61)
+                                                    (bind color-category ?color-61 blue)
+                                                    (filter ?set-71 ?set-61 ?shape-61)
+                                                    (bind shape-category ?shape-61 cube)
+                                                    (unique ?object ?set-71)
+                                                    (exist ?boolean ?object)))))
 
-(let* ((*fcg-constructions* (make-sandbox-grammar-cxns))
-       (holophrastic-how-many-red-cubes-are-there (induce-cxns *how-many-red-cubes-are-there* nil :cxn-inventory *fcg-constructions*))
-       (item-based-cxn (induce-cxns *how-many-cubes-are-there* holophrastic-how-many-red-cubes-are-there :cxn-inventory *fcg-constructions*))
-       blue-filler-cxn)
-
-  (induce-cxns *how-many-blue-cubes-are-there* item-based-cxn :cxn-inventory *fcg-constructions*)
-
-  (comprehend-all (form-string *how-many-blue-cubes-are-there*))
-
-  (setf blue-filler-cxn (find-cxn "blue " *fcg-constructions*
-                           :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
+(let ((*fcg-constructions* (make-sandbox-grammar-cxns))
+      holophrastic-how-many-red-cubes-are-there
+      how-many-X-cubes-are-there-cxn
+      blue-filler-cxn
+      blue-spher-filler-cxn)
   
-  (induce-cxns *is-there-a-blue-cube* blue-filler-cxn :cxn-inventory *fcg-constructions*)
-  (comprehend-all (form-string *is-there-a-blue-cube*))
+  ;;Learn a holophrastic cxn first
+  (setf holophrastic-how-many-red-cubes-are-there (induce-cxns *how-many-red-cubes-are-there* nil :cxn-inventory *fcg-constructions*))
+
+  ;;Learn a first slot cxn and one filler cxn for red
+  (setf how-many-X-cubes-are-there-cxn
+        (induce-cxns *how-many-cubes-are-there* holophrastic-how-many-red-cubes-are-there :cxn-inventory *fcg-constructions*))
+
+  ;(comprehend-all (form-string *how-many-cubes-are-there*))
+  (comprehend-all (form-string *how-many-red-cubes-are-there*))
+  
+  ;;Learn a filler cxn for blue
+  (induce-cxns *how-many-blue-cubes-are-there* how-many-X-cubes-are-there-cxn :cxn-inventory *fcg-constructions*)
+
+  (comprehend-all (form-string *how-many-blue-cubes-are-there*)))
+
+  ;;Learn a slot cxn for how-many-Xes-are-there and two filler cxns for blue-spher and cub
+  (induce-cxns *how-many-blue-spheres-are-there* how-many-X-cubes-are-there-cxn :cxn-inventory *fcg-constructions*)
+
+  ;(comprehend-all (form-string *how-many-blue-spheres-are-there*))
+  ;(comprehend-all (form-string *how-many-cubes-are-there*))
+
+  ;;Learn a slot-and-filler cxn for blue and filler cxn for spher based on two filler cxns blue-spher-cxn and blue-cxn
+  (setf blue-filler-cxn (find-cxn "blue " *fcg-constructions*
+                                  :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
+  
+  (setf blue-spher-filler-cxn (find-cxn "blue spher" *fcg-constructions*
+                                        :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
+
+  (induce-cxns blue-spher-filler-cxn blue-filler-cxn :cxn-inventory *fcg-constructions*)
+
+  (comprehend-all (form-string *how-many-blue-spheres-are-there*))
+
   )
 
+#|
+(setf *res* (anti-unify-sequences
+             '((sequence "how many blue spheres are there?" ?l6 ?r6))
+             '((sequence "how many " ?l7 ?r7)
+               
+               (sequence "cubes are there?" ?l8 ?r8)
+               (sequence "_" ?r7 ?l8))))|#
 
 
 ;;++++++++++++++++++++++++++++++++++++++++++++
@@ -174,28 +219,35 @@
                                                       (query ?target-5 ?object-5 ?attribute-5)
                                                       (bind attribute-category ?attribute-5 color)))))
 
+(defparameter *how-many-blocks-are-there* '((:form . ((sequence "how many blocks are there?" ?l41 ?r41)))
+                                            (:meaning . ((get-context ?context-61)
+                                                         (filter ?set-71 ?context-61 ?shape-61)
+                                                         (bind shape-category ?shape-61 cube)
+                                                         (count ?number-61 ?set-71)))))
+
 
 (let ((*fcg-constructions* (make-sandbox-grammar-cxns))
       (holophrastic-what-size-is-the-sphere (induce-cxns *what-size-is-the-sphere* nil :cxn-inventory *fcg-constructions*))
-      block-cxn what-color-is-the-X-cxn what-size-is-the-X-cxn)
+      block-cxn what-color-is-the-X-cxn what-size-is-the-X-cxn how-many-Xs-are-there-cxn sphere-cxn)
 
+  
   (induce-cxns *what-size-is-the-block* holophrastic-what-size-is-the-sphere :cxn-inventory *fcg-constructions*)
   (comprehend-all (form-string *what-size-is-the-block*))
 
   (setf block-cxn (find-cxn "block" *fcg-constructions*
                             :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
 
+  (comprehend-all (form-string *what-color-is-the-block*))
   (induce-cxns *what-color-is-the-block* block-cxn :cxn-inventory *fcg-constructions*)
-
   (comprehend-all (form-string *what-color-is-the-block*))
 
-  (setf what-color-is-the-X-cxn (find-cxn "what color is the " *fcg-constructions*
-                                          :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
-  (setf what-size-is-the-X-cxn (find-cxn "what size is the " *fcg-constructions*
-                                          :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
+  ;(induce-cxns *how-many-blocks-are-there* block-cxn :cxn-inventory *fcg-constructions*)
+  ;(comprehend-all (form-string *how-many-blocks-are-there*))
 
-  ;;TO DO: anti-unify two constructions but first anti-unify sets of sequence predicates!
-  ;; (induce-cxns what-size-is-the-X-cxn what-color-is-the-X-cxn) 
+
+  ;;TO DO: anti-unify two constructions
+  ;(induce-cxns what-size-is-the-X-cxn what-color-is-the-X-cxn) 
+
   )
 
 
