@@ -123,12 +123,12 @@
                                                              (count ?number-60 ?set-70)))))
 
 (defparameter *how-many-blue-spheres-are-there* '((:form . ((sequence "how many blue spheres are there?" ?l42 ?r42)))
-                                                  (:meaning . ((get-context ?context-62)
-                                                               (filter ?set-62 ?context-62 ?color-62)
-                                                               (bind color-category ?color-62 blue)
-                                                               (filter ?set-72 ?set-62 ?shape-62)
-                                                               (bind shape-category ?shape-62 sphere)
-                                                               (count ?number-62 ?set-72)))))
+                                                  (:meaning . ((get-context ?context-60)
+                                                             (filter ?set-60 ?context-60 ?color-60)
+                                                             (bind color-category ?color-60 blue)
+                                                             (filter ?set-70 ?set-60 ?shape-60)
+                                                             (bind shape-category ?shape-60 sphere)
+                                                             (count ?number-60 ?set-70)))))
 
 (let ((*fcg-constructions* (make-sandbox-grammar-cxns))
       holophrastic-how-many-red-cubes-are-there
@@ -189,7 +189,7 @@
 
   (assert blue-spher-filler-cxn)
 
-  (induce-cxns blue-filler-cxn blue-spher-filler-cxn :cxn-inventory *fcg-constructions*))
+  (induce-cxns blue-filler-cxn blue-spher-filler-cxn :cxn-inventory *fcg-constructions*)
   
   (comprehend-all (form-string *how-many-blue-spheres-are-there*))
   (formulate-all (instantiate-variables  (meaning *how-many-blue-spheres-are-there*)))
@@ -214,7 +214,7 @@
                                                      (:meaning . ((get-context ?source-10) (filter ?target-5764 ?target-20 ?size-20) (bind color-category ?color-16 red) (filter ?target-10 ?source-10 ?shape-40) (bind shape-category ?shape-40 sphere) (filter ?target-20 ?target-10 ?color-16) (bind size-category ?size-20 small) (exist ?target-230 ?target-5764)))))
 
 (defparameter *are-there-any-small-cyan-spheres* '((:form . ((sequence "are there any small cyan spheres?" ?l85 ?r85)))
-                                                  (:meaning . ((get-context ?source-20)
+                                                   (:meaning . ((get-context ?source-20)
                                                                (filter ?target-20 ?source-20 ?shape-50)
                                                                (bind shape-category ?shape-50 sphere)
                                                                (filter ?target-30 ?target-20 ?color-19)
