@@ -127,21 +127,10 @@
                                                                (bind shape-category ?shape-62 sphere)
                                                                (count ?number-62 ?set-72)))))
 
-(defparameter *blue-spheres* '((:form . ((sequence "blue spheres" ?l43 ?r43)))
-                               (:meaning . ((filter ?set-63 ?context-63 ?color-63)
-                                            (bind color-category ?color-63 blue)
-                                            (filter ?set-73 ?set-63 ?shape-63)
-                                            (bind shape-category ?shape-63 sphere)))))
 
-(defparameter *is-there-a-blue-cube* '((:form . ((sequence "is there a blue cube?" ?l41 ?r41)))
-                                       (:meaning . ((get-context ?context-61)
-                                                    (filter ?set-61 ?context-61 ?color-61)
-                                                    (bind color-category ?color-61 blue)
-                                                    (filter ?set-71 ?set-61 ?shape-61)
-                                                    (bind shape-category ?shape-61 cube)
-                                                    (unique ?object ?set-71)
-                                                    (exist ?boolean ?object)))))
 
+;;EXAMPLE 1 OF ANTI-UNIFYING CONSTRUCTIONS
+;;----------------------------------------------------------------------------------------------------------
 (let ((*fcg-constructions* (make-sandbox-grammar-cxns))
       holophrastic-how-many-red-cubes-are-there
       how-many-X-cubes-are-there-cxn
@@ -156,17 +145,17 @@
         (induce-cxns *how-many-cubes-are-there* holophrastic-how-many-red-cubes-are-there :cxn-inventory *fcg-constructions*))
 
   ;(comprehend-all (form-string *how-many-cubes-are-there*))
-  (comprehend-all (form-string *how-many-red-cubes-are-there*))
+  ;(comprehend-all (form-string *how-many-red-cubes-are-there*))
   
   ;;Learn a filler cxn for blue
   (induce-cxns *how-many-blue-cubes-are-there* how-many-X-cubes-are-there-cxn :cxn-inventory *fcg-constructions*)
 
-  (comprehend-all (form-string *how-many-blue-cubes-are-there*)))
+  ;(comprehend-all (form-string *how-many-blue-cubes-are-there*))
 
   ;;Learn a slot cxn for how-many-Xes-are-there and two filler cxns for blue-spher and cub
   (induce-cxns *how-many-blue-spheres-are-there* how-many-X-cubes-are-there-cxn :cxn-inventory *fcg-constructions*)
 
-  ;(comprehend-all (form-string *how-many-blue-spheres-are-there*))
+  ;(comprehend-all (form-string *how-many-blue-spheres-are-there*)))
   ;(comprehend-all (form-string *how-many-cubes-are-there*))
 
   ;;Learn a slot-and-filler cxn for blue and filler cxn for spher based on two filler cxns blue-spher-cxn and blue-cxn
@@ -181,7 +170,6 @@
   (comprehend-all (form-string *how-many-blue-spheres-are-there*))
 
   )
-
 #|
 (setf *res* (anti-unify-sequences
              '((sequence "how many blue spheres are there?" ?l6 ?r6))
@@ -189,6 +177,80 @@
                
                (sequence "cubes are there?" ?l8 ?r8)
                (sequence "_" ?r7 ?l8))))|#
+
+;;----------------------------------------------------------------------------------------------------------
+;;EXAMPLE 2 OF ANTI-UNIFYING CONSTRUCTIONS
+;;----------------------------------------------------------------------------------------------------------
+
+(defparameter *are-there-any-small-matte-cubes* '((:form . ((sequence "are there any small matte cubes?" ?l80 ?r80)))
+                                                  (:meaning . ((get-context ?source-1) (filter ?target-1300 ?target-2 ?size-2) (bind material-category ?material-2 rubber) (filter ?target-1 ?source-1 ?shape-2) (bind shape-category ?shape-2 cube) (filter ?target-2 ?target-1 ?material-2) (bind size-category ?size-2 small) (exist ?target-23 ?target-1300)))))
+
+(defparameter *are-there-any-small-red-spheres* '((:form . ((sequence "are there any small red spheres?" ?l81 ?r81)))
+                                                     (:meaning . ((get-context ?source-10) (filter ?target-5764 ?target-20 ?size-20) (bind color-category ?color-16 red) (filter ?target-10 ?source-10 ?shape-40) (bind shape-category ?shape-40 sphere) (filter ?target-20 ?target-10 ?color-16) (bind size-category ?size-20 small) (exist ?target-230 ?target-5764)))))
+
+(defparameter *are-there-any-small-cyan-spheres* '((:form . ((sequence "are there any small cyan spheres?" ?l85 ?r85)))
+                                                  (:meaning . ((get-context ?source-20)
+                                                               (filter ?target-20 ?source-20 ?shape-50)
+                                                               (bind shape-category ?shape-50 sphere)
+                                                               (filter ?target-30 ?target-20 ?color-19)
+                                                               (bind color-category ?color-19 cyan)
+                                                               (filter ?target-5768 ?target-30 ?size-30)
+                                                               (bind size-category ?size-30 small)
+                                                               (exist ?target-231 ?target-5768)))))
+
+(defparameter *are-there-any-huge-red-things* '((:form . ((sequence "are there any huge red things?" ?l82 ?r82)))
+                                                 (:meaning . ((get-context ?source-1) (filter ?target-111343 ?target-2 ?size-4) (bind color-category ?color-4 red) (filter ?target-1 ?source-1 ?shape-8) (bind shape-category ?shape-8 thing) (filter ?target-2 ?target-1 ?color-4) (bind size-category ?size-4 large) (exist ?target-23 ?target-111343)))))
+
+(defparameter *are-there-any-huge-cyan-spheres* '((:form . ((sequence "are there any huge cyan spheres?" ?l84 ?r84)))
+                                                  (:meaning . ((get-context ?source-25)
+                                                               (filter ?target-25 ?source-25 ?shape-55)
+                                                               (bind shape-category ?shape-55 sphere)
+                                                               (filter ?target-35 ?target-25 ?color-24)
+                                                               (bind color-category ?color-24 cyan)
+                                                               (filter ?target-5773 ?target-35 ?size-35)
+                                                               (bind size-category ?size-35 large)
+                                                               (exist ?target-236 ?target-5773)))))
+
+
+(let ((*fcg-constructions* (make-sandbox-grammar-cxns))
+      holophrastic-are-there-any-small-matte-cubes
+      are-there-any-small-Xes-cxn red-cxn
+      holophrastic-are-there-any-small-red-spheres
+      holophrastic-are-there-any-huge-cyan-spheres)
+  
+  (setf holophrastic-are-there-any-small-matte-cubes (induce-cxns *are-there-any-small-matte-cubes* nil :cxn-inventory *fcg-constructions*))
+
+  (setf are-there-any-small-Xes-cxn
+        (induce-cxns *are-there-any-small-red-spheres* holophrastic-are-there-any-small-matte-cubes :cxn-inventory *fcg-constructions*))
+
+  ;(comprehend-all (form-string *are-there-any-small-red-spheres*))
+
+  (setf holophrastic-are-there-any-small-red-spheres (find-cxn "are there any small red spheres?" *fcg-constructions*
+                                  :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
+
+  (induce-cxns *are-there-any-small-cyan-spheres* holophrastic-are-there-any-small-red-spheres)
+
+  ;(comprehend-all (form-string *are-there-any-small-cyan-spheres*))
+
+  (setf red-cxn (find-cxn "red" *fcg-constructions*
+                                  :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
+  
+  (induce-cxns *are-there-any-huge-red-things* are-there-any-small-Xes-cxn)
+  (induce-cxns *are-there-any-huge-red-things* red-cxn)
+
+  (comprehend-all (form-string *are-there-any-huge-red-things*))
+  
+  (setf holophrastic-are-there-any-huge-red-things (find-cxn "are there any huge red things?" *fcg-constructions*
+                                  :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
+  
+  (induce-cxns *are-there-any-huge-cyan-spheres* holophrastic-are-there-any-huge-red-things)
+
+  (comprehend-all (form-string *are-there-any-huge-cyan-spheres*))
+  
+  )
+
+
+
 
 
 ;;++++++++++++++++++++++++++++++++++++++++++++
@@ -230,24 +292,27 @@
       (holophrastic-what-size-is-the-sphere (induce-cxns *what-size-is-the-sphere* nil :cxn-inventory *fcg-constructions*))
       block-cxn what-color-is-the-X-cxn what-size-is-the-X-cxn how-many-Xs-are-there-cxn sphere-cxn)
 
-  
-  (induce-cxns *what-size-is-the-block* holophrastic-what-size-is-the-sphere :cxn-inventory *fcg-constructions*)
-  (comprehend-all (form-string *what-size-is-the-block*))
+  ;;leer op basis van holophrase:
+  (setf what-size-is-the-X-cxn (induce-cxns *what-size-is-the-block* holophrastic-what-size-is-the-sphere :cxn-inventory *fcg-constructions*))
+  ;(comprehend-all (form-string *what-size-is-the-block*))
 
   (setf block-cxn (find-cxn "block" *fcg-constructions*
                             :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
 
-  (comprehend-all (form-string *what-color-is-the-block*))
-  (induce-cxns *what-color-is-the-block* block-cxn :cxn-inventory *fcg-constructions*)
-  (comprehend-all (form-string *what-color-is-the-block*))
+  ;; leer op basis van filler cxn:
+  (setf what-color-is-the-X-cxn (induce-cxns *what-color-is-the-block* block-cxn :cxn-inventory *fcg-constructions*))
+  ;(comprehend-all (form-string *what-color-is-the-block*))
 
-  ;(induce-cxns *how-many-blocks-are-there* block-cxn :cxn-inventory *fcg-constructions*)
+  (induce-cxns *how-many-blocks-are-there* block-cxn :cxn-inventory *fcg-constructions*)
   ;(comprehend-all (form-string *how-many-blocks-are-there*))
 
 
   ;;TO DO: anti-unify two constructions
-  ;(induce-cxns what-size-is-the-X-cxn what-color-is-the-X-cxn) 
+  ;;leer op basis van slot cxn
+  (induce-cxns what-size-is-the-X-cxn what-color-is-the-X-cxn) 
 
+  (comprehend-all (form-string *what-size-is-the-block*))
+  
   )
 
 
