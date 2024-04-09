@@ -153,6 +153,56 @@
                                                       :name "history"
                                                       :type "store")))
 
+;;;;;;;
+
+(progn
+  (setf *experiment*
+        (cl-store:restore (babel-pathname :directory '("experiments"
+                                                       "concept-emergence2"
+                                                       "storage"
+                                                       "millie2"
+                                                       "df"
+                                                       "millie2-3"
+                                                       "stores"
+                                                     
+                                                       )
+                                          :name "1"
+                                          :type "store"))))
+
+(set-configuration *experiment* :align nil)
+
+(initialise-world *experiment*)
+
+
+(defun print-hash-entry (key value)
+    (format t "~S: [~{\"~a~^\", ~}\"],~%" key value))
+
+(defun context-usage-dictionary ()
+  (loop with hash-table = (make-hash-table :test 'equal)
+        for idx from 1 to 5000
+        for ag = (first (interacting-agents (current-interaction *experiment*)))
+        for used-form = (find-data ag 'applied-cxn)
+        do (format t "~% ~a." idx)
+        if (and used-form (gethash (form used-form) hash-table))
+          do (setf (gethash (form used-form) hash-table) (adjoin (assqv :name (description (find-data ag 'topic)))
+                                                                 (gethash (form used-form) hash-table)))
+        else
+          do (when used-form
+               (setf (gethash (form used-form) hash-table) (list (assqv :name (description (find-data ag 'topic))))))
+        do (run-interaction *experiment*)
+        finally (return hash-table)))
+
+(progn
+  (setf ht (context-usage-dictionary)))
+
+(progn
+  (format t "{ ")
+  (maphash #'print-hash-entry ht)
+  (format t " }"))
+
+
+
+
 
 #|(setf results (testi3 an-experiment))
 
