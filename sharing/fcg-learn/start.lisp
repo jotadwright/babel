@@ -94,7 +94,8 @@
   (induce-cxns *how-many-cubes-are-there* holophrastic-how-many-red-cubes-are-there :cxn-inventory *fcg-constructions*)
 
   (comprehend-all (form-string *how-many-cubes-are-there*))
-  (comprehend-all (form-string *how-many-red-cubes-are-there*)))
+  (comprehend-all (form-string *how-many-red-cubes-are-there*))
+  (formulate-all (instantiate-variables (meaning *how-many-red-cubes-are-there*))))
 
 
 ;; Addition
@@ -129,15 +130,9 @@
                                                                (bind shape-category ?shape-62 sphere)
                                                                (count ?number-62 ?set-72)))))
 
-
-
-;;EXAMPLE 1 OF ANTI-UNIFYING CONSTRUCTIONS
-;;----------------------------------------------------------------------------------------------------------
 (let ((*fcg-constructions* (make-sandbox-grammar-cxns))
       holophrastic-how-many-red-cubes-are-there
-      how-many-X-cubes-are-there-cxn
-      blue-filler-cxn
-      blue-spher-filler-cxn)
+      how-many-X-cubes-are-there-cxn)
   
   ;;Learn a holophrastic cxn first
   (setf holophrastic-how-many-red-cubes-are-there (induce-cxns *how-many-red-cubes-are-there* nil :cxn-inventory *fcg-constructions*))
@@ -146,39 +141,67 @@
   (setf how-many-X-cubes-are-there-cxn
         (induce-cxns *how-many-cubes-are-there* holophrastic-how-many-red-cubes-are-there :cxn-inventory *fcg-constructions*))
 
-;  (comprehend-all (form-string *how-many-cubes-are-there*))
-;  (comprehend-all (form-string *how-many-red-cubes-are-there*))
+  (comprehend-all (form-string *how-many-cubes-are-there*))
+  (comprehend-all (form-string *how-many-red-cubes-are-there*))
   
   ;;Learn a filler cxn for blue
   (induce-cxns *how-many-blue-cubes-are-there* how-many-X-cubes-are-there-cxn :cxn-inventory *fcg-constructions*)
-
-;  (comprehend-all (form-string *how-many-blue-cubes-are-there*))
+  (comprehend-all (form-string *how-many-blue-cubes-are-there*))
   (formulate-all (instantiate-variables (meaning *how-many-blue-cubes-are-there*)))
+  )
+  
+
+;;----------------------------------------------------------------------------------------------------------
+;;EXAMPLE 1 OF ANTI-UNIFYING CONSTRUCTIONS (THE CASE OF TWO FILLER CONSTRUCTIONS)
+;;----------------------------------------------------------------------------------------------------------
+(let ((*fcg-constructions* (make-sandbox-grammar-cxns))
+      holophrastic-how-many-red-cubes-are-there
+      how-many-X-cubes-are-there-cxn
+      blue-filler-cxn
+      blue-spher-filler-cxn)
+
+  ;;Learn a holophrastic cxn first
+  (setf holophrastic-how-many-red-cubes-are-there (induce-cxns *how-many-red-cubes-are-there* nil :cxn-inventory *fcg-constructions*))
+
+  ;;Learn a first slot cxn and one filler cxn for red
+  (setf how-many-X-cubes-are-there-cxn
+        (induce-cxns *how-many-cubes-are-there* holophrastic-how-many-red-cubes-are-there :cxn-inventory *fcg-constructions*))
+
+   ;;Learn a filler cxn for blue
+  (induce-cxns *how-many-blue-cubes-are-there* how-many-X-cubes-are-there-cxn :cxn-inventory *fcg-constructions*)
+  (comprehend-all (form-string *how-many-blue-cubes-are-there*))
+  (formulate-all (instantiate-variables (meaning *how-many-blue-cubes-are-there*)))
+  
   ;;Learn a slot cxn for how-many-Xes-are-there and two filler cxns for blue-spher and cub
   (induce-cxns *how-many-blue-spheres-are-there* how-many-X-cubes-are-there-cxn :cxn-inventory *fcg-constructions*)
 
- ; (comprehend-all (form-string *how-many-blue-spheres-are-there*))
+  (comprehend-all (form-string *how-many-blue-spheres-are-there*))
  ; (comprehend-all (form-string *how-many-cubes-are-there*)) ;;WERKT NOG NIET CORRECT (MEANING NIET VERBONDEN)
 
   ;;Learn a slot-and-filler cxn for blue and filler cxn for spher based on two filler cxns blue-spher-cxn and blue-cxn
   (setf blue-filler-cxn (find-cxn "blue " *fcg-constructions*
                                   :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
+
+  (assert blue-filler-cxn)
   
   (setf blue-spher-filler-cxn (find-cxn "blue spher" *fcg-constructions*
                                         :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
 
-  (induce-cxns blue-filler-cxn blue-spher-filler-cxn :cxn-inventory *fcg-constructions*)
+  (assert blue-spher-filler-cxn)
+
+  (induce-cxns blue-filler-cxn blue-spher-filler-cxn :cxn-inventory *fcg-constructions*))
   
   (comprehend-all (form-string *how-many-blue-spheres-are-there*))
   (formulate-all (instantiate-variables  (meaning *how-many-blue-spheres-are-there*)))
   )
+
 #|
 (setf *res* (anti-unify-sequences
              '((sequence "how many blue spheres are there?" ?l6 ?r6))
              '((sequence "how many " ?l7 ?r7)
-               
+               (sequence "_" ?r7 ?l8)
                (sequence "cubes are there?" ?l8 ?r8)
-               (sequence "_" ?r7 ?l8))))|#
+               )))|#
 
 ;;----------------------------------------------------------------------------------------------------------
 ;;EXAMPLE 2 OF ANTI-UNIFYING CONSTRUCTIONS
