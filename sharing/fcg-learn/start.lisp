@@ -32,7 +32,7 @@
                        (:render-mode . :render-sequences)
                        (:category-linking-mode . :neighbours)
                        (:parse-goal-tests :no-applicable-cxns :connected-semantic-network :no-sequence-in-root)
-                       (:production-goal-tests :no-applicable-cxns :no-meaning-in-root))
+                       (:production-goal-tests :no-applicable-cxns :no-meaning-in-root :connected-structure))
   :visualization-configurations ((:show-constructional-dependencies . nil)
                                  (:show-categorial-network . t)))
 
@@ -64,7 +64,8 @@
   (induce-cxns *what-size-is-the-cube* holophrastic-what-color-is-the-cube :cxn-inventory *fcg-constructions*)
 
   (comprehend-all (form-string *what-color-is-the-cube*))
-  (comprehend-all (form-string *what-size-is-the-cube*)))
+  (comprehend-all (form-string *what-size-is-the-cube*))
+  (formulate-all (instantiate-variables (meaning *what-color-is-the-cube*))))
 
 ;;++++++++++++++++++++++++++++++++++++++++++++
 ;; Deletion + addition
@@ -152,7 +153,7 @@
   (induce-cxns *how-many-blue-cubes-are-there* how-many-X-cubes-are-there-cxn :cxn-inventory *fcg-constructions*)
 
 ;  (comprehend-all (form-string *how-many-blue-cubes-are-there*))
-
+  (formulate-all (instantiate-variables (meaning *how-many-blue-cubes-are-there*)))
   ;;Learn a slot cxn for how-many-Xes-are-there and two filler cxns for blue-spher and cub
   (induce-cxns *how-many-blue-spheres-are-there* how-many-X-cubes-are-there-cxn :cxn-inventory *fcg-constructions*)
 
@@ -166,8 +167,8 @@
   (setf blue-spher-filler-cxn (find-cxn "blue spher" *fcg-constructions*
                                         :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
 
-  (induce-cxns blue-spher-filler-cxn blue-filler-cxn :cxn-inventory *fcg-constructions*) ;;WERKT NOG NIET
-
+  (induce-cxns blue-filler-cxn blue-spher-filler-cxn :cxn-inventory *fcg-constructions*)
+  
   (comprehend-all (form-string *how-many-blue-spheres-are-there*))
   (formulate-all (instantiate-variables  (meaning *how-many-blue-spheres-are-there*)))
   )
@@ -247,7 +248,7 @@
   (induce-cxns *are-there-any-huge-cyan-spheres* holophrastic-are-there-any-huge-red-things)
 
   (comprehend-all (form-string *are-there-any-huge-cyan-spheres*))
-  
+  (formulate-all (instantiate-variables (meaning *are-there-any-huge-cyan-spheres*)))
   )
 
 
