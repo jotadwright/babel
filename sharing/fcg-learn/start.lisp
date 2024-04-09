@@ -31,7 +31,8 @@
                        (:de-render-mode . :de-render-sequence)
                        (:render-mode . :render-sequences)
                        (:category-linking-mode . :neighbours)
-                       (:parse-goal-tests :no-applicable-cxns :connected-semantic-network :no-sequence-in-root))
+                       (:parse-goal-tests :no-applicable-cxns :connected-semantic-network :no-sequence-in-root)
+                       (:production-goal-tests :no-applicable-cxns :no-meaning-in-root))
   :visualization-configurations ((:show-constructional-dependencies . nil)
                                  (:show-categorial-network . t)))
 
@@ -144,19 +145,19 @@
   (setf how-many-X-cubes-are-there-cxn
         (induce-cxns *how-many-cubes-are-there* holophrastic-how-many-red-cubes-are-there :cxn-inventory *fcg-constructions*))
 
-  ;(comprehend-all (form-string *how-many-cubes-are-there*))
-  ;(comprehend-all (form-string *how-many-red-cubes-are-there*))
+;  (comprehend-all (form-string *how-many-cubes-are-there*))
+;  (comprehend-all (form-string *how-many-red-cubes-are-there*))
   
   ;;Learn a filler cxn for blue
   (induce-cxns *how-many-blue-cubes-are-there* how-many-X-cubes-are-there-cxn :cxn-inventory *fcg-constructions*)
 
-  ;(comprehend-all (form-string *how-many-blue-cubes-are-there*))
+;  (comprehend-all (form-string *how-many-blue-cubes-are-there*))
 
   ;;Learn a slot cxn for how-many-Xes-are-there and two filler cxns for blue-spher and cub
   (induce-cxns *how-many-blue-spheres-are-there* how-many-X-cubes-are-there-cxn :cxn-inventory *fcg-constructions*)
 
-  ;(comprehend-all (form-string *how-many-blue-spheres-are-there*)))
-  ;(comprehend-all (form-string *how-many-cubes-are-there*))
+ ; (comprehend-all (form-string *how-many-blue-spheres-are-there*))
+ ; (comprehend-all (form-string *how-many-cubes-are-there*)) ;;WERKT NOG NIET CORRECT (MEANING NIET VERBONDEN)
 
   ;;Learn a slot-and-filler cxn for blue and filler cxn for spher based on two filler cxns blue-spher-cxn and blue-cxn
   (setf blue-filler-cxn (find-cxn "blue " *fcg-constructions*
@@ -165,10 +166,10 @@
   (setf blue-spher-filler-cxn (find-cxn "blue spher" *fcg-constructions*
                                         :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
 
-  (induce-cxns blue-spher-filler-cxn blue-filler-cxn :cxn-inventory *fcg-constructions*)
+  (induce-cxns blue-spher-filler-cxn blue-filler-cxn :cxn-inventory *fcg-constructions*) ;;WERKT NOG NIET
 
   (comprehend-all (form-string *how-many-blue-spheres-are-there*))
-
+  (formulate-all (instantiate-variables  (meaning *how-many-blue-spheres-are-there*)))
   )
 #|
 (setf *res* (anti-unify-sequences
