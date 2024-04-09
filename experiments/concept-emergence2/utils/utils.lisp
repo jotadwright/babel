@@ -47,7 +47,7 @@
 
 (defun list-to-hash-table (lst &key (key #'identity))
   "Creates a hash table given a list."
-  (loop with tbl = (make-hash-table)
+  (loop with tbl = (make-hash-table :test 'equal)
         for el in lst
         do (setf (gethash (funcall key el) tbl) el)
         finally (return tbl)))

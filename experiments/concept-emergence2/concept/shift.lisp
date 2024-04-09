@@ -71,11 +71,11 @@
    attributes and to find the most discriminative subset.
                    
    Saves tons in computation by only calculating it only once."
-  (loop with attribute-hash = (make-hash-table)
+  (loop with attribute-hash = (make-hash-table :test 'equal)
         for prototype in prototypes
         for ledger = (loop for prototype in prototypes sum (weight prototype))
         for channel = (channel prototype)
-        for objects-hash = (loop with hash = (make-hash-table)
+        for objects-hash = (loop with hash = (make-hash-table :test 'equal)
                                  for object in (objects (get-data agent 'context))
                                  for observation = (perceive-object-val agent object channel)
                                  for similarity = (observation-similarity observation prototype)

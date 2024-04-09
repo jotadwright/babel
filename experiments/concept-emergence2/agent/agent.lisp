@@ -25,14 +25,14 @@
     :type usage-table :accessor usage-table :initarg :usage-table)
    (perceived-objects
     :documentation "Stores perceived objects"
-    :type perceived-objects :accessor perceived-objects :initform (make-hash-table))))
+    :type perceived-objects :accessor perceived-objects :initform (make-hash-table :test 'equal))))
 
 (defmethod clear-agent ((agent cle-agent))
   "Clear the slots of the agent for the next interaction."
   (setf (blackboard agent) nil
         (utterance agent) nil
         (invented-or-adopted agent) nil
-        (perceived-objects agent) (make-hash-table)
+        (perceived-objects agent) (make-hash-table :test 'equal)
         (communicated-successfully agent) nil))
 
 (defmethod find-in-lexicon ((agent cle-agent) (form string))
@@ -76,7 +76,7 @@
         ;; CASE 2B: object did not exist
         (progn
           ;; first create object
-          (setf (gethash (id object) (perceived-objects agent)) (make-hash-table))
+          (setf (gethash (id object) (perceived-objects agent)) (make-hash-table :test 'equal))
           ;; then set value
           (setf (gethash attr (gethash (id object) (perceived-objects agent))) final-val)))
       ;; in both cases return the final-value
