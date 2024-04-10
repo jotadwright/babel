@@ -1,42 +1,7 @@
 (in-package :fcg)
 
-;; (ql:quickload '(:fcg :amr))
+;; (ql:quickload :fcg-learn)
 ;; (activate-monitor trace-fcg)
-
-(load (babel-pathname :directory '("sharing" "fcg-learn")
-                      :name "learn"
-                      :type "lisp"))
-
-;;#########################################################################
-;; Examples for testing
-;;#########################################################################
-
-(def-fcg-constructions sandbox-grammar
-  :feature-types ((form set-of-predicates :handle-regex-sequences)
-                  (meaning set-of-predicates)
-                  (form-args sequence)
-                  (meaning-args sequence)
-                  (subunits set)
-                  (footprints set))
-  :hashed t
-  :fcg-configurations (;; to activate heuristic search
-                       (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
-                       (:node-expansion-mode . :full-expansion) ;; always fully expands node immediately
-                       (:cxn-supplier-mode . :all-cxns) 
-                       ;; for using heuristics
-                       (:search-algorithm . :best-first) ;; :depth-first, :breadth-first
-                       (:heuristics :nr-of-applied-cxns :nr-of-units-matched) ;; list of heuristic functions (modes of #'apply-heuristic)
-                       (:heuristic-value-mode . :sum-heuristics-and-parent) ;; how to use results of heuristic functions for scoring a node
-                     ;  (:hash-mode . :hash-sequence-meaning)
-                       (:de-render-mode . :de-render-sequence)
-                       (:render-mode . :render-sequences)
-                       (:category-linking-mode . :neighbours)
-                       (:parse-goal-tests :no-applicable-cxns :connected-semantic-network :no-sequence-in-root)
-                       (:production-goal-tests :no-applicable-cxns :no-meaning-in-root :connected-structure))
-  :visualization-configurations ((:show-constructional-dependencies . nil)
-                                 (:show-categorial-network . t)))
-
-
 
 ;;++++++++++++++++++++++++++++++++++++++++++++
 ;; Substitution
@@ -113,6 +78,8 @@
 ;;++++++++++++++++++++++++++++++++++++++++++++
 ;; Deletion + Existing slot-cxn -> filler-cxn
 ;;++++++++++++++++++++++++++++++++++++++++++++
+
+
 
 (defparameter *how-many-blue-cubes-are-there* '((:form . ((sequence "how many blue cubes are there?" ?l40 ?r40)))
                                                 (:meaning . ((get-context ?context-60)
@@ -203,84 +170,16 @@
                (sequence "cubes are there?" ?l8 ?r8)
                )))|#
 
-;;----------------------------------------------------------------------------------------------------------
-;;EXAMPLE 2 OF ANTI-UNIFYING CONSTRUCTIONS
-;;----------------------------------------------------------------------------------------------------------
-
-(defparameter *are-there-any-small-matte-cubes* '((:form . ((sequence "are there any small matte cubes?" ?l80 ?r80)))
-                                                  (:meaning . ((get-context ?source-1) (filter ?target-1300 ?target-2 ?size-2) (bind material-category ?material-2 rubber) (filter ?target-1 ?source-1 ?shape-2) (bind shape-category ?shape-2 cube) (filter ?target-2 ?target-1 ?material-2) (bind size-category ?size-2 small) (exist ?target-23 ?target-1300)))))
-
-(defparameter *are-there-any-small-red-spheres* '((:form . ((sequence "are there any small red spheres?" ?l81 ?r81)))
-                                                     (:meaning . ((get-context ?source-10) (filter ?target-5764 ?target-20 ?size-20) (bind color-category ?color-16 red) (filter ?target-10 ?source-10 ?shape-40) (bind shape-category ?shape-40 sphere) (filter ?target-20 ?target-10 ?color-16) (bind size-category ?size-20 small) (exist ?target-230 ?target-5764)))))
-
-(defparameter *are-there-any-small-cyan-spheres* '((:form . ((sequence "are there any small cyan spheres?" ?l85 ?r85)))
-                                                   (:meaning . ((get-context ?source-20)
-                                                               (filter ?target-20 ?source-20 ?shape-50)
-                                                               (bind shape-category ?shape-50 sphere)
-                                                               (filter ?target-30 ?target-20 ?color-19)
-                                                               (bind color-category ?color-19 cyan)
-                                                               (filter ?target-5768 ?target-30 ?size-30)
-                                                               (bind size-category ?size-30 small)
-                                                               (exist ?target-231 ?target-5768)))))
-
-(defparameter *are-there-any-huge-red-things* '((:form . ((sequence "are there any huge red things?" ?l82 ?r82)))
-                                                 (:meaning . ((get-context ?source-1) (filter ?target-111343 ?target-2 ?size-4) (bind color-category ?color-4 red) (filter ?target-1 ?source-1 ?shape-8) (bind shape-category ?shape-8 thing) (filter ?target-2 ?target-1 ?color-4) (bind size-category ?size-4 large) (exist ?target-23 ?target-111343)))))
-
-(defparameter *are-there-any-huge-cyan-spheres* '((:form . ((sequence "are there any huge cyan spheres?" ?l84 ?r84)))
-                                                  (:meaning . ((get-context ?source-25)
-                                                               (filter ?target-25 ?source-25 ?shape-55)
-                                                               (bind shape-category ?shape-55 sphere)
-                                                               (filter ?target-35 ?target-25 ?color-24)
-                                                               (bind color-category ?color-24 cyan)
-                                                               (filter ?target-5773 ?target-35 ?size-35)
-                                                               (bind size-category ?size-35 large)
-                                                               (exist ?target-236 ?target-5773)))))
-
-
-(let ((*fcg-constructions* (make-sandbox-grammar-cxns))
-      holophrastic-are-there-any-small-matte-cubes
-      are-there-any-small-Xes-cxn red-cxn
-      holophrastic-are-there-any-small-red-spheres
-      holophrastic-are-there-any-huge-cyan-spheres)
-  
-  (setf holophrastic-are-there-any-small-matte-cubes (induce-cxns *are-there-any-small-matte-cubes* nil :cxn-inventory *fcg-constructions*))
-
-  (setf are-there-any-small-Xes-cxn
-        (induce-cxns *are-there-any-small-red-spheres* holophrastic-are-there-any-small-matte-cubes :cxn-inventory *fcg-constructions*))
-
-  ;(comprehend-all (form-string *are-there-any-small-red-spheres*))
-
-  (setf holophrastic-are-there-any-small-red-spheres (find-cxn "are there any small red spheres?" *fcg-constructions*
-                                  :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
-
-  (induce-cxns *are-there-any-small-cyan-spheres* holophrastic-are-there-any-small-red-spheres)
-
-  ;(comprehend-all (form-string *are-there-any-small-cyan-spheres*))
-
-  (setf red-cxn (find-cxn "red" *fcg-constructions*
-                                  :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
-  
-  (induce-cxns *are-there-any-huge-red-things* are-there-any-small-Xes-cxn)
-  (induce-cxns *are-there-any-huge-red-things* red-cxn)
-
-  (comprehend-all (form-string *are-there-any-huge-red-things*))
-  
-  (setf holophrastic-are-there-any-huge-red-things (find-cxn "are there any huge red things?" *fcg-constructions*
-                                  :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
-  
-  (induce-cxns *are-there-any-huge-cyan-spheres* holophrastic-are-there-any-huge-red-things)
-
-  (comprehend-all (form-string *are-there-any-huge-cyan-spheres*))
-  (formulate-all (instantiate-variables (meaning *are-there-any-huge-cyan-spheres*)))
-  )
-
-
-
-
 
 ;;++++++++++++++++++++++++++++++++++++++++++++
-;; Filler to slot repair
+;; Existing filler-cxn -> slot-cxn
 ;;++++++++++++++++++++++++++++++++++++++++++++
+
+
+;;----------------------------------------------------------------------------------------------------------
+;;EXAMPLE 2 OF ANTI-UNIFYING CONSTRUCTIONS (THE CASE OF TWO SLOT CXNS)
+;;----------------------------------------------------------------------------------------------------------
+
 
 (defparameter *what-size-is-the-sphere* '((:form . ((sequence "what size is the sphere?" ?l5 ?r5)))
                                         (:meaning . ((get-context ?context-3)
@@ -326,25 +225,90 @@
 
   ;; leer op basis van filler cxn:
   (setf what-color-is-the-X-cxn (induce-cxns *what-color-is-the-block* block-cxn :cxn-inventory *fcg-constructions*))
-  ;(comprehend-all (form-string *what-color-is-the-block*))
+  (comprehend-all (form-string *what-color-is-the-block*))
 
+   ;; leer op basis van filler cxn:
   (induce-cxns *how-many-blocks-are-there* block-cxn :cxn-inventory *fcg-constructions*)
-  ;(comprehend-all (form-string *how-many-blocks-are-there*))
+  (comprehend-all (form-string *how-many-blocks-are-there*))
+  (formulate-all (instantiate-variables (meaning *how-many-blocks-are-there*)))
 
 
-  ;;TO DO: anti-unify two constructions
-  ;;leer op basis van slot cxn
   (induce-cxns what-size-is-the-X-cxn what-color-is-the-X-cxn) 
 
   (comprehend-all (form-string *what-size-is-the-block*))
-  
+
   )
+
+
+
+;;----------------------------------------------------------------------------------------------------------
+;; Experimenten met subwoorden - ANTI-UNIFYING TWO FILLER CONSTRUCTIES (CENTRAAL SLOT)
+;;----------------------------------------------------------------------------------------------------------
+
+(defparameter *are-there-any-balls* '((:form . ((sequence "are there any balls?" ?left ?right)))
+                                        (:meaning . ((get-context ?source-1)
+                                                     (filter ?target-1 ?source-1 ?shape-2)
+                                                     (bind shape-category ?shape-2 sphere)
+                                                     (exist ?target-2 ?target-1)))))
+
+(defparameter *are-there-any-large-matte-cubes* '((:form . ((sequence "are there any large matte cubes?" ?l80 ?r80)))
+                                                  (:meaning . ((get-context ?source-1)
+                                                               (filter ?target-1300 ?target-2 ?size-2)
+                                                               (bind material-category ?material-2 rubber)
+                                                               (filter ?target-1 ?source-1 ?shape-2)
+                                                               (bind shape-category ?shape-2 cube)
+                                                               (filter ?target-2 ?target-1 ?material-2)
+                                                               (bind size-category ?size-2 large)
+                                                               (exist ?target-23 ?target-1300)))))
+
+(defparameter *are-there-any-large-shiny-cubes* '((:form . ((sequence "are there any large shiny cubes?" ?l80 ?r80)))
+                                                  (:meaning . ((get-context ?source-1)
+                                                               (filter ?target-1300 ?target-2 ?size-2)
+                                                               (bind material-category ?material-2 metal)
+                                                               (filter ?target-1 ?source-1 ?shape-2)
+                                                               (bind shape-category ?shape-2 cube)
+                                                               (filter ?target-2 ?target-1 ?material-2)
+                                                               (bind size-category ?size-2 large)
+                                                               (exist ?target-23 ?target-1300)))))
+
+(let ((*fcg-constructions* (make-sandbox-grammar-cxns))
+      holophrastic-are-there-any-balls large-matte-cube-cxn large-shiny-cube-cxn)
+  
+  (setf holophrastic-are-there-any-balls (induce-cxns *are-there-any-balls* nil :cxn-inventory *fcg-constructions*))
+
+  (setf are-there-any-Xes-cxn
+        (induce-cxns *are-there-any-large-matte-cubes* holophrastic-are-there-any-balls :cxn-inventory *fcg-constructions*))
+
+  (induce-cxns *are-there-any-large-shiny-cubes* are-there-any-Xes-cxn)
+
+  (comprehend-all (form-string *are-there-any-balls*))
+  (comprehend-all (form-string *are-there-any-large-matte-cubes*))
+  (comprehend-all (form-string *are-there-any-large-shiny-cubes*))
+
+  (setf large-matte-cube-cxn (find-cxn "rge matte cube" *fcg-constructions*
+                            :key #'(lambda (cxn) (second (third (attr-val cxn :sequence)))) :test #'string=))
+
+  (setf large-shiny-cube-cxn (find-cxn "rge shiny cube" *fcg-constructions*
+                            :key #'(lambda (cxn) (second (third (attr-val cxn :sequence)))) :test #'string=))
+
+  ;;WERKT NOG NIET!!!
+  (when (and large-matte-cube-cxn large-shiny-cube-cxn)
+    (induce-cxns large-matte-cube-cxn large-shiny-cube-cxn)
+    (comprehend-all (form-string *are-there-any-large-matte-cubes*)))
+
+  )
+
+
+
+
+
 
 
 
 ;;++++++++++++++++++++++++++++++++++++++++++++
 ;; AMR examples
 ;;++++++++++++++++++++++++++++++++++++++++++++
+
 
 (progn
 (defparameter *amr-1* `((:form . ((sequence "Hotel rooms available as of this weekend" ?l8 ?r8)))
