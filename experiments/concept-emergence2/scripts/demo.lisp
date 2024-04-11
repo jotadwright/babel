@@ -29,7 +29,7 @@
                 (:observation-std . 0.0)
                 ;; scene sampling
                 (:scene-sampling . :random)
-                (:topic-sampling . :discriminative)
+                (:topic-sampling . :random)
                 ;; general strategy
                 (:align . t)
                 (:similarity-threshold . 0.0)
@@ -79,7 +79,7 @@
   (activate-monitor record-time)
   (format t "~%---------- NEW GAME ----------~%")
   (time
-   (loop for i from 1 to 5000
+   (loop for i from 1 to 10000
          do (run-interaction *experiment*))))
 
 (progn
@@ -89,7 +89,123 @@
   (loop for idx from 1 to 1
         do (run-interaction *experiment*)))
 
+;;;;;;;
 
+;;;;;;;
+
+
+(progn
+  (setf *experiment*
+        (cl-store:restore (babel-pathname :directory '("experiments"
+                                                       "concept-emergence2"
+                                                       "storage"
+                                                       "millie2"
+                                                       "raw"
+                                                       "millie2-1"
+                                                       )
+                                          :name "1-history-stage-0"
+                                          :type "store"))))
+
+
+(setf ag (first (agents *experiment*)))
+
+(lexicon-size (lexicon ag))
+
+
+(set-configuration *experiment* :align nil)
+
+(initialise-world *experiment*)
+
+
+(loop for key being the hash-keys of (fast-inventory (lexicon (first (agents *experiment*))))
+       collect key)
+
+
+(setf new-lexicon (sort (loop for cxn being the hash-values of
+                                (get-inventory (lexicon (first (agents *experiment*))) :fast) collect cxn)
+                        #'(lambda (x y) (> (score x) (score y)))))
+
+
+(let* ((agent (first (agents *experiment*)))
+       (lexicon (loop for cxn being the hash-values of (get-inventory (lexicon agent) :fast) collect cxn))
+       (new-lexicon (sort lexicon #'(lambda (x y) (> (score x) (score y))))))
+  new-lexicon)
+
+(add-cxn-to-interface (first new-lexicon))
+
+;;;;;
+
+read-scene-ids
+
+
+
+
+
+
+
+(map 'list #'parse-integer (uiop:read-file-lines
+                            (concatenate 'string
+                                         "~/Corpora/concept-emergence2/"
+                                         (mkstr (make-pathname :directory
+                                                               `(:relative "gqaglove50")
+                                                               :name
+                                                               "all.lisp")))))
+
+(defun read-scene-ids (fname)
+  (let* ((base-dir "~/Corpora/concept-emergence2/gqaglove50/")
+         (fpath (concatenate 'string base-dir fname))
+         (raw (uiop:read-file-lines fpath))
+         (scene-ids (map 'list #'parse-integer raw)))
+    scene-ids))
+
+(defun get-scene-by-indexes (experiment)
+  (let ((scene-ids (get-configuration experiment :scene-ids))
+        (current-idx (get-configuration experiment :current-scene-idx)))
+    (set-configuration experiment :current-scene-idx (mod (+ current-idx 1) (length scene-ids)))
+    (get-scene-by-index (world experiment) (nth current-idx scene-ids))))
+
+(read-scene-ids
+ (mkstr (make-pathname :directory
+                       `(:relative ,dataset)
+                       :name
+                       (get-configuration experiment :data-fname))))
+;;;;;
+
+
+
+
+(lexicon-size (lexicon (first (agents *experiment*))))
+
+
+(add-cxn-to-interface (first new-lexicon))
+
+
+
+(setf cxns50 (loop for cxn in new-lexicon
+                   if (= (score cxn) 0.5)
+                     collect cxn))
+
+(length cxns50)
+
+(setf res
+      (loop for cxn1 in cxns50 and idx from 0
+            do (format t "~%~a," idx)
+            do (loop for cxn2 in cxns50
+                     collect (format nil "~,3f," (similar-concepts (first (agents *experiment*))
+                                                                   (meaning cxn1)
+                                                                   (meaning cxn2))))))
+
+(nr-of-samples (distribution (gethash 'dim-0 (prototypes (meaning (nth 723 new-lexicon))))))
+
+(loop for cxn in new-lexicon and idx from 1
+      for avg-weight = (average-weight cxn)
+      for score = (score cxn)
+      for samples = (nr-of-samples (distribution (gethash 'dim-0 (prototypes (meaning cxn)))))
+      ; if 
+      do (format t "~% ~a. ~,2f [score = ~,2f] - [samples = ~a]" idx avg-weight score samples))
+
+(setf cxnio (nth 6 new-lexicon))
+(average-weight cxnio)
 
 
 

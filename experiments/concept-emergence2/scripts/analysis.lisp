@@ -200,6 +200,16 @@
   (maphash #'print-hash-entry ht)
   (format t " }"))
 
+;;;
+
+(defun average-weight (cxn)
+  (loop for prototype being the hash-values of (prototypes (meaning cxn))
+        sum (weight prototype) into weight-sum
+        finally (return (/ weight-sum (hash-table-count (prototypes (meaning cxn)))))))
+
+
+;;;
+
 
 
 
