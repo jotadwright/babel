@@ -5,7 +5,7 @@
 ;; ---------------------------
 
 (defun read-scene-ids (fname)
-  (let* ((base-dir "~/Projects/babel/experiments/concept-emergence2/data/")
+  (let* ((base-dir "~/Corpora/concept-emergence2/")
          (fpath (concatenate 'string base-dir fname))
          (raw (uiop:read-file-lines fpath))
          (scene-ids (map 'list #'parse-integer raw)))
