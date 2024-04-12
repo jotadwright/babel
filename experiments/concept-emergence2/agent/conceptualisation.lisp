@@ -91,6 +91,7 @@
         with best-score = -1
         with best-cxn = nil
         with competitors = '()
+        ;; iterate
         for cxn being the hash-values of (get-inventory (lexicon agent) inventory-name)
         for concept = (meaning cxn)
         for topic-sim = (weighted-similarity agent topic concept)
@@ -102,6 +103,7 @@
                                      do (return-from bos-loop other-sim)
                                    maximize other-sim)
         for discriminative-power = (abs (- topic-sim best-other-sim))
+        ;; new candidate cxn
         if (and (> topic-sim (+ best-other-sim similarity-threshold))
                 (> (* discriminative-power (score cxn)) best-score))
           do (progn
@@ -109,6 +111,7 @@
                  (setf competitors (cons best-cxn competitors)))
                (setf best-score (* discriminative-power (score cxn)))
                (setf best-cxn cxn))
+        ;; save as competitor TODO
         else
           do (when all-competitors-p
                (setf competitors (cons cxn competitors)))
@@ -127,7 +130,6 @@
          (hearer-cxn (if (conceptualised-p hearer)
                        (find-data hearer 'hypothetical-cxn)
                        (conceptualise hearer)))
-         ;; (hearer-cxn (conceptualise hearer))
          (coherence (if (and speaker-cxn hearer-cxn)
                       (string= (form speaker-cxn) (form hearer-cxn))
                       nil)))
