@@ -36,4 +36,8 @@
 (defmethod is-channel-available ((mode (eql :dinov2)) symbolic-attribute raw-attributes)
   t)
 
+(defmethod get-all-channels ((mode (eql :dinov2-50)))
+  (dinov2-channels))
 
+(defmethod is-channel-available ((mode (eql :dinov2-50)) symbolic-attribute raw-attributes)
+  t)
