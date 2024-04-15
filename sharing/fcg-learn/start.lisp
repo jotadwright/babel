@@ -97,6 +97,17 @@
                                                              (bind shape-category ?shape-60 sphere)
                                                              (count ?number-60 ?set-70)))))
 
+(defparameter *is-there-a-blue-metal-sphere* '((:form . ((sequence "is there a blue metal sphere?" ?l42 ?r42)))
+                                                  (:meaning . ((EXIST ?VAR-3220854 ?VAR-3220853)
+                                                               (FILTER ?VAR-3220853 ?VAR-3220851 ?VAR-3220852)
+                                                               (FILTER ?VAR-3220851 ?VAR-3220849 ?VAR-3220850)
+                                                               (FILTER ?VAR-3220849 ?VAR-3220847 ?VAR-3220848)
+                                                               (BIND SHAPE-CATEGORY ?VAR-3220852 SPHERE)
+                                                               (BIND COLOR-CATEGORY ?VAR-3220850 BLUE)
+                                                               (BIND MATERIAL-CATEGORY ?VAR-3220848 METAL)
+                                                               (GET-CONTEXT ?VAR-3220847)))))
+
+
 (let ((*fcg-constructions* (make-sandbox-grammar-cxns))
       holophrastic-how-many-red-cubes-are-there
       how-many-X-cubes-are-there-cxn)
@@ -115,6 +126,13 @@
   (induce-cxns *how-many-blue-cubes-are-there* how-many-X-cubes-are-there-cxn :cxn-inventory *fcg-constructions*)
   (comprehend-all (form-string *how-many-blue-cubes-are-there*))
   (formulate-all (instantiate-variables (meaning *how-many-blue-cubes-are-there*)))
+
+  ;;Reuse filler for blue
+  (setf blue-filler-cxn (find-cxn "blue " *fcg-constructions*
+                                  :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
+  
+  (induce-cxns *is-there-a-blue-metal-sphere* blue-filler-cxn :cxn-inventory *fcg-constructions*)
+  (comprehend-all (form-string *is-there-a-blue-metal-sphere*))
   )
   
 
