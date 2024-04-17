@@ -130,11 +130,21 @@
   ;;Reuse filler for blue
   (setf blue-filler-cxn (find-cxn "blue " *fcg-constructions*
                                   :key #'(lambda (cxn) (second (first (attr-val cxn :sequence)))) :test #'string=))
-  
+
+  (assert blue-filler-cxn)
+
+  ;;Learn blue slot cxn
   (induce-cxns *is-there-a-blue-metal-sphere* blue-filler-cxn :cxn-inventory *fcg-constructions*)
-  (comprehend-all (form-string *is-there-a-blue-metal-sphere*))
+  ;(comprehend-all (form-string *is-there-a-blue-metal-sphere*))
+  (formulate-all (instantiate-variables (meaning *is-there-a-blue-metal-sphere*)))
+  
   )
   
+
+
+
+
+
 
 ;;----------------------------------------------------------------------------------------------------------
 ;;EXAMPLE 1 OF ANTI-UNIFYING CONSTRUCTIONS (THE CASE OF TWO FILLER CONSTRUCTIONS)
