@@ -80,6 +80,17 @@
 ;; + Conceptualisation through discrimination +
 ;; --------------------------------------------
 
+(defun calculate-max-similarity-in-context (agent concept context topic-sim)
+  """Calculates the maximim similarity between the given concept and all objects in the context."
+  (loop named lazy-loop
+        for object in context
+        for other-sim = (weighted-similarity agent object concept)
+        when (<= topic-sim other-sim)
+          ;; lazy stopping
+          do (return-from lazy-loop other-sim)
+        maximize other-sim))
+
+
 (defun search-inventory (agent inventory-name &key all-competitors-p)
   """Searches an inventory for a concept.
 
@@ -95,26 +106,20 @@
         for cxn being the hash-values of (get-inventory (lexicon agent) inventory-name)
         for concept = (meaning cxn)
         for topic-sim = (weighted-similarity agent topic concept)
-        for best-other-sim = (loop named bos-loop
-                                   for object in context
-                                   for other-sim = (weighted-similarity agent object concept)
-                                   when (<= topic-sim other-sim)
-                                     ;; lazy stopping
-                                     do (return-from bos-loop other-sim)
-                                   maximize other-sim)
+        for best-other-sim = (calculate-max-similarity-in-context agent concept context topic-sim)
         for discriminative-power = (abs (- topic-sim best-other-sim))
         ;; new candidate cxn
         if (and (> topic-sim (+ best-other-sim similarity-threshold))
                 (> (* discriminative-power (score cxn)) best-score))
           do (progn
                (when best-cxn
-                 (setf competitors (cons best-cxn competitors)))
+                 (push best-cxn competitors))
                (setf best-score (* discriminative-power (score cxn)))
                (setf best-cxn cxn))
         ;; save as competitor TODO
         else
           do (when all-competitors-p
-               (setf competitors (cons cxn competitors)))
+               (push cxn competitors))
         finally (return (list best-score best-cxn competitors))))
 
 ;; ---------------------
