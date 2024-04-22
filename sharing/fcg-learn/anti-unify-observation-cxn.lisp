@@ -112,7 +112,7 @@ learned."))
 
 
 (defmethod induce-cxns ((form-meaning-pair-1 list) ;;observation
-                        (existing-cxn holophrastic-cxn) &key (cxn-inventory *fcg-constructions*) &allow-other-keys)
+                        (existing-cxn fcg-construction) &key (cxn-inventory *fcg-constructions*) &allow-other-keys)
   "Learns new constructions through anti-unifying an observation and an holophrase construction."
   
   (let ((au-meaning-results (anti-unify-predicate-network (fresh-variables (meaning form-meaning-pair-1))
@@ -154,26 +154,26 @@ learned."))
             (learn-holophrastic-cxn (form form-meaning-pair-1) (meaning form-meaning-pair-1) :cxn-inventory cxn-inventory)))
 
       (if slot-cxn
-      ;; Create links in the categorial network between existing slot and new filler
-      (progn
-        (when pattern-filler-cxn
-          (add-link (attr-val pattern-filler-cxn :cxn-cat) (attr-val slot-cxn :cxn-cat) cxn-inventory))
+        ;; Create links in the categorial network between existing slot and new filler
+        (progn
+          (when pattern-filler-cxn
+            (add-link (attr-val pattern-filler-cxn :cxn-cat) (attr-val slot-cxn :cxn-cat) cxn-inventory))
 
-        (when source-filler-cxn
-          (add-link (attr-val source-filler-cxn :cxn-cat) (attr-val slot-cxn :cxn-cat) cxn-inventory))
+          (when source-filler-cxn
+            (add-link (attr-val source-filler-cxn :cxn-cat) (attr-val slot-cxn :cxn-cat) cxn-inventory))
         
-        (values slot-cxn pattern-filler-cxn source-filler-cxn holophrastic-cxn))
+          (values slot-cxn pattern-filler-cxn source-filler-cxn holophrastic-cxn))
 
-      (progn
-         (when pattern-filler-cxn
-          (add-link (attr-val pattern-filler-cxn :cxn-cat) (attr-val existing-cxn :cxn-cat) cxn-inventory))
+        (progn
+          (when pattern-filler-cxn
+            (add-link (attr-val pattern-filler-cxn :cxn-cat) (attr-val existing-cxn :cxn-cat) cxn-inventory))
 
-        (when source-filler-cxn
-          (add-link (attr-val source-filler-cxn :cxn-cat) (attr-val existing-cxn :cxn-cat) cxn-inventory))
+          (when source-filler-cxn
+            (add-link (attr-val source-filler-cxn :cxn-cat) (attr-val existing-cxn :cxn-cat) cxn-inventory))
 
-        (values existing-cxn pattern-filler-cxn source-filler-cxn holophrastic-cxn)
+          (values existing-cxn pattern-filler-cxn source-filler-cxn holophrastic-cxn)
 
-      )))))
+          )))))
 
 
 (defun learn-filler-cxn (form-sequence-predicates meaning-predicates form-filler-args meaning-filler-args
@@ -341,7 +341,7 @@ partially schematic."
 ;; Learning based on existing filler construction
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
+#|
 (defmethod induce-cxns ((form-meaning-pair-1 list) ;;observation
                         (existing-cxn filler-cxn) &key (cxn-inventory *fcg-constructions*) &allow-other-keys)
   "Learns new constructions through anti-unifying an observation and an existing filler construction."
@@ -376,8 +376,7 @@ partially schematic."
       (values slot-cxn existing-cxn nil holophrastic-cxn))))
 
 
-
-
+|#
 
 
 
