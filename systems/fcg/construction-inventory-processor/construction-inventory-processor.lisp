@@ -25,7 +25,7 @@
           succeeded-nodes create-construction-inventory-processor
           fcg-apply-with-n-solutions fcg-apply-exhaustively upward-branch cip-enqueue))
 
-(defclass construction-inventory-processor ()
+(defclass construction-inventory-processor (object-w-learning)
   ((construction-inventory 
     :type construction-inventory :initarg :construction-inventory 
     :accessor construction-inventory
