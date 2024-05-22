@@ -25,7 +25,7 @@
   ())
 
 
-(defgeneric learn-cxns (speech-act cxn-inventory &allow-other-keys)
+(defgeneric learn-cxns (speech-act cxn-inventory &key &allow-other-keys)
   (:documentation "Learns constructions based on speech-act and cxn-inventory. Ret"))
 
 
@@ -50,6 +50,7 @@
                        (:heuristic-value-mode . :sum-heuristics-and-parent) ;; how to use results of heuristic functions for scoring a node
                      ;  (:hash-mode . :hash-sequence-meaning)
                        (:diagnostics :diagnose-gold-standard-not-in-search-space)
+                       (:consolidate-repairs . t)
                        (:de-render-mode . :de-render-sequence)
                        (:render-mode . :render-sequences)
                        (:category-linking-mode . :neighbours)
@@ -438,7 +439,7 @@ partially schematic."
                  (find delta-var-pattern (pattern-delta au-result) :test (lambda (x y) (member x y))))
           collect gen-var-source))
 
-
+#|
 (defun form (observation)
   (let ((raw-observed-form (if (consp (first observation))
                              (cdr (assoc :form observation))
@@ -461,7 +462,7 @@ partially schematic."
   (if (consp (first observation))
     (cdr (assoc :meaning observation))
     (rest observation)))
-
+|#
 
 (defmethod make-html-construction-title ((construction construction))
  `((span) 

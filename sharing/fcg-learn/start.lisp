@@ -2,7 +2,7 @@
 
 ;; (ql:quickload :fcg-learn)
 ;; (activate-monitor trace-fcg)
-
+(activate-monitor trace-learning)
 ;;++++++++++++++++++++++++++++++++++++++++++++
 ;; Substitution
 ;;++++++++++++++++++++++++++++++++++++++++++++
@@ -16,6 +16,10 @@
                               (unique ?object-1 ?set-1)
                               (query ?target-1 ?object-1 ?attribute-1)
                               (bind attribute-category ?attribute-1 color))))
+
+(setf *fcg-constructions* (make-empty-cxn-inventory-cxns))
+(comprehend *what-color-is-the-cube* :cxn-inventory *fcg-constructions*)
+
 
 (defparameter *what-size-is-the-cube* (make-instance 'speech-act
                                                       :form '((sequence "what size is the cube?" ?l2 ?r2))
