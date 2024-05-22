@@ -7,23 +7,26 @@
 ;; Substitution
 ;;++++++++++++++++++++++++++++++++++++++++++++
  
-(defparameter *what-color-is-the-cube* '((:form . ((sequence "what color is the cube?" ?l1 ?r1)))
-                                         (:meaning . ((get-context ?context-1)
-                                                      (filter ?set-1 ?context-1 ?shape-1)
-                                                      (bind shape-category ?shape-1 cube)
-                                                      (unique ?object-1 ?set-1)
-                                                      (query ?target-1 ?object-1 ?attribute-1)
-                                                      (bind attribute-category ?attribute-1 color)))))
+(defparameter *what-color-is-the-cube*
+    (make-instance 'speech-act
+                   :form '((sequence "what color is the cube?" ?l1 ?r1))
+                   :meaning '((get-context ?context-1)
+                              (filter ?set-1 ?context-1 ?shape-1)
+                              (bind shape-category ?shape-1 cube)
+                              (unique ?object-1 ?set-1)
+                              (query ?target-1 ?object-1 ?attribute-1)
+                              (bind attribute-category ?attribute-1 color))))
 
-(defparameter *what-size-is-the-cube* '((:form . ((sequence "what size is the cube?" ?l2 ?r2)))
-                                        (:meaning . ((get-context ?context-2)
-                                                     (filter ?set-2 ?context-2 ?shape-2)
-                                                     (bind shape-category ?shape-2 cube)
-                                                     (unique ?object-2 ?set-2)
-                                                     (query ?target-2 ?object-2 ?attribute-2)
-                                                     (bind attribute-category ?attribute-2 size)))))
+(defparameter *what-size-is-the-cube* (make-instance 'speech-act
+                                                      :form '((sequence "what size is the cube?" ?l2 ?r2))
+                                                      :meaning '((get-context ?context-2)
+                                                                 (filter ?set-2 ?context-2 ?shape-2)
+                                                                 (bind shape-category ?shape-2 cube)
+                                                                 (unique ?object-2 ?set-2)
+                                                                 (query ?target-2 ?object-2 ?attribute-2)
+                                                                 (bind attribute-category ?attribute-2 size))))
 
-(let ((*fcg-constructions* (make-sandbox-grammar-cxns))
+(let ((*fcg-constructions* (make-empty-cxn-inventory-cxns))
       (holophrastic-what-color-is-the-cube (induce-cxns *what-color-is-the-cube* nil :cxn-inventory *fcg-constructions*)))
 
   (induce-cxns *what-size-is-the-cube* holophrastic-what-color-is-the-cube :cxn-inventory *fcg-constructions*)
@@ -31,6 +34,12 @@
   (comprehend-all (form-string *what-color-is-the-cube*))
   (comprehend-all (form-string *what-size-is-the-cube*))
   (formulate-all (instantiate-variables (meaning *what-color-is-the-cube*))))
+
+
+(comprehend *what-color-is-the-cube* :cxn-inventory (make-empty-cxn-inventory-cxns))
+
+(categorial-network (make-empty-cxn-inventory-cxns))
+next-cip-solution
 
 ;;++++++++++++++++++++++++++++++++++++++++++++
 ;; Deletion + addition

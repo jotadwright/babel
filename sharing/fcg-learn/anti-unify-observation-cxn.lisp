@@ -25,19 +25,14 @@
   ())
 
 
-(defgeneric induce-cxns (form-meaning-pair-1 form-meaning-pair-2 &key cxn-inventory &allow-other-keys)
-  (:documentation "Create new constructions based on a new observation (form-meaning
-pair) and a previously learned construction (holophrastic, partially
-schematic) by exploiting the generalisation and deltas obtained
-through anti-unification, both for the meaning as for the form of the
-observation. If 'cxn' is NIL, only a holophrastic construction is
-learned."))
+(defgeneric learn-cxns (speech-act cxn-inventory &allow-other-keys)
+  (:documentation "Learns constructions based on speech-act and cxn-inventory. Ret"))
 
 
 ;; Grammar configurations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def-fcg-constructions sandbox-grammar
+(def-fcg-constructions empty-cxn-inventory
   :feature-types ((form set-of-predicates :handle-regex-sequences)
                   (meaning set-of-predicates)
                   (form-args sequence)
@@ -54,6 +49,7 @@ learned."))
                        (:heuristics :nr-of-applied-cxns :nr-of-units-matched) ;; list of heuristic functions (modes of #'apply-heuristic)
                        (:heuristic-value-mode . :sum-heuristics-and-parent) ;; how to use results of heuristic functions for scoring a node
                      ;  (:hash-mode . :hash-sequence-meaning)
+                       (:diagnostics :diagnose-gold-standard-not-in-search-space)
                        (:de-render-mode . :de-render-sequence)
                        (:render-mode . :render-sequences)
                        (:category-linking-mode . :neighbours)
@@ -70,7 +66,8 @@ learned."))
 (defmethod induce-cxns ((form-meaning-pair-1 list)
                         (form-meaning-pair-2 null) &key (cxn-inventory *fcg-constructions*) &allow-other-keys)
   "Learn a holophrastic construction for a given observation."
-  (learn-holophrastic-cxn (fresh-variables (form form-meaning-pair-1)) (fresh-variables (meaning form-meaning-pair-1))
+  (learn-holophrastic-cxn (fresh-variables (form form-meaning-pair-1))
+                          (fresh-variables (meaning form-meaning-pair-1))
                           :cxn-inventory cxn-inventory))
 
 (defun learn-holophrastic-cxn (form-sequence-predicates meaning-predicates &key (cxn-inventory *fcg-constructions*))
