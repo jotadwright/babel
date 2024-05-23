@@ -5,6 +5,7 @@
   :depends-on (:amr :fcg :irl)
   :serial t
   :components ((:file "classes")
+               (:file "monitors")
                (:file "routine-processing")
                (:file "anti-unify-observation-cxn")
                (:file "diagnostics")

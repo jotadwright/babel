@@ -1,8 +1,9 @@
 (in-package :fcg)
 
 ;; (ql:quickload :fcg-learn)
-;; (activate-monitor trace-fcg)
-(activate-monitor trace-learning)
+;; (deactivate-all-monitors)
+(activate-monitor trace-fcg-learning)
+
 ;;++++++++++++++++++++++++++++++++++++++++++++
 ;; Substitution
 ;;++++++++++++++++++++++++++++++++++++++++++++
