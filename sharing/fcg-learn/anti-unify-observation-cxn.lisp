@@ -49,7 +49,11 @@
                        (:heuristics :nr-of-applied-cxns :nr-of-units-matched) ;; list of heuristic functions (modes of #'apply-heuristic)
                        (:heuristic-value-mode . :sum-heuristics-and-parent) ;; how to use results of heuristic functions for scoring a node
                      ;  (:hash-mode . :hash-sequence-meaning)
-                       (:diagnostics :diagnose-gold-standard-not-in-search-space)
+                       (:diagnostics diagnose-gold-standard-not-in-search-space)
+                       (:repairs learn-cxns)
+                       (:learning-mode . :pattern-finding)
+                       (:alignment-mode . :no-alignment)
+                       (:best-solution-mode . :highest-average-entrenchment-score)
                        (:consolidate-repairs . t)
                        (:de-render-mode . :de-render-sequence)
                        (:render-mode . :render-sequences)
@@ -98,7 +102,8 @@
                  :cxn-inventory cxn-inventory
                  :feature-types (feature-types cxn-inventory)
                  :attributes `((:sequence . ,form-sequence-predicates)
-                               (:meaning . ,meaning-predicates))))
+                               (:meaning . ,meaning-predicates)
+                               (:entrenchment-score . 0.5))))
 
 
 

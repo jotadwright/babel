@@ -3,6 +3,7 @@
 ;; (ql:quickload :fcg-learn)
 ;; (deactivate-all-monitors)
 (activate-monitor trace-fcg-learning)
+(activate-monitor trace-fcg)
 
 ;;++++++++++++++++++++++++++++++++++++++++++++
 ;; Substitution
