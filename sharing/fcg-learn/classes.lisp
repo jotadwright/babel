@@ -23,3 +23,7 @@
     :initarg :situation))
   (:documentation "Data type for linguistic observations."))
 
+(defmethod copy-object-content ((original speech-act) (copy speech-act))
+  (setf (form copy) (form original))
+  (setf (meaning copy) (meaning original))
+  (setf (situation copy) (situation original)))

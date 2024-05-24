@@ -31,20 +31,21 @@
 
 (defun learn-holophrastic-cxn (speech-act cxn-inventory)
   "Learn a holophrastic construction from a speech act. Holophrastic constructions have no args."
-  (let ((form-sequence-predicates `((sequence ,(form speech-act) (make-var "left") (make-var "right"))))
-        (meaning-predicates (pn::variablify-predicate-network (meaning speech-act) (get-configuration cxn-inventory :meaning-representation-format))))
+  (let* ((form-sequence-predicates `((sequence ,(form speech-act) (make-var "left") (make-var "right"))))
+         (meaning-predicates (pn::variablify-predicate-network (meaning speech-act) (get-configuration cxn-inventory :meaning-representation-format)))
+         (holophrastic-cxn (make-instance 'holophrastic-cxn
+                                          :name (make-cxn-name form-sequence-predicates)
+                                          :conditional-part (list (make-instance 'conditional-unit
+                                                                                 :name (make-var "holophrastic-unit")
+                                                                                 :formulation-lock `((HASH meaning ,meaning-predicates))
+                                                                                 :comprehension-lock `((HASH form ,form-sequence-predicates))))
+                                          :cxn-inventory cxn-inventory
+                                          :feature-types (feature-types cxn-inventory)
+                                          :attributes `((:sequence . ,form-sequence-predicates)
+                                                        (:meaning . ,meaning-predicates)
+                                                        (:entrenchment-score . 0.5)))))
+    (second (multiple-value-list (add-cxn holophrastic-cxn (copy-fcg-construction-set-without-cxns cxn-inventory))))))
 
-    (make-instance 'holophrastic-cxn
-                 :name (make-cxn-name form-sequence-predicates)
-                 :conditional-part (list (make-instance 'conditional-unit
-                                                        :name (make-var "holophrastic-unit")
-                                                        :formulation-lock `((HASH meaning ,meaning-predicates))
-                                                        :comprehension-lock `((HASH form ,form-sequence-predicates))))
-                 :cxn-inventory cxn-inventory
-                 :feature-types (feature-types cxn-inventory)
-                 :attributes `((:sequence . ,form-sequence-predicates)
-                               (:meaning . ,meaning-predicates)
-                               (:entrenchment-score . 0.5)))))
 
 
 ;; Learning based on existing holophrase construction
