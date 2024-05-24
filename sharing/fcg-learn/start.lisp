@@ -5,19 +5,54 @@
 (activate-monitor trace-fcg-learning)
 (activate-monitor trace-fcg)
 
+
+
+(def-fcg-constructions empty-cxn-inventory
+  :feature-types ((form set-of-predicates :handle-regex-sequences)
+                  (meaning set-of-predicates)
+                  (form-args sequence)
+                  (meaning-args sequence)
+                  (subunits set)
+                  (footprints set))
+  :hashed t
+  :fcg-configurations (;; to activate heuristic search
+                       (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
+                       (:node-expansion-mode . :full-expansion) ;; always fully expands node immediately
+                       (:cxn-supplier-mode . :all-cxns) 
+                       ;; for using heuristics
+                       (:search-algorithm . :best-first) ;; :depth-first, :breadth-first
+                       (:heuristics :nr-of-applied-cxns :nr-of-units-matched) ;; list of heuristic functions (modes of #'apply-heuristic)
+                       (:heuristic-value-mode . :sum-heuristics-and-parent) ;; how to use results of heuristic functions for scoring a node
+                     ;  (:hash-mode . :hash-sequence-meaning)
+                       (:meaning-representation-format . :irl)
+                       (:diagnostics diagnose-cip-against-gold-standard)
+                       (:repairs repair-learn-holophrastic-cxn)
+                       (:learning-mode . :pattern-finding)
+                       (:alignment-mode . :no-alignment)
+                       (:best-solution-mode . :highest-average-entrenchment-score)
+                       (:consolidate-repairs . t)
+                       (:de-render-mode . :de-render-sequence)
+                       (:render-mode . :render-sequences)
+                       (:category-linking-mode . :neighbours)
+                       (:parse-goal-tests :no-applicable-cxns :connected-semantic-network :no-sequence-in-root)
+                       (:production-goal-tests :no-applicable-cxns :no-meaning-in-root :connected-structure))
+  :visualization-configurations ((:show-constructional-dependencies . nil)
+                                 (:show-categorial-network . t)))
+
+
 ;;++++++++++++++++++++++++++++++++++++++++++++
 ;; Substitution
 ;;++++++++++++++++++++++++++++++++++++++++++++
  
 (defparameter *what-color-is-the-cube*
     (make-instance 'speech-act
-                   :form '((sequence "what color is the cube?" ?l1 ?r1))
-                   :meaning '((get-context ?context-1)
-                              (filter ?set-1 ?context-1 ?shape-1)
-                              (bind shape-category ?shape-1 cube)
-                              (unique ?object-1 ?set-1)
-                              (query ?target-1 ?object-1 ?attribute-1)
-                              (bind attribute-category ?attribute-1 color))))
+                   :form "what color is the cube?"
+                   :meaning '((get-context context-1)
+                              (filter set-1 context-1 shape-1)
+                              (bind shape-category shape-1 cube)
+                              (unique object-1 set-1)
+                              (query target-1 object-1 attribute-1)
+                              (bind attribute-category attribute-1 color))))
 
 (setf *fcg-constructions* (make-empty-cxn-inventory-cxns))
 (comprehend *what-color-is-the-cube* :cxn-inventory *fcg-constructions*)

@@ -32,16 +32,6 @@
            nil))))
 
 
-(defmethod handle-fix ((fix cxn-fix) (repair learn-cxns) (problem problem) (cip construction-inventory-processor) &key &allow-other-keys)
-;;  "Apply the construction provided by fix tot the result of the node and return the construction-application-result"
-  (call-next-method)
- ; (with-disabled-monitor-notifications
-
-    (set-data fix 'fixed-cars
-              (fcg-apply (get-processing-cxn (restart-data fix))
-                         (car-source-cfs (cipn-car (top-node cip)))
-                         (direction cip))))
-
   
 #|  (let ((uw (first (get-data problem 'strings)))) 
     (multiple-value-bind (cxn-set lex-cxn)

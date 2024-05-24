@@ -25,75 +25,16 @@
   ())
 
 
-(defgeneric learn-cxns (speech-act cxn-inventory &key &allow-other-keys)
-  (:documentation "Learns constructions based on speech-act and cxn-inventory. Ret"))
-
-
-;; Grammar configurations
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(def-fcg-constructions empty-cxn-inventory
-  :feature-types ((form set-of-predicates :handle-regex-sequences)
-                  (meaning set-of-predicates)
-                  (form-args sequence)
-                  (meaning-args sequence)
-                  (subunits set)
-                  (footprints set))
-  :hashed t
-  :fcg-configurations (;; to activate heuristic search
-                       (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
-                       (:node-expansion-mode . :full-expansion) ;; always fully expands node immediately
-                       (:cxn-supplier-mode . :all-cxns) 
-                       ;; for using heuristics
-                       (:search-algorithm . :best-first) ;; :depth-first, :breadth-first
-                       (:heuristics :nr-of-applied-cxns :nr-of-units-matched) ;; list of heuristic functions (modes of #'apply-heuristic)
-                       (:heuristic-value-mode . :sum-heuristics-and-parent) ;; how to use results of heuristic functions for scoring a node
-                     ;  (:hash-mode . :hash-sequence-meaning)
-                       (:diagnostics diagnose-gold-standard-not-in-search-space)
-                       (:repairs learn-cxns)
-                       (:learning-mode . :pattern-finding)
-                       (:alignment-mode . :no-alignment)
-                       (:best-solution-mode . :highest-average-entrenchment-score)
-                       (:consolidate-repairs . t)
-                       (:de-render-mode . :de-render-sequence)
-                       (:render-mode . :render-sequences)
-                       (:category-linking-mode . :neighbours)
-                       (:parse-goal-tests :no-applicable-cxns :connected-semantic-network :no-sequence-in-root)
-                       (:production-goal-tests :no-applicable-cxns :no-meaning-in-root :connected-structure))
-  :visualization-configurations ((:show-constructional-dependencies . nil)
-                                 (:show-categorial-network . t)))
-
-
 
 ;; Learning holophrastic constructions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod induce-cxns ((form-meaning-pair-1 list)
-                        (form-meaning-pair-2 null) &key (cxn-inventory *fcg-constructions*) &allow-other-keys)
-  "Learn a holophrastic construction for a given observation."
-  (learn-holophrastic-cxn (fresh-variables (form form-meaning-pair-1))
-                          (fresh-variables (meaning form-meaning-pair-1))
-                          :cxn-inventory cxn-inventory))
+(defun learn-holophrastic-cxn (speech-act cxn-inventory)
+  "Learn a holophrastic construction from a speech act. Holophrastic constructions have no args."
+  (let ((form-sequence-predicates `((sequence ,(form speech-act) (make-var "left") (make-var "right"))))
+        (meaning-predicates (pn::variablify-predicate-network (meaning speech-act) (get-configuration cxn-inventory :meaning-representation-format))))
 
-(defun learn-holophrastic-cxn (form-sequence-predicates meaning-predicates &key (cxn-inventory *fcg-constructions*))
-  "Create a holophrastic construction and add it to the construction inventory. Holophrastic constructions have no args."
-  
-  (assert (= (length form-sequence-predicates) 1))
-
-  (unless (equivalent-holophrastic-cxn? form-sequence-predicates meaning-predicates cxn-inventory)
-    
-    (let ((holophrastic-cxn
-           (create-holophrastic-cxn form-sequence-predicates meaning-predicates :cxn-inventory cxn-inventory)))
-
-      (assert holophrastic-cxn)
-      (add-cxn holophrastic-cxn cxn-inventory)
-    
-      holophrastic-cxn)))
-
-(defun create-holophrastic-cxn (form-sequence-predicates meaning-predicates &key (cxn-inventory *fcg-constructions*))
-  "Create a holophrastic construction that maps between form sequence predicates and meaning predicates."
-  
-  (make-instance 'holophrastic-cxn
+    (make-instance 'holophrastic-cxn
                  :name (make-cxn-name form-sequence-predicates)
                  :conditional-part (list (make-instance 'conditional-unit
                                                         :name (make-var "holophrastic-unit")
@@ -103,11 +44,7 @@
                  :feature-types (feature-types cxn-inventory)
                  :attributes `((:sequence . ,form-sequence-predicates)
                                (:meaning . ,meaning-predicates)
-                               (:entrenchment-score . 0.5))))
-
-
-
-
+                               (:entrenchment-score . 0.5)))))
 
 
 ;; Learning based on existing holophrase construction
@@ -430,7 +367,7 @@ partially schematic."
 
 (defun make-cxn-name (form-sequence-predicates)
   "Create a unique construction name based on the strings present in form-sequence-predicates."
-  (make-const (upcase (string-replace (format nil "~{~a~^_~}-cxn" (mapcar #'second form-sequence-predicates)) " " ""))))
+  (make-const (upcase (string-replace (format nil "~{~a~^_~}-cxn" (mapcar #'second form-sequence-predicates)) " " "-")))) 
 
 (defun remove-cxn-tail (string)
   (let ((start-tail (search "-CXN" string)))

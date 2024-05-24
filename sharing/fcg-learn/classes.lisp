@@ -8,7 +8,7 @@
 
 (defclass speech-act (blackboard)
   ((form
-    :type list
+    :type string
     :accessor form
     :initform nil
     :initarg :form)
