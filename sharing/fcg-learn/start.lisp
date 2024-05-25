@@ -58,6 +58,7 @@
 (comprehend *what-color-is-the-cube* :cxn-inventory *fcg-constructions*)
 
 
+
 (defparameter *what-size-is-the-cube* (make-instance 'speech-act
                                                       :form '((sequence "what size is the cube?" ?l2 ?r2))
                                                       :meaning '((get-context ?context-2)
