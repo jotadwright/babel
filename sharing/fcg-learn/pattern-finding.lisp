@@ -31,7 +31,7 @@
 
 (defun learn-holophrastic-cxn (speech-act cxn-inventory)
   "Learn a holophrastic construction from a speech act. Holophrastic constructions have no args."
-  (let* ((form-sequence-predicates `((sequence ,(form speech-act) (make-var "left") (make-var "right"))))
+  (let* ((form-sequence-predicates `((sequence ,(form speech-act) ,(make-var "left") ,(make-var "right"))))
          (meaning-predicates (pn::variablify-predicate-network (meaning speech-act) (get-configuration cxn-inventory :meaning-representation-format)))
          (holophrastic-cxn (make-instance 'holophrastic-cxn
                                           :name (make-cxn-name form-sequence-predicates)
