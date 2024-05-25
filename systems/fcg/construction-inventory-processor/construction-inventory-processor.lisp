@@ -899,13 +899,19 @@ links between applied constructions for priming effects."
   (loop 
      with solutions = nil
      with cip = nil
-     initially (multiple-value-bind (solution new-cip)
+     with non-succeeded-solution = nil
+     initially (multiple-value-bind (solution new-cip non-succeeded-solution-p)
                    (fcg-apply construction-inventory cfs direction 
                               :notify nil)
                  (when solution (push solution solutions))
-                 (setf cip new-cip))
+                 (setf cip new-cip)
+                 (setf non-succeeded-solution non-succeeded-solution-p))
      for i from 2 to (or n 32000) ;; from 2 because we already did one in the initially
-     for (solution new-cip non-succeeded-solution-p) = (multiple-value-list (next-cip-solution cip :notify nil))
+     for (solution new-cip non-succeeded-solution-p) = (if non-succeeded-solution
+                                                          ;; if no succeeded solution was found in the first place, don't look for a second
+                                                         (values nil nil nil) 
+                                                         (multiple-value-list (next-cip-solution cip :notify nil)))
+     when new-cip
      do (setf cip new-cip) ; potentially a new cip if there was a restart
      while (and solution (not non-succeeded-solution-p)) do (setf solutions (append solutions (list solution)))
      finally
