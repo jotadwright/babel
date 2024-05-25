@@ -3,7 +3,7 @@
 ;; (ql:quickload :fcg-learn)
 ;; (deactivate-all-monitors)
 (activate-monitor trace-fcg-learning)
-(activate-monitor trace-fcg)
+;(activate-monitor trace-fcg)
 
 
 
@@ -56,8 +56,6 @@
 
 (setf *fcg-constructions* (make-empty-cxn-inventory-cxns))
 (comprehend *what-color-is-the-cube* :cxn-inventory *fcg-constructions*)
-
-
 
 (defparameter *what-size-is-the-cube* (make-instance 'speech-act
                                                       :form '((sequence "what size is the cube?" ?l2 ?r2))
