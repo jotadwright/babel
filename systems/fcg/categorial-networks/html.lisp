@@ -98,16 +98,49 @@
                       &key (weights? nil)
                       (colored-edges-0-1 t)
                       (render-program "dot")
+                      (expand-initially t)
                       &allow-other-keys)
   "generates html code for a type hierarchy using s-dot
    (avoids generating a .dot and a .svg file in tmp folder)"
-  `((div)
-    ,(s-dot->svg
-      (categorial-network->s-dot
-       categorial-network
-       :weights? weights?
-       :colored-edges-0-1 colored-edges-0-1)
-      :render-program render-program)))
+  (let* ((element-id (make-id 'categorial-network))
+         (title (format nil "CATEGORIAL NETWORK (~a categor~@p, ~a link~p)"
+                                (nr-of-categories categorial-network)
+                                (nr-of-categories categorial-network)
+                                (nr-of-links categorial-network)
+                                (nr-of-links categorial-network)))
+         (outer-div
+          (lambda (expanded? children)
+            (make-div-with-menu 
+             :div-attributes (if expanded?
+                               '(:class "fcg-light-construction-inventory fcg-light-construction-inventory-expanded")
+                               '(:class "fcg-light-construction-inventory"))
+             :div-children children)))
+         (collapsed (lambda ()
+                      (funcall outer-div nil
+                      `(((div :class "title") 
+                        ((a ,@(make-expand/collapse-link-parameters 
+                               element-id t "show network")) 
+                       ,title))))))
+         (expanded (lambda ()
+                     (funcall outer-div t
+                     `(((div :class "title") 
+                        ((a ,@(make-expand/collapse-link-parameters 
+                               element-id nil "hide network")) 
+                         ,title))
+                       ((div)
+                        ,(s-dot->svg
+                          (categorial-network->s-dot
+                           categorial-network
+                           :weights? weights?
+                           :colored-edges-0-1 colored-edges-0-1)
+                          :render-program render-program)))))))
+                            
+    `((div)
+      ,(make-expandable/collapsable-element 
+        element-id nil 
+        collapsed 
+        expanded
+        :expand-initially expand-initially))))
 
 (defmethod categorial-network->s-dot ((categorial-network categorial-network)
                                   &key weights? colors sizes colored-edges-0-1)

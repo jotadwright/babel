@@ -1260,14 +1260,23 @@ table.car > tbody > tr > td:first-child { padding-right:15px; }
   
     (if routine-only
       `((span) ,(get-construction-inventory-title-string ci)
-        ,(format nil " (~a)" (if hide-zero-scored-cxns
-                           (count-if #'(lambda (cxn) (and (> (attr-val cxn :score) 0)
-                                                          (eql (attr-val cxn :label) 'fcg::routine))) (constructions-list ci))
-                           (count-if #'(lambda (cxn) (eql (attr-val cxn :label) 'fcg::routine)) (constructions-list ci)))))
+        ,(format nil " (~a construction~p)"
+                 (if hide-zero-scored-cxns
+                   (count-if #'(lambda (cxn) (and (> (attr-val cxn :score) 0)
+                                                  (eql (attr-val cxn :label) 'fcg::routine))) (constructions-list ci))
+                   (count-if #'(lambda (cxn) (eql (attr-val cxn :label) 'fcg::routine)) (constructions-list ci)))
+                 (if hide-zero-scored-cxns
+                   (count-if #'(lambda (cxn) (and (> (attr-val cxn :score) 0)
+                                                  (eql (attr-val cxn :label) 'fcg::routine))) (constructions-list ci))
+                   (count-if #'(lambda (cxn) (eql (attr-val cxn :label) 'fcg::routine)) (constructions-list ci)))))
     `((span) ,(get-construction-inventory-title-string ci)
-      ,(format nil " (~a)" (if hide-zero-scored-cxns
-                           (count-if #'(lambda (cxn) (> (attr-val cxn :score) 0)) (constructions-list ci))
-                           (size ci))))))
+      ,(format nil " (~a construction~p)"
+               (if hide-zero-scored-cxns
+                 (count-if #'(lambda (cxn) (> (attr-val cxn :score) 0)) (constructions-list ci))
+                 (size ci))
+               (if hide-zero-scored-cxns
+                 (count-if #'(lambda (cxn) (> (attr-val cxn :score) 0)) (constructions-list ci))
+                 (size ci))))))
 
 (defgeneric make-html-construction-inventory-body (cs &key &allow-other-keys)
   (:documentation "returns some html for the body of a construction set"))
