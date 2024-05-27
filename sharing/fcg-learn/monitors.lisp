@@ -15,7 +15,7 @@
 
 (define-event-handler (trace-fcg-learning routine-comprehension-started)
   (add-element `((hr :style "margin-block-end: 0px;")))
-  (add-element `((h2 :style "padding: 15px; margin: 0px; background-color: #33FFA4;") ,(format nil "Routine comprehension of: &quot;~a&quot; ~@[~a~]"
+  (add-element `((h2 :style "padding: 15px; margin: 0px; background-color: #33FFA4;") ,(format nil "Routine comprehension: &quot;~a&quot; ~@[~a~]"
                                                                                                (form speech-act)
                                (when n (format nil "(max ~a solution~:p considered)" n)))))
   (add-element `((hr :style "margin-block-start: 0px;"))))
@@ -56,7 +56,7 @@
   (consolidated-cxns list) (consolidated-categories list) (consolidated-links list))
 
 (define-event-handler (trace-fcg-learning meta-level-learning-finished)
-  (add-element `((h4) "Appying fixes:"))
+  (add-element `((h4) "Applying fixes:"))
   (let ((subtree-id (mkstr (make-id 'subtree-id))))
     (add-element `((div :id ,subtree-id)
                  ,(make-html-fcg-light 
@@ -94,9 +94,27 @@
      ,(make-html (categorial-network (original-cxn-set construction-inventory))
                  :weights? t :render-program "circo" :expand-initially nil))))
 
+(define-event entrenchment-started)
 
+(define-event-handler (trace-fcg-learning entrenchment-started)
+  (add-element `((hr :style "margin-block-end: 0px;")))
+  (add-element `((h2 :style "padding: 15px; margin: 0px; background-color: #34b4eb;") "Alignment"))
+  (add-element `((hr :style "margin-block-start: 0px;"))))
 
+(define-event entrenchment-finished (rewarded-cxns list) (punished-cxns list))
 
-
+(define-event-handler (trace-fcg-learning entrenchment-finished)
+  (when rewarded-cxns
+    (add-element `((h4) "Constructions rewarded:"))
+    (loop for cxn in rewarded-cxns
+          do (add-element (make-html cxn :cxn-inventory (cxn-inventory cxn) :expand-initially nil))))
+  (when punished-cxns
+    (add-element `((h4) "Constructions punished:"))
+    (loop for cxn in punished-cxns
+          do (add-element (make-html cxn :cxn-inventory (cxn-inventory cxn) :expand-initially nil))))
+  (unless (or rewarded-cxns punished-cxns)
+    (add-element `((h4) "No alignment took place.")))
+  (add-element `((p) " ")))
+  
 
 
