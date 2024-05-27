@@ -41,12 +41,49 @@
       (add-element `((h4) "No fixes created.")))))
 
 
+(define-event routine-comprehension-finished (solution t) (cip construction-inventory-processor))
 
-(define-event meta-level-learning-finished (cip construction-inventory-processor) (solution cip-node))
+(define-event-handler (trace-fcg-learning routine-comprehension-finished)
+  (add-element '((hr)))
+  (add-element (make-html-fcg-light cip :solutions (when solution (list solution))))
+  (if solution
+    (add-element `((h3) "Solution found!"))
+    (add-element `((h3) "No solution found.")))
+  (add-element `((p) " ")))
+
+
+(define-event meta-level-learning-finished (cip construction-inventory-processor) (solution cip-node)
+  (consolidated-cxns list) (consolidated-categories list) (consolidated-links list))
 
 (define-event-handler (trace-fcg-learning meta-level-learning-finished)
   (add-element `((h4) "Appying fixes:"))
-  (add-element (make-html-fcg-light cip :solutions (succeeded-nodes cip))))
+  (let ((subtree-id (mkstr (make-id 'subtree-id))))
+    (add-element `((div :id ,subtree-id)
+                 ,(make-html-fcg-light 
+                   (top-node cip)
+                   :subtree-id subtree-id
+                   :hide-subtrees-with-duplicates t
+                   :configuration (configuration (construction-inventory cip))))))
+  (add-element `((h4) "Consolidation:"))
+  (add-element
+  `((div)
+        ((table :class "two-col")
+         ((tbody)
+          ,@(when consolidated-cxns
+              `(((tr) 
+                 ((td) "constructions added:")
+                 ((td) ,@(loop for cxn in consolidated-cxns
+                               collect (make-html cxn :cxn-inventory (construction-inventory cip) :expand-initially nil))))))
+          ,@(when consolidated-categories
+              `(((tr) 
+                 ((td) "categories added:")
+                 ((td) ,@(loop for cat in consolidated-categories
+                               collect (make-html cat))))))
+          ,@(when consolidated-links
+              `(((tr) 
+                 ((td) "categorial links added:")
+                 ((td) ,@(loop for link in consolidated-links
+                               collect (make-html link)))))))))))
 
 
 
@@ -57,6 +94,9 @@
      ,(make-html (categorial-network (original-cxn-set construction-inventory))
                  :weights? t :render-program "circo" :expand-initially nil))))
 
-(define-event-handler (trace-fcg-learning fcg-apply-w-n-solutions-finished)
-  (add-element '((hr)))
-  (add-element (make-html-fcg-light cip :solutions solutions)))
+
+
+
+
+
+
