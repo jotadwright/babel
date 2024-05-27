@@ -1,7 +1,7 @@
 
 (in-package :meta-layer-learning)
 
-(export '(trace-learning trace-learning-verbose repair-returned-fixes))
+(export '(trace-learning trace-learning-verbose repair-returned-fixes all-diagnostics-run))
 
 ;; ############################################################################
 ;; Monitors for tracing learning mechanisms
@@ -39,4 +39,4 @@
 			       (type-of repair)))
   (format (monitor-stream monitor) "~%   ~:w" fix))
 
-
+(define-event all-diagnostics-run (object-w-learning object-w-learning) (problems list))

@@ -137,6 +137,7 @@
                     (push problem new-problems)
                   finally 
                     (notify diagnose-finished diagnostic notified-object problems))))
+    (notify all-diagnostics-run notified-object new-problems)
     ;; 2. run repairs
     (unless omit-repairs
       (loop
