@@ -4,7 +4,7 @@
 ;; Common utility functions for all types of predicate networks
 ;; ----------------------------------------------------------------------------
 
-(export '())
+(export '(instantiate-predicate-network))
 
 ;; For drawing predicate networks, use 'draw-predicate-network'
 ;; and 'predicate-network->svg' from the 'web-interface' package.

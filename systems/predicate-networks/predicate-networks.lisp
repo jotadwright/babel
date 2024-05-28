@@ -29,4 +29,13 @@
 (defmethod equivalent-predicate-networks-p ((network-1 list) (network-2 list))
   "Two predicate networks are equivalent when
    they can unify with each other."
-  (irl::equivalent-irl-programs? network-1 network-2)) 
+  (irl::equivalent-irl-programs? network-1 network-2))
+
+
+(defun instantiate-predicate-network (network)
+ "Instantiate variables in the provided predicate network"
+ (loop for predicate in network
+       collect (loop for el in predicate
+                     if (variable-p el)
+                      collect (make-symbol (upcase (subseq (symbol-name el) 1)))
+                       else collect el)))
