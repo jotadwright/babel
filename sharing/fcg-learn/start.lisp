@@ -26,7 +26,7 @@
                      ;  (:hash-mode . :hash-sequence-meaning)
                        (:meaning-representation-format . :irl)
                        (:diagnostics diagnose-cip-against-gold-standard)
-                       (:repairs repair-learn-holophrastic-cxn)
+                       (:repairs repair-learn-holophrastic-cxn repair-through-anti-unification)
                        (:learning-mode . :pattern-finding)
                        (:alignment-mode . :lateral-inhibition-avg-entenchment-score)
                        (:li-reward . 0.5)
@@ -59,14 +59,43 @@
 (setf *fcg-constructions* (make-empty-cxn-inventory-cxns))
 (comprehend *what-color-is-the-cube* :cxn-inventory *fcg-constructions*)
 
-(defparameter *what-size-is-the-cube* (make-instance 'speech-act
-                                                      :form '((sequence "what size is the cube?" ?l2 ?r2))
-                                                      :meaning '((get-context ?context-2)
-                                                                 (filter ?set-2 ?context-2 ?shape-2)
-                                                                 (bind shape-category ?shape-2 cube)
-                                                                 (unique ?object-2 ?set-2)
-                                                                 (query ?target-2 ?object-2 ?attribute-2)
-                                                                 (bind attribute-category ?attribute-2 size))))
+(defparameter *what-size-is-the-cube*
+  (make-instance 'speech-act
+                 :form "what size is the cube?"
+                 :meaning '((get-context context-2)
+                            (filter set-2 context-2 shape-2)
+                            (bind shape-category shape-2 cube)
+                            (unique object-2 set-2)
+                            (query target-2 object-2 attribute-2)
+                            (bind attribute-category attribute-2 size))))
+
+(comprehend *what-size-is-the-cube* :cxn-inventory *fcg-constructions*)
+
+
+(defparameter *what-material-is-the-cube*
+  (make-instance 'speech-act
+                 :form "what material is the cube?"
+                 :meaning '((get-context context-2)
+                            (filter set-2 context-2 shape-2)
+                            (bind shape-category shape-2 cube)
+                            (unique object-2 set-2)
+                            (query target-2 object-2 attribute-2)
+                            (bind attribute-category attribute-2 material))))
+
+(comprehend *what-material-is-the-cube* :cxn-inventory *fcg-constructions*)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 (let ((*fcg-constructions* (make-empty-cxn-inventory-cxns))
       (holophrastic-what-color-is-the-cube (induce-cxns *what-color-is-the-cube* nil :cxn-inventory *fcg-constructions*)))

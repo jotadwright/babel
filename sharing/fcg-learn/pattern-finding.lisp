@@ -32,7 +32,8 @@
 (defun learn-holophrastic-cxn (speech-act cxn-inventory)
   "Learn a holophrastic construction from a speech act. Holophrastic constructions have no args."
   (let* ((form-sequence-predicates `((sequence ,(form speech-act) ,(make-var "left") ,(make-var "right"))))
-         (meaning-predicates (pn::variablify-predicate-network (meaning speech-act) (get-configuration cxn-inventory :meaning-representation-format)))
+         (meaning-predicates (fresh-variables (pn::variablify-predicate-network (meaning speech-act)
+                                                                                (get-configuration cxn-inventory :meaning-representation-format))))
          (holophrastic-cxn (make-instance 'holophrastic-cxn
                                           :name (make-cxn-name form-sequence-predicates)
                                           :conditional-part (list (make-instance 'conditional-unit
@@ -41,16 +42,95 @@
                                                                                  :comprehension-lock `((HASH form ,form-sequence-predicates))))
                                           :cxn-inventory cxn-inventory
                                           :feature-types (feature-types cxn-inventory)
-                                          :attributes `((:sequence . ,form-sequence-predicates)
+                                          :attributes `((:form . ,form-sequence-predicates)
                                                         (:meaning . ,meaning-predicates)
                                                         (:entrenchment-score . 0.5)))))
-    (second (multiple-value-list (add-cxn holophrastic-cxn (copy-fcg-construction-set-without-cxns cxn-inventory))))))
+    ;; return cxn-inventory and new cxn
+    (add-cxn holophrastic-cxn (copy-fcg-construction-set-without-cxns cxn-inventory))))
 
 
 
-;; Learning based on existing holophrase construction
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Learning based on existing constructions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
+(defun learn-through-anti-unification (speech-act cip)
+  (let* ((cxn-inventory (original-cxn-set (construction-inventory cip)))
+         (form-sequence-predicates `((sequence ,(form speech-act) ,(make-var "left") ,(make-var "right"))))
+         (meaning-predicates (fresh-variables (pn::variablify-predicate-network (meaning speech-act)
+                                                                                (get-configuration cxn-inventory :meaning-representation-format)))))
+
+    ;; returns list of cxn-inventories, each leading to a solution
+    (induce-cxns form-sequence-predicates meaning-predicates cip)))
+
+(defun induce-cxns (speech-act-form-predicates speech-act-meaning-predicates cip &key cxn-inventories)
+  (let* ((cxn-inventory (original-cxn-set (construction-inventory cip)))
+         (candidate-cxn-w-au-results (loop for cxn in (constructions-list cxn-inventory)
+                                           for cxn-form = (attr-val cxn :form)
+                                           for cxn-meaning = (attr-val cxn :meaning)
+                                           for au-form-result = (first (anti-unify-sequences speech-act-form-predicates cxn-form))
+                                           for au-meaning-result = (first (anti-unify-predicate-network speech-act-meaning-predicates cxn-meaning))
+                                           collect (list cxn au-form-result au-meaning-result) into au-results
+                                           finally (return (first (sort au-results #'< :key #'(lambda (r1)
+                                                                                                (+ (cost (second r1))
+                                                                                                   (cost (third r1))))))))))
+    (when candidate-cxn-w-au-results
+      (let* ((au-form (second candidate-cxn-w-au-results))
+             (au-meaning (third candidate-cxn-w-au-results))
+             (form-slot-args (compute-slot-args au-form))
+             (form-filler-args-pattern  (loop for slot-arg in form-slot-args
+                                              collect (car (rassoc slot-arg (pattern-bindings au-form)))))
+             (form-filler-args-source (loop for slot-arg in form-slot-args
+                                            collect (car (rassoc slot-arg (source-bindings au-form)))))
+         
+             (meaning-slot-args (compute-slot-args au-meaning))
+             (meaning-filler-args-pattern (loop for slot-arg in meaning-slot-args
+                                                collect (car (rassoc slot-arg (pattern-bindings au-meaning)))))
+             (meaning-filler-args-source (loop for slot-arg in meaning-slot-args
+                                               collect (car (rassoc slot-arg (source-bindings au-meaning)))))
+           
+             ;; Create and add filler constructions for pattern and source
+             (pattern-filler-cxn
+              (create-filler-cxn (pattern-delta au-form) (pattern-delta au-meaning)
+                                 form-filler-args-pattern meaning-filler-args-pattern  :cxn-inventory cxn-inventory))
+             (source-filler-cxn
+              (create-filler-cxn (source-delta au-form) (source-delta au-meaning)
+                                 form-filler-args-source meaning-filler-args-source :cxn-inventory cxn-inventory))
+             ;; Create and add slot construction
+             (slot-cxn
+              (create-slot-cxn (generalisation au-form) (generalisation au-meaning) 
+                               form-slot-args meaning-slot-args :cxn-inventory cxn-inventory))
+             (fix-cxn-inventory (copy-fcg-construction-set-without-cxns cxn-inventory)))
+
+        (add-cxn slot-cxn fix-cxn-inventory)
+        (add-category (attr-val slot-cxn :cxn-cat) fix-cxn-inventory)
+    
+        (when pattern-filler-cxn
+          (add-cxn pattern-filler-cxn fix-cxn-inventory)
+          (add-category (attr-val pattern-filler-cxn :cxn-cat) fix-cxn-inventory)
+          (add-link (attr-val pattern-filler-cxn :cxn-cat) (attr-val slot-cxn :cxn-cat) fix-cxn-inventory))
+
+        (when source-filler-cxn
+          (add-cxn source-filler-cxn fix-cxn-inventory)
+          (add-category (attr-val source-filler-cxn :cxn-cat) fix-cxn-inventory)
+          (add-link (attr-val source-filler-cxn :cxn-cat) (attr-val slot-cxn :cxn-cat) fix-cxn-inventory))
+
+        (cons fix-cxn-inventory cxn-inventories)))))
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+#|
 
 (defmethod induce-cxns ((form-meaning-pair-1 list) ;;observation
                         (existing-cxn fcg-construction) &key (cxn-inventory *fcg-constructions*) &allow-other-keys)
@@ -116,23 +196,8 @@
 
           )))))
 
+|#
 
-(defun learn-filler-cxn (form-sequence-predicates meaning-predicates form-filler-args meaning-filler-args
-                                                  &key (cxn-inventory *fcg-constructions*))
-  "Create a filler construction and add it to the construction
-inventory. Filler constructions have external args but no slots. They
-can fill slots of other constructions. They are completely substantive."
-  (when meaning-predicates
-    (let ((filler-cxn
-           (create-filler-cxn form-sequence-predicates meaning-predicates
-                              form-filler-args meaning-filler-args :cxn-inventory cxn-inventory)))
-      
-      (assert filler-cxn)
-      
-      (add-cxn filler-cxn cxn-inventory)
-      (add-category (attr-val filler-cxn :cxn-cat) cxn-inventory)
-        
-      filler-cxn)))
 
 (defun create-filler-cxn (form-sequence-predicates meaning-predicates form-filler-args meaning-filler-args
                                                    &key (cxn-inventory *fcg-constructions*))
@@ -140,45 +205,28 @@ can fill slots of other constructions. They are completely substantive."
 predicates and meaning predicates, while adding external form and
 meaning args as well as a unique category to the unit that the
 construction creates."
-  (let* ((cxn-name (make-cxn-name form-sequence-predicates))
-         (filler-cat (make-const (upcase (format nil "~a-filler-cat" (remove-cxn-tail (symbol-name cxn-name))))))
-         (unit-name (make-var "filler-unit")))
-    
-    (make-instance 'filler-cxn
-                   :name cxn-name
-                   :contributing-part (list (make-instance 'contributing-unit
-                                                           :name unit-name
-                                                           :unit-structure `((category ,filler-cat)
-                                                                             (form-args ,form-filler-args)
-                                                                             (meaning-args ,meaning-filler-args))))
-                   :conditional-part `(,(make-instance 'conditional-unit
-                                                       :name unit-name
-                                                       :formulation-lock `((HASH meaning ,meaning-predicates))
-                                                       :comprehension-lock `((HASH form ,form-sequence-predicates))))
-                   :cxn-inventory cxn-inventory
-                   :feature-types (feature-types cxn-inventory)
-                   :attributes `((:sequence . ,(add-slot-wildcard-to-sequence-predicates form-sequence-predicates))
-                                 (:meaning . ,meaning-predicates)
-                                 (:cxn-cat . ,filler-cat)))))
+  (when (and form-sequence-predicates meaning-predicates)
+    (let* ((cxn-name (make-cxn-name form-sequence-predicates))
+           (filler-cat (make-const (upcase (format nil "~a-filler-cat" (remove-cxn-tail (symbol-name cxn-name))))))
+           (unit-name (make-var "filler-unit")))
 
-
-
-(defun learn-slot-cxn (form-sequence-predicates meaning-predicates form-slot-args meaning-slot-args
-                                                &key (cxn-inventory *fcg-constructions*))
-  "Create a slot construction and add it to the construction
-inventory. Slot constructions have only internal args. They cannot
-fill slots of other constructions. They are partially substantive,
-partially schematic."
-  (let ((slot-cxn
-          (create-slot-cxn form-sequence-predicates meaning-predicates form-slot-args meaning-slot-args)))
-
-    (assert slot-cxn)
-    
-    (add-cxn slot-cxn cxn-inventory)
-    (add-category (attr-val slot-cxn :cxn-cat) cxn-inventory)
-      
-    slot-cxn))
-
+      (make-instance 'filler-cxn
+                     :name cxn-name
+                     :contributing-part (list (make-instance 'contributing-unit
+                                                             :name unit-name
+                                                             :unit-structure `((category ,filler-cat)
+                                                                               (form-args ,form-filler-args)
+                                                                               (meaning-args ,meaning-filler-args))))
+                     :conditional-part `(,(make-instance 'conditional-unit
+                                                         :name unit-name
+                                                         :formulation-lock `((HASH meaning ,meaning-predicates))
+                                                         :comprehension-lock `((HASH form ,form-sequence-predicates))))
+                     :cxn-inventory cxn-inventory
+                     :feature-types (feature-types cxn-inventory)
+                     :attributes `((:form . ,(add-slot-wildcard-to-sequence-predicates form-sequence-predicates))
+                                   (:meaning . ,meaning-predicates)
+                                   (:cxn-cat . ,filler-cat)
+                                   (:entrenchment-score . 0.5))))))
 
 (defun create-slot-cxn (form-sequence-predicates meaning-predicates form-slot-args meaning-slot-args
                                                  &key (cxn-inventory *fcg-constructions*))
@@ -207,14 +255,16 @@ partially schematic."
                                                                                 (meaning-args ,meaning-slot-args))))
                    :cxn-inventory cxn-inventory
                    :feature-types (feature-types cxn-inventory)
-                   :attributes `((:sequence . ,(add-slot-wildcard-to-sequence-predicates form-sequence-predicates))
+                   :attributes `((:form . ,(add-slot-wildcard-to-sequence-predicates form-sequence-predicates))
                                  (:meaning . ,meaning-predicates)
-                                 (:cxn-cat . ,slot-cat)))))
+                                 (:cxn-cat . ,slot-cat)
+                                 (:entrenchment-score . 0.5)))))
 
 
 ;; Learning based on existing slot construction
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+#|
 
 (defmethod induce-cxns ((form-meaning-pair-1 list) ;;observation
                         (existing-cxn slot-cxn) &key (cxn-inventory *fcg-constructions*) &allow-other-keys)
@@ -277,7 +327,7 @@ partially schematic."
           (values existing-cxn pattern-filler-cxn nil holophrastic-cxn))))))
 
 
-
+|#
 
 ;; Learning based on existing filler construction
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
