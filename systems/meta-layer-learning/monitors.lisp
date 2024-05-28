@@ -38,5 +38,3 @@
 		       (format nil "+ Repair ~(~a~) returned fix"
 			       (type-of repair)))
   (format (monitor-stream monitor) "~%   ~:w" fix))
-
-(define-event all-diagnostics-run (object-w-learning object-w-learning) (problems list))

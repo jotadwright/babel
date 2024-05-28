@@ -103,6 +103,8 @@
 (define-event repair-finished (repair repair) (object t)
               (fixes t))
 
+(define-event all-diagnostics-run (object-w-learning object-w-learning) (problems list))
+
 (defgeneric notify-learning (object &key trigger))
 
 (defmethod notify-learning (notified-object
