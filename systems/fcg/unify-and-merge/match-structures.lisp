@@ -324,9 +324,9 @@
                                                             boundaries
                                                             (feature-value original-feature)
                                                             bindings) #'< :key #'third)))
-                         (new-feature (if (and (eq (feature-name original-feature) 'form)
-                                               new-form-value)
-                                       (make-feature 'form new-form-value)
+                         (new-feature (if (eq (feature-name original-feature) 'form)
+                                        (when new-form-value 
+                                          (make-feature 'form new-form-value))
                                        (make-feature (feature-name original-feature)
                                                      feature-value))))
                     (push new-feature
