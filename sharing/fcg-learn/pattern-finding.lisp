@@ -63,7 +63,7 @@
     ;; returns list of cxn-inventories, each leading to a solution
     (induce-cxns form-sequence-predicates meaning-predicates cip)))
 
-(defun induce-cxns (speech-act-form-predicates speech-act-meaning-predicates cip &key cxn-inventories)
+(defun induce-cxns (speech-act-form-predicates speech-act-meaning-predicates cip &key fix-cxn-inventory)
   (let* ((cxn-inventory (original-cxn-set (construction-inventory cip)))
          (candidate-cxn-w-au-results (loop for cxn in (constructions-list cxn-inventory)
                                            for cxn-form = (attr-val cxn :form)
@@ -102,22 +102,24 @@
              (slot-cxn
               (create-slot-cxn (generalisation au-form) (generalisation au-meaning) 
                                form-slot-args meaning-slot-args :cxn-inventory cxn-inventory))
-             (fix-cxn-inventory (copy-fcg-construction-set-without-cxns cxn-inventory)))
+             (fix-cxn-inventory (or fix-cxn-inventory
+                                    (copy-fcg-construction-set-without-cxns cxn-inventory))))
 
-        (add-cxn slot-cxn fix-cxn-inventory)
-        (add-category (attr-val slot-cxn :cxn-cat) fix-cxn-inventory)
+        (when slot-cxn
+          (add-cxn slot-cxn fix-cxn-inventory)
+          (add-category (attr-val slot-cxn :cxn-cat) fix-cxn-inventory))
     
-        (when pattern-filler-cxn
+        (when (and pattern-filler-cxn slot-cxn)
           (add-cxn pattern-filler-cxn fix-cxn-inventory)
           (add-category (attr-val pattern-filler-cxn :cxn-cat) fix-cxn-inventory)
           (add-link (attr-val pattern-filler-cxn :cxn-cat) (attr-val slot-cxn :cxn-cat) fix-cxn-inventory))
 
-        (when source-filler-cxn
+        (when (and source-filler-cxn slot-cxn)
           (add-cxn source-filler-cxn fix-cxn-inventory)
           (add-category (attr-val source-filler-cxn :cxn-cat) fix-cxn-inventory)
           (add-link (attr-val source-filler-cxn :cxn-cat) (attr-val slot-cxn :cxn-cat) fix-cxn-inventory))
 
-        (cons fix-cxn-inventory cxn-inventories)))))
+        (list fix-cxn-inventory)))))
     
     
 
@@ -233,34 +235,36 @@ construction creates."
 (defun create-slot-cxn (form-sequence-predicates meaning-predicates form-slot-args meaning-slot-args
                                                  &key (cxn-inventory *fcg-constructions*))
   "Create a slot construction."
-  (let* ((cxn-name (make-cxn-name form-sequence-predicates))
-         (slot-cat (make-const (upcase (format nil "~a-slot-cat" (remove-cxn-tail (symbol-name cxn-name))))))
-         (slot-unit-name (make-var "slot-unit"))
-         (super-unit-name (make-var "parent-unit")))
+  (when (and (or meaning-predicates meaning-slot-args)
+             (or form-sequence-predicates form-slot-args))
+    (let* ((cxn-name (make-cxn-name form-sequence-predicates))
+           (slot-cat (make-const (upcase (format nil "~a-slot-cat" (remove-cxn-tail (symbol-name cxn-name))))))
+           (slot-unit-name (make-var "slot-unit"))
+           (super-unit-name (make-var "parent-unit")))
 
-    (make-instance 'slot-cxn
-                   :name cxn-name
-                   :contributing-part (list (make-instance 'contributing-unit
-                                                           :name super-unit-name
-                                                           :unit-structure `((subunits ,(list slot-unit-name)))))
-                   :conditional-part (list (make-instance 'conditional-unit
-                                                          :name super-unit-name
-                                                          :formulation-lock `((HASH meaning ,meaning-predicates))
-                                                          :comprehension-lock `((HASH form ,form-sequence-predicates)))
-                                           (make-instance 'conditional-unit
-                                                          :name slot-unit-name
-                                                          :formulation-lock `((category ,slot-cat)
-                                                                              (form-args ,form-slot-args)
-                                                                              (meaning-args ,meaning-slot-args))
-                                                          :comprehension-lock `((category ,slot-cat)
+      (make-instance 'slot-cxn
+                     :name cxn-name
+                     :contributing-part (list (make-instance 'contributing-unit
+                                                             :name super-unit-name
+                                                             :unit-structure `((subunits ,(list slot-unit-name)))))
+                     :conditional-part (list (make-instance 'conditional-unit
+                                                            :name super-unit-name
+                                                            :formulation-lock `((HASH meaning ,meaning-predicates))
+                                                            :comprehension-lock `((HASH form ,form-sequence-predicates)))
+                                             (make-instance 'conditional-unit
+                                                            :name slot-unit-name
+                                                            :formulation-lock `((category ,slot-cat)
                                                                                 (form-args ,form-slot-args)
-                                                                                (meaning-args ,meaning-slot-args))))
-                   :cxn-inventory cxn-inventory
-                   :feature-types (feature-types cxn-inventory)
-                   :attributes `((:form . ,(add-slot-wildcard-to-sequence-predicates form-sequence-predicates))
-                                 (:meaning . ,meaning-predicates)
-                                 (:cxn-cat . ,slot-cat)
-                                 (:entrenchment-score . 0.5)))))
+                                                                                (meaning-args ,meaning-slot-args))
+                                                            :comprehension-lock `((category ,slot-cat)
+                                                                                  (form-args ,form-slot-args)
+                                                                                  (meaning-args ,meaning-slot-args))))
+                     :cxn-inventory cxn-inventory
+                     :feature-types (feature-types cxn-inventory)
+                     :attributes `((:form . ,(add-slot-wildcard-to-sequence-predicates form-sequence-predicates))
+                                   (:meaning . ,meaning-predicates)
+                                   (:cxn-cat . ,slot-cat)
+                                   (:entrenchment-score . 0.5))))))
 
 
 ;; Learning based on existing slot construction
@@ -428,7 +432,7 @@ construction creates."
 
 (defun compute-slot-args (au-result)
   (assert (= (length (pattern-bindings au-result)) (length (source-bindings au-result))))
-  (loop for (delta-var-source . gen-var-source)  in (source-bindings au-result)
+  (loop for (delta-var-source . gen-var-source) in (source-bindings au-result)
         for (delta-var-pattern . nil) in (pattern-bindings au-result)
         when (or (find delta-var-source (source-delta au-result) :test (lambda (x y) (member x y)))
                  (find delta-var-pattern (pattern-delta au-result) :test (lambda (x y) (member x y))))

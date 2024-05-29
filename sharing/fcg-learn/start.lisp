@@ -57,6 +57,16 @@
 
 (setf *fcg-constructions* (make-empty-cxn-inventory-cxns))
 (comprehend *what-color-is-the-cube* :cxn-inventory *fcg-constructions*)
+(comprehend *what-color-is-the-cube* :cxn-inventory *fcg-constructions* :learn nil :align nil)
+
+(defparameter *color*
+    (make-instance 'speech-act
+                   :form "color"
+                   :meaning '(
+                              (bind attribute-category attribute-1 color)
+                             )))
+
+(comprehend *color* :cxn-inventory *fcg-constructions*)
 
 (defparameter *what-size-is-the-cube*
   (make-instance 'speech-act

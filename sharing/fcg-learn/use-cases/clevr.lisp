@@ -66,7 +66,7 @@
 
 ;; Freeze learning to inspect problematic speech act:
 (comprehend (current-speech-act *clevr-processor*)
-            :cxn-inventory *clevr-grammar* :learn nil :align nil :consolidate nil)
+            :cxn-inventory *clevr-grammar* :learn nil :align t :consolidate nil)
 
 
 
