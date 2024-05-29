@@ -36,6 +36,7 @@
                        (:de-render-mode . :de-render-sequence)
                        (:render-mode . :render-sequences)
                        (:category-linking-mode . :neighbours)
+                       (:expand-nodes-in-search-tree . t)
                        (:parse-goal-tests :no-applicable-cxns :connected-semantic-network :no-sequence-in-root)
                        (:production-goal-tests :no-applicable-cxns :no-meaning-in-root :connected-structure))
   :visualization-configurations ((:show-constructional-dependencies . nil)

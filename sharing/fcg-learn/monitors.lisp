@@ -59,11 +59,11 @@
   (add-element `((h4) "Applying fixes:"))
   (let ((subtree-id (mkstr (make-id 'subtree-id))))
     (add-element `((div :id ,subtree-id)
-                 ,(make-html-fcg-light 
-                   (top-node cip)
-                   :subtree-id subtree-id
-                   :hide-subtrees-with-duplicates t
-                   :configuration (configuration (construction-inventory cip))))))
+                   ,(make-html-fcg-light 
+                     cip
+                     :subtree-id subtree-id
+                     :hide-subtrees-with-duplicates t
+                     :configuration (configuration (construction-inventory cip))))))
   (add-element `((h4) "Consolidation:"))
   (add-element
   `((div)
