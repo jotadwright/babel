@@ -70,6 +70,8 @@
                                            for cxn-meaning = (attr-val cxn :meaning)
                                            for au-form-result = (first (anti-unify-sequences speech-act-form-predicates cxn-form))
                                            for au-meaning-result = (first (anti-unify-predicate-network speech-act-meaning-predicates cxn-meaning))
+                                           when (and (> (cost au-form-result) 0)
+                                                     (> (cost au-meaning-result) 0))
                                            collect (list cxn au-form-result au-meaning-result) into au-results
                                            finally (return (first (sort au-results #'< :key #'(lambda (r1)
                                                                                                 (+ (cost (second r1))

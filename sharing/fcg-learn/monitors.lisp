@@ -60,7 +60,7 @@
   (let ((subtree-id (mkstr (make-id 'subtree-id))))
     (add-element `((div :id ,subtree-id)
                    ,(make-html-fcg-light 
-                     cip
+                     (top-node cip)
                      :subtree-id subtree-id
                      :hide-subtrees-with-duplicates t
                      :configuration (configuration (construction-inventory cip))))))
