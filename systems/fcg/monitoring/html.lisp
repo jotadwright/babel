@@ -1117,7 +1117,7 @@ div.construction > div.title { border:1px solid #008; background-color: #008;}
     ((diagnosed-problem) . "#eb9500;")
     ((repaired-problem) . "#D0ABDB;")
     ((reused-from-chart) . "#e580ff;")
-    ((added-by-repair) . "#999900;")
+    ((added-by-repair) . "#ffd500;")
     ((diagnostic-triggered) . "#E65C00;")))
 
 (defun status-color (status)
