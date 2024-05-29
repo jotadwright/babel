@@ -52,64 +52,34 @@
                                   :type "jsonl")
                    cl-user:*babel-corpora*))
 
-
-(defclass corpus-processor ()
-  ((counter :accessor counter :initform 0 :type number)
-   (current-speech-act :accessor current-speech-act :initform nil)
-   (corpus :accessor corpus :initarg :corpus))
-  (:documentation "Class for corpus processor"))
-
-(defmethod load-corpus ((path pathname) &key (sort-p t))
-
-  (let ((speech-acts (with-open-file (stream path)
-                       (loop for line = (read-line stream nil)
-                             for data = (when line (cl-json:decode-json-from-string line))
-                            
-                             while data
-                             collect (make-instance 'speech-act
-                                                   :form (cdr (assoc :utterance data))
-                                                   :meaning 
-                                                   (pn::instantiate-predicate-network (read-from-string (cdr (assoc :meaning data)))))))))
-
-    (when sort-p
-      (sort speech-acts #'< :key #'(lambda (speech-act) (count #\space (form speech-act)))))
-
-    (make-instance 'corpus-processor
-                   :corpus (make-array (length speech-acts) :initial-contents speech-acts))))
-                   
-
-(defmethod next-speech-act ((cp corpus-processor))
-
-  (setf (current-speech-act cp)
-        (aref (corpus cp) (counter cp)))
-
-  (incf (counter cp))
-
-  (values (current-speech-act cp) (counter cp)))
-
-(defmethod nth-speech-act ((cp corpus-processor) (n number))
-
-  (aref (corpus cp) (- n 1)))
-
- 
-(defmethod reset-cp ((cp corpus-processor))
   
-  (setf (counter cp) 0)
-  (setf (current-speech-act cp) nil))
-  
-
+;;Takes 10-20 seconds to load corpus
 (defparameter *clevr-processor* (load-corpus *clevr-stage-1-train*))
 
-(next-speech-act *clevr-processor*)
-
-(nth-speech-act *clevr-processor* 45000)
-
-
-
 (defparameter *clevr-grammar* (make-empty-cxn-inventory-cxns))
+
 (reset-cp *clevr-processor*)
 
-(comprehend (current-speech-act *clevr-processor*) :cxn-inventory *clevr-grammar* :learn nil :align nil :consolidate nil)
+(comprehend (next-speech-act *clevr-processor*) :cxn-inventory *clevr-grammar*)
+
+
+;; Freeze learning to inspect problematic speech act:
+(comprehend (current-speech-act *clevr-processor*)
+            :cxn-inventory *clevr-grammar* :learn nil :align nil :consolidate nil)
+
+
+
+
+;;(next-speech-act *clevr-processor*)
+
+;;(nth-speech-act *clevr-processor* 45000)
+
+
+
+
+
+
+
 
 
 
