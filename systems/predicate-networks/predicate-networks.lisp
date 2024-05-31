@@ -8,7 +8,7 @@
   (:documentation "Variablify the provided predicate network,
    according to the network mode, e.g. :irl or :amr."))
 
-(defgeneric equivalent-predicate-networks-p (network-1 network-2)
+(defgeneric equivalent-predicate-networks (network-1 network-2)
   ;; see 'equivalent-predicate-networks' in
   ;; 'systems/fcg/utils/equivalent-predicate-networks.lisp'
   ;; This function checks if two networks are identical upto
@@ -26,11 +26,20 @@
   ;; Checking in both directions is necessary
   (:documentation "Check if network-1 and network-2 are equivalent."))
 
+(defmethod equivalent-predicate-networks ((network-1 list) (network-2 list))
+  "Two predicate networks are equivalent when
+   they can unify with each other."
+  (let ((map-frames (irl::equivalent-irl-programs? network-1 network-2)))
+    (when map-frames
+      (irl::map-frame-bindings (first map-frames)))))
+
+(defgeneric equivalent-predicate-networks-p (network-1 network-2)
+  (:documentation "-p version of equivalent-predicate-networks."))
+
 (defmethod equivalent-predicate-networks-p ((network-1 list) (network-2 list))
   "Two predicate networks are equivalent when
    they can unify with each other."
-  (irl::equivalent-irl-programs? network-1 network-2))
-
+  (when (equivalent-predicate-networks network-1 network-2) t))
 
 (defun instantiate-predicate-network (network)
  "Instantiate variables in the provided predicate network"
