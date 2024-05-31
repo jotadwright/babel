@@ -24,11 +24,11 @@
                      ;  (:hash-mode . :hash-sequence-meaning)
                        (:meaning-representation-format . :irl)
                        (:diagnostics diagnose-cip-against-gold-standard)
-                       (:repairs repair-learn-holophrastic-cxn repair-through-anti-unification)
+                       (:repairs repair-add-categorial-link repair-learn-holophrastic-cxn repair-through-anti-unification)
                        (:learning-mode . :pattern-finding)
                        (:alignment-mode . :lateral-inhibition-avg-entenchment-score)
-                       (:li-reward . 0.5)
-                       (:li-punishement . 0.5)
+                       (:li-reward . 0.2)
+                       (:li-punishement . 0.2)
                        (:best-solution-mode . :highest-average-entrenchment-score)
                        (:induce-cxns-mode . :filler-and-linking)
                        (:consolidate-repairs . t)
@@ -63,9 +63,7 @@
 (defparameter *color*
     (make-instance 'speech-act
                    :form "color"
-                   :meaning '(
-                              (bind attribute-category attribute-1 color)
-                             )))
+                   :meaning '((bind attribute-category attribute-1 color))))
 
 (comprehend *color* :cxn-inventory *fcg-constructions*)
 
@@ -81,6 +79,12 @@
 
 (comprehend *what-size-is-the-cube* :cxn-inventory *fcg-constructions*)
 
+(defparameter *material*
+    (make-instance 'speech-act
+                   :form "material"
+                   :meaning '((bind attribute-category attribute-2 material))))
+
+(comprehend *material* :cxn-inventory *fcg-constructions*)
 
 (defparameter *what-material-is-the-cube*
   (make-instance 'speech-act
@@ -98,8 +102,67 @@
 
 
 
+(setf *fcg-constructions* (make-empty-cxn-inventory-cxns))
 
 
+(defparameter *how-many-blocks-are-there*
+  (make-instance 'speech-act
+                 :form "how many blocks are there?"
+                 :meaning '((get-context context-2)
+                            (filter set-2 context-2 shape-2)
+                            (bind shape-category shape-2 cube)
+                            (count answer set-2))))
+
+(defparameter *how-many-spheres-are-there*
+  (make-instance 'speech-act
+                 :form "how many spheres are there?"
+                 :meaning '((get-context context-2)
+                            (filter set-2 context-2 shape-2)
+                            (bind shape-category shape-2 sphere)
+                            (count answer set-2))))
+
+
+(comprehend *how-many-blocks-are-there* :cxn-inventory *fcg-constructions*)
+(comprehend *how-many-spheres-are-there* :cxn-inventory *fcg-constructions*)
+
+
+
+
+
+(defparameter *what-is-the-color-of-the-cylinder*
+  (make-instance 'speech-act
+                 :form "what is the color of the cylinder?"
+                 :meaning '((get-context context-2)
+                            (filter set-2 context-2 shape-2)
+                            (bind shape-category shape-2 cylinder)
+                            (unique object-2 set-2)
+                            (query target-2 object-2 attribute-2)
+                            (bind attribute-category attribute-2 color))))
+
+(defparameter *what-is-the-color-of-the-block*
+  (make-instance 'speech-act
+                 :form "what is the color of the xx?"
+                 :meaning '((get-context context-2)
+                            (filter set-2 context-2 shape-2)
+                            (bind shape-category shape-2 cube)
+                            (unique object-2 set-2)
+                            (query target-2 object-2 attribute-2)
+                            (bind attribute-category attribute-2 color))))
+
+(defparameter *what-is-the-color-of-the-sphere*
+  (make-instance 'speech-act
+                 :form "what is the color of the sphere?"
+                 :meaning '((get-context context-2)
+                            (filter set-2 context-2 shape-2)
+                            (bind shape-category shape-2 sphere)
+                            (unique object-2 set-2)
+                            (query target-2 object-2 attribute-2)
+                            (bind attribute-category attribute-2 color))))
+
+
+(comprehend *what-is-the-color-of-the-cylinder* :cxn-inventory *fcg-constructions*)
+(comprehend *what-is-the-color-of-the-block* :cxn-inventory *fcg-constructions*)
+(comprehend *what-is-the-color-of-the-sphere* :cxn-inventory *fcg-constructions*)
 
 
 

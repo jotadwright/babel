@@ -6,7 +6,7 @@
    (corpus :accessor corpus :initarg :corpus))
   (:documentation "Class for corpus processor"))
 
-(defmethod load-corpus ((path pathname) &key (sort-p t))
+(defmethod load-corpus ((path pathname) &key (sort-p nil))
   "Loads the json corpus, creates speech acts and adds them to corpus processor. Returns corpus processor."
   (let ((speech-acts (with-open-file (stream path)
                        (loop for line = (read-line stream nil)
@@ -23,6 +23,14 @@
 
     (make-instance 'corpus-processor
                    :corpus (make-array (length speech-acts) :initial-contents speech-acts))))
+
+
+(defun shuffle-first-nth-speech-acts (cp n)
+
+  (reset-cp cp)
+  (setf (corpus cp) (make-array n :initial-contents (shuffle (subseq (corpus cp) 0 n))))
+  cp
+  )
                    
 
 (defmethod next-speech-act ((cp corpus-processor))
