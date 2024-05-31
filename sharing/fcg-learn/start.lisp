@@ -30,6 +30,7 @@
                        (:li-reward . 0.5)
                        (:li-punishement . 0.5)
                        (:best-solution-mode . :highest-average-entrenchment-score)
+                       (:induce-cxns-mode . :filler-and-linking)
                        (:consolidate-repairs . t)
                        (:de-render-mode . :de-render-sequence)
                        (:render-mode . :render-sequences)
