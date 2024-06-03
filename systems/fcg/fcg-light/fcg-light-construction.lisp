@@ -378,6 +378,9 @@ construction on the fly."
           (blackboard temporary-cxn-set) blackboard
           (blackboard (processing-cxn-inventory temporary-cxn-set)) blackboard)
 
+    ;; We don't want to keep the categorial network
+    (set-data (blackboard temporary-cxn-set) :categorial-network (make-instance 'categorial-network))
+
     (setf (original-cxn-set (processing-cxn-inventory temporary-cxn-set)) temporary-cxn-set)
     
     temporary-cxn-set)))

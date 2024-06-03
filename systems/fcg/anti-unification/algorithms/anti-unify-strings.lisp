@@ -15,6 +15,7 @@
    4. Remove duplicate results
    5. Transform the result back to sequence predicates"
   ;; to do: improve anti-unify sequences to have full reversibility, up to the original variables.
+
   (multiple-value-bind (pattern-renders all-pattern-boundaries) (render-all pattern :render-sequences)
     (multiple-value-bind (source-renders all-source-boundaries) (render-all source :render-sequences)  
       (let* ((all-anti-unification-results
@@ -36,15 +37,19 @@
                                                                             resulting-pattern-bindings
                                                                             resulting-source-bindings)
                                                           (anti-unify-aligned-sequences pattern-in-alignment source-in-alignment pattern-boundaries source-boundaries)
-                                                        (let ((au-result (make-instance 'sequences-au-result
+                                                        (let* ((simplified-sequences-generalisation (merge-adjacent-sequence-predicates resulting-generalisation))
+                                                               (au-result (make-instance 'sequences-au-result
                                                                                         :pattern pattern
                                                                                         :source source
-                                                                                        :generalisation (merge-adjacent-sequence-predicates resulting-generalisation)
+                                                                                        :generalisation simplified-sequences-generalisation
                                                                                         :pattern-delta (merge-adjacent-sequence-predicates resulting-pattern-delta)
                                                                                         :source-delta (merge-adjacent-sequence-predicates resulting-source-delta)
-                                                                                        :pattern-bindings (remove-bindings-not-in-generalisation  resulting-pattern-bindings (merge-adjacent-sequence-predicates resulting-generalisation))
-                                                                                        :source-bindings (remove-bindings-not-in-generalisation resulting-source-bindings (merge-adjacent-sequence-predicates resulting-generalisation))
-                                                                                        )))
+                                                                                        :pattern-bindings (remove-bindings-not-in-generalisation
+                                                                                                           resulting-pattern-bindings
+                                                                                                           simplified-sequences-generalisation)
+                                                                                        :source-bindings (remove-bindings-not-in-generalisation
+                                                                                                          resulting-source-bindings
+                                                                                                          simplified-sequences-generalisation))))
                                                           (setf (cost au-result) (anti-unification-cost au-result))
                                                           au-result))))))
              (unique-sorted-results
@@ -682,7 +687,49 @@
 
 
 (defun merge-adjacent-sequence-predicates (sequence-predicates)
-  "When there are adjacent sequence predicates, merge them together."
+  "Merge individual sequence predicates where they share boundaries."
+
+  (loop with current-simplified-string = nil
+        with current-simplified-sequence-predicate = nil
+        with result = nil
+        for (nil string left-boundary right-boundary) in sequence-predicates
+        for i from 1 
+        for next-predicate = (when (<= i (length sequence-predicates))
+                               (nth i sequence-predicates))
+        if next-predicate
+          do
+            (cond ((and (string= right-boundary (third next-predicate)) ;; boundaries coincide
+                        (null current-simplified-string)) ;;start new merged string
+                   (setf current-simplified-string string)
+                   (setf current-simplified-sequence-predicate `(sequence ,current-simplified-string ,left-boundary ,right-boundary)))
+                  
+                  ((and (string= right-boundary (third next-predicate))  ;; boundaries coincide
+                        current-simplified-string)
+                   (setf current-simplified-string (string-append current-simplified-string string))
+                   (setf current-simplified-sequence-predicate `(sequence ,current-simplified-string ,(third current-simplified-sequence-predicate) ,right-boundary)))
+                  
+                  ((null (string= right-boundary (third next-predicate)))  ;; boundaries do not coincide
+                   (if current-simplified-string
+                     (progn 
+                       (setf result (append result (list `(sequence ,(string-append current-simplified-string string)
+                                                                ,(third current-simplified-sequence-predicate) ,right-boundary))))
+                       (setf current-simplified-string nil)
+                       (setf current-simplified-sequence-predicate nil))
+                     (setf result (append result (list `(sequence ,string ,left-boundary ,right-boundary)))))))
+
+        else ;; we reached the end of the sequence-predicates list
+          do (if current-simplified-string
+                  (setf result (append result (list `(sequence ,(string-append current-simplified-string string)
+                                                               ,(third current-simplified-sequence-predicate) ,right-boundary))))
+                  (setf result (append result (list `(sequence ,string ,left-boundary ,right-boundary)))))
+                
+        finally (return result))
+        )
+
+;;(merge-adjacent-sequence-predicates '((SEQUENCE "A" #:?GB-19759597 #:?GB-19759598) (SEQUENCE "r" #:?GB-19759598 #:?GB-19759599) (SEQUENCE "e" #:?GB-19759599 #:?GB-19759600) (SEQUENCE " " #:?GB-19759600 #:?GB-19759601) (SEQUENCE "t" #:?GB-19759601 #:?GB-19759602) (SEQUENCE "h" #:?GB-19759602 #:?GB-19759603) (SEQUENCE "e" #:?GB-19759603 #:?GB-19759604) (SEQUENCE "r" #:?GB-19759604 #:?GB-19759605) (SEQUENCE "e" #:?GB-19759605 #:?GB-19759606) (SEQUENCE " " #:?GB-19759606 #:?GB-19759607) (SEQUENCE "a" #:?GB-19759607 #:?GB-19759608) (SEQUENCE "n" #:?GB-19759608 #:?GB-19759609) (SEQUENCE "y" #:?GB-19759609 #:?GB-19759610) (SEQUENCE " " #:?GB-19759610 #:?GB-19759611) (SEQUENCE "s" #:?GB-19759612 #:?GB-19759613) (SEQUENCE "?" #:?GB-19759613 #:?GB-19759614)))
+
+
+#|
   (loop for predicate in sequence-predicates
         for left-bound = (third predicate)
         for right-bound = (fourth predicate)
@@ -700,7 +747,11 @@
                         (copied-sequence-predicates (copy-list sequence-predicates)))
                     (setf (nth (position predicate copied-sequence-predicates) copied-sequence-predicates) new-predicate)
                     (merge-adjacent-sequence-predicates (remove adjacent-right copied-sequence-predicates :test #'equal)))
-        finally (return sequence-predicates)))
+        finally (return sequence-predicates))) |# 
+                  
+
+;;
+
 
 
 (defmethod compute-network-from-anti-unification-result ((au-result sequences-au-result) pattern-or-source)

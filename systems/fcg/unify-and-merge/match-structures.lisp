@@ -324,9 +324,9 @@
                                                             boundaries
                                                             (feature-value original-feature)
                                                             bindings) #'< :key #'third)))
-                         (new-feature (if (and (eq (feature-name original-feature) 'form)
-                                               new-form-value)
-                                       (make-feature 'form new-form-value)
+                         (new-feature (if (eq (feature-name original-feature) 'form)
+                                        (when new-form-value 
+                                          (make-feature 'form new-form-value))
                                        (make-feature (feature-name original-feature)
                                                      feature-value))))
                     (push new-feature
@@ -514,8 +514,15 @@
     (sort matched-positions  #'<)
     
     ;; taking care of matched-invervals:
-    (loop for interval on matched-positions by #'cddr
-          do (push interval matched-intervals))
+  #|  (loop for interval on matched-positions by #'cddr
+          do (push interval matched-intervals)) |#
+    (setf matched-intervals
+          (loop for i from 1 to (- (length matched-positions) 1)
+                for interval = (list (nth1 i matched-positions)
+                               (nth1 (+ i 1) matched-positions))
+                do (setf i (+ i 1))
+                collect interval))
+            
 
     ;; taking care of non-matched-intervals:
     (setf non-matched-intervals

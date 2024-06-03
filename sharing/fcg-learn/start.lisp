@@ -1,29 +1,181 @@
 (in-package :fcg)
 
 ;; (ql:quickload :fcg-learn)
-;; (activate-monitor trace-fcg)
+;; (deactivate-all-monitors)
+(activate-monitor trace-fcg-learning)
+
+
+(def-fcg-constructions empty-cxn-inventory
+  :feature-types ((form set-of-predicates :handle-regex-sequences)
+                  (meaning set-of-predicates)
+                  (form-args sequence)
+                  (meaning-args sequence)
+                  (subunits set)
+                  (footprints set))
+  :hashed t
+  :fcg-configurations (;; to activate heuristic search
+                       (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
+                       (:node-expansion-mode . :full-expansion) ;; always fully expands node immediately
+                       (:cxn-supplier-mode . :all-cxns) 
+                       ;; for using heuristics
+                       (:search-algorithm . :best-first) ;; :depth-first, :breadth-first
+                       (:heuristics :nr-of-applied-cxns :nr-of-units-matched) ;; list of heuristic functions (modes of #'apply-heuristic)
+                       (:heuristic-value-mode . :sum-heuristics-and-parent) ;; how to use results of heuristic functions for scoring a node
+                     ;  (:hash-mode . :hash-sequence-meaning)
+                       (:meaning-representation-format . :irl)
+                       (:diagnostics diagnose-cip-against-gold-standard)
+                       (:repairs repair-add-categorial-link repair-learn-holophrastic-cxn repair-through-anti-unification)
+                       (:learning-mode . :pattern-finding)
+                       (:alignment-mode . :lateral-inhibition-avg-entenchment-score)
+                       (:li-reward . 0.2)
+                       (:li-punishement . 0.2)
+                       (:best-solution-mode . :highest-average-entrenchment-score)
+                       (:induce-cxns-mode . :filler-and-linking)
+                       (:form-generalisation-mode . :needleman-wunsch)
+                       (:max-nr-of-gaps-in-form-predicates . 3)
+                       (:meaning-generalisation-mode . :k-swap)
+                       (:k-swap-k . 1)
+                       (:k-swap-w . 1)
+                       (:consolidate-repairs . t)
+                       (:de-render-mode . :de-render-sequence)
+                       (:render-mode . :render-sequences)
+                       (:category-linking-mode . :neighbours)
+                       (:expand-nodes-in-search-tree . t)
+                       (:parse-goal-tests :no-applicable-cxns :connected-semantic-network :no-sequence-in-root)
+                       (:production-goal-tests :no-applicable-cxns :no-meaning-in-root :connected-structure))
+  :visualization-configurations ((:show-constructional-dependencies . nil)
+                                 (:show-categorial-network . t)))
+
 
 ;;++++++++++++++++++++++++++++++++++++++++++++
 ;; Substitution
 ;;++++++++++++++++++++++++++++++++++++++++++++
  
-(defparameter *what-color-is-the-cube* '((:form . ((sequence "what color is the cube?" ?l1 ?r1)))
-                                         (:meaning . ((get-context ?context-1)
-                                                      (filter ?set-1 ?context-1 ?shape-1)
-                                                      (bind shape-category ?shape-1 cube)
-                                                      (unique ?object-1 ?set-1)
-                                                      (query ?target-1 ?object-1 ?attribute-1)
-                                                      (bind attribute-category ?attribute-1 color)))))
+(defparameter *what-color-is-the-cube*
+    (make-instance 'speech-act
+                   :form "what color is the cube?"
+                   :meaning '((get-context context-1)
+                              (filter set-1 context-1 shape-1)
+                              (bind shape-category shape-1 cube)
+                              (unique object-1 set-1)
+                              (query target-1 object-1 attribute-1)
+                              (bind attribute-category attribute-1 color))))
 
-(defparameter *what-size-is-the-cube* '((:form . ((sequence "what size is the cube?" ?l2 ?r2)))
-                                        (:meaning . ((get-context ?context-2)
-                                                     (filter ?set-2 ?context-2 ?shape-2)
-                                                     (bind shape-category ?shape-2 cube)
-                                                     (unique ?object-2 ?set-2)
-                                                     (query ?target-2 ?object-2 ?attribute-2)
-                                                     (bind attribute-category ?attribute-2 size)))))
+(setf *fcg-constructions* (make-empty-cxn-inventory-cxns))
+(comprehend *what-color-is-the-cube* :cxn-inventory *fcg-constructions*)
+(comprehend *what-color-is-the-cube* :cxn-inventory *fcg-constructions* :learn nil :align nil)
 
-(let ((*fcg-constructions* (make-sandbox-grammar-cxns))
+(defparameter *color*
+    (make-instance 'speech-act
+                   :form "color"
+                   :meaning '((bind attribute-category attribute-1 color))))
+
+(comprehend *color* :cxn-inventory *fcg-constructions*)
+
+(defparameter *what-size-is-the-cube*
+  (make-instance 'speech-act
+                 :form "what size is the cube?"
+                 :meaning '((get-context context-2)
+                            (filter set-2 context-2 shape-2)
+                            (bind shape-category shape-2 cube)
+                            (unique object-2 set-2)
+                            (query target-2 object-2 attribute-2)
+                            (bind attribute-category attribute-2 size))))
+
+(comprehend *what-size-is-the-cube* :cxn-inventory *fcg-constructions*)
+
+(defparameter *material*
+    (make-instance 'speech-act
+                   :form "material"
+                   :meaning '((bind attribute-category attribute-2 material))))
+
+(comprehend *material* :cxn-inventory *fcg-constructions*)
+
+(defparameter *what-material-is-the-cube*
+  (make-instance 'speech-act
+                 :form "what material is the cube?"
+                 :meaning '((get-context context-2)
+                            (filter set-2 context-2 shape-2)
+                            (bind shape-category shape-2 cube)
+                            (unique object-2 set-2)
+                            (query target-2 object-2 attribute-2)
+                            (bind attribute-category attribute-2 material))))
+
+(comprehend *what-material-is-the-cube* :cxn-inventory *fcg-constructions*)
+
+
+
+
+
+(setf *fcg-constructions* (make-empty-cxn-inventory-cxns))
+
+
+(defparameter *how-many-blocks-are-there*
+  (make-instance 'speech-act
+                 :form "how many blocks are there?"
+                 :meaning '((get-context context-2)
+                            (filter set-2 context-2 shape-2)
+                            (bind shape-category shape-2 cube)
+                            (count answer set-2))))
+
+(defparameter *how-many-spheres-are-there*
+  (make-instance 'speech-act
+                 :form "how many spheres are there?"
+                 :meaning '((get-context context-2)
+                            (filter set-2 context-2 shape-2)
+                            (bind shape-category shape-2 sphere)
+                            (count answer set-2))))
+
+
+(comprehend *how-many-blocks-are-there* :cxn-inventory *fcg-constructions*)
+(comprehend *how-many-spheres-are-there* :cxn-inventory *fcg-constructions*)
+
+
+
+
+
+(defparameter *what-is-the-color-of-the-cylinder*
+  (make-instance 'speech-act
+                 :form "what is the color of the cylinder?"
+                 :meaning '((get-context context-2)
+                            (filter set-2 context-2 shape-2)
+                            (bind shape-category shape-2 cylinder)
+                            (unique object-2 set-2)
+                            (query target-2 object-2 attribute-2)
+                            (bind attribute-category attribute-2 color))))
+
+(defparameter *what-is-the-color-of-the-block*
+  (make-instance 'speech-act
+                 :form "what is the color of the xx?"
+                 :meaning '((get-context context-2)
+                            (filter set-2 context-2 shape-2)
+                            (bind shape-category shape-2 cube)
+                            (unique object-2 set-2)
+                            (query target-2 object-2 attribute-2)
+                            (bind attribute-category attribute-2 color))))
+
+(defparameter *what-is-the-color-of-the-sphere*
+  (make-instance 'speech-act
+                 :form "what is the color of the sphere?"
+                 :meaning '((get-context context-2)
+                            (filter set-2 context-2 shape-2)
+                            (bind shape-category shape-2 sphere)
+                            (unique object-2 set-2)
+                            (query target-2 object-2 attribute-2)
+                            (bind attribute-category attribute-2 color))))
+
+
+(comprehend *what-is-the-color-of-the-cylinder* :cxn-inventory *fcg-constructions*)
+(comprehend *what-is-the-color-of-the-block* :cxn-inventory *fcg-constructions*)
+(comprehend *what-is-the-color-of-the-sphere* :cxn-inventory *fcg-constructions*)
+
+
+
+
+
+
+
+(let ((*fcg-constructions* (make-empty-cxn-inventory-cxns))
       (holophrastic-what-color-is-the-cube (induce-cxns *what-color-is-the-cube* nil :cxn-inventory *fcg-constructions*)))
 
   (induce-cxns *what-size-is-the-cube* holophrastic-what-color-is-the-cube :cxn-inventory *fcg-constructions*)
@@ -31,6 +183,12 @@
   (comprehend-all (form-string *what-color-is-the-cube*))
   (comprehend-all (form-string *what-size-is-the-cube*))
   (formulate-all (instantiate-variables (meaning *what-color-is-the-cube*))))
+
+
+(comprehend *what-color-is-the-cube* :cxn-inventory (make-empty-cxn-inventory-cxns))
+
+(categorial-network (make-empty-cxn-inventory-cxns))
+next-cip-solution
 
 ;;++++++++++++++++++++++++++++++++++++++++++++
 ;; Deletion + addition

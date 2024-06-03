@@ -103,6 +103,8 @@
 (define-event repair-finished (repair repair) (object t)
               (fixes t))
 
+(define-event all-diagnostics-run (object-w-learning object-w-learning) (problems list))
+
 (defgeneric notify-learning (object &key trigger))
 
 (defmethod notify-learning (notified-object
@@ -137,6 +139,7 @@
                     (push problem new-problems)
                   finally 
                     (notify diagnose-finished diagnostic notified-object problems))))
+    (notify all-diagnostics-run notified-object new-problems)
     ;; 2. run repairs
     (unless omit-repairs
       (loop

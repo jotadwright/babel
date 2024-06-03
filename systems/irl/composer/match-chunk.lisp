@@ -268,9 +268,9 @@
 
 (defmethod equivalent-irl-programs? ((irl-program-1 list) (irl-program-2 list))
   (and (length= irl-program-1 irl-program-2) ;; efficiency 
-       (same-primitives irl-program-1 irl-program-2) ;; efficiency 
-       (embedding irl-program-1 irl-program-2)
-       (embedding irl-program-2 irl-program-1)))
+       (same-primitives irl-program-1 irl-program-2) ;; efficiency
+       (embedding irl-program-2 irl-program-1)
+       (embedding irl-program-1 irl-program-2)))
 
 (defun same-primitives (irl-program-1 irl-program-2)
   (equal-sets irl-program-1 irl-program-2
