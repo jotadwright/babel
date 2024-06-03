@@ -45,7 +45,7 @@
     (:usage-table-window . 1000)))
 
 (defun test-experiment (args)
-  (loop for idx from 1 to 25
+  (loop for idx from 1 to 6
         for store = (format nil "~a" idx)
         do (let* ((config (append (fixed-config)
                                   (parse-config args)))
@@ -66,6 +66,8 @@
              (set-configuration experiment :dataset (assqv :dataset config))
              (set-configuration experiment :dataset-split (assqv :dataset-split config))
              (set-configuration experiment :available-channels (assqv :available-channels config))
+             (set-configuration experiment :hellinger-config :hellinger)
+             (set-configuration experiment :similarity-config :paper)
              (set-configuration experiment :align nil)
              ;; reset usage tables
              (loop for agent in (agents experiment)
@@ -79,7 +81,7 @@
              (activate-monitor print-a-dot-for-each-interaction)
              (format t "~%---------- NEW GAME ----------~%")
              (time
-              (loop for i from 1 to (assqv :nr-of-interactions config)
+              (loop for i from 1 to 100
                     do (run-interaction experiment)))
 
              ;; log monitors to disk
