@@ -78,7 +78,8 @@
                                            for cxn-form = (attr-val cxn :form)
                                            for cxn-meaning = (attr-val cxn :meaning)
                                            for au-form-result = (first (anti-unify-sequences speech-act-form-predicates cxn-form))
-                                           for au-meaning-result = (first (anti-unify-predicate-network speech-act-meaning-predicates cxn-meaning))
+                                           for au-meaning-result = (first (au-benchmark.msg.kswap-omega:anti-unify-predicate-networks
+                                                                           speech-act-meaning-predicates cxn-meaning :k 2 :w 1))
                                            when (and (> (cost au-form-result) 0)
                                                      (> (cost au-meaning-result) 0))
                                            collect (list cxn au-form-result au-meaning-result) into au-results
@@ -86,7 +87,8 @@
                                                                                                 (+ (cost (second r1))
                                                                                                    (cost (third r1))))))))))
     (when candidate-cxn-w-au-results
-      (let* ((au-form (second candidate-cxn-w-au-results))
+      (let* ((pattern-cxn (first candidate-cxn-w-au-results))
+             (au-form (second candidate-cxn-w-au-results))
              (au-meaning (third candidate-cxn-w-au-results))
              (form-slot-args (compute-slot-args au-form))
              (form-filler-args-pattern  (loop for slot-arg in form-slot-args
@@ -128,6 +130,8 @@
           (add-category (attr-val source-filler-cxn :cxn-cat) fix-cxn-inventory)
           (add-link (attr-val source-filler-cxn :cxn-cat) (attr-val slot-cxn :cxn-cat) fix-cxn-inventory))
 
+        (append-data (blackboard fix-cxn-inventory) :pattern-cxns (list pattern-cxn))
+        
         (list fix-cxn-inventory)))))
     
     
@@ -386,9 +390,41 @@ construction creates."
 
 |#
 
+(defgeneric anti-unify-form (speech-act-form cxn-form mode &key cxn-inventory &allow-other-keys))
+
+(defmethod anti-unify-form ((speech-act-sequence-predicates list)
+                            (cxn-sequence-predicates list)
+                            (mode (eql :needleman-wunsch)) &key &allow-other-keys)
+
+  (first (anti-unify-sequences speech-act-sequence-predicates cxn-sequence-predicates)))
 
 
+(defgeneric anti-unify-meaning (speech-act-meaning cxn-meaning mode &key cxn-inventory &allow-other-keys))
 
+(defmethod anti-unify-meaning ((speech-act-meaning-predicates list)
+                               (cxn-meaning-predicates list)
+                               (mode (eql :k-swap)) &key cxn-inventory &allow-other-keys)
+  (let ((k-swap-au-result
+         (first (au-benchmark.msg.kswap-omega:anti-unify-predicate-networks speech-act-meaning-predicates cxn-meaning-predicates
+                                                                            :k (get-configuration cxn-inventory :k-swap-k)
+                                                                            :w (get-configuration cxn-inventory :k-swap-w)))))
+
+    (make-instance 'predicate-network-au-result 
+                   :pattern (au-benchmark.msg.kswap-omega::pattern k-swap-au-result)
+                   :source (au-benchmark.msg.kswap-omega::source k-swap-au-result)
+                   :generalisation (au-benchmark.msg.kswap-omega::generalisation k-swap-au-result)
+                   :pattern-bindings (au-benchmark.msg.kswap-omega::pattern-bindings k-swap-au-result)
+                   :source-bindings (au-benchmark.msg.kswap-omega::source-bindings k-swap-au-result)
+                   :pattern-delta (au-benchmark.msg.kswap-omega::pattern-delta k-swap-au-result)
+                   :source-delta (au-benchmark.msg.kswap-omega::source-delta k-swap-au-result)
+                   :cost (au-benchmark.msg.kswap-omega::cost k-swap-au-result))))
+
+
+(defmethod anti-unify-meaning ((speech-act-meaning-predicates list)
+                               (cxn-meaning-predicates list)
+                               (mode (eql :exhaustive)) &key &allow-other-keys)
+
+  (first (anti-unify-predicate-network speech-act-meaning-predicates cxn-meaning-predicates)))
 
 
 
@@ -402,8 +438,12 @@ construction creates."
          (candidate-cxn-w-au-results (loop for cxn in (constructions-with-hashed-meaning cxn-inventory)
                                            for cxn-form = (attr-val cxn :form)
                                            for cxn-meaning = (attr-val cxn :meaning)
-                                           for au-form-result = (first (anti-unify-sequences speech-act-form-predicates cxn-form))
-                                           for au-meaning-result = (first (anti-unify-predicate-network speech-act-meaning-predicates cxn-meaning))
+                                           for au-form-result = (anti-unify-form speech-act-form-predicates cxn-form
+                                                                                 (get-configuration cxn-inventory :form-generalisation-mode)
+                                                                                 :cxn-inventory cxn-inventory)
+                                           for au-meaning-result = (anti-unify-meaning speech-act-meaning-predicates cxn-meaning
+                                                                                       (get-configuration cxn-inventory :meaning-generalisation-mode)
+                                                                                       :cxn-inventory cxn-inventory)
                                            when (and (> (cost au-form-result) 0)
                                                      (> (cost au-meaning-result) 0))
                                            collect (list cxn au-form-result au-meaning-result) into au-results
@@ -411,7 +451,8 @@ construction creates."
                                                                                                 (+ (cost (second r1))
                                                                                                    (cost (third r1))))))))))
     (when candidate-cxn-w-au-results
-      (let* ((au-form (second candidate-cxn-w-au-results))
+      (let* ((pattern-cxn (first candidate-cxn-w-au-results))
+             (au-form (second candidate-cxn-w-au-results))
              (au-meaning (third candidate-cxn-w-au-results))
              (generalisation-form-args (compute-slot-args au-form))
              (pattern-form-args  (loop for slot-arg in generalisation-form-args
@@ -460,6 +501,8 @@ construction creates."
           (add-category (attr-val source-filler-cxn :cxn-cat) fix-cxn-inventory)
           (add-link (attr-val source-filler-cxn :cxn-cat) (second (attr-val linking-cxn :slot-cats)) fix-cxn-inventory))
 
+        (append-data (blackboard fix-cxn-inventory) :pattern-cxns (list pattern-cxn))
+        
         (list fix-cxn-inventory)))))
 
 

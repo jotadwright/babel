@@ -26,13 +26,17 @@
                      ;  (:hash-mode . :hash-sequence-meaning)
                        (:meaning-representation-format . :irl)
                        (:diagnostics diagnose-cip-against-gold-standard)
-                       (:repairs repair-add-categorial-link  repair-through-anti-unification repair-learn-holophrastic-cxn)
+                       (:repairs repair-add-categorial-link repair-learn-holophrastic-cxn repair-through-anti-unification)
                        (:learning-mode . :pattern-finding)
                        (:alignment-mode . :lateral-inhibition-avg-entenchment-score)
                        (:li-reward . 0.2)
                        (:li-punishement . 0.2)
                        (:best-solution-mode . :highest-average-entrenchment-score)
                        (:induce-cxns-mode . :filler-and-linking)
+                       (:form-generalisation-mode . :needleman-wunsch)
+                       (:meaning-generalisation-mode . :exhaustive)
+                       (:k-swap-k . 1)
+                       (:k-swap-w . 1)
                        (:consolidate-repairs . t)
                        (:de-render-mode . :de-render-sequence)
                        (:render-mode . :render-sequences)
@@ -62,13 +66,13 @@
 
 (defparameter *clevr-grammar* (make-empty-cxn-inventory-cxns))
 
-(reset-cp *first-500-shuffled*)
+(reset-cp *clevr-processor*)
 
 
-(comprehend (next-speech-act *first-500-shuffled*) :cxn-inventory *clevr-grammar*)
+(comprehend (next-speech-act *clevr-processor*) :cxn-inventory *clevr-grammar*)
 
 (loop for i from 0 to 10 do 
-        (comprehend (next-speech-act *first-500-shuffled*) :cxn-inventory *clevr-grammar*))
+        (comprehend (next-speech-act *clevr-processor*) :cxn-inventory *clevr-grammar*))
 
 
 ;; Freeze learning to inspect problematic speech act:
