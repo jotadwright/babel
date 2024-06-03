@@ -10,14 +10,14 @@
 
 # load atools
 module purge
-module load atools/1.5.1-GCCcore-11.2.0
+module load atools/1.5.1-GCCcore-12.3.0
 
 # read input data from csv
 source <(aenv --data $VSC_HOME/concept-emergence2/batch/data-train/ce3-maha.csv --sniff 4096)
 
 # load sbcl
 module purge
-module load SBCL/2.2.1-GCCcore-10.3.0
+module load SBCL/2.4.1-GCCcore-12.3.0
 
 # run script
 sbcl --dynamic-space-size 70000 --load $VSC_HOME/concept-emergence2/batch/run.lisp \
