@@ -34,6 +34,7 @@
                        (:best-solution-mode . :highest-average-entrenchment-score)
                        (:induce-cxns-mode . :filler-and-linking)
                        (:form-generalisation-mode . :needleman-wunsch)
+                       (:max-nr-of-gaps-in-form-predicates . 1)
                        (:meaning-generalisation-mode . :exhaustive)
                        (:k-swap-k . 1)
                        (:k-swap-w . 1)
@@ -71,7 +72,7 @@
 
 (comprehend (next-speech-act *clevr-processor*) :cxn-inventory *clevr-grammar*)
 
-(loop for i from 0 to 10 do 
+(loop for i from 0 to 20 do 
         (comprehend (next-speech-act *clevr-processor*) :cxn-inventory *clevr-grammar*))
 
 

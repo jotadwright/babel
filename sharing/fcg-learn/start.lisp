@@ -32,6 +32,7 @@
                        (:best-solution-mode . :highest-average-entrenchment-score)
                        (:induce-cxns-mode . :filler-and-linking)
                        (:form-generalisation-mode . :needleman-wunsch)
+                       (:max-nr-of-gaps-in-form-predicates . 3)
                        (:meaning-generalisation-mode . :k-swap)
                        (:k-swap-k . 1)
                        (:k-swap-w . 1)

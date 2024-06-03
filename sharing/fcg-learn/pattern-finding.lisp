@@ -434,22 +434,26 @@ construction creates."
                         (cip construction-inventory-processor)
                         (mode (eql :filler-and-linking))
                         &key fix-cxn-inventory)
+
   (let* ((cxn-inventory (original-cxn-set (construction-inventory cip)))
          (candidate-cxn-w-au-results (loop for cxn in (constructions-with-hashed-meaning cxn-inventory)
                                            for cxn-form = (attr-val cxn :form)
                                            for cxn-meaning = (attr-val cxn :meaning)
-                                           for au-form-result = (anti-unify-form speech-act-form-predicates cxn-form
+                                           ;;; Only consider if there are less than x gaps in the form
+                                           if (<= (length cxn-form) (+ (get-configuration cxn-inventory :max-nr-of-gaps-in-form-predicates) 1))
+                                             collect (let ((au-form-result (anti-unify-form speech-act-form-predicates cxn-form
                                                                                  (get-configuration cxn-inventory :form-generalisation-mode)
-                                                                                 :cxn-inventory cxn-inventory)
-                                           for au-meaning-result = (anti-unify-meaning speech-act-meaning-predicates cxn-meaning
+                                                                                 :cxn-inventory cxn-inventory))
+                                                           (au-meaning-result (anti-unify-meaning speech-act-meaning-predicates cxn-meaning
                                                                                        (get-configuration cxn-inventory :meaning-generalisation-mode)
-                                                                                       :cxn-inventory cxn-inventory)
-                                           when (and (> (cost au-form-result) 0)
-                                                     (> (cost au-meaning-result) 0))
-                                           collect (list cxn au-form-result au-meaning-result) into au-results
-                                           finally (return (first (sort au-results #'< :key #'(lambda (r1)
-                                                                                                (+ (cost (second r1))
-                                                                                                   (cost (third r1))))))))))
+                                                                                       :cxn-inventory cxn-inventory)))
+                                                       (when (and (> (cost au-form-result) 0)
+                                                                  (> (cost au-meaning-result) 0))
+                                                         (list cxn au-form-result au-meaning-result)))
+                                               into au-results
+                                           finally (return (first (sort (remove nil au-results) #'< :key #'(lambda (r1)
+                                                                                                             (+ (cost (second r1))
+                                                                                                                (cost (third r1))))))))))
     (when candidate-cxn-w-au-results
       (let* ((pattern-cxn (first candidate-cxn-w-au-results))
              (au-form (second candidate-cxn-w-au-results))
