@@ -81,7 +81,7 @@
              (activate-monitor print-a-dot-for-each-interaction)
              (format t "~%---------- NEW GAME ----------~%")
              (time
-              (loop for i from 1 to 100
+              (loop for i from 1 to (assqv :nr-of-interactions config)
                     do (run-interaction experiment)))
 
              ;; log monitors to disk
