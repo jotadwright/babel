@@ -101,7 +101,7 @@
   (add-element `((h2 :style "padding: 15px; margin: 0px; background-color: #34b4eb;") "Alignment"))
   (add-element `((hr :style "margin-block-start: 0px;"))))
 
-(define-event entrenchment-finished (rewarded-cxns list) (punished-cxns list))
+(define-event entrenchment-finished (rewarded-cxns list) (punished-cxns list) (deleted-cxns list))
 
 (define-event-handler (trace-fcg-learning entrenchment-finished)
   (when rewarded-cxns
@@ -112,7 +112,11 @@
     (add-element `((h4) "Constructions punished:"))
     (loop for cxn in punished-cxns
           do (add-element (make-html cxn :cxn-inventory (cxn-inventory cxn) :expand-initially nil))))
-  (unless (or rewarded-cxns punished-cxns)
+  (when deleted-cxns
+    (add-element `((h4) "Constructions deleted:"))
+    (loop for cxn in deleted-cxns
+          do (add-element (make-html cxn :cxn-inventory (cxn-inventory cxn) :expand-initially nil))))
+  (unless (or rewarded-cxns punished-cxns deleted-cxns)
     (add-element `((h4) "No alignment took place.")))
   (add-element `((p) " ")))
   

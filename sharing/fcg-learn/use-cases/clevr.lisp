@@ -35,7 +35,7 @@
                        (:induce-cxns-mode . :filler-and-linking)
                        (:form-generalisation-mode . :needleman-wunsch)
                        (:max-nr-of-gaps-in-form-predicates . 1)
-                       (:meaning-generalisation-mode . :exhaustive)
+                       (:meaning-generalisation-mode . :k-swap)
                        (:k-swap-k . 1)
                        (:k-swap-w . 1)
                        (:consolidate-repairs . t)
