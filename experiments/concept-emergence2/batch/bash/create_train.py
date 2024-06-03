@@ -49,7 +49,9 @@ sbcl --dynamic-space-size 16000 --load run.lisp \\
     weight-decf {weight_decf} \\
     switch-condition {switch_condition} \\
     switch-conditions-after-n-interactions {switch_conditions_after_n_interactions} \\
-    stage-parameters "{stage_parameters}"
+    stage-parameters "{stage_parameters}" \\
+    similarity-config {similarity_config} \\
+    hellinger-config {hellinger_config}
 """
 
 
