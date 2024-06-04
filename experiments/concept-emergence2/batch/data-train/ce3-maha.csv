@@ -8,3 +8,9 @@ id,exp_name,nr_of_series,nr_of_interactions,population_size,dataset,dataset_spli
 7,maha-7,1,500000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,nil,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-2,:hellinger
 8,maha-8,1,500000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,nil,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:hellinger
 9,maha-9,1,500000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.2,-0.1,-0.02,0.0,-0.1,:heuristic-1,nil,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-4,:hellinger
+10,maha-10,1,500000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,nil,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:hellinger
+11,maha-11,1,500000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.2,-0.1,-0.02,0.0,-0.1,:heuristic-1,nil,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-5,:hellinger
+12,maha-12,1,500000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.2,-0.1,-0.02,0.0,-0.1,:heuristic-1,nil,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:version-2
+13,maha-13,1,500000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.2,-0.1,-0.02,0.0,-0.1,:heuristic-1,nil,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-5,:version-2
+14,maha-14,1,500000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,nil,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:version-3
+15,maha-15,1,500000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.2,-0.1,-0.02,0.0,-0.1,:heuristic-1,nil,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-5,:version-3

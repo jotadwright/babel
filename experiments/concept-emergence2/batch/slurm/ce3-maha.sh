@@ -2,11 +2,11 @@
 #SBATCH --job-name=maha
 #SBATCH --error=/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/maha_%a_%A_e.txt
 #SBATCH --output=/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/maha_%a_%A_o.txt
-#SBATCH --time=24:00:00
+#SBATCH --time=05:00:00
 #SBATCH	--ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=16G
-#SBATCH --array=1-9
+#SBATCH --array=10-15
 
 # load atools
 module purge

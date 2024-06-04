@@ -108,6 +108,20 @@
             into mahalanobis
         finally (return (exp (- mahalanobis)))))
 
+(defmethod similarity ((agent cle-agent) (object cle-object) (concept concept) (mode (eql :multivariate-5)))
+  "Compute the weighted similarity between an object and a concept."
+  (loop with prototypes = (get-available-prototypes agent concept)
+        with ledger = (loop for prototype in prototypes sum (weight prototype))
+        for prototype in prototypes
+        for observation = (perceive-object-val agent object (channel prototype))
+        for similarity = (observation-similarity observation prototype)
+        if (and similarity (not (zerop ledger)))
+          ;; note: ledger could be factored out
+          sum (* (/ (weight prototype) ledger)
+                 (expt similarity 2))
+            into mahalanobis
+        finally (return (exp (* 1/2 (- mahalanobis))))))
+
 ;; ----------------------------------
 ;; + Comparing OBJECT <-> PROTOTYPE +
 ;; ----------------------------------
