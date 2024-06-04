@@ -505,7 +505,7 @@ construction creates."
           (add-category (attr-val source-filler-cxn :cxn-cat) fix-cxn-inventory)
           (add-link (attr-val source-filler-cxn :cxn-cat) (second (attr-val linking-cxn :slot-cats)) fix-cxn-inventory))
 
-        (append-data (blackboard fix-cxn-inventory) :pattern-cxns (list pattern-cxn))
+        (append-data (blackboard fix-cxn-inventory) :base-cxns (list pattern-cxn))
         
         (list fix-cxn-inventory)))))
 
