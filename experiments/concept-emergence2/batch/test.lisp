@@ -45,7 +45,7 @@
     (:usage-table-window . 1000)))
 
 (defun test-experiment (args)
-  (loop for idx from 1 to 6
+  (loop for idx from 1 to 5
         for store = (format nil "~a" idx)
         do (let* ((config (append (fixed-config)
                                   (parse-config args)))
