@@ -37,6 +37,7 @@
   (let* ((form-sequence-predicates `((sequence ,(form speech-act) ,(make-var "left") ,(make-var "right"))))
          (meaning-predicates (fresh-variables (pn::variablify-predicate-network (meaning speech-act)
                                                                                 (get-configuration cxn-inventory :meaning-representation-format))))
+         (initial-score 0.5)
          (holophrastic-cxn (make-instance 'holophrastic-cxn
                                           :name (make-cxn-name form-sequence-predicates)
                                           :conditional-part (list (make-instance 'conditional-unit
@@ -47,7 +48,7 @@
                                           :feature-types (feature-types cxn-inventory)
                                           :attributes `((:form . ,form-sequence-predicates)
                                                         (:meaning . ,meaning-predicates)
-                                                        (:entrenchment-score . 0.5)))))
+                                                        (:entrenchment-score . ,initial-score)))))
     ;; return cxn-inventory and new cxn
     (add-cxn holophrastic-cxn (copy-fcg-construction-set-without-cxns cxn-inventory))))
 
@@ -225,7 +226,8 @@ construction creates."
   (when (and form-sequence-predicates meaning-predicates)
     (let* ((cxn-name (make-cxn-name form-sequence-predicates))
            (filler-cat (make-const (upcase (format nil "~a-filler-cat" (remove-cxn-tail (symbol-name cxn-name))))))
-           (unit-name (make-var "filler-unit")))
+           (unit-name (make-var "filler-unit"))
+           (initial-score 0.5))
 
       (make-instance 'filler-cxn
                      :name cxn-name
@@ -240,12 +242,12 @@ construction creates."
                                                          :comprehension-lock `((HASH form ,form-sequence-predicates))))
                      :cxn-inventory cxn-inventory
                      :feature-types (feature-types cxn-inventory)
-                     :attributes `((:form . ,(add-slot-wildcard-to-sequence-predicates form-sequence-predicates))
+                     :attributes `((:form . ,form-sequence-predicates)
                                    (:meaning . ,meaning-predicates)
                                    (:form-args . ,form-filler-args)
                                    (:meaning-args . ,meaning-filler-args)
                                    (:cxn-cat . ,filler-cat)
-                                   (:entrenchment-score . 0.5))))))
+                                   (:entrenchment-score . ,initial-score))))))
 
 (defun create-slot-cxn (form-sequence-predicates meaning-predicates form-slot-args meaning-slot-args
                                                  &key (cxn-inventory *fcg-constructions*))
@@ -255,7 +257,8 @@ construction creates."
     (let* ((cxn-name (make-cxn-name form-sequence-predicates))
            (slot-cat (make-const (upcase (format nil "~a-slot-cat" (remove-cxn-tail (symbol-name cxn-name))))))
            (slot-unit-name (make-var "slot-unit"))
-           (super-unit-name (make-var "parent-unit")))
+           (super-unit-name (make-var "parent-unit"))
+           (initial-score 0.5))
 
       (make-instance 'slot-cxn
                      :name cxn-name
@@ -276,10 +279,10 @@ construction creates."
                                                                                   (meaning-args ,meaning-slot-args))))
                      :cxn-inventory cxn-inventory
                      :feature-types (feature-types cxn-inventory)
-                     :attributes `((:form . ,(add-slot-wildcard-to-sequence-predicates form-sequence-predicates))
+                     :attributes `((:form . ,form-sequence-predicates)
                                    (:meaning . ,meaning-predicates)
                                    (:cxn-cat . ,slot-cat)
-                                   (:entrenchment-score . 0.5))))))
+                                   (:entrenchment-score . ,initial-score))))))
 
 
 ;; Learning based on existing slot construction
@@ -429,6 +432,56 @@ construction creates."
 
 
 
+(defun learn-cxns-from-au-result (au-meaning au-form fix-cxn-inventory)
+  (let* ((generalisation-form-args (compute-slot-args au-form))
+         (pattern-form-args  (loop for slot-arg in generalisation-form-args
+                                   collect (car (rassoc slot-arg (pattern-bindings au-form)))))
+         (source-form-args (loop for slot-arg in generalisation-form-args
+                                 collect (car (rassoc slot-arg (source-bindings au-form)))))
+         
+         (generalisation-meaning-args (compute-slot-args au-meaning))
+         (pattern-meaning-args (loop for slot-arg in generalisation-meaning-args
+                                     collect (car (rassoc slot-arg (pattern-bindings au-meaning)))))
+         (source-meaning-args (loop for slot-arg in generalisation-meaning-args
+                                    collect (car (rassoc slot-arg (source-bindings au-meaning)))))
+           
+         ;; Create filler constructions for generalisation, pattern and source
+         (generalisation-filler-cxn
+          (create-filler-cxn (generalisation au-form)(generalisation au-meaning)
+                             generalisation-form-args generalisation-meaning-args  :cxn-inventory cxn-inventory))
+         (pattern-filler-cxn
+          (create-filler-cxn (pattern-delta au-form) (pattern-delta au-meaning)
+                             pattern-form-args pattern-meaning-args  :cxn-inventory cxn-inventory))
+         (source-filler-cxn
+          (create-filler-cxn (source-delta au-form) (source-delta au-meaning)
+                             source-form-args source-meaning-args :cxn-inventory cxn-inventory))
+         ;; Create linking construction
+         (linking-cxn
+          (create-linking-cxn generalisation-form-args generalisation-meaning-args :cxn-inventory cxn-inventory)))
+
+    (when linking-cxn
+      (add-cxn linking-cxn fix-cxn-inventory)
+      (add-categories (attr-val linking-cxn :slot-cats) fix-cxn-inventory))
+    
+    (when (and generalisation-filler-cxn linking-cxn)
+      (add-cxn generalisation-filler-cxn fix-cxn-inventory)
+      (add-category (attr-val generalisation-filler-cxn :cxn-cat) fix-cxn-inventory)
+      (add-link (attr-val generalisation-filler-cxn :cxn-cat) (first (attr-val linking-cxn :slot-cats)) fix-cxn-inventory))
+
+    (when (and pattern-filler-cxn linking-cxn)
+      (add-cxn pattern-filler-cxn fix-cxn-inventory)
+      (add-category (attr-val pattern-filler-cxn :cxn-cat) fix-cxn-inventory)
+      (add-link (attr-val pattern-filler-cxn :cxn-cat) (second (attr-val linking-cxn :slot-cats)) fix-cxn-inventory))
+
+    (when (and source-filler-cxn linking-cxn)
+      (add-cxn source-filler-cxn fix-cxn-inventory)
+      (add-category (attr-val source-filler-cxn :cxn-cat) fix-cxn-inventory)
+      (add-link (attr-val source-filler-cxn :cxn-cat) (second (attr-val linking-cxn :slot-cats)) fix-cxn-inventory))
+      
+    (list fix-cxn-inventory))
+  )
+
+
 (defmethod induce-cxns ((speech-act-form-predicates list)
                         (speech-act-meaning-predicates list)
                         (cip construction-inventory-processor)
@@ -436,7 +489,9 @@ construction creates."
                         &key fix-cxn-inventory)
 
   (let* ((cxn-inventory (original-cxn-set (construction-inventory cip)))
-         (candidate-cxn-w-au-results (loop for cxn in (constructions-with-hashed-meaning cxn-inventory)
+         (cxns-longest-branch (applied-constructions (first (first (sort (mapcar #'upward-branch (get-cip-leaves cip)) #'> :key #'length)))))
+         (candidate-cxn-w-au-results (unless cxns-longest-branch
+                                       (loop for cxn in (constructions-with-hashed-meaning cxn-inventory)
                                            for cxn-form = (attr-val cxn :form)
                                            for cxn-meaning = (attr-val cxn :meaning)
                                            ;;; Only consider if there are less than x gaps in the form
@@ -447,13 +502,41 @@ construction creates."
                                                            (au-meaning-result (anti-unify-meaning speech-act-meaning-predicates cxn-meaning
                                                                                        (get-configuration cxn-inventory :meaning-generalisation-mode)
                                                                                        :cxn-inventory cxn-inventory)))
-                                                       (when (and (> (cost au-form-result) 0)
-                                                                  (> (cost au-meaning-result) 0))
+                                                       (when (and ;(> (cost au-form-result) 0)
+                                                                  (< (length (pattern-delta au-form-result)) 3)
+                                                                  (< (length (source-delta au-form-result)) 3)
+                                                                  (< (length (generalisation au-form-result)) 3)
+                                                                  ;(> (cost au-meaning-result) 0)
+                                                                  )
                                                          (list cxn au-form-result au-meaning-result)))
                                                into au-results
                                            finally (return (first (sort (remove nil au-results) #'< :key #'(lambda (r1)
                                                                                                              (+ (cost (second r1))
-                                                                                                                (cost (third r1))))))))))
+                                                                                                                (cost (third r1)))))))))))
+
+    (when cxns-longest-branch
+      (loop with fix-cxn-inventory = (or fix-cxn-inventory
+                                         (copy-fcg-construction-set-without-cxns cxn-inventory))
+            with remaining-form-predicates = speech-act-form-predicates
+            with remaining-meaning-predicates = speech-act-meaning-predicates
+            for cxn in cxns-longest-branch
+            for au-form-result = (anti-unify-form remaining-form-predicates
+                                                  (attr-val cxn :form)
+                                                  (get-configuration cxn-inventory :form-generalisation-mode)
+                                                  :cxn-inventory cxn-inventory)
+            for au-meaning-result = (anti-unify-meaning remaining-meaning-predicates
+                                                        (attr-val cxn :meaning)
+                                                        (get-configuration cxn-inventory :meaning-generalisation-mode)
+                                                        :cxn-inventory cxn-inventory)
+            for cxns-from-au-result = (learn-cxns-from-au-result au-form-result au-meaning-result fix-cxn-inventory)
+
+            do (setf remaining-form-predicates (or (pattern-delta au-form-result) (source-delta au-form-result)))
+               (setf remaining-meaning-predicates (or (pattern-delta au-meaning-result) (source-delta au-meaning-result)))))
+
+
+
+      
+    
     (when candidate-cxn-w-au-results
       (let* ((pattern-cxn (first candidate-cxn-w-au-results))
              (au-form (second candidate-cxn-w-au-results))
@@ -518,7 +601,8 @@ construction creates."
            (slot-cat-2 (make-id 'slot-cat))
            (parent-unit-name (make-var "linking-unit"))
            (slot-unit-1-name (make-var "slot-unit"))
-           (slot-unit-2-name (make-var "slot-unit")))
+           (slot-unit-2-name (make-var "slot-unit"))
+           (initial-score 0.5))
 
       (make-instance 'linking-cxn
                      :name cxn-name
@@ -546,7 +630,7 @@ construction creates."
                      :attributes `((:form-args . ,form-args)
                                    (:meaning-args . ,meaning-args)
                                    (:slot-cats ,slot-cat-1 ,slot-cat-2)
-                                   (:entrenchment-score . 0.5))))))
+                                   (:entrenchment-score . ,initial-score))))))
 
 
 
@@ -700,6 +784,17 @@ predicates as form-predicates and meaning-predicates."
 
 (defmethod equivalent-cxn ((cxn-1 t) (cxn-2 t))
   nil)
+
+(defmethod equivalent-cxn ((cxn-1 holophrastic-cxn) (cxn-2 holophrastic-cxn))
+  (let ((meaning-cxn-1 (attr-val cxn-1 :meaning))
+        (meaning-cxn-2 (attr-val cxn-2 :meaning))
+        (form-cxn-1 (attr-val cxn-1 :form))
+        (form-cxn-2 (attr-val cxn-2 :form)))
+    
+    (and (= (length meaning-cxn-1 )(length meaning-cxn-2))
+         (= (length form-cxn-1 )(length form-cxn-2))
+         (pn::equivalent-predicate-networks-p meaning-cxn-1 meaning-cxn-2)
+         (pn::equivalent-predicate-networks form-cxn-1 form-cxn-2))))
 
 (defmethod equivalent-cxn ((cxn-1 linking-cxn) (cxn-2 linking-cxn))
   (let ((meaning-args-cxn-1 (attr-val cxn-1 :meaning-args))
