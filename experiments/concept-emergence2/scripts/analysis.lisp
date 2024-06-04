@@ -6,7 +6,7 @@
 ;; ------------------
 ;; + Graph creation +
 ;; ------------------
-(graph-batch-experiments2 "2023-8-mid_august4"
+#|(graph-batch-experiments2 "2023-8-mid_august4"
                           "ra"
                           "clevr"
                           `()
@@ -21,7 +21,7 @@
                           :start  950000
                           :end   1000000
                           :average-windows 5000
-                          )
+                          )|#
 
 (get-statistics "2023-8-mid_august3"
                 "tuning2"
@@ -52,7 +52,7 @@
 
 
 ;;;;;;;;;;;;;
-(create-graph-comparing-strategies
+#|(create-graph-comparing-strategies
  :base-dir "2023-8-mid_august3/ra/"
  :experiment-name 
 
@@ -71,7 +71,7 @@
              "14-12-2022-exp-2"
              "14-12-2022-exp-3"
              "14-12-2022-exp-4"
-             ))
+             ))|#
 
 
 ;(list (length exp-names) title exp-names captions)
@@ -85,7 +85,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(create-graph-for-single-strategy "2023-8-mid_august4/ra" "clevr/clevr-ra/2023-08-22_2h19m47s-exp-0" '("communicative-success" "lexicon-coherence" "unique-form-usage")
+#|(create-graph-for-single-strategy "2023-8-mid_august4/ra" "clevr/clevr-ra/2023-08-22_2h19m47s-exp-0" '("communicative-success" "lexicon-coherence" "unique-form-usage")
                                   ;:plot-file-name "plot-randomscenes"
                                   :average-windows '(5000 5000 5000)
                                   :use-y-axis '(1 1 2)
@@ -140,38 +140,48 @@
  :average-windows 200
  :captions '("exp-standard"
              "exp-interpolation"
-             ))
+             ))|#
 
 
 ;;;;
 
-(setf an-experiment (cl-store:restore (babel-pathname :directory `("experiments"
+#|(setf an-experiment (cl-store:restore (babel-pathname :directory `("experiments"
                                                                    "concept-emergence2"
                                                                    "logging"
                                                                    "10-all-random-bugfix"
                                                                    "2023-06-29_18h51m17s-exp-0")
                                                       :name "history"
-                                                      :type "store")))
+                                                      :type "store")))|#
 
 ;;;;;;;
+;;/Users/jerome/Projects/^productivity/plot-babel-fast/storage/dinov2/dinov2-1/2024-04-11_11h20m33s-exp-0-22481/stores/1-history-stage-1.store
 
 (progn
   (setf *experiment*
         (cl-store:restore (babel-pathname :directory '("experiments"
                                                        "concept-emergence2"
                                                        "storage"
-                                                       "millie2"
+                                                       "dinov2"
                                                        "df"
-                                                       "millie2-3"
+                                                       "dinov2-4"
                                                        "stores"
                                                      
                                                        )
                                           :name "1"
                                           :type "store"))))
 
-(set-configuration *experiment* :align nil)
+(progn
+  (set-configuration *experiment* :align nil)
+
+  (set-configuration *experiment* :dot-interval 10)
+  (set-configuration *experiment* :dataset-split "test")
+    ;(set-configuration *experiment* :topic-sampling :random)
+  (set-configuration *experiment* :align nil)
+  (initialise-world *experiment*))
 
 (initialise-world *experiment*)
+
+(display-lexicon (first (agents *experiment*)) :entrenchment-threshold 0.1 :certainty-threshold 0.5 :sort t)
 
 
 (defun print-hash-entry (key value)
@@ -206,6 +216,13 @@
   (loop for prototype being the hash-values of (prototypes (meaning cxn))
         sum (weight prototype) into weight-sum
         finally (return (/ weight-sum (hash-table-count (prototypes (meaning cxn)))))))
+
+(loop for cxn being the hash-values of (trash-inventory (lexicon (first (agents *experiment*))))
+      collect (average-weight cxn))
+
+
+(hash-table-count (fast-inventory (lexicon (first (agents *experiment*)))))
+(hash-table-count (trash-inventory (lexicon (first (agents *experiment*)))))
 
 
 ;;;

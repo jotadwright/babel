@@ -8,17 +8,17 @@
     (make-configuration
      :entries `(
                 ;; monitoring
-                (:dot-interval . 10)
+                (:dot-interval . 100)
                 (:usage-table-window . 100)
                 (:save-distribution-history . nil)
                 ;; setup interacting agents
                 (:interacting-agents-strategy . :standard)
                 (:population-size . 10)
                 ;; setup data scene
-                (:dataset . "gqaglove50")
+                (:dataset . "clevr")
                 (:dataset-split . "train")
                 ;(:data-fname . "all.lisp")
-                (:available-channels ,@(get-all-channels :gqaglove50))
+                (:available-channels ,@(get-all-channels :clevr))
                 ;; disable channels
                 (:disable-channels . :none)
                 (:amount-disabled-channels . 0)
@@ -79,7 +79,7 @@
   (activate-monitor record-time)
   (format t "~%---------- NEW GAME ----------~%")
   (time
-   (loop for i from 1 to 10000
+   (loop for i from 1 to 100000
          do (run-interaction *experiment*))))
 
 (progn
@@ -91,6 +91,36 @@
 
 ;;;;;;;
 
+(get-configuration *experiment* :dataset)
+(get-configuration *experiment* :dataset-split)
+
+
+
+(add-element `((h2) ,(format nil "~a" (file-namestring fpath))))
+
+(defun show-image (object)
+  `((div :class "image" :style ,(format nil "margin-left: 50px; margin-bottom: 20px; width: fit-content; border-radius: 8px; overflow: hidden; border: 1px; border-color: #000000; box-shadow: 8px 8px 12px 1px rgb(0 0 0 / 10%);"))
+                 ((img :src ,(string-append
+                              cl-user::*localhost-user-dir*
+                              (mkstr (make-pathname :directory
+                                                    `(:relative
+                                                      "Corpora/mscoco/train2014")
+                                                    :name
+                                                    (assqv :fname (description object)))))))))
+(setf pipi (current-scene (world *experiment*)))
+
+(show-image (first (objects (current-scene (world *experiment*)))))
+
+
+(display-lexicon (first (agents *experiment*)) :ENTRENCHMENT-THRESHOLD 0.5 :CERTAINTY-THRESHOLD 0.1 :sort t)
+
+(setf zakufi (find-form-in-lexicon (lexicon (first (agents *experiment*))) "zakufi"))
+                   
+(length (loop for cxn being the hash-values in (fast-inventory (lexicon (first (agents *experiment*))))
+              if (> (score cxn) 0.6)
+                collect cxn))
+
+
 ;;;;;;;
 
 
@@ -99,11 +129,9 @@
         (cl-store:restore (babel-pathname :directory '("experiments"
                                                        "concept-emergence2"
                                                        "storage"
-                                                       "millie2"
-                                                       "raw"
-                                                       "millie2-1"
+                                                       "dinov2"
                                                        )
-                                          :name "1-history-stage-0"
+                                          :name "1-history"
                                           :type "store"))))
 
 
@@ -126,12 +154,16 @@
                         #'(lambda (x y) (> (score x) (score y)))))
 
 
-(let* ((agent (first (agents *experiment*)))
+#|(let* ((agent (first (agents *experiment*)))
        (lexicon (loop for cxn being the hash-values of (get-inventory (lexicon agent) :fast) collect cxn))
        (new-lexicon (sort lexicon #'(lambda (x y) (> (score x) (score y))))))
-  new-lexicon)
+  new-lexicon)|#
 
-(add-cxn-to-interface (first new-lexicon))
+(loop for cxn in new-lexicon
+      do (add-cxn-to-interface cxn :certainty))
+
+(setf vobowe (find-form-in-lexicon (lexicon (first (agents *experiment*))) "vobowe"))
+ 
 
 ;;;;;
 
