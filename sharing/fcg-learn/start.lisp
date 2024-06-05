@@ -32,7 +32,7 @@
                        (:best-solution-mode . :highest-average-entrenchment-score)
                        (:induce-cxns-mode . :filler-and-linking)
                        (:form-generalisation-mode . :needleman-wunsch)
-                       (:max-nr-of-gaps-in-form-predicates . 3)
+                       (:max-nr-of-gaps-in-form-predicates . 1)
                        (:meaning-generalisation-mode . :k-swap)
                        (:k-swap-k . 1)
                        (:k-swap-w . 1)
@@ -71,6 +71,18 @@
                    :meaning '((bind attribute-category attribute-1 color))))
 
 (comprehend *color* :cxn-inventory *fcg-constructions*)
+
+(defparameter *cube*
+    (make-instance 'speech-act
+                   :form "cube"
+                   :meaning '((bind shape-category attribute-1 cube))))
+
+(comprehend *cube* :cxn-inventory *fcg-constructions*)
+
+
+
+
+
 
 (defparameter *what-size-is-the-cube*
   (make-instance 'speech-act

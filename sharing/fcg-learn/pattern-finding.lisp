@@ -432,7 +432,7 @@ construction creates."
 
 
 
-(defun learn-cxns-from-au-result (au-meaning au-form fix-cxn-inventory)
+(defun learn-cxns-from-au-result (au-form au-meaning fix-cxn-inventory &key integration-cat integration-form-args integration-meaning-args (learn-cxns-from-deltas t))
   (let* ((generalisation-form-args (compute-slot-args au-form))
          (pattern-form-args  (loop for slot-arg in generalisation-form-args
                                    collect (car (rassoc slot-arg (pattern-bindings au-form)))))
@@ -447,20 +447,26 @@ construction creates."
            
          ;; Create filler constructions for generalisation, pattern and source
          (generalisation-filler-cxn
-          (create-filler-cxn (generalisation au-form)(generalisation au-meaning)
-                             generalisation-form-args generalisation-meaning-args  :cxn-inventory cxn-inventory))
-         (pattern-filler-cxn
-          (create-filler-cxn (pattern-delta au-form) (pattern-delta au-meaning)
-                             pattern-form-args pattern-meaning-args  :cxn-inventory cxn-inventory))
-         (source-filler-cxn
-          (create-filler-cxn (source-delta au-form) (source-delta au-meaning)
-                             source-form-args source-meaning-args :cxn-inventory cxn-inventory))
+          (create-filler-cxn (generalisation au-form) (generalisation au-meaning)
+                             generalisation-form-args generalisation-meaning-args :cxn-inventory fix-cxn-inventory))
+         (pattern-filler-cxn (when learn-cxns-from-deltas
+            (create-filler-cxn (pattern-delta au-form) (pattern-delta au-meaning)
+                               pattern-form-args pattern-meaning-args :cxn-inventory fix-cxn-inventory)))
+         (source-filler-cxn (when learn-cxns-from-deltas
+                              (create-filler-cxn (source-delta au-form) (source-delta au-meaning)
+                                                 source-form-args source-meaning-args :cxn-inventory fix-cxn-inventory)))
          ;; Create linking construction
          (linking-cxn
-          (create-linking-cxn generalisation-form-args generalisation-meaning-args :cxn-inventory cxn-inventory)))
+          (create-linking-cxn generalisation-form-args generalisation-meaning-args
+                              :cxn-inventory fix-cxn-inventory
+                              :integration-form-args integration-form-args
+                              :integration-meaning-args integration-meaning-args)))
 
     (when linking-cxn
       (add-cxn linking-cxn fix-cxn-inventory)
+      (when (attr-val linking-cxn :cxn-cat)
+        (add-category (attr-val linking-cxn :cxn-cat) fix-cxn-inventory)
+        (add-link (attr-val linking-cxn :cxn-cat) integration-cat fix-cxn-inventory))
       (add-categories (attr-val linking-cxn :slot-cats) fix-cxn-inventory))
     
     (when (and generalisation-filler-cxn linking-cxn)
@@ -478,8 +484,9 @@ construction creates."
       (add-category (attr-val source-filler-cxn :cxn-cat) fix-cxn-inventory)
       (add-link (attr-val source-filler-cxn :cxn-cat) (second (attr-val linking-cxn :slot-cats)) fix-cxn-inventory))
       
-    (list fix-cxn-inventory))
-  )
+    (values (when linking-cxn (second (attr-val linking-cxn :slot-cats)))
+            (or pattern-form-args source-form-args)
+            (or pattern-meaning-args source-meaning-args))))
 
 
 (defmethod induce-cxns ((speech-act-form-predicates list)
@@ -514,89 +521,101 @@ construction creates."
                                                                                                              (+ (cost (second r1))
                                                                                                                 (cost (third r1)))))))))))
 
-    (when cxns-longest-branch
-      (loop with fix-cxn-inventory = (or fix-cxn-inventory
-                                         (copy-fcg-construction-set-without-cxns cxn-inventory))
-            with remaining-form-predicates = speech-act-form-predicates
-            with remaining-meaning-predicates = speech-act-meaning-predicates
-            for cxn in cxns-longest-branch
-            for au-form-result = (anti-unify-form remaining-form-predicates
-                                                  (attr-val cxn :form)
-                                                  (get-configuration cxn-inventory :form-generalisation-mode)
-                                                  :cxn-inventory cxn-inventory)
-            for au-meaning-result = (anti-unify-meaning remaining-meaning-predicates
-                                                        (attr-val cxn :meaning)
-                                                        (get-configuration cxn-inventory :meaning-generalisation-mode)
-                                                        :cxn-inventory cxn-inventory)
-            for cxns-from-au-result = (learn-cxns-from-au-result au-form-result au-meaning-result fix-cxn-inventory)
+    (cond (cxns-longest-branch
+           (loop with fix-cxn-inventory = (or fix-cxn-inventory
+                                              (copy-fcg-construction-set-without-cxns cxn-inventory))
+                 with remaining-form-predicates = speech-act-form-predicates
+                 with remaining-meaning-predicates = speech-act-meaning-predicates
+                 with integration-form-args = nil
+                 with integration-meaning-args = nil
+                 with integration-cat = nil
+                 for (cxn . remaining-cxns) on cxns-longest-branch
+                 for au-form-result = (anti-unify-form remaining-form-predicates
+                                                       (attr-val cxn :form)
+                                                       (get-configuration cxn-inventory :form-generalisation-mode)
+                                                       :cxn-inventory cxn-inventory)
+                 for au-meaning-result = (anti-unify-meaning remaining-meaning-predicates
+                                                             (attr-val cxn :meaning)
+                                                             (get-configuration cxn-inventory :meaning-generalisation-mode)
+                                                             :cxn-inventory cxn-inventory)
+                 for (resulting-integration-cat
+                      resulting-integration-form-args
+                      resulting-integration-meaning-args) = (multiple-value-list (learn-cxns-from-au-result au-form-result au-meaning-result fix-cxn-inventory
+                                                                                                            :integration-cat integration-cat
+                                                                                                            :integration-form-args integration-form-args
+                                                                                                            :integration-meaning-args integration-meaning-args
+                                                                                                            :learn-cxns-from-deltas (not remaining-cxns)))
 
-            do (setf remaining-form-predicates (or (pattern-delta au-form-result) (source-delta au-form-result)))
-               (setf remaining-meaning-predicates (or (pattern-delta au-meaning-result) (source-delta au-meaning-result)))))
+                 do (setf remaining-form-predicates (or (pattern-delta au-form-result) (source-delta au-form-result)))
+                    (setf remaining-meaning-predicates (or (pattern-delta au-meaning-result) (source-delta au-meaning-result)))
+                    (setf integration-cat resulting-integration-cat)
+                    (setf integration-form-args resulting-integration-form-args)
+                    (setf integration-meaning-args resulting-integration-meaning-args)
+                 finally (append-data (blackboard fix-cxn-inventory) :base-cxns cxns-longest-branch)
+                         (return (list fix-cxn-inventory))))
 
-
-
-      
-    
-    (when candidate-cxn-w-au-results
-      (let* ((pattern-cxn (first candidate-cxn-w-au-results))
-             (au-form (second candidate-cxn-w-au-results))
-             (au-meaning (third candidate-cxn-w-au-results))
-             (generalisation-form-args (compute-slot-args au-form))
-             (pattern-form-args  (loop for slot-arg in generalisation-form-args
-                                              collect (car (rassoc slot-arg (pattern-bindings au-form)))))
-             (source-form-args (loop for slot-arg in generalisation-form-args
-                                            collect (car (rassoc slot-arg (source-bindings au-form)))))
+          
+          (candidate-cxn-w-au-results
+           (let* ((pattern-cxn (first candidate-cxn-w-au-results))
+                  (au-form (second candidate-cxn-w-au-results))
+                  (au-meaning (third candidate-cxn-w-au-results))
+                  (generalisation-form-args (compute-slot-args au-form))
+                  (pattern-form-args  (loop for slot-arg in generalisation-form-args
+                                            collect (car (rassoc slot-arg (pattern-bindings au-form)))))
+                  (source-form-args (loop for slot-arg in generalisation-form-args
+                                          collect (car (rassoc slot-arg (source-bindings au-form)))))
          
-             (generalisation-meaning-args (compute-slot-args au-meaning))
-             (pattern-meaning-args (loop for slot-arg in generalisation-meaning-args
-                                                collect (car (rassoc slot-arg (pattern-bindings au-meaning)))))
-             (source-meaning-args (loop for slot-arg in generalisation-meaning-args
-                                               collect (car (rassoc slot-arg (source-bindings au-meaning)))))
+                  (generalisation-meaning-args (compute-slot-args au-meaning))
+                  (pattern-meaning-args (loop for slot-arg in generalisation-meaning-args
+                                              collect (car (rassoc slot-arg (pattern-bindings au-meaning)))))
+                  (source-meaning-args (loop for slot-arg in generalisation-meaning-args
+                                             collect (car (rassoc slot-arg (source-bindings au-meaning)))))
            
-             ;; Create filler constructions for generalisation, pattern and source
-             (generalisation-filler-cxn
-              (create-filler-cxn (generalisation au-form)(generalisation au-meaning)
-                                 generalisation-form-args generalisation-meaning-args  :cxn-inventory cxn-inventory))
-             (pattern-filler-cxn
-              (create-filler-cxn (pattern-delta au-form) (pattern-delta au-meaning)
-                                 pattern-form-args pattern-meaning-args  :cxn-inventory cxn-inventory))
-             (source-filler-cxn
-              (create-filler-cxn (source-delta au-form) (source-delta au-meaning)
-                                 source-form-args source-meaning-args :cxn-inventory cxn-inventory))
-             ;; Create linking construction
-             (linking-cxn
-              (create-linking-cxn generalisation-form-args generalisation-meaning-args :cxn-inventory cxn-inventory))
-             (fix-cxn-inventory (or fix-cxn-inventory
-                                    (copy-fcg-construction-set-without-cxns cxn-inventory))))
+                  ;; Create filler constructions for generalisation, pattern and source
+                  (generalisation-filler-cxn
+                   (create-filler-cxn (generalisation au-form)(generalisation au-meaning)
+                                      generalisation-form-args generalisation-meaning-args  :cxn-inventory cxn-inventory))
+                  (pattern-filler-cxn
+                   (create-filler-cxn (pattern-delta au-form) (pattern-delta au-meaning)
+                                      pattern-form-args pattern-meaning-args  :cxn-inventory cxn-inventory))
+                  (source-filler-cxn
+                   (create-filler-cxn (source-delta au-form) (source-delta au-meaning)
+                                      source-form-args source-meaning-args :cxn-inventory cxn-inventory))
+                  ;; Create linking construction
+                  (linking-cxn
+                   (create-linking-cxn generalisation-form-args generalisation-meaning-args :cxn-inventory cxn-inventory))
+                  (fix-cxn-inventory (or fix-cxn-inventory
+                                         (copy-fcg-construction-set-without-cxns cxn-inventory))))
 
-        (when linking-cxn
-          (add-cxn linking-cxn fix-cxn-inventory)
-          (add-categories (attr-val linking-cxn :slot-cats) fix-cxn-inventory))
+             (when linking-cxn
+               (add-cxn linking-cxn fix-cxn-inventory)
+               (add-categories (attr-val linking-cxn :slot-cats) fix-cxn-inventory))
     
-        (when (and generalisation-filler-cxn linking-cxn)
-          (add-cxn generalisation-filler-cxn fix-cxn-inventory)
-          (add-category (attr-val generalisation-filler-cxn :cxn-cat) fix-cxn-inventory)
-          (add-link (attr-val generalisation-filler-cxn :cxn-cat) (first (attr-val linking-cxn :slot-cats)) fix-cxn-inventory))
+             (when (and generalisation-filler-cxn linking-cxn)
+               (add-cxn generalisation-filler-cxn fix-cxn-inventory)
+               (add-category (attr-val generalisation-filler-cxn :cxn-cat) fix-cxn-inventory)
+               (add-link (attr-val generalisation-filler-cxn :cxn-cat) (first (attr-val linking-cxn :slot-cats)) fix-cxn-inventory))
 
-        (when (and pattern-filler-cxn linking-cxn)
-          (add-cxn pattern-filler-cxn fix-cxn-inventory)
-          (add-category (attr-val pattern-filler-cxn :cxn-cat) fix-cxn-inventory)
-          (add-link (attr-val pattern-filler-cxn :cxn-cat) (second (attr-val linking-cxn :slot-cats)) fix-cxn-inventory))
+             (when (and pattern-filler-cxn linking-cxn)
+               (add-cxn pattern-filler-cxn fix-cxn-inventory)
+               (add-category (attr-val pattern-filler-cxn :cxn-cat) fix-cxn-inventory)
+               (add-link (attr-val pattern-filler-cxn :cxn-cat) (second (attr-val linking-cxn :slot-cats)) fix-cxn-inventory))
 
-        (when (and source-filler-cxn linking-cxn)
-          (add-cxn source-filler-cxn fix-cxn-inventory)
-          (add-category (attr-val source-filler-cxn :cxn-cat) fix-cxn-inventory)
-          (add-link (attr-val source-filler-cxn :cxn-cat) (second (attr-val linking-cxn :slot-cats)) fix-cxn-inventory))
+             (when (and source-filler-cxn linking-cxn)
+               (add-cxn source-filler-cxn fix-cxn-inventory)
+               (add-category (attr-val source-filler-cxn :cxn-cat) fix-cxn-inventory)
+               (add-link (attr-val source-filler-cxn :cxn-cat) (second (attr-val linking-cxn :slot-cats)) fix-cxn-inventory))
 
-        (append-data (blackboard fix-cxn-inventory) :base-cxns (list pattern-cxn))
+             (append-data (blackboard fix-cxn-inventory) :base-cxns (list pattern-cxn))
         
-        (list fix-cxn-inventory)))))
+             (list fix-cxn-inventory))))))
 
 
-(defun create-linking-cxn (form-args meaning-args  &key (cxn-inventory *fcg-constructions*))
+(defun create-linking-cxn (form-args meaning-args  &key (cxn-inventory *fcg-constructions*) integration-form-args integration-meaning-args)
   "Create a linking construction."
   (when (and meaning-args form-args)
     (let* ((cxn-name (make-id 'linking-cxn))
+           (cxn-cat (make-id 'cxn-cat))
            (slot-cat-1 (make-id 'slot-cat))
            (slot-cat-2 (make-id 'slot-cat))
            (parent-unit-name (make-var "linking-unit"))
@@ -608,7 +627,13 @@ construction creates."
                      :name cxn-name
                      :contributing-part (list (make-instance 'contributing-unit
                                                              :name parent-unit-name
-                                                             :unit-structure `((subunits ,(list slot-unit-1-name slot-unit-2-name)))))
+                                                             :unit-structure `((subunits ,(list slot-unit-1-name slot-unit-2-name))
+                                                                               ,@(when (or integration-form-args integration-meaning-args)
+                                                                                   `((category ,cxn-cat)))
+                                                                               ,@(when integration-form-args
+                                                                                   `((form-args ,integration-form-args)))
+                                                                               ,@(when integration-meaning-args
+                                                                                   `((meaning-args ,integration-meaning-args))))))
                      :conditional-part (list (make-instance 'conditional-unit
                                                             :name slot-unit-1-name
                                                             :formulation-lock `((category ,slot-cat-1)
@@ -629,6 +654,7 @@ construction creates."
                      :feature-types (feature-types cxn-inventory)
                      :attributes `((:form-args . ,form-args)
                                    (:meaning-args . ,meaning-args)
+                                   ,@(when (or integration-form-args integration-meaning-args) `((:cxn-cat . ,cxn-cat)))
                                    (:slot-cats ,slot-cat-1 ,slot-cat-2)
                                    (:entrenchment-score . ,initial-score))))))
 
