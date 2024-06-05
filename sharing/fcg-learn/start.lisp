@@ -9,7 +9,9 @@
   :feature-types ((form set-of-predicates :handle-regex-sequences)
                   (meaning set-of-predicates)
                   (form-args sequence)
+                  (integration-form-args sequence)
                   (meaning-args sequence)
+                  (integration-meaning-args sequence)
                   (subunits set)
                   (footprints set))
   :hashed t
@@ -63,6 +65,7 @@
 
 (setf *fcg-constructions* (make-empty-cxn-inventory-cxns))
 (comprehend *what-color-is-the-cube* :cxn-inventory *fcg-constructions*)
+(formulate-all (instantiate-variables (comprehend *what-color-is-the-cube* :cxn-inventory *fcg-constructions*)))
 (comprehend *what-color-is-the-cube* :cxn-inventory *fcg-constructions* :learn nil :align nil)
 
 (defparameter *color*
@@ -78,10 +81,6 @@
                    :meaning '((bind shape-category attribute-1 cube))))
 
 (comprehend *cube* :cxn-inventory *fcg-constructions*)
-
-
-
-
 
 
 (defparameter *what-size-is-the-cube*
