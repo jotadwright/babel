@@ -11,10 +11,10 @@ id,exp_name,nr_of_series,nr_of_interactions,population_size,dataset,dataset_spli
 10,cogent-3,1,1000000,10,cogent,traina,:cogent,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,nil,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:hellinger
 11,winery-3,1,1000000,10,winery,train,:winery,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,nil,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:hellinger
 12,credit-3,1,1000000,10,credit,train,:credit,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,nil,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:hellinger
-13,clevr-4,1,1000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,nil,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:hellinger
-14,cogent-4,1,1000000,10,cogent,traina,:cogent,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,nil,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:hellinger
-15,winery-4,1,1000000,10,winery,train,:winery,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,nil,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:hellinger
-16,credit-4,1,1000000,10,credit,train,:credit,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,nil,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:hellinger
+13,clevr-4,1,1000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,nil,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:version-3
+14,cogent-4,1,1000000,10,cogent,traina,:cogent,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,nil,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:version-3
+15,winery-4,1,1000000,10,winery,train,:winery,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,nil,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:version-3
+16,credit-4,1,1000000,10,credit,train,:credit,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,nil,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:version-3
 17,clevr-1b,1,1000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,t,nil,:j-interpolation,0,1,-5,:none,0,nil,:paper,:hellinger
 18,cogent-1b,1,1000000,10,cogent,traina,:cogent,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,t,nil,:j-interpolation,0,1,-5,:none,0,nil,:paper,:hellinger
 19,winery-1b,1,1000000,10,winery,train,:winery,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,t,nil,:j-interpolation,0,1,-5,:none,0,nil,:paper,:hellinger
@@ -27,7 +27,7 @@ id,exp_name,nr_of_series,nr_of_interactions,population_size,dataset,dataset_spli
 26,cogent-3b,1,1000000,10,cogent,traina,:cogent,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,t,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:hellinger
 27,winery-3b,1,1000000,10,winery,train,:winery,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,t,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:hellinger
 28,credit-3b,1,1000000,10,credit,train,:credit,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,t,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:hellinger
-29,clevr-4b,1,1000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,t,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:hellinger
-30,cogent-4b,1,1000000,10,cogent,traina,:cogent,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,t,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:hellinger
-31,winery-4b,1,1000000,10,winery,train,:winery,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,t,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:hellinger
-32,credit-4b,1,1000000,10,credit,train,:credit,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,t,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:hellinger
+29,clevr-4b,1,1000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,t,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:version-3
+30,cogent-4b,1,1000000,10,cogent,traina,:cogent,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,t,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:version-3
+31,winery-4b,1,1000000,10,winery,train,:winery,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,t,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:version-3
+32,credit-4b,1,1000000,10,credit,train,:credit,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,t,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:version-3
