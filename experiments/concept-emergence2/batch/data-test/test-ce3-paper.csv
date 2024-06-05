@@ -1,0 +1,11 @@
+id,exp_name,nr_of_interactions,dataset,dataset_split,available_channels,scene_sampling,topic_sampling
+1,clevr-1,100000,clevr,test,:clevr,:random,:random
+2,cogenta-1,100000,cogent,testa,:cogent,:random,:random
+3,cogentb-1,100000,cogent,testb,:cogent,:random,:random
+4,winery-1,100000,winery,test,:winery,:random,:random
+5,credit-1,100000,credit,test,:credit,:random,:random
+6,clevr-4,100000,clevr,test,:clevr,:random,:random
+7,cogenta-4,100000,cogent,testa,:cogent,:random,:random
+8,cogentb-4,100000,cogent,testb,:cogent,:random,:random
+9,winery-4,100000,winery,test,:winery,:random,:random
+10,credit-4,100000,credit,test,:credit,:random,:random
