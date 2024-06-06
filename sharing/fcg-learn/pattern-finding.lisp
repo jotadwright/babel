@@ -78,9 +78,9 @@
          (candidate-cxn-w-au-results (loop for cxn in (constructions-list cxn-inventory)
                                            for cxn-form = (attr-val cxn :form)
                                            for cxn-meaning = (attr-val cxn :meaning)
-                                           for au-form-result = (first (anti-unify-sequences speech-act-form-predicates cxn-form))
+                                           for au-form-result = (first (anti-unify-sequences cxn-form speech-act-form-predicates))
                                            for au-meaning-result = (first (au-benchmark.msg.kswap-omega:anti-unify-predicate-networks
-                                                                           speech-act-meaning-predicates cxn-meaning :k 2 :w 1))
+                                                                           cxn-meaning speech-act-meaning-predicates :k 2 :w 1))
                                            when (and (> (cost au-form-result) 0)
                                                      (> (cost au-meaning-result) 0))
                                            collect (list cxn au-form-result au-meaning-result) into au-results
@@ -218,7 +218,7 @@
 
 
 (defun create-filler-cxn (form-sequence-predicates meaning-predicates form-filler-args meaning-filler-args
-                                                   &key (cxn-inventory *fcg-constructions*))
+                                                   &key (cxn-inventory *fcg-constructions*) integration-form-args integration-meaning-args)
   "Create a filler construction that maps between form sequence
 predicates and meaning predicates, while adding external form and
 meaning args as well as a unique category to the unit that the
@@ -234,8 +234,14 @@ construction creates."
                      :contributing-part (list (make-instance 'contributing-unit
                                                              :name unit-name
                                                              :unit-structure `((category ,filler-cat)
-                                                                               (form-args ,form-filler-args)
-                                                                               (meaning-args ,meaning-filler-args))))
+                                                                               ,@(when form-filler-args
+                                                                                   `((form-args ,form-filler-args)))
+                                                                               ,@(when integration-form-args
+                                                                                   `((integration-form-args ,integration-form-args)))
+                                                                               ,@(when meaning-filler-args
+                                                                                   `((meaning-args ,meaning-filler-args)))
+                                                                               ,@(when integration-meaning-args
+                                                                                   `((integration-meaning-args ,integration-meaning-args))))))
                      :conditional-part `(,(make-instance 'conditional-unit
                                                          :name unit-name
                                                          :formulation-lock `((HASH meaning ,meaning-predicates))
@@ -244,8 +250,14 @@ construction creates."
                      :feature-types (feature-types cxn-inventory)
                      :attributes `((:form . ,form-sequence-predicates)
                                    (:meaning . ,meaning-predicates)
-                                   (:form-args . ,form-filler-args)
-                                   (:meaning-args . ,meaning-filler-args)
+                                   ,@(when form-filler-args
+                                       `((:form-args . ,form-filler-args)))
+                                   ,@(when meaning-filler-args
+                                       `((:meaning-args . ,meaning-filler-args)))
+                                   ,@(when integration-form-args
+                                       `((:integration-form-args . ,integration-form-args)))
+                                   ,@(when integration-meaning-args
+                                       `((:integration-meaning-args . ,integration-meaning-args)))
                                    (:cxn-cat . ,filler-cat)
                                    (:entrenchment-score . ,initial-score))))))
 
@@ -393,22 +405,22 @@ construction creates."
 
 |#
 
-(defgeneric anti-unify-form (speech-act-form cxn-form mode &key cxn-inventory &allow-other-keys))
+(defgeneric anti-unify-form (cxn-form speech-act-form mode &key cxn-inventory &allow-other-keys))
 
-(defmethod anti-unify-form ((speech-act-sequence-predicates list)
-                            (cxn-sequence-predicates list)
+(defmethod anti-unify-form ((cxn-sequence-predicates list)
+                            (speech-act-sequence-predicates list)
                             (mode (eql :needleman-wunsch)) &key &allow-other-keys)
 
-  (first (anti-unify-sequences speech-act-sequence-predicates cxn-sequence-predicates)))
+  (first (anti-unify-sequences cxn-sequence-predicates speech-act-sequence-predicates)))
 
 
-(defgeneric anti-unify-meaning (speech-act-meaning cxn-meaning mode &key cxn-inventory &allow-other-keys))
+(defgeneric anti-unify-meaning (cxn-meaning speech-act-meaning mode &key cxn-inventory &allow-other-keys))
 
-(defmethod anti-unify-meaning ((speech-act-meaning-predicates list)
-                               (cxn-meaning-predicates list)
+(defmethod anti-unify-meaning ((cxn-meaning-predicates list)
+                               (speech-act-meaning-predicates list)
                                (mode (eql :k-swap)) &key cxn-inventory &allow-other-keys)
   (let ((k-swap-au-result
-         (first (au-benchmark.msg.kswap-omega:anti-unify-predicate-networks speech-act-meaning-predicates cxn-meaning-predicates
+         (first (au-benchmark.msg.kswap-omega:anti-unify-predicate-networks cxn-meaning-predicates speech-act-meaning-predicates
                                                                             :k (get-configuration cxn-inventory :k-swap-k)
                                                                             :w (get-configuration cxn-inventory :k-swap-w)))))
 
@@ -423,11 +435,11 @@ construction creates."
                    :cost (au-benchmark.msg.kswap-omega::cost k-swap-au-result))))
 
 
-(defmethod anti-unify-meaning ((speech-act-meaning-predicates list)
-                               (cxn-meaning-predicates list)
+(defmethod anti-unify-meaning ((cxn-meaning-predicates list)
+                               (speech-act-meaning-predicates list)
                                (mode (eql :exhaustive)) &key &allow-other-keys)
 
-  (first (anti-unify-predicate-network speech-act-meaning-predicates cxn-meaning-predicates)))
+  (first (anti-unify-predicate-network cxn-meaning-predicates speech-act-meaning-predicates)))
 
 
 
@@ -444,23 +456,72 @@ construction creates."
                                      collect (car (rassoc slot-arg (pattern-bindings au-meaning)))))
          (source-meaning-args (loop for slot-arg in generalisation-meaning-args
                                     collect (car (rassoc slot-arg (source-bindings au-meaning)))))
+         (integration-form-args-slot-1 (when integration-form-args
+                                         (loop for arg in integration-form-args
+                                               for corresponding-arg-in-form = (or (cdr (assoc arg (pattern-bindings au-form)))
+                                                                                   (cdr (assoc arg (source-bindings au-form))))
+                                               when (and corresponding-arg-in-form
+                                                         (find corresponding-arg-in-form
+                                                               (generalisation au-form) :test #'member))
+                                                 collect corresponding-arg-in-form)))
+         (integration-form-args-slot-2 (when integration-form-args
+                                         (loop for arg in integration-form-args
+                                               when (find arg (or (pattern-delta au-form) (source-delta au-form)) :test #'member)
+                                                 collect arg)))
+         (integration-meaning-args-slot-1 (when integration-meaning-args
+                                            (loop for arg in integration-meaning-args
+                                                  for corresponding-arg-in-meaning = (or (cdr (assoc arg (pattern-bindings au-meaning)))
+                                                                                         (cdr (assoc arg (source-bindings au-meaning))))
+                                                  when (and corresponding-arg-in-meaning
+                                                            (find corresponding-arg-in-meaning (generalisation au-meaning) :test #'member))
+                                                    collect corresponding-arg-in-meaning)))
+         (integration-meaning-args-slot-2 (when integration-meaning-args
+                                            (loop for arg in integration-meaning-args
+                                                  when (find arg (or (pattern-delta au-meaning) (source-delta au-meaning)) :test #'member)
+                                                    collect arg)))
+   
            
          ;; Create filler constructions for generalisation, pattern and source
          (generalisation-filler-cxn
           (create-filler-cxn (generalisation au-form) (generalisation au-meaning)
-                             generalisation-form-args generalisation-meaning-args :cxn-inventory fix-cxn-inventory))
+                             generalisation-form-args generalisation-meaning-args :cxn-inventory fix-cxn-inventory
+                             :integration-form-args integration-form-args-slot-1 :integration-meaning-args integration-meaning-args-slot-1))
          (pattern-filler-cxn (when learn-cxns-from-deltas
-            (create-filler-cxn (pattern-delta au-form) (pattern-delta au-meaning)
-                               pattern-form-args pattern-meaning-args :cxn-inventory fix-cxn-inventory)))
+                               (create-filler-cxn (pattern-delta au-form) (pattern-delta au-meaning)
+                                                  pattern-form-args pattern-meaning-args :cxn-inventory fix-cxn-inventory
+                                                  :integration-form-args integration-form-args-slot-2 :integration-meaning-args integration-meaning-args-slot-2)))
          (source-filler-cxn (when learn-cxns-from-deltas
                               (create-filler-cxn (source-delta au-form) (source-delta au-meaning)
-                                                 source-form-args source-meaning-args :cxn-inventory fix-cxn-inventory)))
+                                                 source-form-args source-meaning-args :cxn-inventory fix-cxn-inventory
+                                                 :integration-form-args integration-form-args-slot-2 :integration-meaning-args integration-meaning-args-slot-2)))
          ;; Create linking construction
          (linking-cxn
           (create-linking-cxn generalisation-form-args generalisation-meaning-args
                               :cxn-inventory fix-cxn-inventory
-                              :integration-form-args integration-form-args
-                              :integration-meaning-args integration-meaning-args)))
+                              :integration-form-args (loop for arg in integration-form-args
+                                                           collect (cond ((or (find arg integration-form-args-slot-2)
+                                                                              (find arg integration-form-args-slot-1))
+                                                                          arg)
+                                                                         ((assoc arg (source-bindings au-form))
+                                                                          (cdr (assoc arg (source-bindings au-form))))
+                                                                         ((assoc arg (pattern-bindings au-form))
+                                                                          (cdr (assoc arg (pattern-bindings au-form))))
+                                                                         (t
+                                                                          (warn "Arg on contributing part of linking cxn not found on conditional part."))))
+                              :integration-meaning-args (loop for arg in integration-meaning-args
+                                                           collect (cond ((or (find arg integration-meaning-args-slot-2)
+                                                                              (find arg integration-meaning-args-slot-1))
+                                                                          arg)
+                                                                         ((assoc arg (source-bindings au-meaning))
+                                                                          (cdr (assoc arg (source-bindings au-meaning))))
+                                                                         ((assoc arg (pattern-bindings au-meaning))
+                                                                          (cdr (assoc arg (pattern-bindings au-meaning))))
+                                                                         (t
+                                                                          (warn "Arg on contributing part of linking cxn not found on conditional part."))))
+                              :integration-form-args-slot-1 integration-form-args-slot-1
+                              :integration-form-args-slot-2 integration-form-args-slot-2
+                              :integration-meaning-args-slot-1 integration-meaning-args-slot-1
+                              :integration-meaning-args-slot-2 integration-meaning-args-slot-2)))
 
     (when linking-cxn
       (add-cxn linking-cxn fix-cxn-inventory)
@@ -485,8 +546,10 @@ construction creates."
       (add-link (attr-val source-filler-cxn :cxn-cat) (second (attr-val linking-cxn :slot-cats)) fix-cxn-inventory))
       
     (values (when linking-cxn (second (attr-val linking-cxn :slot-cats)))
-            (or pattern-form-args source-form-args)
-            (or pattern-meaning-args source-meaning-args))))
+            (or (when (pattern-delta au-form) pattern-form-args)
+                (when (source-delta au-form) source-form-args))
+            (or (when (pattern-delta au-form) pattern-meaning-args)
+                (when (source-delta au-form) source-meaning-args)))))
 
 
 (defmethod induce-cxns ((speech-act-form-predicates list)
@@ -496,17 +559,18 @@ construction creates."
                         &key fix-cxn-inventory)
 
   (let* ((cxn-inventory (original-cxn-set (construction-inventory cip)))
-         (cxns-longest-branch (applied-constructions (first (first (sort (mapcar #'upward-branch (get-cip-leaves cip)) #'> :key #'length)))))
+         (cxns-longest-branch (remove-if #'(lambda (cxn) (eql (type-of (original-cxn cxn)) 'linking-cxn))
+                                         (applied-constructions (first (first (sort (mapcar #'upward-branch (get-cip-leaves cip)) #'> :key #'length))))))
          (candidate-cxn-w-au-results (unless cxns-longest-branch
                                        (loop for cxn in (constructions-with-hashed-meaning cxn-inventory)
                                            for cxn-form = (attr-val cxn :form)
                                            for cxn-meaning = (attr-val cxn :meaning)
                                            ;;; Only consider if there are less than x gaps in the form
                                            if (<= (length cxn-form) (+ (get-configuration cxn-inventory :max-nr-of-gaps-in-form-predicates) 1))
-                                             collect (let ((au-form-result (anti-unify-form speech-act-form-predicates cxn-form
+                                             collect (let ((au-form-result (anti-unify-form cxn-form speech-act-form-predicates 
                                                                                  (get-configuration cxn-inventory :form-generalisation-mode)
                                                                                  :cxn-inventory cxn-inventory))
-                                                           (au-meaning-result (anti-unify-meaning speech-act-meaning-predicates cxn-meaning
+                                                           (au-meaning-result (anti-unify-meaning cxn-meaning speech-act-meaning-predicates 
                                                                                        (get-configuration cxn-inventory :meaning-generalisation-mode)
                                                                                        :cxn-inventory cxn-inventory)))
                                                        (when (and ;(> (cost au-form-result) 0)
@@ -530,12 +594,12 @@ construction creates."
                  with integration-meaning-args = nil
                  with integration-cat = nil
                  for (cxn . remaining-cxns) on cxns-longest-branch
-                 for au-form-result = (anti-unify-form remaining-form-predicates
-                                                       (attr-val cxn :form)
+                 for au-form-result = (anti-unify-form (attr-val cxn :form)
+                                                       remaining-form-predicates
                                                        (get-configuration cxn-inventory :form-generalisation-mode)
                                                        :cxn-inventory cxn-inventory)
-                 for au-meaning-result = (anti-unify-meaning remaining-meaning-predicates
-                                                             (attr-val cxn :meaning)
+                 for au-meaning-result = (anti-unify-meaning (attr-val cxn :meaning)
+                                                             remaining-meaning-predicates
                                                              (get-configuration cxn-inventory :meaning-generalisation-mode)
                                                              :cxn-inventory cxn-inventory)
                  for (resulting-integration-cat
@@ -611,9 +675,10 @@ construction creates."
              (list fix-cxn-inventory))))))
 
 
-(defun create-linking-cxn (form-args meaning-args  &key (cxn-inventory *fcg-constructions*) integration-form-args integration-meaning-args)
+(defun create-linking-cxn (form-args meaning-args  &key (cxn-inventory *fcg-constructions*) integration-form-args integration-meaning-args
+                                     integration-form-args-slot-1 integration-form-args-slot-2 integration-meaning-args-slot-1 integration-meaning-args-slot-2)
   "Create a linking construction."
-  (when (and meaning-args form-args)
+  (when (or (and meaning-args form-args) (and integration-form-args integration-meaning-args))
     (let* ((cxn-name (make-id 'linking-cxn))
            (cxn-cat (make-id 'cxn-cat))
            (slot-cat-1 (make-id 'slot-cat))
@@ -637,24 +702,62 @@ construction creates."
                      :conditional-part (list (make-instance 'conditional-unit
                                                             :name slot-unit-1-name
                                                             :formulation-lock `((category ,slot-cat-1)
-                                                                                (form-args ,form-args)
-                                                                                (meaning-args ,meaning-args))
+                                                                                ,@(when form-args
+                                                                                    `((form-args ,form-args)))
+                                                                                ,@(when meaning-args
+                                                                                    `((meaning-args ,meaning-args)))
+                                                                                ,@(when integration-form-args-slot-1
+                                                                                    `((integration-form-args ,integration-form-args-slot-1)))
+                                                                                ,@(when integration-meaning-args-slot-1
+                                                                                    `((integration-meaning-args ,integration-meaning-args-slot-1))))
                                                             :comprehension-lock `((category ,slot-cat-1)
-                                                                                  (form-args ,form-args)
-                                                                                  (meaning-args ,meaning-args)))
+                                                                                ,@(when form-args
+                                                                                    `((form-args ,form-args)))
+                                                                                ,@(when meaning-args
+                                                                                    `((meaning-args ,meaning-args)))
+                                                                                ,@(when integration-form-args-slot-1
+                                                                                    `((integration-form-args ,integration-form-args-slot-1)))
+                                                                                ,@(when integration-meaning-args-slot-1
+                                                                                    `((integration-meaning-args ,integration-meaning-args-slot-1)))))
                                              (make-instance 'conditional-unit
                                                             :name slot-unit-2-name
                                                             :formulation-lock `((category ,slot-cat-2)
-                                                                                (form-args ,form-args)
-                                                                                (meaning-args ,meaning-args))
+                                                                                ,@(when form-args
+                                                                                    `((form-args ,form-args)))
+                                                                                ,@(when meaning-args
+                                                                                    `((meaning-args ,meaning-args)))
+                                                                                ,@(when integration-form-args-slot-2
+                                                                                    `((integration-form-args ,integration-form-args-slot-2)))
+                                                                                ,@(when integration-meaning-args-slot-2
+                                                                                    `((integration-meaning-args ,integration-meaning-args-slot-2))))
                                                             :comprehension-lock `((category ,slot-cat-2)
-                                                                                  (form-args ,form-args)
-                                                                                  (meaning-args ,meaning-args))))
+                                                                                ,@(when form-args
+                                                                                    `((form-args ,form-args)))
+                                                                                ,@(when meaning-args
+                                                                                    `((meaning-args ,meaning-args)))
+                                                                                ,@(when integration-form-args-slot-2
+                                                                                    `((integration-form-args ,integration-form-args-slot-2)))
+                                                                                ,@(when integration-meaning-args-slot-2
+                                                                                    `((integration-meaning-args ,integration-meaning-args-slot-2))))))
                      :cxn-inventory cxn-inventory
                      :feature-types (feature-types cxn-inventory)
-                     :attributes `((:form-args . ,form-args)
-                                   (:meaning-args . ,meaning-args)
+                     :attributes `(,@(when form-args
+                                       `((:form-args . ,form-args)))
+                                   ,@(when meaning-args
+                                       `((:meaning-args . ,meaning-args)))
                                    ,@(when (or integration-form-args integration-meaning-args) `((:cxn-cat . ,cxn-cat)))
+                                   ,@(when integration-form-args
+                                       `((:integration-form-args . ,integration-form-args)))
+                                   ,@(when integration-meaning-args
+                                       `((:integration-meaning-args . ,integration-meaning-args)))
+                                   ,@(when integration-form-args-slot-1
+                                       `((:integration-form-args-slot-1 . ,integration-form-args-slot-1)))
+                                   ,@(when integration-form-args-slot-2
+                                       `((:integration-form-args-slot-2 . ,integration-form-args-slot-2)))
+                                   ,@(when integration-meaning-args-slot-1
+                                       `((:integration-meaning-args-slot-1 . ,integration-meaning-args-slot-1)))
+                                   ,@(when integration-meaning-args-slot-2
+                                       `((:integration-meaning-args-slot-2 . ,integration-meaning-args-slot-2)))
                                    (:slot-cats ,slot-cat-1 ,slot-cat-2)
                                    (:entrenchment-score . ,initial-score))))))
 
@@ -826,10 +929,16 @@ predicates as form-predicates and meaning-predicates."
   (let ((meaning-args-cxn-1 (attr-val cxn-1 :meaning-args))
         (meaning-args-cxn-2 (attr-val cxn-2 :meaning-args))
         (form-args-cxn-1 (attr-val cxn-1 :form-args))
-        (form-args-cxn-2 (attr-val cxn-2 :form-args)))
+        (form-args-cxn-2 (attr-val cxn-2 :form-args))
+        (integration-form-args-cxn-1 (attr-val cxn-1 :integration-form-args))
+        (integration-form-args-cxn-2 (attr-val cxn-2 :integration-form-args))
+        (integration-meaning-args-cxn-1 (attr-val cxn-1 :integration-meaning-args))
+        (integration-meaning-args-cxn-2 (attr-val cxn-2 :integration-meaning-args)))
     
     (and (= (length meaning-args-cxn-1) (length meaning-args-cxn-2))
-         (= (length form-args-cxn-1 )(length form-args-cxn-2)))))
+         (= (length form-args-cxn-1 )(length form-args-cxn-2))
+         (= (length integration-form-args-cxn-1) (length integration-form-args-cxn-2))
+         (= (length integration-meaning-args-cxn-1) (length integration-meaning-args-cxn-2))))) 
   
 
   
@@ -841,20 +950,43 @@ predicates as form-predicates and meaning-predicates."
         (meaning-args-cxn-1 (attr-val cxn-1 :meaning-args))
         (meaning-args-cxn-2 (attr-val cxn-2 :meaning-args))
         (form-args-cxn-1 (attr-val cxn-1 :form-args))
-        (form-args-cxn-2 (attr-val cxn-2 :form-args)))
+        (form-args-cxn-2 (attr-val cxn-2 :form-args))
+        (integration-form-args-cxn-1 (attr-val cxn-1 :integration-form-args))
+        (integration-form-args-cxn-2 (attr-val cxn-2 :integration-form-args))
+        (integration-meaning-args-cxn-1 (attr-val cxn-1 :integration-meaning-args))
+        (integration-meaning-args-cxn-2 (attr-val cxn-2 :integration-meaning-args)))
     
     (and (= (length meaning-cxn-1 )(length meaning-cxn-2))
          (= (length form-cxn-1 )(length form-cxn-2))
          (= (length meaning-args-cxn-1) (length meaning-args-cxn-2))
          (= (length form-args-cxn-1 )(length form-args-cxn-2))
+         (= (length integration-form-args-cxn-1) (length integration-form-args-cxn-2))
+         (= (length integration-meaning-args-cxn-1) (length integration-meaning-args-cxn-2))
+         
          (let ((bindings-meaning (pn::equivalent-predicate-networks meaning-cxn-1 meaning-cxn-2)))
-           (when bindings-meaning (loop
-                                     for arg-1 in meaning-args-cxn-1
-                                     for arg-2 in meaning-args-cxn-2
-                                     always (eql (cdr (assoc arg-1 bindings-meaning)) arg-2))))
+           (when bindings-meaning (and (if (and meaning-args-cxn-1 meaning-args-cxn-2)
+                                           (loop
+                                              for arg-1 in meaning-args-cxn-1
+                                              for arg-2 in meaning-args-cxn-2
+                                              always (eql (cdr (assoc arg-1 bindings-meaning)) arg-2))
+                                           t)
+                                       (if (and integration-meaning-args-cxn-1 integration-meaning-args-cxn-2)
+                                         (loop
+                                            for arg-1 in integration-meaning-args-cxn-1
+                                            for arg-2 in integration-meaning-args-cxn-2
+                                            always (eql (cdr (assoc arg-1 bindings-meaning)) arg-2))
+                                         t))))
          (let ((bindings-form (pn::equivalent-predicate-networks form-cxn-1 form-cxn-2)))
-           (when bindings-form (loop
-                                  for arg-1 in form-args-cxn-1
-                                  for arg-2 in form-args-cxn-2
-                                  always (eql (cdr (assoc arg-1 bindings-form)) arg-2)))))))
+           (when bindings-form (and (if (and form-args-cxn-1 form-args-cxn-2)
+                                      (loop
+                                         for arg-1 in form-args-cxn-1
+                                         for arg-2 in form-args-cxn-2
+                                         always (eql (cdr (assoc arg-1 bindings-form)) arg-2))
+                                      t)
+                                    (if (and integration-form-args-cxn-1 integration-form-args-cxn-2)
+                                         (loop
+                                            for arg-1 in integration-form-args-cxn-1
+                                            for arg-2 in integration-form-args-cxn-2
+                                            always (eql (cdr (assoc arg-1 bindings-form)) arg-2))
+                                         t)))))))
 
