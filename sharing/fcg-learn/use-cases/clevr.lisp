@@ -69,6 +69,8 @@
 
 (reset-cp *clevr-processor*)
 
+(comprehend *clevr-processor* :nr-of-speech-acts 5)
+
 *fcg-constructions*
 (comprehend (next-speech-act *clevr-processor*) :cxn-inventory *clevr-grammar* )
 (comprehend (current-speech-act *clevr-processor*) :cxn-inventory *clevr-grammar*)

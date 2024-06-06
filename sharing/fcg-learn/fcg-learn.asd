@@ -5,7 +5,7 @@
   :depends-on (:amr :fcg :irl :predicate-networks :au-benchmark)
   :serial t
   :components ((:file "classes")
-               (:file "corpus-processing")
+               (:file "corpus-processor")
                (:file "monitors")
                (:file "routine-processing")
                (:file "meta-processing")
