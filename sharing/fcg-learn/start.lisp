@@ -75,12 +75,29 @@
 
 (comprehend *color* :cxn-inventory *fcg-constructions*)
 
+
+(defparameter *large*
+    (make-instance 'speech-act
+                   :form "large"
+                   :meaning '((bind size-category attribute-1 large))))
+
+(comprehend *large* :cxn-inventory *fcg-constructions*)
+
+
+
 (defparameter *cube*
     (make-instance 'speech-act
                    :form "cube"
                    :meaning '((bind shape-category attribute-1 cube))))
 
 (comprehend *cube* :cxn-inventory *fcg-constructions*)
+
+(defparameter *size*
+    (make-instance 'speech-act
+                   :form "size"
+                   :meaning '((bind attribute-category attribute-1  size))))
+
+(comprehend *size* :cxn-inventory *fcg-constructions*)
 
 
 (defparameter *what-size-is-the-cube*
@@ -94,6 +111,20 @@
                             (bind attribute-category attribute-2 size))))
 
 (comprehend *what-size-is-the-cube* :cxn-inventory *fcg-constructions*)
+
+(defparameter *what-size-is-the-large-cube*
+  (make-instance 'speech-act
+                 :form "what size is the large cube?"
+                 :meaning '((get-context context-2)
+                            (filter set-2 context-2 shape-2)
+                            (bind shape-category shape-2 cube)
+                            (filter set-3 set-2 size-2)
+                            (bind size-category size-2 large)
+                            (unique object-2 set-3)
+                            (query target-2 object-2 attribute-2)
+                            (bind attribute-category attribute-2 size))))
+
+(comprehend *what-size-is-the-large-cube* :cxn-inventory *fcg-constructions*)
 
 (defparameter *material*
     (make-instance 'speech-act

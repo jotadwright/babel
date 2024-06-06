@@ -67,11 +67,11 @@
 
 (defparameter *clevr-grammar* (make-empty-cxn-inventory-cxns))
 
-(reset-cp *first-500-shuffled*)
+(reset-cp *clevr-processor*)
 
 *fcg-constructions*
-(comprehend (next-speech-act *first-500-shuffled*) :cxn-inventory *clevr-grammar* )
-(comprehend (current-speech-act *first-500-shuffled*) :cxn-inventory *clevr-grammar*)
+(comprehend (next-speech-act *clevr-processor*) :cxn-inventory *clevr-grammar* )
+(comprehend (current-speech-act *clevr-processor*) :cxn-inventory *clevr-grammar*)
 
 (loop for i from 0 to 20 do 
         (comprehend (next-speech-act *first-500-shuffled*) :cxn-inventory *clevr-grammar*))

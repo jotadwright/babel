@@ -218,7 +218,7 @@
 
 
 (defun create-filler-cxn (form-sequence-predicates meaning-predicates form-filler-args meaning-filler-args
-                                                   &key (cxn-inventory *fcg-constructions*) integration-form-args integration-meaning-args)
+                                                   &key (cxn-inventory *fcg-constructions*))
   "Create a filler construction that maps between form sequence
 predicates and meaning predicates, while adding external form and
 meaning args as well as a unique category to the unit that the
@@ -236,12 +236,8 @@ construction creates."
                                                              :unit-structure `((category ,filler-cat)
                                                                                ,@(when form-filler-args
                                                                                    `((form-args ,form-filler-args)))
-                                                                               ,@(when integration-form-args
-                                                                                   `((integration-form-args ,integration-form-args)))
                                                                                ,@(when meaning-filler-args
-                                                                                   `((meaning-args ,meaning-filler-args)))
-                                                                               ,@(when integration-meaning-args
-                                                                                   `((integration-meaning-args ,integration-meaning-args))))))
+                                                                                   `((meaning-args ,meaning-filler-args))))))
                      :conditional-part `(,(make-instance 'conditional-unit
                                                          :name unit-name
                                                          :formulation-lock `((HASH meaning ,meaning-predicates))
@@ -254,10 +250,6 @@ construction creates."
                                        `((:form-args . ,form-filler-args)))
                                    ,@(when meaning-filler-args
                                        `((:meaning-args . ,meaning-filler-args)))
-                                   ,@(when integration-form-args
-                                       `((:integration-form-args . ,integration-form-args)))
-                                   ,@(when integration-meaning-args
-                                       `((:integration-meaning-args . ,integration-meaning-args)))
                                    (:cxn-cat . ,filler-cat)
                                    (:entrenchment-score . ,initial-score))))))
 
@@ -479,36 +471,7 @@ construction creates."
                                             (loop for arg in integration-meaning-args
                                                   when (find arg (or (pattern-delta au-meaning) (source-delta au-meaning)) :test #'member)
                                                     collect arg)))
-   
-           
-         ;; Create filler constructions for generalisation, pattern and source
-         (generalisation-filler-cxn
-          (create-filler-cxn (generalisation au-form) (generalisation au-meaning)
-                             generalisation-form-args generalisation-meaning-args :cxn-inventory fix-cxn-inventory
-                             :integration-form-args integration-form-args-slot-1 :integration-meaning-args integration-meaning-args-slot-1))
-         (pattern-filler-cxn (when learn-cxns-from-deltas
-                               (create-filler-cxn (pattern-delta au-form) (pattern-delta au-meaning)
-                                                  pattern-form-args pattern-meaning-args :cxn-inventory fix-cxn-inventory
-                                                  :integration-form-args integration-form-args-slot-2 :integration-meaning-args integration-meaning-args-slot-2)))
-         (source-filler-cxn (when learn-cxns-from-deltas
-                              (create-filler-cxn (source-delta au-form) (source-delta au-meaning)
-                                                 source-form-args source-meaning-args :cxn-inventory fix-cxn-inventory
-                                                 :integration-form-args integration-form-args-slot-2 :integration-meaning-args integration-meaning-args-slot-2)))
-         ;; Create linking construction
-         (linking-cxn
-          (create-linking-cxn generalisation-form-args generalisation-meaning-args
-                              :cxn-inventory fix-cxn-inventory
-                              :integration-form-args (loop for arg in integration-form-args
-                                                           collect (cond ((or (find arg integration-form-args-slot-2)
-                                                                              (find arg integration-form-args-slot-1))
-                                                                          arg)
-                                                                         ((assoc arg (source-bindings au-form))
-                                                                          (cdr (assoc arg (source-bindings au-form))))
-                                                                         ((assoc arg (pattern-bindings au-form))
-                                                                          (cdr (assoc arg (pattern-bindings au-form))))
-                                                                         (t
-                                                                          (warn "Arg on contributing part of linking cxn not found on conditional part."))))
-                              :integration-meaning-args (loop for arg in integration-meaning-args
+         (linking-cxn-contributing-meaning-args (loop for arg in integration-meaning-args
                                                            collect (cond ((or (find arg integration-meaning-args-slot-2)
                                                                               (find arg integration-meaning-args-slot-1))
                                                                           arg)
@@ -517,11 +480,49 @@ construction creates."
                                                                          ((assoc arg (pattern-bindings au-meaning))
                                                                           (cdr (assoc arg (pattern-bindings au-meaning))))
                                                                          (t
-                                                                          (warn "Arg on contributing part of linking cxn not found on conditional part."))))
-                              :integration-form-args-slot-1 integration-form-args-slot-1
-                              :integration-form-args-slot-2 integration-form-args-slot-2
-                              :integration-meaning-args-slot-1 integration-meaning-args-slot-1
-                              :integration-meaning-args-slot-2 integration-meaning-args-slot-2)))
+                                                                          (warn "Arg on contributing part of linking cxn not found on conditional part.")))))
+         (linking-cxn-contributing-form-args (loop for arg in integration-form-args
+                                                           collect (cond ((or (find arg integration-form-args-slot-2)
+                                                                              (find arg integration-form-args-slot-1))
+                                                                          arg)
+                                                                         ((assoc arg (source-bindings au-form))
+                                                                          (cdr (assoc arg (source-bindings au-form))))
+                                                                         ((assoc arg (pattern-bindings au-form))
+                                                                          (cdr (assoc arg (pattern-bindings au-form))))
+                                                                         (t
+                                                                          (warn "Arg on contributing part of linking cxn not found on conditional part.")))))
+         (linking-cxn-form-args-slot-1 (append generalisation-form-args integration-form-args-slot-1))
+         (linking-cxn-meaning-args-slot-1 (append generalisation-meaning-args integration-meaning-args-slot-1))
+         (linking-cxn-form-args-slot-2 (append generalisation-form-args integration-form-args-slot-2))
+         (linking-cxn-meaning-args-slot-2 (append generalisation-meaning-args integration-meaning-args-slot-2))
+         
+         (generalisation-filler-cxn-form-args (append generalisation-form-args integration-form-args-slot-1))
+         (generalisation-filler-cxn-meaning-args (append generalisation-meaning-args integration-meaning-args-slot-1))
+         (source-filler-cxn-form-args (append source-form-args integration-form-args-slot-2))
+         (source-filler-cxn-meaning-args (append source-meaning-args integration-meaning-args-slot-2))
+         (pattern-filler-cxn-form-args (append pattern-form-args integration-form-args-slot-2))
+         (pattern-filler-cxn-meaning-args (append pattern-meaning-args integration-meaning-args-slot-2))
+   
+           
+         ;; Create filler constructions for generalisation, pattern and source
+         (generalisation-filler-cxn
+          (create-filler-cxn (generalisation au-form) (generalisation au-meaning)
+                             generalisation-filler-cxn-form-args generalisation-filler-cxn-meaning-args :cxn-inventory fix-cxn-inventory))
+         (pattern-filler-cxn (when learn-cxns-from-deltas
+                               (create-filler-cxn (pattern-delta au-form) (pattern-delta au-meaning)
+                                                  pattern-filler-cxn-form-args pattern-filler-cxn-meaning-args :cxn-inventory fix-cxn-inventory)))
+         (source-filler-cxn (when learn-cxns-from-deltas
+                              (create-filler-cxn (source-delta au-form) (source-delta au-meaning)
+                                                 source-filler-cxn-form-args source-filler-cxn-meaning-args :cxn-inventory fix-cxn-inventory)))
+         ;; Create linking construction
+         (linking-cxn
+          (create-linking-cxn :cxn-inventory fix-cxn-inventory
+                              :contributing-form-args linking-cxn-contributing-form-args
+                              :contributing-meaning-args linking-cxn-contributing-meaning-args
+                              :form-args-slot-1 linking-cxn-form-args-slot-1
+                              :form-args-slot-2 linking-cxn-form-args-slot-2
+                              :meaning-args-slot-1 linking-cxn-meaning-args-slot-1
+                              :meaning-args-slot-2 linking-cxn-meaning-args-slot-2)))
 
     (when linking-cxn
       (add-cxn linking-cxn fix-cxn-inventory)
@@ -546,10 +547,10 @@ construction creates."
       (add-link (attr-val source-filler-cxn :cxn-cat) (second (attr-val linking-cxn :slot-cats)) fix-cxn-inventory))
       
     (values (when linking-cxn (second (attr-val linking-cxn :slot-cats)))
-            (or (when (pattern-delta au-form) pattern-form-args)
-                (when (source-delta au-form) source-form-args))
-            (or (when (pattern-delta au-form) pattern-meaning-args)
-                (when (source-delta au-form) source-meaning-args)))))
+            (or (when (pattern-delta au-form) pattern-filler-cxn-form-args)
+                (when (source-delta au-form) source-filler-cxn-form-args))
+            (or (when (pattern-delta au-form) pattern-filler-cxn-meaning-args)
+                (when (source-delta au-form) source-filler-cxn-meaning-args)))))
 
 
 (defmethod induce-cxns ((speech-act-form-predicates list)
@@ -647,7 +648,11 @@ construction creates."
                                       source-form-args source-meaning-args :cxn-inventory cxn-inventory))
                   ;; Create linking construction
                   (linking-cxn
-                   (create-linking-cxn generalisation-form-args generalisation-meaning-args :cxn-inventory cxn-inventory))
+                   (create-linking-cxn :form-args-slot-1 generalisation-form-args
+                                       :form-args-slot-2 generalisation-form-args
+                                       :meaning-args-slot-1 generalisation-meaning-args
+                                       :meaning-args-slot-2 generalisation-meaning-args
+                                       :cxn-inventory cxn-inventory))
                   (fix-cxn-inventory (or fix-cxn-inventory
                                          (copy-fcg-construction-set-without-cxns cxn-inventory))))
 
@@ -675,11 +680,11 @@ construction creates."
              (list fix-cxn-inventory))))))
 
 
-(defun create-linking-cxn (form-args meaning-args  &key (cxn-inventory *fcg-constructions*) integration-form-args integration-meaning-args
-                                     integration-form-args-slot-1 integration-form-args-slot-2 integration-meaning-args-slot-1 integration-meaning-args-slot-2)
+(defun create-linking-cxn (&key (cxn-inventory *fcg-constructions*) contributing-form-args contributing-meaning-args
+                                form-args-slot-1 form-args-slot-2 meaning-args-slot-1 meaning-args-slot-2)
   "Create a linking construction."
-  (when (or (and meaning-args form-args) (and integration-form-args integration-meaning-args))
-    (let* ((cxn-name (make-id 'linking-cxn))
+  (when (or (and form-args-slot-1 meaning-args-slot-1) (and form-args-slot-2 meaning-args-slot-2))
+  (let* ((cxn-name (make-id 'linking-cxn))
            (cxn-cat (make-id 'cxn-cat))
            (slot-cat-1 (make-id 'slot-cat))
            (slot-cat-2 (make-id 'slot-cat))
@@ -693,71 +698,51 @@ construction creates."
                      :contributing-part (list (make-instance 'contributing-unit
                                                              :name parent-unit-name
                                                              :unit-structure `((subunits ,(list slot-unit-1-name slot-unit-2-name))
-                                                                               ,@(when (or integration-form-args integration-meaning-args)
+                                                                               ,@(when (or contributing-form-args contributing-meaning-args)
                                                                                    `((category ,cxn-cat)))
-                                                                               ,@(when integration-form-args
-                                                                                   `((form-args ,integration-form-args)))
-                                                                               ,@(when integration-meaning-args
-                                                                                   `((meaning-args ,integration-meaning-args))))))
+                                                                               ,@(when contributing-form-args
+                                                                                   `((form-args ,contributing-form-args)))
+                                                                               ,@(when contributing-meaning-args
+                                                                                   `((meaning-args ,contributing-meaning-args))))))
                      :conditional-part (list (make-instance 'conditional-unit
                                                             :name slot-unit-1-name
                                                             :formulation-lock `((category ,slot-cat-1)
-                                                                                ,@(when form-args
-                                                                                    `((form-args ,form-args)))
-                                                                                ,@(when meaning-args
-                                                                                    `((meaning-args ,meaning-args)))
-                                                                                ,@(when integration-form-args-slot-1
-                                                                                    `((integration-form-args ,integration-form-args-slot-1)))
-                                                                                ,@(when integration-meaning-args-slot-1
-                                                                                    `((integration-meaning-args ,integration-meaning-args-slot-1))))
+                                                                                ,@(when form-args-slot-1
+                                                                                    `((form-args ,form-args-slot-1)))
+                                                                                ,@(when meaning-args-slot-1
+                                                                                    `((meaning-args ,meaning-args-slot-1))))
                                                             :comprehension-lock `((category ,slot-cat-1)
-                                                                                ,@(when form-args
-                                                                                    `((form-args ,form-args)))
-                                                                                ,@(when meaning-args
-                                                                                    `((meaning-args ,meaning-args)))
-                                                                                ,@(when integration-form-args-slot-1
-                                                                                    `((integration-form-args ,integration-form-args-slot-1)))
-                                                                                ,@(when integration-meaning-args-slot-1
-                                                                                    `((integration-meaning-args ,integration-meaning-args-slot-1)))))
+                                                                                ,@(when form-args-slot-1
+                                                                                    `((form-args ,form-args-slot-1)))
+                                                                                ,@(when meaning-args-slot-1
+                                                                                    `((meaning-args ,meaning-args-slot-1)))))
                                              (make-instance 'conditional-unit
                                                             :name slot-unit-2-name
                                                             :formulation-lock `((category ,slot-cat-2)
-                                                                                ,@(when form-args
-                                                                                    `((form-args ,form-args)))
-                                                                                ,@(when meaning-args
-                                                                                    `((meaning-args ,meaning-args)))
-                                                                                ,@(when integration-form-args-slot-2
-                                                                                    `((integration-form-args ,integration-form-args-slot-2)))
-                                                                                ,@(when integration-meaning-args-slot-2
-                                                                                    `((integration-meaning-args ,integration-meaning-args-slot-2))))
+                                                                                ,@(when form-args-slot-2
+                                                                                    `((form-args ,form-args-slot-2)))
+                                                                                ,@(when meaning-args-slot-2
+                                                                                    `((meaning-args ,meaning-args-slot-2))))
                                                             :comprehension-lock `((category ,slot-cat-2)
-                                                                                ,@(when form-args
-                                                                                    `((form-args ,form-args)))
-                                                                                ,@(when meaning-args
-                                                                                    `((meaning-args ,meaning-args)))
-                                                                                ,@(when integration-form-args-slot-2
-                                                                                    `((integration-form-args ,integration-form-args-slot-2)))
-                                                                                ,@(when integration-meaning-args-slot-2
-                                                                                    `((integration-meaning-args ,integration-meaning-args-slot-2))))))
+                                                                                ,@(when form-args-slot-2
+                                                                                    `((form-args ,form-args-slot-2)))
+                                                                                ,@(when meaning-args-slot-2
+                                                                                    `((meaning-args ,meaning-args-slot-2))))))
                      :cxn-inventory cxn-inventory
                      :feature-types (feature-types cxn-inventory)
-                     :attributes `(,@(when form-args
-                                       `((:form-args . ,form-args)))
-                                   ,@(when meaning-args
-                                       `((:meaning-args . ,meaning-args)))
-                                   ,@(when (or integration-form-args integration-meaning-args) `((:cxn-cat . ,cxn-cat)))
-                                   ,@(when integration-form-args
-                                       `((:integration-form-args . ,integration-form-args)))
-                                   ,@(when integration-meaning-args
-                                       `((:integration-meaning-args . ,integration-meaning-args)))
-                                   ,@(when integration-form-args-slot-1
-                                       `((:integration-form-args-slot-1 . ,integration-form-args-slot-1)))
-                                   ,@(when integration-form-args-slot-2
-                                       `((:integration-form-args-slot-2 . ,integration-form-args-slot-2)))
-                                   ,@(when integration-meaning-args-slot-1
-                                       `((:integration-meaning-args-slot-1 . ,integration-meaning-args-slot-1)))
-                                   ,@(when integration-meaning-args-slot-2
-                                       `((:integration-meaning-args-slot-2 . ,integration-meaning-args-slot-2)))
+                     :attributes `(,@(when contributing-form-args
+                                       `((:form-args . ,contributing-form-args)))
+                                   ,@(when contributing-meaning-args
+                                       `((:meaning-args . ,contributing-meaning-args)))
+                                   ,@(when (or contributing-form-args contributing-meaning-args) `((:cxn-cat . ,cxn-cat)))
+                                   ,@(when form-args-slot-1
+                                       `((:form-args-slot-1 . ,form-args-slot-1)))
+                                   ,@(when form-args-slot-2
+                                       `((:form-args-slot-2 . ,form-args-slot-2)))
+                                   ,@(when meaning-args-slot-1
+                                       `((:meaning-args-slot-1 . ,meaning-args-slot-1)))
+                                   ,@(when meaning-args-slot-2
+                                       `((:meaning-args-slot-2 . ,meaning-args-slot-2)))
                                    (:slot-cats ,slot-cat-1 ,slot-cat-2)
                                    (:entrenchment-score . ,initial-score))))))
 
