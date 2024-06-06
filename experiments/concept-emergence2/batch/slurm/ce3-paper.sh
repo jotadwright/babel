@@ -6,7 +6,7 @@
 #SBATCH	--ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=12G
-#SBATCH --array=1-32
+#SBATCH --array=33-34
 
 # load atools
 module purge
