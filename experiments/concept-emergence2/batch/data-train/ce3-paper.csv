@@ -31,3 +31,5 @@ id,exp_name,nr_of_series,nr_of_interactions,population_size,dataset,dataset_spli
 30,cogent-4b,1,1000000,10,cogent,traina,:cogent,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,t,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:version-3
 31,winery-4b,1,1000000,10,winery,train,:winery,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,t,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:version-3
 32,credit-4b,1,1000000,10,credit,train,:credit,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,t,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:version-3
+33,clevr-5,1,1000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,nil,nil,:j-interpolation,0,1,-5,:none,0,nil,:paper,:version-2
+34,clevr-6,1,1000000,10,clevr,train,:clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,0.0,-0.1,:heuristic-1,nil,nil,:j-interpolation,0,1,-5,:none,0,nil,:multivariate-3,:version-2
