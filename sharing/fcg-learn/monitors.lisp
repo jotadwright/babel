@@ -125,4 +125,4 @@
 
 (define-event-handler (trace-fcg-learning next-speech-act)
   (add-element `((hr)))
-  (add-element `((h2 :style "padding: 15px; margin: 0px; color: #ffffff;  background-color: #000000;") ,(format nil "Speech act ~a" (+1 (counter cp))))))
+  (add-element `((h2 :style "padding: 15px; margin: 0px; color: #ffffff;  background-color: #000000;") ,(format nil "Speech act ~a" (+ 1 (counter cp))))))
