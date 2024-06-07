@@ -807,7 +807,7 @@ construction creates."
 
 (defun make-cxn-name (form-sequence-predicates)
   "Create a unique construction name based on the strings present in form-sequence-predicates."
-  (make-const (upcase (string-replace (format nil "~{~a~^_~}-cxn" (mapcar #'second form-sequence-predicates)) " " "-")))) 
+  (make-const (upcase (substitute #\Space #\- (format nil "~{~a~^_~}-cxn" (mapcar #'second form-sequence-predicates))))))
 
 (defun remove-cxn-tail (string)
   (let ((start-tail (search "-CXN" string)))
