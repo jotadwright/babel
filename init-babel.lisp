@@ -15,6 +15,10 @@
 ;; asdf system registration
 ;; ----------------------------------------------------------------------------
 
+;; Support for unicode in variety of functions
+#+lispworks
+(lispworks:set-default-character-element-type 'character)
+
 (export '(babel-pathname))
 
 ;;; The root path of the Babel system. 
