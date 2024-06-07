@@ -116,17 +116,20 @@ div.empty-contributing-part { padding-left:10px; padding-right:10px;font-size:20
                     (test #'char=))
   "Returns a new string in which all the occurences of the part 
 is replaced with replacement."
-  (with-output-to-string (out)
-    (loop with part-length = (length part)
-          for old-pos = 0 then (+ pos part-length)
-          for pos = (search part string
-                            :start2 old-pos
-                            :test test)
-          do (write-string string out
-                           :start old-pos
-                           :end (or pos (length string)))
-          when pos do (write-string replacement out)
-          while pos)))
+  (let ((output-string (make-array '(0) :element-type 'character
+                                   :fill-pointer 0 :adjustable t)))
+    (with-output-to-string (stream output-string)
+      (loop with part-length = (length part)
+            for old-pos = 0 then (+ pos part-length)
+            for pos = (search part string
+                              :start2 old-pos
+                              :test test)
+            do (write-string string stream
+                             :start old-pos
+                             :end (or pos (length string)))
+            when pos do (write-string replacement stream)
+            while pos))
+    output-string))
 
 (defun get-format-set-of-predicates (feature-value)
   "returns the format of a feature value when it has been labeled as set of predicates"
@@ -1542,6 +1545,7 @@ div.fcg-light-construction-inventory-sep { padding-left:0px; padding-right:0px;p
                                           (configuration nil)
                                           (source-cfs nil))
   "this function returns the content of a transient structure, and it's used to replace the selected transient structure"
+  (declare (ignore configuration))
   (let ((configuration (or nil (visualization-configuration construction-inventory)))
         changes-at-transient-structure)
     (when source-cfs
