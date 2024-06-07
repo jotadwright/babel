@@ -319,18 +319,21 @@
 		    (push value-element feature-value)))
               (when feature-value
                 ;; we add newly constructed feature to new-unit
-                  (let* ((boundaries (flatten (mapcar #'(lambda (x) (if (equal (feature-name x) 'SEQUENCE) (rest (rest x)))) (feature-value (remove-special-operators (get-tag tag-variable pattern-unit) bindings)))))
-                         (new-form-value (if boundaries (sort (recompute-root-sequence-features-based-on-bindings
-                                                            boundaries
-                                                            (feature-value original-feature)
-                                                            bindings) #'< :key #'third)))
-                         (new-feature (if (eq (feature-name original-feature) 'form)
+                (let* ((boundaries (flatten (mapcar #'(lambda (x) (when (equal (feature-name x) 'SEQUENCE)
+                                                                    (rest (rest x))))
+                                                    (feature-value (remove-special-operators (get-tag tag-variable pattern-unit) bindings)))))
+                       (new-form-value (when boundaries (sort (recompute-root-sequence-features-based-on-bindings
+                                                               boundaries
+                                                               (feature-value original-feature)
+                                                               bindings) #'< :key #'third)))
+                       (new-feature (if (eq (feature-name original-feature) 'form)
                                         (when new-form-value 
                                           (make-feature 'form new-form-value))
-                                       (make-feature (feature-name original-feature)
-                                                     feature-value))))
-                    (push new-feature
-                          (unit-features new-root)))))))))
+                                        (make-feature (feature-name original-feature)
+                                                      feature-value))))
+                  (pprint new-feature)
+                  (push new-feature
+                        (unit-features new-root)))))))))
 
     
     ;; we loop over all features in source-unit and 'copy' all features
@@ -495,15 +498,15 @@
       (lookup-binding binding bindings)
       binding)))
           
-(defun recompute-root-sequence-features-based-on-bindings (feature root-sequence-features bindings)
+(defun recompute-root-sequence-features-based-on-bindings (feature-value root-sequence-features bindings)
   "Makes new set of sequence predicates based on the indices that are present in the bindings."
   (let (matched-positions matched-intervals non-matched-intervals)
 
     ;; taking care of matched-positions:
-    (loop for (name . value) in bindings
-          do (loop for boundary-name in feature
-                   do (when (eq boundary-name name)
-                        (push value matched-positions))))
+    (loop for value in feature-value
+          for binding = (cdr (assoc value bindings :test #'string=))
+          when binding
+          do (push binding matched-positions))
     
     (when (find-if #'variable-p matched-positions)
       (setf matched-positions (loop for position in matched-positions
@@ -511,11 +514,9 @@
                                       collect (lookup-binding position bindings) ;;lookup binding recursively
                                     else collect position)))
     
-    (sort matched-positions  #'<)
+    (setf matched-positions (sort matched-positions #'<))
     
     ;; taking care of matched-invervals:
-  #|  (loop for interval on matched-positions by #'cddr
-          do (push interval matched-intervals)) |#
     (setf matched-intervals
           (loop for i from 1 to (- (length matched-positions) 1)
                 for interval = (list (nth1 i matched-positions)
