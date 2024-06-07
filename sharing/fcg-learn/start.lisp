@@ -526,6 +526,84 @@ next-cip-solution
 
   )
 
+(add-element  `((p)  "dsqf"))
+(add-element  `((p)  "kʌlɹ̩"))
+(render-xml `((p)  "kʌlɹ̩"))
+
+(make-empty-cxn-inventory-cxns)
+*fcg-constructions*
+
+(defparameter *color*
+    (make-instance 'speech-act
+                   :form "kʌlɹ̩"
+                   :meaning '((bind attribute-category attribute-1 color))))
+
+(comprehend *color* :cxn-inventory *fcg-constructions*)
+
+
+(defparameter *large*
+    (make-instance 'speech-act
+                   :form "lɑɹd͡ʒ"
+                   :meaning '((bind size-category attribute-1 large))))
+
+(comprehend *large* :cxn-inventory *fcg-constructions*)
+
+
+
+(defparameter *cube*
+    (make-instance 'speech-act
+                   :form "kjub"
+                   :meaning '((bind shape-category attribute-1 cube))))
+
+(comprehend *cube* :cxn-inventory *fcg-constructions*)
+
+(defparameter *size*
+    (make-instance 'speech-act
+                   :form "sajz"
+                   :meaning '((bind attribute-category attribute-1  size))))
+
+(comprehend *size* :cxn-inventory *fcg-constructions*)
+
+(defparameter *what-color-is-the-cube*
+    (make-instance 'speech-act
+                   :form "wʌtkʌlɹ̩ɪzðəkjub?"
+                   :meaning '((get-context context-1)
+                              (filter set-1 context-1 shape-1)
+                              (bind shape-category shape-1 cube)
+                              (unique object-1 set-1)
+                              (query target-1 object-1 attribute-1)
+                              (bind attribute-category attribute-1 color))))
+
+(comprehend *what-color-is-the-cube* :cxn-inventory *fcg-constructions*)
+
+
+(defparameter *what-size-is-the-cube*
+  (make-instance 'speech-act
+                 :form "wʌtsajzɪzðəkjub?"
+                 :meaning '((get-context context-2)
+                            (filter set-2 context-2 shape-2)
+                            (bind shape-category shape-2 cube)
+                            (unique object-2 set-2)
+                            (query target-2 object-2 attribute-2)
+                            (bind attribute-category attribute-2 size))))
+
+(comprehend *what-size-is-the-cube* :cxn-inventory *fcg-constructions*)
+
+(defparameter *what-size-is-the-large-cube*
+  (make-instance 'speech-act
+                 :form "wʌtsajzɪzðəlɑɹd͡ʒkjub?"
+                 :meaning '((get-context context-2)
+                            (filter set-2 context-2 shape-2)
+                            (bind shape-category shape-2 cube)
+                            (filter set-3 set-2 size-2)
+                            (bind size-category size-2 large)
+                            (unique object-2 set-3)
+                            (query target-2 object-2 attribute-2)
+                            (bind attribute-category attribute-2 size))))
+
+
+
+
 
 
 
@@ -646,6 +724,85 @@ next-cip-solution
   (comprehend-all (form-string *amr-simple-1*)) ;; here construction doesn't apply
 ; (comprehend (form-string *amr-simple-2*))
   )
+
+
+
+
+
+(make-empty-cxn-inventory-cxns)
+
+
+(defparameter *color*
+    (make-instance 'speech-act
+                   :form "kʌlɹ̩"
+                   :meaning '((bind attribute-category attribute-1 color))))
+
+(comprehend *color* :cxn-inventory *fcg-constructions*)
+
+(defparameter *large*
+    (make-instance 'speech-act
+                   :form "lɑɹd͡ʒ"
+                   :meaning '((bind size-category attribute-1 large))))
+
+(comprehend *large* :cxn-inventory *fcg-constructions*)
+
+
+
+(defparameter *cube*
+    (make-instance 'speech-act
+                   :form "kjub"
+                   :meaning '((bind shape-category attribute-1 cube))))
+
+(comprehend *cube* :cxn-inventory *fcg-constructions*)
+
+(defparameter *size*
+    (make-instance 'speech-act
+                   :form "sajz"
+                   :meaning '((bind attribute-category attribute-1  size))))
+
+(comprehend *size* :cxn-inventory *fcg-constructions*)
+
+(defparameter *what-color-is-the-cube*
+    (make-instance 'speech-act
+                   :form "wʌtkʌlɹ̩ɪzðəkjub?"
+                   :meaning '((get-context context-1)
+                              (filter set-1 context-1 shape-1)
+                              (bind shape-category shape-1 cube)
+                              (unique object-1 set-1)
+                              (query target-1 object-1 attribute-1)
+                              (bind attribute-category attribute-1 color))))
+
+(formulate-all (instantiate-variables (comprehend *what-color-is-the-cube* :cxn-inventory *fcg-constructions*)))
+
+
+pipe-through
+
+
+(defparameter *what-size-is-the-cube*
+  (make-instance 'speech-act
+                 :form "wʌtsajzɪzðəkjub?"
+                 :meaning '((get-context context-2)
+                            (filter set-2 context-2 shape-2)
+                            (bind shape-category shape-2 cube)
+                            (unique object-2 set-2)
+                            (query target-2 object-2 attribute-2)
+                            (bind attribute-category attribute-2 size))))
+
+(comprehend *what-size-is-the-cube* :cxn-inventory *fcg-constructions*)
+
+(defparameter *what-size-is-the-large-cube*
+  (make-instance 'speech-act
+                 :form "wʌtsajzɪzðəlɑɹd͡ʒkjub?"
+                 :meaning '((get-context context-2)
+                            (filter set-2 context-2 shape-2)
+                            (bind shape-category shape-2 cube)
+                            (filter set-3 set-2 size-2)
+                            (bind size-category size-2 large)
+                            (unique object-2 set-3)
+                            (query target-2 object-2 attribute-2)
+                            (bind attribute-category attribute-2 size))))
+
+
 
 
 
