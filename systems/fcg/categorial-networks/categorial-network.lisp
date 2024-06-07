@@ -45,13 +45,11 @@
     :accessor graph
     :initarg :graph
     :initform (graph-utils:make-undirected-typed-graph)
-    :type 'graph-utils:undirected-typed-graph
     :documentation "Graph representing categorial network.")
    (transitive-closure
     :accessor transitive-closure
     :initarg :transitive-closure
     :initform (make-hash-table)
-    :type 'hash-table
     :documentation "Transitive closure of categorial network."))
   (:documentation "Categorial network class"))
 
