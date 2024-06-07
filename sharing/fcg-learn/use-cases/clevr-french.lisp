@@ -3,10 +3,52 @@
 ;;(ql:quickload :fcg-learn)
 
 
+(def-fcg-constructions empty-cxn-inventory
+  :feature-types ((form set-of-predicates :handle-regex-sequences)
+                  (meaning set-of-predicates)
+                  (form-args sequence)
+                  (meaning-args sequence)
+                  (subunits set)
+                  (footprints set))
+  :hashed t
+  :fcg-configurations (;; to activate heuristic search
+                       (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
+                       (:node-expansion-mode . :full-expansion) ;; always fully expands node immediately
+                       (:cxn-supplier-mode . :all-cxns) 
+                       ;; for using heuristics
+                       (:search-algorithm . :best-first) ;; :depth-first, :breadth-first
+                       (:heuristics :nr-of-applied-cxns :nr-of-units-matched) ;; list of heuristic functions (modes of #'apply-heuristic)
+                       (:heuristic-value-mode . :sum-heuristics-and-parent) ;; how to use results of heuristic functions for scoring a node
+                     ;  (:hash-mode . :hash-sequence-meaning)
+                       (:meaning-representation-format . :irl)
+                       (:diagnostics diagnose-cip-against-gold-standard)
+                       (:repairs repair-add-categorial-link repair-learn-holophrastic-cxn
+                        repair-through-anti-unification)
+                       (:learning-mode . :pattern-finding)
+                       (:alignment-mode . :lateral-inhibition-avg-entenchment-score)
+                       (:li-reward . 0.2)
+                       (:li-punishement . 0.2)
+                       (:best-solution-mode . :highest-average-entrenchment-score)
+                       (:induce-cxns-mode . :filler-and-linking)
+                       (:form-generalisation-mode . :needleman-wunsch)
+                       (:max-nr-of-gaps-in-form-predicates . 1)
+                       (:meaning-generalisation-mode . :k-swap)
+                       (:k-swap-k . 1)
+                       (:k-swap-w . 1)
+                       (:consolidate-repairs . t)
+                       (:de-render-mode . :de-render-sequence)
+                       (:render-mode . :render-sequences)
+                       (:category-linking-mode . :neighbours)
+                       (:expand-nodes-in-search-tree . t)
+                       (:parse-goal-tests :no-applicable-cxns :connected-semantic-network :no-sequence-in-root)
+                       (:production-goal-tests :no-applicable-cxns :no-meaning-in-root :connected-structure))
+  :visualization-configurations ((:show-constructional-dependencies . nil)
+                                 (:show-categorial-network . t)))
 
-;;#############################################
-;; Loading training data for CLEVRançais
-;;#############################################
+
+;;#######################################
+;; Loading training data for CLEVR French
+;;#######################################
 
 (defparameter *clevr-french-stage-1-train*
   (merge-pathnames (make-pathname :directory '(:relative "clevr-grammar-learning" "clevr-french" "train")
@@ -14,33 +56,21 @@
                                   :type "jsonl")
                    cl-user:*babel-corpora*))
 
-(defun load-and-sort-observations (challenge-file &key (sort-p t) )
-  ""
-  (with-open-file (stream challenge-file)
-    (sort
-     (loop for line = (read-line stream nil)
-           for data = (when line (cl-json:decode-json-from-string line))
-           while data
-           collect (cons (cdr (assoc :utterance data))
-                         (fresh-variables (read-from-string (cdr (assoc :meaning data))))))
-     #'< :key #'(lambda (x) (count #\space (first x))))))
+  
+;;Takes 10-20 seconds to load corpus
+(defparameter *clevr-french-processor* (load-corpus *clevr-french-stage-1-train* :sort-p t))
 
+(defparameter *first-500-shuffled* (shuffle-first-nth-speech-acts *clevr-french-processor* 500))
 
-(defparameter *sorted-observations-train* (load-and-sort-observations *clevr-french-stage-1-train*))
+(defparameter *clevr-french-grammar* (make-empty-cxn-inventory-cxns))
 
-(defun baseline-grammar (observations)
-  (loop with cxn-inventory = (make-sandbox-grammar-cxns)
-        for observation in observations
-        do (if (constructions cxn-inventory)
-             (loop for cxn in (constructions cxn-inventory)
-                   do (induce-cxns observation cxn :cxn-inventory cxn-inventory))
-             (induce-cxns observation nil :cxn-inventory cxn-inventory))
-        finally (return cxn-inventory)))
+(reset-cp *clevr-french-processor*)
 
-(setf *first-grammar* (baseline-grammar (subseq *sorted-observations-train* 0 3)))
+(comprehend (next-speech-act *clevr-french-processor*) :cxn-inventory *clevr-french-grammar* )
+(comprehend (current-speech-act *clevr-french-processor*) :cxn-inventory *clevr-french-grammar*)
 
-(activate-monitor trace-fcg)
-(comprehend (first (nth 0 *sorted-observations-train*)) :cxn-inventory *first-grammar*)
+(loop for i from 0 to 20 do 
+        (comprehend (next-speech-act *clevr-french-processor*) :cxn-inventory *clevr-french-grammar*))
 
 
 
