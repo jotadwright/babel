@@ -47,7 +47,7 @@
     :accessor world
     :initform nil)
    (interactions :initarg :interactions
-                 :accessor interactions :initform nil
+                 :accessor interactions :initform nil :type list
                  :documentation "a list of interactions"))
   (:documentation "class for experiments"))
 
