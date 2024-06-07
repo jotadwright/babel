@@ -25,7 +25,6 @@
 (defclass configuration ()
   ((configuration :initarg :configuration
                   :accessor configuration
-                  :initform nil :type hash-table
                   :documentation "A hash table containing the configuration entries")
    (parent-configuration :initarg :parent-configuration
                          :accessor parent-configuration
@@ -33,7 +32,8 @@
 
 ;; ----------------------------------------------------------------------------
 
-;; SBCL requires custom definition of hash-table tests using the following scheme
+#|
+;; sbcl requires custom definition of hash-table tests using the following scheme
 (defun config-entry= (entry-1 entry-2)
   (equalp (symbol-name entry-1)
           (symbol-name entry-2)))
@@ -44,9 +44,10 @@
 #+sbcl
 (sb-ext:define-hash-table-test config-entry= sxhash-symbol)
 
-(defun make-config-hash-table ()
-  (make-hash-table :test #+sbcl 'config-entry= #+lispworks #'config-entry= #+ccl #'config-entry=))
 
+(defun make-config-hash-table ()
+  (make-hash-table :test #+sbcl 'config-entry= #+lispworks #'config-entry= #+ccl 'config-entry=))
+|#
 
 (defmethod initialize-instance :after ((c configuration)
                                        &key entries configuration &allow-other-keys)
@@ -57,7 +58,7 @@
   (when entries
     (assert (listp entries))
     (setf (configuration c)
-          (let ((hash (make-config-hash-table)))
+          (let ((hash (make-hash-table)))
             (loop for (key . value) in entries
                   do (setf (gethash key hash) value))
             hash)))
@@ -78,7 +79,7 @@
 (defun make-configuration (&key entries parent-configuration)
   "Creates a configuration based on a alist of key value pairs.
    Example: (make-configuration :entries `((key1 . 123) (key2 . 'symbol)))"
-  (let ((hash-table (make-config-hash-table)))
+  (let ((hash-table (make-hash-table)))
     ;; The test of 'make-hash-table' compares keys using symbol-name equality
     ;; this enables to set a configuration with keywords and retrieve it with 
     ;; the symbol with the same symbol-name (e.g. :key1 and 'key1).
