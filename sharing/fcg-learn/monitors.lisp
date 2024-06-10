@@ -6,10 +6,13 @@
 ;;                                                                    ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(export '(trace-fcg-learning))
+(export '(trace-fcg-learning trace-fcg-learning-in-output-browser))
 
 (define-monitor trace-fcg-learning 
     :documentation "Graphically traces routine processing as well as learning.")
+
+(define-monitor trace-fcg-learning-in-output-browser 
+    :documentation "Traces routine processing as well as learning in the output browser.")
 
 (define-event routine-comprehension-started (speech-act speech-act) (n t))
 
@@ -86,7 +89,6 @@
                                collect (make-html link)))))))))))
 
 
-
 (define-event-handler (trace-fcg-learning fcg-apply-w-n-solutions-started)
   (add-element 
    `((h4)
@@ -126,3 +128,22 @@
 (define-event-handler (trace-fcg-learning next-speech-act)
   (add-element `((hr)))
   (add-element `((h2 :style "padding: 15px; margin: 0px; color: #ffffff;  background-color: #000000;") ,(format nil "Speech act ~a" (+ 1 (counter cp))))))
+
+(define-event-handler (trace-fcg-learning-in-output-browser next-speech-act)
+  (let ((interaction-number (+ 1 (counter cp))))
+    (if (= 1 interaction-number)
+      (format t "~%~%## Experiment started ##~%"))))
+
+(define-event-handler (trace-fcg-learning-in-output-browser routine-comprehension-finished)
+  (when solution (format t ".")))
+
+(define-event-handler (trace-fcg-learning-in-output-browser meta-level-learning-finished)
+  (if solution
+    (format t "l")
+    (format t "x")))
+
+(define-event speech-act-finished (cp corpus-processor))
+
+(define-event-handler (trace-fcg-learning-in-output-browser speech-act-finished)
+  (when (= 0 (mod (counter cp) 100))
+    (format t " (~a)~%" (counter cp))))
