@@ -574,6 +574,7 @@ construction creates."
     
     (and (= (length meaning-cxn-1 )(length meaning-cxn-2))
          (= (length form-cxn-1 )(length form-cxn-2))
+         (string= (second (first form-cxn-1)) (second (first form-cxn-2))) ;; holophrastic cxns can only have 1 sequence predicate
          (pn::equivalent-predicate-networks-p meaning-cxn-1 meaning-cxn-2)
          (pn::equivalent-predicate-networks form-cxn-1 form-cxn-2))))
 
