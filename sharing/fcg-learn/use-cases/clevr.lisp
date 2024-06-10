@@ -23,7 +23,7 @@
                        (:search-algorithm . :best-first) ;; :depth-first, :breadth-first
                        (:heuristics :nr-of-applied-cxns :nr-of-units-matched) ;; list of heuristic functions (modes of #'apply-heuristic)
                        (:heuristic-value-mode . :sum-heuristics-and-parent) ;; how to use results of heuristic functions for scoring a node
-                     ;  (:hash-mode . :hash-sequence-meaning)
+                       (:hash-mode . :filler-and-linking)
                        (:meaning-representation-format . :irl)
                        (:diagnostics diagnose-cip-against-gold-standard)
                        (:repairs repair-add-categorial-link repair-learn-holophrastic-cxn repair-through-anti-unification)
