@@ -359,6 +359,7 @@ constructions themselves. Intended to use in meta-layer for applying a
 construction on the fly."
   (let ((temporary-cxn-set
          (eval `(def-fcg-constructions ,(gensym)
+                  :hashed (when (eql (type-of fcg-construction-set) hashed-fcg-construction-set))
                   :feature-types ,(feature-types fcg-construction-set)
                   :hierarchy-features ,(hierarchy-features fcg-construction-set)
                   :disable-automatic-footprints ,(disable-automatic-footprints fcg-construction-set)
