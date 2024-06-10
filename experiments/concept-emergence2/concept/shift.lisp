@@ -78,9 +78,14 @@
         for objects-hash = (loop with hash = (make-hash-table :test 'equal)
                                  for object in (objects (get-data agent 'context))
                                  for observation = (perceive-object-val agent object channel)
-                                 for similarity = (observation-similarity observation prototype)
-                                 for weighted-similarity = (if (and (not (zerop ledger)) similarity)
-                                                             (* (/ (weight prototype) ledger) similarity)
+                                 for z-score = (observation-similarity observation prototype)
+                                 for similarity = (calculate-similarity-s z-score
+                                                                          (get-configuration agent :similarity-config))
+                                 for weighted-similarity = (if (not (zerop ledger))
+                                                             (calculate-similarity-ws
+                                                                z-score
+                                                                (/ (weight prototype) ledger)
+                                                                (get-configuration agent :similarity-config))
                                                              0)
                                  do (setf (gethash (id object) hash) (cons similarity weighted-similarity))
                                  finally (return hash))
@@ -131,16 +136,20 @@
             (notify event-found-discriminating-attributes discriminating-attributes)
             (return discriminating-attributes))))
 
-
-;; --------------------
-;; + Similarity table +
-;; --------------------
-(defmethod similarity-with-table ((prototypes list) (object cle-object) (table hash-table))
+(defmethod similarity-with-table ((prototypes list) (object cle-object) (table hash-table) (mode (eql :paper)))
   "Compute the weighted similarity between the object and the
    list of prototypes, using the given similarity table."
   (loop for prototype in prototypes
         for similarity = (get-ws object (channel prototype) table)
         sum similarity))
+
+(defmethod similarity-with-table ((prototypes list) (object cle-object) (table hash-table) (mode (eql :multivariate)))
+  "Compute the weighted similarity between the object and the
+   list of prototypes, using the given similarity table."
+  (loop for prototype in prototypes
+        for similarity = (get-ws object (channel prototype) table)
+        sum similarity into mahalanobis
+        finally (return (exp (* 1/2 (- mahalanobis))))))
 
 ;; ----------------------------------
 ;; + Find discriminating attributes +
@@ -154,11 +163,13 @@
           for subset in subsets
           for topic-sim = (similarity-with-table subset
                                                  topic
-                                                 similarity-table)
+                                                 similarity-table
+                                                 (get-configuration agent :similarity-config))
           for best-other-sim = (loop for object in context
                                      maximize (similarity-with-table subset
                                                                      object
-                                                                     similarity-table))
+                                                                     similarity-table
+                                                                     (get-configuration agent :similarity-config)))
           for discriminative-power = (abs (- topic-sim best-other-sim))
           when (and (> topic-sim best-other-sim)
                     (> discriminative-power best-score))
@@ -168,3 +179,16 @@
                  (setf best-score discriminative-power)))
     (notify event-found-subset-to-reward best-subset)
     best-subset))
+
+(defmethod calculate-similarity-s ((z-score number) (mode (eql :paper)))
+  (exp (- (abs z-score))))
+
+(defmethod calculate-similarity-s ((z-score number) (mode (eql :multivariate-)))
+  (exp (- (* 1/2 (expt z-score 2)))))
+
+(defmethod calculate-similarity-ws ((z-score number) (weight number) (mode (eql :paper)))
+  (* weight (exp (- (abs z-score)))))
+
+(defmethod calculate-similarity-ws ((z-score number) (weight number) (mode (eql :multivariate)))
+  (* (expt weight 2)
+     (expt z-score 2)))
