@@ -66,8 +66,6 @@
              (set-configuration experiment :dataset (assqv :dataset config))
              (set-configuration experiment :dataset-split (assqv :dataset-split config))
              (set-configuration experiment :available-channels (assqv :available-channels config))
-             (set-configuration experiment :hellinger-config :hellinger)
-             (set-configuration experiment :similarity-config :paper)
              (set-configuration experiment :align nil)
              ;; reset usage tables
              (loop for agent in (agents experiment)
