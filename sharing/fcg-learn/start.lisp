@@ -18,12 +18,12 @@
   :fcg-configurations (;; to activate heuristic search
                        (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
                        (:node-expansion-mode . :full-expansion) ;; always fully expands node immediately
-                       (:cxn-supplier-mode . :all-cxns) 
+                       (:cxn-supplier-mode . :hashed) 
                        ;; for using heuristics
                        (:search-algorithm . :best-first) ;; :depth-first, :breadth-first
                        (:heuristics :nr-of-applied-cxns :nr-of-units-matched) ;; list of heuristic functions (modes of #'apply-heuristic)
                        (:heuristic-value-mode . :sum-heuristics-and-parent) ;; how to use results of heuristic functions for scoring a node
-                     ;  (:hash-mode . :hash-sequence-meaning)
+                       (:hash-mode . :filler-and-linking)
                        (:meaning-representation-format . :irl)
                        (:diagnostics diagnose-cip-against-gold-standard)
                        (:repairs repair-add-categorial-link repair-learn-holophrastic-cxn repair-through-anti-unification)
@@ -802,7 +802,7 @@ pipe-through
                             (query target-2 object-2 attribute-2)
                             (bind attribute-category attribute-2 size))))
 
-
+(comprehend *what-size-is-the-large-cube* :cxn-inventory *fcg-constructions*)
 
 
 
