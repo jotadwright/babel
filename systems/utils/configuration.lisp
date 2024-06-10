@@ -25,6 +25,7 @@
 (defclass configuration ()
   ((configuration :initarg :configuration
                   :accessor configuration
+                  :initform (make-hash-table)
                   :documentation "A hash table containing the configuration entries")
    (parent-configuration :initarg :parent-configuration
                          :accessor parent-configuration
