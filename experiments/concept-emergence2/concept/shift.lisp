@@ -183,7 +183,7 @@
 (defmethod calculate-similarity-s ((z-score number) (mode (eql :paper)))
   (exp (- (abs z-score))))
 
-(defmethod calculate-similarity-s ((z-score number) (mode (eql :multivariate-)))
+(defmethod calculate-similarity-s ((z-score number) (mode (eql :multivariate)))
   (exp (- (* 1/2 (expt z-score 2)))))
 
 (defmethod calculate-similarity-ws ((z-score number) (weight number) (mode (eql :paper)))
