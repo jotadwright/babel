@@ -36,7 +36,7 @@
 
 (defmethod f-divergence ((distribution1 gaussian)
                          (distribution2 gaussian)
-                         (mode (eql :f-hellinger2))
+                         (mode (eql :fh-squared))
                          &key
                          &allow-other-keys)
   "Returns the squared Hellinger distance between two Gaussian distributions."
