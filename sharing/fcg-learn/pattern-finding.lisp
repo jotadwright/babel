@@ -46,7 +46,7 @@
                  &key &allow-other-keys)
   ""
   (cond ((or (eql (type-of cxn) 'holophrastic-cxn)
-             (and (eql (type-of cxn) 'construction)
+             (and (eql (type-of cxn) 'processing-construction)
                   (eql (type-of (original-cxn cxn)) 'holophrastic-cxn)))
          (let ((form-string (second (first (attr-val cxn :form))))
                (meaning-key (loop for predicate in (attr-val cxn :meaning)
