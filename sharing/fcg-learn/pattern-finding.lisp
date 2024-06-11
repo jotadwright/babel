@@ -240,7 +240,27 @@
             (or (when (pattern-delta au-form) pattern-filler-cxn-meaning-args)
                 (when (source-delta au-form) source-filler-cxn-meaning-args)))))
 
-;(defun extend-cip-with-holphrase-cxns (cip cxn-inventory))
+(defun extend-cip-with-holophrase-cxns (cip)
+  (let* ((cxn-inventory (construction-inventory cip))
+         (cxn-supplier-mode (get-configuration cxn-inventory :cxn-supplier-mode)))
+
+    (set-configuration cxn-inventory :cxn-supplier-mode :holophrase-cxns-only)
+
+    (loop for leaf in (get-cip-leaves cip)
+          for solution-nodes = (fcg-apply-exhaustively cxn-inventory
+                                                       (car-resulting-cfs (cipn-car leaf))
+                                                       (direction cip))
+          unless (find 'initial (statuses (first solution-nodes)))
+            do (loop for solution in solution-nodes
+                     do (loop with current-node = leaf
+                              for car in (mapcar #'cipn-car (rest (reverse (upward-branch solution))))
+                              do (setf current-node (cip-add-child current-node car))
+                                 (setf (fully-expanded? current-node) t)
+                                 (push 'added-by-repair (statuses current-node))
+                                 (push 'extended-with-holophrase (statuses current-node)))))
+    (set-configuration cxn-inventory :cxn-supplier-mode cxn-supplier-mode)
+    cip))
+ 
 
 (defmethod induce-cxns ((speech-act-form-predicates list)
                         (speech-act-meaning-predicates list)
@@ -248,8 +268,9 @@
                         (mode (eql :filler-and-linking))
                         &key fix-cxn-inventory)
 
+  (extend-cip-with-holophrase-cxns cip)
+
   (let* ((cxn-inventory (original-cxn-set (construction-inventory cip)))
-        ; (cip-after-)
          (cxns-longest-branch (remove-if #'(lambda (cxn) (eql (type-of (original-cxn cxn)) 'linking-cxn))
                                          (applied-constructions (first (first (sort (mapcar #'upward-branch (get-cip-leaves cip)) #'> :key #'length))))))
          (candidate-cxn-w-au-results (unless cxns-longest-branch
@@ -521,14 +542,9 @@ construction creates."
           collect gen-var-source))
 
 
-
-(defmethod make-html-construction-title ((construction construction))
+(defmethod make-html-construction-title ((construction fcg-learn-cxn))
  `((span) 
-      ,(format nil "~(~a~)" (name construction))))
-
-(defmethod make-html-construction-title ((construction fcg-construction))
- `((span) 
-      ,(format nil "~(~a~)" (name construction))))
+   ,(format nil "~(~a~) (~$)" (name construction) (attr-val construction :entrenchment-score))))
 
 
 
@@ -546,5 +562,21 @@ construction creates."
                             collect (cons var (internal-symb (make-var base-name))))))
       (values (subst-bindings renamings) renamings))))
 
+
+
+;; Construction-supplier meta-layer ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defclass cxn-supplier-holophrase-cxns-only ()
+  ()
+  (:documentation "Construction supplier that only returns holophrase-cxns."))
+
+(defmethod create-cxn-supplier ((node cip-node) (mode (eql :holophrase-cxns-only)))
+  "Creates an instance of the cxn-supplier."
+  (make-instance 'cxn-supplier-holophrase-cxns-only))
+
+(defmethod next-cxn ((cxn-supplier cxn-supplier-holophrase-cxns-only) (node cip-node))
+  "Returns all constructions that are found under key 'holophrase-cxns."
+  (gethash 'holophrastic-cxns (constructions-hash-table (construction-inventory node))))
 
 

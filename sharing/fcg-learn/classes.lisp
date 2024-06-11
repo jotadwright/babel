@@ -29,11 +29,14 @@
   (setf (situation copy) (situation original)))
 
 
-(defclass holophrastic-cxn (fcg-construction)
+(defclass fcg-learn-cxn (fcg-construction)
   ())
 
-(defclass filler-cxn (fcg-construction)
+(defclass holophrastic-cxn (fcg-learn-cxn)
   ())
 
-(defclass linking-cxn (fcg-construction)
+(defclass filler-cxn (fcg-learn-cxn)
+  ())
+
+(defclass linking-cxn (fcg-learn-cxn)
   ())
