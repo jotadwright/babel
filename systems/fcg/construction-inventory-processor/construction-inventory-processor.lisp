@@ -873,7 +873,7 @@ links between applied constructions for priming effects."
 		      construction-inventory 
 		      (get-configuration
                        construction-inventory
-                       'construction-inventory-processor-mode)
+                       :construction-inventory-processor-mode)
 		      :initial-cfs cfs :direction direction) :notify notify))
 
 ;; You have to pass through fcg-apply specialised on
