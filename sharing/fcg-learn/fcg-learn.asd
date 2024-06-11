@@ -7,6 +7,7 @@
   :components ((:file "classes")
                (:file "corpus-processor")
                (:file "monitors")
+               (:file "equivalent-cxn")
                (:file "routine-processing")
                (:file "meta-processing")
                (:file "pattern-finding")))

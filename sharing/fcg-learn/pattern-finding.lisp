@@ -7,16 +7,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defclass holophrastic-cxn (fcg-construction)
-  ())
-
-(defclass filler-cxn (fcg-construction)
-  ())
-
-(defclass linking-cxn (fcg-construction)
-  ())
-
-
 ;; Learning holophrastic constructions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -27,6 +17,7 @@
          (meaning-predicates (fresh-variables (pn::variablify-predicate-network (meaning speech-act)
                                                                                 (get-configuration cxn-inventory :meaning-representation-format))))
          (initial-score 0.5)
+         (meaning-hash-key (compute-meaning-hash-key-from-predicates meaning-predicates))
          (holophrastic-cxn (make-instance 'holophrastic-cxn
                                           :name (make-cxn-name form-sequence-predicates)
                                           :conditional-part (list (make-instance 'conditional-unit
@@ -37,46 +28,42 @@
                                           :feature-types (feature-types cxn-inventory)
                                           :attributes `((:form . ,form-sequence-predicates)
                                                         (:meaning . ,meaning-predicates)
-                                                        (:entrenchment-score . ,initial-score)))))
+                                                        (:entrenchment-score . ,initial-score)
+                                                        (:form-hash-key . ,form)
+                                                        (:meaning-hash-key . ,meaning-hash-key)))))
     ;; return cxn-inventory and new cxn
     (add-cxn holophrastic-cxn (copy-fcg-construction-set-without-cxns cxn-inventory))))
+
+(defun compute-meaning-hash-key-from-predicates (meaning-predicates)
+  "Computes meaning-hash-key based on set of predicates."
+  (loop for predicate in meaning-predicates
+        if (and (eql (first predicate) 'bind) ; for IRL
+                (= 4 (length predicate)))
+          collect (symbol-name (last-elt predicate)) into keys
+        else
+          collect (symbol-name (first predicate)) into keys
+        finally (return (intern (upcase (format nil "~{~a~^-~}" (sort keys #'string<)))))))
 
 (defmethod hash ((cxn construction)
                  (mode (eql :filler-and-linking))
                  &key &allow-other-keys)
-  ""
+  "Hash method for constructions."
   (cond ((or (eql (type-of cxn) 'holophrastic-cxn)
              (and (eql (type-of cxn) 'processing-construction)
                   (eql (type-of (original-cxn cxn)) 'holophrastic-cxn)))
-         (let ((form-string (second (first (attr-val cxn :form))))
-               (meaning-key (loop for predicate in (attr-val cxn :meaning)
-                                  if (and (eql (first predicate) 'bind)
-                                          (= 4 (length predicate)))
-                                    collect (symbol-name (last-elt predicate)) into keys
-                                  else
-                                    collect (symbol-name (first predicate)) into keys
-                                  finally (return (intern (upcase (format nil "~{~a~^-~}" (sort keys #'string<))))))))
-           (list 'holophrastic-cxns form-string meaning-key)))))
+         (list (attr-val cxn :form-hash-key) (attr-val cxn :meaning-hash-key) 'holophrastic-cxns))))
 
 (defmethod hash ((node cip-node)
                  (mode (eql :filler-and-linking)) 
                  &key &allow-other-keys)
-  ""
+  "Hash method for nodes."
   (cond ((and (find 'initial (statuses node))
               (eql '<- (direction (cip node))))
          (list (second (first (unit-feature-value (get-root (fcg-get-transient-unit-structure node)) 'form)))))
         ((and (find 'initial (statuses node))
               (eql '-> (direction (cip node))))
-         (list (loop for predicate in (unit-feature-value  (get-root (fcg-get-transient-unit-structure node)) 'meaning)
-                     if (and (eql (first predicate) 'bind)
-                             (= 4 (length predicate)))
-                       collect (symbol-name (last-elt predicate)) into keys
-                     else
-                       collect (symbol-name (first predicate)) into keys
-                     finally (return (intern (upcase (format nil "~{~a~^-~}" (sort keys #'string<))))))))))
+         (list (compute-meaning-hash-key-from-predicates (unit-feature-value  (get-root (fcg-get-transient-unit-structure node)) 'meaning))))))
 
-
-  
 ;; Learning based on existing constructions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -560,85 +547,4 @@ construction creates."
       (values (subst-bindings renamings) renamings))))
 
 
-
-(defgeneric equivalent-cxn (cxn-1 cxn-2))
-
-(defmethod equivalent-cxn ((cxn-1 t) (cxn-2 t))
-  nil)
-
-(defmethod equivalent-cxn ((cxn-1 holophrastic-cxn) (cxn-2 holophrastic-cxn))
-  (let ((meaning-cxn-1 (attr-val cxn-1 :meaning))
-        (meaning-cxn-2 (attr-val cxn-2 :meaning))
-        (form-cxn-1 (attr-val cxn-1 :form))
-        (form-cxn-2 (attr-val cxn-2 :form)))
-    
-    (and (= (length meaning-cxn-1 )(length meaning-cxn-2))
-         (= (length form-cxn-1 )(length form-cxn-2))
-         (string= (second (first form-cxn-1)) (second (first form-cxn-2))) ;; holophrastic cxns can only have 1 sequence predicate
-         (pn::equivalent-predicate-networks-p meaning-cxn-1 meaning-cxn-2))))
-
-(defmethod equivalent-cxn ((cxn-1 linking-cxn) (cxn-2 linking-cxn))
-  (let ((meaning-args-cxn-1 (attr-val cxn-1 :meaning-args))
-        (meaning-args-cxn-2 (attr-val cxn-2 :meaning-args))
-        (form-args-cxn-1 (attr-val cxn-1 :form-args))
-        (form-args-cxn-2 (attr-val cxn-2 :form-args))
-        (integration-form-args-cxn-1 (attr-val cxn-1 :integration-form-args))
-        (integration-form-args-cxn-2 (attr-val cxn-2 :integration-form-args))
-        (integration-meaning-args-cxn-1 (attr-val cxn-1 :integration-meaning-args))
-        (integration-meaning-args-cxn-2 (attr-val cxn-2 :integration-meaning-args)))
-    
-    (and (= (length meaning-args-cxn-1) (length meaning-args-cxn-2))
-         (= (length form-args-cxn-1 )(length form-args-cxn-2))
-         (= (length integration-form-args-cxn-1) (length integration-form-args-cxn-2))
-         (= (length integration-meaning-args-cxn-1) (length integration-meaning-args-cxn-2))))) 
-  
-
-  
-(defmethod equivalent-cxn ((cxn-1 filler-cxn) (cxn-2 filler-cxn))
-  (let ((meaning-cxn-1 (attr-val cxn-1 :meaning))
-        (meaning-cxn-2 (attr-val cxn-2 :meaning))
-        (form-cxn-1 (attr-val cxn-1 :form))
-        (form-cxn-2 (attr-val cxn-2 :form))
-        (meaning-args-cxn-1 (attr-val cxn-1 :meaning-args))
-        (meaning-args-cxn-2 (attr-val cxn-2 :meaning-args))
-        (form-args-cxn-1 (attr-val cxn-1 :form-args))
-        (form-args-cxn-2 (attr-val cxn-2 :form-args))
-        (integration-form-args-cxn-1 (attr-val cxn-1 :integration-form-args))
-        (integration-form-args-cxn-2 (attr-val cxn-2 :integration-form-args))
-        (integration-meaning-args-cxn-1 (attr-val cxn-1 :integration-meaning-args))
-        (integration-meaning-args-cxn-2 (attr-val cxn-2 :integration-meaning-args)))
-    
-    (and (= (length meaning-cxn-1 )(length meaning-cxn-2))
-         (= (length form-cxn-1 )(length form-cxn-2))
-         (= (length meaning-args-cxn-1) (length meaning-args-cxn-2))
-         (= (length form-args-cxn-1 )(length form-args-cxn-2))
-         (= (length integration-form-args-cxn-1) (length integration-form-args-cxn-2))
-         (= (length integration-meaning-args-cxn-1) (length integration-meaning-args-cxn-2))
-         
-         (let ((bindings-meaning (pn::equivalent-predicate-networks meaning-cxn-1 meaning-cxn-2)))
-           (when bindings-meaning (and (if (and meaning-args-cxn-1 meaning-args-cxn-2)
-                                           (loop
-                                              for arg-1 in meaning-args-cxn-1
-                                              for arg-2 in meaning-args-cxn-2
-                                              always (eql (cdr (assoc arg-1 bindings-meaning)) arg-2))
-                                           t)
-                                       (if (and integration-meaning-args-cxn-1 integration-meaning-args-cxn-2)
-                                         (loop
-                                            for arg-1 in integration-meaning-args-cxn-1
-                                            for arg-2 in integration-meaning-args-cxn-2
-                                            always (eql (cdr (assoc arg-1 bindings-meaning)) arg-2))
-                                         t))))
-         (let ((bindings-form (pn::equivalent-predicate-networks form-cxn-1 form-cxn-2)))
-           (when bindings-form (and (if (and form-args-cxn-1 form-args-cxn-2)
-                                      (loop
-                                         for arg-1 in form-args-cxn-1
-                                         for arg-2 in form-args-cxn-2
-                                         always (eql (cdr (assoc arg-1 bindings-form)) arg-2))
-                                      t)
-                                    (if (and integration-form-args-cxn-1 integration-form-args-cxn-2)
-                                         (loop
-                                            for arg-1 in integration-form-args-cxn-1
-                                            for arg-2 in integration-form-args-cxn-2
-                                            always (eql (cdr (assoc arg-1 bindings-form)) arg-2))
-                                         t)))))))
 

@@ -27,3 +27,13 @@
   (setf (form copy) (form original))
   (setf (meaning copy) (meaning original))
   (setf (situation copy) (situation original)))
+
+
+(defclass holophrastic-cxn (fcg-construction)
+  ())
+
+(defclass filler-cxn (fcg-construction)
+  ())
+
+(defclass linking-cxn (fcg-construction)
+  ())
