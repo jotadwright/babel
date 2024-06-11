@@ -7,6 +7,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; (ql:quickload :fcg-learn)
+;; (activate-monitor trace-fcg-learning)
 (deactivate-all-monitors)
 (activate-monitor trace-fcg-learning-in-output-browser)
 
@@ -74,12 +75,11 @@
             (array-dimension (corpus *clevr-stage-1-train-processor*) 0)))
 
 
-;;;;;;;;;;;;;;;;;;;
-
-;; Holophrases only ;;
+;;;;;;;;;;;;;;;;;;;;;;
+;; all repairs      ;;
 ;;;;;;;;;;;;;;;;;;;;;;
 
-(def-fcg-constructions holophrase-cxn-inventory
+(def-fcg-constructions clevr-cxn-inventory
   :feature-types ((form set-of-predicates :handle-regex-sequences)
                   (meaning set-of-predicates)
                   (form-args sequence)
@@ -129,9 +129,9 @@
 
 ;;Takes 10-20 seconds to load corpus
 (defparameter *clevr-stage-1-train-processor* (load-corpus *clevr-stage-1-train* :sort-p t))
-(defparameter *clevr-stage-1-grammar* (make-holophrase-cxn-inventory-cxns))
+(defparameter *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
 
-(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar* :nr-of-speech-acts 50)
+(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar* :nr-of-speech-acts 2000)
 
 (progn
   (reset-cp *clevr-stage-1-train-processor*)
@@ -148,3 +148,5 @@
                           (nth-speech-act *clevr-stage-1-train-processor* 469)
                           (direction (cip *saved-cipn*))
                           (configuration (construction-inventory (cip *saved-cipn*))))
+
+unify-atom
