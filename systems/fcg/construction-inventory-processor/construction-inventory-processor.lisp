@@ -916,7 +916,7 @@ links between applied constructions for priming effects."
      while (and solution (not non-succeeded-solution-p)) do (setf solutions (append solutions (list solution)))
      finally
        (when notify (notify fcg-apply-w-n-solutions-finished solutions cip))
-     (return (values solutions cip))))
+       (return (values solutions cip non-succeeded-solution))))
 
 (defun fcg-apply-exhaustively (construction-inventory cfs direction &key (notify t))
   "returns all solutions of a construction inventory application"

@@ -2175,7 +2175,7 @@ div.fcg-light-construction-inventory-sep { padding-left:0px; padding-right:0px;p
        (make-html-construction-title
         ;; I think it is safer to get it from the construction application result. Then it also works for constructions
         ;; that are not in the construction inventory, but for example added by the meta-layer
-        (car-applied-cxn (cipn-car cipn))) ;(find-cxn (name (car-applied-cxn (cipn-car cipn))) construction-inventory)
+        (original-cxn (car-applied-cxn (cipn-car cipn)))) ;(find-cxn (name (car-applied-cxn (cipn-car cipn))) construction-inventory)
        "initial")))
 
 (defmethod make-html-fcg-light ((cipn cip-node)
