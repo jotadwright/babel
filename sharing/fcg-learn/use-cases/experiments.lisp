@@ -6,6 +6,7 @@
 ;;                                     ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; (ql:quickload :fcg-learn)
 (deactivate-all-monitors)
 (activate-monitor trace-fcg-learning-in-output-browser)
 
@@ -61,7 +62,7 @@
                    cl-user:*babel-corpora*))
 
 ;;Takes 10-20 seconds to load corpus
-(defparameter *clevr-stage-1-train-processor* (load-corpus *clevr-stage-1-train* :sort-p t))
+(defparameter *clevr-stage-1-train-processor* (load-corpus *clevr-stage-1-train* :sort-p nil))
 (defparameter *clevr-stage-1-grammar* (make-holophrase-cxn-inventory-cxns))
 
 (progn
@@ -70,7 +71,6 @@
   (comprehend *clevr-stage-1-train-processor*
               :cxn-inventory *clevr-stage-1-grammar*
               :nr-of-speech-acts 
-            (array-dimension (corpus *clevr-stage-1-train-processor*) 0)
-              ))
+            (array-dimension (corpus *clevr-stage-1-train-processor*) 0)))
 
-
+(size *clevr-stage-1-grammar*)
