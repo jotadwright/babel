@@ -331,7 +331,6 @@
                                           (make-feature 'form new-form-value))
                                         (make-feature (feature-name original-feature)
                                                       feature-value))))
-                  (pprint new-feature)
                   (push new-feature
                         (unit-features new-root)))))))))
 
