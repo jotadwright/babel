@@ -219,26 +219,26 @@
     (when linking-cxn
       (add-cxn linking-cxn fix-cxn-inventory)
       (when (attr-val linking-cxn :cxn-cat)
-        (add-category (attr-val linking-cxn :cxn-cat) fix-cxn-inventory)
-        (add-link (attr-val linking-cxn :cxn-cat) integration-cat fix-cxn-inventory))
-      (add-categories (attr-val linking-cxn :slot-cats) fix-cxn-inventory))
+        (add-category (attr-val linking-cxn :cxn-cat) fix-cxn-inventory :recompute-transitive-closure nil)
+        (add-link (attr-val linking-cxn :cxn-cat) integration-cat fix-cxn-inventory :recompute-transitive-closure nil))
+      (add-categories (attr-val linking-cxn :slot-cats) fix-cxn-inventory :recompute-transitive-closure nil))
     
     (when generalisation-filler-cxn
       (add-cxn generalisation-filler-cxn fix-cxn-inventory)
-      (add-category (attr-val generalisation-filler-cxn :cxn-cat) fix-cxn-inventory)
+      (add-category (attr-val generalisation-filler-cxn :cxn-cat) fix-cxn-inventory :recompute-transitive-closure nil)
       (if linking-cxn
-        (add-link (attr-val generalisation-filler-cxn :cxn-cat) (first (attr-val linking-cxn :slot-cats)) fix-cxn-inventory)
-        (add-link (attr-val generalisation-filler-cxn :cxn-cat) integration-cat fix-cxn-inventory)))
+        (add-link (attr-val generalisation-filler-cxn :cxn-cat) (first (attr-val linking-cxn :slot-cats)) fix-cxn-inventory :recompute-transitive-closure nil)
+        (add-link (attr-val generalisation-filler-cxn :cxn-cat) integration-cat fix-cxn-inventory :recompute-transitive-closure nil)))
 
     (when (and pattern-filler-cxn linking-cxn)
       (add-cxn pattern-filler-cxn fix-cxn-inventory)
-      (add-category (attr-val pattern-filler-cxn :cxn-cat) fix-cxn-inventory)
-      (add-link (attr-val pattern-filler-cxn :cxn-cat) (second (attr-val linking-cxn :slot-cats)) fix-cxn-inventory))
+      (add-category (attr-val pattern-filler-cxn :cxn-cat) fix-cxn-inventory :recompute-transitive-closure nil)
+      (add-link (attr-val pattern-filler-cxn :cxn-cat) (second (attr-val linking-cxn :slot-cats)) fix-cxn-inventory :recompute-transitive-closure nil))
 
     (when (and source-filler-cxn linking-cxn)
       (add-cxn source-filler-cxn fix-cxn-inventory)
-      (add-category (attr-val source-filler-cxn :cxn-cat) fix-cxn-inventory)
-      (add-link (attr-val source-filler-cxn :cxn-cat) (second (attr-val linking-cxn :slot-cats)) fix-cxn-inventory))
+      (add-category (attr-val source-filler-cxn :cxn-cat) fix-cxn-inventory :recompute-transitive-closure nil)
+      (add-link (attr-val source-filler-cxn :cxn-cat) (second (attr-val linking-cxn :slot-cats)) fix-cxn-inventory :recompute-transitive-closure nil))
       
     (values (when linking-cxn (second (attr-val linking-cxn :slot-cats)))
             (or (when (pattern-delta au-form) pattern-filler-cxn-form-args)
@@ -372,22 +372,22 @@
 
              (when linking-cxn
                (add-cxn linking-cxn fix-cxn-inventory)
-               (add-categories (attr-val linking-cxn :slot-cats) fix-cxn-inventory))
+               (add-categories (attr-val linking-cxn :slot-cats) fix-cxn-inventory :recompute-transitive-closure nil))
     
              (when (and generalisation-filler-cxn linking-cxn)
                (add-cxn generalisation-filler-cxn fix-cxn-inventory)
-               (add-category (attr-val generalisation-filler-cxn :cxn-cat) fix-cxn-inventory)
-               (add-link (attr-val generalisation-filler-cxn :cxn-cat) (first (attr-val linking-cxn :slot-cats)) fix-cxn-inventory))
+               (add-category (attr-val generalisation-filler-cxn :cxn-cat) fix-cxn-inventory :recompute-transitive-closure nil)
+               (add-link (attr-val generalisation-filler-cxn :cxn-cat) (first (attr-val linking-cxn :slot-cats)) fix-cxn-inventory :recompute-transitive-closure nil))
 
              (when (and pattern-filler-cxn linking-cxn)
                (add-cxn pattern-filler-cxn fix-cxn-inventory)
-               (add-category (attr-val pattern-filler-cxn :cxn-cat) fix-cxn-inventory)
-               (add-link (attr-val pattern-filler-cxn :cxn-cat) (second (attr-val linking-cxn :slot-cats)) fix-cxn-inventory))
+               (add-category (attr-val pattern-filler-cxn :cxn-cat) fix-cxn-inventory :recompute-transitive-closure nil)
+               (add-link (attr-val pattern-filler-cxn :cxn-cat) (second (attr-val linking-cxn :slot-cats)) fix-cxn-inventory :recompute-transitive-closure nil))
 
              (when (and source-filler-cxn linking-cxn)
                (add-cxn source-filler-cxn fix-cxn-inventory)
-               (add-category (attr-val source-filler-cxn :cxn-cat) fix-cxn-inventory)
-               (add-link (attr-val source-filler-cxn :cxn-cat) (second (attr-val linking-cxn :slot-cats)) fix-cxn-inventory))
+               (add-category (attr-val source-filler-cxn :cxn-cat) fix-cxn-inventory :recompute-transitive-closure nil)
+               (add-link (attr-val source-filler-cxn :cxn-cat) (second (attr-val linking-cxn :slot-cats)) fix-cxn-inventory :recompute-transitive-closure nil))
 
              (append-data (blackboard fix-cxn-inventory) :base-cxns (list pattern-cxn))
         
