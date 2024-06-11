@@ -124,7 +124,27 @@
                             (query target-2 object-2 attribute-2)
                             (bind attribute-category attribute-2 size))))
 
+(setf-conf)
+(set-configuration (construction-inventory *saved-cipn*) :cxn-supplier-mode :holophrase-cxns-only)
 (comprehend *what-size-is-the-large-cube* :cxn-inventory *fcg-constructions*)
+
+
+(loop for leaf in (remove-if #'(lambda (node) (find 'duplicate (statuses node))) (get-cip-leaves (cip *saved-cipn*)))
+      do (setf (cxn-supplier leaf) nil)
+         (setf (fully-expanded? leaf) nil)
+         (cip-enqueue leaf (cip *saved-cipn*) :depth-first))
+
+
+(setf *A* (next-cip-solution (cip *saved-cipn*)))
+
+(add-element (make-html-fcg-light (cip *A*)))
+
+(loop for ()
+(cip-enqueue cip :
+
+(add-element (make-html (next-cip-solution (cip *saved-cipn*))))
+
+(add-element (make-html (cip *saved-cipn*)))
 
 (defparameter *material*
     (make-instance 'speech-act
@@ -210,6 +230,8 @@
 (comprehend *what-is-the-color-of-the-cylinder* :cxn-inventory *fcg-constructions*)
 (comprehend *what-is-the-color-of-the-block* :cxn-inventory *fcg-constructions*)
 (comprehend *what-is-the-color-of-the-sphere* :cxn-inventory *fcg-constructions*)
+
+(inspect *saved-cipn*)
 
 
 

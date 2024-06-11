@@ -193,16 +193,6 @@
    
            
          ;; Create filler constructions for generalisation, pattern and source
-         (generalisation-filler-cxn
-          (create-filler-cxn (generalisation au-form) (generalisation au-meaning)
-                             generalisation-filler-cxn-form-args generalisation-filler-cxn-meaning-args :cxn-inventory fix-cxn-inventory))
-         (pattern-filler-cxn (when learn-cxns-from-deltas
-                               (create-filler-cxn (pattern-delta au-form) (pattern-delta au-meaning)
-                                                  pattern-filler-cxn-form-args pattern-filler-cxn-meaning-args :cxn-inventory fix-cxn-inventory)))
-         (source-filler-cxn (when learn-cxns-from-deltas
-                              (create-filler-cxn (source-delta au-form) (source-delta au-meaning)
-                                                 source-filler-cxn-form-args source-filler-cxn-meaning-args :cxn-inventory fix-cxn-inventory)))
-         ;; Create linking construction
          (linking-cxn
           (create-linking-cxn :cxn-inventory fix-cxn-inventory
                               :contributing-form-args linking-cxn-contributing-form-args
@@ -210,7 +200,21 @@
                               :form-args-slot-1 linking-cxn-form-args-slot-1
                               :form-args-slot-2 linking-cxn-form-args-slot-2
                               :meaning-args-slot-1 linking-cxn-meaning-args-slot-1
-                              :meaning-args-slot-2 linking-cxn-meaning-args-slot-2)))
+                              :meaning-args-slot-2 linking-cxn-meaning-args-slot-2))
+
+         (generalisation-filler-cxn (if linking-cxn
+                                      (create-filler-cxn (generalisation au-form) (generalisation au-meaning)
+                                                         generalisation-filler-cxn-form-args generalisation-filler-cxn-meaning-args :cxn-inventory fix-cxn-inventory)
+                                      ;; 
+                                      (create-filler-cxn (generalisation au-form) (generalisation au-meaning)
+                                                         integration-form-args-slot-1 integration-meaning-args-slot-1 :cxn-inventory fix-cxn-inventory)))
+         
+         (pattern-filler-cxn (when (and learn-cxns-from-deltas linking-cxn)
+                               (create-filler-cxn (pattern-delta au-form) (pattern-delta au-meaning)
+                                                  pattern-filler-cxn-form-args pattern-filler-cxn-meaning-args :cxn-inventory fix-cxn-inventory)))
+         (source-filler-cxn (when (and learn-cxns-from-deltas linking-cxn)
+                              (create-filler-cxn (source-delta au-form) (source-delta au-meaning)
+                                                 source-filler-cxn-form-args source-filler-cxn-meaning-args :cxn-inventory fix-cxn-inventory))))
 
     (when linking-cxn
       (add-cxn linking-cxn fix-cxn-inventory)
@@ -219,10 +223,12 @@
         (add-link (attr-val linking-cxn :cxn-cat) integration-cat fix-cxn-inventory))
       (add-categories (attr-val linking-cxn :slot-cats) fix-cxn-inventory))
     
-    (when (and generalisation-filler-cxn linking-cxn)
+    (when generalisation-filler-cxn
       (add-cxn generalisation-filler-cxn fix-cxn-inventory)
       (add-category (attr-val generalisation-filler-cxn :cxn-cat) fix-cxn-inventory)
-      (add-link (attr-val generalisation-filler-cxn :cxn-cat) (first (attr-val linking-cxn :slot-cats)) fix-cxn-inventory))
+      (if linking-cxn
+        (add-link (attr-val generalisation-filler-cxn :cxn-cat) (first (attr-val linking-cxn :slot-cats)) fix-cxn-inventory)
+        (add-link (attr-val generalisation-filler-cxn :cxn-cat) integration-cat fix-cxn-inventory)))
 
     (when (and pattern-filler-cxn linking-cxn)
       (add-cxn pattern-filler-cxn fix-cxn-inventory)
@@ -244,22 +250,19 @@
   (let* ((cxn-inventory (construction-inventory cip))
          (cxn-supplier-mode (get-configuration cxn-inventory :cxn-supplier-mode)))
 
+    ;; Set cxn-supplier-mode
     (set-configuration cxn-inventory :cxn-supplier-mode :holophrase-cxns-only)
 
-    (loop for leaf in (get-cip-leaves cip)
-          for solution-nodes = (fcg-apply-exhaustively cxn-inventory
-                                                       (car-resulting-cfs (cipn-car leaf))
-                                                       (direction cip))
-          unless (find 'initial (statuses (first solution-nodes)))
-            do (loop for solution in solution-nodes
-                     do (loop with current-node = leaf
-                              for car in (mapcar #'cipn-car (rest (reverse (upward-branch solution))))
-                              do (setf current-node (cip-add-child current-node car))
-                                 (setf (fully-expanded? current-node) t)
-                                 (push 'added-by-repair (statuses current-node))
-                                 (push 'extended-with-holophrase (statuses current-node)))))
-    (set-configuration cxn-inventory :cxn-supplier-mode cxn-supplier-mode)
-    cip))
+    ;; Enqueue again all nodes that wer not duplicates, and reset their cxn-supplier slot
+    (loop for leaf in (remove-if #'(lambda (node) (find 'duplicate (statuses node))) (get-cip-leaves cip))
+            do (setf (cxn-supplier leaf) nil)
+               (setf (fully-expanded? leaf) nil)
+               (cip-enqueue leaf cip (get-configuration cxn-inventory :search-algorithm)))
+
+    (next-cip-solution cip :notify nil)
+    
+    (set-configuration cxn-inventory :cxn-supplier-mode cxn-supplier-mode))
+  cip)
  
 
 (defmethod induce-cxns ((speech-act-form-predicates list)
@@ -430,8 +433,8 @@ construction creates."
 (defun create-linking-cxn (&key (cxn-inventory *fcg-constructions*) contributing-form-args contributing-meaning-args
                                 form-args-slot-1 form-args-slot-2 meaning-args-slot-1 meaning-args-slot-2)
   "Create a linking construction."
-  (when (or (and form-args-slot-1 meaning-args-slot-1) (and form-args-slot-2 meaning-args-slot-2))
-  (let* ((cxn-name (make-id 'linking-cxn))
+  (when (and form-args-slot-1 meaning-args-slot-1 form-args-slot-2 meaning-args-slot-2)
+    (let* ((cxn-name (make-id 'linking-cxn))
            (cxn-cat (make-id 'cxn-cat))
            (slot-cat-1 (make-id 'slot-cat))
            (slot-cat-2 (make-id 'slot-cat))
@@ -459,10 +462,10 @@ construction creates."
                                                                                 ,@(when meaning-args-slot-1
                                                                                     `((meaning-args ,meaning-args-slot-1))))
                                                             :comprehension-lock `((category ,slot-cat-1)
-                                                                                ,@(when form-args-slot-1
-                                                                                    `((form-args ,form-args-slot-1)))
-                                                                                ,@(when meaning-args-slot-1
-                                                                                    `((meaning-args ,meaning-args-slot-1)))))
+                                                                                  ,@(when form-args-slot-1
+                                                                                      `((form-args ,form-args-slot-1)))
+                                                                                  ,@(when meaning-args-slot-1
+                                                                                      `((meaning-args ,meaning-args-slot-1)))))
                                              (make-instance 'conditional-unit
                                                             :name slot-unit-2-name
                                                             :formulation-lock `((category ,slot-cat-2)
@@ -471,10 +474,10 @@ construction creates."
                                                                                 ,@(when meaning-args-slot-2
                                                                                     `((meaning-args ,meaning-args-slot-2))))
                                                             :comprehension-lock `((category ,slot-cat-2)
-                                                                                ,@(when form-args-slot-2
-                                                                                    `((form-args ,form-args-slot-2)))
-                                                                                ,@(when meaning-args-slot-2
-                                                                                    `((meaning-args ,meaning-args-slot-2))))))
+                                                                                  ,@(when form-args-slot-2
+                                                                                      `((form-args ,form-args-slot-2)))
+                                                                                  ,@(when meaning-args-slot-2
+                                                                                      `((meaning-args ,meaning-args-slot-2))))))
                      :cxn-inventory cxn-inventory
                      :feature-types (feature-types cxn-inventory)
                      :attributes `(,@(when contributing-form-args
@@ -527,7 +530,7 @@ construction creates."
 
 (defun make-cxn-name (form-sequence-predicates)
   "Create a unique construction name based on the strings present in form-sequence-predicates."
-  (make-const (upcase (substitute #\Space #\- (format nil "~{~a~^_~}-cxn" (mapcar #'second form-sequence-predicates))))))
+  (make-id (upcase (substitute #\- #\Space (format nil "~{~a~^_~}-cxn" (mapcar #'second form-sequence-predicates))))))
 
 (defun remove-cxn-tail (string)
   (let ((start-tail (search "-CXN" string)))
