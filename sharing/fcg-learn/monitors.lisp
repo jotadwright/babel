@@ -126,8 +126,8 @@
     (loop for cxn in deleted-cxns
           do (add-element (make-html cxn :cxn-inventory (cxn-inventory cxn) :expand-initially nil))))
   (when deleted-categories
-    (add-element `((h4) "Categories deleted-categories"))
-    (loop for category in deleted-cxns
+    (add-element `((h4) "Categories deleted"))
+    (loop for category in deleted-categories
           do (add-element (make-html category))))
   (unless (or rewarded-cxns punished-cxns deleted-cxns deleted-categories)
     (add-element `((h4) "No alignment took place.")))
