@@ -8,6 +8,7 @@
 
 ;; (ql:quickload :fcg-learn)
 ;; (activate-monitor trace-fcg-learning)
+;; (deactivate-monitor trace-fcg-learning)
 (deactivate-all-monitors)
 (activate-monitor trace-fcg-learning-in-output-browser)
 
@@ -135,13 +136,14 @@
 
 (progn
   (reset-cp *clevr-stage-1-train-processor*)
-  (setf *clevr-stage-1-grammar* (make-holophrase-cxn-inventory-cxns))
+  (setf *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
   (comprehend *clevr-stage-1-train-processor*
               :cxn-inventory *clevr-stage-1-grammar*
-              :nr-of-speech-acts 
+              :nr-of-speech-acts 100)
+  )
             (array-dimension (corpus *clevr-stage-1-train-processor*) 0)))
 
-(add-element (make-html (meaning (nth-speech-act *clevr-stage-1-train-processor* 469))))
+(add-element (make-html (meaning (nth-speech-act *clevr-stage-1-train-processor* 20))))
 (inspect (cip  *saved-cipn*))
 
 (gold-standard-solution-p (fcg-get-transient-structure (get-data (cip *saved-cipn*) :best-solution-node))

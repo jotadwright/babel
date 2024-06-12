@@ -50,12 +50,16 @@
   (add-element '((hr)))
   (add-element (make-html-fcg-light cip :solutions (when solution (list solution))))
   (if solution
-    (add-element `((h3) "Solution found!"))
-    (add-element `((h3) "No solution found.")))
+    (if (get-data cip :best-solution-matches-gold-standard)
+      (add-element `((h3 :style "color:#050;") ,(format nil "Best result found in node ~a, matching the gold standard."
+                                (created-at solution))))
+      (add-element `((h3 :style "color:#ff0000;") ,(format nil "Best result found in node ~a, but not matching the gold standard."
+                                (created-at solution)))))
+    (add-element `((h3  :style "color:#ff0000;") "No solution found.")))
   (add-element `((p) " ")))
 
 
-(define-event meta-level-learning-finished (cip construction-inventory-processor) (solution cip-node)
+(define-event meta-level-learning-finished (cip construction-inventory-processor) (solution t)
   (consolidated-cxns list) (consolidated-categories list) (consolidated-links list))
 
 (define-event-handler (trace-fcg-learning meta-level-learning-finished)
@@ -68,25 +72,27 @@
                      :hide-subtrees-with-duplicates t
                      :configuration (configuration (construction-inventory cip))))))
   (add-element `((h4) "Consolidation:"))
-  (add-element
-  `((div)
-        ((table :class "two-col")
-         ((tbody)
-          ,@(when consolidated-cxns
-              `(((tr) 
-                 ((td) "constructions added:")
-                 ((td) ,@(loop for cxn in consolidated-cxns
-                               collect (make-html cxn :cxn-inventory (construction-inventory cip) :expand-initially nil))))))
-          ,@(when consolidated-categories
-              `(((tr) 
-                 ((td) "categories added:")
-                 ((td) ,@(loop for cat in consolidated-categories
-                               collect (make-html cat))))))
-          ,@(when consolidated-links
-              `(((tr) 
-                 ((td) "categorial links added:")
-                 ((td) ,@(loop for link in consolidated-links
-                               collect (make-html link)))))))))))
+  (if (or consolidated-cxns consolidated-categories consolidated-links)
+    (add-element
+     `((div)
+       ((table :class "two-col")
+        ((tbody)
+         ,@(when consolidated-cxns
+             `(((tr) 
+                ((td) "constructions added:")
+                ((td) ,@(loop for cxn in consolidated-cxns
+                              collect (make-html cxn :cxn-inventory (construction-inventory cip) :expand-initially nil))))))
+         ,@(when consolidated-categories
+             `(((tr) 
+                ((td) "categories added:")
+                ((td) ,@(loop for cat in consolidated-categories
+                              collect (make-html cat))))))
+         ,@(when consolidated-links
+             `(((tr) 
+                ((td) "categorial links added:")
+                ((td) ,@(loop for link in consolidated-links
+                              collect (make-html link))))))))))
+    (add-element `((h4) "No constructions or categorial links were consolidated."))))
 
 
 (define-event-handler (trace-fcg-learning fcg-apply-w-n-solutions-started)
@@ -103,7 +109,7 @@
   (add-element `((h2 :style "padding: 15px; margin: 0px; background-color: #34b4eb;") "Alignment"))
   (add-element `((hr :style "margin-block-start: 0px;"))))
 
-(define-event entrenchment-finished (rewarded-cxns list) (punished-cxns list) (deleted-cxns list))
+(define-event entrenchment-finished (rewarded-cxns list) (punished-cxns list) (deleted-cxns list) (deleted-categories list))
 
 (define-event-handler (trace-fcg-learning entrenchment-finished)
   (when rewarded-cxns
@@ -118,7 +124,11 @@
     (add-element `((h4) "Constructions deleted:"))
     (loop for cxn in deleted-cxns
           do (add-element (make-html cxn :cxn-inventory (cxn-inventory cxn) :expand-initially nil))))
-  (unless (or rewarded-cxns punished-cxns deleted-cxns)
+  (when deleted-categories
+    (add-element `((h4) "Categories deleted-categories"))
+    (loop for category in deleted-cxns
+          do (add-element (make-html category))))
+  (unless (or rewarded-cxns punished-cxns deleted-cxns deleted-categories)
     (add-element `((h4) "No alignment took place.")))
   (add-element `((p) " ")))
   
@@ -135,12 +145,24 @@
       (format t "~%~%## Experiment started ##~%"))))
 
 (define-event-handler (trace-fcg-learning-in-output-browser routine-comprehension-finished)
-  (when solution (format t ".")))
+  (when (and solution (get-data (cip solution) :best-solution-matches-gold-standard))
+             (format t ".")))
 
 (define-event-handler (trace-fcg-learning-in-output-browser meta-level-learning-finished)
-  (if solution
-    (format t "l")
-    (format t "x")))
+  (let* ((problem (first (problems cip)))
+         (fix (when problem (first (fixes problem)))))
+    (when (problems cip)
+      (cond ((eql 'gold-standard-elsewhere-in-search-space (type-of problem))
+             (format t "e"))
+            ((eql 'categorial-link-fix (type-of fix))
+             (format t "c"))
+            ((eql 'holophrastic-fix (type-of fix))
+             (format t "h"))
+            ((eql 'anti-unification-fix (type-of fix))
+             (format t "a"))
+            (t
+             (format t "x"))))))
+
 
 (define-event speech-act-finished (cp corpus-processor))
 
