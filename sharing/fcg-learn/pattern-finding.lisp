@@ -343,7 +343,8 @@
                     (setf integration-form-args resulting-integration-form-args)
                     (setf integration-meaning-args resulting-integration-meaning-args)
                  finally (append-data (blackboard fix-cxn-inventory) :base-cxns cxns-longest-branch)
-                         (compute-transitive-closure (categorial-network fix-cxn-inventory))
+                         ;(compute-transitive-closure (categorial-network fix-cxn-inventory))
+                         (set-configuration fix-cxn-inventory :cxn-supplier-mode :all-cxns)
                          (return (list fix-cxn-inventory))))
 
           
@@ -403,8 +404,8 @@
                (add-link (attr-val source-filler-cxn :cxn-cat) (second (attr-val linking-cxn :slot-cats)) fix-cxn-inventory :recompute-transitive-closure nil))
 
              (append-data (blackboard fix-cxn-inventory) :base-cxns (list pattern-cxn))
-             (compute-transitive-closure (categorial-network fix-cxn-inventory))
-        
+            ; (compute-transitive-closure (categorial-network fix-cxn-inventory))
+             (set-configuration fix-cxn-inventory :cxn-supplier-mode :all-cxns)
              (list fix-cxn-inventory))))))
 
 
