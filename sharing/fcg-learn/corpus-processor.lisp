@@ -25,7 +25,7 @@
                                                              (read-from-string (cdr (assoc :meaning data)))))))))
     ;; optionally sort speech acts by utterance length
     (when sort-p
-      (sort speech-acts #'< :key #'(lambda (speech-act) (count #\space (form speech-act)))))
+      (sort speech-acts #'< :key #'(lambda (speech-act) (length (form speech-act)))))
     ;; Return corpus-processor
     (make-instance 'corpus-processor
                    :corpus (make-array (length speech-acts) :initial-contents speech-acts)
