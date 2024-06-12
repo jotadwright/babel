@@ -51,7 +51,9 @@
   (cond ((or (eql (type-of cxn) 'holophrastic-cxn)
              (and (eql (type-of cxn) 'processing-construction)
                   (eql (type-of (original-cxn cxn)) 'holophrastic-cxn)))
-         (list (attr-val cxn :form-hash-key) (attr-val cxn :meaning-hash-key) 'holophrastic-cxns))))
+         (list (attr-val cxn :form-hash-key) (attr-val cxn :meaning-hash-key) 'holophrastic-cxns))
+        ((attr-val cxn :slot-cats) 
+         (attr-val cxn :slot-cats))))
 
 (defmethod hash ((node cip-node)
                  (mode (eql :filler-and-linking)) 
@@ -62,7 +64,14 @@
          (list (second (first (unit-feature-value (get-root (fcg-get-transient-unit-structure node)) 'form)))))
         ((and (find 'initial (statuses node))
               (eql '-> (direction (cip node))))
-         (list (compute-meaning-hash-key-from-predicates (unit-feature-value  (get-root (fcg-get-transient-unit-structure node)) 'meaning))))))
+         (list (compute-meaning-hash-key-from-predicates (unit-feature-value  (get-root (fcg-get-transient-unit-structure node)) 'meaning))))
+        (t
+         (loop for unit in (fcg-get-transient-unit-structure node)
+               when (unit-feature unit 'category)
+                 collect (unit-feature-value unit 'category) into ts-categories
+               finally (return (mappend #'(lambda (cat) (rest ;;exclude cat itself
+                                                              (connected-categories cat (categorial-network (construction-inventory node)))))
+                                        ts-categories))))))
 
 ;; Learning based on existing constructions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -241,7 +250,7 @@
       (add-cxn source-filler-cxn fix-cxn-inventory)
       (add-category (attr-val source-filler-cxn :cxn-cat) fix-cxn-inventory :recompute-transitive-closure nil)
       (add-link (attr-val source-filler-cxn :cxn-cat) (second (attr-val linking-cxn :slot-cats)) fix-cxn-inventory :recompute-transitive-closure nil))
-      
+    
     (values (when linking-cxn (second (attr-val linking-cxn :slot-cats)))
             (or (when (pattern-delta au-form) pattern-filler-cxn-form-args)
                 (when (source-delta au-form) source-filler-cxn-form-args))
@@ -278,29 +287,30 @@
   (let* ((cxn-inventory (original-cxn-set (construction-inventory cip)))
          (cxns-longest-branch (remove-if #'(lambda (cxn) (eql (type-of (original-cxn cxn)) 'linking-cxn))
                                          (applied-constructions (first (first (sort (mapcar #'upward-branch (get-cip-leaves cip)) #'> :key #'length))))))
-         (candidate-cxn-w-au-results (unless cxns-longest-branch
-                                       (loop for cxn in (constructions-with-hashed-meaning cxn-inventory)
-                                           for cxn-form = (attr-val cxn :form)
-                                           for cxn-meaning = (attr-val cxn :meaning)
-                                           ;;; Only consider if there are less than x gaps in the form
-                                           if (<= (length cxn-form) (+ (get-configuration cxn-inventory :max-nr-of-gaps-in-form-predicates) 1))
-                                             collect (let ((au-form-result (anti-unify-form cxn-form speech-act-form-predicates 
-                                                                                 (get-configuration cxn-inventory :form-generalisation-mode)
-                                                                                 :cxn-inventory cxn-inventory))
-                                                           (au-meaning-result (anti-unify-meaning cxn-meaning speech-act-meaning-predicates 
-                                                                                       (get-configuration cxn-inventory :meaning-generalisation-mode)
-                                                                                       :cxn-inventory cxn-inventory)))
-                                                       (when (and ;(> (cost au-form-result) 0)
-                                                                  (< (length (pattern-delta au-form-result)) 3)
-                                                                  (< (length (source-delta au-form-result)) 3)
-                                                                  (< (length (generalisation au-form-result)) 3)
+         (candidate-cxn-w-au-results
+          (unless cxns-longest-branch
+            (loop for cxn in (constructions-with-hashed-meaning cxn-inventory)
+                  for cxn-form = (attr-val cxn :form)
+                  for cxn-meaning = (attr-val cxn :meaning)
+                  ;;; Only consider if there are less than x gaps in the form
+                  if (<= (length cxn-form) (+ (get-configuration cxn-inventory :max-nr-of-gaps-in-form-predicates) 1))
+                    collect (let ((au-form-result (anti-unify-form cxn-form speech-act-form-predicates 
+                                                                   (get-configuration cxn-inventory :form-generalisation-mode)
+                                                                   :cxn-inventory cxn-inventory))
+                                  (au-meaning-result (anti-unify-meaning cxn-meaning speech-act-meaning-predicates 
+                                                                         (get-configuration cxn-inventory :meaning-generalisation-mode)
+                                                                         :cxn-inventory cxn-inventory)))
+                              (when (and ;(> (cost au-form-result) 0)
+                                     (< (length (pattern-delta au-form-result)) 3)
+                                     (< (length (source-delta au-form-result)) 3)
+                                     (< (length (generalisation au-form-result)) 3)
                                                                   ;(> (cost au-meaning-result) 0)
-                                                                  )
-                                                         (list cxn au-form-result au-meaning-result)))
-                                               into au-results
-                                           finally (return (first (sort (remove nil au-results) #'< :key #'(lambda (r1)
-                                                                                                             (+ (cost (second r1))
-                                                                                                                (cost (third r1)))))))))))
+                                     )
+                                (list cxn au-form-result au-meaning-result)))
+                      into au-results
+                  finally (return (first (sort (remove nil au-results) #'< :key #'(lambda (r1)
+                                                                                    (+ (cost (second r1))
+                                                                                       (cost (third r1)))))))))))
 
     (cond (cxns-longest-branch
            (loop with fix-cxn-inventory = (or fix-cxn-inventory
@@ -333,6 +343,7 @@
                     (setf integration-form-args resulting-integration-form-args)
                     (setf integration-meaning-args resulting-integration-meaning-args)
                  finally (append-data (blackboard fix-cxn-inventory) :base-cxns cxns-longest-branch)
+                         (compute-transitive-closure (categorial-network fix-cxn-inventory))
                          (return (list fix-cxn-inventory))))
 
           
@@ -392,6 +403,7 @@
                (add-link (attr-val source-filler-cxn :cxn-cat) (second (attr-val linking-cxn :slot-cats)) fix-cxn-inventory :recompute-transitive-closure nil))
 
              (append-data (blackboard fix-cxn-inventory) :base-cxns (list pattern-cxn))
+             (compute-transitive-closure (categorial-network fix-cxn-inventory))
         
              (list fix-cxn-inventory))))))
 

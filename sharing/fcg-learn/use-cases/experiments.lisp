@@ -132,16 +132,17 @@
 (defparameter *clevr-stage-1-train-processor* (load-corpus *clevr-stage-1-train* :sort-p t))
 (defparameter *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
 
-(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar* :nr-of-speech-acts 2000)
+(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar* :nr-of-speech-acts 10)
 
 (progn
   (reset-cp *clevr-stage-1-train-processor*)
   (setf *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
   (comprehend *clevr-stage-1-train-processor*
               :cxn-inventory *clevr-stage-1-grammar*
-              :nr-of-speech-acts 100)
+              :nr-of-speech-acts 3000) ;;(array-dimension (corpus *clevr-stage-1-train-processor*) 0)
   )
-            (array-dimension (corpus *clevr-stage-1-train-processor*) 0)))
+
+(comprehend (next-speech-act *clevr-stage-1-train-processor*) :cxn-inventory *clevr-stage-1-grammar*)
 
 (add-element (make-html (meaning (nth-speech-act *clevr-stage-1-train-processor* 20))))
 (inspect (cip  *saved-cipn*))
