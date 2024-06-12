@@ -69,8 +69,8 @@
          (loop for unit in (fcg-get-transient-unit-structure node)
                when (unit-feature unit 'category)
                  collect (unit-feature-value unit 'category) into ts-categories
-               finally (return (mappend #'(lambda (cat) (rest ;;exclude cat itself
-                                                              (connected-categories cat (categorial-network (construction-inventory node)))))
+               finally (return (mappend #'(lambda (cat) ;(rest ;;exclude cat itself
+                                                              (neighbouring-categories cat (categorial-network (construction-inventory node))))
                                         ts-categories))))))
 
 ;; Learning based on existing constructions
@@ -343,8 +343,6 @@
                     (setf integration-form-args resulting-integration-form-args)
                     (setf integration-meaning-args resulting-integration-meaning-args)
                  finally (append-data (blackboard fix-cxn-inventory) :base-cxns cxns-longest-branch)
-                         ;(compute-transitive-closure (categorial-network fix-cxn-inventory))
-                         (set-configuration fix-cxn-inventory :cxn-supplier-mode :all-cxns)
                          (return (list fix-cxn-inventory))))
 
           
@@ -404,8 +402,6 @@
                (add-link (attr-val source-filler-cxn :cxn-cat) (second (attr-val linking-cxn :slot-cats)) fix-cxn-inventory :recompute-transitive-closure nil))
 
              (append-data (blackboard fix-cxn-inventory) :base-cxns (list pattern-cxn))
-            ; (compute-transitive-closure (categorial-network fix-cxn-inventory))
-             (set-configuration fix-cxn-inventory :cxn-supplier-mode :all-cxns)
              (list fix-cxn-inventory))))))
 
 

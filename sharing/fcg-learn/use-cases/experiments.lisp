@@ -91,7 +91,7 @@
   :fcg-configurations (;; to activate heuristic search
                        (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
                        (:node-expansion-mode . :full-expansion) ;; always fully expands node immediately
-                       (:cxn-supplier-mode . :hashed) 
+                       (:cxn-supplier-mode . :hashed)
                        ;; for using heuristics
                        (:search-algorithm . :best-first) ;; :depth-first, :breadth-first
                        (:heuristics :nr-of-applied-cxns :nr-of-units-matched) ;; list of heuristic functions (modes of #'apply-heuristic)
@@ -132,7 +132,8 @@
 (defparameter *clevr-stage-1-train-processor* (load-corpus *clevr-stage-1-train* :sort-p t))
 (defparameter *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
 
-(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar* :nr-of-speech-acts 10)
+(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar* :nr-of-speech-acts 20)
+;;CHECK 104!!
 
 (progn
   (reset-cp *clevr-stage-1-train-processor*)
