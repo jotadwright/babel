@@ -11,6 +11,7 @@
 ;; (deactivate-monitor trace-fcg-learning)
 (deactivate-all-monitors)
 (activate-monitor trace-fcg-learning-in-output-browser)
+(activate-monitor trace-fcg-learning-in-output-browser-verbose)
 
 ;; Holophrases only ;;
 ;;;;;;;;;;;;;;;;;;;;;;
@@ -64,7 +65,7 @@
                    cl-user:*babel-corpora*))
 
 ;;Takes 10-20 seconds to load corpus
-(defparameter *clevr-stage-1-train-processor* (load-corpus *clevr-stage-1-train* :sort-p t))
+(defparameter *clevr-stage-1-train-processor* (load-corpus *clevr-stage-1-train* :sort-p t :remove-duplicates t))
 (defparameter *clevr-stage-1-grammar* (make-holophrase-cxn-inventory-cxns))
 
 (progn
@@ -129,10 +130,12 @@
                    cl-user:*babel-corpora*))
 
 ;;Takes 10-20 seconds to load corpus
-(defparameter *clevr-stage-1-train-processor* (load-corpus *clevr-stage-1-train* :sort-p t))
+(defparameter *clevr-stage-1-train-processor* (load-corpus *clevr-stage-1-train* :sort-p t :remove-duplicates t))
 (defparameter *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
 
-(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar* :nr-of-speech-acts 20)
+(reset-cp *clevr-stage-1-train-processor*)
+(setf *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
+(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar* :nr-of-speech-acts 1)
 ;;CHECK 104!!
 
 (progn

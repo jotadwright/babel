@@ -14,6 +14,9 @@
 (define-monitor trace-fcg-learning-in-output-browser 
     :documentation "Traces routine processing as well as learning in the output browser.")
 
+(define-monitor trace-fcg-learning-in-output-browser-verbose 
+    :documentation "Traces routine processing as well as learning in the output browser interaction per interaction.")
+
 (define-event routine-comprehension-started (speech-act speech-act) (n t))
 
 (define-event-handler (trace-fcg-learning routine-comprehension-started)
@@ -170,3 +173,32 @@
 (define-event-handler (trace-fcg-learning-in-output-browser speech-act-finished)
   (when (= 0 (mod (counter cp) 100))
     (format t " (~a)~%" (counter cp))))
+
+
+
+
+
+
+
+(define-event-handler (trace-fcg-learning-in-output-browser-verbose next-speech-act)
+  (let ((interaction-number (+ 1 (counter cp))))
+    (if (= 1 interaction-number)
+      (format t "~%~%## Experiment started ##~%~%"))
+    (format t "Speech act ~a~%" interaction-number)))
+
+(define-event-handler (trace-fcg-learning-in-output-browser-verbose routine-comprehension-started)
+  (format t "FORM: ~a~%" (form speech-act))
+  (format t "MEANING: ~(~a~)~%" (meaning speech-act)))
+
+(define-event-handler (trace-fcg-learning-in-output-browser-verbose meta-level-learning-finished)
+  (format t "PROBLEMS: ~a~%" (if (problems cip) (loop for problem in (problems cip)
+                                                      collect (type-of problem) into ps
+                                                      finally (return (format nil "~{~(~a~)~^ ~}" ps)))
+                               "/"))
+  (format t "REPAIRS: ~a~%" (if (problems cip) (loop for problem in (problems cip)
+                                                     for fixes = (fixes problem)
+                                                     when fixes
+                                                       append (mapcar #'type-of fixes) into fs
+                                                     finally (return (format nil "~{~(~a~)~^ ~}" fs)))
+                              "/"))
+  (format t "~%"))

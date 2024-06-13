@@ -13,7 +13,7 @@
    (source-file :accessor source-file :initarg :source-file :type pathname :initform nil))
   (:documentation "Class for corpus processor"))
 
-(defmethod load-corpus ((path pathname) &key (sort-p nil))
+(defmethod load-corpus ((path pathname) &key (sort-p nil) (remove-duplicates nil))
   "Loads the json corpus at path, creates speech acts and adds them to corpus processor. Returns corpus processor."
   (let ((speech-acts (with-open-file (stream path)
                        (loop for line = (read-line stream nil)
@@ -26,6 +26,10 @@
     ;; optionally sort speech acts by utterance length
     (when sort-p
       (sort speech-acts #'< :key #'(lambda (speech-act) (length (form speech-act)))))
+
+    (when remove-duplicates
+      (setf speech-acts (remove-duplicates speech-acts :test #'(lambda (s1 s2)
+                                                                 (string= (form s1) (form s2))))))
     ;; Return corpus-processor
     (make-instance 'corpus-processor
                    :corpus (make-array (length speech-acts) :initial-contents speech-acts)

@@ -52,8 +52,10 @@
              (and (eql (type-of cxn) 'processing-construction)
                   (eql (type-of (original-cxn cxn)) 'holophrastic-cxn)))
          (list (attr-val cxn :form-hash-key) (attr-val cxn :meaning-hash-key) 'holophrastic-cxns))
-        ((attr-val cxn :slot-cats) 
-         (attr-val cxn :slot-cats))))
+        ((or (eql (type-of cxn) 'linking-cxn)
+             (and (eql (type-of cxn) 'processing-construction)
+                  (eql (type-of (original-cxn cxn)) 'linking-cxn)))
+         (append (attr-val cxn :slot-cats) (list 'linking-cxns)))))
 
 (defmethod hash ((node cip-node)
                  (mode (eql :filler-and-linking)) 
@@ -69,8 +71,8 @@
          (loop for unit in (fcg-get-transient-unit-structure node)
                when (unit-feature unit 'category)
                  collect (unit-feature-value unit 'category) into ts-categories
-               finally (return (mappend #'(lambda (cat) ;(rest ;;exclude cat itself
-                                                              (neighbouring-categories cat (categorial-network (construction-inventory node))))
+               finally (return (mappend #'(lambda (cat) 
+                                            (neighbouring-categories cat (categorial-network (construction-inventory node))))
                                         ts-categories))))))
 
 ;; Learning based on existing constructions
@@ -592,5 +594,17 @@ construction creates."
 (defmethod next-cxn ((cxn-supplier cxn-supplier-holophrase-cxns-only) (node cip-node))
   "Returns all constructions that are found under key 'holophrase-cxns."
   (gethash 'holophrastic-cxns (constructions-hash-table (construction-inventory node))))
+
+(defclass cxn-supplier-linking-cxns-only ()
+  ()
+  (:documentation "Construction supplier that only returns linking-cxns"))
+
+(defmethod create-cxn-supplier ((node cip-node) (mode (eql :linking-cxns-only)))
+  "Creates an instance of the cxn-supplier."
+  (make-instance 'cxn-supplier-linking-cxns-only))
+
+(defmethod next-cxn ((cxn-supplier cxn-supplier-linking-cxns-only) (node cip-node))
+  "Returns all constructions that are found under key 'holophrase-cxns."
+  (gethash 'linking-cxns (constructions-hash-table (construction-inventory node))))
 
 
