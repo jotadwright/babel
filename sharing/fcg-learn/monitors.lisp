@@ -113,26 +113,39 @@
   (add-element `((h2 :style "padding: 15px; margin: 0px; background-color: #34b4eb;") "Alignment"))
   (add-element `((hr :style "margin-block-start: 0px;"))))
 
-(define-event entrenchment-finished (rewarded-cxns list) (punished-cxns list) (deleted-cxns list) (deleted-categories list))
+(define-event entrenchment-finished (rewarded-cxns list) (rewarded-links list) (punished-cxns list) (punished-links list)
+  (deleted-cxns list) (deleted-categories list) (deleted-links list))
 
 (define-event-handler (trace-fcg-learning entrenchment-finished)
   (when rewarded-cxns
     (add-element `((h4) "Constructions rewarded:"))
     (loop for cxn in rewarded-cxns
           do (add-element (make-html cxn :cxn-inventory (cxn-inventory cxn) :expand-initially nil))))
+  (when rewarded-links
+    (add-element `((h4) "Categorial links rewarded:"))
+    (loop for link in rewarded-links
+          do (add-element (make-html link))))
   (when punished-cxns
     (add-element `((h4) "Constructions punished:"))
     (loop for cxn in punished-cxns
           do (add-element (make-html cxn :cxn-inventory (cxn-inventory cxn) :expand-initially nil))))
+  (when punished-links
+    (add-element `((h4) "Categorial links punished:"))
+    (loop for link in punished-links
+          do (add-element (make-html link))))
   (when deleted-cxns
     (add-element `((h4) "Constructions deleted:"))
     (loop for cxn in deleted-cxns
           do (add-element (make-html cxn :cxn-inventory (cxn-inventory cxn) :expand-initially nil))))
   (when deleted-categories
-    (add-element `((h4) "Categories deleted"))
+    (add-element `((h4) "Categories deleted:"))
     (loop for category in deleted-categories
           do (add-element (make-html category))))
-  (unless (or rewarded-cxns punished-cxns deleted-cxns deleted-categories)
+  (when deleted-links
+    (add-element `((h4) "Categorial links deleted:"))
+    (loop for link in deleted-links
+          do (add-element (make-html link))))
+  (unless (or rewarded-cxns punished-cxns deleted-cxns deleted-categories deleted-links)
     (add-element `((h4) "No alignment took place.")))
   (add-element `((p) " ")))
   

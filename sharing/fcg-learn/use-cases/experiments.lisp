@@ -37,10 +37,10 @@
                        (:diagnostics diagnose-cip-against-gold-standard)
                        (:repairs repair-learn-holophrastic-cxn)
                        (:learning-mode . :pattern-finding)
-                       (:alignment-mode . :lateral-inhibition-avg-entenchment-score)
+                       (:alignment-mode . :punish-non-gold-solutions)
                        (:li-reward . 0.2)
                        (:li-punishement . 0.1)
-                       (:best-solution-mode . :highest-average-entrenchment-score)
+                       (:best-solution-mode . :highest-average-link-weight)
                        (:induce-cxns-mode . :filler-and-linking)
                        (:form-generalisation-mode . :needleman-wunsch)
                        (:max-nr-of-gaps-in-form-predicates . 1)
@@ -102,14 +102,14 @@
                        (:diagnostics diagnose-cip-against-gold-standard)
                        (:repairs  repair-add-categorial-link repair-through-anti-unification repair-learn-holophrastic-cxn)
                        (:learning-mode . :pattern-finding)
-                       (:alignment-mode . :lateral-inhibition-avg-entenchment-score)
+                       (:alignment-mode . :punish-non-gold-solutions)
                        (:li-reward . 0.2)
-                       (:li-punishement . 0.1)
-                       (:best-solution-mode . :highest-average-entrenchment-score)
+                       (:li-punishement . 0.5)
+                       (:best-solution-mode . :highest-average-link-weight)
                        (:induce-cxns-mode . :filler-and-linking)
                        (:form-generalisation-mode . :needleman-wunsch)
                        (:max-nr-of-gaps-in-form-predicates . 1)
-                       (:meaning-generalisation-mode . :k-swap)
+                       (:meaning-generalisation-mode . :exhaustive)
                        (:k-swap-k . 1)
                        (:k-swap-w . 1)
                        (:consolidate-repairs . t)
@@ -129,6 +129,8 @@
                                   :type "jsonl")
                    cl-user:*babel-corpora*))
 
+
+
 ;;Takes 10-20 seconds to load corpus
 (defparameter *clevr-stage-1-train-processor* (load-corpus *clevr-stage-1-train* :sort-p t :remove-duplicates t))
 (defparameter *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
@@ -136,6 +138,8 @@
 (reset-cp *clevr-stage-1-train-processor*)
 (setf *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
 (comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar* :nr-of-speech-acts 1)
+
+(comprehend (nth-speech-act *clevr-stage-1-train-processor* 94)  :cxn-inventory *clevr-stage-1-grammar*)
 ;;CHECK 104!!
 
 (progn
@@ -146,7 +150,11 @@
               :nr-of-speech-acts 3000) ;;(array-dimension (corpus *clevr-stage-1-train-processor*) 0)
   )
 
-(comprehend (next-speech-act *clevr-stage-1-train-processor*) :cxn-inventory *clevr-stage-1-grammar*)
+
+
+(reset-cp *clevr-stage-1-train-processor*)
+  (setf *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
+(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar* :nr-of-speech-acts 1)
 
 (add-element (make-html (meaning (nth-speech-act *clevr-stage-1-train-processor* 20))))
 (inspect (cip  *saved-cipn*))
@@ -156,4 +164,7 @@
                           (direction (cip *saved-cipn*))
                           (configuration (construction-inventory (cip *saved-cipn*))))
 
-unify-atom
+(form (speech-act (attr-val *saved-cxn* :fix)))
+make-html
+
+(inspect *saved-cxn*)
