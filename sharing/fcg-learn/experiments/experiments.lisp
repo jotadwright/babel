@@ -137,7 +137,7 @@
 
 (reset-cp *clevr-stage-1-train-processor*)
 (setf *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
-(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar* :nr-of-speech-acts 1)
+(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar*  :nr-of-speech-acts 200)
 
 (comprehend (nth-speech-act *clevr-stage-1-train-processor* 94)  :cxn-inventory *clevr-stage-1-grammar*)
 ;;CHECK 104!!
@@ -151,6 +151,8 @@
   )
 
 
+(deactivate-monitor trace-fcg-learning)
+(activate-monitor trace-fcg-learning)
 
 (reset-cp *clevr-stage-1-train-processor*)
   (setf *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
@@ -168,3 +170,5 @@
 make-html
 
 (inspect *saved-cxn*)
+
+equivalent-cxn

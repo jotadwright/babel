@@ -7,8 +7,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-;; Learning holophrastic constructions
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Learning holophrastic constructions ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun learn-holophrastic-cxn (speech-act cxn-inventory)
   "Learn a holophrastic construction from a speech act. Holophrastic constructions have no args."
@@ -34,49 +34,9 @@
     ;; return cxn-inventory and new cxn
     (add-cxn holophrastic-cxn (copy-fcg-construction-set-without-cxns cxn-inventory))))
 
-(defun compute-meaning-hash-key-from-predicates (meaning-predicates)
-  "Computes meaning-hash-key based on set of predicates."
-  (loop for predicate in meaning-predicates
-        if (and (eql (first predicate) 'bind) ; for IRL
-                (= 4 (length predicate)))
-          collect (symbol-name (last-elt predicate)) into keys
-        else
-          collect (symbol-name (first predicate)) into keys
-        finally (return (intern (upcase (format nil "~{~a~^-~}" (sort keys #'string<)))))))
 
-(defmethod hash ((cxn construction)
-                 (mode (eql :filler-and-linking))
-                 &key &allow-other-keys)
-  "Hash method for constructions."
-  (cond ((or (eql (type-of cxn) 'holophrastic-cxn)
-             (and (eql (type-of cxn) 'processing-construction)
-                  (eql (type-of (original-cxn cxn)) 'holophrastic-cxn)))
-         (list (attr-val cxn :form-hash-key) (attr-val cxn :meaning-hash-key) 'holophrastic-cxns))
-        ((or (eql (type-of cxn) 'linking-cxn)
-             (and (eql (type-of cxn) 'processing-construction)
-                  (eql (type-of (original-cxn cxn)) 'linking-cxn)))
-         (append (attr-val cxn :slot-cats) (list 'linking-cxns)))))
-
-(defmethod hash ((node cip-node)
-                 (mode (eql :filler-and-linking)) 
-                 &key &allow-other-keys)
-  "Hash method for nodes."
-  (cond ((and (find 'initial (statuses node))
-              (eql '<- (direction (cip node))))
-         (list (second (first (unit-feature-value (get-root (fcg-get-transient-unit-structure node)) 'form)))))
-        ((and (find 'initial (statuses node))
-              (eql '-> (direction (cip node))))
-         (list (compute-meaning-hash-key-from-predicates (unit-feature-value  (get-root (fcg-get-transient-unit-structure node)) 'meaning))))
-        (t
-         (loop for unit in (fcg-get-transient-unit-structure node)
-               when (unit-feature unit 'category)
-                 collect (unit-feature-value unit 'category) into ts-categories
-               finally (return (mappend #'(lambda (cat) 
-                                            (neighbouring-categories cat (categorial-network (construction-inventory node))))
-                                        ts-categories))))))
-
-;; Learning based on existing constructions
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Learning through anti-unification
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 (defun learn-through-anti-unification (speech-act cip)
@@ -86,51 +46,11 @@
                                                                                 (get-configuration cxn-inventory :meaning-representation-format)))))
 
     ;; returns list of cxn-inventories, each leading to a solution
-    (induce-cxns form-sequence-predicates meaning-predicates cip (get-configuration cxn-inventory :induce-cxns-mode))))
-
-(defgeneric induce-cxns (speech-act-form-predicates speech-act-meaning-predicates cip mode &key fix-cxn-inventory))
+    (induce-cxns form-sequence-predicates meaning-predicates cip :filler-and-linking)))
 
 
 
 
-
-
-
-(defgeneric anti-unify-form (cxn-form speech-act-form mode &key cxn-inventory &allow-other-keys))
-
-(defmethod anti-unify-form ((cxn-sequence-predicates list)
-                            (speech-act-sequence-predicates list)
-                            (mode (eql :needleman-wunsch)) &key &allow-other-keys)
-
-  (first (anti-unify-sequences cxn-sequence-predicates speech-act-sequence-predicates)))
-
-
-(defgeneric anti-unify-meaning (cxn-meaning speech-act-meaning mode &key cxn-inventory &allow-other-keys))
-
-(defmethod anti-unify-meaning ((cxn-meaning-predicates list)
-                               (speech-act-meaning-predicates list)
-                               (mode (eql :k-swap)) &key cxn-inventory &allow-other-keys)
-  (let ((k-swap-au-result
-         (first (au-benchmark.msg.kswap-omega:anti-unify-predicate-networks cxn-meaning-predicates speech-act-meaning-predicates
-                                                                            :k (get-configuration cxn-inventory :k-swap-k)
-                                                                            :w (get-configuration cxn-inventory :k-swap-w)))))
-
-    (make-instance 'predicate-network-au-result 
-                   :pattern (au-benchmark.msg.kswap-omega::pattern k-swap-au-result)
-                   :source (au-benchmark.msg.kswap-omega::source k-swap-au-result)
-                   :generalisation (au-benchmark.msg.kswap-omega::generalisation k-swap-au-result)
-                   :pattern-bindings (au-benchmark.msg.kswap-omega::pattern-bindings k-swap-au-result)
-                   :source-bindings (au-benchmark.msg.kswap-omega::source-bindings k-swap-au-result)
-                   :pattern-delta (au-benchmark.msg.kswap-omega::pattern-delta k-swap-au-result)
-                   :source-delta (au-benchmark.msg.kswap-omega::source-delta k-swap-au-result)
-                   :cost (au-benchmark.msg.kswap-omega::cost k-swap-au-result))))
-
-
-(defmethod anti-unify-meaning ((cxn-meaning-predicates list)
-                               (speech-act-meaning-predicates list)
-                               (mode (eql :exhaustive)) &key &allow-other-keys)
-
-  (first (anti-unify-predicate-network cxn-meaning-predicates speech-act-meaning-predicates)))
 
 
 
@@ -291,7 +211,7 @@
                                          (applied-constructions (first (first (sort (mapcar #'upward-branch (get-cip-leaves cip)) #'> :key #'length))))))
          (candidate-cxn-w-au-results
           (unless cxns-longest-branch
-            (loop for cxn in (constructions-with-hashed-meaning cxn-inventory)
+            (loop for cxn in (remove-if #'(lambda (cxn-type) (eql cxn-type 'linking-cxn)) (constructions-list cxn-inventory) :key #'type-of)
                   for cxn-form = (attr-val cxn :form)
                   for cxn-meaning = (attr-val cxn :meaning)
                   ;;; Only consider if there are less than x gaps in the form
@@ -510,45 +430,6 @@ construction creates."
                                    (:entrenchment-score . ,initial-score))))))
 
 
-
-
-(defun constructions-with-hashed-meaning (cxn-inventory)
-  (remove-duplicates (loop for key being the hash-keys of (constructions-hash-table cxn-inventory)
-                             when key
-                             append (gethash key (constructions-hash-table cxn-inventory)))
-                     :test #'eql
-                     :key #'name))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-;; Helper functions
-;;-------------------------------
-
-
-
-(defun make-cxn-name (form-sequence-predicates)
-  "Create a unique construction name based on the strings present in form-sequence-predicates."
-  (make-id (upcase (substitute #\- #\Space (format nil "~{~a~^_~}-cxn" (mapcar #'second form-sequence-predicates))))))
-
-(defun remove-cxn-tail (string)
-  (let ((start-tail (search "-CXN" string)))
-    (subseq string 0 start-tail)))
-
 (defun compute-slot-args (au-result)
   (assert (= (length (pattern-bindings au-result)) (length (source-bindings au-result))))
   (loop for (delta-var-source . gen-var-source) in (source-bindings au-result)
@@ -558,53 +439,48 @@ construction creates."
           collect gen-var-source))
 
 
-(defmethod make-html-construction-title ((construction fcg-learn-cxn))
- `((span) 
-   ,(format nil "~(~a~) (~$)" (name construction) (attr-val construction :entrenchment-score))))
+;; Anti-unfication ;;
+;;;;;;;;;;;;;;;;;;;;;
 
 
+(defgeneric anti-unify-form (cxn-form speech-act-form mode &key cxn-inventory &allow-other-keys)
+  (:documentation "Anti-unification of form."))
 
-(defun fresh-variables (set-of-predicates)
-  (labels ((subst-bindings (bindings)
-             (loop for predicate in set-of-predicates
-                   collect (loop for elem in predicate
-                                 for subst = (assoc elem bindings)
-                                 if subst collect (cdr subst)
-                                 else collect elem))))
-    (let* ((all-variables (find-all-anywhere-if #'variable-p set-of-predicates))
-           (unique-variables (remove-duplicates all-variables))
-           (renamings (loop for var in unique-variables
-                            for base-name = (get-base-name var)
-                            collect (cons var (internal-symb (make-var base-name))))))
-      (values (subst-bindings renamings) renamings))))
+(defmethod anti-unify-form ((cxn-sequence-predicates list)
+                            (speech-act-sequence-predicates list)
+                            (mode (eql :needleman-wunsch)) &key &allow-other-keys)
+
+  (first (anti-unify-sequences cxn-sequence-predicates speech-act-sequence-predicates)))
 
 
+(defgeneric anti-unify-meaning (cxn-meaning speech-act-meaning mode &key cxn-inventory &allow-other-keys)
+  (:documentation "Anti-unification of meaning."))
 
-;; Construction-supplier meta-layer ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defmethod anti-unify-meaning ((cxn-meaning-predicates list)
+                               (speech-act-meaning-predicates list)
+                               (mode (eql :k-swap)) &key cxn-inventory &allow-other-keys)
+  "Anti-unify meaning predicates using the k-swap algorithm."
+  (let ((k-swap-au-result
+         (first (au-benchmark.msg.kswap-omega:anti-unify-predicate-networks cxn-meaning-predicates speech-act-meaning-predicates
+                                                                            :k (get-configuration cxn-inventory :k-swap-k)
+                                                                            :w (get-configuration cxn-inventory :k-swap-w)))))
 
-(defclass cxn-supplier-holophrase-cxns-only ()
-  ()
-  (:documentation "Construction supplier that only returns holophrase-cxns."))
+    (make-instance 'predicate-network-au-result 
+                   :pattern (au-benchmark.msg.kswap-omega::pattern k-swap-au-result)
+                   :source (au-benchmark.msg.kswap-omega::source k-swap-au-result)
+                   :generalisation (au-benchmark.msg.kswap-omega::generalisation k-swap-au-result)
+                   :pattern-bindings (au-benchmark.msg.kswap-omega::pattern-bindings k-swap-au-result)
+                   :source-bindings (au-benchmark.msg.kswap-omega::source-bindings k-swap-au-result)
+                   :pattern-delta (au-benchmark.msg.kswap-omega::pattern-delta k-swap-au-result)
+                   :source-delta (au-benchmark.msg.kswap-omega::source-delta k-swap-au-result)
+                   :cost (au-benchmark.msg.kswap-omega::cost k-swap-au-result))))
 
-(defmethod create-cxn-supplier ((node cip-node) (mode (eql :holophrase-cxns-only)))
-  "Creates an instance of the cxn-supplier."
-  (make-instance 'cxn-supplier-holophrase-cxns-only))
+(defmethod anti-unify-meaning ((cxn-meaning-predicates list)
+                               (speech-act-meaning-predicates list)
+                               (mode (eql :exhaustive)) &key &allow-other-keys)
+  "Anti-unify meaning predicates using the exhaustive algorithm."
+  (first (anti-unify-predicate-network cxn-meaning-predicates speech-act-meaning-predicates)))
 
-(defmethod next-cxn ((cxn-supplier cxn-supplier-holophrase-cxns-only) (node cip-node))
-  "Returns all constructions that are found under key 'holophrase-cxns."
-  (gethash 'holophrastic-cxns (constructions-hash-table (construction-inventory node))))
 
-(defclass cxn-supplier-linking-cxns-only ()
-  ()
-  (:documentation "Construction supplier that only returns linking-cxns"))
-
-(defmethod create-cxn-supplier ((node cip-node) (mode (eql :linking-cxns-only)))
-  "Creates an instance of the cxn-supplier."
-  (make-instance 'cxn-supplier-linking-cxns-only))
-
-(defmethod next-cxn ((cxn-supplier cxn-supplier-linking-cxns-only) (node cip-node))
-  "Returns all constructions that are found under key 'holophrase-cxns."
-  (gethash 'linking-cxns (constructions-hash-table (construction-inventory node))))
 
 

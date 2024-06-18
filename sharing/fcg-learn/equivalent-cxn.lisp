@@ -55,6 +55,7 @@
                               (position arg-2 (attr-val cxn-2 :form-args-slot-2)))))))
                            
 (defmethod equivalent-cxn ((cxn-1 filler-cxn) (cxn-2 filler-cxn))
+  "Filler cxns are equivalent if they have the same form, meaning and args at the same positions."
   (let ((meaning-cxn-1 (attr-val cxn-1 :meaning))
         (meaning-cxn-2 (attr-val cxn-2 :meaning))
         (form-cxn-1 (attr-val cxn-1 :form))
@@ -64,10 +65,10 @@
         (form-args-cxn-1 (attr-val cxn-1 :form-args))
         (form-args-cxn-2 (attr-val cxn-2 :form-args)))
         
-    (and (= (length meaning-cxn-1 )(length meaning-cxn-2))
-         (= (length form-cxn-1 )(length form-cxn-2))
+    (and (= (length meaning-cxn-1) (length meaning-cxn-2))
+         (= (length form-cxn-1) (length form-cxn-2))
          (= (length meaning-args-cxn-1) (length meaning-args-cxn-2))
-         (= (length form-args-cxn-1 )(length form-args-cxn-2))
+         (= (length form-args-cxn-1) (length form-args-cxn-2))
          
          (let ((bindings-meaning (pn::equivalent-predicate-networks meaning-cxn-1 meaning-cxn-2)))
            (when bindings-meaning (if (and meaning-args-cxn-1 meaning-args-cxn-2)
@@ -76,6 +77,7 @@
                                        for arg-2 in meaning-args-cxn-2
                                        always (eql (cdr (assoc arg-1 bindings-meaning)) arg-2))
                                     t)))
+         
          (let ((bindings-form (pn::equivalent-predicate-networks form-cxn-1 form-cxn-2)))
            (when bindings-form (if (and form-args-cxn-1 form-args-cxn-2)
                                  (loop
@@ -83,10 +85,3 @@
                                     for arg-2 in form-args-cxn-2
                                     always (eql (cdr (assoc arg-1 bindings-form)) arg-2))
                                  t))))))
-
-(defmethod find-cxn ((cxn holophrastic-cxn) (hashed-fcg-construction-set hashed-fcg-construction-set)
-                     &key (key #'identity) (test #'eql))
-  "More efficient find-cxn method for holophrastic-cxns."
-  (find (funcall key cxn)
-        (gethash (attr-val cxn :form-hash-key) (constructions-hash-table hashed-fcg-construction-set))
-        :test test :key key))
