@@ -18,7 +18,7 @@
   :fcg-configurations (;; to activate heuristic search
                        (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
                        (:node-expansion-mode . :full-expansion) ;; always fully expands node immediately
-                       (:cxn-supplier-mode . :hashed) 
+                       (:cxn-supplier-mode . :hashed)
                        ;; for using heuristics
                        (:search-algorithm . :best-first) ;; :depth-first, :breadth-first
                        (:heuristics :nr-of-applied-cxns :nr-of-units-matched) ;; list of heuristic functions (modes of #'apply-heuristic)
@@ -26,16 +26,16 @@
                        (:hash-mode . :filler-and-linking)
                        (:meaning-representation-format . :irl)
                        (:diagnostics diagnose-cip-against-gold-standard)
-                       (:repairs repair-add-categorial-link repair-learn-holophrastic-cxn repair-through-anti-unification)
+                       (:repairs  repair-add-categorial-link repair-through-anti-unification repair-learn-holophrastic-cxn)
                        (:learning-mode . :pattern-finding)
-                       (:alignment-mode . :lateral-inhibition-avg-entenchment-score)
+                       (:alignment-mode . :punish-non-gold-solutions)
                        (:li-reward . 0.2)
-                       (:li-punishement . 0.2)
-                       (:best-solution-mode . :highest-average-entrenchment-score)
+                       (:li-punishement . 0.5)
+                       (:best-solution-mode . :highest-average-link-weight)
                        (:induce-cxns-mode . :filler-and-linking)
                        (:form-generalisation-mode . :needleman-wunsch)
                        (:max-nr-of-gaps-in-form-predicates . 1)
-                       (:meaning-generalisation-mode . :k-swap)
+                       (:meaning-generalisation-mode . :exhaustive)
                        (:k-swap-k . 1)
                        (:k-swap-w . 1)
                        (:consolidate-repairs . t)
@@ -624,7 +624,7 @@ next-cip-solution
                             (bind attribute-category attribute-2 size))))
 
 
-
+(comprehend *what-size-is-the-large-cube* :cxn-inventory *fcg-constructions*)
 
 
 
