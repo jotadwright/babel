@@ -62,9 +62,8 @@
          (category-linking-mode (get-configuration cxn-inventory :category-linking-mode))
          (cxn-supplier-mode (get-configuration cxn-inventory :cxn-supplier-mode))
          (goal-tests (get-configuration cxn-inventory (if (eql (direction cip) '<-) :parse-goal-tests :production-goal-tests)))
-         (leaves-w-empty-root (remove nil (traverse-depth-first cip :collect-fn #'(lambda (node)
-                                                                                    (unless (or (children node)
-                                                                                                (find 'duplicate (statuses node))
+         (nodes-w-empty-root (remove nil (traverse-depth-first cip :collect-fn #'(lambda (node)
+                                                                                    (unless (or (find 'duplicate (statuses node))
                                                                                                 (not (empty-root-p node)))
                                                                                       node))))))
     
@@ -74,9 +73,9 @@
     (set-configuration cxn-inventory (if (eql (direction cip) '<-) :parse-goal-tests :production-goal-tests) (list :gold-standard))
 
     ;; Created fixes
-    (loop for leaf in leaves-w-empty-root
+    (loop for node-w-empty-root in nodes-w-empty-root
           for (repair-node new-cip) = (multiple-value-list (fcg-apply (processing-cxn-inventory cxn-inventory)
-                                                                      (car-resulting-cfs (cipn-car leaf))
+                                                                      (car-resulting-cfs (cipn-car node-w-empty-root))
                                                                       (direction cip)))
           when (find 'succeeded (statuses repair-node))
             do (annotate-cip-with-used-categorial-links new-cip)
@@ -90,7 +89,7 @@
                                                                                   unless (link-exists-p cat-1 cat-2 cxn-inventory)
                                                                                     collect (list cat-1 cat-2 link-type))
                                                                             :test #'equal)
-                                   :fixed-cars (append (mapcar #'cipn-car (reverse (upward-branch leaf :include-initial nil)))
+                                   :fixed-cars (append (mapcar #'cipn-car (reverse (upward-branch node-w-empty-root :include-initial nil)))
                                                        (mapcar #'cipn-car (reverse (upward-branch repair-node :include-initial nil))))
                                    :speech-act (get-data (blackboard (construction-inventory cip)) :speech-act))
           finally (set-configuration cxn-inventory :category-linking-mode category-linking-mode)
