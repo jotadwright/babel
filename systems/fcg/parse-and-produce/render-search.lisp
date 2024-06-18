@@ -84,10 +84,10 @@
           for all-new-states = (generate-render-states current-state)
           for valid-new-states = (test-render-states all-new-states :ordering-constraints)
           if (find nil valid-new-states :key #'remaining-string-constraints)
-          return (render (find nil valid-new-states :key #'remaining-string-constraints) :generate-and-test)
+            return (render (find nil valid-new-states :key #'remaining-string-constraints) :generate-and-test)
           else
-          do
-          (setf queue (append valid-new-states queue)))))
+            do
+              (setf queue (append valid-new-states queue)))))
 
 (defmethod render ((state render-state) (mode (eql :generate-and-test)) &key &allow-other-keys)
   "Returns the list of strings represented in a render-state"
