@@ -209,7 +209,7 @@
 (defun shade-of-gray (edge-weight)
   "Determine the shade of gray for the edge,
    depending on the edge weight"
-  (let* ((rgb-val (* edge-weight 211))
+  (let* ((rgb-val (* (- 1 edge-weight) 211))
          (rgb (loop repeat 3 collect rgb-val))
          (hex (rgb->rgbhex rgb)))
     hex))
@@ -250,8 +250,8 @@
                       (shade-of-gray weight)
                       "#000000"))
      (s-dot::style ,(if (and colored-edges-0-1 weight)
-                      (cond ((and (< weight 0.1) (>= weight 0.0)) "bold")
-                            ((and (<= weight 1) (> weight 0.9)) "dotted")
+                      (cond ((and (< weight 0.1) (>= weight 0.0)) "dotted")
+                            ((and (<= weight 1) (> weight 0.9)) "bold")
                             (t "filled"))
                       "filled")))))
 
