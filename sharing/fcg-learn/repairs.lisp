@@ -43,7 +43,7 @@
                  (push (make-instance 'anti-unification-fix
                                       :repair repair
                                       :problem problem
-                                      :base-cxns (get-data (blackboard fix-cxn-inventory) :base-cxns)
+                                      :base-cxns (find-data (blackboard fix-cxn-inventory) :base-cxns)
                                       :fix-constructions (constructions-list fix-cxn-inventory)
                                       :fix-categories (categories fix-cxn-inventory)
                                       :fix-categorial-links (links fix-cxn-inventory)

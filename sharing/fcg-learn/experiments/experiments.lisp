@@ -100,7 +100,7 @@
                        (:hash-mode . :filler-and-linking)
                        (:meaning-representation-format . :irl)
                        (:diagnostics diagnose-cip-against-gold-standard)
-                       (:repairs  repair-add-categorial-link repair-through-anti-unification repair-learn-holophrastic-cxn)
+                       (:repairs  repair-add-categorial-link repair-through-anti-unification)
                        (:learning-mode . :pattern-finding)
                        (:alignment-mode . :punish-non-gold-solutions)
                        (:li-reward . 0.2)
@@ -108,7 +108,6 @@
                        (:best-solution-mode . :highest-average-link-weight)
                        (:induce-cxns-mode . :filler-and-linking)
                        (:form-generalisation-mode . :needleman-wunsch)
-                       (:max-nr-of-gaps-in-form-predicates . 1)
                        (:meaning-generalisation-mode . :exhaustive)
                        (:k-swap-k . 1)
                        (:k-swap-w . 1)
@@ -137,7 +136,7 @@
 
 (reset-cp *clevr-stage-1-train-processor*)
 (setf *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
-(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar*  :nr-of-speech-acts 200)
+(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar*  :nr-of-speech-acts 1)
 
 (comprehend (nth-speech-act *clevr-stage-1-train-processor* 94)  :cxn-inventory *clevr-stage-1-grammar*)
 ;;CHECK 104!!
