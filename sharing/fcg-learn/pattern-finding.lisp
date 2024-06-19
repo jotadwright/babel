@@ -87,94 +87,96 @@
 
 (defun extend-au-repair-state (current-state)
   ""
-  (let ((fix-cxn-inventory (copy-object (fix-cxn-inventory current-state))))
 
-    (if (remaining-applicable-cxns current-state)
-      (let* ((form-au-meaning-au-combinations (loop for applicable-cxn in (remaining-applicable-cxns current-state)
-                                                    for au-form-results = (anti-unify-form (attr-val applicable-cxn :form)
-                                                                                           (remaining-form-speech-act current-state) 
-                                                                                           (get-configuration fix-cxn-inventory
-                                                                                                              :form-generalisation-mode))
-                                                    for au-meaning-results = (anti-unify-meaning (attr-val applicable-cxn :meaning)
-                                                                                                 (remaining-meaning-speech-act current-state)
-                                                                                                 (get-configuration fix-cxn-inventory
-                                                                                                                    :meaning-generalisation-mode)
-                                                                                                 :cxn-inventory fix-cxn-inventory)
-                                                    append (loop for combination in (cartesian-product au-form-results au-meaning-results)
-                                                                 collect (cons applicable-cxn combination))))
-             (valid-au-combinations (loop for au-combination in form-au-meaning-au-combinations
-                                          when (and (generalisation (second au-combination))
-                                                    (generalisation (third au-combination)))
-                                            collect au-combination)))
+  (if (remaining-applicable-cxns current-state)
+    (let* ((form-au-meaning-au-combinations (loop for applicable-cxn in (remaining-applicable-cxns current-state)
+                                                  for au-form-results = (anti-unify-form (attr-val applicable-cxn :form)
+                                                                                         (remaining-form-speech-act current-state) 
+                                                                                         (get-configuration (fix-cxn-inventory current-state)
+                                                                                                            :form-generalisation-mode))
+                                                  for au-meaning-results = (anti-unify-meaning (attr-val applicable-cxn :meaning)
+                                                                                               (remaining-meaning-speech-act current-state)
+                                                                                               (get-configuration (fix-cxn-inventory current-state)
+                                                                                                                  :meaning-generalisation-mode)
+                                                                                               :cxn-inventory (fix-cxn-inventory current-state))
+                                                  append (loop for combination in (cartesian-product au-form-results au-meaning-results)
+                                                               collect (cons applicable-cxn combination))))
+           (valid-au-combinations (loop for au-combination in form-au-meaning-au-combinations
+                                        when (and (generalisation (second au-combination))
+                                                  (generalisation (third au-combination)))
+                                          collect au-combination)))
     
-        (loop with integration-cat = (integration-cat current-state)
-              with integration-form-args = (integration-form-args current-state)
-              with integration-meaning-args = (integration-meaning-args current-state)
-              for (cxn au-form-result au-meaning-result) in valid-au-combinations
-              for remaining-cxns = (delete (name cxn) (remaining-applicable-cxns current-state) :key #'name)
-              for (resulting-integration-cat
-                   resulting-integration-form-args
-                   resulting-integration-meaning-args) = (multiple-value-list (learn-cxns-from-au-result au-form-result au-meaning-result
-                                                                                                         fix-cxn-inventory
-                                                                                                         :integration-cat integration-cat
-                                                                                                         :integration-form-args integration-form-args
-                                                                                                         :integration-meaning-args integration-meaning-args
-                                                                                                         :learn-cxns-from-deltas (not remaining-cxns)))
-              do (setf integration-cat resulting-integration-cat
-                       integration-form-args resulting-integration-form-args
-                       integration-meaning-args resulting-integration-meaning-args)
-                 (push-data (blackboard fix-cxn-inventory) :base-cxns cxn)
-              collect (make-instance 'au-repair-state
-                                     :all-cxns (all-cxns current-state)
-                                     :remaining-applicable-cxns remaining-cxns
-                                     :remaining-form-speech-act (or (source-delta au-form-result) (pattern-delta au-form-result))
-                                     :remaining-meaning-speech-act (or (source-delta au-meaning-result) (pattern-delta au-meaning-result))
-                                     :integration-cat integration-cat
-                                     :integration-form-args integration-form-args
-                                     :integration-meaning-args integration-meaning-args
-                                     :fix-cxn-inventory fix-cxn-inventory)))
+      (loop with integration-cat = (integration-cat current-state)
+            with integration-form-args = (integration-form-args current-state)
+            with integration-meaning-args = (integration-meaning-args current-state)
+            for (cxn au-form-result au-meaning-result) in valid-au-combinations
+            for remaining-cxns = (delete (name cxn) (remaining-applicable-cxns current-state) :key #'name)
+            for fix-cxn-inventory = (copy-object (fix-cxn-inventory current-state))
+            for (resulting-integration-cat
+                 resulting-integration-form-args
+                 resulting-integration-meaning-args) = (multiple-value-list (learn-cxns-from-au-result au-form-result au-meaning-result
+                                                                                                       fix-cxn-inventory
+                                                                                                       :integration-cat integration-cat
+                                                                                                       :integration-form-args integration-form-args
+                                                                                                       :integration-meaning-args integration-meaning-args
+                                                                                                       :learn-cxns-from-deltas (not remaining-cxns)))
+            do (setf integration-cat resulting-integration-cat
+                     integration-form-args resulting-integration-form-args
+                     integration-meaning-args resulting-integration-meaning-args)
+               (push-data (blackboard fix-cxn-inventory) :base-cxns cxn)
+            collect (make-instance 'au-repair-state
+                                   :all-cxns (all-cxns current-state)
+                                   :remaining-applicable-cxns remaining-cxns
+                                   :remaining-form-speech-act (or (source-delta au-form-result) (pattern-delta au-form-result))
+                                   :remaining-meaning-speech-act (or (source-delta au-meaning-result) (pattern-delta au-meaning-result))
+                                   :integration-cat integration-cat
+                                   :integration-form-args integration-form-args
+                                   :integration-meaning-args integration-meaning-args
+                                   :fix-cxn-inventory fix-cxn-inventory)))
 
-      (if (and (integration-cat current-state)
-               (integration-form-args current-state)
-               (integration-meaning-args current-state))
-        (let ((new-filler-cxn (create-filler-cxn (remaining-form-speech-act current-state)
-                                                 (remaining-meaning-speech-act current-state)
-                                                 (integration-form-args current-state)
-                                                 (integration-meaning-args current-state) :cxn-inventory fix-cxn-inventory)))
-          (add-cxn new-filler-cxn fix-cxn-inventory)
-          (add-category (attr-val new-filler-cxn :cxn-cat) fix-cxn-inventory :recompute-transitive-closure nil)
-          (add-link (attr-val new-filler-cxn :cxn-cat) (integration-cat current-state) fix-cxn-inventory :recompute-transitive-closure nil)
+    (if (and (integration-cat current-state)
+             (integration-form-args current-state)
+             (integration-meaning-args current-state))
+      (let* ((fix-cxn-inventory (copy-object (fix-cxn-inventory current-state)))
+            (new-filler-cxn (create-filler-cxn (remaining-form-speech-act current-state)
+                                               (remaining-meaning-speech-act current-state)
+                                               (integration-form-args current-state)
+                                               (integration-meaning-args current-state) :cxn-inventory fix-cxn-inventory)))
+        (add-cxn new-filler-cxn fix-cxn-inventory)
+        (add-category (attr-val new-filler-cxn :cxn-cat) fix-cxn-inventory :recompute-transitive-closure nil)
+        (add-link (attr-val new-filler-cxn :cxn-cat) (integration-cat current-state) fix-cxn-inventory :recompute-transitive-closure nil)
         
+        (list (make-instance 'au-repair-state
+                             :all-cxns (all-cxns current-state)
+                             :fix-cxn-inventory fix-cxn-inventory)))
+      ;;else use all-cxns
+      (let* ((fix-cxn-inventory (copy-object (fix-cxn-inventory current-state)))
+             (best-au-result
+              (loop for cxn in (all-cxns current-state)
+                    for au-form-results = (anti-unify-form (attr-val cxn :form)
+                                                           (remaining-form-speech-act current-state) 
+                                                           (get-configuration fix-cxn-inventory
+                                                                              :form-generalisation-mode))
+                    for au-meaning-results = (anti-unify-meaning (attr-val cxn :meaning)
+                                                                 (remaining-meaning-speech-act current-state)
+                                                                 (get-configuration fix-cxn-inventory
+                                                                                    :meaning-generalisation-mode)
+                                                                 :cxn-inventory fix-cxn-inventory)
+                    append (loop for combination in (cartesian-product au-form-results au-meaning-results)
+                                 when (and (< (length (generalisation (first combination))) 3)
+                                           (< (length (pattern-delta (first combination))) 2)
+                                           (< (length (source-delta (first combination))) 2))
+                                   collect (cons cxn combination)) into au-results
+                    finally (return (first (sort au-results #'< :key #'(lambda (result) (+ (cost (second result))
+                                                                                           (cost (third result)))))))))
+             (base-cxn (first best-au-result)))
+
+        (when base-cxn
+          (push-data (blackboard fix-cxn-inventory) :base-cxns base-cxn)
+          (learn-cxns-from-au-result (second best-au-result) (third best-au-result) fix-cxn-inventory :learn-cxns-from-deltas nil)
           (list (make-instance 'au-repair-state
                                :all-cxns (all-cxns current-state)
-                               :fix-cxn-inventory fix-cxn-inventory)))
-        ;;else use all-cxns
-        (let* ((best-au-result
-                (loop for cxn in (all-cxns current-state)
-                      for au-form-results = (anti-unify-form (attr-val cxn :form)
-                                                             (remaining-form-speech-act current-state) 
-                                                             (get-configuration fix-cxn-inventory
-                                                                                :form-generalisation-mode))
-                      for au-meaning-results = (anti-unify-meaning (attr-val cxn :meaning)
-                                                                   (remaining-meaning-speech-act current-state)
-                                                                   (get-configuration fix-cxn-inventory
-                                                                                      :meaning-generalisation-mode)
-                                                                   :cxn-inventory fix-cxn-inventory)
-                      append (loop for combination in (cartesian-product au-form-results au-meaning-results)
-                                   when (and (< (length (generalisation (first combination))) 3)
-                                             (< (length (pattern-delta (first combination))) 2)
-                                             (< (length (source-delta (first combination))) 2))
-                                     collect (cons cxn combination)) into au-results
-                      finally (return (first (sort au-results #'< :key #'(lambda (result) (+ (cost (second result))
-                                                                                             (cost (third result)))))))))
-               (base-cxn (first best-au-result)))
-
-          (when base-cxn
-             (push-data (blackboard fix-cxn-inventory) :base-cxns base-cxn)
-             (learn-cxns-from-au-result (second best-au-result) (third best-au-result) fix-cxn-inventory)
-             (list (make-instance 'au-repair-state
-                                  :all-cxns (all-cxns current-state)
-                                  :fix-cxn-inventory fix-cxn-inventory))))))))
+                               :fix-cxn-inventory fix-cxn-inventory)))))))
 
 
 (defclass au-repair-state ()
@@ -364,7 +366,7 @@
          linking-cxn generalisation-filler-cxn pattern-filler-cxn source-filler-cxn
          source-filler-cxn-form-args source-filler-cxn-meaning-args pattern-filler-cxn-form-args pattern-filler-cxn-meaning-args)
 
-    (if (and integration-form-args integration-meaning-args)
+   ;; (if (and integration-form-args integration-meaning-args)
 
       (let* ((integration-form-args-slot-1 (loop for arg in integration-form-args
                                                  for corresponding-arg-in-form = (or (cdr (assoc arg (pattern-bindings au-form)))
@@ -441,7 +443,7 @@
                                   (create-filler-cxn (source-delta au-form) (source-delta au-meaning)
                                                      source-filler-cxn-form-args source-filler-cxn-meaning-args :cxn-inventory fix-cxn-inventory))))
           
-      (progn
+   #|   (progn
         (setf linking-cxn (create-linking-cxn :form-args-slot-1 generalisation-form-args :form-args-slot-2 generalisation-form-args
                                               :meaning-args-slot-1 generalisation-meaning-args :meaning-args-slot-2 generalisation-meaning-args
                                               :cxn-inventory fix-cxn-inventory))
@@ -451,7 +453,7 @@
                                                     pattern-form-args pattern-meaning-args  :cxn-inventory fix-cxn-inventory))
 
         (setf source-filler-cxn (create-filler-cxn (source-delta au-form) (source-delta au-meaning)
-                                                   source-form-args source-meaning-args :cxn-inventory fix-cxn-inventory))))
+                                                   source-form-args source-meaning-args :cxn-inventory fix-cxn-inventory)))) |#
 
 
     ;; Adding new constructions, categories and links to fix-cxn-inventory
