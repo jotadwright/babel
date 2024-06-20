@@ -123,7 +123,7 @@
 
 
 (defparameter *clevr-stage-1-train*
-  (merge-pathnames (make-pathname :directory '(:relative "clevr-grammar-learning" "train")
+  (merge-pathnames (make-pathname :directory '(:relative "clevr-grammar-learning-ipa" "train")
                                   :name "stage-1" 
                                   :type "jsonl")
                    cl-user:*babel-corpora*))
@@ -131,7 +131,7 @@
 
 
 ;;Takes 10-20 seconds to load corpus
-(defparameter *clevr-stage-1-train-processor* (load-corpus *clevr-stage-1-train* :sort-p t :remove-duplicates t))
+(defparameter *clevr-stage-1-train-processor* (load-corpus *clevr-stage-1-train* :sort-p t :remove-duplicates t :ipa t))
 (defparameter *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
 
 (reset-cp *clevr-stage-1-train-processor*)
@@ -139,7 +139,7 @@
 (comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar*  :nr-of-speech-acts 1)
 
 (comprehend (nth-speech-act *clevr-stage-1-train-processor* 94)  :cxn-inventory *clevr-stage-1-grammar*)
-;;CHECK 104!!
+
 
 (progn
   (reset-cp *clevr-stage-1-train-processor*)
