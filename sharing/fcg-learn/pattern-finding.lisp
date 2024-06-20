@@ -158,29 +158,34 @@
 (defun learn-from-cxn-inventory (form-predicates-speech-act meaning-predicates-speech-act integration-cat integration-form-args integration-meaning-args parent-cxn-inventory all-cxns)
   ""
   (loop for cxn in (find-all-if #'(lambda (cxn) (= (length (attr-val cxn :form)) 1)) all-cxns) ;; only keep cxns with single form predicate
-          ;;FIRST check meaning au result!! 
-        for au-form-results = (anti-unify-form (attr-val cxn :form)
-                                               form-predicates-speech-act 
-                                               (get-configuration parent-cxn-inventory :form-generalisation-mode))
-        for au-meaning-results = (anti-unify-meaning (attr-val cxn :meaning)
+          ;;FIRST check meaning au result!!
+          for au-meaning-results = (anti-unify-meaning (attr-val cxn :meaning)
                                                      meaning-predicates-speech-act
                                                      (get-configuration parent-cxn-inventory :meaning-generalisation-mode)
                                                      :cxn-inventory parent-cxn-inventory)
-        for valid-au-form-results = (loop for au-form-result in au-form-results
-                                          when (<= (length (generalisation au-form-result)) 2) ;;max one gap allowed, i.e. two sequence predicates
-                                            collect au-form-result)
-        for valid-au-meaning-results = (loop for au-meaning-result in au-meaning-results
-                                             for nr-of-chunks = (second (multiple-value-list
-                                                                         (connected-semantic-network (generalisation au-meaning-result))))
-                                             when (<= nr-of-chunks 2) 
-                                               collect au-meaning-result)
-        append (loop for (au-form au-meaning) in (cartesian-product valid-au-form-results valid-au-meaning-results)
-                     for fix-cxn-inventory = (copy-object parent-cxn-inventory)
-                     do (push-data (blackboard fix-cxn-inventory) :base-cxns cxn)
-                        (learn-cxns-from-au-result au-form au-meaning fix-cxn-inventory :integration-cat integration-cat
-                                                   :integration-form-args integration-form-args :integration-meaning-args integration-meaning-args
-                                                   :learn-cxns-from-deltas t)
-                     collect fix-cxn-inventory) into fix-cxn-inventories
+          for valid-au-meaning-results = (loop for au-meaning-result in au-meaning-results
+                                               for (connected-network-p nr-of-chunks) = (multiple-value-list
+                                                                                         (connected-semantic-network (generalisation au-meaning-result)))
+                                               when (and connected-network-p
+                                                         (or (= nr-of-chunks 1)
+                                                             (= nr-of-chunks 2)))
+                                                 collect au-meaning-result)
+          when valid-au-meaning-results
+          append (let* ((au-form-results (anti-unify-form (attr-val cxn :form)
+                                                          form-predicates-speech-act 
+                                                          (get-configuration parent-cxn-inventory :form-generalisation-mode)))
+                        (valid-au-form-results (loop for au-form-result in au-form-results
+                                                     when (and (generalisation au-form-result)
+                                                               (<= (length (generalisation au-form-result)) 2)) ;; max one gap allowed, i.e. two sequence predicates
+                                                       collect au-form-result)))
+                   (when valid-au-form-results
+                     (loop for (au-form au-meaning) in (cartesian-product valid-au-form-results valid-au-meaning-results)
+                           for fix-cxn-inventory = (copy-object parent-cxn-inventory)
+                           do (push-data (blackboard fix-cxn-inventory) :base-cxns cxn)
+                              (learn-cxns-from-au-result au-form au-meaning fix-cxn-inventory :integration-cat integration-cat
+                                                         :integration-form-args integration-form-args :integration-meaning-args integration-meaning-args
+                                                         :learn-cxns-from-deltas t)
+                           collect fix-cxn-inventory))) into fix-cxn-inventories
         finally  (return (cons (learn-filler-cxn form-predicates-speech-act meaning-predicates-speech-act integration-cat
                                                  integration-form-args integration-meaning-args parent-cxn-inventory)
                                fix-cxn-inventories))))
