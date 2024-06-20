@@ -77,11 +77,11 @@
                                                          (constructions-list cxn-inventory))))
     
     ;; returns list of cxn-inventories, each leading to a solution
-    (mapcar #'fix-cxn-inventory (search-unification-fix speech-act applicable-non-linking-cxns all-non-linking-non-applicable-cxns cxn-inventory))))
+    (mapcar #'fix-cxn-inventory (search-anti-unification-fix speech-act applicable-non-linking-cxns all-non-linking-non-applicable-cxns cxn-inventory))))
 
 
 
-(defun search-unification-fix (speech-act applicable-non-linking-cxns all-non-linking-cxns cxn-inventory)
+(defun search-anti-unification-fix (speech-act applicable-non-linking-cxns all-non-linking-cxns cxn-inventory)
   ""
   (loop with solutions = nil
         with queue = (list (make-instance 'au-repair-state
