@@ -7,7 +7,7 @@
 ;; Anti-unify strings ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun anti-unify-sequences (pattern source)
+(defun anti-unify-sequences (pattern source &rest sequence-alignment-keyword-arguments)
   "Anti-unify sets of sequence predicates.
    1. Render all pattern sequences
    2. Render all source sequences
@@ -15,6 +15,8 @@
    4. Remove duplicate results
    5. Transform the result back to sequence predicates"
   ;; to do: improve anti-unify sequences to have full reversibility, up to the original variables.
+  ;; note: the &rest argument sequence-alignment-keyword-arguments can be used to specify
+  ;;       keyword arguments that will be passed on to #'maximal-sequence-alignments
 
   (multiple-value-bind (pattern-renders all-pattern-boundaries) (render-all pattern :render-sequences)
     (multiple-value-bind (source-renders all-source-boundaries) (render-all source :render-sequences)  
@@ -24,8 +26,11 @@
                     for pattern-string = (list-of-strings->string pattern-render :separator "_")
                     append (loop for source-render in source-renders
                                  for source-string = (list-of-strings->string source-render :separator "_")
-                                 for source-boundaries in all-source-boundaries 
-                                 append (loop with possible-alignments = (maximal-sequence-alignments pattern-string source-string pattern-boundaries source-boundaries)
+                                 for source-boundaries in all-source-boundaries
+                                 append (loop with possible-alignments = (apply #'maximal-sequence-alignments
+                                                                                pattern-string source-string
+                                                                                pattern-boundaries source-boundaries
+                                                                                sequence-alignment-keyword-arguments)
                                               for alignment in possible-alignments
                                               for pattern-in-alignment = (aligned-pattern alignment)
                                               for source-in-alignment = (aligned-source alignment)
