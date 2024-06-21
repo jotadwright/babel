@@ -563,6 +563,44 @@
   (+ (length (pattern-delta au-result))
      (length (source-delta au-result))))
 
+#|
+(defmethod anti-unification-cost ((au-result sequences-au-result))
+  "Cost of a string anti-unification result."
+  ;; a sequence generalisation is better when
+  ;; (i) there are fewer predicates in the delta (== fewer gaps in the generalisation)
+  ;; (ii) there are more characters in the generalisation
+  (let ((chars-in-pattern (loop for seq-pred in (pattern au-result)
+                                sum (length (second seq-pred))))
+        (chars-in-source (loop for seq-pred in (source au-result)
+                               sum (length (second seq-pred))))
+        (chars-in-generalisation (loop for seq-pred in (generalisation au-result)
+                                       sum (length (second seq-pred)))))
+    (+ (length (pattern-delta au-result))
+       (length (source-delta au-result))
+       (- chars-in-pattern chars-in-generalisation)
+       (- chars-in-source chars-in-generalisation))))
+
+
+(defmethod anti-unification-cost ((au-result sequences-au-result))
+  "Cost of a string anti-unification result."
+  ;; bigger chunks of text in the generalisation is better
+  ;; so the cost is inversely proportional to the length of the strings?
+  ;; also, we want as few gaps as possible, so the length of the deltas
+  (float
+   (+ (/ (loop for seq-pred in (generalisation au-result)
+               sum (/ 1 (length (second seq-pred))))
+         (length (generalisation au-result)))
+      (/ (loop for seq-pred in (pattern-delta au-result)
+               sum (/ 1 (length (second seq-pred))))
+         (length (pattern-delta au-result)))
+      (/ (loop for seq-pred in (source-delta au-result)
+               sum (/ 1 (length (second seq-pred))))
+         (length (source-delta au-result)))
+      (length (pattern-delta au-result))
+      (length (source-delta au-result)))))
+|#
+       
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
