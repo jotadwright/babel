@@ -54,7 +54,8 @@
                                                                                                            simplified-sequences-generalisation)
                                                                                         :source-bindings (remove-bindings-not-in-generalisation
                                                                                                           resulting-source-bindings
-                                                                                                          simplified-sequences-generalisation))))
+                                                                                                          simplified-sequences-generalisation)
+                                                                                        :alignment-score (score alignment))))
                                                           (setf (cost au-result) (anti-unification-cost au-result))
                                                           au-result))))))
              (unique-sorted-results
