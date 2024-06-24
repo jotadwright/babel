@@ -825,9 +825,18 @@ pipe-through
 (comprehend *what-size-is-the-large-cube* :cxn-inventory *fcg-constructions*)
 
 
-
-
-
+#|
+(def-fcg-constructions test :hashed t :cxn-inventory *A*)
+(add-category 'a *A*)
+(categories *A*)
+(setf *B* (copy-object *A*))
+(categories *B*)
+(add-category 'b *B*)
+(categories *B*)
+;; => (UTILS:A UTILS:B)
+(categories *A*)
+;; => (UTILS:A)
+|#
 
 
 ;;########################################################################
