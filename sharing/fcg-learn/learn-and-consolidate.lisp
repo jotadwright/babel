@@ -36,6 +36,7 @@
           (category-mapping nil)) ; mappings from categories in learnt cxns to existing equivalent-cxns
   
       (loop with top-node = (top-node cip)
+            with cxn-inventory-before-fixing = (copy-object cxn-inventory)
             for fix in fixes
             for current-node = top-node
             do ;; Add fixes to cip
@@ -51,7 +52,7 @@
                 ;; consolidation of cxns
                 (let ((equivalent-cxns (loop for cxn in (when (slot-exists-p fix 'fix-constructions)
                                                           (fix-constructions fix))
-                                             for equivalent-cxn = (find-cxn cxn cxn-inventory :test #'equivalent-cxn)
+                                             for equivalent-cxn = (find-cxn cxn cxn-inventory-before-fixing :test #'equivalent-cxn)
                                              if equivalent-cxn
                                                do (setf (attr-val cxn :equivalent-cxn) equivalent-cxn)
                                                and
