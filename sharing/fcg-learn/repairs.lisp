@@ -7,50 +7,33 @@
 ;;;;;;;;;;;;;
 
 
-(defmethod repair ((repair repair-learn-holophrastic-cxn)
-                   (problem gold-standard-not-in-search-space)
-                   (cip construction-inventory-processor)
-                   &key &allow-other-keys)
-  "Learn a holophrastic construction."
-  (let* ((speech-act (get-data (blackboard (construction-inventory cip)) :speech-act))
-         (cxn-inventory (original-cxn-set (construction-inventory cip)))
-         (fix-cxn-inventory (learn-holophrastic-cxn speech-act cxn-inventory))
-         (repair-solution-node (fcg-apply (processing-cxn-inventory fix-cxn-inventory) (initial-cfs cip) (direction cip)))
-         (fixed-car (cipn-car repair-solution-node)))
-    (when (and fixed-car
-               (gold-standard-solution-p (car-resulting-cfs fixed-car) speech-act (direction cip) (configuration cxn-inventory)))
-      (make-instance 'holophrastic-fix
-                     :repair repair
-                     :problem problem
-                     :fix-constructions (list (original-cxn (car-applied-cxn fixed-car)))
-                     :fixed-cars (list fixed-car)
-                     :speech-act speech-act))))
-
 
 (defmethod repair ((repair repair-through-anti-unification)
                    (problem gold-standard-not-in-search-space)
                    (cip construction-inventory-processor)
                    &key &allow-other-keys)
   "Learn constructions through anti-unification."
-  (let* ((speech-act (get-data (blackboard (construction-inventory cip)) :speech-act))
-         (fix-cxn-inventories (learn-through-anti-unification speech-act cip)))
-    (loop with fixes = nil
-          for fix-cxn-inventory in fix-cxn-inventories
-          do (set-configuration fix-cxn-inventory (if (eql (direction cip) '<-) :parse-goal-tests :production-goal-tests) (list :gold-standard))
-             (let* ((repair-solution-node (fcg-apply (processing-cxn-inventory fix-cxn-inventory) (initial-cfs cip) (direction cip)))
-                    (fixed-cars (mapcar #'cipn-car (reverse (upward-branch repair-solution-node :include-initial nil)))))
-               (when (find 'succeeded (statuses repair-solution-node))
-                 (push (make-instance 'anti-unification-fix
-                                      :repair repair
-                                      :problem problem
-                                      :base-cxns (find-data (blackboard fix-cxn-inventory) :base-cxns)
-                                      :fix-constructions (constructions-list fix-cxn-inventory)
-                                      :fix-categories (categories fix-cxn-inventory)
-                                      :fix-categorial-links (links fix-cxn-inventory)
-                                      :fixed-cars fixed-cars
-                                      :speech-act speech-act)
-                       fixes)))
-          finally (return fixes))))
+  (loop with speech-act = (get-data (blackboard (construction-inventory cip)) :speech-act)
+        with solution-states = (learn-through-anti-unification speech-act cip)
+        with fixes = nil
+        for solution-state in solution-states
+        for fix-cxn-inventory = (fix-cxn-inventory solution-state)
+        do (set-configuration fix-cxn-inventory (if (eql (direction cip) '<-) :parse-goal-tests :production-goal-tests) (list :gold-standard))
+           (let* ((repair-solution-node (fcg-apply (processing-cxn-inventory fix-cxn-inventory) (initial-cfs cip) (direction cip)))
+                  (fixed-cars (mapcar #'cipn-car (reverse (upward-branch repair-solution-node :include-initial nil)))))
+             (when (find 'succeeded (statuses repair-solution-node))
+               (push (make-instance 'anti-unification-fix
+                                    :anti-unification-state solution-state
+                                    :repair repair
+                                    :problem problem
+                                    :base-cxns (remove nil (mapcar #'base-cxn (upward-branch solution-state)))
+                                    :fix-constructions (constructions-list fix-cxn-inventory)
+                                    :fix-categories (categories fix-cxn-inventory)
+                                    :fix-categorial-links (links fix-cxn-inventory)
+                                    :fixed-cars fixed-cars
+                                    :speech-act speech-act)
+                     fixes)))
+        finally (return fixes)))
 
 
 (defmethod repair ((repair repair-add-categorial-link)
