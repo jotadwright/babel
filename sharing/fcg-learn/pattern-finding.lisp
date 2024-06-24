@@ -54,12 +54,14 @@
                                                                             (constructions-list cxn-inventory))
                                                                  :test #'other-cxn-w-same-form-and-meaning-p)))
     
-    ;; returns list of cxn-inventories, each leading to a solution
+    ;; returns list anti-unification solutions, each with its own fix cxn-inventory
     (search-anti-unification-fix speech-act applicable-non-linking-cxns all-non-linking-non-applicable-cxns cxn-inventory)))
 
 
 (defun search-anti-unification-fix (speech-act applicable-non-linking-cxns all-non-linking-cxns cxn-inventory)
-  ""
+  "Searches for possible anti-unification fixes based on speech-act,
+applicable non-linking constructions and all non-linking
+non-applicable constructions."
   (loop with initial-state = (make-instance 'au-repair-state
                                             :all-cxns all-non-linking-cxns
                                             :remaining-applicable-cxns applicable-non-linking-cxns
@@ -96,8 +98,7 @@
 
 
 (defun extend-au-repair-state (current-state)
-  ""
-  
+  "Extend current state with possible expansions resulting from anti-unification results."
   (let* ((form-au-meaning-au-combinations (loop for applicable-cxn in (remove-duplicates (remaining-applicable-cxns current-state) :test #'eql :key #'name)
                                                 for au-form-results = (anti-unify-form (attr-val applicable-cxn :form)
                                                                                        (remaining-form-speech-act current-state) 
@@ -124,6 +125,8 @@
                                                                                  :integration-cat (integration-cat current-state)
                                                                                  :integration-form-args (integration-form-args current-state)
                                                                                  :integration-meaning-args (integration-meaning-args current-state)))
+          unless (= (length (constructions-list fix-cxn-inventory))
+                    (length (constructions-list (fix-cxn-inventory current-state))))
           collect (make-instance 'au-repair-state
                                  :all-cxns (all-cxns current-state)
                                  :remaining-applicable-cxns (remove (name cxn) (remaining-applicable-cxns current-state) :key #'name)
@@ -150,7 +153,7 @@
           ;;FIRST check meaning au result!!
           for au-meaning-results = (anti-unify-meaning (attr-val cxn :meaning)
                                                      meaning-predicates-speech-act
-                                                     (get-configuration parent-cxn-inventory :meaning-generalisation-mode)
+                                                    (get-configuration parent-cxn-inventory :meaning-generalisation-mode)
                                                      :cxn-inventory parent-cxn-inventory)
           for valid-au-meaning-results = (loop for au-meaning-result in au-meaning-results
                                                for (connected-network-p nr-of-chunks) = (multiple-value-list
@@ -177,11 +180,11 @@
                            collect (make-instance 'au-repair-state
                                                   :base-cxn cxn
                                                   :fix-cxn-inventory fix-cxn-inventory)))) into new-states
-        finally  (return (cons (make-instance 'au-repair-state
-                                              :base-cxn nil
-                                              :fix-cxn-inventory (learn-filler-cxn form-predicates-speech-act meaning-predicates-speech-act integration-cat
-                                                                                   integration-form-args integration-meaning-args parent-cxn-inventory))
-                               new-states))))
+        finally (return (cons (make-instance 'au-repair-state
+                                             :base-cxn nil
+                                             :fix-cxn-inventory (learn-filler-cxn form-predicates-speech-act meaning-predicates-speech-act integration-cat
+                                                                                  integration-form-args integration-meaning-args parent-cxn-inventory))
+                              new-states))))
       
 (defun learn-filler-cxn (form-predicates meaning-predicates integration-cat integration-form-args integration-meaning-args cxn-inventory)
   ""
@@ -205,11 +208,6 @@
     (and (permutation-of? (remaining-meaning-speech-act state-1) (remaining-meaning-speech-act state-2) :test #'equalp)
          (pn::equivalent-predicate-networks-p (remaining-form-speech-act state-1) (remaining-form-speech-act state-2))
          (permutation-of? (constructions-list cxn-inventory-1) (constructions-list cxn-inventory-2) :test #'equivalent-cxn))))
-
-
-
-
-
 
 
 (defun learn-cxns-from-au-result (au-form au-meaning fix-cxn-inventory &key integration-cat integration-form-args integration-meaning-args
@@ -260,7 +258,8 @@
                                                                         ((assoc arg (pattern-bindings au-meaning))
                                                                          (cdr (assoc arg (pattern-bindings au-meaning))))
                                                                         (t
-                                                                         (warn "Arg on contributing part of linking cxn not found on conditional part.")))))
+                                                                         nil))))
+                                                                         ;(warn "Arg on contributing part of linking cxn not found on conditional part.")))))
              (linking-cxn-contributing-form-args (loop for arg in integration-form-args
                                                        collect (cond ((or (find arg integration-form-args-slot-2)
                                                                           (find arg integration-form-args-slot-1))
@@ -270,7 +269,8 @@
                                                                      ((assoc arg (pattern-bindings au-form))
                                                                       (cdr (assoc arg (pattern-bindings au-form))))
                                                                      (t
-                                                                      (warn "Arg on contributing part of linking cxn not found on conditional part.")))))
+                                                                      nil))))
+                                                                     ;; (warn "Arg on contributing part of linking cxn not found on conditional part.")))))
              (linking-cxn-form-args-slot-1 (append generalisation-form-args integration-form-args-slot-1))
              (linking-cxn-meaning-args-slot-1 (append generalisation-meaning-args integration-meaning-args-slot-1))
              (linking-cxn-form-args-slot-2 (append generalisation-form-args integration-form-args-slot-2))
@@ -278,12 +278,18 @@
          
              (generalisation-filler-cxn-form-args (append generalisation-form-args integration-form-args-slot-1))
              (generalisation-filler-cxn-meaning-args (append generalisation-meaning-args integration-meaning-args-slot-1)))
-        
+
+
+     (when (or (and (not linking-cxn-contributing-meaning-args)
+                    (not linking-cxn-contributing-form-args))
+                (and (= (length linking-cxn-contributing-meaning-args) (length (remove nil linking-cxn-contributing-meaning-args)))
+                     (= (length linking-cxn-contributing-form-args) (length (remove nil linking-cxn-contributing-form-args)))))
         (setf source-filler-cxn-form-args (append source-form-args integration-form-args-slot-2))
         (setf source-filler-cxn-meaning-args (append source-meaning-args integration-meaning-args-slot-2))
         (setf pattern-filler-cxn-form-args (append pattern-form-args integration-form-args-slot-2))
         (setf pattern-filler-cxn-meaning-args (append pattern-meaning-args integration-meaning-args-slot-2))
 
+        
         (setf linking-cxn (create-linking-cxn :cxn-inventory fix-cxn-inventory
                                               :contributing-form-args linking-cxn-contributing-form-args
                                               :contributing-meaning-args linking-cxn-contributing-meaning-args
@@ -352,7 +358,7 @@
             (or (when (source-delta au-form) source-filler-cxn-form-args)
                 (when (pattern-delta au-form) pattern-filler-cxn-form-args))
             (or (when (source-delta au-form) source-filler-cxn-meaning-args)
-                (when (pattern-delta au-form) pattern-filler-cxn-meaning-args)))))
+                (when (pattern-delta au-form) pattern-filler-cxn-meaning-args))))))
 
 
 

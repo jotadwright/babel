@@ -123,7 +123,6 @@
                             (query target-2 object-2 attribute-2)
                             (bind attribute-category attribute-2 size))))
 
-(setf-conf)
 (set-configuration (construction-inventory *saved-cipn*) :cxn-supplier-mode :holophrase-cxns-only)
 (comprehend *what-size-is-the-large-cube* :cxn-inventory *fcg-constructions*)
 
