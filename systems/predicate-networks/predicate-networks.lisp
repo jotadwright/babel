@@ -29,9 +29,12 @@
 (defmethod equivalent-predicate-networks ((network-1 list) (network-2 list))
   "Two predicate networks are equivalent when
    they can unify with each other."
-  (let ((map-frames (irl::equivalent-irl-programs? network-1 network-2)))
-    (when map-frames
-      (irl::map-frame-bindings (first map-frames)))))
+  (if (and network-1 network-2)
+    (let ((map-frames (irl::equivalent-irl-programs? network-1 network-2)))
+      (when map-frames
+        (irl::map-frame-bindings (first map-frames))))
+    t ;; trivially succeed if both networks are nil
+    ))
 
 (defgeneric equivalent-predicate-networks-p (network-1 network-2)
   (:documentation "-p version of equivalent-predicate-networks."))
