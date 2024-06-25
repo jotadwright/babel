@@ -154,11 +154,16 @@
 (defmethod parent ((node cip-node))
   (first (all-parents node)))
 
-(defun upward-branch (cipn &key (include-initial t))
+
+(defgeneric upward-branch (node &key include-initial)
+  (:documentation "Returns the upward branch of node in tree"))
+
+(defmethod upward-branch ((cipn cip-node) &key (include-initial t))
   "Returns the given cipn and all its parents"
   (cons cipn (if include-initial
                  (all-parents cipn)
                  (butlast (all-parents cipn)))))
+
 
 (defgeneric siblings (cip-node)
   (:documentation "Returns all siblings of the give node. Does not include itself."))

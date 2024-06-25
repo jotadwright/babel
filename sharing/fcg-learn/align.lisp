@@ -38,13 +38,17 @@
            (category-mapping (find-data cip :category-mapping))
            (all-fix-cxns (loop for fix in applied-fixes append (when (slot-exists-p fix 'fix-constructions)
                                                                  (fix-constructions fix))))
-           (all-fix-links (loop for fix in applied-fixes append (when (slot-exists-p fix 'fix-categorial-links)
-                                                                  (fix-categorial-links fix))))
            (constructions-to-reward (remove-duplicates (loop for node in gold-solution-nodes
                                                              for applied-cxns = (mapcar #'original-cxn (applied-constructions node))
                                                              append (loop for applied-cxn in applied-cxns
                                                                           for equivalent-cxn = (attr-val applied-cxn :equivalent-cxn)
-                                                                          if equivalent-cxn
+                                                                          if (and equivalent-cxn
+                                                                                  ;; if the applied cxn resulted from the same anti-unification repair, it
+                                                                                  ;; is new and should not be rewarded.
+                                                                                  (not (eq (au-repair-processor (anti-unification-state
+                                                                                                                                (attr-val applied-cxn :fix)))
+                                                                                           (au-repair-processor (anti-unification-state
+                                                                                                                 (attr-val equivalent-cxn :fix))))))
                                                                             collect equivalent-cxn
                                                                           else
                                                                             unless (find (name applied-cxn) all-fix-cxns :key #'name)
@@ -61,7 +65,16 @@
                                                                                           (or (cdr (assoc cat-2 category-mapping))
                                                                                               cat-2)
                                                                                           link-type)
-                                                                  unless (find mapped-link all-fix-links :test #'equal)
+                                                                  when (and (find (first mapped-link) constructions-to-reward
+                                                                                  :test #'member
+                                                                                  :key #'(lambda (cxn)
+                                                                                           (cons-if (attr-val cxn :cxn-cat)
+                                                                                                    (attr-val cxn :slot-cats))))
+                                                                            (find (second mapped-link) constructions-to-reward
+                                                                                  :test #'member
+                                                                                  :key #'(lambda (cxn)
+                                                                                           (cons-if (attr-val cxn :cxn-cat)
+                                                                                                    (attr-val cxn :slot-cats)))))
                                                                     collect mapped-link))
                                                :test #'equal))
            (links-to-punish (remove-duplicates (loop for node in non-gold-solution-nodes

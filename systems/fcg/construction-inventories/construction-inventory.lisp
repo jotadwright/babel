@@ -257,7 +257,7 @@ is overwritten."
                                 (destination construction-inventory))
   ;; For FCG-Light, we don't want to copy the configuration here (it already happend)
   ;; but the method combination tries to do it again here
-  (unless (string= (type-of source) 'fcg-construction-set) 
+  (unless (closer-mop:subclassp (type-of source) 'fcg-construction-set) ;; e.g. 'hashed-fcg-construction-set is subclass of 'fcg-construction-set
     (setf (configuration destination) (copy-object (configuration source)))
     (setf (blackboard destination) (blackboard source))
     (setf (visualization-configuration destination) (visualization-configuration source)))

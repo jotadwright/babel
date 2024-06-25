@@ -146,7 +146,11 @@ transient structure given the categorial links, a solution should be found"))
     :initarg :base-cxns
     :accessor base-cxns
     :type list
-    :documentation "Constructions used in the anti-unification process."))
+    :documentation "Constructions used in the anti-unification process.")
+   (anti-unification-state
+    :initarg :anti-unification-state
+    :accessor anti-unification-state
+    :documentation "The solution state in the anti-unification process that led to this fix."))
   (:documentation "Class for fixes created by repair-through-anti-unification."))
 
 
@@ -183,3 +187,103 @@ transient structure given the categorial links, a solution should be found"))
 (defmethod copy-object ((speech-act speech-act))
   speech-act)
 
+
+
+;; Anti-unification search process ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defclass au-repair-processor ()
+  ((top-state 
+    :type (or null au-repair-state) :initform nil :accessor top-state :initarg :top-state
+    :documentation "The top state of the search process.")
+   (all-states
+    :type list :initform nil :initarg :all-states :accessor all-states
+    :documentation "All states created.")
+   (queue 
+    :type list :initform nil :accessor queue :initarg :queue
+    :documentation "All nodes left to be explored.")
+   (state-counter
+    :type number :initform 1 :accessor state-counter
+    :documentation "A counter for the number of states in the tree.")
+   (succeeded-states 
+    :type list :initform nil :accessor succeeded-states
+    :documentation "All succeeded states of the search process"))
+  (:documentation "The state of a anti-unification search process for repairing problems."))
+
+
+
+(defclass au-repair-state ()
+  ((au-repair-processor
+    :accessor au-repair-processor
+    :initarg :au-repair-processor
+    :documentation "The AU repair processor to which the state belongs.")
+   (all-cxns
+    :accessor all-cxns
+    :initarg :all-cxns
+    :initform nil
+    :type list
+    :documentation "All constructions from the cxn-inventory")
+   (remaining-applicable-cxns
+    :accessor remaining-applicable-cxns
+    :initarg :remaining-applicable-cxns
+    :initform nil
+    :type list
+    :documentation "Remaining constructions that could apply to the initial cfs.")
+   (remaining-form-speech-act
+    :accessor remaining-form-speech-act
+    :initarg :remaining-form-speech-act
+    :initform nil
+    :type list
+    :documentation "Remaining form from the speech act.")
+   (remaining-meaning-speech-act
+    :accessor remaining-meaning-speech-act
+    :initarg :remaining-meaning-speech-act
+    :initform nil
+    :type list
+    :documentation "Remaining meaning from the speech act.")
+   (integration-cat
+    :accessor integration-cat
+    :initarg :integration-cat
+    :initform nil
+    :type list
+    :documentation "Category that is expected to be contributed by child.")
+   (integration-form-args
+    :accessor integration-form-args
+    :initarg :integration-form-args
+    :initform nil
+    :type list
+    :documentation "Form args that are expected to be contributed by child.")
+   (integration-meaning-args
+    :accessor integration-meaning-args
+    :initarg :integration-meaning-args
+    :initform nil
+    :type list
+    :documentation "Meaning args that are expected to be contributed by child.")
+   (fix-cxn-inventory
+    :accessor fix-cxn-inventory
+    :initarg :fix-cxn-inventory
+    :initform nil
+    :documentation "The construction inventory of the fix.")
+   (new-cxns
+    :accessor new-cxns
+    :initform nil
+    :documentation "Constructions that are created in this state.")
+   (base-cxn
+    :accessor base-cxn
+    :initarg :base-cxn
+    :initform nil
+    :documentation "The base cxn that was used for anti-unifying.")
+   (children
+    :accessor children
+    :initform nil
+    :documentation "Children of the state.")
+   (all-parents
+    :accessor all-parents
+    :initform nil
+    :documentation "All foreparents of the state.")
+   (created-at
+    :accessor created-at
+    :initarg :created-at
+    :initform nil
+    :documentation "Time stamp indicating when the state was added to the queue.")))

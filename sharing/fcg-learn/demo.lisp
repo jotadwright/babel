@@ -26,7 +26,7 @@
                        (:hash-mode . :filler-and-linking)
                        (:meaning-representation-format . :irl)
                        (:diagnostics diagnose-cip-against-gold-standard)
-                       (:repairs  repair-add-categorial-link repair-through-anti-unification repair-learn-holophrastic-cxn)
+                       (:repairs  repair-add-categorial-link repair-through-anti-unification)
                        (:learning-mode . :pattern-finding)
                        (:alignment-mode . :punish-non-gold-solutions)
                        (:li-reward . 0.2)
@@ -34,7 +34,6 @@
                        (:best-solution-mode . :highest-average-link-weight)
                        (:induce-cxns-mode . :filler-and-linking)
                        (:form-generalisation-mode . :needleman-wunsch)
-                       (:max-nr-of-gaps-in-form-predicates . 1)
                        (:meaning-generalisation-mode . :exhaustive)
                        (:k-swap-k . 1)
                        (:k-swap-w . 1)
@@ -124,7 +123,6 @@
                             (query target-2 object-2 attribute-2)
                             (bind attribute-category attribute-2 size))))
 
-(setf-conf)
 (set-configuration (construction-inventory *saved-cipn*) :cxn-supplier-mode :holophrase-cxns-only)
 (comprehend *what-size-is-the-large-cube* :cxn-inventory *fcg-constructions*)
 
@@ -827,9 +825,18 @@ pipe-through
 (comprehend *what-size-is-the-large-cube* :cxn-inventory *fcg-constructions*)
 
 
-
-
-
+#|
+(def-fcg-constructions test :hashed t :cxn-inventory *A*)
+(add-category 'a *A*)
+(categories *A*)
+(setf *B* (copy-object *A*))
+(categories *B*)
+(add-category 'b *B*)
+(categories *B*)
+;; => (UTILS:A UTILS:B)
+(categories *A*)
+;; => (UTILS:A)
+|#
 
 
 ;;########################################################################
