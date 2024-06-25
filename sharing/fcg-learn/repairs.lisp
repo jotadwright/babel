@@ -33,7 +33,12 @@
                                     :fixed-cars fixed-cars
                                     :speech-act speech-act)
                      fixes)))
-        finally (return fixes)))
+        finally
+          ;; Set fix slot of the fix-constructions before returning the fixes
+          (mapcar #'(lambda (fix)
+                      (loop for fix-cxn in (fix-constructions fix)
+                              do (setf (attr-val fix-cxn :fix) fix))) fixes)
+          (return fixes)))
 
 
 (defmethod repair ((repair repair-add-categorial-link)

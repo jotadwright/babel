@@ -36,7 +36,6 @@
           (category-mapping nil)) ; mappings from categories in learnt cxns to existing equivalent-cxns
   
       (loop with top-node = (top-node cip)
-            with cxn-inventory-before-fixing = (copy-object cxn-inventory)
             for fix in fixes
             for current-node = top-node
             do ;; Add fixes to cip
@@ -52,32 +51,38 @@
                 ;; consolidation of cxns
                 (let ((equivalent-cxns (loop for cxn in (when (slot-exists-p fix 'fix-constructions)
                                                           (fix-constructions fix))
-                                             for equivalent-cxn = (find-cxn cxn cxn-inventory-before-fixing :test #'equivalent-cxn)
+                                             for equivalent-cxn = (find-cxn cxn cxn-inventory :test #'equivalent-cxn)
                                              if equivalent-cxn
                                                do (setf (attr-val cxn :equivalent-cxn) equivalent-cxn)
                                                and
                                                collect (cons cxn equivalent-cxn) into eq-cxns
                                              else
                                                do (add-cxn cxn cxn-inventory)
-                                                  (setf (attr-val cxn :fix) fix)
                                                   (push cxn consolidated-cxns)
+                                                  (when (attr-val cxn :cxn-cat)
+                                                    (add-category (attr-val cxn :cxn-cat) cxn-inventory :recompute-transitive-closure nil)
+                                                    (push (attr-val cxn :cxn-cat) consolidated-categories))
+                                                  (when (attr-val cxn :slot-cats)
+                                                    (add-categories (attr-val cxn :slot-cats) cxn-inventory :recompute-transitive-closure nil)
+                                                    (setf  consolidated-categories (append (attr-val cxn :slot-cats) consolidated-categories)))
                                              finally (return eq-cxns))))
                 
                   ;; consolidation of categorial links
-                  (setf category-mapping (loop for eq-cxn in equivalent-cxns
-                                                for new-cxn = (car eq-cxn)
-                                                for old-cxn = (cdr eq-cxn)
-                                                for cxn-cat-new-cxn = (attr-val new-cxn :cxn-cat)
-                                                for cxn-cat-old-cxn = (attr-val old-cxn :cxn-cat)
-                                                for slot-cats-new-cxn = (attr-val new-cxn :slot-cats)
-                                                for slot-cats-old-cxn = (attr-val old-cxn :slot-cats)
-                                                when cxn-cat-new-cxn
-                                                  collect (cons cxn-cat-new-cxn cxn-cat-old-cxn) into eq-cat-mappings-cxn-cats
-                                                when slot-cats-new-cxn
-                                                  append (loop for new-cat in slot-cats-new-cxn
-                                                               for old-cat in slot-cats-old-cxn
-                                                               collect (cons new-cat old-cat)) into eq-cat-mappings-slot-cats
-                                                finally (return (append eq-cat-mappings-cxn-cats eq-cat-mappings-slot-cats))))
+                  (setf category-mapping (append (loop for eq-cxn in equivalent-cxns
+                                                       for new-cxn = (car eq-cxn)
+                                                       for old-cxn = (cdr eq-cxn)
+                                                       for cxn-cat-new-cxn = (attr-val new-cxn :cxn-cat)
+                                                       for cxn-cat-old-cxn = (attr-val old-cxn :cxn-cat)
+                                                       for slot-cats-new-cxn = (attr-val new-cxn :slot-cats)
+                                                       for slot-cats-old-cxn = (attr-val old-cxn :slot-cats)
+                                                       when cxn-cat-new-cxn
+                                                         collect (cons cxn-cat-new-cxn cxn-cat-old-cxn) into eq-cat-mappings-cxn-cats
+                                                       when slot-cats-new-cxn
+                                                         append (loop for new-cat in slot-cats-new-cxn
+                                                                      for old-cat in slot-cats-old-cxn
+                                                                      collect (cons new-cat old-cat)) into eq-cat-mappings-slot-cats
+                                                       finally (return (append eq-cat-mappings-cxn-cats eq-cat-mappings-slot-cats)))
+                                                 category-mapping))
                   
                   (loop for (cat-1 cat-2 link-type) in (when (slot-exists-p fix 'fix-categorial-links)
                                                          (fix-categorial-links fix))
@@ -86,14 +91,8 @@
                         for cat-2-to-add = (or (cdr (assoc cat-2 category-mapping))
                                                cat-2)
                         unless (link-exists-p cat-1-to-add cat-2-to-add cxn-inventory :link-type link-type)
-                          do ;; ensure categories exist in network
-                            (unless (category-exists-p cat-1-to-add cxn-inventory)
-                              (add-category cat-1-to-add cxn-inventory :recompute-transitive-closure nil)
-                              (push cat-1-to-add consolidated-categories))
-                            (unless (category-exists-p cat-2-to-add cxn-inventory)
-                              (add-category cat-2-to-add cxn-inventory :recompute-transitive-closure nil)
-                              (push cat-2-to-add consolidated-categories))
-                            ;; add links to network
+                          do 
+;; add links to network
                             (add-link cat-1-to-add cat-2-to-add cxn-inventory :weight 0.5 :link-type link-type :recompute-transitive-closure nil)
                             (push (cons cat-1-to-add cat-2-to-add) consolidated-links)))))
                       
