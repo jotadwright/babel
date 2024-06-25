@@ -75,7 +75,9 @@
                                     (loop
                                        for arg-1 in meaning-args-cxn-1
                                        for arg-2 in meaning-args-cxn-2
-                                       always (eql (cdr (assoc arg-1 bindings-meaning)) arg-2))
+                                       always (if (assoc arg-1 bindings-meaning) ;;there can be additional meaning args
+                                                (eql (cdr (assoc arg-1 bindings-meaning)) arg-2)
+                                                t))
                                     t)))
          
          (let ((bindings-form (pn::equivalent-predicate-networks form-cxn-1 form-cxn-2)))
@@ -83,5 +85,7 @@
                                  (loop
                                     for arg-1 in form-args-cxn-1
                                     for arg-2 in form-args-cxn-2
-                                    always (eql (cdr (assoc arg-1 bindings-form)) arg-2))
+                                    always (if (assoc arg-1 bindings-form) ;;there can be additional form args
+                                             (eql (cdr (assoc arg-1 bindings-form)) arg-2)
+                                             t))
                                  t))))))
