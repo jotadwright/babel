@@ -557,11 +557,13 @@
   (+ (length (pattern-delta au-result))
      (length (source-delta au-result))))
 
+
 (defmethod anti-unification-cost ((au-result sequences-au-result))
   "Cost of a string anti-unification result."
   ;; TO DO: determine cost
   (+ (length (pattern-delta au-result))
      (length (source-delta au-result))))
+
 
 #|
 (defmethod anti-unification-cost ((au-result sequences-au-result))
@@ -596,6 +598,7 @@
       (/ (loop for seq-pred in (source-delta au-result)
                sum (/ 1 (length (second seq-pred))))
          (length (source-delta au-result)))
+      (length (generalisation au-result))
       (length (pattern-delta au-result))
       (length (source-delta au-result)))))
 |#
