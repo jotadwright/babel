@@ -43,7 +43,11 @@
                                (format nil "~a fixes created:" (length fixes))
                                "1 fix created:")))
         (loop for fix in fixes
-              do (add-element (make-html fix))))
+              do (add-element (make-html fix)))
+        (when (find 'anti-unification-fix fixes :key #'type-of)
+          (add-element '((h4) "Anti-unification process:"))
+          (add-element (make-html (top-state (au-repair-processor (anti-unification-state (find 'anti-unification-fix fixes :key #'type-of))))))))
+        
       (add-element `((h4) "No fixes created.")))))
 
 

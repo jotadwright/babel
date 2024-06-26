@@ -46,6 +46,27 @@
     (subseq string 0 start-tail)))
 
 
+(defun other-cxn-w-same-form-and-meaning-p (cxn-1 cxn-2)
+  "Returns true if two different constructions have the same form and meaning."
+  (unless (eql (name cxn-1) (name cxn-2))
+    (let ((meaning-cxn-1 (attr-val cxn-1 :meaning))
+          (meaning-cxn-2 (attr-val cxn-2 :meaning))
+          (form-cxn-1 (attr-val cxn-1 :form))
+          (form-cxn-2 (attr-val cxn-2 :form)))
+
+      (and (= (length meaning-cxn-1) (length meaning-cxn-2))
+           (= (length form-cxn-1) (length form-cxn-2))
+           (pn::equivalent-predicate-networks-p form-cxn-1 form-cxn-2)
+           (pn::equivalent-predicate-networks-p meaning-cxn-1 meaning-cxn-2)))))
+
+
+(defmethod upward-branch ((state au-repair-state) &key (include-initial t))
+  "Returns the given cipn and all its parents"
+  (cons state (if include-initial
+                 (all-parents state)
+                 (butlast (all-parents state)))))
+
+
 ;; Annotate node with used categorial links ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
