@@ -301,40 +301,41 @@
           (unless (atom (feature-value original-feature))
             ;; we only keep feature-values that are not part of the binding for
             ;; the tag-variable
-            (let ((feature-value nil))
+            (let ((feature-value nil)
+                  (new-feature nil))
               (dolist (value-element
-			(remove-special-operators (feature-value original-feature) bindings))
+                       (remove-special-operators (feature-value original-feature) bindings))
                 (if (and (consp (feature-value (lookup tag-variable bindings)))
 			 (find value-element
 			       (feature-value (lookup tag-variable bindings))
 			       :test #'(lambda (x y)
 					 (or (equal x y)
 					     (unify x y (list bindings) :cxn-inventory cxn-inventory)))))
-		    (setf (feature-value (lookup tag-variable bindings))
-			  (remove value-element (feature-value (lookup tag-variable bindings))
-				  :test #'(lambda (x y)
-					    (or (equal x y)
-						(unify x y (list bindings) :cxn-inventory cxn-inventory)))
-				  :count 1))
-		    (push value-element feature-value)))
+                  (setf (feature-value (lookup tag-variable bindings))
+                        (remove value-element (feature-value (lookup tag-variable bindings))
+                                :test #'(lambda (x y)
+                                          (or (equal x y)
+                                              (unify x y (list bindings) :cxn-inventory cxn-inventory)))
+                                :count 1))
+                  (push value-element feature-value)))
+              
               (when feature-value
+                ;; we make a new feature
+                (if (eq (feature-name original-feature) 'form)
+                  (let* ((boundaries (flatten (mapcar #'(lambda (x) (when (equal (feature-name x) 'SEQUENCE)
+                                                                      (rest (rest x))))
+                                                      (feature-value (remove-special-operators (get-tag tag-variable pattern-unit) bindings)))))
+                         (new-form-value (when boundaries (sort (recompute-root-sequence-features-based-on-bindings
+                                                                 boundaries
+                                                                 (feature-value original-feature)
+                                                                 bindings) #'< :key #'third))))
+                    (setf new-feature (if new-form-value
+                                        (make-feature 'form new-form-value)
+                                        nil))) ;;form feature empty - all sequence predicates removed
+                  (setf new-feature (make-feature (feature-name original-feature) feature-value)))
                 ;; we add newly constructed feature to new-unit
-                (let* ((boundaries (flatten (mapcar #'(lambda (x) (when (equal (feature-name x) 'SEQUENCE)
-                                                                    (rest (rest x))))
-                                                    (feature-value (remove-special-operators (get-tag tag-variable pattern-unit) bindings)))))
-                       (new-form-value (when boundaries (sort (recompute-root-sequence-features-based-on-bindings
-                                                               boundaries
-                                                               (feature-value original-feature)
-                                                               bindings) #'< :key #'third)))
-                       (new-feature (if (eq (feature-name original-feature) 'form)
-                                        (when new-form-value 
-                                          (make-feature 'form new-form-value))
-                                        (make-feature (feature-name original-feature)
-                                                      feature-value))))
-                  (push new-feature
-                        (unit-features new-root)))))))))
+                (push new-feature (unit-features new-root))))))))
 
-    
     ;; we loop over all features in source-unit and 'copy' all features
     ;; that are not processed
     (dolist (feature (unit-features source-unit))
@@ -343,8 +344,8 @@
     ;; the new source is reconstructed by incorporating the new unit
     (loop for unit in source collect
             (if (equal (unit-name unit) (unit-name new-root))
-	     new-root
-	     unit))))
+              new-root
+              unit))))
 
 (defun coinciding-lr-pairs-p (lr-pair-1 lr-pair-2)
   (and (= (first lr-pair-1) (first lr-pair-2))
@@ -497,13 +498,13 @@
       (lookup-binding binding bindings)
       binding)))
           
-(defun recompute-root-sequence-features-based-on-bindings (feature-value root-sequence-features bindings)
+(defun recompute-root-sequence-features-based-on-bindings (list-of-matched-indices root-sequence-features bindings)
   "Makes new set of sequence predicates based on the indices that are present in the bindings."
   (let (matched-positions matched-intervals non-matched-intervals)
 
     ;; taking care of matched-positions:
-    (loop for value in feature-value
-          for binding = (cdr (assoc value bindings :test #'string=))
+    (loop for index in list-of-matched-indices
+          for binding = (cdr (assoc index bindings :test #'string=))
           when binding
           do (push binding matched-positions))
     
@@ -522,7 +523,6 @@
                                (nth1 (+ i 1) matched-positions))
                 do (setf i (+ i 1))
                 collect interval))
-            
 
     ;; taking care of non-matched-intervals:
     (setf non-matched-intervals
