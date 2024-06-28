@@ -30,6 +30,7 @@
    (:module unify-and-merge
     :serial t
     :components ((:file "matcher")
+                 (:file "recompute-sequence-features-root")
                  (:file "matcher-extensions")
                  (:file "expansion-operator")
                  (:file "structures")
