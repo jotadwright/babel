@@ -507,40 +507,42 @@
     (loop for index in list-of-matched-indices
           for binding = (cdr (assoc index bindings :test #'string=))
           when binding
-          do (push binding matched-positions))
+            do (push binding matched-positions))
     
-    (when (find-if #'variable-p matched-positions)
-      (setf matched-positions (loop for position in matched-positions
-                                    if (variable-p position)
-                                      collect (lookup-binding position bindings) ;;lookup binding recursively
-                                    else collect position)))
+    (when matched-positions ;;only recalculate in comprehension
     
-    (setf matched-positions (sort matched-positions #'<))
+      (when (find-if #'variable-p matched-positions)
+        (setf matched-positions (loop for position in matched-positions
+                                      if (variable-p position)
+                                        collect (lookup-binding position bindings) ;;lookup binding recursively
+                                      else collect position)))
     
-    ;; taking care of matched-invervals:
-    (setf matched-intervals
-          (loop for i from 1 to (- (length matched-positions) 1)
-                for interval = (list (nth1 i matched-positions) (nth1 (+ i 1) matched-positions))
-                do (setf i (+ i 1))
-                collect interval))
+      (setf matched-positions (sort matched-positions #'<))
+    
+      ;; taking care of matched-invervals:
+      (setf matched-intervals
+            (loop for i from 1 to (- (length matched-positions) 1)
+                  for interval = (list (nth1 i matched-positions) (nth1 (+ i 1) matched-positions))
+                  do (setf i (+ i 1))
+                  collect interval))
 
-    ;; taking care of non-matched-intervals:
-    (setf non-matched-intervals
-          (calculate-unmatched-intervals matched-intervals (mapcar #'(lambda (feat)
-                                                                       (list (third feat) (fourth feat)))
-                                                                   source-sequence-predicates)))
+      ;; taking care of non-matched-intervals:
+      (setf non-matched-intervals
+            (calculate-unmatched-intervals matched-intervals (mapcar #'(lambda (feat)
+                                                                         (list (third feat) (fourth feat)))
+                                                                     source-sequence-predicates)))
     
-    ;; Based on the non-matched intervals (e.g. '((0 4) (12 28))), create sequence new features to add to the root
-    (when non-matched-intervals
-      (loop for (feat-name string start end) in source-sequence-predicates ;;(sequence "what is the color of the cube?" 12 18)
-            for offset = (abs (- 0 start))
-            append (loop for (left right) in non-matched-intervals
-                         for normalised-left = (- left offset)
-                         for normalised-right = (- right offset)
-                         if (overlapping-lr-pairs-p (list start end) (list left right))
-                           collect (let ((unmatched-substring (subseq string normalised-left normalised-right)))
-                                     `(,feat-name ,unmatched-substring ,left ,right))) into new-sequence-features
-            finally (return (sort new-sequence-features #'< :key #'third))))))
+      ;; Based on the non-matched intervals (e.g. '((0 4) (12 28))), create sequence new features to add to the root
+      (when non-matched-intervals
+        (loop for (feat-name string start end) in source-sequence-predicates ;;(sequence "what is the color of the cube?" 12 18)
+              for offset = (abs (- 0 start))
+              append (loop for (left right) in non-matched-intervals
+                           for normalised-left = (- left offset)
+                           for normalised-right = (- right offset)
+                           if (overlapping-lr-pairs-p (list start end) (list left right))
+                             collect (let ((unmatched-substring (subseq string normalised-left normalised-right)))
+                                       `(,feat-name ,unmatched-substring ,left ,right))) into new-sequence-features
+              finally (return (sort new-sequence-features #'< :key #'third)))))))
 
 
 
