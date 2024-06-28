@@ -282,6 +282,7 @@
 	     unit))))
 
 (defun recompute-sequence-in-source (tag-variable pattern-unit source-unit source bindings &key cxn-inventory)
+  "Recomputes the set of sequence predicates in source-unit based on bindings. "
   (let ((new-root nil)
         (processed-feature-names nil))    
     ;; we construct a new-unit which will later be added to the resulting structure
@@ -322,16 +323,12 @@
               (when feature-value
                 ;; we make a new feature
                 (if (eq (feature-name original-feature) 'form)
-                  (let* ((boundaries (flatten (mapcar #'(lambda (x) (when (equal (feature-name x) 'SEQUENCE)
-                                                                      (rest (rest x))))
-                                                      (feature-value (remove-special-operators (get-tag tag-variable pattern-unit) bindings)))))
-                         (new-form-value (when boundaries (sort (recompute-root-sequence-features-based-on-bindings
-                                                                 boundaries
-                                                                 (feature-value original-feature)
-                                                                 bindings) #'< :key #'third))))
-                    (setf new-feature (if new-form-value
-                                        (make-feature 'form new-form-value)
-                                        nil))) ;;form feature empty - all sequence predicates removed
+                  (let ((new-form-value (recompute-root-sequence-features-based-on-bindings
+                                               (feature-value (remove-special-operators (get-tag tag-variable pattern-unit) bindings)) ;;pattern 
+                                               (feature-value original-feature) ;;source
+                                               bindings)))
+                    (when new-form-value
+                      (setf new-feature (make-feature 'form new-form-value))))
                   (setf new-feature (make-feature (feature-name original-feature) feature-value)))
                 ;; we add newly constructed feature to new-unit
                 (push new-feature (unit-features new-root))))))))
@@ -498,9 +495,13 @@
       (lookup-binding binding bindings)
       binding)))
           
-(defun recompute-root-sequence-features-based-on-bindings (list-of-matched-indices root-sequence-features bindings)
+(defun recompute-root-sequence-features-based-on-bindings (pattern-sequence-predicates source-sequence-predicates bindings)
   "Makes new set of sequence predicates based on the indices that are present in the bindings."
-  (let (matched-positions matched-intervals non-matched-intervals)
+
+  (let ((list-of-matched-indices (flatten (mapcar #'(lambda (x) (when (equal (feature-name x) 'SEQUENCE) ;;why flatten??
+                                                                  (rest (rest x))))
+                                                  pattern-sequence-predicates)))
+        matched-positions matched-intervals non-matched-intervals)
 
     ;; taking care of matched-positions:
     (loop for index in list-of-matched-indices
@@ -519,8 +520,7 @@
     ;; taking care of matched-invervals:
     (setf matched-intervals
           (loop for i from 1 to (- (length matched-positions) 1)
-                for interval = (list (nth1 i matched-positions)
-                               (nth1 (+ i 1) matched-positions))
+                for interval = (list (nth1 i matched-positions) (nth1 (+ i 1) matched-positions))
                 do (setf i (+ i 1))
                 collect interval))
 
@@ -528,27 +528,20 @@
     (setf non-matched-intervals
           (calculate-unmatched-intervals matched-intervals (mapcar #'(lambda (feat)
                                                                        (list (third feat) (fourth feat)))
-                                                                   root-sequence-features)))
+                                                                   source-sequence-predicates)))
     
     ;; Based on the non-matched intervals (e.g. '((0 4) (12 28))), create sequence new features to add to the root
     (when non-matched-intervals
-      (loop for (feat-name string start end) in root-sequence-features ;;(sequence "what is the color of the cube?" 12 18)
+      (loop for (feat-name string start end) in source-sequence-predicates ;;(sequence "what is the color of the cube?" 12 18)
             for offset = (abs (- 0 start))
             append (loop for (left right) in non-matched-intervals
                          for normalised-left = (- left offset)
                          for normalised-right = (- right offset)
                          if (overlapping-lr-pairs-p (list start end) (list left right))
                            collect (let ((unmatched-substring (subseq string normalised-left normalised-right)))
-                                     `(,feat-name ,unmatched-substring ,left ,right)))))))
+                                     `(,feat-name ,unmatched-substring ,left ,right))) into new-sequence-features
+            finally (return (sort new-sequence-features #'< :key #'third))))))
 
-#|(recompute-root-sequence-features-based-on-bindings '((SEQUENCE "foolish child th" 0 16) (SEQUENCE "t she " 17 23)) 
-                                                    '((#:?SHE-UNIT-698 . #:SHE-UNIT-59) (#:?TAG-49046 FORM ((SEQUENCE "she" 19 22))) (#:?LEFT-18848 . 19) (#:?RIGHT-18848 . 22)))|#
-
-#|(recompute-root-sequence-features-based-on-bindings '((SEQUENCE " " 1 2) (SEQUENCE " " 5 6))
-                                                    '((#:?X-BE-UNIT-11704 . #:X-BE-UNIT-815) (#:?TAG-141244 FCG:FORM NIL) (#:?TO-BE-RIGHT-4737 . 5) (#:?TO-BE-LEFT-4737 . 2) (#:?TO-BE-STRING-4737 . "was") (#:?TO-BE-UNIT-18073 . #:WAS-UNIT-1210) (#:?SUBJECT-RIGHT-6008 . 1) (#:?SUBJECT-LEFT-6008 . 0) (#:?SUBJECT-STRING-6008 . "I") (#:?NUMBER-32839 . FCG::SINGULAR) (#:?SUBJECT-UNIT-19164 . #:I-UNIT-1692)))|#
-
-#|(recompute-root-sequence-features-based-on-bindings '((SEQUENCE " " 3 4) (SEQUENCE " " 12 13) (SEQUENCE " " 18 19) (SEQUENCE " " 22 23))
-'((#:?NOUN-PHRASE-4074 . #:NOUN-PHRASE-15) (#:?TAG-141672 FCG:FORM NIL) (#:?NOUN-RIGHT-8920 . 28) (#:?NOUN-LEFT-8920 . 23) (#:?NOUN-STRING-8825 . "mouse") (#:?NOUN-38 . #:MOUSE-WORD-6) (#:?ARTICLE-RIGHT-30 . 22) (#:?ARTICLE-LEFT-30 . 19) (#:?ARTICLE-STRING-30 . "the") (#:?ARTICLE-31 . #:THE-WORD-16)))|#
 
 
 (defun remove-tag-from-added (tag-variable pattern added bindings &key cxn-inventory)
