@@ -67,9 +67,9 @@
   (:documentation "Subclass of anti-unification result for strings"))
 
 (defclass sequences-au-result (anti-unification-result)
-  ((alignment-score
-    :accessor alignment-score :initarg :alignment-score :type number :initform 0
-    :documentation "The score of the maximal string alignment"))
+  ((alignment-cost
+    :accessor alignment-cost :initarg :alignment-cost :type number :initform 0
+    :documentation "The cost of the maximal string alignment"))
   (:documentation "Subclass of anti-unification result for sequence predicates"))
 
 
