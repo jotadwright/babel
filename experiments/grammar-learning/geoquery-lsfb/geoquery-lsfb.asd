@@ -13,7 +13,8 @@
                :irl
                :fcg
                :cl-json
-               :slp)
+               :slp
+               :au-benchmark)
   :serial t
   :components ((:file "package")
                (:file "create-dataset")

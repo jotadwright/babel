@@ -10,7 +10,8 @@
         :experiment-framework
         :irl
         :fcg
-        :slp)
+        :slp
+        :au-benchmark)
   (:import-from :cl-json
    :decode-json-from-string
    :encode-json-to-string
