@@ -7,10 +7,7 @@
 (defclass cle-agent (agent)
   ((lexicon
     :documentation "The agent's lexicon."
-    :type list :accessor lexicon :initform nil)
-   (trash
-    :documentation "The lexicon trash, contains cxns with an entrenchment score of zero."
-    :type list :accessor trash :initform nil)
+    :type lexicon :accessor lexicon :initarg :lexicon :initform nil)
    (disabled-channels
     :documentation "Disabled/defected channels."
     :type hash-table :accessor disabled-channels :initarg :disabled-channels :initform nil)
@@ -28,22 +25,22 @@
     :type usage-table :accessor usage-table :initarg :usage-table)
    (perceived-objects
     :documentation "Stores perceived objects"
-    :type perceived-objects :accessor perceived-objects :initform (make-hash-table))))
+    :type perceived-objects :accessor perceived-objects :initform (make-hash-table :test 'equal))))
 
 (defmethod clear-agent ((agent cle-agent))
   "Clear the slots of the agent for the next interaction."
   (setf (blackboard agent) nil
         (utterance agent) nil
         (invented-or-adopted agent) nil
-        (perceived-objects agent) (make-hash-table)
+        (perceived-objects agent) (make-hash-table :test 'equal)
         (communicated-successfully agent) nil))
 
 (defmethod find-in-lexicon ((agent cle-agent) (form string))
   "Finds constructions with the given form in the lexicon of the given agent."
-  (let ((result (find form (lexicon agent) :key #'form :test #'string=)))
-    (if result
-      result
-      (find form (trash agent) :key #'form :test #'string=))))
+  (find-form-in-lexicon (lexicon agent) form))
+
+(defmethod empty-lexicon-p ((agent cle-agent))
+  (eq (lexicon-size (lexicon agent)) 0))
 
 ;; ---------
 ;; + NOISE +
@@ -79,7 +76,7 @@
         ;; CASE 2B: object did not exist
         (progn
           ;; first create object
-          (setf (gethash (id object) (perceived-objects agent)) (make-hash-table))
+          (setf (gethash (id object) (perceived-objects agent)) (make-hash-table :test 'equal))
           ;; then set value
           (setf (gethash attr (gethash (id object) (perceived-objects agent))) final-val)))
       ;; in both cases return the final-value

@@ -359,6 +359,7 @@ constructions themselves. Intended to use in meta-layer for applying a
 construction on the fly."
   (let ((temporary-cxn-set
          (eval `(def-fcg-constructions ,(gensym)
+                  :hashed (when (eql (type-of fcg-construction-set) hashed-fcg-construction-set))
                   :feature-types ,(feature-types fcg-construction-set)
                   :hierarchy-features ,(hierarchy-features fcg-construction-set)
                   :disable-automatic-footprints ,(disable-automatic-footprints fcg-construction-set)
@@ -377,6 +378,9 @@ construction on the fly."
           (expansion-data (processing-cxn-inventory temporary-cxn-set)) expansion-data
           (blackboard temporary-cxn-set) blackboard
           (blackboard (processing-cxn-inventory temporary-cxn-set)) blackboard)
+
+    ;; We don't want to keep the categorial network
+    (set-data (blackboard temporary-cxn-set) :categorial-network (make-instance 'categorial-network))
 
     (setf (original-cxn-set (processing-cxn-inventory temporary-cxn-set)) temporary-cxn-set)
     

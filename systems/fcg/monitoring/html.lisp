@@ -997,7 +997,7 @@ div.construction > div.title { border:1px solid #008; background-color: #008;}
 	 (element-id-2 (make-id 'construction))
 	 (expand/collapse-all-id-left (make-id 'left-pole))
 	 (expand/collapse-all-id-right (make-id 'right-pole))
-	 (construction-title (make-html-construction-title construction))
+	 (construction-title (make-html-construction-title (original-cxn construction)))
          (construction-id (make-id (name construction)))
          (outer-div
           (lambda (children)
@@ -1117,7 +1117,7 @@ div.construction > div.title { border:1px solid #008; background-color: #008;}
     ((diagnosed-problem) . "#eb9500;")
     ((repaired-problem) . "#D0ABDB;")
     ((reused-from-chart) . "#e580ff;")
-    ((added-by-repair) . "#999900;")
+    ((added-by-repair) . "#ff5252;")
     ((diagnostic-triggered) . "#E65C00;")))
 
 (defun status-color (status)
@@ -1260,14 +1260,23 @@ table.car > tbody > tr > td:first-child { padding-right:15px; }
   
     (if routine-only
       `((span) ,(get-construction-inventory-title-string ci)
-        ,(format nil " (~a)" (if hide-zero-scored-cxns
-                           (count-if #'(lambda (cxn) (and (> (attr-val cxn :score) 0)
-                                                          (eql (attr-val cxn :label) 'fcg::routine))) (constructions-list ci))
-                           (count-if #'(lambda (cxn) (eql (attr-val cxn :label) 'fcg::routine)) (constructions-list ci)))))
+        ,(format nil " (~a construction~p)"
+                 (if hide-zero-scored-cxns
+                   (count-if #'(lambda (cxn) (and (> (attr-val cxn :score) 0)
+                                                  (eql (attr-val cxn :label) 'fcg::routine))) (constructions-list ci))
+                   (count-if #'(lambda (cxn) (eql (attr-val cxn :label) 'fcg::routine)) (constructions-list ci)))
+                 (if hide-zero-scored-cxns
+                   (count-if #'(lambda (cxn) (and (> (attr-val cxn :score) 0)
+                                                  (eql (attr-val cxn :label) 'fcg::routine))) (constructions-list ci))
+                   (count-if #'(lambda (cxn) (eql (attr-val cxn :label) 'fcg::routine)) (constructions-list ci)))))
     `((span) ,(get-construction-inventory-title-string ci)
-      ,(format nil " (~a)" (if hide-zero-scored-cxns
-                           (count-if #'(lambda (cxn) (> (attr-val cxn :score) 0)) (constructions-list ci))
-                           (size ci))))))
+      ,(format nil " (~a construction~p)"
+               (if hide-zero-scored-cxns
+                 (count-if #'(lambda (cxn) (> (attr-val cxn :score) 0)) (constructions-list ci))
+                 (size ci))
+               (if hide-zero-scored-cxns
+                 (count-if #'(lambda (cxn) (> (attr-val cxn :score) 0)) (constructions-list ci))
+                 (size ci))))))
 
 (defgeneric make-html-construction-inventory-body (cs &key &allow-other-keys)
   (:documentation "returns some html for the body of a construction set"))
@@ -1665,7 +1674,7 @@ div.cipn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; 
                                ((not (fully-expanded? cipn)) "font-style:italic;")
                                (t ""))))
     ,(if (car-applied-cxn (cipn-car cipn))
-       (make-html-construction-title (car-applied-cxn (cipn-car cipn)))
+       (make-html-construction-title (original-cxn (car-applied-cxn (cipn-car cipn))))
        "initial")))
 
 (defgeneric cipn-node-color (cipn cip)

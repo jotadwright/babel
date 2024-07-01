@@ -68,7 +68,7 @@
   (write-char #\> stream))
 
 (defun render-xml (element)
-  (let ((stream (make-string-output-stream))
+  (let ((stream (make-string-output-stream :element-type 'character))
 	(*print-escape* nil))
     (render-xml-aux element stream)
     (get-output-stream-string stream)))

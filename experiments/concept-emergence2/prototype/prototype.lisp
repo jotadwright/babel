@@ -30,6 +30,7 @@
   (cond ((= value 0) 0.5)
         ((= value 1) 0.622)
         ((= value -1) 0.378)
+        ((= value -5) 0.075)
         ((< value -35) 0)
         ((> value  35) 1)
         (t (sigmoid value))))

@@ -17,7 +17,8 @@
    (:module "irl"
     :serial t
     :components
-    ((:file "utils")))
+    ((:file "utils")
+     (:file "variablify")))
    (:module "anti-unification"
     :serial t
     :components

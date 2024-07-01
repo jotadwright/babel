@@ -84,10 +84,10 @@
           for all-new-states = (generate-render-states current-state)
           for valid-new-states = (test-render-states all-new-states :ordering-constraints)
           if (find nil valid-new-states :key #'remaining-string-constraints)
-          return (render (find nil valid-new-states :key #'remaining-string-constraints) :generate-and-test)
+            return (render (find nil valid-new-states :key #'remaining-string-constraints) :generate-and-test)
           else
-          do
-          (setf queue (append valid-new-states queue)))))
+            do
+              (setf queue (append valid-new-states queue)))))
 
 (defmethod render ((state render-state) (mode (eql :generate-and-test)) &key &allow-other-keys)
   "Returns the list of strings represented in a render-state"
@@ -262,7 +262,7 @@ string constraint with the variable ?Y."
              (incf index (length (second c)))
              (push (cons (fourth c) index) bindings)
              (incf index))
-    (reverse bindings)))          
+    (reverse bindings)))
 
 (defmethod render-all ((form-constraints list) (mode (eql :render-sequences)) &key &allow-other-keys)
   (let* ((sequence-constraints (remove-if-not #'stringp form-constraints :key #'second))
@@ -282,3 +282,14 @@ string constraint with the variable ?Y."
                      do (push (instantiate-boundaries valid-state) boundaries-bindings)
                         (push (render valid-state :render-sequences) solutions)))
     (values solutions boundaries-bindings)))
+
+
+;(render-all '((sequence "A" ?l1 ?r1) (sequence "BA" ?l2 ?r2)) :render-sequences)
+
+;(render-all '((sequence "A" ?l1 ?l2) (sequence "BA" ?l2 ?r2)) :render-sequences)
+
+;(merge-adjacent-sequence-predicates '((sequence "A" ?l1 ?l2) (sequence "BA" ?l2 ?r2)))
+
+;(merge-adjacent-sequence-predicates '((sequence "A" ?l1 ?l2) (sequence "BA" ?l2 ?r2) (sequence "C" ?l3 ?r3)))
+
+;(merge-adjacent-sequence-predicates '((sequence "C" ?l3 ?r3) (sequence "A" ?l1 ?l2) (sequence "BA" ?l2 ?r2) ))

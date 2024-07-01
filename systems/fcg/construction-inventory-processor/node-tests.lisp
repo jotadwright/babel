@@ -86,7 +86,7 @@
 
 (defmethod cip-node-test ((node cip-node) (mode (eql :restrict-search-depth)))
   (if (< (length (all-parents node))
-         (get-configuration (construction-inventory (cip node)) 'max-search-depth))
+         (get-configuration (construction-inventory (cip node)) :max-search-depth))
       t
       (and (push 'max-search-depth-reached (statuses node)) nil)))
 
@@ -97,7 +97,7 @@
 
 (defmethod cip-node-test ((node cip-node) (mode (eql :restrict-nr-of-nodes)))
   (if (< (created-at node)
-         (get-configuration (construction-inventory (cip node)) 'max-nr-of-nodes))
+         (get-configuration (construction-inventory (cip node)) :max-nr-of-nodes))
       t
       (and (push 'max-nr-of-nodes-reached (statuses node)) nil)))
 

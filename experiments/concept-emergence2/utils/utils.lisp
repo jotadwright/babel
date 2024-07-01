@@ -5,7 +5,7 @@
 ;; ---------------------------
 
 (defun read-scene-ids (fname)
-  (let* ((base-dir "~/Projects/babel/experiments/concept-emergence2/data/")
+  (let* ((base-dir "~/Corpora/concept-emergence2/")
          (fpath (concatenate 'string base-dir fname))
          (raw (uiop:read-file-lines fpath))
          (scene-ids (map 'list #'parse-integer raw)))
@@ -47,7 +47,7 @@
 
 (defun list-to-hash-table (lst &key (key #'identity))
   "Creates a hash table given a list."
-  (loop with tbl = (make-hash-table)
+  (loop with tbl = (make-hash-table :test 'equal)
         for el in lst
         do (setf (gethash (funcall key el) tbl) el)
         finally (return tbl)))

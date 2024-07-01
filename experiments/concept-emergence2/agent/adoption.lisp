@@ -11,7 +11,7 @@
   "Adopt a new cxn into the lexicon of the agent."
   (let ((new-cxn (make-cxn agent meaning form)))
     ;; push the new construction
-    (push new-cxn (lexicon agent))
+    (update-lexicon-inventory (lexicon agent) new-cxn)
     ;; update monitor
     (setf (invented-or-adopted agent) t)
     ;; notify
@@ -21,11 +21,9 @@
 
 (defmethod reset-adopt ((agent cle-agent) applied-cxn meaning)
   "Resets the cxn by resetting its meaning."
-  ;; if the cxn is in the trash, place it back in the lexicon
-  (when (<= (score applied-cxn) 0.0)
-    (push applied-cxn (lexicon agent))
-    (setf (trash agent) (remove applied-cxn (trash agent))))  
   (reset-cxn agent applied-cxn meaning)
+  ;; if the cxn is in the trash, place it back in the lexicon
+  (update-lexicon-inventory (lexicon agent) applied-cxn)
   ;; update monitor
   (setf (invented-or-adopted agent) t)
   ;; notify

@@ -16,18 +16,19 @@
        :package "cle"
        :experiment-class "cle-experiment"
        :number-of-interactions 10000
-       :number-of-series 3
+       :number-of-series 1
        :monitors (list "export-communicative-success"
                        "export-lexicon-coherence"
                        "export-experiment-configurations"
                        "export-experiment-store"
+                       "export-record-time"
                        "export-unique-form-usage"
                        "print-a-dot-for-each-interaction"
                        )
        ;; default configuration settings
        :shared-configuration `(
                 ;; monitoring
-                               (:dot-interval . 10)
+                               (:dot-interval . 100)
                 ;(:record-every-x-interactions . 100) ;; important for fast logging
                                (:usage-table-window . 1000)
                                (:save-distribution-history . nil)
@@ -35,10 +36,10 @@
                                (:interacting-agents-strategy . :standard)
                                (:population-size . 10)
                                ;; setup data scene
-                               (:dataset . "clevr")
+                               (:dataset . "gqaglove50")
                                (:dataset-split . "train")
                 ;(:data-fname . "all.lisp")
-                               (:available-channels ,@(get-all-channels :clevr))
+                               (:available-channels ,@(get-all-channels :gqaglove50))
                                ;; disable channels
                                (:disable-channels . :none)
                                (:amount-disabled-channels . 0)
@@ -57,8 +58,12 @@
                                (:initial-cxn-entrenchement . 0.5)
                                (:entrenchment-incf . 0.1)
                                (:entrenchment-decf . -0.1)
-                               (:entrenchment-li . -0.01) ;; lateral inhibition
-                               (:trash-concepts . t)
+                               (:entrenchment-li . -0.02) ;; lateral inhibition
+                               (:trash-threshold . 0.0)
+                               (:slow-threshold . -0.1)
+                               (:conceptualisation-heuristics . :heuristic-1)
+                               (:speaker-competitors . nil)
+                               (:hearer-competitors . nil)
                                ;; concept representations
                                (:concept-representation . :distribution)
                                (:distribution . :gaussian-welford)
@@ -71,14 +76,7 @@
                                ;; staging
                                (:switch-condition . :none) ; :after-n-interactions)
                                (:switch-conditions-after-n-interactions . 2500)
-                               (:stage-parameters
-                                ((:switch-dataset . "winery")
-                                 (:switch-dataset-split . "train")
-                  ;(:switch-data-fname . "all.lisp")
-                                 (:switch-scene-sampling . :random)
-                                 (:switch-topic-sampling . :random)
-                                 (:switch-available-channels ,@(get-all-channels :winery)))
-                                )
+                               (:stage-parameters nil)
                                )
        ;; configurations
        :configurations `(;(:similarity-threshold 0.0 0.01 0.05 0.1 0.2)

@@ -2,5 +2,6 @@
 
 for i in $(seq $1);
 do
-    sbatch slurm/paper-hydra.sh
+    sbatch slurm/$2.sh
+    sleep 60
 done

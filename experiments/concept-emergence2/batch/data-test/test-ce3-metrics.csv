@@ -1,0 +1,5 @@
+id,exp_name,nr_of_interactions,dataset,dataset_split,available_channels,scene_sampling,topic_sampling
+1,clevr-pa-pa,100000,clevr,test,:clevr,:random,:random
+2,clevr-pa-fh2,100000,clevr,test,:clevr,:random,:random
+3,clevr-mv-pa,100000,clevr,test,:clevr,:random,:random
+4,clevr-mv-fh2,100000,clevr,test,:clevr,:random,:random

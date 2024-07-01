@@ -1,7 +1,7 @@
 
 (in-package :meta-layer-learning)
 
-(export '(trace-learning trace-learning-verbose repair-returned-fixes))
+(export '(trace-learning trace-learning-verbose repair-returned-fixes all-diagnostics-run))
 
 ;; ############################################################################
 ;; Monitors for tracing learning mechanisms
@@ -38,5 +38,3 @@
 		       (format nil "+ Repair ~(~a~) returned fix"
 			       (type-of repair)))
   (format (monitor-stream monitor) "~%   ~:w" fix))
-
-

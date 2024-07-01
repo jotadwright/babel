@@ -5,6 +5,12 @@
 ;; --------------------------------
 
 (defmethod weighted-similarity ((agent cle-agent) (object cle-object) (concept concept))
+  (similarity agent
+              object
+              concept
+              (get-configuration agent :similarity-config)))
+
+(defmethod similarity ((agent cle-agent) (object cle-object) (concept concept) (mode (eql :paper)))
   "Compute the weighted similarity between an object and a concept."
   (loop with prototypes = (get-available-prototypes agent concept)
         with ledger = (loop for prototype in prototypes sum (weight prototype))
@@ -12,8 +18,25 @@
         for observation = (perceive-object-val agent object (channel prototype))
         for similarity = (observation-similarity observation prototype)
         if (and similarity (not (zerop ledger)))
-        ;; note: ledger could be factored out
-          sum (* (/ (weight prototype) ledger) similarity)))
+          ;; note: ledger could be factored out
+          sum (* (/ (weight prototype) ledger)
+                 (exp (- (abs similarity))))
+            into mahalanobis
+        finally (return mahalanobis)))
+
+(defmethod similarity ((agent cle-agent) (object cle-object) (concept concept) (mode (eql :multivariate)))
+  "Compute the weighted similarity between an object and a concept."
+  (loop with prototypes = (get-available-prototypes agent concept)
+        with ledger = (loop for prototype in prototypes sum (weight prototype))
+        for prototype in prototypes
+        for observation = (perceive-object-val agent object (channel prototype))
+        for similarity = (observation-similarity observation prototype)
+        if (and similarity (not (zerop ledger)))
+          ;; note: ledger could be factored out
+          sum (* (expt (/ (weight prototype) ledger) 2)
+                 (expt similarity 2))
+            into mahalanobis
+        finally (return (exp (* 1/2 (- mahalanobis))))))
 
 ;; ----------------------------------
 ;; + Comparing OBJECT <-> PROTOTYPE +
@@ -33,13 +56,9 @@
          (st-dev (st-dev distribution))
          (z-score (if (not (zerop st-dev))
                     (/ (- observation mean) st-dev)
-                    0))
-         (sim (z-score-to-probability z-score)))
-    sim))
+                    0)))
+    z-score))
 
-(defun z-score-to-probability (z-score)
-  "Convert a z-score to a probability."
-  (exp (- (abs z-score))))
 
 ;; -------------------------------
 ;; + Similarity between CONCEPTS +
@@ -55,9 +74,9 @@
         for proto1 in (get-available-prototypes agent concept1)
         for proto2 = (gethash (channel proto1) (prototypes concept2))
         if (and proto2 (not (zerop ledger1)) (not (zerop ledger2)))
-          sum (similar-prototypes proto1 proto2 ledger1 ledger2)))
+          sum (similar-prototypes proto1 proto2 ledger1 ledger2 (get-configuration agent :hellinger-config))))
 
-(defmethod similar-prototypes ((proto1 prototype) (proto2 prototype) (ledger1 number) (ledger2 number))
+(defmethod similar-prototypes ((proto1 prototype) (proto2 prototype) (ledger1 number) (ledger2 number) (sim-mode symbol))
   "Calculates the similarity between two prototypes.
    
    The similarity corresponds to a product t-norm of
@@ -71,6 +90,6 @@
         ;; similarity of the weights
         (weight-similarity (- 1 (abs (- (/ (weight proto1) ledger1) (/ (weight proto2) ledger2)))))
         ;; take complement of distance (1-h) so that it becomes a similarity metric
-        (prototype-similarity (- 1 (f-divergence (distribution proto1) (distribution proto2) :hellinger))))
+        (prototype-similarity (- 1 (f-divergence (distribution proto1) (distribution proto2) sim-mode))))
     ;; multiple all three
     (* avg-weight weight-similarity prototype-similarity)))

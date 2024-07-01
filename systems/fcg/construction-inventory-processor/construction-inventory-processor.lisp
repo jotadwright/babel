@@ -25,7 +25,7 @@
           succeeded-nodes create-construction-inventory-processor
           fcg-apply-with-n-solutions fcg-apply-exhaustively upward-branch cip-enqueue))
 
-(defclass construction-inventory-processor ()
+(defclass construction-inventory-processor (object-w-learning blackboard)
   ((construction-inventory 
     :type construction-inventory :initarg :construction-inventory 
     :accessor construction-inventory
@@ -154,11 +154,16 @@
 (defmethod parent ((node cip-node))
   (first (all-parents node)))
 
-(defun upward-branch (cipn &key (include-initial t))
+
+(defgeneric upward-branch (node &key include-initial)
+  (:documentation "Returns the upward branch of node in tree"))
+
+(defmethod upward-branch ((cipn cip-node) &key (include-initial t))
   "Returns the given cipn and all its parents"
   (cons cipn (if include-initial
                  (all-parents cipn)
                  (butlast (all-parents cipn)))))
+
 
 (defgeneric siblings (cip-node)
   (:documentation "Returns all siblings of the give node. Does not include itself."))
@@ -873,7 +878,7 @@ links between applied constructions for priming effects."
 		      construction-inventory 
 		      (get-configuration
                        construction-inventory
-                       'construction-inventory-processor-mode)
+                       :construction-inventory-processor-mode)
 		      :initial-cfs cfs :direction direction) :notify notify))
 
 ;; You have to pass through fcg-apply specialised on
@@ -899,18 +904,24 @@ links between applied constructions for priming effects."
   (loop 
      with solutions = nil
      with cip = nil
-     initially (multiple-value-bind (solution new-cip)
+     with non-succeeded-solution = nil
+     initially (multiple-value-bind (solution new-cip non-succeeded-solution-p)
                    (fcg-apply construction-inventory cfs direction 
                               :notify nil)
                  (when solution (push solution solutions))
-                 (setf cip new-cip))
+                 (setf cip new-cip)
+                 (setf non-succeeded-solution non-succeeded-solution-p))
      for i from 2 to (or n 32000) ;; from 2 because we already did one in the initially
-     for (solution new-cip non-succeeded-solution-p) = (multiple-value-list (next-cip-solution cip :notify nil))
+     for (solution new-cip non-succeeded-solution-p) = (if non-succeeded-solution
+                                                          ;; if no succeeded solution was found in the first place, don't look for a second
+                                                         (values nil nil nil) 
+                                                         (multiple-value-list (next-cip-solution cip :notify nil)))
+     when new-cip
      do (setf cip new-cip) ; potentially a new cip if there was a restart
      while (and solution (not non-succeeded-solution-p)) do (setf solutions (append solutions (list solution)))
      finally
        (when notify (notify fcg-apply-w-n-solutions-finished solutions cip))
-     (return (values solutions cip))))
+       (return (values solutions cip non-succeeded-solution))))
 
 (defun fcg-apply-exhaustively (construction-inventory cfs direction &key (notify t))
   "returns all solutions of a construction inventory application"
