@@ -33,7 +33,7 @@
                        (:li-punishement . 0.5)
                        (:best-solution-mode . :highest-average-link-weight)
                        (:induce-cxns-mode . :filler-and-linking)
-                       (:form-generalisation-mode . :needleman-wunsch)
+                       (:form-generalisation-mode . :gotoh)
                        (:meaning-generalisation-mode . :exhaustive)
                        (:k-swap-k . 1)
                        (:k-swap-w . 1)
