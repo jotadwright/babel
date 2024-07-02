@@ -42,7 +42,7 @@
                        (:li-punishement . 0.1)
                        (:best-solution-mode . :highest-average-link-weight)
                        (:induce-cxns-mode . :filler-and-linking)
-                       (:form-generalisation-mode . :needleman-wunsch)
+                       (:form-generalisation-mode . :gotoh)
                        (:max-nr-of-gaps-in-form-predicates . 1)
                        (:meaning-generalisation-mode . :k-swap)
                        (:k-swap-k . 1)
@@ -107,7 +107,7 @@
                        (:li-punishement . 0.5)
                        (:best-solution-mode . :highest-average-link-weight)
                        (:induce-cxns-mode . :filler-and-linking)
-                       (:form-generalisation-mode . :needleman-wunsch)
+                       (:form-generalisation-mode . :gotoh)
                        (:meaning-generalisation-mode . :exhaustive)
                        (:k-swap-k . 1)
                        (:k-swap-w . 1)
@@ -134,7 +134,7 @@
 
 (reset-cp *clevr-stage-1-train-processor*)
 (setf *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
-(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar*  :nr-of-speech-acts 1)
+(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar*  :nr-of-speech-acts 2)
 
 (comprehend (current-speech-act *clevr-stage-1-train-processor*)  :cxn-inventory *clevr-stage-1-grammar*)
 

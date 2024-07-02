@@ -151,4 +151,5 @@
                  (:file "test-anti-unification")
                  (:file "test-fcg-light")
                  (:file "test-categorial-networks")
-                 (:file "test-form-sequences")))))
+                 (:file "test-form-sequences")
+                 (:file "test-sequence-alignment")))))

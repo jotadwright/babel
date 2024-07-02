@@ -511,6 +511,25 @@ non-applicable constructions."
           do (return au-form-results)
         finally (return au-form-results)))
 
+(defmethod anti-unify-form ((cxn-sequence-predicates list)
+                            (speech-act-sequence-predicates list)
+                            (mode (eql :gotoh)) &key &allow-other-keys)
+  (loop with au-results = (anti-unify-sequences cxn-sequence-predicates speech-act-sequence-predicates
+                                                :match-cost -1
+                                                :mismatch-cost 5
+                                                :gap-opening-cost 5
+                                                :gap-extension-cost  0
+                                                :remove-duplicate-alignments t
+                                                :n-optimal-alignments nil
+                                                :max-nr-of-gaps nil)
+        with cost = (when au-results (cost (first au-results)))
+        for au-result in au-results
+        if (= cost (cost au-result))
+          collect au-result into au-form-results
+        else
+          do (return au-form-results)
+        finally (return au-form-results)))
+
 
 (defgeneric anti-unify-meaning (cxn-meaning speech-act-meaning mode &key cxn-inventory &allow-other-keys)
   (:documentation "Anti-unification of meaning."))
