@@ -28,12 +28,12 @@
 ;; if there are no more remaining-string-constraints. The strings (third element) of the used-string-constraints are          ;;
 ;; then considered the rendered utterance.                                                                                    ;;
 ;;                                                                                                                            ;;
-;; For implementing a new ordering constraint, just implement a function with the name of the constraint, and as that         ;;
+;; For implementing a new ordering constraint, just implement a function with the name of the constraint, and as              ;;
 ;; arguments the arguments of the constraint + a list of string constraints. Ensure that the function returns t if the        ;;
-;; list of string constraints satisfies the ordering constrint, nil otherwise. See below e.g. meets or precedes.              ;;
+;; list of string constraints satisfies the ordering constraint, nil otherwise. See below e.g. meets or precedes.             ;;
 ;;                                                                                                                            ;; 
-;; For efficiency reasons, try to to implement the constraint in such a way that it failes soon enougth. For example,         ;;
-;; consider (meets ?x ?y). When ?y is found in used-string-constraints and ?x not, the meets function can already safely      ;;
+;; For efficiency reasons, try to to implement the constraint in such a way that it failes soon enough. For example,          ;;
+;; consider (meets ?x ?y). When ?y is found in used-string-constraints and ?x is not, the meets function can already safely   ;;
 ;; return nil, as it will never be a solution. No need to wait until both ?x and ?y have been found.                          ;;
 ;;                                                                                                                            ;;
 ;; Ordering constraints that contain units not present in any string constraint are discarded at the beginning.               ;;
@@ -198,6 +198,7 @@ string constraint with the variable ?Y."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod render ((cfs coupled-feature-structure) (mode (eql :render-sequences)) &key &allow-other-keys)
+  "Renders a cfs based on sequence predicates."
   (render (extract-forms (left-pole-structure cfs)) :render-sequences))
 
 (defmethod render ((form-constraints list) (mode (eql :render-sequences)) &key &allow-other-keys)
