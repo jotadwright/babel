@@ -275,7 +275,8 @@
              (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
              (source-boundary-vars (make-boundary-vars nil source-boundaries current-left-source-boundary :gap t))
              (pattern-boundary-vars (make-boundary-vars i pattern-boundaries current-left-pattern-boundary))
-             (new-gap-p (equal (first match-positions) (cons i j)))
+             (new-gap-p (not (eql (first aligned-source) #\_)))
+             (gap-counter-new-gap-p (equal (first match-positions) (cons (+ i 1) (+ j 1))))
              (cost-increase (if new-gap-p (+ gap-extension-cost gap-opening-cost) gap-extension-cost))
              (next-state (make-instance 'sequence-alignment-state
                                         :aligned-pattern expanded-pattern
@@ -285,7 +286,7 @@
                                         :i (- i 1) :j j
                                         :cost (+ cost cost-increase)
                                         :match-positions match-positions
-                                        :gap-counter (if new-gap-p (+ 1 gap-counter) gap-counter)
+                                        :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
                                         :prev-edge 'vertical)))
         ;; when d is set, the next edge has to be vertical
         (when (= (aref d i j) 1)
@@ -311,7 +312,8 @@
              (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
              (source-boundary-vars (make-boundary-vars j source-boundaries current-left-source-boundary))
              (pattern-boundary-vars (make-boundary-vars nil pattern-boundaries current-left-pattern-boundary :gap t))
-             (new-gap-p (equal (first match-positions) (cons i j)))
+             (new-gap-p (not (eql (first aligned-pattern) #\_)))
+             (gap-counter-new-gap-p (equal (first match-positions) (cons (+ i 1) (+ j 1))))
              (cost-increase (if new-gap-p (+ gap-extension-cost gap-opening-cost) gap-extension-cost))
              (next-state (make-instance 'sequence-alignment-state
                                         :aligned-pattern expanded-pattern
@@ -321,7 +323,7 @@
                                         :i i :j (- j 1)
                                         :cost (+ cost cost-increase)
                                         :match-positions match-positions
-                                        :gap-counter (if new-gap-p (+ 1 gap-counter) gap-counter)
+                                        :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
                                         :prev-edge 'horizontal)))
         ;; when f is set, the next edge has to be horizontal
         (when (= (aref f i j) 1)
@@ -350,7 +352,7 @@
              (pattern-boundary-vars (make-boundary-vars i pattern-boundaries current-left-pattern-boundary))
              (new-gap-p (or (and (null match-positions) (null matchp))
                             (and (first match-positions)
-                                 (equal (first match-positions) (cons i j))
+                                 (equal (first match-positions) (cons (+ i 1) (+ j 1)))
                                  (null matchp))))
              (next-state (make-instance 'sequence-alignment-state
                                         :aligned-pattern expanded-pattern
@@ -359,7 +361,7 @@
                                         :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
                                         :i (- i 1) :j (- j 1)
                                         :cost (+ cost (if matchp match-cost mismatch-cost))
-                                        :match-positions (if matchp (cons (cons (- i 1) (- j 1)) match-positions) match-positions)
+                                        :match-positions (if matchp (cons (cons i j) match-positions) match-positions)
                                         :gap-counter (if new-gap-p (+ 1 gap-counter) gap-counter)
                                         :prev-edge 'diagonal)))
         ;; return the next state
