@@ -92,8 +92,7 @@ it."
                   :bindings bindings
                   :merge? t
                   :cxn-inventory cxn-inventory)
-    (when new-bindings
-      (setf bindings new-bindings))
+      (setf bindings new-bindings)
     (fcg-merge expanded-structure source bindings)))
 
 (defun clean-expansion (pattern bindings &key cxn-inventory &allow-other-keys)
@@ -108,6 +107,7 @@ it."
                    :merge? t
                    :cxn-inventory cxn-inventory)
      (setf bindings new-bindings)
+     (pprint bindings)
      (values (remove-special-operators expanded-structure bindings :cxn-inventory cxn-inventory) bindings)))
 
 
