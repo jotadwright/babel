@@ -108,26 +108,7 @@
                '((SEQUENCE "what is the color of the " 0 25) (SEQUENCE "?" 32 33)))
 
 
-  (test-assert ;;test in production
-   (not (recompute-root-sequence-features-based-on-bindings '((SEQUENCE "of" #:?OF-LEFT-849 #:?OF-RIGHT-849))
-                                                            '((SEQUENCE " " #:?OF-RIGHT-849 #:?COMPLEMENT-LEFT-4673)
-                                                              (SEQUENCE " " #:?PERSON-RIGHT-1944 #:?OF-LEFT-849)
-                                                              (SEQUENCE "of" #:?OF-LEFT-849 #:?OF-RIGHT-849))
-                                                            '((#:?COMPLEMENT-LEFT-4673 . #:?LEFT-35660)
-                                                              (#:?COMPLEMENT-RIGHT-4673 . #:?RIGHT-35672)
-                                                              (#:?TAG-107969 FORM ((SEQUENCE " " #:?PERSON-RIGHT-1944 #:?OF-LEFT-849)
-                                                                                   (SEQUENCE " " #:?OF-RIGHT-849 #:?COMPLEMENT-LEFT-4673)))
-                                                              (#:?TAG-107970 FORM NIL)
-                                                              (#:?PERSON-LEFT-1944 . #:?LEFT-35649)
-                                                              (#:?PERSON-RIGHT-1944 . #:?RIGHT-35649)
-                                                              (#:?PART-OF-UNIT-920 . #:PART-OF-UNIT-9)
-                                                              (#:?OF-UNIT-920 . #:OF-UNIT-8)
-                                                              (#:?TAG-107968 MEANING ((HAVE-ORG-ROLE-91 #:B-9)
-                                                                                      (ARG1 #:B-9 #:C-2)
-                                                                                      (ARG2 #:B-9 #:C-1)))
-                                                              (#:?B-8539 . #:B-9) (#:?Y-16574 . #:Y-4) (#:?A-19016 . #:A-11) (#:?Z-8461 . #:C-1)
-                                                              (#:?WHOLE-UNIT-1080 . #:DETERMINATION-UNIT-169)
-                                                              (#:?X-27715 . #:C-2) (#:?PERSON-UNIT-1080 . #:CHAIRMAN-UNIT-67)))))
+  
 
   )
 

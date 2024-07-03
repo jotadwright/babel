@@ -117,7 +117,7 @@
         (ordering-constraints (ordering-constraints state)))
     (loop with solution = t
           for oc in ordering-constraints
-          unless (apply (first oc) (append (rest oc) (list used-string-constraints)))
+          unless (apply (first oc) (append (rest oc) (list used-string-constraints mode)))
           do (setf solution nil)
           finally (return solution))))
 
@@ -137,10 +137,14 @@ string constraint with the variable ?Y."
 ;; Ordering Constraints ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun meets (el-1 el-2 string-constraints)
+(defgeneric meets (el-1 el-2 form-constraints mode)
+  (:documentation "Implementation of meets constraint.")
+  )
+
+(defmethod meets ((el-1 t) (el-2 t) (form-constraints list) (mode (eql :ordering-constraints)))
   "If el-1 and el-2 are in string-constraints el-1 must be immediately left-adjacent to el-2"
-  (let ((index-el-1 (position el-1 string-constraints :key #'second :test #'equal))
-        (index-el-2 (position el-2 string-constraints :key #'second :test #'equal)))
+  (let ((index-el-1 (position el-1 form-constraints :key #'second :test #'equal))
+        (index-el-2 (position el-2 form-constraints :key #'second :test #'equal)))
     (cond
      ;; for efficiency
      ((and (null index-el-1)
@@ -154,14 +158,18 @@ string constraint with the variable ?Y."
      (t
       nil))))
 
-;; (meets '?red-1 '?cube-1 '((string ?the-1"the") (string ?red-1 "red") (string ?cube-1 "cube")))
-;; (meets '?cube-1 '?red-1 '((string ?the-1 "the") (string ?red-1 "red") (string ?cube-1 "cube")))
-;; (meets '?the-1 '?cube-1 '((string ?the-1 "the") (string ?red-1 "red") (string ?cube-1 "cube")))
+;; (meets '?red-1 '?cube-1 '((string ?the-1"the") (string ?red-1 "red") (string ?cube-1 "cube")) :ordering-constraints)
+;; (meets '?cube-1 '?red-1 '((string ?the-1 "the") (string ?red-1 "red") (string ?cube-1 "cube")) :ordering-constraints)
+;; (meets '?the-1 '?cube-1 '((string ?the-1 "the") (string ?red-1 "red") (string ?cube-1 "cube")) :ordering-constraints)
 
-(defun precedes (el-1 el-2 string-constraints)
+(defgeneric precedes (el-1 el-2 form-constraints mode)
+  (:documentation "Implementation of precedes constraint.")
+  )
+
+(defmethod precedes ((el-1 t) (el-2 t) (form-constraints list) (mode (eql :ordering-constraints)))
   "If el-1 and el-2 are in string-constraints el-1 must be occur earlier than el-2"
-  (let ((index-el-1 (position el-1 string-constraints :key #'second :test #'equal))
-        (index-el-2 (position el-2 string-constraints :key #'second :test #'equal)))
+  (let ((index-el-1 (position el-1 form-constraints :key #'second :test #'equal))
+        (index-el-2 (position el-2 form-constraints :key #'second :test #'equal)))
     (cond 
      ;; for efficiency
      ((and (null index-el-1)
@@ -179,16 +187,21 @@ string constraint with the variable ?Y."
 ;; (precedes '?cube-1 '?red-1 '((string ?the-1 "the") (string ?red-1 "red") (string ?cube-1 "cube")))
 ;; (precedes '?the-1 '?cube-1 '((string ?the-1 "the") (string ?red-1 "red") (string ?cube-1 "cube")))
 
-(defun first-el (el string-constraints)
+
+(defgeneric first-el (el form-constraints mode)
+  (:documentation "Implementation of first-el constraint.")
+  )
+
+(defmethod first-el ((el t) (form-constraints list) (mode (eql :ordering-constraints)))
   "el should be the first element in string-constraints"
-  (let ((index-el (position el string-constraints :key #'second :test #'equal)))
+  (let ((index-el (position el form-constraints :key #'second :test #'equal)))
     (if (and index-el (= index-el 0))
           t
           nil)))
 
-;; (first-el '?the-1  '((string ?the-1"the") (string ?red-1 "red") (string ?cube-1 "cube")))
-;; (first-el '?red-1  '((string ?the-1"the") (string ?red-1 "red") (string ?cube-1 "cube")))
-;; (first-el '?cube-1  '((string ?the-1"the") (string ?red-1 "red") (string ?cube-1 "cube")))
+;; (first-el '?the-1  '((string ?the-1"the") (string ?red-1 "red") (string ?cube-1 "cube")) :ordering-constraints)
+;; (first-el '?red-1  '((string ?the-1"the") (string ?red-1 "red") (string ?cube-1 "cube")) :ordering-constraints)
+;; (first-el '?cube-1  '((string ?the-1"the") (string ?red-1 "red") (string ?cube-1 "cube")) :ordering-constraints)
 
 
 
@@ -204,9 +217,12 @@ string constraint with the variable ?Y."
 (defmethod render ((form-constraints list) (mode (eql :render-sequences)) &key &allow-other-keys)
   "Returns a string satisfying the list-of-form-constraints"
   (let* ((sequence-constraints (remove-if-not #'stringp form-constraints :key #'second))
+         (ordering-constraints (filter-by-sequence-constraints (remove-if #'stringp form-constraints :key #'second)
+                                                               sequence-constraints))
          (queue (list (make-instance 'render-state
                                      :used-string-constraints nil
-                                     :remaining-string-constraints (shuffle sequence-constraints)))))
+                                     :remaining-string-constraints (shuffle sequence-constraints)
+                                     :ordering-constraints ordering-constraints))))
     (loop while queue
           for current-state = (pop queue)
           for all-new-states = (generate-render-states current-state)
@@ -218,6 +234,35 @@ string constraint with the variable ?Y."
           (setf queue (append valid-new-states queue)))))
 
 
+(defmethod precedes ((el-1 t) (el-2 t) (form-constraints list) (mode (eql :order-sequences)))
+  "If el-1 and el-2 are in string-constraints el-1 must be occur earlier than el-2"
+  (let ((index-el-1 (or (position el-1 form-constraints :key #'third :test #'equal)
+                        (position el-1 form-constraints :key #'fourth :test #'equal)))
+        (index-el-2 (or (position el-2 form-constraints :key #'third :test #'equal)
+                        (position el-2 form-constraints :key #'fourth :test #'equal))))
+    (cond 
+     ;; for efficiency
+     ((and (null index-el-1)
+           index-el-2)
+      nil)
+     ;; real testing
+     ((or (null index-el-1) (null index-el-2))
+      t)
+     ((< index-el-1 index-el-2)
+      t)
+     (t
+      nil))))
+
+(defun filter-by-sequence-constraints (ordering-constraints sequence-constraints)
+  "Returns only those ordering constraints of which the units occur in
+string constraints. E.g. discards (meets ?X ?Y), where there is no
+string constraint with the variable ?Y."
+  (loop for oc in ordering-constraints
+        unless (loop for boundary in (rest oc)
+                     unless (find boundary sequence-constraints :key #'cddr :test #'member)
+                     return t)
+        collect oc))
+
 (defmethod test-render-states (list-of-states (mode (eql :order-sequences)))
   "Tests each state in list-of-states and returns a list of states that passed the test"
   (loop for state in list-of-states
@@ -226,12 +271,21 @@ string constraint with the variable ?Y."
 
 (defmethod test-render-state (state (mode (eql :order-sequences)))
   "Test whether render state does not contain an illegal chain of sequences"
+  (when (test-sequence-ordering (used-string-constraints state))
+    (loop with solution = t
+          for oc in (ordering-constraints state)
+          unless (apply (first oc) (append (rest oc) (list (used-string-constraints state) mode)))
+            do (setf solution nil)
+          finally (return solution))))
+
+(defun test-sequence-ordering (sequence-predicates)
+  ""
   (loop with solution = t
-        for sequence-predicate in (used-string-constraints state)
+        for sequence-predicate in sequence-predicates
         for i from 1
-        for remaining-constraints = (subseq (used-string-constraints state) i)
+        for remaining-constraints = (subseq sequence-predicates i)
         when remaining-constraints
-        do (loop for next-sequence-predicate in remaining-constraints
+          do (loop for next-sequence-predicate in remaining-constraints
                    for j from i
                    for left-1 = (third sequence-predicate)
                    for right-1 = (fourth sequence-predicate)
@@ -265,11 +319,18 @@ string constraint with the variable ?Y."
              (incf index))
     (reverse bindings)))
 
+(defmethod render-all ((cfs coupled-feature-structure) (mode (eql :render-sequences)) &key &allow-other-keys)
+  "Renders a cfs based on sequence predicates (all solutions)."
+  (render-all (extract-forms (left-pole-structure cfs)) :render-sequences))
+
 (defmethod render-all ((form-constraints list) (mode (eql :render-sequences)) &key &allow-other-keys)
   (let* ((sequence-constraints (remove-if-not #'stringp form-constraints :key #'second))
+         (ordering-constraints (filter-by-sequence-constraints (remove-if #'stringp form-constraints :key #'second)
+                                                               sequence-constraints))
          (queue (list (make-instance 'render-state
                                      :used-string-constraints nil
-                                     :remaining-string-constraints (shuffle sequence-constraints))))
+                                     :remaining-string-constraints (shuffle sequence-constraints)
+                                     :ordering-constraints ordering-constraints)))
          (solutions nil)
          (boundaries-bindings nil))
     (loop while queue
