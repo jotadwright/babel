@@ -124,23 +124,23 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defun recompute-root-sequence-features-based-on-bindings (pattern-sequence-predicates source-sequence-predicates bindings)
+(defun recompute-root-sequence-features-based-on-bindings (pattern-form-predicates source-form-predicates bindings)
   "Makes new set of sequence predicates based on the indices that are present in the bindings."
 
-  (let ((matched-positions (compute-matched-positions pattern-sequence-predicates bindings)))
-   
-    (when matched-positions
+  (let ((matched-positions (compute-matched-positions pattern-form-predicates bindings)))
+
+    (if matched-positions
       (let* ((matched-intervals (loop for i from 1 to (- (length matched-positions) 1)
                                       for interval = (list (nth1 i matched-positions) (nth1 (+ i 1) matched-positions))
                                       do (setf i (+ i 1))
                                       collect interval))
              (non-matched-intervals (calculate-unmatched-intervals matched-intervals (mapcar #'(lambda (feat)
                                                                                                  (list (third feat) (fourth feat)))
-                                                                                             source-sequence-predicates))))
+                                                                                             source-form-predicates))))
 
         ;; Based on the non-matched intervals (e.g. '((0 4) (12 28))), create sequence new features to add to the root
         (when non-matched-intervals
-          (loop for (feat-name string start end) in source-sequence-predicates ;;(sequence "what is the color of the cube?" 12 18)
+          (loop for (feat-name string start end) in source-form-predicates ;;(sequence "what is the color of the cube?" 12 18)
                 for offset = (abs (- 0 start))
                 append (loop for (left right) in non-matched-intervals
                              for normalised-left = (- left offset)
@@ -148,7 +148,10 @@
                              if (overlapping-intervals-p (list start end) (list left right))
                                collect (let ((unmatched-substring (subseq string normalised-left normalised-right)))
                                          `(,feat-name ,unmatched-substring ,left ,right))) into new-sequence-features
-                finally (return (sort new-sequence-features #'< :key #'third))))))))
+                finally (return (sort new-sequence-features #'< :key #'third)))))
+      ;;If there were no sequence predicates, nothing changes in the source
+      source-form-predicates
+      )))
 
 
 (defun compute-matched-positions (pattern-sequence-predicates bindings)
