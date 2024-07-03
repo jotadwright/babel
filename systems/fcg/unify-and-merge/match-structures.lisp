@@ -168,6 +168,7 @@
 				 result))))))
 	     result)))))
 
+
 (defun merge-unit-features (fs1 fs2 bindings &key cutoff cxn-inventory)
   (make-subset fs1 fs2 bindings
 	       :test-fn #'(lambda (f1 f2) 
@@ -446,10 +447,12 @@
     (when (consp tag-val)
       (setq special-op (first tag-val))
       (if (eq special-op '++)
-          (retrieve-special-operator (fcg-expand (second tag-val) :merge? t :bindings bindings 
-                                                 :source nil :value (third tag-val))
-                                     bindings)
-          special-op))))
+          (cons '++
+                (cons (second tag-val)
+                      (retrieve-special-operator (fcg-expand (second tag-val) :merge? t :bindings bindings
+                                                             :source nil :value (third tag-val))
+                                                 bindings)))
+          (list special-op)))))
   
 
 (defun deep-lookup (unit-var bindings)
@@ -544,10 +547,15 @@ HANDLE-J-UNITS. Returns a list of MERGE-RESULTs."
  		      (make-feature (feature-name tag-value)
 				    (cons special-op (feature-value tag-value)))
  		      )
-	      (let* ((to-merge (if special-op
-				   (make-feature (feature-name tag-value)
-						 (cons special-op (feature-value tag-value)))
-				   tag-value))
+	      (let* ((to-merge (cond ((not special-op)
+                                      tag-value)
+                                     ((= 1 (length special-op))
+                                      (make-feature (feature-name tag-value)
+                                                    (append special-op (feature-value tag-value))))
+                                     ((= 3 (length special-op)) ;; ++ operator
+                                      (make-feature (feature-name tag-value)
+                                                    (list (first special-op) (second special-op)
+                                                          (cons (third special-op) (feature-value tag-value)))))))
 		     (merges (merge-unit-features
 			      (list to-merge)
 			      (unit-features new-unit)
@@ -567,9 +575,13 @@ HANDLE-J-UNITS. Returns a list of MERGE-RESULTs."
 					    (list (make-unit 
 						   :name (unit-name new-unit)
 						   :features
-						   (list (if special-op 
-							     (make-feature (feature-name tag-value)
-									   (cons special-op (feature-value tag-value)))))))
+						   (list (cond ((= 1 (length special-op))
+                                                                (make-feature (feature-name tag-value)
+                                                                              (append special-op (feature-value tag-value))))
+                                                               ((= 3 (length special-op)) ;; ++ operator
+                                                                (make-feature (feature-name tag-value)
+                                                                              (list (first special-op) (second special-op)
+                                                                                    (cons (third special-op) (feature-value tag-value)))))))))
 					    added
 					    bindings
                                             nil

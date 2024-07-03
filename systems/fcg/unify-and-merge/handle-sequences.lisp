@@ -11,16 +11,13 @@
   "Regex match cxn form sequences in root form sequences and merge new bindings into bindings list."
   (declare (ignore cxn-inventory))
   (if merge?
-    ;; 
     (let ((precedes-predicates (find-all-if #'(lambda (predicate)
                                                   (eql (first predicate) 'precedes)) (rest value))))
       (if precedes-predicates
         (if (loop for (nil left right) in precedes-predicates
-                  for left-binding = (cdr (assoc left bindings))
-                  for right-binding = (cdr (assoc right bindings))
-                  when (and left-binding
-                            right-binding
-                            (> left-binding right-binding))
+                  when (and (numberp left)
+                            (numberp right)
+                            (> left right))
                     do (return nil)
                   finally (return t))
           (values value bindings)

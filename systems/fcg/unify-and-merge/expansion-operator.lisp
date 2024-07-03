@@ -99,16 +99,13 @@ it."
   ;; cleaning a ++ also entails expanding it! This is required
   ;; because in merging when source = nil merge-fn isn't called (only
   ;; clean-fn)
-   (multiple-value-bind (expanded-structure new-bindings)
-       (fcg-expand (get-expansion-type pattern) 
-                   :value (get-expansion-value pattern) 
-                   :source nil
-                   :bindings bindings
-                   :merge? t
-                   :cxn-inventory cxn-inventory)
-     (setf bindings new-bindings)
-     (pprint bindings)
-     (values (remove-special-operators expanded-structure bindings :cxn-inventory cxn-inventory) bindings)))
+  (let ((expanded-structure (fcg-expand (get-expansion-type pattern) 
+                                        :value (get-expansion-value pattern) 
+                                        :source nil
+                                        :bindings bindings
+                                        :merge? t
+                                        :cxn-inventory cxn-inventory)))
+    (values (remove-special-operators expanded-structure bindings :cxn-inventory cxn-inventory) bindings)))
 
 
 (add-special-operator (make-instance 'special-operator
