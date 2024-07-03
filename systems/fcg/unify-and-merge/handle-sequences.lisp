@@ -29,7 +29,7 @@
       (if sequence-predicates
         (let ((sequence-bindings-lists (match-pattern-sequence-predicates-in-source-sequence-predicates sequence-predicates source bindings)))
           (if sequence-bindings-lists
-            ;; If sequence predicates could be match, add bindings
+            ;; If sequence predicates could be matched, add bindings  
             (values source (merge-bindings-lists bindings sequence-bindings-lists))
             ;; Fail if sequence predicates could not be matched
             nil))

@@ -533,28 +533,20 @@ HANDLE-J-UNITS. Returns a list of MERGE-RESULTs."
 		(remove-tag-from-added e pattern added bindings :cxn-inventory cxn-inventory))
 	      #+dbg
  	      (format t "~%e=~A=>source=~A" e source)
-              ;; As far as I understand: at this point the tag
-              ;; variable is bound to its value BUT for some reason
-              ;; without the initial special operator... Therefore the
-              ;; tag is looked up again and the special operator is
-              ;; fetched. This however does not work for ++ operator.
+              ;; The tag value was added during matching to the bindings list without special operators.
+              ;; The special operator is looked up here and added one level deep (!) in combination with a potential expansion operator.
 	      (let ((tag-val (feature-value (get-tag e pattern-unit))))
                 (setq special-op (retrieve-special-operator tag-val bindings)))
-	      #+dbg
- 	      (format t "~%(values '~A '~A '~A)" 
-		      special-op
-		      tag-value
- 		      (make-feature (feature-name tag-value)
-				    (cons special-op (feature-value tag-value))))
-	      (let* ((to-merge (cond ((not special-op)
-                                      tag-value)
-                                     ((= 1 (length special-op))
-                                      (make-feature (feature-name tag-value)
-                                                    (append special-op (feature-value tag-value))))
-                                     ((= 3 (length special-op)) ;; ++ operator
-                                      (make-feature (feature-name tag-value)
-                                                    (list (first special-op) (second special-op)
-                                                          (cons (third special-op) (feature-value tag-value)))))))
+	      (let* ((to-merge ;; the special operator and expansion operator are added here again if needed.
+                      (cond ((not special-op)
+                             tag-value)
+                            ((= 1 (length special-op))
+                             (make-feature (feature-name tag-value)
+                                           (append special-op (feature-value tag-value))))
+                            ((= 3 (length special-op)) ;; ++ operator
+                             (make-feature (feature-name tag-value)
+                                           (list (first special-op) (second special-op)
+                                                 (cons (third special-op) (feature-value tag-value)))))))
 		     (merges (merge-unit-features
 			      (list to-merge)
 			      (unit-features new-unit)
