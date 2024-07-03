@@ -545,8 +545,7 @@ HANDLE-J-UNITS. Returns a list of MERGE-RESULTs."
 		      special-op
 		      tag-value
  		      (make-feature (feature-name tag-value)
-				    (cons special-op (feature-value tag-value)))
- 		      )
+				    (cons special-op (feature-value tag-value))))
 	      (let* ((to-merge (cond ((not special-op)
                                       tag-value)
                                      ((= 1 (length special-op))
