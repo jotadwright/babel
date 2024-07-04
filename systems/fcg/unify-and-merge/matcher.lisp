@@ -493,8 +493,8 @@ occurs in x."
   (cond ((atom e) (values e bindings))
 	((merge-fn (first e))
 	 (if (clean-fn (first e))
-	     (funcall (clean-fn (first e)) e bindings :cxn-inventory cxn-inventory)
-	     (remove-special-operators (cdr e) bindings :cxn-inventory cxn-inventory)))
+           (funcall (clean-fn (first e)) e bindings :cxn-inventory cxn-inventory)
+           (remove-special-operators (cdr e) bindings :cxn-inventory cxn-inventory)))
 	(t
          (multiple-value-bind (new-car new-bindings)
              (remove-special-operators (car e) bindings :cxn-inventory cxn-inventory)

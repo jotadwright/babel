@@ -33,7 +33,8 @@
                  (:file "matcher-extensions")
                  (:file "expansion-operator")
                  (:file "structures")
-                 (:file "match-structures")))
+                 (:file "match-structures")
+                 (:file "handle-sequences")))
    (:file "construction")
    (:file "construction-application")
    (:module construction-inventories
@@ -54,7 +55,7 @@
     :serial t
     :components ((:file "equivalent-predicate-networks")
                  (:file "utils")))
-   (:file "legacy-functions-fcg-2")
+   (:file "legacy-functions")
    (:module construction-inventory-processor
     :serial t
     :components ((:file "construction-inventory-processor")
@@ -103,7 +104,6 @@
                  (:file "html")
                  (:file "web-monitor")
                  (:file "export-utils")))
-   (:file "handling-sequences")
    (:module meta-layer
     :serial t
     :components ((:file "fcg-meta-layer-lib")))

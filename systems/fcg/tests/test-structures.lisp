@@ -71,8 +71,6 @@
     (test-assert (fcg-get-transient-unit-structure transient-structure))
     (test-assert (fcg-get-transient-unit-structure (left-pole-structure transient-structure)))
 
-    ;; fcg-extract-selected-form-constraints
-    (test-assert (= 5 (length (fcg-extract-selected-form-constraints transient-structure))))
-    (test-assert (= 3 (length (fcg-extract-selected-form-constraints transient-structure '(string)))))))
+   ))
 
 ;; (test-transient-structure-helper-functions)

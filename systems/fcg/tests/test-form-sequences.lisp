@@ -69,27 +69,48 @@
 
 (deftest test-recompute-root-sequence-features-based-on-bindings ()
   
-  (test-equalp (recompute-root-sequence-features-based-on-bindings '(?left-cxn ?right-cxn)
+  (test-equalp (recompute-root-sequence-features-based-on-bindings '((sequence "the" ?left-cxn ?right-cxn))
                                                                    '((sequence "what is the color of the cube?" 0 30))
                                                                    '((?left-cxn . 8) (?right-cxn . 11)))
                '((SEQUENCE "what is " 0 8) (SEQUENCE " color of the cube?" 11 30)))
 
-  (test-equalp (recompute-root-sequence-features-based-on-bindings '(?left-cxn ?right-cxn)
+  (test-equalp (recompute-root-sequence-features-based-on-bindings '((sequence "color" ?left-cxn ?right-cxn))
                                                                    '((sequence "what is the " 0 12)
                                                                      (sequence " of the cube?" 17 30))
                                                                    '((?left-cxn . 29) (?right-cxn . 30)))
                '((SEQUENCE "what is the " 0 12) (SEQUENCE " of the cube" 17 29)))
 
-  (test-equalp (recompute-root-sequence-features-based-on-bindings '(?right-2 ?left-cxn ?right-cxn ?left-2)
+  (test-equalp (recompute-root-sequence-features-based-on-bindings '((sequence "what" ?right-2 ?left-2)
+                                                                     (sequence "color" ?left-cxn ?right-cxn ))
                                                                    '((sequence "what is the " 0 12)
                                                                      (sequence " of the cube?" 17 30))
                                                                    '((?left-cxn . 29) (?right-cxn . 30)
                                                                      (?left-2 . 0) (?right-2 . 4)))
                '((SEQUENCE " is the " 4 12) (SEQUENCE " of the cube" 17 29)))
   
-  (test-equalp (recompute-root-sequence-features-based-on-bindings '(?SUBJECT-RIGHT-10378 ?TO-BE-LEFT-6253)
-                                                                   '((SEQUENCE " " 1 2) (SEQUENCE " ch" 5 8) (SEQUENCE "irm" 9 12) (SEQUENCE " of " 14 18) (SEQUENCE " committee" 21 31))
-                                                                   '((?X-BE-UNIT-15438 . #:X-BE-UNIT-1088) (?TAG-271548 FCG:FORM NIL) (?TO-BE-RIGHT-6253 . 5) (?TO-BE-LEFT-6253 . 2) (?TO-BE-STRING-6253 . "was") (?TO-BE-UNIT-23889 . #:WAS-UNIT-1580) (?SUBJECT-RIGHT-10378 . 1) (?SUBJECT-LEFT-10378 . 0) (?SUBJECT-STRING-10378 . "I") (?NUMBER-47265 . FCG::SINGULAR) (?SUBJECT-UNIT-27834 . #:I-UNIT-2165)))
-               '((SEQUENCE " ch" 5 8) (SEQUENCE "irm" 9 12) (SEQUENCE " of " 14 18) (SEQUENCE " committee" 21 31))))
+  (test-equalp (recompute-root-sequence-features-based-on-bindings '((sequence "" ?SUBJECT-RIGHT-10378 ?TO-BE-LEFT-6253))
+                                                                   '((SEQUENCE " " 1 2)
+                                                                     (SEQUENCE " ch" 5 8)
+                                                                     (SEQUENCE "irm" 9 12)
+                                                                     (SEQUENCE " of " 14 18)
+                                                                     (SEQUENCE " committee" 21 31))
+                                                                   '((?X-BE-UNIT-15438 . #:X-BE-UNIT-1088) (?TAG-271548 FCG:FORM NIL)
+                                                                     (?TO-BE-RIGHT-6253 . 5) (?TO-BE-LEFT-6253 . 2) (?TO-BE-STRING-6253 . "was")
+                                                                     (?TO-BE-UNIT-23889 . #:WAS-UNIT-1580) (?SUBJECT-RIGHT-10378 . 1)
+                                                                     (?SUBJECT-LEFT-10378 . 0) (?SUBJECT-STRING-10378 . "I")
+                                                                     (?NUMBER-47265 . FCG::SINGULAR) (?SUBJECT-UNIT-27834 . #:I-UNIT-2165)))
+               '((SEQUENCE " ch" 5 8) (SEQUENCE "irm" 9 12) (SEQUENCE " of " 14 18) (SEQUENCE " committee" 21 31)))
+
+  (test-equalp (recompute-root-sequence-features-based-on-bindings '((sequence "banana" ?left-cxn ?right-cxn)
+                                                                     (sequence "s" ?right-cxn ?other-right-cxn))
+                                                                   '((sequence "what is the color of the bananas?" 0 33))
+                                                                   '((?left-cxn . 25) (?right-cxn . 31) (?other-right-cxn . 32)))
+               '((SEQUENCE "what is the color of the " 0 25) (SEQUENCE "?" 32 33)))
+
+
+  
+
+  )
 
 ;;(test-recompute-root-sequence-features-based-on-bindings)
+

@@ -171,8 +171,8 @@
   :cxn-inventory *fcg-constructions-sequences*
   :feature-types ((form set-of-predicates :handle-regex-sequences)
                   (meaning set-of-predicates)
-                  (args sequence)
-                  (sequences set-of-predicates)
+                  (meaning-args sequence)
+                  (form-args sequence)
                   (constituents sequence)
                   (dependents sequence)
                   (boundaries sequence)
@@ -184,10 +184,10 @@
   ;; Lexical constructions
   (def-fcg-cxn the-cxn
                ((?the-word
-                 (args (?x))
+                 (meaning-args (?x))
                  (sem-cat (sem-class referent))
                  (syn-cat (lex-class article))
-                 (sequences ((sequence "the" ?left ?right))))
+                 (form-args (?left ?right)))
                 <-
                 (?the-word
                  (HASH meaning ((unique ?x)))                     
@@ -196,10 +196,10 @@
 
   (def-fcg-cxn mouse-cxn
                ((?mouse-word
-                 (args (?x))
+                 (meaning-args (?x))
                  (sem-cat (sem-class physical-entity))
                  (syn-cat (lex-class noun))
-                 (sequences ((sequence "mouse" ?left ?right))))
+                 (form-args (?left ?right)))
                 <-
                 (?mouse-word
                  (HASH meaning ((mouse ?x)))                     
@@ -208,11 +208,11 @@
   
   (def-fcg-cxn likes-cxn
                ((?likes-word
-                 (args (?x ?y))
+                 (meaning-args (?x ?y))
                  (sem-cat (sem-class relation))
                  (syn-cat (lex-class verb)
                           (type transitive))
-                 (sequences ((sequence "likes" ?left ?right))))
+                 (form-args (?left ?right)))
                 <-
                 (?likes-word
                  (HASH meaning ((deep-affection ?x ?y)))                     
@@ -221,10 +221,10 @@
   
   (def-fcg-cxn linguist-cxn
                ((?linguist-word
-                 (args (?x))
+                 (meaning-args (?x))
                  (sem-cat (sem-class physical-entity))
                  (syn-cat (lex-class noun))
-                 (sequences ((sequence "linguist" ?left ?right))))
+                 (form-args (?left ?right)))
                 <-
                 (?linguist-word
                  (HASH meaning ((linguist ?x)))                     
@@ -235,7 +235,7 @@
   ;; NP -> ART NOUN
   (def-fcg-cxn noun-phrase-cxn
                ((?noun-phrase
-                 (args (?x))
+                 (meaning-args (?x))
                  (sem-cat (sem-class referring-expression))
                  (syn-cat (lex-class noun-phrase))
                  (constituents (?article ?noun))
@@ -244,25 +244,25 @@
                  (dependents (?article)))
                 <-
                 (?article
-                 (args (?x))
+                 (meaning-args (?x))
                  (sem-cat (sem-class referent))
                  --
-                 (sequences ((sequence ?article-string ?article-left ?article-right)))
+                 (form-args (?article-left ?article-right))
                  (syn-cat (lex-class article)))
                 (?noun
-                 (args (?x))
+                 (meaning-args (?x))
                  (sem-cat (sem-class physical-entity))                   
                  --
                  (syn-cat (lex-class noun))
-                 (sequences ((sequence ?noun-string ?noun-left ?noun-right))))
+                 (form-args (?noun-left ?noun-right)))
                 (?noun-phrase
                  --
-                 (HASH form ((sequence " " ?article-right ?noun-left))))))
+                 (HASH form ((precedes ?article-right ?noun-left))))))
   
   ;; VP -> V
   (def-fcg-cxn verb-phrase-cxn
                ((?verb-phrase
-                 (args (?x ?y))
+                 (meaning-args (?x ?y))
                  (sem-cat (sem-class relational-expression))
                  (syn-cat (lex-class verb-phrase)
                           (type transitive))
@@ -270,17 +270,17 @@
                  (constituents (?verb)))
                 <-
                 (?verb
-                 (args (?x ?y))
+                 (meaning-args (?x ?y))
                  (sem-cat (sem-class relation))
                  --
-                 (sequences ((sequence ?verb-string ?verb-left ?verb-right)))
+                 (form-args (?verb-left ?verb-right))
                  (syn-cat (lex-class verb)
                           (type transitive)))))
   
   ;; Transitive-clause -> NP VP NP
   (def-fcg-cxn transitive-clause-cxn
                ((?transitive-clause
-                 (args (?x ?y))
+                 (meaning-args (?x ?y))
                  (sem-cat (sem-class predicating-expression))
                  (syn-cat (lex-class transitive-clause))
                  (boundaries (?subject-np-left ?object-np-right))
@@ -289,7 +289,7 @@
                  (dependents (?subject-noun ?object-noun)))
                 <-
                 (?subject-noun-phrase
-                 (args (?x))
+                 (meaning-args (?x))
                  (sem-cat (sem-class referring-expression))
                  (constituents (?subject-article ?subject-noun))
                  --
@@ -297,7 +297,7 @@
                  (syn-cat (lex-class noun-phrase))
                  (constituents (?subject-article ?subject-noun)))
                 (?verb-phrase
-                 (args (?x ?y))
+                 (meaning-args (?x ?y))
                  (sem-cat (sem-class relational-expression))
                  (constituents (?verb))
                  --
@@ -306,7 +306,7 @@
                           (type transitive))
                  (constituents (?verb)))
                 (?object-noun-phrase
-                 (args (?y))
+                 (meaning-args (?y))
                  (sem-cat (sem-class referring-expression))
                  (constituents (?object-article ?object-noun))
                  --
@@ -315,8 +315,8 @@
                  (constituents (?object-article ?object-noun)))
                 (?transitive-clause
                  --
-                 (HASH form ((sequence " " ?subject-np-right ?vp-left)
-                             (sequence " " ?vp-right ?object-np-left)))))))
+                 (HASH form ((precedes ?subject-np-right ?vp-left)
+                             (precedes ?vp-right ?object-np-left)))))))
 
 ;;  (comprehend-and-formulate "the linguist likes the mouse" :cxn-inventory *fcg-constructions-sequences*)
 

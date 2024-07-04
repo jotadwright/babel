@@ -168,6 +168,7 @@
 				 result))))))
 	     result)))))
 
+
 (defun merge-unit-features (fs1 fs2 bindings &key cutoff cxn-inventory)
   (make-subset fs1 fs2 bindings
 	       :test-fn #'(lambda (f1 f2) 
@@ -282,6 +283,7 @@
 	     unit))))
 
 (defun recompute-sequence-in-source (tag-variable pattern-unit source-unit source bindings &key cxn-inventory)
+  "Recomputes the set of sequence predicates in source-unit based on bindings. "
   (let ((new-root nil)
         (processed-feature-names nil))    
     ;; we construct a new-unit which will later be added to the resulting structure
@@ -301,40 +303,37 @@
           (unless (atom (feature-value original-feature))
             ;; we only keep feature-values that are not part of the binding for
             ;; the tag-variable
-            (let ((feature-value nil))
+            (let ((feature-value nil)
+                  (new-feature nil))
               (dolist (value-element
-			(remove-special-operators (feature-value original-feature) bindings))
+                       (remove-special-operators (feature-value original-feature) bindings))
                 (if (and (consp (feature-value (lookup tag-variable bindings)))
 			 (find value-element
 			       (feature-value (lookup tag-variable bindings))
 			       :test #'(lambda (x y)
 					 (or (equal x y)
 					     (unify x y (list bindings) :cxn-inventory cxn-inventory)))))
-		    (setf (feature-value (lookup tag-variable bindings))
-			  (remove value-element (feature-value (lookup tag-variable bindings))
-				  :test #'(lambda (x y)
-					    (or (equal x y)
-						(unify x y (list bindings) :cxn-inventory cxn-inventory)))
-				  :count 1))
-		    (push value-element feature-value)))
+                  (setf (feature-value (lookup tag-variable bindings))
+                        (remove value-element (feature-value (lookup tag-variable bindings))
+                                :test #'(lambda (x y)
+                                          (or (equal x y)
+                                              (unify x y (list bindings) :cxn-inventory cxn-inventory)))
+                                :count 1))
+                  (push value-element feature-value)))
+              
               (when feature-value
+                ;; we make a new feature
+                (if (eq (feature-name original-feature) 'form)
+                  (let ((new-form-value (recompute-root-sequence-features-based-on-bindings
+                                               (feature-value (remove-special-operators (get-tag tag-variable pattern-unit) bindings)) ;;pattern 
+                                               (feature-value original-feature) ;;source
+                                               bindings)))
+                    (when new-form-value
+                      (setf new-feature (make-feature 'form new-form-value))))
+                  (setf new-feature (make-feature (feature-name original-feature) feature-value)))
                 ;; we add newly constructed feature to new-unit
-                (let* ((boundaries (flatten (mapcar #'(lambda (x) (when (equal (feature-name x) 'SEQUENCE)
-                                                                    (rest (rest x))))
-                                                    (feature-value (remove-special-operators (get-tag tag-variable pattern-unit) bindings)))))
-                       (new-form-value (when boundaries (sort (recompute-root-sequence-features-based-on-bindings
-                                                               boundaries
-                                                               (feature-value original-feature)
-                                                               bindings) #'< :key #'third)))
-                       (new-feature (if (eq (feature-name original-feature) 'form)
-                                        (when new-form-value 
-                                          (make-feature 'form new-form-value))
-                                        (make-feature (feature-name original-feature)
-                                                      feature-value))))
-                  (push new-feature
-                        (unit-features new-root)))))))))
+                (push new-feature (unit-features new-root))))))))
 
-    
     ;; we loop over all features in source-unit and 'copy' all features
     ;; that are not processed
     (dolist (feature (unit-features source-unit))
@@ -343,213 +342,8 @@
     ;; the new source is reconstructed by incorporating the new unit
     (loop for unit in source collect
             (if (equal (unit-name unit) (unit-name new-root))
-	     new-root
-	     unit))))
-
-(defun coinciding-lr-pairs-p (lr-pair-1 lr-pair-2)
-  (and (= (first lr-pair-1) (first lr-pair-2))
-       (= (second lr-pair-1) (second lr-pair-2))))
-
-(defun disjunct-lr-pairs-p (lr-pair-1 lr-pair-2)
-  (or (>= (first lr-pair-1) (second lr-pair-2))
-      (>= (first lr-pair-2) (second lr-pair-1))))
-
-
-#|(defun calculate-index-list (list-of-intervals)
-  (loop for (start end) in list-of-intervals
-        append (loop for i from start to end
-                      collect i)))|#
-
-;; (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30)
-;; (2 3 4 21 22 23 24 25 26 27 28 29)
-;;=> (0 2) (4 21) (29 30)
-
-(defun index-jump-p (pos-1 pos-2)
-  (and pos-1
-       pos-2
-       (> (abs (- pos-1 pos-2))
-          1)))
-
-(defun remove-element-by-index (lst index)
-  (if (zerop index)
-      (cdr lst)  ; If index is 0, remove the first element
-      (setf (cdr (nthcdr (1- index) lst)) (cddr (nthcdr (1- index) lst))))
-  lst)
-
-(defun expand-interval (interval)
-  "from a given interval expands it into a list of adjacent cons cells"
-  (let ((interval-cons-cells '()))
-    (loop for i from (first interval) to (- (first (last interval)) 1)
-          do (pushend (cons i (+ i 1)) interval-cons-cells))
-    interval-cons-cells))
-
-;; (expand-interval '(0 30))
-;; (expand-interval '(12 25))
-
-(defun collapse-intervals (interval-cons-cells)
-  "from a list of cons-cells, renders a list or multiple lists of adjacent cons cells"
-  (let ((intervals '())
-        (provisory-cons-cells-list '())
-        (interval '()))
-    (loop for i in interval-cons-cells
-          for pos-i = (position i interval-cons-cells) ;; position of the current element
-          for i+1 = nil ;; the next element, for now it is nil
-          do (pushend i provisory-cons-cells-list)
-             (if (not (eq i (first (last interval-cons-cells)))) ;; when we are not considering the last element of the list
-               (progn
-                 (setf i+1 (nth (+ pos-i 1) interval-cons-cells)) ;; we set the next-element
-                 (when (not (= (cdr i) (car i+1))) ;; if the cdr of the current element is not equal to the car of the next element
-                   ;; then we make an interval out of the previous considered cons cells that are stored in the provisory-cons-cells-list
-                   (pushend (car (first provisory-cons-cells-list)) interval) ;; left elem of the interval
-                   (pushend (cdr (first (last provisory-cons-cells-list))) interval) ;; right elem of the interval
-                   (pushend interval intervals) ;; we push the interval to the list of intervals
-                   (setf interval nil) ;; we set the interval to nil
-                   (setf provisory-cons-cells-list nil))) ;; we also set the provisory-cons-cells-list to nil
-               ;; and for the last element of the list:
-               (progn
-                 (pushend i provisory-cons-cells-list)
-                 (pushend (car (first provisory-cons-cells-list)) interval) ;; left elem of the interval
-                 (pushend (cdr (first (last provisory-cons-cells-list))) interval) ;; right elem of the interval
-                 (pushend interval intervals)))) ;; we push the interval to the list of intervals
-    intervals))
-
-;; (collapse-intervals '((0 . 1) (1 . 2) (2 . 3) (3 . 4) (4 . 5) (5 . 6) (6 . 7) (7 . 8) (8 . 9) (9 . 10) (10 . 11) (11 . 12) (25 . 26) (26 . 27) (27 . 28) (28 . 29) (29 . 30)))
-;; expected: '((0 12) (25 30))
-
-;; (collapse-intervals '((12 . 13) (24 . 25)))
-;; expected: '((12 13) (24 25))
-
-;; (collapse-intervals '((7 . 8) (9 . 10)))
-
-;; (defparameter my-list-of-cons '((0 . 1) (1 . 2) (2 . 3) (3 . 4) (4 . 5) (5 . 6) (6 . 7) (7 . 8) (8 . 9) (9 . 10) (10 . 11) (11 . 12) (25 . 26) (26 . 27) (27 . 28) (28 . 29) (29 . 30)))
-
-(defun calculate-unmatched-intervals (matched-intervals root-intervals)
-  (let ((final-intervals '()))
-    (loop for root-interval in root-intervals
-          for expanded-interval = (expand-interval root-interval)
-          for car-equality-position = nil
-          for cdr-equality-position = nil
-          do (loop for matched-interval in matched-intervals ;; we set car-equality-position and cdr-equality-position
-                   do (loop for i in expanded-interval
-                            do (when (equal (car i) (car matched-interval))
-                                 (setf car-equality-position (position i expanded-interval)))
-                               (when (equal (cdr i) (first (cdr matched-interval)))
-                                 (setf cdr-equality-position (position i expanded-interval))))
-                      (if (and car-equality-position cdr-equality-position)
-                        (progn 
-                          (let* ((excluded-positions (loop for i from car-equality-position to cdr-equality-position collect i))
-                                (excluded-items (loop for i in excluded-positions collect (nth i expanded-interval))))
-                            (loop for excluded-item in excluded-items
-                                  do (setf expanded-interval (remove excluded-item expanded-interval)))
-                            (setf car-equality-position nil)
-                            (setf cdr-equality-position nil)))))
-             (when expanded-interval 
-               (let ((collapsed-intervals (collapse-intervals expanded-interval)))
-               (loop for collapsed-interval in collapsed-intervals
-                     do (pushend collapsed-interval final-intervals)))))
-    final-intervals))
-                   
-;; using cons cells of the intervals
-;; (calculate-unmatched-intervals '((8 9)) '((3 4) (7 10) (17 18)))
-;; expected: '((3 4) (7 8) (9 10) (17 18))
-
-
-;; (calculate-unmatched-intervals '((29 30) (0 4)) '((0 12) (17 30)))
-;; expected: '((4 12) (17 29))
-
-;; (calculate-unmatched-intervals '((0 4) (29 30)) '((0 12) (17 30)))
-
-;; test: 
-;; (recompute-root-sequence-features-based-on-bindings '((SEQUENCE "chairm" 0 6) (SEQUENCE "n of " 7 12) (SEQUENCE " committee" 15 25)) '((#:?AIR-UNIT-790 . #:AIR-UNIT-87) (#:?TAG-42752 FORM ((SEQUENCE "air" 2 5))) (#:?LEFT-14848 . 2) (#:?RIGHT-14848 . 5)))
-
-;; (recompute-root-sequence-features-based-on-bindings '((SEQUENCE "she " 0 4) (SEQUENCE " " 7 8) (SEQUENCE " " 9 10)) '((#:?SHE-UNIT-4909 . #:SHE-UNIT-181) (#:?TAG-408114 FORM ((SEQUENCE "she" 0 3))) (#:?LEFT-157585 . 0) (#:?RIGHT-157585 . 3)))
-
-(defun divide-sequence (list-of-positions)
-  "for a given list of sorted positions, retrieves a list of intervals"
-  (let ((sorted-list (sort list-of-positions #'<))
-        (interval '())
-        (intervals-list '()))
-    (loop for elem in sorted-list
-          do (when (= (length interval) 2)
-               (pushend interval intervals-list)
-               (setf interval nil))
-             (pushend elem interval))
-    (pushend interval intervals-list) ;; for the last pair that is not pushed in the list by the loop
-    intervals-list))
-
-;; (divide-sequence '(2 5 4 3))
-
-;; changed code in the following function:
-#|(matched-positions (sort (loop for (nil . value) in bindings
-                                        when (numberp value)
-                                          collect value) #'<))
-(matched-intervals (loop for interval on matched-positions by #'cddr
-                                  collect interval))|#
-
-#|(matched-positions (loop for (nil . value) in bindings
-                                        when (numberp value)
-                                          collect value))
-         (matched-intervals (divide-sequence matched-positions))|#
-
-(defun lookup-binding (target-var bindings)
-  (let ((binding (cdr (assoc target-var bindings))))
-    (if (variable-p binding)
-      (lookup-binding binding bindings)
-      binding)))
-          
-(defun recompute-root-sequence-features-based-on-bindings (feature-value root-sequence-features bindings)
-  "Makes new set of sequence predicates based on the indices that are present in the bindings."
-  (let (matched-positions matched-intervals non-matched-intervals)
-
-    ;; taking care of matched-positions:
-    (loop for value in feature-value
-          for binding = (cdr (assoc value bindings :test #'string=))
-          when binding
-          do (push binding matched-positions))
-    
-    (when (find-if #'variable-p matched-positions)
-      (setf matched-positions (loop for position in matched-positions
-                                    if (variable-p position)
-                                      collect (lookup-binding position bindings) ;;lookup binding recursively
-                                    else collect position)))
-    
-    (setf matched-positions (sort matched-positions #'<))
-    
-    ;; taking care of matched-invervals:
-    (setf matched-intervals
-          (loop for i from 1 to (- (length matched-positions) 1)
-                for interval = (list (nth1 i matched-positions)
-                               (nth1 (+ i 1) matched-positions))
-                do (setf i (+ i 1))
-                collect interval))
-            
-
-    ;; taking care of non-matched-intervals:
-    (setf non-matched-intervals
-          (calculate-unmatched-intervals matched-intervals (mapcar #'(lambda (feat)
-                                                                       (list (third feat) (fourth feat)))
-                                                                   root-sequence-features)))
-    
-    ;; Based on the non-matched intervals (e.g. '((0 4) (12 28))), create sequence new features to add to the root
-    (when non-matched-intervals
-      (loop for (feat-name string start end) in root-sequence-features ;;(sequence "what is the color of the cube?" 12 18)
-            for offset = (abs (- 0 start))
-            append (loop for (left right) in non-matched-intervals
-                         for normalised-left = (- left offset)
-                         for normalised-right = (- right offset)
-                         if (overlapping-lr-pairs-p (list start end) (list left right))
-                           collect (let ((unmatched-substring (subseq string normalised-left normalised-right)))
-                                     `(,feat-name ,unmatched-substring ,left ,right)))))))
-
-#|(recompute-root-sequence-features-based-on-bindings '((SEQUENCE "foolish child th" 0 16) (SEQUENCE "t she " 17 23)) 
-                                                    '((#:?SHE-UNIT-698 . #:SHE-UNIT-59) (#:?TAG-49046 FORM ((SEQUENCE "she" 19 22))) (#:?LEFT-18848 . 19) (#:?RIGHT-18848 . 22)))|#
-
-#|(recompute-root-sequence-features-based-on-bindings '((SEQUENCE " " 1 2) (SEQUENCE " " 5 6))
-                                                    '((#:?X-BE-UNIT-11704 . #:X-BE-UNIT-815) (#:?TAG-141244 FCG:FORM NIL) (#:?TO-BE-RIGHT-4737 . 5) (#:?TO-BE-LEFT-4737 . 2) (#:?TO-BE-STRING-4737 . "was") (#:?TO-BE-UNIT-18073 . #:WAS-UNIT-1210) (#:?SUBJECT-RIGHT-6008 . 1) (#:?SUBJECT-LEFT-6008 . 0) (#:?SUBJECT-STRING-6008 . "I") (#:?NUMBER-32839 . FCG::SINGULAR) (#:?SUBJECT-UNIT-19164 . #:I-UNIT-1692)))|#
-
-#|(recompute-root-sequence-features-based-on-bindings '((SEQUENCE " " 3 4) (SEQUENCE " " 12 13) (SEQUENCE " " 18 19) (SEQUENCE " " 22 23))
-'((#:?NOUN-PHRASE-4074 . #:NOUN-PHRASE-15) (#:?TAG-141672 FCG:FORM NIL) (#:?NOUN-RIGHT-8920 . 28) (#:?NOUN-LEFT-8920 . 23) (#:?NOUN-STRING-8825 . "mouse") (#:?NOUN-38 . #:MOUSE-WORD-6) (#:?ARTICLE-RIGHT-30 . 22) (#:?ARTICLE-LEFT-30 . 19) (#:?ARTICLE-STRING-30 . "the") (#:?ARTICLE-31 . #:THE-WORD-16)))|#
-
+              new-root
+              unit))))
 
 (defun remove-tag-from-added (tag-variable pattern added bindings &key cxn-inventory)
   ;; should be non-destructive; needed for the cases in which a tag is first merged 
@@ -653,10 +447,12 @@
     (when (consp tag-val)
       (setq special-op (first tag-val))
       (if (eq special-op '++)
-          (retrieve-special-operator (fcg-expand (second tag-val) :merge? t :bindings bindings 
-                                                 :source nil :value (third tag-val))
-                                     bindings)
-          special-op))))
+          (cons '++
+                (cons (second tag-val)
+                      (retrieve-special-operator (fcg-expand (second tag-val) :merge? t :bindings bindings
+                                                             :source nil :value (third tag-val))
+                                                 bindings)))
+          (list special-op)))))
   
 
 (defun deep-lookup (unit-var bindings)
@@ -737,24 +533,20 @@ HANDLE-J-UNITS. Returns a list of MERGE-RESULTs."
 		(remove-tag-from-added e pattern added bindings :cxn-inventory cxn-inventory))
 	      #+dbg
  	      (format t "~%e=~A=>source=~A" e source)
-              ;; As far as I understand: at this point the tag
-              ;; variable is bound to its value BUT for some reason
-              ;; without the initial special operator... Therefore the
-              ;; tag is looked up again and the special operator is
-              ;; fetched. This however does not work for ++ operator.
+              ;; The tag value was added during matching to the bindings list without special operators.
+              ;; The special operator is looked up here and added one level deep (!) in combination with a potential expansion operator.
 	      (let ((tag-val (feature-value (get-tag e pattern-unit))))
                 (setq special-op (retrieve-special-operator tag-val bindings)))
-	      #+dbg
- 	      (format t "~%(values '~A '~A '~A)" 
-		      special-op
-		      tag-value
- 		      (make-feature (feature-name tag-value)
-				    (cons special-op (feature-value tag-value)))
- 		      )
-	      (let* ((to-merge (if special-op
-				   (make-feature (feature-name tag-value)
-						 (cons special-op (feature-value tag-value)))
-				   tag-value))
+	      (let* ((to-merge ;; the special operator and expansion operator are added here again if needed.
+                      (cond ((not special-op)
+                             tag-value)
+                            ((= 1 (length special-op))
+                             (make-feature (feature-name tag-value)
+                                           (append special-op (feature-value tag-value))))
+                            ((= 3 (length special-op)) ;; ++ operator
+                             (make-feature (feature-name tag-value)
+                                           (list (first special-op) (second special-op)
+                                                 (cons (third special-op) (feature-value tag-value)))))))
 		     (merges (merge-unit-features
 			      (list to-merge)
 			      (unit-features new-unit)
@@ -774,9 +566,13 @@ HANDLE-J-UNITS. Returns a list of MERGE-RESULTs."
 					    (list (make-unit 
 						   :name (unit-name new-unit)
 						   :features
-						   (list (if special-op 
-							     (make-feature (feature-name tag-value)
-									   (cons special-op (feature-value tag-value)))))))
+						   (list (cond ((= 1 (length special-op))
+                                                                (make-feature (feature-name tag-value)
+                                                                              (append special-op (feature-value tag-value))))
+                                                               ((= 3 (length special-op)) ;; ++ operator
+                                                                (make-feature (feature-name tag-value)
+                                                                              (list (first special-op) (second special-op)
+                                                                                    (cons (third special-op) (feature-value tag-value)))))))))
 					    added
 					    bindings
                                             nil

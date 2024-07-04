@@ -85,25 +85,30 @@ it."
 (defun merge-expansion (pattern source bindings &key cxn-inventory &allow-other-keys)
   "Expands the value (in pattern) based on its type and merge-includes
 it."
-  (let ((expanded-structure (fcg-expand (get-expansion-type pattern) 
-                                        :value (get-expansion-value pattern) 
-                                        :source source
-                                        :bindings bindings
-                                        :merge? t
-                                        :cxn-inventory cxn-inventory)))
+  (multiple-value-bind (expanded-structure new-bindings)
+      (fcg-expand (get-expansion-type pattern) 
+                  :value (get-expansion-value pattern) 
+                  :source source
+                  :bindings bindings
+                  :merge? t
+                  :cxn-inventory cxn-inventory)
+      (setf bindings new-bindings)
     (fcg-merge expanded-structure source bindings)))
 
 (defun clean-expansion (pattern bindings &key cxn-inventory &allow-other-keys)
   ;; cleaning a ++ also entails expanding it! This is required
   ;; because in merging when source = nil merge-fn isn't called (only
   ;; clean-fn)
-  (let ((expanded-structure (fcg-expand (get-expansion-type pattern) 
-                                        :value (get-expansion-value pattern) 
-                                        :source nil
-                                        :bindings bindings
-                                        :merge? t
-                                        :cxn-inventory cxn-inventory)))
-    (values (remove-special-operators expanded-structure bindings :cxn-inventory cxn-inventory) bindings)))
+  (multiple-value-bind (expanded-structure new-bindings)
+      (fcg-expand (get-expansion-type pattern) 
+                  :value (get-expansion-value pattern) 
+                  :source nil
+                  :bindings bindings
+                  :merge? t
+                  :cxn-inventory cxn-inventory)
+    (setf bindings new-bindings)
+    (values (remove-special-operators expanded-structure bindings :cxn-inventory cxn-inventory)
+            bindings)))
 
 
 (add-special-operator (make-instance 'special-operator
