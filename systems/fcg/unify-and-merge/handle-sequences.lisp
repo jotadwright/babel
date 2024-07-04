@@ -127,7 +127,7 @@
 (defun recompute-root-sequence-features-based-on-bindings (pattern-form-predicates source-form-predicates bindings)
   "Makes new set of sequence predicates based on the indices that are present in the bindings."
 
-  (let ((matched-positions (compute-matched-positions pattern-form-predicates bindings)))
+  (let ((matched-positions (retrieve-matched-positions pattern-form-predicates bindings)))
 
     (if matched-positions
       (let* ((matched-intervals (loop for i from 1 to (- (length matched-positions) 1)
@@ -154,8 +154,8 @@
       )))
 
 
-(defun compute-matched-positions (pattern-sequence-predicates bindings)
-  ""
+(defun retrieve-matched-positions (pattern-sequence-predicates bindings)
+  "Retrieves the matched positions of the left and right boundaries in pattern-sequence-predicates from the bindings. "
   (let* ((list-of-matched-indices (flatten (mapcar #'(lambda (x) (when (equal (feature-name x) 'SEQUENCE) ;;why flatten??
                                                                    (rest (rest x))))
                                                    pattern-sequence-predicates)))
@@ -163,17 +163,12 @@
                                   for index in list-of-matched-indices
                                   for binding = (cdr (assoc index bindings :test #'string=))
                                   when binding
-                                    do (push binding matched-positions)
+                                    if (variable-p binding)
+                                      do (push (lookup-binding binding bindings) matched-positions)
+                                    else do (push binding matched-positions)
                                   finally (return matched-positions))))
     
-    (when matched-positions ;;only recalculate in comprehension
-      (when (find-if #'variable-p matched-positions)
-        (setf matched-positions (loop for position in matched-positions
-                                      if (variable-p position)
-                                        collect (lookup-binding position bindings) ;;lookup binding recursively
-                                      else collect position)))
-    
-      (setf matched-positions (sort matched-positions #'<)))))
+    (sort (remove nil matched-positions) #'<)))
 
 
 (defun lookup-binding (target-var bindings)
