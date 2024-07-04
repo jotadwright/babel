@@ -87,9 +87,9 @@ is overwritten."
   (set-configuration construction-inventory
                      :create-initial-structure-mode :one-pole-mode :replace nil)
   (set-configuration construction-inventory
-                     :render-mode :generate-and-test :replace nil)
+                     :render-mode :render-sequences :replace nil)
   (set-configuration construction-inventory 
-                     :de-render-mode :de-render-string-meets :replace nil)
+                     :de-render-mode :de-render-sequence :replace nil)
   (set-configuration construction-inventory
                      :parse-goal-tests '(:no-applicable-cxns) :replace nil)
   (set-configuration construction-inventory
@@ -99,8 +99,6 @@ is overwritten."
   (set-configuration construction-inventory
                      :shuffle-cxns-before-application t :replace nil)
   (set-configuration construction-inventory
-                     :cxn-supplier-mode :ordered-by-label-and-score :replace nil)
-  (set-configuration construction-inventory
                      :use-meta-layer t :replace nil)
   (set-configuration construction-inventory
                      :consolidate-repairs nil :replace nil)
@@ -109,11 +107,17 @@ is overwritten."
   (set-configuration construction-inventory 
                      :equivalent-meaning-mode :unify-no-equalities :replace nil)
   (set-configuration construction-inventory
-                     :node-expansion-mode :multiple-cxns :replace nil)
+                     :cxn-supplier-mode :all-cxns :replace nil)
   (set-configuration construction-inventory
-                     :queue-mode :greedy-best-first :replace nil)
+                     :construction-inventory-processor-mode :heuristic-search :replace nil)
   (set-configuration construction-inventory
-                     :priority-mode :nr-of-applied-cxns :replace nil)
+                     :node-expansion-mode :full-expansion :replace nil)
+  (set-configuration construction-inventory
+                     :search-algorithm :best-first :replace nil)
+  (set-configuration construction-inventory
+                     :heuristics '(:nr-of-applied-cxns :nr-of-units-matched) :replace nil)
+  (set-configuration construction-inventory
+                     :heuristic-value-mode :sum-heuristics-and-parent)
   (set-configuration construction-inventory
                      :node-tests '(:check-duplicate :restrict-nr-of-nodes :restrict-search-depth) :replace nil)
   (set-configuration construction-inventory
@@ -123,7 +127,7 @@ is overwritten."
   (set-configuration construction-inventory
                      :show-meaning/utterance nil :replace nil)
   (set-configuration construction-inventory
-                     :update-boundaries-feature 'subunits)
+                     :update-boundaries-feature 'subunits) ;;obsolete?
   (set-configuration construction-inventory
                      :equivalent-cxn-key #'name)
   (set-configuration construction-inventory
