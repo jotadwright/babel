@@ -37,7 +37,7 @@
                                                  :conditional-part (list (make-instance 'conditional-unit
                                                                                         :name '?noun
                                                                                         :formulation-lock '((HASH meaning ((success ?x))))      
-                                                                                        :comprehension-lock '((HASH form ((string ?noun "success!"))))))
+                                                                                        :comprehension-lock '((HASH form ((sequence "success!" ?left ?right))))))
                                                  :attributes '((:label . cxn) (:score . 0.5))
                                                  :cxn-inventory fcg-construction-set)))
            (setf (processing-cxn-inventory fcg-construction-set)
@@ -53,7 +53,7 @@
            (test-assert (find-cxn fcg-construction (constructions fcg-construction-set)))
            (test-assert (eq (configuration fcg-construction-set) (configuration (processing-cxn-inventory fcg-construction-set))))
            (test-assert (= 1 (length (constructions (processing-cxn-inventory fcg-construction-set)))))
-           (test-assert (unify '((success x)) (comprehend '("success!") :cxn-inventory fcg-construction-set :silent t)))
+           (test-assert (unify '((success x)) (comprehend "success!" :cxn-inventory fcg-construction-set :silent t)))
            (test-assert (equal '("success!") (formulate '((success x)) :cxn-inventory fcg-construction-set :silent t)))
            (test-assert (delete-cxn fcg-construction fcg-construction-set))
            (test-assert (null (constructions fcg-construction-set)))
