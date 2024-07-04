@@ -231,11 +231,12 @@
   ;; set default feature-types if they were not provided
   (unless (feature-types fcg-construction-set)
     (setf (feature-types fcg-construction-set)
-          '((form set-of-predicates)
+          '((form set-of-predicates :handle-regex-sequences)
             (meaning set-of-predicates)
+            (form-args sequence)
+            (meaning-args sequence)
             (subunits set)
             (args sequence)
-            (boundaries set-of-predicates)
             (footprints set)))))
 
 (defclass hashed-fcg-construction-set (hashed-construction-set fcg-construction-set)
