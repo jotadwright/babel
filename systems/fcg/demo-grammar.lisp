@@ -29,6 +29,8 @@
                   (constituents sequence)
                   (dependents sequence)
                   (footprints set))
+  :fcg-configurations ((:de-render-mode . :de-render-string-meets)
+                       (:render-mode . :generate-and-test))
   :hierarchy-features (constituents dependents)
   
   ;; Lexical constructions
@@ -156,7 +158,7 @@
                              (meets ?verb ?object-article)))))))
 
 
-
+(comprehend-and-formulate "the linguist likes the mouse")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Toy Grammar for Demos Purposes (update April 2023 after introduction of form as set of sequence predicates)  ;;
@@ -175,10 +177,7 @@
                   (form-args sequence)
                   (constituents sequence)
                   (dependents sequence)
-                  (boundaries sequence)
                   (footprints set))
-  :fcg-configurations ((:de-render-mode . :de-render-sequence)
-                       (:render-mode . :render-sequences))
   :hierarchy-features (constituents dependents)
   
   ;; Lexical constructions
@@ -239,7 +238,7 @@
                  (sem-cat (sem-class referring-expression))
                  (syn-cat (lex-class noun-phrase))
                  (constituents (?article ?noun))
-                 (boundaries (?article-left ?noun-right)))
+                 (form-args (?article-left ?noun-right)))
                 (?noun
                  (dependents (?article)))
                 <-
@@ -266,7 +265,7 @@
                  (sem-cat (sem-class relational-expression))
                  (syn-cat (lex-class verb-phrase)
                           (type transitive))
-                 (boundaries (?verb-left ?verb-right))
+                 (form-args (?verb-left ?verb-right))
                  (constituents (?verb)))
                 <-
                 (?verb
@@ -283,7 +282,7 @@
                  (meaning-args (?x ?y))
                  (sem-cat (sem-class predicating-expression))
                  (syn-cat (lex-class transitive-clause))
-                 (boundaries (?subject-np-left ?object-np-right))
+                 (form-args (?subject-np-left ?object-np-right))
                  (constituents (?subject-noun-phrase ?verb-phrase ?object-noun-phrase)))
                 (?verb
                  (dependents (?subject-noun ?object-noun)))
@@ -293,7 +292,7 @@
                  (sem-cat (sem-class referring-expression))
                  (constituents (?subject-article ?subject-noun))
                  --
-                 (boundaries (?subject-np-left ?subject-np-right))
+                 (form-args (?subject-np-left ?subject-np-right))
                  (syn-cat (lex-class noun-phrase))
                  (constituents (?subject-article ?subject-noun)))
                 (?verb-phrase
@@ -301,7 +300,7 @@
                  (sem-cat (sem-class relational-expression))
                  (constituents (?verb))
                  --
-                 (boundaries (?vp-left ?vp-right))
+                 (form-args (?vp-left ?vp-right))
                  (syn-cat (lex-class verb-phrase)
                           (type transitive))
                  (constituents (?verb)))
@@ -310,7 +309,7 @@
                  (sem-cat (sem-class referring-expression))
                  (constituents (?object-article ?object-noun))
                  --
-                 (boundaries (?object-np-left ?object-np-right))
+                 (form-args (?object-np-left ?object-np-right))
                  (syn-cat (lex-class noun-phrase))
                  (constituents (?object-article ?object-noun)))
                 (?transitive-clause
@@ -318,10 +317,12 @@
                  (HASH form ((precedes ?subject-np-right ?vp-left)
                              (precedes ?vp-right ?object-np-left)))))))
 
-;;  (comprehend-and-formulate "the linguist likes the mouse" :cxn-inventory *fcg-constructions-sequences*)
-
+;; (activate-monitor trace-fcg)
+;; (comprehend-and-formulate "the linguist likes the mouse" :cxn-inventory *fcg-constructions-sequences*)
+;; (formulate (instantiate-variables (comprehend "the linguist likes the mouse" :cxn-inventory *fcg-constructions-sequences*)) :cxn-inventory *fcg-constructions-sequences*)
+                
 (defun test-render-all ()
-  (multiple-value-bind (utterance cipn) (comprehend-and-formulate "the linguist the mouse" :cxn-inventory *fcg-constructions-sequences*)
+  (multiple-value-bind (meaning cipn) (comprehend "the linguist the mouse" :cxn-inventory *fcg-constructions-sequences*)
     (render-all (fcg-extract-selected-form-constraints (car-resulting-cfs (cipn-car cipn)) '(sequence))
                 :render-sequences)))
 ;(test-render-all)
