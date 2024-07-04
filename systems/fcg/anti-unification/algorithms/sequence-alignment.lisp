@@ -268,15 +268,15 @@
   (with-slots (aligned-pattern aligned-source
                aligned-pattern-boundaries aligned-source-boundaries
                i j cost match-positions gap-counter prev-edge next-edge) state
-    (when (= (aref a i j) 1)
+    (when (= (aref a i j) 1)  ;; check if there is a vertical edge in this state
       (let* ((expanded-pattern (cons (nth (- i 1) pattern) aligned-pattern))
              (expanded-source (cons #\_ aligned-source))
              (current-left-source-boundary (car (first aligned-source-boundaries)))
              (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
              (source-boundary-vars (make-boundary-vars nil source-boundaries current-left-source-boundary :gap t))
              (pattern-boundary-vars (make-boundary-vars i pattern-boundaries current-left-pattern-boundary))
-             (new-gap-p (not (eql (first aligned-source) #\_)))
-             (gap-counter-new-gap-p (equal (first match-positions) (cons (+ i 1) (+ j 1))))
+             (new-gap-p (not (eql (first aligned-source) #\_)))  ;; new gap in terms of A&E (i.e. a _)
+             (gap-counter-new-gap-p (equal (first match-positions) (cons (+ i 1) (+ j 1))))  ;; gap counter in terms of AU gaps
              (cost-increase (if new-gap-p (+ gap-extension-cost gap-opening-cost) gap-extension-cost))
              (next-state (make-instance 'sequence-alignment-state
                                         :aligned-pattern expanded-pattern
@@ -305,15 +305,15 @@
   (with-slots (aligned-pattern aligned-source
                aligned-pattern-boundaries aligned-source-boundaries
                i j cost match-positions gap-counter prev-edge next-edge) state
-    (when (= (aref b i j) 1)
+    (when (= (aref b i j) 1)  ;; check if there is a horizontal edge in this state
       (let* ((expanded-pattern (cons #\_ aligned-pattern))
              (expanded-source (cons (nth (- j 1) source) aligned-source))
              (current-left-source-boundary (car (first aligned-source-boundaries)))
              (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
              (source-boundary-vars (make-boundary-vars j source-boundaries current-left-source-boundary))
              (pattern-boundary-vars (make-boundary-vars nil pattern-boundaries current-left-pattern-boundary :gap t))
-             (new-gap-p (not (eql (first aligned-pattern) #\_)))
-             (gap-counter-new-gap-p (equal (first match-positions) (cons (+ i 1) (+ j 1))))
+             (new-gap-p (not (eql (first aligned-pattern) #\_)))  ;; new gap in terms of A&E (i.e. a _)
+             (gap-counter-new-gap-p (equal (first match-positions) (cons (+ i 1) (+ j 1))))  ;; gap counter in terms of AU gaps
              (cost-increase (if new-gap-p (+ gap-extension-cost gap-opening-cost) gap-extension-cost))
              (next-state (make-instance 'sequence-alignment-state
                                         :aligned-pattern expanded-pattern
@@ -342,12 +342,15 @@
   (with-slots (aligned-pattern aligned-source
                aligned-pattern-boundaries aligned-source-boundaries
                i j cost match-positions gap-counter prev-edge next-edge) state
-    (when (= (aref c i j) 1)
-      (let* ((expanded-pattern (cons (nth (- i 1) pattern) aligned-pattern))
-             (expanded-source (cons (nth (- j 1) source) aligned-source))
+    (when (= (aref c i j) 1)  ;; check if there is a diagonal edge in this state
+      (let* (;; indexing in pattern and source string is offset by -1 w.r.t. index in matrix (i,j)
+             (pattern-char (nth (- i 1) pattern))
+             (source-char (nth (- j 1) source))
+             (expanded-pattern (cons pattern-char aligned-pattern))
+             (expanded-source (cons source-char aligned-source))
              (current-left-source-boundary (car (first aligned-source-boundaries)))
              (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
-             (matchp (eql (nth (- i 1) pattern) (nth (- j 1) source)))
+             (matchp (eql pattern-char source-char))
              (source-boundary-vars (make-boundary-vars j source-boundaries current-left-source-boundary))
              (pattern-boundary-vars (make-boundary-vars i pattern-boundaries current-left-pattern-boundary))
              (new-gap-p (or (and (null match-positions) (null matchp))

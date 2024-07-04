@@ -131,8 +131,8 @@
             always (= cost 72))))
 
 (defun alignments-flouri-3 ()
-    ;; AGAT & CTCT
-    ;;  ? solutions, score -72, match 10, mismatch -30, gap opening -25, gap extension -1
+    ;; AGAT & CTCT 
+    ;;  ? solutions, score -46, match 10, mismatch -30, gap opening -25, gap extension -1
     ;; _ _ _ A G A T
     ;; C T C _ _ _ T
     (let ((alignments (maximal-sequence-alignments "AGAT" "CTCT" nil nil
