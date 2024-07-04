@@ -97,12 +97,14 @@
                   (footprints set)
                   (items set-of-feature-value-pairs))
   :fcg-configurations ((:de-render-mode . :de-render-recipe-utterance)
+                       (:render-mode . :generate-and-test)
                        (:node-tests :restrict-nr-of-nodes :restrict-search-depth)
                        (:parse-goal-tests :no-applicable-cxns :no-strings-in-root :connected-structure)
                        (:construction-inventory-processor-mode . :heuristic-search)
                        (:node-expansion-mode . :full-expansion)
                        (:cxn-supplier-mode . :all-cxns)
                        (:search-algorithm . :best-first)
+                       (:max-nr-of-nodes . 1000)
                        (:heuristics :nr-of-applied-cxns :ontological-distance :nr-of-units-matched)
                        (:heuristic-value-mode . :sum-heuristics-and-parent))
   :visualization-configurations  ((:hide-features nil)
@@ -1378,16 +1380,16 @@
       (process-utterances '(;;;; Ingredients
                             "230 grams butter , room temperature"
                             "120 grams sugar"
-                            ;"4 grams vanilla extract"
-                            ;"4 grams almond extract"
-                            ;"340 grams flour"
-                            ;"120 grams almond flour"
-                            ;"30 grams powdered sugar"
+                            "4 grams vanilla extract"
+                            "4 grams almond extract"
+                            "340 grams flour"
+                            "120 grams almond flour"
+                            "30 grams powdered sugar"
 
                             ;;;; Instructions
                             "beat the butter and the sugar together until light and fluffy"
-                            ;"add the vanilla and almond extracts and mix"
-                            ;"add the flour and the almond flour"
+                            "add the vanilla and almond extracts and mix"
+                            "add the flour and the almond flour"
                             ;"mix thoroughly"
                             ;"take generous tablespoons of the dough and roll it into a small ball , about an inch in diameter , and then shape it into a crescent shape"
                             ;"place onto a parchment paper lined baking sheet"
