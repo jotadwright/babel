@@ -3,191 +3,164 @@
 ;;(ql:quickload :irl)
 (in-package :fcg)
 
-(defun equivalent-amr-predicate-networks (fcg-amr-network amr-predicates)
-  (irl::equivalent-irl-programs? fcg-amr-network
-                               (mapcar #'(lambda (predicate)
-                                           (cons (first predicate)
-                                                 (mapcar #'(lambda (symbol)
-                                                             (cond ((stringp symbol)
-                                                                    symbol)
-                                                                   ((numberp symbol)
-                                                                    symbol)
-                                                                   ((or (equal symbol '-)
-                                                                        (equal symbol '+))
-                                                                    symbol)
-                                                                   (t
-                                                                    (utils::variablify symbol))
-                                                                   ))
-                                                         (rest predicate))))
-                                       amr-predicates)))
 
-#|(defun equivalent-amr-predicate-networks (fcg-amr-network amr-predicates)
-  (equivalent-meaning? fcg-amr-network
-                       (mapcar #'(lambda (predicate)
-                                   (cons (first predicate)
-                                         (mapcar #'(lambda (symbol)
-                                                     (cond ((stringp symbol)
-                                                            symbol)
-                                                           ((numberp symbol)
-                                                            symbol)
-                                                           ((or (equal symbol '-)
-                                                                (equal symbol '+))
-                                                            symbol)
-                                                           (t
-                                                            (utils::variablify symbol))
-                                                           ))
-                                                 (rest predicate))))
-                               amr-predicates)
-                       :unify-with-instantiated-variables))
-|#
-
-(def-fcg-constructions little-prince-grammar
+(def-fcg-constructions  little-prince-grammar-sequences
   ;; These are the feature-types that we declare. All other features are treated as feature-value pairs.
   :feature-types ((meaning set-of-predicates)
-                  (form set-of-predicates)
+                  (form set-of-predicates :handle-regex-sequences)
                   (subunits set)
                   (lex-class set)
-                  (footprints set))
+                  (footprints set)
+                  (meaning-args sequence)
+                  (form-args sequence))
   ;; We specify the goal tests here.
-  :fcg-configurations ((:production-goal-tests  :no-applicable-cxns)
-                       (:parse-goal-tests :no-strings-in-root :connected-structure :no-applicable-cxns)
-                       (:max-search-depth . 1000))
+  :fcg-configurations ((:production-goal-tests :no-applicable-cxns :no-meaning-in-root :connected-structure )
+                       (:parse-goal-tests :no-applicable-cxns :connected-semantic-network :connected-structure )
+                       (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
+                       (:node-expansion-mode . :full-expansion) ;; always fully expands node immediately
+                       (:cxn-supplier-mode . :all-cxns) ;; returns all cxns at once
+                       ;; for using heuristics
+                       (:search-algorithm . :best-first) ;; :depth-first, :breadth-first :random
+                       (:heuristics :nr-of-applied-cxns :nr-of-units-matched) ;; list of heuristic functions (modes of #'apply-heuristic) - only used with best-first search
+                       (:heuristic-value-mode . :sum-heuristics-and-parent) ;; how to use results of heuristic functions for scoring a node
+                       (:de-render-mode . :de-render-sequence)
+                       (:render-mode . :render-sequences)
+                       (:max-nr-of-nodes . 1000))
 
   (def-fcg-cxn fox-cxn
                ((?fox-unit
-                 (referent ?f)
+                 (meaning-args (?f))
+                 (form-args (?left ?right))
                  (lex-class (noun))
-                 (sem-class physical-entity)
-                 )
+                 (sem-class physical-entity))
                 <-
                 (?fox-unit
                  (HASH meaning ((fox ?f)))
                  --
-                 (HASH form ((string ?fox-unit "fox"))))))
+                 (HASH form ((sequence "fox" ?left ?right))))))
 
   (def-fcg-cxn prince-cxn
                ((?prince-unit
-                 (referent ?p)
+                 (meaning-args (?p))
+                 (form-args (?left ?right))
                  (lex-class (noun))
-                 (sem-class physical-entity)
-                 )
+                 (sem-class physical-entity))
                 <-
                 (?prince-unit
                  (HASH meaning ((prince ?p)))
                  --
-                 (HASH form ((string ?prince-unit "prince"))))))
+                 (HASH form ((sequence "prince" ?left ?right))))))
 
   (def-fcg-cxn he-cxn
-               ((?he-unit
-                 (referent ?h)
+               (<-
+                (?he-unit
+                 (meaning-args (?h))
+                 (form-args (?left ?right))
                  (lex-class (pronoun))
                  (phrase-type noun-phrase)
                  (sem-class physical-entity)
-                 (boundaries (leftmost-unit ?he-unit)
-                             (rightmost-unit ?he-unit)))
-                <-
-                (?he-unit
-                 
                  --
-                 (HASH form ((string ?he-unit "he"))))))
+                 (HASH form ((sequence "he" ?left ?right))))))
 
   (def-fcg-cxn nothing-cxn
                ((?nothing-unit
-                 (referent ?n)
+                 (meaning-args (?n))
+                 (form-args (?left ?right))
                  (lex-class (pronoun))
                  (phrase-type noun-phrase)
-                 (sem-class physical-entity);;nothing?
-                 (boundaries (leftmost-unit ?nothing-unit)
-                             (rightmost-unit ?nothing-unit))) 
+                 (sem-class physical-entity))
                 <-
                 (?nothing-unit
                  (HASH meaning ((nothing ?n)))
                  --
-                 (HASH form ((string ?nothing-unit "nothing"))))))
+                 (HASH form ((sequence "nothing" ?left ?right))))))
 
   (def-fcg-cxn little-cxn
                ((?little-unit
-                 (referent ?l)
+                 (meaning-args (?l))
+                 (form-args (?left ?right))
                  (lex-class (adjective))
                  (sem-class property))
                 <-
                 (?little-unit
                  (HASH meaning ((little ?l)))
                  --
-                 (HASH form ((string ?little-unit "little"))))))
+                 (HASH form ((sequence "little" ?left ?right))))))
   
   (def-fcg-cxn noun-adjective-cxn
                ((?nominal-unit
                  (subunits (?noun-unit ?adjective-unit))
-                 (referent ?n)
+                 (meaning-args (?n))
                  (syn-function nominal)
                  (sem-class ?sem-class)
-                 (boundaries (leftmost-unit ?adjective-unit)
-                             (rightmost-unit ?noun-unit)))
+                 (form-args (?left-adj ?right-noun)))
                 (?noun-unit
                  (footprints (nominal-cxn)))
                 <-
                 (?adjective-unit
+                 (meaning-args (?a))
+                 (lex-class (adjective))
                  --
-                 (referent ?a)
+                 (form-args (?left-adj ?right-adj))
                  (lex-class (adjective)))
                 (?noun-unit
+                 (meaning-args (?n))
+                 (lex-class (noun))
+                 (footprints (not nominal-cxn))
                  --
                  (footprints (not nominal-cxn))
-                 (referent ?n)
+                 (form-args (?left-noun ?right-noun))
                  (lex-class (noun)))
                 (?nominal-unit
                  (HASH meaning ((:mod ?n ?a)))
                  --
-                 (HASH form ((meets ?adjective-unit ?noun-unit)))))
+                 (HASH form ((sequence " " ?right-adj ?left-noun)))))
                :disable-automatic-footprints t)
   
   (def-fcg-cxn noun-nominal-cxn
                ((?nominal-unit
                  (subunits (?noun-unit))
-                 (referent ?ref)
+                 (meaning-args (?ref))
                  (syn-function nominal)
                  (sem-class ?sem-class)
-                 (boundaries (leftmost-unit ?leftmost-nominal-unit)
-                             (rightmost-unit ?rightmost-nominal-unit)))
+                 (form-args (?left ?right)))
                 (?noun-unit
                  (footprints (nominal-cxn)))
                 <-
                 (?noun-unit
+                 (meaning-args (?ref))
+                 (lex-class (noun))
+                 (sem-class ?sem-class)
+                 (footprints (not nominal-cxn))
                  --
                  (footprints (not nominal-cxn))
-                 (referent ?ref)
-                 (sem-class ?sem-class)
+                 (form-args (?left ?right))
                  (lex-class (noun))))
                :disable-automatic-footprints t)
                  
   (def-fcg-cxn the-nominal-cxn
                ((?noun-phrase-unit
-                 (referent ?ref)
+                 (meaning-args (?ref))
+                 (form-args (?left-the ?right-nominal))
                  (phrase-type noun-phrase)
                  (sem-class ?sem-class)
                  (sem-function referring-expression)
-                 (subunits (?the-unit ?nominal-unit))
-                 (boundaries (leftmost-unit ?the-unit)
-                             (rightmost-unit ?rightmost-nominal-unit)))
+                 (subunits (?the-unit ?nominal-unit)))
                 <-
                 (?the-unit
                  --
-                 (HASH form ((string ?the-unit "the"))))
+                 (HASH form ((sequence "the " ?left-the ?right-the))))
                 (?nominal-unit
-                 --
-                 (referent ?ref)
-                 (syn-function nominal)
+                 (meaning-args (?ref))
                  (sem-class ?sem-class)
-                 (boundaries (leftmost-unit ?leftmost-nominal-unit)
-                             (rightmost-unit ?rightmost-nominal-unit)))
-                (?noun-phrase-unit
+                 (syn-function nominal)
                  --
-                 (HASH form ((meets ?the-unit ?leftmost-nominal-unit))))))
+                 (form-args (?right-the ?right-nominal))
+                 (syn-function nominal))))
 
   (def-fcg-cxn appear-lex-cxn
                ((?appear-unit
-                 (referent ?a)
+                 (meaning-args (?a))
                  (lex-class (ergative-verb verb))
                  (sem-class activity))
                 <-
@@ -197,21 +170,24 @@
                  (lemma appear)
                  (agreement (person ?p)
                             (number ?n))
-                 (tense ?t))))
+                 (tense ?t)
+                 (form-args ?left ?right))))
 
   (def-fcg-cxn appear-appeared-morph
-           (<-
+           (
+            <-
             (?appeared-unit
              (lemma appear)
              (agreement (person ?p)
                         (number ?n))
              (tense past)
+             (form-args (?left ?right))
              --
-             (HASH form ((string ?appeared-unit "appeared"))))))
+             (HASH form ((sequence "appeared" ?left ?right))))))
 
   (def-fcg-cxn turn-lex-cxn
                ((?turn-unit
-                 (referent ?t)
+                 (meaning-args (?t))
                  (lex-class (ergative-verb verb))
                  (sem-class activity)
                  (sem-frame motion))
@@ -222,7 +198,8 @@
                  (lemma turn)
                  (agreement (person ?p)
                             (number ?n))
-                 (tense ?tense))))
+                 (tense ?tense)
+                 (form-args (?left ?right)))))
 
   (def-fcg-cxn turn-turned-morph
            (<-
@@ -231,12 +208,13 @@
              (agreement (person ?p)
                         (number ?n))
              (tense past)
+             (form-args (?left ?right))
              --
-             (HASH form ((string ?turned-unit "turned"))))))
+             (HASH form ((sequence "turned" ?left ?right))))))
 
     (def-fcg-cxn say-lex-cxn
                ((?say-unit
-                 (referent ?s)
+                 (meaning-args (?s))
                  (lex-class (verb))
                  (sem-class activity)
                  (sem-frame statement))
@@ -247,7 +225,8 @@
                  (lemma say)
                  (agreement (person ?p)
                             (number ?n))
-                 (tense ?t))))
+                 (tense ?t)
+                 (form-args (?left ?right)))))
 
   (def-fcg-cxn say-said-morph
            (<-
@@ -256,15 +235,15 @@
              (agreement (person ?p)
                         (number ?n))
              (tense past)
+             (form-args (?left ?right))
              --
-             (HASH form ((string ?said-unit "said"))))))
+             (HASH form ((sequence "said" ?left ?right))))))
 
   (def-fcg-cxn respond-lex-cxn
                ((?respond-unit
-                 (referent ?r)
+                 (meaning-args (?r))
                  (lex-class (verb))
-                 (sem-class activity)
-                 (sem-frame response))
+                 (sem-class activity))
                 <-
                 (?respond-unit
                  (HASH meaning ((respond-01 ?r)))
@@ -272,7 +251,8 @@
                  (lemma respond)
                  (agreement (person ?p)
                             (number ?n))
-                 (tense ?t))))
+                 (tense ?t)
+                 (form-args (?left ?right)))))
 
   (def-fcg-cxn respond-responded-morph
            (<-
@@ -281,12 +261,13 @@
              (agreement (person ?p)
                         (number ?n))
              (tense past)
+             (form-args (?left ?right))
              --
-             (HASH form ((string ?responded-unit "responded"))))))
+             (HASH form ((sequence "responded" ?left ?right))))))
 
   (def-fcg-cxn see-lex-cxn
                ((?see-unit
-                 (referent ?s)
+                 (meaning-args (?s))
                  (lex-class (verb))
                  (sem-class activity)
                  (sem-frame perception))
@@ -297,7 +278,8 @@
                  (lemma see)
                  (agreement (person ?p)
                             (number ?n))
-                 (tense ?t))))
+                 (tense ?t)
+                 (form-args (?left ?right)))))
 
   (def-fcg-cxn see-saw-morph
            (<-
@@ -306,345 +288,282 @@
              (agreement (person ?p)
                         (number ?n))
              (tense past)
+             (form-args (?left ?right))
              --
-             (HASH form ((string ?saw-unit "saw"))))))
+             (HASH form ((sequence "saw" ?left ?right))))))
   
 
   (def-fcg-cxn intransitive-ergative-cxn
                ((?ergative-clause-unit
                  (subunits (?arg1-unit ?ergative-verb-unit))
-                 (boundaries (leftmost-unit ?leftmost-arg1-unit)
-                             (rightmost-unit ?ergative-verb-unit))
+                 (form-args (?arg1-left ?verb-right))
                  (syn-valence (subject ?arg1-unit))
                  (phrase-type clause)
-                 (referent ?event))
+                 (meaning-args (?event)))
                 (?ergative-verb-unit
                  (footprints (argument-structure-cxn)))
                 <-
                 (?arg1-unit
-                 --
-                 (referent ?arg1)
+                 (meaning-args (?arg1))
                  (sem-function referring-expression)
-                 (boundaries (leftmost-unit ?leftmost-arg1-unit)
-                             (rightmost-unit ?rightmost-arg1-unit)))
+                 --
+                 (form-args (?arg1-left ?arg1-right))
+                 (sem-function referring-expression))
                 (?ergative-verb-unit
-                 (HASH meaning ((:arg1 ?event ?arg1)))
+                 (meaning-args (?event))
+                 (lex-class (ergative-verb))
+                 (footprints (not argument-structure-cxn))
                  --
                  (footprints (not argument-structure-cxn))
-                 (referent ?event)
-                 (lex-class (ergative-verb))))
+                 (form-args (?verb-left ?verb-right))
+                 (lex-class (ergative-verb)))
+                (?ergative-clause-unit
+                 (HASH meaning ((:arg1 ?event ?arg1)))
+                 --
+                 (HASH form ((sequence " " ?arg1-right ?verb-left)))))
                :disable-automatic-footprints t)
 
   (def-fcg-cxn it-was-then-that-X-cxn
-               (<-
+               ((?clause-unit
+                 (subunits (?then-unit)))
                 (?then-unit
-                 (referent ?t)
-                 (lex-class holophrase)
+                 (meaning-args (?t))
+                 (lex-class (holophrase)))
+                <-
+                (?then-unit
+                 (HASH meaning ((then ?t)))
                  --
-                 (HASH form ((string ?it "it")
-                             (string ?was "was")
-                             (string ?then-unit "then")
-                             (string ?that "that")
-                             (meets ?it ?was)
-                             (meets ?was ?then-unit)
-                             (meets ?then-unit ?that))))
+                 (HASH form ((sequence "it was then that " ?then-left ?then-right))))
                 (?clause-unit
-                 (HASH meaning ((:time ?event ?t)
-                                (then ?t)))
-                 --
-                 (referent ?event)
+                 (HASH meaning ((:time ?event ?t)))
+                 (meaning-args (?event))
                  (phrase-type clause)
-                 (boundaries (leftmost-unit ?leftmost-event-unit)
-                             (rightmost-unit ?rightmost-event-unit))
-                 (HASH form ((meets ?that ?leftmost-event-unit))))))
+                 --
+                 (phrase-type clause)
+                 (form-args (?then-right ?clause-right)))))
 
   (def-fcg-cxn good-morning-cxn
-               ((?good-unit
-                 (referent ?g))
-                (?morning-unit
-                 (referent ?m))
-                (?expression-unit
-                 (referent ?m)
+               ((?expression-unit
+                 (meaning-args (?m))
+                 (form-args (?left ?right))
                  (sem-class greeting)
-                 (lex-class fixed-expression)
-                 (phrase-type clause)
-                 (subunits (?good-unit ?morning-unit))
-                 (boundaries (leftmost-unit ?good-unit)
-                             (rightmost-unit ?morning-unit)))
+                 (lex-class (fixed-expression))
+                 (phrase-type clause))
                 <-
-                (?good-unit
-                 (HASH meaning ((good-02 ?g)))
-                 --
-                 (HASH form ((string ?good-unit "Good"))))
-                (?morning-unit
-                 (HASH meaning ((morning ?m)))
-                 --
-                 (HASH form ((string ?morning-unit "morning"))))
-               
                 (?expression-unit
-                 (HASH meaning ((:arg1-of ?m ?g)))
+                 (HASH meaning ((good-02 ?g)
+                                (morning ?m)
+                                (:arg1-of ?m ?g)))
                  --
-                 (HASH form ((meets ?good-unit ?morning-unit))))))
+                 (HASH form ((sequence "Good morning" ?left ?right))))))
 
-  (def-fcg-cxn direct-speech-cxn
+  (def-fcg-cxn fronted-direct-speech-cxn
                ((?direct-speech-unit
-                 (referent ?s)
+                 (meaning-args (?s))
+                 (form-args (?left-opening-quote ?arg0-right))
                  (phrase-type direct-speech)
-                 (subunits (?statement-unit))
-                 (boundaries (leftmost-unit ?quote-1)
-                             (rightmost-unit ?quote-2)))
+                 (subunits (?statement-unit ?speech-verb-unit ?speaker-unit)))
                 <-
                 (?statement-unit
-                 --
-                 (referent ?s)
+                 (meaning-args (?s))
                  (phrase-type clause)
-                 (boundaries (leftmost-unit ?leftmost-statement-unit)
-                             (rightmost-unit ?rightmost-statement-unit)))
+                 --
+                 (form-args (?statement-left ?statement-right))
+                 (phrase-type clause))
+                (?speech-verb-unit
+                 (lex-class (verb))
+                 (meaning-args (?s2))
+                 (sem-class activity)
+                 (footprints (not argument-structure-cxn))
+                 --
+                 (lex-class (verb))
+                 (form-args (?left-speech-verb ?right-speech-verb))
+                 (footprints (not argument-structure-cxn)))
+                (?speaker-unit
+                 (meaning-args (?arg0))
+                 (sem-class physical-entity)
+                 --
+                 (form-args (?arg0-left ?arg0-right))
+                 (phrase-type noun-phrase))
                 (?direct-speech-unit
-                 --
-                 (HASH form ((string ?quote-1 "'")
-                             (string ?comma ",") ;;with comma!
-                             (string ?quote-2 "'")
-                             (meets ?comma ?quote-2)
-                             (meets ?quote-1 ?leftmost-statement-unit)
-                             (meets ?rightmost-statement-unit ?comma))))))
-  
-  (def-fcg-cxn topicalised-statement-frame-cxn
-               ((?clause-unit
-                 (subunits (?statement-unit ?statement-verb-unit ?arg0-unit))
-                 (syn-valence (subject ?arg0-unit))
-                 (boundaries (leftmost-unit ?quote-1)
-                             (rightmost-unit ?righmost-arg0-unit))
-                 (phrase-type clause)
-                 (sem-function proposition)
-                 (referent ?s2))
-                (?statement-verb-unit
-                 (footprints ( argument-structure-cxn)))
-                 
-                <-
-                (?statement-unit
-                 --
-                 (referent ?s)
-                 (phrase-type direct-speech))
-                (?statement-verb-unit
                  (HASH meaning ((:arg0 ?s2 ?arg0)
                                 (:arg1 ?s2 ?s)))
                  --
-                 (sem-frame statement)
-                 (lex-class (verb))
-                 (referent ?s2)
-                 (footprints (not argument-structure-cxn)))
-                (?arg0-unit
-                 --
-                 (referent ?arg0)
-                 (phrase-type noun-phrase)
-                 (boundaries (leftmost-unit ?leftmost-arg0-unit)
-                             (rightmost-unit ?righmost-arg0-unit))))
+                 (HASH form ((sequence "'" ?left-opening-quote ?statement-left)
+                             (sequence ",' " ?statement-right ?right-final-quote)
+                             (precedes ?right-final-quote ?left-speech-verb)
+                             (precedes ?right-final-quote ?arg0-left)))))
                :disable-automatic-footprints t)
-
-  (def-fcg-cxn topicalised-response-frame-cxn
-               ((?clause-unit
-                 (subunits (?statement-unit ?statement-verb-unit ?arg0-unit))
-                 (syn-valence (subject ?arg0-unit))
-                 (boundaries (leftmost-unit ?leftmost-statement-unit)
-                             (rightmost-unit ?righmost-statement-verb-unit))
-                 (phrase-type clause)
-                 (sem-function proposition)
-                 (referent ?s2))
-                (?statement-verb-unit
-                 (footprints ( argument-structure-cxn)))
-                <-
-                (?statement-unit
-                 --
-                 (referent ?s)
-                 (phrase-type direct-speech)
-                 (boundaries (leftmost-unit ?leftmost-statement-unit)
-                             (rightmost-unit ?rightmost-statement-unit)))
-                (?arg0-unit
-                 --
-                 (referent ?arg0)
-                 (phrase-type noun-phrase)
-                 (boundaries (leftmost-unit ?leftmost-arg0-unit)
-                             (rightmost-unit ?righmost-arg0-unit)))
-                (?statement-verb-unit
-                 (HASH meaning ((:arg0 ?s2 ?arg0)
-                                (:arg2 ?s2 ?s)))
-                 --
-                 (sem-frame response)
-                 (lex-class (verb))
-                 (referent ?s2)
-                 (footprints (not argument-structure-cxn))
-                 (boundaries (leftmost-unit ?leftmost-statement-verb-unit)
-                             (rightmost-unit ?rightmost-statement-verb-unit)))
-                
-                (?clause-unit
-                 --
-                 (HASH form ((meets ?rightmost-statement-unit ?leftmost-arg0-unit)
-                             (meets ?righmost-arg0-unit ?leftmost-statement-verb-unit)))))
-               :disable-automatic-footprints t)
-
+  
   (def-fcg-cxn politely-adverb
-               ((?politely-unit
-                 (referent ?p))
-                (?event-unit
-                 (subunits (?politely-unit))
-                 (boundaries (leftmost-unit ?event-unit)
-                             (rightmost-unit ?politely-unit)))
+               ((?verb-manner-unit
+                 (subunits (?event-unit ?politely-unit))
+                 (form-args (?event-left ?politely-right))
+                 (meaning-args (?e))
+                 (sem-class activity)
+                 (lex-class (verb)))
+                (?politely-unit
+                 (lex-class (adverb))
+                 (meaning-args (?p)))
                 <-
                 (?politely-unit
                  (HASH meaning ((polite-01 ?p)))
                  --
-                 (HASH form ((string ?politely-unit "politely"))))
+                 (HASH form ((sequence "politely" ?politely-left ?politely-right))))
                 (?event-unit
-                 (referent ?e)
+                 (meaning-args (?e))
+                 (sem-class activity)
+                 --
                  (lex-class (verb))
+                 (form-args (?event-left ?event-right)))
+                (?verb-manner-unit
                  (HASH meaning ((:manner ?e ?p)))
                  --
-                 (HASH form ((meets ?event-unit ?politely-unit))))))
+                 (HASH form ((precedes ?event-right ?politely-left))))))
 
 
   (def-fcg-cxn active-transitive-cxn
                ((?transitive-clause-unit
                  (syn-valence (subject ?arg0-unit)
                               (direct-object ?arg1-unit))
-                 (referent ?event)
+                 (meaning-args (?event))
                  (phrase-type clause)
                  (sem-function proposition)
-                 (boundaries (leftmost-unit ?leftmost-arg0-unit)
-                             (rightmost-unit ?rightmost-arg1-unit))
+                 (form-args (?arg0-left ?arg1-right))
                  (subunits (?arg0-unit ?event-unit ?arg1-unit)))
                 (?event-unit
                  (footprints (argument-structure-cxn)))
                 <-
                 (?arg0-unit
-                 --
-                 (referent ?arg0)
+                 (meaning-args (?arg0))
                  (phrase-type noun-phrase)
-                 (boundaries (leftmost-unit ?leftmost-arg0-unit)
-                             (rightmost-unit ?rightmost-arg0-unit)))
-                (?event-unit
                  --
-                 (referent ?event)
+                 (phrase-type noun-phrase)
+                 (form-args (?arg0-left ?arg0-right)))
+                (?event-unit
+                 (meaning-args (?event))
+                 (lex-class (verb))
+                 (footprints (not argument-structure-cxn))
+                 --
+                 (form-args (?arg0-right ?event-left))
                  (lex-class (verb))
                  (footprints (not argument-structure-cxn)))
                 (?arg1-unit
-                 --
-                 (referent ?arg1)
+                 (meaning-args (?arg1))
                  (phrase-type noun-phrase)
-                 (boundaries (leftmost-unit ?leftmost-arg1-unit)
-                             (rightmost-unit ?rightmost-arg1-unit)))
+                 --
+                 (form-args (?event-left ?arg1-right))
+                 (phrase-type noun-phrase))
                 (?transitive-clause-unit
                  (HASH meaning ((:arg0 ?event ?arg0)
                                 (:arg1 ?event ?arg1)))
-                 --
-                 (HASH form ((meets ?rightmost-arg0-unit ?event-unit)
-                             (meets ?event-unit ?leftmost-arg1-unit)))))
+                 --))
                :disable-automatic-footprints t)
 
   (def-fcg-cxn around-cxn
                ((?around-unit
-                 (referent ?a)
+                 (meaning-args (?a))
+                 (form-args (?left ?right))
                  (lex-class (adverb))
-                 (sem-class direction)
-                 (boundaries (leftmost-unit ?around-unit)
-                             (rightmost-unit ?around-unit)))
+                 (sem-class direction))
                 <-
                 (?around-unit
                  (HASH meaning ((around ?a)))
                  --
-                 (HASH form ((string ?around-unit "around"))))))
+                 (HASH form ((sequence "around" ?left ?right))))))
   
   (def-fcg-cxn ergative-motion-direction-cxn
                ((?ergative-clause-unit
-                 (referent ?motion)
+                 (meaning-args (?motion))
+                 (form-args (?arg1-left ?direction-right))
                  (phrase-type clause)
                  (sem-function proposition)
                  (syn-valence (subject ?arg1-unit))
-                 (boundaries (leftmost-unit ?leftmost-arg1-unit)
-                             (rightmost-unit ?rightmost-direction-unit))
                  (subunits (?arg1-unit ?motion-unit ?direction-unit)))
                 (?motion-unit
                  (footprints (argument-structure-cxn)))
                  <-
                 (?arg1-unit
-                 --
-                 (referent ?arg1)
+                 (meaning-args (?arg1))
                  (phrase-type noun-phrase)
-                 (boundaries (leftmost-unit ?leftmost-arg1-unit)
-                             (rightmost-unit ?rightmost-arg1-unit)))
-                (?motion-unit
                  --
-                 (referent ?motion)
+                 (form-args (?arg1-left ?arg1-right))
+                 (phrase-type noun-phrase))
+                (?motion-unit
+                 (meaning-args (?motion))
+                 (lex-class (ergative-verb))
                  (sem-frame motion)
+                 (footprints (not argument-structure-cxn))
+                 --
+                 (form-args (?arg1-right ?motion-left))
                  (lex-class (ergative-verb))
                  (footprints (not argument-structure-cxn)))
                 (?direction-unit
-                 --
-                 (referent ?direction)
+                 (meaning-args (?direction))
                  (sem-class direction)
-                 (boundaries (leftmost-unit ?leftmost-direction-unit)
-                             (rightmost-unit ?rightmost-direction-unit)))
+                 --
+                 (form-args (?motion-left ?direction-right))
+                 (sem-class direction))
                 (?ergative-clause-unit
                  (HASH meaning ((:arg1 ?motion ?arg1)
                                 (:direction ?motion ?direction)))
-                 --
-                 (HASH form ((meets ?rightmost-arg1-unit ?motion-unit)
-                             (meets ?motion-unit ?leftmost-direction-unit)))))
+                 --))
                :disable-automatic-footprints t)
 
   (def-fcg-cxn when-cxn
-               ((?when-unit
-                 (lex-class (adverb temporal-adverb)))
+               (
                 <-
                 (?when-unit
+                 (form-args (?left ?right))
+                 (lex-class (adverb temporal-adverb))
                  --
-                 (HASH form ((string ?when-unit "when"))))))
+                 (HASH form ((sequence "when" ?left ?right))))))
   
   (def-fcg-cxn temporal-chained-propositions-cxn
                ((?temporal-subclause-unit
                  (phrase-type clause)
-                 (referent ?proposition-2)
+                 (meaning-args (?proposition-2))
+                 (form-args (?temporal-left ?second-prop-right))
                  (syn-valence (subject ?second-subject-unit))
-                 (subunits (?temporal-adverb-unit ?first-proposition-unit ?second-proposition-unit))
-                 (boundaries (leftmost-unit ?temporal-adverb-unit)
-                             (rightmost-unit ?rightmost-proposition-2-unit)))
+                 (subunits (?temporal-adverb-unit ?first-proposition-unit ?second-proposition-unit)))
                 <-
                 (?temporal-adverb-unit
                  --
+                 (form-args (?temporal-left ?temporal-right))
                  (lex-class (temporal-adverb)))
                 (?first-proposition-unit
-                 --
-                 (referent ?proposition-1)
+                 (meaning-args (?proposition-1))
                  (sem-function proposition)
-                 (syn-valence (subject ?first-subject-unit))
-                 (boundaries (leftmost-unit ?leftmost-proposition-1-unit)
-                             (rightmost-unit ?rightmost-proposition-1-unit)))
+                 --
+                 (form-args (?temporal-right ?first-prop-left))
+                 (syn-valence (subject ?first-subject-unit)))
                 (?first-subject-unit
+                 (meaning-args (?same-ref))
                  --
-                 (referent ?same-ref))
+                 (meaning-args (?same-ref)))
                 (?second-proposition-unit
-                 --
-                 (referent ?proposition-2)
+                 (meaning-args (?proposition-2))
                  (sem-function proposition)
-                 (syn-valence (subject ?second-subject-unit))
-                 (boundaries (leftmost-unit ?leftmost-proposition-2-unit)
-                             (rightmost-unit ?rightmost-proposition-2-unit)))
-                (?second-subject-unit
                  --
-                 (referent ?same-ref))
+                 (form-args (?first-prop-left ?second-prop-right))
+                 (syn-valence (subject ?second-subject-unit)))
+                (?second-subject-unit
+                 (meaning-args (?same-ref))
+                 --
+                 (meaning-args (?same-ref)))
                 (?temporal-subclause-unit
                  (HASH meaning ((:time ?proposition-2 ?proposition-1)))
                  --
-                 (HASH form ((meets ?temporal-adverb-unit ?leftmost-proposition-1-unit)
-                             (meets ?rightmost-proposition-1-unit ?leftmost-proposition-2-unit))))))
+                 )))
 
   (def-fcg-cxn although-cxn
-               ((?although-unit
-                 (lex-class (conjunction concessive-conjunction)))
+               (
                 <-
                 (?although-unit
+                 (form-args (?left ?right))
+                 (lex-class (conjunction concessive-conjunction))
                  --
-                 (HASH form ((string ?although-unit "although"))))))
+                 (HASH form ((sequence "although" ?left ?right))))))
                
   (def-fcg-cxn concessive-subclause-cxn
                ((?concessive-clause-unit
@@ -652,84 +571,99 @@
                  (phrase-type subclause)
                  (syn-valence (subject ?subject-unit))
                  (referent ?concession)
-                 (args (?proposition ?concession))
-                 (boundaries (leftmost-unit ?concessive-conjunction-unit)
-                             (rightmost-unit ?rightmost-clause-unit)))
+                 (meaning-args (?proposition ?concession))
+                 (form-args (?conjuction-left ?clause-right)))
                 <-
                 (?concessive-conjunction-unit
                  --
+                 (form-args (?conjuction-left ?conjunction-right))
                  (lex-class (concessive-conjunction)))
                 (?clause-unit
+                 (phrase-type clause)
+                 (meaning-args (?concession))
                  --
                  (phrase-type clause)
-                 (referent ?concession)
-                 (syn-valence (subject ?subject-unit))
-                 (boundaries (leftmost-unit ?leftmost-clause-unit)
-                             (rightmost-unit ?rightmost-clause-unit)))
+                 (form-args (?conjunction-right ?clause-right))
+                 (syn-valence (subject ?subject-unit)))
                 (?concessive-clause-unit
                  (HASH meaning ((:concession ?proposition ?concession)))
                  --
-                 (HASH form ((meets ?concessive-conjunction-unit ?leftmost-clause-unit))))))
+                 )))
 
   (def-fcg-cxn main+subclause-cxn
                ((?sentence-unit
-                 (referent ?proposition)
+                 (meaning-args (?proposition))
+                 (form-args (?main-clause-left ?sub-clause-right))
                  (syn-valence (subject ?subject-unit))
-                 (subunits (?main-clause-unit ?comma-unit ?sub-clause-unit))
-                 (boundaries (leftmost-unit ?leftmost-main-clause-unit)
-                             (rightmost-unit ?rightmost-sub-clause-unit)))
+                 (subunits (?main-clause-unit ?comma-unit ?sub-clause-unit)))
                 <-
                 (?main-clause-unit
-                 --
-                 (referent ?proposition)
                  (phrase-type clause)
                  (sem-function proposition)
-                 (syn-valence (subject ?subject-main-clause-unit))
-                 (boundaries (leftmost-unit ?leftmost-main-clause-unit)
-                             (rightmost-unit ?rightmost-main-clause-unit)))
-                (?subject-main-clause-unit
+                 (meaning-args (?proposition))
                  --
-                 (referent ?same-ref))
+                 (form-args (?main-clause-left ?main-clause-right))
+                 (syn-valence (subject ?subject-main-clause-unit)))
+                (?subject-main-clause-unit
+                 (meaning-args (?same-ref))
+                 --
+                 (meaning-args (?same-ref)))
                 (?comma-unit
                  --
-                 (HASH form ((string ?comma-unit ",")
-                             (meets ?comma-unit ?leftmost-sub-clause-unit)
-                             (meets ?rightmost-main-clause-unit ?comma-unit))))
+                 (HASH form ((sequence "," ?comma-left ?comma-right)
+                             (precedes ?main-clause-right ?comma-left)
+                             (precedes ?comma-right ?sub-clause-left))))
                 (?sub-clause-unit
-                 --
                  (phrase-type subclause)
                  (referent ?subclause-ref)
-                 (syn-valence (subject ?subject-sub-clause-unit))
-                 (args (?proposition ?subclause-ref))
-                 (boundaries (leftmost-unit ?leftmost-sub-clause-unit)
-                             (rightmost-unit ?rightmost-sub-clause-unit)))
-                (?subject-sub-clause-unit
+                 (meaning-args (?proposition ?subclause-ref))
                  --
-                 (referent ?same-ref)))))
+                 (phrase-type subclause)
+                 (syn-valence (subject ?subject-sub-clause-unit))
+                 (form-args (?sub-clause-left ?sub-clause-right)))
+                (?subject-sub-clause-unit
+                 (meaning-args (?same-ref))
+                 --
+                 (meaning-args (?same-ref))))))
 
 
 (activate-monitor trace-fcg)
+;;(comprehend "the fox")
+;;(formulate '((fox f)))
 
 ;# ::id lpp_1943.1043 
-(equivalent-amr-predicate-networks
+(amr::equivalent-amr-predicate-networks
  (comprehend "it was then that the fox appeared")
  (amr::penman->predicates '(a / appear-01
+                              :ARG1 (f / fox)
+                              :time (t / then))))
+
+(formulate (amr::penman->predicates '(a / appear-01
                               :ARG1 (f / fox)
                               :time (t / then))))
 
 
 
 ;# ::id lpp_1943.1044
-(equivalent-amr-predicate-networks
- (comprehend " ' Good morning , ' said the fox")
+(amr::equivalent-amr-predicate-networks
+ (comprehend "'Good morning,' said the fox")
  (amr::penman->predicates '(s / say-01
                               :ARG0 (f / fox)
                               :ARG1 (m / morning
                                        :ARG1-of (g / good-02)))))
 
+(formulate (amr::penman->predicates '(s / say-01
+                              :ARG0 (f / fox)
+                              :ARG1 (m / morning
+                                       :ARG1-of (g / good-02)))))
+
 ;# ::id lpp_1943.1045
-(equivalent-amr-predicate-networks
- (comprehend " ' Good morning , ' the little prince responded politely ")
+
+(comprehend "the little prince")
+
+;;no equivalence, as respond-01 uses :arg2 instead of :arg1
+(amr::equivalent-amr-predicate-networks
+ (comprehend "'Good morning,' the little prince responded politely")
  (amr::penman->predicates '(r / respond-01
                               :ARG0 (p / prince
                                        :mod (l / little))
@@ -737,7 +671,7 @@
                                        :ARG1-of (g / good-02))
                               :manner (p2 / polite-01))))
 
-(equivalent-amr-predicate-networks
+(amr::equivalent-amr-predicate-networks
  (comprehend "when he turned around he saw nothing")
  (amr::penman->predicates '(s / see-01
                               :ARG0 p
