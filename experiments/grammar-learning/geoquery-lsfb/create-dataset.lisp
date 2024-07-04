@@ -59,8 +59,8 @@
 (defun compare-id-lists (list-1 list-2)
   (loop with output-list = list-2
         for id in list-1
-        do (setf output-list (remove id output-list))
-        finally (return list-2)))
+        do (setf output-list (remove id output-list :test #'string=))
+        finally (return output-list)))
 
 ;(compare-id-lists (make-json-dataset *input-path* *output-path*) *geoquery-ids*)
 
