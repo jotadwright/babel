@@ -34,7 +34,7 @@
                        (:heuristics :nr-of-applied-cxns :nr-of-units-matched) ;; list of heuristic functions (modes of #'apply-heuristic)
                        (:heuristic-value-mode . :sum-heuristics-and-parent) ;; how to use results of heuristic functions for scoring a node
                       ; (:hash-mode . :hash-string-meaning)
-                       (:de-render-mode . :de-render-sequence)
+                       (:de-render-mode . :de-render-sequence-predicates)
                        (:render-mode . :render-sequences)
                        (:category-linking-mode . :neighbours)
                        (:parse-goal-tests :no-applicable-cxns :connected-semantic-network)))

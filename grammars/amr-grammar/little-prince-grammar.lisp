@@ -23,7 +23,7 @@
                        (:search-algorithm . :best-first) ;; :depth-first, :breadth-first :random
                        (:heuristics :nr-of-applied-cxns :nr-of-units-matched) ;; list of heuristic functions (modes of #'apply-heuristic) - only used with best-first search
                        (:heuristic-value-mode . :sum-heuristics-and-parent) ;; how to use results of heuristic functions for scoring a node
-                       (:de-render-mode . :de-render-sequence)
+                       (:de-render-mode . :de-render-sequence-predicates)
                        (:render-mode . :render-sequences)
                        (:max-nr-of-nodes . 1000))
 

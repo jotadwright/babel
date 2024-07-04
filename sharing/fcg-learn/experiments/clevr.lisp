@@ -39,7 +39,7 @@
                        (:k-swap-k . 1)
                        (:k-swap-w . 1)
                        (:consolidate-repairs . t)
-                       (:de-render-mode . :de-render-sequence)
+                       (:de-render-mode . :de-render-sequence-predicates)
                        (:render-mode . :render-sequences)
                        (:category-linking-mode . :neighbours)
                        (:expand-nodes-in-search-tree . t)

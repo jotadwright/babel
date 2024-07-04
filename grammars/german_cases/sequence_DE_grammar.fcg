@@ -11,7 +11,7 @@
                   (footprints set)
                   (case sequence))
   :fcg-configurations ((:max-nr-of-nodes . 40000)
-                       (:de-render-mode . :de-render-sequence)
+                       (:de-render-mode . :de-render-sequence-predicates)
                        (:parse-goal-tests :no-applicable-cxns :no-strings-in-root :connected-semantic-network :connected-structure)
                        ;; to activate heuristic search
                        (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
