@@ -671,6 +671,17 @@
                                        :ARG1-of (g / good-02))
                               :manner (p2 / polite-01))))
 
+(formulate (amr::penman->predicates '(r / respond-01
+                              :ARG0 (p / prince
+                                       :mod (l / little))
+                              :ARG1 (m / morning
+                                       :ARG1-of (g / good-02))
+                              :manner (p2 / polite-01))))
+
+
+
+;;Tot hier
+;;;;;;;;;;;;;;;;;
 (amr::equivalent-amr-predicate-networks
  (comprehend "when he turned around he saw nothing")
  (amr::penman->predicates '(s / see-01
