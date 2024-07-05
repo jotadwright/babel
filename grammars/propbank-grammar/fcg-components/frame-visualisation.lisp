@@ -96,6 +96,11 @@
               :initarg :fe-string
               :initform nil
               :documentation "The string.")
+   (fe-lemmas :type list
+              :accessor fe-lemmas
+              :initarg :fe-lemmas
+              :initform nil
+              :documentation "The lemmas")
    (indices :accessor indices
             :initarg :indices
             :initform nil

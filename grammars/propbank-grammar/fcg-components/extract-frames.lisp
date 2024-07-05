@@ -53,8 +53,24 @@
                  :fe-name (second predicate)
                  :fe-role (second predicate)
                  :fe-string (second (find 'string (unit-body fe-consituent-unit) :key #'feature-name))
+                 :fe-lemmas (if (find 'constituents (unit-body fe-consituent-unit) :key #'feature-name)
+                              (find-constituents-lemmas (second (find 'constituents (unit-body fe-consituent-unit) :key #'feature-name)) unit-list)
+                              (second (find 'lemma (unit-body fe-consituent-unit) :key #'feature-name)))
                  :indices (when (second (second (find 'span (unit-body fe-consituent-unit) :key #'feature-name)))
                             (loop for i
                                   from (first (second (find 'span (unit-body fe-consituent-unit) :key #'feature-name)))
                                   to (- (second (second (find 'span (unit-body fe-consituent-unit) :key #'feature-name))) 1)
                                   collect i))))))
+
+(defun find-constituents-lemmas (unit-names unit-list)
+  (loop for unit-name in unit-names
+        for unit = (find unit-name unit-list :key #'first :test #'equal)
+        for lemma = (find 'lemma unit :key #'feature-name)
+        if lemma
+          collect (second (find 'lemma unit :key #'feature-name))
+        else
+          append (find-constituents-lemmas (second (find 'constituents (find unit-name unit-list :key #'feature-name) :key #'feature-name)) unit-list)))
+
+#|(loop for unit-name in (second (find 'constituents (unit-body fe-consituent-unit) :key #'feature-name))
+                                  for unit = (find unit-name unit-list :key #'first :test #'equal)
+                                  collect (second (find 'lemma unit :key #'feature-name)))|#

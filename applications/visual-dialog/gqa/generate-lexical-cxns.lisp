@@ -153,7 +153,7 @@
     (eval `(def-fcg-cxn ,cxn-name
                         ((,unit-name
                           (args ((target ,out-var)))
-                          (sem-cat (sem-class ,(internal-symb (upcase  (hyphenize category))))
+                          (sem-cat (sem-class attribute) ;(sem-class ,(internal-symb (upcase  (hyphenize category))))
                                    (grammar clevr)) ;; TODO, test this?
                           (syn-cat (syn-class noun)
                                    (number singular)
@@ -165,6 +165,30 @@
                           (HASH meaning ((bind ,category-name ,out-var ,(internal-symb (upcase (format nil "gqa-~a" (hyphenize noun)))))))
                           --
                           (HASH form ((string ,unit-name ,noun)))))
+                        :cxn-inventory ,cxn-inventory
+                        :attributes (:string ,noun 
+                                     :meaning ,(internal-symb (upcase (hyphenize noun))))))))
+
+(defmethod add-substantive-plural-lex-cxn (cxn-inventory noun category)
+  (let* ((cxn-name (internal-symb (upcase (format nil "~a-plural-lex-cxn" (hyphenize noun)))))
+         (unit-name (make-var (upcase (format nil "~a-unit" (hyphenize noun)))))
+         (out-var (make-var category))
+         (category-name (internal-symb (upcase (format nil "gqa-~a-category" category)))))
+    (eval `(def-fcg-cxn ,cxn-name
+                        ((,unit-name
+                          (args ((target ,out-var)))
+                          (sem-cat (sem-class attribute) ;(sem-class ,(internal-symb (upcase  (hyphenize category))))
+                                   (grammar clevr)) ;; TODO, test this?
+                          (syn-cat (syn-class noun)
+                                   (number plural)
+                                   (starts-with ?starts-with)
+                                   (leftmost-unit ,unit-name)
+                                   (rightmost-unit ,unit-name)))
+                         <-
+                         (,unit-name
+                          (HASH meaning ((bind ,category-name ,out-var ,(internal-symb (upcase (format nil "gqa-~a" (hyphenize noun)))))))
+                          --
+                          (HASH form ((string ,unit-name ,(format nil "~a" noun))))))
                         :cxn-inventory ,cxn-inventory
                         :attributes (:string ,noun 
                                      :meaning ,(internal-symb (upcase (hyphenize noun))))))))
@@ -181,10 +205,43 @@
     (eval `(def-fcg-cxn ,cxn-name
                         ((,unit-name
                           (args ((target ,out-var)))
-                          (sem-cat (sem-class ,(internal-symb (upcase (hyphenize category))))
+                          (sem-cat (sem-class attribute) ;(sem-class ,(internal-symb (upcase (hyphenize category))))
                                    (grammar clevr))
                           (syn-cat (syn-class noun)
                                    (number singular)
+                                   (starts-with ?starts-with)
+                                   (leftmost-unit ,(first var-names))
+                                   (rightmost-unit ,(last-elt var-names))))
+                         <-
+                         (,unit-name
+                          (HASH meaning ((bind ,category-name ,out-var ,(internal-symb (upcase (format nil "gqa-~a" (hyphenize noun)))))))
+                          --
+                          (HASH form (,@(loop for word in attrs
+                                                for var-name in var-names
+                                              collect `(string ,var-name ,word))
+                                      ,@(loop for word on var-names
+                                                when (second word)
+                                              collect `(meets ,(first word) ,(second word)))))))
+                        :cxn-inventory ,cxn-inventory
+                        :attributes (:string ,attrs 
+                                     :meaning ,(internal-symb (upcase (hyphenize noun))))))))
+
+(defmethod add-substantives-plural-lex-cxn (cxn-inventory noun category)
+  (let* ((cxn-name (internal-symb (upcase (format nil "~a-lex-cxn" (hyphenize noun)))))
+         (unit-name (make-var (upcase (format nil "~a-unit" (hyphenize noun)))))
+         (out-var (make-var category))
+         (category-name (internal-symb (upcase (format nil "gqa-~a-category" category))))
+         (attrs (split-sequence::split-sequence #\Space noun))
+         (var-names (loop for attr in attrs
+                          collect (make-var attr)))
+         )
+    (eval `(def-fcg-cxn ,cxn-name
+                        ((,unit-name
+                          (args ((target ,out-var)))
+                          (sem-cat (sem-class attribute) ;(sem-class ,(internal-symb (upcase (hyphenize category))))
+                                   (grammar clevr))
+                          (syn-cat (syn-class noun)
+                                   (number plural)
                                    (starts-with ?starts-with)
                                    (leftmost-unit ,(first var-names))
                                    (rightmost-unit ,(last-elt var-names))))
@@ -279,24 +336,30 @@
     (loop for type in metadata-types
           for category = (symbol-name (first type))
           for vals = (rest type)
-          if (not (string= category "NAME")) 
+          if (not (or (string= category "NAME") (string= category "PLURAL--NAMES")))
+              ;; add all attributes  -> make cxns and add to ontology
           do (if (find #\Space category)
                (add-categories-lex-cxn cxn-inventory category)
                (add-category-lex-cxn cxn-inventory category))
               (loop for val in vals
                    do (if (find  #\Space val) ;; if space then multiple words so string and meets in cxn
                         (add-adjectives-lex-cxn cxn-inventory val category)
-                        (add-adjective-lex-cxn cxn-inventory val category))
-                   )
+                        (add-adjective-lex-cxn cxn-inventory val category)))
              (export (append (mapcar #'(lambda (x) (internal-symb (upcase (hyphenize (format nil "gqa-~a" x))))) vals)
                              (mapcar #'(lambda (x) (internal-symb (upcase (format nil "gqa-~a-category" x)))) vals)))
-            else do
-              (if (find #\Space category)
+          else if (string= category "PLURAL--NAMES")
+             do (loop for val in vals
+                    do (if (find  #\Space val) ;; if space then multiple words so string and meets in cxn
+                         (add-substantives-plural-lex-cxn cxn-inventory val category) 
+                         (add-substantive-plural-lex-cxn cxn-inventory val category)))
+            ;; add all obejcts meaning 'name' -> make cxns and add to ontology
+          else do
+              (if (find #\Space category) 
                (add-categories-lex-cxn cxn-inventory category)
                (add-category-lex-cxn cxn-inventory category))
               (loop for val in vals
                     do (if (find  #\Space val) ;; if space then multiple words so string and meets in cxn
-                         (add-substantives-lex-cxn cxn-inventory val category)
+                         (add-substantives-lex-cxn cxn-inventory val category) 
                          (add-substantive-lex-cxn cxn-inventory val category)))
               (export (append (mapcar #'(lambda (x) (internal-symb (upcase (hyphenize (format nil "gqa-~a" x))))) vals)
                               (mapcar #'(lambda (x) (internal-symb (upcase (hyphenize (format nil "gqa-~a" category))))) vals)
