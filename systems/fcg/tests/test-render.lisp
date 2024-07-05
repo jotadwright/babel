@@ -40,3 +40,57 @@
 
 ;; (test-render)
 
+(deftest test-render-sequences ()
+  (test-equalp
+   (render (make-instance 'coupled-feature-structure
+                       :left-pole '((root
+                                     (form ((sequence " " 4 5))))
+                                    (u1
+                                     (form ((sequence "g" 3 4))))
+                                    (u2
+                                     (form ((sequence "flour" 5 10))))
+                                    (u3
+                                     (form ((sequence "120" 0 3))))
+                                    (u4
+                                     (form ((precedes 3 4)
+                                            (precedes 4 5))))))
+           :render-sequences)
+   '("120" "g" " " "flour"))
+
+  (test-assert 
+   (null (render (make-instance 'coupled-feature-structure
+                                :left-pole '((root
+                                              (form ((sequence " " 4 5))))
+                                             (u1
+                                              (form ((sequence "g" 3 4))))
+                                             (u2
+                                              (form ((sequence "flour" 5 10))))
+                                             (u3
+                                              (form ((sequence "120" 0 3))))
+                                             (u4
+                                              (form ((precedes 3 3)
+                                                     (precedes 4 5))))))
+                 :render-sequences)))
+
+
+  (test-equalp
+   (render (make-instance 'coupled-feature-structure
+                       :left-pole '((root
+                                     (form ((sequence " " 4 5))))
+                                    (u1
+                                     (form ((sequence "g" 3 4))))
+                                    (u2
+                                     (form ((sequence "flour" 5 10))))
+                                    (u3
+                                     (form ((sequence "120" 0 3))))
+                                    (u4
+                                     (form ((precedes 0 3)
+                                            (precedes 3 5))))))
+           :render-sequences)
+   '("120" "g" " " "flour")))
+
+  
+
+;;(test-render-sequences)
+
+
