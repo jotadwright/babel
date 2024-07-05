@@ -37,6 +37,8 @@
         (values source bindings)))))
 
 
+(export '(filter-valid-sequence-bindings-lists))
+
 (defun match-pattern-sequence-predicates-in-source-sequence-predicates (pattern-sequence-predicates source-sequence-predicates bindings)
   "Matches two sets of sequence-predicates, returns validated bindings-lists with all options. Takes into account existing bindings."
   (when source-sequence-predicates
