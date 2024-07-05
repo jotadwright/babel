@@ -356,7 +356,7 @@
                (HASH form ((sequence "vanilla" ?left ?right)))))
              :feature-types ((ontology default :lookup-in-ontology)))
 
-(def-fcg-cxn almond-cxn
+#|(def-fcg-cxn almond-cxn
              ((?almond-unit
                (ontology almond)
                (form-args (?left ?right)))
@@ -364,7 +364,7 @@
               (?almond-unit
                --
                (HASH form ((sequence "almond" ?left ?right)))))
-             :feature-types ((ontology default :lookup-in-ontology)))
+             :feature-types ((ontology default :lookup-in-ontology))) |#
 
 
 (def-fcg-cxn vanilla-extract-lex-cxn
@@ -484,15 +484,13 @@
 (defparameter *output*
   (multiple-value-bind (final-set-of-bindings meaning-network)
       (process-utterances '(;;;; Ingredients
-                            "120g flour"
-                            "230 grams butter , room temperature"
-                          ;;"120 grams sugar"
-                            #|  "4 grams vanilla extract"
-                            "4 grams almond extract"
-                            "340 grams flour"
-                            "120 grams almond flour"
-                            "30 grams powdered sugar" |#
-
+                            "120g sugar"
+                            "230g butter, room temperature"
+                            "4g vanilla extract"
+                            "4g almond extract"
+                            "340g flour"
+                            "120g almond flour"
+                            "30g powdered sugar" 
                             )
                             ; *pdm*
                           (initialise-personal-dynamic-memory

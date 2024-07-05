@@ -1,5 +1,7 @@
 (in-package :muhai-cookingbot)
 
+
+
 (defclass kitchen-entity (entity)
   ((id :type symbol
       :initarg :id
@@ -596,6 +598,10 @@
 (defclass unit (conceptualizable)
   ((is-concept :initform T))
   (:documentation "A unit of measurement."))
+
+(defclass degrees-celsius (unit)
+  ()
+  (:documentation "Unit: degrees Celsius."))
 
 (defmethod copy-object-content ((original unit) (copy unit))
   (setf (is-concept copy) (copy-object (is-concept original))))
@@ -2183,9 +2189,7 @@
   (:documentation "Unit: percent."))
 
 
-(defclass degrees-celsius (unit)
-  ()
-  (:documentation "Unit: degrees Celsius."))
+
 
 
 (defclass failed-object (arrangement-pattern can-cover can-cut can-mash can-mingle can-mix can-peel can-seed can-spread can-be-cut-on can-drain coverable-container fridge kitchen-state lineable list-of-kitchen-entities oven stove quantity shape sift time-unit transferable-container)

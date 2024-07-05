@@ -97,24 +97,21 @@
                (match-pattern-sequence-predicates-in-source-sequence-predicates-numbers-only sequence-predicates source bindings)))
           (if sequence-bindings-lists
             ;; If sequence predicates could be matched, add bindings
-           ;; (let ((new-bindings (merge-bindings-lists bindings sequence-bindings-lists)))
-
-              (loop for sq-bindings in sequence-bindings-lists
-                    for new-bindings = (merge-bindings-lists (list sq-bindings) sequence-bindings-lists)
-                    for left = (cdr (first sq-bindings))
-                    for right = (cdr (second sq-bindings))
-                    for source-string = (loop for (nil string src-left src-right) in source
-                                              when (and (<= src-left left )
-                                                        (<= right src-right))
-                                                  do (return (subseq string left right)))
-                    return
-                      (values source 
-                        (mapcar #'(lambda (b)
-                                    (extend-bindings
-                                     (second (first (remove-special-operators value bindings)))
-                                     source-string
-                                     b)) new-bindings)))
-
+            (loop for sq-bindings in sequence-bindings-lists
+                  for new-bindings = (merge-bindings-lists (list sq-bindings) sequence-bindings-lists)
+                  for left = (cdr (first sq-bindings))
+                  for right = (cdr (second sq-bindings))
+                  for source-string = (loop for (nil string src-left src-right) in source                                              
+                                            when (and (<= src-left left )
+                                                      (<= right src-right))
+                                              do (return (subseq string (- left src-left) (- right src-left))))
+                  return
+                    (values source 
+                            (mapcar #'(lambda (b)
+                                        (extend-bindings
+                                         (second (first (remove-special-operators value bindings)))
+                                         source-string
+                                         b)) new-bindings)))
             ;; Fail if sequence predicates could not be matched
             nil))
         ;; If there are no sequence predicates (but only e.g. precedes constraints), continue and deal with it in merge (above).
