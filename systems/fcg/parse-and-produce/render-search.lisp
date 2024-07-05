@@ -235,23 +235,11 @@ string constraint with the variable ?Y."
 
 
 (defmethod precedes ((el-1 t) (el-2 t) (form-constraints list) (mode (eql :order-sequences)))
-  "If el-1 and el-2 are in string-constraints el-1 must be occur earlier than el-2"
-  (let ((index-el-1 (or (position el-1 form-constraints :key #'third :test #'equal)
-                        (position el-1 form-constraints :key #'fourth :test #'equal)))
-        (index-el-2 (or (position el-2 form-constraints :key #'third :test #'equal)
-                        (position el-2 form-constraints :key #'fourth :test #'equal))))
-    (cond 
-     ;; for efficiency
-     ((and (null index-el-1)
-           index-el-2)
-      nil)
-     ;; real testing
-     ((or (null index-el-1) (null index-el-2))
-      t)
-     ((< index-el-1 index-el-2)
-      t)
-     (t
-      nil))))
+  "el-1 should be smaller than el-2."
+  (declare (ignore form-constraints))
+  (if (< el-1 el-2)
+    t
+    nil))
 
 (defun filter-by-sequence-constraints (ordering-constraints sequence-constraints)
   "Returns only those ordering constraints of which the units occur in
