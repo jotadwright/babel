@@ -97,12 +97,24 @@
                (match-pattern-sequence-predicates-in-source-sequence-predicates-numbers-only sequence-predicates source bindings)))
           (if sequence-bindings-lists
             ;; If sequence predicates could be matched, add bindings
-            (let ((new-bindings (merge-bindings-lists bindings sequence-bindings-lists)))
-              (values source (mapcar #'(lambda (b)
+           ;; (let ((new-bindings (merge-bindings-lists bindings sequence-bindings-lists)))
+
+              (loop for sq-bindings in sequence-bindings-lists
+                    for new-bindings = (merge-bindings-lists (list sq-bindings) sequence-bindings-lists)
+                    for left = (cdr (first sq-bindings))
+                    for right = (cdr (second sq-bindings))
+                    for source-string = (loop for (nil string src-left src-right) in source
+                                              when (and (<= src-left left )
+                                                        (<= right src-right))
+                                                  do (return (subseq string left right)))
+                    return
+                      (values source 
+                        (mapcar #'(lambda (b)
                                     (extend-bindings
                                      (second (first (remove-special-operators value bindings)))
-                                     "120" ;;retrieve value in source
+                                     source-string
                                      b)) new-bindings)))
+
             ;; Fail if sequence predicates could not be matched
             nil))
         ;; If there are no sequence predicates (but only e.g. precedes constraints), continue and deal with it in merge (above).
@@ -172,23 +184,3 @@
   (declare (ignore merge? source cxn-inventory))
   (unless (null bindings)
     (values (read-from-string value) bindings)))
-
-#|
-(defmethod fcg-expand ((type (eql :expand-ingredients))
-                       &key value source bindings merge?)
-  "Returns number from string."
-  (declare (ignore merge? source))
-  (unless (null bindings)
-    (when (> (length (cdr value)) 1)
-      (error (format nil "Meaning contains more than one predicate!!")))
-    (let* ((ingredient-vars (last-elt (second value)))
-           (meaning-predicate-without-ingredient-vars
-            (remove ingredient-vars (second value) :test #'equalp)))
-          
-      (values `(,(append meaning-predicate-without-ingredient-vars
-                         (if (listp ingredient-vars)
-                           (first ingredient-vars)
-                           (list ingredient-vars))))
-              bindings))))
-|#
-
