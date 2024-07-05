@@ -151,10 +151,22 @@
       (setf left-boundary-var (if gap current-left (make-var 'lb))))
     (cons left-boundary-var right-boundary-var)))
 
-(defun print-sequence-alignments (sequence-alignment)
-  (format t "~%~%~s" (coerce (aligned-pattern sequence-alignment) 'string))
-  (format t "~%~s" (coerce (aligned-source sequence-alignment) 'string))
-  (format t "~%Cost: ~a" (cost sequence-alignment)))
+(defun print-sequence-alignments (list-of-sequence-alignment-states &optional (stream t))
+  (format t "~%~%~%### Maximal Sequence Alignment ###~%")
+  (format stream "----------------------------------~%~%")
+  (loop for alignment-state in list-of-sequence-alignment-states
+        for i from 1
+        for symbols = nil
+        do (loop for x in (aligned-pattern alignment-state)
+                 for y in (aligned-source alignment-state)
+                 do (cond ((eql x #\_) (push #\Space symbols))
+                          ((eql y #\_) (push #\Space symbols))
+                          ((eql x y) (push #\| symbols))
+                          ((not (eql x y)) (push #\. symbols))))
+           (format stream "--- Result ~a (cost: ~a) ---~%~%" i (cost alignment-state))
+           (format t "~s~%" (coerce (aligned-pattern alignment-state) 'string))
+           (format t "~s~%" (coerce (reverse symbols) 'string))
+           (format t "~s~%~%" (coerce (aligned-source alignment-state) 'string))))
 
 ;;;;;;;;;;
 ;; Cost ;;
