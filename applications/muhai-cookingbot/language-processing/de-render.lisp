@@ -24,6 +24,25 @@
                                 ,@accessible-entity-units)
 		   :right-pole '((root)))))
 
+
+(defmethod de-render ((utterance string)
+                      (mode (eql :de-render-recipe-utterance-sequence-predicates))
+                      &key world-state
+                      &allow-other-keys)
+  "De-renders an utterance and accessible entities of the PDM."
+  (let* ((root-unit `(root
+                      ,@(cdr (get-root (left-pole-structure (de-render utterance :de-render-sequence-predicates))))
+                      (subunits (accessible-entities))))
+         (accessible-entity-units (loop for accessible-entity in (accessible-entities world-state)
+                                       collect (make-ts-unit-from-entity-id accessible-entity)))
+         (accessible-entities-unit `(accessible-entities
+                                     (subunits ,(mapcar #'unit-name accessible-entity-units)))))
+    (make-instance 'coupled-feature-structure 
+		   :left-pole `(,root-unit
+                                ,accessible-entities-unit
+                                ,@accessible-entity-units)
+		   :right-pole '((root)))))
+
 (defun make-ts-unit-from-entity-id (entity-irl-binding)
   (let* ((binding-variable (var entity-irl-binding))
          (entity (value entity-irl-binding))

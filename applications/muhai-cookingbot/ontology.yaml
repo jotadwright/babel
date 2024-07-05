@@ -208,7 +208,7 @@ classes:
       - conceptualizable
     owl: "muhai:TransferableContainerObject"
     dataproperties:
-      arrangement: 
+      arrangement:
         default: false
   microwave:
     documentation: "The microwave. It's a container."
@@ -1082,7 +1082,7 @@ classes:
           unit: degrees-celsius
           quantity:
             t: quantity
-            value: 5 
+            value: 5
   fridge:
     documentation: "A fridge in which various items can be stored at cooler, though not sub-zero, temperatures."
     superclasses:
@@ -1098,7 +1098,7 @@ classes:
           unit: degrees-celsius
           quantity:
             t: quantity
-            value: 5 
+            value: 5
   jar:
     documentation: "A (usually glass) jar to store various ingredients in."
     superclasses:
@@ -1115,7 +1115,7 @@ classes:
     owl: "muhai:JarLid"
   kitchen-floor:
     documentation: "The floor."
-    superclasses: 
+    superclasses:
       - kitchen-entity
   kitchen-cabinet:
     documentation: "The kitchen cabinet, where several utensils are stored."
@@ -1299,6 +1299,7 @@ classes:
     documentation: "Almond extract, used for flavoring and baking."
     superclasses:
       - flavoring-extract
+      - almond
     owl: "muhai:AlmondExtract"
   almond-flakes:
     documentation: "Flakes obtained from coarsely grating almond nuts."
@@ -1615,7 +1616,7 @@ classes:
       - has-temperature
     dataproperties:
       keep-refrigerated:
-        default: true # inherited from ingredient, no need to specify more here 
+        default: true # inherited from ingredient, no need to specify more here
   flavoring-extract:
     documentation: "Flavoring extract."
     superclasses:
@@ -2114,6 +2115,7 @@ classes:
       - spice
       - ingredient
       - mixable
+      - beatable
     owl: "muhai:Sugar"
   brown-sugar:
     documentation: "Plain brown sugar."
@@ -2161,6 +2163,7 @@ classes:
     documentation: "Vanilla extract."
     superclasses:
       - flavoring-extract
+      - vanilla
     owl: "muhai:Vanilla"
   vegetable-oil:
     documentation: "Vegetable oil."

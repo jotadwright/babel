@@ -64,9 +64,12 @@
                                           (:roles . ,(append `(((:role . "V")
                                                                 (:string . ,(propbank-grammar::fel-string
                                                                              (propbank-grammar::frame-evoking-element frame)))
+                                                                (:lemma . ,(symbol-name (propbank-grammar::lemma
+                                                                             (propbank-grammar::frame-evoking-element frame))))
                                                                 (:indices . ,(propbank-grammar::indices
                                                                               (propbank-grammar::frame-evoking-element frame)))))
                                                              (loop for fe in (propbank-grammar::frame-elements frame)
                                                                    collect `((:role . ,(propbank-grammar::fe-role fe))
                                                                              (:string . ,(propbank-grammar::fe-string fe))
+                                                                             (:lemma . ,(if (listp (propbank-grammar::fe-lemmas fe)) (loop for i in (propbank-grammar::fe-lemmas fe) collect (symbol-name i)) (symbol-name (propbank-grammar::fe-lemmas fe))))
                                                                              (:indices . ,(propbank-grammar::indices fe)))))))))))))))

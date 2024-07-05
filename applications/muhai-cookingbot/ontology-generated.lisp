@@ -1065,7 +1065,7 @@
   (:documentation "Almond-related substance, typically used for baking."))
 
 
-(defclass almond-extract (flavoring-extract)
+(defclass almond-extract (flavoring-extract almond)
   ()
   (:documentation "Almond extract, used for flavoring and baking."))
 
@@ -1873,7 +1873,7 @@
   ()
   (:documentation "Spice."))
 
-(defclass sugar (spice ingredient mixable)
+(defclass sugar (spice ingredient mixable beatable)
   ((elements
     :initarg :elements :initform nil :type list :accessor elements))
   (:documentation "Sugar."))
@@ -1924,7 +1924,7 @@
   (:documentation "Vanilla."))
 
 
-(defclass vanilla-extract (flavoring-extract)
+(defclass vanilla-extract (flavoring-extract vanilla)
   ()
   (:documentation "Vanilla extract."))
 

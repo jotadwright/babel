@@ -53,7 +53,7 @@
 
                                           (:de-render-mode . ,(case form-representation
                                                                 (:string+meets :de-render-string-meets-no-punct)
-                                                                (:sequences :de-render-sequence)))
+                                                                (:sequences :de-render-sequence-predicates)))
                                           (:render-mode . ,(case form-representation
                                                              (:string+meets :generate-and-test)
                                                              (:sequences :render-sequences)))

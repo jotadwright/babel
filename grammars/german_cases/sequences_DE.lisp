@@ -17,7 +17,7 @@
                   (footprints set)
                   (case sequence))
   :fcg-configurations ((:max-nr-of-nodes . 40000)
-                       (:de-render-mode . :de-render-sequence)
+                       (:de-render-mode . :de-render-sequence-predicates)
                        (:render-mode . :render-sequences)
                        (:parse-goal-tests :no-applicable-cxns :no-strings-in-root :connected-semantic-network :connected-structure)   
                        ;; to activate heuristic search
@@ -31,7 +31,7 @@
                        ;; cxn sets
                        (:parse-order morph cxn)
                        (:production-order cxn morph)
-                       ;; goal tests
+                      ;; goal tests
                        (:production-goal-tests
                         :no-applicable-cxns :connected-structure
                         :no-meaning-in-root)))

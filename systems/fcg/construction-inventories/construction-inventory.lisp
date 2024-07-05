@@ -89,7 +89,7 @@ is overwritten."
   (set-configuration construction-inventory
                      :render-mode :render-sequences :replace nil)
   (set-configuration construction-inventory 
-                     :de-render-mode :de-render-sequence :replace nil)
+                     :de-render-mode :de-render-sequence-predicates :replace nil)
   (set-configuration construction-inventory
                      :parse-goal-tests '(:no-applicable-cxns) :replace nil)
   (set-configuration construction-inventory
