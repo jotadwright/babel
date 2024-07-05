@@ -526,7 +526,7 @@ HANDLE-J-UNITS. Returns a list of MERGE-RESULTs."
 	      ;; changed as side effect, for example while removing tag-values
 	      ;; from a unit:
 	      (setq source
-                    (if (eql (get-configuration cxn-inventory :de-render-mode) :de-render-sequence-predicates)
+                    (if (eql (get-configuration cxn-inventory :render-mode) :render-sequences)
                       (recompute-sequence-in-source e pattern-unit source-unit source (copy-tree bindings) :cxn-inventory cxn-inventory)
                       (remove-tag-from-source e pattern-unit source-unit source (copy-tree bindings) :cxn-inventory cxn-inventory)))
 	      (setq added
