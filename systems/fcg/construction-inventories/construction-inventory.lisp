@@ -59,7 +59,7 @@ this is the name that you use in the def-fcg-constructions macro.")
     :accessor cxn-pathnames)
    (original-cxn-set
    ;; This is a pointer back to the fcg-light construction-inventory to which this construction-set belongs
-   ;; (to which is appears in the slot 'processing-cxn-inventory'). So, if you know which cxn applied,
+   ;; (to which it appears in the slot 'processing-cxn-inventory'). So, if you know which cxn applied,
    ;; you know where to find that cxn in fcg-light notation. Type should actually be fcg-construction-inventory,
    ;; a subtype of construction-inventory  but as this class in loaded in fcg-light, the ccl compiler is confused
    ;; when loading fcg, and lets the tests in test-construction-inventory fail, lispworks does fine with both.
