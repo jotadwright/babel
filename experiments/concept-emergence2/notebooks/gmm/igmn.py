@@ -144,6 +144,7 @@ class IGMN:
         # if self.rank == "diag":
         #     component_j["sigma"] = np.diag(np.diag(component_j["sigma"]))
 
+        # TODO: problem
         try:
             res = np.linalg.eigvals(component_j["sigma"])
             if not np.all(res > 0):
@@ -202,16 +203,17 @@ class IGMN:
         if needs_update:
             for component_j in self.components:
                 self.update_with_x(component_j, x)
-
-        # criterion 2: only create a new neuron if all neurons of that model have an age greater than the parameter age_min (taken from follow-up paper -> IGMN-NSE paper)
-        all_adults = (
-            all([comp["age"] > self.age_min for comp in self.components])
-            if self.all_adults_criterion
-            else True
-        )
-
-        if not needs_update and all_adults:
-            if len(self.components) < self.max_components:
+        else:
+            # criterion 2: only create a new neuron if all neurons of that model have an age greater than the parameter age_min (taken from follow-up paper -> IGMN-NSE paper)
+            all_adults = (
+                all([comp["age"] > self.age_min for comp in self.components])
+                if self.all_adults_criterion
+                else True
+            )
+            if self.max_components is None:
+                new_component = self.create_new_component(x, self.components)
+                self.components.append(new_component)
+            elif len(self.components) < self.max_components and all_adults:
                 new_component = self.create_new_component(x, self.components)
                 self.components.append(new_component)
             else:
