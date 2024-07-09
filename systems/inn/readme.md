@@ -2,7 +2,6 @@
 <b>Remi van Trijp</b>
 <br>Sony Computer Science Laboratory - Paris
 <br>[remi.vantrijp@sony.com](mailto:remi.vantrijp@sony.com)
-![](docs/inn.png)
 <hr>
 
 *Version 0.5, 4 April 2023*
@@ -316,9 +315,6 @@ This generic function is used for representing a node in vis.js (and how it is d
 ### Acknowledgements
 
 The work described in this technical report greatly benefited from discussions with and feedback from Luc Steels, Lara Verheyen, Sofia Baroncini, and other contributors to the Babel software suite. Its development is funded by the [Sony Computer Science Laboratory - Paris](https://csl.sony.fr/) and the [MUHAI](https://muhai.org/) (Meaning and Understanding in Human-Centric AI), a project funded from the European Union's Horizon 2020 research and innovation programme under grant agreement No 951846. 
-
-<img src="docs/europe.jpg" width="100"</img>
-
 
 <a name="references"></a>
 ### References
