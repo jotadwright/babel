@@ -33,7 +33,15 @@
                        (:li-punishement . 0.5)
                        (:best-solution-mode . :highest-average-link-weight)
                        (:induce-cxns-mode . :filler-and-linking)
-                       (:form-generalisation-mode . :gotoh)
+                       
+                       (:form-generalisation-mode . :altschul-erickson)
+                       #|
+                        (:form-generalisation-mode . :custom-string-alignment)
+                        (:match-cost . 0)
+                        (:mismatch-cost . 3)
+                        (:gap-opening-cost . 5)
+                        (:gap-extension-cost  . 1)
+                        |#
                        (:meaning-generalisation-mode . :exhaustive)
                        (:k-swap-k . 1)
                        (:k-swap-w . 1)
@@ -46,6 +54,32 @@
                        (:production-goal-tests :no-applicable-cxns :no-meaning-in-root :connected-structure))
   :visualization-configurations ((:show-constructional-dependencies . nil)
                                  (:show-categorial-network . t)))
+
+
+
+(defparameter *how-many-cubes-are-there*
+  (make-instance 'speech-act
+                 :form "how many cubes are there?"
+                 :meaning '((get-context context-5)
+                            (filter set-5 context-5 shape-5)
+                            (bind shape-category shape-5 cube)
+                            (count number-5 set-5))))
+
+(defparameter *how-many-red-cubes-are-there*
+  (make-instance 'speech-act
+                 :form "how many red cubes are there?"
+                 :meaning '((get-context context-6)
+                            (filter set-6 context-6 color-6)
+                            (bind color-category color-6 red)
+                            (filter set-7 set-6 shape-6)
+                            (bind shape-category shape-6 cube)
+                            (count number-6 set-7))))
+
+
+(comprehend *how-many-cubes-are-there* :cxn-inventory *fcg-constructions*)
+(comprehend *how-many-red-cubes-are-there* :cxn-inventory *fcg-constructions*)
+
+
 
 
 ;;++++++++++++++++++++++++++++++++++++++++++++
@@ -206,7 +240,7 @@
 
 (defparameter *what-is-the-color-of-the-block*
   (make-instance 'speech-act
-                 :form "what is the color of the xx?"
+                 :form "what is the color of the block?"
                  :meaning '((get-context context-2)
                             (filter set-2 context-2 shape-2)
                             (bind shape-category shape-2 cube)
@@ -232,6 +266,27 @@
 (inspect *saved-cipn*)
 
 
+(defparameter *how-many-cubes-are-there*
+  (make-instance 'speech-act
+                 :form "how many cubes are there?"
+                 :meaning '((get-context context-5)
+                            (filter set-5 context-5 shape-5)
+                            (bind shape-category shape-5 cube)
+                            (count number-5 set-5))))
+
+(defparameter *how-many-red-cubes-are-there*
+  (make-instance 'speech-act
+                 :form "how many red cubes are there?"
+                 :meaning '((get-context context-6)
+                            (filter set-6 context-6 color-6)
+                            (bind color-category color-6 red)
+                            (filter set-7 set-6 shape-6)
+                            (bind shape-category shape-6 cube)
+                            (count number-6 set-7))))
+
+
+(comprehend *how-many-cubes-are-there* :cxn-inventory *fcg-constructions*)
+(comprehend *how-many-red-cubes-are-there* :cxn-inventory *fcg-constructions*)
 
 
 
@@ -256,7 +311,7 @@ next-cip-solution
 ;; Deletion + addition
 ;;++++++++++++++++++++++++++++++++++++++++++++
 
-(defparameter *how-many-cubes-are-there* '((:form . ((sequence "how many cubes are there?" ?l3 ?r3)))
+(defparameter *how-many-cubes-are-there* '((:form . ((sequence "how many blocks are there?" ?l3 ?r3)))
                                            (:meaning . ((get-context ?context-5)
                                                         (filter ?set-5 ?context-5 ?shape-5)
                                                         (bind shape-category ?shape-5 cube)

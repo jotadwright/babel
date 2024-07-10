@@ -78,7 +78,8 @@ non-applicable constructions."
                                                 for au-form-results = (anti-unify-form (attr-val applicable-cxn :form)
                                                                                        (remaining-form-speech-act current-state) 
                                                                                        (get-configuration (fix-cxn-inventory current-state)
-                                                                                                          :form-generalisation-mode))
+                                                                                                          :form-generalisation-mode)
+                                                                                       :cxn-inventory (fix-cxn-inventory current-state))
                                                 for au-meaning-results = (anti-unify-meaning (attr-val applicable-cxn :meaning)
                                                                                              (remaining-meaning-speech-act current-state)
                                                                                              (get-configuration (fix-cxn-inventory current-state)
@@ -144,7 +145,8 @@ non-applicable constructions."
         when valid-au-meaning-results
           append (let* ((au-form-results (anti-unify-form (attr-val cxn :form)
                                                           form-predicates-speech-act 
-                                                          (get-configuration parent-cxn-inventory :form-generalisation-mode)))
+                                                          (get-configuration parent-cxn-inventory :form-generalisation-mode)
+                                                          :cxn-inventory parent-cxn-inventory))
                         (valid-au-form-results (loop for au-form-result in au-form-results
                                                      when (and (generalisation au-form-result)
                                                                (<= (length (generalisation au-form-result)) 2)) ;; max one gap allowed, i.e. two sequence predicates
@@ -502,7 +504,14 @@ non-applicable constructions."
 (defmethod anti-unify-form ((cxn-sequence-predicates list)
                             (speech-act-sequence-predicates list)
                             (mode (eql :needleman-wunsch)) &key &allow-other-keys)
-  (loop with au-results = (anti-unify-sequences cxn-sequence-predicates speech-act-sequence-predicates)
+  (loop with au-results = (anti-unify-sequences cxn-sequence-predicates speech-act-sequence-predicates
+                                                :match-cost -1
+                                                :mismatch-cost 1
+                                                :gap-opening-cost 0
+                                                :gap-extension-cost  1
+                                                :remove-duplicate-alignments t
+                                                :n-optimal-alignments nil
+                                                :max-nr-of-gaps nil)
         with cost = (cost (first au-results))
         for au-result in au-results
         if (= cost (cost au-result))
@@ -513,15 +522,37 @@ non-applicable constructions."
 
 (defmethod anti-unify-form ((cxn-sequence-predicates list)
                             (speech-act-sequence-predicates list)
-                            (mode (eql :gotoh)) &key &allow-other-keys)
+                            (mode (eql :altschul-erickson)) &key &allow-other-keys)
+  ""
   (loop with au-results = (anti-unify-sequences cxn-sequence-predicates speech-act-sequence-predicates
-                                                :match-cost -1
-                                                :mismatch-cost 5
+                                                :match-cost 0
+                                                :mismatch-cost 1
                                                 :gap-opening-cost 5
-                                                :gap-extension-cost  0
+                                                :gap-extension-cost  1
                                                 :remove-duplicate-alignments t
                                                 :n-optimal-alignments nil
                                                 :max-nr-of-gaps nil)
+        with cost = (when au-results (cost (first au-results)))
+        for au-result in au-results
+        if (= cost (cost au-result))
+          collect au-result into au-form-results
+        else
+          do (return au-form-results)
+        finally (return au-form-results)))
+
+
+(defmethod anti-unify-form ((cxn-sequence-predicates list)
+                            (speech-act-sequence-predicates list)
+                            (mode (eql :custom-string-alignment)) &key cxn-inventory &allow-other-keys)
+  ""
+  (loop with au-results = (anti-unify-sequences cxn-sequence-predicates speech-act-sequence-predicates
+                                                :match-cost (get-configuration (configuration cxn-inventory) :match-cost)
+                                                :mismatch-cost (get-configuration (configuration cxn-inventory) :mismatch-cost)
+                                                :gap-opening-cost (get-configuration (configuration cxn-inventory) :gap-opening-cost)
+                                                :gap-extension-cost  (get-configuration (configuration cxn-inventory) :gap-extension-cost)
+                                                :remove-duplicate-alignments t
+                                                :n-optimal-alignments nil
+                                                :max-nr-of-gaps 1)
         with cost = (when au-results (cost (first au-results)))
         for au-result in au-results
         if (= cost (cost au-result))
