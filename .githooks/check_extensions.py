@@ -27,7 +27,7 @@ def main(whitelist):
         print("Error: the following files have disallowed extensions:")
         for file in invalid_files:
             print(f" - {file}")
-        print("Please remove or rename these files before committing.")
+        print(f"Please ensure to only commit files with the following extensions: {whitelist}.")
         sys.exit(1)
 
     # Exit with zero status if no invalid files are found
