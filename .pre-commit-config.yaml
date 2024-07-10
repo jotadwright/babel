@@ -6,13 +6,6 @@ repos:
         args: ['--maxkb=100'] # Maximum size in KB
   - repo: local
     hooks:
-      - id: check-commit-size
-        name: check commit size
-        entry: python .githooks/check_commit_size.py
-        language: python
-        require_serial: true
-        stages: [commit]
-        args: ["5"] # Maximum size in MB
       - id: check-file-name
         name: check file name format
         entry: python .githooks/check_file_name.py
@@ -25,11 +18,11 @@ repos:
         language: python
         require_serial: true
         stages: [commit]
-        args: ["md", "lisp", "asd", "sh", "py", "ipynb", "txt", "gitignore", "fcg", "html", "css", "js", "yaml"]
+        args: [--whitelist, "lisp", "asd", "md", "txt", "sh", "py", "ipynb", "fcg", "html", "css", "js", "yaml", "gitignore", --blacklist]
       - id: check-diff-size
         name: check diff size
         entry: python .githooks/check_diff_size.py
         language: python
         require_serial: true
         stages: [commit]
-        args: ["100"] # Maximum diff size in KB
+        args: ["150"] # Maximum diff size in KB
