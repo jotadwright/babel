@@ -21,20 +21,21 @@
         (gethash (attr-val cxn :form-hash-key) (constructions-hash-table hashed-fcg-construction-set))
         :test test :key key))
 
+(defun subst-bindings (set-of-predicates bindings)
+  (loop for predicate in set-of-predicates
+        collect (loop for elem in predicate
+                      for subst = (assoc elem bindings)
+                      if subst collect (cdr subst)
+                      else collect elem)))
+
 (defun fresh-variables (set-of-predicates)
   "Renames all variables in a set-of-predicates."
-  (labels ((subst-bindings (bindings)
-             (loop for predicate in set-of-predicates
-                   collect (loop for elem in predicate
-                                 for subst = (assoc elem bindings)
-                                 if subst collect (cdr subst)
-                                 else collect elem))))
-    (let* ((all-variables (find-all-anywhere-if #'variable-p set-of-predicates))
-           (unique-variables (remove-duplicates all-variables))
-           (renamings (loop for var in unique-variables
-                            for base-name = (get-base-name var)
-                            collect (cons var (internal-symb (make-var base-name))))))
-      (values (subst-bindings renamings) renamings))))
+  (let* ((all-variables (find-all-anywhere-if #'variable-p set-of-predicates))
+         (unique-variables (remove-duplicates all-variables))
+         (renamings (loop for var in unique-variables
+                          for base-name = (get-base-name var)
+                          collect (cons var (internal-symb (make-var base-name))))))
+    (values (subst-bindings set-of-predicates renamings) renamings)))
 
 (defun make-cxn-name (form-sequence-predicates)
   "Create a unique construction name based on the strings present in form-sequence-predicates."
