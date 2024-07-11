@@ -255,17 +255,17 @@
                                (nth i sequence-predicates))
         if next-predicate
           do
-            (cond ((and (string= right-boundary (third next-predicate)) ;; boundaries coincide
+            (cond ((and (equalp right-boundary (third next-predicate)) ;; boundaries coincide
                         (null current-simplified-string)) ;;start new merged string
                    (setf current-simplified-string string)
                    (setf current-simplified-sequence-predicate `(sequence ,current-simplified-string ,left-boundary ,right-boundary)))
                   
-                  ((and (string= right-boundary (third next-predicate))  ;; boundaries coincide
+                  ((and (equalp right-boundary (third next-predicate))  ;; boundaries coincide
                         current-simplified-string)
                    (setf current-simplified-string (string-append current-simplified-string string))
                    (setf current-simplified-sequence-predicate `(sequence ,current-simplified-string ,(third current-simplified-sequence-predicate) ,right-boundary)))
                   
-                  ((null (string= right-boundary (third next-predicate)))  ;; boundaries do not coincide
+                  ((null (equalp right-boundary (third next-predicate)))  ;; boundaries do not coincide
                    (if current-simplified-string
                      (progn 
                        (setf result (append result (list `(sequence ,(string-append current-simplified-string string)

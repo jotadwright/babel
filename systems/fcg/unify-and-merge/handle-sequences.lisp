@@ -163,7 +163,7 @@
                                                    pattern-sequence-predicates)))
          (matched-positions (loop with matched-positions = nil
                                   for index in list-of-matched-indices
-                                  for binding = (cdr (assoc index bindings :test #'string=))
+                                  for binding = (cdr (assoc index bindings :test #'equalp))
                                   when binding
                                     if (variable-p binding)
                                       do (push (lookup-binding binding bindings) matched-positions)
