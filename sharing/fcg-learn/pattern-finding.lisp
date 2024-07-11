@@ -373,6 +373,7 @@ non-applicable constructions."
 (defun create-holophrastic-cxn (form-predicates meaning-predicates cxn-inventory)
   "Create a holophrastic construction based on form-predicates and meaning-predicates, returns the cxn."
   (let* ((form (second (first form-predicates)))
+         (form-predicates-w-variables (list (list 'sequence form (make-var "left") (make-var "right"))))
          (initial-score 0.5)
          (meaning-hash-key (compute-meaning-hash-key-from-predicates meaning-predicates)))
     (make-instance 'holophrastic-cxn
@@ -380,10 +381,10 @@ non-applicable constructions."
                    :conditional-part (list (make-instance 'conditional-unit
                                                           :name (make-var "holophrastic-unit")
                                                           :formulation-lock `((HASH meaning ,meaning-predicates))
-                                                          :comprehension-lock `((HASH form ,form-predicates))))
+                                                          :comprehension-lock `((HASH form ,form-predicates-w-variables))))
                    :cxn-inventory cxn-inventory
                    :feature-types (feature-types cxn-inventory)
-                   :attributes `((:form . ,form-predicates)
+                   :attributes `((:form . ,form-predicates-w-variables)
                                  (:meaning . ,meaning-predicates)
                                  (:entrenchment-score . ,initial-score)
                                  (:form-hash-key . ,form)
@@ -544,14 +545,7 @@ non-applicable constructions."
 
 ;; (anti-unify-form *cxn-sequence-predicates* *speech-act-sequence-predicates* *mode* *parameters*)
 
-(defun compute-subsequence-generalisation (pattern-sequence-predicates source-sequence-predicates alignment-bindings-list)
-  (let ((source-delta (recompute-root-sequence-features-based-on-bindings pattern-sequence-predicates
-                                                                          source-sequence-predicates
-                                                                          alignment-bindings-list)))
 
-  ))
-
- 
 
 
 (defmethod anti-unify-form ((cxn-sequence-predicates list)
