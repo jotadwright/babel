@@ -38,12 +38,17 @@
                                                                             resulting-source-bindings)
                                                           (anti-unify-aligned-sequences pattern-in-alignment source-in-alignment pattern-boundaries source-boundaries)
                                                         (let* ((simplified-sequences-generalisation (merge-adjacent-sequence-predicates resulting-generalisation))
+                                                               (simplified-sequences-pattern-delta (merge-adjacent-sequence-predicates resulting-pattern-delta))
+                                                               (simplified-sequences-source-delta (merge-adjacent-sequence-predicates resulting-source-delta))
+                                                               (precedes-generalisation (calculate-precedes-predicates simplified-sequences-generalisation))
+                                                               (precedes-pattern-delta (calculate-precedes-predicates simplified-sequences-pattern-delta))
+                                                               (precedes-source-delta (calculate-precedes-predicates simplified-sequences-source-delta))
                                                                (au-result (make-instance 'sequences-au-result
                                                                                         :pattern pattern
                                                                                         :source source
-                                                                                        :generalisation simplified-sequences-generalisation
-                                                                                        :pattern-delta (merge-adjacent-sequence-predicates resulting-pattern-delta)
-                                                                                        :source-delta (merge-adjacent-sequence-predicates resulting-source-delta)
+                                                                                        :generalisation (append simplified-sequences-generalisation precedes-generalisation)
+                                                                                        :pattern-delta (append simplified-sequences-pattern-delta precedes-pattern-delta)
+                                                                                        :source-delta (append simplified-sequences-source-delta precedes-source-delta)
                                                                                         :pattern-bindings (remove-bindings-not-in-generalisation
                                                                                                            resulting-pattern-bindings
                                                                                                            simplified-sequences-generalisation)
@@ -56,6 +61,15 @@
              (unique-sorted-results
               (sort all-anti-unification-results #'< :key #'cost)))
         unique-sorted-results))))
+
+(defun calculate-precedes-predicates (sequence-predicates)
+  "Return precedes constraints on the sequence predicates based on the order of the predicates"
+  (let ((left-boundaries (mapcar #'third sequence-predicates))
+        (right-boundaries (mapcar #'fourth sequence-predicates)))
+    (loop for left-boundary in (rest left-boundaries)
+          for right-boundary in  right-boundaries
+          collect `(precedes ,right-boundary ,left-boundary))))
+
 
 
 ;;(print-anti-unification-results (anti-unify-sequences '((sequence "what size is the cube" ?l1 ?r1)) '((sequence "what color is the cube" ?l3 ?r3))))
