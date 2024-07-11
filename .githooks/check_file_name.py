@@ -3,9 +3,13 @@
 import subprocess
 import sys
 import re
+from pathlib import Path
 
-def get_fname(filepath):
-    return filepath.split('/')[-1].split('.')[0]
+def get_fname(fpath):
+    return Path(fpath).stem
+
+def get_extension(filepath):
+    return Path(filepath).suffix
 
 def get_staged_files():
     # Get the list of all added, copied, modified, or renamed files
@@ -13,37 +17,95 @@ def get_staged_files():
     files = result.stdout.splitlines()
     return files
 
-def check_no_under_or_space(fname):
-    # no spaces, special chars, capital letters
-    pattern = re.compile(r'[\s!@#$%^&*()+={}\[\]:;"\'<>,.?/\\|`]')
+# search for invalid patterns
+def has_underscore(fname):
+    pattern = re.compile(r'[_]')
     return pattern.search(fname)
 
-def check_fname_length(fname):
+def has_special_characters(fname):
+    pattern = re.compile(r'[\s!@#$%^&*()+={}\[\]:;"\'<>,?/\\|`]')
+    return pattern.search(fname)
+
+def has_capitalised_letters(fname):
+    pattern = re.compile(r'[A-Z]')
+    return pattern.search(fname)
+
+# check for invalid patterns
+def contains_special_characters(fpath):
+    fname = get_fname(fpath)
+    return has_special_characters(fname)
+
+def contains_underscore(fpath):
+    ext = get_extension(fpath)
+    fname = get_fname(fpath)
+    whitelist = [".py", ".ipynb"]
+    if ext not in whitelist:
+        # if not python file, check for underscores
+        return has_underscore(fname)
+    return False
+
+def contains_capitalised_letters(fpath):
+    fname = get_fname(fpath)
+    whitelist = ["README", "LICENSE", "AUTHORS"]
+    if fname not in whitelist:
+        # if not whitelisted, check for capital letters
+        return has_capitalised_letters(fname)
+    return False
+        
+def check_fname_length(fpath):
+    fname = get_fname(fpath)
     return len(fname) > 30
+
+# check for directories or files
+def contains_invalid_directories(fpath):
+    # loop through the directories of the given path
+    base_dirs = Path(fpath).parent.parts
+    # for each directory, check against the convention
+    for dir_name in base_dirs:
+        if has_special_characters(dir_name) or \
+            has_underscore(dir_name) or \
+            has_capitalised_letters(dir_name):
+            return True
+    return False
+
+def is_invalid_filename(fpath):
+    return contains_special_characters(fpath) or \
+        contains_underscore(fpath) or \
+        contains_capitalised_letters(fpath) or \
+        check_fname_length(fpath)
 
 def main():
     # Get the list of all added, copied, modified, or renamed files
     staged_files = get_staged_files()
 
     # Initialize a list to hold filenames with disallowed extensions
-    invalid_files = []
+    invalid_files = set()
+    invalid_dirs = set()
 
     # check each file for file name convention
-    for file in staged_files:
-        fname = get_fname(file)
-        if check_no_under_or_space(fname):
-            print("problemo")
-            invalid_files.append(file)
-        if check_fname_length(fname):
-            print("ploblemo")
-            invalid_files.append(file)
+    for fpath in staged_files:
+        if is_invalid_filename(fpath):
+            invalid_files.add(fpath)
+        if contains_invalid_directories(fpath):
+            invalid_dirs.add(fpath)
 
     # If there are any invalid files, print an error message and exit with a non-zero status
     if invalid_files:
-        print("Error: the following files contain [underscores, spaces, spacial characters or capital letters] in their filenames:")
-        for file in invalid_files:
-            print(f" - {file}")
-        print("Please rename these files to use dashes instead.")
+        print("\tError: The following paths contain files that do not adhere to the required naming convention:")
+        for fpath in invalid_files:
+            print(f"\t - {fpath}")
+    
+    if invalid_dirs:
+        print("\tError: the following paths contain directories that do not adhere to the required naming convention:")
+        for fpath in invalid_dirs:
+            print(f"\t - {fpath}")
+    
+    if invalid_files or invalid_dirs:
+        print("\n\tTip: naming convention for files and directories:")
+        print("\t * only use dashes between words")
+        print("\t * only use lower-case letters (except for a README)")
+        print("\t * do not use special characters (except for dashes)")
+        print("\t * do not use more than 30 characters")
         sys.exit(1)
 
     # Exit with zero status if no invalid files are found

@@ -16,7 +16,7 @@ def main(max_kb):
     max_kb = int(max_kb)
     diff_size = get_diff_size()
     if diff_size > max_kb:
-        print(f"Error: Commit diff is too large ({diff_size} bytes). Please reduce the size of your commit.")
+        print(f"\tError: The commit diff is too large. Current size is {diff_size:.2f} KB, but maximum allowed is {max_kb:.2f} KB.")
         sys.exit(1)
     else:
         sys.exit(0)
