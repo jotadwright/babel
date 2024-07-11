@@ -40,7 +40,7 @@ non-applicable constructions."
   (loop with initial-state = (make-instance 'au-repair-state
                                             :all-cxns all-non-linking-cxns
                                             :remaining-applicable-cxns applicable-non-linking-cxns
-                                            :remaining-form-speech-act (list (list 'sequence (form speech-act) (make-var "left") (make-var "right")))
+                                            :remaining-form-speech-act (list (list 'sequence (form speech-act) 0 (length (form speech-act))))
                                             :remaining-meaning-speech-act (fresh-variables (pn::variablify-predicate-network
                                                                                             (meaning speech-act)
                                                                                             (get-configuration cxn-inventory :meaning-representation-format)))
@@ -65,10 +65,13 @@ non-applicable constructions."
                       (setf (created-at new-state) (incf (state-counter au-repair-processor)))
                       (setf (au-repair-processor new-state) au-repair-processor)
                    and
-                   if (or (remaining-form-speech-act new-state)
+                   if (and (remaining-form-speech-act new-state)
                           (remaining-meaning-speech-act new-state))
                      do (push new-state (queue au-repair-processor))
-                   else do (push new-state (succeeded-states au-repair-processor)))
+                   else
+                     unless (or (remaining-form-speech-act new-state)
+                                (remaining-meaning-speech-act new-state))
+                       do (push new-state (succeeded-states au-repair-processor)))
         finally (return (values (succeeded-states au-repair-processor) au-repair-processor))))
 
 
@@ -77,9 +80,9 @@ non-applicable constructions."
   (let* ((form-au-meaning-au-combinations (loop for applicable-cxn in (remove-duplicates (remaining-applicable-cxns current-state) :test #'eql :key #'name)
                                                 for au-form-results = (anti-unify-form (attr-val applicable-cxn :form)
                                                                                        (remaining-form-speech-act current-state) 
-                                                                                       (get-configuration (fix-cxn-inventory current-state)
-                                                                                                          :form-generalisation-mode)
-                                                                                       :cxn-inventory (fix-cxn-inventory current-state))
+                                                                                       :regex-subsequence
+                                                                                       (second (get-configuration (fix-cxn-inventory current-state)
+                                                                                                          :form-generalisation-mode)))
                                                 for au-meaning-results = (anti-unify-meaning (attr-val applicable-cxn :meaning)
                                                                                              (remaining-meaning-speech-act current-state)
                                                                                              (get-configuration (fix-cxn-inventory current-state)
@@ -145,8 +148,9 @@ non-applicable constructions."
         when valid-au-meaning-results
           append (let* ((au-form-results (anti-unify-form (attr-val cxn :form)
                                                           form-predicates-speech-act 
-                                                          (get-configuration parent-cxn-inventory :form-generalisation-mode)
-                                                          :cxn-inventory parent-cxn-inventory))
+                                                          (first (get-configuration parent-cxn-inventory :form-generalisation-mode))
+                                                          (second (get-configuration parent-cxn-inventory
+                                                                                     :form-generalisation-mode))))
                         (valid-au-form-results (loop for au-form-result in au-form-results
                                                      when (and (generalisation au-form-result)
                                                                (<= (length (generalisation au-form-result)) 2)) ;; max one gap allowed, i.e. two sequence predicates
@@ -155,9 +159,12 @@ non-applicable constructions."
                      (loop for (au-form au-meaning) in (cartesian-product valid-au-form-results valid-au-meaning-results)
                            for fix-cxn-inventory = (copy-object parent-cxn-inventory)
                            do 
-                             (learn-cxns-from-au-result au-form au-meaning fix-cxn-inventory :integration-cat integration-cat
-                                                        :integration-form-args integration-form-args :integration-meaning-args integration-meaning-args
+                             (learn-cxns-from-au-result au-form au-meaning fix-cxn-inventory
+                                                        :integration-cat integration-cat
+                                                        :integration-form-args integration-form-args
+                                                        :integration-meaning-args integration-meaning-args
                                                         :learn-cxns-from-deltas t)
+                           when (> (size fix-cxn-inventory) (size parent-cxn-inventory)) ;; new cxns were learnt
                            collect (make-instance 'au-repair-state
                                                   :base-cxn cxn
                                                   :fix-cxn-inventory fix-cxn-inventory)))) into new-states
@@ -182,6 +189,14 @@ non-applicable constructions."
 (defun learn-cxns-from-au-result (au-form au-meaning fix-cxn-inventory &key integration-cat integration-form-args integration-meaning-args
                                           learn-cxns-from-deltas)
   "Learns cxns from anit-unification result."
+  ;; Delta's can be empty, but this should be consistent at both sides (e.g. if source-delta is empty on the form side, it should also be empty
+  ;; on the meaning side).
+  (if (and (if (source-delta au-form)
+             (source-delta au-meaning)
+             (not (source-delta au-meaning)))
+           (if (pattern-delta au-form)
+             (pattern-delta au-meaning)
+             (not (pattern-delta au-meaning))))
   ;; Compute form args for filler-cxns (generalisation, pattern and source)
   (multiple-value-bind (generalisation-form-args pattern-form-args source-form-args)
       (compute-filler-args au-form)
@@ -284,7 +299,8 @@ non-applicable constructions."
                 (or (when (source-delta au-form) source-filler-cxn-form-args)
                     (when (pattern-delta au-form) pattern-filler-cxn-form-args))
                 (or (when (source-delta au-form) source-filler-cxn-meaning-args)
-                    (when (pattern-delta au-form) pattern-filler-cxn-meaning-args)))))))
+                    (when (pattern-delta au-form) pattern-filler-cxn-meaning-args))))))
+  (values nil nil nil)))
 
   
 (defun compute-filler-args (au-result)
@@ -377,7 +393,7 @@ non-applicable constructions."
 ;; Learning filler constructions ;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (defun learn-cxn-from-form-and-meaning-predicates (form-predicates meaning-predicates integration-cat integration-form-args integration-meaning-args cxn-inventory)
+(defun learn-cxn-from-form-and-meaning-predicates (form-predicates meaning-predicates integration-cat integration-form-args integration-meaning-args cxn-inventory)
     "Returns a fix-cxn-inventory with a single holophrase or filler-cxn added based on form-predicates and meaning-predicates and optionally cat and args."
     (let* ((fix-cxn-inventory (copy-object cxn-inventory))
            (new-cxn (if integration-cat
@@ -498,61 +514,59 @@ non-applicable constructions."
   ;;;;;;;;;;;;;;;;;;;;;
 
 
-(defgeneric anti-unify-form (cxn-form speech-act-form mode &key cxn-inventory &allow-other-keys)
+(defgeneric anti-unify-form (cxn-form speech-act-form mode parameters &key &allow-other-keys)
   (:documentation "Anti-unification of form."))
 
-(defmethod anti-unify-form ((cxn-sequence-predicates list)
-                            (speech-act-sequence-predicates list)
-                            (mode (eql :needleman-wunsch)) &key &allow-other-keys)
-  (loop with au-results = (anti-unify-sequences cxn-sequence-predicates speech-act-sequence-predicates
-                                                :match-cost -1
-                                                :mismatch-cost 1
-                                                :gap-opening-cost 0
-                                                :gap-extension-cost  1
-                                                :remove-duplicate-alignments t
-                                                :n-optimal-alignments nil
-                                                :max-nr-of-gaps nil)
-        with cost = (cost (first au-results))
-        for au-result in au-results
-        if (= cost (cost au-result))
-          collect au-result into au-form-results
-        else
-          do (return au-form-results)
-        finally (return au-form-results)))
 
 (defmethod anti-unify-form ((cxn-sequence-predicates list)
                             (speech-act-sequence-predicates list)
-                            (mode (eql :altschul-erickson)) &key &allow-other-keys)
-  ""
-  (loop with au-results = (anti-unify-sequences cxn-sequence-predicates speech-act-sequence-predicates
-                                                :match-cost 0
-                                                :mismatch-cost 1
-                                                :gap-opening-cost 5
-                                                :gap-extension-cost  1
-                                                :remove-duplicate-alignments t
-                                                :n-optimal-alignments nil
-                                                :max-nr-of-gaps nil)
-        with cost = (when au-results (cost (first au-results)))
-        for au-result in au-results
-        if (= cost (cost au-result))
-          collect au-result into au-form-results
-        else
-          do (return au-form-results)
-        finally (return au-form-results)))
+                            (mode (eql :regex-subsequence))
+                            (parameters list) &key &allow-other-keys)
+"Computes anti-unification results based on regex subsequence matching."
+    (loop with all-possible-alignments = (match-pattern-sequence-predicates-in-source-sequence-predicates cxn-sequence-predicates
+                                                                           speech-act-sequence-predicates
+                                                                           '(((T . T))))
+          for alignment in all-possible-alignments
+          for source-delta = (recompute-root-sequence-features-based-on-bindings cxn-sequence-predicates speech-act-sequence-predicates alignment)
+          for (generalisation pattern-bindings) = (multiple-value-list (fresh-variables cxn-sequence-predicates))
+          for source-bindings = (loop for (pattern-var . gen-var) in pattern-bindings
+                                      collect (cons (cdr (assoc pattern-var alignment)) gen-var))
+         
+          collect (make-instance 'sequences-au-result
+                       :pattern cxn-sequence-predicates
+                       :source speech-act-sequence-predicates
+                       :generalisation generalisation
+                       :pattern-delta nil
+                       :source-delta source-delta
+                       :pattern-bindings pattern-bindings
+                       :source-bindings source-bindings
+                       :alignment-cost 0)))
+
+;; (anti-unify-form *cxn-sequence-predicates* *speech-act-sequence-predicates* *mode* *parameters*)
+
+(defun compute-subsequence-generalisation (pattern-sequence-predicates source-sequence-predicates alignment-bindings-list)
+  (let ((source-delta (recompute-root-sequence-features-based-on-bindings pattern-sequence-predicates
+                                                                          source-sequence-predicates
+                                                                          alignment-bindings-list)))
+
+  ))
+
+ 
 
 
 (defmethod anti-unify-form ((cxn-sequence-predicates list)
                             (speech-act-sequence-predicates list)
-                            (mode (eql :custom-string-alignment)) &key cxn-inventory &allow-other-keys)
-  ""
+                            (mode (eql :altschul-erickson))
+                            (parameters list) &key &allow-other-keys)
+  "Computes anti-unification results based on altschul-erickson string alignment with passed parameters."
   (loop with au-results = (anti-unify-sequences cxn-sequence-predicates speech-act-sequence-predicates
-                                                :match-cost (get-configuration (configuration cxn-inventory) :match-cost)
-                                                :mismatch-cost (get-configuration (configuration cxn-inventory) :mismatch-cost)
-                                                :gap-opening-cost (get-configuration (configuration cxn-inventory) :gap-opening-cost)
-                                                :gap-extension-cost  (get-configuration (configuration cxn-inventory) :gap-extension-cost)
+                                                :match-cost (cdr (assoc :match-cost parameters))
+                                                :mismatch-cost (cdr (assoc :mismatch-cost parameters))
+                                                :gap-opening-cost (cdr (assoc :gap-opening-cost parameters))
+                                                :gap-extension-cost  (cdr (assoc :gap-cost parameters))
                                                 :remove-duplicate-alignments t
-                                                :n-optimal-alignments nil
-                                                :max-nr-of-gaps 1)
+                                                :n-optimal-alignments (cdr (assoc :n-optimal-alignments parameters))
+                                                :max-nr-of-gaps (cdr (assoc :max-nr-of-alignment-gaps parameters)))
         with cost = (when au-results (cost (first au-results)))
         for au-result in au-results
         if (= cost (cost au-result))
