@@ -33,15 +33,13 @@
                        (:li-punishement . 0.5)
                        (:best-solution-mode . :highest-average-link-weight)
                        (:induce-cxns-mode . :filler-and-linking)
-                       
-                       (:form-generalisation-mode . :altschul-erickson)
-                       #|
-                        (:form-generalisation-mode . :custom-string-alignment)
-                        (:match-cost . 0)
-                        (:mismatch-cost . 3)
-                        (:gap-opening-cost . 5)
-                        (:gap-extension-cost  . 1)
-                        |#
+                       (:form-generalisation-mode :altschul-erickson
+                        ((:match-cost . 0)
+                         (:mismatch-cost . 1)
+                         (:gap-cost . 1)
+                         (:gap-opening-cost . 5)
+                         (:n-optimal-alignments . nil)
+                         (:max-nr-of-alignment-gaps . 1)))
                        (:meaning-generalisation-mode . :exhaustive)
                        (:k-swap-k . 1)
                        (:k-swap-w . 1)

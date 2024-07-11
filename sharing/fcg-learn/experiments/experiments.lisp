@@ -107,7 +107,13 @@
                        (:li-punishement . 0.5)
                        (:best-solution-mode . :highest-average-link-weight)
                        (:induce-cxns-mode . :filler-and-linking)
-                       (:form-generalisation-mode . :gotoh)
+                       (:form-generalisation-mode :altschul-erickson
+                        ((:match-cost . 0)
+                         (:mismatch-cost . 1)
+                         (:gap-cost . 1)
+                         (:gap-opening-cost . 5)
+                         (:n-optimal-alignments . nil)
+                         (:max-nr-of-alignment-gaps . 1)))
                        (:meaning-generalisation-mode . :exhaustive)
                        (:k-swap-k . 1)
                        (:k-swap-w . 1)
@@ -134,7 +140,7 @@
 
 (reset-cp *clevr-stage-1-train-processor*)
 (setf *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
-(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar*  :nr-of-speech-acts 2)
+(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar*  :nr-of-speech-acts 1)
 
 (comprehend (current-speech-act *clevr-stage-1-train-processor*)  :cxn-inventory *clevr-stage-1-grammar*)
 
@@ -144,7 +150,7 @@
   (setf *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
   (comprehend *clevr-stage-1-train-processor*
               :cxn-inventory *clevr-stage-1-grammar*
-              :nr-of-speech-acts 3000) ;;(array-dimension (corpus *clevr-stage-1-train-processor*) 0)
+              :nr-of-speech-acts 1) ;;(array-dimension (corpus *clevr-stage-1-train-processor*) 0)
   )
 
 
