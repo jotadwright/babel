@@ -104,8 +104,7 @@ non-applicable constructions."
                                                                                  :integration-cat (integration-cat current-state)
                                                                                  :integration-form-args (integration-form-args current-state)
                                                                                  :integration-meaning-args (integration-meaning-args current-state)))
-          unless (= (length (constructions-list fix-cxn-inventory))
-                    (length (constructions-list (fix-cxn-inventory current-state))))
+          when (> (size fix-cxn-inventory) (size (fix-cxn-inventory current-state)))
             collect (make-instance 'au-repair-state
                                    :all-cxns (all-cxns current-state)
                                    :remaining-applicable-cxns (remove (name cxn) (remaining-applicable-cxns current-state) :key #'name)
@@ -414,15 +413,31 @@ non-applicable constructions."
     (let* ((cxn-name (make-cxn-name form-sequence-predicates))
            (filler-cat (make-const (upcase (format nil "~a-filler-cat" (remove-cxn-tail (symbol-name cxn-name))))))
            (unit-name (make-var "filler-unit"))
-           (initial-score 0.5))
+           (initial-score 0.5)
+           (form-args-renamings (loop for arg in form-filler-args
+                                      when (numberp arg)
+                                        collect (cons arg (make-var arg))))
+           (form-args (if form-args-renamings
+                        (mapcar #'cdr form-args-renamings)
+                        form-filler-args)))
+
+      (when form-args-renamings
+        (setf form-sequence-predicates (loop for predicate in (subst-bindings form-sequence-predicates form-args-renamings)
+                                             for left = (third predicate)
+                                             for right = (fourth predicate)
+                                             if (numberp left)
+                                               do (setf left (make-var left))
+                                             else if (numberp right)
+                                                    do (setf right (make-var right))
+                                             collect (list 'sequence (second predicate) left right))))
 
       (make-instance 'filler-cxn
                      :name cxn-name
                      :contributing-part (list (make-instance 'contributing-unit
                                                              :name unit-name
                                                              :unit-structure `((category ,filler-cat)
-                                                                               ,@(when form-filler-args
-                                                                                   `((form-args ,form-filler-args)))
+                                                                               ,@(when form-args
+                                                                                   `((form-args ,form-args)))
                                                                                ,@(when meaning-filler-args
                                                                                    `((meaning-args ,meaning-filler-args))))))
                      :conditional-part `(,(make-instance 'conditional-unit
@@ -433,8 +448,8 @@ non-applicable constructions."
                      :feature-types (feature-types cxn-inventory)
                      :attributes `((:form . ,form-sequence-predicates)
                                    (:meaning . ,meaning-predicates)
-                                   ,@(when form-filler-args
-                                       `((:form-args . ,form-filler-args)))
+                                   ,@(when form-args
+                                       `((:form-args . ,form-args)))
                                    ,@(when meaning-filler-args
                                        `((:meaning-args . ,meaning-filler-args)))
                                    (:cxn-cat . ,filler-cat)
