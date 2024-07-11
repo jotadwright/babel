@@ -10,7 +10,7 @@
   ;; GCATGCG & GATTACA
   ;; score 0 ; match 0, mismatch 1, gap-opening 0, gap-extension 1
   (let ((alignments (maximal-sequence-alignments "GCATGCG" "GATTACA" nil nil
-                                                 :match-cost -1 :mismatch-cost 1 :gap-opening-cost 0 :gap-extension-cost 1
+                                                 :match-cost -1 :mismatch-cost 1 :gap-opening-cost 0 :gap-cost 1
                                                  :remove-duplicate-alignments nil)))
      (loop for alignment in alignments
                for cost = (cost alignment)
@@ -26,7 +26,7 @@
   ;; A B C _ N J R Q C L C R _ P M 
   ;; score -1 (obtained from online tool) ; match 0, mismatch 1, gap-opening 0, gap-extension 1
   (let ((alignments (maximal-sequence-alignments "AJCJNRCKCRBP" "ABCNJRQCLCRPM" nil nil
-                                                 :match-cost -1 :mismatch-cost 1 :gap-opening-cost 0 :gap-extension-cost 1
+                                                 :match-cost -1 :mismatch-cost 1 :gap-opening-cost 0 :gap-cost 1
                                                  :remove-duplicate-alignments nil)))
      (and (loop for alignment in alignments
                 for cost = (cost alignment)
@@ -48,7 +48,7 @@
   ;; T G A G T T
 
   (let ((alignments (maximal-sequence-alignments "AGT" "TGAGTT" nil nil
-                                                 :match-cost 0 :mismatch-cost 1 :gap-opening-cost 1 :gap-extension-cost 1
+                                                 :match-cost 0 :mismatch-cost 1 :gap-opening-cost 1 :gap-cost 1
                                                  :remove-duplicate-alignments nil)))
     (and (loop for alignment in alignments
                for cost = (cost alignment)
@@ -63,7 +63,7 @@
   ;; T T A A A A G G G G T T
   
   (let ((alignments (maximal-sequence-alignments "AAAGGG" "TTAAAAGGGGTT" nil nil
-                                                 :match-cost 0 :mismatch-cost 1 :gap-opening-cost 5 :gap-extension-cost 1
+                                                 :match-cost 0 :mismatch-cost 1 :gap-opening-cost 5 :gap-cost 1
                                                  :remove-duplicate-alignments nil)))
     (and (loop for alignment in alignments
                for cost = (cost alignment)
@@ -82,7 +82,7 @@
   ;; C C G A
   
   (let ((alignments (maximal-sequence-alignments "CG" "CCGA" nil nil
-                                                 :match-cost -1 :mismatch-cost 1 :gap-opening-cost 3 :gap-extension-cost 1
+                                                 :match-cost -1 :mismatch-cost 1 :gap-opening-cost 3 :gap-cost 1
                                                  :remove-duplicate-alignments nil)))
      (and (loop for alignment in alignments
                             for cost = (cost alignment)
@@ -98,7 +98,7 @@
     ;; A A _ C G
     
     (let ((alignments (maximal-sequence-alignments "AATCG" "AACG" nil nil
-                                                   :match-cost -1 :mismatch-cost 1 :gap-opening-cost 0 :gap-extension-cost 2
+                                                   :match-cost -1 :mismatch-cost 1 :gap-opening-cost 0 :gap-cost 2
                                                    :remove-duplicate-alignments nil)))
       (and (loop for alignment in alignments
                               for cost = (cost alignment)
@@ -112,7 +112,7 @@
     ;; A A A _ _ _ _ _ _ G G G
     ;; T T A A A A G G G G T T
     (let ((alignments (maximal-sequence-alignments "AAAGGG" "TTAAAAGGGGTT" nil nil
-                                                   :match-cost 0 :mismatch-cost 1 :gap-opening-cost 5 :gap-extension-cost 1
+                                                   :match-cost 0 :mismatch-cost 1 :gap-opening-cost 5 :gap-cost 1
                                                    :remove-duplicate-alignments nil)))
     (loop for alignment in alignments
             for cost = (cost alignment)
@@ -124,7 +124,7 @@
     ;; C G C C T T A _ _ _ _ _ _ C
     ;; _ _ _ _ _ _ A A A T T T G C
     (let ((alignments (maximal-sequence-alignments "AAATTTGC" "CGCCTTAC" nil nil
-                                                   :match-cost -10 :mismatch-cost 30 :gap-opening-cost 40 :gap-extension-cost 1
+                                                   :match-cost -10 :mismatch-cost 30 :gap-opening-cost 40 :gap-cost 1
                                                    :remove-duplicate-alignments nil)))
       (loop for alignment in alignments
             for cost = (cost alignment)
@@ -136,7 +136,7 @@
     ;; _ _ _ A G A T
     ;; C T C _ _ _ T
     (let ((alignments (maximal-sequence-alignments "AGAT" "CTCT" nil nil
-                                                   :match-cost -10 :mismatch-cost 30 :gap-opening-cost 25 :gap-extension-cost 1
+                                                   :match-cost -10 :mismatch-cost 30 :gap-opening-cost 25 :gap-cost 1
                                                    :remove-duplicate-alignments nil)))
        (loop for alignment in alignments
             for cost = (cost alignment)
@@ -161,7 +161,7 @@
 
 (deftest test-remove-duplicates ()
   (let ((alignments (maximal-sequence-alignments "CG" "CCGA" nil nil
-                                                 :match-cost -1 :mismatch-cost 1 :gap-opening-cost 3 :gap-extension-cost 1
+                                                 :match-cost -1 :mismatch-cost 1 :gap-opening-cost 3 :gap-cost 1
                                                  :remove-duplicate-alignments t)))
      (test-assert (and (loop for alignment in alignments
                             for cost = (cost alignment)
@@ -169,7 +169,7 @@
                       (= (length alignments) 1))))
   
   (let ((alignments (maximal-sequence-alignments "AGT" "TGAGTT" nil nil
-                                                    :match-cost 0 :mismatch-cost 1 :gap-opening-cost 1 :gap-extension-cost 1
+                                                    :match-cost 0 :mismatch-cost 1 :gap-opening-cost 1 :gap-cost 1
                                                     :remove-duplicate-alignments t)))
     (test-assert (and (loop for alignment in alignments
                             for cost = (cost alignment)
