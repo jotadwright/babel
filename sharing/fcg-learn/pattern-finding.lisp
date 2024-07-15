@@ -152,7 +152,10 @@ non-applicable constructions."
                                                                                      :form-generalisation-mode))))
                         (valid-au-form-results (loop for au-form-result in au-form-results
                                                      when (and (generalisation au-form-result)
-                                                               (<= (length (generalisation au-form-result)) 2)) ;; max one gap allowed, i.e. two sequence predicates
+                                                               (<= (length (find-all-if #'(lambda (p)
+                                                                                            (eql 'sequence (first p)))
+                                                                                        (generalisation au-form-result)))
+                                                                   2)) ;; max one gap allowed, i.e. two sequence predicates
                                                        collect au-form-result)))
                    (when valid-au-form-results
                      (loop for (au-form au-meaning) in (cartesian-product valid-au-form-results valid-au-meaning-results)
@@ -372,7 +375,7 @@ non-applicable constructions."
 (defun create-holophrastic-cxn (form-predicates meaning-predicates cxn-inventory)
   "Create a holophrastic construction based on form-predicates and meaning-predicates, returns the cxn."
   (let* ((form (second (first form-predicates)))
-         (form-predicates-w-variables (list (list 'sequence form (make-var "left") (make-var "right"))))
+         (form-predicates-w-variables (list (list 'sequence form (make-var "LR") (make-var "LR"))))
          (initial-score 0.5)
          (meaning-hash-key (compute-meaning-hash-key-from-predicates meaning-predicates)))
     (make-instance 'holophrastic-cxn
@@ -407,49 +410,64 @@ non-applicable constructions."
       fix-cxn-inventory))
 
 
-(defun create-filler-cxn (form-sequence-predicates meaning-predicates form-filler-args meaning-filler-args cxn-inventory)
+(defun create-filler-cxn (form-predicates meaning-predicates form-filler-args meaning-filler-args cxn-inventory)
   "Create a filler construction based on form-predicates and meaning-predicates and args, returns the cxn."
-  (when (and form-sequence-predicates meaning-predicates)
-    (let* ((cxn-name (make-cxn-name form-sequence-predicates))
-           (filler-cat (make-const (upcase (format nil "~a-filler-cat" (remove-cxn-tail (symbol-name cxn-name))))))
-           (unit-name (make-var "filler-unit"))
+  (when (and form-predicates meaning-predicates)
+    (let* ((unit-name (make-var "filler-unit"))
            (initial-score 0.5)
+           ;; filler-cxns learnt from source-delta can have indices in the form constraints
+           ;; first, we make variable renamings for them
            (form-args-renamings (loop for arg in form-filler-args
-                                      when (numberp arg)
-                                        collect (cons arg (make-var arg))))
-           (form-args (if form-args-renamings
-                        (mapcar #'cdr form-args-renamings)
-                        form-filler-args)))
-
-      (when form-args-renamings
-        (setf form-sequence-predicates (loop for predicate in (subst-bindings form-sequence-predicates form-args-renamings)
-                                             for left = (third predicate)
-                                             for right = (fourth predicate)
-                                             if (numberp left)
-                                               do (setf left (make-var left))
-                                             else if (numberp right)
-                                                    do (setf right (make-var right))
-                                             collect (list 'sequence (second predicate) left right))))
+                                      unless (variable-p arg)
+                                        collect (cons arg (make-var "LR"))))
+           ;; then we collect the form-filler args
+           (form-filler-args (if form-args-renamings
+                               (mapcar #'cdr form-args-renamings)
+                               form-filler-args))
+           ;; and the sequence predicates
+           (form-sequence-predicates (if form-args-renamings
+                                       (loop for (nil string left right) in (subst-bindings form-predicates form-args-renamings)
+                                             collect (list 'sequence
+                                                           string
+                                                           (if (variable-p left) left (make-var "LR"))
+                                                           (if (variable-p right) right (make-var "LR"))))
+                                       form-predicates))
+           (form-precedes-predicates (when form-args-renamings
+                                       (loop for p in form-predicates
+                                             for p-with-vars in form-sequence-predicates
+                                             for p-right = (fourth p)
+                                             for higher-indexed-predicates = (loop for p2 in (remove p form-predicates :test #'equal)
+                                                                                   for p2-with-vars in (remove p-with-vars form-sequence-predicates :test #'equal)
+                                                                                   for p2-left = (third p2)
+                                                                                   when (< p-right p2-left)
+                                                                                     collect p2-with-vars)
+                                               append (loop for higher-indexed-p in higher-indexed-predicates
+                                                            collect (list 'precedes
+                                                                          (fourth p-with-vars)
+                                                                          (third higher-indexed-p))))))
+           (form-predicates (append form-sequence-predicates form-precedes-predicates))
+           (cxn-name (make-cxn-name form-predicates))
+           (filler-cat (make-const (upcase (format nil "~a-filler-cat" (remove-cxn-tail (symbol-name cxn-name)))))))
 
       (make-instance 'filler-cxn
                      :name cxn-name
                      :contributing-part (list (make-instance 'contributing-unit
                                                              :name unit-name
                                                              :unit-structure `((category ,filler-cat)
-                                                                               ,@(when form-args
-                                                                                   `((form-args ,form-args)))
+                                                                               ,@(when form-filler-args
+                                                                                   `((form-args ,form-filler-args)))
                                                                                ,@(when meaning-filler-args
                                                                                    `((meaning-args ,meaning-filler-args))))))
                      :conditional-part `(,(make-instance 'conditional-unit
                                                          :name unit-name
                                                          :formulation-lock `((HASH meaning ,meaning-predicates))
-                                                         :comprehension-lock `((HASH form ,form-sequence-predicates))))
+                                                         :comprehension-lock `((HASH form ,form-predicates))))
                      :cxn-inventory cxn-inventory
                      :feature-types (feature-types cxn-inventory)
-                     :attributes `((:form . ,form-sequence-predicates)
+                     :attributes `((:form . ,form-predicates)
                                    (:meaning . ,meaning-predicates)
-                                   ,@(when form-args
-                                       `((:form-args . ,form-args)))
+                                   ,@(when form-filler-args
+                                       `((:form-args . ,form-filler-args)))
                                    ,@(when meaning-filler-args
                                        `((:meaning-args . ,meaning-filler-args)))
                                    (:cxn-cat . ,filler-cat)
@@ -534,29 +552,44 @@ non-applicable constructions."
   (:documentation "Anti-unification of form."))
 
 
-(defmethod anti-unify-form ((cxn-sequence-predicates list)
+(defmethod anti-unify-form ((cxn-form-predicates list)
                             (speech-act-sequence-predicates list)
                             (mode (eql :regex-subsequence))
                             (parameters list) &key &allow-other-keys)
-"Computes anti-unification results based on regex subsequence matching."
-    (loop with all-possible-alignments = (match-pattern-sequence-predicates-in-source-sequence-predicates cxn-sequence-predicates
-                                                                           speech-act-sequence-predicates
-                                                                           '(((T . T))))
-          for alignment in all-possible-alignments
+  "Computes anti-unification results based on regex subsequence matching."
+  ;; cxn-form-predicates can be combination of sequence and precedes predicates (always with variables as arguments)
+  ;; speech-act-sequence-predicates can only be sequence predicates with instantiated argumants (numerical indices)$
+  (let* ((cxn-sequence-predicates (find-all-if #'(lambda (p) (eql 'sequence (first p))) cxn-form-predicates))
+         (cxn-precedes-predicates (find-all-if #'(lambda (p) (eql 'precedes (first p))) cxn-form-predicates))
+         (possible-alignments-without-ordering-constraints (match-pattern-sequence-predicates-in-source-sequence-predicates cxn-sequence-predicates
+                                                                                                                            speech-act-sequence-predicates
+                                                                                                                            '(((T . T)))))
+         (possible-alignments (loop for alignment-wo-precedes in possible-alignments-without-ordering-constraints
+                                    for valid-alignment-w-precedes-p = (loop for (nil left right) in cxn-precedes-predicates
+                                                                             for cxn-predicate-left-index = (car (rassoc left alignment-wo-precedes))
+                                                                             for cxn-predicate-right-index = (car (rassoc right alignment-wo-precedes))
+                                                                             when (and (numberp cxn-predicate-left-index)
+                                                                                       (numberp cxn-predicate-right-index)
+                                                                                       (> left right))
+                                                                               do (return nil)
+                                                                             finally (return t))
+                                    when valid-alignment-w-precedes-p
+                                      collect alignment-wo-precedes)))
+    
+    (loop for alignment in possible-alignments
           for source-delta = (recompute-root-sequence-features-based-on-bindings cxn-sequence-predicates speech-act-sequence-predicates alignment)
-          for (generalisation pattern-bindings) = (multiple-value-list (fresh-variables cxn-sequence-predicates))
+          for (generalisation pattern-bindings) = (multiple-value-list (fresh-variables cxn-form-predicates))
           for source-bindings = (loop for (pattern-var . gen-var) in pattern-bindings
                                       collect (cons (cdr (assoc pattern-var alignment)) gen-var))
-         
           collect (make-instance 'sequences-au-result
-                       :pattern cxn-sequence-predicates
-                       :source speech-act-sequence-predicates
-                       :generalisation generalisation
-                       :pattern-delta nil
-                       :source-delta source-delta
-                       :pattern-bindings pattern-bindings
-                       :source-bindings source-bindings
-                       :alignment-cost 0)))
+                                 :pattern cxn-form-predicates 
+                                 :source speech-act-sequence-predicates
+                                 :generalisation generalisation ;; same sequence and precedes as in pattern
+                                 :pattern-delta nil
+                                 :source-delta source-delta  ;; instantiated sequences - variablification and precedes should happen later
+                                 :pattern-bindings pattern-bindings
+                                 :source-bindings source-bindings
+                                 :alignment-cost 0))))
 
 ;; (anti-unify-form *cxn-sequence-predicates* *speech-act-sequence-predicates* *mode* *parameters*)
 
@@ -572,10 +605,10 @@ non-applicable constructions."
                                                 :match-cost (cdr (assoc :match-cost parameters))
                                                 :mismatch-cost (cdr (assoc :mismatch-cost parameters))
                                                 :gap-opening-cost (cdr (assoc :gap-opening-cost parameters))
-                                                :gap-extension-cost  (cdr (assoc :gap-cost parameters))
+                                                :gap-cost  (cdr (assoc :gap-cost parameters))
                                                 :remove-duplicate-alignments t
                                                 :n-optimal-alignments (cdr (assoc :n-optimal-alignments parameters))
-                                                :max-nr-of-gaps (cdr (assoc :max-nr-of-alignment-gaps parameters)))
+                                                :max-nr-of-au-gaps (cdr (assoc :max-nr-of-gaps parameters)))
         with cost = (when au-results (cost (first au-results)))
         for au-result in au-results
         if (= cost (cost au-result))
