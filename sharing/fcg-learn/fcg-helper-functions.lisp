@@ -39,7 +39,7 @@
 
 (defun make-cxn-name (form-sequence-predicates)
   "Create a unique construction name based on the strings present in form-sequence-predicates."
-  (make-id (upcase (substitute #\- #\Space (format nil "~{~a~^_~}-cxn" (mapcar #'second form-sequence-predicates))))))
+  (make-id (upcase (substitute #\- #\Space (format nil "~{~a~^_~}-cxn" (render form-sequence-predicates :render-sequences))))))
 
 (defun remove-cxn-tail (string)
   "Return part of string before -cxn."
