@@ -235,28 +235,27 @@ string constraint with the variable ?Y."
 
 
 (defmethod precedes ((el-1 t) (el-2 t) (form-constraints list) (mode (eql :order-sequences)))
-  "If el-1 and el-2 are in string-constraints el-1 must be occur earlier than el-2"
-  (if (> (length form-constraints) 1)
-    ;; Only check precedes constraint if there is more than a single form constraint
-    (let ((index-el-1 (or (position el-1 form-constraints :key #'fourth :test #'equal)
-                          (position el-1 form-constraints :key #'third :test #'equal)))
-          (index-el-2 (or (position el-2 form-constraints :key #'third :test #'equal)
-                          (position el-2 form-constraints :key #'fourth :test #'equal))))
-      (cond 
-       ;; for efficiency
-       ((and (null index-el-1)
-             index-el-2)
-        nil)
-       ;; real testing
-       ((or (null index-el-1) (null index-el-2))
-        t)
-       ((< index-el-1 index-el-2)
-        t)
-       (t
-        nil)))
-    t
-    ))
-
+  "If el-1 and el-2 are in form-constraints el-1 must be occur earlier than el-2"
+  (loop for (fc-1 . rest) on form-constraints
+        for el-1-in-fc-1 = (find el-1 fc-1)
+        for el-2-in-fc-1 = (find el-2 fc-1)
+        do (cond (;; el-1 and el-2 both in fc-1, but in the wrong order
+                  (and el-1-in-fc-1
+                       el-2-in-fc-1
+                       (> (position el-1 fc-1) (position el-2 fc-1)))
+                  (return nil))
+                 (; el-2 in fc-1 and el-1 in fc-2 -> fail
+                  (and el-2-in-fc-1
+                       (loop for fc-2 in rest
+                             when (find el-1 fc-2)
+                               do (return t)))
+                  (return nil))
+                 ;; else succeed
+                 (t
+                  t))
+        finally (return t)))
+       
+     
 (defun filter-by-sequence-constraints (ordering-constraints sequence-constraints)
   "Returns only those ordering constraints of which the units occur in
 string constraints. E.g. discards (meets ?X ?Y), where there is no
