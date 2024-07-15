@@ -5,35 +5,39 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defgeneric maximal-sequence-alignments (pattern source pattern-boundaries source-boundaries
-                                         &key match-cost mismatch-cost gap-opening-cost gap-extension-cost
-                                         remove-duplicate-alignments n-optimal-alignments max-nr-of-gaps)
-  (:documentation "Computes the maximal alignments of two input strings according to 'mode'.
-                   Mode can be set to :needleman-wunsch, which uses linear gap penalties,
-                   or :gotoh, which uses affine gap penalties. For the algorithm of Gotoh,
-                   the implementation of Altshul and Erickson (1986) is used. Both algorithms
-                   expect costs for matches, mismatches, and gaps. Needleman-Wunsch only uses
-                   the gap-extension-cost, whereas Gotoh uses both gap-opening-cost and
-                   gap-extension-cost. Since the algorithms uses costs (as opposed to scores),
-                   they are distance minimization algorithms."))
+                                         &key match-cost mismatch-cost gap-opening-cost gap-cost
+                                         remove-duplicate-alignments n-optimal-alignments max-nr-of-au-gaps)
+  (:documentation "Computes the maximal alignments of two input strings, using the algorithm of Altschul and Erickson (1986).
+                   If gap-opening-cost is set to 0, the linear sequence alignment is returned.
+                   Example costs for linear sequence alignment (alignment results will be the same as results from Needleman-Wunsch algorithm with the same costs):
+                       -> match-cost -1, mismatch-cost 1, gap-opening-cost 0, gap-cost 1.
+                   If gap-opening-cost is higher than 0, the affine gap sequence alignment is returned.
+                   Example costs for affine gap sequence alignment (costs used in Altschul & Erickson paper):
+                       -> match-cost 0, mismatch-cost 1, gap-opening-cost 1, gap-cost 1
+                   Since the algorithm uses costs (as opposed to scores),
+                   it is a distance minimization algorithm.
+                   :remove-duplicate-alignments removes alignments that will lead to the same anti-unification result.
+                   :n-optimal-alignment stops backtrace procedure of sequence alignment when number of optimal alignments is reached.
+                   :max-nr-of-au-gaps returns only the optimal alignments that don't exceed the max number of gaps (in terms of gaps in the generalisation of the anti-unification"))
 
 
 (defmethod maximal-sequence-alignments ((pattern string) (source string) (pattern-boundaries list) (source-boundaries list)
-                                        &key (match-cost -1) (mismatch-cost 1) (gap-opening-cost 5) (gap-extension-cost 1)
-                                        (remove-duplicate-alignments t) n-optimal-alignments max-nr-of-gaps)
+                                        &key (match-cost -1) (mismatch-cost 1) (gap-opening-cost 5) (gap-cost 1)
+                                        (remove-duplicate-alignments t) n-optimal-alignments max-nr-of-au-gaps)
   (maximal-sequence-alignments (coerce pattern 'list) (coerce source 'list)
                                pattern-boundaries source-boundaries
                                :match-cost match-cost
                                :mismatch-cost mismatch-cost
                                :gap-opening-cost gap-opening-cost
-                               :gap-extension-cost gap-extension-cost
+                               :gap-cost gap-cost
                                :remove-duplicate-alignments remove-duplicate-alignments
                                :n-optimal-alignments n-optimal-alignments
-                               :max-nr-of-gaps max-nr-of-gaps))
+                               :max-nr-of-au-gaps max-nr-of-au-gaps))
   
 
 (defmethod maximal-sequence-alignments ((pattern list) (source list) (pattern-boundaries list) (source-boundaries list)
-                                        &key (match-cost -1) (mismatch-cost 1) (gap-opening-cost 5) (gap-extension-cost 1)
-                                        (remove-duplicate-alignments t) n-optimal-alignments max-nr-of-gaps)
+                                        &key (match-cost -1) (mismatch-cost 1) (gap-opening-cost 5) (gap-cost 1)
+                                        (remove-duplicate-alignments t) n-optimal-alignments max-nr-of-au-gaps)
   (let* ((nx (length pattern)) ;; number of rows
          (ny (length source))  ;; number of columns
          ;; matrices to store costs
@@ -58,19 +62,19 @@
     ;; Initalize the matrices
     (setf-matrix-row P 0 (make-array (+ ny 1) :initial-element most-positive-fixnum))
     (setf-matrix-column Q 0 (make-array (+ nx 1) :initial-element most-positive-fixnum))
-    (setf-matrix-row R 0 (list->array (loop for j from 0 to ny collect (+ gap-opening-cost (* gap-extension-cost j)))))
-    (setf-matrix-column R 0 (list->array (loop for i from 0 to nx collect (+ gap-opening-cost (* gap-extension-cost i)))))
+    (setf-matrix-row R 0 (list->array (loop for j from 0 to ny collect (+ gap-opening-cost (* gap-cost j)))))
+    (setf-matrix-column R 0 (list->array (loop for i from 0 to nx collect (+ gap-opening-cost (* gap-cost i)))))
     (setf (aref R 0 0) 0)
     (setf (aref c (+ nx 1) (+ ny 1)) 1)
 
     ;; Run the Gotoh algorithm according to the implementation
     ;; provided by Altschul and Ericksson (1986)
-    (gotoh-cost-assignment pattern source nx ny P Q R a b c d e f g
+    (cost-assignment pattern source nx ny P Q R a b c d e f g
                            :match-cost match-cost
                            :mismatch-cost mismatch-cost
                            :gap-opening-cost gap-opening-cost
-                           :gap-extension-cost gap-extension-cost)
-    (gotoh-edge-assignment nx ny a b c d e f g)    
+                           :gap-cost gap-cost)
+    (edge-assignment nx ny a b c d e f g)    
 
     ;; Trace back pointers from the bottom-right cell to the top-left cell.
     ;; Cells may contain multiple pointers, so there may be multiple paths.
@@ -82,17 +86,17 @@
                                        :match-cost match-cost
                                        :mismatch-cost mismatch-cost
                                        :gap-opening-cost gap-opening-cost
-                                       :gap-extension-cost gap-extension-cost
+                                       :gap-cost gap-cost
                                        :n-optimal-alignments n-optimal-alignments
-                                       :max-nr-of-gaps max-nr-of-gaps)))
+                                       :max-nr-of-au-gaps max-nr-of-au-gaps)))
       (if remove-duplicate-alignments
         (remove-duplicates all-optimal-alignments :key #'match-positions :test #'equal)
         all-optimal-alignments))))
 
 
-(defun gotoh-cost-assignment (pattern source nx ny P Q R a b c d e f g
-                              &key (match-cost -1) (mismatch-cost 1)
-                              (gap-opening-cost 5) (gap-extension-cost 1))
+(defun cost-assignment (pattern source nx ny P Q R a b c d e f g
+                                &key (match-cost -1) (mismatch-cost 1)
+                                (gap-opening-cost 5) (gap-cost 1))
   (loop for i from 0 to nx
         do (loop for j from 0 to ny
                  for matchp = (when (and (> i 0) (> j 0))
@@ -101,8 +105,8 @@
                    ;; 1) find the minimum cost of a path ending at node N_{i,j} using vertical edge
                    ;; 2) determine if cost P_{i,j} can be achieved with and without edge V_{i-1,j}, i.e. vertical edge above
                    (when (> i 0)
-                     (let* ((extended-gap-cost (+ (aref P (- i 1) j) gap-extension-cost))
-                            (new-gap-cost (+ (aref R (- i 1) j) gap-opening-cost gap-extension-cost))
+                     (let* ((extended-gap-cost (+ (aref P (- i 1) j) gap-cost))
+                            (new-gap-cost (+ (aref R (- i 1) j) gap-opening-cost gap-cost))
                             (min-cost (min extended-gap-cost new-gap-cost)))
                        (setf (aref P i j) min-cost)
                        (when (= min-cost extended-gap-cost)
@@ -113,8 +117,8 @@
                    ;; 3) find the minimum cost of a path ending at node N_{i,j using horizontal edge
                    ;; 4) determine if cost Q_{i,j} can be achieved with and without edge H_{i,j-1}, i.e. horizontal edge left
                    (when (> j 0)
-                     (let* ((extended-gap-cost (+ (aref Q i (- j 1)) gap-extension-cost))
-                            (new-gap-cost (+ (aref R i (- j 1)) gap-opening-cost gap-extension-cost))
+                     (let* ((extended-gap-cost (+ (aref Q i (- j 1)) gap-cost))
+                            (new-gap-cost (+ (aref R i (- j 1)) gap-opening-cost gap-cost))
                             (min-cost (min extended-gap-cost new-gap-cost)))
                        (setf (aref Q i j) min-cost)
                        (when (= min-cost extended-gap-cost)
@@ -141,7 +145,7 @@
                      (setf (aref c i j) 1)))))
 
 
-(defun gotoh-edge-assignment (nx ny a b c d e f g)
+(defun edge-assignment (nx ny a b c d e f g)
   (loop for i from nx downto 0
         do (loop for j from ny downto 0
                  do ;; 1) if there is no optimal path passing through node N_{i,j} which has cost R_{i,j}
@@ -208,9 +212,9 @@
                                            &key (match-cost -1)
                                            (mismatch-cost 1)
                                            (gap-opening-cost 5)
-                                           (gap-extension-cost 1)
+                                           (gap-cost 1)
                                            n-optimal-alignments
-                                           max-nr-of-gaps)
+                                           max-nr-of-au-gaps)
   (loop with solutions = nil
         ;; start at position (M, N)
         with queue = (list (make-initial-sequence-alignment-state
@@ -232,7 +236,7 @@
                              (eql next-edge 'vertical)
                              ;; as a sanity check, we could assert that horizontal and diagonal edges here are 0
                              (let ((next-state (check-vertical-edges pattern source pattern-boundaries source-boundaries state a d e
-                                                                     :gap-opening-cost gap-opening-cost :gap-extension-cost gap-extension-cost)))
+                                                                     :gap-opening-cost gap-opening-cost :gap-cost gap-cost)))
                                (when next-state
                                  (list next-state))))
                             
@@ -240,7 +244,7 @@
                              (eql next-edge 'horizontal)
                              ;; as a sanity check, we could assert that vertical and diagonal edges here are 0
                              (let ((next-state (check-horizontal-edges pattern source pattern-boundaries source-boundaries state b f g
-                                                                       :gap-opening-cost gap-opening-cost :gap-extension-cost gap-extension-cost)))
+                                                                       :gap-opening-cost gap-opening-cost :gap-cost gap-cost)))
                                (when next-state
                                  (list next-state))))
                             
@@ -249,13 +253,13 @@
                              (let ((next-state-diagonal (check-diagonal-edges pattern source pattern-boundaries source-boundaries state c
                                                                               :match-cost match-cost :mismatch-cost mismatch-cost))
                                    (next-state-vertical (check-vertical-edges pattern source pattern-boundaries source-boundaries state a d e
-                                                                              :gap-opening-cost gap-opening-cost :gap-extension-cost gap-extension-cost))
+                                                                              :gap-opening-cost gap-opening-cost :gap-cost gap-cost))
                                    (next-state-horizontal (check-horizontal-edges pattern source pattern-boundaries source-boundaries state b f g
-                                                                                  :gap-opening-cost gap-opening-cost :gap-extension-cost gap-extension-cost)))
+                                                                                  :gap-opening-cost gap-opening-cost :gap-cost gap-cost)))
                                (remove nil (list next-state-diagonal next-state-vertical next-state-horizontal))))))
                      (next-states-with-max-gaps
-                      (if max-nr-of-gaps
-                        (remove-if #'(lambda (state) (> (gap-counter state) max-nr-of-gaps)) next-states)
+                      (if max-nr-of-au-gaps
+                        (remove-if #'(lambda (state) (> (gap-counter state) max-nr-of-au-gaps)) next-states)
                         next-states)))
                 (loop for ns in next-states-with-max-gaps
                       do (push ns queue)))))
@@ -264,7 +268,7 @@
 
 
 (defun check-vertical-edges (pattern source pattern-boundaries source-boundaries state a d e
-                                     &key (gap-opening-cost 5) (gap-extension-cost 1))
+                                     &key (gap-opening-cost 5) (gap-cost 1))
   (with-slots (aligned-pattern aligned-source
                aligned-pattern-boundaries aligned-source-boundaries
                i j cost match-positions gap-counter prev-edge next-edge) state
@@ -277,7 +281,7 @@
              (pattern-boundary-vars (make-boundary-vars i pattern-boundaries current-left-pattern-boundary))
              (new-gap-p (not (eql (first aligned-source) #\_)))  ;; new gap in terms of A&E (i.e. a _)
              (gap-counter-new-gap-p (equal (first match-positions) (cons (+ i 1) (+ j 1))))  ;; gap counter in terms of AU gaps
-             (cost-increase (if new-gap-p (+ gap-extension-cost gap-opening-cost) gap-extension-cost))
+             (cost-increase (if new-gap-p (+ gap-cost gap-opening-cost) gap-cost))
              (next-state (make-instance 'sequence-alignment-state
                                         :aligned-pattern expanded-pattern
                                         :aligned-source expanded-source
@@ -301,7 +305,7 @@
 
 
 (defun check-horizontal-edges (pattern source pattern-boundaries source-boundaries state b f g
-                                       &key (gap-opening-cost 5) (gap-extension-cost 1))
+                                       &key (gap-opening-cost 5) (gap-cost 1))
   (with-slots (aligned-pattern aligned-source
                aligned-pattern-boundaries aligned-source-boundaries
                i j cost match-positions gap-counter prev-edge next-edge) state
@@ -314,7 +318,7 @@
              (pattern-boundary-vars (make-boundary-vars nil pattern-boundaries current-left-pattern-boundary :gap t))
              (new-gap-p (not (eql (first aligned-pattern) #\_)))  ;; new gap in terms of A&E (i.e. a _)
              (gap-counter-new-gap-p (equal (first match-positions) (cons (+ i 1) (+ j 1))))  ;; gap counter in terms of AU gaps
-             (cost-increase (if new-gap-p (+ gap-extension-cost gap-opening-cost) gap-extension-cost))
+             (cost-increase (if new-gap-p (+ gap-cost gap-opening-cost) gap-cost))
              (next-state (make-instance 'sequence-alignment-state
                                         :aligned-pattern expanded-pattern
                                         :aligned-source expanded-source

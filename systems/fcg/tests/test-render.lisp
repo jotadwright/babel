@@ -44,50 +44,40 @@
   (test-equalp
    (render (make-instance 'coupled-feature-structure
                        :left-pole '((root
-                                     (form ((sequence " " 4 5))))
+                                     (form ((sequence " " ?r2 ?r3))))
                                     (u1
-                                     (form ((sequence "g" 3 4))))
+                                     (form ((sequence "g" ?l2 ?r2))))
                                     (u2
-                                     (form ((sequence "flour" 5 10))))
+                                     (form ((sequence "flour" ?l4 ?r4))))
                                     (u3
-                                     (form ((sequence "120" 0 3))))
+                                     (form ((sequence "120" ?l1 ?r1))))
                                     (u4
-                                     (form ((precedes 3 4)
-                                            (precedes 4 5))))))
+                                     (form ((precedes ?r1 ?l2)
+                                            (precedes ?r2 ?l4))))))
            :render-sequences)
    '("120" "g" " " "flour"))
-
-  (test-assert 
-   (null (render (make-instance 'coupled-feature-structure
-                                :left-pole '((root
-                                              (form ((sequence " " 4 5))))
-                                             (u1
-                                              (form ((sequence "g" 3 4))))
-                                             (u2
-                                              (form ((sequence "flour" 5 10))))
-                                             (u3
-                                              (form ((sequence "120" 0 3))))
-                                             (u4
-                                              (form ((precedes 3 3)
-                                                     (precedes 4 5))))))
-                 :render-sequences)))
 
 
   (test-equalp
    (render (make-instance 'coupled-feature-structure
                        :left-pole '((root
-                                     (form ((sequence " " 4 5))))
+                                     (form ((sequence " " ?l3 ?r3))))
                                     (u1
-                                     (form ((sequence "g" 3 4))))
+                                     (form ((sequence "g" ?l2 ?r2))))
                                     (u2
-                                     (form ((sequence "flour" 5 10))))
+                                     (form ((sequence "flour" ?l4 ?r4))))
                                     (u3
-                                     (form ((sequence "120" 0 3))))
+                                     (form ((sequence "120" ?l1 ?r1))))
                                     (u4
-                                     (form ((precedes 0 3)
-                                            (precedes 3 5))))))
+                                     (form ((precedes ?r1 ?l2)
+                                            (precedes ?r2 ?l3)
+                                            (precedes ?r2 ?l4)
+                                            (precedes ?r3 ?l4)
+                                            )))))
            :render-sequences)
    '("120" "g" " " "flour")))
+
+ 
 
   
 

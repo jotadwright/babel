@@ -235,12 +235,27 @@ string constraint with the variable ?Y."
 
 
 (defmethod precedes ((el-1 t) (el-2 t) (form-constraints list) (mode (eql :order-sequences)))
-  "el-1 should be smaller than el-2."
-  (declare (ignore form-constraints))
-  (if (< el-1 el-2)
-    t
-    nil))
-
+  "If el-1 and el-2 are in form-constraints el-1 must be occur earlier than el-2"
+  (loop for (fc-1 . rest) on form-constraints
+        for el-1-in-fc-1 = (find el-1 fc-1)
+        for el-2-in-fc-1 = (find el-2 fc-1)
+        do (cond (;; el-1 and el-2 both in fc-1, but in the wrong order
+                  (and el-1-in-fc-1
+                       el-2-in-fc-1
+                       (> (position el-1 fc-1) (position el-2 fc-1)))
+                  (return nil))
+                 (; el-2 in fc-1 and el-1 in fc-2 -> fail
+                  (and el-2-in-fc-1
+                       (loop for fc-2 in rest
+                             when (find el-1 fc-2)
+                               do (return t)))
+                  (return nil))
+                 ;; else succeed
+                 (t
+                  t))
+        finally (return t)))
+       
+     
 (defun filter-by-sequence-constraints (ordering-constraints sequence-constraints)
   "Returns only those ordering constraints of which the units occur in
 string constraints. E.g. discards (meets ?X ?Y), where there is no
