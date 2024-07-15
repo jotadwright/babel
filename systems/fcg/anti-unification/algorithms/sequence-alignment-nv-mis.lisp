@@ -134,15 +134,23 @@
                          (setf (aref g i (- j 1)) 1))))
                    
                    (when (and (> i 0) (> j 0))
-                     (let* ((extended-mismatch-cost (+ (aref S (- i 1) (- j 1)) mismatch-cost))
-                            (new-mismatch-cost (+ (aref R (- i 1) (- j 1)) mismatch-opening-cost mismatch-cost))
+                     (let* ((extended-mismatch-cost
+                             (if (not matchp) ;; check for mismatch
+                               (+ (aref S (- i 1) (- j 1)) mismatch-cost)
+                               most-positive-fixnum))
+                            (new-mismatch-cost
+                             (if (not matchp) ;; check for mismatch
+                               (+ (aref R (- i 1) (- j 1)) mismatch-opening-cost mismatch-cost)
+                               most-positive-fixnum))
                             (min-cost (min extended-mismatch-cost new-mismatch-cost)))
                        (setf (aref S i j) min-cost)
-                       (when (= min-cost extended-mismatch-cost)
-                         (setf (aref k i (- j 1)) 1))
-                       (when (= min-cost new-mismatch-cost)
-                         (setf (aref l i (- j 1)) 1))
-                       ))
+                       ;; do NOT set k and l when no mismatch...
+                       (when (and (= min-cost extended-mismatch-cost)
+                                  (not (= min-cost most-positive-fixnum)))
+                         (setf (aref k (- i 1) (- j 1)) 1))
+                       (when (and (= min-cost new-mismatch-cost)
+                                  (not (= min-cost most-positive-fixnum)))
+                         (setf (aref l (- i 1) (- j 1)) 1))))
                      
                    ;; 5) find the minimum cost of a path ending at node N_{i,j}
                    ;; 6) determine if cost R_{i,j} can be achieved by vertical, horizontal or diagonal edges
@@ -150,7 +158,9 @@
                      (let* ((vertical-edge-cost (aref P i j))
                             (horizontal-edge-cost (aref Q i j))
                             (mismatch-edge-cost (aref S i j)) ;; check if we need to check for mismatches in this matrix
-                            (diagonal-edge-cost (+ (aref R (- i 1) (- j 1)) (if matchp match-cost most-positive-fixnum)))   ;; only look at match here, if mismatch it should be covered in matrix S
+                            (diagonal-edge-cost (+ (aref R (- i 1) (- j 1))
+                                                   (if matchp match-cost most-positive-fixnum)))
+                            ;; only look at match here, if mismatch it should be covered in matrix S
                             (min-cost (min vertical-edge-cost horizontal-edge-cost diagonal-edge-cost mismatch-edge-cost)))
                        (setf (aref R i j) min-cost)))
                    (when (= (aref R i j) (aref P i j))
@@ -201,7 +211,8 @@
                                (aref b i j) 1)
                          (setf (aref f i (+ j 1)) 0
                                (aref g i j) 0))
-                       ;; 5) if edge D_{i+1,j+1} is in an optimal path, 
+                       ;; 5) if edge D_{i+1,j+1} is in an optimal path and requires edge D_{i,j} to be in an optimal path,
+                       ;;    determine if an optimal path that uses edge D_{i+1,j+1} must use edge D_{i,j} and the converse:
                        (if (and (= (aref c (+ i 1) (+ j 1)) 1) (= (aref k i j) 1))
                          (setf (aref k (+ i 1) (+ j 1)) (- 1 (aref l i j))
                                (aref l i j) (- 1 (aref c i j))
@@ -234,7 +245,7 @@
               (push state solutions)
               ;; otherwise, make the next state(s)
               (let* ((next-states
-                      (cond #|(;; next-edge is set to vertical -> only need to check vertical edges
+                      (cond (;; next-edge is set to vertical -> only need to check vertical edges
                              (eql next-edge 'vertical)
                              ;; as a sanity check, we could assert that horizontal and diagonal edges here are 0
                              (let ((next-state (check-vertical-edges pattern source pattern-boundaries source-boundaries state a d e
@@ -248,7 +259,14 @@
                              (let ((next-state (check-horizontal-edges pattern source pattern-boundaries source-boundaries state b f g
                                                                        :gap-opening-cost gap-opening-cost :gap-cost gap-cost)))
                                (when next-state
-                                 (list next-state))))|#
+                                 (list next-state))))
+
+                            (;; next-edge is set to diagonal-mismatch
+                             (eql next-edge 'diagonal-mismatch)
+                             (let ((next-state (check-diagonal-edges pattern source pattern-boundaries source-boundaries state c k l
+                                                                     :match-cost match-cost :mismatch-cost mismatch-cost)))
+                               (when next-state
+                                 (list next-state))))
                             
                             (;; next-edge is not set -> check vertical, horizontal and diagonal edges
                              t
@@ -340,18 +358,13 @@
                              :match-cost -1 :mismatch-cost 1  :mismatch-opening-cost 1 :gap-opening-cost 0 :gap-cost 1
                              :remove-duplicate-alignments nil))
 
-
- X A B C Y
- X E F Y _
-
- X A B C _ _ Y
- X _ _ _ E F Y
-
  "xabcy"
  "| ..|"
  "x_efy"
- 
- -2 + 0 + 5 = 3
+
+ "xabcy"
+ "|.. |"
+ "xef_y"
  
  
  
