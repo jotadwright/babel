@@ -295,8 +295,12 @@
           (progn
             ;; the cost reconstructed by retracing the optimal alignments
             ;; should be equal to the cost at the bottom right of the cost matrix
-            (assert (loop for solution in solutions
-                          always (= (cost solution) optimal-cost)))
+            (loop for solution in solutions
+                  do (assert (= (cost solution) optimal-cost) ()
+                       "The cost obtained by retracing the optimal alignment (~a) is not equal to the optimal cost from the cost matrix (~a)~%~a~%~a"
+                       (cost solution) optimal-cost
+                       (aligned-pattern solution)
+                       (aligned-source solution)))
             (return solutions))))
 
 (defun check-diagonal-edges (pattern source pattern-boundaries source-boundaries state c k l
@@ -366,7 +370,7 @@
  ;; find examples with non-optimal path 
  ;; misschien is probleem van non-optimal path hier ook wel te danken aan de gaps + mismatches  -> nee want dan nog wil je zo weinig mogelijk nieuwe mismatch gaps openen
  ;; -> de pijlen moeten aangeven dat ze vanuit een mismatch komen en die willen extenden, ik denk dat dat momenteel het probleem is
- ;; optimale cost hier: -2 
+ ;; optimale cost hier: 2
  (print-sequence-alignments (maximal-sequence-alignments "xabcy" "xefy" nil nil
                              :match-cost -1 :mismatch-cost 1  :mismatch-opening-cost 1 :gap-opening-cost 0 :gap-cost 1
                              :remove-duplicate-alignments nil))
