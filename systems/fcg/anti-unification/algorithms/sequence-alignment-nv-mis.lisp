@@ -87,16 +87,18 @@
     ;; Trace back pointers from the bottom-right cell to the top-left cell.
     ;; Cells may contain multiple pointers, so there may be multiple paths.
     ;; Return all alignments and optionally remove duplicates.
-    (let ((all-optimal-alignments
-           (extract-optimal-alignments pattern source a b c d e f g k l
-                                       pattern-boundaries
-                                       source-boundaries
-                                       :match-cost match-cost
-                                       :mismatch-cost mismatch-cost
-                                       :gap-opening-cost gap-opening-cost
-                                       :gap-cost gap-cost
-                                       :n-optimal-alignments n-optimal-alignments
-                                       :max-nr-of-au-gaps max-nr-of-au-gaps)))
+    (let* ((optimal-cost (aref R nx ny))
+           (all-optimal-alignments
+            (extract-optimal-alignments pattern source a b c d e f g k l
+                                        pattern-boundaries
+                                        source-boundaries
+                                        optimal-cost
+                                        :match-cost match-cost
+                                        :mismatch-cost mismatch-cost
+                                        :gap-opening-cost gap-opening-cost
+                                        :gap-cost gap-cost
+                                        :n-optimal-alignments n-optimal-alignments
+                                        :max-nr-of-au-gaps max-nr-of-au-gaps)))
       (if remove-duplicate-alignments
         (remove-duplicates all-optimal-alignments :key #'match-positions :test #'equal)
         all-optimal-alignments))))
@@ -226,6 +228,7 @@
 
 (defun extract-optimal-alignments (pattern source a b c d e f g k l
                                            pattern-boundaries source-boundaries
+                                           optimal-cost
                                            &key (match-cost -1)
                                            (mismatch-cost 1)
                                            (gap-opening-cost 5)
@@ -288,7 +291,13 @@
                 (loop for ns in next-states-with-max-gaps
                       do (push ns queue)))))
                         
-        finally (return solutions)))
+        finally
+          (progn
+            ;; the cost reconstructed by retracing the optimal alignments
+            ;; should be equal to the cost at the bottom right of the cost matrix
+            (assert (loop for solution in solutions
+                          always (= (cost solution) optimal-cost)))
+            (return solutions))))
 
 (defun check-diagonal-edges (pattern source pattern-boundaries source-boundaries state c k l
                                      &key (match-cost -1) (mismatch-opening-cost 1) (mismatch-cost 1))
