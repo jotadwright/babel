@@ -95,6 +95,7 @@
                                         optimal-cost
                                         :match-cost match-cost
                                         :mismatch-cost mismatch-cost
+                                        :mismatch-opening-cost mismatch-opening-cost
                                         :gap-opening-cost gap-opening-cost
                                         :gap-cost gap-cost
                                         :n-optimal-alignments n-optimal-alignments
@@ -231,6 +232,7 @@
                                            optimal-cost
                                            &key (match-cost -1)
                                            (mismatch-cost 1)
+                                           (mismatch-opening-cost 1)
                                            (gap-opening-cost 5)
                                            (gap-cost 1)
                                            n-optimal-alignments
@@ -271,14 +273,14 @@
                             (;; next-edge is set to diagonal-mismatch
                              (eql next-edge 'diagonal-mismatch)
                              (let ((next-state (check-diagonal-edges pattern source pattern-boundaries source-boundaries state c k l
-                                                                     :match-cost match-cost :mismatch-cost mismatch-cost)))
+                                                                     :match-cost match-cost :mismatch-cost mismatch-cost :mismatch-opening-cost mismatch-opening-cost)))
                                (when next-state
                                  (list next-state))))
                             
                             (;; next-edge is not set -> check vertical, horizontal and diagonal edges
                              t
                              (let ((next-state-diagonal (check-diagonal-edges pattern source pattern-boundaries source-boundaries state c k l
-                                                                              :match-cost match-cost :mismatch-cost mismatch-cost))
+                                                                              :match-cost match-cost :mismatch-cost mismatch-cost :mismatch-opening-cost mismatch-opening-cost))
                                    (next-state-vertical (check-vertical-edges pattern source pattern-boundaries source-boundaries state a d e
                                                                               :gap-opening-cost gap-opening-cost :gap-cost gap-cost))
                                    (next-state-horizontal (check-horizontal-edges pattern source pattern-boundaries source-boundaries state b f g
