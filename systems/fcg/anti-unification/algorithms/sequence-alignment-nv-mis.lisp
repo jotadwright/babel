@@ -364,7 +364,7 @@
  ;; find examples with non-optimal path 
  ;; misschien is probleem van non-optimal path hier ook wel te danken aan de gaps + mismatches  -> nee want dan nog wil je zo weinig mogelijk nieuwe mismatch gaps openen
  ;; -> de pijlen moeten aangeven dat ze vanuit een mismatch komen en die willen extenden, ik denk dat dat momenteel het probleem is
- ;; optimale cost hier: -2 
+ ;; optimale cost hier: 2 
  (print-sequence-alignments (maximal-sequence-alignments "what color is the sphere" "what size is the cube" nil nil
                              :match-cost -1 :mismatch-cost 1  :mismatch-opening-cost 3 :gap-opening-cost 0 :gap-cost 1
                              :remove-duplicate-alignments nil))
@@ -377,7 +377,15 @@
                              :match-cost -1 :mismatch-cost 1  :mismatch-opening-cost 1 :gap-opening-cost 0 :gap-cost 1
                              :remove-duplicate-alignments nil))
 
- 
+
+ (print-sequence-alignments (maximal-sequence-alignments "how many cubes are there" "what size is the cube" nil nil
+                             :match-cost -1 :mismatch-cost 1  :mismatch-opening-cost 3 :gap-opening-cost 0 :gap-cost 1
+                             :remove-duplicate-alignments t))
+
+ ;;cost should be 4
+ (print-sequence-alignments (maximal-sequence-alignments "BAGAT" "CGCT" nil nil
+                             :match-cost -1 :mismatch-cost 1  :mismatch-opening-cost 1 :gap-opening-cost 1 :gap-cost 1
+                             :remove-duplicate-alignments nil))
  
  
 |#
