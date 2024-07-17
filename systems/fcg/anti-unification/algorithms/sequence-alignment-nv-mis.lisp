@@ -304,7 +304,7 @@
              (current-left-source-boundary (car (first aligned-source-boundaries)))
              (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
              (matchp (eql pattern-char source-char))
-             (source-boundary-vars (make-boundary-vars j source-boundaries current-left-source-boundary))
+             (source-boundary-vars (make-boundary-indices j source-boundaries current-left-source-boundary))
              (pattern-boundary-vars (make-boundary-vars i pattern-boundaries current-left-pattern-boundary))
              (new-mismatch (if (eql prev-edge 'diagonal-mismatch) mismatch-cost (+ mismatch-cost mismatch-opening-cost)))
              (new-gap-p (or (and (null match-positions) (null matchp))
@@ -362,13 +362,6 @@
                              :match-cost -1 :mismatch-cost 1  :mismatch-opening-cost 1 :gap-opening-cost 0 :gap-cost 1
                              :remove-duplicate-alignments nil))
 
- "xabcy"
- "| ..|"
- "x_efy"
-
- "xabcy"
- "|.. |"
- "xef_y"
  
  
  

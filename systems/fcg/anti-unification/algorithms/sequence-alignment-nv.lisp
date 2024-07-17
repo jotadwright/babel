@@ -123,7 +123,7 @@
              (expanded-source (cons #\_ aligned-source))
              (current-left-source-boundary (car (first aligned-source-boundaries)))
              (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
-             (source-boundary-vars (make-boundary-vars nil source-boundaries current-left-source-boundary :gap t))
+             (source-boundary-vars (make-boundary-indices nil source-boundaries current-left-source-boundary :gap t))
              (pattern-boundary-vars (make-boundary-vars i pattern-boundaries current-left-pattern-boundary))
              (new-gap-p (not (or (eql (first aligned-source) #\_) (eql (first aligned-pattern) #\_))))  ;; new gap in terms of nv (i.e. a _)
              (gap-counter-new-gap-p (equal (first match-positions) (cons (+ i 1) (+ j 1))))  ;; gap counter in terms of AU gaps
@@ -160,7 +160,7 @@
              (expanded-source (cons (nth (- j 1) source) aligned-source))
              (current-left-source-boundary (car (first aligned-source-boundaries)))
              (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
-             (source-boundary-vars (make-boundary-vars j source-boundaries current-left-source-boundary))
+             (source-boundary-vars (make-boundary-indices j source-boundaries current-left-source-boundary))
              (pattern-boundary-vars (make-boundary-vars nil pattern-boundaries current-left-pattern-boundary :gap t))
              (new-gap-p (not (or (eql (first aligned-pattern) #\_) (eql (first aligned-source) #\_))))  ;; new gap in terms of nv (i.e. a _)
              (gap-counter-new-gap-p (equal (first match-positions) (cons (+ i 1) (+ j 1))))  ;; gap counter in terms of AU gaps
@@ -251,5 +251,5 @@ cost should be 1
 
 
 
-(test-alignments)
+(test-alignments) ;; two tests need to fail
 |#
