@@ -277,7 +277,7 @@
              (expanded-source (cons #\_ aligned-source))
              (current-left-source-boundary (car (first aligned-source-boundaries)))
              (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
-             (source-boundary-vars (make-boundary-vars-source nil source-boundaries current-left-source-boundary :gap t))
+             (source-boundary-vars (make-boundary-indices nil source-boundaries current-left-source-boundary :gap t))
              (pattern-boundary-vars (make-boundary-vars i pattern-boundaries current-left-pattern-boundary))
              (new-gap-p (not (eql (first aligned-source) #\_)))  ;; new gap in terms of A&E (i.e. a _)
              (gap-counter-new-gap-p (equal (first match-positions) (cons (+ i 1) (+ j 1))))  ;; gap counter in terms of AU gaps
@@ -314,7 +314,7 @@
              (expanded-source (cons (nth (- j 1) source) aligned-source))
              (current-left-source-boundary (car (first aligned-source-boundaries)))
              (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
-             (source-boundary-vars (make-boundary-vars-source j source-boundaries current-left-source-boundary))
+             (source-boundary-vars (make-boundary-indices j source-boundaries current-left-source-boundary))
              (pattern-boundary-vars (make-boundary-vars nil pattern-boundaries current-left-pattern-boundary :gap t))
              (new-gap-p (not (eql (first aligned-pattern) #\_)))  ;; new gap in terms of A&E (i.e. a _)
              (gap-counter-new-gap-p (equal (first match-positions) (cons (+ i 1) (+ j 1))))  ;; gap counter in terms of AU gaps
@@ -355,7 +355,7 @@
              (current-left-source-boundary (car (first aligned-source-boundaries)))
              (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
              (matchp (eql pattern-char source-char))
-             (source-boundary-vars (make-boundary-vars-source j source-boundaries current-left-source-boundary))
+             (source-boundary-vars (make-boundary-indices j source-boundaries current-left-source-boundary))
              (pattern-boundary-vars (make-boundary-vars i pattern-boundaries current-left-pattern-boundary))
              (new-gap-p (or (and (null match-positions) (null matchp))
                             (and (first match-positions)

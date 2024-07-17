@@ -169,7 +169,7 @@
       (setf left-boundary-var (if gap current-left (make-var 'lb)))) ;; if no left-boundary-var is found in the boundaries list, make a new variable, in case of a gap, reuse current-left. 
     (cons left-boundary-var right-boundary-var)))
 
-(defun make-boundary-vars-source (position boundaries current-left &key (gap nil))
+(defun make-boundary-indices (position boundaries current-left &key (gap nil))
   "Calculate boundary vars of the source. Since source predicates are instantiated, use position, if there is a gap, then reuse current-left."
   (if gap
     (cons current-left current-left)
