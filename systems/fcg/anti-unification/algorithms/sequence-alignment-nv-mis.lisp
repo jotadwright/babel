@@ -65,10 +65,10 @@
     ;; alignment ends in a gap within pattern or source, respectively.
     
     ;; Initalize the matrices
-    (setf-matrix-row P 0 (make-array (+ ny 1) :initial-element most-positive-fixnum))
-    (setf-matrix-column Q 0 (make-array (+ nx 1) :initial-element most-positive-fixnum))
-    (setf-matrix-row S 0 (make-array (+ ny 1) :initial-element most-positive-fixnum))
-    (setf-matrix-column S 0 (make-array (+ nx 1) :initial-element most-positive-fixnum))
+    (setf-matrix-row P 0 (make-array (+ ny 1) :initial-element +inf))
+    (setf-matrix-column Q 0 (make-array (+ nx 1) :initial-element +inf))
+    (setf-matrix-row S 0 (make-array (+ ny 1) :initial-element +inf))
+    (setf-matrix-column S 0 (make-array (+ nx 1) :initial-element +inf))
     (setf-matrix-row R 0 (list->array (loop for j from 0 to ny collect (+ gap-opening-cost (* gap-cost j)))))
     (setf-matrix-column R 0 (list->array (loop for i from 0 to nx collect (+ gap-opening-cost (* gap-cost i)))))
     (setf (aref R 0 0) 0)
@@ -137,19 +137,24 @@
                      (let* ((extended-mismatch-cost
                              (if (not matchp) ;; check for mismatch
                                (+ (aref S (- i 1) (- j 1)) mismatch-cost)
-                               most-positive-fixnum))
+                               +inf)
+                             ;(+ (aref S (- i 1) (- j 1)) mismatch-cost)
+                             )
+                            ;; still got optimal solutions when removing the matchp check here:
                             (new-mismatch-cost
                              (if (not matchp) ;; check for mismatch
                                (+ (aref R (- i 1) (- j 1)) mismatch-opening-cost mismatch-cost)
-                               most-positive-fixnum))
+                               +inf)
+                             ;(+ (aref R (- i 1) (- j 1)) mismatch-opening-cost mismatch-cost)
+                             )
                             (min-cost (min extended-mismatch-cost new-mismatch-cost)))
                        (setf (aref S i j) min-cost)
                        ;; do NOT set k and l when no mismatch...
                        (when (and (= min-cost extended-mismatch-cost)
-                                  (not (= min-cost most-positive-fixnum)))
+                                  (not (= min-cost +inf)))
                          (setf (aref k (- i 1) (- j 1)) 1))
                        (when (and (= min-cost new-mismatch-cost)
-                                  (not (= min-cost most-positive-fixnum)))
+                                  (not (= min-cost +inf)))
                          (setf (aref l (- i 1) (- j 1)) 1))))
                      
                    ;; 5) find the minimum cost of a path ending at node N_{i,j}
@@ -158,8 +163,7 @@
                      (let* ((vertical-edge-cost (aref P i j))
                             (horizontal-edge-cost (aref Q i j))
                             (mismatch-edge-cost (aref S i j)) ;; check if we need to check for mismatches in this matrix
-                            (diagonal-edge-cost (+ (aref R (- i 1) (- j 1))
-                                                   (if matchp match-cost most-positive-fixnum)))
+                            (diagonal-edge-cost (+ (aref R (- i 1) (- j 1)) (if matchp match-cost +inf)))
                             ;; only look at match here, if mismatch it should be covered in matrix S
                             (min-cost (min vertical-edge-cost horizontal-edge-cost diagonal-edge-cost mismatch-edge-cost)))
                        (setf (aref R i j) min-cost)))
@@ -173,7 +177,7 @@
                    (when (and (> i 0) (> j 0)
                               (= (aref R i j)
                                  (+ (aref R (- i 1) (- j 1))
-                                    (if matchp match-cost most-positive-fixnum))))
+                                    (if matchp match-cost +inf))))
                      (setf (aref c i j) 1)))))
 
 (defun edge-assignment (nx ny a b c d e f g k l)

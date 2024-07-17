@@ -60,8 +60,8 @@
     ;; alignment ends in a gap within pattern or source, respectively.
     
     ;; Initalize the matrices
-    (setf-matrix-row P 0 (make-array (+ ny 1) :initial-element most-positive-fixnum))
-    (setf-matrix-column Q 0 (make-array (+ nx 1) :initial-element most-positive-fixnum))
+    (setf-matrix-row P 0 (make-array (+ ny 1) :initial-element +inf))
+    (setf-matrix-column Q 0 (make-array (+ nx 1) :initial-element +inf))
     (setf-matrix-row R 0 (list->array (loop for j from 0 to ny collect (+ gap-opening-cost (* gap-cost j)))))
     (setf-matrix-column R 0 (list->array (loop for i from 0 to nx collect (+ gap-opening-cost (* gap-cost i)))))
     (setf (aref R 0 0) 0)
