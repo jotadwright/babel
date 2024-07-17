@@ -68,9 +68,9 @@
         unique-sorted-results)))
 
 
-
-
 ;;(print-sequences-anti-unification-results (anti-unify-sequences '((sequence "what size is the cube" ?l1 ?r1)) '((sequence "what color is the cube" 0 22))))
+
+;;(print-sequences-anti-unification-results (anti-unify-sequences '((sequence "what size is the cube" ?l1 ?r1)) `((sequence "what color is the sphere" 0 ,(length "what color is the sphere")))))
 
 ;;(print-sequences-anti-unification-results (anti-unify-sequences '((sequence "onelittle" ?l1 ?r1)) `((sequence "twolittle" 0 ,(length "twolittle")))))
 
@@ -170,15 +170,10 @@
     (cons left-boundary-var right-boundary-var)))
 
 (defun make-boundary-vars-source (position boundaries current-left &key (gap nil))
-  "Calculate boundary vars from the source. Since source predicates are instantiated, no new variables need to be computed. Now "
-  (let ((right-boundary-var (if position (car (rassoc position  boundaries))))
-        (left-boundary-var (if position (car (rassoc (- position 1) boundaries)))))
-    (when (and (not right-boundary-var) current-left)
-      (setf right-boundary-var current-left)) ;; when there is no right boundary found, reuse the current-left as right-boundary 
-    (when (and (not left-boundary-var)
-               (or current-left right-boundary-var))
-      (setf left-boundary-var (if gap current-left (- right-boundary-var 1)))) ;; when there is no left-boundary-var and there is a gap in terms of alignment, reuse current-left (no new boundary-var needs to be made, since the gaps don't go in the deltas, if there is no gap in terms of alignment, then the left-boundary is equal to the right-boundary - 1.
-    (cons left-boundary-var right-boundary-var)))
+  "Calculate boundary vars of the source. Since source predicates are instantiated, use position, if there is a gap, then reuse current-left."
+  (if gap
+    (cons current-left current-left)
+    (cons (- position 1) position)))
 
 (defun print-sequence-alignments (list-of-sequence-alignment-states &optional (stream t))
   (format t "~%~%~%### Maximal Sequence Alignment ###~%")
