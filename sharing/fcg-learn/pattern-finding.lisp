@@ -19,7 +19,10 @@
   (extend-cip-with-holophrase-cxns cip)
   
   (let* ((cxn-inventory (original-cxn-set (construction-inventory cip)))
-         (applicable-non-linking-cxns (remove-duplicates (mapcar #'original-cxn (mappend #'applied-constructions (children (top-node cip))))
+         (applicable-non-linking-cxns (remove-duplicates (mapcar #'original-cxn (mappend #'applied-constructions (remove-if-not
+                                                                                                                  #'(lambda (node)
+                                                                                                                      (find 'cxn-applied (statuses node)))
+                                                                                                                  (children (top-node cip)))))
                                                          :test #'other-cxn-w-same-form-and-meaning-p))
          (all-non-linking-non-applicable-cxns (remove-duplicates (remove-if #'(lambda (cxn)
                                                                                 (or (eql (type-of cxn) 'linking-cxn)
@@ -114,6 +117,8 @@ non-applicable constructions."
                                    :integration-form-args resulting-integration-form-args
                                    :integration-meaning-args resulting-integration-meaning-args
                                    :base-cxn cxn
+                                   :au-result-form au-form-result
+                                   :au-result-meaning au-meaning-result
                                    :fix-cxn-inventory fix-cxn-inventory)
               into new-states
           finally (let ((states-from-cxn-inventory (learn-from-cxn-inventory (remaining-form-speech-act current-state)
@@ -138,11 +143,10 @@ non-applicable constructions."
                                                      (get-configuration parent-cxn-inventory :meaning-generalisation-mode)
                                                      :cxn-inventory parent-cxn-inventory)
         for valid-au-meaning-results = (loop for au-meaning-result in au-meaning-results
-                                             for (connected-network-p nr-of-chunks) = (multiple-value-list
-                                                                                       (connected-semantic-network (generalisation au-meaning-result)))
-                                             when (and connected-network-p
-                                                       (or (= nr-of-chunks 1)
-                                                           (= nr-of-chunks 2)))
+                                             for  nr-of-chunks = (second (multiple-value-list
+                                                                          (connected-semantic-network (generalisation au-meaning-result))))
+                                             when (or (= nr-of-chunks 1)
+                                                      (= nr-of-chunks 2))
                                                collect au-meaning-result)
         when valid-au-meaning-results
           append (let* ((au-form-results (anti-unify-form (attr-val cxn :form)
@@ -167,9 +171,11 @@ non-applicable constructions."
                                                         :integration-meaning-args integration-meaning-args
                                                         :learn-cxns-from-deltas t)
                            when (> (size fix-cxn-inventory) (size parent-cxn-inventory)) ;; new cxns were learnt
-                           collect (make-instance 'au-repair-state
-                                                  :base-cxn cxn
-                                                  :fix-cxn-inventory fix-cxn-inventory)))) into new-states
+                             collect (make-instance 'au-repair-state
+                                                    :base-cxn cxn
+                                                    :fix-cxn-inventory fix-cxn-inventory
+                                                    :au-result-form au-form
+                                                    :au-result-meaning au-meaning)))) into new-states
         finally (return (cons (make-instance 'au-repair-state
                                              :base-cxn nil
                                              :fix-cxn-inventory (learn-cxn-from-form-and-meaning-predicates
@@ -425,13 +431,24 @@ non-applicable constructions."
                                (mapcar #'cdr form-args-renamings)
                                form-filler-args))
            ;; and the sequence predicates
+
+           ;;; TEMP !!!!!!! should be removed
+           
+           (form-sequence-predicates-temp (if form-args-renamings ;; only if resulting from source delta (thereby with no precedes)
+                                            (loop for (nil string left right) in (subst-bindings form-predicates form-args-renamings)
+                                                  collect (list 'sequence
+                                                                string
+                                                                (if (variable-p left) left (make-var "LR"))
+                                                                (if (variable-p right) right (make-var "LR"))))
+                                            form-predicates))
            (form-sequence-predicates (if form-args-renamings
-                                       (loop for (nil string left right) in (subst-bindings form-predicates form-args-renamings)
+                                       (loop for (nil string left right) in form-sequence-predicates-temp
                                              collect (list 'sequence
                                                            string
                                                            (if (variable-p left) left (make-var "LR"))
                                                            (if (variable-p right) right (make-var "LR"))))
-                                       form-predicates))
+                                       form-sequence-predicates-temp))
+                                     
            (form-precedes-predicates (when form-args-renamings
                                        (loop for p in form-predicates
                                              for p-with-vars in form-sequence-predicates
@@ -589,7 +606,7 @@ non-applicable constructions."
                                  :source-delta source-delta  ;; instantiated sequences - variablification and precedes should happen later
                                  :pattern-bindings pattern-bindings
                                  :source-bindings source-bindings
-                                 :alignment-cost 0))))
+                                 :cost (length source-delta)))))
 
 ;; (anti-unify-form *cxn-sequence-predicates* *speech-act-sequence-predicates* *mode* *parameters*)
 
