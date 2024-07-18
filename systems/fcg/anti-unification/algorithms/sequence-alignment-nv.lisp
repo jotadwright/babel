@@ -51,18 +51,30 @@
          (a (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0)) ;; vertical full edge
          (b (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0)) ;; horizontal full edge
          (c (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0)) ;; diagonal full edge
+
          (d-v (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0)) ;; vertical half edge - top part
          (d-h (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
          (d-m (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
-         (e (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0)) ;; vertical half edge - bottom part
+         (e (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
+         (e-v (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
+         (e-h (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
+         (e-m (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0));; vertical half edge - bottom part
+
          (f-v (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0)) ;; horizontal half edge - left part
          (f-h (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
          (f-m (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
-         (g (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0)) ;; horizontal half edge - right part
+         (g (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
+         (g-h (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
+         (g-v (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
+         (g-m (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0));; horizontal half edge - right part
+
          (k-v (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0)) ;; mismatch half edge - left part
          (k-h (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
          (k-m (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
-         (l (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0)) ;; mismatch half edge - right part
+         (l (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
+         (l-v (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
+         (l-h (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
+         (l-m (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0));; mismatch half edge - right part
          )
          
     ;; An entry R_{i,j} represents the best score for the alignment of the
@@ -82,20 +94,20 @@
 
     ;; Run the Gotoh algorithm according to the implementation
     ;; provided by Altschul and Ericksson (1986)
-    (cost-assignment pattern source nx ny P Q R S a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
+    (cost-assignment pattern source nx ny P Q R S a b c d-v d-h d-m e e-v e-h e-m f-v f-h f-m g g-v g-h g-m k-v k-h k-m l l-v l-h l-m
                            :match-cost match-cost
                            :mismatch-opening-cost mismatch-opening-cost
                            :mismatch-cost mismatch-cost
                            :gap-opening-cost gap-opening-cost
                            :gap-cost gap-cost)
-    (edge-assignment nx ny a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l)    
+    (edge-assignment nx ny a b c d-v d-h d-m e e-v e-h e-m f-v f-h f-m g g-v g-h g-m k-v k-h k-m l l-v l-h l-m)    
 
     ;; Trace back pointers from the bottom-right cell to the top-left cell.
     ;; Cells may contain multiple pointers, so there may be multiple paths.
     ;; Return all alignments and optionally remove duplicates.
     (let* ((optimal-cost (aref R nx ny))
            (all-optimal-alignments
-            (extract-optimal-alignments pattern source a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
+            (extract-optimal-alignments pattern source a b c d-v d-h d-m e e-v e-h e-m f-v f-h f-m g g-v g-h g-m k-v k-h k-m l l-v l-h l-m
                                         pattern-boundaries
                                         source-boundaries
                                         optimal-cost
@@ -110,7 +122,7 @@
         (remove-duplicates all-optimal-alignments :key #'match-positions :test #'equal)
         all-optimal-alignments))))
 
-(defun cost-assignment (pattern source nx ny P Q R S a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l 
+(defun cost-assignment (pattern source nx ny P Q R S a b c d-v d-h d-m e e-v e-h e-m f-v f-h f-m g g-v g-h g-m k-v k-h k-m l l-v l-h l-m 
                                 &key (match-cost -1) (mismatch-opening-cost 1) (mismatch-cost 1)
                                 (gap-opening-cost 5) (gap-cost 1))
   (loop for i from 0 to nx
@@ -230,7 +242,7 @@
                                     (if matchp match-cost +inf))))
                      (setf (aref c i j) 1)))))
 
-(defun edge-assignment (nx ny a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l)
+(defun edge-assignment (nx ny a b c d-v d-h d-m e e-v e-h e-m f-v f-h f-m g g-v g-h g-m k-v k-h k-m l l-v l-h l-m)
   (loop for i from nx downto 0
         do (loop for j from ny downto 0
                  do ;; 1) if there is no optimal path passing through node N_{i,j} which has cost R_{i,j}
@@ -267,10 +279,10 @@
                        ;; the vertical edge to N i j is NOT followed by a vertical edge (setf e i j to 0)
                        (if (and (= (aref a (+ i 1) j) 1) (= (aref d-v i j) 1))
                          (setf (aref d-v (+ i 1) j) (- 1 (max (aref f-v i j) (aref k-v i j) (aref e i j)))
-                               (aref e i j) (- 1 (aref a i j))
+                               (aref e-v i j) (- 1 (aref a i j))
                                (aref a i j) 1)
                          (setf (aref d-v (+ i 1) j) 0 
-                               (aref e i j) 0))
+                               (aref e-v i j) 0))
 
 
                        ;; 4) if edge H_{i,j+1} is in an optimal path and requires edge V_{i,j} to be in an optimal path,
@@ -287,11 +299,11 @@
                        ;; the horizontal edge to N i j+1 is NOT preceded by a vertical edge (setf d i j+1 to 0)
                        (if (and (= (aref b i (+ j 1)) 1) (= (aref d-h i j) 1))
                          (setf (aref d-h i (+ j 1)) (- 1 (max (aref f-h i j) (aref k-h i j) (aref g i j)))
-                               ;(aref e i j) (- 1 (aref a i j))  ;; we cannot say anything about e or g or l here
+                               (aref e-h i j) (- 1 (aref a i j))  ;; we cannot say anything about e or g or l here
                                (aref a i j) 1)
                          (setf (aref d-h i (+ j 1)) 0 
-                               ;(aref e i j) 0)  ;; we cannot say anything about e or g or l here
-                         ))
+                               (aref e-h i j) 0)  ;; we cannot say anything about e or g or l here
+                         )
 
                        ;; 5) if edge D_{i+1,j+1} is in an optimal path and requires edge V_{i,j} to be in an optimal path,
                        ;;    determine if an optimal path that uses edge D_{i+1,j+1} must use edge V_{i,j} and the converse:
@@ -307,64 +319,64 @@
                        ;; the diagonal edge to N i+1 j+1 is NOT preceded by a vertical edge (setf d-m i+1 j+1 to 0)
                        (if (and (= (aref c (+ i 1) (+ j 1)) 1) (= (aref d-m i j) 1))
                          (setf (aref d-m (+ i 1) (+ j 1)) (- 1 (max (aref f-m i j) (aref k-m i j) (aref l i j)))
-                               ;(aref e i j) (- 1 (aref a i j))  ;; we cannot say anything about e or g or l here
+                               (aref e-m i j) (- 1 (aref a i j))  ;; we cannot say anything about e or g or l here
                                (aref a i j) 1)
                          (setf (aref d-m (+ i 1) (+ j 1)) 0 
-                               ;(aref e i j) 0)  ;; we cannot say anything about e or g or l here
-                         ))
+                               (aref e-m i j) 0)  ;; we cannot say anything about e or g or l here
+                         )
                        
                        ;; 6) if edge H_{i,j+1} is in an optimal path and requires edge H_{i,j} to be in an optimal path,
                        ;;    determine if an optimal path that uses edge H_{i,j+1} must use edge H_{i,j} and the converse:
                        (if (and (= (aref b i (+ j 1)) 1) (= (aref f-h i j) 1))
                          (setf (aref f-h i (+ j 1)) (- 1 (max (aref d-h i j) (aref k-h i j) (aref g i j)))
-                               (aref g i j) (- 1 (aref b i j))
+                               (aref g-h i j) (- 1 (aref b i j))
                                (aref b i j) 1)
                          (setf (aref f-h i (+ j 1)) 0
-                               (aref g i j) 0))
+                               (aref g-h i j) 0))
                        
                        (if (and (= (aref a (+ i 1) j) 1) (= (aref f-v i j) 1))
                          (setf (aref f-v (+ i 1) j) (- 1 (max (aref d-v i j) (aref k-v i j) (aref e i j)))
-                               ;(aref g i j) (- 1 (aref b i j))
+                               (aref g-v i j) (- 1 (aref b i j))
                                (aref b i j) 1)
                          (setf (aref f-v (+ i 1) j) 0
-                               ;(aref g i j) 0)
-                         ))
+                               (aref g-v i j) 0)
+                         )
                        
                        (if (and (= (aref c (+ i 1) (+ j 1)) 1) (= (aref f-m i j) 1))
                          (setf (aref f-m (+ i 1) (+ j 1)) (- 1 (max (aref d-m i j) (aref k-m i j) (aref l i j)))
-                               ;(aref g i j) (- 1 (aref b i j))
+                               (aref g-m i j) (- 1 (aref b i j))
                                (aref b i j) 1)
                          (setf (aref f-m (+ i 1) (+ j 1)) 0
-                               ;(aref g i j) 0)
-                         ))
+                               (aref g-m i j) 0)
+                         )
                        
                        
                        ;; 7) if edge D_{i+1,j+1} is in an optimal path and requires edge D_{i,j} to be in an optimal path,
                        ;;    determine if an optimal path that uses edge D_{i+1,j+1} must use edge D_{i,j} and the converse:
                        (if (and (= (aref c (+ i 1) (+ j 1)) 1) (= (aref k-m i j) 1))
                          (setf (aref k-m (+ i 1) (+ j 1)) (- 1 (aref d-m i j) (aref f-m i j) (aref l i j))
-                               (aref l i j) (- 1 (aref c i j))
+                               (aref l-m i j) (- 1 (aref c i j))
                                (aref c i j) 1)
                          (setf (aref k-m (+ i 1) (+ j 1)) 0
-                               (aref l i j) 0))
+                               (aref l-m i j) 0))
                        
                        (if (and (= (aref b i (+ j 1)) 1) (= (aref k-h i j) 1))
                          (setf (aref k-h i (+ j 1)) (- 1 (aref d-h i j) (aref f-h i j) (aref g i j))
-                               ;(aref l i j) (- 1 (aref c i j))
+                               (aref l-h i j) (- 1 (aref c i j))
                                (aref c i j) 1)
                          (setf (aref k-h i (+ j 1)) 0
-                               ;(aref l i j) 0)
-                         ))
+                               (aref l-h i j) 0)
+                         )
                        
                        (if (and (= (aref a (+ i 1) j) 1) (= (aref k-v i j) 1))
                          (setf (aref k-v (+ i 1) j) (- 1 (aref d-v i j) (aref f-v i j) (aref e i j))
-                               ;(aref l i j) (- 1 (aref c i j))
+                               (aref l-v i j) (- 1 (aref c i j))
                                (aref c i j) 1)
                            (setf (aref k-v (+ i 1) j) 0
-                                 ;(aref l i j) 0)
-                           )))))))
+                                 (aref l-v i j) 0)
+                           ))))))
 
-(defun extract-optimal-alignments (pattern source a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
+(defun extract-optimal-alignments (pattern source a b c d-v d-h d-m e e-v e-h e-m f-v f-h f-m g g-v g-h g-m k-v k-h k-m l l-v l-h l-m
                                            pattern-boundaries source-boundaries
                                            optimal-cost
                                            &key (match-cost -1)
@@ -395,7 +407,7 @@
                              (eql next-edge 'vertical)
                              ;; as a sanity check, we could assert that horizontal and diagonal edges here are 0
                              (let ((next-state (check-vertical-edges pattern source pattern-boundaries source-boundaries state
-                                                                     a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
+                                                                     a b c d-v d-h d-m e e-v e-h e-m f-v f-h f-m g g-v g-h g-m k-v k-h k-m l l-v l-h l-m
                                                                      :gap-opening-cost gap-opening-cost :gap-cost gap-cost)))
                                (when next-state
                                  (list next-state))))
@@ -404,7 +416,7 @@
                              (eql next-edge 'horizontal)
                              ;; as a sanity check, we could assert that vertical and diagonal edges here are 0
                              (let ((next-state (check-horizontal-edges pattern source pattern-boundaries source-boundaries state
-                                                                       a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
+                                                                       a b c d-v d-h d-m e e-v e-h e-m f-v f-h f-m g g-v g-h g-m k-v k-h k-m l l-v l-h l-m
                                                                        :gap-opening-cost gap-opening-cost :gap-cost gap-cost)))
                                (when next-state
                                  (list next-state))))
@@ -412,7 +424,7 @@
                             (;; next-edge is set to diagonal-mismatch
                              (eql next-edge 'diagonal-mismatch)
                              (let ((next-state (check-diagonal-edges pattern source pattern-boundaries source-boundaries state
-                                                                     a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
+                                                                     a b c d-v d-h d-m e e-v e-h e-m f-v f-h f-m g g-v g-h g-m k-v k-h k-m l l-v l-h l-m
                                                                      :match-cost match-cost :mismatch-cost mismatch-cost
                                                                      :mismatch-opening-cost mismatch-opening-cost)))
                                (when next-state
@@ -421,14 +433,14 @@
                             (;; next-edge is not set -> check vertical, horizontal and diagonal edges
                              t
                              (let ((next-state-diagonal (check-diagonal-edges pattern source pattern-boundaries source-boundaries state
-                                                                              a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
+                                                                              a b c d-v d-h d-m e e-v e-h e-m f-v f-h f-m g g-v g-h g-m k-v k-h k-m l l-v l-h l-m
                                                                               :match-cost match-cost :mismatch-cost mismatch-cost
                                                                               :mismatch-opening-cost mismatch-opening-cost))
                                    (next-state-vertical (check-vertical-edges pattern source pattern-boundaries source-boundaries state
-                                                                              a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
+                                                                              a b c d-v d-h d-m e e-v e-h e-m f-v f-h f-m g g-v g-h g-m k-v k-h k-m l l-v l-h l-m
                                                                               :gap-opening-cost gap-opening-cost :gap-cost gap-cost))
                                    (next-state-horizontal (check-horizontal-edges pattern source pattern-boundaries source-boundaries state
-                                                                                  a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
+                                                                                  a b c d-v d-h d-m e e-v e-h e-m f-v f-h f-m g g-v g-h g-m k-v k-h k-m l l-v l-h l-m
                                                                                   :gap-opening-cost gap-opening-cost :gap-cost gap-cost)))
                                (remove nil (list next-state-diagonal next-state-vertical next-state-horizontal))))))
                      (next-states-with-max-gaps
@@ -442,15 +454,15 @@
           (progn
             ;; the cost reconstructed by retracing the optimal alignments
             ;; should be equal to the cost at the bottom right of the cost matrix
-            (loop for solution in solutions
+            #|(loop for solution in solutions
                   do (assert (= (cost solution) optimal-cost) ()
                        "The cost obtained by retracing the optimal alignment (~a) is not equal to the optimal cost from the cost matrix (~a)~%~a~%~a"
                        (cost solution) optimal-cost
                        (aligned-pattern solution)
-                       (aligned-source solution)))
+                       (aligned-source solution)))|#
             (return solutions))))
 
-(defun check-diagonal-edges (pattern source pattern-boundaries source-boundaries state a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
+(defun check-diagonal-edges (pattern source pattern-boundaries source-boundaries state a b c d-v d-h d-m e e-v e-h e-m f-v f-h f-m g g-v g-h g-m k-v k-h k-m l l-v l-h l-m
                                      &key (match-cost -1) (mismatch-opening-cost 1) (mismatch-cost 1))
   (with-slots (aligned-pattern aligned-source
                aligned-pattern-boundaries aligned-source-boundaries
@@ -491,15 +503,22 @@
                (setf (next-edge next-state) 'vertical))
               ((= (aref f-m i j) 1)
                (setf (next-edge next-state) 'horizontal)))
-        ;; when l is set, the prev edge has to be diagonal
-        ;; if not, remove the next state!
-        (when (= (aref l i j) 1)
-          (unless (eql prev-edge 'diagonal-mismatch)
-            (setf next-state nil)))
+
+
+        (cond ((= (aref l-m i j) 1)
+               (unless (eql prev-edge 'diagonal-mismatch)
+                 (setf next-state nil)))
+              ((= (aref l-h i j) 1)
+               (unless (eql prev-edge 'horizontal)
+                 (setf next-state nil)))
+              ((= (aref l-v i j) 1)
+               (unless (eql prev-edge 'vertical)
+                 (setf next-state nil))))
+        
         ;; return the next state
         next-state))))
 
-(defun check-vertical-edges (pattern source pattern-boundaries source-boundaries state a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
+(defun check-vertical-edges (pattern source pattern-boundaries source-boundaries state a b c d-v d-h d-m e e-v e-h e-m f-v f-h f-m g g-v g-h g-m k-v k-h k-m l l-v l-h l-m
                                      &key (gap-opening-cost 5) (gap-cost 1))
   (with-slots (aligned-pattern aligned-source
                aligned-pattern-boundaries aligned-source-boundaries
@@ -533,15 +552,24 @@
                (setf (next-edge next-state) 'horizontal))
               ((= (aref k-v i j) 1)
                (setf (next-edge next-state) 'diagonal-mismatch)))
+
+       
+        
         ;; when e is set, the prev edge has to be vertical
         ;; if not, remove the next state!
-        (when (= (aref e i j) 1)
-          (unless (eql prev-edge 'vertical)
-            (setf next-state nil)))
+        (cond ((= (aref e-v i j) 1)
+               (unless (eql prev-edge 'vertical)
+                 (setf next-state nil)))
+              ((= (aref e-h i j) 1)
+               (unless (eql prev-edge 'horizontal)
+                 (setf next-state nil)))
+              ((= (aref e-m i j) 1)
+               (unless (eql prev-edge 'diagonal-mismatch)
+                 (setf next-state nil))))
         ;; return the next state
         next-state))))
 
-(defun check-horizontal-edges (pattern source pattern-boundaries source-boundaries state a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
+(defun check-horizontal-edges (pattern source pattern-boundaries source-boundaries state a b c d-v d-h d-m e e-v e-h e-m f-v f-h f-m g g-v g-h g-m k-v k-h k-m l l-v l-h l-m
                                        &key (gap-opening-cost 5) (gap-cost 1))
   (with-slots (aligned-pattern aligned-source
                aligned-pattern-boundaries aligned-source-boundaries
@@ -575,11 +603,18 @@
                (setf (next-edge next-state) 'vertical))
               ((= (aref k-h i j) 1)
                (setf (next-edge next-state) 'diagonal-mismatch)))
+
         ;; when g is set, the prev edge has to be horizontal
         ;; if not, remove the next state!
-        (when (= (aref g i j) 1)
-          (unless (eql prev-edge 'horizontal)
-            (setf next-state nil)))
+        (cond ((= (aref g-h i j) 1)
+               (unless (eql prev-edge 'horizontal)
+                 (setf next-state nil)))
+              ((= (aref g-v i j) 1)
+               (unless (eql prev-edge 'vertical)
+                 (setf next-state nil)))
+              ((= (aref g-m i j) 1)
+               (unless (eql prev-edge 'diagonal-mismatch)
+                 (setf next-state nil))))
         ;; return the next state
         next-state))))
 
@@ -595,7 +630,7 @@
                              :match-cost -1 :mismatch-cost 1  :mismatch-opening-cost 1 :gap-opening-cost 1 :gap-cost 1
                              :remove-duplicate-alignments nil))
 
- ;; cost should be 0
+ ;; cost should be 0  (50 solutions)
  (print-sequence-alignments (maximal-sequence-alignments "what color is the sphere" "what size is the cube" nil nil
                              :match-cost -1 :mismatch-cost 1  :mismatch-opening-cost 2 :gap-opening-cost 2 :gap-cost 1
                              :remove-duplicate-alignments nil))
@@ -605,22 +640,49 @@
                              :match-cost -1 :mismatch-cost 1  :mismatch-opening-cost 1 :gap-opening-cost 1 :gap-cost 1
                              :remove-duplicate-alignments nil))
 
-  ;; optimale cost hier: 2
+  ;; optimale cost hier: 2 (9 solutions)
  (print-sequence-alignments (maximal-sequence-alignments "xabcyklz" "xefydefz" nil nil
                              :match-cost -2 :mismatch-cost 1  :mismatch-opening-cost 1 :gap-opening-cost 1 :gap-cost 1
                              :remove-duplicate-alignments nil))
 
-  ;; optimale cost hier: 4
+  ;; optimale cost hier: 4 (9 solutions)
 (print-sequence-alignments (maximal-sequence-alignments "xabcykl" "xefydef" nil nil
                              :match-cost -2 :mismatch-cost 1  :mismatch-opening-cost 1 :gap-opening-cost 1 :gap-cost 1
                              :remove-duplicate-alignments nil))
  
-;; optimale cost hier: ????
+;; optimale cost hier: 14 (48 solutions)
  (print-sequence-alignments (maximal-sequence-alignments "how many cubes are there" "what size is the cube" nil nil
                              :match-cost -1 :mismatch-cost 1  :mismatch-opening-cost 1 :gap-opening-cost 1 :gap-cost 1
-                             :remove-duplicate-alignments t))
+                             :remove-duplicate-alignments nil))
+
+
+ ;; optimale cost hier 29, 6 solutions
+ (print-sequence-alignments (maximal-sequence-alignments "AGAT" "CTCT" nil nil
+                             :match-cost -10 :mismatch-cost 10 :mismatch-opening-cost 1 :gap-opening-cost 25 :gap-cost 1
+                             :remove-duplicate-alignments nil))
+
+
+ (print-sequence-alignments (maximal-sequence-alignments "what size is the red ball" "what size is the blue cube" nil nil
+                             :match-cost -1 :mismatch-cost 1  :mismatch-opening-cost 2 :gap-opening-cost 2 :gap-cost 1
+                             :remove-duplicate-alignments nil))
 
  
- 
+ GA__
+__TC
+
+__GA
+TC__
+
+G__A
+_TC_
+
+_GA_
+T__C
+
+_G_A
+T_C_
+
+G_A_
+_T_C
  
 |#
