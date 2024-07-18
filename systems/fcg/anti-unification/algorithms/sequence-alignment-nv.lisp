@@ -51,11 +51,17 @@
          (a (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0)) ;; vertical full edge
          (b (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0)) ;; horizontal full edge
          (c (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0)) ;; diagonal full edge
-         (d (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0)) ;; vertical half edge - top part
+         (d-v (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0)) ;; vertical half edge - top part
+         (d-h (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
+         (d-m (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
          (e (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0)) ;; vertical half edge - bottom part
-         (f (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0)) ;; horizontal half edge - left part
+         (f-v (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0)) ;; horizontal half edge - left part
+         (f-h (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
+         (f-m (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
          (g (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0)) ;; horizontal half edge - right part
-         (k (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0)) ;; mismatch half edge - left part
+         (k-v (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0)) ;; mismatch half edge - left part
+         (k-h (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
+         (k-m (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
          (l (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0)) ;; mismatch half edge - right part
          )
          
@@ -76,20 +82,20 @@
 
     ;; Run the Gotoh algorithm according to the implementation
     ;; provided by Altschul and Ericksson (1986)
-    (cost-assignment pattern source nx ny P Q R S a b c d e f g k l
+    (cost-assignment pattern source nx ny P Q R S a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
                            :match-cost match-cost
                            :mismatch-opening-cost mismatch-opening-cost
                            :mismatch-cost mismatch-cost
                            :gap-opening-cost gap-opening-cost
                            :gap-cost gap-cost)
-    (edge-assignment nx ny a b c d e f g k l)    
+    (edge-assignment nx ny a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l)    
 
     ;; Trace back pointers from the bottom-right cell to the top-left cell.
     ;; Cells may contain multiple pointers, so there may be multiple paths.
     ;; Return all alignments and optionally remove duplicates.
     (let* ((optimal-cost (aref R nx ny))
            (all-optimal-alignments
-            (extract-optimal-alignments pattern source a b c d e f g k l
+            (extract-optimal-alignments pattern source a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
                                         pattern-boundaries
                                         source-boundaries
                                         optimal-cost
@@ -104,7 +110,7 @@
         (remove-duplicates all-optimal-alignments :key #'match-positions :test #'equal)
         all-optimal-alignments))))
 
-(defun cost-assignment (pattern source nx ny P Q R S a b c d e f g k l 
+(defun cost-assignment (pattern source nx ny P Q R S a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l 
                                 &key (match-cost -1) (mismatch-opening-cost 1) (mismatch-cost 1)
                                 (gap-opening-cost 5) (gap-cost 1))
   (loop for i from 0 to nx
@@ -122,13 +128,13 @@
                             (min-cost (min extended-gap-cost extended-gap-cost-other-side extended-mismatch new-gap-cost)))
                        (setf (aref P i j) min-cost)
                        (when (= min-cost extended-gap-cost)
-                         (setf (aref d (- i 1) j) 1))
+                         (setf (aref d-v (- i 1) j) 1))
                        (when (= min-cost new-gap-cost)
                          (setf (aref e (- i 1) j) 1))
                        (when (= min-cost extended-gap-cost-other-side)
-                         (setf (aref f (- i 1) j) 1))
+                         (setf (aref f-v (- i 1) j) 1))
                        (when (= min-cost extended-mismatch)
-                         (setf (aref k (- i 1) j) 1))))
+                         (setf (aref k-v (- i 1) j) 1))))
 
                    ;; 3) find the minimum cost of a path ending at node N_{i,j using horizontal edge
                    ;; 4) determine if cost Q_{i,j} can be achieved with and without edge H_{i,j-1}, i.e. horizontal edge left
@@ -140,13 +146,13 @@
                             (min-cost (min extended-gap-cost extended-gap-cost-other-side extended-mismatch new-gap-cost)))
                        (setf (aref Q i j) min-cost)
                        (when (= min-cost extended-gap-cost)
-                         (setf (aref f i (- j 1)) 1))
+                         (setf (aref f-h i (- j 1)) 1))
                        (when (= min-cost new-gap-cost)
                          (setf (aref g i (- j 1)) 1))
                        (when (= min-cost extended-gap-cost-other-side)
-                         (setf (aref d i (- j 1)) 1))
+                         (setf (aref d-h i (- j 1)) 1))
                        (when (= min-cost extended-mismatch)
-                         (setf (aref k i (- j 1)) 1))))
+                         (setf (aref k-h i (- j 1)) 1))))
                    
                    (when (and (> i 0) (> j 0))
                      (let* ((extended-mismatch-cost
@@ -170,16 +176,16 @@
                        ;; do NOT set k and l when no mismatch...
                        (when (and (= min-cost extended-mismatch-cost)
                                   (not (= min-cost +inf)))
-                         (setf (aref k (- i 1) (- j 1)) 1))
+                         (setf (aref k-m (- i 1) (- j 1)) 1))
                        (when (and (= min-cost new-mismatch-cost)
                                   (not (= min-cost +inf)))
                          (setf (aref l (- i 1) (- j 1)) 1))
                        (when (and (= min-cost extended-vertical-gap-cost)
                                   (not (= min-cost +inf)))
-                         (setf (aref d (- i 1) (- j 1)) 1))
+                         (setf (aref d-m (- i 1) (- j 1)) 1))
                        (when (and (= min-cost extended-horizontal-gap-cost)
                                   (not (= min-cost +inf)))
-                         (setf (aref f (- i 1) (- j 1)) 1))))
+                         (setf (aref f-m (- i 1) (- j 1)) 1))))
                      
                    ;; 5) find the minimum cost of a path ending at node N_{i,j}
                    ;; 6) determine if cost R_{i,j} can be achieved by vertical, horizontal or diagonal edges
@@ -204,7 +210,7 @@
                                     (if matchp match-cost +inf))))
                      (setf (aref c i j) 1)))))
 
-(defun edge-assignment (nx ny a b c d e f g k l)
+(defun edge-assignment (nx ny a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l)
   (loop for i from nx downto 0
         do (loop for j from ny downto 0
                  do ;; 1) if there is no optimal path passing through node N_{i,j} which has cost R_{i,j}
@@ -225,39 +231,107 @@
                      (progn
                        ;; 3) if edge V_{i+1,j} is in an optimal path and requires edge V_{i,j} to be in an optimal path,
                        ;;    determine if an optimal path that uses edge V_{i+1,j} must use edge V_{i,j} and the converse:
-                       (if (or (and (= (aref a (+ i 1) j) 1) (= (aref d i j) 1))
-                               (and (= (aref b i (+ j 1)) 1) (= (aref d i j) 1))
-                               (and (= (aref c (+ i 1) (+ j 1)) 1) (= (aref d i j) 1)))
-                         (setf (aref d (+ i 1) j) (- 1 (aref e i j))
+                       #|(if (or (and (= (aref a (+ i 1) j) 1) (= (aref d-v i j) 1))
+                                 (and (= (aref b i (+ j 1)) 1) (= (aref d-h i j) 1))
+                                 (and (= (aref c (+ i 1) (+ j 1)) 1) (= (aref d-m i j) 1)))
+                           (setf (aref d-v (+ i 1) j) (- 1 (max (aref f-v i j) (aref k-v i j)))
                                (aref e i j) (- 1 (aref a i j))
                                (aref a i j) 1)
-                         (when (not (and (= (aref a (+ i 1) j) 1) (= (aref d i j) 1)))
-                           (setf (aref d (+ i 1) j) 0 
-                                 (aref e i j) 0)))
+                         (when (not (and (= (aref a (+ i 1) j) 1) (= (aref d-v i j) 1)))
+                           (setf (aref d-v (+ i 1) j) 0 
+                                 (aref e i j) 0)))|#
+
+                       (if (and (= (aref a (+ i 1) j) 1) (= (aref d-v i j) 1))
+                         (setf (aref d-v (+ i 1) j) (- 1 (max (aref f-v i j) (aref k-v i j) (aref e i j)))
+                               (aref e i j) (- 1 (aref a i j))
+                               (aref a i j) 1)
+                         (setf (aref d-v (+ i 1) j) 0 
+                               (aref e i j) 0))
+
+                       (if (and (= (aref b i (+ j 1)) 1) (= (aref d-h i j) 1))
+                         (setf (aref d-h (+ i 1) j) (- 1 (max (aref f-h i j) (aref k-h i j) (aref e i j)))
+                               (aref e i j) (- 1 (aref a i j))
+                               (aref a i j) 1)
+                         (setf (aref d-h (+ i 1) j) 0 
+                               (aref e i j) 0))
+
+                       (if (and (= (aref c (+ i 1) (+ j 1)) 1) (= (aref d-m i j) 1))
+                         (setf (aref d-m (+ i 1) j) (- 1 (max (aref f-m i j) (aref k-m i j) (aref e i j)))
+                               (aref e i j) (- 1 (aref a i j))
+                               (aref a i j) 1)
+                         (setf (aref d-m (+ i 1) j) 0 
+                               (aref e i j) 0))
+                       
                        ;; 4) if edge H_{i,j+1} is in an optimal path and requires edge H_{i,j} to be in an optimal path,
                        ;;    determine if an optimal path that uses edge H_{i,j+1} must use edge H_{i,j} and the converse:
-                       (if (or (and (= (aref b i (+ j 1)) 1) (= (aref f i j) 1))
-                               (and (= (aref a (+ i 1) j) 1) (= (aref f i j) 1))
-                               (and (= (aref c (+ i 1) (+ j 1)) 1) (= (aref f i j) 1)))
-                         (setf (aref f i (+ j 1)) (- 1 (aref g i j))
+                       #|(if (or (and (= (aref b i (+ j 1)) 1) (= (aref f-h i j) 1))
+                               (and (= (aref a (+ i 1) j) 1) (= (aref f-v i j) 1))
+                               (and (= (aref c (+ i 1) (+ j 1)) 1) (= (aref f-m i j) 1)))
+                         (setf (aref f-h i (+ j 1)) (- 1 (max (aref d-h i j) (aref k-h i j)))
                                (aref g i j) (- 1 (aref b i j))
                                (aref b i j) 1)
-                         (when (not (and (= (aref b i (+ j 1)) 1) (= (aref f i j) 1)))
-                           (setf (aref f i (+ j 1)) 0
-                                 (aref g i j) 0)))
+                         (when (not (and (= (aref b i (+ j 1)) 1) (= (aref f-h i j) 1)))
+                           (setf (aref f-h i (+ j 1)) 0
+                                 (aref g i j) 0)))|#
+
+                       (if (and (= (aref b i (+ j 1)) 1) (= (aref f-h i j) 1))
+                         (setf (aref f-h i (+ j 1)) (- 1 (max (aref d-h i j) (aref k-h i j) (aref g i j)))
+                               (aref g i j) (- 1 (aref b i j))
+                               (aref b i j) 1)
+                         (setf (aref f-h i (+ j 1)) 0
+                               (aref g i j) 0))
+                       
+                       (if (and (= (aref a (+ i 1) j) 1) (= (aref f-v i j) 1))
+                         (setf (aref f-v i (+ j 1)) (- 1 (max (aref d-v i j) (aref k-v i j) (aref g i j)))
+                               (aref g i j) (- 1 (aref b i j))
+                               (aref b i j) 1)
+                         (setf (aref f-v i (+ j 1)) 0
+                               (aref g i j) 0))
+                       
+                       (if (and (= (aref c (+ i 1) (+ j 1)) 1) (= (aref f-m i j) 1))
+                         (setf (aref f-m i (+ j 1)) (- 1 (max (aref d-m i j) (aref k-m i j) (aref g i j)))
+                               (aref g i j) (- 1 (aref b i j))
+                               (aref b i j) 1)
+                         (setf (aref f-m i (+ j 1)) 0
+                               (aref g i j) 0))
+                       
+                       
                        ;; 5) if edge D_{i+1,j+1} is in an optimal path and requires edge D_{i,j} to be in an optimal path,
                        ;;    determine if an optimal path that uses edge D_{i+1,j+1} must use edge D_{i,j} and the converse:
-                       (if (or (and (= (aref c (+ i 1) (+ j 1)) 1) (= (aref k i j) 1))
-                               (and (= (aref b i (+ j 1)) 1) (= (aref k i j) 1))
-                               (and (= (aref a (+ i 1) j) 1) (= (aref k i j) 1)))
-                         (setf (aref k (+ i 1) (+ j 1)) (- 1 (aref l i j))
+                       #|(if (or (and (= (aref c (+ i 1) (+ j 1)) 1) (= (aref k-m i j) 1))
+                               (and (= (aref b i (+ j 1)) 1) (= (aref k-h i j) 1))
+                               (and (= (aref a (+ i 1) j) 1) (= (aref k-v i j) 1)))
+                         (setf (aref k-m (+ i 1) (+ j 1)) (- 1 (aref d-m i j) (aref f-m i j))
                                (aref l i j) (- 1 (aref c i j))
                                (aref c i j) 1)
-                         (when (not (and (= (aref c (+ i 1) (+ j 1)) 1) (= (aref k i j) 1)))
-                           (setf (aref k (+ i 1) (+ j 1)) 0
-                                 (aref l i j) 0))))))))
+                         (when (not (and (= (aref c (+ i 1) (+ j 1)) 1) (= (aref k-m i j) 1)))
+                           (setf (aref k-m (+ i 1) (+ j 1)) 0
+                                 (aref l i j) 0)))|#
 
-(defun extract-optimal-alignments (pattern source a b c d e f g k l
+                       (if (and (= (aref c (+ i 1) (+ j 1)) 1) (= (aref k-m i j) 1))
+                         (setf (aref k-m (+ i 1) (+ j 1)) (- 1 (aref d-m i j) (aref f-m i j) (aref l i j))
+                               (aref l i j) (- 1 (aref c i j))
+                               (aref c i j) 1)
+                         (setf (aref k-m (+ i 1) (+ j 1)) 0
+                               (aref l i j) 0))
+                       
+                       (if (and (= (aref b i (+ j 1)) 1) (= (aref k-h i j) 1))
+                         (setf (aref k-h (+ i 1) (+ j 1)) (- 1 (aref d-h i j) (aref f-h i j) (aref l i j))
+                               (aref l i j) (- 1 (aref c i j))
+                               (aref c i j) 1)
+                         (setf (aref k-h (+ i 1) (+ j 1)) 0
+                               (aref l i j) 0))
+                       
+                       (if (and (= (aref a (+ i 1) j) 1) (= (aref k-v i j) 1))
+                         (setf (aref k-v (+ i 1) (+ j 1)) (- 1 (aref d-v i j) (aref f-v i j) (aref l i j))
+                               (aref l i j) (- 1 (aref c i j))
+                               (aref c i j) 1)
+                           (setf (aref k-v (+ i 1) (+ j 1)) 0
+                                 (aref l i j) 0)))
+                       
+                       ))))
+
+(defun extract-optimal-alignments (pattern source a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
                                            pattern-boundaries source-boundaries
                                            optimal-cost
                                            &key (match-cost -1)
@@ -287,7 +361,7 @@
                       (cond (;; next-edge is set to vertical -> only need to check vertical edges
                              (eql next-edge 'vertical)
                              ;; as a sanity check, we could assert that horizontal and diagonal edges here are 0
-                             (let ((next-state (check-vertical-edges pattern source pattern-boundaries source-boundaries state a d e
+                             (let ((next-state (check-vertical-edges pattern source pattern-boundaries source-boundaries state a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
                                                                      :gap-opening-cost gap-opening-cost :gap-cost gap-cost)))
                                (when next-state
                                  (list next-state))))
@@ -295,25 +369,25 @@
                             (;; next-edge is set to horizontal -> only need to check horizontal edges
                              (eql next-edge 'horizontal)
                              ;; as a sanity check, we could assert that vertical and diagonal edges here are 0
-                             (let ((next-state (check-horizontal-edges pattern source pattern-boundaries source-boundaries state b f g
+                             (let ((next-state (check-horizontal-edges pattern source pattern-boundaries source-boundaries state a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
                                                                        :gap-opening-cost gap-opening-cost :gap-cost gap-cost)))
                                (when next-state
                                  (list next-state))))
 
                             (;; next-edge is set to diagonal-mismatch
                              (eql next-edge 'diagonal-mismatch)
-                             (let ((next-state (check-diagonal-edges pattern source pattern-boundaries source-boundaries state c k l
+                             (let ((next-state (check-diagonal-edges pattern source pattern-boundaries source-boundaries state a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
                                                                      :match-cost match-cost :mismatch-cost mismatch-cost :mismatch-opening-cost mismatch-opening-cost)))
                                (when next-state
                                  (list next-state))))
                             
                             (;; next-edge is not set -> check vertical, horizontal and diagonal edges
                              t
-                             (let ((next-state-diagonal (check-diagonal-edges pattern source pattern-boundaries source-boundaries state c k l
+                             (let ((next-state-diagonal (check-diagonal-edges pattern source pattern-boundaries source-boundaries state a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
                                                                               :match-cost match-cost :mismatch-cost mismatch-cost :mismatch-opening-cost mismatch-opening-cost))
-                                   (next-state-vertical (check-vertical-edges pattern source pattern-boundaries source-boundaries state a d e
+                                   (next-state-vertical (check-vertical-edges pattern source pattern-boundaries source-boundaries state a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
                                                                               :gap-opening-cost gap-opening-cost :gap-cost gap-cost))
-                                   (next-state-horizontal (check-horizontal-edges pattern source pattern-boundaries source-boundaries state b f g
+                                   (next-state-horizontal (check-horizontal-edges pattern source pattern-boundaries source-boundaries state a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
                                                                                   :gap-opening-cost gap-opening-cost :gap-cost gap-cost)))
                                (remove nil (list next-state-diagonal next-state-vertical next-state-horizontal))))))
                      (next-states-with-max-gaps
@@ -335,7 +409,7 @@
                        (aligned-source solution)))
             (return solutions))))
 
-(defun check-diagonal-edges (pattern source pattern-boundaries source-boundaries state c k l
+(defun check-diagonal-edges (pattern source pattern-boundaries source-boundaries state a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
                                      &key (match-cost -1) (mismatch-opening-cost 1) (mismatch-cost 1))
   (with-slots (aligned-pattern aligned-source
                aligned-pattern-boundaries aligned-source-boundaries
@@ -370,8 +444,12 @@
                                         :gap-counter (if new-gap-p (+ 1 gap-counter) gap-counter)
                                         :prev-edge (if matchp 'diagonal 'diagonal-mismatch))))
         ;; when k is set, the next edge has to be diagonal
-        (when (= (aref k i j) 1)
-          (setf (next-edge next-state) 'diagonal-mismatch))
+        (cond ((= (aref k-m i j) 1)
+               (setf (next-edge next-state) 'diagonal-mismatch))
+              ((= (aref d-m i j) 1)
+               (setf (next-edge next-state) 'vertical))
+              ((= (aref f-m i j) 1)
+               (setf (next-edge next-state) 'horizontal)))
         ;; when l is set, the prev edge has to be diagonal
         ;; if not, remove the next state!
         (when (= (aref l i j) 1)
@@ -380,7 +458,7 @@
         ;; return the next state
         next-state))))
 
-(defun check-vertical-edges (pattern source pattern-boundaries source-boundaries state a d e
+(defun check-vertical-edges (pattern source pattern-boundaries source-boundaries state a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
                                      &key (gap-opening-cost 5) (gap-cost 1))
   (with-slots (aligned-pattern aligned-source
                aligned-pattern-boundaries aligned-source-boundaries
@@ -408,8 +486,12 @@
                                         :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
                                         :prev-edge 'vertical)))
         ;; when d is set, the next edge has to be vertical
-        (when (= (aref d i j) 1)
-          (setf (next-edge next-state) 'vertical))
+        (cond ((= (aref d-v i j) 1)
+               (setf (next-edge next-state) 'vertical))
+              ((= (aref f-v i j) 1)
+               (setf (next-edge next-state) 'horizontal))
+              ((= (aref k-v i j) 1)
+               (setf (next-edge next-state) 'diagonal-mismatch)))
         ;; when e is set, the prev edge has to be vertical
         ;; if not, remove the next state!
         (when (= (aref e i j) 1)
@@ -418,7 +500,7 @@
         ;; return the next state
         next-state))))
 
-(defun check-horizontal-edges (pattern source pattern-boundaries source-boundaries state b f g
+(defun check-horizontal-edges (pattern source pattern-boundaries source-boundaries state a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
                                        &key (gap-opening-cost 5) (gap-cost 1))
   (with-slots (aligned-pattern aligned-source
                aligned-pattern-boundaries aligned-source-boundaries
@@ -446,8 +528,12 @@
                                         :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
                                         :prev-edge 'horizontal)))
         ;; when f is set, the next edge has to be horizontal
-        (when (= (aref f i j) 1)
-          (setf (next-edge next-state) 'horizontal))
+        (cond ((= (aref f-h i j) 1)
+               (setf (next-edge next-state) 'horizontal))
+              ((= (aref d-h i j) 1)
+               (setf (next-edge next-state) 'vertical))
+              ((= (aref k-h i j) 1)
+               (setf (next-edge next-state) 'diagonal-mismatch)))
         ;; when g is set, the prev edge has to be horizontal
         ;; if not, remove the next state!
         (when (= (aref g i j) 1)
