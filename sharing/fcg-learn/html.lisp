@@ -251,7 +251,10 @@
   `((span)
      ,(cond ((base-cxn state)
              `((span) "learning from "
-               ((i) ,(format nil "~(~a~)" (name (base-cxn state))))))
+               ((i) ,(format nil "~(~a~) (cf: ~a cm: ~a)"
+                             (name (base-cxn state))
+                             (cost (au-result-form state))
+                             (cost (au-result-meaning state))))))
             ((eql (type-of (first (new-cxns state))) 'holophrastic-cxn)
              "new holophrastic cxn")
             ((eql (type-of (first (new-cxns state))) 'filler-cxn)
