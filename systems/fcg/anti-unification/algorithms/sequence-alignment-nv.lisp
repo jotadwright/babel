@@ -119,7 +119,9 @@
                                 (eql (nth (- i 1) pattern) (nth (- j 1) source)))
                  do
                    ;; 1) find the minimum cost of a path ending at node N_{i,j} using vertical edge
-                   ;; 2) determine if cost P_{i,j} can be achieved with and without edge V_{i-1,j}, i.e. vertical edge above
+                   ;; 2) determine if cost P_{i,j} can be achieved with and without edge V_{i-1,j}, i.e. vertical edge before vertical,
+                   ;;    with and without edge H_{i-1,j}, i.e. horizontal edge before vertical, and
+                   ;;    with and without edge D_{i-1,j}, i.e. diagonal edge before vertical
                    (when (> i 0)
                      (let* ((extended-gap-cost (+ (aref P (- i 1) j) gap-cost))
                             (extended-gap-cost-other-side (+ (aref Q (- i 1) j) gap-cost))
@@ -127,6 +129,18 @@
                             (new-gap-cost (+ (aref R (- i 1) j) gap-opening-cost gap-cost))
                             (min-cost (min extended-gap-cost extended-gap-cost-other-side extended-mismatch new-gap-cost)))
                        (setf (aref P i j) min-cost)
+                       ;; Here, we are inserting a vertical edge
+                       ;; If the min-cost was extended-gap-cost, then we have 2 consecutive vertical edges to reach i j
+                       ;; -> set d_v i-1 j to 1
+                       ;; If the min-cost was new-gap-cost, then we know that the optimal path to reach i j did not come from
+                       ;; a vertical edge, because we are opening the new gap only now
+                       ;; -> set e i-1 j to 1
+                       ;; If the min-cost was extended-gap-cost-other-side, then we know that the optimal path to reach i j
+                       ;; is a horizontal edge followed by a vertical edge
+                       ;; -> set f_v i-1 j to 1
+                       ;; If the min-cost was extended-mismatch, then we know that the optimal path to reach i j
+                       ;; is a diagonal edge followed by a vertical edge
+                       ;; -> set k_v i-1 j to 1
                        (when (= min-cost extended-gap-cost)
                          (setf (aref d-v (- i 1) j) 1))
                        (when (= min-cost new-gap-cost)
@@ -136,8 +150,10 @@
                        (when (= min-cost extended-mismatch)
                          (setf (aref k-v (- i 1) j) 1))))
 
-                   ;; 3) find the minimum cost of a path ending at node N_{i,j using horizontal edge
-                   ;; 4) determine if cost Q_{i,j} can be achieved with and without edge H_{i,j-1}, i.e. horizontal edge left
+                   ;; 3) find the minimum cost of a path ending at node N_{i,j} using horizontal edge
+                   ;; 4) determine if cost Q_{i,j} can be achieved with and without edge H_{i,j-1}, i.e. horizontal edge before horizontal,
+                   ;;    with and without edge V_{i,j-1}, i.e. vertical edge before horizontal, and
+                   ;;    with and without edge D_{i,j-1}, i.e. diagonal edge before horizontal
                    (when (> j 0)
                      (let* ((extended-gap-cost (+ (aref Q i (- j 1)) gap-cost))
                             (extended-gap-cost-other-side (+ (aref P i (- j 1)) gap-cost))
@@ -153,7 +169,11 @@
                          (setf (aref d-h i (- j 1)) 1))
                        (when (= min-cost extended-mismatch)
                          (setf (aref k-h i (- j 1)) 1))))
-                   
+
+                   ;; 5) find the minimum cost of a path ending at node N_{i,j} using diagonal edge with mismatch
+                   ;; 6) determine if cost S_{i,j} can be achieved with and without edge S_{i-1,j-1}, i.e. diagonal edge before diagonal,
+                   ;;    with and without edge V_{i-1,j-1}, i.e. vertical edge before diagonal, and
+                   ;;    with and without edge H_{i-1,j-1}, i.e. horizontal edge before diagonal
                    (when (and (> i 0) (> j 0))
                      (let* ((extended-mismatch-cost
                              (if (not matchp) ;; check for mismatch
@@ -187,8 +207,8 @@
                                   (not (= min-cost +inf)))
                          (setf (aref f-m (- i 1) (- j 1)) 1))))
                      
-                   ;; 5) find the minimum cost of a path ending at node N_{i,j}
-                   ;; 6) determine if cost R_{i,j} can be achieved by vertical, horizontal or diagonal edges
+                   ;; 7) find the minimum cost of a path ending at node N_{i,j}
+                   ;; 8) determine if cost R_{i,j} can be achieved by vertical, horizontal or diagonal edges
                    (when (and (> i 0) (> j 0))
                      (let* ((vertical-edge-cost (aref P i j))
                             (horizontal-edge-cost (aref Q i j))
@@ -231,16 +251,20 @@
                      (progn
                        ;; 3) if edge V_{i+1,j} is in an optimal path and requires edge V_{i,j} to be in an optimal path,
                        ;;    determine if an optimal path that uses edge V_{i+1,j} must use edge V_{i,j} and the converse:
-                       #|(if (or (and (= (aref a (+ i 1) j) 1) (= (aref d-v i j) 1))
-                                 (and (= (aref b i (+ j 1)) 1) (= (aref d-h i j) 1))
-                                 (and (= (aref c (+ i 1) (+ j 1)) 1) (= (aref d-m i j) 1)))
-                           (setf (aref d-v (+ i 1) j) (- 1 (max (aref f-v i j) (aref k-v i j)))
-                               (aref e i j) (- 1 (aref a i j))
-                               (aref a i j) 1)
-                         (when (not (and (= (aref a (+ i 1) j) 1) (= (aref d-v i j) 1)))
-                           (setf (aref d-v (+ i 1) j) 0 
-                                 (aref e i j) 0)))|#
 
+                       ;; IF there is a vertical edge to N i+1 j (a i+1 j == 1)
+                       ;; and this vertical edge is preceded by another vertical edge (d_v i j == 1)
+                       ;; THEN vertical edge to N i+1 j HAS to be preceded by a vertical edge (setf d i+1 j to 1)
+                       ;; if there is no horizontal edge entering N i j (f-v i j == 0)
+                       ;; no diagonal edge entering N i j (k-v i j == 0)
+                       ;; and all optimal paths to N i+1 j make use of N i j (e i j == 0)
+                       ;; THEN vertical edge to N i j HAS to be followed by a vertical edge (setf e i j to 1)
+                       ;; if there are no other optimal paths that enter N i j (a i j = 0)
+                       ;; because we don't know how in what direction they leave N i j
+                       ;; THEN we set a vertical edge to N i j (setf a i j to 1)
+                       ;; ELSE
+                       ;; the vertical edge to N i+1 j is NOT preceded by a vertical edge (setf d i+1 j to 0)
+                       ;; the vertical edge to N i j is NOT followed by a vertical edge (setf e i j to 0)
                        (if (and (= (aref a (+ i 1) j) 1) (= (aref d-v i j) 1))
                          (setf (aref d-v (+ i 1) j) (- 1 (max (aref f-v i j) (aref k-v i j) (aref e i j)))
                                (aref e i j) (- 1 (aref a i j))
@@ -248,32 +272,49 @@
                          (setf (aref d-v (+ i 1) j) 0 
                                (aref e i j) 0))
 
-                       (if (and (= (aref b i (+ j 1)) 1) (= (aref d-h i j) 1))
-                         (setf (aref d-h (+ i 1) j) (- 1 (max (aref f-h i j) (aref k-h i j) (aref e i j)))
-                               (aref e i j) (- 1 (aref a i j))
-                               (aref a i j) 1)
-                         (setf (aref d-h (+ i 1) j) 0 
-                               (aref e i j) 0))
 
-                       (if (and (= (aref c (+ i 1) (+ j 1)) 1) (= (aref d-m i j) 1))
-                         (setf (aref d-m (+ i 1) j) (- 1 (max (aref f-m i j) (aref k-m i j) (aref e i j)))
-                               (aref e i j) (- 1 (aref a i j))
-                               (aref a i j) 1)
-                         (setf (aref d-m (+ i 1) j) 0 
-                               (aref e i j) 0))
+                       ;; 4) if edge H_{i,j+1} is in an optimal path and requires edge V_{i,j} to be in an optimal path,
+                       ;;    determine if an optimal path that uses edge H_{i,j+1} must use edge V_{i,j} and the converse:
                        
-                       ;; 4) if edge H_{i,j+1} is in an optimal path and requires edge H_{i,j} to be in an optimal path,
-                       ;;    determine if an optimal path that uses edge H_{i,j+1} must use edge H_{i,j} and the converse:
-                       #|(if (or (and (= (aref b i (+ j 1)) 1) (= (aref f-h i j) 1))
-                               (and (= (aref a (+ i 1) j) 1) (= (aref f-v i j) 1))
-                               (and (= (aref c (+ i 1) (+ j 1)) 1) (= (aref f-m i j) 1)))
-                         (setf (aref f-h i (+ j 1)) (- 1 (max (aref d-h i j) (aref k-h i j)))
-                               (aref g i j) (- 1 (aref b i j))
-                               (aref b i j) 1)
-                         (when (not (and (= (aref b i (+ j 1)) 1) (= (aref f-h i j) 1)))
-                           (setf (aref f-h i (+ j 1)) 0
-                                 (aref g i j) 0)))|#
+                       ;; IF there is a horizontal edge to N i j+1 (b i j+1 == 1)
+                       ;: and this horizontal edge is preceded by a vertical edge (d_h i j == 1)
+                       ;; THEN horizontal edge to N i j+1 HAS to be preceded by a vertical edge (setf d-h i j+1 to 1)
+                       ;; if there is no horizontal edge entering N i j (f-h i j == 0)
+                       ;; no diagonal edge entering N i j (k-h i j == 0)
+                       ;; and all optimal paths to N i j+1 make use of N i j (g i j = 0)
+                       ;; THEN we set a vertical edge to N i j (setf a i j to 1)
+                       ;; ELSE
+                       ;; the horizontal edge to N i j+1 is NOT preceded by a vertical edge (setf d i j+1 to 0)
+                       (if (and (= (aref b i (+ j 1)) 1) (= (aref d-h i j) 1))
+                         (setf (aref d-h i (+ j 1)) (- 1 (max (aref f-h i j) (aref k-h i j) (aref g i j)))
+                               ;(aref e i j) (- 1 (aref a i j))  ;; we cannot say anything about e or g or l here
+                               (aref a i j) 1)
+                         (setf (aref d-h i (+ j 1)) 0 
+                               ;(aref e i j) 0)  ;; we cannot say anything about e or g or l here
+                         ))
 
+                       ;; 5) if edge D_{i+1,j+1} is in an optimal path and requires edge V_{i,j} to be in an optimal path,
+                       ;;    determine if an optimal path that uses edge D_{i+1,j+1} must use edge V_{i,j} and the converse:
+
+                       ;; IF there is a diagonal edge to N i+1 j+1 (c i+1 j+1 == 1)
+                       ;; and this diagonal edge is preceded by a vertical edge (d_m i j == 1)
+                       ;; THEN diagonal edge to N i+1 j+1 HAS to be preceded by a vertical edge (setf d-m i+1 j+1 to 1)
+                       ;; if there is no horizontal edge entering N i j (f-m i j == 0)
+                       ;; no diagonal edge entering N i j (k-m i j == 0)
+                       ;; and all optimal paths to N i+1 j+1 make use of N i j (l i j == 0)
+                       ;; THEN we set a vertical edge to N i j (setf a i j to 1)
+                       ;; ELSE
+                       ;; the diagonal edge to N i+1 j+1 is NOT preceded by a vertical edge (setf d-m i+1 j+1 to 0)
+                       (if (and (= (aref c (+ i 1) (+ j 1)) 1) (= (aref d-m i j) 1))
+                         (setf (aref d-m (+ i 1) (+ j 1)) (- 1 (max (aref f-m i j) (aref k-m i j) (aref l i j)))
+                               ;(aref e i j) (- 1 (aref a i j))  ;; we cannot say anything about e or g or l here
+                               (aref a i j) 1)
+                         (setf (aref d-m (+ i 1) (+ j 1)) 0 
+                               ;(aref e i j) 0)  ;; we cannot say anything about e or g or l here
+                         ))
+                       
+                       ;; 6) if edge H_{i,j+1} is in an optimal path and requires edge H_{i,j} to be in an optimal path,
+                       ;;    determine if an optimal path that uses edge H_{i,j+1} must use edge H_{i,j} and the converse:
                        (if (and (= (aref b i (+ j 1)) 1) (= (aref f-h i j) 1))
                          (setf (aref f-h i (+ j 1)) (- 1 (max (aref d-h i j) (aref k-h i j) (aref g i j)))
                                (aref g i j) (- 1 (aref b i j))
@@ -282,32 +323,24 @@
                                (aref g i j) 0))
                        
                        (if (and (= (aref a (+ i 1) j) 1) (= (aref f-v i j) 1))
-                         (setf (aref f-v i (+ j 1)) (- 1 (max (aref d-v i j) (aref k-v i j) (aref g i j)))
-                               (aref g i j) (- 1 (aref b i j))
+                         (setf (aref f-v (+ i 1) j) (- 1 (max (aref d-v i j) (aref k-v i j) (aref e i j)))
+                               ;(aref g i j) (- 1 (aref b i j))
                                (aref b i j) 1)
-                         (setf (aref f-v i (+ j 1)) 0
-                               (aref g i j) 0))
+                         (setf (aref f-v (+ i 1) j) 0
+                               ;(aref g i j) 0)
+                         ))
                        
                        (if (and (= (aref c (+ i 1) (+ j 1)) 1) (= (aref f-m i j) 1))
-                         (setf (aref f-m i (+ j 1)) (- 1 (max (aref d-m i j) (aref k-m i j) (aref g i j)))
-                               (aref g i j) (- 1 (aref b i j))
+                         (setf (aref f-m (+ i 1) (+ j 1)) (- 1 (max (aref d-m i j) (aref k-m i j) (aref l i j)))
+                               ;(aref g i j) (- 1 (aref b i j))
                                (aref b i j) 1)
-                         (setf (aref f-m i (+ j 1)) 0
-                               (aref g i j) 0))
+                         (setf (aref f-m (+ i 1) (+ j 1)) 0
+                               ;(aref g i j) 0)
+                         ))
                        
                        
-                       ;; 5) if edge D_{i+1,j+1} is in an optimal path and requires edge D_{i,j} to be in an optimal path,
+                       ;; 7) if edge D_{i+1,j+1} is in an optimal path and requires edge D_{i,j} to be in an optimal path,
                        ;;    determine if an optimal path that uses edge D_{i+1,j+1} must use edge D_{i,j} and the converse:
-                       #|(if (or (and (= (aref c (+ i 1) (+ j 1)) 1) (= (aref k-m i j) 1))
-                               (and (= (aref b i (+ j 1)) 1) (= (aref k-h i j) 1))
-                               (and (= (aref a (+ i 1) j) 1) (= (aref k-v i j) 1)))
-                         (setf (aref k-m (+ i 1) (+ j 1)) (- 1 (aref d-m i j) (aref f-m i j))
-                               (aref l i j) (- 1 (aref c i j))
-                               (aref c i j) 1)
-                         (when (not (and (= (aref c (+ i 1) (+ j 1)) 1) (= (aref k-m i j) 1)))
-                           (setf (aref k-m (+ i 1) (+ j 1)) 0
-                                 (aref l i j) 0)))|#
-
                        (if (and (= (aref c (+ i 1) (+ j 1)) 1) (= (aref k-m i j) 1))
                          (setf (aref k-m (+ i 1) (+ j 1)) (- 1 (aref d-m i j) (aref f-m i j) (aref l i j))
                                (aref l i j) (- 1 (aref c i j))
@@ -316,20 +349,20 @@
                                (aref l i j) 0))
                        
                        (if (and (= (aref b i (+ j 1)) 1) (= (aref k-h i j) 1))
-                         (setf (aref k-h (+ i 1) (+ j 1)) (- 1 (aref d-h i j) (aref f-h i j) (aref l i j))
-                               (aref l i j) (- 1 (aref c i j))
+                         (setf (aref k-h i (+ j 1)) (- 1 (aref d-h i j) (aref f-h i j) (aref g i j))
+                               ;(aref l i j) (- 1 (aref c i j))
                                (aref c i j) 1)
-                         (setf (aref k-h (+ i 1) (+ j 1)) 0
-                               (aref l i j) 0))
+                         (setf (aref k-h i (+ j 1)) 0
+                               ;(aref l i j) 0)
+                         ))
                        
                        (if (and (= (aref a (+ i 1) j) 1) (= (aref k-v i j) 1))
-                         (setf (aref k-v (+ i 1) (+ j 1)) (- 1 (aref d-v i j) (aref f-v i j) (aref l i j))
-                               (aref l i j) (- 1 (aref c i j))
+                         (setf (aref k-v (+ i 1) j) (- 1 (aref d-v i j) (aref f-v i j) (aref e i j))
+                               ;(aref l i j) (- 1 (aref c i j))
                                (aref c i j) 1)
-                           (setf (aref k-v (+ i 1) (+ j 1)) 0
-                                 (aref l i j) 0)))
-                       
-                       ))))
+                           (setf (aref k-v (+ i 1) j) 0
+                                 ;(aref l i j) 0)
+                           )))))))
 
 (defun extract-optimal-alignments (pattern source a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
                                            pattern-boundaries source-boundaries
@@ -361,7 +394,8 @@
                       (cond (;; next-edge is set to vertical -> only need to check vertical edges
                              (eql next-edge 'vertical)
                              ;; as a sanity check, we could assert that horizontal and diagonal edges here are 0
-                             (let ((next-state (check-vertical-edges pattern source pattern-boundaries source-boundaries state a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
+                             (let ((next-state (check-vertical-edges pattern source pattern-boundaries source-boundaries state
+                                                                     a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
                                                                      :gap-opening-cost gap-opening-cost :gap-cost gap-cost)))
                                (when next-state
                                  (list next-state))))
@@ -369,25 +403,32 @@
                             (;; next-edge is set to horizontal -> only need to check horizontal edges
                              (eql next-edge 'horizontal)
                              ;; as a sanity check, we could assert that vertical and diagonal edges here are 0
-                             (let ((next-state (check-horizontal-edges pattern source pattern-boundaries source-boundaries state a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
+                             (let ((next-state (check-horizontal-edges pattern source pattern-boundaries source-boundaries state
+                                                                       a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
                                                                        :gap-opening-cost gap-opening-cost :gap-cost gap-cost)))
                                (when next-state
                                  (list next-state))))
 
                             (;; next-edge is set to diagonal-mismatch
                              (eql next-edge 'diagonal-mismatch)
-                             (let ((next-state (check-diagonal-edges pattern source pattern-boundaries source-boundaries state a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
-                                                                     :match-cost match-cost :mismatch-cost mismatch-cost :mismatch-opening-cost mismatch-opening-cost)))
+                             (let ((next-state (check-diagonal-edges pattern source pattern-boundaries source-boundaries state
+                                                                     a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
+                                                                     :match-cost match-cost :mismatch-cost mismatch-cost
+                                                                     :mismatch-opening-cost mismatch-opening-cost)))
                                (when next-state
                                  (list next-state))))
                             
                             (;; next-edge is not set -> check vertical, horizontal and diagonal edges
                              t
-                             (let ((next-state-diagonal (check-diagonal-edges pattern source pattern-boundaries source-boundaries state a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
-                                                                              :match-cost match-cost :mismatch-cost mismatch-cost :mismatch-opening-cost mismatch-opening-cost))
-                                   (next-state-vertical (check-vertical-edges pattern source pattern-boundaries source-boundaries state a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
+                             (let ((next-state-diagonal (check-diagonal-edges pattern source pattern-boundaries source-boundaries state
+                                                                              a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
+                                                                              :match-cost match-cost :mismatch-cost mismatch-cost
+                                                                              :mismatch-opening-cost mismatch-opening-cost))
+                                   (next-state-vertical (check-vertical-edges pattern source pattern-boundaries source-boundaries state
+                                                                              a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
                                                                               :gap-opening-cost gap-opening-cost :gap-cost gap-cost))
-                                   (next-state-horizontal (check-horizontal-edges pattern source pattern-boundaries source-boundaries state a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
+                                   (next-state-horizontal (check-horizontal-edges pattern source pattern-boundaries source-boundaries state
+                                                                                  a b c d-v d-h d-m e f-v f-h f-m g k-v k-h k-m l
                                                                                   :gap-opening-cost gap-opening-cost :gap-cost gap-cost)))
                                (remove nil (list next-state-diagonal next-state-vertical next-state-horizontal))))))
                      (next-states-with-max-gaps
