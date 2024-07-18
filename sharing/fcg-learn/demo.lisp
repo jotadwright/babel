@@ -33,14 +33,16 @@
                        (:li-punishement . 0.5)
                        (:best-solution-mode . :highest-average-link-weight)
                        (:induce-cxns-mode . :filler-and-linking)
+                       (:fix-selection-mode . :deepest-branch-with-highest-cxn-entrenchment)
                        (:form-generalisation-mode :altschul-erickson
                         ((:match-cost . 0)
                          (:mismatch-cost . 1)
                          (:gap-cost . 1)
-                         (:gap-opening-cost . 5)
+                         (:gap-opening-cost . 50)
                          (:n-optimal-alignments . nil)
-                         (:max-nr-of-alignment-gaps . 1)))
+                         (:max-nr-of-gaps . 1)))
                        (:meaning-generalisation-mode . :exhaustive)
+                       (:max-nr-of-nodes . 5000)
                        (:k-swap-k . 1)
                        (:k-swap-w . 1)
                        (:consolidate-repairs . t)
@@ -905,3 +907,52 @@ pipe-through
 
 
 ; -> idee strategies
+
+
+
+
+
+
+(make-empty-cxn-inventory-cxns)
+
+
+(defparameter *what-size-is-the-red-cube*
+    (make-instance 'speech-act
+                   :form "what size is the abc def?"
+                   :meaning '((get-context context-1)
+                              (filter set-1 context-1 shape-1)
+                              (bind shape-category shape-1 cube)
+                              (filter set-2 set-1 color-1)
+                              (bind color-category color-1 red)
+                              (unique object-1 set-2)
+                              (query target-1 object-1 attribute-1)
+                              (bind attribute-category attribute-1 size))))
+
+(defparameter *what-size-is-the-blue-sphere*
+    (make-instance 'speech-act
+                   :form "what size is the ghi jkl"
+                   :meaning '((get-context context-1)
+                              (filter set-1 context-1 shape-1)
+                              (bind shape-category shape-1 sphere)
+                              (filter set-2 set-1 color-1)
+                              (bind color-category color-1 blue)
+                              (unique object-1 set-2)
+                              (query target-1 object-1 attribute-1)
+                              (bind attribute-category attribute-1 size))))
+
+
+(defparameter *what-size-is-the-blue-cylinder*
+    (make-instance 'speech-act
+                   :form "what size is the blue cylinder"
+                   :meaning '((get-context context-1)
+                              (filter set-1 context-1 shape-1)
+                              (bind shape-category shape-1 cylinder)
+                              (filter set-2 set-1 color-1)
+                              (bind color-category color-1 blue)
+                              (unique object-1 set-2)
+                              (query target-1 object-1 attribute-1)
+                              (bind attribute-category attribute-1 size))))
+
+(comprehend *what-size-is-the-red-cube*)
+(comprehend *what-size-is-the-blue-sphere*)
+
