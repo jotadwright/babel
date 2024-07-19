@@ -4,101 +4,101 @@
 
 (defun anti-unify-sequences (pattern source &rest sequence-alignment-keyword-arguments)
   "Anti-unify sets of sequence predicates.
-   1. Render all pattern sequences
-   2. Render all source sequences
-   3. Anti-unify all combinations of pattern-strings and source-strings
-   4. Remove duplicate results
-   5. Transform the result back to sequence predicates"
-  ;; to do: improve anti-unify sequences to have full reversibility, up to the original variables.
+   1. Render all pattern sequences. 
+   2. Render source sequence based on the instantiated boundaries.
+   3. Make sequence alignments of all combinations of pattern-strings with the source-string.
+   4. Anti-unify all sequence alignments.
+   4. Make sequence-au-result and calculate cost of au."
   ;; note: the &rest argument sequence-alignment-keyword-arguments can be used to specify
   ;;       keyword arguments that will be passed on to #'maximal-sequence-alignments
-
-  (multiple-value-bind (pattern-renders all-pattern-boundaries) (render-all pattern :render-sequences)
-    (multiple-value-bind (source-renders all-source-boundaries) (render-all source :render-sequences)  
+  (assert (loop for predicate in source
+                always (eql (first predicate) 'sequence))
+      ()
+      "Only sequence predicates in source are allowed.")
+  (assert (loop for predicate in source
+                always (and (numberp (third predicate))
+                            (numberp (fourth predicate))))
+      ()
+    "Boundaries of sequence predicates in source need to be instantiated.")
+  (multiple-value-bind (pattern-renders all-pattern-boundaries) (render-all pattern :render-sequences) ;; render does not instantiate boundaries, so render-all is preferred
       (let* ((all-anti-unification-results
               (loop for pattern-render in pattern-renders
                     for pattern-boundaries in all-pattern-boundaries
-                    for pattern-string = (list-of-strings->string pattern-render :separator "_")
-                    append (loop for source-render in source-renders
-                                 for source-string = (list-of-strings->string source-render :separator "_")
-                                 for source-boundaries in all-source-boundaries
-                                 append (loop with possible-alignments = (apply #'maximal-sequence-alignments
-                                                                                pattern-string source-string
-                                                                                pattern-boundaries source-boundaries
-                                                                                sequence-alignment-keyword-arguments)
-                                              for alignment in possible-alignments
-                                              for pattern-in-alignment = (aligned-pattern alignment)
-                                              for source-in-alignment = (aligned-source alignment)
-                                              for pattern-boundaries = (aligned-pattern-boundaries alignment)
-                                              for source-boundaries = (aligned-source-boundaries alignment)
-                                              collect (multiple-value-bind (resulting-generalisation
-                                                                            resulting-pattern-delta
-                                                                            resulting-source-delta
-                                                                            resulting-pattern-bindings
-                                                                            resulting-source-bindings)
-                                                          (anti-unify-aligned-sequences pattern-in-alignment source-in-alignment pattern-boundaries source-boundaries)
-                                                        (let* ((simplified-sequences-generalisation (merge-adjacent-sequence-predicates resulting-generalisation))
-                                                               (simplified-sequences-pattern-delta (merge-adjacent-sequence-predicates resulting-pattern-delta))
-                                                               (simplified-sequences-source-delta (merge-adjacent-sequence-predicates resulting-source-delta))
-                                                               (precedes-generalisation (calculate-precedes-predicates simplified-sequences-generalisation))
-                                                               (precedes-pattern-delta (calculate-precedes-predicates simplified-sequences-pattern-delta))
-                                                               (precedes-source-delta (calculate-precedes-predicates simplified-sequences-source-delta))
-                                                               (au-result (make-instance 'sequences-au-result
-                                                                                        :pattern pattern
-                                                                                        :source source
-                                                                                        :generalisation (append simplified-sequences-generalisation precedes-generalisation)
-                                                                                        :pattern-delta (append simplified-sequences-pattern-delta precedes-pattern-delta)
-                                                                                        :source-delta (append simplified-sequences-source-delta precedes-source-delta)
-                                                                                        :pattern-bindings (remove-bindings-not-in-generalisation
-                                                                                                           resulting-pattern-bindings
-                                                                                                           simplified-sequences-generalisation)
-                                                                                        :source-bindings (remove-bindings-not-in-generalisation
-                                                                                                          resulting-source-bindings
-                                                                                                          simplified-sequences-generalisation)
-                                                                                        :alignment-cost (cost alignment))))
-                                                          (setf (cost au-result) (anti-unification-cost au-result))
-                                                          au-result))))))
+                    for pattern-string = (list-of-strings->string pattern-render :separator "_") ;; when pattern has multiple sequence predicates that are not adjacent, put _ in the string to treat it like a gap.
+                    for sorted-source = (sort source #'< :key #'third)
+                    for source-string = (combine-sequence-predicates sorted-source)
+                    for source-boundaries = (extract-instantiated-source-boundaries sorted-source)  
+                    append (loop with possible-alignments = (apply #'maximal-sequence-alignments
+                                                                    pattern-string source-string
+                                                                    pattern-boundaries source-boundaries
+                                                                    sequence-alignment-keyword-arguments)
+                                  for alignment in possible-alignments
+                                  for pattern-in-alignment = (aligned-pattern alignment)
+                                  for source-in-alignment = (aligned-source alignment)
+                                  for pattern-boundaries = (aligned-pattern-boundaries alignment)
+                                  for source-boundaries = (aligned-source-boundaries alignment)
+                                  collect (multiple-value-bind (resulting-generalisation
+                                                                resulting-pattern-delta
+                                                                resulting-source-delta
+                                                                resulting-pattern-bindings
+                                                                resulting-source-bindings)
+                                              (anti-unify-aligned-sequences pattern-in-alignment source-in-alignment pattern-boundaries source-boundaries)
+                                            (let* ((simplified-sequences-generalisation (merge-adjacent-sequence-predicates resulting-generalisation))
+                                                   (simplified-sequences-pattern-delta (merge-adjacent-sequence-predicates resulting-pattern-delta))
+                                                   (simplified-sequences-source-delta (merge-adjacent-sequence-predicates resulting-source-delta))
+                                                   (precedes-generalisation (calculate-precedes-predicates simplified-sequences-generalisation))
+                                                   (precedes-pattern-delta (calculate-precedes-predicates simplified-sequences-pattern-delta))
+                                                   (au-result (make-instance 'sequences-au-result
+                                                                             :pattern pattern
+                                                                             :source source
+                                                                             :generalisation (append simplified-sequences-generalisation precedes-generalisation)
+                                                                             :pattern-delta (append simplified-sequences-pattern-delta precedes-pattern-delta)
+                                                                             :source-delta simplified-sequences-source-delta
+                                                                             :pattern-bindings (remove-bindings-not-in-generalisation
+                                                                                                resulting-pattern-bindings
+                                                                                                simplified-sequences-generalisation)
+                                                                             :source-bindings (remove-bindings-not-in-generalisation
+                                                                                               resulting-source-bindings
+                                                                                               simplified-sequences-generalisation)
+                                                                             :alignment-cost (cost alignment))))
+                                              (setf (cost au-result) (anti-unification-cost au-result))
+                                              au-result)))))
              (unique-sorted-results
               (sort all-anti-unification-results #'< :key #'cost)))
-        unique-sorted-results))))
-
-(defun calculate-precedes-predicates (sequence-predicates)
-  "Return precedes constraints on the sequence predicates based on the order of the predicates"
-  (let ((left-boundaries (mapcar #'third sequence-predicates))
-        (right-boundaries (mapcar #'fourth sequence-predicates)))
-    (loop for left-boundary in (rest left-boundaries)
-          for right-boundary in  right-boundaries
-          collect `(precedes ,right-boundary ,left-boundary))))
+        unique-sorted-results)))
 
 
+;;(print-sequences-anti-unification-results (anti-unify-sequences '((sequence "what size is the cube" ?l1 ?r1)) '((sequence "what color is the cube" 0 22))))
 
-;;(print-anti-unification-results (anti-unify-sequences '((sequence "what size is the cube" ?l1 ?r1)) '((sequence "what color is the cube" ?l3 ?r3))))
+;;(print-sequences-anti-unification-results (anti-unify-sequences '((sequence "what size is the cube" ?l1 ?r1)) `((sequence "what color is the sphere" 0 ,(length "what color is the sphere")))))
 
-;;(print-anti-unification-results (anti-unify-sequences '((sequence "onelittle" ?l1 ?r1)) '((sequence "twolittle" ?l3 ?r3))))
+;;(print-sequences-anti-unification-results (anti-unify-sequences '((sequence "onelittle" ?l1 ?r1)) `((sequence "twolittle" 0 ,(length "twolittle")))))
 
-;;(print-anti-unification-results (anti-unify-sequences '((sequence "the red cube" ?l1 ?r1)) '((sequence "the blue cube" ?l2 ?r2))))
+;;(print-sequences-anti-unification-results (anti-unify-sequences '((sequence "the red cube" ?l1 ?r1)) `((sequence "the blue cube" 0 ,(length "the blue cube")))))
 
-;;(print-anti-unification-results (anti-unify-sequences '((sequence "the cube" ?l1 ?r1)) '((sequence "the red cube" ?l2 ?r2))))
+;;(print-sequences-anti-unification-results (anti-unify-sequences '((sequence "the red cube" ?l1 ?r1)) `((sequence "the cube" 0 ,(length "the cube")))))
 
-;;(print-anti-unification-results (anti-unify-sequences '((sequence "the red cube" ?l1 ?r1)) '((sequence "the cube" ?l2 ?r2))))
+;;(print-sequences-anti-unification-results (anti-unify-sequences '((sequence "the red cube" ?l1 ?r1)) `((sequence "the" 0 3) (sequence "cube" 5 9))))
 
-;;(print-anti-unification-results (anti-unify-sequences '((sequence "ABA" ?l1 ?r1)) '((sequence "A" ?l2 ?r2))))
+;;(print-sequences-anti-unification-results (anti-unify-sequences '((sequence "the cube" ?l1 ?r1)) `((sequence "the red cube" 0 ,(length "the red cube")))))
 
-;;(print-anti-unification-results (anti-unify-sequences '((sequence "A" ?l1 ?r1) (sequence "BA" ?l2 ?r2)) '((sequence "A" ?l3 ?r3))))
+;;(print-sequences-anti-unification-results (anti-unify-sequences '((sequence "the red cube" ?l1 ?r1)) `((sequence "the cube" 0 ,(length "the cube")))))
 
-;;(print-anti-unification-results (anti-unify-sequences '((sequence "A" ?l1 ?r1) (sequence "BA" ?l2 ?r2)) '((sequence "AB" ?l3 ?r3))))
+;;(print-sequences-anti-unification-results (anti-unify-sequences '((sequence "ABA" ?l1 ?r1)) '((sequence "A" 0 1))))
 
-;; (print-anti-unification-results (anti-unify-sequences '((sequence "AA" ?l1 ?r1)) '((sequence "ABA" ?l2 ?r2))))
+;;(print-sequences-anti-unification-results (anti-unify-sequences '((sequence "A" ?l1 ?r1) (sequence "BA" ?l2 ?r2)) '((sequence "A" 0 1))))
 
-;; what do we want from reversibility check in this case? 
-;; (print-anti-unification-results (anti-unify-sequences '((sequence "the " ?l1 ?r1) (sequence "orange" ?r1 ?l2) (sequence " cube" ?l2 ?r2)) '((sequence "the yellow cube" ?l3 ?r3))))
+;;(print-sequences-anti-unification-results (anti-unify-sequences '((sequence "A" ?l1 ?r1) (sequence "BA" ?l2 ?r2)) '((sequence "AB" 0 2))))
 
+;;(print-sequences-anti-unification-results (anti-unify-sequences '((sequence "AA" ?l1 ?r1)) '((sequence "ABAC" 0 4))))
 
-;;(print-anti-unification-results (anti-unify-sequences '((sequence "what size is the block?" ?l6 ?r6)) '((sequence "what size is the sphere?" ?l7 ?r7))))
-;;(print-anti-unification-results (anti-unify-sequences '((sequence "what size is the cube?" ?l6 ?r6)) '((sequence "what color is the cube?" ?l7 ?r7))))
+;;(print-sequences-anti-unification-results (anti-unify-sequences '((sequence "what size is the block?" ?l6 ?r6)) `((sequence "what size is the sphere?" 0 ,(length "what size is the sphere?")))))
+
+;;(print-sequences-anti-unification-results (anti-unify-sequences '((sequence "what size is the cube?" ?l6 ?r6)) `((sequence "what color is the cube?" 0 ,(length "what color is the cube?")))))
+
 
 (defun anti-unify-aligned-sequences (pattern source pattern-boundaries source-boundaries)
-  "Takes Needleman-Wunsch ALIGNED sequences and outputs a generalisation with bindings (deltas)"
+  "Takes ALIGNED sequences and outputs a generalisation with bindings and deltas."
   (let (generalisation pattern-delta source-delta
         pattern-bindings source-bindings)
     (loop for pattern-char in pattern
@@ -119,7 +119,7 @@
                        (adjoin (cons (car source-bounds) renamed-left-gen-boundary) source-bindings :test 'equal))
                  (setf source-bindings
                        (adjoin (cons (cdr source-bounds) renamed-right-gen-boundary) source-bindings :test 'equal)))
-               ;; different characters, push to delta, only if char is not #'_
+               ;; different characters, push to delta, only if char is not #\_ (this is a gap)
                (let ((pattern-delta-pred `(sequence ,(mkstr pattern-char) ,(car pattern-bounds) ,(cdr pattern-bounds)))
                      (source-delta-pred `(sequence ,(mkstr source-char) ,(car source-bounds) ,(cdr source-bounds))))
                  (if (not (equal pattern-char #\_)) (push pattern-delta-pred pattern-delta))
@@ -132,6 +132,9 @@
             (reverse pattern-bindings)
             (reverse source-bindings))))
 
+;;;;;;;;;;;
+;; UTILS ;;
+;;;;;;;;;;;
 
 (defun rename-boundary (pattern-boundary source-boundary pattern-bindings source-bindings)
   (let ((gen-var-pattern (cdr (assoc pattern-boundary pattern-bindings)))
@@ -143,10 +146,6 @@
     (cdr (assoc pattern-boundary pattern-bindings))
     (make-var 'gb))))
 
-;;;;;;;;;;;
-;; UTILS ;;
-;;;;;;;;;;;
-
 (defun remove-bindings-not-in-generalisation (bindings generalisation-list)
   (let ((generalisation-vars (loop for seq in generalisation-list
                                    append (list (third seq) (fourth seq)))))
@@ -155,15 +154,26 @@
           collect binding)))
 
 (defun make-boundary-vars (position boundaries current-left &key (gap nil))
-  (let ((right-boundary-var (if position  (car (rassoc position  boundaries))))
+  "Calculate boundary vars based on the position, the boundaries that were given and the current-left boundary. If there already exists a variable in the boundaries, reuse that variable, otherwise make a new variable."
+  (let ((right-boundary-var (if position (car (rassoc position boundaries))))
         (left-boundary-var (if position (car (rassoc (- position 1) boundaries)))))
-    (cond ((and (not right-boundary-var) (not current-left))
-           (setf right-boundary-var (make-var 'rb)))
-          ((and (not right-boundary-var) current-left)
-           (setf right-boundary-var current-left)))
+    (cond ((and
+            (not right-boundary-var)
+            (not current-left))
+           (setf right-boundary-var (make-var 'rb))) ;; if there is no right-boundary-var and no current-left, make a completely new variable
+          ((and
+            (not right-boundary-var)
+            current-left)
+           (setf right-boundary-var current-left))) ;; if the current-left is given and there is no right-boundary-var found in the boundaries, set right-boundary to current left (because we are dealing with adjacent single characters, so left-boundary of adjacent right predicate is right-boundary of left predicate). 
     (if (not left-boundary-var)
-      (setf left-boundary-var (if gap current-left (make-var 'lb))))
+      (setf left-boundary-var (if gap current-left (make-var 'lb)))) ;; if no left-boundary-var is found in the boundaries list, make a new variable, in case of a gap, reuse current-left. 
     (cons left-boundary-var right-boundary-var)))
+
+(defun make-boundary-indices (position boundaries current-left &key (gap nil))
+  "Calculate boundary vars of the source. Since source predicates are instantiated, use position, if there is a gap, then reuse current-left."
+  (if gap
+    (cons current-left current-left)
+    (cons (- position 1) position)))
 
 (defun print-sequence-alignments (list-of-sequence-alignment-states &optional (stream t))
   (format t "~%~%~%### Maximal Sequence Alignment ###~%")
@@ -182,16 +192,44 @@
            (format t "~s~%" (coerce (reverse symbols) 'string))
            (format t "~s~%~%" (coerce (aligned-source alignment-state) 'string))))
 
+(defun calculate-precedes-predicates (sequence-predicates)
+  "Return precedes constraints on the sequence predicates based on the order of the predicates"
+  (let ((left-boundaries (mapcar #'third sequence-predicates))
+        (right-boundaries (mapcar #'fourth sequence-predicates)))
+    (loop for left-boundary in (rest left-boundaries)
+          for right-boundary in  right-boundaries
+          collect `(precedes ,right-boundary ,left-boundary))))
+
+(defun extract-instantiated-source-boundaries (source)
+  "Returns instantiated source boundaries in the form of bindings list"
+  (loop for predicate in source
+        for left-boundary = (third predicate)
+        for right-boundary = (fourth predicate)
+        collect (cons left-boundary left-boundary)
+        collect (cons right-boundary right-boundary)))
+
+(defun combine-sequence-predicates (source)
+  "When multiple instantiated sequence predicates, combine them into 1 string seperated by an amount of _ based on the boundaries between the predicates. _ represent gaps in the source string."
+  (let* ((sorted (sort source #'< :key #'third))
+         (left-bounds (mapcar #'third source))
+         (right-bounds (mapcar #'fourth source))
+         (list-of-strings (list (second (first sorted)))))
+    (loop for predicate in (rest sorted)
+          for right-bound in right-bounds
+          for left-bound in (rest left-bounds)
+          do (pushend (make-string (- left-bound right-bound) :initial-element #\_) list-of-strings)
+             (pushend (second predicate) list-of-strings))
+    (list-of-strings->string list-of-strings :separator "")))
+
 ;;;;;;;;;;
 ;; Cost ;;
 ;;;;;;;;;;
 
 (defmethod anti-unification-cost ((au-result sequences-au-result))
-  "Cost of a string anti-unification result."
+  "Cost of a string anti-unification result based on the number of sequence predicates in the delta."
   ;; TO DO: determine cost
-  (+ (length (pattern-delta au-result))
-     (length (source-delta au-result))))
-
+  (+ (length (find-all 'sequence (pattern-delta au-result) :key #'first))
+     (length (find-all 'sequence (source-delta au-result) :key #'first))))
 
 #|
 (defmethod anti-unification-cost ((au-result sequences-au-result))
@@ -235,7 +273,7 @@
 ;; Reversibility check ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
-#|(defun merge-adjacent-sequence-predicates (sequence-predicates)
+(defun merge-adjacent-sequence-predicates-recursively (sequence-predicates)
   "When there are adjacent sequence predicates, merge them together."
   (loop for predicate in sequence-predicates
         for left-bound = (third predicate)
@@ -247,14 +285,14 @@
                                                   ,(third adjacent-left) ,(fourth predicate)))
                         (updated-predicates
                          (cons new-predicate (remove adjacent-left (remove predicate sequence-predicates :test #'equal) :test #'equal))))
-                   (merge-adjacent-sequence-predicates updated-predicates))
+                   (merge-adjacent-sequence-predicates-recursively updated-predicates))
         else if adjacent-right
            return (let* ((new-predicate `(sequence ,(mkstr (second predicate) (second adjacent-right))
                                                    ,(third predicate) ,(fourth adjacent-right)))
                          (updated-predicates
                           (cons new-predicate (remove adjacent-right (remove predicate sequence-predicates :test #'equal) :test #'equal))))
-                    (merge-adjacent-sequence-predicates updated-predicates))
-        finally (return sequence-predicates)))|#
+                    (merge-adjacent-sequence-predicates-recursively updated-predicates))
+        finally (return sequence-predicates)))
 
 
 (defun merge-adjacent-sequence-predicates (sequence-predicates)
@@ -269,17 +307,17 @@
                                (nth i sequence-predicates))
         if next-predicate
           do
-            (cond ((and (string= right-boundary (third next-predicate)) ;; boundaries coincide
+            (cond ((and (eql right-boundary (third next-predicate)) ;; boundaries coincide
                         (null current-simplified-string)) ;;start new merged string
                    (setf current-simplified-string string)
                    (setf current-simplified-sequence-predicate `(sequence ,current-simplified-string ,left-boundary ,right-boundary)))
                   
-                  ((and (string= right-boundary (third next-predicate))  ;; boundaries coincide
+                  ((and (eql right-boundary (third next-predicate))  ;; boundaries coincide
                         current-simplified-string)
                    (setf current-simplified-string (string-append current-simplified-string string))
                    (setf current-simplified-sequence-predicate `(sequence ,current-simplified-string ,(third current-simplified-sequence-predicate) ,right-boundary)))
                   
-                  ((null (string= right-boundary (third next-predicate)))  ;; boundaries do not coincide
+                  ((null (eql right-boundary (third next-predicate)))  ;; boundaries do not coincide
                    (if current-simplified-string
                      (progn 
                        (setf result (append result (list `(sequence ,(string-append current-simplified-string string)
@@ -319,14 +357,10 @@
                     (setf (nth (position predicate copied-sequence-predicates) copied-sequence-predicates) new-predicate)
                     (merge-adjacent-sequence-predicates (remove adjacent-right copied-sequence-predicates :test #'equal)))
         finally (return sequence-predicates))) |# 
-                  
+                 
 
-;;
-
-
-
-(defmethod compute-network-from-anti-unification-result ((au-result sequences-au-result) pattern-or-source)
-  "Returns original network based on generalisation, bindings-list and delta."  
+(defmethod compute-sequences-from-anti-unification-result ((au-result sequences-au-result) pattern-or-source)
+  "Returns original sequence and preceedes based on generalisation, bindings-list and delta."  
   (let* ((generalisation (generalisation au-result))
          (bindings-key (case pattern-or-source
                          (pattern #'pattern-bindings)
@@ -336,6 +370,45 @@
                       (source #'source-delta)))
          (bindings-list (funcall bindings-key au-result))
          (delta (funcall delta-key au-result)))
-    (merge-adjacent-sequence-predicates
+    (merge-adjacent-sequence-predicates-recursively
      (append (substitute-bindings (reverse-bindings bindings-list) generalisation)
              delta))))
+
+
+(defun print-sequences-anti-unification-results (list-of-anti-unification-results &optional (stream t))
+  "Prints a list of anti-unification results."
+  
+  (format t "~%~%~%### Anti-unifying ###~%~%")
+  (format stream "------------------------------------------------------------~%")
+  (format stream "- Pattern:~%~%")
+  (let ((*print-pretty* t))
+             (format stream "~(~a~)~%~%" (pattern (first list-of-anti-unification-results))))
+  (format stream "- Source:~%~%")
+  (let ((*print-pretty* t))
+    (format stream "~(~a~)~%~%" (source (first list-of-anti-unification-results))))
+  (format stream "------------------------------------------------------------~%~%")
+  (loop for a-u-result in list-of-anti-unification-results
+        for i from 1 upto (length list-of-anti-unification-results)
+        do (with-slots (generalisation pattern-bindings source-bindings pattern-delta source-delta cost) a-u-result
+             (format stream "--- Result ~a (cost: ~a) ---~%~%" i cost)
+             (format stream "- Generalisation:~%~%")
+             (let ((*print-pretty* t))
+               (format stream "~(~a~)~%~%" generalisation))
+             (format stream "- Pattern bindings:~%~%")
+             (let ((*print-pretty* t))
+               (format stream "~(~a~)~%~%" pattern-bindings))
+             (format stream "- Source bindings:~%~%")
+             (let ((*print-pretty* t))
+               (format stream "~(~a~)~%~%" source-bindings))
+             (format stream "- Pattern delta:~%~%")
+             (let ((*print-pretty* t))
+               (format stream "~(~a~)~%~%" pattern-delta))
+             (format stream "- Source delta:~%~%")
+             (let ((*print-pretty* t))
+               (format stream "~(~a~)~%~%~%" source-delta))
+             (format stream "- Computed Pattern:~%~%")
+             (let ((*print-pretty* t))
+             (format stream "~(~a~)~%~%" (compute-sequences-from-anti-unification-result a-u-result 'pattern)))
+             (format stream "- Computed Source:~%~%")
+             (let ((*print-pretty* t))
+               (format stream "~(~a~)~%~%" (compute-sequences-from-anti-unification-result a-u-result 'source))))))
