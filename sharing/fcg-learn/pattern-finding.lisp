@@ -223,9 +223,15 @@ non-applicable constructions."
              (linking-cxn-contributing-form-args (compute-linking-args-contributing integration-form-args integration-form-args-slot-1
                                                                                     integration-form-args-slot-2 au-form))
              ;; Compute args for conditional units of linking-cxn
-             (linking-cxn-form-args-slot-1 (append generalisation-form-args integration-form-args-slot-1))
+
+             (linking-cxn-index-renamings (loop for arg in linking-cxn-contributing-form-args
+                                                unless (variable-p arg)
+                                                  collect (cons arg (make-var "LR"))))
+
+             (linking-cxn-contributing-form-args-without-indices (substitute-bindings-including-constants linking-cxn-index-renamings linking-cxn-contributing-form-args))
+             (linking-cxn-form-args-slot-1 (append generalisation-form-args (substitute-bindings-including-constants linking-cxn-index-renamings integration-form-args-slot-1)))
              (linking-cxn-meaning-args-slot-1 (append generalisation-meaning-args integration-meaning-args-slot-1))
-             (linking-cxn-form-args-slot-2 (append generalisation-form-args integration-form-args-slot-2))
+             (linking-cxn-form-args-slot-2 (append generalisation-form-args (substitute-bindings-including-constants linking-cxn-index-renamings integration-form-args-slot-2)))
              (linking-cxn-meaning-args-slot-2 (append generalisation-meaning-args integration-meaning-args-slot-2))
 
              ;; Compute args for filler constructions (based on generalisation, source and pattern)
@@ -243,12 +249,12 @@ non-applicable constructions."
              (source-filler-cxn nil))
 
         ;; If the contributing form args don't map on the integration-form-args (in which case they will be nil), stop and don't learn cxns
-        (when (and (if integration-form-args linking-cxn-contributing-form-args t)
+        (when (and (if integration-form-args linking-cxn-contributing-form-args-without-indices t)
                    (if integration-meaning-args linking-cxn-contributing-meaning-args t))
 
           ;; Learn linking-cxn
           (setf linking-cxn (create-linking-cxn :cxn-inventory fix-cxn-inventory
-                                                :contributing-form-args linking-cxn-contributing-form-args
+                                                :contributing-form-args linking-cxn-contributing-form-args-without-indices
                                                 :contributing-meaning-args linking-cxn-contributing-meaning-args
                                                 :form-args-slot-1 linking-cxn-form-args-slot-1
                                                 :form-args-slot-2 linking-cxn-form-args-slot-2
@@ -419,37 +425,27 @@ non-applicable constructions."
 (defun create-filler-cxn (form-predicates meaning-predicates form-filler-args meaning-filler-args cxn-inventory)
   "Create a filler construction based on form-predicates and meaning-predicates and args, returns the cxn."
   (when (and form-predicates meaning-predicates)
-    (let* ((unit-name (make-var "filler-unit"))
-           (initial-score 0.5)
+    (let* ((initial-score 0.5)
            ;; filler-cxns learnt from source-delta can have indices in the form constraints
            ;; first, we make variable renamings for them
            (form-args-renamings (loop for arg in form-filler-args
                                       unless (variable-p arg)
-                                        collect (cons arg (make-var "LR"))))
+                                        collect (cons arg (make-var "TEST"))))
            ;; then we collect the form-filler args
            (form-filler-args (if form-args-renamings
                                (mapcar #'cdr form-args-renamings)
                                form-filler-args))
-           ;; and the sequence predicates
-
-           ;;; TEMP !!!!!!! should be removed
            
-           (form-sequence-predicates-temp (if form-args-renamings ;; only if resulting from source delta (thereby with no precedes)
-                                            (loop for (nil string left right) in (subst-bindings form-predicates form-args-renamings)
-                                                  collect (list 'sequence
-                                                                string
-                                                                (if (variable-p left) left (make-var "LR"))
-                                                                (if (variable-p right) right (make-var "LR"))))
-                                            form-predicates))
-           (form-sequence-predicates (if form-args-renamings
-                                       (loop for (nil string left right) in form-sequence-predicates-temp
+           ;; and the sequence predicates           
+           (form-sequence-predicates (if form-args-renamings ;; only if resulting from source delta (thereby with no precedes)
+                                       (loop for (nil string left right) in (subst-bindings form-predicates form-args-renamings)
                                              collect (list 'sequence
                                                            string
-                                                           (if (variable-p left) left (make-var "LR"))
-                                                           (if (variable-p right) right (make-var "LR"))))
-                                       form-sequence-predicates-temp))
+                                                           (if (variable-p left) left (make-var "TEST"))
+                                                           (if (variable-p right) right (make-var "TEST"))))
+                                       form-predicates)) ;; these also include precedes if we did not learn from source delta
                                      
-           (form-precedes-predicates (when form-args-renamings
+           (form-precedes-predicates (when form-args-renamings ;; only treats precedes separately if learning from source delta
                                        (loop for p in form-predicates
                                              for p-with-vars in form-sequence-predicates
                                              for p-right = (fourth p)
@@ -462,8 +458,9 @@ non-applicable constructions."
                                                             collect (list 'precedes
                                                                           (fourth p-with-vars)
                                                                           (third higher-indexed-p))))))
-           (form-predicates (append form-sequence-predicates form-precedes-predicates))
+           (form-predicates (append form-sequence-predicates form-precedes-predicates)) 
            (cxn-name (make-cxn-name form-predicates))
+           (unit-name (make-filler-unit-name form-predicates))
            (filler-cat (make-const (upcase (format nil "~a-filler-cat" (remove-cxn-tail (symbol-name cxn-name)))))))
 
       (make-instance 'filler-cxn

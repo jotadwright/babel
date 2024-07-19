@@ -26,6 +26,10 @@
   "From all fixes with the highest depth, select those with most reused cxns, and from those one with the highest average entrenchment score."
   (list (random-elt (select-fixes-with-highest-cxn-entrenchment (select-deepest-fixes (select-fixes-with-most-reused-cxns list-of-fixes))))))
 
+(defmethod select-fixes ((list-of-fixes list) (mode (eql :max-reuse)))
+  "From all fixes with the highest depth, select those with most reused cxns, and from those one with the highest average entrenchment score."
+  (select-deepest-fixes (select-fixes-with-most-reused-cxns list-of-fixes)))
+
 (defun select-deepest-fixes (list-of-fixes)
   "Returns all fixes with the max depth."
   (loop with sorted-fixes = (sort list-of-fixes #'>= :key #'(lambda (fix) (length (fixed-cars fix))))
@@ -64,6 +68,7 @@
   "Returns all fixes with most reused cxns."
   (let ((fixes-with-nr-of-reused-cxns-sorted (loop for fix in list-of-fixes
                                                    for nr-of-reused-cxns = (loop for car in (fixed-cars fix)
+                                                                                 unless (eql 'linking-cxn (type-of (original-cxn (car-applied-cxn car))))
                                                                                  count (find-cxn (original-cxn (car-applied-cxn car))
                                                                                                  (original-cxn-set (construction-inventory (cip fix)))
                                                                                                  :test #'equivalent-cxn))

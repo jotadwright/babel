@@ -36,12 +36,12 @@
                        (:diagnostics diagnose-cip-against-gold-standard)
                        (:repairs  repair-add-categorial-link repair-through-anti-unification)
                        (:learning-mode . :pattern-finding)
-                       (:alignment-mode . :punish-non-gold-branches)
+                       (:alignment-mode . :punish-non-gold-solutions)
                        (:li-reward . 0.2)
                        (:li-punishement . 0.5)
                        (:best-solution-mode . :highest-average-link-weight)
                        (:induce-cxns-mode . :filler-and-linking)
-                       (:fix-selection-mode . :single-fix-max-reuse)
+                       (:fix-selection-mode . :max-reuse)
                        (:form-generalisation-mode :altschul-erickson
                         ((:match-cost . 0)
                          (:mismatch-cost . 1)
@@ -76,10 +76,10 @@
 
 (reset-cp *clevr-stage-1-train-processor*)
 (setf *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
-(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar*  :nr-of-speech-acts 3)
+(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar*  :nr-of-speech-acts 100)
 
 
-(comprehend (current-speech-act *clevr-stage-1-train-processor*)  :cxn-inventory *clevr-stage-1-grammar*)
+(comprehend (nth-speech-act *clevr-stage-1-train-processor* 2)  :cxn-inventory *clevr-stage-1-grammar*)
 
 
 (progn
@@ -87,7 +87,7 @@
   (setf *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
   (comprehend *clevr-stage-1-train-processor*
               :cxn-inventory *clevr-stage-1-grammar*
-              :nr-of-speech-acts 10) ;;(array-dimension (corpus *clevr-stage-1-train-processor*) 0)
+              :nr-of-speech-acts 100) ;;(array-dimension (corpus *clevr-stage-1-train-processor*) 0)
   )
 
 
