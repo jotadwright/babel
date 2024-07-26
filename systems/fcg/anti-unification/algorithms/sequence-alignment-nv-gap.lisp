@@ -27,7 +27,7 @@
                    ;; 2) determine if cost P_{i,j} can be achieved with and without edge V_{i-1,j}, i.e. vertical edge above
                    (when (> i 0)
                      (let* ((extended-gap-cost (+ (aref P (- i 1) j) gap-cost))
-                            (extended-gap-cost-other-side (if (> j 0) (+ (aref Q (- i 1) j) gap-cost) +inf)) ;extend the gap of the horizontal matrix (look at the cost of position ((- i 1) j), since we are adding a vertical gap, we need to look at the same position for both the extended-gap-cost and the extended-gap-cost-other-side)
+                            (extended-gap-cost-other-side  (+ (aref Q (- i 1) j) gap-cost)) ;extend the gap of the horizontal matrix (look at the cost of position ((- i 1) j), since we are adding a vertical gap, we need to look at the same position for both the extended-gap-cost and the extended-gap-cost-other-side)
                             (new-gap-cost (+ (aref R (- i 1) j) gap-opening-cost gap-cost))
                             (min-cost (min extended-gap-cost new-gap-cost extended-gap-cost-other-side))) ;min cost between opening a gap after match/mismatch, vertical gap-extension or horizontal gap-extension
                        (setf (aref P i j) min-cost)
@@ -42,7 +42,7 @@
                    ;; 4) determine if cost Q_{i,j} can be achieved with and without edge H_{i,j-1}, i.e. horizontal edge left
                    (when (> j 0)
                      (let* ((extended-gap-cost (+ (aref Q i (- j 1)) gap-cost))
-                            (extended-gap-cost-other-side (if (> i 0) (+ (aref P i (- j 1)) gap-cost) +inf)) ;extend the gap of the vertical matrix (look at the cost of position (i (- j 1)), since we are adding a horizontal gap, we need to look at the same position for both the extended-gap-cost and the extended-gap-cost-other-side)
+                            (extended-gap-cost-other-side (+ (aref P i (- j 1)) gap-cost)) ;extend the gap of the vertical matrix (look at the cost of position (i (- j 1)), since we are adding a horizontal gap, we need to look at the same position for both the extended-gap-cost and the extended-gap-cost-other-side)
                             (new-gap-cost (+ (aref R i (- j 1)) gap-opening-cost gap-cost))
                             (min-cost (min extended-gap-cost new-gap-cost extended-gap-cost-other-side))) ;min cost between opening a gap after match/mismatch, vertical gap-extension or horizontal gap-extension
                        (setf (aref Q i j) min-cost)
@@ -97,7 +97,7 @@
                                (and (= (aref b i (+ j 1)) 1) (= (aref d i j) 1))) ; or if there is a horizontal edge and the previous edge was vertical
                              (setf (aref d (+ i 1) j) (- 1 (aref e i j)) ; then you know that the next edge d (+ i 1) j has as previous edge a vertical edge depending on whether you came from a vertical edge or not (- 1 (aref e i j))
                                    (aref e i j) (- 1 (aref a i j)) ; you also know that the next edge stored in (aref e i j) depends on the edge that is there or not (- 1 (aref a i j))
-                                   (aref a i j) 1)) ; you know that the edge is horizontal
+                                   (aref a i j) 1)) ; you know that the edge is vertical
                          (when (not (and (= (aref a (+ i 1) j) 1) (= (aref d i j) 1))) ; if no vertical edge and not previous vertical edge, then you don't know anythng about the previous and next edge, so set to 0
                            (setf (aref d (+ i 1) j) 0 
                                  (aref e i j) 0))
