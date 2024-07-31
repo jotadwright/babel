@@ -4,8 +4,21 @@
 ;; + Web monitor experiments +
 ;; ---------------------------
 
+(defun get-current-date ()
+  (multiple-value-bind
+      (second minute hour day month year day-of-week dst-p tz)
+      (get-decoded-time)
+    (format nil "~d-~2,'0d-~d_~dh~dm~ds" year month day hour minute second)))
+
+(defun generate-log-dir-name (seed)
+  (mkstr (internal-symb (list-of-strings->string
+                         (list (get-current-date)
+                               (mkstr (format nil "seed~a" seed))
+                               (mkstr (random 10) (random 10) (random 10) (random 10) (random 10)))
+                         :separator "-"))))
+
 (defun read-scene-ids (fname)
-  (let* ((base-dir "~/Corpora/concept-emergence2/data/")
+  (let* ((base-dir "~/Corpora/concept-emergence2/")
          (fpath (concatenate 'string base-dir fname))
          (raw (uiop:read-file-lines fpath))
          (scene-ids (map 'list #'parse-integer raw)))
@@ -15,16 +28,24 @@
   (intern (string-upcase (string-left-trim ":" string)) :keyword))
 
 (defun store-experiment (experiment)
-  (let* ((experiment-name (get-configuration experiment :experiment-name))
-         (output-dir (get-configuration experiment :output-dir))
+  (let* ((exp-top-dir (get-configuration experiment :exp-top-dir))
+         (log-dir-name (get-configuration experiment :log-dir-name))
+         (exp-name (get-configuration experiment :exp-name))
          (current-stage (get-configuration experiment :current-stage))
          (path (babel-pathname
-                :directory `("experiments" "concept-emergence2" "logging" ,(downcase output-dir) ,(downcase experiment-name) "stores")
+                :directory `("experiments"
+                             "concept-emergence2"
+                             "logging"
+                             ,exp-top-dir
+                             ,exp-name
+                             ,log-dir-name
+                             "stores")
                 :name (list-of-strings->string (list (write-to-string (series-number experiment))
                                                      "history"
                                                      "stage"
                                                      (write-to-string current-stage))
-                                               :separator "-") :type "store"))
+                                               :separator "-") 
+                :type "store"))
          (tmp-world (copy-object (world experiment))))
     (ensure-directories-exist path)
     (setf (world experiment) nil)

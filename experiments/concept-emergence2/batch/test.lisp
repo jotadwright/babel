@@ -4,10 +4,10 @@
 (ql:quickload :cle)
 (in-package :cle)
 
-(defmethod handle-batch-finished-event2 ((monitor data-file-writer) (exp-name string) (store string))
+(defmethod handle-batch-finished-event2 ((monitor data-file-writer) (exp-top-dir string) (exp-name string) (name string))
   (let* ((fname (file-name monitor))
          (fpath (mkstr (make-pathname :directory (pathname-directory fname))
-                       (format nil "~a/~a/" exp-name store)
+                       (format nil "~a/~a/~a/" exp-top-dir exp-name name)
                        (pathname-name fname) "." (pathname-type fname))))
     (ensure-directories-exist fpath)
     (with-open-file (file fpath :direction :output 
@@ -33,7 +33,7 @@
       (rplacd (assoc :available-channels config)
               (get-all-channels (assqv :available-channels config))))
     (loop for (key . val) in config
-          when (find key (list :exp-name :dataset :dataset-split))
+          when (find key (list :exp-name :dataset :dataset-split :exp-top-dir))
             do (rplacd (assoc key config)
                        (string-downcase (string (assqv key config)))))
     config))
@@ -45,48 +45,50 @@
     (:usage-table-window . 5000)))
 
 (defun test-experiment (args)
-  (loop for store in (list "1-history" "2-history" "3-history" "4-history" "5-history" "6-history" "7-history" "8-history" "9-history" "10-history")
-        do (let* ((config (append (fixed-config)
-                                  (parse-config args)))
-                  (experiment (cl-store:restore
-                               (babel-pathname :directory `("experiments"
-                                                            "concept-emergence2"
-                                                            "storage"
-                                                            "test"
-                                                            ,(assqv :exp-name config)
-                                                            )
-                                               :name store
-                                               :type "store"))))
-             (format t "~% EXP-NAME = ~a" (assqv :exp-name config)) ;; log exp-name
-             (setf *random-state* (make-random-state t)) ;; reset random state
-             ;; set-up
-             (set-configuration experiment :scene-sampling (assqv :scene-sampling config))
-             (set-configuration experiment :topic-sampling (assqv :topic-sampling config))
-             (set-configuration experiment :dataset (assqv :dataset config))
-             (set-configuration experiment :dataset-split (assqv :dataset-split config))
-             (set-configuration experiment :available-channels (assqv :available-channels config))
-             (set-configuration experiment :align nil)
-             ;; reset usage tables
-             (loop for agent in (agents experiment)
-                   do (setf (usage-table agent) (create-usage-table (assqv :usage-table-window config))))
-             ;; initialise the world
-             (initialise-world experiment)
-             ;; set-up monitors
-             (activate-monitor export-communicative-success)
-             (activate-monitor export-lexicon-coherence)
-             (activate-monitor export-unique-form-usage)
-             (activate-monitor print-a-dot-for-each-interaction)
-             (format t "~%---------- NEW GAME ----------~%")
-             (time
-              (loop for i from 1 to (assqv :nr-of-interactions config)
-                    do (run-interaction experiment)))
+  (let* ((config (append (fixed-config)
+                         (parse-config args)))
+         (fname (format nil "seed-~a" (assqv :seed config)))
+         (experiment (cl-store:restore
+                      (babel-pathname :directory `("experiments"
+                                                   "concept-emergence2"
+                                                   "storage"
+                                                   ,(assqv :exp-top-dir config)
+                                                   ,(assqv :exp-name config)
+                                                   )
+                                      :name fname
+                                      :type "store"))))
+    (format t "~% EXP-NAME = ~a w/ seed ~a"
+            (assqv :exp-name config)
+            (assqv :seed config)) ;; log exp-name
+    (set-seed (get-configuration experiment :seed)) ;; set random state
+    ;; set-up
+    (set-configuration experiment :scene-sampling (assqv :scene-sampling config))
+    (set-configuration experiment :topic-sampling (assqv :topic-sampling config))
+    (set-configuration experiment :dataset (assqv :dataset config))
+    (set-configuration experiment :dataset-split (assqv :dataset-split config))
+    (set-configuration experiment :available-channels (assqv :available-channels config))
+    (set-configuration experiment :align nil)
+    ;; reset usage tables
+    (loop for agent in (agents experiment)
+          do (setf (usage-table agent) (create-usage-table (assqv :usage-table-window config))))
+    ;; initialise the world
+    (initialise-world experiment)
+    ;; set-up monitors
+    (activate-monitor export-communicative-success)
+    (activate-monitor export-lexicon-coherence)
+    (activate-monitor export-unique-form-usage)
+    (activate-monitor print-a-dot-for-each-interaction)
+    (format t "~%---------- NEW GAME ----------~%")
+    (time
+     (loop for i from 1 to (assqv :nr-of-interactions config)
+           do (run-interaction experiment)))
 
-             ;; log monitors to disk
-             (loop for monitor-id in `(,'export-communicative-success
-                                       ,'export-lexicon-coherence
-                                       ,'export-unique-form-usage)
-                   for monitor = (monitors::get-monitor monitor-id)
-                   do (handle-batch-finished-event2 monitor (assqv :exp-name config) store))
-             (notify reset-monitors))))
+    ;; log monitors to disk
+    (loop for monitor-id in `(,'export-communicative-success
+                              ,'export-lexicon-coherence
+                              ,'export-unique-form-usage)
+          for monitor = (monitors::get-monitor monitor-id)
+          do (handle-batch-finished-event2 monitor (assqv :exp-top-dir config) (assqv :exp-name config) fname))
+    (notify reset-monitors)))
       
 (test-experiment #+sbcl (rest sb-ext:*posix-argv*))
