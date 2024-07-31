@@ -8,12 +8,11 @@
 (define-event event-invention-end (cxn cxn))
 
 (defmethod invent ((agent cle-agent))
-  "Invent a new cxn with a new form and a meaning based on the topic of the interaction."
   (let* ((meaning (get-data agent 'topic))
          (form (make-new-word))
          (new-cxn (make-cxn agent meaning form)))
     ;; push the new construction
-    (update-lexicon-inventory (lexicon agent) new-cxn)
+    (push new-cxn (lexicon agent))
     ;; set the applied-cxn slot
     (set-data agent 'applied-cxn new-cxn)
     ;; update monitor

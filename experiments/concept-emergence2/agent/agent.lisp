@@ -7,7 +7,10 @@
 (defclass cle-agent (agent)
   ((lexicon
     :documentation "The agent's lexicon."
-    :type lexicon :accessor lexicon :initarg :lexicon :initform nil)
+    :type list :accessor lexicon :initform nil)
+   (trash
+    :documentation "The lexicon trash, contains cxns with an entrenchment score of zero."
+    :type list :accessor trash :initform nil)
    (disabled-channels
     :documentation "Disabled/defected channels."
     :type hash-table :accessor disabled-channels :initarg :disabled-channels :initform nil)
@@ -25,22 +28,22 @@
     :type usage-table :accessor usage-table :initarg :usage-table)
    (perceived-objects
     :documentation "Stores perceived objects"
-    :type perceived-objects :accessor perceived-objects :initform (make-hash-table :test 'equal))))
-
+    :type perceived-objects :accessor perceived-objects :initform (make-hash-table))))
+  
 (defmethod clear-agent ((agent cle-agent))
   "Clear the slots of the agent for the next interaction."
   (setf (blackboard agent) nil
         (utterance agent) nil
         (invented-or-adopted agent) nil
-        (perceived-objects agent) (make-hash-table :test 'equal)
+        (perceived-objects agent) (make-hash-table)
         (communicated-successfully agent) nil))
 
 (defmethod find-in-lexicon ((agent cle-agent) (form string))
   "Finds constructions with the given form in the lexicon of the given agent."
-  (find-form-in-lexicon (lexicon agent) form))
-
-(defmethod empty-lexicon-p ((agent cle-agent))
-  (eq (lexicon-size (lexicon agent)) 0))
+  (let ((result (find form (lexicon agent) :key #'form :test #'string=)))
+    (if result
+      result
+      (find form (trash agent) :key #'form :test #'string=))))
 
 ;; ---------
 ;; + NOISE +
@@ -76,13 +79,19 @@
         ;; CASE 2B: object did not exist
         (progn
           ;; first create object
-          (setf (gethash (id object) (perceived-objects agent)) (make-hash-table :test 'equal))
+          (setf (gethash (id object) (perceived-objects agent)) (make-hash-table))
           ;; then set value
           (setf (gethash attr (gethash (id object) (perceived-objects agent))) final-val)))
       ;; in both cases return the final-value
       (gethash attr (gethash (id object) (perceived-objects agent))))))
 
 (defmethod perceive-object-val ((agent cle-agent) (object cle-object) attr)
+  "Perceives the value in a given sensor 'attr' of a given object.
+
+   This reading can be affected by two types of noise.
+   The raw observation is the true value in that channel of the object.
+   The sensor-noise term is a fixed shift (in either direction).
+   The observation noise term is different for every observation."
   (get-object-val object attr))
 
 ;; -------------------
@@ -103,11 +112,9 @@
         collect (cons channel shift)))
 
 (defmethod noise-in-sensor ((agent cle-agent) (attr symbol) (mode (eql :none)))
-  "No noise on sensor reading."
   0)
 
 (defmethod noise-in-sensor ((agent cle-agent) (attr symbol) (mode (eql :shift)))
-  "Sensor reading is shifted by a fixed value."
   (assqv attr (noise-in-each-sensor agent)))
 
 ;; ------------------------
@@ -128,15 +135,13 @@
         collect (cons channel shift)))
 
 (defmethod noise-in-observation ((agent cle-agent) (attr symbol) (mode (eql :none)))
-  "No noise on sensor reading."
   0)
 
 (defmethod noise-in-observation ((agent cle-agent) (attr symbol) (mode (eql :shift)))
-  "Sensor reading is shifted by a randomly sampled value from a gaussian distribution with mean 0 and a specified std."
   (random-gaussian 0 (assqv attr (noise-in-each-observation agent))))
 
 ;; helper function
 (defun random-gaussian (mean st-dev)
-  "Returns a random number from a gaussian distribution with the given mean and standard deviation."
-  ;(distributions:from-standard-normal (distributions:draw-standard-normal) mean st-dev)
-  0)
+  0
+  #|(distributions:from-standard-normal (distributions:draw-standard-normal) mean st-dev)|#
+  )

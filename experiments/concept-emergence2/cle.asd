@@ -20,7 +20,7 @@
                :cl-mop
                :cl-json
                :cl-jonathan
-               ;:distributions
+               ;;:distributions
                )
   :serial t
   :components ((:file "package")
@@ -30,7 +30,6 @@
                              (:file "clevr")
                              (:file "winery")
                              (:file "credit")
-                             (:file "gqaglove50")
                              (:file "beans")
                              ))
                (:module "world"
@@ -65,7 +64,7 @@
                (:module "construction"
                 :serial t
                 :components ((:file "construction")
-                             (:file "lexicon")
+                             (:file "competitors")
                              (:file "update")))
                (:module "distribution"
                 :serial t

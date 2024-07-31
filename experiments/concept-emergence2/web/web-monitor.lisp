@@ -5,7 +5,7 @@
 ;; --------------------------
 
 ;; Add cxn to wi
-(defun add-cxn-to-interface (cxn &key (certainty-threshold 0.1) disabled-channels)
+(defun add-cxn-to-interface (cxn &key certainty-threshold disabled-channels)
   (add-element
    `((div :style ,(format nil "margin-left: 50px;"))
      ,(s-dot->svg
@@ -13,22 +13,22 @@
                    :certainty-threshold certainty-threshold
                    :disabled-channels disabled-channels)))))
 
-(defun add-cxn-diff-to-interface (cxn previous-copy &key (certainty-threshold 0.1))
+(defun add-cxn-diff-to-interface (cxn previous-copy &key certainty-threshold)
   (add-element
    `((div :style ,(format nil "margin-left: 50px;"))
      ,(s-dot->svg
        (cxn->s-dot-diff cxn previous-copy
                         :certainty-threshold certainty-threshold)))))
+  
 
+;;;; Show lexicon in web interface
 (defun display-lexicon (agent &key (entrenchment-threshold 0) (certainty-threshold 0) (sort nil))
-  "Shows the lexicon in web interface."
-  (if (empty-lexicon-p agent)
+  (if (length= (lexicon agent) 0)
     (add-element
      `((h3) ,(format nil "Lexicon is empty!")))
-    (let* ((lexicon (loop for cxn being the hash-values of (get-inventory (lexicon agent) :fast) collect cxn))
-           (new-lexicon (if sort
-                          (sort lexicon #'(lambda (x y) (> (score x) (score y))))
-                          new-lexicon)))
+    (let ((lexicon (if sort
+                     (sort (lexicon agent) #'(lambda (x y) (> (score x) (score y))))
+                     (lexicon agent))))
       (add-element `((h3) ,(format nil "Lexicon:")))
       (loop for cxn in lexicon and idx from 0
             do (add-element
@@ -41,30 +41,28 @@
             when (>= (score cxn) entrenchment-threshold)
               do (add-cxn-to-interface cxn :certainty-threshold certainty-threshold :disabled-channels (disabled-channels agent))))))
 
+(defun display-lexicon-simple (agent)
+  (if (length= (lexicon agent) 0)
+    (add-element
+     `((h4) ,(format nil "Lexicon is empty!")))
+    (loop for cxn in (lexicon agent)
+          for i from 1
+          do (add-element
+              `((h4) ,(format nil " -> ~a: (~a, ~a)"
+                              i
+                              (downcase (mkstr (form cxn)))
+                              (downcase (mkstr (score cxn)))))))))
+
 (defun show-in-wi (args)
   (add-element `((h4) ,(format nil "~{~a~^, ~}" args))))
 
-(defun show-image (object)
-  (add-element `((div :class "image" :style ,(format nil "margin-left: 50px; margin-bottom: 20px; width: fit-content; border-radius: 8px; overflow: hidden; border: 1px; border-color: #000000; box-shadow: 8px 8px 12px 1px rgb(0 0 0 / 10%);"))
-                 ((img :src ,(string-append
-                              cl-user::*localhost-user-dir*
-                              (mkstr (make-pathname :directory
-                                                    `(:relative
-                                                      "Corpora/mscoco/train2014")
-                                                    :name
-                                                    (assqv :fname (description object))))))))))
-
-(defun show-scene (dataset split context topic)
-  ;(loop for object in (objects context)
-  ;      do (add-element `((h2) ,(format nil "~a" (assqv :fname (description object)))))
-  ;      do (show-image object))
+(defun show-scene (dataset context topic)
   (add-element `((h2) ,(format nil "Scene: ~a" (file-namestring (get-image-fpath context)))))
   (add-element `((div :class "image" :style ,(format nil "margin-left: 50px; margin-bottom: 20px; width: fit-content; border-radius: 8px; overflow: hidden; border: 1px; border-color: #000000; box-shadow: 8px 8px 12px 1px rgb(0 0 0 / 10%);"))
                  ((img :src ,(string-append
                               cl-user::*localhost-user-dir*
                               (concatenate 'string
-                                           split
-                                           "/"
+                                           "val/"
                                            (file-namestring (get-image-fpath context))))))))
   (add-element `((table :style ,(format nil "margin-left: 50px;"))
                  ((tr) ((td) ,(make-html context
@@ -96,13 +94,13 @@
   (add-element
    `((h2) ,(format nil "The ~a is the speaker with lexicon (size = ~a):"
                    (downcase (mkstr (id (speaker interaction))))
-                   (downcase (mkstr (lexicon-size (lexicon (speaker interaction))))))))
+                   (downcase (mkstr (length (lexicon (speaker interaction))))))))
   
   ;(display-lexicon (speaker interaction) :sort t)
   (add-element
    `((h2) ,(format nil "The ~a is the hearer with lexicon (size = ~a):"
                    (downcase (mkstr (id (hearer interaction))))
-                   (downcase (mkstr (lexicon-size (lexicon (hearer interaction))))))))
+                   (downcase (mkstr (length (lexicon (hearer interaction))))))))
   ;(display-lexicon (hearer interaction) :sort t)
   (add-element '((hr))))
 
@@ -122,8 +120,7 @@
 ;; ---------------------------
 
 (define-event-handler (trace-interaction-in-web-interface event-context-determined)
-  (show-scene (parse-keyword (get-configuration experiment :dataset))
-              (get-configuration experiment :dataset-split)
+  (show-scene (parse-keyword (get-configuration experiment :dataset)) 
               (get-data (speaker experiment) 'context)
               (get-data (speaker experiment) 'topic)))
 
@@ -243,8 +240,7 @@
 
 (define-event-handler (trace-interaction-in-web-interface event-adopt-start)
   (add-element
-   `((h3) ,(format nil "Hearer will adopt a new cxn for the form \"~a\"" (form cxn))))
-  (add-cxn-to-interface cxn))
+   `((h3) ,(format nil "Hearer will adopt a new cxn for the form \"~a\"" (form cxn)))))
 
 (define-event-handler (trace-interaction-in-web-interface event-align-cxn)
   (add-element

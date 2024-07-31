@@ -8,7 +8,6 @@
 (define-event event-parsing-end (agent cle-agent))
 
 (defmethod parsing ((agent cle-agent))
-  "Parse the utterance of the speaker and find it in the lexicon."
   (let* ((utterance (utterance agent))
          (cxn (find-in-lexicon agent utterance)))
     ;; either nil or something

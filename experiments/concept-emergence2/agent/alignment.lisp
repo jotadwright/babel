@@ -4,12 +4,12 @@
 ;; + Alignment +
 ;; -------------
 
-;; events
+;; event
 (define-event event-align-start (agent cle-agent))
 (define-event event-align-cxn
-              (reason string)
-              (cxn cxn)
-              (previous-copy cxn))
+  (reason string)
+  (cxn cxn)
+  (previous-copy cxn))
 
 (defmethod align ((agent cle-agent))
   (notify event-align-start agent)
@@ -68,7 +68,7 @@
                 ;; 2. shift concept of applied-cxn to topic
                 (shift-concept agent topic (meaning applied-cxn))
                 ;; 3. find and punish meaning competitors
-                (conceptualise agent)
+                (decide-competitors-hearer agent applied-cxn)
                 (loop for other-cxn in (find-data agent 'meaning-competitors)
                       for similarity = (similar-concepts agent (meaning applied-cxn) (meaning other-cxn))
                       for delta = (* similarity (get-configuration (experiment agent) :entrenchment-li))
