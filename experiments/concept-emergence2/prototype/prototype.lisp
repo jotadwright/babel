@@ -17,20 +17,16 @@
     :initarg :history :accessor history :initform '() :type list))
   (:documentation "A prototype is a mapping between a feature channel and a distribution."))
 
-(defmethod copy-object ((prototype prototype))
-  (make-instance 'prototype
-                 :channel (channel prototype)
-                 :weight (copy-object (weight-val prototype))
-                 :weight-mode (copy-object (weight-mode prototype))
-                 :distribution (copy-object (distribution prototype))
-                 :history (copy-object (history prototype))))
-
 (defmethod weight ((prototype prototype))
+  "Returns the weight of the prototype based on it's mode."
   (case (weight-mode prototype)
     (:standard (weight-val prototype))
     (:j-interpolation (j-interpolation (weight-val prototype)))))
 
 (defun j-interpolation (value)
+  "Applies the step-wise sigmoid function.
+
+   Made faster by already returning known values for common values."
   (cond ((= value 0) 0.5)
         ((= value 1) 0.622)
         ((= value -1) 0.378)
@@ -44,8 +40,16 @@
     When c is a fraction the slope is less steep, when c is a larger the slope is steeper."
   (/ 1 (+ 1 (exp (- (* c x))))))
 
-#|(defun fast-sigmoid (x)
-  (* 0.5 (+ (/ x (+ 1 (abs x))) 1)))|#
+;; --------------------
+;; + helper-functions +
+;; --------------------
+(defmethod copy-object ((prototype prototype))
+  (make-instance 'prototype
+                 :channel (channel prototype)
+                 :weight (copy-object (weight-val prototype))
+                 :weight-mode (copy-object (weight-mode prototype))
+                 :distribution (copy-object (distribution prototype))
+                 :history (copy-object (history prototype))))
 
 (defmethod print-object ((prototype prototype) stream)
   (pprint-logical-block (stream nil)

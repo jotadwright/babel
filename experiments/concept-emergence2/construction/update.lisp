@@ -4,10 +4,10 @@
 ;; + Update scores +
 ;; -----------------
 
-;; adjust entrenchment
 (defmethod update-score-cxn (agent cxn delta &key
                                    (upper-bound 1.0)
                                    (lower-bound 0.0))
+  "Updates the entrenchment score of a cxn."
   ;; update the score
   (setf (score cxn) (+ (score cxn) delta))
   ;; check the upper boundary

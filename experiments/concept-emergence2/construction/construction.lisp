@@ -31,6 +31,7 @@
                    :history (list (cons interaction-number scene-idx)))))
 
 (defmethod reset-cxn (agent cxn object)
+  "Resets the meaning and score of a cxn."
   (let ((scene-idx (index (current-scene (world (experiment agent)))))
         (interaction-number (interaction-number (current-interaction (experiment agent)))))
 

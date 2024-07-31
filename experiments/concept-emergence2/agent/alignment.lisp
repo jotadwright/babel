@@ -4,12 +4,12 @@
 ;; + Alignment +
 ;; -------------
 
-;; event
+;; events
 (define-event event-align-start (agent cle-agent))
 (define-event event-align-cxn
-  (reason string)
-  (cxn cxn)
-  (previous-copy cxn))
+              (reason string)
+              (cxn cxn)
+              (previous-copy cxn))
 
 (defmethod align ((agent cle-agent))
   (notify event-align-start agent)

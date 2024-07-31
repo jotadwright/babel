@@ -9,7 +9,10 @@
                              (prototype prototype)
                              &key (save-distribution-history t)
                              &allow-other-keys)
+  "Update the distribution of a prototype."
+  ;; update distribution
   (update-distribution new-observation (distribution prototype))
+  ;; update history (for visualisation purposed or debugging)
   (when save-distribution-history
     (update-distribution-history interaction-number
                                  new-observation

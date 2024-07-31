@@ -1,19 +1,19 @@
 (in-package :cle)
 
 (defmethod get-all-channels ((mode (eql :clevr)))
-  (reverse `(
-             ,'xpos ,'ypos
-             ,'width ,'height
-             ,'angle
-             ,'corners
-             ,'area ,'relative-area
-             ,'bb-area ,'bb-area-ratio
-             ,'wh-ratio
-             ,'circle-distance
-             ,'white-level ,'black-level
-             ,'rgb-mean-r ,'rgb-mean-g ,'rgb-mean-b
-             ,'rgb-std-r ,'rgb-std-g ,'rgb-std-b
-             )))
+  "CLEVR dataset."
+  `(,'xpos ,'ypos
+    ,'width ,'height
+    ,'angle
+    ,'corners
+    ,'area ,'relative-area
+    ,'bb-area ,'bb-area-ratio
+    ,'wh-ratio
+    ,'circle-distance
+    ,'white-level ,'black-level
+    ,'rgb-mean-r ,'rgb-mean-g ,'rgb-mean-b
+    ,'rgb-std-r ,'rgb-std-g ,'rgb-std-b
+    ))
 
 (defmethod is-channel-available ((mode (eql :clevr)) symbolic-attribute raw-attributes)
   (let ((continuous-attributes (loop for key being the hash-keys of raw-attributes
@@ -42,19 +42,19 @@
       (:ZPOS (if (member 'ypos continuous-attributes) t nil)))))
 
 (defmethod get-all-channels ((mode (eql :cogent)))
-  (reverse `(
-             ,'xpos ,'ypos
-             ,'width ,'height
-             ,'angle
-             ,'corners
-             ,'area ,'relative-area
-             ,'bb-area ,'bb-area-ratio
-             ,'wh-ratio
-             ,'circle-distance
-             ,'white-level ,'black-level
-             ,'rgb-mean-r ,'rgb-mean-g ,'rgb-mean-b
-             ,'rgb-std-r ,'rgb-std-g ,'rgb-std-b
-             )))
+  "CLEVR COGENT dataset."
+  `(,'xpos ,'ypos
+    ,'width ,'height
+    ,'angle
+    ,'corners
+    ,'area ,'relative-area
+    ,'bb-area ,'bb-area-ratio
+    ,'wh-ratio
+    ,'circle-distance
+    ,'white-level ,'black-level
+    ,'rgb-mean-r ,'rgb-mean-g ,'rgb-mean-b
+    ,'rgb-std-r ,'rgb-std-g ,'rgb-std-b
+    ))
 
 (defmethod is-channel-available ((mode (eql :cogent)) symbolic-attribute raw-attributes)
   (let ((continuous-attributes (loop for key being the hash-keys of raw-attributes

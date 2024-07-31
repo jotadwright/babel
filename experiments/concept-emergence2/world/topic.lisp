@@ -42,7 +42,10 @@
           do (set-data agent 'topic cle-topic))))
 
 (defmethod sample-topic (experiment (mode (eql :discriminative)))
-  "Only objects that can be distinguished using a single metadata dimension can serve as topic."
+  "Only objects that can be distinguished using a single metadata dimension can serve as topic.
+
+   Assumes that the dataset contains symbolic annotations of the data.
+   Topic strategy corresponding to the Frontiers paper by Nevens et al. (2020)."
   (let* ((interaction (current-interaction experiment))
          (agent (first (interacting-agents experiment)))
          (cle-scene (find-data agent 'context))

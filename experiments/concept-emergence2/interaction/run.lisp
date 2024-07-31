@@ -31,14 +31,14 @@
                 always (communicated-successfully agent)))
     ;; 4. notify
     (if (get-configuration experiment :record-every-x-interactions)
-	(when 
-	    (or
-               ;; If we set a configuration called record-every-x-interactions,
-               ;; notify will only be fired every x interactions AND notify it the very first interaction
-	       (= (mod (interaction-number interaction) (get-configuration experiment :record-every-x-interactions)) 0) 
-	       (= (interaction-number interaction) 1))
+      (when 
+          (or
+           ;; If we set a configuration called record-every-x-interactions,
+           ;; notify will only be fired every x interactions AND notify it the very first interaction
+           (= (mod (interaction-number interaction) (get-configuration experiment :record-every-x-interactions)) 0) 
+           (= (interaction-number interaction) 1))
           
-	  (notify interaction-finished experiment interaction (interaction-number interaction)))
-        ;;; if you do not set such a configuration, notify will always be notified
-	(notify interaction-finished experiment interaction (interaction-number interaction)))
+        (notify interaction-finished experiment interaction (interaction-number interaction)))
+      ;;; if you do not set such a configuration, notify will always be notified
+      (notify interaction-finished experiment interaction (interaction-number interaction)))
     (values interaction experiment)))
