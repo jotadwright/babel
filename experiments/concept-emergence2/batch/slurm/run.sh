@@ -1,11 +1,11 @@
 #!/bin/bash
 
-mkdir -p "/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/${8}"
+mkdir -p "/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/${9}"
 
 for i in $(seq $4 $5);
 do
-    epath="/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/${8}/${2}_%a_seed${i}_%A_e.txt"
-    opath="/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/${8}/${2}_%a_seed${i}_%A_o.txt"
+    epath="/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/${9}/${2}_%a_seed${i}_%A_e.txt"
+    opath="/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/${9}/${2}_%a_seed${i}_%A_o.txt"
     sbatch --error $epath --output $opath --job-name "seed${i}-${1}" --array $3 --time $6 --mem $7  --ntasks 1 --cpus-per-task 1 --export=seed=$i,name=$2,space=$8,exp_top_dir=$9 slurm/$1.sh
 done
 
