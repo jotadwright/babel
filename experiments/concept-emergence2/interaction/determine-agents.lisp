@@ -39,6 +39,13 @@
                                     (get-configuration experiment :amount-disabled-channels))
         collect disabled))
 
+(defmethod determine-disable-channels (experiment amount (mode (eql :fixed)))
+  "For every agent, chooses randomly n channels to be disabled."
+  (loop with disabled = (random-elts (get-configuration experiment :available-channels)
+                                     (get-configuration experiment :amount-disabled-channels))
+        for i from 1 to amount
+        collect disabled))
+
 (defmethod determine-disable-channels (experiment amount (mode (eql :2-groups)))
   "Split the population in two groups, for every group, chooses randomly n channels to be disabled.
    The disabled channels cannot overlap."
