@@ -4,7 +4,7 @@
 ;; + CLE object set +
 ;; ------------------
 
-(defmethod s-expr->cle-scene (s-expr &key dataset dataset-split available-channels)
+(defmethod s-expr->cle-scene (s-expr &key dataset dataset-split feature-set)
   "Create an instance of cle-scene from an s-expression"
   (make-instance 'cle-scene
                  :index (rest (assoc :image--index s-expr))
@@ -12,7 +12,7 @@
                  :dataset-split dataset-split
                  :image-fname (rest (assoc :image--filename s-expr))
                  :objects (loop for obj in (rest (assoc :objects s-expr))
-                                collect (s-expr->cle-object obj available-channels))))
+                                collect (s-expr->cle-object obj feature-set))))
 
 (defclass cle-scene (entity)
   ((index
@@ -36,11 +36,11 @@
 ;; --------------
 ;; + CLE-Object +
 ;; --------------
-(defmethod s-expr->cle-object (s-expr available-channels)
+(defmethod s-expr->cle-object (s-expr feature-set)
   "Create an instance of cle-scene from an s-expression"
   (make-instance 'cle-object
-                 ;; filter the raw s-expr on only the available channels
-                 :attributes (filter-object (intern-alist (rest (assoc :attributes s-expr))) available-channels)
+                 ;; filter the raw s-expr on only the available feature-set
+                 :attributes (filter-object (intern-alist (rest (assoc :attributes s-expr))) feature-set)
                  :description (rest (assoc :description s-expr))))
 
 (defclass cle-object (entity)
@@ -66,10 +66,10 @@
                     (cdr pair)))
           alist))
 
-(defun filter-object (object available-channels)
+(defun filter-object (object feature-set)
   "Only keep the attributes that are in play."
   (loop with hash-table = (make-hash-table)
-        for channel in available-channels
+        for channel in feature-set
         do (setf (gethash channel hash-table) (assqv channel object))
         finally (return hash-table)))
 

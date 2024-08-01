@@ -17,7 +17,8 @@
                       (cond ((or (= (interaction-number interaction) 1) (not *start-time*))
                              (setf *start-time* (get-universal-time)))
                             ((= (mod (interaction-number interaction)
-                                     (get-configuration experiment :dot-interval)) 0)
+                                     (get-configuration experiment :dot-interval))
+                                0)
                              (let ((comm-success (caaar (monitors::get-average-values (monitors::get-monitor 'record-communicative-success))))
                                    (coherence (caaar (monitors::get-average-values (monitors::get-monitor 'record-lexicon-coherence)))))
                                (multiple-value-bind (h m s) (seconds-to-hours-minutes-seconds (- (get-universal-time) *start-time*))
@@ -117,13 +118,13 @@
                                                    ,log-dir-name)
                                       :name "experiment-configurations" 
                                       :type "lisp"))
-                               (config (append (entries experiment)  (list (cons :HASH (first (exec-and-return "git" "rev-parse" "HEAD"))))))
-                               (clean-config (remove :CURRENT-SCENE-IDX (remove :SCENE-IDS config :key #'car) :key #'car)))
+                               (config (append (entries experiment) 
+                                               (list (cons :HASH (first (exec-and-return "git" "rev-parse" "HEAD")))))))
                           (ensure-directories-exist path)
                           (with-open-file (stream path :direction :output
                                                   :if-exists :overwrite
                                                   :if-does-not-exist :create)
-                            (write clean-config :stream stream)))))
+                            (write config :stream stream)))))
 
 (define-monitor export-experiment-store)
 (define-event-handler (export-experiment-store run-series-finished)
@@ -244,4 +245,3 @@
 (define-event-handler (export-hearer-concepts-to-pdf run-series-finished)
                       (loop for agent in (agents experiment)
                             do (lexicon->pdf agent :serie (series-number experiment))))|#
-

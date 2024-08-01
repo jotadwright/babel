@@ -56,7 +56,7 @@
 (defun show-in-wi (args)
   (add-element `((h4) ,(format nil "~{~a~^, ~}" args))))
 
-(defun show-scene (dataset split context topic)
+(defun show-scene (world split context topic)
   (add-element `((h2) ,(format nil "Scene: ~a" (file-namestring (get-image-fpath context)))))
   (add-element `((div :class "image" :style ,(format nil "margin-left: 50px; margin-bottom: 20px; width: fit-content; border-radius: 8px; overflow: hidden; border: 1px; border-color: #000000; box-shadow: 8px 8px 12px 1px rgb(0 0 0 / 10%);"))
                  ((img :src ,(string-append
@@ -68,7 +68,7 @@
   (add-element `((table :style ,(format nil "margin-left: 50px;"))
                  ((tr) ((td) ,(make-html context
                                          :topic (id topic)
-                                         :dataset dataset
+                                         :world world
                                          :expand-initially t))))))
 
 (defun get-image-fpath (scene)
@@ -121,7 +121,7 @@
 ;; ---------------------------
 
 (define-event-handler (trace-interaction-in-web-interface event-context-determined)
-  (show-scene (parse-keyword (get-configuration experiment :dataset))
+  (show-scene (world experiment)
               (get-configuration experiment :dataset-split)
               (get-data (speaker experiment) 'context)
               (get-data (speaker experiment) 'topic)))
@@ -206,7 +206,7 @@
                        (downcase (mkstr (id agent))))))
       (add-element `((div :class "image" :style ,(format nil "margin-left: 50px;"))
                      ,(make-html (find-data agent 'interpreted-topic)
-                                 :dataset (parse-keyword (get-configuration (experiment agent) :dataset))
+                                 :world (world (experiment agent))
                                  :expand-initially t))))
     (add-element
      `((h2) ,(format nil "Step 4: The ~a could not interpret the utterance."

@@ -5,7 +5,7 @@
 ;; -----------------------
 
 ;; make html of cle-object
-(defmethod make-html-for-entity-details ((object cle-object) &key topic dataset)
+(defmethod make-html-for-entity-details ((object cle-object) &key topic world)
   (let ((title-font (if (equal topic (id object)) "font-weight:bold;" ""))
         (attributes (sort (loop for channel being the hash-keys of (attributes object)
                                   using (hash-value value)
@@ -15,7 +15,7 @@
     (append
      ;; symbolic attributes
      (loop for (attr . val) in (description object)
-           if (is-channel-available dataset attr (attributes object))
+           if (is-channel-available world attr (attributes object))
              append `(((div :class "entity-detail" :style ,(format nil "~a" title-font))
                        ,(format nil "~a = ~,2f" attr val))))
      ;; continuous features
@@ -33,10 +33,10 @@
 
 
 ;; make html of object set
-(defmethod make-html-for-entity-details ((set cle-scene) &key topic dataset)
+(defmethod make-html-for-entity-details ((set cle-scene) &key topic world)
   `(((div :class "entity-detail")
      ,@(loop for object in (objects set)
-             collect (make-html object :topic topic :dataset dataset :expand-initially t)))))
+             collect (make-html object :topic topic :world world :expand-initially t)))))
 
 ;; make-html of cxn
 (defmethod make-html ((cxn cxn) &key)
@@ -72,7 +72,7 @@
 (defmethod make-html ((e entity)
                       &rest parameters
                       &key (topic nil)
-                      (dataset nil)
+                      (world nil)
                       (expand/collapse-all-id (make-id 'entity))
                       (expand-initially nil))
   `((div :class "entity")
@@ -80,15 +80,15 @@
        (make-expandable/collapsable-element 
         element-id expand/collapse-all-id
         ;; collapsed version
-        (collapsed-entity-html e topic dataset element-id)
+        (collapsed-entity-html e topic world element-id)
         ;; expanded version
-        (expanded-entity-html e topic dataset element-id parameters)
+        (expanded-entity-html e topic world element-id parameters)
         :expand-initially expand-initially))
     ((table :class "entity")
      ((tr) ((td :class "entity-type") 
             ,(format nil "~(~a~)" (type-of e)))))))
 
-(defmethod collapsed-entity-html ((e entity) (topic symbol) dataset element-id)
+(defmethod collapsed-entity-html ((e entity) (topic symbol) world element-id)
   "html for the collapsed version of an entity"
   (let ((border-thickness (if (equal topic (id e))
                             "3px"
@@ -108,7 +108,7 @@
                      "topic: ~(~a~)"
                      "~(~a~)")  (id e)))))))
 
-(defmethod expanded-entity-html ((e entity) (topic symbol) dataset element-id parameters)
+(defmethod expanded-entity-html ((e entity) (topic symbol) world element-id parameters)
   "html for the expanded version of an entity"
   (let ((border-thickness (if (equal topic (id e))
                             "3px"
@@ -135,4 +135,4 @@
         ((table :class "entity" :cellpadding "0" :cellspacing "0") 
          ((tr)
           ((td :class "entity-details")
-           ,@(apply 'make-html-for-entity-details e :dataset dataset parameters))))))))
+           ,@(apply 'make-html-for-entity-details e :world world parameters))))))))

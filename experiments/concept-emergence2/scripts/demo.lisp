@@ -18,15 +18,15 @@
                 (:dataset . "clevr")
                 (:dataset-split . "train")
                 ;(:data-fname . "all.lisp")
-                (:available-channels ,@(get-all-channels :clevr))
+                (:feature-set . "clevr")
                 ;; disable channels
                 (:disable-channels . :none)
                 (:amount-disabled-channels . 0)
                 ;; noised channels
                 (:sensor-noise . :none)
                 (:sensor-std . 0.0)
-                (:observation-noise . :shift)
-                (:observation-std . 0.01)
+                (:observation-noise . :none)
+                (:observation-std . 0.0)
                 ;; scene sampling
                 (:scene-sampling . :random)
                 (:topic-sampling . :random)
@@ -53,8 +53,9 @@
                 (:switch-conditions-after-n-interactions . 2500) 
                 (:stage-parameters nil)
                 ;; saving
-                (:experiment-name . "test")
-                (:log-dir-name . "test")
+                (:exp-top-dir . "a")
+                (:exp-name . "b")
+                (:log-dir-name . "c")
                 )))
   (setf *experiment* (make-instance 'cle-experiment :configuration *baseline-simulated*))
   (notify reset-monitors)
