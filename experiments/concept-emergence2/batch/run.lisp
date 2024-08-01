@@ -75,7 +75,7 @@
          (log-dir-name (generate-log-dir-name (assqv :seed config))))
     ;; add log-dir-name to configuration
     (setf config (append config (list (cons :log-dir-name log-dir-name))))
-    ;; adapt file-writing monitors so they output in the correct output-dir
+    ;; adapt file-writing monitors so they output in the correct log-dir
     (set-up-monitors (get-monitors) config)
 
     ;; Run experiment
