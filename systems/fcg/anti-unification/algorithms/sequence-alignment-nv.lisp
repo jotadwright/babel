@@ -680,13 +680,13 @@
         
         (cond ((= (aref (l-m arrays) i j) 1)
                (unless (eql prev-edge 'diagonal-mismatch)
-                 (setf next-state nil)))
+                 (setf next-states nil)))
               ((= (aref (l-h arrays) i j) 1)
                (unless (eql prev-edge 'horizontal)
-                 (setf next-state nil)))
+                 (setf next-states nil)))
               ((= (aref (l-v arrays) i j) 1)
                (unless (eql prev-edge 'vertical)
-                 (setf next-state nil))))
+                 (setf next-states nil))))
         
         ;; return the next state
         next-states))))
@@ -771,13 +771,13 @@
 
         (cond ((= (aref (e-v arrays) i j) 1)
                (unless (eql prev-edge 'vertical)
-                 (setf next-state nil)))
+                 (setf next-states nil)))
               ((= (aref (e-h arrays) i j) 1)
                (unless (eql prev-edge 'horizontal)
-                 (setf next-state nil)))
+                 (setf next-states nil)))
               ((= (aref (e-m arrays) i j) 1)
                (unless (eql prev-edge 'diagonal-mismatch)
-                 (setf next-state nil))))
+                 (setf next-states nil))))
         ;; return the next state
         next-states))))
 
@@ -867,13 +867,13 @@
         ;; if not, remove the next state! same for g-v and vertical, g-m and diagonal-mismatch
         (cond ((= (aref (g-h arrays) i j) 1)
                (unless (eql prev-edge 'horizontal)
-                 (setf next-state nil)))
+                 (setf next-states nil)))
               ((= (aref (g-v arrays) i j) 1)
                (unless (eql prev-edge 'vertical)
-                 (setf next-state nil)))
+                 (setf next-states nil)))
               ((= (aref (g-m arrays) i j) 1)
                (unless (eql prev-edge 'diagonal-mismatch)
-                 (setf next-state nil))))
+                 (setf next-states nil))))
         ;; return the next state
         next-states))))
 
