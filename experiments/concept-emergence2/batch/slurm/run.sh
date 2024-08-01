@@ -29,3 +29,6 @@ done
 #   3-5,9 -> run sub-experiments 3, 4, 5, and 9
 
 # $ bash slurm/run.sh test test-paper-hydra 1,4,5 1 10 02:00:00 8G 10000 exp-name
+
+# experiment equality checker
+# $ bash slurm/run.sh train equality 1-11 1 3 00:20:00 8G 10000 exp-equality
