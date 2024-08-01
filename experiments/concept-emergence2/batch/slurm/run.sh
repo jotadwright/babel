@@ -6,7 +6,7 @@ for i in $(seq $4 $5);
 do
     epath="/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/${9}/${2}_%a_seed${i}_%A_e.txt"
     opath="/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/${9}/${2}_%a_seed${i}_%A_o.txt"
-    sbatch --error $epath --output $opath --job-name "seed${i}-${1}" --array $3 --time $6 --mem $7  --ntasks 1 --cpus-per-task 1 --export=seed=$i,name=$2,space=$8,exp_top_dir=$9 slurm/$1.sh
+    sbatch --error $epath --output $opath --job-name "${9}-seed${i}-${1}" --array $3 --time $6 --mem $7  --ntasks 1 --cpus-per-task 1 --export=seed=$i,name=$2,space=$8,exp_top_dir=$9 slurm/$1.sh
 done
 
 # example usage: 
@@ -31,4 +31,4 @@ done
 # $ bash slurm/run.sh test test-paper-hydra 1,4,5 1 10 02:00:00 8G 10000 exp-name
 
 # experiment equality checker
-# $ bash slurm/run.sh train exp-equality 1-11 1 3 00:20:00 8G 10000 exp-equality
+# $ bash slurm/run.sh train exp-equality 1-11 1 3 00:08:00 8G 10000 exp-equality
