@@ -55,12 +55,6 @@
     (cl-store:store experiment path)
     (setf (world experiment) tmp-world)))
 
-(defun fix-configuration (experiment)
-  "Method to fix configurations of previous experiment without make-configuration and switch condition."
-  (setf (configuration experiment)
-        (configuration (make-configuration :entries (configuration experiment))))
-  (set-configuration experiment :switch-condition :none))
-
 (defun find-agent (id experiment)
   "Given an integer id, returns the associated agent"
   (let ((agent (loop for agent in (agents experiment)
@@ -135,17 +129,6 @@
                                       (format str "~(~s~)" def-val))
                                      (t
                                       (format str "~a" def-val)))))))))
-            
-#|(defun find-experiment-dir (base-dir exp-number)
-  "Finds the path to the directory of an experiment." 
-  (let* ((experiment-directories (uiop:subdirectories (asdf:system-relative-pathname "cle" (format nil "storage/~a/experiments/" "similarity"))))
-         (exp-dir (loop for exp-dir in experiment-directories
-                        for found-exp-number = (parse-integer (last-elt (split-sequence:split-sequence #\- (last-elt (pathname-directory exp-dir)))))
-                        when (equal exp-number found-exp-number)
-                          do (loop-finish)
-                        finally
-                          (return exp-dir))))
-    exp-dir))|#
 
 (defun load-experiment (store-dir &key (name "history"))
   "Loads and returns the store object in the given directory." 
@@ -189,79 +172,3 @@
                            (:weight-decf -1 -2 -3 -5)
                            (:entrenchment-li -0.0001 -0.0005 -0.001 -0.005 -0.01 -0.02 -0.05)
                            ))|#
-
-
-;; -----------------------------------------
-;; + Utility functions for CLEVR simulated +
-;; -----------------------------------------
-
-#|(defun find-scenes-with-size (context-size)
-  (let* ((world (make-instance 'dataset-world
-                               :dataset "clevr-extracted"
-                               :dataset-split "val"
-                               :available-channels (get-all-channels :clevr-extracted)))
-         (scenes (all-scenes world))
-         (filtered-scenes (loop for scene in scenes
-                                if (length= (objects scene) context-size)
-                                  collect scene)))
-    filtered-scenes))|#
-
-#|
-(defun get-all-scenes ()
-  (let* ((world (make-instance 'dataset-world
-                               :dataset "cogenta-extracted"
-                               :dataset-split "val"
-                               :available-channels (get-all-channels :clevr-extracted))))
-    (scenes world)))
-
-(defun find-scenes-with-discriminative-topics (dataset scenes channels)
-    (loop for fpath in scenes
-          for cle-scene = (load-scene fpath channels)
-          for candidate-topics = (filter-discriminative-topics dataset (objects cle-scene))
-          if candidate-topics
-            collect (cons (index cle-scene) candidate-topics)))
-
-(progn
-  (setf disc-scenes (find-scenes-with-discriminative-topics :clevr-extracted all-scenes (get-all-channels :clevr-extracted)))
-  1)
-|#
-
-;;;
-
-#|
- 
-(setf all-scenes (find-scenes-with-size))
-(setf all-scenes (get-all-scenes))
-(length all-scenes)
-
-(setf res (find-scenes-with-discriminative-topics all-scenes (list 'color 'area 'roughness)))
-(setf res (find-scenes-with-discriminative-topics all-scenes (list 'color 'area 'roughness 'sides-and-corners 'wh-ratio 'xpos 'ypos 'zpos)))
-(length res)
-(setf scene-ids (loop for (scene-id . candidate-topics) in res collect scene-id))
-
-(setf scene-ids (loop for scene in all-scenes collect (index scene)))
-
-(setf test (loop for (scene-id . candidate-topics) in res
-      for scenes = (loop for candidate-topic in candidate-topics
-                         collect (cons scene-id candidate-topic))
-      append scenes))
-
-(defun dupes (lst)
-  (cond ((null lst) '())
-        ((member (car lst) (cdr lst)) (cons (car lst) (dupes (cdr lst))))
-        (t (dupes (cdr lst)))))
-
-(dupes (loop for scene in res
-             collect (first scene)))
-
-(setf all-scenes (find-scenes-with-size 5))
-          if (length> candidate-topics 0)
-              do (loop for ecl-topic in candidate-topics
-                       for types = (get-symbolic-discriminative-feature ecl-topic ecl-context)
-                               
-            do (let ((ecl-topic (random-elt candidate-topics)))
-                 (set-data interaction 'attribute-type (get-symbolic-discriminative-feature ecl-topic ecl-context))
-                 (loop for agent in (interacting-agents experiment)
-                       do (set-data agent 'topic ecl-topic))))))|#
-
-

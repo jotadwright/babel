@@ -84,8 +84,6 @@
                (:module "utils"
                 :serial t
                 :components ((:file "seed")
-                             (:file "analysis")
-                             (:file "graph")
                              (:file "utils")))
                (:module "web"
                 :serial t
