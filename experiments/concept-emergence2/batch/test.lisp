@@ -29,11 +29,8 @@
 (defun parse-config (args)
   (let ((config (loop for (a b) on args by #'cddr
                       collect (cons (parse-keyword a) (read-from-string b)))))
-    (when (and (assoc :available-channels config) (keywordp (assqv :available-channels config)))
-      (rplacd (assoc :available-channels config)
-              (get-all-channels (assqv :available-channels config))))
     (loop for (key . val) in config
-          when (find key (list :exp-name :dataset :dataset-split :exp-top-dir))
+          when (find key (list :exp-name :dataset :dataset-split :exp-top-dir :feature-set))
             do (rplacd (assoc key config)
                        (string-downcase (string (assqv key config)))))
     config))
@@ -66,7 +63,7 @@
     (set-configuration experiment :topic-sampling (assqv :topic-sampling config))
     (set-configuration experiment :dataset (assqv :dataset config))
     (set-configuration experiment :dataset-split (assqv :dataset-split config))
-    (set-configuration experiment :available-channels (assqv :available-channels config))
+    (set-configuration experiment :feature-set (assqv :feature-set config))
     (set-configuration experiment :align nil)
     ;; reset usage tables
     (loop for agent in (agents experiment)

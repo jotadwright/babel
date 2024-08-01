@@ -38,6 +38,8 @@
     (set-configuration experiment :current-stage next-stage)
 
     ;; PART 2: the possible switches
+    ;; check if dataset changes
+    (switch-dataset experiment params)
     ;; check if channels need to be disabled
     (switch-disable-channels experiment params)
     ;; check if half of the population gets some channels disabled
@@ -45,9 +47,7 @@
     ;; check if need to add agents
     (switch-add-agents experiment params)
     ;; check if need to change alignment
-    (switch-alignment experiment params)
-    ;; check if dataset changes
-    (switch-dataset experiment params)))
+    (switch-alignment experiment params)))
 
 ;; -----------------
 ;; + The switchers +
@@ -59,7 +59,7 @@
     (let* ((change (assqv :switch-disable-channels params)) ;; change is either a list or a number
            (channels (if (numberp change)
                        ;; disable n sensors
-                       (random-elts (get-configuration experiment :available-channels) change)
+                       (random-elts (get-feature-set (world experiment)) change)
                        ;; disable the given list of features
                        change)))
       (loop for agent in (agents experiment)
@@ -76,7 +76,7 @@
       (loop for agent in population-half
             for channels = (if (numberp change)
                              ;; disable n sensors
-                             (random-elts (get-configuration experiment :available-channels) change)
+                             (random-elts (get-feature-set (world experiment)) change)
                              ;; disable the given list of features
                              change)
             do (loop for channel in channels
@@ -91,7 +91,7 @@
     (set-configuration experiment :data-fname (assqv :switch-data-fname params))
     (set-configuration experiment :scene-sampling (assqv :switch-scene-sampling params))
     (set-configuration experiment :topic-sampling (assqv :switch-topic-sampling params))
-    (set-configuration experiment :available-channels (assqv :switch-available-channels params))
+    (set-configuration experiment :feature-set (assqv :switch-feature-set params))
     (initialise-world experiment)))
 
 (defmethod switch-add-agents ((experiment cle-experiment)

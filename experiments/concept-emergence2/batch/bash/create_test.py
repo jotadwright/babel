@@ -22,7 +22,7 @@ sbcl --dynamic-space-size 16000 --load test.lisp \\
     nr-of-interactions {nr_of_interactions} \\
     dataset {dataset} \\
     dataset-split {dataset_split} \\
-    available-channels "{available_channels}" \\
+    feature-set {feature_set} \\
     scene-sampling {scene_sampling} \\
     topic-sampling {topic_sampling} \\
     seed ${{1}} \\

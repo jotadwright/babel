@@ -49,8 +49,8 @@
   (let* ((interaction (current-interaction experiment))
          (agent (first (interacting-agents experiment)))
          (cle-scene (find-data agent 'context))
-         (dataset (parse-keyword (get-configuration experiment :dataset)))
-         (candidate-topics (filter-discriminative-topics dataset (objects cle-scene))))
+         (world (world experiment))
+         (candidate-topics (filter-discriminative-topics world (objects cle-scene))))
     (if candidate-topics
       (loop with cle-topic = (random-elt candidate-topics)
             for agent in (interacting-agents experiment)
@@ -64,8 +64,8 @@
   (let* ((interaction (current-interaction experiment))
          (agent (first (interacting-agents experiment)))
          (cle-scene (find-data agent 'context))
-         (dataset (parse-keyword (get-configuration experiment :dataset)))
-         (candidate-topics (filter-discriminative-topics dataset (objects cle-scene) :attribute :color)))
+         (world (world experiment))
+         (candidate-topics (filter-discriminative-topics world (objects cle-scene) :attribute :color)))
     (if candidate-topics
       (loop with cle-topic = (random-elt candidate-topics)
             for agent in (interacting-agents experiment)
@@ -77,17 +77,17 @@
 ;; --------------------
 ;; + Helper functions +
 ;; --------------------
-(defun filter-discriminative-topics (dataset context &key attribute)
+(defun filter-discriminative-topics (world context &key attribute)
   "Determines which objects in the context are discriminative."
   (loop for object in context
-        when (is-discriminative dataset object (remove object context) :attribute attribute)
+        when (is-discriminative world object (remove object context) :attribute attribute)
         collect object))
 
-(defun is-discriminative (dataset object other-objects &key (attribute nil))
+(defun is-discriminative (world object other-objects &key (attribute nil))
   "Checks if the object has a single channel dimension that is different from all other objects."
   (loop for (attr . val) in (description object)
         
-        do (when (is-channel-available dataset attr (attributes object))
+        do (when (is-channel-available world attr (attributes object))
              (let ((discriminative (cond ((and attribute (not (eq attr attribute)))
                                           nil)
                                          (t
@@ -98,11 +98,11 @@
                  (return t))))))
 
 ;; helper function for test.lisp
-(defun get-symbolic-discriminative-feature (dataset topic context)
+(defun get-symbolic-discriminative-feature (world topic context)
   "Returns which symbolic features of the topic are discriminative."
   (let ((other-objects (remove topic (objects context))))
     (loop for (attr . val) in (description topic)
-          for available = (is-channel-available dataset attr (attributes topic))
+          for available = (is-channel-available world attr (attributes topic))
           for discriminative = (loop for other-object in other-objects
                                      for other-val = (assqv attr (description other-object))
                                      always (not (equal val other-val)))
