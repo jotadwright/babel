@@ -11,10 +11,10 @@
     (format nil "~d-~2,'0d-~d_~dh~dm~ds" year month day hour minute second)))
 
 (defun generate-log-dir-name (seed)
+  "Generates a log directory name based on the current date and the seed."
   (mkstr (internal-symb (list-of-strings->string
                          (list (get-current-date)
-                               (mkstr (format nil "seed~a" seed))
-                               (mkstr (random 10) (random 10) (random 10) (random 10) (random 10)))
+                               (mkstr (format nil "seed~a" seed)))
                          :separator "-"))))
 
 (defun read-scene-ids (fname)
