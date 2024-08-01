@@ -19,7 +19,7 @@ sbcl --dynamic-space-size $space --load $VSC_HOME/concept-emergence2/batch/run.l
     population-size $population_size \
     dataset $dataset \
     dataset-split $dataset_split \
-    available-channels "$available_channels" \
+    feature-set $feature_set \
     disable-channels $disable_channels \
     amount-disabled-channels $amount_disabled_channels \
     sensor-noise $sensor_noise \

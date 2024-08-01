@@ -1,8 +1,22 @@
 (in-package :cle)
 
-;; ---------------------------
-;; + Web monitor experiments +
-;; ---------------------------
+;; -------------
+;; + Utilities +
+;; -------------
+
+(defun read-csv (fpath)
+  "Reads a CSV file and returns a list of lists."
+  (unless (probe-file fpath)
+    (error "Could not find the file ~%~a" fpath))
+  (with-open-file (stream fpath)
+    (loop with skipped-header = nil
+          for line = (read-line stream nil)
+          while line
+          for row = (split-sequence:split-sequence #\, line)
+          if (not skipped-header)
+            do (setf skipped-header t)
+          else
+            collect row)))
 
 (defun get-current-date ()
   (multiple-value-bind
@@ -19,13 +33,6 @@
                                (mkstr (format nil "seed~a" seed))
                                (mkstr (random 10) (random 10) (random 10) (random 10) (random 10)))
                          :separator "-"))))
-
-(defun read-scene-ids (fname)
-  (let* ((base-dir "~/Corpora/concept-emergence2/")
-         (fpath (concatenate 'string base-dir fname))
-         (raw (uiop:read-file-lines fpath))
-         (scene-ids (map 'list #'parse-integer raw)))
-    scene-ids))
 
 (defun parse-keyword (string)
   (intern (string-upcase (string-left-trim ":" string)) :keyword))
@@ -59,8 +66,8 @@
   "Given an integer id, returns the associated agent"
   (let ((agent (loop for agent in (agents experiment)
                      for found-id = (second (split-sequence:split-sequence #\- (mkstr (id agent))))
-                       do (when (equal (mkstr id) found-id)
-                         (return agent)))))
+                     do (when (equal (mkstr id) found-id)
+                          (return agent)))))
     agent))
 
 (defun list-to-hash-table (lst &key (key #'identity))
@@ -145,7 +152,7 @@
                            (:population-size . 10)
                            (:dataset . "clevr")
                            (:dataset-split . "train")
-                           (:available-channels . :clevr)
+                           (:feature-set . "clevr")
                            (:disable-channels . :none)
                            (:amount-disabled-channels . 0)
                            (:sensor-noise . :none)

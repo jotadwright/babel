@@ -20,25 +20,16 @@
                :cl-mop
                :cl-json
                :cl-jonathan
-               ;;:distributions
+               ;:distributions
                )
   :serial t
   :components ((:file "package")
-               (:module "dataset"
-                :serial t
-                :components ((:file "all")
-                             (:file "clevr")
-                             (:file "winery")
-                             (:file "credit")
-                             (:file "beans")
-                             ))
                (:module "world"
                 :serial t
                 :components ((:file "world")
                              (:file "object")
                              (:file "scene")
                              (:file "topic")
-                             (:file "utils")
                              ))
                (:module "agent"
                 :serial t

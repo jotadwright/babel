@@ -44,6 +44,6 @@
 
 (defmethod update-history-weight ((agent cle-agent) (prototype prototype) (delta number))
   "Keeps track how many times and when the cxn is used."
-  (let ((scene-idx (index (current-scene (world (experiment agent)))))
+  (let ((scene-idx (index (find-data agent 'context)))
         (interaction-number (interaction-number (current-interaction (experiment agent)))))
     (setf (history prototype) (cons (list interaction-number scene-idx delta) (history prototype)))))
