@@ -4,8 +4,6 @@ import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--csv", type=str)
-parser.add_argument("--seed", type=int)
-parser.add_argument("--exp_top_dir", type=str)
 
 # assumes folder structure:
 # batch/
@@ -48,8 +46,8 @@ sbcl --dynamic-space-size 16000 --load run.lisp \\
     switch-condition {switch_condition} \\
     switch-conditions-after-n-interactions {switch_conditions_after_n_interactions} \\
     stage-parameters "{stage_parameters}" \\
-    seed {seed} \\
-    exp-top-dir {exp_top_dir}
+    seed {{1}} \\
+    exp-top-dir {{2}}
 """
 
 
@@ -57,14 +55,12 @@ def create_bash_script(row):
     return template.format(**row)
 
 
-def main(input_file, output_dir, exp_fname, seed, exp_top_dir):
+def main(input_file, output_dir, exp_fname):
     os.makedirs(output_dir, exist_ok=True)
     with open(input_file, "r") as csv_file:
         csv_reader = csv.DictReader(csv_file)
 
         for idx, row in enumerate(csv_reader, start=1):
-            row["seed"] = seed
-            row["exp_top_dir"] = exp_top_dir
             script_content = create_bash_script(row)
             with open(f"{output_dir}/{exp_fname}_{idx}.sh", "w") as script_file:
                 script_file.write(script_content)
@@ -78,4 +74,4 @@ if __name__ == "__main__":
     )
     output_directory = "bash/scripts"  # Replace with your desired output directory
 
-    main(input_csv_file, output_directory, exp_fname, args.seed, args.exp_top_dir)
+    main(input_csv_file, output_directory, exp_fname)
