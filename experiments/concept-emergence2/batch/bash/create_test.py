@@ -25,8 +25,8 @@ sbcl --dynamic-space-size 16000 --load test.lisp \\
     feature-set {feature_set} \\
     scene-sampling {scene_sampling} \\
     topic-sampling {topic_sampling} \\
-    seed {{1}} \\
-    exp-top-dir {{2}}
+    seed ${{1}} \\
+    exp-top-dir ${{2}}
 """
 
 
