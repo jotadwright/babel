@@ -64,50 +64,53 @@
 
    The best concept corresponds to the concept that maximises
    the multiplication of its entrenchment score and its discriminative power."
-  (let* ((threshold (get-configuration (experiment agent) :similarity-threshold))
-         (topic (get-data agent 'topic))
-         (context (remove topic (objects (get-data agent 'context))))
-         (best-score -1)
-         (best-cxn nil)
-         (competitors '()))
-    ;; case 1: look only at entrenched concepts first
-    ;; this heuristic is possible as the score is based on the multiplication
-    (loop for cxn being the hash-values of (get-inventory (lexicon agent) :fast)
-          for concept = (meaning cxn)
-          for topic-sim = (weighted-similarity agent topic concept)
-          for best-other-sim = (calculate-max-similarity-in-context agent 
-                                                                    concept 
-                                                                    context 
-                                                                    topic-sim)
-          for discriminative-power = (abs (- topic-sim best-other-sim))
-          if (and (> topic-sim (+ best-other-sim threshold))
-                  (> (* discriminative-power (score cxn)) best-score))
+  (loop with all-competitors = nil
+        for inventory-name in (list :fast :trash)
+        for (best-score best-cxn competitors) = (search-inventory agent inventory-name)
+        ;; if a cxn is found, return it
+        if best-cxn
+          do (return (cons best-cxn
+                          (if (eq inventory-name :trash)
+                            all-competitors
+                            (append all-competitors competitors))))
+        else
+          ;; add competitors
+          do (setf all-competitors (append all-competitors competitors))
+        finally
+          ;; if nothing is found, return nil nil
+          (return (cons nil nil))))
+
+(defmethod search-inventory (agent inventory-name)
+  "Searches an inventory for the best concept.
+
+  The best concept corresponds to the concept that maximises
+  the multiplication of its entrenchment score and its discriminative power."
+  (loop with similarity-threshold = (get-configuration (experiment agent) :similarity-threshold)
+        with topic = (get-data agent 'topic)
+        with context = (remove topic (objects (get-data agent 'context)))
+        with best-score = -1
+        with best-cxn = nil
+        with competitors = '()
+        ;; iterate
+        for cxn being the hash-values of (get-inventory (lexicon agent) inventory-name)
+        for concept = (meaning cxn)
+        for topic-sim = (weighted-similarity agent topic concept)
+        for best-other-sim = (calculate-max-similarity-in-context agent concept context topic-sim)
+        for discriminative-power = (abs (- topic-sim best-other-sim))
+        ;; tricky hack: if the inventory is the trash, we do not have to check the score
+        for score = (if (eq inventory-name :trash) 1 (score cxn))
+        ;; new candidate cxn
+        if (and (> topic-sim (+ best-other-sim similarity-threshold))
+                (> (* discriminative-power score) best-score))
             do (progn
                  (when best-cxn
-                   (setf competitors (cons best-cxn competitors)))
-                 (setf best-score (* discriminative-power (score cxn)))
+                   (push best-cxn competitors))
+                 (setf best-score (* discriminative-power score))
                  (setf best-cxn cxn))
-          else
-            do (setf competitors (cons cxn competitors)))
-    (if best-cxn
-      (cons best-cxn competitors)
-      ;; case 2: if no cxn is found -> look in trash
-      (let* ((best-score -1)
-             (best-cxn nil))
-        (loop for cxn being the hash-values of (get-inventory (lexicon agent) :trash)
-              for concept = (meaning cxn)
-              for topic-sim = (weighted-similarity agent topic concept)
-              for best-other-sim = (calculate-max-similarity-in-context agent
-                                                                        concept
-                                                                        context
-                                                                        topic-sim)
-              for discriminative-power = (abs (- topic-sim best-other-sim))
-              if (and (> topic-sim (+ best-other-sim threshold))
-                      (> discriminative-power best-score))
-                do (progn
-                     (setf best-score discriminative-power)
-                     (setf best-cxn cxn)))
-        (cons best-cxn competitors)))))
+        else
+          do (push cxn competitors)
+        finally
+          (return (list best-score best-cxn competitors))))
 
 ;; ----------------------------------
 ;; + Search discriminative concepts +
