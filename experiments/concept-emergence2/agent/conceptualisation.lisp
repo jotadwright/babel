@@ -63,6 +63,20 @@
           do (return-from lazy-loop other-sim)
         maximize other-sim))
 
+;; --------------------------------------------
+;; + Conceptualisation through discrimination +
+;; --------------------------------------------
+
+(defun calculate-max-similarity-in-context (agent concept context topic-sim)
+  """Calculates the maximim similarity between the given concept and all objects in the context."
+  (loop named lazy-loop
+        for object in context
+        for other-sim = (weighted-similarity agent object concept)
+        when (<= topic-sim other-sim)
+          ;; lazy stopping
+          do (return-from lazy-loop other-sim)
+        maximize other-sim))
+
 (defun find-best-concept (agent)
   "Searches the lexicon for the best concept for the given topic and context.
 
