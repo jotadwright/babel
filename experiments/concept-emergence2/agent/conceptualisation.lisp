@@ -45,6 +45,20 @@
     (destructuring-bind (applied-cxn . competitors) (find-best-concept agent)
       applied-cxn)))
 
+;; --------------------------------------------
+;; + Conceptualisation through discrimination +
+;; --------------------------------------------
+
+(defun calculate-max-similarity-in-context (agent concept context topic-sim)
+  """Calculates the maximim similarity between the given concept and all objects in the context."
+  (loop named lazy-loop
+        for object in context
+        for other-sim = (weighted-similarity agent object concept)
+        when (<= topic-sim other-sim)
+          ;; lazy stopping
+          do (return-from lazy-loop other-sim)
+        maximize other-sim))
+
 (defun find-best-concept (agent)
   "Finds the best concept (and its direct competitors) for a given scene and topic.
 
@@ -61,8 +75,10 @@
     (loop for cxn in (lexicon agent)
           for concept = (meaning cxn)
           for topic-sim = (weighted-similarity agent topic concept)
-          for best-other-sim = (loop for object in context
-                                     maximize (weighted-similarity agent object concept))
+          for best-other-sim = (calculate-max-similarity-in-context agent 
+                                                                    concept 
+                                                                    context 
+                                                                    topic-sim)
           for discriminative-power = (abs (- topic-sim best-other-sim))
           if (and (> topic-sim (+ best-other-sim threshold))
                   (> (* discriminative-power (score cxn)) best-score))
@@ -81,7 +97,10 @@
         (loop for cxn in (trash agent)
               for concept = (meaning cxn)
               for topic-sim = (weighted-similarity agent topic concept)
-              for best-other-sim = (loop for object in context maximize (weighted-similarity agent object concept))
+              for best-other-sim = (calculate-max-similarity-in-context agent
+                                                                        concept
+                                                                        context
+                                                                        topic-sim)
               for discriminative-power = (abs (- topic-sim best-other-sim))
               if (and (> topic-sim (+ best-other-sim threshold))
                       (> discriminative-power best-score))
@@ -108,8 +127,10 @@
     (loop for cxn in (lexicon agent)
           for concept = (meaning cxn)
           for topic-sim = (weighted-similarity agent topic concept)
-          for best-other-sim = (loop for object in context
-                                     maximize (weighted-similarity agent object concept))
+          for best-other-sim = (calculate-max-similarity-in-context agent
+                                                                    concept
+                                                                    context
+                                                                    topic-sim)
           when (> topic-sim (+ best-other-sim threshold))
             do (setf discriminating-cxns (cons (list (cons :cxn cxn)
                                                      (cons :topic-sim topic-sim)
