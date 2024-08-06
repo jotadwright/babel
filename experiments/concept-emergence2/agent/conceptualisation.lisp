@@ -115,35 +115,6 @@
         finally
           (return (list best-score best-cxn competitors))))
 
-;; ----------------------------------
-;; + Search discriminative concepts +
-;; ----------------------------------
-(defmethod search-discriminative-concepts ((agent cle-agent))
-  "Function to only determine the competitors of a cxn.
-
-   Only used by the hearer when it punishes in the case of success
-   the competitors of the applied cxn.
-   Therefore, this function will only look into the lexicon for
-   competitors as all competitors in the trash already have an
-   entrenchment score of zero."
-  (let ((threshold (get-configuration (experiment agent) :similarity-threshold))
-        (topic (get-data agent 'topic))
-        (context (objects (get-data agent 'context)))
-        (discriminating-cxns '()))
-    (loop for cxn being the hash-values of (get-inventory (lexicon agent) :fast)
-          for concept = (meaning cxn)
-          for topic-sim = (weighted-similarity agent topic concept)
-          for best-other-sim = (calculate-max-similarity-in-context agent
-                                                                    concept
-                                                                    context
-                                                                    topic-sim)
-          when (> topic-sim (+ best-other-sim threshold))
-            do (setf discriminating-cxns (cons (list (cons :cxn cxn)
-                                                     (cons :topic-sim topic-sim)
-                                                     (cons :best-other-sim best-other-sim))
-                                               discriminating-cxns)))
-    discriminating-cxns))
-
 ;; ---------------------
 ;; + Lexicon coherence +
 ;; ---------------------
