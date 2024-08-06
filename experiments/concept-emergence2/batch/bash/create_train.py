@@ -17,7 +17,7 @@ parser.add_argument("--csv", type=str)
 template = """\
 #!/bin/bash
 
-sbcl --dynamic-space-size 16000 --load run.lisp \\
+sbcl --dynamic-space-size 16000 --non-interactive --load run.lisp \\
     exp-name {exp_name} \\
     nr-of-series {nr_of_series} \\
     nr-of-interactions {nr_of_interactions} \\

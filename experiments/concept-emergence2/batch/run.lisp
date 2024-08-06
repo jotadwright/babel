@@ -89,3 +89,4 @@
     ))
 
 (run-experiment #+sbcl (rest sb-ext:*posix-argv*))
+(sb-ext:quit)
