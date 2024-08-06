@@ -16,14 +16,14 @@ Example usage
   (assert (equal-exp *exp1* *exp2*)))
 
 ;; compare entire top-level-dirs
-(assert (compare-experiments "cle3-seed-run1" "cle3-seed-run2"))
+(assert (compare-experiments "..." "..."))
 |#
 
 ;; Pathnames and restores
 (defun cle-storage ()
   (babel-pathname :directory `("experiments"
                                "concept-emergence2"
-                               "storage")))
+                               "...")))
 
 (defun restore-exp (exp-top-dir exp-name log-dir)
   (cl-store:restore
@@ -47,11 +47,23 @@ Example usage
 (defmethod equal-window ((ag1 cle-agent) (ag2 cle-agent))
   (equalp (window (usage-table ag1))
           (window (usage-table ag2))))
+
+(defun transform-to-ht (lex)
+  (if (equalp (type-of lex) 'lexicon)
+    (get-inventory lex :fast)
+    (list-to-hash-table lex :key #'(lambda (x) (form x)))))
                      
-(defmethod equal-lexicon ((lex1 list) (lex2 list))
-  (loop for cxn1 in lex1
-        for cxn2 in lex2
-        always (equal-cxn cxn1 cxn2)))
+(defmethod equal-lexicon (lex1 lex2)
+  (let ((ht1 (transform-to-ht lex1))
+        (ht2 (transform-to-ht lex2)))
+    (and (equal-sets (hash-keys ht1)
+                     (hash-keys ht2)
+                     :test #'equalp)
+         (loop with set1 = (sort-lex-by-form (hash-values ht1))
+               with set2 = (sort-lex-by-form (hash-values ht2))
+               for cxn1 in set1
+               for cxn2 in set2
+               always (equal-cxn cxn1 cxn2)))))
 
 (defmethod equal-cxn ((cxn1 cxn) (cxn2 cxn))
   (and (equalp (form cxn1)
