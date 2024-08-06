@@ -82,7 +82,7 @@
           do (setf all-competitors (append all-competitors competitors))
         finally
           ;; if nothing is found, return nil nil
-          (return (cons nil nil))))
+          (return (cons nil all-competitors))))
 
 (defmethod search-inventory (agent inventory-name)
   "Searches an inventory for the best concept.
