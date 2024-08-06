@@ -42,11 +42,12 @@
   "Conceptualise the topic as the hearer"
   (if (empty-lexicon-p agent)
     nil
-    (destructuring-bind (hypothetical-cxn . unused) (find-best-concept agent)
-    ;; hypothetical-cxn corresponds to the concept that hearer would have produces as a speaker
-    ;; set the hypothetical-cxn slot
-    (set-data agent 'hypothetical-cxn hypothetical-cxn)
-    hypothetical-cxn)))
+    (destructuring-bind (hypothetical-cxn . competitors) (find-best-concept agent)
+      ;; hypothetical-cxn corresponds to the concept that hearer would have produces as a speaker
+      ;; TODO: calculate hearer competitors
+      ;; set the hypothetical-cxn slot
+      (set-data agent 'hypothetical-cxn hypothetical-cxn)
+      hypothetical-cxn)))
 
 ;; --------------------------------------------
 ;; + Conceptualisation through discrimination +
