@@ -55,6 +55,7 @@
                (:module "construction"
                 :serial t
                 :components ((:file "construction")
+                             (:file "lexicon")
                              (:file "competitors")
                              (:file "update")))
                (:module "distribution"

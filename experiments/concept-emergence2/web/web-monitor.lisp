@@ -23,7 +23,7 @@
 
 ;;;; Show lexicon in web interface
 (defun display-lexicon (agent &key (entrenchment-threshold 0) (certainty-threshold 0) (sort nil))
-  (if (length= (lexicon agent) 0)
+  (if (empty-lexicon-p agent)
     (add-element
      `((h3) ,(format nil "Lexicon is empty!")))
     (let ((lexicon (if sort
@@ -42,7 +42,7 @@
               do (add-cxn-to-interface cxn :certainty-threshold certainty-threshold :disabled-channels (disabled-channels agent))))))
 
 (defun display-lexicon-simple (agent)
-  (if (length= (lexicon agent) 0)
+  (if (empty-lexicon-p agent)
     (add-element
      `((h4) ,(format nil "Lexicon is empty!")))
     (loop for cxn in (lexicon agent)
