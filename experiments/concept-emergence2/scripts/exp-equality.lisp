@@ -16,14 +16,14 @@ Example usage
   (assert (equal-exp *exp1* *exp2*)))
 
 ;; compare entire top-level-dirs
-(assert (compare-experiments "..." "..."))
+(assert (compare-experiments "cle3-datasets-290d39b2" "cle3-refactor"))
 |#
 
 ;; Pathnames and restores
 (defun cle-storage ()
   (babel-pathname :directory `("experiments"
                                "concept-emergence2"
-                               "...")))
+                               "logging")))
 
 (defun restore-exp (exp-top-dir exp-name log-dir)
   (cl-store:restore
@@ -72,6 +72,10 @@ Example usage
                (score cxn2))))
 
 ;; Helper functions to automatically navigate a top level directory of experiments
+(defun sort-lex-by-form (lst)
+  (sort lst
+        #'(lambda (x y) (string-lessp (form x) (form y)))))
+
 (defun get-directory (path)
   (last-elt (pathname-directory path)))
 
