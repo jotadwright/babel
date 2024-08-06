@@ -77,6 +77,14 @@
         do (setf (gethash (funcall key el) tbl) el)
         finally (return tbl)))
 
+(defun hash-keys (ht)
+  (loop for key being the hash-keys of ht
+        collect key))
+
+(defun hash-values (ht)
+  (loop for value being the hash-values of ht
+        collect value))
+
 (defun create-configurations (parameters)
   "Generate a set of experiments. Specify which parameters are variable
    and what their possible values can be. Optionally specify an a-list
