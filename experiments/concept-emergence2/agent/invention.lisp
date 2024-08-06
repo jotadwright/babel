@@ -13,7 +13,7 @@
          (form (make-new-word))
          (new-cxn (make-cxn agent meaning form)))
     ;; push the new construction
-    (push new-cxn (lexicon agent))
+    (update-lexicon-inventory (lexicon agent) new-cxn)
     ;; set the applied-cxn slot
     (set-data agent 'applied-cxn new-cxn)
     ;; update monitor

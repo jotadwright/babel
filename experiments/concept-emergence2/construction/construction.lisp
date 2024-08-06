@@ -36,7 +36,8 @@
         (interaction-number (interaction-number (current-interaction (experiment agent)))))
     (setf (meaning cxn) (make-concept agent object (get-configuration (experiment agent) :concept-representation)))
     (setf (score cxn) (get-configuration (experiment agent) :initial-cxn-entrenchement))
-    (setf (history cxn) (list (cons interaction-number scene-idx)))))
+    (setf (history cxn) (list (cons interaction-number scene-idx)))
+    (update-lexicon-inventory (lexicon agent) cxn)))
 
 (defmethod copy-object ((cxn cxn))
   (make-instance 'cxn

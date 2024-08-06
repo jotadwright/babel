@@ -29,7 +29,7 @@
 ;; -------------
 (defmethod speaker-conceptualise ((agent cle-agent))
   "Conceptualise the topic of the interaction."
-  (if (length= (lexicon agent) 0)
+  (if (empty-lexicon-p agent)
     nil
     (destructuring-bind (applied-cxn . competitors) (find-best-concept agent)
       ;; set competitors
@@ -40,7 +40,7 @@
 
 (defmethod hearer-conceptualise ((agent cle-agent))
   "Conceptualise the topic as the hearer"
-  (if (length= (lexicon agent) 0)
+  (if (empty-lexicon-p agent)
     nil
     (destructuring-bind (applied-cxn . competitors) (find-best-concept agent)
       applied-cxn)))
@@ -72,7 +72,7 @@
          (competitors '()))
     ;; case 1: look only at entrenched concepts first
     ;; this heuristic is possible as the score is based on the multiplication
-    (loop for cxn in (lexicon agent)
+    (loop for cxn being the hash-values of (get-inventory (lexicon agent) :fast)
           for concept = (meaning cxn)
           for topic-sim = (weighted-similarity agent topic concept)
           for best-other-sim = (calculate-max-similarity-in-context agent 
@@ -94,7 +94,7 @@
       ;; case 2: if no cxn is found -> look in trash
       (let* ((best-score -1)
              (best-cxn nil))
-        (loop for cxn in (trash agent)
+        (loop for cxn being the hash-values of (get-inventory (lexicon agent) :trash)
               for concept = (meaning cxn)
               for topic-sim = (weighted-similarity agent topic concept)
               for best-other-sim = (calculate-max-similarity-in-context agent
@@ -124,7 +124,7 @@
         (topic (get-data agent 'topic))
         (context (objects (get-data agent 'context)))
         (discriminating-cxns '()))
-    (loop for cxn in (lexicon agent)
+    (loop for cxn being the hash-values of (get-inventory (lexicon agent) :fast)
           for concept = (meaning cxn)
           for topic-sim = (weighted-similarity agent topic concept)
           for best-other-sim = (calculate-max-similarity-in-context agent
