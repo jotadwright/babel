@@ -55,9 +55,9 @@
         for proto1 in (get-available-prototypes agent concept1)
         for proto2 = (gethash (channel proto1) (prototypes concept2))
         if (and proto2 (not (zerop ledger1)) (not (zerop ledger2)))
-          sum (similar-prototypes proto1 proto2 ledger1 ledger2)))
+          sum (similar-prototypes proto1 proto2 ledger1 ledger2 (get-configuration agent :hellinger))))
 
-(defmethod similar-prototypes ((proto1 prototype) (proto2 prototype) (ledger1 number) (ledger2 number))
+(defmethod similar-prototypes ((proto1 prototype) (proto2 prototype) (ledger1 number) (ledger2 number) (sim-mode symbol))
   "Calculates the similarity between two prototypes.
    
    The similarity corresponds to a product t-norm of
@@ -71,6 +71,6 @@
         ;; similarity of the weights
         (weight-similarity (- 1 (abs (- (/ (weight proto1) ledger1) (/ (weight proto2) ledger2)))))
         ;; take complement of distance (1-h) so that it becomes a similarity metric
-        (prototype-similarity (- 1 (f-divergence (distribution proto1) (distribution proto2) :hellinger))))
+        (prototype-similarity (- 1 (f-divergence (distribution proto1) (distribution proto2) sim-mode))))
     ;; multiple all three
     (* avg-weight weight-similarity prototype-similarity)))
