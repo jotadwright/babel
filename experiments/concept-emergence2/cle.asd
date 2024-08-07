@@ -59,7 +59,9 @@
                              (:file "update")))
                (:module "distribution"
                 :serial t
-                :components ((:file "gaussian")
+                :components ((:file "distribution")
+                             (:file "gaussian")
+                             (:file "categorical")
                              (:file "welford")
                              (:file "divergence")
                              ))

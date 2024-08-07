@@ -20,9 +20,9 @@
   (let* ((prototypes (loop for channel being the hash-keys of (attributes object)
                              using (hash-value observation)
                           ;; create a distribution for each channel
-                           for distribution = (make-distribution agent
-                                                                 observation
-                                                                 (get-configuration (experiment agent) :distribution))
+                           for distribution = (make-new-distribution agent
+                                                                     channel
+                                                                     observation)
                            ;; create a prototype for each channel
                            for new-prototype = (make-instance 'prototype
                                                               :channel channel

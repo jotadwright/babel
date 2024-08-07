@@ -64,15 +64,22 @@
     (let* ((raw-observation-val (get-object-val object attr))
            (sensor-noise (noise-in-sensor agent attr (get-configuration (experiment agent) :sensor-noise)))
            (observation-noise (noise-in-observation agent attr (get-configuration (experiment agent) :observation-noise)))
-           (final-val (if raw-observation-val
-                        ;; case 1: could find a value for the attribute
-                        (if (and (zerop sensor-noise) (zerop observation-noise))
-                          ;; no noise to add, return the raw (true) observation
-                          raw-observation-val
-                          ;; add the noise, but cap final result between 0 and 1
-                          (min (max 0 (+ raw-observation-val sensor-noise observation-noise)) 1))
-                        ;; case 2: return nil
-                        nil)))
+           (final-val
+            ;; process the observation in function of its nature (categorical vs continuous)
+            (if (not raw-observation-val)
+              ;; no observation, for example if a channel is disabled!
+              nil
+              ;; observation received
+              (if (channel-continuous-p (world (experiment agent)) attr)
+                ;; observation is continuous
+                (if (and (zerop sensor-noise) (zerop observation-noise))
+                  ;; no noise to add, return the raw (true) observation
+                  raw-observation-val
+                  ;; add the noise, but cap final result between 0 and 1
+                  (min (max 0 (+ raw-observation-val sensor-noise observation-noise)) 1))
+                ;; observation is categorical
+                raw-observation-val))))
+
       (if (gethash (id object) (perceived-objects agent))
         ;; case 2A: object existed, but no entry
         (setf (gethash attr (gethash (id object) (perceived-objects agent))) final-val)

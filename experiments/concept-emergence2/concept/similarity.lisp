@@ -23,7 +23,7 @@
   nil)
 
 (defmethod observation-similarity ((observation number) (prototype prototype))
-  "Similarity [0,1] on the level of a single prototype.
+  "Similarity [0,1] on the level of a single prototype for a continuous observation.
    
    The similarity is computed by comparing the observation to the prototype's
    distribution. The similarity is the probability of the observation given the
@@ -36,6 +36,15 @@
                     0))
          (sim (z-score-to-probability z-score)))
     sim))
+
+(defmethod observation-similarity ((observation string) (prototype prototype))
+  "Similarity [0,1] on the level of a single prototype for a categorical observation."
+  (let* ((distribution (distribution prototype))
+         (total (nr-of-samples distribution))
+         (count (gethash observation (cat-table distribution))))
+    (if count
+      (/ count total)
+      0.0)))
 
 (defun z-score-to-probability (z-score)
   "Convert a z-score to a probability."

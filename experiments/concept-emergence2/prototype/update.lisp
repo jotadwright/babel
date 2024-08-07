@@ -4,7 +4,7 @@
 ;; + Update distribution +
 ;; -----------------------
 
-(defmethod update-prototype ((new-observation number)
+(defmethod update-prototype ((new-observation t)
                              (interaction-number number)
                              (prototype prototype)
                              &key (save-distribution-history t)

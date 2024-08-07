@@ -100,6 +100,11 @@
   (:documentation "Display a prototype using s-dot."))
 
 (defmethod prototype->s-dot ((prototype prototype) &key green red)
+  (if (eq 'categorical (type-of (distribution prototype)))
+    (categorical->s-dot prototype :green green :red red)
+    (continuous->s-dot prototype :green green :red red)))
+
+(defmethod continuous->s-dot ((prototype prototype) &key green red)
   (let* ((st-dev (st-dev (distribution prototype)))
          (record-properties
           (cond (green '((s-dot::style "filled")
@@ -122,6 +127,36 @@
                                            (downcase (mkdotstr (channel prototype)))
                                            (mean (distribution prototype))
                                            st-dev)))))))
+
+(defmethod categorical->s-dot ((prototype prototype) &key green red)
+  (let* ((record-properties
+          (cond (green '((s-dot::style "filled")
+                         (s-dot::fillcolor "#AAFFAA")))
+                (red '((s-dot::style "filled")
+                       (s-dot::fillcolor "#AA0000")
+                       (s-dot::fontcolor "#FFFFFF")))
+                (t (if (= (weight prototype) 1.0)
+                     '((s-dot::style "solid"))
+                     '((s-dot::style "dashed")))))))
+    `(s-dot::record
+      ,(append record-properties
+               '((s-dot::fontsize "9.5")
+                 (s-dot::fontname #+(or :win32 :windows) "Sans"
+                                  #-(or :win32 :windows) "Arial")
+                 (s-dot::fontcolor "#000000")
+                 (s-dot::height "0.01")))
+      (s-dot::node ((s-dot::id ,(downcase (mkdotstr (channel prototype))))
+                    (s-dot::label ,(format nil "~a: ~{~a~^, ~}"
+                                           (downcase (mkdotstr (channel prototype)))
+                                           (loop with tuples = (loop for key being the hash-keys of (cat-table (distribution prototype))
+                                                                       using (hash-value value)
+                                                                     if (> value 0)
+                                                                       collect (cons key value))
+                                                 with sorted-tuples = (sort tuples #'> :key #'cdr)
+                                                 for (key . value) in sorted-tuples
+                                                 if (> value 0)
+                                                   collect (format nil "(~a, ~a)" key value)))))))))
+
 
 (defmethod get-hex-color (cxn &key (threshold 0.9))
   "Calculate the prototypical color of a cxn."
