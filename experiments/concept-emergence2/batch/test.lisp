@@ -4,7 +4,7 @@
 (ql:quickload :cle)
 (in-package :cle)
 
-(defmethod handle-batch-finished-event2 ((monitor data-file-writer) (exp-top-dir string) (exp-name string) (name string))
+(defmethod write-monitor-to-file ((monitor data-file-writer) (exp-top-dir string) (exp-name string) (name string))
   (let* ((fname (file-name monitor))
          (fpath (mkstr (make-pathname :directory (pathname-directory fname))
                        (format nil "~a/~a/~a/" exp-top-dir exp-name name)
@@ -12,10 +12,10 @@
     (ensure-directories-exist fpath)
     (with-open-file (file fpath :direction :output 
 			  :if-exists :supersede :if-does-not-exist :create)
-      (write-data-to-file2 monitor file)
+      (write-data monitor file)
       (format t "~%monitor ~(~a~):~%  wrote ~a" (id monitor) fpath))))
 
-(defmethod write-data-to-file2 ((monitor lisp-data-file-writer) stream)
+(defmethod write-data ((monitor lisp-data-file-writer) stream)
   (format stream "~%; This file was created by the lisp-data-file-writer ~a" (id monitor))
   (format stream "~%; The elements in the lists come from these source(s): ~{~a~^ ~}"
 	  (monitors::monitor-ids-of-sources monitor))
@@ -85,7 +85,7 @@
                               ,'export-lexicon-coherence
                               ,'export-unique-form-usage)
           for monitor = (monitors::get-monitor monitor-id)
-          do (handle-batch-finished-event2 monitor (assqv :exp-top-dir config) (assqv :exp-name config) fname))
+          do (write-monitor-to-file monitor (assqv :exp-top-dir config) (assqv :exp-name config) fname))
     (notify reset-monitors)))
       
 (test-experiment #+sbcl (rest sb-ext:*posix-argv*))

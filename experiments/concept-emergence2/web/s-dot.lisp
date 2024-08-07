@@ -17,7 +17,6 @@
     (push
      `(s-dot::record  
        ((s-dot::style "filled")
-        ;(s-dot::fillcolor ,(get-hex-color cxn))
         (s-dot::fillcolor "#FFFFFF")
         (s-dot::fontcolor ,*black*)
         (s-dot::fontsize "9.5")
@@ -156,23 +155,3 @@
                                                  for (key . value) in sorted-tuples
                                                  if (> value 0)
                                                    collect (format nil "(~a, ~a)" key value)))))))))
-
-
-(defmethod get-hex-color (cxn &key (threshold 0.9))
-  "Calculate the prototypical color of a cxn."
-  (let ((r (loop for prototype in (get-prototypes (meaning cxn))
-                 when (equal (channel prototype) 'R)
-                   return (cons (round (* 255 (mean (distribution prototype)))) (weight prototype))))
-        (g (loop for prototype in (get-prototypes (meaning cxn))
-                 when (equal (channel prototype) 'G)
-                   return (cons (round (* 255 (mean (distribution prototype)))) (weight prototype))))
-        (b (loop for prototype in (get-prototypes (meaning cxn))
-                 when (equal (channel prototype) 'B)
-                   return (cons (round (* 255 (mean (distribution prototype)))) (weight prototype)))))
-    (if (and (> (rest r) threshold) (> (rest g) threshold) (> (rest b) threshold))
-      (rgb->rgbhex (list (first r) (first g) (first b)))
-      (rgb->rgbhex (list 255 255 255)))))
-
-(defun rgb->rgbhex (rgb)
-  "Converts a RGB [0,1] value to an 8-bit hexadecimal string."
-  (format nil "#~{~2,'0X~}" rgb))
