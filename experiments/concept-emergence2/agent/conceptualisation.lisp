@@ -42,12 +42,22 @@
   "Conceptualise the topic as the hearer"
   (if (empty-lexicon-p agent)
     nil
-    (destructuring-bind (hypothetical-cxn . competitors) (find-best-concept agent)
-      ;; hypothetical-cxn corresponds to the concept that hearer would have produces as a speaker
-      ;; TODO: calculate hearer competitors
-      ;; set the hypothetical-cxn slot
-      (set-data agent 'hypothetical-cxn hypothetical-cxn)
-      hypothetical-cxn)))
+    (if (conceptualised-p agent)
+      ;; if already conceptualised, just return the result
+      (find-data agent 'hypothetical-cxn)
+      (destructuring-bind (hypothetical-cxn . competitors) (find-best-concept agent)
+        ;; hypothetical-cxn corresponds to the concept that hearer would have produces as a speaker
+        (if (get-configuration (experiment agent) :hearer-competition-alignment)
+          (let* ((applied-cxn (find-data agent 'applied-cxn))
+                (competitors (if hypothetical-cxn
+                                (cons hypothetical-cxn competitors)
+                                competitors))
+                (all-competitors (remove applied-cxn competitors :test #'(lambda (x y) (equal x y)))))
+            (set-data agent 'meaning-competitors all-competitors))
+          (set-data agent 'meaning-competitors nil))
+        ;; set the hypothetical-cxn slot
+        (set-data agent 'hypothetical-cxn hypothetical-cxn)
+        hypothetical-cxn))))
 
 ;; --------------------------------------------
 ;; + Conceptualisation through discrimination +
@@ -104,15 +114,17 @@
         ;; tricky hack: if the inventory is the trash, we do not have to check the score
         for score = (if (eq inventory-name :trash) 1 (score cxn))
         ;; new candidate cxn
-        if (and (> topic-sim (+ best-other-sim similarity-threshold))
-                (> (* discriminative-power score) best-score))
-            do (progn
-                 (when best-cxn
-                   (push best-cxn competitors))
-                 (setf best-score (* discriminative-power score))
-                 (setf best-cxn cxn))
-        else
-          do (push cxn competitors)
+        if (> topic-sim (+ best-other-sim similarity-threshold))
+          do (if (> (* discriminative-power score) best-score)
+                (progn
+                  (when best-cxn
+                    (push best-cxn competitors))
+                  (setf best-score (* discriminative-power score))
+                  (setf best-cxn cxn))
+                (push cxn competitors))
+        else 
+          do (if (get-configuration (experiment agent) :punish-non-candidates)
+                (push cxn competitors))
         finally
           (return (list best-score best-cxn competitors))))
 

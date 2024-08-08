@@ -29,8 +29,6 @@
       (production speaker)
       ;; hearer hears the utterance
       (setf (utterance hearer) (utterance speaker))
-      ;; check lexicon coherence
-      (set-data (current-interaction experiment) 'lexicon-coherence (lexicon-coherence-p experiment speaker hearer))
       ;; success if
       (when (and ;; 1. the hearer recognises it,
                  (parsing hearer)
@@ -40,4 +38,7 @@
                  (eql (id (get-data speaker 'topic))
                       (id (get-data hearer 'interpreted-topic))))
         (setf (communicated-successfully speaker) t)
-        (setf (communicated-successfully hearer) t)))))
+        (setf (communicated-successfully hearer) t)))
+      
+    ;; check lexicon coherence (before alignment)
+    (set-data (current-interaction experiment) 'lexicon-coherence (lexicon-coherence-p experiment speaker hearer))))
