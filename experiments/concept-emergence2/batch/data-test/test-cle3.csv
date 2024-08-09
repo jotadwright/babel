@@ -1,0 +1,4 @@
+id,exp_name,nr_of_interactions,dataset,dataset_split,feature_set,scene_sampling,topic_sampling
+1,cle3-maha-pa,100000,clevr,test,clevr,:random,:random
+2,cle3-maha-pa2,100000,clevr,test,clevr,:random,:random
+3,cle3-maha-mv,100000,clevr,test,clevr,:random,:random
