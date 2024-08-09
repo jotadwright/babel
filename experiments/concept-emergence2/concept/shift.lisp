@@ -152,8 +152,7 @@
    between the topic and the best other object."
   (let ((context (remove topic (objects (get-data agent 'context))))
         (best-subset nil)
-        (largest-diff 0)
-        (best-similarity 0))
+        (largest-diff 0))
     (dolist (subset subsets)
       (let ((topic-similarity (weighted-similarity-with-table topic subset similarity-table)))
         (when (> topic-similarity 0)
@@ -162,10 +161,8 @@
                         maximize (weighted-similarity-with-table object subset similarity-table)))
                  (diff (- topic-similarity best-other-similarity)))
             (when (and (> topic-similarity best-other-similarity) 
-                       (> diff largest-diff)
-                       (> topic-similarity best-similarity))
+                       (> diff largest-diff))
               (setf best-subset subset
-                    largest-diff diff
-                    best-similarity topic-similarity))))))
+                    largest-diff diff))))))
     (notify event-found-subset-to-reward best-subset)
     best-subset))
