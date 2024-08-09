@@ -1,0 +1,5 @@
+id,exp_name,nr_of_interactions,dataset,dataset_split,feature_set,scene_sampling,topic_sampling
+1,clevr,100000,clevr,test,clevr,:random,:random
+2,music,100000,music,test,music,:random,:random
+3,music-cat,100000,music,test,music-cat,:random,:random
+4,music-cont,100000,music,test,music-cont,:random,:random
