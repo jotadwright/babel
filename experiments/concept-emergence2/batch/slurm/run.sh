@@ -32,3 +32,7 @@ done
 
 # experiment equality checker
 # $ bash slurm/run.sh train exp-equality 1-11 1 3 00:08:00 8G 10000 exp-equality
+
+# cle experiments
+# $ bash slurm/run.sh train cle3 1-3 1 10 08:00:00 8G 10000 cle3-mahalanobis
+# $ bash slurm/run.sh test test-cle3 1-3 1 10 08:00:00 8G 10000 cle3-mahalanobis-test
