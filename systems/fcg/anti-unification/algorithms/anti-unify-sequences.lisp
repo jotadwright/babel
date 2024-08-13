@@ -153,20 +153,27 @@
           if (find (cdr binding) generalisation-vars)
           collect binding)))
 
-(defun make-boundary-vars (position boundaries current-left &key (gap nil))
+(defun make-boundary-vars-matrix (nx ny)
+  (let ((matrix (make-array (list (+ nx 2) (+ ny 2)))))
+    (loop for x from 0 to (+ nx 1)
+            do (loop for y from 0 to (+ ny 1)
+                     do  (setf (aref matrix x y) (make-var 'b))))
+   matrix))
+
+(defun make-boundary-vars (position boundaries current-left boundary-matrix i j  &key (gap nil))
   "Calculate boundary vars based on the position, the boundaries that were given and the current-left boundary. If there already exists a variable in the boundaries, reuse that variable, otherwise make a new variable."
   (let ((right-boundary-var (if position (car (rassoc position boundaries))))
         (left-boundary-var (if position (car (rassoc (- position 1) boundaries)))))
     (cond ((and
             (not right-boundary-var)
             (not current-left))
-           (setf right-boundary-var (make-var 'rb))) ;; if there is no right-boundary-var and no current-left, make a completely new variable
+           (setf right-boundary-var (aref boundary-matrix i j))) ;(setf right-boundary-var (make-var 'rb))) ;; if there is no right-boundary-var and no current-left, make a completely new variable
           ((and
             (not right-boundary-var)
             current-left)
            (setf right-boundary-var current-left))) ;; if the current-left is given and there is no right-boundary-var found in the boundaries, set right-boundary to current left (because we are dealing with adjacent single characters, so left-boundary of adjacent right predicate is right-boundary of left predicate). 
     (if (not left-boundary-var)
-      (setf left-boundary-var (if gap current-left (make-var 'lb)))) ;; if no left-boundary-var is found in the boundaries list, make a new variable, in case of a gap, reuse current-left. 
+      (setf left-boundary-var (if gap current-left (aref boundary-matrix i j)))) ;(setf left-boundary-var (if gap current-left (make-var 'lb)))) ;; if no left-boundary-var is found in the boundaries list, make a new variable, in case of a gap, reuse current-left.
     (cons left-boundary-var right-boundary-var)))
 
 (defun make-boundary-indices (position boundaries current-left &key (gap nil))
