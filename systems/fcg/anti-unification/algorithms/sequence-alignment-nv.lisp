@@ -52,6 +52,7 @@
          ;; matrices to store graph edges
          (arrays (make-instance 'arrays))
          (arrays (initialize-arrays nx ny arrays))
+         (boundary-matrix (make-boundary-vars-matrix nx ny))
          
          )
          
@@ -101,13 +102,20 @@
                                         :gap-opening-cost gap-opening-cost
                                         :gap-cost gap-cost
                                         :n-optimal-alignments n-optimal-alignments
-                                        :max-nr-of-au-gaps max-nr-of-au-gaps)))
+                                        :max-nr-of-au-gaps max-nr-of-au-gaps
+                                        :boundary-matrix boundary-matrix)))
+      ;(check-optimal-alignments all-optimal-alignments arrays)
       (when debugging
         (loop for alignment in all-optimal-alignments
               do (visualise-path (path alignment))))
       (if remove-duplicate-alignments
         (remove-duplicates all-optimal-alignments :key #'match-positions :test #'equal)
         all-optimal-alignments))))
+
+
+
+
+
 
 (defclass arrays ()
   ((vertical :initarg :vertical :accessor vertical :initform nil :type array)
@@ -312,14 +320,17 @@
                    ;;     i and j in the pattern and source are always 1 behind, so it is actually the next that needs to be a mismatch. 
                    (when 
                      (and (or (= (aref (vertical arrays) (+ i 1) j) 0)
-                              (= (aref (v-new arrays) i j) 0))
+                              (= (aref (v-new arrays) i j) 0)
+                              )
                           (or (= (aref (horizontal arrays) i (+ j 1)) 0)
-                              (= (aref (h-new arrays) i j) 0))
+                              (= (aref (h-new arrays) i j) 0)
+                              )
                           (or (= (aref (diagonal arrays) (+ i 1) (+ j 1)) 0)
                               (and (nth i pattern)
                                    (nth j source)
                                    (not (equal (nth i pattern) (nth j source))) 
-                                   (= (aref (d-new arrays) i j) 0))))
+                                   (= (aref (d-new arrays) i j) 0)
+                                   )))
                      (setf (aref (vertical arrays) i j) 0
                            (aref (horizontal arrays) i j) 0
                            (aref (diagonal arrays) i j) 0))
@@ -346,7 +357,9 @@
                        ;; the vertical edge to N i+1 j is NOT preceded by a vertical edge (setf d i+1 j to 0)
                        ;; the vertical edge to N i j is NOT followed by a vertical edge (setf e i j to 0)
                        (if (and (= (aref (vertical arrays) (+ i 1) j) 1)
-                                (= (aref (v-v arrays) i j) 1))
+                                (= (aref (v-v arrays) i j) 1)
+                               ; (= (aref (vertical arrays) i j) 1)
+                                )
                          (setf (aref (v-v arrays) (+ i 1) j) (- 1 (max (aref (h-v arrays) i j)
                                                                        (aref (d-v arrays) i j)
                                                                        (aref (v-new arrays) i j)))
@@ -356,7 +369,8 @@
                                                                  (if (= (aref (diagonal arrays) (+ i 1) (+ j 1)) 1)
                                                                    (aref (v-m arrays) i j)
                                                                    0)
-                                                                 (aref (vertical arrays) i j)))
+                                                                 (aref (vertical arrays) i j)
+                                                                 ))
                                (aref (vertical arrays) i j) 1)
                          (setf (aref (v-v arrays) (+ i 1) j) 0 
                                (aref (e-v arrays) i j) 0))
@@ -374,18 +388,20 @@
                        ;; ELSE
                        ;; the horizontal edge to N i j+1 is NOT preceded by a vertical edge (setf d i j+1 to 0)
                        (if (and (= (aref (horizontal arrays) i (+ j 1)) 1)
-                                (= (aref (v-h arrays) i j) 1))
+                                (= (aref (v-h arrays) i j) 1)
+                               ; (= (aref (vertical arrays) i j) 1)
+                                )
                          (setf (aref (v-h arrays) i (+ j 1)) (- 1 (max (aref (h-h arrays) i j)
                                                                        (aref (d-h arrays) i j) 
-                                                                       (aref (h-new arrays) i j)
-                                                              ))
+                                                                       (aref (h-new arrays) i j)))
                                (aref (e-h arrays) i j) (- 1 (max (if (= (aref (vertical arrays) (+ i 1) j) 1)
                                                                    (aref (v-v arrays) i j)
                                                                    0)
                                                                  (if (= (aref (diagonal arrays) (+ i 1) (+ j 1)) 1)
                                                                    (aref (v-m arrays) i j)
                                                                    0)
-                                                                 (aref (vertical arrays) i j)))
+                                                                 (aref (vertical arrays) i j)
+                                                                 ))
                                (aref (vertical arrays) i j) 1)
                          (setf (aref (v-h arrays) i (+ j 1)) 0 
                                (aref (e-h arrays) i j) 0))
@@ -403,7 +419,9 @@
                        ;; ELSE
                        ;; the diagonal edge to N i+1 j+1 is NOT preceded by a vertical edge (setf d-m i+1 j+1 to 0)
                        (if (and (= (aref (diagonal arrays) (+ i 1) (+ j 1)) 1)
-                                (= (aref (v-m arrays) i j) 1))
+                                (= (aref (v-m arrays) i j) 1)
+                              ;  (= (aref (vertical arrays) i j) 1)
+                                )
                          (setf (aref (v-m arrays) (+ i 1) (+ j 1)) (- 1 (max (aref (h-m arrays) i j)
                                                                              (aref (d-m arrays) i j)
                                                                              (aref (d-new arrays) i j)))
@@ -413,7 +431,8 @@
                                                                  (if (= (aref (horizontal arrays) i (+ j 1)) 1)
                                                                    (aref (v-h arrays) i j)
                                                                    0)
-                                         (aref (vertical arrays) i j)))
+                                                                 (aref (vertical arrays) i j)
+                                                                 ))
                               (aref (vertical arrays) i j) 1)
                          (setf (aref (v-m arrays) (+ i 1) (+ j 1)) 0 
                                (aref (e-m arrays) i j) 0))
@@ -423,24 +442,28 @@
                        
                        
                        (if (and (= (aref (horizontal arrays) i (+ j 1)) 1)
-                                (= (aref (h-h arrays) i j) 1))
+                                (= (aref (h-h arrays) i j) 1)
+                               ; (= (aref (horizontal arrays) i j) 1)
+                                )
                          (setf (aref (h-h arrays) i (+ j 1)) (- 1 (max (aref (v-h arrays) i j)
                                                                        (aref (d-h arrays) i j)
                                                                        (aref (h-new arrays) i j)))
-                               (aref (g-h arrays) i j)
-                               (- 1 (max (if (= (aref (vertical arrays) (+ i 1) j) 1)
-                                           (aref (h-v arrays) i j)
-                                           0)
-                                         (if (= (aref (diagonal arrays) (+ i 1) (+ j 1)) 1)
-                                           (aref (h-m arrays) i j)
-                                           0)
-                                         (aref (horizontal arrays) i j)))
+                               (aref (g-h arrays) i j) (- 1 (max (if (= (aref (vertical arrays) (+ i 1) j) 1)
+                                                                   (aref (h-v arrays) i j)
+                                                                   0)
+                                                                 (if (= (aref (diagonal arrays) (+ i 1) (+ j 1)) 1)
+                                                                   (aref (h-m arrays) i j)
+                                                                   0)
+                                                                 (aref (horizontal arrays) i j)
+                                                                 ))
                                (aref (horizontal arrays) i j) 1)
                          (setf (aref (h-h arrays) i (+ j 1)) 0
                                (aref (g-h arrays) i j) 0))
                        
                        (if (and (= (aref (vertical arrays) (+ i 1) j) 1)
-                                (= (aref (h-v arrays) i j) 1))
+                                (= (aref (h-v arrays) i j) 1)
+                               ; (= (aref (horizontal arrays) i j) 1)
+                                )
                          (setf (aref (h-v arrays) (+ i 1) j) (- 1 (max (aref (v-v arrays) i j)
                                                                        (aref (d-v arrays) i j)
                                                                        (aref (v-new arrays) i j)))
@@ -450,13 +473,16 @@
                                                                  (if (= (aref (diagonal arrays) (+ i 1) (+ j 1)) 1)
                                                                    (aref (h-m arrays) i j)
                                                                    0)
-                                                                 (aref (horizontal arrays) i j)))
+                                                                 (aref (horizontal arrays) i j)
+                                                                 ))
                                (aref (horizontal arrays) i j) 1)
                          (setf (aref (h-v arrays) (+ i 1) j) 0
                                (aref (g-v arrays) i j) 0))
                        
                        (if (and (= (aref (diagonal arrays) (+ i 1) (+ j 1)) 1)
-                                (= (aref (h-m arrays) i j) 1))
+                                (= (aref (h-m arrays) i j) 1)
+                               ; (= (aref (horizontal arrays) i j) 1)
+                                )
                          (setf (aref (h-m arrays) (+ i 1) (+ j 1)) (- 1 (max (aref (v-m arrays) i j)
                                                                              (aref (d-m arrays) i j)
                                                                              (aref (d-new arrays) i j)))
@@ -466,7 +492,8 @@
                                                                  (if (= (aref (vertical arrays) (+ i 1) j) 1)
                                                                    (aref (h-v arrays) i j)
                                                                    0)
-                                                                 (aref (horizontal arrays) i j)))
+                                                                 (aref (horizontal arrays) i j)
+                                                                 ))
                                (aref (horizontal arrays) i j) 1)
                          (setf (aref (h-m arrays) (+ i 1) (+ j 1)) 0
                                (aref (g-m arrays) i j) 0))
@@ -474,7 +501,9 @@
                        ;; 7) if edge D_{i+1,j+1} is in an optimal path and requires edge D_{i,j} to be in an optimal path,
                        ;;    determine if an optimal path that uses edge D_{i+1,j+1} must use edge D_{i,j} and the converse:
                        (if (and (= (aref (diagonal arrays) (+ i 1) (+ j 1)) 1)
-                                (= (aref (d-m arrays) i j) 1))
+                                (= (aref (d-m arrays) i j) 1)
+                               ; (= (aref (diagonal arrays) i j) 1)
+                                )
                          (setf (aref (d-m arrays) (+ i 1) (+ j 1)) (- 1 (max (aref (v-m arrays) i j)
                                                                              (aref (h-m arrays) i j)
                                                                              (aref (d-new arrays) i j)))
@@ -484,13 +513,16 @@
                                                                  (if (= (aref (vertical arrays) (+ i 1) j) 1)
                                                                    (aref (d-v arrays) i j)
                                                                    0)
-                                                                 (aref (diagonal arrays) i j)))
+                                                                 (aref (diagonal arrays) i j)
+                                                                 ))
                                (aref (diagonal arrays) i j) 1)
                          (setf (aref (d-m arrays) (+ i 1) (+ j 1)) 0
                                (aref (l-m arrays) i j) 0))
                        
                        (if (and (= (aref (horizontal arrays) i (+ j 1)) 1)
-                                (= (aref (d-h arrays) i j) 1))
+                                (= (aref (d-h arrays) i j) 1)
+                               ; (= (aref (diagonal arrays) i j) 1)
+                                )
                          (setf (aref (d-h arrays) i (+ j 1)) (- 1 (max (aref (v-h arrays) i j)
                                                                        (aref (h-h arrays) i j)
                                                                        (aref (h-new arrays) i j)))
@@ -500,13 +532,16 @@
                                                                  (if (= (aref (diagonal arrays) (+ i 1) (+ j 1)) 1)
                                                                    (aref (d-m arrays) i j)
                                                                    0)
-                                                                 (aref (diagonal arrays) i j)))
+                                                                 (aref (diagonal arrays) i j)
+                                                                 ))
                                (aref (diagonal arrays) i j) 1)
                          (setf (aref (d-h arrays) i (+ j 1)) 0
                                (aref (l-h arrays) i j) 0))
                        
                        (if (and (= (aref (vertical arrays) (+ i 1) j) 1)
-                                (= (aref (d-v arrays) i j) 1))
+                                (= (aref (d-v arrays) i j) 1)
+                               ; (= (aref (diagonal arrays) i j) 1)
+                                )
                          (setf (aref (d-v arrays) (+ i 1) j) (- 1 (max (aref (v-v arrays) i j)
                                                                        (aref (h-v arrays) i j)
                                                                        (aref (v-new arrays) i j)))
@@ -516,7 +551,8 @@
                                                                  (if (= (aref (diagonal arrays) (+ i 1) (+ j 1)) 1)
                                                                    (aref (d-m arrays) i j)
                                                                    0)
-                                                                 (aref (diagonal arrays) i j)))
+                                                                 (aref (diagonal arrays) i j)
+                                                                 ))
                                (aref (diagonal arrays) i j) 1)
                          (setf (aref (d-v arrays) (+ i 1) j) 0
                                (aref (l-v arrays) i j) 0)))))))
@@ -535,6 +571,9 @@
    (j :initarg :j :accessor j :initform 0 :type number)
    (cost :initarg :cost :accessor cost :initform 0 :type number)
    (match-positions :initarg :match-positions :accessor match-positions :initform nil :type list)
+   (mismatch-positions :initarg :mismatch-positions :accessor mismatch-positions :initform nil :type list)
+   (vertical-positions :initarg :vertical-positions :accessor vertical-positions :initform nil :type list)
+   (horizontal-positions :initarg :horizontal-positions :accessor horizontal-positions :initform nil :type list)
    (gap-counter :initarg :gap-counter :accessor gap-counter :initform 0 :type number)
    (prev-edge :initarg :prev-edge :accessor prev-edge :initform nil)
    (next-edge :initarg :next-edge :accessor next-edge :initform nil)
@@ -549,6 +588,7 @@
                                            (gap-opening-cost 5)
                                            (gap-cost 1)
                                            (debugging nil)
+                                           (boundary-matrix nil)
                                            n-optimal-alignments
                                            max-nr-of-au-gaps)
   (loop with solutions = nil
@@ -572,7 +612,7 @@
                              (eql next-edge 'vertical)
                              ;; as a sanity check, we could assert that horizontal and diagonal edges here are 0
                              (let ((next-state (check-vertical-edges pattern source pattern-boundaries source-boundaries state
-                                                                     arrays
+                                                                     arrays boundary-matrix
                                                                      :gap-opening-cost gap-opening-cost :gap-cost gap-cost)))
                                next-state))
                             
@@ -580,14 +620,14 @@
                              (eql next-edge 'horizontal)
                              ;; as a sanity check, we could assert that vertical and diagonal edges here are 0
                              (let ((next-state (check-horizontal-edges pattern source pattern-boundaries source-boundaries state
-                                                                       arrays
+                                                                       arrays boundary-matrix
                                                                        :gap-opening-cost gap-opening-cost :gap-cost gap-cost)))
                                next-state))
 
                             (;; next-edge is set to diagonal-mismatch
                              (or (eql next-edge 'diagonal-mismatch) (eql next-edge 'diagonal))
                              (let ((next-state (check-diagonal-edges pattern source pattern-boundaries source-boundaries state
-                                                                     arrays
+                                                                     arrays boundary-matrix
                                                                      :match-cost match-cost :mismatch-cost mismatch-cost
                                                                      :mismatch-opening-cost mismatch-opening-cost)))
                                next-state))
@@ -595,14 +635,14 @@
                             (;; next-edge is not set -> check vertical, horizontal and diagonal edges
                              t
                              (let ((next-state-diagonal (check-diagonal-edges pattern source pattern-boundaries source-boundaries state
-                                                                              arrays
+                                                                              arrays boundary-matrix
                                                                               :match-cost match-cost :mismatch-cost mismatch-cost
                                                                               :mismatch-opening-cost mismatch-opening-cost))
                                    (next-state-vertical (check-vertical-edges pattern source pattern-boundaries source-boundaries state
-                                                                              arrays
+                                                                              arrays boundary-matrix
                                                                               :gap-opening-cost gap-opening-cost :gap-cost gap-cost))
                                    (next-state-horizontal (check-horizontal-edges pattern source pattern-boundaries source-boundaries state
-                                                                                  arrays
+                                                                                  arrays boundary-matrix
                                                                                   :gap-opening-cost gap-opening-cost :gap-cost gap-cost)))
                                (append next-state-diagonal next-state-vertical next-state-horizontal)
                                ))))
@@ -641,13 +681,16 @@
             (return solutions))))
   
 
-(defun check-diagonal-edges (pattern source pattern-boundaries source-boundaries state
-                                     arrays
+(defun check-diagonal-edges (pattern source pattern-boundaries source-boundaries state 
+                                     arrays boundary-matrix
                                      &key (match-cost -1) (mismatch-opening-cost 1) (mismatch-cost 1))
+  
+  
   (with-slots (aligned-pattern aligned-source
                aligned-pattern-boundaries aligned-source-boundaries
-               i j cost match-positions gap-counter prev-edge next-edge) state
+               i j cost match-positions mismatch-positions vertical-positions horizontal-positions gap-counter prev-edge next-edge) state
     (when (= (aref (diagonal arrays) i j) 1)  ;; check if there is a diagonal edge in this state
+      (setf *diagonal-edges-counter* (+ *diagonal-edges-counter* 1))
       (let* (;; indexing in pattern and source string is offset by -1 w.r.t. index in matrix (i,j)
              (pattern-char (nth (- i 1) pattern))
              (source-char (nth (- j 1) source))
@@ -657,7 +700,7 @@
              (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
              (matchp (eql pattern-char source-char))
              (source-boundary-vars (make-boundary-indices j source-boundaries current-left-source-boundary))
-             (pattern-boundary-vars (make-boundary-vars i pattern-boundaries current-left-pattern-boundary))
+             (pattern-boundary-vars (make-boundary-vars i pattern-boundaries current-left-pattern-boundary boundary-matrix i j))
              (new-mismatch (if (or (eql prev-edge 'diagonal-mismatch)
                                    (eql prev-edge 'horizontal)
                                    (eql prev-edge 'vertical))
@@ -676,6 +719,9 @@
                                         :i (- i 1) :j (- j 1)
                                         :cost (+ cost (if matchp match-cost new-mismatch))
                                         :match-positions (if matchp (cons (cons i j) match-positions) match-positions)
+                                        :mismatch-positions (if (not matchp) (cons (cons i j) mismatch-positions) mismatch-positions)
+                                        :vertical-positions vertical-positions
+                                        :horizontal-positions horizontal-positions
                                         :gap-counter (if new-gap-p (+ 1 gap-counter) gap-counter)
                                         :next-edge 'vertical
                                         :prev-edge (if matchp 'diagonal 'diagonal-mismatch)
@@ -690,6 +736,7 @@
                                         :i (- i 1) :j (- j 1)
                                         :cost (+ cost (if matchp match-cost new-mismatch))
                                         :match-positions (if matchp (cons (cons i j) match-positions) match-positions)
+                                        :mismatch-positions (if (not matchp) (cons (cons i j) mismatch-positions) mismatch-positions)
                                         :gap-counter (if new-gap-p (+ 1 gap-counter) gap-counter)
                                         :next-edge 'horizontal
                                         :prev-edge (if matchp 'diagonal 'diagonal-mismatch)
@@ -704,6 +751,9 @@
                                         :i (- i 1) :j (- j 1)
                                         :cost (+ cost (if matchp match-cost new-mismatch))
                                         :match-positions (if matchp (cons (cons i j) match-positions) match-positions)
+                                        :mismatch-positions (if (not matchp) (cons (cons i j) mismatch-positions) mismatch-positions)
+                                        :vertical-positions vertical-positions
+                                        :horizontal-positions horizontal-positions
                                         :gap-counter (if new-gap-p (+ 1 gap-counter) gap-counter)
                                         :next-edge 'diagonal-mismatch
                                         :prev-edge (if matchp 'diagonal 'diagonal-mismatch)
@@ -719,6 +769,9 @@
                                                  :i (- i 1) :j (- j 1)
                                                  :cost (+ cost (if matchp match-cost new-mismatch))
                                                  :match-positions (if matchp (cons (cons i j) match-positions) match-positions)
+                                                 :mismatch-positions (if (not matchp) (cons (cons i j) mismatch-positions) mismatch-positions)
+                                                 :vertical-positions vertical-positions
+                                                 :horizontal-positions horizontal-positions
                                                  :gap-counter (if new-gap-p (+ 1 gap-counter) gap-counter)
                                                  :prev-edge (if matchp 'diagonal 'diagonal-mismatch)
                                                  :path (cons (if matchp 'diagonal 'diagonal-mismatch) (path state)))))
@@ -738,18 +791,21 @@
         next-states))))
 
 (defun check-vertical-edges (pattern source pattern-boundaries source-boundaries state
-                                    arrays
+                                    arrays boundary-matrix
                                      &key (gap-opening-cost 5) (gap-cost 1))
+  
+  
   (with-slots (aligned-pattern aligned-source
                aligned-pattern-boundaries aligned-source-boundaries
-               i j cost match-positions gap-counter prev-edge next-edge) state
+               i j cost match-positions mismatch-positions vertical-positions horizontal-positions gap-counter prev-edge next-edge) state
     (when (= (aref (vertical arrays) i j) 1)  ;; check if there is a vertical edge in this state
+      (setf *vertical-edges-counter* (+ *vertical-edges-counter* 1))
       (let* ((expanded-pattern (cons (nth (- i 1) pattern) aligned-pattern))
              (expanded-source (cons #\_ aligned-source))
              (current-left-source-boundary (car (first aligned-source-boundaries)))
              (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
              (source-boundary-vars (make-boundary-indices nil source-boundaries current-left-source-boundary :gap t))
-             (pattern-boundary-vars (make-boundary-vars i pattern-boundaries current-left-pattern-boundary))
+             (pattern-boundary-vars (make-boundary-vars i pattern-boundaries current-left-pattern-boundary boundary-matrix i j))
              (new-gap-p (not (or (eql (first aligned-source) #\_)
                                  (eql (first aligned-pattern) #\_)
                                  (eql prev-edge 'diagonal-mismatch))))  ;; new gap in terms of nv (i.e. a _)
@@ -765,6 +821,9 @@
                                         :i (- i 1) :j j
                                         :cost (+ cost cost-increase)
                                         :match-positions match-positions
+                                        :mismatch-positions mismatch-positions
+                                        :vertical-positions (cons (cons i j) vertical-positions)
+                                        :horizontal-positions horizontal-positions
                                         :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
                                         :next-edge 'vertical
                                         :prev-edge 'vertical
@@ -779,6 +838,9 @@
                                         :i (- i 1) :j j
                                         :cost (+ cost cost-increase)
                                         :match-positions match-positions
+                                        :mismatch-positions mismatch-positions
+                                        :vertical-positions (cons (cons i j) vertical-positions)
+                                        :horizontal-positions horizontal-positions
                                         :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
                                         :next-edge 'horizontal
                                         :prev-edge 'vertical
@@ -793,6 +855,9 @@
                                         :i (- i 1) :j j
                                         :cost (+ cost cost-increase)
                                         :match-positions match-positions
+                                        :mismatch-positions mismatch-positions
+                                        :vertical-positions (cons (cons i j) vertical-positions)
+                                        :horizontal-positions horizontal-positions
                                         :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
                                         :next-edge 'diagonal-mismatch ;; sure this is only mismatch? can it be match too?
                                         :prev-edge 'vertical
@@ -808,6 +873,9 @@
                                         :i (- i 1) :j j
                                         :cost (+ cost cost-increase)
                                         :match-positions match-positions
+                                        :mismatch-positions mismatch-positions
+                                        :vertical-positions (cons (cons i j) vertical-positions)
+                                        :horizontal-positions horizontal-positions
                                         :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
                                         :prev-edge 'vertical
                                         :path (cons 'vertical (path state)))))
@@ -827,18 +895,20 @@
 
 
 (defun check-horizontal-edges (pattern source pattern-boundaries source-boundaries state
-                                       arrays
+                                       arrays boundary-matrix
                                        &key (gap-opening-cost 5) (gap-cost 1))
+  
   (with-slots (aligned-pattern aligned-source
                aligned-pattern-boundaries aligned-source-boundaries
-               i j cost match-positions gap-counter prev-edge next-edge) state
+               i j cost match-positions mismatch-positions vertical-positions horizontal-positions gap-counter prev-edge next-edge) state
     (when (= (aref (horizontal arrays) i j) 1)  ;; check if there is a horizontal edge in this state
+      (setf *horizontal-edges-counter* (+ *horizontal-edges-counter* 1))
       (let* ((expanded-pattern (cons #\_ aligned-pattern))
              (expanded-source (cons (nth (- j 1) source) aligned-source))
              (current-left-source-boundary (car (first aligned-source-boundaries)))
              (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
              (source-boundary-vars (make-boundary-indices j source-boundaries current-left-source-boundary))
-             (pattern-boundary-vars (make-boundary-vars nil pattern-boundaries current-left-pattern-boundary :gap t))
+             (pattern-boundary-vars (make-boundary-vars nil pattern-boundaries current-left-pattern-boundary boundary-matrix i j :gap t))
              (new-gap-p (not (or (eql (first aligned-pattern) #\_)
                                  (eql (first aligned-source) #\_)
                                  (eql prev-edge 'diagonal-mismatch))))  ;; new gap in terms of nv (i.e. a _)
@@ -854,6 +924,9 @@
                                :i i :j (- j 1)
                                :cost (+ cost cost-increase)
                                :match-positions match-positions
+                               :mismatch-positions mismatch-positions
+                               :vertical-positions vertical-positions
+                               :horizontal-positions (cons (cons i j) horizontal-positions)
                                :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
                                :next-edge 'horizontal
                                :prev-edge 'horizontal
@@ -869,6 +942,9 @@
                                      :i i :j (- j 1)
                                      :cost (+ cost cost-increase)
                                      :match-positions match-positions
+                                     :mismatch-positions mismatch-positions
+                                     :vertical-positions vertical-positions
+                                     :horizontal-positions (cons (cons i j) horizontal-positions)
                                      :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
                                      :next-edge 'vertical
                                      :prev-edge 'horizontal
@@ -883,6 +959,9 @@
                                      :i i :j (- j 1)
                                      :cost (+ cost cost-increase)
                                      :match-positions match-positions
+                                     :mismatch-positions mismatch-positions
+                                     :vertical-positions vertical-positions
+                                     :horizontal-positions (cons (cons i j) horizontal-positions)
                                      :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
                                      :next-edge 'diagonal-mismatch
                                      :prev-edge 'horizontal
@@ -898,10 +977,14 @@
                                                  :i i :j (- j 1)
                                                  :cost (+ cost cost-increase)
                                                  :match-positions match-positions
+                                                 :mismatch-positions mismatch-positions
+                                                 :vertical-positions vertical-positions
+                                                 :horizontal-positions (cons (cons i j) horizontal-positions)
                                                  :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
                                                  :prev-edge 'horizontal
                                                  :path (cons 'horizontal (path state)))))
           (setf next-states (remove nil (list next-diagonal-state next-vertical-state next-horizontal-state))))
+        
   
         ;; when g-h is set, the prev edge has to be horizontal
         ;; if not, remove the next state! same for g-v and vertical, g-m and diagonal-mismatch
