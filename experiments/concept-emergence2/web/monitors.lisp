@@ -43,14 +43,14 @@
                 :documentation "Records the game outcome of each game (1 or 0).")
 
 (define-monitor export-communicative-success
-                :class 'lisp-data-file-writer
+                :class 'csv-data-file-writer
                 :documentation "Exports communicative success."
                 :data-sources '(record-communicative-success)
-                :file-name (babel-pathname :name "communicative-success" :type "lisp"
+                :file-name (babel-pathname :name "communicative-success" :type "csv"
                                            :directory '("experiments" "concept-emergence2" "logging"))
                 :add-time-and-experiment-to-file-name nil
-                :column-separator " "
-                :comment-string "#")
+                :column-separator #\#
+                :comment-string #\,)
 
 (define-event-handler (record-communicative-success interaction-finished)
   (record-value monitor (if (communicated-successfully interaction) 1 0)))
@@ -64,35 +64,35 @@
                 :documentation "Records the lexicon coherence.")
 
 (define-monitor export-lexicon-coherence
-                :class 'lisp-data-file-writer
+                :class 'csv-data-file-writer
                 :documentation "Exports lexicon size."
                 :data-sources '(record-lexicon-coherence)
-                :file-name (babel-pathname :name "lexicon-coherence" :type "lisp"
+                :file-name (babel-pathname :name "lexicon-coherence" :type "csv"
                                            :directory '("experiments" "concept-emergence2" "logging"))
                 :add-time-and-experiment-to-file-name nil
-                :column-separator " "
-                :comment-string "#")
+                :column-separator #\#
+                :comment-string #\,)
 
 (define-event-handler (record-lexicon-coherence interaction-finished)
   (record-value monitor (if (find-data interaction 'lexicon-coherence) 1 0)))
 
-;; ---------------------
-;; + Unique form usage +
-;; ---------------------
+;; --------------------------------
+;; + Unique form usage (training) +
+;; --------------------------------
 (define-monitor record-unique-form-usage
                 :class 'data-recorder
                 :average-window 0
                 :documentation "Records the unique form usage.")
 
 (define-monitor export-unique-form-usage
-                :class 'lisp-data-file-writer
+                :class 'csv-data-file-writer
                 :documentation "Exports the unique form usage"
                 :data-sources '(record-unique-form-usage)
-                :file-name (babel-pathname :name "unique-form-usage" :type "lisp"
+                :file-name (babel-pathname :name "unique-form-usage" :type "csv"
                                            :directory '("experiments" "concept-emergence2" "logging"))
                 :add-time-and-experiment-to-file-name nil
-                :column-separator " "
-                :comment-string "#")
+                :column-separator #\#
+                :comment-string #\,)
 
 (define-event-handler (record-unique-form-usage interaction-finished)
   (record-value monitor (loop for agent in (agents (experiment interaction))
@@ -105,7 +105,6 @@
 ;;;; Export the configurations of the experiment at the end of the first series
 (define-monitor export-experiment-configurations)
 (define-event-handler (export-experiment-configurations run-series-finished)
-                      (when (= (series-number experiment) 1)
                         (let* ((exp-top-dir (get-configuration experiment :exp-top-dir))
                                (log-dir-name (get-configuration experiment :log-dir-name))
                                (exp-name (get-configuration experiment :exp-name))
@@ -117,14 +116,16 @@
                                                    ,exp-name
                                                    ,log-dir-name)
                                       :name "experiment-configurations" 
-                                      :type "lisp"))
-                               (config (append (entries experiment) 
-                                               (list (cons :HASH (first (exec-and-return "git" "rev-parse" "HEAD")))))))
+                                      :type "json"))
+                               (config (cl-json:encode-json-alist-to-string
+                                        (alist->json-alist
+                                         (append (entries experiment) 
+                                                 (list (cons :HASH (first (exec-and-return "git" "rev-parse" "HEAD")))))))))
                           (ensure-directories-exist path)
                           (with-open-file (stream path :direction :output
                                                   :if-exists :overwrite
                                                   :if-does-not-exist :create)
-                            (write config :stream stream)))))
+                            (write-string config stream))))
 
 (define-monitor export-experiment-store)
 (define-event-handler (export-experiment-store run-series-finished)

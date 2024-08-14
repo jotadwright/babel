@@ -41,31 +41,6 @@
     (:distribution . :gaussian-welford)
     (:M2 . 0.0001)))
 
-(defun get-monitors ()
-  (list "export-communicative-success"
-        "export-lexicon-coherence"
-        "export-unique-form-usage"
-        "export-experiment-configurations"
-        "export-experiment-store"
-        "print-a-dot-for-each-interaction"))
-
-(defun set-up-monitors (monitors config)
-  (monitors::deactivate-all-monitors)
-  (loop for monitor-string in monitors
-        for monitor = (monitors::get-monitor (read-from-string monitor-string))
-        do (monitors::activate-monitor-method (read-from-string monitor-string))
-        when (slot-exists-p monitor 'file-name)
-          do (setf (slot-value monitor 'file-name)
-                    (ensure-directories-exist
-                    (merge-pathnames (make-pathname :directory `(:relative ,(assqv :log-dir-name config))
-                                                    :name (pathname-name (file-name monitor)) 
-                                                    :type (pathname-type (file-name monitor)))
-                                      (babel-pathname :directory `("experiments"
-                                                                  "concept-emergence2"
-                                                                  "logging"
-                                                                  ,(assqv :exp-top-dir config)
-                                                                  ,(assqv :exp-name config))))))))
-
 (defun run-experiment (args)
   (let* (;; parse command line arguments, append it to the fixed configuration
          (config (append (fixed-config) (parse-config args)))
@@ -74,7 +49,13 @@
     ;; add log-dir-name to configuration
     (setf config (append config (list (cons :log-dir-name log-dir-name))))
     ;; adapt file-writing monitors so they output in the correct log-dir
-    (set-up-monitors (get-monitors) config)
+    (set-up-monitors (list "export-communicative-success"
+                           "export-lexicon-coherence"
+                           "export-unique-form-usage"
+                           "export-experiment-configurations"
+                           "export-experiment-store"
+                           "print-a-dot-for-each-interaction")
+                     config)
 
     ;; Run experiment
     (format t "~%~% == Running the experiment, log at 'logging/~a/~a/~a'.~%"
