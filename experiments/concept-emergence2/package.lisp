@@ -19,4 +19,5 @@
    :decode-json-from-string
    :encode-json-to-string
    :encode-json-alist-to-string)
+  (:import-from :alexandria #:hash-table-alist)
   (:shadowing-import-from :fcg :size :attributes))
