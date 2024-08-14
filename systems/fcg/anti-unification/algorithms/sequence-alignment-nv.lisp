@@ -24,7 +24,7 @@
 
 (defmethod maximal-sequence-alignments ((pattern string) (source string) (pattern-boundaries list) (source-boundaries list)
                                         &key (match-cost -1) (mismatch-cost 1) (mismatch-opening-cost 1) (gap-opening-cost 5) (gap-cost 1)
-                                        (remove-duplicate-alignments t) (debugging nil) n-optimal-alignments max-nr-of-au-gaps)
+                                        (remove-duplicate-alignments t) n-optimal-alignments max-nr-of-au-gaps (debugging nil))
   (maximal-sequence-alignments (coerce pattern 'list) (coerce source 'list)
                                pattern-boundaries source-boundaries
                                :match-cost match-cost
@@ -40,7 +40,7 @@
 
 (defmethod maximal-sequence-alignments ((pattern list) (source list) (pattern-boundaries list) (source-boundaries list)
                                         &key (match-cost -1) (mismatch-cost 1) (mismatch-opening-cost 1) (gap-opening-cost 5) (gap-cost 1)
-                                        (remove-duplicate-alignments t) (debugging nil) n-optimal-alignments max-nr-of-au-gaps)
+                                        (remove-duplicate-alignments t) n-optimal-alignments max-nr-of-au-gaps (debugging nil))
   (reset-id-counters)
   (let* ((nx (length pattern)) ;; number of rows
          (ny (length source))  ;; number of columns
@@ -71,11 +71,7 @@
     ;; Run the Gotoh algorithm according to the implementation
     ;; provided by Altschul and Ericksson (1986)
     (cost-assignment pattern source nx ny P Q R S arrays
-                           :match-cost match-cost
-                           :mismatch-opening-cost mismatch-opening-cost
-                           :mismatch-cost mismatch-cost
-                           :gap-opening-cost gap-opening-cost
-                           :gap-cost gap-cost)
+                     match-cost mismatch-opening-cost mismatch-cost gap-opening-cost gap-cost)
     
     (when debugging 
       (visualise-arrays pattern source arrays))
@@ -94,14 +90,15 @@
                                         pattern-boundaries
                                         source-boundaries
                                         optimal-cost
-                                        :match-cost match-cost
-                                        :mismatch-cost mismatch-cost
-                                        :mismatch-opening-cost mismatch-opening-cost
-                                        :gap-opening-cost gap-opening-cost
-                                        :gap-cost gap-cost
+                                        match-cost
+                                        mismatch-cost
+                                        mismatch-opening-cost
+                                        gap-opening-cost
+                                        gap-cost
                                         :n-optimal-alignments n-optimal-alignments
                                         :max-nr-of-au-gaps max-nr-of-au-gaps
-                                        :boundary-matrix boundary-matrix)))
+                                        :boundary-matrix boundary-matrix
+                                        :debugging debugging)))
       ;(check-optimal-alignments all-optimal-alignments arrays)
       (when debugging
         (loop for alignment in all-optimal-alignments
@@ -169,9 +166,8 @@
   (setf (l-h arrays) (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
   (setf (l-m arrays) (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0)))
 
-(defun cost-assignment (pattern source nx ny P Q R S arrays
-                                &key (match-cost -1) (mismatch-opening-cost 1) (mismatch-cost 1)
-                                (gap-opening-cost 5) (gap-cost 1))
+
+(defun cost-assignment (pattern source nx ny P Q R S arrays match-cost mismatch-opening-cost mismatch-cost gap-opening-cost gap-cost)
   (loop for i from 0 to nx
         do (loop for j from 0 to ny
                  for matchp = (when (and (> i 0) (> j 0))
@@ -562,18 +558,19 @@
    (next-edge :initarg :next-edge :accessor next-edge :initform nil)
    (path :initarg :path :accessor path :initform nil)))
 
+
 (defun extract-optimal-alignments (pattern source arrays
-                                           pattern-boundaries source-boundaries
-                                           optimal-cost
-                                           &key (match-cost -1)
-                                           (mismatch-cost 1)
-                                           (mismatch-opening-cost 1)
-                                           (gap-opening-cost 5)
-                                           (gap-cost 1)
-                                           (debugging nil)
-                                           (boundary-matrix nil)
-                                           n-optimal-alignments
-                                           max-nr-of-au-gaps)
+                                   pattern-boundaries source-boundaries
+                                   optimal-cost
+                                   match-cost
+                                   mismatch-cost
+                                   mismatch-opening-cost
+                                   gap-opening-cost
+                                   gap-cost
+                                   boundary-matrix
+                                   &key n-optimal-alignments
+                                   max-nr-of-au-gaps
+                                   debugging)
   (loop with solutions = nil
         ;; start at position (M, N)
         with queue = (list (make-initial-sequence-alignment-state
@@ -594,33 +591,25 @@
                       (cond (;; next-edge is set to vertical -> only need to check vertical edges
                              (eql next-edge 'vertical)
                              ;; as a sanity check, we could assert that horizontal and diagonal edges here are 0
-                             (let ((next-state (check-vertical-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix
-                                                                     :gap-opening-cost gap-opening-cost :gap-cost gap-cost)))
+                             (let ((next-state (check-vertical-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix gap-opening-cost gap-cost)))
                                next-state))
                             
                             (;; next-edge is set to horizontal -> only need to check horizontal edges
                              (eql next-edge 'horizontal)
                              ;; as a sanity check, we could assert that vertical and diagonal edges here are 0
-                             (let ((next-state (check-horizontal-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix
-                                                                       :gap-opening-cost gap-opening-cost :gap-cost gap-cost)))
+                             (let ((next-state (check-horizontal-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix gap-opening-cost gap-cost)))
                                next-state))
 
                             (;; next-edge is set to diagonal-mismatch
                              (or (eql next-edge 'diagonal-mismatch) (eql next-edge 'diagonal))
-                             (let ((next-state (check-diagonal-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix
-                                                                     :match-cost match-cost :mismatch-cost mismatch-cost
-                                                                     :mismatch-opening-cost mismatch-opening-cost)))
+                             (let ((next-state (check-diagonal-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix match-cost mismatch-cost mismatch-opening-cost)))
                                next-state))
                             
                             (;; next-edge is not set -> check vertical, horizontal and diagonal edges
                              t
-                             (let ((next-state-diagonal (check-diagonal-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix 
-                                                                              :match-cost match-cost :mismatch-cost mismatch-cost
-                                                                              :mismatch-opening-cost mismatch-opening-cost))
-                                   (next-state-vertical (check-vertical-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix
-                                                                              :gap-opening-cost gap-opening-cost :gap-cost gap-cost))
-                                   (next-state-horizontal (check-horizontal-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix
-                                                                                  :gap-opening-cost gap-opening-cost :gap-cost gap-cost)))
+                             (let ((next-state-diagonal (check-diagonal-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix match-cost mismatch-cost mismatch-opening-cost))
+                                   (next-state-vertical (check-vertical-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix gap-opening-cost gap-cost))
+                                   (next-state-horizontal (check-horizontal-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix gap-opening-cost gap-cost)))
                                (append next-state-diagonal next-state-vertical next-state-horizontal)))))
                      (next-states-with-max-gaps
                       (if max-nr-of-au-gaps
@@ -657,8 +646,7 @@
             (return solutions))))
   
 
-(defun check-diagonal-edges (pattern source pattern-boundaries source-boundaries state arrays boundary-matrix
-                                     &key (match-cost -1) (mismatch-opening-cost 1) (mismatch-cost 1))
+(defun check-diagonal-edges (pattern source pattern-boundaries source-boundaries state arrays boundary-matrix match-cost mismatch-opening-cost mismatch-cost)
   (with-slots (aligned-pattern aligned-source
                aligned-pattern-boundaries aligned-source-boundaries
                i j cost match-positions mismatch-positions vertical-positions
@@ -761,8 +749,7 @@
           ;; return the next state
           next-states)))))
 
-(defun check-vertical-edges (pattern source pattern-boundaries source-boundaries state arrays boundary-matrix
-                                     &key (gap-opening-cost 5) (gap-cost 1))
+(defun check-vertical-edges (pattern source pattern-boundaries source-boundaries state arrays boundary-matrix gap-opening-cost gap-cost)
   (declare (ignore source))
   (with-slots (aligned-pattern aligned-source
                aligned-pattern-boundaries aligned-source-boundaries
@@ -862,8 +849,7 @@
           next-states)))))
 
 
-(defun check-horizontal-edges (pattern source pattern-boundaries source-boundaries state  arrays boundary-matrix
-                                       &key (gap-opening-cost 5) (gap-cost 1))
+(defun check-horizontal-edges (pattern source pattern-boundaries source-boundaries state  arrays boundary-matrix gap-opening-cost gap-cost)
   (declare (ignore pattern))
   (with-slots (aligned-pattern aligned-source
                aligned-pattern-boundaries aligned-source-boundaries
