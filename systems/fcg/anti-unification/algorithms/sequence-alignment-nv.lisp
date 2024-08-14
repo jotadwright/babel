@@ -37,7 +37,7 @@
                                :n-optimal-alignments n-optimal-alignments
                                :max-nr-of-au-gaps max-nr-of-au-gaps))
 
-;; introduce new matrix S to keep track of opened mismatches
+
 (defmethod maximal-sequence-alignments ((pattern list) (source list) (pattern-boundaries list) (source-boundaries list)
                                         &key (match-cost -1) (mismatch-cost 1) (mismatch-opening-cost 1) (gap-opening-cost 5) (gap-cost 1)
                                         (remove-duplicate-alignments t) (debugging nil) n-optimal-alignments max-nr-of-au-gaps)
@@ -48,14 +48,10 @@
          (P (make-array (list (+ nx 1) (+ ny 1))))
          (Q (make-array (list (+ nx 1) (+ ny 1))))
          (R (make-array (list (+ nx 1) (+ ny 1))))
-         (S (make-array (list (+ nx 1) (+ ny 1))))
+         (S (make-array (list (+ nx 1) (+ ny 1)))) ;; introduce new matrix S to keep track of opened mismatches
          ;; matrices to store graph edges
          (arrays (make-instance 'arrays :nx nx :ny ny))
-         (arrays (make-instance 'arrays))
-         (arrays (initialize-arrays nx ny arrays))
-         (boundary-matrix (make-boundary-vars-matrix nx ny))
-         
-         )
+         (boundary-matrix (make-boundary-vars-matrix nx ny)))
          
     ;; An entry R_{i,j} represents the best score for the alignment of the
     ;; prefixes pattern_{1...i} with source_{1...j}. An entry in P_{i,j} and Q_{i,j}
@@ -80,6 +76,7 @@
                            :mismatch-cost mismatch-cost
                            :gap-opening-cost gap-opening-cost
                            :gap-cost gap-cost)
+    
     (when debugging 
       (visualise-arrays pattern source arrays))
     
@@ -133,7 +130,8 @@
    (d-v :initarg :d-v :accessor d-v :initform nil :type array) ;;after cost assignment: d-v = 1 iff among (i+1,j) paths through N_i,j, an optimal one uses D_i,j
    (d-h :initarg :d-h :accessor d-h :initform nil :type array) ;;after cost assignment: d-h = 1 iff among (i,j+1) paths through N_i,j, an optimal one uses D_i,j
    (d-m :initarg :d-m :accessor d-m :initform nil :type array) ;;after cost assignment: v-h = 1 iff among (i+1,j+1) paths through N_i,j, an optimal one uses D_i,j
-   (d-new :initarg :d-new :accessor d-new :initform nil :type array) ;;after cost assignment: d-new iff among (i+1,j+1) paths through N_i,j, an optimal one does not use D_i,j --> but we don't know this, because it can be a diagonal match!!
+   (d-new :initarg :d-new :accessor d-new :initform nil :type array) ;;after cost assignment: d-new iff among (i+1,j+1) paths through N_i,j, an optimal one does not use D_i,j
+   ;; --> but we don't know this, because it can be a diagonal match!!
    (e-v :initarg :e-v :accessor e-v :initform nil :type array) ;;after cost assignment: v-v = 1 iff among (i+1,j) paths through N_i,j, an optimal one uses V_i,j
    (e-h :initarg :e-h :accessor e-h :initform nil :type array) ;;after cost assignment: v-h = 1 iff among (i,j+1) paths through N_i,j, an optimal one uses V_i,j
    (e-m :initarg :e-m :accessor e-m :initform nil :type array) ;;after cost assignment: v-m = 1 iff among (i+1,j+1) paths through N_i,j, an optimal one uses V_i,j
@@ -207,13 +205,9 @@
                        (when (= min-cost new-gap-cost)
                          (setf (aref (v-new arrays) (- i 1) j) 1))
                        (when (= min-cost extended-gap-cost-other-side)
-                         (setf (aref (h-v arrays) (- i 1) j) 1
-                               ;(aref (h-new arrays) (- i 1) j) 1
-                               ))
+                         (setf (aref (h-v arrays) (- i 1) j) 1))
                        (when (= min-cost extended-mismatch)
-                         (setf (aref (d-v arrays) (- i 1) j) 1
-                               ;(aref (d-new arrays) (- i 1) j) 1
-                               ))))
+                         (setf (aref (d-v arrays) (- i 1) j) 1))))
 
                    ;; 3) find the minimum cost of a path ending at node N_{i,j} using horizontal edge
                    ;; 4) determine if cost Q_{i,j} can be achieved with and without edge H_{i,j-1}, i.e. horizontal edge before horizontal,
@@ -231,13 +225,9 @@
                        (when (= min-cost new-gap-cost)
                          (setf (aref (h-new arrays) i (- j 1)) 1))
                        (when (= min-cost extended-gap-cost-other-side)
-                         (setf (aref (v-h arrays) i (- j 1)) 1
-                              ; (aref (v-new arrays) (- i 1) j) 1
-                               ))
+                         (setf (aref (v-h arrays) i (- j 1)) 1))
                        (when (= min-cost extended-mismatch)
-                         (setf (aref (d-h arrays) i (- j 1)) 1
-                               ;(aref (d-new arrays) (- i 1) j) 1
-                               ))))
+                         (setf (aref (d-h arrays) i (- j 1)) 1))))
 
                    ;; 5) find the minimum cost of a path ending at node N_{i,j} using diagonal edge with mismatch
                    ;; 6) determine if cost S_{i,j} can be achieved with and without edge S_{i-1,j-1}, i.e. diagonal edge before diagonal,
@@ -265,23 +255,19 @@
                        ;; do NOT set k and l when no mismatch...
                        (when (and (not matchp)
                                   (= min-cost extended-mismatch-cost)
-                                  (not (= min-cost +inf))
-                                  )
+                                  (not (= min-cost +inf)))
                          (setf (aref (d-m arrays) (- i 1) (- j 1)) 1))
                        (when (and (not matchp)
                                   (= min-cost new-mismatch-cost)
-                                  (not (= min-cost +inf))
-                                  )
+                                  (not (= min-cost +inf)))
                          (setf (aref (d-new arrays) (- i 1) (- j 1)) 1))
                        (when (and (not matchp)
                                   (= min-cost extended-vertical-gap-cost)
-                                  (not (= min-cost +inf))
-                                  )
+                                  (not (= min-cost +inf)))
                          (setf (aref (v-m arrays) (- i 1) (- j 1)) 1))
                        (when (and (not matchp)
                                   (= min-cost extended-horizontal-gap-cost)
-                                  (not (= min-cost +inf))
-                                  )
+                                  (not (= min-cost +inf)))
                          (setf (aref (h-m arrays) (- i 1) (- j 1)) 1))))
                      
                    ;; 7) find the minimum cost of a path ending at node N_{i,j}
@@ -315,22 +301,21 @@
         do (loop for j from ny downto 0
                  do ;; 1) if there is no optimal path passing through node N_{i,j} which has cost R_{i,j}
                    ;;     remove the edges vertically, horizontally and diagonally
-                   ;;     if the ith is found in pattern and the jth is found in source (so we are not at the end of the matrix,
-                   ;;     then they need to be not equal in order for checking d-new and v-m and h-m, because they only say something about mismatches.
+                   ;;     if the ith is found in pattern and the jth is found in source (so we are not at the end of the matrix),
+                   ;;     then they need to be not equal in order for checking d-new, because they only say something about mismatches.
                    ;;     i and j in the pattern and source are always 1 behind, so it is actually the next that needs to be a mismatch. 
                    (when 
-                     (and (or (= (aref (vertical arrays) (+ i 1) j) 0)
-                              (= (aref (v-new arrays) i j) 0)
-                              )
+                     (and ;; no outgoing vertical edge
+                          (or (= (aref (vertical arrays) (+ i 1) j) 0)
+                              (= (aref (v-new arrays) i j) 0))
+                          ;; no outgoing horizontal edge
                           (or (= (aref (horizontal arrays) i (+ j 1)) 0)
-                              (= (aref (h-new arrays) i j) 0)
-                              )
+                              (= (aref (h-new arrays) i j) 0))
+                          ;; no outgoing diagonal edge
                           (or (= (aref (diagonal arrays) (+ i 1) (+ j 1)) 0)
-                              (and (nth i pattern)
-                                   (nth j source)
-                                   (not (equal (nth i pattern) (nth j source))) 
-                                   (= (aref (d-new arrays) i j) 0)
-                                   )))
+                              (and (nth i pattern) (nth j source)
+                                   (not (equal (nth i pattern) (nth j source)))
+                                   (= (aref (d-new arrays) i j) 0))))
                      (setf (aref (vertical arrays) i j) 0
                            (aref (horizontal arrays) i j) 0
                            (aref (diagonal arrays) i j) 0))
@@ -344,11 +329,11 @@
                        ;;    determine if an optimal path that uses edge V_{i+1,j} must use edge V_{i,j} and the converse:
 
                        ;; IF there is a vertical edge to N i+1 j (a i+1 j == 1)
-                       ;; and this vertical edge is preceded by another vertical edge (d_v i j == 1)
-                       ;; THEN vertical edge to N i+1 j HAS to be preceded by a vertical edge (setf d i+1 j to 1)
-                       ;; if there is no horizontal edge entering N i j (f-v i j == 0)
-                       ;; no diagonal edge entering N i j (k-v i j == 0)
-                       ;; and all optimal paths to N i+1 j make use of N i j (e i j == 0)
+                       ;; and this vertical edge is preceded by another vertical edge (v-v i j == 1)
+                       ;; THEN vertical edge to N i+1 j HAS to be preceded by a vertical edge (setf v-v i+1 j to 1)
+                       ;; if there is no horizontal edge entering N i j (h-v i j == 0)
+                       ;; no diagonal edge entering N i j (d-v i j == 0)
+                       ;; and all optimal paths to N i+1 j make use of N i j (v-new i j == 0)
                        ;; THEN vertical edge to N i j HAS to be followed by a vertical edge (setf e i j to 1)
                        ;; if there are no other optimal paths that enter N i j (a i j = 0)
                        ;; because we don't know how in what direction they leave N i j
@@ -369,8 +354,8 @@
                                                                  (if (= (aref (diagonal arrays) (+ i 1) (+ j 1)) 1)
                                                                    (aref (v-m arrays) i j)
                                                                    0)
-                                                                 (aref (vertical arrays) i j)
-                                                                 ))
+                                                                 ;; verticaal staat op 0 iff v-v=1 of h-v=1 of d-v=1
+                                                                 (aref (vertical arrays) i j)))
                                (aref (vertical arrays) i j) 1)
                          (setf (aref (v-v arrays) (+ i 1) j) 0 
                                (aref (e-v arrays) i j) 0))
@@ -431,16 +416,13 @@
                                                                  (if (= (aref (horizontal arrays) i (+ j 1)) 1)
                                                                    (aref (v-h arrays) i j)
                                                                    0)
-                                                                 (aref (vertical arrays) i j)
-                                                                 ))
-                              (aref (vertical arrays) i j) 1)
+                                                                 (aref (vertical arrays) i j)))
+                               (aref (vertical arrays) i j) 1)
                          (setf (aref (v-m arrays) (+ i 1) (+ j 1)) 0 
                                (aref (e-m arrays) i j) 0))
 
                        ;; 6) if edge H_{i,j+1} is in an optimal path and requires edge H_{i,j} to be in an optimal path,
                        ;;    determine if an optimal path that uses edge H_{i,j+1} must use edge H_{i,j} and the converse:
-                       
-                       
                        (if (and (= (aref (horizontal arrays) i (+ j 1)) 1)
                                 (= (aref (h-h arrays) i j) 1)
                                ; (= (aref (horizontal arrays) i j) 1)
@@ -454,11 +436,11 @@
                                                                  (if (= (aref (diagonal arrays) (+ i 1) (+ j 1)) 1)
                                                                    (aref (h-m arrays) i j)
                                                                    0)
-                                                                 (aref (horizontal arrays) i j)
-                                                                 ))
+                                                                 (aref (horizontal arrays) i j)))
                                (aref (horizontal arrays) i j) 1)
                          (setf (aref (h-h arrays) i (+ j 1)) 0
                                (aref (g-h arrays) i j) 0))
+
                        
                        (if (and (= (aref (vertical arrays) (+ i 1) j) 1)
                                 (= (aref (h-v arrays) i j) 1)
@@ -478,6 +460,7 @@
                                (aref (horizontal arrays) i j) 1)
                          (setf (aref (h-v arrays) (+ i 1) j) 0
                                (aref (g-v arrays) i j) 0))
+
                        
                        (if (and (= (aref (diagonal arrays) (+ i 1) (+ j 1)) 1)
                                 (= (aref (h-m arrays) i j) 1)
@@ -611,41 +594,34 @@
                       (cond (;; next-edge is set to vertical -> only need to check vertical edges
                              (eql next-edge 'vertical)
                              ;; as a sanity check, we could assert that horizontal and diagonal edges here are 0
-                             (let ((next-state (check-vertical-edges pattern source pattern-boundaries source-boundaries state
-                                                                     arrays boundary-matrix
+                             (let ((next-state (check-vertical-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix
                                                                      :gap-opening-cost gap-opening-cost :gap-cost gap-cost)))
                                next-state))
                             
                             (;; next-edge is set to horizontal -> only need to check horizontal edges
                              (eql next-edge 'horizontal)
                              ;; as a sanity check, we could assert that vertical and diagonal edges here are 0
-                             (let ((next-state (check-horizontal-edges pattern source pattern-boundaries source-boundaries state
-                                                                       arrays boundary-matrix
+                             (let ((next-state (check-horizontal-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix
                                                                        :gap-opening-cost gap-opening-cost :gap-cost gap-cost)))
                                next-state))
 
                             (;; next-edge is set to diagonal-mismatch
                              (or (eql next-edge 'diagonal-mismatch) (eql next-edge 'diagonal))
-                             (let ((next-state (check-diagonal-edges pattern source pattern-boundaries source-boundaries state
-                                                                     arrays boundary-matrix
+                             (let ((next-state (check-diagonal-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix
                                                                      :match-cost match-cost :mismatch-cost mismatch-cost
                                                                      :mismatch-opening-cost mismatch-opening-cost)))
                                next-state))
                             
                             (;; next-edge is not set -> check vertical, horizontal and diagonal edges
                              t
-                             (let ((next-state-diagonal (check-diagonal-edges pattern source pattern-boundaries source-boundaries state
-                                                                              arrays boundary-matrix
+                             (let ((next-state-diagonal (check-diagonal-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix 
                                                                               :match-cost match-cost :mismatch-cost mismatch-cost
                                                                               :mismatch-opening-cost mismatch-opening-cost))
-                                   (next-state-vertical (check-vertical-edges pattern source pattern-boundaries source-boundaries state
-                                                                              arrays boundary-matrix
+                                   (next-state-vertical (check-vertical-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix
                                                                               :gap-opening-cost gap-opening-cost :gap-cost gap-cost))
-                                   (next-state-horizontal (check-horizontal-edges pattern source pattern-boundaries source-boundaries state
-                                                                                  arrays boundary-matrix
+                                   (next-state-horizontal (check-horizontal-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix
                                                                                   :gap-opening-cost gap-opening-cost :gap-cost gap-cost)))
-                               (append next-state-diagonal next-state-vertical next-state-horizontal)
-                               ))))
+                               (append next-state-diagonal next-state-vertical next-state-horizontal)))))
                      (next-states-with-max-gaps
                       (if max-nr-of-au-gaps
                         (remove-if #'(lambda (state) (> (gap-counter state) max-nr-of-au-gaps)) next-states)
@@ -681,14 +657,12 @@
             (return solutions))))
   
 
-(defun check-diagonal-edges (pattern source pattern-boundaries source-boundaries state 
-                                     arrays boundary-matrix
+(defun check-diagonal-edges (pattern source pattern-boundaries source-boundaries state arrays boundary-matrix
                                      &key (match-cost -1) (mismatch-opening-cost 1) (mismatch-cost 1))
-  
-  
   (with-slots (aligned-pattern aligned-source
                aligned-pattern-boundaries aligned-source-boundaries
-               i j cost match-positions mismatch-positions vertical-positions horizontal-positions gap-counter prev-edge next-edge) state
+               i j cost match-positions mismatch-positions vertical-positions
+               horizontal-positions gap-counter prev-edge) state
     (when (= (aref (diagonal arrays) i j) 1)  ;; check if there is a diagonal edge in this state
       ;; check if there is a previous edge set and if it is correct
       (unless (or (and (= (aref (l-m arrays) i j) 1)
@@ -789,11 +763,11 @@
 
 (defun check-vertical-edges (pattern source pattern-boundaries source-boundaries state arrays boundary-matrix
                                      &key (gap-opening-cost 5) (gap-cost 1))
-  
-  
+  (declare (ignore source))
   (with-slots (aligned-pattern aligned-source
                aligned-pattern-boundaries aligned-source-boundaries
-               i j cost match-positions mismatch-positions vertical-positions horizontal-positions gap-counter prev-edge next-edge) state
+               i j cost match-positions mismatch-positions vertical-positions
+               horizontal-positions gap-counter prev-edge) state
     (when (= (aref (vertical arrays) i j) 1)  ;; check if there is a vertical edge in this state
       ;; check if there is a previous edge set and if it is correct
       (unless (or (and (= (aref (e-v arrays) i j) 1)
@@ -890,10 +864,11 @@
 
 (defun check-horizontal-edges (pattern source pattern-boundaries source-boundaries state  arrays boundary-matrix
                                        &key (gap-opening-cost 5) (gap-cost 1))
-  
+  (declare (ignore pattern))
   (with-slots (aligned-pattern aligned-source
                aligned-pattern-boundaries aligned-source-boundaries
-               i j cost match-positions mismatch-positions vertical-positions horizontal-positions gap-counter prev-edge next-edge) state
+               i j cost match-positions mismatch-positions vertical-positions
+               horizontal-positions gap-counter prev-edge) state
     (when (= (aref (horizontal arrays) i j) 1)  ;; check if there is a horizontal edge in this state
       ;; when g-h is set, the prev edge has to be horizontal
       ;; if not, remove the next state! same for g-v and vertical, g-m and diagonal-mismatch
