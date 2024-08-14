@@ -77,6 +77,17 @@
         do (setf (gethash (funcall key el) tbl) el)
         finally (return tbl)))
 
+(defun hash-table->alist (data)
+  (if (hash-table-p data)
+    (let ((alist (or (hash-table-alist data) 'empty-hash)))
+      (if (eql alist 'empty-hash)
+        'empty-hash
+        (loop for (key . value) in alist
+              if (hash-table-p value)
+              collect (cons key (hash-table->alist value))
+              else collect (cons key value))))
+    data))
+
 (defun alist->json-alist (alist)
   (mapcar (lambda (entry)
             (cons (if (keywordp (car entry))
