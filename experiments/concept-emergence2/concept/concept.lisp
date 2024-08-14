@@ -34,7 +34,7 @@
                                    observation)
                              collect new-prototype)))
     ;; create the concept
-    (make-instance 'concept-distribution :prototypes (list-to-hash-table prototypes :key #'channel))))
+    (make-instance 'concept-distribution :prototypes (list->hash-table prototypes :key #'channel))))
 
 ;; -----------------------------------
 ;; + get/switch channel availability +

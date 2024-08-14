@@ -70,12 +70,40 @@
                           (return agent)))))
     agent))
 
-(defun list-to-hash-table (lst &key (key #'identity))
+(defun list->hash-table (lst &key (key #'identity))
   "Creates a hash table given a list."
   (loop with tbl = (make-hash-table)
         for el in lst
         do (setf (gethash (funcall key el) tbl) el)
         finally (return tbl)))
+
+(defun hash-table->alist (data)
+  (if (hash-table-p data)
+    (let ((alist (or (hash-table-alist data) 'empty-hash)))
+      (if (eql alist 'empty-hash)
+        'empty-hash
+        (loop for (key . value) in alist
+              if (hash-table-p value)
+              collect (cons key (hash-table->alist value))
+              else collect (cons key value))))
+    data))
+
+(defun alist->json-alist (alist)
+  (mapcar (lambda (entry)
+            (cons (if (keywordp (car entry))
+                      (string-downcase (format nil ":~a" (car entry)))
+                      (car entry))
+                  (cond ((keywordp (cdr entry))
+                         (string-downcase (format nil ":~a" (cdr entry))))
+                        ((numberp (cdr entry))
+                         (cdr entry))
+                        ((stringp (cdr entry))
+                         (cdr entry))
+                        ((equal (cdr entry) (list nil))
+                         "nil")
+                        (t
+                         (string-downcase (cdr entry))))))
+          alist))
 
 (defun hash-keys (ht)
   (loop for key being the hash-keys of ht
@@ -150,6 +178,23 @@
   (let ((store-path (merge-pathnames (make-pathname :name name :type "store")
                                      store-dir)))
     (cl-store:restore store-path)))
+
+(defun set-up-monitors (monitors config)
+  (monitors::deactivate-all-monitors)
+  (loop for monitor-string in monitors
+        for monitor = (monitors::get-monitor (read-from-string monitor-string))
+        do (monitors::activate-monitor-method (read-from-string monitor-string))
+        when (slot-exists-p monitor 'file-name)
+          do (setf (slot-value monitor 'file-name)
+                    (ensure-directories-exist
+                    (merge-pathnames (make-pathname :directory `(:relative ,(assqv :log-dir-name config))
+                                                    :name (pathname-name (file-name monitor)) 
+                                                    :type (pathname-type (file-name monitor)))
+                                      (babel-pathname :directory `("experiments"
+                                                                  "concept-emergence2"
+                                                                  "logging"
+                                                                  ,(assqv :exp-top-dir config)
+                                                                  ,(assqv :exp-name config))))))))
 
 #|(generate-csv-for-tuning "tune-clevr"
                          "tune-clevr"

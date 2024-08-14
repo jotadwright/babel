@@ -431,16 +431,14 @@
                    (vector-push column-name column-data)
                    (push column-data columns)))
     
-    (format stream "~%~c This file was created by the~%~c csv-data-file-writer ~a."
-	    (comment-string monitor) (comment-string monitor) (id monitor))
-    (loop 
-     with reversed-columns = (reverse columns)
-     for row from number-of-rows downto 0  ; long
-     do (format stream "~%") 
-     (loop for column in reversed-columns ;short
-           for i from 1
-           if (= i number-of-columns)
-           do (format stream "~f" (aref column row))
-           else
-           do (format stream "~f~c" (aref column row) (column-separator monitor))))))
-
+    (loop with reversed-columns = (reverse columns)
+          for row from number-of-rows downto 0  ; long
+          when (not (= row number-of-rows))
+            ;; add new-line (except if it is the first line)
+            do (format stream "~%")
+          do (loop for column in reversed-columns ;short
+                   for i from 1
+                   if (= i number-of-columns)
+                     do (format stream "~f" (aref column row))
+                   else
+                     do (format stream "~f~c" (aref column row) (column-separator monitor))))))
