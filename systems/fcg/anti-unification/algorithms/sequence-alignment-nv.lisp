@@ -690,108 +690,104 @@
                aligned-pattern-boundaries aligned-source-boundaries
                i j cost match-positions mismatch-positions vertical-positions horizontal-positions gap-counter prev-edge next-edge) state
     (when (= (aref (diagonal arrays) i j) 1)  ;; check if there is a diagonal edge in this state
-      (setf *diagonal-edges-counter* (+ *diagonal-edges-counter* 1))
-      (let* (;; indexing in pattern and source string is offset by -1 w.r.t. index in matrix (i,j)
-             (pattern-char (nth (- i 1) pattern))
-             (source-char (nth (- j 1) source))
-             (expanded-pattern (cons pattern-char aligned-pattern))
-             (expanded-source (cons source-char aligned-source))
-             (current-left-source-boundary (car (first aligned-source-boundaries)))
-             (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
-             (matchp (eql pattern-char source-char))
-             (source-boundary-vars (make-boundary-indices j source-boundaries current-left-source-boundary))
-             (pattern-boundary-vars (make-boundary-vars i pattern-boundaries current-left-pattern-boundary boundary-matrix i j))
-             (new-mismatch (if (or (eql prev-edge 'diagonal-mismatch)
-                                   (eql prev-edge 'horizontal)
-                                   (eql prev-edge 'vertical))
-                             mismatch-cost (+ mismatch-cost mismatch-opening-cost)))
-             (new-gap-p (or (and (null match-positions) (null matchp))
-                            (and (first match-positions)
-                                 (equal (first match-positions) (cons (+ i 1) (+ j 1)))
-                                 (null matchp))))
-             (next-vertical-state
-              (when (= (aref (v-m arrays) i j) 1)
-                (make-instance 'sequence-alignment-state
-                                        :aligned-pattern expanded-pattern
-                                        :aligned-source expanded-source
-                                        :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
-                                        :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
-                                        :i (- i 1) :j (- j 1)
-                                        :cost (+ cost (if matchp match-cost new-mismatch))
-                                        :match-positions (if matchp (cons (cons i j) match-positions) match-positions)
-                                        :mismatch-positions (if (not matchp) (cons (cons i j) mismatch-positions) mismatch-positions)
-                                        :vertical-positions vertical-positions
-                                        :horizontal-positions horizontal-positions
-                                        :gap-counter (if new-gap-p (+ 1 gap-counter) gap-counter)
-                                        :next-edge 'vertical
-                                        :prev-edge (if matchp 'diagonal 'diagonal-mismatch)
-                                        :path (cons (if matchp 'diagonal 'diagonal-mismatch) (path state)))))
-             (next-horizontal-state
-              (when (= (aref (h-m arrays) i j) 1)
-                (make-instance 'sequence-alignment-state
-                                        :aligned-pattern expanded-pattern
-                                        :aligned-source expanded-source
-                                        :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
-                                        :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
-                                        :i (- i 1) :j (- j 1)
-                                        :cost (+ cost (if matchp match-cost new-mismatch))
-                                        :match-positions (if matchp (cons (cons i j) match-positions) match-positions)
-                                        :mismatch-positions (if (not matchp) (cons (cons i j) mismatch-positions) mismatch-positions)
-                                        :gap-counter (if new-gap-p (+ 1 gap-counter) gap-counter)
-                                        :next-edge 'horizontal
-                                        :prev-edge (if matchp 'diagonal 'diagonal-mismatch)
-                                        :path (cons (if matchp 'diagonal 'diagonal-mismatch) (path state)))))
-             (next-diagonal-state
-              (when (= (aref (d-m arrays) i j) 1)
-                (make-instance 'sequence-alignment-state
-                                        :aligned-pattern expanded-pattern
-                                        :aligned-source expanded-source
-                                        :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
-                                        :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
-                                        :i (- i 1) :j (- j 1)
-                                        :cost (+ cost (if matchp match-cost new-mismatch))
-                                        :match-positions (if matchp (cons (cons i j) match-positions) match-positions)
-                                        :mismatch-positions (if (not matchp) (cons (cons i j) mismatch-positions) mismatch-positions)
-                                        :vertical-positions vertical-positions
-                                        :horizontal-positions horizontal-positions
-                                        :gap-counter (if new-gap-p (+ 1 gap-counter) gap-counter)
-                                        :next-edge 'diagonal-mismatch
-                                        :prev-edge (if matchp 'diagonal 'diagonal-mismatch)
-                                        :path (cons (if matchp 'diagonal 'diagonal-mismatch) (path state)))))
-             next-states)
-
-        (if (not (or next-vertical-state next-horizontal-state next-diagonal-state))
-          (setf next-states (list (make-instance 'sequence-alignment-state
-                                                 :aligned-pattern expanded-pattern
-                                                 :aligned-source expanded-source
-                                                 :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
-                                                 :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
-                                                 :i (- i 1) :j (- j 1)
-                                                 :cost (+ cost (if matchp match-cost new-mismatch))
-                                                 :match-positions (if matchp (cons (cons i j) match-positions) match-positions)
-                                                 :mismatch-positions (if (not matchp) (cons (cons i j) mismatch-positions) mismatch-positions)
-                                                 :vertical-positions vertical-positions
-                                                 :horizontal-positions horizontal-positions
-                                                 :gap-counter (if new-gap-p (+ 1 gap-counter) gap-counter)
-                                                 :prev-edge (if matchp 'diagonal 'diagonal-mismatch)
-                                                 :path (cons (if matchp 'diagonal 'diagonal-mismatch) (path state)))))
-          (setf next-states (remove nil (list next-diagonal-state next-vertical-state next-horizontal-state))))
-     
-        (cond ((= (aref (l-m arrays) i j) 1)
-               (unless (eql prev-edge 'diagonal-mismatch)
-                 (setf next-states nil)))
-              ((= (aref (l-h arrays) i j) 1)
-               (unless (eql prev-edge 'horizontal)
-                 (setf next-states nil)))
-              ((= (aref (l-v arrays) i j) 1)
-               (unless (eql prev-edge 'vertical)
-                 (setf next-states nil))))
+      ;; check if there is a previous edge set and if it is correct
+      (unless (or (and (= (aref (l-m arrays) i j) 1)
+                       (not (eql prev-edge 'diagonal-mismatch)))
+                  (and (= (aref (l-h arrays) i j) 1)
+                       (not (eql prev-edge 'horizontal)))
+                  (and (= (aref (l-v arrays) i j) 1)
+                       (not (eql prev-edge 'vertical))))
+        (setf *diagonal-edges-counter* (+ *diagonal-edges-counter* 1))
+        (let* (;; indexing in pattern and source string is offset by -1 w.r.t. index in matrix (i,j)
+               (pattern-char (nth (- i 1) pattern))
+               (source-char (nth (- j 1) source))
+               (expanded-pattern (cons pattern-char aligned-pattern))
+               (expanded-source (cons source-char aligned-source))
+               (current-left-source-boundary (car (first aligned-source-boundaries)))
+               (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
+               (matchp (eql pattern-char source-char))
+               (source-boundary-vars (make-boundary-indices j source-boundaries current-left-source-boundary))
+               (pattern-boundary-vars (make-boundary-vars i pattern-boundaries current-left-pattern-boundary boundary-matrix i j))
+               (new-mismatch (if (or (eql prev-edge 'diagonal-mismatch)
+                                     (eql prev-edge 'horizontal)
+                                     (eql prev-edge 'vertical))
+                               mismatch-cost (+ mismatch-cost mismatch-opening-cost)))
+               (new-gap-p (or (and (null match-positions) (null matchp))
+                              (and (first match-positions)
+                                   (equal (first match-positions) (cons (+ i 1) (+ j 1)))
+                                   (null matchp))))
+               (next-vertical-state
+                (when (= (aref (v-m arrays) i j) 1)
+                  (make-instance 'sequence-alignment-state
+                                 :aligned-pattern expanded-pattern
+                                 :aligned-source expanded-source
+                                 :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
+                                 :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
+                                 :i (- i 1) :j (- j 1)
+                                 :cost (+ cost (if matchp match-cost new-mismatch))
+                                 :match-positions (if matchp (cons (cons i j) match-positions) match-positions)
+                                 :mismatch-positions (if (not matchp) (cons (cons i j) mismatch-positions) mismatch-positions)
+                                 :vertical-positions vertical-positions
+                                 :horizontal-positions horizontal-positions
+                                 :gap-counter (if new-gap-p (+ 1 gap-counter) gap-counter)
+                                 :next-edge 'vertical
+                                 :prev-edge (if matchp 'diagonal 'diagonal-mismatch)
+                                 :path (cons (if matchp 'diagonal 'diagonal-mismatch) (path state)))))
+               (next-horizontal-state
+                (when (= (aref (h-m arrays) i j) 1)
+                  (make-instance 'sequence-alignment-state
+                                 :aligned-pattern expanded-pattern
+                                 :aligned-source expanded-source
+                                 :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
+                                 :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
+                                 :i (- i 1) :j (- j 1)
+                                 :cost (+ cost (if matchp match-cost new-mismatch))
+                                 :match-positions (if matchp (cons (cons i j) match-positions) match-positions)
+                                 :mismatch-positions (if (not matchp) (cons (cons i j) mismatch-positions) mismatch-positions)
+                                 :gap-counter (if new-gap-p (+ 1 gap-counter) gap-counter)
+                                 :next-edge 'horizontal
+                                 :prev-edge (if matchp 'diagonal 'diagonal-mismatch)
+                                 :path (cons (if matchp 'diagonal 'diagonal-mismatch) (path state)))))
+               (next-diagonal-state
+                (when (= (aref (d-m arrays) i j) 1)
+                  (make-instance 'sequence-alignment-state
+                                 :aligned-pattern expanded-pattern
+                                 :aligned-source expanded-source
+                                 :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
+                                 :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
+                                 :i (- i 1) :j (- j 1)
+                                 :cost (+ cost (if matchp match-cost new-mismatch))
+                                 :match-positions (if matchp (cons (cons i j) match-positions) match-positions)
+                                 :mismatch-positions (if (not matchp) (cons (cons i j) mismatch-positions) mismatch-positions)
+                                 :vertical-positions vertical-positions
+                                 :horizontal-positions horizontal-positions
+                                 :gap-counter (if new-gap-p (+ 1 gap-counter) gap-counter)
+                                 :next-edge 'diagonal-mismatch
+                                 :prev-edge (if matchp 'diagonal 'diagonal-mismatch)
+                                 :path (cons (if matchp 'diagonal 'diagonal-mismatch) (path state)))))
+               next-states)
+          
+          (if (not (or next-vertical-state next-horizontal-state next-diagonal-state))
+            (setf next-states (list (make-instance 'sequence-alignment-state
+                                                   :aligned-pattern expanded-pattern
+                                                   :aligned-source expanded-source
+                                                   :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
+                                                   :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
+                                                   :i (- i 1) :j (- j 1)
+                                                   :cost (+ cost (if matchp match-cost new-mismatch))
+                                                   :match-positions (if matchp (cons (cons i j) match-positions) match-positions)
+                                                   :mismatch-positions (if (not matchp) (cons (cons i j) mismatch-positions) mismatch-positions)
+                                                   :vertical-positions vertical-positions
+                                                   :horizontal-positions horizontal-positions
+                                                   :gap-counter (if new-gap-p (+ 1 gap-counter) gap-counter)
+                                                   :prev-edge (if matchp 'diagonal 'diagonal-mismatch)
+                                                   :path (cons (if matchp 'diagonal 'diagonal-mismatch) (path state)))))
+            (setf next-states (remove nil (list next-diagonal-state next-vertical-state next-horizontal-state))))
         
-        ;; return the next state
-        next-states))))
+          ;; return the next state
+          next-states)))))
 
-(defun check-vertical-edges (pattern source pattern-boundaries source-boundaries state
-                                    arrays boundary-matrix
+(defun check-vertical-edges (pattern source pattern-boundaries source-boundaries state arrays boundary-matrix
                                      &key (gap-opening-cost 5) (gap-cost 1))
   
   
@@ -799,210 +795,198 @@
                aligned-pattern-boundaries aligned-source-boundaries
                i j cost match-positions mismatch-positions vertical-positions horizontal-positions gap-counter prev-edge next-edge) state
     (when (= (aref (vertical arrays) i j) 1)  ;; check if there is a vertical edge in this state
-      (setf *vertical-edges-counter* (+ *vertical-edges-counter* 1))
-      (let* ((expanded-pattern (cons (nth (- i 1) pattern) aligned-pattern))
-             (expanded-source (cons #\_ aligned-source))
-             (current-left-source-boundary (car (first aligned-source-boundaries)))
-             (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
-             (source-boundary-vars (make-boundary-indices nil source-boundaries current-left-source-boundary :gap t))
-             (pattern-boundary-vars (make-boundary-vars i pattern-boundaries current-left-pattern-boundary boundary-matrix i j))
-             (new-gap-p (not (or (eql (first aligned-source) #\_)
-                                 (eql (first aligned-pattern) #\_)
-                                 (eql prev-edge 'diagonal-mismatch))))  ;; new gap in terms of nv (i.e. a _)
-             (gap-counter-new-gap-p (equal (first match-positions) (cons (+ i 1) (+ j 1))))  ;; gap counter in terms of AU gaps
-             (cost-increase (if new-gap-p (+ gap-cost gap-opening-cost) gap-cost))
-             (next-vertical-state
-              (when (= (aref (v-v arrays) i j) 1)
-                (make-instance 'sequence-alignment-state
-                                        :aligned-pattern expanded-pattern
-                                        :aligned-source expanded-source
-                                        :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
-                                        :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
-                                        :i (- i 1) :j j
-                                        :cost (+ cost cost-increase)
-                                        :match-positions match-positions
-                                        :mismatch-positions mismatch-positions
-                                        :vertical-positions (cons (cons i j) vertical-positions)
-                                        :horizontal-positions horizontal-positions
-                                        :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
-                                        :next-edge 'vertical
-                                        :prev-edge 'vertical
-                                        :path (cons 'vertical (path state)))))
-             (next-horizontal-state
-              (when (= (aref (h-v arrays) i j) 1)
-                (make-instance 'sequence-alignment-state
-                                        :aligned-pattern expanded-pattern
-                                        :aligned-source expanded-source
-                                        :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
-                                        :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
-                                        :i (- i 1) :j j
-                                        :cost (+ cost cost-increase)
-                                        :match-positions match-positions
-                                        :mismatch-positions mismatch-positions
-                                        :vertical-positions (cons (cons i j) vertical-positions)
-                                        :horizontal-positions horizontal-positions
-                                        :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
-                                        :next-edge 'horizontal
-                                        :prev-edge 'vertical
-                                        :path (cons 'vertical (path state)))))
-             (next-diagonal-state
-              (when (= (aref (d-v arrays) i j) 1)
-                (make-instance 'sequence-alignment-state
-                                        :aligned-pattern expanded-pattern
-                                        :aligned-source expanded-source
-                                        :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
-                                        :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
-                                        :i (- i 1) :j j
-                                        :cost (+ cost cost-increase)
-                                        :match-positions match-positions
-                                        :mismatch-positions mismatch-positions
-                                        :vertical-positions (cons (cons i j) vertical-positions)
-                                        :horizontal-positions horizontal-positions
-                                        :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
-                                        :next-edge 'diagonal-mismatch ;; sure this is only mismatch? can it be match too?
-                                        :prev-edge 'vertical
-                                        :path (cons 'vertical (path state))))) 
-             next-states)
+      ;; check if there is a previous edge set and if it is correct
+      (unless (or (and (= (aref (e-v arrays) i j) 1)
+                       (not (eql prev-edge 'vertical)))
+                  (and (= (aref (e-h arrays) i j) 1)
+                       (not (eql prev-edge 'horizontal)))
+                  (and (= (aref (e-m arrays) i j) 1)
+                       (not (eql prev-edge 'diagonal-mismatch))))
+        (setf *vertical-edges-counter* (+ *vertical-edges-counter* 1))
+        (let* ((expanded-pattern (cons (nth (- i 1) pattern) aligned-pattern))
+               (expanded-source (cons #\_ aligned-source))
+               (current-left-source-boundary (car (first aligned-source-boundaries)))
+               (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
+               (source-boundary-vars (make-boundary-indices nil source-boundaries current-left-source-boundary :gap t))
+               (pattern-boundary-vars (make-boundary-vars i pattern-boundaries current-left-pattern-boundary boundary-matrix i j))
+               (new-gap-p (not (or (eql (first aligned-source) #\_)
+                                   (eql (first aligned-pattern) #\_)
+                                   (eql prev-edge 'diagonal-mismatch))))  ;; new gap in terms of nv (i.e. a _)
+               (gap-counter-new-gap-p (equal (first match-positions) (cons (+ i 1) (+ j 1))))  ;; gap counter in terms of AU gaps
+               (cost-increase (if new-gap-p (+ gap-cost gap-opening-cost) gap-cost))
+               (next-vertical-state
+                (when (= (aref (v-v arrays) i j) 1)
+                  (make-instance 'sequence-alignment-state
+                                 :aligned-pattern expanded-pattern
+                                 :aligned-source expanded-source
+                                 :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
+                                 :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
+                                 :i (- i 1) :j j
+                                 :cost (+ cost cost-increase)
+                                 :match-positions match-positions
+                                 :mismatch-positions mismatch-positions
+                                 :vertical-positions (cons (cons i j) vertical-positions)
+                                 :horizontal-positions horizontal-positions
+                                 :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
+                                 :next-edge 'vertical
+                                 :prev-edge 'vertical
+                                 :path (cons 'vertical (path state)))))
+               (next-horizontal-state
+                (when (= (aref (h-v arrays) i j) 1)
+                  (make-instance 'sequence-alignment-state
+                                 :aligned-pattern expanded-pattern
+                                 :aligned-source expanded-source
+                                 :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
+                                 :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
+                                 :i (- i 1) :j j
+                                 :cost (+ cost cost-increase)
+                                 :match-positions match-positions
+                                 :mismatch-positions mismatch-positions
+                                 :vertical-positions (cons (cons i j) vertical-positions)
+                                 :horizontal-positions horizontal-positions
+                                 :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
+                                 :next-edge 'horizontal
+                                 :prev-edge 'vertical
+                                 :path (cons 'vertical (path state)))))
+               (next-diagonal-state
+                (when (= (aref (d-v arrays) i j) 1)
+                  (make-instance 'sequence-alignment-state
+                                 :aligned-pattern expanded-pattern
+                                 :aligned-source expanded-source
+                                 :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
+                                 :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
+                                 :i (- i 1) :j j
+                                 :cost (+ cost cost-increase)
+                                 :match-positions match-positions
+                                 :mismatch-positions mismatch-positions
+                                 :vertical-positions (cons (cons i j) vertical-positions)
+                                 :horizontal-positions horizontal-positions
+                                 :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
+                                 :next-edge 'diagonal-mismatch ;; sure this is only mismatch? can it be match too?
+                                 :prev-edge 'vertical
+                                 :path (cons 'vertical (path state))))) 
+               next-states)
+          
+          (if (not (or next-vertical-state next-horizontal-state next-diagonal-state))
+            (setf next-states (list (make-instance 'sequence-alignment-state
+                                                   :aligned-pattern expanded-pattern
+                                                   :aligned-source expanded-source
+                                                   :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
+                                                   :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
+                                                   :i (- i 1) :j j
+                                                   :cost (+ cost cost-increase)
+                                                   :match-positions match-positions
+                                                   :mismatch-positions mismatch-positions
+                                                   :vertical-positions (cons (cons i j) vertical-positions)
+                                                   :horizontal-positions horizontal-positions
+                                                   :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
+                                                   :prev-edge 'vertical
+                                                   :path (cons 'vertical (path state)))))
+            (setf next-states (remove nil (list next-diagonal-state next-vertical-state next-horizontal-state))))
 
-        (if (not (or next-vertical-state next-horizontal-state next-diagonal-state))
-          (setf next-states (list (make-instance 'sequence-alignment-state
-                                        :aligned-pattern expanded-pattern
-                                        :aligned-source expanded-source
-                                        :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
-                                        :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
-                                        :i (- i 1) :j j
-                                        :cost (+ cost cost-increase)
-                                        :match-positions match-positions
-                                        :mismatch-positions mismatch-positions
-                                        :vertical-positions (cons (cons i j) vertical-positions)
-                                        :horizontal-positions horizontal-positions
-                                        :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
-                                        :prev-edge 'vertical
-                                        :path (cons 'vertical (path state)))))
-          (setf next-states (remove nil (list next-diagonal-state next-vertical-state next-horizontal-state))))
-        
-        (cond ((= (aref (e-v arrays) i j) 1)
-               (unless (eql prev-edge 'vertical)
-                 (setf next-states nil)))
-              ((= (aref (e-h arrays) i j) 1)
-               (unless (eql prev-edge 'horizontal)
-                 (setf next-states nil)))
-              ((= (aref (e-m arrays) i j) 1)
-               (unless (eql prev-edge 'diagonal-mismatch)
-                 (setf next-states nil))))
-        ;; return the next state
-        next-states))))
+          ;; return the next state
+          next-states)))))
 
 
-(defun check-horizontal-edges (pattern source pattern-boundaries source-boundaries state
-                                       arrays boundary-matrix
+(defun check-horizontal-edges (pattern source pattern-boundaries source-boundaries state  arrays boundary-matrix
                                        &key (gap-opening-cost 5) (gap-cost 1))
   
   (with-slots (aligned-pattern aligned-source
                aligned-pattern-boundaries aligned-source-boundaries
                i j cost match-positions mismatch-positions vertical-positions horizontal-positions gap-counter prev-edge next-edge) state
     (when (= (aref (horizontal arrays) i j) 1)  ;; check if there is a horizontal edge in this state
-      (setf *horizontal-edges-counter* (+ *horizontal-edges-counter* 1))
-      (let* ((expanded-pattern (cons #\_ aligned-pattern))
-             (expanded-source (cons (nth (- j 1) source) aligned-source))
-             (current-left-source-boundary (car (first aligned-source-boundaries)))
-             (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
-             (source-boundary-vars (make-boundary-indices j source-boundaries current-left-source-boundary))
-             (pattern-boundary-vars (make-boundary-vars nil pattern-boundaries current-left-pattern-boundary boundary-matrix i j :gap t))
-             (new-gap-p (not (or (eql (first aligned-pattern) #\_)
-                                 (eql (first aligned-source) #\_)
-                                 (eql prev-edge 'diagonal-mismatch))))  ;; new gap in terms of nv (i.e. a _)
-             (gap-counter-new-gap-p (equal (first match-positions) (cons (+ i 1) (+ j 1))))  ;; gap counter in terms of AU gaps
-             (cost-increase (if new-gap-p (+ gap-cost gap-opening-cost) gap-cost))
-             (next-horizontal-state
-              (when (= (aref (h-h arrays) i j) 1)
-                (make-instance 'sequence-alignment-state
-                               :aligned-pattern expanded-pattern
-                               :aligned-source expanded-source
-                               :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
-                               :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
-                               :i i :j (- j 1)
-                               :cost (+ cost cost-increase)
-                               :match-positions match-positions
-                               :mismatch-positions mismatch-positions
-                               :vertical-positions vertical-positions
-                               :horizontal-positions (cons (cons i j) horizontal-positions)
-                               :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
-                               :next-edge 'horizontal
-                               :prev-edge 'horizontal
-                               :path (cons 'horizontal (path state)))))
-                  
-              (next-vertical-state
-               (when (= (aref (v-h arrays) i j) 1)
+      ;; when g-h is set, the prev edge has to be horizontal
+      ;; if not, remove the next state! same for g-v and vertical, g-m and diagonal-mismatch
+      (unless (or (and (= (aref (g-h arrays) i j) 1)
+                       (not (eql prev-edge 'horizontal)))
+                  (and (= (aref (g-v arrays) i j) 1)
+                       (not (eql prev-edge 'vertical)))
+                  (and (= (aref (g-m arrays) i j) 1)
+                       (not (eql prev-edge 'diagonal-mismatch))))
+        (setf *horizontal-edges-counter* (+ *horizontal-edges-counter* 1))
+        (let* ((expanded-pattern (cons #\_ aligned-pattern))
+               (expanded-source (cons (nth (- j 1) source) aligned-source))
+               (current-left-source-boundary (car (first aligned-source-boundaries)))
+               (current-left-pattern-boundary (car (first aligned-pattern-boundaries)))
+               (source-boundary-vars (make-boundary-indices j source-boundaries current-left-source-boundary))
+               (pattern-boundary-vars (make-boundary-vars nil pattern-boundaries current-left-pattern-boundary boundary-matrix i j :gap t))
+               (new-gap-p (not (or (eql (first aligned-pattern) #\_)
+                                   (eql (first aligned-source) #\_)
+                                   (eql prev-edge 'diagonal-mismatch))))  ;; new gap in terms of nv (i.e. a _)
+               (gap-counter-new-gap-p (equal (first match-positions) (cons (+ i 1) (+ j 1))))  ;; gap counter in terms of AU gaps
+               (cost-increase (if new-gap-p (+ gap-cost gap-opening-cost) gap-cost))
+               (next-horizontal-state
+                (when (= (aref (h-h arrays) i j) 1)
                   (make-instance 'sequence-alignment-state
-                                     :aligned-pattern expanded-pattern
-                                     :aligned-source expanded-source
-                                     :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
-                                     :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
-                                     :i i :j (- j 1)
-                                     :cost (+ cost cost-increase)
-                                     :match-positions match-positions
-                                     :mismatch-positions mismatch-positions
-                                     :vertical-positions vertical-positions
-                                     :horizontal-positions (cons (cons i j) horizontal-positions)
-                                     :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
-                                     :next-edge 'vertical
-                                     :prev-edge 'horizontal
-                                     :path (cons 'horizontal (path state)))))
-              (next-diagonal-state
-               (when (= (aref (v-m arrays) i j) 1)
-                 (make-instance 'sequence-alignment-state
-                                     :aligned-pattern expanded-pattern
-                                     :aligned-source expanded-source
-                                     :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
-                                     :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
-                                     :i i :j (- j 1)
-                                     :cost (+ cost cost-increase)
-                                     :match-positions match-positions
-                                     :mismatch-positions mismatch-positions
-                                     :vertical-positions vertical-positions
-                                     :horizontal-positions (cons (cons i j) horizontal-positions)
-                                     :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
-                                     :next-edge 'diagonal-mismatch
-                                     :prev-edge 'horizontal
-                                     :path (cons 'horizontal (path state)))))
-              next-states)
-        
-        (if (not (or next-vertical-state next-horizontal-state next-diagonal-state))
-          (setf next-states (list (make-instance 'sequence-alignment-state
-                                                 :aligned-pattern expanded-pattern
-                                                 :aligned-source expanded-source
-                                                 :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
-                                                 :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
-                                                 :i i :j (- j 1)
-                                                 :cost (+ cost cost-increase)
-                                                 :match-positions match-positions
-                                                 :mismatch-positions mismatch-positions
-                                                 :vertical-positions vertical-positions
-                                                 :horizontal-positions (cons (cons i j) horizontal-positions)
-                                                 :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
-                                                 :prev-edge 'horizontal
-                                                 :path (cons 'horizontal (path state)))))
-          (setf next-states (remove nil (list next-diagonal-state next-vertical-state next-horizontal-state))))
-        
-  
-        ;; when g-h is set, the prev edge has to be horizontal
-        ;; if not, remove the next state! same for g-v and vertical, g-m and diagonal-mismatch
-        (cond ((= (aref (g-h arrays) i j) 1)
-               (unless (eql prev-edge 'horizontal)
-                 (setf next-states nil)))
-              ((= (aref (g-v arrays) i j) 1)
-               (unless (eql prev-edge 'vertical)
-                 (setf next-states nil)))
-              ((= (aref (g-m arrays) i j) 1)
-               (unless (eql prev-edge 'diagonal-mismatch)
-                 (setf next-states nil))))
-        ;; return the next state
-        next-states))))
-
-
-
-
+                                 :aligned-pattern expanded-pattern
+                                 :aligned-source expanded-source
+                                 :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
+                                 :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
+                                 :i i :j (- j 1)
+                                 :cost (+ cost cost-increase)
+                                 :match-positions match-positions
+                                 :mismatch-positions mismatch-positions
+                                 :vertical-positions vertical-positions
+                                 :horizontal-positions (cons (cons i j) horizontal-positions)
+                                 :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
+                                 :next-edge 'horizontal
+                                 :prev-edge 'horizontal
+                                 :path (cons 'horizontal (path state)))))
+               (next-vertical-state
+                (when (= (aref (v-h arrays) i j) 1)
+                  (make-instance 'sequence-alignment-state
+                                 :aligned-pattern expanded-pattern
+                                 :aligned-source expanded-source
+                                 :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
+                                 :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
+                                 :i i :j (- j 1)
+                                 :cost (+ cost cost-increase)
+                                 :match-positions match-positions
+                                 :mismatch-positions mismatch-positions
+                                 :vertical-positions vertical-positions
+                                 :horizontal-positions (cons (cons i j) horizontal-positions)
+                                 :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
+                                 :next-edge 'vertical
+                                 :prev-edge 'horizontal
+                                 :path (cons 'horizontal (path state)))))
+               (next-diagonal-state
+                (when (= (aref (v-m arrays) i j) 1)
+                  (make-instance 'sequence-alignment-state
+                                 :aligned-pattern expanded-pattern
+                                 :aligned-source expanded-source
+                                 :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
+                                 :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
+                                 :i i :j (- j 1)
+                                 :cost (+ cost cost-increase)
+                                 :match-positions match-positions
+                                 :mismatch-positions mismatch-positions
+                                 :vertical-positions vertical-positions
+                                 :horizontal-positions (cons (cons i j) horizontal-positions)
+                                 :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
+                                 :next-edge 'diagonal-mismatch
+                                 :prev-edge 'horizontal
+                                 :path (cons 'horizontal (path state)))))
+               next-states)
+          
+          (if (not (or next-vertical-state next-horizontal-state next-diagonal-state))
+            (setf next-states (list (make-instance 'sequence-alignment-state
+                                                   :aligned-pattern expanded-pattern
+                                                   :aligned-source expanded-source
+                                                   :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
+                                                   :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
+                                                   :i i :j (- j 1)
+                                                   :cost (+ cost cost-increase)
+                                                   :match-positions match-positions
+                                                   :mismatch-positions mismatch-positions
+                                                   :vertical-positions vertical-positions
+                                                   :horizontal-positions (cons (cons i j) horizontal-positions)
+                                                   :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
+                                                   :prev-edge 'horizontal
+                                                   :path (cons 'horizontal (path state)))))
+            (setf next-states (remove nil (list next-diagonal-state next-vertical-state next-horizontal-state))))
+     
+          ;; return the next state
+          next-states)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
