@@ -70,7 +70,7 @@
                           (return agent)))))
     agent))
 
-(defun list-to-hash-table (lst &key (key #'identity))
+(defun list->hash-table (lst &key (key #'identity))
   "Creates a hash table given a list."
   (loop with tbl = (make-hash-table)
         for el in lst
