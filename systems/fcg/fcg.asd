@@ -119,6 +119,7 @@
                                (:file "anti-unify-set-of-predicates")
                                (:file "anti-unify-strings")
                                (:file "sequence-alignment")
+                               (:file "sequence-alignment-nv")
                                (:file "anti-unify-sequences")))
                  (:file "calculate-source-patterns")
                  (:file "anti-unification-cost")
