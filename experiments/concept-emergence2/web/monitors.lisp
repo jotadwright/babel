@@ -99,6 +99,40 @@
                               sum (unique-forms-in-window agent) into total-sum
                               finally (return (round (/ total-sum (length (agents (experiment interaction)))))))))
 
+;; -------------------------------------
+;; + Lexicon inventory usage (testing) +
+;; -------------------------------------
+(define-monitor export-lexicon-inventory-usage)
+(define-event-handler (export-lexicon-inventory-usage run-series-finished)
+  (let* ((exp-top-dir (get-configuration experiment :exp-top-dir))
+         (log-dir-name (get-configuration experiment :log-dir-name))
+         (exp-name (get-configuration experiment :exp-name))
+         (path (babel-pathname
+                :directory `("experiments"
+                             "concept-emergence2"
+                             "logging"
+                             ,exp-top-dir
+                             ,exp-name
+                             ,log-dir-name)
+                :name "lexicon-inventory-usage" 
+                :type "json"))
+         (tables (loop for agent in (agents experiment)
+                       collect (cons
+                                ;; agent-id
+                                (id agent)
+                                (list
+                                 ;; fast lexicon
+                                 (cons :fast (hash-keys (get-inventory (lexicon agent) :fast)))
+                                 (cons :trash (hash-keys (get-inventory (lexicon agent) :trash)))
+                                 ;; usage-count 
+                                 (cons :usage-table (hash-table->alist (usage-counts (usage-table agent)))))))))
+    (ensure-directories-exist path)
+    (with-open-file (stream path :direction :output
+                            :if-exists :supersede
+                            :if-does-not-exist :create)
+      (write-string (cl-json:encode-json-alist-to-string tables)
+                    stream))))
+
 ;; -----------------
 ;; + Export CONFIG +
 ;; -----------------
