@@ -616,6 +616,7 @@
                          (format t "~s~%" (coerce (aligned-pattern alignment-state) 'string))
                          (format t "~s~%" (coerce (reverse symbols) 'string))
                          (format t "~s~%~%" (coerce (aligned-source alignment-state) 'string))))
+                (assert (not (null next-states-with-max-gaps)))  ;; make sure that there are no paths that are dead ends, i.e. every state always has at least one child
                 (loop for ns in next-states-with-max-gaps
                       do (push ns (children state))
                       do (setf (parent ns) state)
@@ -623,6 +624,11 @@
                         
         finally
           (progn
+            ;; make sure that all paths are complete paths, i.e. every leaf state is at position (0,0)
+            (let ((all-leafs (all-leaf-nodes root)))
+              (assert
+                  (loop for leaf in all-leafs
+                        always (and (= (i leaf) 0) (= (j leaf) 0)))))
             ;; the cost reconstructed by retracing the optimal alignments
             ;; should be equal to the cost at the bottom right of the cost matrix
             #|(loop for solution in solutions
@@ -632,7 +638,15 @@
                        (aligned-pattern solution)
                        (aligned-source solution)))|#
             (return solutions))))
-  
+
+
+(defun all-leaf-nodes (root)
+  (labels ((leaf-nodes-rec (node leafs)
+             (if (null (children node))
+               (cons node leafs)
+               (loop for child in (children node)
+                     append (leaf-nodes-rec child leafs)))))
+    (leaf-nodes-rec root nil)))
 
 (defun nv-check-diagonal-edges (pattern source pattern-boundaries source-boundaries state arrays boundary-matrix match-cost mismatch-opening-cost mismatch-cost)
   (with-slots (aligned-pattern aligned-source
