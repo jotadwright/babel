@@ -9,7 +9,7 @@
   ;; Wikipedia example 
   ;; GCATGCG & GATTACA
   ;; score 0 ; match 0, mismatch 1, gap-opening 0, gap-extension 1
-  (let ((alignments (maximal-sequence-alignments "GCATGCG" "GATTACA" nil nil
+  (let ((alignments (maximal-sequence-alignments "GCATGCG" "GATTACA" nil nil :ae
                                                  :match-cost -1 :mismatch-cost 1 :gap-opening-cost 0 :gap-cost 1
                                                  :remove-duplicate-alignments nil)))
      (loop for alignment in alignments
@@ -25,7 +25,7 @@
   ;; A J C J N _ R _ C K C R B P _
   ;; A B C _ N J R Q C L C R _ P M 
   ;; score -1 (obtained from online tool) ; match 0, mismatch 1, gap-opening 0, gap-extension 1
-  (let ((alignments (maximal-sequence-alignments "AJCJNRCKCRBP" "ABCNJRQCLCRPM" nil nil
+  (let ((alignments (maximal-sequence-alignments "AJCJNRCKCRBP" "ABCNJRQCLCRPM" nil nil :ae
                                                  :match-cost -1 :mismatch-cost 1 :gap-opening-cost 0 :gap-cost 1
                                                  :remove-duplicate-alignments nil)))
      (and (loop for alignment in alignments
@@ -47,7 +47,7 @@
   ;; A G _ _ T _
   ;; T G A G T T
 
-  (let ((alignments (maximal-sequence-alignments "AGT" "TGAGTT" nil nil
+  (let ((alignments (maximal-sequence-alignments "AGT" "TGAGTT" nil nil :ae
                                                  :match-cost 0 :mismatch-cost 1 :gap-opening-cost 1 :gap-cost 1
                                                  :remove-duplicate-alignments nil)))
     (and (loop for alignment in alignments
@@ -62,7 +62,7 @@
   ;; A A A _ _ _ _ _ _ G G G
   ;; T T A A A A G G G G T T
   
-  (let ((alignments (maximal-sequence-alignments "AAAGGG" "TTAAAAGGGGTT" nil nil
+  (let ((alignments (maximal-sequence-alignments "AAAGGG" "TTAAAAGGGGTT" nil nil :ae
                                                  :match-cost 0 :mismatch-cost 1 :gap-opening-cost 5 :gap-cost 1
                                                  :remove-duplicate-alignments nil)))
     (and (loop for alignment in alignments
@@ -81,7 +81,7 @@
   ;; C G _ _
   ;; C C G A
   
-  (let ((alignments (maximal-sequence-alignments "CG" "CCGA" nil nil
+  (let ((alignments (maximal-sequence-alignments "CG" "CCGA" nil nil :ae
                                                  :match-cost -1 :mismatch-cost 1 :gap-opening-cost 3 :gap-cost 1
                                                  :remove-duplicate-alignments nil)))
      (and (loop for alignment in alignments
@@ -97,7 +97,7 @@
     ;; A A T C G
     ;; A A _ C G
     
-    (let ((alignments (maximal-sequence-alignments "AATCG" "AACG" nil nil
+    (let ((alignments (maximal-sequence-alignments "AATCG" "AACG" nil nil :ae
                                                    :match-cost -1 :mismatch-cost 1 :gap-opening-cost 0 :gap-cost 2
                                                    :remove-duplicate-alignments nil)))
       (and (loop for alignment in alignments
@@ -111,7 +111,7 @@
     ;; ? solutions, score -15, match 0, mismatch -1, gap opening -5, gap extension -1
     ;; A A A _ _ _ _ _ _ G G G
     ;; T T A A A A G G G G T T
-    (let ((alignments (maximal-sequence-alignments "AAAGGG" "TTAAAAGGGGTT" nil nil
+    (let ((alignments (maximal-sequence-alignments "AAAGGG" "TTAAAAGGGGTT" nil nil :ae
                                                    :match-cost 0 :mismatch-cost 1 :gap-opening-cost 5 :gap-cost 1
                                                    :remove-duplicate-alignments nil)))
     (loop for alignment in alignments
@@ -123,7 +123,7 @@
     ;; ? solutions, score -72, match 10, mismatch -30, gap opening -40, gap extension -1
     ;; C G C C T T A _ _ _ _ _ _ C
     ;; _ _ _ _ _ _ A A A T T T G C
-    (let ((alignments (maximal-sequence-alignments "AAATTTGC" "CGCCTTAC" nil nil
+    (let ((alignments (maximal-sequence-alignments "AAATTTGC" "CGCCTTAC" nil nil :ae
                                                    :match-cost -10 :mismatch-cost 30 :gap-opening-cost 40 :gap-cost 1
                                                    :remove-duplicate-alignments nil)))
       (loop for alignment in alignments
@@ -135,7 +135,7 @@
     ;;  ? solutions, score -46, match 10, mismatch -30, gap opening -25, gap extension -1
     ;; _ _ _ A G A T
     ;; C T C _ _ _ T
-    (let ((alignments (maximal-sequence-alignments "AGAT" "CTCT" nil nil
+    (let ((alignments (maximal-sequence-alignments "AGAT" "CTCT" nil nil :ae
                                                    :match-cost -10 :mismatch-cost 30 :gap-opening-cost 25 :gap-cost 1
                                                    :remove-duplicate-alignments nil)))
        (loop for alignment in alignments
@@ -160,7 +160,7 @@
 
 
 (deftest test-remove-duplicates ()
-  (let ((alignments (maximal-sequence-alignments "CG" "CCGA" nil nil
+  (let ((alignments (maximal-sequence-alignments "CG" "CCGA" nil nil :ae
                                                  :match-cost -1 :mismatch-cost 1 :gap-opening-cost 3 :gap-cost 1
                                                  :remove-duplicate-alignments t)))
      (test-assert (and (loop for alignment in alignments
@@ -168,7 +168,7 @@
                             always (= cost 5))
                       (= (length alignments) 1))))
   
-  (let ((alignments (maximal-sequence-alignments "AGT" "TGAGTT" nil nil
+  (let ((alignments (maximal-sequence-alignments "AGT" "TGAGTT" nil nil :ae
                                                     :match-cost 0 :mismatch-cost 1 :gap-opening-cost 1 :gap-cost 1
                                                     :remove-duplicate-alignments t)))
     (test-assert (and (loop for alignment in alignments
