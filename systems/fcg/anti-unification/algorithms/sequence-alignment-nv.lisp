@@ -891,7 +891,7 @@
                                  :prev-edge 'horizontal
                                  :path (cons 'horizontal (path state)))))
                (next-diagonal-state
-                (when (= (aref (v-m arrays) i j) 1)
+                (when (= (aref (d-h arrays) i j) 1)
                   (make-instance 'nv-sequence-alignment-state
                                  :aligned-pattern expanded-pattern
                                  :aligned-source expanded-source
