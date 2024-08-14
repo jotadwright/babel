@@ -51,7 +51,7 @@ Example usage
 (defun transform-to-ht (lex)
   (if (equalp (type-of lex) 'lexicon)
     (get-inventory lex :fast)
-    (list-to-hash-table lex :key #'(lambda (x) (form x)))))
+    (list->hash-table lex :key #'(lambda (x) (form x)))))
                      
 (defmethod equal-lexicon (lex1 lex2)
   (let ((ht1 (transform-to-ht lex1))
