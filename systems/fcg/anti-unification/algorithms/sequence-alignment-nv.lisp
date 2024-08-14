@@ -534,7 +534,12 @@
    (gap-counter :initarg :gap-counter :accessor gap-counter :initform 0 :type number)
    (prev-edge :initarg :prev-edge :accessor prev-edge :initform nil)
    (next-edge :initarg :next-edge :accessor next-edge :initform nil)
-   (path :initarg :path :accessor path :initform nil)))
+   (path :initarg :path :accessor path :initform nil)
+
+   (parent :initarg :parent :accessor parent :initform nil
+           :documentation "the parent of the state")
+   (children :initarg :children :accessor children :initform nil
+             :documentation "the children of the state")))
 
 (defun make-initial-nv-sequence-alignment-state (i j)
   (make-instance 'nv-sequence-alignment-state :i i :j j))
@@ -553,8 +558,9 @@
                                               debugging)
   (loop with solutions = nil
         ;; start at position (M, N)
-        with queue = (list (make-initial-nv-sequence-alignment-state
-                            (length pattern) (length source)))
+        with root = (make-initial-nv-sequence-alignment-state
+                     (length pattern) (length source))
+        with queue = (list root)
         ;; stop when n-optimal-alignments is reached
         ;; or when the queue is empty
         until (or (and (numberp n-optimal-alignments)
@@ -611,6 +617,8 @@
                          (format t "~s~%" (coerce (reverse symbols) 'string))
                          (format t "~s~%~%" (coerce (aligned-source alignment-state) 'string))))
                 (loop for ns in next-states-with-max-gaps
+                      do (push ns (children state))
+                      do (setf (parent ns) state)
                       do (push ns queue)))))
                         
         finally
