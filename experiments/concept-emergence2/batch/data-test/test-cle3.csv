@@ -1,5 +1,5 @@
 id,exp_name,nr_of_interactions,dataset,dataset_split,feature_set,scene_sampling,topic_sampling
-1,cle3-competitors-tt,100000,clevr,test,clevr,:random,:random
+1,cle3-competitors-nn,100000,clevr,test,clevr,:random,:random
 2,cle3-competitors-tn,100000,clevr,test,clevr,:random,:random
 3,cle3-competitors-nt,100000,clevr,test,clevr,:random,:random
 4,cle3-competitors-tt,100000,clevr,test,clevr,:random,:random
