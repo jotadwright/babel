@@ -2,7 +2,7 @@
 
 (export '(anti-unify-sequences))
 
-(defun anti-unify-sequences (pattern source &rest sequence-alignment-keyword-arguments)
+(defun anti-unify-sequences (pattern source &rest sequence-alignment-keyword-arguments &key (mode :ae) &allow-other-keys)
   "Anti-unify sets of sequence predicates.
    1. Render all pattern sequences. 
    2. Render source sequence based on the instantiated boundaries.
@@ -31,7 +31,7 @@
                     append (loop with possible-alignments = (apply #'maximal-sequence-alignments
                                                                     pattern-string source-string
                                                                     pattern-boundaries source-boundaries
-                                                                    sequence-alignment-keyword-arguments)
+                                                                    mode sequence-alignment-keyword-arguments)
                                   for alignment in possible-alignments
                                   for pattern-in-alignment = (aligned-pattern alignment)
                                   for source-in-alignment = (aligned-source alignment)
@@ -156,12 +156,13 @@
 (defun make-boundary-vars-matrix (nx ny)
   (let ((matrix (make-array (list (+ nx 2) (+ ny 2)))))
     (loop for x from 0 to (+ nx 1)
-            do (loop for y from 0 to (+ ny 1)
-                     do  (setf (aref matrix x y) (make-var 'b))))
+          do (loop for y from 0 to (+ ny 1)
+                   do (setf (aref matrix x y) (make-var 'b))))
    matrix))
 
 (defun make-boundary-vars (position boundaries current-left boundary-matrix i j  &key (gap nil))
-  "Calculate boundary vars based on the position, the boundaries that were given and the current-left boundary. If there already exists a variable in the boundaries, reuse that variable, otherwise make a new variable."
+  "Calculate boundary vars based on the position, the boundaries that were given and the current-left boundary.
+   If there already exists a variable in the boundaries, reuse that variable, otherwise make a new variable."
   (let ((right-boundary-var (if position (car (rassoc position boundaries))))
         (left-boundary-var (if position (car (rassoc (- position 1) boundaries)))))
     (cond ((and
