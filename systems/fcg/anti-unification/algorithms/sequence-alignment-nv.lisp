@@ -33,9 +33,9 @@
                                :gap-opening-cost gap-opening-cost
                                :gap-cost gap-cost
                                :remove-duplicate-alignments remove-duplicate-alignments
-                               :debugging debugging
                                :n-optimal-alignments n-optimal-alignments
-                               :max-nr-of-au-gaps max-nr-of-au-gaps))
+                               :max-nr-of-au-gaps max-nr-of-au-gaps
+                               :debugging debugging))
 
 
 (defmethod maximal-sequence-alignments ((pattern list) (source list) (pattern-boundaries list) (source-boundaries list)
@@ -70,8 +70,7 @@
 
     ;; Run the Gotoh algorithm according to the implementation
     ;; provided by Altschul and Ericksson (1986)
-    (cost-assignment pattern source nx ny P Q R S arrays
-                     match-cost mismatch-opening-cost mismatch-cost gap-opening-cost gap-cost)
+    (cost-assignment pattern source nx ny P Q R S arrays match-cost mismatch-opening-cost mismatch-cost gap-opening-cost gap-cost)
     
     (when debugging 
       (visualise-arrays pattern source arrays))
@@ -95,9 +94,9 @@
                                         mismatch-opening-cost
                                         gap-opening-cost
                                         gap-cost
+                                        boundary-matrix
                                         :n-optimal-alignments n-optimal-alignments
                                         :max-nr-of-au-gaps max-nr-of-au-gaps
-                                        :boundary-matrix boundary-matrix
                                         :debugging debugging)))
       ;(check-optimal-alignments all-optimal-alignments arrays)
       (when debugging
@@ -602,12 +601,12 @@
 
                             (;; next-edge is set to diagonal-mismatch
                              (or (eql next-edge 'diagonal-mismatch) (eql next-edge 'diagonal))
-                             (let ((next-state (check-diagonal-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix match-cost mismatch-cost mismatch-opening-cost)))
+                             (let ((next-state (check-diagonal-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix match-cost mismatch-opening-cost mismatch-cost)))
                                next-state))
                             
                             (;; next-edge is not set -> check vertical, horizontal and diagonal edges
                              t
-                             (let ((next-state-diagonal (check-diagonal-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix match-cost mismatch-cost mismatch-opening-cost))
+                             (let ((next-state-diagonal (check-diagonal-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix match-cost mismatch-opening-cost mismatch-cost))
                                    (next-state-vertical (check-vertical-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix gap-opening-cost gap-cost))
                                    (next-state-horizontal (check-horizontal-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix gap-opening-cost gap-cost)))
                                (append next-state-diagonal next-state-vertical next-state-horizontal)))))
