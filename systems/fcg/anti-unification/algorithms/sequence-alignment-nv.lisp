@@ -50,6 +50,7 @@
          (R (make-array (list (+ nx 1) (+ ny 1))))
          (S (make-array (list (+ nx 1) (+ ny 1))))
          ;; matrices to store graph edges
+         (arrays (make-instance 'arrays :nx nx :ny ny))
          (arrays (make-instance 'arrays))
          (arrays (initialize-arrays nx ny arrays))
          (boundary-matrix (make-boundary-vars-matrix nx ny))
@@ -144,7 +145,7 @@
    (l-m :initarg :l-m :accessor l-m :initform nil :type array) ;;after cost assignment: v-m = 1 iff among (i+1,j+1) paths through N_i,j, an optimal one uses V_i,j
    ))
 
-(defun initialize-arrays (nx ny arrays)
+(defmethod initialize-instance :after ((arrays arrays) &key nx ny)
   (setf (vertical arrays) (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0)) 
   (setf (horizontal arrays) (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0)) 
   (setf (diagonal arrays) (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
@@ -168,8 +169,7 @@
   (setf (g-m arrays) (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
   (setf (l-v arrays) (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
   (setf (l-h arrays) (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
-  (setf (l-m arrays) (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0))
-  arrays)
+  (setf (l-m arrays) (make-array (list (+ nx 2) (+ ny 2)) :initial-element 0)))
 
 (defun cost-assignment (pattern source nx ny P Q R S arrays
                                 &key (match-cost -1) (mismatch-opening-cost 1) (mismatch-cost 1)
