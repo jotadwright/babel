@@ -1,0 +1,10 @@
+id,exp_name,nr_of_interactions,dataset,dataset_split,feature_set,scene_sampling,topic_sampling
+1,paper-abc,100000,clevr,test,clevr,:random,:random
+2,paper-ac,100000,clevr,test,clevr,:random,:random
+3,paper-bc,100000,clevr,test,clevr,:random,:random
+4,paper-c,100000,clevr,test,clevr,:random,:random
+5,no-paper-abc,100000,clevr,test,clevr,:random,:random
+6,no-paper-ac,100000,clevr,test,clevr,:random,:random
+7,no-paper-bc,100000,clevr,test,clevr,:random,:random
+8,no-paper-c,100000,clevr,test,clevr,:random,:random
+9,paper-abc-ledger,100000,clevr,test,clevr,:random,:random
