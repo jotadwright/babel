@@ -68,7 +68,7 @@
 
 (defun filter-object (object available-channels)
   "Only keep the attributes that are in play."
-  (loop with hash-table = (make-hash-table :test 'equal)
+  (loop with hash-table = (make-hash-table)
         for channel in available-channels
         do (setf (gethash channel hash-table) (assqv channel object))
         finally (return hash-table)))
@@ -84,4 +84,3 @@
                   (lambda (x y) (string< (symbol-name x) (symbol-name y)))
                   :key #'car))
     (format stream ">")))
-
