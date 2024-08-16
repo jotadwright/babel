@@ -174,7 +174,7 @@
                              ,exp-name
                              ,log-dir-name
                              "stores")
-                :name (list-of-strings->string (list (write-to-string (series-number experiment)) "history") :separator "-") 
+                :name (format nil "seed-~a" (get-configuration experiment :seed)) 
                 :type "store")))
     (setf (world experiment) nil)
     (ensure-directories-exist path)
