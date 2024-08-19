@@ -11,7 +11,7 @@
       (rplacd (assoc :available-channels config)
               (get-all-channels (assqv :available-channels config))))
     (loop for (key . val) in config
-          when (find key (list :exp-name :dataset :dataset-split))
+          when (find key (list :exp-name :dataset :dataset-split :exp-top-dir))
             do (rplacd (assoc key config)
                        (string-downcase (string (assqv key config)))))
     (when (assoc :stage-parameters config)
@@ -43,31 +43,51 @@
     (:distribution . :gaussian-welford)
     (:M2 . 0.0001)))
 
-(defun run-parallel (args)
-  (let* ((config (append (fixed-config)
-                         (parse-config args))))
-    (time
-     (run-parallel-batch-for-grid-search
-      :asdf-system "cle"
-      :package "cle"
-      :experiment-class "cle-experiment"
-      :number-of-interactions (assqv :nr-of-interactions config)
-      :number-of-series (assqv :nr-of-series config)
-      :monitors (list "export-communicative-success"
-                      "export-lexicon-coherence"
-                      "export-unique-form-usage"
-                      "export-experiment-configurations"
-                      "export-experiment-store"
-                      "print-a-dot-for-each-interaction")
-      ;; actual configuration
-      :shared-configuration config
-      ;; configuration is empty as we are not grid searching
-      :configurations `()
-      ;; output directory
-      :output-dir (babel-pathname :directory `("experiments"
-                                               "concept-emergence2"
-                                               "logging"
-                                               ,(assqv :exp-name config)))
-      :heap-size 60000))))
+(defun get-monitors ()
+  (list "export-communicative-success"
+        "export-lexicon-coherence"
+        "export-unique-form-usage"
+        "export-experiment-configurations"
+        "export-experiment-store"
+        "print-a-dot-for-each-interaction"))
 
-(run-parallel #+sbcl (rest sb-ext:*posix-argv*))
+(defun set-up-monitors (monitors config)
+  (monitors::deactivate-all-monitors)
+  (loop for monitor-string in monitors
+        for monitor = (monitors::get-monitor (read-from-string monitor-string))
+        do (monitors::activate-monitor-method (read-from-string monitor-string))
+        when (slot-exists-p monitor 'file-name)
+          do (setf (slot-value monitor 'file-name)
+                    (ensure-directories-exist
+                    (merge-pathnames (make-pathname :directory `(:relative ,(assqv :log-dir-name config))
+                                                    :name (pathname-name (file-name monitor)) 
+                                                    :type (pathname-type (file-name monitor)))
+                                      (babel-pathname :directory `("experiments"
+                                                                  "concept-emergence2"
+                                                                  "logging"
+                                                                  ,(assqv :exp-top-dir config)
+                                                                  ,(assqv :exp-name config))))))))
+
+(defun run-experiment (args)
+  (let* (;; parse command line arguments, append it to the fixed configuration
+         (config (append (fixed-config) (parse-config args)))
+         ;; generate a log-dir-name
+         (log-dir-name (generate-log-dir-name (assqv :seed config))))
+    ;; add log-dir-name to configuration
+    (setf config (append config (list (cons :log-dir-name log-dir-name))))
+    ;; adapt file-writing monitors so they output in the correct log-dir
+    (set-up-monitors (get-monitors) config)
+
+    ;; Run experiment
+    (format t "~%~% == Running the experiment, log at 'logging/~a/~a/~a'.~%"
+            (assqv :exp-top-dir config)
+            (assqv :exp-name config)
+            (assqv :log-dir-name config))
+    (time
+     (run-batch 'cle-experiment (assqv :nr-of-interactions config) 1
+                :configuration (make-configuration :entries config))
+     )
+    (format t "~%~% == Completed experiment.~%~%")
+    ))
+
+(run-experiment #+sbcl (rest sb-ext:*posix-argv*))

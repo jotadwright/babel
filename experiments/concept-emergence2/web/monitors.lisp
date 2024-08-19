@@ -105,11 +105,18 @@
 (define-monitor export-experiment-configurations)
 (define-event-handler (export-experiment-configurations run-series-finished)
                       (when (= (series-number experiment) 1)
-                        (let* ((experiment-name (get-configuration experiment :experiment-name))
-                               (output-dir (get-configuration experiment :output-dir))
+                        (let* ((exp-top-dir (get-configuration experiment :exp-top-dir))
+                               (log-dir-name (get-configuration experiment :log-dir-name))
+                               (exp-name (get-configuration experiment :exp-name))
                                (path (babel-pathname
-                                      :directory `("experiments" "concept-emergence2" "logging" ,(downcase output-dir) ,(downcase experiment-name))
-                                      :name "experiment-configurations" :type "lisp"))
+                                      :directory `("experiments"
+                                                   "concept-emergence2"
+                                                   "logging"
+                                                   ,exp-top-dir
+                                                   ,exp-name
+                                                   ,log-dir-name)
+                                      :name "experiment-configurations" 
+                                      :type "lisp"))
                                (config (append (entries experiment)  (list (cons :HASH (first (exec-and-return "git" "rev-parse" "HEAD"))))))
                                (clean-config (remove :CURRENT-SCENE-IDX (remove :SCENE-IDS config :key #'car) :key #'car)))
                           (ensure-directories-exist path)
@@ -120,11 +127,19 @@
 
 (define-monitor export-experiment-store)
 (define-event-handler (export-experiment-store run-series-finished)
-  (let* ((experiment-name (get-configuration experiment :experiment-name))
-          (output-dir (get-configuration experiment :output-dir))
-          (path (babel-pathname
-                :directory `("experiments" "concept-emergence2" "logging" ,(downcase output-dir) ,(downcase experiment-name) "stores")
-                :name (list-of-strings->string (list (write-to-string (series-number experiment)) "history") :separator "-") :type "store")))
+  (let* ((exp-top-dir (get-configuration experiment :exp-top-dir))
+         (log-dir-name (get-configuration experiment :log-dir-name))
+         (exp-name (get-configuration experiment :exp-name))
+         (path (babel-pathname
+                :directory `("experiments" 
+                             "concept-emergence2" 
+                             "logging" 
+                             ,exp-top-dir
+                             ,exp-name
+                             ,log-dir-name
+                             "stores")
+                :name (list-of-strings->string (list (write-to-string (series-number experiment)) "history") :separator "-") 
+                :type "store")))
     (setf (world experiment) nil)
     (ensure-directories-exist path)
     (cl-store:store experiment path)))

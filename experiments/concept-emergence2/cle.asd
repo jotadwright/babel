@@ -83,8 +83,7 @@
                              (:file "switch")))
                (:module "utils"
                 :serial t
-                :components ((:file "analysis")
-                             (:file "graph")
+                :components ((:file "seed")
                              (:file "utils")))
                (:module "web"
                 :serial t

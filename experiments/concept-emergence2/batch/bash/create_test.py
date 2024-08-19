@@ -17,14 +17,16 @@ parser.add_argument("--csv", type=str)
 template = """\
 #!/bin/bash
 
-sbcl --dynamic-space-size 16000 --load test.lisp \
-    exp-name {exp_name} \
-    nr-of-interactions {nr_of_interactions} \
-    dataset {dataset} \
-    dataset-split {dataset_split} \
-    available-channels "{available_channels}" \
-    scene-sampling {scene_sampling} \
-    topic-sampling {topic_sampling}
+sbcl --dynamic-space-size 16000 --load test.lisp \\
+    exp-name {exp_name} \\
+    nr-of-interactions {nr_of_interactions} \\
+    dataset {dataset} \\
+    dataset-split {dataset_split} \\
+    available-channels "{available_channels}" \\
+    scene-sampling {scene_sampling} \\
+    topic-sampling {topic_sampling} \\
+    seed ${{1}} \\
+    exp-top-dir ${{2}}
 """
 
 
