@@ -3,8 +3,9 @@ id,exp_name,nr_of_series,nr_of_interactions,population_size,dataset,dataset_spli
 2,paper-ac,1,1000000,10,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil,:paper-ac,t
 3,paper-bc,1,1000000,10,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil,:paper-bc,t
 4,paper-c,1,1000000,10,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil,:paper-c,t
-5,paper-abc-ledger,1,1000000,10,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil,:paper-abc-ledger,t
-6,no-paper-abc,1,1000000,10,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil,:paper-abc,nil
-7,no-paper-ac,1,1000000,10,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil,:paper-ac,nil
-8,no-paper-bc,1,1000000,10,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil,:paper-bc,nil
-9,no-paper-c,1,1000000,10,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil,:paper-c,nil
+5,no-paper-abc,1,1000000,10,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil,:paper-abc,nil
+6,no-paper-ac,1,1000000,10,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil,:paper-ac,nil
+7,no-paper-bc,1,1000000,10,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil,:paper-bc,nil
+8,no-paper-c,1,1000000,10,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil,:paper-c,nil
+9,paper-abc-ledger,1,1000000,10,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil,:paper-abc-ledger,t
+10,paper-abc-ledger2,1,1000000,10,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:none,0,nil,:paper-abc-ledger2,t

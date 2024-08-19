@@ -168,6 +168,24 @@
         (prototype-similarity (- 1 (f-divergence (distribution proto1) (distribution proto2) :hellinger))))
     ;; multiple all three
     (* avg-weight weight-similarity prototype-similarity)))
+  
+(defmethod similar-prototypes ((proto1 prototype) (proto2 prototype) (ledger1 number) (ledger2 number) (mode (eql :paper-abc-ledger2)))
+  "Calculates the similarity between two prototypes.
+   
+   The similarity corresponds to a product t-norm of
+    1. the average weight of the two prototypes
+    2. the similarity of the weights
+    3. the complement of the hellinger distance between the two prototypes' distributions."
+  (let (;; take the average weight
+        (avg-weight (/ (+ (weight proto1)
+                          (weight proto2))
+                       2))
+        ;; similarity of the weights
+        (weight-similarity (- 1 (abs (- (weight proto1) (weight proto2)))))
+        ;; take complement of distance (1-h) so that it becomes a similarity metric
+        (prototype-similarity (- 1 (f-divergence (distribution proto1) (distribution proto2) :hellinger))))
+    ;; multiple all three
+    (* avg-weight weight-similarity prototype-similarity)))
 
 (defmethod similar-prototypes ((proto1 prototype) (proto2 prototype) (ledger1 number) (ledger2 number) (mode (eql :paper-ac)))
   "Calculates the similarity between two prototypes.
