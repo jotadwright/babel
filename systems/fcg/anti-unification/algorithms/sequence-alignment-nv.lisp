@@ -714,6 +714,8 @@
                                  :cost (+ cost (if matchp match-cost new-mismatch))
                                  :match-positions (if matchp (cons (cons i j) match-positions) match-positions)
                                  :mismatch-positions (if (not matchp) (cons (cons i j) mismatch-positions) mismatch-positions)
+                                 :vertical-positions vertical-positions
+                                 :horizontal-positions horizontal-positions
                                  :gap-counter (if new-gap-p (+ 1 gap-counter) gap-counter)
                                  :next-edge 'horizontal
                                  :prev-edge (if matchp 'diagonal 'diagonal-mismatch)
