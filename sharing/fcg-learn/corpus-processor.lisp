@@ -27,11 +27,11 @@
                                                              (read-from-string (cdr (assoc :meaning data)))))))))
     ;; optionally sort speech acts by utterance length
     (when sort-p
-      (sort speech-acts #'< :key #'(lambda (speech-act) (length (form speech-act)))))
+      (setf speech-acts (sort speech-acts #'< :key #'(lambda (speech-act) (length (form speech-act))))))
 
     (when remove-duplicates
-      (setf speech-acts (remove-duplicates speech-acts :test #'(lambda (s1 s2)
-                                                                 (string= (form s1) (form s2))))))
+      (setf speech-acts (remove-duplicates speech-acts :test #'(lambda (s1 s2) (string= (form s1) (form s2))))))
+    
     ;; Return corpus-processor
     (make-instance 'corpus-processor
                    :corpus (make-array (length speech-acts) :initial-contents speech-acts)
