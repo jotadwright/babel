@@ -80,14 +80,13 @@
                                            boundary-matrix
                                            :n-optimal-alignments n-optimal-alignments
                                            :max-nr-of-au-gaps max-nr-of-au-gaps
+                                           :remove-duplicate-alignments remove-duplicate-alignments
                                            :debugging debugging)))
       ;(check-optimal-alignments all-optimal-alignments arrays)
       (when debugging
         (loop for alignment in all-optimal-alignments
               do (visualise-path (path alignment))))
-      (if remove-duplicate-alignments
-        (remove-duplicates all-optimal-alignments :key #'match-positions :test #'equal)
-        all-optimal-alignments))))
+      all-optimal-alignments)))
 
 
 (defclass arrays ()
@@ -555,6 +554,7 @@
                                               boundary-matrix
                                               &key n-optimal-alignments
                                               max-nr-of-au-gaps
+                                              remove-duplicate-alignments
                                               debugging)
   (loop with solutions = nil
         ;; start at position (M, N)
@@ -571,7 +571,14 @@
         do ;; reached index (0,0) -> push to solutions!
           (with-slots (i j next-edge) state
             (if (and (= i 0) (= j 0))
-              (push state solutions)
+              (progn
+                ;; check optimal cost
+                (assert (= (cost state) optimal-cost))
+                ;; add to the solution (unless duplicate)
+                (if remove-duplicate-alignments
+                  (unless (member (match-positions state) solutions :key #'match-positions :test #'equal)
+                    (push state solutions))
+                  (push state solutions)))
               ;; otherwise, make the next state(s)
               (let* ((next-states
                       (cond (;; next-edge is set to vertical -> only need to check vertical edges
