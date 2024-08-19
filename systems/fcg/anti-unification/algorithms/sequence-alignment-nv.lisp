@@ -584,19 +584,16 @@
                       (cond (;; next-edge is set to vertical -> only need to check vertical edges
                              (eql next-edge 'vertical)
                              ;; as a sanity check, we could assert that horizontal and diagonal edges here are 0
-                             (let ((next-state (nv-check-vertical-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix gap-opening-cost gap-cost)))
-                               next-state))
+                             (nv-check-vertical-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix gap-opening-cost gap-cost))
                             
                             (;; next-edge is set to horizontal -> only need to check horizontal edges
                              (eql next-edge 'horizontal)
                              ;; as a sanity check, we could assert that vertical and diagonal edges here are 0
-                             (let ((next-state (nv-check-horizontal-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix gap-opening-cost gap-cost)))
-                               next-state))
+                             (nv-check-horizontal-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix gap-opening-cost gap-cost))
 
                             (;; next-edge is set to diagonal-mismatch
                              (or (eql next-edge 'diagonal-mismatch) (eql next-edge 'diagonal))
-                             (let ((next-state (nv-check-diagonal-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix match-cost mismatch-opening-cost mismatch-cost)))
-                               next-state))
+                             (nv-check-diagonal-edges pattern source pattern-boundaries source-boundaries state arrays boundary-matrix match-cost mismatch-opening-cost mismatch-cost))
                             
                             (;; next-edge is not set -> check vertical, horizontal and diagonal edges
                              t
@@ -625,6 +622,8 @@
                          (format t "~s~%~%" (coerce (aligned-source alignment-state) 'string))))
                 (assert (not (null next-states-with-max-gaps)))  ;; make sure that there are no paths that are dead ends, i.e. every state always has at least one child
                 (loop for ns in next-states-with-max-gaps
+                      ;do (push ns (children state))
+                      ;do (setf (parent ns) state)
                       do (push ns (children state))
                       do (setf (parent ns) state)
                       do (push ns queue)))))
@@ -736,24 +735,25 @@
                                  :next-edge 'diagonal-mismatch
                                  :prev-edge (if matchp 'diagonal 'diagonal-mismatch)
                                  :path (cons (if matchp 'diagonal 'diagonal-mismatch) (path state)))))
-               next-states)
-          
-          (if (not (or next-vertical-state next-horizontal-state next-diagonal-state))
-            (setf next-states (list (make-instance 'nv-sequence-alignment-state
-                                                   :aligned-pattern expanded-pattern
-                                                   :aligned-source expanded-source
-                                                   :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
-                                                   :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
-                                                   :i (- i 1) :j (- j 1)
-                                                   :cost (+ cost (if matchp match-cost new-mismatch))
-                                                   :match-positions (if matchp (cons (cons i j) match-positions) match-positions)
-                                                   :mismatch-positions (if (not matchp) (cons (cons i j) mismatch-positions) mismatch-positions)
-                                                   :vertical-positions vertical-positions
-                                                   :horizontal-positions horizontal-positions
-                                                   :gap-counter (if new-gap-p (+ 1 gap-counter) gap-counter)
-                                                   :prev-edge (if matchp 'diagonal 'diagonal-mismatch)
-                                                   :path (cons (if matchp 'diagonal 'diagonal-mismatch) (path state)))))
-            (setf next-states (remove nil (list next-diagonal-state next-vertical-state next-horizontal-state))))
+               (next-states
+                (if (and (null next-vertical-state)
+                         (null next-horizontal-state)
+                         (null next-diagonal-state))
+                  (list (make-instance 'nv-sequence-alignment-state
+                                       :aligned-pattern expanded-pattern
+                                       :aligned-source expanded-source
+                                       :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
+                                       :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
+                                       :i (- i 1) :j (- j 1)
+                                       :cost (+ cost (if matchp match-cost new-mismatch))
+                                       :match-positions (if matchp (cons (cons i j) match-positions) match-positions)
+                                       :mismatch-positions (if (not matchp) (cons (cons i j) mismatch-positions) mismatch-positions)
+                                       :vertical-positions vertical-positions
+                                       :horizontal-positions horizontal-positions
+                                       :gap-counter (if new-gap-p (+ 1 gap-counter) gap-counter)
+                                       :prev-edge (if matchp 'diagonal 'diagonal-mismatch)
+                                       :path (cons (if matchp 'diagonal 'diagonal-mismatch) (path state))))
+                  (remove nil (list next-diagonal-state next-vertical-state next-horizontal-state)))))
         
           ;; return the next state
           next-states)))))
@@ -835,24 +835,25 @@
                                  :next-edge 'diagonal-mismatch ;; sure this is only mismatch? can it be match too?
                                  :prev-edge 'vertical
                                  :path (cons 'vertical (path state))))) 
-               next-states)
-          
-          (if (not (or next-vertical-state next-horizontal-state next-diagonal-state))
-            (setf next-states (list (make-instance 'nv-sequence-alignment-state
-                                                   :aligned-pattern expanded-pattern
-                                                   :aligned-source expanded-source
-                                                   :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
-                                                   :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
-                                                   :i (- i 1) :j j
-                                                   :cost (+ cost cost-increase)
-                                                   :match-positions match-positions
-                                                   :mismatch-positions mismatch-positions
-                                                   :vertical-positions (cons (cons i j) vertical-positions)
-                                                   :horizontal-positions horizontal-positions
-                                                   :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
-                                                   :prev-edge 'vertical
-                                                   :path (cons 'vertical (path state)))))
-            (setf next-states (remove nil (list next-diagonal-state next-vertical-state next-horizontal-state))))
+               (next-states
+                (if (and (null next-vertical-state)
+                         (null next-horizontal-state)
+                         (null next-diagonal-state))
+                  (list (make-instance 'nv-sequence-alignment-state
+                                       :aligned-pattern expanded-pattern
+                                       :aligned-source expanded-source
+                                       :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
+                                       :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
+                                       :i (- i 1) :j j
+                                       :cost (+ cost cost-increase)
+                                       :match-positions match-positions
+                                       :mismatch-positions mismatch-positions
+                                       :vertical-positions (cons (cons i j) vertical-positions)
+                                       :horizontal-positions horizontal-positions
+                                       :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
+                                       :prev-edge 'vertical
+                                       :path (cons 'vertical (path state))))
+                (remove nil (list next-diagonal-state next-vertical-state next-horizontal-state)))))
 
           ;; return the next state
           next-states)))))
@@ -936,24 +937,25 @@
                                  :next-edge 'diagonal-mismatch
                                  :prev-edge 'horizontal
                                  :path (cons 'horizontal (path state)))))
-               next-states)
-          
-          (if (not (or next-vertical-state next-horizontal-state next-diagonal-state))
-            (setf next-states (list (make-instance 'nv-sequence-alignment-state
-                                                   :aligned-pattern expanded-pattern
-                                                   :aligned-source expanded-source
-                                                   :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
-                                                   :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
-                                                   :i i :j (- j 1)
-                                                   :cost (+ cost cost-increase)
-                                                   :match-positions match-positions
-                                                   :mismatch-positions mismatch-positions
-                                                   :vertical-positions vertical-positions
-                                                   :horizontal-positions (cons (cons i j) horizontal-positions)
-                                                   :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
-                                                   :prev-edge 'horizontal
-                                                   :path (cons 'horizontal (path state)))))
-            (setf next-states (remove nil (list next-diagonal-state next-vertical-state next-horizontal-state))))
+               (next-states
+                (if (and (null next-vertical-state)
+                         (null next-horizontal-state)
+                         (null next-diagonal-state))
+                  (list (make-instance 'nv-sequence-alignment-state
+                                       :aligned-pattern expanded-pattern
+                                       :aligned-source expanded-source
+                                       :aligned-pattern-boundaries (cons pattern-boundary-vars aligned-pattern-boundaries)
+                                       :aligned-source-boundaries (cons source-boundary-vars aligned-source-boundaries)
+                                       :i i :j (- j 1)
+                                       :cost (+ cost cost-increase)
+                                       :match-positions match-positions
+                                       :mismatch-positions mismatch-positions
+                                       :vertical-positions vertical-positions
+                                       :horizontal-positions (cons (cons i j) horizontal-positions)
+                                       :gap-counter (if gap-counter-new-gap-p (+ 1 gap-counter) gap-counter)
+                                       :prev-edge 'horizontal
+                                       :path (cons 'horizontal (path state))))
+                  (remove nil (list next-diagonal-state next-vertical-state next-horizontal-state)))))
      
           ;; return the next state
           next-states)))))
