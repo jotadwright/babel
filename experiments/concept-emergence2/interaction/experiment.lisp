@@ -39,7 +39,8 @@
                                                             (get-configuration experiment :observation-noise)))
          (new-agent (make-instance 'cle-agent
                                    :experiment experiment
-                                   :disabled-channels (list-to-hash-table disabled-channels)
+                                   :lexicon (make-instance 'lexicon :configuration (configuration experiment))
+                                   :disabled-channels (list->hash-table disabled-channels)
                                    :noise-in-each-sensor sensor-noise
                                    :noise-in-each-observation observation-noise
                                    :usage-table (create-usage-table (get-configuration experiment :usage-table-window)))))
