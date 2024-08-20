@@ -377,9 +377,7 @@
                        ;; ELSE
                        ;; the diagonal edge to N i+1 j+1 is NOT preceded by a vertical edge (setf d-m i+1 j+1 to 0)
                        (if (and (= (aref (diagonal arrays) (+ i 1) (+ j 1)) 1)
-                                (= (aref (v-m arrays) i j) 1)
-                              ;  (= (aref (vertical arrays) i j) 1)
-                                )
+                                (= (aref (v-m arrays) i j) 1))
                          (setf (aref (v-m arrays) (+ i 1) (+ j 1)) (- 1 (max (aref (h-m arrays) i j)
                                                                              (aref (d-m arrays) i j)
                                                                              (aref (d-new arrays) i j)))
@@ -397,9 +395,7 @@
                        ;; 6) if edge H_{i,j+1} is in an optimal path and requires edge H_{i,j} to be in an optimal path,
                        ;;    determine if an optimal path that uses edge H_{i,j+1} must use edge H_{i,j} and the converse:
                        (if (and (= (aref (horizontal arrays) i (+ j 1)) 1)
-                                (= (aref (h-h arrays) i j) 1)
-                               ; (= (aref (horizontal arrays) i j) 1)
-                                )
+                                (= (aref (h-h arrays) i j) 1))
                          (setf (aref (h-h arrays) i (+ j 1)) (- 1 (max (aref (v-h arrays) i j)
                                                                        (aref (d-h arrays) i j)
                                                                        (aref (h-new arrays) i j)))
@@ -416,9 +412,7 @@
 
                        
                        (if (and (= (aref (vertical arrays) (+ i 1) j) 1)
-                                (= (aref (h-v arrays) i j) 1)
-                               ; (= (aref (horizontal arrays) i j) 1)
-                                )
+                                (= (aref (h-v arrays) i j) 1))
                          (setf (aref (h-v arrays) (+ i 1) j) (- 1 (max (aref (v-v arrays) i j)
                                                                        (aref (d-v arrays) i j)
                                                                        (aref (v-new arrays) i j)))
@@ -436,9 +430,7 @@
 
                        
                        (if (and (= (aref (diagonal arrays) (+ i 1) (+ j 1)) 1)
-                                (= (aref (h-m arrays) i j) 1)
-                               ; (= (aref (horizontal arrays) i j) 1)
-                                )
+                                (= (aref (h-m arrays) i j) 1))
                          (setf (aref (h-m arrays) (+ i 1) (+ j 1)) (- 1 (max (aref (v-m arrays) i j)
                                                                              (aref (d-m arrays) i j)
                                                                              (aref (d-new arrays) i j)))
@@ -457,9 +449,7 @@
                        ;; 7) if edge D_{i+1,j+1} is in an optimal path and requires edge D_{i,j} to be in an optimal path,
                        ;;    determine if an optimal path that uses edge D_{i+1,j+1} must use edge D_{i,j} and the converse:
                        (if (and (= (aref (diagonal arrays) (+ i 1) (+ j 1)) 1)
-                                (= (aref (d-m arrays) i j) 1)
-                               ; (= (aref (diagonal arrays) i j) 1)
-                                )
+                                (= (aref (d-m arrays) i j) 1))
                          (setf (aref (d-m arrays) (+ i 1) (+ j 1)) (- 1 (max (aref (v-m arrays) i j)
                                                                              (aref (h-m arrays) i j)
                                                                              (aref (d-new arrays) i j)))
@@ -476,9 +466,7 @@
                                (aref (l-m arrays) i j) 0))
                        
                        (if (and (= (aref (horizontal arrays) i (+ j 1)) 1)
-                                (= (aref (d-h arrays) i j) 1)
-                               ; (= (aref (diagonal arrays) i j) 1)
-                                )
+                                (= (aref (d-h arrays) i j) 1))
                          (setf (aref (d-h arrays) i (+ j 1)) (- 1 (max (aref (v-h arrays) i j)
                                                                        (aref (h-h arrays) i j)
                                                                        (aref (h-new arrays) i j)))
@@ -495,9 +483,7 @@
                                (aref (l-h arrays) i j) 0))
                        
                        (if (and (= (aref (vertical arrays) (+ i 1) j) 1)
-                                (= (aref (d-v arrays) i j) 1)
-                               ; (= (aref (diagonal arrays) i j) 1)
-                                )
+                                (= (aref (d-v arrays) i j) 1))
                          (setf (aref (d-v arrays) (+ i 1) j) (- 1 (max (aref (v-v arrays) i j)
                                                                        (aref (h-v arrays) i j)
                                                                        (aref (v-new arrays) i j)))
@@ -533,12 +519,7 @@
    (gap-counter :initarg :gap-counter :accessor gap-counter :initform 0 :type number)
    (prev-edge :initarg :prev-edge :accessor prev-edge :initform nil)
    (next-edge :initarg :next-edge :accessor next-edge :initform nil)
-   (path :initarg :path :accessor path :initform nil)
-
-   (parent :initarg :parent :accessor parent :initform nil
-           :documentation "the parent of the state")
-   (children :initarg :children :accessor children :initform nil
-             :documentation "the children of the state")))
+   (path :initarg :path :accessor path :initform nil)))
 
 (defun make-initial-nv-sequence-alignment-state (i j)
   (make-instance 'nv-sequence-alignment-state :i i :j j))
@@ -620,22 +601,11 @@
                          (format t "~s~%" (coerce (aligned-pattern alignment-state) 'string))
                          (format t "~s~%" (coerce (reverse symbols) 'string))
                          (format t "~s~%~%" (coerce (aligned-source alignment-state) 'string))))
-                (assert (not (null next-states-with-max-gaps)))  ;; make sure that there are no paths that are dead ends, i.e. every state always has at least one child
                 (loop for ns in next-states-with-max-gaps
-                      do (push ns queue))
-                
-                      do (push ns (children state))
-                      do (setf (parent ns) state)
                       do (push ns queue)))))
                         
         finally
-          (progn
-            ;; make sure that all paths are complete paths, i.e. every leaf state is at position (0,0)
-            ;(let ((all-leafs (all-leaf-nodes root)))
-            ;  (assert
-            ;      (loop for leaf in all-leafs
-            ;            always (and (= (i leaf) 0) (= (j leaf) 0)))))
-            
+          (progn            
             ;; the cost reconstructed by retracing the optimal alignments
             ;; should be equal to the cost at the bottom right of the cost matrix
             #|(loop for solution in solutions
@@ -668,7 +638,6 @@
                        (not (eql prev-edge 'horizontal)))
                   (and (= (aref (l-v arrays) i j) 1)
                        (not (eql prev-edge 'vertical))))
-        ;(setf *diagonal-edges-counter* (+ *diagonal-edges-counter* 1))
         (let* (;; indexing in pattern and source string is offset by -1 w.r.t. index in matrix (i,j)
                (pattern-char (nth (- i 1) pattern))
                (source-char (nth (- j 1) source))
@@ -775,7 +744,6 @@
                        (not (eql prev-edge 'horizontal)))
                   (and (= (aref (e-m arrays) i j) 1)
                        (not (eql prev-edge 'diagonal-mismatch))))
-        ;(setf *vertical-edges-counter* (+ *vertical-edges-counter* 1))
         (let* ((expanded-pattern (cons (nth (- i 1) pattern) aligned-pattern))
                (expanded-source (cons #\_ aligned-source))
                (current-left-source-boundary (car (first aligned-source-boundaries)))
@@ -877,7 +845,6 @@
                        (not (eql prev-edge 'vertical)))
                   (and (= (aref (g-m arrays) i j) 1)
                        (not (eql prev-edge 'diagonal-mismatch))))
-        ;(setf *horizontal-edges-counter* (+ *horizontal-edges-counter* 1))
         (let* ((expanded-pattern (cons #\_ aligned-pattern))
                (expanded-source (cons (nth (- j 1) source) aligned-source))
                (current-left-source-boundary (car (first aligned-source-boundaries)))
@@ -973,10 +940,6 @@
 
 (defun visualise-matrix (pattern source matrix direction)
   (declare (ignore direction))
-  (let ((char #|(cond ((equal direction 'vertical) (code-char 8595))
-                    ((equal direction 'diagonal) (code-char 8600))
-                    ((equal direction 'horizontal) (code-char 8594)))|#
-          1))
     (format t "~%    ")
     (loop for y from 0 to (- (second (array-dimensions matrix)) 1)
           do (format t "----" (aref matrix 0 y)))
@@ -994,10 +957,10 @@
                                  (capitalise (nth (- x 1) source))
                                  "_"))
              (loop for y from 0 to (- (second (array-dimensions matrix)) 1)
-                   do (format t "| ~a " (if (= (aref matrix x y) 1) char " ")))
+                   do (format t "| ~a " (if (= (aref matrix x y) 1) 1 " ")))
              (format t "|~%")
              (loop for y from 0 to (second (array-dimensions matrix))
-                   do (format t "----")))))
+                   do (format t "----"))))
 
 
 (defun visualise-path (path)
