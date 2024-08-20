@@ -7,13 +7,12 @@
 (defun parse-config (args)
   (let ((config (loop for (a b) on args by #'cddr
                       collect (cons (parse-keyword a) (read-from-string b)))))
-    (when (and (assoc :available-channels config) (keywordp (assqv :available-channels config)))
-      (rplacd (assoc :available-channels config)
-              (get-all-channels (assqv :available-channels config))))
+    ;; make sure that the keys required in paths are lowercase
     (loop for (key . val) in config
-          when (find key (list :exp-name :dataset :dataset-split :exp-top-dir))
+          when (find key (list :exp-name :dataset :dataset-split :exp-top-dir :feature-set))
             do (rplacd (assoc key config)
                        (string-downcase (string (assqv key config)))))
+    ;; make sure that the keys required in paths are lowercase
     (when (assoc :stage-parameters config)
       (let ((stage-params (assqv :stage-parameters config)))
         (loop for stage-param in stage-params
@@ -23,10 +22,9 @@
               do (when (assoc :switch-dataset-split stage-param)
                    (rplacd (assoc :switch-dataset-split stage-param)
                            (string-downcase (string (assqv :switch-dataset-split stage-param)))))
-              do (when (and (assoc :switch-available-channels stage-param) (keywordp (assqv :switch-available-channels stage-param)))
-                   (rplacd (assoc :switch-available-channels stage-param)
-                           (get-all-channels (assqv :switch-available-channels stage-param))))
-                 )))
+              do (when (assoc :switch-feature-set stage-param)
+                   (rplacd (assoc :switch-feature-set stage-param)
+                           (string-downcase (string (assqv :switch-feature-set stage-param))))))))
     config))
 
 (defun fixed-config ()
@@ -91,3 +89,4 @@
     ))
 
 (run-experiment #+sbcl (rest sb-ext:*posix-argv*))
+(sb-ext:quit)

@@ -17,14 +17,14 @@ parser.add_argument("--csv", type=str)
 template = """\
 #!/bin/bash
 
-sbcl --dynamic-space-size 16000 --load run.lisp \\
+sbcl --dynamic-space-size 16000 --non-interactive --load run.lisp \\
     exp-name {exp_name} \\
     nr-of-series {nr_of_series} \\
     nr-of-interactions {nr_of_interactions} \\
     population-size {population_size} \\
     dataset {dataset} \\
     dataset-split {dataset_split} \\
-    available-channels "{available_channels}" \\
+    feature-set {feature_set} \\
     disable-channels {disable_channels} \\
     amount-disabled-channels {amount_disabled_channels} \\
     sensor-noise {sensor_noise} \\

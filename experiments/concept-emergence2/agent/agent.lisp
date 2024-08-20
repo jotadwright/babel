@@ -92,16 +92,14 @@
 ;; + noise-in-sensor +
 ;; -------------------
 
-(defmethod determine-noise-in-sensor (experiment disabled-channels (mode (eql :none)))
+(defmethod determine-noise-in-sensor (experiment channels (mode (eql :none)))
   "Sets the fixed shift for each sensor to zero."
-  (loop with remaining-channels = (set-difference (get-configuration experiment :available-channels) disabled-channels)
-        for channel in remaining-channels
+  (loop for channel in channels
         collect (cons channel 0)))
 
-(defmethod determine-noise-in-sensor (experiment disabled-channels (mode (eql :shift)))
+(defmethod determine-noise-in-sensor (experiment channels (mode (eql :shift)))
   "Determines a fixed shift for each sensor."
-  (loop with remaining-channels = (set-difference (get-configuration experiment :available-channels) disabled-channels)
-        for channel in remaining-channels
+  (loop for channel in channels
         for shift = (random-gaussian 0 (get-configuration experiment :sensor-std))
         collect (cons channel shift)))
 
@@ -117,16 +115,14 @@
 ;; + noise-in-observation +
 ;; ------------------------
 
-(defmethod determine-noise-in-observation (experiment disabled-channels (mode (eql :none)))
+(defmethod determine-noise-in-observation (experiment channels (mode (eql :none)))
   "Sets the observation noise for each sensor to zero."
-  (loop with remaining-channels = (set-difference (get-configuration experiment :available-channels) disabled-channels)
-        for channel in remaining-channels
+  (loop for channel in channels
         collect (cons channel 0)))
 
-(defmethod determine-noise-in-observation (experiment disabled-channels (mode (eql :shift)))
+(defmethod determine-noise-in-observation (experiment channels (mode (eql :shift)))
   "Determines a standard deviation for each sensor at each observation."
-  (loop with remaining-channels = (set-difference (get-configuration experiment :available-channels) disabled-channels)
-        for channel in remaining-channels
+  (loop for channel in channels
         for shift = (get-configuration experiment :observation-std)
         collect (cons channel shift)))
 
