@@ -64,16 +64,16 @@
         maximize other-sim))
 
 (defun find-best-concept (agent)
-  "Finds the best concept (and its direct competitors) for a given scene and topic.
+  "Searches the lexicon for the best concept for the given topic and context.
 
-   The best concept corresponds to the concept that maximises
-   the multiplication of its entrenchment score and its discriminative power."
+  The agent first searches its fast inventory,
+  if no cxn is found, it searches the trash inventory."
   (loop with all-competitors = nil
         for inventory-name in (list :fast :trash)
-        for (best-score best-cxn competitors) = (search-inventory agent inventory-name)
+        for (best-score best-candidate competitors) = (search-inventory agent inventory-name)
         ;; if a cxn is found, return it
-        if best-cxn
-          do (return (cons best-cxn
+        if best-candidate
+          do (return (cons best-candidate
                           (if (eq inventory-name :trash)
                             all-competitors
                             (append all-competitors competitors))))
@@ -93,7 +93,7 @@
         with topic = (get-data agent 'topic)
         with context = (remove topic (objects (get-data agent 'context)))
         with best-score = -1
-        with best-cxn = nil
+        with best-candidate = nil
         with competitors = '()
         ;; iterate
         for cxn being the hash-values of (get-inventory (lexicon agent) inventory-name)
@@ -101,20 +101,23 @@
         for topic-sim = (weighted-similarity agent topic concept)
         for best-other-sim = (calculate-max-similarity-in-context agent concept context topic-sim)
         for discriminative-power = (abs (- topic-sim best-other-sim))
-        ;; tricky hack: if the inventory is the trash, we do not have to check the score
+        ;; trash inventory -> the score is irrelevant (so set score to 1), otherwise use score
         for score = (if (eq inventory-name :trash) 1 (score cxn))
         ;; new candidate cxn
         if (and (> topic-sim (+ best-other-sim similarity-threshold))
                 (> (* discriminative-power score) best-score))
             do (progn
-                 (when best-cxn
-                   (push best-cxn competitors))
+                 ;; push the previous best candidate to the competitors
+                 (when best-candidate
+                   (push best-candidate competitors))
+                ;; update the best candidate
                  (setf best-score (* discriminative-power score))
-                 (setf best-cxn cxn))
+                 (setf best-candidate cxn))
         else
+          ;; push the candidate to the competitors
           do (push cxn competitors)
         finally
-          (return (list best-score best-cxn competitors))))
+          (return (list best-score best-candidate competitors))))
 
 ;; ---------------------
 ;; + Lexicon coherence +
