@@ -71,12 +71,11 @@
                                  for object in (objects (get-data agent 'context))
                                  for observation = (perceive-object-val agent object channel)
                                  for distance = (observation-distance observation prototype)
-                                 for similarity = (calculate-similarity-s distance (get-configuration agent :similarity-config))
+                                 for similarity = (calculate-similarity-s distance)
                                  for weighted-similarity = (if (not (zerop ledger))
                                                              (calculate-similarity-ws
                                                                 distance
-                                                                (/ (weight prototype) ledger)
-                                                                (get-configuration agent :similarity-config))
+                                                                (/ (weight prototype) ledger))
                                                              0)
                                  do (setf (gethash (id object) hash) (cons similarity weighted-similarity))
                                  finally (return hash))
@@ -91,24 +90,11 @@
   "Retrieve the weighted similarity for the given object-attribute combination."
   (rest (gethash (id object) (gethash channel table))))
 
-(defmethod calculate-similarity-s ((distance number) (mode (eql :paper)))
-  (exp (- (abs distance))))
-
-(defmethod calculate-similarity-ws ((distance number) (weight number) (mode (eql :paper)))
-  (* weight (exp (- (abs distance)))))
-
-(defmethod calculate-similarity-s ((distance number) (mode (eql :paper-v2)))
-  (exp (- (abs distance))))
-
-(defmethod calculate-similarity-ws ((distance number) (weight number) (mode (eql :paper-v2)))
-  (* weight (exp (- (abs distance)))))
-
-(defmethod calculate-similarity-s ((distance number) (mode (eql :multivariate)))
+(defmethod calculate-similarity-s ((distance number))
   (exp (- (* 1/2 (expt distance 2)))))
 
-(defmethod calculate-similarity-ws ((distance number) (weight number) (mode (eql :multivariate)))
-  (* (expt weight 2)
-     (expt distance 2)))
+(defmethod calculate-similarity-ws ((distance number) (weight number))
+  (* (expt weight 2) (expt distance 2)))
 
 ;; --------------------------------------------
 ;; + Step 2: find the discriminating channels +
@@ -154,6 +140,14 @@
 ;; ------------------------------------------
 ;; + Step 4: Find discriminating attributes +
 ;; ------------------------------------------
+(defun weighted-similarity-with-table (object prototypes table)
+  "Compute the weighted similarity between the object and the
+   list of prototypes, using the given similarity table."
+  (loop for prototype in prototypes
+        for ws = (get-ws object (channel prototype) table)
+        collect ws into mahalanobis
+        finally (return (exp (* 1/2 (- (sum mahalanobis)))))))
+
 (defun find-most-discriminating-subset (agent subsets topic sim-table)
   "Find the subset that maximizes the difference in similarity
    between the topic and the best other object."
@@ -162,9 +156,9 @@
         with largest-diff = 0
         with best-sim = 0
         for subset in subsets
-        for topic-sim = (sim-with-table topic subset sim-table (get-configuration agent :similarity-config))
+        for topic-sim = (weighted-similarity-with-table topic subset sim-table)
         for best-other-sim = (loop for object in context
-                                   maximize (sim-with-table object subset sim-table (get-configuration agent :similarity-config)))
+                                   maximize (weighted-similarity-with-table object subset sim-table))
         for diff = (- topic-sim best-other-sim)
         when (and (> topic-sim best-other-sim) 
                   (> diff largest-diff)
@@ -173,28 +167,3 @@
                       largest-diff diff
                       best-sim topic-sim)
         finally (return best-subset)))
-
-(defmethod sim-with-table ((object cle-object) (prototypes list) (table hash-table) (mode (eql :paper)))
-  "Compute the weighted similarity between the object and the
-   list of prototypes, using the given similarity table."
-  (loop for prototype in prototypes
-        for ws = (get-ws object (channel prototype) table)
-        collect ws into weighted-similarities
-        finally (return (average weighted-similarities))))
-
-(defmethod sim-with-table ((object cle-object) (prototypes list) (table hash-table) (mode (eql :paper-v2)))
-  "Compute the weighted similarity between the object and the
-   list of prototypes, using the given similarity table."
-  (loop for prototype in prototypes
-        for ws = (get-ws object (channel prototype) table)
-        sum ws into mahalanobis
-        finally (return mahalanobis)))
-
-(defmethod sim-with-table ((object cle-object) (prototypes list) (table hash-table) (mode (eql :multivariate)))
-  "Compute the weighted similarity between the object and the
-   list of prototypes, using the given similarity table."
-  (loop for prototype in prototypes
-        for ws = (get-ws object (channel prototype) table)
-        collect ws into mahalanobis
-        ;; possibly biases towards smaller concepts  
-        finally (return (exp (* 1/2 (- (sum mahalanobis)))))))

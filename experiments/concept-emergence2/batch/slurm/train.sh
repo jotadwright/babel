@@ -42,5 +42,4 @@ sbcl --dynamic-space-size $space --load $VSC_HOME/concept-emergence2/batch/run.l
     switch-conditions-after-n-interactions $switch_conditions_after_n_interactions \
     stage-parameters "$stage_parameters" \
     seed $seed \
-    exp-top-dir $exp_top_dir \
-    similarity-config $similarity_config
+    exp-top-dir $exp_top_dir

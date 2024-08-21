@@ -5,40 +5,6 @@
 ;; --------------------------------
 
 (defmethod weighted-similarity ((agent cle-agent) (object cle-object) (concept concept))
-  (similarity agent
-              object
-              concept
-              (get-configuration agent :similarity-config)))
-
-(defmethod similarity ((agent cle-agent) (object cle-object) (concept concept) (mode (eql :paper)))
-  "Compute the weighted similarity between an object and a concept."
-  (loop with prototypes = (get-available-prototypes agent concept)
-        with ledger = (loop for prototype in prototypes sum (weight prototype))
-        for prototype in prototypes
-        for observation = (perceive-object-val agent object (channel prototype))
-        for distance = (observation-distance observation prototype)
-        if (and distance (not (zerop ledger)))
-          ;; note: ledger could be factored out
-          sum (* (/ (weight prototype) ledger)
-                 (exp (- (abs distance))))
-            into mahalanobis
-        finally (return mahalanobis)))
-
-(defmethod similarity ((agent cle-agent) (object cle-object) (concept concept) (mode (eql :paper-v2)))
-  "Compute the weighted similarity between an object and a concept."
-  (loop with prototypes = (get-available-prototypes agent concept)
-        with ledger = (loop for prototype in prototypes sum (weight prototype))
-        for prototype in prototypes
-        for observation = (perceive-object-val agent object (channel prototype))
-        for distance = (observation-distance observation prototype)
-        if (and distance (not (zerop ledger)))
-          ;; note: ledger could be factored out
-          sum (* (/ (weight prototype) ledger)
-                 (exp (- (abs distance))))
-            into mahalanobis
-        finally (return mahalanobis)))
-
-(defmethod similarity ((agent cle-agent) (object cle-object) (concept concept) (mode (eql :multivariate)))
   "Compute the weighted similarity between an object and a concept."
   (loop with prototypes = (get-available-prototypes agent concept)
         with ledger = (loop for prototype in prototypes sum (weight prototype))
