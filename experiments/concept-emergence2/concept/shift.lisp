@@ -148,22 +148,31 @@
         collect ws into mahalanobis
         finally (return (exp (* 1/2 (- (sum mahalanobis)))))))
 
-(defun find-most-discriminating-subset (agent subsets topic sim-table)
+;; ----------------------------------
+;; + Find discriminating attributes +
+;; ----------------------------------
+(defun calculate-max-similarity-in-context-using-subsets (agent context topic-sim subset similarity-table)
+  """Calculates the maximim similarity between the given concept and all objects in the context."
+  (loop named lazy-loop
+        for object in context
+        for other-sim = (weighted-similarity-with-table object subset similarity-table)
+        when (<= topic-sim other-sim)
+          ;; lazy stopping
+          do (return-from lazy-loop other-sim)
+        maximize other-sim))
+
+(defun find-most-discriminating-subset (agent subsets topic similarity-table)
   "Find the subset that maximizes the difference in similarity
    between the topic and the best other object."
   (loop with context = (remove topic (objects (get-data agent 'context)))
         with best-subset = nil
-        with largest-diff = 0
-        with best-sim = 0
+        with best-score = 0
         for subset in subsets
-        for topic-sim = (weighted-similarity-with-table topic subset sim-table)
-        for best-other-sim = (loop for object in context
-                                   maximize (weighted-similarity-with-table object subset sim-table))
-        for diff = (- topic-sim best-other-sim)
+        for topic-sim = (weighted-similarity-with-table topic subset similarity-table)
+        for best-other-sim = (calculate-max-similarity-in-context-using-subsets agent context topic-sim subset similarity-table)
+        for discriminative-power = (abs (- topic-sim best-other-sim))
         when (and (> topic-sim best-other-sim) 
-                  (> diff largest-diff)
-                  (> topic-sim best-sim)) ;; TODO extra clause
+                  (> discriminative-power best-score))
           do (setf best-subset subset
-                      largest-diff diff
-                      best-sim topic-sim)
+                   best-score discriminative-power)
         finally (return best-subset)))

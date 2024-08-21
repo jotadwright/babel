@@ -50,11 +50,9 @@
                              ,exp-name
                              ,log-dir-name
                              "stores")
-                :name (list-of-strings->string (list (write-to-string (series-number experiment))
-                                                     "history"
-                                                     "stage"
-                                                     (write-to-string current-stage))
-                                               :separator "-") 
+                :name (format nil "seed-~a~a"
+                              (get-configuration experiment :seed)
+                              current-stage) 
                 :type "store"))
          (tmp-world (copy-object (world experiment))))
     (ensure-directories-exist path)
@@ -173,7 +171,7 @@
                                      (t
                                       (format str "~a" def-val)))))))))
 
-(defun load-experiment (store-dir &key (name "history"))
+(defun load-experiment (store-dir name)
   "Loads and returns the store object in the given directory." 
   (let ((store-path (merge-pathnames (make-pathname :name name :type "store")
                                      store-dir)))
