@@ -10,36 +10,35 @@
         with ledger = (loop for prototype in prototypes sum (weight prototype))
         for prototype in prototypes
         for observation = (perceive-object-val agent object (channel prototype))
-        for similarity = (observation-similarity observation prototype)
-        if (and similarity (not (zerop ledger)))
-        ;; note: ledger could be factored out
-          sum (* (/ (weight prototype) ledger) similarity)))
+        for distance = (observation-distance observation prototype)
+        if (and distance (not (zerop ledger)))
+          ;; note: ledger could be factored out
+          sum (* (expt (/ (weight prototype) ledger) 2)
+                 (expt distance 2))
+            into mahalanobis
+        finally (return (exp (* 1/2 (- mahalanobis))))))
+
 
 ;; ----------------------------------
 ;; + Comparing OBJECT <-> PROTOTYPE +
 ;; ----------------------------------
-(defmethod observation-similarity ((observation null) (prototype prototype))
-  "Similarity is nil if no observation is available."
+(defmethod observation-distance ((observation null) (prototype prototype))
+  "Distance is nil if no observation is available."
   nil)
 
-(defmethod observation-similarity ((observation number) (prototype prototype))
-  "Similarity [0,1] on the level of a single prototype.
-   
-   The similarity is computed by comparing the observation to the prototype's
-   distribution. The similarity is the probability of the observation given the
-   prototype's distribution."
+(defmethod observation-distance ((observation number) (prototype prototype))
+  "Measures the distance between an observation and a prototype.
+
+  Prototypes are represented by gaussian distributions.
+    Therefore, the distance is the z-score of the observation
+    with respect to the prototype's distribution."
   (let* ((distribution (distribution prototype))
          (mean (mean distribution))
          (st-dev (st-dev distribution))
          (z-score (if (not (zerop st-dev))
                     (/ (- observation mean) st-dev)
-                    0))
-         (sim (z-score-to-probability z-score)))
-    sim))
-
-(defun z-score-to-probability (z-score)
-  "Convert a z-score to a probability."
-  (exp (- (abs z-score))))
+                    0)))
+    z-score))
 
 ;; -------------------------------
 ;; + Similarity between CONCEPTS +
