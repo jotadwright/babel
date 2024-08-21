@@ -42,12 +42,20 @@
   "Conceptualise the topic as the hearer"
   (if (empty-lexicon-p agent)
     nil
-    (destructuring-bind (hypothetical-cxn . competitors) (find-best-concept agent)
-      ;; hypothetical-cxn corresponds to the concept that hearer would have produces as a speaker
-      ;; TODO: calculate hearer competitors
-      ;; set the hypothetical-cxn slot
-      (set-data agent 'hypothetical-cxn hypothetical-cxn)
-      hypothetical-cxn)))
+    (if (conceptualised-p agent)
+      ;; if already conceptualised, just return the result
+      (find-data agent 'hypothetical-cxn)
+      (destructuring-bind (hypothetical-cxn . competitors) (find-best-concept agent)
+        ;; hypothetical-cxn corresponds to the concept that hearer would have produces as a speaker
+        (let* ((applied-cxn (find-data agent 'applied-cxn))
+               (competitors (if hypothetical-cxn
+                              (cons hypothetical-cxn competitors)
+                              competitors))
+               (all-competitors (remove applied-cxn competitors :test #'(lambda (x y) (equal x y)))))
+          (set-data agent 'meaning-competitors all-competitors))
+        ;; set the hypothetical-cxn slot
+        (set-data agent 'hypothetical-cxn hypothetical-cxn)
+        hypothetical-cxn))))
 
 ;; --------------------------------------------
 ;; + Conceptualisation through discrimination +
@@ -74,9 +82,9 @@
         ;; if a cxn is found, return it
         if best-candidate
           do (return (cons best-candidate
-                          (if (eq inventory-name :trash)
-                            all-competitors
-                            (append all-competitors competitors))))
+                           (if (eq inventory-name :trash)
+                             all-competitors
+                             (append all-competitors competitors))))
         else
           ;; add competitors
           do (setf all-competitors (append all-competitors competitors))
@@ -103,19 +111,20 @@
         for discriminative-power = (abs (- topic-sim best-other-sim))
         ;; trash inventory -> the score is irrelevant (so set score to 1), otherwise use score
         for score = (if (eq inventory-name :trash) 1 (score cxn))
-        ;; new candidate cxn
-        if (and (> topic-sim (+ best-other-sim similarity-threshold))
-                (> (* discriminative-power score) best-score))
-            do (progn
+        ;; check if the concept is discriminative
+        if (> topic-sim (+ best-other-sim similarity-threshold))
+          ;; the concept is discriminative, thus it is a candidate
+          do (if (> (* discriminative-power score) best-score)
+               ;; update the best candidate
+               (progn
                  ;; push the previous best candidate to the competitors
                  (when best-candidate
                    (push best-candidate competitors))
-                ;; update the best candidate
+                 ;; update the best candidate
                  (setf best-score (* discriminative-power score))
                  (setf best-candidate cxn))
-        else
-          ;; push the candidate to the competitors
-          do (push cxn competitors)
+               ;; candidate is not better, push to competitors
+               (push cxn competitors))
         finally
           (return (list best-score best-candidate competitors))))
 
