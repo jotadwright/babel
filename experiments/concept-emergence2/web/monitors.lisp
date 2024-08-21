@@ -48,9 +48,7 @@
                 :data-sources '(record-communicative-success)
                 :file-name (babel-pathname :name "communicative-success" :type "csv"
                                            :directory '("experiments" "concept-emergence2" "logging"))
-                :add-time-and-experiment-to-file-name nil
-                :column-separator #\#
-                :comment-string #\,)
+                :add-time-and-experiment-to-file-name nil)
 
 (define-event-handler (record-communicative-success interaction-finished)
   (record-value monitor (if (communicated-successfully interaction) 1 0)))
@@ -69,9 +67,7 @@
                 :data-sources '(record-lexicon-coherence)
                 :file-name (babel-pathname :name "lexicon-coherence" :type "csv"
                                            :directory '("experiments" "concept-emergence2" "logging"))
-                :add-time-and-experiment-to-file-name nil
-                :column-separator #\#
-                :comment-string #\,)
+                :add-time-and-experiment-to-file-name nil)
 
 (define-event-handler (record-lexicon-coherence interaction-finished)
   (record-value monitor (if (find-data interaction 'lexicon-coherence) 1 0)))
@@ -90,9 +86,7 @@
                 :data-sources '(record-unique-form-usage)
                 :file-name (babel-pathname :name "unique-form-usage" :type "csv"
                                            :directory '("experiments" "concept-emergence2" "logging"))
-                :add-time-and-experiment-to-file-name nil
-                :column-separator #\#
-                :comment-string #\,)
+                :add-time-and-experiment-to-file-name nil)
 
 (define-event-handler (record-unique-form-usage interaction-finished)
   (record-value monitor (loop for agent in (agents (experiment interaction))
@@ -174,7 +168,7 @@
                              ,exp-name
                              ,log-dir-name
                              "stores")
-                :name (list-of-strings->string (list (write-to-string (series-number experiment)) "history") :separator "-") 
+                :name (format nil "seed-~a" (get-configuration experiment :seed)) 
                 :type "store")))
     (setf (world experiment) nil)
     (ensure-directories-exist path)

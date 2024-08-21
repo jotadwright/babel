@@ -4,13 +4,14 @@
 ;; + F-Divergence +
 ;; ----------------
 
-(defgeneric f-divergence (distribution1 distribution2 mode)
+(defgeneric f-divergence (distribution1 distribution2 &key &allow-other-keys)
   (:documentation "Returns the f-divergence between two distributions."))
 
 (defmethod f-divergence ((distribution1 gaussian)
                          (distribution2 gaussian)
-                         (mode (eql :hellinger)))
-  "Quantifies the hellinger distance between two gaussian distributions.
+                         &key
+                         &allow-other-keys)
+  "Quantifies the hellinger distance between two probability distributions.
 
    It forms a bounded metric on the space of probability distributions
      over a given probability space. Maximum distance 1 is achieved when
@@ -26,15 +27,16 @@
       1.0
       ;; otherwise perform distance calculation
       (realpart (sqrt (- 1
-                         (sqrt (*
-                                (/ (* 2 sigma1 sigma2)
-                                   (+ (expt sigma1 2) (expt sigma2 2)))
-                                (exp (* -1/2 (/ (expt (- mu1 mu2) 2)
-                                                (+ (expt sigma1 2) (expt sigma2 2)))))))))))))
+                         (*
+                          (sqrt (/ (* 2 sigma1 sigma2)
+                                   (+ (expt sigma1 2) (expt sigma2 2))))
+                          (exp (* -1/4 (/ (expt (- mu1 mu2) 2)
+                                          (+ (expt sigma1 2) (expt sigma2 2))))))))))))
 
 (defmethod f-divergence ((distribution1 categorical)
                          (distribution2 categorical)
-                         (mode (eql :hellinger)))
+                         &key
+                         &allow-other-keys)
   ;; step 1: synchronisation
   ;;   due to disabling of channels, two distributions could have different observations over channels
   ;;   therefore the first step is to synchronise the two

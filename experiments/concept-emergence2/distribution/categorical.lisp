@@ -74,6 +74,10 @@
                        collect (cons key (/ frequency total)))))
     counts))
 
+(defmethod number-of-categories ((distribution categorical))
+  "Return the number of observed categories in the distribution."
+  (hash-table-count (cat-table distribution)))
+
 (defmethod copy-object ((distribution categorical))
   (make-instance 'categorical
                  :cat-table (copy-object (cat-table distribution))
