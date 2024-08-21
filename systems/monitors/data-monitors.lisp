@@ -23,10 +23,12 @@
 ;; ############################################################################
 
 (export '(data-recorder record-value incf-value current-value
-	  data-printer data-file-writer lisp-data-file-writer text-data-file-writer
-          csv-data-file-writer
-	  get-average-values file-name
-	  data-handler sources))
+                        data-printer 
+                        data-file-writer
+                        lisp-data-file-writer 
+                        csv-data-file-writer
+                        get-average-values file-name
+                        data-handler sources))
  
 ;; ############################################################################
 ;; data-recorder
@@ -34,21 +36,18 @@
 
 (defclass data-recorder (monitor)
   ((values :documentation "A batch of series of 'values' for each interaction"
-    :initform (list (list nil)) :reader get-values)
+           :initform (list (list nil)) :reader get-values)
    (average-values :documentation "The average values for the batch of series"
-    :initform (list (list nil)) :reader get-average-values)
+                   :initform (list (list nil)) :reader get-average-values)
    (default-value :documentation "A default value that is pushed
                                   onto 'values' if no other value was passed"
-     :accessor default-value :initarg :default-value :initform 0.0) 
+                  :accessor default-value :initarg :default-value :initform 0.0) 
    (current-value :documentation "The value that was recorded or the initial value"
 		  :initform 0.0
                   :reader current-value)
    (average-window :documentation "Values are averaged over the last n interactions"
 		   :initarg :average-window :initform 100 :accessor average-window))
   (:documentation "Records a batch of series of values + their average"))
-
-
-
 
 (defmethod initialize-instance :around ((monitor data-recorder) 
 					&key id &allow-other-keys)
@@ -114,14 +113,12 @@
   (push nil (car (slot-value monitor 'values)))
   (push nil (car (slot-value monitor 'average-values))))
 
-
 (defmethod handle-reset-monitors-event ((monitor data-recorder) (monitor-id symbol)
 					(event (eql 'reset-monitors)))
   (setf (car (slot-value monitor 'values)) nil)
   (push nil (car (slot-value monitor 'values)))
   (setf (car (slot-value monitor 'average-values)) nil)
   (push nil (car (slot-value monitor 'average-values))))
-
 
 (defgeneric record-value (monitor value)
   (:documentation "Sets the current value of a data recorder."))
@@ -135,10 +132,8 @@
 (defmethod incf-value ((monitor data-recorder) (value t))
   (incf (slot-value monitor 'current-value) value))
 
-  
 (defmethod print-object ((monitor data-recorder) stream)
   (format stream "<data-recorder ~a value: ~a>" (id monitor) (current-value monitor)))
-
 
 ;; ############################################################################
 ;; data-handler
@@ -162,28 +157,28 @@
   (call-next-method)
   (setf (error-occured-during-initialization monitor) t)
   (loop for data-source in data-sources 
-     do (if (listp data-source)
-	    (progn
-	      (unless (and (= (length data-source) 2)
-                           (equal (symbol-name (first data-source)) "AVERAGE")
-                           (symbolp (second data-source)))
-		(error "Wrong format of data-sources list.~
+        do (if (listp data-source)
+             (progn
+               (unless (and (= (length data-source) 2)
+                            (equal (symbol-name (first data-source)) "AVERAGE")
+                            (symbolp (second data-source)))
+                 (error "Wrong format of data-sources list.~
                        ~%Should be ({<monitor-id> | (average <monitor-id>)}*)"))
-	      (let ((recorder (get-monitor (second data-source))))
-		(unless recorder (error "Monitor ~a is not defined" (second data-source)))
-		(unless (subtypep (type-of recorder) 'data-recorder)
-		  (error "Monitor ~a is not of type data-recorder" data-source))
-		(pushnew (second data-source) 
-			 (slot-value monitor 'monitor-ids-of-sources) :test #'equal)
-		(push (get-average-values recorder) (slot-value monitor 'sources))))
-	    (let ((recorder (get-monitor data-source)))
-	      (unless recorder (error "Monitor ~a is not defined" data-source))
-	      (unless (subtypep (type-of recorder) 'data-recorder)
-		(error "Monitor ~a is not of type data-recorder" data-source)) 
-	      (pushnew data-source
-		       (slot-value monitor 'monitor-ids-of-sources)
-		       :test #'equal)
-	      (push (get-values recorder) (slot-value monitor 'sources)))))
+               (let ((recorder (get-monitor (second data-source))))
+                 (unless recorder (error "Monitor ~a is not defined" (second data-source)))
+                 (unless (subtypep (type-of recorder) 'data-recorder)
+                   (error "Monitor ~a is not of type data-recorder" data-source))
+                 (pushnew (second data-source) 
+                          (slot-value monitor 'monitor-ids-of-sources) :test #'equal)
+                 (push (get-average-values recorder) (slot-value monitor 'sources))))
+             (let ((recorder (get-monitor data-source)))
+               (unless recorder (error "Monitor ~a is not defined" data-source))
+               (unless (subtypep (type-of recorder) 'data-recorder)
+                 (error "Monitor ~a is not of type data-recorder" data-source)) 
+               (pushnew data-source
+                        (slot-value monitor 'monitor-ids-of-sources)
+                        :test #'equal)
+               (push (get-values recorder) (slot-value monitor 'sources)))))
   (setf (error-occured-during-initialization monitor) nil))
 
 (defmethod activate-monitor-method :after ((monitor data-handler) &optional active)
@@ -278,7 +273,6 @@
   (call-next-method)
   (subscribe-to-event id 'batch-finished))
 
-
 (defmethod handle-batch-finished-event ((monitor data-file-writer) (monitor-id symbol)
 					(event (eql 'batch-finished))
 					(experiment-class string))
@@ -318,7 +312,7 @@
 	  (file-name monitor))
   (format stream "~%(~{~f~^~%  ~})" 
 	  (mapcar #'(lambda (source) (loop for series in (cdar source)
-                                          collect (reverse series)))
+                                           collect (reverse series)))
                   (sources monitor))))
 
 ;; ############################################################################
@@ -342,69 +336,36 @@
             (monitor-ids-of-sources monitor)
             (mapcar #'cdar (sources monitor)))))
 
-;; ############################################################################
-;; text-data-file-writer
-;; ----------------------------------------------------------------------------
-
-(defclass text-data-file-writer (data-file-writer)
-  ((column-separator :initarg :column-separator :accessor column-separator
-                     :type character :initform #\,
-                     :documentation "a character used to separate columns")
-   (comment-string :initarg :comment-string :accessor comment-string
-                   :type character :initform #\# 
-		   :documentation "how to start a comment line"))
-  (:documentation "Writes the data in columns to a text file"))
-
-(defmethod initialize-instance :around ((monitor text-data-file-writer)
-					&key column-separator comment-string
-                                        &allow-other-keys)
-  (setf (error-occured-during-initialization monitor) t)
-  (when column-separator (check-type column-separator character))
-  (when comment-string (check-type comment-string character))
-  (setf (error-occured-during-initialization monitor) nil)
-  (call-next-method))
-
-(defmethod write-data-to-file ((monitor text-data-file-writer) stream)
-  (let* ((number-of-rows (length (cadaar (sources monitor)))) 
-         ;; (first (rest (first (first (sources ... which will indeed
-         ;; give you the data for the first series
-	 (columns (list (loop 
-                           with column = (make-array number-of-rows :fill-pointer 0)
-                           for i from (- number-of-rows 1) downto 0 
-                           do (vector-push i column)
-                           finally (return column))))
-	 (column-names (list (format nil "~c interaction number" (comment-string monitor)))))
-    (loop for source in (reverse (sources monitor))
-       for source-number from 0 
-       do (loop for series-number from 0
-	     for series in (reverse (cdar source)) ; (cdr (car
-             do (push (format nil "~c ~a-~a" 
-                              (comment-string monitor)
-                              (nth source-number (reverse (monitor-ids-of-sources monitor)))
-                              series-number) column-names)
-               (push (loop 
-                        with series-array = (make-array (length series) :fill-pointer 0)
-                        for el in series
-                        do (vector-push el series-array)
-                        finally (return series-array)) columns)))
-    (format stream "~%~c This file was created by the~%~c text-data-file-writer ~a."
-	    (comment-string monitor) (comment-string monitor) (id monitor))
-    (format stream "~%~c The columns are:~%~c ~{~%~a~}" 
-	    (comment-string monitor) (comment-string monitor) (reverse column-names))
-    (loop 
-       with reversed-columns = (reverse columns)
-       for row from (- number-of-rows 1) downto 0  ; long
-	do (format stream "~%") 
-	 (loop for column in reversed-columns ;short
-	    do (format stream "~f~c" (aref column row) (column-separator monitor))))))
-  
 
 ;; ############################################################################
 ;; csv-data-file-writer
 ;; ----------------------------------------------------------------------------
+(defclass csv-data-file-writer (data-file-writer)
+  ((record-delimiter :initarg :record-delimiter :accessor record-delimiter
+                     :type character :initform #\Newline
+                     :documentation "a character used to separate records")
+   (field-delimiter :initarg :field-delimiter :accessor field-delimiter
+                    :type character :initform #\,
+                    :documentation "a character used to separate the fields of a record")
+   (comment-delimiter :initarg :comment-delimiter :accessor comment-delimiter
+                      :type character :initform #\#
+                      :documentation "a character used to start a comment line")
+   (add-source-to-file :initarg :add-source-to-file :accessor add-source-to-file
+                       :type boolean :initform nil
+                       :documentation "when t, adds the name of the monitor to the output file"))
+  (:documentation "Writes records of data (separated by record-delimiter) to a text file.
+                   The fields of a record are separated by field-delimiter."))
 
-(defclass csv-data-file-writer (text-data-file-writer)
-  () (:documentation "Writes the data in columns to a csv file"))
+(defmethod initialize-instance :after ((monitor csv-data-file-writer)
+                                       &key record-delimiter field-delimiter
+                                       comment-delimiter add-source-to-file
+                                       &allow-other-keys)
+  (setf (error-occured-during-initialization monitor) t)
+  (when record-delimiter (check-type record-delimiter character))
+  (when field-delimiter (check-type field-delimiter character))
+  (when comment-delimiter (check-type comment-delimiter character))
+  (when add-source-to-file (check-type add-source-to-file boolean))
+  (setf (error-occured-during-initialization monitor) nil))
 
 (defmethod write-data-to-file ((monitor csv-data-file-writer) stream)
   (let ((number-of-rows (length (cadaar (sources monitor))))
@@ -418,27 +379,33 @@
           do (loop for series-number from 0
                    for series in (reverse (cdar source))
                    for column-name = (format nil "~a-~a" 
-                                        (nth source-number
-                                             (reverse (monitor-ids-of-sources monitor)))
-                                        series-number)
-                   for column-data = (loop 
-                                      with series-array
-                                      = (make-array (+ (length series) 1) :fill-pointer 0)
-                                      for el in series
-                                      do (vector-push el series-array)
-                                      finally (return series-array))
+                                             (nth source-number
+                                                  (reverse (monitor-ids-of-sources monitor)))
+                                             series-number)
+                   for column-data = (loop with series-array
+                                             = (make-array (+ (length series) 1) :fill-pointer 0)
+                                           for el in series
+                                           do (vector-push el series-array)
+                                           finally (return series-array))
                    do 
-                   (vector-push column-name column-data)
-                   (push column-data columns)))
+                     (vector-push column-name column-data)
+                     (push column-data columns)))
+
+    (when (add-source-to-file monitor)
+      (format stream "~%~c This file was created by the (c)sv-data-file-writer ~a."
+              (comment-delimiter monitor) (id monitor))
+      (format stream "~%~c The columns are:~%~c ~{~%~a~}" 
+              (comment-delimiter monitor) (comment-delimiter monitor)
+              (reverse (mapcar #'(lambda (col) (aref col 0)) columns))))
     
     (loop with reversed-columns = (reverse columns)
           for row from number-of-rows downto 0  ; long
           when (not (= row number-of-rows))
-            ;; add new-line (except if it is the first line)
-            do (format stream "~%")
+            ;; add record delimiter (unless for the first line)
+            do (format stream "~c" (record-delimiter monitor))
           do (loop for column in reversed-columns ;short
                    for i from 1
                    if (= i number-of-columns)
                      do (format stream "~f" (aref column row))
                    else
-                     do (format stream "~f~c" (aref column row) (column-separator monitor))))))
+                     do (format stream "~f~c" (aref column row) (field-delimiter monitor))))))
