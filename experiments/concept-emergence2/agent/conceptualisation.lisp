@@ -47,14 +47,12 @@
       (find-data agent 'hypothetical-cxn)
       (destructuring-bind (hypothetical-cxn . competitors) (find-best-concept agent)
         ;; hypothetical-cxn corresponds to the concept that hearer would have produces as a speaker
-        (if (get-configuration (experiment agent) :hearer-competition-alignment)
-          (let* ((applied-cxn (find-data agent 'applied-cxn))
-                (competitors (if hypothetical-cxn
-                                (cons hypothetical-cxn competitors)
-                                competitors))
-                (all-competitors (remove applied-cxn competitors :test #'(lambda (x y) (equal x y)))))
-            (set-data agent 'meaning-competitors all-competitors))
-          (set-data agent 'meaning-competitors nil))
+        (let* ((applied-cxn (find-data agent 'applied-cxn))
+               (competitors (if hypothetical-cxn
+                              (cons hypothetical-cxn competitors)
+                              competitors))
+               (all-competitors (remove applied-cxn competitors :test #'(lambda (x y) (equal x y)))))
+          (set-data agent 'meaning-competitors all-competitors))
         ;; set the hypothetical-cxn slot
         (set-data agent 'hypothetical-cxn hypothetical-cxn)
         hypothetical-cxn))))
@@ -74,19 +72,19 @@
         maximize other-sim))
 
 (defun find-best-concept (agent)
-  "Finds the best concept (and its direct competitors) for a given scene and topic.
+  "Searches the lexicon for the best concept for the given topic and context.
 
-   The best concept corresponds to the concept that maximises
-   the multiplication of its entrenchment score and its discriminative power."
+  The agent first searches its fast inventory,
+  if no cxn is found, it searches the trash inventory."
   (loop with all-competitors = nil
         for inventory-name in (list :fast :trash)
-        for (best-score best-cxn competitors) = (search-inventory agent inventory-name)
+        for (best-score best-candidate competitors) = (search-inventory agent inventory-name)
         ;; if a cxn is found, return it
-        if best-cxn
-          do (return (cons best-cxn
-                          (if (eq inventory-name :trash)
-                            all-competitors
-                            (append all-competitors competitors))))
+        if best-candidate
+          do (return (cons best-candidate
+                           (if (eq inventory-name :trash)
+                             all-competitors
+                             (append all-competitors competitors))))
         else
           ;; add competitors
           do (setf all-competitors (append all-competitors competitors))
@@ -103,7 +101,7 @@
         with topic = (get-data agent 'topic)
         with context = (remove topic (objects (get-data agent 'context)))
         with best-score = -1
-        with best-cxn = nil
+        with best-candidate = nil
         with competitors = '()
         ;; iterate
         for cxn being the hash-values of (get-inventory (lexicon agent) inventory-name)
@@ -111,22 +109,24 @@
         for topic-sim = (weighted-similarity agent topic concept)
         for best-other-sim = (calculate-max-similarity-in-context agent concept context topic-sim)
         for discriminative-power = (abs (- topic-sim best-other-sim))
-        ;; tricky hack: if the inventory is the trash, we do not have to check the score
+        ;; trash inventory -> the score is irrelevant (so set score to 1), otherwise use score
         for score = (if (eq inventory-name :trash) 1 (score cxn))
-        ;; new candidate cxn
+        ;; check if the concept is discriminative
         if (> topic-sim (+ best-other-sim similarity-threshold))
+          ;; the concept is discriminative, thus it is a candidate
           do (if (> (* discriminative-power score) best-score)
-                (progn
-                  (when best-cxn
-                    (push best-cxn competitors))
-                  (setf best-score (* discriminative-power score))
-                  (setf best-cxn cxn))
-                (push cxn competitors))
-        else 
-          do (if (get-configuration (experiment agent) :punish-non-candidates)
-                (push cxn competitors))
+               ;; update the best candidate
+               (progn
+                 ;; push the previous best candidate to the competitors
+                 (when best-candidate
+                   (push best-candidate competitors))
+                 ;; update the best candidate
+                 (setf best-score (* discriminative-power score))
+                 (setf best-candidate cxn))
+               ;; candidate is not better, push to competitors
+               (push cxn competitors))
         finally
-          (return (list best-score best-cxn competitors))))
+          (return (list best-score best-candidate competitors))))
 
 ;; ---------------------
 ;; + Lexicon coherence +

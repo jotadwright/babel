@@ -21,6 +21,4 @@ sbcl --dynamic-space-size $space --load $VSC_HOME/concept-emergence2/batch/test.
     scene-sampling $scene_sampling \
     topic-sampling $topic_sampling \
     seed $seed \
-    exp-top-dir $exp_top_dir \
-    punish-non-candidates $punish_non_candidates \
-    hearer-competition-alignment $hearer_competition_alignment
+    exp-top-dir $exp_top_dir
