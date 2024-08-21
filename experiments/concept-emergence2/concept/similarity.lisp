@@ -71,6 +71,6 @@
         ;; similarity of the weights
         (weight-similarity (- 1 (abs (- (/ (weight proto1) ledger1) (/ (weight proto2) ledger2)))))
         ;; take complement of distance (1-h) so that it becomes a similarity metric
-        (prototype-similarity (- 1 (f-divergence (distribution proto1) (distribution proto2) :hellinger))))
+        (prototype-similarity (- 1 (f-divergence (distribution proto1) (distribution proto2)))))
     ;; multiple all three
     (* avg-weight weight-similarity prototype-similarity)))
