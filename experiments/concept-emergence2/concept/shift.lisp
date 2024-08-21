@@ -131,7 +131,6 @@
             (notify event-found-discriminating-attributes discriminating-attributes)
             (return discriminating-attributes))))
 
-
 ;; -----------------------------
 ;; + Weighted Similarity table +
 ;; -----------------------------
@@ -147,25 +146,31 @@
 ;; ----------------------------------
 ;; + Find discriminating attributes +
 ;; ----------------------------------
+
+(defun calculate-max-similarity-in-context-using-subsets (agent context topic-sim subset similarity-table)
+  """Calculates the maximim similarity between the given concept and all objects in the context."
+  (loop named lazy-loop
+        for object in context
+        for other-sim = (weighted-similarity-with-table object subset similarity-table)
+        when (<= topic-sim other-sim)
+          ;; lazy stopping
+          do (return-from lazy-loop other-sim)
+        maximize other-sim))
+
 (defun find-most-discriminating-subset (agent subsets topic similarity-table)
   "Find the subset that maximizes the difference in similarity
    between the topic and the best other object."
-  (let ((context (remove topic (objects (get-data agent 'context))))
-        (best-subset nil)
-        (largest-diff 0)
-        (best-similarity 0))
-    (dolist (subset subsets)
-      (let ((topic-similarity (weighted-similarity-with-table topic subset similarity-table)))
-        (when (> topic-similarity 0)
-          (let* ((best-other-similarity
-                  (loop for object in context
-                        maximize (weighted-similarity-with-table object subset similarity-table)))
-                 (diff (- topic-similarity best-other-similarity)))
-            (when (and (> topic-similarity best-other-similarity) 
-                       (> diff largest-diff)
-                       (> topic-similarity best-similarity))
-              (setf best-subset subset
-                    largest-diff diff
-                    best-similarity topic-similarity))))))
-    (notify event-found-subset-to-reward best-subset)
-    best-subset))
+  (loop with context = (remove topic (objects (get-data agent 'context)))
+        with best-subset = nil
+        with best-score = 0
+        for subset in subsets
+        for topic-sim = (weighted-similarity-with-table topic subset similarity-table)
+        for best-other-sim = (calculate-max-similarity-in-context-using-subsets agent context topic-sim subset similarity-table)
+        for discriminative-power = (abs (- topic-sim best-other-sim))
+        when (and (> topic-sim best-other-sim) 
+                  (> discriminative-power best-score))
+          do (setf best-subset subset
+                   best-score discriminative-power)
+        finally (progn
+                  (notify event-found-subset-to-reward best-subset)
+                  (return best-subset))))
