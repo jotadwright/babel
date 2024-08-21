@@ -1,4 +1,0 @@
-id,exp_name,nr_of_interactions,dataset,dataset_split,feature_set,scene_sampling,topic_sampling
-1,cle3-hellinger-paper,100000,clevr,test,clevr,:random,:random
-2,cle3-hellinger-fh,100000,clevr,test,clevr,:random,:random
-3,cle3-hellinger-fh2,100000,clevr,test,clevr,:random,:random
