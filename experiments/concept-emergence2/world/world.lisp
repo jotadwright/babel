@@ -102,4 +102,10 @@
             return t
           finally (return nil))))
 
+(defmethod channel-continuous-p (world channel)
+  (equal (get-channel-type world channel) 'continuous))
+
+(defmethod channel-categorical-p (world channel)
+  (equal (get-channel-type world channel) 'categorical))
+
 (defmethod copy-object ((world world)) world)

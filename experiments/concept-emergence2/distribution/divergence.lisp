@@ -32,3 +32,19 @@
                                    (+ (expt sigma1 2) (expt sigma2 2))))
                           (exp (* -1/4 (/ (expt (- mu1 mu2) 2)
                                           (+ (expt sigma1 2) (expt sigma2 2))))))))))))
+
+(defmethod f-divergence ((distribution1 categorical)
+                         (distribution2 categorical)
+                         &key
+                         &allow-other-keys)
+  ;; step 1: synchronisation
+  ;;   due to disabling of channels, two distributions could have different observations over channels
+  ;;   therefore the first step is to synchronise the two
+  (synchronize-hash-tables distribution1 distribution2)
+  ;; step 2: normalisation to ensure its a valid probability distribution that sums to 1
+  (let ((p (normalise distribution1))
+        (q (normalise distribution2)))
+    (loop for (key1 . count1) in p
+          for count2 = (assqv key1 q :test #'equal)
+          sum (expt (- (sqrt count1) (sqrt count2)) 2) into total
+          finally (return (* (/ 1 (sqrt 2)) (sqrt total))))))

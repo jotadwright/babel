@@ -18,15 +18,18 @@
             into mahalanobis
         finally (return (exp (* 1/2 (- mahalanobis))))))
 
-
 ;; ----------------------------------
 ;; + Comparing OBJECT <-> PROTOTYPE +
 ;; ----------------------------------
-(defmethod observation-distance ((observation null) (prototype prototype))
+
+(defgeneric observation-distance (observation prototype &key &allow-other-keys)
+  (:documentation "Returns the distance between an observation and a prototype."))
+
+(defmethod observation-distance ((observation null) (prototype prototype) &key &allow-other-keys)
   "Distance is nil if no observation is available."
   nil)
 
-(defmethod observation-distance ((observation number) (prototype prototype))
+(defmethod observation-distance ((observation number) (prototype prototype) &key &allow-other-keys)
   "Measures the distance between an observation and a prototype.
 
   Prototypes are represented by gaussian distributions.
@@ -39,6 +42,20 @@
                     (/ (- observation mean) st-dev)
                     0)))
     z-score))
+
+(defmethod observation-distance ((observation string) (prototype prototype) &key (laplace-smoother 1) &allow-other-keys)
+  "Similarity [0,1] on the level of a single prototype for a categorical observation."
+  (let* ((distribution (distribution prototype))
+         (total (nr-of-samples distribution))
+         (frequency (gethash observation (cat-table distribution)))
+         ;; additive smoothing to avoid categories with 0 occurences
+         (probability
+          (if frequency
+            (/ (+ frequency laplace-smoother)
+               (+ total (* laplace-smoother (number-of-categories distribution))))
+            (/ laplace-smoother
+               (+ total (* laplace-smoother (+ (number-of-categories distribution) 1)))))))
+    (- (log probability))))
 
 ;; -------------------------------
 ;; + Similarity between CONCEPTS +
