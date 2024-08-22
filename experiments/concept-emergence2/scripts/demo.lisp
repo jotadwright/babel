@@ -56,6 +56,7 @@
                 (:exp-top-dir . "a")
                 (:exp-name . "b")
                 (:log-dir-name . "c")
+                (:prototype-distance . :paper)
                 )))
   (setf *experiment* (make-instance 'cle-experiment :configuration *baseline-simulated*))
   (notify reset-monitors)

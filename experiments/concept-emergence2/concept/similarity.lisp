@@ -5,7 +5,6 @@
 ;; --------------------------------
 
 (defmethod weighted-similarity ((agent cle-agent) (object cle-object) (concept concept))
-  "Compute the weighted similarity between an object and a concept."
   (loop with prototypes = (get-available-prototypes agent concept)
         with ledger = (loop for prototype in prototypes sum (weight prototype))
         for prototype in prototypes
@@ -71,9 +70,9 @@
         for proto1 in (get-available-prototypes agent concept1)
         for proto2 = (gethash (channel proto1) (prototypes concept2))
         if (and proto2 (not (zerop ledger1)) (not (zerop ledger2)))
-          sum (similar-prototypes proto1 proto2 ledger1 ledger2)))
+          sum (similar-prototypes proto1 proto2 ledger1 ledger2 (get-configuration (experiment agent) :prototype-distance))))
 
-(defmethod similar-prototypes ((proto1 prototype) (proto2 prototype) (ledger1 number) (ledger2 number))
+(defmethod similar-prototypes ((proto1 prototype) (proto2 prototype) (ledger1 number) (ledger2 number) (mode (eql :paper)))
   "Calculates the similarity between two prototypes.
    
    The similarity corresponds to a product t-norm of
@@ -86,6 +85,24 @@
                        2))
         ;; similarity of the weights
         (weight-similarity (- 1 (abs (- (/ (weight proto1) ledger1) (/ (weight proto2) ledger2)))))
+        ;; take complement of distance (1-h) so that it becomes a similarity metric
+        (prototype-similarity (- 1 (f-divergence (distribution proto1) (distribution proto2)))))
+    ;; multiple all three
+    (* avg-weight weight-similarity prototype-similarity)))
+  
+(defmethod similar-prototypes ((proto1 prototype) (proto2 prototype) (ledger1 number) (ledger2 number) (mode (eql :paper-wo-ledger)))
+  "Calculates the similarity between two prototypes.
+   
+   The similarity corresponds to a product t-norm of
+    1. the average weight of the two prototypes
+    2. the similarity of the weights
+    3. the complement of the hellinger distance between the two prototypes' distributions."
+  (let (;; take the average weight
+        (avg-weight (/ (+ (weight proto1)
+                          (weight proto2))
+                       2))
+        ;; similarity of the weights
+        (weight-similarity (- 1 (abs (- (weight proto1) (weight proto2)))))
         ;; take complement of distance (1-h) so that it becomes a similarity metric
         (prototype-similarity (- 1 (f-divergence (distribution proto1) (distribution proto2)))))
     ;; multiple all three
