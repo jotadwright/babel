@@ -30,8 +30,8 @@
 ;; ------------------
 (defmethod load-scene (fpath feature-set)
   "Load a scene from filepath."
-  (let* ((dataset (fifth (pathname-directory fpath)))
-         (split (seventh (pathname-directory fpath)))
+  (let* ((dataset (sixth (pathname-directory fpath)))
+         (split (eighth (pathname-directory fpath)))
          (s-expr (decode-json-as-alist-from-source fpath)))
     (s-expr->cle-scene s-expr
                        :dataset dataset
