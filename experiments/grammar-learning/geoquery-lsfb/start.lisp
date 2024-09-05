@@ -3,6 +3,9 @@
 
 ;(monitors::activate-monitor trace-fcg)
 
+
+(pprint (xmls->hamnosyspredicates (read-elan "/Users/liesbetdevos/Projects/geoquery-sign/250-dataset/1.high-points-states-bordering-?state/variant-0/1_0_1.eaf")))
+
 (def-fcg-constructions geoquery-lsfb--grammar
   :feature-types ((subunits set)
                   (args set)
