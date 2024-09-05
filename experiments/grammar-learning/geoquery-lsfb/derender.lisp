@@ -1,6 +1,6 @@
 (in-package :geoquery-lsfb)
 
-(defun read-elan (pathname)
+(defun read-xml (pathname)
   "Reads in elan-file at pathname and returns it as an xmls-object"
   (with-open-file (stream pathname :external-format :utf-8 :element-type 'cl:character) 
     (xmls::parse stream)))
