@@ -4,22 +4,6 @@
 ;(monitors::activate-monitor trace-fcg)
 
 
-(pprint (make-pretty-predicates (xmls->hamnosyspredicates (read-xml "/Users/liesbetdevos/Projects/geoquery-sign/250-dataset/1.high-points-states-bordering-?state/variant-0/1_0_1.eaf"))))
-
-(defparameter *output-path*
-  (babel-pathname :directory '("experiments" "grammar-learning" "geoquery-lsfb" "data")
-                  :name "geoquery-lsfb" :type "jsonl"))
-
-;points to folder with eaf files that should be included in the json-file
-(defparameter *input-path*
-  "/Users/liesbetdevos/Projects/geoquery-sign/250-dataset/*/*/*.eaf")
-
-(defparameter *original-dataset*
-  "/Users/liesbetdevos/Projects/geoquery-sign/original-geoquery.xml")
-
-;(make-json-dataset *input-path* *output-path* *original-dataset*)
-;(read-dataset *output-path*)
-
 (def-fcg-constructions geoquery-lsfb--grammar
   :feature-types ((subunits set)
                   (args set)
