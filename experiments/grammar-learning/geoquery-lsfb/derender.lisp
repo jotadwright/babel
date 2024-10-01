@@ -81,17 +81,26 @@
         for annotation = (first (xmls:node-children node))
         for time-reference-1 = (read-from-string (upcase (second (second (xmls:node-attrs annotation)))))
         for time-reference-2 = (read-from-string (upcase (second (first (xmls:node-attrs annotation)))))
-        for value = (read-from-string (upcase (string-replace (first (xmls:node-children (first (xmls:node-children annotation)))) ":" "\\:")))
-        do (pushend (make-instance 'elan-interval
+        for value = (read-from-string (upcase
+                                       (string-replace
+                                        (string-replace
+                                         (string-replace
+                                          (first (xmls:node-children (first (xmls:node-children annotation))))
+                                          ":" "\\:")
+                                         "(" "[")
+                                       ")" "]" )))
+        do
+          (pushend (make-instance 'elan-interval
                                    :begin (cons time-reference-1 (gethash time-reference-1 time-points))
                                    :end (cons time-reference-2 (gethash time-reference-2 time-points)) 
                                    :elan-id (loop for attribute in (xmls:node-attrs annotation)
                                                   when (string= (first attribute) "ANNOTATION_ID")
                                                     do (return (read-from-string (upcase (second attribute)))))
-                                   :fcg-id (make-const (remove #\\ (format nil "~a" value)))
+                                   :fcg-id (make-const (format nil "~a" value))
                                    :interval-type type
                                    :value value) intervals)
-        finally (return intervals)))     
+        finally
+          (return intervals)))     
 
 (defun add-hamnosys (hamnosys-tier manual-intervals)
   "adds hamnosys from the hamnosys tier to the right manual interval"
@@ -184,15 +193,16 @@
          (dominant-intervals '())
          (non-dominant-intervals '())
          (alignments '()))
+    (reset-id-counters)
     (loop for child in (xmls:node-children xmls)
           for tier-id = (loop for attribute in (xmls:node-attrs child)
                               when (string= (first attribute) "TIER_ID")
                                 do (return (read-from-string (upcase (string-replace (second attribute) " " "-")))))
-          do (when (member tier-id (list 'LH-SEGMENTATION 'RH-SEGMENTATION 'LH-HAMNOSYS 'RH-HAMNOSYS))
+          do (when (member tier-id (list 'LH-GLOSSES 'RH-GLOSSES 'LH-HAMNOSYS 'RH-HAMNOSYS))
                (cond
-                 ((eql tier-id 'RH-SEGMENTATION)
+                 ((eql tier-id 'RH-GLOSSES)
                   (setf dominant-intervals (retrieve-intervals child time-points :type 'right-hand-articulation)))
-                 ((eql tier-id 'LH-SEGMENTATION)
+                 ((eql tier-id 'LH-GLOSSES)
                   (setf non-dominant-intervals (retrieve-intervals child time-points :type 'left-hand-articulation)))
                  ((eql tier-id 'RH-HAMNOSYS)
                   (add-hamnosys child dominant-intervals))
