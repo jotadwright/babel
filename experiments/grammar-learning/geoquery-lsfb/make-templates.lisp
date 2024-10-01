@@ -1,4 +1,4 @@
-(in-package :geoquery-sign)
+(ql:quickload :geoquery-lsfb)
 
 (defclass geoquery-item ()
   ((id
