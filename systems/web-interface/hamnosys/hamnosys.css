@@ -1,0 +1,12 @@
+@font-face {
+    font-family: 'hamnosysunicoderegular';
+    src: url('hamnosys/hamnosysunicode-webfont.eot');
+    src: url('hamnosys/hamnosysunicode-webfont.eot?#iefix') format('embedded-opentype'),
+         url('hamnosys/hamnosysunicode-webfont.woff2') format('woff2'),
+         url('hamnosys/hamnosysunicode-webfont.woff') format('woff'),
+         url('hamnosys/hamnosysunicode-webfont.ttf') format('truetype'),
+         url('hamnosys/hamnosysunicode-webfont.svg#hamnosysunicoderegular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
