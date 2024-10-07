@@ -4,10 +4,10 @@
 ;; + cxn -> s-dot +
 ;; ----------------
 
-(defgeneric cxn->s-dot (cxn &key highlight-green highlight-red certainty-threshold disabled-channels)
+(defgeneric cxn->s-dot (cxn &key highlight-green highlight-red weight-threshold disabled-channels)
   (:documentation "Display a cxn using s-dot."))
 
-(defmethod cxn->s-dot ((cxn cxn) &key highlight-green highlight-red (certainty-threshold 0.1) (disabled-channels nil))
+(defmethod cxn->s-dot ((cxn cxn) &key highlight-green highlight-red (weight-threshold 0.1) (disabled-channels nil))
   (let ((g '(((s-dot::ranksep "0.3")
               (s-dot::nodesep "0.5")
               (s-dot::margin "0")
@@ -54,7 +54,7 @@
           when (and (if disabled-channels
                       (not (gethash (channel prototype) disabled-channels))
                       t)
-                    (>= (weight prototype) certainty-threshold))
+                    (>= (weight prototype) weight-threshold))
             do (push record g))
     ;; edges between cxn node and feature-channels
     (loop with prototypes = (sort (get-prototypes (meaning cxn))
@@ -64,7 +64,7 @@
           when (and (if disabled-channels
                       (not (gethash (channel prototype) disabled-channels))
                       t)
-                    (>= (weight prototype) certainty-threshold))
+                    (>= (weight prototype) weight-threshold))
             do (push
                 `(s-dot::edge
                   ((s-dot::from ,(mkdotstr (id (meaning cxn))))

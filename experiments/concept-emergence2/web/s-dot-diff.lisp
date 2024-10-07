@@ -9,14 +9,14 @@
 (defparameter *green* "#26AD26")
 (defparameter *black* "#000000")
 
-(defgeneric cxn->s-dot-diff (cxn delta &key highlight-green highlight-red certainty-threshold disabled-channels)
+(defgeneric cxn->s-dot-diff (cxn delta &key highlight-green highlight-red weight-threshold disabled-channels)
   (:documentation "Display a cxn using s-dot."))
 
 (defmethod cxn->s-dot-diff ((cxn cxn) (previous-copy cxn)
                             &key
                             highlight-green
                             highlight-red
-                            (certainty-threshold 0.1)
+                            (weight-threshold 0.1)
                             (disabled-channels nil))
   (let ((g '(((s-dot::ranksep "0.3")
               (s-dot::nodesep "0.5")
@@ -65,7 +65,7 @@
           when (and (if disabled-channels
                       (not (gethash (channel prototype) disabled-channels))
                       t)
-                    (>= (weight previous-prototype) certainty-threshold))
+                    (>= (weight previous-prototype) weight-threshold))
             do (push record g))
     ;; edges between cxn node and feature-channels
     (loop with prototypes = (sort (get-prototypes (meaning cxn))
@@ -77,7 +77,7 @@
           when (and (if disabled-channels
                       (not (gethash (channel prototype) disabled-channels))
                       t)
-                    (>= (weight previous-prototype) certainty-threshold))
+                    (>= (weight previous-prototype) weight-threshold))
             do (push
                 `(s-dot::edge
                   ((s-dot::from ,(mkdotstr (id (meaning cxn))))
