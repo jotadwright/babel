@@ -5,24 +5,24 @@
 ;; --------------------------
 
 ;; Add cxn to wi
-(defun add-cxn-to-interface (cxn &key (certainty-threshold 0.1) disabled-channels)
+(defun add-cxn-to-interface (cxn &key (weight-threshold 0.1) disabled-channels)
   (add-element
    `((div :style ,(format nil "margin-left: 50px;"))
      ,(s-dot->svg
        (cxn->s-dot cxn
-                   :certainty-threshold certainty-threshold
+                   :weight-threshold weight-threshold
                    :disabled-channels disabled-channels)))))
 
-(defun add-cxn-diff-to-interface (cxn previous-copy &key (certainty-threshold 0.1))
+(defun add-cxn-diff-to-interface (cxn previous-copy &key (weight-threshold 0.1))
   (add-element
    `((div :style ,(format nil "margin-left: 50px;"))
      ,(s-dot->svg
        (cxn->s-dot-diff cxn previous-copy
-                        :certainty-threshold certainty-threshold)))))
+                        :weight-threshold weight-threshold)))))
   
 
 ;;;; Show lexicon in web interface
-(defun display-lexicon (agent &key (entrenchment-threshold 0) (certainty-threshold 0) (sort nil))  
+(defun display-lexicon (agent &key (entrenchment-threshold 0) (weight-threshold 0) (sort nil))  
   "Shows the lexicon in web interface."
   (if (empty-lexicon-p agent)
     (add-element
@@ -41,7 +41,7 @@
                                 (first (history cxn))
                                 )))
             when (>= (score cxn) entrenchment-threshold)
-              do (add-cxn-to-interface cxn :certainty-threshold certainty-threshold :disabled-channels (disabled-channels agent))))))
+              do (add-cxn-to-interface cxn :weight-threshold weight-threshold :disabled-channels (disabled-channels agent))))))
 
 (defun show-in-wi (args)
   (add-element `((h4) ,(format nil "~{~a~^, ~}" args))))
