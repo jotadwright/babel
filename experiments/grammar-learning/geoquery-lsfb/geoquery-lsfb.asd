@@ -17,6 +17,18 @@
                :au-benchmark)
   :serial t
   :components ((:file "package")
-               (:file "derender")
-               (:file "generate-dataset-files")
+               (:module utils
+                :serial t
+                :components ((:file "string-manipulation")
+                             (:file "xml-utils")
+                             (:file "json-utils")
+                             (:file "hamnosys")
+                             (:file "elan-utils")
+                             (:file "dataset-generation-utils")))
+               (:module elan-to-predicates
+                :serial t
+                :components ((:file "create-elan-intervals")
+                             (:file "create-predicates")
+                             (:file "elan-to-predicates")))
+               (:file "derender") 
                ))
