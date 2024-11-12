@@ -36,7 +36,7 @@
                        (:diagnostics diagnose-cip-against-gold-standard)
                        (:repairs  repair-add-categorial-link repair-through-anti-unification)
                        (:learning-mode . :pattern-finding)
-                       (:alignment-mode . :punish-non-gold-solutions)
+                       (:alignment-mode . :punish-other-solutions)
                        (:li-reward . 0.2)
                        (:li-punishement . 0.5)
                        (:best-solution-mode . :highest-average-link-weight)
@@ -76,7 +76,7 @@
 
 (reset-cp *clevr-stage-1-train-processor*)
 (setf *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
-(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar*  :nr-of-speech-acts 100)
+(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar*  :nr-of-speech-acts 20)
 
 
 (comprehend (nth-speech-act *clevr-stage-1-train-processor* 2)  :cxn-inventory *clevr-stage-1-grammar*)
@@ -96,7 +96,7 @@
 
 (reset-cp *clevr-stage-1-train-processor*)
   (setf *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
-(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar* :nr-of-speech-acts 1)
+(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar* :nr-of-speech-acts 10)
 
 (add-element (make-html (meaning (nth-speech-act *clevr-stage-1-train-processor* 20))))
 (inspect (cip  *saved-cipn*))
@@ -110,4 +110,4 @@
 
 (inspect *saved-cxn*)
 
-(inspect *saved-cipn*)
+(inspect *saved-cipn*) equivalent-state

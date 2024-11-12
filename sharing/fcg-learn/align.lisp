@@ -7,8 +7,8 @@
 ;;;;;;;;;;;;;;;
 
 
-(defgeneric align (solution-node cip solution-node-after-learning applied-fixes mode))
-
+(defgeneric align (solution-node cip mode))
+#|
 (defmethod align ((solution-node t)
                   (cip construction-inventory-processor)
                   (solution-node-after-learning t)
@@ -248,4 +248,128 @@
                (push (cons cat-1 cat-2) deleted-links))
       
     (notify entrenchment-finished constructions-to-reward rewarded-links constructions-to-punish punished-links
+            deleted-cxns deleted-categories deleted-links)))
+
+
+|#
+
+
+(defun gold-solutions-and-other-solutions (cip)
+  "Returns as first value all gold solution nodes in cip, as second value all non-gold solutions."
+  (loop for node in (succeeded-nodes cip)
+        if (gold-standard-solution-p (car-resulting-cfs (cipn-car node))
+                                     (get-data (blackboard (construction-inventory node)) :speech-act)
+                                     (direction cip)
+                                     (configuration (construction-inventory node)))
+          collect node into gold-solutions
+        else
+          collect node into non-gold-solutions
+        finally (return (values gold-solutions non-gold-solutions))))
+
+(defmethod align ((solution-node t)
+                  (cip construction-inventory-processor)
+                  (mode (eql :punish-other-solutions)))
+  "Reward successfully used cxns and categorial links, punish those of other solutions, separately for
+solutions that match the gold standard and those that don't."
+  ;; Notify start of entrenchment
+  (notify entrenchment-started)
+
+  ;;
+  (let* ((cxn-inventory (original-cxn-set (construction-inventory cip)))
+         (gold-solutions-and-other-solutions (multiple-value-list (gold-solutions-and-other-solutions cip)))
+         (all-gold-solutions (first gold-solutions-and-other-solutions))
+         (all-non-gold-solutions (second gold-solutions-and-other-solutions))
+         (gold-solutions-except-best-solution (remove (created-at solution-node) all-gold-solutions :key #'created-at))
+         ;; Rewarding and punishment of constructions
+         (constructions-to-reward (remove-duplicates (mapcar #'original-cxn (applied-constructions solution-node))))
+         (gold-constructions-to-punish (remove-duplicates (loop for node in gold-solutions-except-best-solution
+                                                                for applied-cxns = (mapcar #'original-cxn (applied-constructions node))
+                                                                append (loop for applied-cxn in applied-cxns
+                                                                             unless (find (name applied-cxn) constructions-to-reward :key #'name)
+                                                                               collect applied-cxn))))
+         (non-gold-constructions-to-punish (remove-duplicates (loop for node in all-non-gold-solutions
+                                                                    for applied-cxns = (mapcar #'original-cxn (applied-constructions node))
+                                                                    append (loop for applied-cxn in applied-cxns
+                                                                                 unless (find (name applied-cxn) constructions-to-reward :key #'name)
+                                                                                   collect applied-cxn))))
+         ;; Rewarding and punishment of links
+         (links-to-reward (remove-duplicates (used-categorial-links solution-node) :test #'equal))
+         (gold-links-to-punish (remove-duplicates (loop for node in gold-solutions-except-best-solution
+                                                        append (loop for link in (used-categorial-links node)
+                                                                     unless (find link links-to-reward :test #'equal)
+                                                                       collect link))
+                                                  :test #'equal))
+         (non-gold-links-to-punish (remove-duplicates (loop for node in all-non-gold-solutions
+                                                            append (loop for link in (used-categorial-links node)
+                                                                         unless (find link links-to-reward :test #'equal)
+                                                                           collect link))
+                                                      :test #'equal))
+         (deleted-cxns nil)
+         (deleted-categories nil)
+         (deleted-links nil)
+         (rewarded-links nil)
+         (punished-links nil))
+    ;; Reward
+    (loop with reward-rate = (get-configuration cxn-inventory :li-reward)
+          for cxn in constructions-to-reward
+          for new-score = (+ reward-rate
+                             (* (- 1 reward-rate)
+                                (attr-val cxn :entrenchment-score)))
+          do (setf (attr-val cxn :entrenchment-score) new-score))
+    (loop with reward-rate = (get-configuration cxn-inventory :li-reward)
+          for (cat-1 cat-2 link-type) in links-to-reward
+          for new-score = (+ reward-rate
+                             (* (- 1 reward-rate)
+                                (link-weight cat-1 cat-2 cxn-inventory :link-type link-type)))
+          do (push (list cat-1 cat-2 new-score) rewarded-links)
+             (set-link-weight cat-1 cat-2 cxn-inventory new-score :link-type link-type))
+    ;; Punish other gold
+    (loop with inhibition-rate = (get-configuration cxn-inventory :li-punishement)
+          for cxn in gold-constructions-to-punish
+          for new-score = (* (- 1 inhibition-rate)
+                             (attr-val cxn :entrenchment-score))
+          do (setf (attr-val cxn :entrenchment-score) new-score)
+          when (< (attr-val cxn :entrenchment-score) 0.01)
+            do (delete-cxn cxn cxn-inventory)
+               (remove-categories (cons-if (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) cxn-inventory)
+               (push cxn deleted-cxns)
+               (setf deleted-categories (append (cons-if (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) deleted-categories)))
+    (loop with inhibition-rate = (get-configuration cxn-inventory :li-punishement)
+          for (cat-1 cat-2 link-type) in gold-links-to-punish
+          for categories-exist-p = (and (category-exists-p cat-1 cxn-inventory)
+                                        (category-exists-p cat-2 cxn-inventory))
+          for new-score = (when categories-exist-p
+                            (* (- 1 inhibition-rate)
+                               (link-weight cat-1 cat-2 cxn-inventory :link-type link-type)))
+          do (when categories-exist-p (set-link-weight cat-1 cat-2 cxn-inventory new-score :link-type link-type)
+               (push (list cat-1 cat-2 new-score) punished-links))
+          when (or (not categories-exist-p) (< (link-weight cat-1 cat-2 cxn-inventory :link-type link-type) 0.01))
+            do (when categories-exist-p (remove-link cat-1 cat-2 cxn-inventory :link-type link-type :recompute-transitive-closure nil))
+               (push (cons cat-1 cat-2) deleted-links))
+    ; Punish non-gold
+    (loop with inhibition-rate = (get-configuration cxn-inventory :li-punishement)
+          for cxn in non-gold-constructions-to-punish
+          for new-score = (* (- 1 inhibition-rate)
+                             (attr-val cxn :entrenchment-score))
+          do (setf (attr-val cxn :entrenchment-score) new-score)
+          when (< (attr-val cxn :entrenchment-score) 0.01)
+            do (delete-cxn cxn cxn-inventory)
+               (remove-categories (cons-if (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) cxn-inventory)
+               (push cxn deleted-cxns)
+               (setf deleted-categories (append (cons-if (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) deleted-categories)))
+    (loop with inhibition-rate = (get-configuration cxn-inventory :li-punishement)
+          for (cat-1 cat-2 link-type) in non-gold-links-to-punish
+          for categories-exist-p = (and (category-exists-p cat-1 cxn-inventory)
+                                        (category-exists-p cat-2 cxn-inventory))
+          for new-score = (when categories-exist-p
+                            (* (- 1 inhibition-rate)
+                               (link-weight cat-1 cat-2 cxn-inventory :link-type link-type)))
+          do (when categories-exist-p (set-link-weight cat-1 cat-2 cxn-inventory new-score :link-type link-type)
+               (push (list cat-1 cat-2 new-score) punished-links))
+          when (or (not categories-exist-p) (< (link-weight cat-1 cat-2 cxn-inventory :link-type link-type) 0.01))
+            do (when categories-exist-p (remove-link cat-1 cat-2 cxn-inventory :link-type link-type :recompute-transitive-closure nil))
+               (push (cons cat-1 cat-2) deleted-links))
+    
+      
+    (notify entrenchment-finished constructions-to-reward rewarded-links (append gold-constructions-to-punish non-gold-constructions-to-punish) punished-links
             deleted-cxns deleted-categories deleted-links)))

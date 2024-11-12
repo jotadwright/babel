@@ -514,7 +514,13 @@ non-applicable constructions."
                                                                                ,@(when contributing-form-args
                                                                                    `((form-args ,contributing-form-args)))
                                                                                ,@(when contributing-meaning-args
-                                                                                   `((meaning-args ,contributing-meaning-args))))))
+                                                                                   `((meaning-args ,contributing-meaning-args)))))
+                                              (make-instance 'contributing-unit
+                                                             :name slot-unit-1-name
+                                                             :unit-structure `((footprints (linking-cxn))))
+                                              (make-instance 'contributing-unit
+                                                             :name slot-unit-2-name
+                                                             :unit-structure `((footprints (linking-cxn)))))
                      :conditional-part (list (make-instance 'conditional-unit
                                                             :name slot-unit-1-name
                                                             :formulation-lock `((category ,slot-cat-1)
@@ -526,7 +532,8 @@ non-applicable constructions."
                                                                                   ,@(when form-args-slot-1
                                                                                       `((form-args ,form-args-slot-1)))
                                                                                   ,@(when meaning-args-slot-1
-                                                                                      `((meaning-args ,meaning-args-slot-1)))))
+                                                                                      `((meaning-args ,meaning-args-slot-1)))
+                                                                                  (footprints (NOT linking-cxn))))
                                              (make-instance 'conditional-unit
                                                             :name slot-unit-2-name
                                                             :formulation-lock `((category ,slot-cat-2)
@@ -538,7 +545,8 @@ non-applicable constructions."
                                                                                   ,@(when form-args-slot-2
                                                                                       `((form-args ,form-args-slot-2)))
                                                                                   ,@(when meaning-args-slot-2
-                                                                                      `((meaning-args ,meaning-args-slot-2))))))
+                                                                                      `((meaning-args ,meaning-args-slot-2)))
+                                                                                  (footprints (NOT linking-cxn)))))
                      :cxn-inventory cxn-inventory
                      :feature-types (feature-types cxn-inventory)
                      :attributes `(,@(when contributing-form-args
