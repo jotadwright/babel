@@ -369,7 +369,19 @@ solutions that match the gold standard and those that don't."
           when (or (not categories-exist-p) (< (link-weight cat-1 cat-2 cxn-inventory :link-type link-type) 0.01))
             do (when categories-exist-p (remove-link cat-1 cat-2 cxn-inventory :link-type link-type :recompute-transitive-closure nil))
                (push (cons cat-1 cat-2) deleted-links))
-    
-      
+
+    (loop for cxn in (constructions-list cxn-inventory)
+          do (when (and (eql (type-of cxn) 'filler-cxn)
+                        (not (neighbouring-categories (attr-val cxn :cxn-cat) cxn-inventory)))
+               (delete-cxn cxn cxn-inventory)
+               (remove-category (attr-val cxn :cxn-cat) cxn-inventory))
+             (when (and (eql (type-of cxn) 'linking-cxn)
+                        (or (not (neighbouring-categories (first (attr-val cxn :slot-cats)) cxn-inventory))
+                            (not (neighbouring-categories (second (attr-val cxn :slot-cats)) cxn-inventory))
+                            (and (attr-val cxn :cxn-cat)
+                                 (not (neighbouring-categories (attr-val cxn :cxn-cat) cxn-inventory)))))
+               (delete-cxn cxn cxn-inventory)
+               (remove-categories (cons (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) cxn-inventory)))
+
     (notify entrenchment-finished constructions-to-reward rewarded-links (append gold-constructions-to-punish non-gold-constructions-to-punish) punished-links
             deleted-cxns deleted-categories deleted-links)))
