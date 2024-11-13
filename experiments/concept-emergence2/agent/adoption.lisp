@@ -20,10 +20,8 @@
     new-cxn))
 
 (defmethod reset-adopt ((agent cle-agent) applied-cxn meaning)
-  "Resets the cxn by resetting its meaning."
+  "Resets the cxn by resetting its meaning." 
   (reset-cxn agent applied-cxn meaning)
-  ;; if the cxn is in the trash, place it back in the lexicon
-  (update-lexicon-inventory (lexicon agent) applied-cxn)
   ;; update monitor
   (setf (invented-or-adopted agent) t)
   ;; notify

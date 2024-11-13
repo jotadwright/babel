@@ -34,7 +34,7 @@
           (update-score-cxn agent applied-cxn (get-configuration (experiment agent) :entrenchment-incf))
           ;;  2. shift concept of applied-cxn to topic
           (shift-concept agent topic (meaning applied-cxn))
-          ;;  3. punish competing similar cxns
+          ;;  3. punish competing similar cxns TODO: punishment is based on shifted concept
           (loop for other-cxn in (find-data agent 'meaning-competitors)
                 for similarity = (similar-concepts agent (meaning applied-cxn) (meaning other-cxn))
                 for delta = (* similarity (get-configuration (experiment agent) :entrenchment-li))
@@ -67,7 +67,7 @@
                 (update-score-cxn agent applied-cxn (get-configuration (experiment agent) :entrenchment-incf))
                 ;; 2. shift concept of applied-cxn to topic
                 (shift-concept agent topic (meaning applied-cxn))
-                ;; 3. find and punish meaning competitors
+                ;; 3. find and punish meaning competitors TODO: punishment is based on shifted concept
                 (conceptualise agent)
                 (loop for other-cxn in (find-data agent 'meaning-competitors)
                       for similarity = (similar-concepts agent (meaning applied-cxn) (meaning other-cxn))

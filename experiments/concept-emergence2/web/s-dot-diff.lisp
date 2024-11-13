@@ -9,14 +9,14 @@
 (defparameter *green* "#26AD26")
 (defparameter *black* "#000000")
 
-(defgeneric cxn->s-dot-diff (cxn delta &key highlight-green highlight-red certainty-threshold disabled-channels)
+(defgeneric cxn->s-dot-diff (cxn delta &key highlight-green highlight-red weight-threshold disabled-channels)
   (:documentation "Display a cxn using s-dot."))
 
 (defmethod cxn->s-dot-diff ((cxn cxn) (previous-copy cxn)
                             &key
                             highlight-green
                             highlight-red
-                            (certainty-threshold 0.1)
+                            (weight-threshold 0.1)
                             (disabled-channels nil))
   (let ((g '(((s-dot::ranksep "0.3")
               (s-dot::nodesep "0.5")
@@ -65,7 +65,7 @@
           when (and (if disabled-channels
                       (not (gethash (channel prototype) disabled-channels))
                       t)
-                    (>= (weight previous-prototype) certainty-threshold))
+                    (>= (weight previous-prototype) weight-threshold))
             do (push record g))
     ;; edges between cxn node and feature-channels
     (loop with prototypes = (sort (get-prototypes (meaning cxn))
@@ -77,7 +77,7 @@
           when (and (if disabled-channels
                       (not (gethash (channel prototype) disabled-channels))
                       t)
-                    (>= (weight previous-prototype) certainty-threshold))
+                    (>= (weight previous-prototype) weight-threshold))
             do (push
                 `(s-dot::edge
                   ((s-dot::from ,(mkdotstr (id (meaning cxn))))
@@ -123,6 +123,13 @@
   (:documentation "Display a prototype using s-dot."))
 
 (defmethod prototype->s-dot-diff ((prototype prototype) (previous-prototype prototype) &key green red)
+  (if (eq 'categorical (type-of (distribution prototype)))
+    (categorical->s-dot-diff prototype previous-prototype :green green :red red)
+    (continuous->s-dot-diff prototype previous-prototype :green green :red red)))
+
+
+
+(defmethod continuous->s-dot-diff ((prototype prototype) (previous-prototype prototype) &key green red)
   (let* ((st-dev (st-dev (distribution prototype)))
          (prev-st-dev (st-dev (distribution previous-prototype))))
     `(s-dot::record
@@ -148,3 +155,24 @@
                                                    ((< delta 0) (format nil " (~,3f)" (float delta)))
                                                    (t " (+0.000)")))
                                            )))))))
+
+(defmethod categorical->s-dot-diff ((prototype prototype) (previous-prototype prototype) &key green red)
+  (let* ((current-dist (loop for key being the hash-keys of (cat-table (distribution prototype))
+                               using (hash-value value)
+                             collect (cons key value)))
+         (prev-dist (loop for key being the hash-keys of (cat-table (distribution previous-prototype))
+                            using (hash-value value)
+                          collect (cons key value)))
+         )
+    `(s-dot::record
+      ((s-dot::fontsize "9.5")
+       (s-dot::fontname #+(or :win32 :windows) "Sans"
+                        #-(or :win32 :windows) "Arial")
+       (s-dot::height "0.01")
+       (s-dot::fontcolor ,*black*))
+      (s-dot::node ((s-dot::id ,(downcase (mkdotstr (channel prototype))))
+                    (s-dot::label ,(format nil "~a: ~{~a~^, ~}"
+                                           (downcase (mkdotstr (channel prototype)))
+                                           (loop for (key . value) in current-dist
+                                                 if (> value 0)
+                                                   collect (format nil "(~a, ~a)" key value)))))))))

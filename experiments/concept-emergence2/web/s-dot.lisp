@@ -4,10 +4,10 @@
 ;; + cxn -> s-dot +
 ;; ----------------
 
-(defgeneric cxn->s-dot (cxn &key highlight-green highlight-red certainty-threshold disabled-channels)
+(defgeneric cxn->s-dot (cxn &key highlight-green highlight-red weight-threshold disabled-channels)
   (:documentation "Display a cxn using s-dot."))
 
-(defmethod cxn->s-dot ((cxn cxn) &key highlight-green highlight-red (certainty-threshold 0.1) (disabled-channels nil))
+(defmethod cxn->s-dot ((cxn cxn) &key highlight-green highlight-red (weight-threshold 0.1) (disabled-channels nil))
   (let ((g '(((s-dot::ranksep "0.3")
               (s-dot::nodesep "0.5")
               (s-dot::margin "0")
@@ -17,7 +17,6 @@
     (push
      `(s-dot::record  
        ((s-dot::style "filled")
-        ;(s-dot::fillcolor ,(get-hex-color cxn))
         (s-dot::fillcolor "#FFFFFF")
         (s-dot::fontcolor ,*black*)
         (s-dot::fontsize "9.5")
@@ -55,7 +54,7 @@
           when (and (if disabled-channels
                       (not (gethash (channel prototype) disabled-channels))
                       t)
-                    (>= (weight prototype) certainty-threshold))
+                    (>= (weight prototype) weight-threshold))
             do (push record g))
     ;; edges between cxn node and feature-channels
     (loop with prototypes = (sort (get-prototypes (meaning cxn))
@@ -65,7 +64,7 @@
           when (and (if disabled-channels
                       (not (gethash (channel prototype) disabled-channels))
                       t)
-                    (>= (weight prototype) certainty-threshold))
+                    (>= (weight prototype) weight-threshold))
             do (push
                 `(s-dot::edge
                   ((s-dot::from ,(mkdotstr (id (meaning cxn))))
@@ -100,6 +99,11 @@
   (:documentation "Display a prototype using s-dot."))
 
 (defmethod prototype->s-dot ((prototype prototype) &key green red)
+  (if (eq 'categorical (type-of (distribution prototype)))
+    (categorical->s-dot prototype :green green :red red)
+    (continuous->s-dot prototype :green green :red red)))
+
+(defmethod continuous->s-dot ((prototype prototype) &key green red)
   (let* ((st-dev (st-dev (distribution prototype)))
          (record-properties
           (cond (green '((s-dot::style "filled")
@@ -123,21 +127,31 @@
                                            (mean (distribution prototype))
                                            st-dev)))))))
 
-(defmethod get-hex-color (cxn &key (threshold 0.9))
-  "Calculate the prototypical color of a cxn."
-  (let ((r (loop for prototype in (get-prototypes (meaning cxn))
-                 when (equal (channel prototype) 'R)
-                   return (cons (round (* 255 (mean (distribution prototype)))) (weight prototype))))
-        (g (loop for prototype in (get-prototypes (meaning cxn))
-                 when (equal (channel prototype) 'G)
-                   return (cons (round (* 255 (mean (distribution prototype)))) (weight prototype))))
-        (b (loop for prototype in (get-prototypes (meaning cxn))
-                 when (equal (channel prototype) 'B)
-                   return (cons (round (* 255 (mean (distribution prototype)))) (weight prototype)))))
-    (if (and (> (rest r) threshold) (> (rest g) threshold) (> (rest b) threshold))
-      (rgb->rgbhex (list (first r) (first g) (first b)))
-      (rgb->rgbhex (list 255 255 255)))))
-
-(defun rgb->rgbhex (rgb)
-  "Converts a RGB [0,1] value to an 8-bit hexadecimal string."
-  (format nil "#~{~2,'0X~}" rgb))
+(defmethod categorical->s-dot ((prototype prototype) &key green red)
+  (let* ((record-properties
+          (cond (green '((s-dot::style "filled")
+                         (s-dot::fillcolor "#AAFFAA")))
+                (red '((s-dot::style "filled")
+                       (s-dot::fillcolor "#AA0000")
+                       (s-dot::fontcolor "#FFFFFF")))
+                (t (if (= (weight prototype) 1.0)
+                     '((s-dot::style "solid"))
+                     '((s-dot::style "dashed")))))))
+    `(s-dot::record
+      ,(append record-properties
+               '((s-dot::fontsize "9.5")
+                 (s-dot::fontname #+(or :win32 :windows) "Sans"
+                                  #-(or :win32 :windows) "Arial")
+                 (s-dot::fontcolor "#000000")
+                 (s-dot::height "0.01")))
+      (s-dot::node ((s-dot::id ,(downcase (mkdotstr (channel prototype))))
+                    (s-dot::label ,(format nil "~a: ~{~a~^, ~}"
+                                           (downcase (mkdotstr (channel prototype)))
+                                           (loop with tuples = (loop for key being the hash-keys of (cat-table (distribution prototype))
+                                                                       using (hash-value value)
+                                                                     if (> value 0)
+                                                                       collect (cons key value))
+                                                 with sorted-tuples = (sort tuples #'> :key #'cdr)
+                                                 for (key . value) in sorted-tuples
+                                                 if (> value 0)
+                                                   collect (format nil "(~a, ~a)" key value)))))))))

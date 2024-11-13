@@ -17,14 +17,14 @@ parser.add_argument("--csv", type=str)
 template = """\
 #!/bin/bash
 
-sbcl --dynamic-space-size 16000 --load run.lisp \\
+sbcl --dynamic-space-size 16000 --non-interactive --load run.lisp \\
     exp-name {exp_name} \\
     nr-of-series {nr_of_series} \\
     nr-of-interactions {nr_of_interactions} \\
     population-size {population_size} \\
     dataset {dataset} \\
     dataset-split {dataset_split} \\
-    available-channels "{available_channels}" \\
+    feature-set {feature_set} \\
     disable-channels {disable_channels} \\
     amount-disabled-channels {amount_disabled_channels} \\
     sensor-noise {sensor_noise} \\
@@ -38,20 +38,17 @@ sbcl --dynamic-space-size 16000 --load run.lisp \\
     entrenchment-incf {entrenchment_incf} \\
     entrenchment-decf {entrenchment_decf} \\
     entrenchment-li {entrenchment_li} \\
-    trash-threshold {trash_threshold} \\
-    slow-threshold {slow_threshold} \\
-    conceptualisation-heuristics {conceptualisation_heuristics} \\
-    speaker-competitors {speaker_competitors} \\
-    hearer-competitors {hearer_competitors} \\
+    trash-concepts {trash_concepts} \\
     weight-update-strategy {weight_update_strategy} \\
     initial-weight {initial_weight} \\
     weight-incf {weight_incf} \\
     weight-decf {weight_decf} \\
+    prototype-distance {prototype_distance} \\
     switch-condition {switch_condition} \\
     switch-conditions-after-n-interactions {switch_conditions_after_n_interactions} \\
     stage-parameters "{stage_parameters}" \\
-    similarity-config {similarity_config} \\
-    hellinger-config {hellinger_config}
+    seed ${{1}} \\
+    exp-top-dir ${{2}}
 """
 
 

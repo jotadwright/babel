@@ -24,22 +24,12 @@
                )
   :serial t
   :components ((:file "package")
-               (:module "dataset"
-                :serial t
-                :components ((:file "all")
-                             (:file "clevr")
-                             (:file "winery")
-                             (:file "credit")
-                             (:file "gqaglove50")
-                             (:file "beans")
-                             ))
                (:module "world"
                 :serial t
                 :components ((:file "world")
                              (:file "object")
                              (:file "scene")
                              (:file "topic")
-                             (:file "utils")
                              ))
                (:module "agent"
                 :serial t
@@ -69,7 +59,9 @@
                              (:file "update")))
                (:module "distribution"
                 :serial t
-                :components ((:file "gaussian")
+                :components ((:file "distribution")
+                             (:file "gaussian")
+                             (:file "categorical")
                              (:file "welford")
                              (:file "divergence")
                              ))
@@ -84,8 +76,7 @@
                              (:file "switch")))
                (:module "utils"
                 :serial t
-                :components ((:file "analysis")
-                             (:file "graph")
+                :components ((:file "seed")
                              (:file "utils")))
                (:module "web"
                 :serial t

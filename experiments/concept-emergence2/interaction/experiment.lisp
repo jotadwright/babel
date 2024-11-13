@@ -10,49 +10,40 @@
 
 (defmethod initialize-instance :after ((experiment cle-experiment) &key)
   "Create the population and load the scenes from file."
+  (set-seed (get-configuration experiment :seed))
   (set-configuration experiment :current-stage 0)
-  (initialise-population experiment)
-  (initialise-world experiment))
+  ;; world needs to be setup first
+  (initialise-world experiment)
+  ;; then setup population
+  (initialise-population experiment))
 
 (defun initialise-world (experiment)
   "Initialise the world of the experiment by loading the given dataset."
-  (let* ((dataset (get-configuration experiment :dataset))
-         (dataset-split (get-configuration experiment :dataset-split))
-         (scene-sampling (get-configuration experiment :scene-sampling))
-         (available-channels (get-configuration experiment :available-channels)))
-    (when (eql scene-sampling :deterministic)
-      ;; load the scene ids
-      (set-configuration experiment
-                         :scene-ids (read-scene-ids
-                                     (mkstr (make-pathname :directory
-                                                           `(:relative ,dataset)
-                                                           :name
-                                                           (get-configuration experiment :data-fname)))))
-      ;; set the current scene to the first
-      (set-configuration experiment :current-scene-idx 0))
-    ;; create a world object to load scenes into
-    (setf (world experiment) (make-instance 'dataset-world
-                                            :dataset dataset
-                                            :dataset-split dataset-split
-                                            :available-channels available-channels))))
+  (setf (world experiment) (make-instance 'world
+                                          :dataset-name (get-configuration experiment :dataset)
+                                          :dataset-split (get-configuration experiment :dataset-split)
+                                          :feature-set (get-configuration experiment :feature-set)
+                                          :scene-sampling (get-configuration experiment :scene-sampling)
+                                          :data-fname (get-configuration experiment :data-fname))))
 
 (defun initialise-agent (experiment disabled-channels)
   "Creates and initialises an agent with sensors and calibrations for these sensors."
-  (let* ((sensor-noise (determine-noise-in-sensor experiment
-                                                  disabled-channels
+  (let* (;; get all channels except the disabled ones
+         (channels (set-difference (get-feature-set (world experiment)) disabled-channels))
+         ;; determine the noise in the sensors and observations
+         (sensor-noise (determine-noise-in-sensor experiment
+                                                  channels
                                                   (get-configuration experiment :sensor-noise)))
          (observation-noise (determine-noise-in-observation experiment
-                                                            disabled-channels
+                                                            channels
                                                             (get-configuration experiment :observation-noise)))
-         (disabled-channels-hash (list-to-hash-table disabled-channels))
          (new-agent (make-instance 'cle-agent
                                    :experiment experiment
                                    :lexicon (make-instance 'lexicon :configuration (configuration experiment))
-                                   :disabled-channels disabled-channels-hash
+                                   :disabled-channels (list->hash-table disabled-channels)
                                    :noise-in-each-sensor sensor-noise
                                    :noise-in-each-observation observation-noise
-                                   :usage-table (create-usage-table (get-configuration experiment :usage-table-window))
-                                   )))
+                                   :usage-table (create-usage-table (get-configuration experiment :usage-table-window)))))
     new-agent))
 
 (defun initialise-population (experiment)

@@ -1,56 +1,115 @@
 (in-package :cle)
 
-;; ---------------------------
-;; + Web monitor experiments +
-;; ---------------------------
+;; -------------
+;; + Utilities +
+;; -------------
 
-(defun read-scene-ids (fname)
-  (let* ((base-dir "~/Corpora/concept-emergence2/")
-         (fpath (concatenate 'string base-dir fname))
-         (raw (uiop:read-file-lines fpath))
-         (scene-ids (map 'list #'parse-integer raw)))
-    scene-ids))
+(defun read-csv (fpath)
+  "Reads a CSV file and returns a list of lists."
+  (unless (probe-file fpath)
+    (error "Could not find the file ~%~a" fpath))
+  (with-open-file (stream fpath)
+    (loop with skipped-header = nil
+          for line = (read-line stream nil)
+          while line
+          for row = (split-sequence:split-sequence #\, line)
+          if (not skipped-header)
+            do (setf skipped-header t)
+          else
+            collect row)))
+
+(defun get-current-date ()
+  (multiple-value-bind
+      (second minute hour day month year day-of-week dst-p tz)
+      (get-decoded-time)
+    (format nil "~d-~2,'0d-~d_~dh~dm~ds" year month day hour minute second)))
+
+(defun generate-log-dir-name (seed)
+  ;; set a random seed to generate the 5-character random number (to avoid collisions) 
+  (set-seed -1)
+  ;; create a log-dir-name based on the current-data, the seed, and the random number
+  (mkstr (internal-symb (list-of-strings->string
+                         (list (get-current-date)
+                               (mkstr (format nil "seed~a" seed))
+                               (mkstr (random 10) (random 10) (random 10) (random 10) (random 10)))
+                         :separator "-"))))
 
 (defun parse-keyword (string)
   (intern (string-upcase (string-left-trim ":" string)) :keyword))
 
 (defun store-experiment (experiment)
-  (let* ((experiment-name (get-configuration experiment :experiment-name))
-         (output-dir (get-configuration experiment :output-dir))
+  (let* ((exp-top-dir (get-configuration experiment :exp-top-dir))
+         (log-dir-name (get-configuration experiment :log-dir-name))
+         (exp-name (get-configuration experiment :exp-name))
          (current-stage (get-configuration experiment :current-stage))
          (path (babel-pathname
-                :directory `("experiments" "concept-emergence2" "logging" ,(downcase output-dir) ,(downcase experiment-name) "stores")
-                :name (list-of-strings->string (list (write-to-string (series-number experiment))
-                                                     "history"
-                                                     "stage"
-                                                     (write-to-string current-stage))
-                                               :separator "-") :type "store"))
+                :directory `("experiments"
+                             "concept-emergence2"
+                             "logging"
+                             ,exp-top-dir
+                             ,exp-name
+                             ,log-dir-name
+                             "stores")
+                :name (format nil "seed-~a~a"
+                              (get-configuration experiment :seed)
+                              current-stage) 
+                :type "store"))
          (tmp-world (copy-object (world experiment))))
     (ensure-directories-exist path)
     (setf (world experiment) nil)
     (cl-store:store experiment path)
     (setf (world experiment) tmp-world)))
 
-(defun fix-configuration (experiment)
-  "Method to fix configurations of previous experiment without make-configuration and switch condition."
-  (setf (configuration experiment)
-        (configuration (make-configuration :entries (configuration experiment))))
-  (set-configuration experiment :switch-condition :none))
-
 (defun find-agent (id experiment)
   "Given an integer id, returns the associated agent"
   (let ((agent (loop for agent in (agents experiment)
                      for found-id = (second (split-sequence:split-sequence #\- (mkstr (id agent))))
-                       do (when (equal (mkstr id) found-id)
-                         (return agent)))))
+                     do (when (equal (mkstr id) found-id)
+                          (return agent)))))
     agent))
 
-(defun list-to-hash-table (lst &key (key #'identity))
+(defun list->hash-table (lst &key (key #'identity))
   "Creates a hash table given a list."
-  (loop with tbl = (make-hash-table :test 'equal)
+  (loop with tbl = (make-hash-table)
         for el in lst
         do (setf (gethash (funcall key el) tbl) el)
         finally (return tbl)))
+
+(defun hash-table->alist (data)
+  (if (hash-table-p data)
+    (let ((alist (or (hash-table-alist data) 'empty-hash)))
+      (if (eql alist 'empty-hash)
+        'empty-hash
+        (loop for (key . value) in alist
+              if (hash-table-p value)
+              collect (cons key (hash-table->alist value))
+              else collect (cons key value))))
+    data))
+
+(defun alist->json-alist (alist)
+  (mapcar (lambda (entry)
+            (cons (if (keywordp (car entry))
+                      (string-downcase (format nil ":~a" (car entry)))
+                      (car entry))
+                  (cond ((keywordp (cdr entry))
+                         (string-downcase (format nil ":~a" (cdr entry))))
+                        ((numberp (cdr entry))
+                         (cdr entry))
+                        ((stringp (cdr entry))
+                         (cdr entry))
+                        ((equal (cdr entry) (list nil))
+                         "nil")
+                        (t
+                         (string-downcase (cdr entry))))))
+          alist))
+
+(defun hash-keys (ht)
+  (loop for key being the hash-keys of ht
+        collect key))
+
+(defun hash-values (ht)
+  (loop for value being the hash-values of ht
+        collect value))
 
 (defun create-configurations (parameters)
   "Generate a set of experiments. Specify which parameters are variable
@@ -111,23 +170,29 @@
                                       (format str "~(~s~)" def-val))
                                      (t
                                       (format str "~a" def-val)))))))))
-            
-#|(defun find-experiment-dir (base-dir exp-number)
-  "Finds the path to the directory of an experiment." 
-  (let* ((experiment-directories (uiop:subdirectories (asdf:system-relative-pathname "cle" (format nil "storage/~a/experiments/" "similarity"))))
-         (exp-dir (loop for exp-dir in experiment-directories
-                        for found-exp-number = (parse-integer (last-elt (split-sequence:split-sequence #\- (last-elt (pathname-directory exp-dir)))))
-                        when (equal exp-number found-exp-number)
-                          do (loop-finish)
-                        finally
-                          (return exp-dir))))
-    exp-dir))|#
 
-(defun load-experiment (store-dir &key (name "history"))
+(defun load-experiment (store-dir name)
   "Loads and returns the store object in the given directory." 
   (let ((store-path (merge-pathnames (make-pathname :name name :type "store")
                                      store-dir)))
     (cl-store:restore store-path)))
+
+(defun set-up-monitors (monitors config)
+  (monitors::deactivate-all-monitors)
+  (loop for monitor-string in monitors
+        for monitor = (monitors::get-monitor (read-from-string monitor-string))
+        do (monitors::activate-monitor-method (read-from-string monitor-string))
+        when (slot-exists-p monitor 'file-name)
+          do (setf (slot-value monitor 'file-name)
+                    (ensure-directories-exist
+                    (merge-pathnames (make-pathname :directory `(:relative ,(assqv :log-dir-name config))
+                                                    :name (pathname-name (file-name monitor)) 
+                                                    :type (pathname-type (file-name monitor)))
+                                      (babel-pathname :directory `("experiments"
+                                                                  "concept-emergence2"
+                                                                  "logging"
+                                                                  ,(assqv :exp-top-dir config)
+                                                                  ,(assqv :exp-name config))))))))
 
 #|(generate-csv-for-tuning "tune-clevr"
                          "tune-clevr"
@@ -138,7 +203,7 @@
                            (:population-size . 10)
                            (:dataset . "clevr")
                            (:dataset-split . "train")
-                           (:available-channels . :clevr)
+                           (:feature-set . "clevr")
                            (:disable-channels . :none)
                            (:amount-disabled-channels . 0)
                            (:sensor-noise . :none)
@@ -165,79 +230,3 @@
                            (:weight-decf -1 -2 -3 -5)
                            (:entrenchment-li -0.0001 -0.0005 -0.001 -0.005 -0.01 -0.02 -0.05)
                            ))|#
-
-
-;; -----------------------------------------
-;; + Utility functions for CLEVR simulated +
-;; -----------------------------------------
-
-#|(defun find-scenes-with-size (context-size)
-  (let* ((world (make-instance 'dataset-world
-                               :dataset "clevr-extracted"
-                               :dataset-split "val"
-                               :available-channels (get-all-channels :clevr-extracted)))
-         (scenes (all-scenes world))
-         (filtered-scenes (loop for scene in scenes
-                                if (length= (objects scene) context-size)
-                                  collect scene)))
-    filtered-scenes))|#
-
-#|
-(defun get-all-scenes ()
-  (let* ((world (make-instance 'dataset-world
-                               :dataset "cogenta-extracted"
-                               :dataset-split "val"
-                               :available-channels (get-all-channels :clevr-extracted))))
-    (scenes world)))
-
-(defun find-scenes-with-discriminative-topics (dataset scenes channels)
-    (loop for fpath in scenes
-          for cle-scene = (load-scene fpath channels)
-          for candidate-topics = (filter-discriminative-topics dataset (objects cle-scene))
-          if candidate-topics
-            collect (cons (index cle-scene) candidate-topics)))
-
-(progn
-  (setf disc-scenes (find-scenes-with-discriminative-topics :clevr-extracted all-scenes (get-all-channels :clevr-extracted)))
-  1)
-|#
-
-;;;
-
-#|
- 
-(setf all-scenes (find-scenes-with-size))
-(setf all-scenes (get-all-scenes))
-(length all-scenes)
-
-(setf res (find-scenes-with-discriminative-topics all-scenes (list 'color 'area 'roughness)))
-(setf res (find-scenes-with-discriminative-topics all-scenes (list 'color 'area 'roughness 'sides-and-corners 'wh-ratio 'xpos 'ypos 'zpos)))
-(length res)
-(setf scene-ids (loop for (scene-id . candidate-topics) in res collect scene-id))
-
-(setf scene-ids (loop for scene in all-scenes collect (index scene)))
-
-(setf test (loop for (scene-id . candidate-topics) in res
-      for scenes = (loop for candidate-topic in candidate-topics
-                         collect (cons scene-id candidate-topic))
-      append scenes))
-
-(defun dupes (lst)
-  (cond ((null lst) '())
-        ((member (car lst) (cdr lst)) (cons (car lst) (dupes (cdr lst))))
-        (t (dupes (cdr lst)))))
-
-(dupes (loop for scene in res
-             collect (first scene)))
-
-(setf all-scenes (find-scenes-with-size 5))
-          if (length> candidate-topics 0)
-              do (loop for ecl-topic in candidate-topics
-                       for types = (get-symbolic-discriminative-feature ecl-topic ecl-context)
-                               
-            do (let ((ecl-topic (random-elt candidate-topics)))
-                 (set-data interaction 'attribute-type (get-symbolic-discriminative-feature ecl-topic ecl-context))
-                 (loop for agent in (interacting-agents experiment)
-                       do (set-data agent 'topic ecl-topic))))))|#
-
-

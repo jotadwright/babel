@@ -1,13 +1,5 @@
 (in-package :cle)
 
-;; ------------------
-;; + Abstract class +
-;; ------------------
-
-(defclass distribution ()
-  ()
-  (:documentation "Abstract class for distributions"))
-
 ;; -------------------------
 ;; + Gaussian distribution +
 ;; -------------------------

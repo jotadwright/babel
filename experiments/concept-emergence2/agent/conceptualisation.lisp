@@ -31,9 +31,7 @@
   "Conceptualise the topic of the interaction."
   (if (empty-lexicon-p agent)
     nil
-    (destructuring-bind (applied-cxn . competitors) (find-best-concept agent 
-                                                                       (get-configuration (experiment agent) :conceptualisation-heuristics)
-                                                                       :all-competitors-p (get-configuration (experiment agent) :speaker-competitors))
+    (destructuring-bind (applied-cxn . competitors) (find-best-concept agent)
       ;; set competitors
       (set-data agent 'meaning-competitors competitors)
       ;; set the applied-cxn slot
@@ -44,37 +42,20 @@
   "Conceptualise the topic as the hearer"
   (if (empty-lexicon-p agent)
     nil
-    (destructuring-bind (hypothetical-cxn . competitors) (find-best-concept agent 
-                                                                       (get-configuration (experiment agent) :conceptualisation-heuristics)
-                                                                       :all-competitors-p (get-configuration (experiment agent) :hearer-competitors))
-      (let ((all-competitors (remove (find-data agent 'applied-cxn)
-                                 (if hypothetical-cxn
-                                   (cons hypothetical-cxn competitors)
-                                   competitors))))
-        (set-data agent 'meaning-competitors all-competitors))
-      (set-data agent 'hypothetical-cxn hypothetical-cxn)
-      hypothetical-cxn)))
-
-(defmethod find-best-concept ((agent cle-agent) (mode (eql :heuristic-1)) &key all-competitors-p)
-  "Finds the best concept (and its direct competitors) for a given scene and topic.
-
-   The best concept corresponds to the concept that maximises
-   the multiplication of its entrenchment score and its discriminative power."
-  (loop with all-competitors = nil
-        for inventory-name in (list :fast :slow :trash)
-        for (best-score best-cxn competitors) = (search-inventory agent inventory-name :all-competitors-p all-competitors-p)
-        if best-cxn
-          do (return (cons best-cxn
-                           ;; trash competitors do not need to be punished
-                           (if (eq inventory-name :trash)
-                             all-competitors
-                             (append all-competitors competitors))))
-        else
-          ;; compound competitors
-          do (setf all-competitors (append all-competitors competitors))
-        finally
-          ;; if nothing is found, return nil nil
-          (return (cons nil nil))))
+    (if (conceptualised-p agent)
+      ;; if already conceptualised, just return the result
+      (find-data agent 'hypothetical-cxn)
+      (destructuring-bind (hypothetical-cxn . competitors) (find-best-concept agent)
+        ;; hypothetical-cxn corresponds to the concept that hearer would have produces as a speaker
+        (let* ((applied-cxn (find-data agent 'applied-cxn))
+               (competitors (if hypothetical-cxn
+                              (cons hypothetical-cxn competitors)
+                              competitors))
+               (all-competitors (remove applied-cxn competitors :test #'(lambda (x y) (equal x y)))))
+          (set-data agent 'meaning-competitors all-competitors))
+        ;; set the hypothetical-cxn slot
+        (set-data agent 'hypothetical-cxn hypothetical-cxn)
+        hypothetical-cxn))))
 
 ;; --------------------------------------------
 ;; + Conceptualisation through discrimination +
@@ -90,17 +71,37 @@
           do (return-from lazy-loop other-sim)
         maximize other-sim))
 
+(defun find-best-concept (agent)
+  "Searches the lexicon for the best concept for the given topic and context.
 
-(defun search-inventory (agent inventory-name &key all-competitors-p)
-  """Searches an inventory for a concept.
+  The agent first searches its fast inventory,
+  if no cxn is found, it searches the trash inventory."
+  (loop with all-competitors = nil
+        for inventory-name in (list :fast :trash)
+        for (best-score best-candidate competitors) = (search-inventory agent inventory-name)
+        ;; if a cxn is found, return it
+        if best-candidate
+          do (return (cons best-candidate
+                           (if (eq inventory-name :trash)
+                             all-competitors
+                             (append all-competitors competitors))))
+        else
+          ;; add competitors
+          do (setf all-competitors (append all-competitors competitors))
+        finally
+          ;; if nothing is found, return nil nil
+          (return (cons nil all-competitors))))
 
-   The best concept corresponds to the concept that maximises
-   the multiplication of its entrenchment score and its discriminative power."""
+(defmethod search-inventory (agent inventory-name)
+  "Searches an inventory for the best concept.
+
+  The best concept corresponds to the concept that maximises
+  the multiplication of its entrenchment score and its discriminative power."
   (loop with similarity-threshold = (get-configuration (experiment agent) :similarity-threshold)
         with topic = (get-data agent 'topic)
         with context = (remove topic (objects (get-data agent 'context)))
         with best-score = -1
-        with best-cxn = nil
+        with best-candidate = nil
         with competitors = '()
         ;; iterate
         for cxn being the hash-values of (get-inventory (lexicon agent) inventory-name)
@@ -108,19 +109,24 @@
         for topic-sim = (weighted-similarity agent topic concept)
         for best-other-sim = (calculate-max-similarity-in-context agent concept context topic-sim)
         for discriminative-power = (abs (- topic-sim best-other-sim))
-        ;; new candidate cxn
-        if (and (> topic-sim (+ best-other-sim similarity-threshold))
-                (> (* discriminative-power (score cxn)) best-score))
-          do (progn
-               (when best-cxn
-                 (push best-cxn competitors))
-               (setf best-score (* discriminative-power (score cxn)))
-               (setf best-cxn cxn))
-        ;; save as competitor TODO
-        else
-          do (when all-competitors-p
+        ;; trash inventory -> the score is irrelevant (so set score to 1), otherwise use score
+        for score = (if (eq inventory-name :trash) 1 (score cxn))
+        ;; check if the concept is discriminative
+        if (> topic-sim (+ best-other-sim similarity-threshold))
+          ;; the concept is discriminative, thus it is a candidate
+          do (if (> (* discriminative-power score) best-score)
+               ;; update the best candidate
+               (progn
+                 ;; push the previous best candidate to the competitors
+                 (when best-candidate
+                   (push best-candidate competitors))
+                 ;; update the best candidate
+                 (setf best-score (* discriminative-power score))
+                 (setf best-candidate cxn))
+               ;; candidate is not better, push to competitors
                (push cxn competitors))
-        finally (return (list best-score best-cxn competitors))))
+        finally
+          (return (list best-score best-candidate competitors))))
 
 ;; ---------------------
 ;; + Lexicon coherence +
@@ -132,9 +138,7 @@
    the same utterance for the given topic inside the context
    (must be measured before alignment!)."
   (let* ((speaker-cxn (find-data speaker 'applied-cxn))
-         (hearer-cxn (if (conceptualised-p hearer)
-                       (find-data hearer 'hypothetical-cxn)
-                       (conceptualise hearer)))
+         (hearer-cxn (conceptualise hearer))
          (coherence (if (and speaker-cxn hearer-cxn)
                       (string= (form speaker-cxn) (form hearer-cxn))
                       nil)))

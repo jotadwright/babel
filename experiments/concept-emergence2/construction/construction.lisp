@@ -22,7 +22,7 @@
   
 (defmethod make-cxn (agent object form)
   "Creates a new construction."
-  (let ((scene-idx (index (current-scene (world (experiment agent)))))
+  (let ((scene-idx (index (find-data agent 'context)))
         (interaction-number (interaction-number (current-interaction (experiment agent)))))
     (make-instance 'cxn
                    :form form
@@ -32,12 +32,12 @@
 
 (defmethod reset-cxn (agent cxn object)
   "Resets the meaning and score of a cxn."
-  (let ((scene-idx (index (current-scene (world (experiment agent)))))
+  (let ((scene-idx (index (find-data agent 'context)))
         (interaction-number (interaction-number (current-interaction (experiment agent)))))
-
     (setf (meaning cxn) (make-concept agent object (get-configuration (experiment agent) :concept-representation)))
     (setf (score cxn) (get-configuration (experiment agent) :initial-cxn-entrenchement))
-    (setf (history cxn) (list (cons interaction-number scene-idx)))))
+    (setf (history cxn) (list (cons interaction-number scene-idx)))
+    (update-lexicon-inventory (lexicon agent) cxn)))
 
 (defmethod copy-object ((cxn cxn))
   (make-instance 'cxn

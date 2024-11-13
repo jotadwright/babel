@@ -8,6 +8,9 @@
   ((lexicon
     :documentation "The agent's lexicon."
     :type lexicon :accessor lexicon :initarg :lexicon :initform nil)
+   (trash
+    :documentation "The lexicon trash, contains cxns with an entrenchment score of zero."
+    :type list :accessor trash :initform nil)
    (disabled-channels
     :documentation "Disabled/defected channels."
     :type hash-table :accessor disabled-channels :initarg :disabled-channels :initform nil)
@@ -25,14 +28,14 @@
     :type usage-table :accessor usage-table :initarg :usage-table)
    (perceived-objects
     :documentation "Stores perceived objects"
-    :type perceived-objects :accessor perceived-objects :initform (make-hash-table :test 'equal))))
+    :type perceived-objects :accessor perceived-objects :initform (make-hash-table))))
 
 (defmethod clear-agent ((agent cle-agent))
   "Clear the slots of the agent for the next interaction."
   (setf (blackboard agent) nil
         (utterance agent) nil
         (invented-or-adopted agent) nil
-        (perceived-objects agent) (make-hash-table :test 'equal)
+        (perceived-objects agent) (make-hash-table)
         (communicated-successfully agent) nil))
 
 (defmethod find-in-lexicon ((agent cle-agent) (form string))
@@ -61,22 +64,29 @@
     (let* ((raw-observation-val (get-object-val object attr))
            (sensor-noise (noise-in-sensor agent attr (get-configuration (experiment agent) :sensor-noise)))
            (observation-noise (noise-in-observation agent attr (get-configuration (experiment agent) :observation-noise)))
-           (final-val (if raw-observation-val
-                        ;; case 1: could find a value for the attribute
-                        (if (and (zerop sensor-noise) (zerop observation-noise))
-                          ;; no noise to add, return the raw (true) observation
-                          raw-observation-val
-                          ;; add the noise, but cap final result between 0 and 1
-                          (min (max 0 (+ raw-observation-val sensor-noise observation-noise)) 1))
-                        ;; case 2: return nil
-                        nil)))
+           (final-val
+            ;; process the observation in function of its nature (categorical vs continuous)
+            (if (not raw-observation-val)
+              ;; no observation, for example if a channel is disabled!
+              nil
+              ;; observation received
+              (if (channel-continuous-p (world (experiment agent)) attr)
+                ;; observation is continuous
+                (if (and (zerop sensor-noise) (zerop observation-noise))
+                  ;; no noise to add, return the raw (true) observation
+                  raw-observation-val
+                  ;; add the noise, but cap final result between 0 and 1
+                  (min (max 0 (+ raw-observation-val sensor-noise observation-noise)) 1))
+                ;; observation is categorical
+                raw-observation-val))))
+
       (if (gethash (id object) (perceived-objects agent))
         ;; case 2A: object existed, but no entry
         (setf (gethash attr (gethash (id object) (perceived-objects agent))) final-val)
         ;; CASE 2B: object did not exist
         (progn
           ;; first create object
-          (setf (gethash (id object) (perceived-objects agent)) (make-hash-table :test 'equal))
+          (setf (gethash (id object) (perceived-objects agent)) (make-hash-table))
           ;; then set value
           (setf (gethash attr (gethash (id object) (perceived-objects agent))) final-val)))
       ;; in both cases return the final-value
@@ -89,16 +99,14 @@
 ;; + noise-in-sensor +
 ;; -------------------
 
-(defmethod determine-noise-in-sensor (experiment disabled-channels (mode (eql :none)))
+(defmethod determine-noise-in-sensor (experiment channels (mode (eql :none)))
   "Sets the fixed shift for each sensor to zero."
-  (loop with remaining-channels = (set-difference (get-configuration experiment :available-channels) disabled-channels)
-        for channel in remaining-channels
+  (loop for channel in channels
         collect (cons channel 0)))
 
-(defmethod determine-noise-in-sensor (experiment disabled-channels (mode (eql :shift)))
+(defmethod determine-noise-in-sensor (experiment channels (mode (eql :shift)))
   "Determines a fixed shift for each sensor."
-  (loop with remaining-channels = (set-difference (get-configuration experiment :available-channels) disabled-channels)
-        for channel in remaining-channels
+  (loop for channel in channels
         for shift = (random-gaussian 0 (get-configuration experiment :sensor-std))
         collect (cons channel shift)))
 
@@ -114,16 +122,14 @@
 ;; + noise-in-observation +
 ;; ------------------------
 
-(defmethod determine-noise-in-observation (experiment disabled-channels (mode (eql :none)))
+(defmethod determine-noise-in-observation (experiment channels (mode (eql :none)))
   "Sets the observation noise for each sensor to zero."
-  (loop with remaining-channels = (set-difference (get-configuration experiment :available-channels) disabled-channels)
-        for channel in remaining-channels
+  (loop for channel in channels
         collect (cons channel 0)))
 
-(defmethod determine-noise-in-observation (experiment disabled-channels (mode (eql :shift)))
+(defmethod determine-noise-in-observation (experiment channels (mode (eql :shift)))
   "Determines a standard deviation for each sensor at each observation."
-  (loop with remaining-channels = (set-difference (get-configuration experiment :available-channels) disabled-channels)
-        for channel in remaining-channels
+  (loop for channel in channels
         for shift = (get-configuration experiment :observation-std)
         collect (cons channel shift)))
 

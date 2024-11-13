@@ -107,7 +107,7 @@
     (pipe-through (input output render-program "-Tsvg")
       (s-dot:s-dot->dot input s-dot-expression)
       (force-output input)
-      (unless (eq input output) (close input))
+      (unless (eq input output) (close input)) 
       (let ((lines nil) (line nil))
         (loop do (setf line (read-line output nil))
               ;; skip stuff before <svg  ...
@@ -115,7 +115,7 @@
         (loop ;; skip comments
               do (unless (and (> (length line) 3) (equal (subseq line 0 4) "<!--"))
                    (push line lines))
-              (setf line (if (equal line "</svg>")
+              (setf line (if (equal (remove #\return line) "</svg>")
                            nil
                            (read-line output nil)))
               while line)
