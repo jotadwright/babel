@@ -74,11 +74,16 @@
 (defparameter *clevr-stage-1-train-processor* (load-corpus *clevr-stage-1-train* :sort-p t :remove-duplicates t :ipa nil))
 (defparameter *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
 
-(reset-cp *clevr-stage-1-train-processor*)
+
 (setf *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
 (setf (counter *clevr-stage-1-train-processor*) 1200)
-(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar*  :nr-of-speech-acts 1)
 
+(defun run-speech-acts (from to series cxn-inventory corpus-processor)
+  (loop for i from 1 to series
+        do (setf (counter corpus-processor) from)
+           (comprehend corpus-processor :cxn-inventory cxn-inventory  :nr-of-speech-acts (- to from))))
+
+(run-speech-acts 0 1500 2 *clevr-stage-1-grammar* *clevr-stage-1-train-processor*)
 
 (comprehend (nth-speech-act *clevr-stage-1-train-processor* 2)  :cxn-inventory *clevr-stage-1-grammar*)
 
