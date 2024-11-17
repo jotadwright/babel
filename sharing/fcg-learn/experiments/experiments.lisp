@@ -76,7 +76,10 @@
 
 
 (setf *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
-(setf (counter *clevr-stage-1-train-processor*) 1200)
+
+
+(setf (counter *clevr-stage-1-train-processor*) 400)
+(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar*  :nr-of-speech-acts 80)
 
 (defun run-speech-acts (from to series cxn-inventory corpus-processor)
   (loop for i from 1 to series
@@ -102,7 +105,7 @@
 
 (reset-cp *clevr-stage-1-train-processor*)
   (setf *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
-(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar* :nr-of-speech-acts 10)
+(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar* :nr-of-speech-acts 100)
 
 (add-element (make-html (meaning (nth-speech-act *clevr-stage-1-train-processor* 20))))
 (inspect (cip  *saved-cipn*))
@@ -119,3 +122,6 @@
 (inspect *saved-cipn*)
 
 (add-element (make-html (categorial-network *clevr-stage-1-grammar*)))
+
+
+unify-atom

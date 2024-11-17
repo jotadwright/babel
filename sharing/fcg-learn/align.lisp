@@ -429,3 +429,20 @@ solutions that match the gold standard and those that don't."
     (notify entrenchment-finished constructions-to-reward rewarded-links
             (append gold-constructions-to-punish non-gold-constructions-to-punish)
             punished-links deleted-cxns deleted-categories deleted-links)))
+
+    #|
+    (loop for cxn in (remove-if #'(lambda (cxn) (eq 'linking-cxn (type-of cxn))) constructions-to-reward)
+          for equivalent-cxns = (find-all cxn (constructions-list cxn-inventory) :test #'other-cxn-w-same-form-and-meaning-p)
+          do (loop with inhibition-rate = (get-configuration cxn-inventory :li-punishement)
+                   for cxn in equivalent-cxns
+                   for new-score = (* (- 1 inhibition-rate)
+                                      (attr-val cxn :entrenchment-score))
+                   do (setf (attr-val cxn :entrenchment-score) new-score)
+                   when (< (attr-val cxn :entrenchment-score) 0.01)
+                     do (delete-cxn cxn cxn-inventory)
+                        (remove-categories (cons-if (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) cxn-inventory)
+                        (push cxn deleted-cxns)
+                        (setf deleted-categories (append (cons-if (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) deleted-categories))))
+          |#
+
+ 
