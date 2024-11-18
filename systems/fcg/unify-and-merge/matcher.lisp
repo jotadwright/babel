@@ -287,19 +287,20 @@ bindings"
    new unique variables and return the result. The renamings used (an
    alist) is returned as second value."))
 
-(defmethod rename-variables ((x list) &optional renamings)
+(defmethod rename-variables ((tree list) &optional renamings)
   "Rename all variables that occur in x to new unique variables and return the
    result. The renamings used (an alist) is returned as second value."
-  (labels ((recurse (c)
-	     (cond ((variable-p c) 
-		    (or (assqv (the var c) renamings)
-			(let ((new (make-var c)))
-			  (setf renamings (push (cons c new) renamings))
-			  new)))
-		   ((consp c)
-		    (cons (recurse (car c)) (recurse (cdr c))))
-		   (t c))))
-    (values (recurse x) renamings)))
+  ;; Result of the #challengeoftheday won by Jens and Lara (18/11/2024)!
+  ;; 1. Gather all unique variables from the tree
+  ;; 2. Determine the variables to rename: all variables that are not part of the provided (partial) renaming
+  ;; 3. Generate the renamings
+  ;; 4. Use sublist to apply the renaming
+  (let* ((all-unique-vars (remove-duplicates (find-all-anywhere-if #'variable-p tree)))
+         (vars-to-rename (if renamings (set-difference all-unique-vars (mapcar #'car renamings)) all-unique-vars))
+         (renamings (append (loop for var in vars-to-rename
+                                  collect (cons var (make-var var)))
+                            renamings)))
+    (values (sublis renamings tree) renamings)))
 
 (defgeneric instantiate-variables (object &optional renamings)
   (:documentation "Rename all variables that occur in the object to
