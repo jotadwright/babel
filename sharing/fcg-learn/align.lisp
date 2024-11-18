@@ -398,7 +398,8 @@ solutions that match the gold standard and those that don't."
           (loop with inhibition-rate = (get-configuration cxn-inventory :li-punishement)
                 for (cat-1 cat-2 link-type) in non-gold-links-to-punish
                 for categories-exist-p = (and (category-exists-p cat-1 cxn-inventory)
-                                              (category-exists-p cat-2 cxn-inventory))
+                                              (category-exists-p cat-2 cxn-inventory)
+                                              (link-exists-p cat-1 cat-2 cxn-inventory))
                 for new-score = (when categories-exist-p
                                   (* (- 1 inhibition-rate)
                                      (link-weight cat-1 cat-2 cxn-inventory :link-type link-type)))

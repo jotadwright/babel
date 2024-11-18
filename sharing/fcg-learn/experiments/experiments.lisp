@@ -71,7 +71,7 @@
                    cl-user:*babel-corpora*))
 
 ;;Takes 10-20 seconds to load corpus
-(defparameter *clevr-stage-1-train-processor* (load-corpus *clevr-stage-1-train* :sort-p t :remove-duplicates t :ipa nil))
+(defparameter *clevr-stage-1-train-processor* (load-corpus *clevr-stage-1-train* :sort-p t :remove-duplicates nil :ipa nil))
 (defparameter *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
 
 
@@ -81,15 +81,22 @@
 (setf (counter *clevr-stage-1-train-processor*) 400)
 (comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar*  :nr-of-speech-acts 80)
 
+
+(loop for cxn in (constructions-list *clevr-stage-1-grammar*)
+      do (setf (attr-val cxn :fix) nil))
+
 (defun run-speech-acts (from to series cxn-inventory corpus-processor)
   (loop for i from 1 to series
         do (setf (counter corpus-processor) from)
            (comprehend corpus-processor :cxn-inventory cxn-inventory  :nr-of-speech-acts (- to from))))
 
-(run-speech-acts 0 1500 2 *clevr-stage-1-grammar* *clevr-stage-1-train-processor*)
+(run-speech-acts 0 47134 1 *clevr-stage-1-grammar* *clevr-stage-1-train-processor*)
 
-(comprehend (nth-speech-act *clevr-stage-1-train-processor* 2)  :cxn-inventory *clevr-stage-1-grammar*)
+(comprehend (nth-speech-act *clevr-stage-1-train-processor* 11991)  :cxn-inventory *clevr-stage-1-grammar*)
 
+(set-data (blackboard *clevr-stage-1-grammar*) :matched-categorial-links nil)
+
+(store-grammar *clevr-stage-1-grammar*)
 
 (progn
   (reset-cp *clevr-stage-1-train-processor*)
@@ -99,6 +106,7 @@
               :nr-of-speech-acts 100) ;;(array-dimension (corpus *clevr-stage-1-train-processor*) 0)
   )
 
+unify-atom
 
 (deactivate-monitor trace-fcg-learning)
 (activate-monitor trace-fcg-learning)
