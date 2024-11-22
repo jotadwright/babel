@@ -39,6 +39,10 @@
           (mapcar #'(lambda (fix)
                       (loop for fix-cxn in (fix-constructions fix)
                               do (setf (attr-val fix-cxn :fix) fix))) fixes)
+          ;; Set the description slot to the speech act
+          (mapcar #'(lambda (fix)
+                      (loop for fix-cxn in (fix-constructions fix)
+                            do (setf (description fix-cxn) (form speech-act)))) fixes)
           (return (select-fixes fixes (get-configuration (construction-inventory cip) :fix-selection-mode)))))
 
 
