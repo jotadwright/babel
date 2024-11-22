@@ -71,15 +71,15 @@
                    cl-user:*babel-corpora*))
 
 ;;Takes 10-20 seconds to load corpus
-(defparameter *clevr-stage-1-train-processor* (load-corpus *clevr-stage-1-train* :sort-p t :remove-duplicates nil :ipa nil))
+(defparameter *clevr-stage-1-train-processor* (load-corpus *clevr-stage-1-train* :sort-p t :remove-duplicates t :ipa nil))
 (defparameter *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
 
 
 (setf *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
 
 
-(setf (counter *clevr-stage-1-train-processor*) 400)
-(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar*  :nr-of-speech-acts 80)
+(setf (counter *clevr-stage-1-train-processor*) 0)
+(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar*  :nr-of-speech-acts 1)
 
 
 (loop for cxn in (constructions-list *clevr-stage-1-grammar*)
@@ -93,6 +93,8 @@
 (run-speech-acts 0 47134 1 *clevr-stage-1-grammar* *clevr-stage-1-train-processor*)
 
 (comprehend (nth-speech-act *clevr-stage-1-train-processor* 11991)  :cxn-inventory *clevr-stage-1-grammar*)
+
+(comprehend (next-speech-act *clevr-stage-1-train-processor*)  :cxn-inventory *clevr-stage-1-grammar*)
 
 (set-data (blackboard *clevr-stage-1-grammar*) :matched-categorial-links nil)
 
@@ -137,7 +139,47 @@ unify-atom rename-variables
 
 
 
+
+(defun equivalent-nodes (node-1 node-2))
+
+
 ;; RE checken in cxn supplier!!! (geen safe-cxn nodig)
 
 
 find-duplicate
+
+
+
+
+
+
+
+
+(defun duplicate-nodes? (node other-node)
+  (and (not (eq node other-node))
+       (not (duplicate other-node))
+       (permutation-of? (applied-constructions node)
+                        (applied-constructions other-node)
+                        :key #'name)
+       ;; (equivalent-node? node other-node)
+       (equivalent-coupled-feature-structures 
+        (car-resulting-cfs (cipn-car node))
+        (car-resulting-cfs (cipn-car other-node)))))
+
+(defun find-duplicate (node other-node)
+  (let ((parent-nodes (all-parents node )))
+  
+  (or (when (duplicate-nodes? node other-node) other-node)
+      (loop for child in (children other-node)
+            for duplicate = (find-duplicate node child)
+            when duplicate do (return duplicate))))
+
+(defmethod cip-node-test ((node cip-node) (mode (eql :check-duplicate)))
+  "Checks whether the node is a duplicate of another one in the tree"
+  (let ((duplicate (find-duplicate node (top-node (cip node)))))
+    (if duplicate
+      (progn
+        (setf (duplicate node) duplicate)
+        (push 'duplicate (statuses node))
+        nil)
+      t)))
