@@ -26,7 +26,7 @@
   :fcg-configurations (;; to activate heuristic search
                        (:construction-inventory-processor-mode . :heuristic-search) ;; use dedicated cip
                        (:node-expansion-mode . :full-expansion) ;; always fully expands node immediately
-                       (:cxn-supplier-mode . :hashed)
+                       (:cxn-supplier-mode . :hashed-with-regex-check)
                        ;; for using heuristics
                        (:search-algorithm . :best-first) ;; :depth-first, :breadth-first
                        (:heuristics :nr-of-applied-cxns :nr-of-units-matched) ;; list of heuristic functions (modes of #'apply-heuristic)
@@ -106,14 +106,15 @@
               :nr-of-speech-acts 100) ;;(array-dimension (corpus *clevr-stage-1-train-processor*) 0)
   )
 
-unify-atom
+unify-atom find-duplicate
+
 
 (deactivate-monitor trace-fcg-learning)
 (activate-monitor trace-fcg-learning)
 
 (reset-cp *clevr-stage-1-train-processor*)
   (setf *clevr-stage-1-grammar* (make-clevr-cxn-inventory-cxns))
-(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar* :nr-of-speech-acts 100)
+(comprehend *clevr-stage-1-train-processor* :cxn-inventory *clevr-stage-1-grammar* :nr-of-speech-acts 1)
 
 (add-element (make-html (meaning (nth-speech-act *clevr-stage-1-train-processor* 20))))
 (inspect (cip  *saved-cipn*))
@@ -132,4 +133,11 @@ unify-atom
 (add-element (make-html (categorial-network *clevr-stage-1-grammar*)))
 
 
-unify-atom
+unify-atom rename-variables
+
+
+
+;; RE checken in cxn supplier!!! (geen safe-cxn nodig)
+
+
+find-duplicate
