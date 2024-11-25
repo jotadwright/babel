@@ -5,37 +5,37 @@
   ;; vocabulary of naming signs used in the dataset
   (defparameter *naming-signs*
     (jsonl->list-of-json-alists
-     (merge-pathnames
+     (concatenate 'string
       data-path
-      "naming-signs.jsonl")))
+      "/naming-signs.jsonl")))
   
   ;; the fingerspelling alphabet used to create fingerspellings in hamnosys
   (defparameter *fingerspelling-alphabet*
     (jsonl->list-of-json-alists
-     (merge-pathnames
+     (concatenate 'string
       data-path
-      "fingerspelling-alphabet.jsonl")))
+      "/fingerspelling-alphabet.jsonl")))
 
   ;; vocabulary of all state entities in the Geoquery database
   (defparameter *states*
     (jsonl->list-of-json-alists
-     (merge-pathnames
+     (concatenate 'string
       data-path
-      "states.jsonl")))
+      "/states.jsonl")))
 
   ;; vocabulary of all city entities in the Geoquery database
   (defparameter *cities*
     (jsonl->list-of-json-alists
-     (merge-pathnames
+     (concatenate 'string
       data-path
-      "cities.jsonl")))
+      "/cities.jsonl")))
 
   ;; vocabulary of all river entities in the Geoquery database
   (defparameter *rivers*
     (jsonl->list-of-json-alists
-     (merge-pathnames
+     (concatenate 'string
       data-path
-      "rivers.jsonl")))
+      "/rivers.jsonl")))
 
   ;; set a counter for geo-ids
   (defparameter *geo-id-counter*
@@ -44,9 +44,9 @@
   ;; deepl translations for all instances in the large dataset
   (defparameter *deepl-translations*
     (jsonl->list-of-json-alists
-     (merge-pathnames
+     (concatenate 'string
       data-path
-      "translations.jsonl"))))
+      "/translations.jsonl"))))
 
   
 

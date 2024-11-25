@@ -1024,6 +1024,7 @@
           for lsfb = nil
           for funql = nil
           for prolog = nil
+          for sql = nil
           for elan-ref = nil
             
           do
@@ -1259,13 +1260,27 @@
                        prolog
                        (first
                         (xmls:node-children
+                         child))))
+                     ((and
+                       (string=
+                        (xmls:node-name child)
+                        "mrl")
+                       (string=
+                        (second
+                         (first
+                          (xmls:node-attrs child)))
+                        "sql"))
+                      (setf
+                       sql
+                       (first
+                        (xmls:node-children
                          child))))))
           
           ;; write the information in json format to stream
           ;; note: use format instead of json-encode so that hamnosys strings can be encoded 
           do (format
               out-stream
-              "{\"id\":\"~a\",\"type\":\"~a\",\"elan-ref\":\"~a\",\"english\":\"~a\",\"spanish\":\"~a\",\"turkish\":\"~a\",\"japanese\":\"~a\",\"german\":\"~a\",\"greek\":\"~a\",\"thai\":\"~a\",\"indonesian\":\"~a\",\"swedish\":\"~a\",\"chinese\":\"~a\",\"farsi\":\"~a\",\"french\":\"~a\",\"lsfb\":\"~a\",\"geo-prolog\":\"~a\",\"geo-funql\":\"~a\"}~%"
+              "{\"id\":\"~a\",\"type\":\"~a\",\"elan-ref\":\"~a\",\"english\":\"~a\",\"spanish\":\"~a\",\"turkish\":\"~a\",\"japanese\":\"~a\",\"german\":\"~a\",\"greek\":\"~a\",\"thai\":\"~a\",\"indonesian\":\"~a\",\"swedish\":\"~a\",\"chinese\":\"~a\",\"farsi\":\"~a\",\"french\":\"~a\",\"lsfb\":\"~a\",\"geo-prolog\":\"~a\",\"geo-funql\":\"~a\",\"sql\":\"~a\"}~%"
               id
               type
               elan-ref
@@ -1283,11 +1298,12 @@
               french
               lsfb
               prolog
-              funql))))
+              funql
+              sql))))
 
 ;(xml->json "/Users/liesbetdevos/Projects/GeoQuery-LSFB/xml-files/geoquery-lsfb-250.xml" "/Users/liesbetdevos/Projects/GeoQuery-LSFB/json-files/geoquery-lsfb-250-new.jsonl")
 
-;(xml->json "/Users/liesbetdevos/Projects/GeoQuery-LSFB/large-final-3.xml" "/Users/liesbetdevos/Projects/GeoQuery-LSFB/large-final-3.jsonl")
+;(xml->json "/Users/liesbetdevos/Projects/GeoQuery-LSFB/xml-files/geoquery-lsfb-4500.xml" "/Users/liesbetdevos/Projects/GeoQuery-LSFB/json-files/geoquery-lsfb-4500.jsonl")
 
 
 
