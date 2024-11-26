@@ -24,13 +24,13 @@
         (loop for i from 1 to (get-configuration experiment :population-size)
               collect (make-instance 'naming-game-agent
                                      :id (intern (format nil "agent-~a" i))
-                                     :grammar (initialize-grammar word-list)
+                                     ;:grammar (initialize-grammar word-list)
                                      :experiment experiment)))
   ;; Set world
   (setf (world experiment)
-        (make-instance 'syntax-world
-                       :experiment experiment
-                       :attributes (get-attributes-values-ontology ontology)))))
+        (make-instance 'naming-game-world
+                       ;:experiment experiment
+                       )))
 
 
 ;; Agents ;;
@@ -68,8 +68,8 @@
   ((nr-of-entities
     :documentation "The number of entities in the world."
     :type number
-    :initform 10 :accessor nr-of-entities))
-  ((entities 
+    :initform 10 :accessor nr-of-entities)
+   (entities 
     :documentation "The entities themselves."
     :type list
     :initform nil :initarg :entities :accessor entities))
@@ -79,7 +79,7 @@
   ()
   (:documentation "The naming game world."))
 
-(defmethod initialize-instance ((world naming-game-world))
+(defmethod initialize-instance :after ((world naming-game-world) &key &allow-other-keys)
   "Initialises an instance of the naming game world."
   (loop for i from 1 upto (nr-of-entities world)
         collect (make-instance 'naming-game-entity
