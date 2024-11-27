@@ -54,7 +54,7 @@
   "Creates the population of the experiment."
   ;; Set population
   (setf (agents population)
-        (loop for i from 1 to (get-configuration (experiment population) :nr-of-agents)
+        (loop for i from 1 to (get-configuration (experiment population) :nr-of-agents-in-population)
               collect (make-instance 'naming-game-agent
                                      :id (intern (format nil "AGENT-~a" i))
                                      :population population))))
@@ -86,15 +86,19 @@
   )
 
 
-;; Worlds and Entities ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Worlds, scenes and Entities ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass crs-conventionality-world (entity)
+(defclass crs-conventionality-entity-set (entity)
   ((entities 
     :documentation "The entities themselves."
     :type list
-    :initform nil :initarg :entities :accessor entities)
-   (experiment
+    :initform nil :initarg :entities :accessor entities))
+  (:documentation "(Abstract) class for holding entities."))
+
+
+(defclass crs-conventionality-world (crs-conventionality-entity-set)
+  ((experiment
     :documentation "A backpointer to the experiment."
     :type crs-conventionality-experiment
     :initform nil :initarg :experiment :accessor experiment))
@@ -113,11 +117,27 @@
 (defmethod initialize-instance :after ((world naming-game-world) &key &allow-other-keys)
   "Sets the entities of the world."
   (setf (entities world)
-        (loop for i from 1 to (get-configuration (experiment world) :nr-of-entities)
+        (loop for i from 1 to (get-configuration (experiment world) :nr-of-entities-in-world)
               collect (make-instance 'naming-game-entity
                                      :id (intern (format nil "OBJECT-~a" i))
                                      :world world))))
 
+
+(defclass crs-conventionality-scene (crs-conventionality-entity-set)
+  ((interaction
+    :documentation "A backpointer to the interaction to which the scene belongs."
+    :type crs-conventionality-interaction
+    :initform nil :initarg :interaction :accessor interaction))
+  (:documentation "A scene in an interaction"))
+
+(defmethod print-object ((scene crs-conventionality-scene) stream)
+  "Prints scene."
+  (format stream "<scene: ~a entities>" (length (entities scene))))
+
+
+(defclass naming-game-scene (crs-conventionality-scene)
+  ()
+  (:documentation "A naming game scene."))
 
 
 (defclass crs-conventionality-entity (entity)
@@ -136,3 +156,15 @@
   ()
   (:documentation "An entity in the naming-game experiment"))
 
+
+;; Interaction ;;
+;;;;;;;;;;;;;;;;;
+
+(defclass crs-conventionality-interaction (interaction)
+  ((scene 
+    :documentation "The scene in which the interaction takes place."
+    :initform nil :initarg :scene :accessor scene)
+   (topic 
+    :documentation "The topic of the interaction."
+    :initform nil :initarg :topic :accessor topic))
+  (:documentation "An interaction in the experiment"))

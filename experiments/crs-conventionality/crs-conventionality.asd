@@ -6,4 +6,6 @@
   :serial t
   :components 
   ((:file "package")
-   (:file "classes")))
+   (:file "class-definitions")
+   (:file "interaction")
+   (:file "conceptualisation-and-production")))
