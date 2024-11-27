@@ -8,10 +8,10 @@
 
 (defmethod interact ((experiment naming-game-experiment)
                      (interaction interaction) &key)
-  "Defines a single interaction/game"
-  (let ((speaker (speaker experiment))
-        (hearer (hearer experiment)))
-    ;; 1) Perceive new scene and choose topic
+  "Defines a single interaction/game in the naming game experiment."
+  (let ((speaker (speaker interaction))
+        (hearer (hearer interaction)))
+    ;; Perceive new scene and choose topic
     (initialize-interaction experiment interaction speaker hearer)
     ;; 2) The speaker conceptualizes the topic into a meaning
     (conceptualize speaker (get-data speaker :topic) (get-data speaker :scene))
@@ -19,7 +19,7 @@
     (run-formulation speaker (get-data speaker :meaning))
     ;; --- The speaker passes on the formulated utterance to the hearer
     (set-data hearer :utterance (get-data speaker :utterance))
-    (notify utterance-passed (get-data speaker :utterance))
+    ;(notify utterance-passed (get-data speaker :utterance))
     ;; 4) The hearer comprehends the utterance
     (run-comprehension hearer (get-data hearer :utterance))
     ;; 5) The hearer interprets the meaning in the scene
@@ -35,6 +35,27 @@
     (align-agent hearer (get-configuration experiment :alignment))
     ;; Finishing interaction
     (finish-interaction experiment interaction)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Select agents interaction ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod determine-interacting-agents (experiment (interaction interaction)
+                                                    (mode (eql :random-from-population))
+                                                    &key &allow-other-keys)
+  "Randomly chooses two interacting agents and adds the discourse roles speaker and hearer to them."
+  (let ((agents (agents (population experiment))))
+    (setf (interacting-agents interaction)
+          (if (> (length agents) 1)
+            (random-elts agents 2)
+            agents))
+    (loop for a in (interacting-agents interaction)
+          for d in '(speaker hearer)
+          do (setf (discourse-role a) d)
+             (setf (utterance a) nil)
+             (setf (communicated-successfully a) nil))
+    (notify interacting-agents-determined experiment interaction)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
