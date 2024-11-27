@@ -80,6 +80,8 @@
                                         (:consolidate-repairs . t)
                                         (:max-nr-of-nodes . 1000)
                                         (:shuffle-cxns-before-application . t)
+                                        (:construction-inventory-processor-mode . :default)
+                                        (:node-expansion-mode . :default)
                                         (:queue-mode . :greedy-best-first)
                                         (:priority-mode . :nr-of-applied-cxns)
                                         (:render-mode . :generate-and-test)
