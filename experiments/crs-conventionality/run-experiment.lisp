@@ -30,8 +30,6 @@
 
 
 
-(add-element (make-html (world *naming-game-canonical*)))
-(add-element (make-html (population *naming-game-canonical*)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;

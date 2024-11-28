@@ -20,7 +20,7 @@
 
     ;; Determine the speaker and hearer agents as well as the scene and topic, notify that interaction can start.
     (determine-interacting-agents experiment interaction (get-configuration experiment :determine-interacting-agents-mode))
-    (determine-scene-entities  experiment interaction (get-configuration experiment :determine-scene-entities-mode))
+    (determine-scene-entities experiment interaction (get-configuration experiment :determine-scene-entities-mode))
     (determine-topic experiment interaction (get-configuration experiment :determine-topic-mode))
     (notify interaction-started experiment interaction (interaction-number interaction))
     
