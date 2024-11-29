@@ -196,7 +196,8 @@
 
 (define-event-handler (trace-fcg parse-finished)
   (add-element `((h3 :style "margin-bottom:3px;") "Meaning:"))
-  (add-element (if (get-configuration construction-inventory :draw-meaning-as-network)
+  (add-element (if (and (get-configuration construction-inventory :draw-meaning-as-network)
+                        (listp (first meaning)))
                  (if (get-configuration (visualization-configuration construction-inventory) :show-wiki-links-in-predicate-networks )
                    (predicate-network-with-wiki-links->svg meaning)
                    (predicate-network->svg meaning))
