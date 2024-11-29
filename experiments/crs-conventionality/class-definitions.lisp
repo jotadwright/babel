@@ -71,6 +71,10 @@
     :initform nil :initarg :population :accessor population))
   (:documentation "An agent in the experiment"))
 
+(defmethod initialize-instance :after ((agent crs-conventionality-agent) &key &allow-other-keys)
+  "Creates an agent of the population."
+  (setf (grammar agent) (make-initial-grammar agent)))
+
 (defmethod print-object ((agent crs-conventionality-agent) stream)
   "Prints agent."
   (format stream "<agent: ~a>" (id agent)))
@@ -80,9 +84,6 @@
   ()
   (:documentation "An agent in the experiment"))
 
-(defmethod initialize-instance :after ((agent naming-game-agent) &key &allow-other-keys)
-  "Creates an agent of the population."
-  (setf (grammar agent) (make-initial-grammar agent)))
 
 
 ;; Worlds, scenes and Entities ;;
