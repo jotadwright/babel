@@ -130,7 +130,6 @@
 ;; De-render raw string ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
 (defmethod de-render ((utterance list) (mode (eql :de-render-raw)) &key &allow-other-keys)
   "Puts the input strings as such under the form feature in the root."
   (make-instance 'coupled-feature-structure 
