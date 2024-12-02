@@ -59,6 +59,7 @@
 
     ;; set-up monitors
     (set-up-monitors (list "export-communicative-success"
+                           "export-communicative-success-given-conceptualisation"
                            "export-lexicon-coherence"
                            "export-lexicon-inventory-usage"
                            "export-experiment-configurations"
