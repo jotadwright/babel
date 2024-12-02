@@ -42,5 +42,11 @@ sbcl --dynamic-space-size $space --load $VSC_HOME/concept-emergence2/batch/run.l
     switch-condition $switch_condition \
     switch-conditions-after-n-interactions $switch_conditions_after_n_interactions \
     stage-parameters "$stage_parameters" \
+    n-clusters $n_clusters \
+    cluster-discriminate $cluster_discriminate \
+    cluster-update-entrenchment $cluster_update_entrenchment \
+    cluster-update-distribution $cluster_update_distribution \
+    cluster-update-weights $cluster_update_weights \
+    cluster-new-cxns $cluster_new_cxns \
     seed $seed \
     exp-top-dir $exp_top_dir

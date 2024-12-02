@@ -54,11 +54,12 @@
                   (:stage-parameters nil)
                   (:n-clusters . 10)
 
-
+                  (:cluster-discriminate . nil)
                   (:cluster-update-entrenchment . nil)
                   (:cluster-update-distribution . nil)
                   (:cluster-update-weights . nil)
                   (:cluster-new-cxns . nil)
+                  
                   ;; saving
                   (:exp-top-dir . "a")
                   (:exp-name . "b")

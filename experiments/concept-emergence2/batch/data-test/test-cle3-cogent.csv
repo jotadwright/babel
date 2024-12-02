@@ -1,0 +1,15 @@
+id,exp_name,nr_of_interactions,dataset,dataset_split,feature_set,scene_sampling,topic_sampling
+1,cogent-nnnnn,100000,cogent,testa,cogent,:random,:random
+2,cogent-tnnnn,100000,cogent,testa,cogent,:random,:random
+3,cogent-nnnnt,100000,cogent,testa,cogent,:random,:random
+4,cogent-tnnnt,100000,cogent,testa,cogent,:random,:random
+5,cogent-nntnt,100000,cogent,testa,cogent,:random,:random
+6,cogent-tntnt,100000,cogent,testa,cogent,:random,:random
+7,cogent-ttttt,100000,cogent,testa,cogent,:random,:random
+8,cogent-nnnnn,100000,cogent,testb,cogent,:random,:random
+9,cogent-tnnnn,100000,cogent,testb,cogent,:random,:random
+10,cogent-nnnnt,100000,cogent,testb,cogent,:random,:random
+11,cogent-tnnnt,100000,cogent,testb,cogent,:random,:random
+12,cogent-nntnt,100000,cogent,testb,cogent,:random,:random
+13,cogent-tntnt,100000,cogent,testb,cogent,:random,:random
+14,cogent-ttttt,100000,cogent,testb,cogent,:random,:random

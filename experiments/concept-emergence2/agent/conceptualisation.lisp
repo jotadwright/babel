@@ -96,6 +96,7 @@
   The best concept corresponds to the concept that maximises
   the multiplication of its entrenchment score and its discriminative power."
   (loop with similarity-threshold = (get-configuration (experiment agent) :similarity-threshold)
+        with discriminate-p = (get-configuration (experiment agent) :cluster-discriminate)
         with topic = (get-data agent 'topic)
         with context = (remove topic (objects (get-data agent 'context)))
         with best-score = -1
@@ -110,8 +111,9 @@
         ;; trash inventory -> the score is irrelevant (so set score to 1), otherwise use score
         for score = (if (eq inventory-name :trash) 1 (score cxn))
         ;; check if the concept is discriminative
-        if (> topic-sim (+ best-other-sim similarity-threshold))
-          ;; the concept is discriminative, thus it is a candidate
+        when (or (not discriminate-p)
+                 (and discriminate-p
+                      (> topic-sim (+ best-other-sim similarity-threshold))))
           do (if (> (* discriminative-power score) best-score)
                ;; update the best candidate
                (progn
