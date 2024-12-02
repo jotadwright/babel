@@ -38,3 +38,9 @@
 ;;---------------------------;;
 
 ;(jsonl->list-of-json-alists "/Users/liesbetdevos/Projects/GeoQuery-LSFB/json-files/geoquery-lsfb-250.jsonl")
+
+
+;;------------------------;;
+;; visualizing predicates ;;
+;;------------------------;;
+;(add-element (represent-signs (elan->predicates (read-xml "/Users/liesbetdevos/Projects/GeoQuery-LSFB/elan-files/1_0_1.eaf"))))
