@@ -24,7 +24,9 @@
                              (:file "json-utils")
                              (:file "hamnosys")
                              (:file "elan-utils")
-                             (:file "dataset-generation-utils")))
+                             (:file "dataset-generation-utils")
+                             (:file "predicate-utils")
+                             (:file "visualize")))
                (:module elan-to-predicates
                 :serial t
                 :components ((:file "create-elan-intervals")
