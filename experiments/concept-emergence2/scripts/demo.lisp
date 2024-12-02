@@ -56,6 +56,7 @@
                 (:exp-top-dir . "a")
                 (:exp-name . "b")
                 (:log-dir-name . "c")
+                (:n-clusters . 10)
                 (:prototype-distance . :paper)
                 )))
   (setf *experiment* (make-instance 'cle-experiment :configuration *baseline-simulated*))
@@ -83,7 +84,7 @@
         do (run-interaction *experiment*)))
 
 ;; display lexicon
-(display-lexicon (find-agent 1 *experiment*) :sort t)
+(display-lexicon (first (agents *experiment*)) :sort t :weight-threshold 0.05)
 
 ;; restore an experiment and initialise the world
 (progn

@@ -50,6 +50,7 @@
     (setf config (append config (list (cons :log-dir-name log-dir-name))))
     ;; adapt file-writing monitors so they output in the correct log-dir
     (set-up-monitors (list "export-communicative-success"
+                           "export-communicative-success-given-conceptualisation"
                            "export-lexicon-coherence"
                            "export-unique-form-usage"
                            "export-experiment-configurations"

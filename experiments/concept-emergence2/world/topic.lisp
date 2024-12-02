@@ -10,7 +10,7 @@
          (agent (first (interacting-agents experiment)))
          (cle-scene (find-data agent 'context))
          (cle-topic (find cle-object (objects cle-scene)
-                          :test (lambda (x el) (equal (attributes x) (attributes el))))))
+                          :test (lambda (x el) (equalp (attributes x) (attributes el))))))
     (loop for agent in (interacting-agents experiment)
           do (set-data agent 'topic cle-topic))))
 

@@ -21,7 +21,9 @@
       ;; when speaker could not conceptualise
       ;; invent and conceptualise again
       ;; invention always leads to conceptualisation
-      (invent speaker))
+      
+      (when (get-configuration experiment :cluster-new-cxns)
+        (invent speaker)))
 
     ;; failure to conceptualise can only occur if speaker cannot invent
     (when (conceptualised-p speaker)
@@ -36,7 +38,7 @@
                  (interpret hearer)
                  ;; 3. it matches the topic
                  (eql (id (get-data speaker 'topic))
-                      (id (get-data hearer 'interpreted-topic))))
+                      (id (get-data hearer 'interpreted-topic))))  
         (setf (communicated-successfully speaker) t)
         (setf (communicated-successfully hearer) t)))
       

@@ -8,14 +8,15 @@
                                    (upper-bound 1.0)
                                    (lower-bound 0.0))
   "Updates the entrenchment score of a cxn."
-  ;; update the score
-  (setf (score cxn) (+ (score cxn) delta))
-  ;; check the upper boundary
-  (when (> (score cxn) upper-bound)
-    (setf (score cxn) upper-bound))
-  (when (< (score cxn) lower-bound)
-    (setf (score cxn) lower-bound))
-  (update-lexicon-inventory (lexicon agent) cxn))
+  (when (get-configuration (experiment agent) :cluster-update-entrenchment)
+    ;; update the score
+    (setf (score cxn) (+ (score cxn) delta))
+    ;; check the upper boundary
+    (when (> (score cxn) upper-bound)
+      (setf (score cxn) upper-bound))
+    (when (< (score cxn) lower-bound)
+      (setf (score cxn) lower-bound))
+    (update-lexicon-inventory (lexicon agent) cxn)))
 
 (defmethod update-history (agent cxn)
   "Keeps track how many times and when the cxn is used."

@@ -47,6 +47,7 @@ sbcl --dynamic-space-size 16000 --non-interactive --load run.lisp \\
     switch-condition {switch_condition} \\
     switch-conditions-after-n-interactions {switch_conditions_after_n_interactions} \\
     stage-parameters "{stage_parameters}" \\
+    n-clusters {n_clusters} \\
     seed ${{1}} \\
     exp-top-dir ${{2}}
 """

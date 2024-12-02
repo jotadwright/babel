@@ -50,6 +50,6 @@
 (defmethod print-object ((cxn cxn) stream)
   (pprint-logical-block (stream nil)
     (format stream "<CXN:~
-                        ~:_ form: ~a,~:_ score: ~a~:_"
+                        ~:_ form: ~a,~:_ score: ~,3f~:_"
             (form cxn) (score cxn))
     (format stream ">")))

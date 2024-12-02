@@ -68,7 +68,7 @@
 
 (defun filter-object (object feature-set)
   "Only keep the attributes that are in play."
-  (loop with hash-table = (make-hash-table)
+  (loop with hash-table = (make-hash-table :test 'equal)
         for channel in feature-set
         do (setf (gethash channel hash-table) (assqv channel object))
         finally (return hash-table)))

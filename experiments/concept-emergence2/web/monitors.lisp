@@ -14,25 +14,30 @@
                  and prints the number after :dot-interval")
   
 (define-event-handler (print-a-dot-for-each-interaction interaction-finished)
-                      (cond ((or (= (interaction-number interaction) 1) (not *start-time*))
-                             (setf *start-time* (get-universal-time)))
-                            ((= (mod (interaction-number interaction)
-                                     (get-configuration experiment :dot-interval))
-                                0)
-                             (let ((comm-success (caaar (monitors::get-average-values (monitors::get-monitor 'record-communicative-success))))
-                                   (coherence (caaar (monitors::get-average-values (monitors::get-monitor 'record-lexicon-coherence)))))
-                               (multiple-value-bind (h m s) (seconds-to-hours-minutes-seconds (- (get-universal-time) *start-time*))
-                                 (format t
-                                         ". (~a / ~a / ~a / ~ah ~am ~as)~%"
-                                         (interaction-number interaction)
-                                         (if comm-success
-                                           (format nil "~,vf%" 1 (* 100 (float comm-success)))
-                                           "NIL")
-                                         (if coherence
-                                           (format nil "~,vf%" 1 (* 100 (float coherence)))
-                                           "NIL")
-                                         h m s)))
-                             (setf *start-time* (get-universal-time)))))
+  (cond ((or (= (interaction-number interaction) 1) (not *start-time*))
+         (setf *start-time* (get-universal-time)))
+        ((= (mod (interaction-number interaction)
+                 (get-configuration experiment :dot-interval))
+            0)
+         (let (
+               (comm-success (caaar (monitors::get-average-values (monitors::get-monitor 'record-communicative-success))))
+               (comm-success-given (caaar (monitors::get-average-values (monitors::get-monitor 'record-communicative-success-given-conceptualisation))))
+               (coherence (caaar (monitors::get-average-values (monitors::get-monitor 'record-lexicon-coherence)))))
+           (multiple-value-bind (h m s) (seconds-to-hours-minutes-seconds (- (get-universal-time) *start-time*))
+             (format t
+                     ". (~a / ~a [~a] / ~a / ~ah ~am ~as)~%"
+                     (interaction-number interaction)
+                     (if comm-success
+                       (format nil "~,vf%" 1 (* 100 (float comm-success)))
+                       "NIL")
+                     (if comm-success-given
+                       (format nil "~,vf%" 1 (* 100 (float comm-success-given)))
+                       "NIL")
+                     (if coherence
+                       (format nil "~,vf%" 1 (* 100 (float coherence)))
+                       "NIL")
+                     h m s)))
+         (setf *start-time* (get-universal-time)))))
 
 ;; -------------------------
 ;; + Communicative success +
@@ -52,6 +57,35 @@
 
 (define-event-handler (record-communicative-success interaction-finished)
   (record-value monitor (if (communicated-successfully interaction) 1 0)))
+
+;; --------------------------------------------------
+;; + Communicative success (given conceptualisation +
+;; --------------------------------------------------
+(define-monitor record-communicative-success-given-conceptualisation
+                :class 'data-recorder
+                :average-window 1000
+                :documentation "Records the game outcome of each game (1 or 0).")
+
+(define-monitor export-communicative-success-given-conceptualisation
+                :class 'csv-data-file-writer
+                :documentation "Exports communicative success."
+                :data-sources '(record-communicative-success-given-conceptualisation)
+                :file-name (babel-pathname :name "communicative-success-given-conceptualisation" :type "csv"
+                                           :directory '("experiments" "concept-emergence2" "logging"))
+                :add-time-and-experiment-to-file-name nil)
+
+(defun determine-communicative-success-given-conceptualisation (interaction monitor)
+  (if (conceptualised-p (speaker interaction))
+    (if (communicated-successfully interaction) 1 0)
+    ;; other case
+    (let ((last-value (caaar (monitors::get-values monitor))))
+      (if last-value
+        last-value
+        0))))
+
+(define-event-handler (record-communicative-success-given-conceptualisation interaction-finished)
+  (record-value monitor (determine-communicative-success-given-conceptualisation interaction monitor)))
+
 
 ;; ---------------------
 ;; + Lexicon Coherence +

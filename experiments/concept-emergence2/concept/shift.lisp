@@ -10,48 +10,51 @@
   Shifts 1. the prototype of each feature channel
          2. the certainties of salient channel positively and others negatively."
   (let ((prototypes (get-available-prototypes agent concept)))
-    ;; 1. update the prototypical values
-    (loop for prototype in prototypes ;; assumes prototype
-          for interaction-number = (interaction-number (current-interaction (experiment agent)))
-          for new-observation = (perceive-object-val agent topic (channel prototype))
-          do (update-prototype new-observation
-                               interaction-number
-                               prototype
-                               :save-distribution-history (get-configuration (experiment agent) :save-distribution-history)))
-  
-    ;; 2. determine which attributes should get an increase
-    ;;    in weight, and which should get a decrease.
-    (let* ((similarity-table (make-similarity-table agent concept prototypes))
-           (discriminating-attributes (find-discriminating-attributes agent
-                                                                      concept
-                                                                      topic
-                                                                      similarity-table
-                                                                      prototypes))
-           (subsets-to-consider (get-all-subsets prototypes discriminating-attributes))
-           (best-subset (find-most-discriminating-subset agent
-                                                         subsets-to-consider
-                                                         topic
-                                                         similarity-table)))
-      (when (null best-subset)
-        ;; when best-subset returns NIL
-        ;; reward all attributes...
-        (setf best-subset prototypes))
-      ;; 3. actually update the weight scores
-      (loop for prototype in prototypes
-            ;; if part of the contributing prototypes -> reward
-            if (member (channel prototype) best-subset :key #'channel)
-              do (progn
+
+    (when (get-configuration (experiment agent) :cluster-update-distribution)
+      ;; 1. update the prototypical values
+      (loop for prototype in prototypes ;; assumes prototype
+            for interaction-number = (interaction-number (current-interaction (experiment agent)))
+            for new-observation = (perceive-object-val agent topic (channel prototype))
+            do (update-prototype new-observation
+                                 interaction-number
+                                 prototype
+                                 :save-distribution-history (get-configuration (experiment agent) :save-distribution-history))))
+
+    (when (get-configuration (experiment agent) :cluster-update-weights)
+      ;; 2. determine which attributes should get an increase
+      ;;    in weight, and which should get a decrease.
+      (let* ((similarity-table (make-similarity-table agent concept prototypes))
+             (discriminating-attributes (find-discriminating-attributes agent
+                                                                        concept
+                                                                        topic
+                                                                        similarity-table
+                                                                        prototypes))
+             (subsets-to-consider (get-all-subsets prototypes discriminating-attributes))
+             (best-subset (find-most-discriminating-subset agent
+                                                           subsets-to-consider
+                                                           topic
+                                                           similarity-table)))
+        (when (null best-subset)
+          ;; when best-subset returns NIL
+          ;; reward all attributes...
+          (setf best-subset prototypes))
+        ;; 3. actually update the weight scores
+        (loop for prototype in prototypes
+              ;; if part of the contributing prototypes -> reward
+              if (member (channel prototype) best-subset :key #'channel)
+                do (progn
                    ;(update-history-weight agent prototype (get-configuration (experiment agent) :weight-incf))        
-                   (update-weight prototype
-                                  (get-configuration (experiment agent) :weight-incf)
-                                  (get-configuration (experiment agent) :weight-update-strategy)))
-            ;; otherwise -> punish
-            else
-              do (progn
+                     (update-weight prototype
+                                    (get-configuration (experiment agent) :weight-incf)
+                                    (get-configuration (experiment agent) :weight-update-strategy)))
+                ;; otherwise -> punish
+              else
+                do (progn
                    ;(update-history-weight agent prototype (get-configuration (experiment agent) :weight-decf))        
-                   (update-weight prototype
-                                  (get-configuration (experiment agent) :weight-decf)
-                                  (get-configuration (experiment agent) :weight-update-strategy)))))))
+                     (update-weight prototype
+                                    (get-configuration (experiment agent) :weight-decf)
+                                    (get-configuration (experiment agent) :weight-update-strategy))))))))
 
 ;; -------------------------------------
 ;; + Step 1: make the similarity table +

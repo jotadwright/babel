@@ -29,33 +29,29 @@
 ;; -------------
 (defmethod speaker-conceptualise ((agent cle-agent))
   "Conceptualise the topic of the interaction."
-  (if (empty-lexicon-p agent)
-    nil
-    (destructuring-bind (applied-cxn . competitors) (find-best-concept agent)
-      ;; set competitors
-      (set-data agent 'meaning-competitors competitors)
-      ;; set the applied-cxn slot
-      (set-data agent 'applied-cxn applied-cxn)
-      applied-cxn)))
+  (destructuring-bind (applied-cxn . competitors) (find-best-concept agent)
+    ;; set competitors
+    (set-data agent 'meaning-competitors competitors)
+    ;; set the applied-cxn slot
+    (set-data agent 'applied-cxn applied-cxn)
+    applied-cxn))
 
 (defmethod hearer-conceptualise ((agent cle-agent))
   "Conceptualise the topic as the hearer"
-  (if (empty-lexicon-p agent)
-    nil
-    (if (conceptualised-p agent)
-      ;; if already conceptualised, just return the result
-      (find-data agent 'hypothetical-cxn)
-      (destructuring-bind (hypothetical-cxn . competitors) (find-best-concept agent)
-        ;; hypothetical-cxn corresponds to the concept that hearer would have produces as a speaker
-        (let* ((applied-cxn (find-data agent 'applied-cxn))
-               (competitors (if hypothetical-cxn
-                              (cons hypothetical-cxn competitors)
-                              competitors))
-               (all-competitors (remove applied-cxn competitors :test #'(lambda (x y) (equal x y)))))
-          (set-data agent 'meaning-competitors all-competitors))
-        ;; set the hypothetical-cxn slot
-        (set-data agent 'hypothetical-cxn hypothetical-cxn)
-        hypothetical-cxn))))
+  (if (conceptualised-p agent)
+    ;; if already conceptualised, just return the result
+    (find-data agent 'hypothetical-cxn)
+    (destructuring-bind (hypothetical-cxn . competitors) (find-best-concept agent)
+      ;; hypothetical-cxn corresponds to the concept that hearer would have produces as a speaker
+      (let* ((applied-cxn (find-data agent 'applied-cxn))
+             (competitors (if hypothetical-cxn
+                            (cons hypothetical-cxn competitors)
+                            competitors))
+             (all-competitors (remove applied-cxn competitors :test #'(lambda (x y) (equal x y)))))
+        (set-data agent 'meaning-competitors all-competitors))
+      ;; set the hypothetical-cxn slot
+      (set-data agent 'hypothetical-cxn hypothetical-cxn)
+      hypothetical-cxn)))
 
 ;; --------------------------------------------
 ;; + Conceptualisation through discrimination +
@@ -71,18 +67,20 @@
           do (return-from lazy-loop other-sim)
         maximize other-sim))
 
-(defun find-best-concept (agent)
+(defun find-best-concept (agent &key (inventories '(:fast :unassigned :trash)))
   "Searches the lexicon for the best concept for the given topic and context.
 
   The agent first searches its fast inventory,
   if no cxn is found, it searches the trash inventory."
   (loop with all-competitors = nil
-        for inventory-name in (list :fast :trash)
+        for inventory-name in inventories
         for (best-score best-candidate competitors) = (search-inventory agent inventory-name)
-        ;; if a cxn is found, return it
         if best-candidate
+          ;; if a (best) candidate cxn is found, return it
           do (return (cons best-candidate
                            (if (eq inventory-name :trash)
+                             ;; no need to punish concepts in the trash
+                             ;; as their entrenchment is already zero
                              all-competitors
                              (append all-competitors competitors))))
         else
@@ -139,7 +137,8 @@
    (must be measured before alignment!)."
   (let* ((speaker-cxn (find-data speaker 'applied-cxn))
          (hearer-cxn (conceptualise hearer))
-         (coherence (if (and speaker-cxn hearer-cxn)
+         (coherence (if (and speaker-cxn hearer-cxn
+                             (stringp (form speaker-cxn)) (stringp (form hearer-cxn)))
                       (string= (form speaker-cxn) (form hearer-cxn))
                       nil)))
     ;; notify

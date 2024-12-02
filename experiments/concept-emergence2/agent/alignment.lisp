@@ -25,8 +25,9 @@
   (let* ((topic (find-data agent 'topic))
          (applied-cxn (find-data agent 'applied-cxn))
          (previous-copy (copy-object applied-cxn)))
-    (when (not (invented-or-adopted agent))
-      ;; when the speaker has not invented
+    (when (and (not (invented-or-adopted agent))
+               (conceptualised-p agent))
+      ;; when the speaker has not invented and said something
       (if (communicated-successfully agent)
         ;; if success,
         (progn
@@ -57,7 +58,8 @@
     (case applied-cxn
       ;; CASE A: hearer did not recognize the word
       ((nil)
-       (adopt agent topic (utterance agent)))
+       (when (utterance agent)
+         (adopt agent topic (utterance agent))))
       ;; CASE B: hearer did recognize the word
       (otherwise 
        (cond ((communicated-successfully agent)
@@ -87,5 +89,6 @@
              ((eq (get-data agent 'interpreted-topic-reason) 'no-match)
               ;; CASE C: recognized but used concept is useless due to defects
               (progn
-                (reset-adopt agent applied-cxn topic)
+                (when (get-configuration (experiment agent) :cluster-update-weights)
+                  (reset-adopt agent applied-cxn topic))
                 (notify event-align-cxn "Concept is useless, shifting" applied-cxn previous-copy))))))))
