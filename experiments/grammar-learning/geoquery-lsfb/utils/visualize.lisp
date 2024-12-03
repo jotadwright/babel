@@ -100,39 +100,14 @@
         ;; return the start and end as a cons 
         finally (return (cons start end))))
 
-(defun filter-right-hand-adjacents (adjacent-predicates
-                                    right-hand-predicates)
-  "filters the set of adjacent predicates for only those
-   ones that establish a relationship
-   between right hand articulations only"
-  (loop with right-hand-vars
-          = (loop for predicate in right-hand-predicates
-                  collect
-                    (second
-                     predicate))
-        for predicate in adjacent-predicates
-        when (and
-              (member
-               (second predicate)
-               right-hand-vars)
-              (member
-               (third predicate)
-               right-hand-vars))
-          collect predicate))
+
   
 
 (defun retrieve-articulation-info (sorted-predicates
-                                   sorted-articulations
-                                   &key (type 'right-hand-articulation))
+                                   sorted-articulations)
   "gets all necessary information for the predicates of the specified type,
    i.e. what is the articulation's value, fcg-variable and column-nr."
-  (let ((output sorted-articulations))
-    ;; if type is right-hand-articulations:
-    (if (eql
-         type
-         'right-hand-articulation)
-      
-       ;; get right-hand-articulations from type-hash:
+  (let ((output sorted-articulations))       
       (loop with right-hand-predicates
               = (gethash
                  'right-hand-articulation
@@ -143,16 +118,22 @@
                  sorted-predicates)
             ;; set column counter to 0
             with column-counter = 0
+            with sorted-vars-and-during-preds
+              = (sort-vars
+                 (gethash
+                  'adjacent
+                  sorted-predicates)
+                 (append
+                  right-hand-predicates
+                  two-hand-predicates)
+                 (gethash
+                  'during
+                  sorted-predicates)
+                 (gethash
+                  'end-coincides
+                  sorted-predicates))
             ;; loop over sorted vars
-            for var in
-              (sort-vars
-               (filter-right-hand-adjacents
-                (gethash
-                'adjacent
-                sorted-predicates)
-                (append
-                 right-hand-predicates
-                 two-hand-predicates)))
+            for var in (first sorted-vars-and-during-preds)
             ;; find the predicate that corresponds to each var
             for corresponding-rh-predicate
               = (find-by-fcg-id
@@ -190,12 +171,25 @@
                (gethash
                 'left-hand-articulation
                 output))
+            unless (or
+                    corresponding-2h-predicate
+                    corresponding-rh-predicate)
+              do (push
+                  `(,var
+                    nil
+                    ,column-counter)
+                  (gethash
+                   'right-hand-articulation
+                   output))
 
             do
               ;; increase column counter for next iteration
-              (incf column-counter))
+              (incf column-counter)
+              (setf (gethash 'during sorted-predicates)
+                    (second sorted-vars-and-during-preds))
+              (setf (gethash 'end-coincides sorted-predicates)
+                    (third sorted-vars-and-during-preds)))
 
-    ;; else: type is left-hand-articulation
            ;; get right-hand-articulations from type-hash:
            (loop with right-hand-articulations
                    = (gethash
@@ -236,8 +230,8 @@
                       ,column-range)
                     (gethash
                      'left-hand-articulation
-                     output))))
-    output))
+                     output)))
+           output))
 
 (defun make-type-information-table (predicates)
   "gathers information about each predicate
@@ -247,14 +241,11 @@
          (sort-predicates predicates))
         (type-information-table
          (make-hash-table))) 
-    (loop for type in '(right-hand-articulation
-                        left-hand-articulation)
-          do (setf
-              type-information-table
-              (retrieve-articulation-info
-               sorted-predicates
-               type-information-table
-               :type type)))
+    (setf
+     type-information-table
+     (retrieve-articulation-info
+      sorted-predicates
+      type-information-table))
     type-information-table))
 
 (defun find-column-nr-in-range (expressions column-nr)
@@ -320,25 +311,29 @@
                  for span-id-1 = (make-const "S")
                  do
                    ;; make the html of the cell
-                   (pushend
-                    `((td
-                       :class "manual-cell")
-                      ((span)
-                       ((span
-                         :id ,(string span-id-1)
-                         :onclick ,(format
-                                    nil
-                                    "highlightSymbol('~a','~a','~a');"
-                                    tag
-                                    span-id-1
-                                    (web-interface::get-color-for-symbol tag)))
-                        ((a
-                          :class "articulation-tag"
-                          :name ,tag)
-                         ,tag))))
-                    output)
-                 finally
-                   (return output))))
+                   (if (string=
+                        (utils::remove-numeric-tail tag)
+                        "dummy")
+                     (pushend `((td :class "empty" :style "width: 20px;")) output)
+                     (pushend
+                      `((td
+                         :class "manual-cell")
+                        ((span)
+                         ((span
+                           :id ,(string span-id-1)
+                           :onclick ,(format
+                                      nil
+                                      "highlightSymbol('~a','~a','~a');"
+                                      tag
+                                      span-id-1
+                                      (web-interface::get-color-for-symbol tag)))
+                          ((a
+                            :class "articulation-tag"
+                            :name ,tag)
+                           ,tag))))
+                      output))
+                     finally
+                     (return output))))
      
      ;; Condition B: type is right-hand-hamnosys
      ((eql
@@ -365,13 +360,15 @@
                       (second expression))
                  do
                    ;; make the html of the cell
+                   (if (string= value "NIL")
+                     (pushend `((td :class "empty")) output)
                    (pushend
                     `((td
                        :class "hamnosys-cell")
                       ((span)
                        ((ham)
                         ,value)))
-                    output)
+                    output))
                  finally
                    (return output))))
 
@@ -379,7 +376,6 @@
    ((eql
      type
      'left-hand-articulation)
-    (print "what's happening")
     
      ;; make a header for the row
     `((tr :class "header")
@@ -419,7 +415,7 @@
               for colspan = (when col-dif
                               (if (eql col-dif 0)
                                 nil
-                                col-dif))
+                                (+ col-dif 1)))
 
               ;; make html for the cell
               do 
@@ -493,7 +489,7 @@
               for colspan = (when col-dif
                               (if (eql col-dif 0)
                                 nil
-                                col-dif))
+                                (+ col-dif 1)))
 
               ;; make html for the cell
               do 
@@ -578,8 +574,6 @@
                finally (return output))))))
 
 
-         
-
-
+        
      
      
