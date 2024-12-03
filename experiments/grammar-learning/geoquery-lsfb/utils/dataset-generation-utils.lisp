@@ -357,7 +357,7 @@
            (find-lsfb reference))
           
         for new-lsfb = ;; the new lsfb-form 
-          (predicates->string
+          (list-of-predicates->string-of-predicates 
            (replace-gloss-and-hamnosys
             original-lsfb
             original-gloss
@@ -470,7 +470,7 @@
            (find-lsfb reference))
           
         for new-lsfb = ;; the new lsfb-form 
-          (predicates->string
+          (list-of-predicates->string-of-predicates
            (replace-gloss-and-hamnosys
             original-lsfb
             original-gloss

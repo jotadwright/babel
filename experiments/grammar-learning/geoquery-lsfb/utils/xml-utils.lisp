@@ -86,4 +86,36 @@
             (return
              (first
               (xmls:node-children child)))))
+
+
+(defun string->xml-nodes (predicate-string)
+  "transforms predicate-string into a list of
+   xmls-nodes where each node represents one predicate"
+       (let ((predicates
+              (string->predicates
+               predicate-string)))
+         (loop for predicate in predicates
+               collect
+                 (xmls:make-node
+                  :name
+                  (downcase
+                   (format
+                    nil
+                    "~a"
+                    (first predicate)))
+                  :attrs
+                  `(("arg1"
+                     ,(downcase
+                       (format
+                        nil
+                        "~a"
+                        (second predicate))))
+                    ("arg2"
+                     ,(downcase
+                       (format
+                        nil
+                        "~a"
+                        (third predicate)))))))))
+         
+       
               
