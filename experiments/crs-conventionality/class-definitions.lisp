@@ -94,7 +94,15 @@
     :documentation "The entities themselves."
     :type list
     :initform nil :initarg :entities :accessor entities))
-  (:documentation "(Abstract) class for holding entities."))
+  (:documentation "Class for holding entities."))
+
+(defmethod print-object ((entity-set crs-conventionality-entity-set) stream)
+  "Prints entity-set."
+  (format stream "<entity-set: ~{{~a~^, ~}}>" (mapcar #'id (entities entity-set))))
+
+(defclass naming-game-entity-set (crs-conventionality-entity-set)
+  ()
+  (:documentation "Class for holding naming game entities."))
 
 
 (defclass crs-conventionality-world (crs-conventionality-entity-set)
