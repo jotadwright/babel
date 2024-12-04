@@ -72,7 +72,8 @@
 
 (defmethod determine-topic (experiment interaction (mode (eql :random-entity-from-scene)))
   "Sets the topic for an interaction."
-  (setf (topic interaction) (random-elt (entities (scene interaction)))))
+  (setf (topic interaction) (make-instance 'crs-conventionality-entity-set
+                                           :entities (list (random-elt (entities (scene interaction)))))))
 
 
 
