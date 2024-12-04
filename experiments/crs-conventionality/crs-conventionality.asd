@@ -7,5 +7,6 @@
   :components 
   ((:file "package")
    (:file "class-definitions")
+   (:file "grammar")
    (:file "interaction")
    (:file "conceptualisation-and-production")))
