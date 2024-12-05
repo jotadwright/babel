@@ -305,7 +305,7 @@
 ;; Initial structures for root-mode
 ;; ############################################################################
 
-(defmethod create-initial-structure ((meaning list) (mode t))
+(defmethod create-initial-structure ((meaning list) (mode t)  &key &allow-other-keys)
   (warn "Deprecated functions that will be removed in a next release - adapt or shout loud.")
   (make-instance 'coupled-feature-structure
                  :left-pole `((root
@@ -319,6 +319,7 @@
 		 :right-pole-domain 'syn))
 
 (defmethod create-initial-structure ((meaning list)
-                                     (mode (eql :root-mode)))
+                                     (mode (eql :root-mode))
+                                      &key &allow-other-keys)
   (warn "Deprecated functions that will be removed in a next release - adapt or shout loud.")
   (create-initial-structure meaning t))
