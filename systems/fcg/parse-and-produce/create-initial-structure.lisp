@@ -16,7 +16,8 @@
 (in-package :fcg)
 
 (defmethod create-initial-structure ((meaning list)
-                                     (mode (eql :one-pole-mode)))
+                                     (mode (eql :one-pole-mode))
+                                      &key &allow-other-keys)
   (make-instance 'coupled-feature-structure
                  :left-pole `((root
 			       (meaning ,meaning)
