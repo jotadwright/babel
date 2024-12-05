@@ -54,7 +54,7 @@
 ;; ############################################################################
 ;; I. Basic abstractions
 
-(export '(? +fail+ fail? +no-bindings+ no-bindings))
+(export '(? +fail+ fail? +no-bindings+ no-bindings unify-objects))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defconstant +fail+ nil))
@@ -411,6 +411,9 @@ occurs in x."
         ((unify-equal x y) bindings)
 	(t (values +fail+ x y))))
 
+(defgeneric unify-objects (x y bindings &key cxn-inventory)
+  (:documentation "Unifies two objects"))
+
 (defun unify-simple (x y &optional (bindings +no-bindings+) &key cxn-inventory)
   (cond ((and (consp x) (unify-fn (first x)))
 	 (simple-unify-special x y bindings :cxn-inventory cxn-inventory))
@@ -420,6 +423,8 @@ occurs in x."
 	 (unify-simple (rest x) (rest y)
 		       (unify-simple (first x) (first y) bindings)
                        :cxn-inventory cxn-inventory))
+        ((or (closer-mop:subclassp (class-of x) 'standard-object) (closer-mop:subclassp (class-of y) 'standard-object))
+         (unify-objects x y bindings :cxn-inventory cxn-inventory))
 	(t (unify-atom x y bindings :cxn-inventory cxn-inventory))))
 
 
@@ -446,13 +451,16 @@ occurs in x."
 	   (unify-special y x bindings-list :cxn-inventory cxn-inventory))
 	  ((and (consp x) (consp y))
 	   (loop for bindings in bindings-list append 
-                 (unify (rest x) (rest y) 
-                        (unify (first x) (first y) (list bindings) :cxn-inventory cxn-inventory)
-                        :cxn-inventory cxn-inventory)))
+                   (unify (rest x) (rest y) 
+                          (unify (first x) (first y) (list bindings) :cxn-inventory cxn-inventory)
+                          :cxn-inventory cxn-inventory)))
+          ((or (closer-mop:subclassp (class-of x) 'standard-object)
+               (closer-mop:subclassp (class-of y) 'standard-object))
+           (unify-objects x y bindings-list :cxn-inventory cxn-inventory))
 	  (t (loop for bindings in bindings-list
-                for try = (unify-atom x y bindings :cxn-inventory cxn-inventory)
-                unless (fail? try) 
-                collect try)))))
+                   for try = (unify-atom x y bindings :cxn-inventory cxn-inventory)
+                   unless (fail? try) 
+                     collect try)))))
 
 ;; ############################################################################
 ;; V. Merging
