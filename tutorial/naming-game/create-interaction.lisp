@@ -28,8 +28,7 @@
 (defmethod add-naming-game-cxn (agent (form string) (meaning list) &key (score 0.5))
   "agent adds a construction to its construction inventory ; sends back the construction"
   (let ((cxn-name (make-symbol (string-append form "-cxn")))
-        (unit-name (make-var (string-append form "-unit")))
-        )
+        (unit-name (make-var (string-append form "-unit"))))
     (multiple-value-bind (cxn-set cxn)
         (eval `(def-fcg-cxn ,cxn-name
                             (
@@ -47,37 +46,40 @@
 
 (defun activate-monitors (experiment interaction)
   "activates the monitors needed to do the tracing"
-  (deactivate-monitor trace-interaction-wi)
-  (deactivate-monitor trace-experiment-wi)
-  (if (get-configuration experiment :trace-every-x-interactions)
-    (when 
-        (or 
-         (= (mod (interaction-number interaction) (get-configuration experiment :trace-every-x-interactions)) 0) 
-         (= (interaction-number interaction) 1))
-      (activate-monitor trace-interaction-wi)
-      (activate-monitor trace-experiment-wi))
-    (activate-monitor trace-interaction-wi))
-    (activate-monitor trace-experiment-wi))
+  (when (get-configuration experiment :trace-every-x-interactions)
+    (if (or (= (mod (interaction-number interaction) (get-configuration experiment :trace-every-x-interactions)) 0) 
+            (= (interaction-number interaction) 1))
+      (progn
+        (activate-monitor trace-interaction-wi)
+        (activate-monitor trace-experiment-wi)
+        (activate-monitor trace-fcg))
+      (progn
+        (when (monitors::active (eval trace-interaction-wi))
+          (deactivate-monitor trace-interaction-wi))
+        (when (monitors::active (eval trace-experiment-wi))
+          (deactivate-monitor trace-experiment-wi))
+        (when (monitors::active (eval trace-fcg))
+          (deactivate-monitor trace-fcg))))))
 
 ;-------------------;
 ;alignment functions;
 ;-------------------;
 
-(defmethod align ((agent naming-game-agent)(interaction interaction))
+(defmethod align ((agent naming-game-agent) (interaction interaction))
   "agent adapts lexicon scores based on communicative success interaction"
   (let ((inc-delta (get-configuration agent :li-incf))
         (dec-delta (get-configuration agent :li-decf) )
-        (communicative-success (communicated-successfully agent))
         (alignment (case (get-configuration agent :alignment-strategy)
                      (:no-aligment nil)
                      (:lateral-inhibition t))))
     (when alignment
-      (cond (communicative-success
-             (when (applied-cxn agent)(increase-score (applied-cxn agent) inc-delta 1.0))
-             (loop for form-competitor in (get-form-competitors agent)
-                   do (decrease-score form-competitor dec-delta 0.0)))
-            ((NOT communicative-success)
-             (when (applied-cxn agent)(decrease-score (applied-cxn agent) dec-delta 0.0)))))))
+      (if (communicated-successfully agent)
+        (when (applied-cxn agent)
+          (increase-score (applied-cxn agent) inc-delta 1.0)
+          (loop for form-competitor in (get-form-competitors agent)
+                do (decrease-score form-competitor dec-delta 0.0)))
+        (when (applied-cxn agent)
+          (decrease-score (applied-cxn agent) dec-delta 0.0))))))
 
 (defun perform-alignment (interaction)
   "decides which agents should perform alignment using configurations of interaction"
@@ -96,8 +98,8 @@
 
 (defmethod invent ((agent agent))
   "agent invents a new construction and adds it to its lexicon"
-  (let* ((new-form (make-word))
-         (new-cxn (add-naming-game-cxn agent new-form (list (topic agent)))))
+  (let ((new-form (make-word)))
+    (add-naming-game-cxn agent new-form (list (topic agent)))
     (multiple-value-bind (utterance applied-cxn)
         (naming-game-produce agent)
       (values utterance applied-cxn))))
@@ -137,11 +139,11 @@
 
 (defmethod interact ((experiment experiment) (interaction interaction) &key)
   "the different steps of an interaction between the given agents"
-  ;1) initializes instances
+  ;1) initializes intances
   (let* ((interacting-agents (interacting-agents interaction))
          (speaker (first interacting-agents))
          (hearer (second interacting-agents)))
-    (activate-monitors experiment interaction)
+   (activate-monitors experiment interaction)
   ;2) we choose a topic for the experiment (a random object from our world)
     (setf (topic speaker) (get-random-elem (world experiment)))
   ;3) the speaker tries to produce a word for this topic
@@ -158,7 +160,7 @@
   ;5) in any case, the hearer hears a word a tries to make sense out of it
     (setf (utterance hearer) (utterance speaker))
     (notify conceptualisation-finished speaker)
-    (multiple-value-bind (meaning solution cip)
+    (multiple-value-bind (meaning solution)
         (comprehend (utterance hearer) :cxn-inventory (lexicon hearer))
       (setf (pointed-object hearer) (first meaning))
       (setf (applied-cxn hearer) (first (applied-constructions solution))))
@@ -173,11 +175,11 @@
     (setf (communicated-successfully hearer) (communicated-successfully speaker))
     (setf (topic hearer) (topic speaker))
     (unless (pointed-object hearer)
-      (setf (applied-cxn hearer)(naming-game-adopt (hearer interaction) (utterance hearer))) 
+      (setf (applied-cxn hearer) (naming-game-adopt (hearer interaction) (utterance hearer))) 
       (notify adoptation-finished hearer))
  ;8 the agents perform the alignment according to the above function
-    (perform-alignment interaction)
-    (notify align-finished)
-    ))
+    (when (communicated-successfully speaker)
+      (perform-alignment interaction))
+    (notify align-finished)))
    
   
