@@ -14,3 +14,11 @@ id,exp_name,nr_of_series,nr_of_interactions,population_size,dataset,dataset_spli
 13,clusters-200-t,1,1000000,10,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:paper,:none,0,nil,200,t,t,t,t,t
 14,clusters-500-t,1,1000000,10,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:paper,:none,0,nil,500,t,t,t,t,t
 15,clusters-1000-t,1,1000000,10,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:paper,:none,0,nil,1000,t,t,t,t,t
+16,clusters-10-nt,1,1000000,10,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:paper,:none,0,nil,10,nil,nil,nil,nil,t
+17,clusters-20-nt,1,1000000,10,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:paper,:none,0,nil,20,nil,nil,nil,nil,t
+18,clusters-30-nt,1,1000000,10,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:paper,:none,0,nil,30,nil,nil,nil,nil,t
+19,clusters-50-nt,1,1000000,10,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:paper,:none,0,nil,50,nil,nil,nil,nil,t
+20,clusters-100-nt,1,1000000,10,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:paper,:none,0,nil,100,nil,nil,nil,nil,t
+21,clusters-200-nt,1,1000000,10,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:paper,:none,0,nil,200,nil,nil,nil,nil,t
+22,clusters-500-nt,1,1000000,10,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:paper,:none,0,nil,500,nil,nil,nil,nil,t
+23,clusters-1000-nt,1,1000000,10,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,t,0.1,-0.1,-0.02,t,:j-interpolation,0,1,-5,:paper,:none,0,nil,1000,nil,nil,nil,nil,t
