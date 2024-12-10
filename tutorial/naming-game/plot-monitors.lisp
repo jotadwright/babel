@@ -8,7 +8,7 @@
 
 
 ;;see if interaction is successful
-(Define-monitor record-communicative-success
+(define-monitor record-communicative-success
                 :class 'data-recorder
                 :average-window 100
                 :documentation "records the game outcome of each game (1 or 0).")
@@ -34,10 +34,49 @@
                 :column-separator " "
                 :comment-string "#")
 
-;; get vocabulary size
-(Define-event-handler (record-communicative-success interaction-finished)
+(define-event-handler (record-communicative-success interaction-finished)
     (let ((speaker (first (interacting-agents interaction))))
       (record-value monitor (if (communicated-successfully speaker) 1 0))))
+
+
+
+(define-monitor record-conventionality
+                :class 'data-recorder
+                :average-window 100
+                :documentation "records the game outcome of each game (1 or 0).")
+
+(define-monitor display-conventionality ;needs to be activated
+                :class 'gnuplot-display
+                :documentation "Plots the communicative success."
+                :data-sources '((average record-conventionality))
+                :update-interval 100
+                :caption '("conventionality")
+                :x-label "# Games" 
+                :y1-label "Conventionality" 
+                :y1-max 1.0 :y1-min 0 
+                :draw-y1-grid t)
+
+(define-monitor export-conventionality ;idem
+                :class 'lisp-data-file-writer
+                :documentation "Exports degree of conventionality"
+                :data-sources '((average record-conventionality))
+                :file-name (babel-pathname :name "conventionality" :type "lisp"
+                                           :directory '("tutorial" "raw-data" "naming-game"))
+                :add-time-and-experiment-to-file-name nil
+                :column-separator " "
+                :comment-string "#")
+
+(define-event-handler (record-conventionality interaction-finished)
+    (let ((speaker (first (interacting-agents interaction)))
+          (hearer (second (interacting-agents interaction))))
+      
+      (with-disabled-monitor-notifications
+        (setf (utterance hearer) (naming-game-produce hearer)))
+
+      (record-value monitor (if (string= (utterance speaker)
+                                         (utterance hearer)) 1 0))))
+
+
 
 
 
