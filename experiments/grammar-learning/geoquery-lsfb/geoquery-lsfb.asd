@@ -14,7 +14,9 @@
                :fcg
                :cl-json
                :xmls
-               :au-benchmark)
+               :au-benchmark
+               :grammar-learning
+               :cl-ppcre)
   :serial t
   :components ((:file "package")
                (:module utils
@@ -36,5 +38,13 @@
                 :components ((:file "css")
                              (:file "make-sign-table")
                              (:file "make-html")))
+               (:module experiment-setup
+                :serial t
+                :components ((:file "grammar")
+                             (:file "agent")
+                             (:file "experiment")
+                             (:file "read-data")
+                             (:file "prolog-to-predicates")
+                             ))
                (:file "derender") 
                ))

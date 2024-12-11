@@ -16,7 +16,13 @@
 ;; + Reading dataset-files + ;;
 ;;---------------------------;;
 
-;(jsonl->list-of-json-alists "/Users/liesbetdevos/Projects/GeoQuery-LSFB/json-files/geoquery-lsfb-250.jsonl")
+;(defparameter *250-dataset-json* (jsonl->list-of-json-alists "/Users/liesbetdevos/Projects/GeoQuery-LSFB/json-files/geoquery-lsfb-250.jsonl"))
+
+;(defparameter *4500-dataset-json* (jsonl->list-of-json-alists "/Users/liesbetdevos/Projects/GeoQuery-LSFB/json-files/geoquery-lsfb-4500.jsonl"))
+
+;(defparameter *250-dataset-xml* (read-xml "/Users/liesbetdevos/Projects/GeoQuery-LSFB/xml-files/geoquery-lsfb-250.xml"))
+
+;(defparameter *4500-dataset-xml* (read-xml "/Users/liesbetdevos/Projects/GeoQuery-LSFB/xml-files/geoquery-lsfb-4500.xml"))
 
 ;;------------------------;;
 ;; visualizing predicates ;;
@@ -36,3 +42,12 @@
 (load-data-for-generation *data-folder*)
 
 ;; see dataset-generation script
+
+
+;;-------------------------------;;
+;; running a baseline experiment ;;
+;;-------------------------------;;
+
+(defparameter *baseline-experiment*
+  (set-up-geoquery-lsfb-experiment "/Users/liesbetdevos/Projects/GeoQuery-data/250/"))
+
