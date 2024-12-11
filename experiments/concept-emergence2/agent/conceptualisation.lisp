@@ -68,6 +68,11 @@
         maximize other-sim))
 
 (defun find-best-concept (agent &key (inventories '(:fast :unassigned :trash)))
+  (if (get-configuration (experiment agent) :cluster-discriminate)
+    (find-best-concept-discr agent :inventories inventories)
+    (find-best-concept-not-discr agent :inventories inventories)))
+    
+(defun find-best-concept-discr (agent &key (inventories '(:fast :unassigned :trash)))
   "Searches the lexicon for the best concept for the given topic and context.
 
   The agent first searches its fast inventory,
@@ -90,6 +95,14 @@
           ;; if nothing is found, return nil nil
           (return (cons nil all-competitors))))
 
+(defun find-best-concept-not-discr (agent &key (inventories '(:fast :unassigned :trash)))
+  (loop with all-candidates = nil
+        for inventory-name in inventories
+        for (best-score best-candidate competitors) = (search-inventory agent inventory-name)
+        do (setf all-candidates (cons (cons best-score best-candidate) all-candidates))
+        finally (return (cons (cdr (the-highest all-candidates #'(lambda (x) (car x))))
+                              nil))))
+
 (defmethod search-inventory (agent inventory-name)
   "Searches an inventory for the best concept.
 
@@ -111,9 +124,15 @@
         ;; trash inventory -> the score is irrelevant (so set score to 1), otherwise use score
         for score = (if (eq inventory-name :trash) 1 (score cxn))
         ;; check if the concept is discriminative
-        when (or (not discriminate-p)
-                 (and discriminate-p
-                      (> topic-sim (+ best-other-sim similarity-threshold))))
+        when (not discriminate-p)
+          do (if (> (* topic-sim score) best-score)
+               (progn
+                 ; update the best candidate
+                 (setf best-score (* topic-sim score))
+                 (setf best-candidate cxn))
+               )
+        when (and discriminate-p
+                  (> topic-sim best-other-sim))
           do (if (> (* discriminative-power score) best-score)
                ;; update the best candidate
                (progn

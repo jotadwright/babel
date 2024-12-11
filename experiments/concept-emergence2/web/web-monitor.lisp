@@ -22,26 +22,23 @@
   
 
 ;;;; Show lexicon in web interface
-(defun display-lexicon (agent &key (entrenchment-threshold 0) (weight-threshold 0) (sort nil))  
+(defun display-lexicon (agent &key (entrenchment-threshold 0) (weight-threshold 0) (sort nil) (inventory-name :fast))  
   "Shows the lexicon in web interface."
-  (if (empty-lexicon-p agent)
-    (add-element
-     `((h3) ,(format nil "Lexicon is empty!")))
-    (let* ((lexicon (hash-values (get-inventory (lexicon agent) :fast)))
-           (new-lexicon (if sort
-                          (sort lexicon #'(lambda (x y) (> (score x) (score y))))
-                          new-lexicon)))
-      (add-element `((h3) ,(format nil "Lexicon:")))
-      (loop for cxn in new-lexicon and idx from 0
-            do (add-element
-                `((h4) ,(format nil "CXN ~a w score ~a [n: ~a, l: ~a]"
-                                idx
-                                (score cxn)
-                                (length (history cxn))
-                                (first (history cxn))
-                                )))
-            when (>= (score cxn) entrenchment-threshold)
-              do (add-cxn-to-interface cxn :weight-threshold weight-threshold :disabled-channels (disabled-channels agent))))))
+  (let* ((lexicon (hash-values (get-inventory (lexicon agent) inventory-name)))
+         (new-lexicon (if sort
+                        (sort lexicon #'(lambda (x y) (> (score x) (score y))))
+                        new-lexicon)))
+    (add-element `((h3) ,(format nil "Lexicon:")))
+    (loop for cxn in new-lexicon and idx from 0
+          do (add-element
+              `((h4) ,(format nil "CXN ~a w score ~a [n: ~a, l: ~a]"
+                              idx
+                              (score cxn)
+                              (length (history cxn))
+                              (first (history cxn))
+                              )))
+          when (>= (score cxn) entrenchment-threshold)
+            do (add-cxn-to-interface cxn :weight-threshold weight-threshold :disabled-channels (disabled-channels agent)))))
 
 (defun show-in-wi (args)
   (add-element `((h4) ,(format nil "~{~a~^, ~}" args))))

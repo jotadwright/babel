@@ -8,7 +8,7 @@
     (make-configuration
      :entries `(
                 ;; monitoring
-                (:dot-interval . 1000)
+                (:dot-interval . 100)
                 (:usage-table-window . 100)
                 (:save-distribution-history . nil)
                 ;; setup interacting agents
