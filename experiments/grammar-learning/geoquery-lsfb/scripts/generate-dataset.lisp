@@ -1014,9 +1014,17 @@
           for turkish = nil
           for japanese = nil
           for french = nil
+          for german = nil
+          for greek = nil
+          for thai = nil
+          for chinese = nil
+          for farsi = nil
+          for indonesian = nil
+          for swedish = nil
           for lsfb = nil
           for funql = nil
           for prolog = nil
+          for sql = nil
           for elan-ref = nil
             
           do
@@ -1115,8 +1123,106 @@
                        french
                        (first
                         (xmls:node-children child))))
+                     ;; Condition F: the node is the german translation node
+                     ((and
+                       (string=
+                        (xmls:node-name child)
+                        "nl")
+                       (string=
+                        (second
+                         (first
+                          (xmls:node-attrs child)))
+                        "de"))
+                      (setf
+                       german
+                       (first
+                        (xmls:node-children child))))
+                     ;; Condition E: the node is the greek translation node
+                     ((and
+                       (string=
+                        (xmls:node-name child)
+                        "nl")
+                       (string=
+                        (second
+                         (first
+                          (xmls:node-attrs child)))
+                        "el"))
+                      (setf
+                       greek
+                       (first
+                        (xmls:node-children child))))
+                     ;; Condition F: the node is the thai translation node
+                     ((and
+                       (string=
+                        (xmls:node-name child)
+                        "nl")
+                       (string=
+                        (second
+                         (first
+                          (xmls:node-attrs child)))
+                        "th"))
+                      (setf
+                       thai
+                       (first
+                        (xmls:node-children child))))
+                     ;; Condition G: the node is the chinese translation node
+                     ((and
+                       (string=
+                        (xmls:node-name child)
+                        "nl")
+                       (string=
+                        (second
+                         (first
+                          (xmls:node-attrs child)))
+                        "zh"))
+                      (setf
+                       chinese
+                       (first
+                        (xmls:node-children child))))
+                     ;; Condition H: the node is the farsi translation node
+                     ((and
+                       (string=
+                        (xmls:node-name child)
+                        "nl")
+                       (string=
+                        (second
+                         (first
+                          (xmls:node-attrs child)))
+                        "fa"))
+                      (setf
+                       farsi
+                       (first
+                        (xmls:node-children child))))
+                     ;; Condition I: the node is the indonesian translation node
+                     ((and
+                       (string=
+                        (xmls:node-name child)
+                        "nl")
+                       (string=
+                        (second
+                         (first
+                          (xmls:node-attrs child)))
+                        "id"))
+                      (setf
+                       indonesian
+                       (first
+                        (xmls:node-children child))))
+                     ;; Condition J: the node is the swedish translation node
+                     ((and
+                       (string=
+                        (xmls:node-name child)
+                        "nl")
+                       (string=
+                        (second
+                         (first
+                          (xmls:node-attrs child)))
+                        "sv"))
+                      (setf
+                       swedish
+                       (first
+                        (xmls:node-children child))))
 
-                     ;; Condition F: the node is the lsfb translation node
+                     ;; Condition K: the node is the lsfb translation node
                      ((string=
                        (xmls:node-name child)
                        "nl")
@@ -1125,7 +1231,7 @@
                               do (setf elan-ref (second attr))
                                  (setf lsfb (xmls:node-children child))))
 
-                      ;; Condition G: the node is the funql meaning node
+                      ;; Condition L: the node is the funql meaning node
                      ((and
                        (string=
                         (xmls:node-name child)
@@ -1140,7 +1246,7 @@
                        (first
                         (xmls:node-children child))))
 
-                     ;; Condition H: the node is the prolog meaning node
+                     ;; Condition M: the node is the prolog meaning node
                      ((and
                        (string=
                         (xmls:node-name child)
@@ -1154,13 +1260,27 @@
                        prolog
                        (first
                         (xmls:node-children
+                         child))))
+                     ((and
+                       (string=
+                        (xmls:node-name child)
+                        "mrl")
+                       (string=
+                        (second
+                         (first
+                          (xmls:node-attrs child)))
+                        "sql"))
+                      (setf
+                       sql
+                       (first
+                        (xmls:node-children
                          child))))))
           
           ;; write the information in json format to stream
           ;; note: use format instead of json-encode so that hamnosys strings can be encoded 
           do (format
               out-stream
-              "{\"id\":\"~a\",\"type\":\"~a\",\"elan-ref\":\"~a\",\"english\":\"~a\",\"spanish\":\"~a\",\"turkish\":\"~a\",\"japanese\":\"~a\",\"french\":\"~a\",\"lsfb\":\"~a\",\"geo-prolog\":\"~a\",\"geo-funql\":\"~a\"}~%"
+              "{\"id\":\"~a\",\"type\":\"~a\",\"elan-ref\":\"~a\",\"english\":\"~a\",\"spanish\":\"~a\",\"turkish\":\"~a\",\"japanese\":\"~a\",\"german\":\"~a\",\"greek\":\"~a\",\"thai\":\"~a\",\"indonesian\":\"~a\",\"swedish\":\"~a\",\"chinese\":\"~a\",\"farsi\":\"~a\",\"french\":\"~a\",\"lsfb\":\"~a\",\"geo-prolog\":\"~a\",\"geo-funql\":\"~a\",\"sql\":\"~a\"}~%"
               id
               type
               elan-ref
@@ -1168,12 +1288,22 @@
               spanish
               turkish
               japanese
+              german
+              greek
+              thai
+              indonesian
+              swedish
+              chinese
+              farsi
               french
               lsfb
               prolog
-              funql))))
+              funql
+              sql))))
 
-;(xml->json "/Users/liesbetdevos/Projects/GeoQuery-LSFB/250-final-3.xml" "/Users/liesbetdevos/Projects/GeoQuery-LSFB/250-final-3.jsonl")
+;(xml->json "/Users/liesbetdevos/Projects/GeoQuery-LSFB/xml-files/geoquery-lsfb-250.xml" "/Users/liesbetdevos/Projects/GeoQuery-LSFB/json-files/geoquery-lsfb-250-new.jsonl")
 
-;(xml->json "/Users/liesbetdevos/Projects/GeoQuery-LSFB/large-final-3.xml" "/Users/liesbetdevos/Projects/GeoQuery-LSFB/large-final-3.jsonl")
+;(xml->json "/Users/liesbetdevos/Projects/GeoQuery-LSFB/xml-files/geoquery-lsfb-4500.xml" "/Users/liesbetdevos/Projects/GeoQuery-LSFB/json-files/geoquery-lsfb-4500.jsonl")
+
+
 

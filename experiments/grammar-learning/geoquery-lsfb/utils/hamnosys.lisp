@@ -6,11 +6,10 @@
         ;; read in the fingerspelling alphabet from the data folder
         with fingerspelling-alphabet =
           (jsonl->list-of-json-alists
-           (merge-pathnames
+           (concatenate
+            'string
             *data-folder*
-            (babel-pathname
-             :name "fingerspelling-alphabet"
-             :type "jsonl")))
+            "/fingerspelling-alphabet.jsonl"))
         ;; extract name to be fingerspelled from input
         with fingerspelling-name =
           (case input-type
@@ -59,4 +58,5 @@
                character-hamnosys)))
         finally (return output)))
 
-;(make-fingerspelling "nouveau-mexique" :input-type 'name)
+;(make-fingerspelling "niagara-falls" :input-type 'name)
+;(concatenate 'string *data-folder* "/fingerspelling-alphabet.jsonl")
