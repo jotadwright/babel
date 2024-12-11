@@ -69,6 +69,7 @@
   (deactivate-all-monitors)
   (activate-monitor export-communicative-success)
   (activate-monitor export-lexicon-coherence)
+  (activate-monitor export-communicative-success-given-conceptualisation)
   ;; (activate-monitor export-unique-form-usage)
   (activate-monitor print-a-dot-for-each-interaction)
   (format t "~%---------- NEW GAME ----------~%")
