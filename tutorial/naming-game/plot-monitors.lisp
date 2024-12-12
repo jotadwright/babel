@@ -43,11 +43,11 @@
 (define-monitor record-conventionality
                 :class 'data-recorder
                 :average-window 100
-                :documentation "records the game outcome of each game (1 or 0).")
+                :documentation "records if speaker and hearer use the same word for topic (1 or 0).")
 
 (define-monitor display-conventionality ;needs to be activated
                 :class 'gnuplot-display
-                :documentation "Plots the communicative success."
+                :documentation "Plots degree of conventionality"
                 :data-sources '((average record-conventionality))
                 :update-interval 100
                 :caption '("conventionality")

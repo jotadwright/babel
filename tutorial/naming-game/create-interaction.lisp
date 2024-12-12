@@ -54,11 +54,11 @@
         (activate-monitor trace-experiment-wi)
         (activate-monitor trace-fcg))
       (progn
-        (when (monitors::active (eval trace-interaction-wi))
+        (when (monitors::active (monitors::get-monitor 'trace-interaction-wi))
           (deactivate-monitor trace-interaction-wi))
-        (when (monitors::active (eval trace-experiment-wi))
+        (when (monitors::active (monitors::get-monitor 'trace-experiment-wi))
           (deactivate-monitor trace-experiment-wi))
-        (when (monitors::active (eval trace-fcg))
+        (when (monitors::active (monitors::get-monitor 'trace-fcg))
           (deactivate-monitor trace-fcg))))))
 
 ;-------------------;
@@ -68,7 +68,7 @@
 (defmethod align ((agent naming-game-agent) (interaction interaction))
   "agent adapts lexicon scores based on communicative success interaction"
   (let ((inc-delta (get-configuration agent :li-incf))
-        (dec-delta (get-configuration agent :li-decf) )
+        (dec-delta (get-configuration agent :li-decf))
         (alignment (case (get-configuration agent :alignment-strategy)
                      (:no-aligment nil)
                      (:lateral-inhibition t))))
@@ -104,7 +104,7 @@
         (naming-game-produce agent)
       (values utterance applied-cxn))))
   
-(defmethod naming-game-adopt ((agent naming-game-agent)(cxn-form string)) ;we pass cxn-form as an argument because it is not supposed to be the cxn-form of the same agent (I guess?)
+(defmethod naming-game-adopt ((agent naming-game-agent) (cxn-form string)) ;we pass cxn-form as an argument because it is not supposed to be the cxn-form of the same agent (I guess?)
   "agent adopts a new word and adds it to its own vocabulary"
   (let ((adopted-cxn (add-naming-game-cxn agent cxn-form (list (topic agent)))))
     adopted-cxn))
@@ -119,7 +119,7 @@
           for voc-item in considered-voc
           do (cond
                ((NOT highest-voc) (setf highest-voc voc-item))
-               (( > (score voc-item) (score highest-voc))
+               ((> (score voc-item) (score highest-voc))
                 (setf highest-voc voc-item)))
           finally (return highest-voc)))
 
