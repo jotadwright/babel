@@ -132,7 +132,15 @@
   ;; is added
   (def-meaning meaning-5c '((foo ?a ?b) (bar ?a) 
                             (bind string ?d i-would-like-to-be-a-hippy)))
-  (test-assert (= 1 (length (match- chunk-5 meaning-5c)))))
+  (test-assert (= 1 (length (match- chunk-5 meaning-5c))))
+
+  ;; cleanup
+  (makunbound '*test-chunks*)
+  (makunbound '*test-meanings*)
+  (fmakunbound 'def-chunk)
+  (fmakunbound 'def-meaning)
+  (fmakunbound 'match-)
+  )
 
 
 
@@ -142,3 +150,4 @@
 ;; (test-match-chunk)
 
 ;;(time (dotimes (n 100) (test-match-chunk)))
+

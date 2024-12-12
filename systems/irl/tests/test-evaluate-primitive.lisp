@@ -63,6 +63,16 @@
                                            :var '?var-2
                                            :score 0.5
                                            :value (make-instance 'quantity :n 12)))
-                                    *test-ontology*)))
+                                    *test-ontology*))
+
+
+         ;; cleanup
+         (makunbound '*test-ontology*)
+         (setf (find-class 'quantity) nil)
+         (fmakunbound 'make-quantity)
+         (fmakunbound 'add-quantities-to-ontology)
+         (setf (find-class 'apples-set) nil)
+         (fmakunbound 'make-apples-set)
+         (makunbound '*apple-counting-inventory*))
 
 ;;(test-evaluate-primitive)

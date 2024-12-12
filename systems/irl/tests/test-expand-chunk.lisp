@@ -62,7 +62,11 @@
 
     (test-equal (length (open-vars (sixth chunks))) 1)
     (test-equal (length (irl-program (sixth chunks))) 3)
-    ))
+
+    ;; cleanup
+    (makunbound '*expand-chunk-inventory*)))
 
 ;;(test-expand-chunk :show-results t)
+
+
 

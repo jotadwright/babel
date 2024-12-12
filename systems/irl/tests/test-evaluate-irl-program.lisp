@@ -117,7 +117,6 @@
                                         (bind quantity ?amount seven)))
 
 
-
          ;; add-apples: all-bound
          (evaluate-irl-program-test 1 `((bind apples-set ?apples ,(make-apples-set 17))
                                         (add-apples ?apples ?amount ?apples-2)
@@ -168,8 +167,10 @@
          (evaluate-irl-program-test 1 `((bind apples-set ?apples ,(make-apples-set 97))
                                         (multiply-apples ?apples ?factor ?amount-1 ?apples-2)
                                         (add-apples ?apples-2 ?amount-2 ?apples-3)
-                                        (pick-apples ?apples-3 ?amount-3))))
+                                        (pick-apples ?apples-3 ?amount-3)))
+
+         ;; cleanup
+         (fmakunbound 'evaluate-irl-program-test))
 
 
 ;;(test-evaluate-irl-program)
-
