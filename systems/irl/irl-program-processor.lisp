@@ -326,8 +326,8 @@
   "Take the sum of the scores of the newly created bindings in this node."
   (loop for resulting-binding in (per-resulting-bindings (pipn-per node))
         for source-binding in (per-source-bindings (pipn-per node))
-        when (and (null (value source-binding))
-                  (value resulting-binding))
+        when (and (not (slot-boundp source-binding 'value))
+                  (slot-boundp resulting-binding 'value))
         sum (score resulting-binding)))
                          
 (defmethod apply-pip-heuristic ((node pip-node) (mode (eql :sum-of-all-binding-scores)))

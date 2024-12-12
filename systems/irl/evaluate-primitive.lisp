@@ -33,13 +33,14 @@
                                            :test #'equalp))
          (applicable-slot-spec (loop for slot-spec in (slot-specs primitive)
                                      for binding in bindings
-                                     always (or (null (value binding))
+                                     always (or (not (slot-boundp binding 'value))
                                                 (subtypep (type-of (value binding))
                                                           (slot-spec-type slot-spec)))))
          (primitive-is-applicable (and applicable-slot-spec applicable-evaluation-spec))
          (results (when primitive-is-applicable
                     (apply (evaluation-spec-function applicable-evaluation-spec)
-                           ontology bindings (mapcar #'value bindings)))))
+                           ontology bindings
+                           (mapcar #'(lambda (b) (if (slot-boundp b 'value) (value b) nil)) bindings)))))
     ;;  given the bound-slots-pattern there are the following cases
     ;;  no bound-slots-pattern found
     ;;  bound-slots-pattern all t -> t (success), nil (failure)
@@ -55,7 +56,7 @@
           (loop for result in results
                 collect (loop for binding in bindings
                               for res in result
-                              if (value binding) collect binding
+                              if (slot-boundp binding 'value) collect binding
                               else collect (make-instance 'binding :var (var binding)
                                                           :score (first res) :value (second res)
                                                           :available-at (third res))))
