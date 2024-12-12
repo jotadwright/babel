@@ -161,6 +161,6 @@
               meaning
               ))))
 
-;(preprocess-and-merge-english-json-files "/Users/liesbetdevos/Projects/GeoQuery-data/250/train/" "/Users/liesbetdevos/Documents/geoquery-english-train.jsonl")
+;(preprocess-and-merge-english-json-files "/Users/liesbetdevos/Projects/GeoQuery-data/4500/test/" "/Users/liesbetdevos/Documents/geoquery-english-test-4500.jsonl")
 
 
