@@ -133,3 +133,34 @@
 
 ;(split-train-and-test *4500-dataset-json* "/Users/liesbetdevos/Projects/GeoQuery-data/4500" 0.2)
 
+(defun preprocess-and-merge-english-json-files (directory outfile)
+  (with-open-file
+      (out-stream
+       outfile
+       :direction :output
+       :if-exists :supersede
+       :if-does-not-exist :create
+       :external-format :utf-8
+       :element-type 'cl:character)
+  (loop for file in (directory directory)
+        for json = (unless
+                       (string=
+                        (pathname-type file)
+                        "DS_Store")
+                        (first
+                         (jsonl->list-of-json-alists file)))
+        for utterance = (when json (cdr (assoc :english json)))
+        for meaning = (when json (geo-prolog-to-predicates
+                       (cdr (assoc :geo-prolog json))))
+        when json 
+          do (format
+              out-stream
+              "{\"id\":\"~a\",\"utterance\":\"~a\",\"meaning\":\"~a\"}~%"
+              (cdr (assoc :id json))
+              utterance
+              meaning
+              ))))
+
+;(preprocess-and-merge-english-json-files "/Users/liesbetdevos/Projects/GeoQuery-data/250/train/" "/Users/liesbetdevos/Documents/geoquery-english-train.jsonl")
+
+

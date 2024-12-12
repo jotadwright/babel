@@ -19,4 +19,8 @@
    :encode-json-alist-to-string)
   (:import-from :utils
    :babel-pathname
-   :make-const))
+   :make-const
+   :string-append
+   :variablify
+   :variable-p
+   :last-elt))
