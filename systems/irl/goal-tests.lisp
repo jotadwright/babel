@@ -29,4 +29,4 @@
 (defmethod pip-goal-test ((node pip-node) (mode (eql :all-variables-bound)))
   (when (bindings node)
     (loop for binding in (bindings node)
-          never (null (value binding)))))
+          always (slot-boundp binding 'value))))

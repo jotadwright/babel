@@ -53,7 +53,7 @@
                             else
                             do (let ((var (make-var 'var))
                                      (value (if (symbolp parameter)
-                                              (find-entity-by-id ontology parameter)
+                                              (or (find-entity-by-id ontology parameter) parameter)
                                               parameter)))
                                  (push var new-item)
                                  (push

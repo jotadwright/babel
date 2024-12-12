@@ -28,16 +28,18 @@
        ;; first check if the number of non-empty bindings is identical
        ;; this is a quick check that avoids having to compare all bindings
        ;; using equal-entity
-       (= (count nil (bindings node) :key #'value)
-          (count nil (bindings other-node) :key #'value))
-       ;; only when the number of non-empty bindings is empty,
+       (= (count-if #'(lambda (b) (slot-boundp b 'value)) (bindings node))
+          (count-if #'(lambda (b) (slot-boundp b 'value)) (bindings other-node)))
+       ;; only when the number of non-empty bindings is the same,
        ;; actually check the binding values
        (loop for var in (mapcar #'var (bindings node))
-             for node-value = (value (find var (bindings node) :key #'var))
-             for other-value = (value (find var (bindings other-node) :key #'var))
-             always (or (and (null node-value) (null other-value))
-                        (and node-value other-value
-                             (equal-entity node-value other-value))))))
+             for node-binding = (find var (bindings node) :key #'var)
+             for other-binding = (find var (bindings other-node) :key #'var)
+             always (or (and (not (slot-boundp node-binding 'value))
+                             (not (slot-boundp other-binding 'value)))
+                        (and (slot-boundp node-binding 'value)
+                             (slot-boundp other-binding 'value)
+                             (equal-entity (value node-binding) (value other-binding)))))))
 
 (defun find-duplicate (node other-node)
   (unless (eq node other-node)
@@ -61,20 +63,14 @@
 ;; no duplicate solutions
 
 (defmethod pip-node-test ((node pip-node) (mode (eql :no-duplicate-solutions)))
-  "When this node is has no more remaining primitives (leaf node),
+  "When this node has no more remaining primitives (leaf node),
    walk over all solutions thus far and check if this is not a
    duplicate solution."
   (if (primitives-remaining node) t
     (let ((duplicatep
-           ;; this assumes the bindings are always ordered in the same way
            (when (succeeded-nodes (pip node))
              (loop for succeeded-node in (succeeded-nodes (pip node))
-                   for solution = (bindings succeeded-node)
-                   thereis (loop for value in (mapcar #'value solution)
-                                 for node-value in (mapcar #'value (bindings node))
-                                 always (or (and (null value) (null node-value))
-                                            (and value node-value
-                                                 (equal-entity value node-value))))))))
+                   never (duplicate-node-p node succeeded-node)))))
       (when duplicatep
         (push 'duplicate (statuses node)))
       (not duplicatep))))

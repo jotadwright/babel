@@ -18,15 +18,14 @@
   ;; sanity check: as many bindings as slots
   (assert (= (length bindings-list)
              (length (slot-specs primitive))))
-  (let* ((bindings (if (subtypep (type-of (first bindings-list))
-                                 'binding)
+  (let* ((bindings (if (subtypep (type-of (first bindings-list)) 'binding)
                      bindings-list
                      (loop for b in bindings-list
                            collect (make-instance 'binding :var (first b)
                                                   :score (second b) :value (third b)
                                                   :available-at (fourth b)))))
          (bound-slots-pattern (loop for binding in bindings
-                                    if (value binding) collect t
+                                    if (slot-boundp binding 'value) collect t
                                     else collect nil))
          (applicable-evaluation-spec (find bound-slots-pattern
                                            (evaluation-specs primitive)
