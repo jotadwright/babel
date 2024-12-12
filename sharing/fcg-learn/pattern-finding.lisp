@@ -536,23 +536,21 @@ non-applicable constructions."
 
 (defmethod anti-unify-meaning ((cxn-meaning-predicates list)
                                (speech-act-meaning-predicates list)
-                               (mode (eql :k-swap)) &key cxn-inventory &allow-other-keys)
+                               (mode (eql :k-swap)) &key &allow-other-keys)
   "Anti-unify meaning predicates using the k-swap algorithm."
-  (loop with au-results = (au-benchmark.msg.kswap-omega:anti-unify-predicate-networks cxn-meaning-predicates speech-act-meaning-predicates
-                                                                                      :k (get-configuration cxn-inventory :k-swap-k)
-                                                                                      :w (get-configuration cxn-inventory :k-swap-w))
-        with cost = (cost (first au-results))
+  (loop with au-results = (au-lib:anti-unify-predicate-networks cxn-meaning-predicates speech-act-meaning-predicates :2-swap)
+        with cost = (au-lib::cost (first au-results))
         for k-swap-au-result in au-results
-        if (= cost (cost k-swap-au-result))
+        if (= cost (au-lib::cost k-swap-au-result))
           collect (make-instance 'predicate-network-au-result 
-                                 :pattern (au-benchmark.msg.kswap-omega::pattern k-swap-au-result)
-                                 :source (au-benchmark.msg.kswap-omega::source k-swap-au-result)
-                                 :generalisation (au-benchmark.msg.kswap-omega::generalisation k-swap-au-result)
-                                 :pattern-bindings (au-benchmark.msg.kswap-omega::pattern-bindings k-swap-au-result)
-                                 :source-bindings (au-benchmark.msg.kswap-omega::source-bindings k-swap-au-result)
-                                 :pattern-delta (au-benchmark.msg.kswap-omega::pattern-delta k-swap-au-result)
-                                 :source-delta (au-benchmark.msg.kswap-omega::source-delta k-swap-au-result)
-                                 :cost (au-benchmark.msg.kswap-omega::cost k-swap-au-result))
+                                 :pattern (au-lib::pattern k-swap-au-result)
+                                 :source (au-lib::source k-swap-au-result)
+                                 :generalisation (au-lib::generalisation k-swap-au-result)
+                                 :pattern-bindings (au-lib::pattern-bindings k-swap-au-result)
+                                 :source-bindings (au-lib::source-bindings k-swap-au-result)
+                                 :pattern-delta (au-lib::pattern-delta k-swap-au-result)
+                                 :source-delta (au-lib::source-delta k-swap-au-result)
+                                 :cost (au-lib::cost k-swap-au-result))
             into au-meaning-results
         else
           do (return au-meaning-results)
@@ -565,7 +563,7 @@ non-applicable constructions."
                                (speech-act-meaning-predicates list)
                                (mode (eql :exhaustive)) &key &allow-other-keys)
   "Anti-unify meaning predicates using the exhaustive algorithm."
-  (loop with au-results = (anti-unify-predicate-network cxn-meaning-predicates speech-act-meaning-predicates)
+  (loop with au-results = (au-lib:anti-unify-predicate-networks cxn-meaning-predicates speech-act-meaning-predicates mode)
         with cost = (cost (first au-results))
         for au-result in au-results
         if (= cost (cost au-result))
