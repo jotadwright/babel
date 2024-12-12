@@ -93,6 +93,8 @@
    ((and (variable-p (first b)) (length= 2 b))
     (make-instance 'binding :var (first b)
                    :score 1.0 :value (second b)))
+   ((and (variable-p (first b)) (length= 1 b))
+    (make-instance 'binding :var (first b)))
    (t (error "could not turn ~a into binding(s)" b))))
 
 
