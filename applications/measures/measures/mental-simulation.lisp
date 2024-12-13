@@ -47,8 +47,8 @@
       (values anchoring-list vars-list)))))
 
 (defun calculate-questions-solved-by-mental-simulation-in-node (bindings previous-bindings)
-  (let* ((bound-bindings (loop for b in bindings if (value b) collect b))
-         (bound-bindings-previous (loop for b in previous-bindings if (value b) collect b))
+  (let* ((bound-bindings (loop for b in bindings if (slot-boundp b 'value) collect b))
+         (bound-bindings-previous (loop for b in previous-bindings if (slot-boundp b 'value) collect b))
          (new-bound-bindings (set-difference bound-bindings bound-bindings-previous))
          (new-bound-bindings-length (length new-bound-bindings)))
     (values new-bound-bindings-length new-bound-bindings)))
@@ -78,8 +78,8 @@
 
 
 (defun calculate-questions-solved-by-mental-simulation-in-node (bindings previous-bindings)
-  (let* ((bound-bindings (loop for b in bindings if (value b) collect b))
-         (bound-bindings-previous (loop for b in previous-bindings if (value b) collect b))
+  (let* ((bound-bindings (loop for b in bindings if (slot-boundp b 'value) collect b))
+         (bound-bindings-previous (loop for b in previous-bindings if (slot-boundp b 'value) collect b))
          (new-bound-bindings (set-difference bound-bindings bound-bindings-previous))
          (new-bound-bindings-length (length new-bound-bindings)))
     (values new-bound-bindings-length new-bound-bindings)))

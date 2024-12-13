@@ -54,8 +54,8 @@
 (defun calculate-questions-solved-by-mental-simulation-in-node (primitive-under-evaluation bindings previous-bindings)
   "Calculate the questions that are solved in a node by comparing the previous bindings with the new bindings.
    Also find the knowledge source which was responsible for solving the variable."
-  (let* ((bound-bindings (loop for b in bindings if (value b) collect b))
-         (bound-bindings-previous (loop for b in previous-bindings if (value b) collect b))
+  (let* ((bound-bindings (loop for b in bindings if (slot-boundp b 'value) collect b))
+         (bound-bindings-previous (loop for b in previous-bindings if (slot-boundp b 'value) collect b))
          (new-bound-bindings (set-difference bound-bindings bound-bindings-previous))
          (primitive-name (first primitive-under-evaluation))
          (primitive-type (primitive-type? primitive-name)))
@@ -74,7 +74,7 @@
 (defun calculate-questions-solved-by-mental-simulation-in-initial-node (primitive-under-evaluation bindings)
   "Calculate the bindings in the initial node."
   (let* ((bound-bindings (loop for b in bindings
-                               if (value b)
+                               if (slot-boundp b 'value)
                                  collect b)))
     (loop for binding in bound-bindings
           collect (list :initial binding))))
