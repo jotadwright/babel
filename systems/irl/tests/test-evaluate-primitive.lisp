@@ -4,14 +4,8 @@
 (deftest test-evaluate-primitive ()
          ;; give zero arguments
          (test-assert (null (evaluate-primitive (find-primitive 'pick-apples *apple-counting-inventory*)
-                                                `(,(make-instance 'binding
-                                                                  :var '?var-1
-                                                                  :score 0.5
-                                                                  :value nil)
-                                                  ,(make-instance 'binding
-                                                                  :var '?var-2
-                                                                  :score 0.5
-                                                                  :value nil))
+                                                (make-bindings
+                                                 '((?var-1) (?var-2)))
                                                 *test-ontology*)))
          ;; give first
          (test-assert (= 1 (length (evaluate-primitive

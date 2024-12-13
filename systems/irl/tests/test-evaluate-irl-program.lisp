@@ -2,49 +2,37 @@
 (in-package :irl)
 
 (deftest test-evaluate-bind-statements ()
-         (test-assert (evaluate-bind-statements
-                       '((bind quantity ?amount ten))
-                       *test-ontology*)))
+  (test-assert (evaluate-bind-statements
+                '((bind quantity ?amount ten))
+                *test-ontology*)))
 ;; (test-evaluate-bind-statements)
 
 (deftest test-evaluate-primitive-in-program ()
-         ;; both given consistent
-         (multiple-value-bind (succeeded-results failed-results)
-             (evaluate-primitive-in-program 
-              '(pick-apples ?var-1 ?var-2)
-              (list (make-instance 'binding
-                                   :var '?var-1
-                                   :score 0.5
-                                   :value (make-apples-set 20))
-                    (make-instance
-                     'binding
-                     :var '?var-2
-                     :score 0.5
-                     :value (make-instance 'quantity :n 20)))
-              *test-ontology*
-              *apple-counting-inventory*)
-         (test-assert (= 1 (length succeeded-results))))
+  ;; both given consistent
+  (multiple-value-bind (succeeded-results failed-results)
+      (evaluate-primitive-in-program 
+       '(pick-apples ?var-1 ?var-2)
+       (make-bindings
+        `((?var-1 0.5 ,(make-apples-set 20))
+          (?var-2 0.5 ,(make-instance 'quantity :n 20))))
+       *test-ontology*
+       *apple-counting-inventory*)
+    (test-assert (= 1 (length succeeded-results))))
 
-         ;; both given inconsistent
-         ;; TO DO; evaluate-primitive-in-program now returns 
-         ;; succeeded-results and failed-results, no longer
-         ;; the symbol inconsistent
-         (multiple-value-bind (succeeded-results failed-results)
-             (evaluate-primitive-in-program
-              '(pick-apples ?var-1 ?var-2)
-              (list (make-instance 'binding
-                                   :var '?var-1
-                                   :score 0.5
-                                   :value (make-apples-set 20))
-                    (make-instance
-                     'binding
-                     :var '?var-2
-                     :score 0.5
-                     :value (make-instance 'quantity :n 19)))
-              *test-ontology*
-              *apple-counting-inventory*)
-           (test-assert (= 1 (length failed-results)))
-           (test-assert (eql 'inconsistent (per-status (first failed-results))))))
+  ;; both given inconsistent
+  ;; TO DO; evaluate-primitive-in-program now returns 
+  ;; succeeded-results and failed-results, no longer
+  ;; the symbol inconsistent
+  (multiple-value-bind (succeeded-results failed-results)
+      (evaluate-primitive-in-program
+       '(pick-apples ?var-1 ?var-2)
+       (make-bindings
+        `((?var-1 0.5 ,(make-apples-set 20))
+          (?var-2 0.5 ,(make-instance 'quantity :n 19))))
+       *test-ontology*
+       *apple-counting-inventory*)
+    (test-assert (= 1 (length failed-results)))
+    (test-assert (eql 'inconsistent (per-status (first failed-results))))))
 ;; (test-evaluate-primitive-in-program)
 
 
@@ -53,7 +41,7 @@
 ;; #############################################
 (deftest test-check-irl-program ()
   (test-assert (check-irl-program '() *test-ontology* *apple-counting-inventory*))
-  (test-error (check-irl-program '(()) **test-ontology* apple-counting-inventory*))
+  (test-error (check-irl-program '(()) *test-ontology* *apple-counting-inventory*))
   (test-assert (check-irl-program
                 `((bind entity ?var ,(make-instance 'entity :id 'entity)))
                 *test-ontology* *apple-counting-inventory*))
@@ -68,8 +56,8 @@
    (check-irl-program `((bind apples-set ?var entity-2))
                       *test-ontology* *apple-counting-inventory*))
   (test-error
-   (check-irl-program `((bind entity ?var- entity-1)
-                        (bind entity ?var entity-2))
+   (check-irl-program `((bind entity ?var one)
+                        (bind entity ?var two))
                       *test-ontology* *apple-counting-inventory*))
   (test-assert (check-irl-program '((pick-apples ?var-1 ?var-2))
                                   *test-ontology* *apple-counting-inventory*))
@@ -103,74 +91,74 @@
 
 ;; test evaluate irl program
 (deftest test-evaluate-irl-program ()
-         ;; pick-apples: all bound
-         (evaluate-irl-program-test 1 `((bind apples-set ?apples ,(make-apples-set 7))
-                                        (pick-apples ?apples ?amount)
-                                        (bind quantity ?amount seven)))
+  ;; pick-apples: all bound
+  (evaluate-irl-program-test 1 `((bind apples-set ?apples ,(make-apples-set 7))
+                                 (pick-apples ?apples ?amount)
+                                 (bind quantity ?amount seven)))
                   
-         ;; pick-apples: set -> amount
-         (evaluate-irl-program-test 1 `((bind apples-set ?apples ,(make-apples-set 7))
-                                        (pick-apples ?apples ?amount)))
+  ;; pick-apples: set -> amount
+  (evaluate-irl-program-test 1 `((bind apples-set ?apples ,(make-apples-set 7))
+                                 (pick-apples ?apples ?amount)))
   
-         ;; pick-apples: amount -> set
-         (evaluate-irl-program-test 1 `((pick-apples ?apples ?amount)
-                                        (bind quantity ?amount seven)))
+  ;; pick-apples: amount -> set
+  (evaluate-irl-program-test 1 `((pick-apples ?apples ?amount)
+                                 (bind quantity ?amount seven)))
 
 
-         ;; add-apples: all-bound
-         (evaluate-irl-program-test 1 `((bind apples-set ?apples ,(make-apples-set 17))
-                                        (add-apples ?apples ?amount ?apples-2)
-                                        (bind apples-set ?apples-2 ,(make-apples-set 7))
-                                        (bind quantity ?amount ten)))
+  ;; add-apples: all-bound
+  (evaluate-irl-program-test 1 `((bind apples-set ?apples ,(make-apples-set 17))
+                                 (add-apples ?apples ?amount ?apples-2)
+                                 (bind apples-set ?apples-2 ,(make-apples-set 7))
+                                 (bind quantity ?amount ten)))
 
-         ;; add-apples: set, amount -> sum
-         (evaluate-irl-program-test 1 `((add-apples ?apples ?amount ?apples-2)
-                                        (bind apples-set ?apples-2 ,(make-apples-set 7))
-                                        (bind quantity ?amount ten)))
+  ;; add-apples: set, amount -> sum
+  (evaluate-irl-program-test 1 `((add-apples ?apples ?amount ?apples-2)
+                                 (bind apples-set ?apples-2 ,(make-apples-set 7))
+                                 (bind quantity ?amount ten)))
 
-         ;; add-apples: sum -> amount, set
-         (evaluate-irl-program-test 1 `((bind apples-set ?apples ,(make-apples-set 17))
-                                        (add-apples ?apples ?amount ?apples-2)))
-
-
-
-         ;; multiply-apples: all bound
-         (evaluate-irl-program-test 1 `((bind apples-set ?apples ,(make-apples-set 32))
-                                        (multiply-apples ?apples ?factor ?amount ?apples-2)
-                                        (bind apples-set ?apples-2 ,(make-apples-set 2))
-                                        (bind quantity ?factor three)
-                                        (bind quantity ?amount ten)))
+  ;; add-apples: sum -> amount, set
+  (evaluate-irl-program-test 1 `((bind apples-set ?apples ,(make-apples-set 17))
+                                 (add-apples ?apples ?amount ?apples-2)))
 
 
-         ;; multiply-apples: factor, amount, set -> sum
-         (evaluate-irl-program-test 1 `((multiply-apples ?apples ?factor ?amount ?apples-2)
-                                        (bind apples-set ?apples-2 ,(make-apples-set 2))
-                                        (bind quantity ?factor three)
-                                        (bind quantity ?amount ten)))
+
+  ;; multiply-apples: all bound
+  (evaluate-irl-program-test 1 `((bind apples-set ?apples ,(make-apples-set 32))
+                                 (multiply-apples ?apples ?factor ?amount ?apples-2)
+                                 (bind apples-set ?apples-2 ,(make-apples-set 2))
+                                 (bind quantity ?factor three)
+                                 (bind quantity ?amount ten)))
 
 
-         ;; sum -> factor, amount-1, amount-2
-         (evaluate-irl-program-test 1 `((bind apples-set ?apples ,(make-apples-set 32))
-                                        (multiply-apples ?apples ?factor ?amount ?apples-2)))
+  ;; multiply-apples: factor, amount, set -> sum
+  (evaluate-irl-program-test 1 `((multiply-apples ?apples ?factor ?amount ?apples-2)
+                                 (bind apples-set ?apples-2 ,(make-apples-set 2))
+                                 (bind quantity ?factor three)
+                                 (bind quantity ?amount ten)))
+
+
+  ;; sum -> factor, amount-1, amount-2
+  (evaluate-irl-program-test 1 `((bind apples-set ?apples ,(make-apples-set 32))
+                                 (multiply-apples ?apples ?factor ?amount ?apples-2)))
   
   
-         ;; interpret "97 apples"
-         (evaluate-irl-program-test 1 `((multiply-apples ?apples ?factor ?amount-1 ?apples-2)
-                                        (bind quantity ?factor four)
-                                        (bind quantity ?amount-1 twenty)
-                                        (add-apples ?apples-2 ?amount-2 ?apples-3)
-                                        (bind quantity ?amount-2 ten)
-                                        (pick-apples ?apples-3 ?amount-3)
-                                        (bind quantity ?amount-3 seven)))
+  ;; interpret "97 apples"
+  (evaluate-irl-program-test 1 `((multiply-apples ?apples ?factor ?amount-1 ?apples-2)
+                                 (bind quantity ?factor four)
+                                 (bind quantity ?amount-1 twenty)
+                                 (add-apples ?apples-2 ?amount-2 ?apples-3)
+                                 (bind quantity ?amount-2 ten)
+                                 (pick-apples ?apples-3 ?amount-3)
+                                 (bind quantity ?amount-3 seven)))
 
-         ;; produce "97 apples"
-         (evaluate-irl-program-test 1 `((bind apples-set ?apples ,(make-apples-set 97))
-                                        (multiply-apples ?apples ?factor ?amount-1 ?apples-2)
-                                        (add-apples ?apples-2 ?amount-2 ?apples-3)
-                                        (pick-apples ?apples-3 ?amount-3)))
+  ;; produce "97 apples"
+  (evaluate-irl-program-test 1 `((bind apples-set ?apples ,(make-apples-set 97))
+                                 (multiply-apples ?apples ?factor ?amount-1 ?apples-2)
+                                 (add-apples ?apples-2 ?amount-2 ?apples-3)
+                                 (pick-apples ?apples-3 ?amount-3)))
 
-         ;; cleanup
-         (fmakunbound 'evaluate-irl-program-test))
+  ;; cleanup
+  (fmakunbound 'evaluate-irl-program-test))
 
 
 ;;(test-evaluate-irl-program)
