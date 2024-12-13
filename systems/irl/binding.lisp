@@ -55,7 +55,7 @@
   "Evaluates a set of bind statements by searching for values in the
    ontology or by binding the value in the bind statement."
   (loop for (bind class var value . available-at) in bind-statements
-        collect (evaluate-bind-statement class var value available-at ontology)))
+        collect (evaluate-bind-statement class var value (first available-at) ontology)))
 
 
 ;; #############################################
