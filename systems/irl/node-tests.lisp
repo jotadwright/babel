@@ -70,7 +70,7 @@
     (let ((duplicatep
            (when (succeeded-nodes (pip node))
              (loop for succeeded-node in (succeeded-nodes (pip node))
-                   never (duplicate-node-p node succeeded-node)))))
+                   thereis (duplicate-node-p node succeeded-node)))))
       (when duplicatep
         (push 'duplicate (statuses node)))
       (not duplicatep))))
