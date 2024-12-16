@@ -664,7 +664,6 @@
 ;; No solutions left
 (get-next-solutions *my-composer*)
 
-
 ;;   ######################################################
 ;;   Part 7c: Confine the search
 
@@ -705,7 +704,7 @@
                  (create-chunk-from-primitive 'filter-by-size))
    :ontology *ontology* :primitive-inventory *irl-primitives*
    :configurations '((:max-search-depth . 6)
-                     (:check-node-modes :check-duplicate
+                     (:chunk-node-tests :check-duplicate
                                         :no-primitive-occurs-more-than-once))))
 
 (get-all-solutions *my-composer-2*) ;; now it only returns relevant results (2)
