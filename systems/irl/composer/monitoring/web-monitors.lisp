@@ -18,40 +18,49 @@
                            collect (make-html chunk :expand-initially t))))
     (add-element `((p) ((b) "no results")))))
 
-;; ---------------
+;; ------------------
 ;; + chunk-composer +
-;; ---------------
-
-(defparameter *composer-start-time* nil)
-
-(define-event chunk-composer-started (answer string))
-(define-event-handler ((trace-irl trace-irl-verbose)
-                        chunk-composer-started)
-  (add-element '((hr :style "border-top: 3px dashed #E65C00;background-color:#fff")))
-  (add-element '((h2) "Meta-layer: Intention Reading"))
-  (add-element `((h3) ,(format nil "Aim is to compose network with answer: ~a" answer))))
-
-(define-event-handler ((trace-irl trace-irl-verbose)
-                       chunk-composer-configuration)
-  (setf *composer-start-time* (get-universal-time))
-  (add-element `((div :class "indent-irpf") ,(make-html composer)))
-  (add-element `((div :class "indent-irpf") ,(make-html (ontology composer))))
-  (when (meaning composer)
-    (add-element '((h3) "Using partial meaning:"))
-    (add-element `((div :class "indent-irpf") ,(irl-program->svg (meaning composer))))))
+;; ------------------
 
 (define-event-handler ((trace-irl trace-irl-verbose)
                        chunk-composer-get-next-solutions-started)
-  ;(add-element '((h3) "Computing next composer solution"))
-  )
+  (add-element '((hr)))
+  (add-element '((h2) "Computing next composer solution"))
+  (add-element `((p) ,(make-html composer)))
+  (add-element '((h3) "using ontology:"))
+  (add-element (make-html (ontology composer)))
+  (when (meaning composer)
+    (add-element '((h3) "using partial meaning:"))
+    (add-element `((div) ,(irl-program->svg (meaning composer)))))
+  (add-element '((hr))))
 
 (define-event-handler ((trace-irl trace-irl-verbose)
                        chunk-composer-get-all-solutions-started)
-  (add-element '((h3) "Computing all composer solutions")))
+  (add-element '((hr)))
+  (add-element '((h2) "Computing all composer solutions"))
+  (add-element `((p) ,(make-html composer)))
+  (add-element '((h3) "using ontology:"))
+  (add-element (make-html (ontology composer)))
+  (when (meaning composer)
+    (add-element '((h3) "using partial meaning:"))
+    (add-element `((div) ,(irl-program->svg (meaning composer)))))
+  (add-element '((hr))))
 
 (define-event-handler ((trace-irl trace-irl-verbose)
                        chunk-composer-get-solutions-until-started)
-  (add-element '((h3) "Computing all composer solutions until stop criterion")))
+  (add-element '((hr)))
+  (add-element '((h2) "Computing all composer solutions until stop criterion"))
+  (add-element `((p) ,(make-html composer)))
+  (add-element '((h3) "using ontology:"))
+  (add-element (make-html (ontology composer)))
+  (when (meaning composer)
+    (add-element '((h3) "using partial meaning:"))
+    (add-element `((div) ,(irl-program->svg (meaning composer)))))
+  (add-element '((hr))))
+
+(define-event-handler ((trace-irl trace-irl-verbose)
+                       chunk-composer-next-composer-solutions)
+  (add-element '((h3) "Next composer solution")))
 
 (define-event-handler (trace-irl-verbose
                        chunk-composer-node-handled)
@@ -114,8 +123,7 @@
       (add-element `((h3) ,(format nil "Found ~a solutions:"
                                     (length solutions))))
       (composer-solutions->html solutions)
-      (add-element '((h2 :style "color:#040;") "A meaning hypothesis has been found!"))
-      )
+      (add-element '((h2 :style "color:#040;") "A meaning hypothesis has been found!")))
     (add-element '((h3) "No solutions found.")))
   (when (and (solutions composer)
               (not (length= (solutions composer) solutions)))

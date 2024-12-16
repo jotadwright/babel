@@ -4,7 +4,7 @@
 ;; composer search
 ;; -----------------------------------------
 
-(define-event chunk-composer-configuration
+(define-event chunk-composer-next-composer-solutions
   (composer chunk-composer))
 (define-event chunk-composer-get-next-solutions-started
   (composer chunk-composer))
@@ -36,68 +36,70 @@
     (setf (queue composer)
           (sorted-insert (queue composer) node
                          :key #'cost :test #'<))))
-                 
 
-(defun get-next-solutions (composer &key silent)
+
+(defun next-composer-solutions (composer &key silent)
   (unless silent
-    (notify chunk-composer-configuration composer)
-    (notify chunk-composer-get-next-solutions-started composer))
-  (when (queue composer)
-    (loop
+    (notify chunk-composer-next-composer-solutions composer))
+  (loop
      with queue-mode = (get-configuration composer :queue-mode)
      for node = (pop (queue composer))
      for handler = (next-handler node)
      for (solutions new-nodes)
-     ;; handle the node
-     = (multiple-value-list
-        (handle-node node handler composer))
+       ;; handle the node
+       = (multiple-value-list
+          (handle-node node handler composer))
      do (progn (unless silent (notify chunk-composer-node-handled node handler))
           (enqueue-chunk-node node composer queue-mode))
      ;; handle new nodes
      when new-nodes
-     do (loop for new-node in new-nodes
-              do (add-node composer new-node :parent node)
-              do (enqueue-chunk-node new-node composer queue-mode)
-              finally (unless silent (notify chunk-composer-new-nodes new-nodes)))
-     ;; handle solutions
+       do (loop for new-node in new-nodes
+                do (add-node composer new-node :parent node)
+                do (enqueue-chunk-node new-node composer queue-mode)
+                finally (unless silent (notify chunk-composer-new-nodes new-nodes)))
+       ;; handle solutions
      when solutions
-     do (progn
-          (loop for solution in solutions
-                do (setf (score solution)
-                         (run-chunk-evaluation-result-score
-                          solution composer)))
-          (setf (solutions composer)
-                (sort (append solutions (solutions composer))
-                      #'> :key #'score)))
-     ;; continue loop
+       do (progn
+            (loop for solution in solutions
+                  do (setf (score solution)
+                           (run-chunk-evaluation-result-score
+                            solution composer)))
+            (setf (solutions composer)
+                  (sort (append solutions (solutions composer))
+                        #'> :key #'score)))
+       ;; continue loop
      when (and (queue composer) (not silent))
-     do (notify chunk-composer-next-node (first (queue composer)))
+       do (notify chunk-composer-next-node (first (queue composer)))
      while (queue composer)
      until solutions
      finally
-     (progn
-       ;; notify
-       (unless silent (notify chunk-composer-finished solutions composer))
-       ;; return the solutions
-       (return solutions)))))
+       (progn
+         ;; notify
+         (unless silent (notify chunk-composer-finished solutions composer))
+         ;; return the solutions
+         (return solutions))))
+                 
+
+(defun get-next-solutions (composer &key silent)
+  (unless silent
+    (notify chunk-composer-get-next-solutions-started composer))
+  (when (queue composer)
+    (next-composer-solutions composer :silent silent)))
 
 
 (defun get-all-solutions (composer &key silent)
   (unless silent
-    (notify chunk-composer-configuration composer)
     (notify chunk-composer-get-all-solutions-started composer))
   (loop while (queue composer)
-        do (get-next-solutions composer :silent silent))
+        do (next-composer-solutions composer :silent silent))
   (solutions composer))
 
 
-(defun get-solutions-until (composer &key (stop-criteria #'identity)
-                                     silent)
+(defun get-solutions-until (composer &key (stop-criteria #'identity) silent)
   (unless silent
-    (notify chunk-composer-configuration composer)
     (notify chunk-composer-get-solutions-until-started composer))
   (sort
    (loop while (and (queue composer)
                     (not (funcall stop-criteria composer)))
-         append (get-next-solutions composer :silent silent))
+         append (next-composer-solutions composer :silent silent))
    #'> :key #'score))
