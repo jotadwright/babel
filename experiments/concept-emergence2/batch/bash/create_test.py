@@ -20,6 +20,7 @@ template = """\
 sbcl --dynamic-space-size 16000 --non-interactive --load test.lisp \\
     exp-name {exp_name} \\
     nr-of-interactions {nr_of_interactions} \\
+    dataset-loader {dataset_loader} \\
     dataset {dataset} \\
     dataset-split {dataset_split} \\
     feature-set {feature_set} \\

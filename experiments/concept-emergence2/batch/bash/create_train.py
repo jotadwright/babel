@@ -22,6 +22,7 @@ sbcl --dynamic-space-size 16000 --non-interactive --load run.lisp \\
     nr-of-series {nr_of_series} \\
     nr-of-interactions {nr_of_interactions} \\
     population-size {population_size} \\
+    dataset-loader {dataset_loader} \\
     dataset {dataset} \\
     dataset-split {dataset_split} \\
     feature-set {feature_set} \\

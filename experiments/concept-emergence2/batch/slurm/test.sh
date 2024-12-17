@@ -15,6 +15,7 @@ module load SBCL/2.4.1-GCCcore-12.3.0
 sbcl --dynamic-space-size $space --load $VSC_HOME/concept-emergence2/batch/test.lisp \
     exp-name $exp_name \
     nr-of-interactions $nr_of_interactions \
+    dataset-loader $dataset_loader \\
     dataset $dataset \
     dataset-split $dataset_split \
     feature-set $feature_set \

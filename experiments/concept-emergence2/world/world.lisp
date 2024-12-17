@@ -30,7 +30,7 @@
 
 (defmethod initialize-instance :after ((world world) &key experiment)
   "Initializes the world by loading the dataset."
-  (setf (dataset-name world) (get-configuration experiment :dataset-name))
+  (setf (dataset-name world) (get-configuration experiment :dataset))
   (setf (dataset-split world) (get-configuration experiment :dataset-split))
   
   ;; load the features

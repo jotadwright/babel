@@ -18,7 +18,7 @@
                 (:dataset-loader . :runtime)
                 (:min-context-size . 3)
                 (:max-context-size . 10)
-                (:dataset-name . "winery")
+                (:dataset . "winery")
                 (:dataset-split . "train")
                 ;(:data-fname . "all.lisp")
                 (:feature-set . "winery")
