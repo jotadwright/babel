@@ -56,10 +56,10 @@
 (defmethod random-scene ((world world) (mode (eql :split-by-objects)))
   "Create a scene by randomly sampling objects"
   (let* ((context-size (sample-context-size world))
-        (objects (random-elts-ht (data world) context-size))
-        (scene (objects->cle-scene objects
-                                   :dataset (dataset-name world)
-                                   :dataset-split (dataset-split world)
-                                   :feature-set (feature-set world))))
+         (objects (random-elts-ht (data world) context-size))
+         (scene (objects->cle-scene objects
+                                    :dataset (dataset-name world)
+                                    :dataset-split (dataset-split world)
+                                    :feature-set (feature-set world))))
     (setf (current-scene world) scene)
     (current-scene world)))
