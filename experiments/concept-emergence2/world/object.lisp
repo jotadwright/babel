@@ -46,12 +46,10 @@
 ;; + CLE-Object +
 ;; --------------
 (defmethod s-expr->cle-objects (s-expressions feature-set)
-  (loop with hash-table = (make-hash-table :test #'equal)
-        for s-expr in s-expressions
+  (loop for s-expr in s-expressions
         for idx = (parse-integer (symbol-name (first s-expr)))
         for cle-object = (s-expr->cle-object (rest s-expr) feature-set)
-        do (setf (gethash idx hash-table) cle-object)
-        finally (return hash-table)))
+        collect cle-object))
 
 (defmethod s-expr->cle-object (s-expr feature-set)
   "Create an instance of cle-scene from an s-expression"

@@ -48,7 +48,8 @@
    (min-context-size :type int :initform nil :accessor min-context-size)
    (max-context-size :type int :initform nil :accessor max-context-size)
    ;; list of filepaths or in-memory loaded objects
-   (objects :type list :initform nil :accessor objects))
+   (objects :type list :initform nil :accessor objects)
+   (object-indexes :type int :initform nil :accessor object-indexes))
   (:documentation "An environment where the scenes are created at runtime."))
 
 (defmethod initialize-instance :after ((world runtime-world) &key experiment)
@@ -100,11 +101,13 @@
                                 cl-user:*babel-corpora*)))
     (unless (probe-file fpath)
       (error "Could not find a 'scenes' subdirectory in '~a'~%" fpath))
-    ;; set the scenes (sorted by name)
+    ;; load the scene fpaths (sorted by name)
+    (format t "~% Loading precomputed scenes...")
     (let* ((fpaths (sort (directory (make-pathname :directory (pathname-directory fpath)
-                                                         :name :wild :type "json"))
-                               #'string< :key #'namestring)))
-      (setf (fpaths world) fpaths))))
+                                                   :name :wild :type "json"))
+                         #'string< :key #'namestring)))
+      (setf (fpaths world) fpaths))
+    (format t "~% Completed loading.~%~%")))
 
 (defmethod load-data ((world runtime-world))
   (let ((fpath (merge-pathnames (make-pathname :directory `(:relative
@@ -122,8 +125,13 @@
     (unless (probe-file fpath)
       (error "Could not find a 'scenes' subdirectory in ~a~%" fpath))
     ;; load the dataset
-    (let ((raw-data (decode-json-as-alist-from-source fpath)))
-      (setf (objects world) (s-expr->cle-objects raw-data (feature-set world))))))
+    (format t "~% Loading the scenes...")
+    (let* ((raw-data (decode-json-as-alist-from-source fpath))
+           (objects (s-expr->cle-objects raw-data (feature-set world))))
+      (setf (objects world) objects)
+      (setf (object-indexes world) (loop for idx from 0 to (- (length objects) 1)
+                                         collect idx)))
+    (format t "~% Completed loading.~%~%")))
 
 ;; --------------------
 ;; + Helper functions +

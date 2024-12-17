@@ -13,10 +13,11 @@
 (defmethod get-scene-by-index ((world world) index)
   "Get a particular scene by its index."
   (assert (and (>= index 0) (< index (length (fpaths world)))))
-  (setf (current-scene world)
-        (load-scene (nth index (fpaths world))
-                    (feature-set world)))
-  (current-scene world))
+  (let* ((fpath (nth index (fpaths world)))
+         (s-expr (decode-json-as-alist-from-source fpath))
+         (scene (s-expr->cle-scene s-expr world)))
+    (setf (current-scene world) scene)
+    (current-scene world)))
 
 ;; ------------------
 ;; + Scene sampling +
@@ -39,7 +40,7 @@
 (defmethod random-scene ((world runtime-world))
   "Create a scene by randomly sampling objects"
   (let* ((context-size (sample-context-size world))
-         (objects (random-elts-ht (objects world) context-size))
+         (objects (random-elts (objects world) context-size))
          (scene (objects->cle-scene objects world)))
     (setf (current-scene world) scene)
     (current-scene world)))

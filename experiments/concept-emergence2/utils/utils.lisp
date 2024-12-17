@@ -111,16 +111,6 @@
   (loop for value being the hash-values of ht
         collect value))
 
-(defun random-elt-ht (hash-table)
-  (when (> (hash-table-count hash-table) 0)
-    (random-elt (hash-values hash-table))))
-
-(defun random-elts-ht (hash-table n)
-  (when (> (hash-table-count hash-table) 0)
-    (let ((vals (hash-values hash-table)))
-      (loop for i from 0 to (- n 1)
-            collect (random-elt vals)))))
-
 (defun create-configurations (parameters)
   "Generate a set of experiments. Specify which parameters are variable
    and what their possible values can be. Optionally specify an a-list

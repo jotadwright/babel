@@ -18,6 +18,8 @@ sbcl --dynamic-space-size $space --load $VSC_HOME/concept-emergence2/batch/run.l
     nr-of-interactions $nr_of_interactions \
     population-size $population_size \
     dataset-loader $dataset_loader \\
+    min-context-size $min_context_size \\
+    max-context-size $max_context_size \\
     dataset $dataset \
     dataset-split $dataset_split \
     feature-set $feature_set \
