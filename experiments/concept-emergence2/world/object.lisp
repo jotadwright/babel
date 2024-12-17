@@ -4,22 +4,22 @@
 ;; + CLE object set +
 ;; ------------------
 
-(defmethod s-expr->cle-scene (s-expr &key dataset dataset-split feature-set)
+(defmethod s-expr->cle-scene (s-expr world)
   "Create an instance of cle-scene from an s-expression"
   (make-instance 'cle-scene
                  :index (rest (assoc :image--index s-expr))
-                 :dataset dataset
-                 :dataset-split dataset-split
+                 :dataset (dataset-name world)
+                 :dataset-split (dataset-split world)
                  :image-fname (rest (assoc :image--filename s-expr))
                  :objects (loop for obj in (rest (assoc :objects s-expr))
-                                collect (s-expr->cle-object obj feature-set))))
+                                collect (s-expr->cle-object obj (feature-set world)))))
 
-(defmethod objects->cle-scene (objects &key dataset dataset-split feature-set)
+(defmethod objects->cle-scene (objects world)
   "Create an instance of cle-scene from an s-expression"
   (make-instance 'cle-scene
                  :index 0
-                 :dataset dataset
-                 :dataset-split dataset-split
+                 :dataset (dataset-name world)
+                 :dataset-split (dataset-split world)
                  :image-fname "nil"
                  :objects objects))
 

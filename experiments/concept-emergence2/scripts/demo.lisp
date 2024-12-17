@@ -15,12 +15,13 @@
                 (:interacting-agents-strategy . :standard)
                 (:population-size . 10)
                 ;; setup data scene
-                (:dataset-loader . :split-by-objects)
+                (:dataset-loader . :runtime)
                 (:min-context-size . 3)
                 (:max-context-size . 10)
+                (:dataset-name . "winery")
                 (:dataset-split . "train")
                 ;(:data-fname . "all.lisp")
-                (:feature-set . "clevr")
+                (:feature-set . "winery")
                 ;; disable channels
                 (:disable-channels . :none)
                 (:amount-disabled-channels . 0)

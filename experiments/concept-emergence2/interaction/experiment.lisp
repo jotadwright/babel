@@ -19,13 +19,12 @@
 
 (defun initialise-world (experiment)
   "Initialise the world of the experiment by loading the given dataset."
-  (setf (world experiment) (make-instance 'world
-                                          :dataset-loader (get-configuration experiment :dataset-loader)
-                                          :dataset-name (get-configuration experiment :dataset)
-                                          :dataset-split (get-configuration experiment :dataset-split)
-                                          :feature-set (get-configuration experiment :feature-set)
-                                          :min-context-size (get-configuration experiment :min-context-size)
-                                          :max-context-size (get-configuration experiment :max-context-size))))
+  (let ((world (case (get-configuration experiment :dataset-loader)
+                 (:precomputed (make-instance 'precomputed-world
+                                              :experiment experiment))
+                 (:runtime (make-instance 'runtime-world
+                                          :experiment experiment)))))
+    (setf (world experiment) world)))
 
 (defun initialise-agent (experiment disabled-channels)
   "Creates and initialises an agent with sensors and calibrations for these sensors."
