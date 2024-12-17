@@ -15,7 +15,9 @@
                 (:interacting-agents-strategy . :standard)
                 (:population-size . 10)
                 ;; setup data scene
-                (:dataset . "clevr")
+                (:dataset-loader . :split-by-objects)
+                (:min-context-size . 3)
+                (:max-context-size . 10)
                 (:dataset-split . "train")
                 ;(:data-fname . "all.lisp")
                 (:feature-set . "clevr")

@@ -14,6 +14,15 @@
                  :objects (loop for obj in (rest (assoc :objects s-expr))
                                 collect (s-expr->cle-object obj feature-set))))
 
+(defmethod objects->cle-scene (objects &key dataset dataset-split feature-set)
+  "Create an instance of cle-scene from an s-expression"
+  (make-instance 'cle-scene
+                 :index 0
+                 :dataset dataset
+                 :dataset-split dataset-split
+                 :image-fname "nil"
+                 :objects objects))
+
 (defclass cle-scene (entity)
   ((index
     :documentation "Index of the scene"
@@ -36,6 +45,14 @@
 ;; --------------
 ;; + CLE-Object +
 ;; --------------
+(defmethod s-expr->cle-objects (s-expressions feature-set)
+  (loop with hash-table = (make-hash-table :test #'equal)
+        for s-expr in s-expressions
+        for idx = (parse-integer (symbol-name (first s-expr)))
+        for cle-object = (s-expr->cle-object (rest s-expr) feature-set)
+        do (setf (gethash idx hash-table) cle-object)
+        finally (return hash-table)))
+
 (defmethod s-expr->cle-object (s-expr feature-set)
   "Create an instance of cle-scene from an s-expression"
   (make-instance 'cle-object
