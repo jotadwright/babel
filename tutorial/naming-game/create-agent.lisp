@@ -41,9 +41,19 @@
                                              (meaning set-of-predicates)
                                              (subunits set)
                                              (footprints set))
+                             :visualization-configurations ((:show-constructional-dependencies . nil))
                              :fcg-configurations ((:production-goal-tests :no-meaning-in-root)
                                                   (:parse-goal-tests :no-strings-in-root)
-                                                  (:draw-meaning-as-network . nil))))))
+                                                  (:draw-meaning-as-network . nil)
+                                                  (:render-mode . :render-string-meets)
+                                                  (:de-render-mode . :de-render-string-meets)
+                                                  
+                                                  (:construction-inventory-processor-mode . :heuristic-search) 
+                                                  (:node-expansion-mode . :full-expansion) 
+                                                  (:cxn-supplier-mode . :all-cxns) 
+                                                  (:search-algorithm . :best-first) 
+                                                  (:heuristics :cxn-score) 
+                                                  (:heuristic-value-mode . :sum-heuristics-and-parent))))))
 
 (defmethod make-agents ((experiment experiment))
   "Creates the different agents in the population of experiment"
