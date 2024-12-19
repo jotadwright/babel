@@ -8,9 +8,9 @@
   ((lexicon
     :documentation "The agent's lexicon."
     :type lexicon :accessor lexicon :initarg :lexicon :initform nil)
-   (trash
-    :documentation "The lexicon trash, contains cxns with an entrenchment score of zero."
-    :type list :accessor trash :initform nil)
+   (views
+    :documentation "The views that the agent has over a world"
+    :type list :accessor views :initarg :views :initform nil)
    (disabled-channels
     :documentation "Disabled/defected channels."
     :type hash-table :accessor disabled-channels :initarg :disabled-channels :initform nil)

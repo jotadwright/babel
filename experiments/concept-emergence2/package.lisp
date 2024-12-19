@@ -20,4 +20,5 @@
    :encode-json-to-string
    :encode-json-alist-to-string)
   (:import-from :alexandria #:hash-table-alist)
+  (:local-nicknames (:jzon :com.inuoe.jzon))
   (:shadowing-import-from :fcg :size :attributes))

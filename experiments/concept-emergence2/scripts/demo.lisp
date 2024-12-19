@@ -15,13 +15,14 @@
                 (:interacting-agents-strategy . :standard)
                 (:population-size . 10)
                 ;; setup data scene
-                (:dataset-loader . :runtime)
+                (:dataset-loader . :precomputed)
+                (:dataset-view . :exclusive-views) ;; vs. :shared
+                (:dataset "qrio-1-a" "qrio-1-b")
                 (:min-context-size . 3)
                 (:max-context-size . 10)
-                (:dataset . "winery")
                 (:dataset-split . "train")
                 ;(:data-fname . "all.lisp")
-                (:feature-set . "winery")
+                (:feature-set "qrio" "qrio")
                 ;; disable channels
                 (:disable-channels . :none)
                 (:amount-disabled-channels . 0)

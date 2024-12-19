@@ -20,6 +20,7 @@
                :cl-mop
                :cl-json
                :cl-jonathan
+               :com.inuoe.jzon
                ;:distributions
                )
   :serial t

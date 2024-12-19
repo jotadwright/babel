@@ -16,23 +16,42 @@
 ;;    - symbolic-attribute: name of the symbolic attribute
 ;;       e.g. channels like 'width' and 'height' belong to the 'size' attribute
 
+
+;; ---------
+;; + World +
+;; ---------
+
 (defclass world (entity)
-  (;; init-ed params
-   (dataset-name :type string :accessor dataset-name)
-   (dataset-split :type string :accessor dataset-split) 
-   (feature-set :type string :initform nil :accessor feature-set)
-    ;; information about the loaded the feature-set
+  (;; train, val or test?
+   (dataset-split :type string :accessor dataset-split)
+   ;; names of the views over the dataset
+   (view-names :type list :initform nil :accessor view-names)
+   ;; views of the world
+   (views :type hash-table :initform (make-hash-table :test #'equal) :accessor views)
+   )
+  (:documentation "Captures the environments in which the agents interact."))
+
+(defclass world-view ()
+  (
+   (view-name :type str :initform nil :initarg :name :accessor view-name)
+   (data :type list :initform nil :accessor data)
+   ;; information about the loaded the feature-set
+   (feature-set :type list :initform nil :accessor feature-set)
    (channel-type :type hash-table :initform (make-hash-table :test #'equal) :accessor channel-type)
    (symbolic-attribute :type hash-table :initform (make-hash-table :test #'equal) :accessor symbolic-attribute)
-   ;; the loaded current scene
-   (current-scene :type (or null dataset-scene) :initform nil :accessor current-scene))
-  (:documentation "Captures the environments in which the agents interact."))
+   )
+  (:documentation "A view over the dataset"))
 
 (defmethod initialize-instance :after ((world world) &key experiment)
   "Initializes the world by loading the dataset."
-  (setf (dataset-name world) (get-configuration experiment :dataset))
   (setf (dataset-split world) (get-configuration experiment :dataset-split))
-  
+  (setf (view-names world) (get-configuration experiment :dataset))
+
+  ;; create the views
+  (loop for view-name in (view-names world)
+        for view = (make-instance 'world-view :name view-name)
+        do (setf (gethash view-name (views world)) view))
+
   ;; load the features
   (load-features world (get-configuration experiment :feature-set))
   
@@ -47,9 +66,7 @@
   (;; params
    (min-context-size :type int :initform nil :accessor min-context-size)
    (max-context-size :type int :initform nil :accessor max-context-size)
-   ;; list of filepaths or in-memory loaded objects
-   (objects :type list :initform nil :accessor objects)
-   (object-indexes :type int :initform nil :accessor object-indexes))
+   )
   (:documentation "An environment where the scenes are created at runtime."))
 
 (defmethod initialize-instance :after ((world runtime-world) &key experiment)
@@ -61,96 +78,131 @@
 ;; ----------------------
 
 (defclass precomputed-world (world)
-  (;; list of filepaths
-   (fpaths :type list :initform nil :accessor fpaths))
+  (;;params
+   )
    (:documentation "An environment where the scenes are created beforehand."))
 
 ;; -----------------
 ;; + Load features +
 ;; -----------------
-(defun load-features (world feature-set)
+(defun load-features (world feature-sets)
   "Set the available features/sensors."
-  (let* ((info-path (merge-pathnames (make-pathname :directory `(:relative "concept-emergence2" "-info")
-                                                    :name feature-set
-                                                    :type "csv")
-                                     cl-user:*babel-corpora*))
-         (csv (read-csv info-path)))
-    (loop for row in csv
-          for channel = (intern (upcase (first row)))
-          for type = (intern (upcase (second row)))
-          for symbolic-attribute = (parse-keyword (third row))
-          do (setf (feature-set world)
-                   (cons channel (feature-set world)))
-          do (setf (gethash channel (channel-type world))
-                   type)
-          do (setf (gethash channel (symbolic-attribute world))
-                   symbolic-attribute))))
+  (loop for view-name in (view-names world)
+        for feature-set in feature-sets
+        for view = (gethash view-name (views world))
+        for info-path = (merge-pathnames (make-pathname :directory `(:relative "concept-emergence2" "-info")
+                                                        :name feature-set
+                                                        :type "csv")
+                                         cl-user:*babel-corpora*)
+        for csv = (read-csv info-path)
+        do (loop for row in csv
+                 for channel = (intern (upcase (first row)))
+                 for type = (intern (upcase (second row)))
+                 for symbolic-attribute = (parse-keyword (third row))
+                 do (setf (feature-set view)
+                          (cons channel (feature-set view)))
+                 do (setf (gethash channel (channel-type view))
+                          type)
+                 do (setf (gethash channel (symbolic-attribute view))
+                          symbolic-attribute))))
 
 ;; ---------------
 ;; + Dataloading +
 ;; ---------------
 
 (defmethod load-data ((world precomputed-world))
-  "Load the dataset by scenes."
-  (let ((fpath (merge-pathnames (make-pathname :directory `(:relative
-                                                            "concept-emergence2"
-                                                            "split-by-scenes"
-                                                            ,(dataset-name world)
-                                                            "scenes"
-                                                            ,(dataset-split world)))
-                                cl-user:*babel-corpora*)))
-    (unless (probe-file fpath)
-      (error "Could not find a 'scenes' subdirectory in '~a'~%" fpath))
-    ;; load the scene fpaths (sorted by name)
-    (format t "~% Loading precomputed scenes...")
-    (let* ((fpaths (sort (directory (make-pathname :directory (pathname-directory fpath)
-                                                   :name :wild :type "json"))
-                         #'string< :key #'namestring)))
-      (setf (fpaths world) fpaths))
-    (format t "~% Completed loading.~%~%")))
+  "Load the world which consists of of a set of precomputed scenes."
+  (loop for view-name in (view-names world)
+        for view = (gethash view-name (views world))
+        for fpath = (merge-pathnames (make-pathname :directory `(:relative
+                                                                 "concept-emergence2"
+                                                                 "split-by-scenes"
+                                                                 ,(view-name view)
+                                                                 "scenes"
+                                                                 ,(dataset-split world)))
+                                     cl-user:*babel-corpora*)
+        do (when (not (probe-file fpath))
+             (error "Could not find a 'scenes' subdirectory in '~a'~%" fpath))
+           (format t "~% Loading precomputed scenes...")
+           (let* ((fpaths (sort (directory (make-pathname :directory (pathname-directory fpath)
+                                                          :name :wild :type "json"))
+                                #'string< :key #'namestring)))
+             (setf (data view) fpaths))
+           (format t "~% Completed loading.~%~%")))
 
 (defmethod load-data ((world runtime-world))
-  (let ((fpath (merge-pathnames (make-pathname :directory `(:relative
-                                                            "concept-emergence2"
-                                                            "split-by-objects"
-                                                            ,(dataset-name world)
-                                                            "scenes"
-                                                            ,(dataset-split world))
-                                               :name (format nil
-                                                             "~a_~a"
-                                                             (dataset-name world)
-                                                             (dataset-split world))
-                                               :type "json")
-                                cl-user:*babel-corpora*)))
-    (unless (probe-file fpath)
-      (error "Could not find a 'scenes' subdirectory in ~a~%" fpath))
-    ;; load the dataset
-    (format t "~% Loading the scenes...")
-    (let* ((raw-data (decode-json-as-alist-from-source fpath))
-           (objects (s-expr->cle-objects raw-data (feature-set world))))
-      (setf (objects world) objects)
-      (setf (object-indexes world) (loop for idx from 0 to (- (length objects) 1)
-                                         collect idx)))
-    (format t "~% Completed loading.~%~%")))
+  "Load the dataset which consists of a set of objects."
+  (loop for view-name in (view-names world)
+        for view = (gethash view-name (views world))
+        for fpath = (merge-pathnames (make-pathname :directory `(:relative
+                                                                 "concept-emergence2"
+                                                                 "split-by-objects"
+                                                                 ,(view-name view)
+                                                                 "scenes"
+                                                                 ,(dataset-split world))
+                                                    :name (format nil
+                                                                  "~a_~a"
+                                                                  (view-name view)
+                                                                  (dataset-split world))
+                                                    :type "json")
+                                     cl-user:*babel-corpora*)
+        do (when (not (probe-file fpath))
+             (error "Could not find a 'scenes' subdirectory in ~a~%" fpath))
+           ;; load the dataset
+           (format t "~% Loading the scenes...")
+           (let* ((raw-data (decode-json-as-alist-from-source fpath))
+                  (objects (s-expr->cle-objects raw-data (feature-set view))))
+             (setf (objects view) objects))
+           (format t "~% Completed loading.~%~%")))
+
+
+;; ------------------------
+;; + Sample random scenes +
+;; ------------------------
+(defmethod random-scene ((world precomputed-world))
+  "Load a random scene by fpath into memory."
+  (let* ((fpath (random-elt (data world)))
+         (s-expr (decode-json-as-alist-from-source fpath))
+         (scene (s-expr->cle-scene s-expr world)))
+    (setf (current-scene world) scene)
+    scene))
+
+(defmethod random-scene ((world runtime-world))
+  "Create a scene by randomly sampling objects"
+  (let* ((context-size (sample-context-size world))
+         (objects (random-elts (data world) context-size))
+         (scene (objects->cle-scene objects world)))
+    (setf (current-scene world) scene)
+    (current-scene world)))
+
+(defun sample-context-size (world)
+  (let* ((min-context-size (min-context-size world))
+         (max-context-size (max-context-size world))
+         (context-size (random-from-range min-context-size max-context-size)))
+    context-size))
 
 ;; --------------------
 ;; + Helper functions +
 ;; --------------------
+(defmethod get-view ((world world) view-name)
+  (gethash view-name (views world)))
+  
 
-(defmethod get-feature-set ((world world))
-  (feature-set world))
+(defmethod get-feature-set ((world world) view-name)
+  (feature-set (get-view world view-name)))
 
-(defmethod get-channel-type ((world world) channel)
-  (gethash channel (channel-type world)))
+(defmethod get-channel-type ((world world) channel view-name)
+  (gethash channel (channel-type (get-view world view-name))))
 
-(defmethod get-channels-with-symbolic-attribute ((world world) symbolic-attribute)
-  (loop for channel being the hash-keys of (symbolic-attribute world)
-        when (equal (gethash channel (symbolic-attribute world))
+(defmethod get-channels-with-symbolic-attribute ((world world) view-name symbolic-attribute)
+  (loop for view = (get-view world view-name)
+        for channel being the hash-keys of (symbolic-attribute view)
+        when (equal (gethash channel (symbolic-attribute view))
                     symbolic-attribute)
           collect channel))
 
-(defmethod is-channel-available ((world world) symbolic-attribute raw-attributes)
-  (let* ((associated-channels (get-channels-with-symbolic-attribute world symbolic-attribute))
+(defmethod is-channel-available ((world world) view-name symbolic-attribute raw-attributes)
+  (let* ((associated-channels (get-channels-with-symbolic-attribute world view-name symbolic-attribute))
          (continuous-attributes (loop for key being the hash-keys of raw-attributes
                                       collect key)))
     (loop for channel in associated-channels
@@ -158,10 +210,12 @@
             return t
           finally (return nil))))
 
-(defmethod channel-continuous-p (world channel)
-  (equal (get-channel-type world channel) 'continuous))
+(defmethod channel-continuous-p (world view-name channel)
+  (equal (get-channel-type (get-view world view-name) channel)
+         'continuous))
 
-(defmethod channel-categorical-p (world channel)
-  (equal (get-channel-type world channel) 'categorical))
+(defmethod channel-categorical-p (world view-name channel)
+  (equal (get-channel-type (get-view world view-name) channel)
+         'categorical))
 
 (defmethod copy-object ((world world)) world)
