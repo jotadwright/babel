@@ -35,7 +35,8 @@
    (view-name :type str :initform nil :initarg :view-name :accessor view-name)
    ;; train, val or test?
    (dataset-split :type string :initarg :dataset-split :accessor dataset-split)
-   (data :type list :initform nil :accessor data)
+   ;; type of data: objects -> list, scenes-fpaths -> hash-table
+   (data :type any :initform nil :accessor data)
    ;; information about the loaded the feature-set
    (feature-set :type list :initform nil :accessor feature-set)
    (channel-type :type hash-table :initform (make-hash-table :test #'equal) :accessor channel-type)
@@ -126,10 +127,13 @@
         do (when (not (probe-file fpath))
              (error "Could not find a 'scenes' subdirectory in '~a'~%" fpath))
            (format t "~% Loading precomputed scenes...")
-           (let* ((fpaths (sort (directory (make-pathname :directory (pathname-directory fpath)
-                                                          :name :wild :type "json"))
-                                #'string< :key #'namestring)))
-             (setf (data view) fpaths))
+           (loop with ht = (make-hash-table :test #'equal)
+                 for scene-fpath in (sort (directory (make-pathname :directory (pathname-directory fpath)
+                                                                    :name :wild :type "json"))
+                                          #'string< :key #'namestring)
+                 for scene-id = (get-scene-id scene-fpath)
+                 do (setf (gethash scene-id ht) scene-fpath)
+                 finally (setf (data view) ht))
            (format t "~% Completed loading.~%~%")))
 
 (defmethod load-data ((world runtime-world))
@@ -157,17 +161,21 @@
              (setf (data view) objects))
            (format t "~% Completed loading.~%~%")))
 
-
 ;; ------------------------
 ;; + Sample random scenes +
 ;; ------------------------
 (defmethod random-scene ((world precomputed-world) view-name)
   "Load a random scene by fpath into memory."
-  (let* ((fpath (random-elt (data (get-view world view-name))))
+  (let* ((scene-id (random-elt (hash-keys (data (get-view world view-name)))))
+         (scene (load-precomputed-scene world view-name scene-id)))
+    (cons scene-id scene)))
+
+(defun load-precomputed-scene (world view-name scene-id)
+  (let* ((fpath (gethash scene-id (data (get-view world view-name))))
          (s-expr (decode-json-as-alist-from-source fpath))
          (scene (s-expr->cle-scene s-expr world view-name)))
     scene))
-
+  
 (defmethod random-scene ((world runtime-world) view-name)
   "Create a scene by randomly sampling objects"
   (let* ((context-size (sample-context-size world))
@@ -184,6 +192,10 @@
 ;; --------------------
 ;; + Helper functions +
 ;; --------------------
+
+(defun get-scene-id (fpath)
+  (third (split-sequence:split-sequence #\_ (pathname-name fpath))))
+
 (defmethod get-view ((world world) view-name)
   (gethash view-name (views world)))
   

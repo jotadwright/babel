@@ -4,7 +4,7 @@
 ;; + Set a scene manually +
 ;; ------------------------
 
-(defmethod set-topic (experiment cle-object)
+#|(defmethod set-topic (experiment cle-object)
   "Set a topic manually."
   (let* ((interaction (current-interaction experiment))
          (agent (first (interacting-agents experiment)))
@@ -12,7 +12,7 @@
          (cle-topic (find cle-object (objects cle-scene)
                           :test (lambda (x el) (equal (attributes x) (attributes el))))))
     (loop for agent in (interacting-agents experiment)
-          do (set-data agent 'topic cle-topic))))
+          do (set-data agent 'topic cle-topic))))|#
 
 ;; ------------------
 ;; + Topic sampling +
@@ -22,14 +22,14 @@
 
 (defmethod sample-topic (experiment (mode (eql :random)))
   "Any object can serve as topic."
-  (let* ((interaction (current-interaction experiment))
-         (agent (first (interacting-agents experiment)))
-         (cle-scene (find-data agent 'context))
-         (cle-topic (random-elt (objects cle-scene))))
-    (loop for agent in (interacting-agents experiment)
-          do (set-data agent 'topic cle-topic))))
+  (let* ((agent-1 (first (interacting-agents experiment)))
+         (agent-2 (second (interacting-agents experiment)))
+         (cle-topic-1 (random-elt (objects (find-data agent-1 'context))))
+         (cle-topic-2 (find-topic-by-id cle-topic-1 (objects (find-data agent-2 'context)))))
+    (set-data agent-1 'topic cle-topic-1)
+    (set-data agent-2 'topic cle-topic-2)))
 
-(defmethod sample-topic (experiment (mode (eql :deterministic)))
+#|(defmethod sample-topic (experiment (mode (eql :deterministic)))
   "Force through config (current-topic-idx) which object is chosen as topic."
   (let* ((interaction (current-interaction experiment))
          (agent (first (interacting-agents experiment)))
@@ -72,12 +72,17 @@
             do (set-data agent 'topic cle-topic))
       (progn
         (sample-scene experiment (get-configuration experiment :scene-sampling))
-        (sample-topic experiment (get-configuration experiment :topic-sampling))))))
+        (sample-topic experiment (get-configuration experiment :topic-sampling))))))|#
 
 ;; --------------------
 ;; + Helper functions +
 ;; --------------------
-(defun filter-discriminative-topics (world context &key attribute)
+
+(defun find-topic-by-id (agent-1-topic agent-2-objects)
+  (let ((id (assqv :id (description agent-1-topic))))
+    (find id agent-2-objects :test #'equal :key (lambda (x) (assqv :id (description x))))))
+
+#|(defun filter-discriminative-topics (world context &key attribute)
   "Determines which objects in the context are discriminative."
   (loop for object in context
         when (is-discriminative world object (remove object context) :attribute attribute)
@@ -107,4 +112,4 @@
                                      for other-val = (assqv attr (description other-object))
                                      always (not (equal val other-val)))
           if (and available discriminative)
-            collect (cons attr val))))
+            collect (cons attr val))))|#

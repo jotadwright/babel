@@ -21,22 +21,29 @@
 ;; ------------------
 ;; + Scene sampling +
 ;; ------------------
-(defmethod assign-random-scene (experiment (mode (eql :exclusive-views)))
-  (loop for agent in (interacting-agents experiment)
+(defmethod assign-random-scene (experiment (world precomputed-world) (mode (eql :exclusive-views)))
+  (loop with scene-id = nil
+        for agent in (interacting-agents experiment)
         for view-name = (first (views agent))
-        for scene = (random-scene (world experiment) view-name)
-        do (set-data agent 'context scene)))
+        if (not scene-id)
+          do (destructuring-bind (id . scene) (random-scene (world experiment) view-name)
+               (setf scene-id id)
+               (setf (current-view agent) view-name)
+               (set-data agent 'context scene))
+        else
+          do (progn
+               (setf (current-view agent) view-name)
+               (let* ((scene (load-precomputed-scene world view-name scene-id)))
+                 (set-data agent 'context scene)))))
 
-(defmethod assign-random-scene (experiment (mode (eql :shared-views)))
+(defmethod assign-random-scene (experiment (world precomputed-world) (mode (eql :shared-views)))
   (if (equalp (length (views (first (interacting-agents)))) 1)
     (assign-random-scene experiment :exclusive-views)
     (error "Multi-view not implemented yet.")))
           
-
-
 (defmethod sample-scene (experiment (mode (eql :random)))
   "Sample a random scene and assign to experiment."
-  (assign-random-scene experiment (get-configuration experiment :dataset-view)))
+  (assign-random-scene experiment (world experiment) (get-configuration experiment :dataset-view)))
   #|(loop with scene-chosen = nil
         with view-chosen = nil
         for agent in (interacting-agents experiment)
