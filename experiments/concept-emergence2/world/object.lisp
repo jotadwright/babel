@@ -4,24 +4,26 @@
 ;; + CLE object set +
 ;; ------------------
 
-(defmethod s-expr->cle-scene (s-expr world)
+(defmethod s-expr->cle-scene (s-expr world view-name)
   "Create an instance of cle-scene from an s-expression"
-  (make-instance 'cle-scene
-                 :index (rest (assoc :image--index s-expr))
-                 :dataset (dataset-name world)
-                 :dataset-split (dataset-split world)
-                 :image-fname (rest (assoc :image--filename s-expr))
-                 :objects (loop for obj in (rest (assoc :objects s-expr))
-                                collect (s-expr->cle-object obj (feature-set world)))))
+  (let ((view (get-view world view-name)))
+    (make-instance 'cle-scene
+                   :index (rest (assoc :image--index s-expr))
+                   :dataset (view-name view)
+                   :dataset-split (dataset-split view)
+                   :image-fname (rest (assoc :image--filename s-expr))
+                   :objects (loop for obj in (rest (assoc :objects s-expr))
+                                  collect (s-expr->cle-object obj (feature-set view))))))
 
-(defmethod objects->cle-scene (objects world)
+(defmethod objects->cle-scene (objects world view-name)
   "Create an instance of cle-scene from an s-expression"
-  (make-instance 'cle-scene
-                 :index 0
-                 :dataset (dataset-name world)
-                 :dataset-split (dataset-split world)
-                 :image-fname "nil"
-                 :objects objects))
+  (let ((view (get-view world view-name)))
+    (make-instance 'cle-scene
+                   :index 0
+                   :dataset (view-name view)
+                   :dataset-split (dataset-split view)
+                   :image-fname "nil"
+                   :objects objects)))
 
 (defclass cle-scene (entity)
   ((index

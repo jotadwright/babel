@@ -9,8 +9,11 @@
     :documentation "The agent's lexicon."
     :type lexicon :accessor lexicon :initarg :lexicon :initform nil)
    (views
-    :documentation "The views that the agent has over a world"
+    :documentation "The views that the agent has over a world."
     :type list :accessor views :initarg :views :initform nil)
+   (current-view
+    :documentation "The current view assigned to the agent."
+    :type string :accessor current-view :initform nil)
    (disabled-channels
     :documentation "Disabled/defected channels."
     :type hash-table :accessor disabled-channels :initarg :disabled-channels :initform nil)

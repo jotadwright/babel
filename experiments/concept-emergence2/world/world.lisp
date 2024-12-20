@@ -22,8 +22,7 @@
 ;; ---------
 
 (defclass world (entity)
-  (;; train, val or test?
-   (dataset-split :type string :accessor dataset-split)
+  (
    ;; names of the views over the dataset
    (view-names :type list :initform nil :accessor view-names)
    ;; views of the world
@@ -32,8 +31,10 @@
   (:documentation "Captures the environments in which the agents interact."))
 
 (defclass world-view ()
-  (
-   (view-name :type str :initform nil :initarg :name :accessor view-name)
+  (;; view name
+   (view-name :type str :initform nil :initarg :view-name :accessor view-name)
+   ;; train, val or test?
+   (dataset-split :type string :initarg :dataset-split :accessor dataset-split)
    (data :type list :initform nil :accessor data)
    ;; information about the loaded the feature-set
    (feature-set :type list :initform nil :accessor feature-set)
@@ -44,12 +45,13 @@
 
 (defmethod initialize-instance :after ((world world) &key experiment)
   "Initializes the world by loading the dataset."
-  (setf (dataset-split world) (get-configuration experiment :dataset-split))
   (setf (view-names world) (get-configuration experiment :dataset))
 
   ;; create the views
   (loop for view-name in (view-names world)
-        for view = (make-instance 'world-view :name view-name)
+        for view = (make-instance 'world-view
+                                  :view-name view-name
+                                  :dataset-split (get-configuration experiment :dataset-split))
         do (setf (gethash view-name (views world)) view))
 
   ;; load the features
@@ -119,7 +121,7 @@
                                                                  "split-by-scenes"
                                                                  ,(view-name view)
                                                                  "scenes"
-                                                                 ,(dataset-split world)))
+                                                                 ,(dataset-split view)))
                                      cl-user:*babel-corpora*)
         do (when (not (probe-file fpath))
              (error "Could not find a 'scenes' subdirectory in '~a'~%" fpath))
@@ -139,11 +141,11 @@
                                                                  "split-by-objects"
                                                                  ,(view-name view)
                                                                  "scenes"
-                                                                 ,(dataset-split world))
+                                                                 ,(dataset-split view))
                                                     :name (format nil
                                                                   "~a_~a"
                                                                   (view-name view)
-                                                                  (dataset-split world))
+                                                                  (dataset-split view))
                                                     :type "json")
                                      cl-user:*babel-corpora*)
         do (when (not (probe-file fpath))
@@ -152,28 +154,26 @@
            (format t "~% Loading the scenes...")
            (let* ((raw-data (decode-json-as-alist-from-source fpath))
                   (objects (s-expr->cle-objects raw-data (feature-set view))))
-             (setf (objects view) objects))
+             (setf (data view) objects))
            (format t "~% Completed loading.~%~%")))
 
 
 ;; ------------------------
 ;; + Sample random scenes +
 ;; ------------------------
-(defmethod random-scene ((world precomputed-world))
+(defmethod random-scene ((world precomputed-world) view-name)
   "Load a random scene by fpath into memory."
-  (let* ((fpath (random-elt (data world)))
+  (let* ((fpath (random-elt (data (get-view world view-name))))
          (s-expr (decode-json-as-alist-from-source fpath))
-         (scene (s-expr->cle-scene s-expr world)))
-    (setf (current-scene world) scene)
+         (scene (s-expr->cle-scene s-expr world view-name)))
     scene))
 
-(defmethod random-scene ((world runtime-world))
+(defmethod random-scene ((world runtime-world) view-name)
   "Create a scene by randomly sampling objects"
   (let* ((context-size (sample-context-size world))
-         (objects (random-elts (data world) context-size))
-         (scene (objects->cle-scene objects world)))
-    (setf (current-scene world) scene)
-    (current-scene world)))
+         (objects (random-elts (data (get-view world view-name)) context-size))
+         (scene (objects->cle-scene objects world view-name)))
+    scene))
 
 (defun sample-context-size (world)
   (let* ((min-context-size (min-context-size world))
@@ -211,11 +211,11 @@
           finally (return nil))))
 
 (defmethod channel-continuous-p (world view-name channel)
-  (equal (get-channel-type (get-view world view-name) channel)
+  (equalp (get-channel-type world channel view-name)
          'continuous))
 
 (defmethod channel-categorical-p (world view-name channel)
-  (equal (get-channel-type (get-view world view-name) channel)
+  (equalp (get-channel-type world channel view-name)
          'categorical))
 
 (defmethod copy-object ((world world)) world)
