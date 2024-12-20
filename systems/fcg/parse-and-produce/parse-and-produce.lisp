@@ -47,12 +47,14 @@
               (construction-inventory construction-inventory)
               (initial-cfs coupled-feature-structure))
 
-(define-event produce-finished (utterance list))
+(define-event produce-finished (utterance list)
+              (construction-inventory construction-inventory))
 
 (define-event produce-all-started (n t) (meaning list)
               (construction-inventory construction-inventory))
 
-(define-event produce-all-finished (utterances list))
+(define-event produce-all-finished (utterances list)
+              (construction-inventory construction-inventory))
 
 (define-event parse-started (utterance list) (initial-cfs coupled-feature-structure))
 

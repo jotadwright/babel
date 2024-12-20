@@ -967,7 +967,7 @@ added here. Preprocessing is only used in parsing currently."
                        (car-resulting-cfs (cipn-car solution)) 
                        (get-configuration construction-inventory :render-mode)
                       :node solution)))))
-        (unless silent (notify produce-finished utterance))
+        (unless silent (notify produce-finished utterance construction-inventory))
         (values utterance solution cip)))))
 
 (defmethod produce-all ((meaning list) (construction-inventory construction-inventory)
@@ -994,7 +994,7 @@ added here. Preprocessing is only used in parsing currently."
                               (get-configuration construction-inventory :render-mode)
                               :node solution)))
                      solutions)))
-        (unless silent (notify produce-all-finished utterances))
+        (unless silent (notify produce-all-finished utterances construction-inventory))
         (values utterances solutions cip)))))
 
 ;; #############################################################################

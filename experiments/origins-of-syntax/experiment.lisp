@@ -237,7 +237,7 @@
                        (car-resulting-cfs (cipn-car solution)) 
                        (get-configuration construction-inventory :render-mode)
                        :node solution)))))
-        (unless silent (notify produce-finished utterance))
+        (unless silent (notify produce-finished utterance construction-inventory))
         (values utterance solution cip)))))
 
 (defmethod create-initial-structure ((list-of-meaning-and-redundant-meaning list-of-meanings)

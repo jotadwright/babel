@@ -104,7 +104,7 @@
                        (get-configuration cxn-inventory :render-mode)
                       :node solution)))))
         ;; Notification
-        (unless silent (notify produce-finished utterance))
+        (unless silent (notify produce-finished utterance cxn-inventory))
         ;; Return value
         (values utterance solution cip)))))
 |#
