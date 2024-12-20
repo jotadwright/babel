@@ -35,8 +35,11 @@
                  ;; 2. can interpret it, and
                  (interpret hearer)
                  ;; 3. it matches the topic
-                 (equalp (get-topic-id (get-data speaker 'topic))
-                         (get-topic-id (get-data hearer 'interpreted-topic))))
+                 (if (has-topic-id (get-data speaker 'topic))
+                   (equalp (get-topic-id (get-data speaker 'topic))
+                           (get-topic-id (get-data hearer 'interpreted-topic)))
+                   (equalp (id (get-data speaker 'topic))
+                           (id (get-data hearer 'interpreted-topic)))))
         (setf (communicated-successfully speaker) t)
         (setf (communicated-successfully hearer) t)))
       

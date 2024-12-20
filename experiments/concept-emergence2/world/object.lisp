@@ -71,6 +71,9 @@
     :documentation "Symbolic description of the original object."
     :type list :accessor description :initarg :description)))
 
+(defun has-topic-id (cle-object)
+  (assqv :id (description cle-object)))
+
 (defun get-topic-id (cle-object)
   (assqv :id (description cle-object)))
 

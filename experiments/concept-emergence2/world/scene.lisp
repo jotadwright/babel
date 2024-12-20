@@ -50,8 +50,20 @@
 (defmethod assign-random-scene (experiment (world precomputed-world) (mode (eql :shared-views)))
   "Experiments where agents can share the exact same view over a scene."
   (if (equalp (length (views (first (interacting-agents experiment)))) 1)
-    ;; if agents have only one possible view, then just apply the (mutually) exclusive views algorithm
-    (assign-random-scene experiment (world experiment) :exclusive-views)
+    ;; if agents have only one possible view, make it the same object
+    (loop with selected-scene = nil
+          for agent in (interacting-agents experiment)
+          ;; views will have by definition only have 1 view-name 
+          for view-name = (first (views agent))
+          if (not selected-scene)
+            do (destructuring-bind (id . scene) (random-scene (world experiment) view-name)
+                 (setf selected-scene scene)
+                 (setf (current-view agent) view-name)
+                 (set-data agent 'context selected-scene))
+          else
+            do (progn
+                 (setf (current-view agent) view-name)
+                 (set-data agent 'context selected-scene)))
     ;; otherwise ensure to assign each agent with a mutually exclusive view
     (loop with scene-id = nil
           with assigned-view = nil
@@ -79,10 +91,16 @@
 (defmethod assign-random-scene (experiment (world runtime-world) (mode (eql :shared-views)))
   (if (equalp (length (views (first (interacting-agents experiment)))) 1)
     ;; if agents have only one possible view, then just apply the (mutually) exclusive views algorithm
-    (loop with scene-id = nil
-        for agent in (interacting-agents experiment)
-        for view-name = (first (views agent))
-        for scene = (random-scene (world experiment) view-name)
-        do (setf (current-view agent) view-name)
-        do (set-data agent 'context scene))
+    (loop with selected-scene = nil
+          for agent in (interacting-agents experiment)
+          for view-name = (first (views agent))
+          if (not selected-scene)
+            do (progn
+                 (setf selected-scene (random-scene (world experiment) view-name))
+                 (setf (current-view agent) view-name)
+                 (set-data agent 'context selected-scene))
+          else
+            do (progn
+                 (setf (current-view agent) view-name)
+                 (set-data agent 'context selected-scene)))
     (error "Not implemented: cannot assign runtime scenes if there are multiple views.")))

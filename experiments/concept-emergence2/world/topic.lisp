@@ -25,7 +25,10 @@
   (let* ((agent-1 (first (interacting-agents experiment)))
          (agent-2 (second (interacting-agents experiment)))
          (cle-topic-1 (random-elt (objects (find-data agent-1 'context))))
-         (cle-topic-2 (find-topic-by-id cle-topic-1 (objects (find-data agent-2 'context)))))
+         (cle-topic-2
+          (if (has-topic-id cle-topic-1)
+            (find-topic-by-id cle-topic-1 (objects (find-data agent-2 'context)))
+            (find-topic-by-equality cle-topic-1 (objects (find-data agent-2 'context))))))
     (set-data agent-1 'topic cle-topic-1)
     (set-data agent-2 'topic cle-topic-2)))
 
@@ -77,6 +80,9 @@
 ;; --------------------
 ;; + Helper functions +
 ;; --------------------
+
+(defun find-topic-by-equality (agent-1-topic agent-2-objects)
+  (find agent-1-topic agent-2-objects :test #'equalp))
 
 (defun find-topic-by-id (agent-1-topic agent-2-objects)
   (let ((id (assqv :id (description agent-1-topic))))
