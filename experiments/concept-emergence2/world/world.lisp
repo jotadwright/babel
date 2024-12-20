@@ -207,7 +207,7 @@
   (gethash channel (channel-type (get-view world view-name))))
 
 (defmethod get-channels-with-symbolic-attribute ((world world) view-name symbolic-attribute)
-  (loop for view = (get-view world view-name)
+  (loop with view = (get-view world view-name)
         for channel being the hash-keys of (symbolic-attribute view)
         when (equal (gethash channel (symbolic-attribute view))
                     symbolic-attribute)

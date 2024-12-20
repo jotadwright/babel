@@ -46,7 +46,7 @@
 (defun show-in-wi (args)
   (add-element `((h4) ,(format nil "~{~a~^, ~}" args))))
 
-(defun show-scene (world split context topic)
+(defun show-scene (agent world split context topic)
   (add-element `((h2) ,(format nil "Scene: ~a" (file-namestring (get-image-fpath context)))))
   (add-element `((div :class "image" :style ,(format nil "margin-left: 50px; margin-bottom: 20px; width: fit-content; border-radius: 8px; overflow: hidden; border: 1px; border-color: #000000; box-shadow: 8px 8px 12px 1px rgb(0 0 0 / 10%);"))
                  ((img :src ,(string-append
@@ -57,6 +57,7 @@
                                            (file-namestring (get-image-fpath context))))))))
   (add-element `((table :style ,(format nil "margin-left: 50px;"))
                  ((tr) ((td) ,(make-html context
+                                         :agent agent
                                          :topic (id topic)
                                          :world world
                                          :expand-initially t))))))
@@ -111,7 +112,8 @@
 ;; ---------------------------
 
 (define-event-handler (trace-interaction-in-web-interface event-context-determined)
-  (show-scene (world experiment)
+  (show-scene (first (interacting-agents *experiment*))
+              (world experiment)
               (get-configuration experiment :dataset-split)
               (get-data (speaker experiment) 'context)
               (get-data (speaker experiment) 'topic)))
