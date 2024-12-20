@@ -119,8 +119,11 @@
        (html-pprint meaning))))
 
 (define-event-handler (trace-fcg-processing-level produce-finished)
-  (add-element `((h3) ,(format nil "Utterance: &quot;~{~a~^ ~}&quot;" utterance)))
-  (add-element `((p) " ")))
+  (let ((control-string (case (get-configuration construction-inventory :render-mode)
+                          ((:render-sequences) "Utterance: &quot;~{~a~^~}&quot;")
+                          (otherwise           "Utterance: &quot;~{~a~^ ~}&quot;"))))
+      (add-element `((h3) ,(format nil control-string utterance)))
+      (add-element `((p) " "))))
 
 (define-event-handler (trace-fcg-processing-level produce-all-started)
   (add-element `((hr)))

@@ -157,8 +157,11 @@
                  (html-pprint meaning))))
 
 (define-event-handler (trace-fcg produce-finished)
-  (add-element `((h3) ,(format nil "Utterance: &quot;~{~a~^ ~}&quot;" utterance)))
-  (add-element `((p) " ")))
+  (let ((control-string (case (get-configuration construction-inventory :render-mode)
+                          ((:render-sequences) "Utterance: &quot;~{~a~^~}&quot;")
+                          (otherwise           "Utterance: &quot;~{~a~^ ~}&quot;"))))
+    (add-element `((h3) ,(format nil control-string utterance)))
+    (add-element `((p) " "))))
 
 (define-event-handler (trace-fcg produce-all-started)
   (when (get-configuration (visualization-configuration construction-inventory) :show-upper-menu)
@@ -178,14 +181,16 @@
                  (html-pprint meaning))))
      
 (define-event-handler (trace-fcg produce-all-finished)
-  ;; Print all utterances as a <ul> instead of a single line
-  (add-element '((h3) "Utterances:"))
-  (add-element `((h3)
-                 ((ul)
-                  ,@(loop for utterance in utterances
-                          collect `((li) ,(format nil "&quot;~{~a~^ ~}&quot;" utterance)))))))
-  ;(add-element `((h3) ,(format nil "Utterances: &quot;~{~{~a~^ ~}~^, ~}&quot;" utterances)))
-  ;(add-element `((p) " ")))
+  (let ((control-string (case (get-configuration construction-inventory :render-mode)
+                          ((:render-sequences) "&quot;~{~a~^~}&quot;")
+                          (otherwise           "&quot;~{~a~^ ~}&quot;"))))
+         
+    ;; Print all utterances as a <ul> instead of a single line
+    (add-element '((h3) "Utterances:"))
+    (add-element `((h3)
+                   ((ul)
+                    ,@(loop for utterance in utterances
+                            collect `((li) ,(format nil control-string utterance))))))))
 
 (define-event-handler (trace-fcg parse-started)
   (when (get-configuration *default-visualization-configuration* :show-upper-menu)
@@ -491,8 +496,11 @@
                  (html-pprint meaning))))
 
 (define-event-handler (trace-fcg-debugging produce-finished)
-  (add-element `((h3) ,(format nil "Utterance: &quot;~{~a~^ ~}&quot;" utterance)))
-  (add-element `((p) " ")))
+  (let ((control-string (case (get-configuration construction-inventory :render-mode)
+                          ((:render-sequences) "Utterance: &quot;~{~a~^~}&quot;")
+                          (otherwise           "Utterance: &quot;~{~a~^ ~}&quot;"))))
+    (add-element `((h3) ,(format nil control-string utterance)))
+    (add-element `((p) " "))))
 
 (define-event-handler (trace-fcg-debugging produce-all-started)
   (when (get-configuration (visualization-configuration construction-inventory) :show-upper-menu)
@@ -510,8 +518,11 @@
                  (html-pprint meaning))))
      
 (define-event-handler (trace-fcg-debugging produce-all-finished)
-  (add-element `((h3) ,(format nil "Utterances: &quot;~{~{~a~^ ~}~^, ~}&quot;" utterances)))
-  (add-element `((p) " ")))
+  (let ((control-string (case (get-configuration construction-inventory :render-mode)
+                          ((:render-sequences) "Utterance: &quot;~{~a~^~}&quot;")
+                          (otherwise           "Utterance: &quot;~{~a~^ ~}&quot;"))))
+    (add-element `((h3) ,(format nil control-string  utterances)))
+    (add-element `((p) " "))))
 
 (define-event-handler (trace-fcg-debugging parse-started)
   (when (get-configuration *default-visualization-configuration* :show-upper-menu)
