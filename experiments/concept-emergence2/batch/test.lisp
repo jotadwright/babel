@@ -46,6 +46,9 @@
     (set-configuration experiment :dataset (assqv :dataset config))
     (set-configuration experiment :dataset-split (assqv :dataset-split config))
     (set-configuration experiment :feature-set (assqv :feature-set config))
+    (set-configuration experiment :dataset-loader (assqv :dataset-loader config))
+    (set-configuration experiment :min-context-size (assqv :min-context-size config))
+    (set-configuration experiment :max-context-size (assqv :max-context-size config))
     ;; update experiment config for correct logging
     (set-configuration experiment :usage-table-window (assqv :usage-table-window config))
     (set-configuration experiment :align (assqv :align config))
