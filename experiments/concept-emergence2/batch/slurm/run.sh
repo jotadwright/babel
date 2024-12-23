@@ -32,3 +32,7 @@ done
 
 # experiment equality checker
 # $ bash slurm/run.sh train exp-equality 1-11 1 3 00:08:00 8G 10000 exp-equality
+
+# $ bash slurm/run.sh train cle3-size 1-22 1 10 24:00:00 12G 12000 cle3-size
+# $ bash slurm/run.sh test test-cle3-size 1-8,11-18,21-22 1 1 06:00:00 10G 10000 cle3-size
+# $ bash slurm/run.sh test test-cle3-size-change 1-4 1 1 06:00:00 10G 10000 cle3-size-change
