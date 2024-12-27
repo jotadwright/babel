@@ -16,7 +16,13 @@
      ,@(loop for entity in (entities set)
              collect (make-html entity :expand-initially t)))))
 
-
+(defmethod make-html-for-entity-details ((entity crs-conventionality-entity) &key &allow-other-keys)
+  (append
+   `(((div :class "entity-detail") 
+      ,(format nil "ID: ~(~a~)" (id entity))))
+   (when (world entity)
+     `(((div :class "entity-detail") 
+        ,(format nil "WORLD: ~(~a~)" (id (world entity))))))))
 
 ;; agents & population ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
