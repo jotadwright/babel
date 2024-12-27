@@ -19,13 +19,14 @@
 
 (defmethod initialize-instance :after ((experiment naming-game-experiment) &key &allow-other-keys)
   "Creates the population and world of the experiment."
-  ;; Set population
-  (setf (population experiment)
-        (make-instance 'naming-game-population :experiment experiment))
   ;; Set world
   (setf (world experiment)
-        (make-instance 'naming-game-world :experiment experiment)))
-  
+        (make-instance 'naming-game-world :experiment experiment))
+  ;; Set population
+  (setf (population experiment)
+        (make-instance 'naming-game-population :experiment experiment)))
+
+
                      
 ;; Populations and Agents ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -73,7 +74,7 @@
 
 (defmethod initialize-instance :after ((agent crs-conventionality-agent) &key &allow-other-keys)
   "Creates an agent of the population."
-  (setf (grammar agent) (make-initial-grammar agent)))
+  (make-initial-grammar agent))
 
 (defmethod print-object ((agent crs-conventionality-agent) stream)
   "Prints agent."
@@ -130,7 +131,7 @@
                                      :id (intern (format nil "OBJECT-~a" i))
                                      :world world))))
 
-
+             
 (defclass crs-conventionality-scene (crs-conventionality-entity-set)
   ((interaction
     :documentation "A backpointer to the interaction to which the scene belongs."
@@ -164,6 +165,7 @@
   ()
   (:documentation "An entity in the naming-game experiment"))
 
+               
 
 ;; Interaction ;;
 ;;;;;;;;;;;;;;;;;
@@ -176,3 +178,4 @@
     :documentation "The topic of the interaction."
     :initform nil :initarg :topic :accessor topic))
   (:documentation "An interaction in the experiment"))
+
