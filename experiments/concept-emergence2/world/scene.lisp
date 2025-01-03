@@ -86,7 +86,16 @@
 ;; -------------------------------
 
 (defmethod assign-random-scene (experiment (world runtime-world) (mode (eql :exclusive-views)))
-  (error "Not implemented: cannot assign runtime scenes with exclusive-views."))
+  (if (equalp (length (views (first (interacting-agents experiment)))) 1)
+    (loop with context-size = (sample-context-size world)
+          with idxs = (random-elts (loop for i from 0 to (- 100 1) collect i) context-size)
+          for agent in (interacting-agents experiment)
+          for view-name = (first (views agent))
+          for objects = (loop for idx in idxs collect (nth idx (data (get-view world view-name))))
+          for scene = (objects->cle-scene objects world view-name)
+          do (setf (current-view agent) view-name)
+          do (set-data agent 'context scene))
+    (error "Not implemented (yet): cannot assign runtime scenes if agents can have multiple views.")))
 
 (defmethod assign-random-scene (experiment (world runtime-world) (mode (eql :shared-views)))
   (if (equalp (length (views (first (interacting-agents experiment)))) 1)
@@ -103,4 +112,4 @@
             do (progn
                  (setf (current-view agent) view-name)
                  (set-data agent 'context selected-scene)))
-    (error "Not implemented: cannot assign runtime scenes if there are multiple views.")))
+    (error "Not implemented (yet): cannot assign runtime scenes if agents can have multiple views.")))

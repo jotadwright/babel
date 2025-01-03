@@ -46,21 +46,10 @@
 (defun show-in-wi (args)
   (add-element `((h4) ,(format nil "~{~a~^, ~}" args))))
 
-(defun show-scene (agent world split context topic)
-  (add-element `((h2) ,(format nil "Scene: ~a" (file-namestring (get-image-fpath context)))))
-  (add-element `((div :class "image" :style ,(format nil "margin-left: 50px; margin-bottom: 20px; width: fit-content; border-radius: 8px; overflow: hidden; border: 1px; border-color: #000000; box-shadow: 8px 8px 12px 1px rgb(0 0 0 / 10%);"))
-                 ((img :src ,(string-append
-                              cl-user::*localhost-user-dir*
-                              (concatenate 'string
-                                           split
-                                           "/"
-                                           (file-namestring (get-image-fpath context))))))))
-  (add-element `((table :style ,(format nil "margin-left: 50px;"))
-                 ((tr) ((td) ,(make-html context
-                                         :agent agent
-                                         :topic (id topic)
-                                         :world world
-                                         :expand-initially t))))))
+(defun multi-view-p (experiment)
+  "Returns true if an agent in an interaction of an experiment have multiple views."
+  ;; only need to check one
+  (> (length (views (first (interacting-agents experiment)))) 1))
 
 (defun get-image-fpath (scene)
   (let ((dataset (dataset scene))
@@ -69,6 +58,45 @@
     (merge-pathnames (merge-pathnames (make-pathname :directory `(:relative ,dataset "scenes" ,dataset-split))
                                       cl-user:*babel-corpora*)
                      image-fname)))
+
+(defun show-scene (experiment)
+  "Outputs the scene of the current interaction to the web-interface."
+  (loop with world = (world experiment)
+        with split = (get-configuration experiment :dataset-split)
+        with multi-view-p = (multi-view-p experiment)
+        with shown-p = nil
+        for agent in (interacting-agents experiment)
+        for context = (get-data agent 'context)
+        for topic = (get-data agent 'topic)
+        when (or (and multi-view-p
+                      (not shown-p))
+                 (not multi-view-p))
+          do (progn
+               (if (not multi-view-p)
+                 (add-element `((h2) ,(format nil "Scene as seen by: ~a"
+                                              (downcase (mkstr (id agent))))))
+                 (add-element `((h2) ,(format nil "Scene as seen by both agents: ~a"
+                                              
+                                              (loop for agent in (interacting-agents experiment)
+                                                    collect (downcase (mkstr (id agent))))))))
+                                        ;(file-namestring (get-image-fpath context)))))
+               #|(add-element `((div :class "image"
+                               :style ,(format nil "margin-left: 50px; margin-bottom: 20px; width: fit-content; border-radius: 8px; overflow: hidden; border: 1px; border-color: #000000; box-shadow: 8px 8px 12px 1px rgb(0 0 0 / 10%);"))
+                          ((img :src ,(string-append
+                                       cl-user::*localhost-user-dir*
+                                       (concatenate 'string
+                                                    split
+                                                    "/"
+                                                    (file-namestring (get-image-fpath context))))))))|#
+               (add-element `((table :style ,(format nil "margin-left: 50px;"))
+                              ((tr) ((td) ,(make-html context
+                                                      :agent agent
+                                                      :topic (id topic)
+                                                      :world world
+                                                      :expand-initially nil)))))
+               (setf shown-p t))))
+
+
 
 ;; ---------
 ;; + TIIWI +
@@ -84,14 +112,16 @@
    `((h1) ,(format nil "Interaction ~a"
                    (interaction-number interaction))))
   (add-element
-   `((h2) ,(format nil "The ~a is the speaker with lexicon (size = ~a):"
+   `((h2) ,(format nil "The ~a (~a) is the SPEAKER with lexicon (size = ~a):"
                    (downcase (mkstr (id (speaker interaction))))
+                   (downcase (mkstr (current-view (speaker interaction))))
                    (downcase (mkstr (lexicon-size (lexicon (speaker interaction))))))))
   
   ;(display-lexicon (speaker interaction) :sort t)
   (add-element
-   `((h2) ,(format nil "The ~a is the hearer with lexicon (size = ~a):"
+   `((h2) ,(format nil "The ~a (~a) is the HEARER with lexicon (size = ~a):"
                    (downcase (mkstr (id (hearer interaction))))
+                   (downcase (mkstr (current-view (hearer interaction))))
                    (downcase (mkstr (lexicon-size (lexicon (hearer interaction))))))))
   ;(display-lexicon (hearer interaction) :sort t)
   (add-element '((hr))))
@@ -112,11 +142,7 @@
 ;; ---------------------------
 
 (define-event-handler (trace-interaction-in-web-interface event-context-determined)
-  (show-scene (first (interacting-agents *experiment*))
-              (world experiment)
-              (get-configuration experiment :dataset-split)
-              (get-data (speaker experiment) 'context)
-              (get-data (speaker experiment) 'topic)))
+  (show-scene *experiment*))
 
 ;; ---------------------
 ;; + Conceptualisation +
@@ -198,8 +224,9 @@
                        (downcase (mkstr (id agent))))))
       (add-element `((div :class "image" :style ,(format nil "margin-left: 50px;"))
                      ,(make-html (find-data agent 'interpreted-topic)
+                                 :agent agent
                                  :world (world (experiment agent))
-                                 :expand-initially t))))
+                                 :expand-initially nil))))
     (add-element
      `((h2) ,(format nil "Step 4: The ~a could not interpret the utterance."
                      (downcase (mkstr (id agent))))))))

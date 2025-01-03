@@ -49,7 +49,7 @@
 ;; --------------
 (defmethod s-expr->cle-objects (s-expressions feature-set)
   (loop for s-expr in s-expressions
-        for idx = (parse-integer (symbol-name (first s-expr)))
+        ;;for idx = (parse-integer (symbol-name (first s-expr)))
         for cle-object = (s-expr->cle-object (rest s-expr) feature-set)
         collect cle-object))
 
