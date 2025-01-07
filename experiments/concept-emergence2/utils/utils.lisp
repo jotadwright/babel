@@ -18,6 +18,14 @@
           else
             collect row)))
 
+(defun read-jsonl (path)
+  "Loads a .jsonl corpus."
+  (with-open-file (stream path)
+    (loop for line = (read-line stream nil)
+          for data = (when line (cl-json:decode-json-from-string line))
+          while data
+          collect data)))
+
 (defun get-current-date ()
   (multiple-value-bind
       (second minute hour day month year day-of-week dst-p tz)

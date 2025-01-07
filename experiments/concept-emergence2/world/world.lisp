@@ -143,20 +143,18 @@
         for fpath = (merge-pathnames (make-pathname :directory `(:relative
                                                                  "concept-emergence2"
                                                                  "split-by-objects"
-                                                                 ,(view-name view)
-                                                                 "scenes"
-                                                                 ,(dataset-split view))
+                                                                 ,(view-name view))
                                                     :name (format nil
-                                                                  "~a_~a"
+                                                                  "~a-~a"
                                                                   (view-name view)
                                                                   (dataset-split view))
-                                                    :type "json")
+                                                    :type "jsonl")
                                      cl-user:*babel-corpora*)
         do (when (not (probe-file fpath))
              (error "Could not find a 'scenes' subdirectory in ~a~%" fpath))
            ;; load the dataset
            (format t "~% Loading the scenes...")
-           (let* ((raw-data (decode-json-as-alist-from-source fpath))
+           (let* ((raw-data (read-jsonl fpath))
                   (objects (s-expr->cle-objects raw-data (feature-set view))))
              (setf (data view) objects))
            (format t "~% Completed loading.~%~%")))
