@@ -142,24 +142,45 @@
        :if-does-not-exist :create
        :external-format :utf-8
        :element-type 'cl:character)
-  (loop for file in (directory directory)
-        for json = (unless
-                       (string=
-                        (pathname-type file)
-                        "DS_Store")
-                        (first
-                         (jsonl->list-of-json-alists file)))
-        for utterance = (when json (cdr (assoc :english json)))
-        for meaning = (when json (geo-prolog-to-predicates
-                       (cdr (assoc :geo-prolog json))))
-        when json 
-          do (format
-              out-stream
-              "{\"id\":\"~a\",\"utterance\":\"~a\",\"meaning\":\"~a\"}~%"
-              (cdr (assoc :id json))
-              utterance
-              meaning
-              ))))
+    (loop with sorted-examples = (make-hash-table)
+          for file in (directory directory)
+          for json = (unless
+                         (string=
+                          (pathname-type file)
+                          "DS_Store")
+                       (first
+                        (jsonl->list-of-json-alists file)))
+          for utterance = (when json (cdr (assoc :english json)))
+          for meaning = (when json (geo-prolog-to-predicates
+                                    (cdr (assoc :geo-prolog json))))
+          for template-examples = (when json (gethash (intern (cdr (assoc :elan-ref json))) sorted-examples))
+          when json 
+            do (setf (gethash (intern (cdr (assoc :elan-ref json))) sorted-examples)
+                     (if template-examples
+                       (append template-examples
+                               (list
+                                (format
+                                nil
+                                "{\"id\":\"~a\",\"utterance\":\"~a\",\"meaning\":\"~a\",\"elan-ref\":\"~a\"}~%"
+                                (cdr (assoc :id json))
+                                utterance
+                                meaning
+                                (cdr (assoc :elan-ref json)))))
+                       (list (format
+                              nil
+                              "{\"id\":\"~a\",\"utterance\":\"~a\",\"meaning\":\"~a\",\"elan-ref\":\"~a\"}~%"
+                              (cdr (assoc :id json))
+                              utterance
+                              meaning
+                              (cdr (assoc :elan-ref json)))
+
+              )))
+          finally (loop for json-strings being the hash-values of sorted-examples
+                        do (loop for json-string in json-strings
+                                 do (format
+                                     out-stream
+                                     json-string))))))
+                        
 
 ;(preprocess-and-merge-english-json-files "/Users/liesbetdevos/Projects/GeoQuery-data/4500/test/" "/Users/liesbetdevos/Documents/geoquery-english-test-4500.jsonl")
 
