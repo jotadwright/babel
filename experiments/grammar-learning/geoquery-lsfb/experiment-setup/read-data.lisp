@@ -186,10 +186,13 @@
                                    for ref-length = (length list)
                                    for sorted-string-list-length = (length sorted-string-list)
                                    do (if (> sorted-string-list-length ref-length)
-                                        (if (= counter 0)
-                                         (push sorted-string-list output)
-                                         (utils::insert-after output (- counter 1) sorted-string-list))
-                                       (incf counter)))
+                                        (progn
+                                          (if (= counter 0)
+                                            (push sorted-string-list output)
+                                            (utils::insert-after output (- counter 1) sorted-string-list))
+                                          (return))
+                                       (incf counter))
+                                   finally (utils::insert-after output (- counter 1) sorted-string-list))
                              (push sorted-string-list output))
                             
                         finally (loop for output-list in output
