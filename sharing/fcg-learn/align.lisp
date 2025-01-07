@@ -340,7 +340,7 @@ solutions that match the gold standard and those that don't."
               do (setf (attr-val cxn :entrenchment-score) new-score)
               when (< (attr-val cxn :entrenchment-score) 0.01)
                 do (delete-cxn cxn cxn-inventory)
-                   (remove-categories (cons-if (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) cxn-inventory)
+                   (remove-categories (cons-if (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) cxn-inventory :recompute-transitive-closure nil)
                    (push cxn deleted-cxns)
                    (setf deleted-categories (append (cons-if (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) deleted-categories)))
         (loop with inhibition-rate = (get-configuration cxn-inventory :li-punishement)
@@ -363,7 +363,7 @@ solutions that match the gold standard and those that don't."
               do (setf (attr-val cxn :entrenchment-score) new-score)
               when (< (attr-val cxn :entrenchment-score) 0.01)
                 do (delete-cxn cxn cxn-inventory)
-                   (remove-categories (cons-if (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) cxn-inventory)
+                   (remove-categories (cons-if (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) cxn-inventory :recompute-transitive-closure nil)
                    (push cxn deleted-cxns)
                    (setf deleted-categories (append (cons-if (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) deleted-categories)))
         (loop with inhibition-rate = (get-configuration cxn-inventory :li-punishement)
@@ -392,7 +392,7 @@ solutions that match the gold standard and those that don't."
                 do (setf (attr-val cxn :entrenchment-score) new-score)
                 when (< (attr-val cxn :entrenchment-score) 0.01)
                   do (delete-cxn cxn cxn-inventory)
-                     (remove-categories (cons-if (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) cxn-inventory)
+                     (remove-categories (cons-if (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) cxn-inventory :recompute-transitive-closure nil)
                      (push cxn deleted-cxns)
                      (setf deleted-categories (append (cons-if (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) deleted-categories)))
           (loop with inhibition-rate = (get-configuration cxn-inventory :li-punishement)
@@ -414,7 +414,7 @@ solutions that match the gold standard and those that don't."
           do (when (and (eql (type-of cxn) 'filler-cxn)
                         (not (neighbouring-categories (attr-val cxn :cxn-cat) cxn-inventory)))
                (delete-cxn cxn cxn-inventory)
-               (remove-category (attr-val cxn :cxn-cat) cxn-inventory)
+               (remove-category (attr-val cxn :cxn-cat) cxn-inventory :recompute-transitive-closure nil)
                (push cxn deleted-cxns)
                (setf deleted-categories (append (list (attr-val cxn :cxn-cat)) deleted-categories)))
              (when (and (eql (type-of cxn) 'linking-cxn)
@@ -423,7 +423,7 @@ solutions that match the gold standard and those that don't."
                             (and (attr-val cxn :cxn-cat)
                                  (not (neighbouring-categories (attr-val cxn :cxn-cat) cxn-inventory)))))
                (delete-cxn cxn cxn-inventory)
-               (remove-categories (cons (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) cxn-inventory)
+               (remove-categories (cons (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) cxn-inventory :recompute-transitive-closure nil)
                (push cxn deleted-cxns)
                (setf deleted-categories (append (cons (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) deleted-categories))))
 
@@ -445,5 +445,166 @@ solutions that match the gold standard and those that don't."
                         (push cxn deleted-cxns)
                         (setf deleted-categories (append (cons-if (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) deleted-categories))))
           |#
+
+(defun cip-leaves (cip)
+  (loop with queue = (list (top-node cip))
+        with leaves = '()
+        while queue
+        for current-node = (pop queue)
+        for current-node-children = (children current-node)
+        do (if current-node-children
+             (setf queue (append queue current-node-children))
+             (push current-node leaves))
+        finally (return leaves)))
+
+(defun get-all-applied-cxns (cip)
+  "extracts all constructions that have applied during the construction application process from cip. It removes duplicate-cxns"
+  (loop with all-applied-cxns = '()
+        with cip-leaves = (cip-leaves cip)
+        for cip-leaf in cip-leaves
+        do (setf all-applied-cxns (append all-applied-cxns (applied-constructions cip-leaf)))
+        finally (return (remove-duplicates (mapcar #'original-cxn all-applied-cxns)))))
+
+(defun get-all-links (cip)
+  "extracts all links that were used during the construction application process from cip. It removes duplicate-links"
+  (loop with used-links = '()
+        with cip-leaves = (cip-leaves cip)
+        for cip-leaf in cip-leaves
+        do (setf used-links (append used-links (used-categorial-links cip-leaf)))
+        finally (return (remove-duplicates used-links))))
+
+
+(defun get-all-elements-from-l1-not-in-l2 (l1 l2)
+  (loop for item in l1
+        unless (member item l2)
+          collect item))
+
+(defmethod align ((solution-node t)
+                  (cip construction-inventory-processor)
+                  (mode (eql :punish-all-non-best-solution-cxns-in-tree)))
+  "Reward successfully used cxns and categorial links, punish those of all cxns that are used in a different branch of the tree (whether this branch leads to a solution or not)"
+  ;; Notify start of entrenchment
+  (notify entrenchment-started)
+
+  (let* ((cxn-inventory (original-cxn-set (construction-inventory cip)))
+         (gold-solutions-and-other-solutions (multiple-value-list (gold-solutions-and-other-solutions cip)))
+         (all-gold-solutions (first gold-solutions-and-other-solutions))
+         (all-applied-cxns (get-all-applied-cxns cip))
+         (best-solution-cxns (remove-duplicates (mapcar #'original-cxn (applied-constructions solution-node))))
+         (constructions-to-reward nil)
+         (constructions-to-punish
+          (remove-if #'(lambda (cxn)
+                         (or (eql (type-of cxn) 'linking-cxn)))
+                         (get-all-elements-from-l1-not-in-l2 all-applied-cxns best-solution-cxns)))
+          (best-solution-links (remove-duplicates (used-categorial-links solution-node) :test #'equal))
+         (links-to-reward nil)
+         (all-links (get-all-links cip))
+         (links-to-punish (get-all-elements-from-l1-not-in-l2 all-links best-solution-links))
+         (deleted-cxns nil)
+         (deleted-categories nil)
+         (deleted-links nil)
+         (rewarded-links nil)
+         (punished-links nil))
+
+    ;; Best solution = gold solution
+    (if (find (created-at solution-node) all-gold-solutions :key #'created-at)
+      ;; Reward cxns and links used in branch of best solution, punish all others
+      (progn
+        ;; Reward
+        (setf constructions-to-reward best-solution-cxns)
+        (setf links-to-reward best-solution-links)
+        (loop with reward-rate = (get-configuration cxn-inventory :li-reward)
+              for cxn in best-solution-cxns
+              for old-score = (attr-val cxn :entrenchment-score)
+              for new-score = (+ reward-rate
+                                 (* (- 1 reward-rate)
+                                    old-score))
+              do (setf (attr-val cxn :entrenchment-score) new-score))
+        (loop with reward-rate = (get-configuration cxn-inventory :li-reward)
+              for (cat-1 cat-2 link-type) in best-solution-links
+              for old-score = (link-weight cat-1 cat-2 cxn-inventory :link-type link-type)
+              for new-score = (+ reward-rate
+                                 (* (- 1 reward-rate)
+                                    old-score))
+              do (push (list cat-1 cat-2 new-score) rewarded-links)
+                 (set-link-weight cat-1 cat-2 cxn-inventory new-score :link-type link-type))
+        ;; Punish
+        (loop with inhibition-rate = (get-configuration cxn-inventory :li-punishement)
+              for cxn in constructions-to-punish
+              for old-score = (attr-val cxn :entrenchment-score)
+              for new-score = (* (- 1 inhibition-rate)
+                                 old-score)
+              do (setf (attr-val cxn :entrenchment-score) new-score)
+              when (< (attr-val cxn :entrenchment-score) 0.01)
+                do (delete-cxn cxn cxn-inventory)
+                   (remove-categories (cons-if (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) cxn-inventory :recompute-transitive-closure nil)
+                   (push cxn deleted-cxns)
+                   (setf deleted-categories (append (cons-if (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) deleted-categories)))
+        (loop with inhibition-rate = (get-configuration cxn-inventory :li-punishement)
+              for (cat-1 cat-2 link-type) in links-to-punish
+              for categories-exist-p = (and (category-exists-p cat-1 cxn-inventory)
+                                            (category-exists-p cat-2 cxn-inventory))
+              for old-score = (when categories-exist-p (link-weight cat-1 cat-2 cxn-inventory :link-type link-type))
+              for new-score = (when old-score
+                                (* (- 1 inhibition-rate)
+                                   old-score))
+              do (when old-score (set-link-weight cat-1 cat-2 cxn-inventory new-score :link-type link-type)
+                   (push (list cat-1 cat-2 new-score) punished-links))
+              when (or (not old-score) (< (link-weight cat-1 cat-2 cxn-inventory :link-type link-type) 0.01))
+                do (when old-score (remove-link cat-1 cat-2 cxn-inventory :link-type link-type :recompute-transitive-closure nil))
+                   (push (cons cat-1 cat-2) deleted-links)))
+
+        ;; Best solution is not a gold solution (elsewhere)
+        ;; Punished used constructions and links
+        (progn
+          (setf constructions-to-punish best-solution-cxns)
+          (setf links-to-punish best-solution-links)
+          (loop with inhibition-rate = (get-configuration cxn-inventory :li-punishement)
+                for cxn in best-solution-cxns
+                for old-score = (attr-val cxn :entrenchment-score)
+                for new-score = (* (- 1 inhibition-rate)
+                                   old-score)
+                do (setf (attr-val cxn :entrenchment-score) new-score)
+                when (< (attr-val cxn :entrenchment-score) 0.01)
+                  do (delete-cxn cxn cxn-inventory)
+                     (remove-categories (cons-if (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) cxn-inventory :recompute-transitive-closure nil)
+                     (push cxn deleted-cxns)
+                     (setf deleted-categories (append (cons-if (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) deleted-categories)))
+          (loop with inhibition-rate = (get-configuration cxn-inventory :li-punishement)
+                for (cat-1 cat-2 link-type) in best-solution-links
+                for categories-exist-p = (and (category-exists-p cat-1 cxn-inventory)
+                                              (category-exists-p cat-2 cxn-inventory)
+                                              (link-exists-p cat-1 cat-2 cxn-inventory))
+                for old-score = (when categories-exist-p (link-weight cat-1 cat-2 cxn-inventory :link-type link-type))
+                for new-score = (when categories-exist-p
+                                  (* (- 1 inhibition-rate)
+                                     old-score))
+                do (when old-score (set-link-weight cat-1 cat-2 cxn-inventory new-score :link-type link-type)
+                     (push (list cat-1 cat-2 new-score) punished-links))
+                when (or (not old-score) (< (link-weight cat-1 cat-2 cxn-inventory :link-type link-type) 0.01))
+                  do (when old-score (remove-link cat-1 cat-2 cxn-inventory :link-type link-type :recompute-transitive-closure nil))
+                     (push (cons cat-1 cat-2) deleted-links))))
+
+    ;; Remove orphan constructions
+    (loop for cxn in (constructions-list cxn-inventory)
+          do (when (and (eql (type-of cxn) 'filler-cxn)
+                        (not (neighbouring-categories (attr-val cxn :cxn-cat) cxn-inventory)))
+               (delete-cxn cxn cxn-inventory)
+               (remove-category (attr-val cxn :cxn-cat) cxn-inventory :recompute-transitive-closure nil)
+               (push cxn deleted-cxns)
+               (setf deleted-categories (append (list (attr-val cxn :cxn-cat)) deleted-categories)))
+             (when (and (eql (type-of cxn) 'linking-cxn)
+                        (or (not (neighbouring-categories (first (attr-val cxn :slot-cats)) cxn-inventory))
+                            (not (neighbouring-categories (second (attr-val cxn :slot-cats)) cxn-inventory))
+                            (and (attr-val cxn :cxn-cat)
+                                 (not (neighbouring-categories (attr-val cxn :cxn-cat) cxn-inventory)))))
+               (delete-cxn cxn cxn-inventory)
+               (remove-categories (cons (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) cxn-inventory :recompute-transitive-closure nil)
+               (push cxn deleted-cxns)
+               (setf deleted-categories (append (cons (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) deleted-categories))))
+
+    (notify entrenchment-finished constructions-to-reward links-to-reward
+            constructions-to-punish
+            links-to-punish deleted-cxns deleted-categories deleted-links)))
 
  

@@ -46,7 +46,7 @@
                        (:alignment-mode . :punish-other-solutions)
                        (:li-reward . 0.2)
                        (:li-punishement . 0.5)
-                       (:best-solution-mode . :highest-average-link-weight)
+                       (:best-solution-mode . :highest-average-entrenchment-score)
                        (:induce-cxns-mode . :filler-and-linking)
                        (:fix-selection-mode . :max-reuse)
                        (:form-generalisation-mode :altschul-erickson
@@ -78,9 +78,12 @@
 
 (defparameter *geoquery-english-train*
   (merge-pathnames (make-pathname :directory '(:relative "geoquery-english" "train")
-                                  :name "geoquery-english-train-250" 
+                                  :name "geoquery-english-train-4500" 
                                   :type "jsonl")
                    cl-user:*babel-corpora*))
+
+(defun sort-using-templates (geoquery-corpus)
+  
 
 ;;----------------------;;
 ;; loading train corpus ;;
@@ -95,21 +98,15 @@
 
 (defparameter *geoquery-english-grammar* (make-geoquery-english-cxn-inventory-cxns))
 
+
 ;; make sure counter is set to 0 at start of learning
 (setf (counter *geoquery-english-train-processor*) 0)
 
-;;-----------------------------;;
-;; testing on first speech act ;;
-;;-----------------------------;;
+;;------------------------------;;
+;; testing on single speech act ;;
+;;------------------------------;;
 
 (comprehend *geoquery-english-train-processor* :cxn-inventory *geoquery-english-grammar*  :nr-of-speech-acts 1)
-
-;; no solution is found and so a problem is diagnosed (gold-standard-not-in-search-space). One fix is proposed: anti-unification-fix which is supplied by 'repair-through-anti-unification-repair'. A holophrastic construction is learned.
-
-
-;; Setting the attribute-value of :fix to nil for all constructions in the inventory. Why?
-(loop for cxn in (constructions-list *geoquery-english-grammar*)
-      do (setf (attr-val cxn :fix) nil))
 
 ;; define a number of series to run and a number of speech-acts to comprehend in each serie? 
 (defun run-speech-acts (from to series cxn-inventory corpus-processor)
@@ -117,14 +114,83 @@
         do (setf (counter corpus-processor) from)
            (comprehend corpus-processor :cxn-inventory cxn-inventory  :nr-of-speech-acts (- to from))))
 
-;; e.g. running one serie of 200 examples (= all training examples for geoquery-250)
-;; warning: turn of webmonitors!!
-(run-speech-acts 0 200 1 *geoquery-english-grammar* *geoquery-english-train-processor*)
+(defun run-in-batches (from to series batch-size grammar corpus-processor)
+  (loop with number-of-batches = (round (/ (- to from) batch-size))
+        with number-of-remaining-speech-acts = (mod to batch-size)
+        with begin-counter = from
+        for i from 1 to number-of-batches
+        for end-counter = (+ begin-counter batch-size)
+        do (run-speech-acts begin-counter end-counter series grammar corpus-processor)
+           (setf begin-counter end-counter)
+        finally (run-speech-acts end-counter
+                                 (+ end-counter number-of-remaining-speech-acts)
+                                 series grammar corpus-processor)))
+
+(defun reset-grammar-and-counter ()
+  (defparameter *geoquery-english-grammar* (make-geoquery-english-cxn-inventory-cxns))
+  (setf (counter *geoquery-english-train-processor*) 0))
+
+;(reset-grammar-and-counter)
+;(deactivate-all-monitors)
+;(deactivate-monitor trace-fcg-learning)
+;(activate-monitor trace-fcg-learning-in-output-browser)
+;(activate-monitor trace-fcg-learning-in-output-browser-verbose)
+;(run-in-batches 0 1000 5 10 *geoquery-english-grammar* *geoquery-english-train-processor*)
+;(activate-monitor trace-fcg-learning)
+;(run-speech-acts 200 250 1 *geoquery-english-grammar* *geoquery-english-train-processor*)
+
 
 ;; comprehending a specific speech act
-(comprehend (nth-speech-act *geoquery-english-train-processor* 100)  :cxn-inventory *geoquery-english-grammar*)
+
+(comprehend (nth-speech-act *geoquery-english-train-processor* 900)  :cxn-inventory *geoquery-english-grammar*)
 
 
+(comprehend *geoquery-english-train-processor* :cxn-inventory *geoquery-english-grammar*  :nr-of-speech-acts 1)
 
+(comprehend (nth-speech-act *geoquery-english-train-processor* 4)
+            :cxn-inventory *geoquery-english-grammar* :learn nil :align nil :consolidate nil)
+
+;;--------------------------------;;
+;; Defining path to the test file ;;
+;;--------------------------------;;
+
+
+(defparameter *geoquery-english-test*
+  (merge-pathnames (make-pathname :directory '(:relative "geoquery-english" "test")
+                                  :name "geoquery-english-test-4500" 
+                                  :type "jsonl")
+                   cl-user:*babel-corpora*))
+
+
+;;---------------------;;
+;; loading test corpus ;;
+;;---------------------;;
+
+(defparameter *geoquery-english-test-processor* (load-corpus *geoquery-english-test* :sort-p t :remove-duplicates t :ipa nil))
+
+(defun compute-test-accuracy (test-processor grammar)
+  (loop with result-list = '()
+        with nr-of-speech-acts
+          = (length (corpus test-processor))
+        for i from 1 to nr-of-speech-acts
+        for (result solution cip)
+          = (multiple-value-list
+             (comprehend
+             (nth-speech-act test-processor i)
+             :cxn-inventory grammar
+             :learn nil
+             :align nil
+             :consolidate nil))
+        do (if (cdr
+                (assoc
+                 :best-solution-matches-gold-standard
+                 (data cip)))
+             (push 1 result-list)
+             (push 0 result-list))
+        finally
+          (print (length result-list))
+          (return (average result-list))))
+
+(compute-test-accuracy *geoquery-english-test-processor* *geoquery-english-grammar*)
 
 
