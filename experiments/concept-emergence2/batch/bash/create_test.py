@@ -23,9 +23,9 @@ sbcl --dynamic-space-size 16000 --non-interactive --load test.lisp \\
     dataset-loader {dataset_loader} \\
     min-context-size {min_context_size} \\
     max-context-size {max_context_size} \\
-    dataset {dataset} \\
+    dataset "({dataset})" \\
     dataset-split {dataset_split} \\
-    feature-set {feature_set} \\
+    feature-set "({feature_set})" \\
     scene-sampling {scene_sampling} \\
     topic-sampling {topic_sampling} \\
     seed ${{1}} \\
