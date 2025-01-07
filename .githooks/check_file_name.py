@@ -54,7 +54,7 @@ def contains_capitalised_letters(fpath):
         
 def check_fname_length(fpath):
     fname = get_fname(fpath)
-    return len(fname) > 30
+    return len(fname) > 50
 
 # check for directories or files
 def contains_invalid_directories(fpath):
