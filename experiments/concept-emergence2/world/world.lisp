@@ -153,10 +153,11 @@
         do (when (not (probe-file fpath))
              (error "Could not find a 'scenes' subdirectory in ~a~%" fpath))
            ;; load the dataset
-           (format t "~% Loading the scenes...")
-           (let* ((raw-data (read-jsonl fpath))
-                  (objects (s-expr->cle-objects raw-data (feature-set view))))
-             (setf (data view) objects))
+           (format t "~% Loading the objects... [~a]" fpath)
+           (time
+            (let* ((raw-data (read-jsonl fpath))
+                    (objects (s-expr->cle-objects raw-data (feature-set view))))
+              (setf (data view) objects)))
            (format t "~% Completed loading.~%~%")))
 
 ;; ------------------------
