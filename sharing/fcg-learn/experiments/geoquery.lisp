@@ -90,7 +90,7 @@
 ;;----------------------;;
 ; result is corpus-processor object that contains four slots: corpus, counter, current-speech-act and source. Corpus is a list of speech acts, counter is set to 0 at the beginning, current-speech-act is nil and source is the pathname of the source-file. Each speech act contains a form and a meaning of one example.
 
-(defparameter *geoquery-english-train-processor* (load-corpus *geoquery-english-train* :sort-p t :remove-duplicates t :ipa nil))
+(defparameter *geoquery-english-train-processor* (load-corpus *geoquery-english-train* :sort-p nil :remove-duplicates t :ipa nil))
 
 ;;--------------------;;
 ;; making the grammar ;;
@@ -135,7 +135,7 @@
 ;(deactivate-monitor trace-fcg-learning)
 ;(activate-monitor trace-fcg-learning-in-output-browser)
 ;(activate-monitor trace-fcg-learning-in-output-browser-verbose)
-;(run-in-batches 0 1000 5 10 *geoquery-english-grammar* *geoquery-english-train-processor*)
+;(run-in-batches 1000 2000 5 10 *geoquery-english-grammar* *geoquery-english-train-processor*)
 ;(activate-monitor trace-fcg-learning)
 ;(run-speech-acts 200 250 1 *geoquery-english-grammar* *geoquery-english-train-processor*)
 
@@ -192,5 +192,35 @@
           (return (average result-list))))
 
 (compute-test-accuracy *geoquery-english-test-processor* *geoquery-english-grammar*)
+
+
+(defun duplicate-nodes? (node other-node)
+  (and (not (eq node other-node))
+       (not (duplicate other-node))
+       (permutation-of? (applied-constructions node)
+                        (applied-constructions other-node)
+                        :key #'name)
+       ;; (equivalent-node? node other-node)
+       (equivalent-coupled-feature-structures 
+        (car-resulting-cfs (cipn-car node))
+        (car-resulting-cfs (cipn-car other-node)))))
+
+(defun find-duplicate (node other-node)
+  (let ((parent-nodes (all-parents node )))
+  
+  (or (when (duplicate-nodes? node other-node) other-node)
+      (loop for child in (children other-node)
+            for duplicate = (find-duplicate node child)
+            when duplicate do (return duplicate)))))
+
+(defmethod cip-node-test ((node cip-node) (mode (eql :check-duplicate)))
+  "Checks whether the node is a duplicate of another one in the tree"
+  (let ((duplicate (find-duplicate node (top-node (cip node)))))
+    (if duplicate
+      (progn
+        (setf (duplicate node) duplicate)
+        (push 'duplicate (statuses node))
+        nil)
+      t)))
 
 
