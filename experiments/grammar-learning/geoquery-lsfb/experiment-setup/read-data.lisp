@@ -175,13 +175,30 @@
                               (cdr (assoc :elan-ref json)))
 
               )))
-          finally (loop for json-strings being the hash-values of sorted-examples
-                        do (loop for json-string in json-strings
-                                 do (format
-                                     out-stream
-                                     json-string))))))
+          finally (loop with output = '()
+                        with sorted-string-lists =
+                          (loop for json-strings being the hash-values of sorted-examples
+                                collect json-strings)
+                        for sorted-string-list in sorted-string-lists
+                        do (if output
+                             (loop with counter = 0
+                                   for list in output
+                                   for ref-length = (length list)
+                                   for sorted-string-list-length = (length sorted-string-list)
+                                   do (if (> sorted-string-list-length ref-length)
+                                        (if (= counter 0)
+                                         (push sorted-string-list output)
+                                         (utils::insert-after output (- counter 1) sorted-string-list))
+                                       (incf counter)))
+                             (push sorted-string-list output))
+                            
+                        finally (loop for output-list in output
+                                      do (loop for output-string in output-list
+                                               do (format
+                                                   out-stream
+                                                   output-string)))))))
                         
 
-;(preprocess-and-merge-english-json-files "/Users/liesbetdevos/Projects/GeoQuery-data/4500/test/" "/Users/liesbetdevos/Documents/geoquery-english-test-4500.jsonl")
+;(preprocess-and-merge-english-json-files "/Users/liesbetdevos/Projects/GeoQuery-data/4500/train/" "/Users/liesbetdevos/Documents/geoquery-english-train-4500.jsonl")
 
 
