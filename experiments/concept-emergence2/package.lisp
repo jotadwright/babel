@@ -10,8 +10,7 @@
         :experiment-framework
         :test-framework
         :irl
-        :fcg
-        :cl-jonathan)
+        :fcg)
   (:import-from :cl-mop
                 :slot-names
                 :map-slots)

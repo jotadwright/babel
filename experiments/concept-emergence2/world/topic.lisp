@@ -85,8 +85,8 @@
   (find agent-1-topic agent-2-objects :test #'equalp))
 
 (defun find-topic-by-id (agent-1-topic agent-2-objects)
-  (let ((id (assqv :id (description agent-1-topic))))
-    (find id agent-2-objects :test #'equal :key (lambda (x) (assqv :id (description x))))))
+  (let ((id (gethash :id (description agent-1-topic))))
+    (find id agent-2-objects :test #'equal :key (lambda (x) (gethash :id (description x))))))
 
 #|(defun filter-discriminative-topics (world context &key attribute)
   "Determines which objects in the context are discriminative."
@@ -96,14 +96,14 @@
 
 (defun is-discriminative (world object other-objects &key (attribute nil))
   "Checks if the object has a single channel dimension that is different from all other objects."
-  (loop for (attr . val) in (description object)
-        
+  (loop for attr being the hash-keys of (description object) 
+        using (hash-value val)
         do (when (is-channel-available world attr (attributes object))
              (let ((discriminative (cond ((and attribute (not (eq attr attribute)))
                                           nil)
                                          (t
                                           (loop for other-object in other-objects
-                                                for other-val = (assqv attr (description other-object))
+                                                for other-val = (gethash attr (description other-object))
                                                 always (not (equal val other-val)))))))
                (when discriminative
                  (return t))))))
@@ -112,10 +112,11 @@
 (defun get-symbolic-discriminative-feature (world topic context)
   "Returns which symbolic features of the topic are discriminative."
   (let ((other-objects (remove topic (objects context))))
-    (loop for (attr . val) in (description topic)
+    (loop for attr being the hash-keys of (description topic) 
+          using (hash-value val)
           for available = (is-channel-available world attr (attributes topic))
           for discriminative = (loop for other-object in other-objects
-                                     for other-val = (assqv attr (description other-object))
+                                     for other-val = (gethash attr (description other-object))
                                      always (not (equal val other-val)))
           if (and available discriminative)
             collect (cons attr val))))|#

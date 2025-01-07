@@ -14,7 +14,8 @@
                           :key #'car)))
     (append
      ;; symbolic attributes
-     (loop for (attr . val) in (description object)
+     (loop for attr being the hash-keys of (description object) 
+           using (hash-value val)
            if (is-channel-available world (current-view agent) attr (attributes object))
              append `(((div :class "entity-detail" :style ,(format nil "~a" title-font))
                        ,(format nil "~a = ~,2f" attr val))))
@@ -59,7 +60,7 @@
 ;; -------------------------------------
 
 (defun get-hex-value-of-object-color (object)
-  (case (assqv :color (description object))
+  (case (gethash :color (description object))
     (gray   "#575757")
     (red    "#AD2223")
     (blue   "#2C4CD7")

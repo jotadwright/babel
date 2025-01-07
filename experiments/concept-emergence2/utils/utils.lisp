@@ -22,7 +22,7 @@
   "Loads a .jsonl corpus."
   (with-open-file (stream path)
     (loop for line = (read-line stream nil)
-          for data = (when line (cl-json:decode-json-from-string line))
+          for data = (when line (jzon::parse line :key-fn #'parse-keyword))
           while data
           collect data)))
 

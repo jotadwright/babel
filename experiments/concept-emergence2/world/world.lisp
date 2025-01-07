@@ -99,8 +99,8 @@
                                          cl-user:*babel-corpora*)
         for csv = (read-csv info-path)
         do (loop for row in csv
-                 for channel = (intern (upcase (first row)))
-                 for type = (intern (upcase (second row)))
+                 for channel = (parse-keyword (first row))
+                 for type = (parse-keyword (second row))
                  for symbolic-attribute = (parse-keyword (third row))
                  do (setf (feature-set view)
                           (cons channel (feature-set view)))
@@ -223,10 +223,10 @@
 
 (defmethod channel-continuous-p (world view-name channel)
   (equalp (get-channel-type world channel view-name)
-         'continuous))
+         :continuous))
 
 (defmethod channel-categorical-p (world view-name channel)
   (equalp (get-channel-type world channel view-name)
-         'categorical))
+         :categorical))
 
 (defmethod copy-object ((world world)) world)

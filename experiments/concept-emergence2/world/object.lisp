@@ -56,8 +56,8 @@
   "Create an instance of cle-scene from an s-expression"
   (make-instance 'cle-object
                  ;; filter the raw s-expr on only the available feature-set
-                 :attributes (filter-object (intern-alist (rest (assoc :attributes s-expr))) feature-set)
-                 :description (rest (assoc :description s-expr))))
+                 :attributes (filter-object (gethash :attributes s-expr) feature-set)
+                 :description (gethash :description s-expr)))
 
 (defclass cle-object (entity)
   ((id
@@ -71,10 +71,10 @@
     :type list :accessor description :initarg :description)))
 
 (defun has-topic-id (cle-object)
-  (assqv :id (description cle-object)))
+  (gethash :id (description cle-object)))
 
 (defun get-topic-id (cle-object)
-  (assqv :id (description cle-object)))
+  (gethash :id (description cle-object)))
 
 ;; ------------------------
 ;; + Small utils channels +
@@ -90,10 +90,10 @@
 
 (defun filter-object (object feature-set)
   "Only keep the attributes that are in play."
-  (loop with hash-table = (make-hash-table)
-        for channel in feature-set
-        do (setf (gethash channel hash-table) (assqv channel object))
-        finally (return hash-table)))
+  (loop for feature being the hash-keys of object
+        if (not (member feature feature-set :test #'equalp))
+           do (remhash feature object)
+        finally (return object)))
 
 (defmethod print-object ((cle-object cle-object) stream)
   (pprint-logical-block (stream nil)
