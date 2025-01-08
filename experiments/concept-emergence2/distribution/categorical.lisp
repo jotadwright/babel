@@ -55,8 +55,8 @@
   "Synchronize two hash-tables by adding missing keys with a value of zero."
   (let* ((hash-table1 (cat-table distribution1))
          (hash-table2 (cat-table distribution2))
-         (keys1 (loop for key being the hash-keys of hash-table1 collect key))
-         (keys2 (loop for key being the hash-keys of hash-table2 collect key)))
+         (keys2 (hash-keys hash-table1))
+         (keys1 (hash-keys hash-table2)))
     ;; Add missing keys from hash-table1 to hash-table2 with a value of zero
     (dolist (key keys1)
       (unless (gethash key hash-table2)
