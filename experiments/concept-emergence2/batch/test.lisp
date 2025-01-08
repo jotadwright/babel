@@ -8,9 +8,15 @@
   (let ((config (loop for (a b) on args by #'cddr
                       collect (cons (parse-keyword a) (read-from-string b)))))
     (loop for (key . val) in config
-          when (find key (list :exp-name :dataset :dataset-split :exp-top-dir :feature-set :log-dir-name))
+          when (find key (list :exp-name :dataset-split :exp-top-dir :log-dir-name))
             do (rplacd (assoc key config)
                        (string-downcase (string (assqv key config)))))
+    (loop for (key . val) in config
+          when (find key (list :dataset :feature-set))
+          ;; loop through strings in val and downcase theme
+          do (rplacd (assoc key config)
+                     (mapcar #'string-downcase val)))
+
     config))
 
 (defun fixed-config ()
