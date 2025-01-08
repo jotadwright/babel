@@ -44,3 +44,5 @@ id,exp_name,nr_of_interactions,dataset_loader,min_context_size,max_context_size,
 43,smcl-43,100000,:runtime,10,10,student,test,student,:random,:random
 44,smcl-44,100000,:runtime,10,10,water,test,water,:random,:random
 45,smcl-45,100000,:runtime,10,10,winery,test,winery,:random,:random
+46,smcl-46,100000,:runtime,10,10,mscoco-facebook@dinov2-small,test,mscoco-facebook@dinov2-small,:random,:random
+47,smcl-47,100000,:runtime,10,10,mscoco-google@vit-base-patch16-224-in21k,test,mscoco-google@vit-base-patch16-224-in21k,:random,:random

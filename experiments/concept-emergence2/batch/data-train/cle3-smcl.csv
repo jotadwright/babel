@@ -44,3 +44,5 @@ id,exp_name,nr_of_series,nr_of_interactions,population_size,dataset_loader,datas
 43,smcl-43,1,1000000,10,:runtime,:shared-views,10,10,student,train,student,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,true,0.1,-0.1,-0.02,true,:j-interpolation,0,1,-5,:paper,:none,0,nil
 44,smcl-44,1,1000000,10,:runtime,:shared-views,10,10,water,train,water,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,true,0.1,-0.1,-0.02,true,:j-interpolation,0,1,-5,:paper,:none,0,nil
 45,smcl-45,1,1000000,10,:runtime,:shared-views,10,10,winery,train,winery,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,true,0.1,-0.1,-0.02,true,:j-interpolation,0,1,-5,:paper,:none,0,nil
+46,smcl-46,1,1000000,10,:runtime,:shared-views,10,10,mscoco-facebook@dinov2-small,train,mscoco-facebook@dinov2-small,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,true,0.1,-0.1,-0.02,true,:j-interpolation,0,1,-5,:paper,:none,0,nil
+47,smcl-47,1,1000000,10,:runtime,:shared-views,10,10,mscoco-google@vit-base-patch16-224-in21k,train,mscoco-google@vit-base-patch16-224-in21k,:none,0,:none,0.0,:none,0.0,:random,:random,0.0,true,0.1,-0.1,-0.02,true,:j-interpolation,0,1,-5,:paper,:none,0,nil
