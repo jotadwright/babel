@@ -21,7 +21,7 @@
 ;; + World +
 ;; ---------
 
-(defclass world (entity)
+(defclass world ()
   (
    ;; names of the views over the dataset
    (view-names :type list :initform nil :accessor view-names)
@@ -171,7 +171,7 @@
 
 (defun load-precomputed-scene (world view-name scene-id)
   (let* ((fpath (gethash scene-id (data (get-view world view-name))))
-         (s-expr (decode-json-as-alist-from-source fpath))
+         (s-expr (jzon::parse fpath :key-fn #'parse-keyword))
          (scene (s-expr->cle-scene s-expr world view-name)))
     scene))
   
@@ -214,8 +214,7 @@
 
 (defmethod is-channel-available ((world world) view-name symbolic-attribute raw-attributes)
   (let* ((associated-channels (get-channels-with-symbolic-attribute world view-name symbolic-attribute))
-         (continuous-attributes (loop for key being the hash-keys of raw-attributes
-                                      collect key)))
+         (continuous-attributes (hash-keys raw-attributes)))
     (loop for channel in associated-channels
           if (member channel continuous-attributes)
             return t
