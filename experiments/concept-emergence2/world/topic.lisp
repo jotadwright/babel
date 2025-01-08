@@ -86,7 +86,7 @@
 
 (defun find-topic-by-id (agent-1-topic agent-2-objects)
   (let ((id (gethash :id (description agent-1-topic))))
-    (find id agent-2-objects :test #'equal :key (lambda (x) (gethash :id (description x))))))
+    (find id agent-2-objects :test #'equalp :key (lambda (x) (gethash :id (description x))))))
 
 #|(defun filter-discriminative-topics (world context &key attribute)
   "Determines which objects in the context are discriminative."

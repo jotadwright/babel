@@ -26,7 +26,7 @@
    ;; names of the views over the dataset
    (view-names :type list :initform nil :accessor view-names)
    ;; views of the world
-   (views :type hash-table :initform (make-hash-table :test #'equal) :accessor views)
+   (views :type hash-table :initform (make-hash-table :test #'equalp) :accessor views)
    )
   (:documentation "Captures the environments in which the agents interact."))
 
@@ -39,8 +39,8 @@
    (data :type any :initform nil :accessor data)
    ;; information about the loaded the feature-set
    (feature-set :type list :initform nil :accessor feature-set)
-   (channel-type :type hash-table :initform (make-hash-table :test #'equal) :accessor channel-type)
-   (symbolic-attribute :type hash-table :initform (make-hash-table :test #'equal) :accessor symbolic-attribute)
+   (channel-type :type hash-table :initform (make-hash-table :test #'equalp) :accessor channel-type)
+   (symbolic-attribute :type hash-table :initform (make-hash-table :test #'equalp) :accessor symbolic-attribute)
    )
   (:documentation "A view over the dataset"))
 
@@ -127,7 +127,7 @@
         do (when (not (probe-file fpath))
              (error "Could not find a 'scenes' subdirectory in '~a'~%" fpath))
            (format t "~% Loading precomputed scenes...")
-           (loop with ht = (make-hash-table :test #'equal)
+           (loop with ht = (make-hash-table :test #'equalp)
                  for scene-fpath in (sort (directory (make-pathname :directory (pathname-directory fpath)
                                                                     :name :wild :type "json"))
                                           #'string< :key #'namestring)
@@ -156,7 +156,7 @@
            (format t "~% Loading the objects... [~a]" fpath)
            (time
             (let* ((raw-data (read-jsonl fpath))
-                    (objects (s-expr->cle-objects raw-data (feature-set view))))
+                    (objects (s-expr->cle-objects raw-data (feature-set view) (get-categorical-features world view-name))))
               (setf (data view) objects)))
            (format t "~% Completed loading.~%~%")))
 
@@ -204,6 +204,13 @@
 
 (defmethod get-channel-type ((world world) channel view-name)
   (gethash channel (channel-type (get-view world view-name))))
+
+(defmethod get-categorical-features ((world world) view-name)
+  (loop with feature-types =  (channel-type (get-view world view-name))
+        for feature being the hash-keys of feature-types
+          using (hash-value type)
+        when (equal type :categorical)
+          collect feature))
 
 (defmethod get-channels-with-symbolic-attribute ((world world) view-name symbolic-attribute)
   (loop with view = (get-view world view-name)

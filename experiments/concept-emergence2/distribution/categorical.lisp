@@ -5,7 +5,7 @@
 ;; ----------------------------
 (defclass categorical (distribution)
   ((cat-table
-    :initarg :cat-table :accessor cat-table :initform (make-hash-table :test #'equal) :type hash-table)
+    :initarg :cat-table :accessor cat-table :initform (make-hash-table :test #'equalp) :type hash-table)
    (nr-of-samples
     :initarg :nr-of-samples :accessor nr-of-samples :initform nil :type number)
    (history
@@ -25,7 +25,7 @@
     distribution))
 
 ;; Update
-(defmethod update-distribution ((new-observation string)
+(defmethod update-distribution ((new-observation symbol)
                                 (distribution categorical))
   ;; Step 1: increment total count
   (incf (nr-of-samples distribution))
@@ -40,7 +40,7 @@
 ;; + Updating prototype history +
 ;; ------------------------------
 (defmethod update-distribution-history ((interaction-number number)
-                                        (new-observation string)
+                                        (new-observation symbol)
                                         (distribution categorical)
                                         &key &allow-other-keys)
   "Update the distribution history."
@@ -85,5 +85,5 @@
 
 (defmethod print-object ((distribution categorical) stream)
   (pprint-logical-block (stream nil)
-    (format stream "<Categorical: ???")
+    (format stream "<Categorical (~a): ~a" (nr-of-samples distribution) (hash-keys (cat-table distribution)))
     (format stream ">")))

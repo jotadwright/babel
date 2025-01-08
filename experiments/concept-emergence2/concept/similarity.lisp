@@ -42,7 +42,7 @@
                     0)))
     z-score))
 
-(defmethod observation-distance ((observation string) (prototype prototype) &key (laplace-smoother 1) &allow-other-keys)
+(defmethod observation-distance ((observation symbol) (prototype prototype) &key (laplace-smoother 1) &allow-other-keys)
   "Similarity [0,1] on the level of a single prototype for a categorical observation."
   (let* ((distribution (distribution prototype))
          (total (nr-of-samples distribution))

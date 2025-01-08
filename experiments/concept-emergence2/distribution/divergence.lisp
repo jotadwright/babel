@@ -46,6 +46,6 @@
   (let ((p (normalise distribution1))
         (q (normalise distribution2)))
     (loop for (key1 . count1) in p
-          for count2 = (assqv key1 q :test #'equal)
+          for count2 = (assqv key1 q :test #'equalp)
           sum (expt (- (sqrt count1) (sqrt count2)) 2) into total
           finally (return (* (/ 1 (sqrt 2)) (sqrt total))))))
