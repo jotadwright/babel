@@ -6,17 +6,12 @@
 
 (defmethod set-scene (experiment scene-id)
   "Set a scene manually."
-  (loop with scene = (get-scene-by-index (world experiment) scene-id)
+  (loop with world = (world experiment)
+        with view-name = (first (view-names (world))) ;; use the first view by default
+        with scene = (load-precomputed-scene world view-name scene-id)
         for agent in (interacting-agents experiment)
+        do (setf (current-view agent) view-name)
         do (set-data agent 'context scene)))
-
-(defmethod get-scene-by-index ((world world) index)
-  "Get a particular scene by its index."
-  (assert (and (>= index 0) (< index (length (data world)))))
-  (let* ((fpath (nth index (data world)))
-         (s-expr (decode-json-as-alist-from-source fpath))
-         (scene (s-expr->cle-scene s-expr world)))
-    scene))
 
 ;; -------------------------
 ;; + Random Scene sampling +
