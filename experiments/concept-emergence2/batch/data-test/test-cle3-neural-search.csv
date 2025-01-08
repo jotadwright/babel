@@ -13,3 +13,7 @@ id,exp_name,nr_of_interactions,dataset_loader,min_context_size,max_context_size,
 12,ns-12,10000,:runtime,10,10,mscoco-facebook@dinov2-small mscoco-google@vit-base-patch16-224-in21k,test,mscoco-facebook@dinov2-small mscoco-google@vit-base-patch16-224-in21k,:random,:random
 13,ns-13,10000,:runtime,10,10,mscoco-facebook@dinov2-small mscoco-google@vit-base-patch16-224-in21k,test,mscoco-facebook@dinov2-small mscoco-google@vit-base-patch16-224-in21k,:random,:random
 14,ns-14,10000,:runtime,10,10,mscoco-facebook@dinov2-small mscoco-google@vit-base-patch16-224-in21k,test,mscoco-facebook@dinov2-small mscoco-google@vit-base-patch16-224-in21k,:random,:random
+15,ns-15,10000,:runtime,10,10,mscoco-facebook@dinov2-small mscoco-google@vit-base-patch16-224-in21k,test,mscoco-facebook@dinov2-small mscoco-google@vit-base-patch16-224-in21k,:random,:random
+16,ns-16,10000,:runtime,10,10,mscoco-facebook@dinov2-small mscoco-google@vit-base-patch16-224-in21k,test,mscoco-facebook@dinov2-small mscoco-google@vit-base-patch16-224-in21k,:random,:random
+17,ns-17,10000,:runtime,10,10,mscoco-facebook@dinov2-small mscoco-google@vit-base-patch16-224-in21k,test,mscoco-facebook@dinov2-small mscoco-google@vit-base-patch16-224-in21k,:random,:random
+18,ns-18,10000,:runtime,10,10,mscoco-facebook@dinov2-small mscoco-google@vit-base-patch16-224-in21k,test,mscoco-facebook@dinov2-small mscoco-google@vit-base-patch16-224-in21k,:random,:random
