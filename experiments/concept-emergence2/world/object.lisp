@@ -8,11 +8,11 @@
   "Create an instance of cle-scene from an s-expression"
   (let ((view (get-view world view-name)))
     (make-instance 'cle-scene
-                   :index (rest (assoc :image--index s-expr))
+                   :index (gethash :image_index s-expr)
                    :dataset (view-name view)
                    :dataset-split (dataset-split view)
-                   :image-fname (rest (assoc :image--filename s-expr))
-                   :objects (loop for obj in (rest (assoc :objects s-expr))
+                   :image-fname (gethash :image_filename s-expr)
+                   :objects (loop for obj being the elements of (gethash :objects s-expr) ;; objects is a vector
                                   collect (s-expr->cle-object obj (feature-set view))))))
 
 (defmethod objects->cle-scene (objects world view-name)

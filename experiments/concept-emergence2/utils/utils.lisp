@@ -45,6 +45,16 @@
 (defun parse-keyword (string)
   (intern (string-upcase (string-left-trim ":" string)) :keyword))
 
+(defmethod jzon::coerce-key ((key symbol))
+  (let ((name (symbol-name key)))
+    (string-downcase name)))
+
+(defmethod jzon::write-value ((writer jzon::writer) (value symbol))
+  (let ((name (string-downcase (symbol-name value))))
+    (when (keywordp value)
+      (setf name (format nil ":~A" name)))
+    (jzon::%write-json-atom writer name)))
+
 (defun store-experiment (experiment)
   (let* ((exp-top-dir (get-configuration experiment :exp-top-dir))
          (log-dir-name (get-configuration experiment :log-dir-name))
@@ -82,34 +92,6 @@
         for el in lst
         do (setf (gethash (funcall key el) tbl) el)
         finally (return tbl)))
-
-(defun hash-table->alist (data)
-  (if (hash-table-p data)
-    (let ((alist (or (hash-table-alist data) 'empty-hash)))
-      (if (eql alist 'empty-hash)
-        'empty-hash
-        (loop for (key . value) in alist
-              if (hash-table-p value)
-              collect (cons key (hash-table->alist value))
-              else collect (cons key value))))
-    data))
-
-(defun alist->json-alist (alist)
-  (mapcar (lambda (entry)
-            (cons (if (keywordp (car entry))
-                      (string-downcase (format nil ":~a" (car entry)))
-                      (car entry))
-                  (cond ((keywordp (cdr entry))
-                         (string-downcase (format nil ":~a" (cdr entry))))
-                        ((numberp (cdr entry))
-                         (cdr entry))
-                        ((stringp (cdr entry))
-                         (cdr entry))
-                        ((equal (cdr entry) (list nil))
-                         "nil")
-                        (t
-                         (string-downcase (cdr entry))))))
-          alist))
 
 (defun hash-keys (ht)
   (loop for key being the hash-keys of ht

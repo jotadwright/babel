@@ -110,21 +110,19 @@
                              ,log-dir-name)
                 :name "lexicon-inventory-usage" 
                 :type "json"))
-         (tables (loop for agent in (agents experiment)
-                       collect (cons
-                                ;; agent-id
-                                (id agent)
-                                (list
-                                 ;; fast lexicon
-                                 (cons :fast (hash-keys (get-inventory (lexicon agent) :fast)))
-                                 (cons :trash (hash-keys (get-inventory (lexicon agent) :trash)))
-                                 ;; usage-count 
-                                 (cons :usage-table (hash-table->alist (usage-counts (usage-table agent)))))))))
+         (tables (loop with agents-ht = (make-hash-table :test #'equalp) 
+                       for agent in (agents experiment)
+                       for ht = (make-hash-table :test #'equalp)
+                       do (setf (gethash "fast-inventory" ht) (hash-keys (get-inventory (lexicon agent) :fast)))
+                       do (setf (gethash "trash-inventory" ht) (hash-keys (get-inventory (lexicon agent) :trash)))
+                       do (setf (gethash "usage-count" ht) (usage-counts (usage-table agent)))
+                       do (setf (gethash (id agent) agents-ht) ht)
+                       finally (return agents-ht))))
     (ensure-directories-exist path)
     (with-open-file (stream path :direction :output
                             :if-exists :supersede
                             :if-does-not-exist :create)
-      (write-string (cl-json:encode-json-alist-to-string tables)
+      (write-string (jzon::stringify tables)
                     stream))))
 
 ;; -----------------
@@ -145,15 +143,14 @@
                                                    ,log-dir-name)
                                       :name "experiment-configurations" 
                                       :type "json"))
-                               (config (cl-json:encode-json-alist-to-string
-                                        (alist->json-alist
-                                         (append (entries experiment) 
-                                                 (list (cons :HASH (first (exec-and-return "git" "rev-parse" "HEAD")))))))))
+                              (config (configuration experiment)))
+                          ;; add the git hash to the configuration
+                          (setf (gethash :HASH config) (first (exec-and-return "git" "rev-parse" "HEAD")))
                           (ensure-directories-exist path)
                           (with-open-file (stream path :direction :output
                                                   :if-exists :overwrite
                                                   :if-does-not-exist :create)
-                            (write-string config stream))))
+                            (write-string (jzon::stringify config) stream))))
 
 (define-monitor export-experiment-store)
 (define-event-handler (export-experiment-store run-series-finished)
