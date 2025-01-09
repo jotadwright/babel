@@ -47,6 +47,8 @@
 
 (defmethod jzon::coerce-key ((key symbol))
   (let ((name (symbol-name key)))
+    (when (keywordp key)
+      (setf name (format nil ":~A" name)))
     (string-downcase name)))
 
 (defmethod jzon::write-value ((writer jzon::writer) (value symbol))
@@ -55,24 +57,24 @@
       (setf name (format nil ":~A" name)))
     (jzon::%write-json-atom writer name)))
 
-(defun store-experiment (experiment)
+(defun store-experiment (experiment &optional (stage nil))
   (let* ((exp-top-dir (get-configuration experiment :exp-top-dir))
          (log-dir-name (get-configuration experiment :log-dir-name))
          (exp-name (get-configuration experiment :exp-name))
-         (current-stage (get-configuration experiment :current-stage))
+         (dataset-split (get-configuration experiment :dataset-split))
+         (stage (if stage (get-configuration experiment :current-stage) ""))
          (path (babel-pathname
-                :directory `("experiments"
-                             "concept-emergence2"
-                             "logging"
+                :directory `("experiments" 
+                             "concept-emergence2" 
+                             "logging" 
                              ,exp-top-dir
+                             ,dataset-split
                              ,exp-name
                              ,log-dir-name
                              "stores")
-                :name (format nil "seed-~a~a"
-                              (get-configuration experiment :seed)
-                              current-stage) 
+                :name (format nil "seed-~a~a" (get-configuration experiment :seed) stage)
                 :type "store"))
-         (tmp-world (copy-object (world experiment))))
+          (tmp-world (copy-object (world experiment))))
     (ensure-directories-exist path)
     (setf (world experiment) nil)
     (cl-store:store experiment path)
@@ -182,6 +184,7 @@
                                                                   "concept-emergence2"
                                                                   "logging"
                                                                   ,(assqv :exp-top-dir config)
+                                                                  ,(assqv :dataset-split config)
                                                                   ,(assqv :exp-name config))))))))
 
 #|(generate-csv-for-tuning "tune-clevr"

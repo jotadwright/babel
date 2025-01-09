@@ -33,7 +33,7 @@
     ;; message
     (format t "~%~%SWITCHING FROM CONDITION ~a TO CONDITION ~a~%~%" current-stage next-stage)
     ;; store history
-    (store-experiment experiment)
+    (store-experiment experiment :stage t)
     ;; set the new stage
     (set-configuration experiment :current-stage next-stage)
 

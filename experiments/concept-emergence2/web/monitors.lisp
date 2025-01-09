@@ -101,11 +101,13 @@
   (let* ((exp-top-dir (get-configuration experiment :exp-top-dir))
          (log-dir-name (get-configuration experiment :log-dir-name))
          (exp-name (get-configuration experiment :exp-name))
+         (dataset-split (get-configuration experiment :dataset-split))
          (path (babel-pathname
                 :directory `("experiments"
                              "concept-emergence2"
                              "logging"
                              ,exp-top-dir
+                             ,dataset-split
                              ,exp-name
                              ,log-dir-name)
                 :name "lexicon-inventory-usage" 
@@ -134,11 +136,13 @@
                         (let* ((exp-top-dir (get-configuration experiment :exp-top-dir))
                                (log-dir-name (get-configuration experiment :log-dir-name))
                                (exp-name (get-configuration experiment :exp-name))
+                               (dataset-split (get-configuration experiment :dataset-split))
                                (path (babel-pathname
                                       :directory `("experiments"
                                                    "concept-emergence2"
                                                    "logging"
                                                    ,exp-top-dir
+                                                   ,dataset-split
                                                    ,exp-name
                                                    ,log-dir-name)
                                       :name "experiment-configurations" 
@@ -154,19 +158,4 @@
 
 (define-monitor export-experiment-store)
 (define-event-handler (export-experiment-store run-series-finished)
-  (let* ((exp-top-dir (get-configuration experiment :exp-top-dir))
-         (log-dir-name (get-configuration experiment :log-dir-name))
-         (exp-name (get-configuration experiment :exp-name))
-         (path (babel-pathname
-                :directory `("experiments" 
-                             "concept-emergence2" 
-                             "logging" 
-                             ,exp-top-dir
-                             ,exp-name
-                             ,log-dir-name
-                             "stores")
-                :name (format nil "seed-~a" (get-configuration experiment :seed)) 
-                :type "store")))
-    (setf (world experiment) nil)
-    (ensure-directories-exist path)
-    (cl-store:store experiment path)))
+  (store-experiment experiment))

@@ -21,6 +21,11 @@
                                                           (+ 1 (interaction-number
                                                                 (car (interactions experiment))))
                                                           1))))
+    ;; during training: store experiment every x interactions
+    (when (and (equalp (get-configuration experiment :dataset-split) "train")
+               (zerop (mod (interaction-number interaction) (/ (get-configuration experiment :nr-of-interactions) 4))))
+      (store-experiment experiment))
+
     ;; 1. set new interaction as interaction
     (setf (interactions experiment) (list interaction))
     ;; 2. run interaction script
