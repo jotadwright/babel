@@ -23,6 +23,7 @@
                                                           1))))
     ;; during training: store experiment every x interactions
     (when (and (equalp (get-configuration experiment :dataset-split) "train")
+               (not (zerop (interaction-number interaction)))
                (zerop (mod (interaction-number interaction) (/ (get-configuration experiment :nr-of-interactions) 4))))
       (store-experiment experiment))
 
