@@ -13,7 +13,7 @@ def get_extension(filepath):
 
 def get_staged_files():
     # Get the list of all added, copied, modified, or renamed files
-    result = subprocess.run(['git', 'diff', '--cached', '--name-only', '--diff-filter=ACMR'], stdout=subprocess.PIPE, text=True)
+    result = subprocess.run(['git', 'diff', '--cached', '--name-only', '--diff-filter=A'], stdout=subprocess.PIPE, text=True)
     files = result.stdout.splitlines()
     return files
 

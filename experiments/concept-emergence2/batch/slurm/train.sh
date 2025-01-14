@@ -17,9 +17,13 @@ sbcl --dynamic-space-size $space --load $VSC_HOME/concept-emergence2/batch/run.l
     nr-of-series $nr_of_series \
     nr-of-interactions $nr_of_interactions \
     population-size $population_size \
-    dataset $dataset \
+    dataset-loader $dataset_loader \
+    min-context-size $min_context_size \
+    max-context-size $max_context_size \
+    dataset "($dataset)" \
+    dataset-view $dataset_view \
     dataset-split $dataset_split \
-    feature-set $feature_set \
+    feature-set "($feature_set)" \
     disable-channels $disable_channels \
     amount-disabled-channels $amount_disabled_channels \
     sensor-noise $sensor_noise \

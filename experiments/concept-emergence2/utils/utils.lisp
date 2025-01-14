@@ -18,6 +18,14 @@
           else
             collect row)))
 
+(defun read-jsonl (path)
+  "Loads a .jsonl corpus."
+  (with-open-file (stream path)
+    (loop for line = (read-line stream nil)
+          for data = (when line (jzon::parse line :key-fn #'parse-keyword))
+          while data
+          collect data)))
+
 (defun get-current-date ()
   (multiple-value-bind
       (second minute hour day month year day-of-week dst-p tz)
@@ -37,24 +45,36 @@
 (defun parse-keyword (string)
   (intern (string-upcase (string-left-trim ":" string)) :keyword))
 
-(defun store-experiment (experiment)
+(defmethod jzon::coerce-key ((key symbol))
+  (let ((name (symbol-name key)))
+    (when (keywordp key)
+      (setf name (format nil ":~A" name)))
+    (string-downcase name)))
+
+(defmethod jzon::write-value ((writer jzon::writer) (value symbol))
+  (let ((name (string-downcase (symbol-name value))))
+    (when (keywordp value)
+      (setf name (format nil ":~A" name)))
+    (jzon::%write-json-atom writer name)))
+
+(defun store-experiment (experiment &optional (stage nil))
   (let* ((exp-top-dir (get-configuration experiment :exp-top-dir))
          (log-dir-name (get-configuration experiment :log-dir-name))
          (exp-name (get-configuration experiment :exp-name))
-         (current-stage (get-configuration experiment :current-stage))
+         (dataset-split (get-configuration experiment :dataset-split))
+         (stage (if stage (get-configuration experiment :current-stage) ""))
          (path (babel-pathname
-                :directory `("experiments"
-                             "concept-emergence2"
-                             "logging"
+                :directory `("experiments" 
+                             "concept-emergence2" 
+                             "logging" 
                              ,exp-top-dir
+                             ,dataset-split
                              ,exp-name
                              ,log-dir-name
                              "stores")
-                :name (format nil "seed-~a~a"
-                              (get-configuration experiment :seed)
-                              current-stage) 
+                :name (format nil "seed-~a~a" (get-configuration experiment :seed) stage)
                 :type "store"))
-         (tmp-world (copy-object (world experiment))))
+          (tmp-world (copy-object (world experiment))))
     (ensure-directories-exist path)
     (setf (world experiment) nil)
     (cl-store:store experiment path)
@@ -74,34 +94,6 @@
         for el in lst
         do (setf (gethash (funcall key el) tbl) el)
         finally (return tbl)))
-
-(defun hash-table->alist (data)
-  (if (hash-table-p data)
-    (let ((alist (or (hash-table-alist data) 'empty-hash)))
-      (if (eql alist 'empty-hash)
-        'empty-hash
-        (loop for (key . value) in alist
-              if (hash-table-p value)
-              collect (cons key (hash-table->alist value))
-              else collect (cons key value))))
-    data))
-
-(defun alist->json-alist (alist)
-  (mapcar (lambda (entry)
-            (cons (if (keywordp (car entry))
-                      (string-downcase (format nil ":~a" (car entry)))
-                      (car entry))
-                  (cond ((keywordp (cdr entry))
-                         (string-downcase (format nil ":~a" (cdr entry))))
-                        ((numberp (cdr entry))
-                         (cdr entry))
-                        ((stringp (cdr entry))
-                         (cdr entry))
-                        ((equal (cdr entry) (list nil))
-                         "nil")
-                        (t
-                         (string-downcase (cdr entry))))))
-          alist))
 
 (defun hash-keys (ht)
   (loop for key being the hash-keys of ht
@@ -192,6 +184,7 @@
                                                                   "concept-emergence2"
                                                                   "logging"
                                                                   ,(assqv :exp-top-dir config)
+                                                                  ,(assqv :dataset-split config)
                                                                   ,(assqv :exp-name config))))))))
 
 #|(generate-csv-for-tuning "tune-clevr"

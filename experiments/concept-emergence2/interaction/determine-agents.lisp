@@ -23,6 +23,25 @@
         do (setf (discourse-role a) d))
   (notify interacting-agents-determined experiment interaction))
 
+;; -------------------
+;; + Determine views +
+;; -------------------
+
+(defmethod determine-views (experiment (mode (eql :exclusive-views)))
+  "Every agent is assigned to a specific view. The group is split up depending on the group."
+  (loop with population-size = (get-configuration experiment :population-size)
+        with view-names = (get-configuration experiment :dataset)
+        for view-name in view-names
+        for group = (loop for i from 1 to (/ population-size (length view-names))
+                          collect (list view-name))
+        collect group into groups
+        finally (return (mapcan #'identity groups))))
+
+(defmethod determine-views (experiment (mode (eql :shared-views)))
+  "Every agent has access to every view."
+  (loop for i from 1 to (get-configuration experiment :population-size)
+        collect (get-configuration experiment :dataset)))
+
 ;; -------------------------------
 ;; + Determine disabled channels +
 ;; -------------------------------

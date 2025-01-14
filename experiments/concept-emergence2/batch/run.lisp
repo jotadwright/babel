@@ -9,10 +9,15 @@
                       collect (cons (parse-keyword a) (read-from-string b)))))
     ;; make sure that the keys required in paths are lowercase
     (loop for (key . val) in config
-          when (find key (list :exp-name :dataset :dataset-split :exp-top-dir :feature-set))
+          when (find key (list :exp-name :dataset-split :exp-top-dir))
             do (rplacd (assoc key config)
                        (string-downcase (string (assqv key config)))))
-    ;; make sure that the keys required in paths are lowercase
+    ;; lists of strings should also be downcase
+    (loop for (key . val) in config
+          when (find key (list :dataset :feature-set))
+          ;; loop through strings in val and downcase theme
+          do (rplacd (assoc key config)
+                     (mapcar #'string-downcase val)))
     (when (assoc :stage-parameters config)
       (let ((stage-params (assqv :stage-parameters config)))
         (loop for stage-param in stage-params

@@ -9,9 +9,9 @@
 
 (defmethod adopt ((agent cle-agent) meaning form)
   "Adopt a new cxn into the lexicon of the agent."
-  (let* ((cxn (car (find-best-concept agent :inventories '(:fast :unassigned :trash)))))
-
-    
+  (let* ((topic  (get-data agent 'topic))
+         (context (remove topic (objects (get-data agent 'context))))
+         (cxn (car (find-best-concept agent topic context))))
     (if cxn
       ;; CASE 1: only if something is discriminative you associate existing cxn with the new form
       (let* ((new-cxn (copy-object cxn))

@@ -24,34 +24,50 @@
     (speaker (speaker-conceptualise agent))
     (hearer (hearer-conceptualise agent))))
 
+(defun get-topic-for-coherence (experiment)
+  (case (get-configuration experiment :coherence-perspective)
+    (:speaker (get-data (speaker experiment) 'topic))
+    (:hearer (get-data (hearer experiment) 'topic))))
+
+(defun get-context-for-coherence (experiment)
+  (let ((topic (get-topic-for-coherence experiment)))
+    (case (get-configuration experiment :coherence-perspective)
+      (:speaker (remove topic (objects (get-data (speaker experiment) 'context))))
+      (:hearer (remove topic (objects (get-data (hearer experiment) 'context)))))))
+
 ;; -------------
 ;; + Algorithm +
 ;; -------------
 (defmethod speaker-conceptualise ((agent cle-agent))
   "Conceptualise the topic of the interaction."
-  (destructuring-bind (applied-cxn . competitors) (find-best-concept agent)
-    ;; set competitors
-    (set-data agent 'meaning-competitors competitors)
-    ;; set the applied-cxn slot
-    (set-data agent 'applied-cxn applied-cxn)
-    applied-cxn))
+  (let* ((topic  (get-data agent 'topic))
+         (context (remove topic (objects (get-data agent 'context)))))
+    (destructuring-bind (applied-cxn . competitors) (find-best-concept agent topic context)
+      ;; set competitors
+      (set-data agent 'meaning-competitors competitors)
+      ;; set the applied-cxn slot
+      (set-data agent 'applied-cxn applied-cxn)
+      applied-cxn)))
 
 (defmethod hearer-conceptualise ((agent cle-agent))
   "Conceptualise the topic as the hearer"
   (if (conceptualised-p agent)
     ;; if already conceptualised, just return the result
     (find-data agent 'hypothetical-cxn)
-    (destructuring-bind (hypothetical-cxn . competitors) (find-best-concept agent)
-      ;; hypothetical-cxn corresponds to the concept that hearer would have produces as a speaker
-      (let* ((applied-cxn (find-data agent 'applied-cxn))
-             (competitors (if hypothetical-cxn
-                            (cons hypothetical-cxn competitors)
-                            competitors))
-             (all-competitors (remove applied-cxn competitors :test #'(lambda (x y) (equal x y)))))
-        (set-data agent 'meaning-competitors all-competitors))
-      ;; set the hypothetical-cxn slot
-      (set-data agent 'hypothetical-cxn hypothetical-cxn)
-      hypothetical-cxn)))
+    ;; get the topic and and context from the speaker's perspective
+    (let* ((topic  (get-topic-for-coherence (experiment agent)))
+           (context (get-context-for-coherence (experiment agent))))
+      (destructuring-bind (hypothetical-cxn . competitors) (find-best-concept agent topic context)
+        ;; hypothetical-cxn corresponds to the concept that hearer would have produces as a speaker
+        (let* ((applied-cxn (find-data agent 'applied-cxn))
+               (competitors (if hypothetical-cxn
+                              (cons hypothetical-cxn competitors)
+                              competitors))
+               (all-competitors (remove applied-cxn competitors :test #'(lambda (x y) (equal x y)))))
+          (set-data agent 'meaning-competitors all-competitors))
+        ;; set the hypothetical-cxn slot
+        (set-data agent 'hypothetical-cxn hypothetical-cxn)
+        hypothetical-cxn))))
 
 ;; --------------------------------------------
 ;; + Conceptualisation through discrimination +
@@ -67,19 +83,20 @@
           do (return-from lazy-loop other-sim)
         maximize other-sim))
 
-(defun find-best-concept (agent &key (inventories '(:fast :unassigned :trash)))
+(defun find-best-concept (agent topic context)
   (if (get-configuration (experiment agent) :cluster-discriminate)
-    (find-best-concept-discr agent :inventories inventories)
-    (find-best-concept-not-discr agent :inventories inventories)))
+    (find-best-concept-discr agent topic context)
+    (find-best-concept-not-discr agent topic context)))
     
-(defun find-best-concept-discr (agent &key (inventories '(:fast :unassigned :trash)))
+(defun find-best-concept-discr (agent topic context)
   "Searches the lexicon for the best concept for the given topic and context.
 
   The agent first searches its fast inventory,
   if no cxn is found, it searches the trash inventory."
   (loop with all-competitors = nil
-        for inventory-name in inventories
-        for (best-score best-candidate competitors) = (search-inventory agent inventory-name)
+        ;; if a cxn is found, return it
+        for inventory-name in (list :fast :unassigned :trash)
+        for (best-score best-candidate competitors) = (search-inventory agent inventory-name topic context)
         if best-candidate
           ;; if a (best) candidate cxn is found, return it
           do (return (cons best-candidate
@@ -95,23 +112,21 @@
           ;; if nothing is found, return nil nil
           (return (cons nil all-competitors))))
 
-(defun find-best-concept-not-discr (agent &key (inventories '(:fast :unassigned :trash)))
+(defun find-best-concept-not-discr (agent topic context)
   (loop with all-candidates = nil
-        for inventory-name in inventories
-        for (best-score best-candidate competitors) = (search-inventory agent inventory-name)
+        for inventory-name in (list :fast :unassigned :trash)
+        for (best-score best-candidate competitors) = (search-inventory agent inventory-name topic context)
         do (setf all-candidates (cons (cons best-score best-candidate) all-candidates))
         finally (return (cons (cdr (the-highest all-candidates #'(lambda (x) (car x))))
                               nil))))
 
-(defmethod search-inventory (agent inventory-name)
+(defmethod search-inventory (agent inventory-name topic context)
   "Searches an inventory for the best concept.
 
   The best concept corresponds to the concept that maximises
   the multiplication of its entrenchment score and its discriminative power."
   (loop with similarity-threshold = (get-configuration (experiment agent) :similarity-threshold)
         with discriminate-p = (get-configuration (experiment agent) :cluster-discriminate)
-        with topic = (get-data agent 'topic)
-        with context = (remove topic (objects (get-data agent 'context)))
         with best-score = -1
         with best-candidate = nil
         with competitors = '()

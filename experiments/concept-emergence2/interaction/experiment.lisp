@@ -21,17 +21,21 @@
 
 (defun initialise-world (experiment)
   "Initialise the world of the experiment by loading the given dataset."
-  (setf (world experiment) (make-instance 'world
-                                          :dataset-name (get-configuration experiment :dataset)
-                                          :dataset-split (get-configuration experiment :dataset-split)
-                                          :feature-set (get-configuration experiment :feature-set)
-                                          :scene-sampling (get-configuration experiment :scene-sampling)
-                                          :data-fname (get-configuration experiment :data-fname))))
+  (let ((world (case (get-configuration experiment :dataset-loader)
+                 (:precomputed (make-instance 'precomputed-world
+                                              :experiment experiment))
+                 (:runtime (make-instance 'runtime-world
+                                          :experiment experiment)))))
+    (setf (world experiment) world)))
 
-(defun initialise-agent (experiment disabled-channels)
+(defun initialise-agent (experiment views disabled-channels)
   "Creates and initialises an agent with sensors and calibrations for these sensors."
+  ;; Not supported: can't disable features if you have multiple views
+  (assert (not (and disabled-channels (> (length views) 1))))
+  
   (let* (;; get all channels except the disabled ones
-         (channels (set-difference (get-feature-set (world experiment)) disabled-channels))
+         (channels (set-difference (get-feature-set (world experiment) (first views))
+                                   disabled-channels))
          ;; determine the noise in the sensors and observations
          (sensor-noise (determine-noise-in-sensor experiment
                                                   channels
@@ -41,6 +45,7 @@
                                                             (get-configuration experiment :observation-noise)))
          (new-agent (make-instance 'cle-agent
                                    :experiment experiment
+                                   :views views
                                    :lexicon (make-instance 'lexicon :configuration (configuration experiment))
                                    :disabled-channels (list->hash-table disabled-channels)
                                    :noise-in-each-sensor sensor-noise
@@ -50,25 +55,30 @@
 
 (defun initialise-population (experiment)
   "Creates and initialises a population of agents."
-  (let* ((disabled-channels-list (determine-disable-channels experiment
+  (let* ((views-list (determine-views experiment (get-configuration experiment :dataset-view)))
+         (disabled-channels-list (determine-disable-channels experiment
                                                              (get-configuration experiment :population-size)
                                                              (get-configuration experiment :disable-channels))))
     (setf (agents experiment)
           (loop for i from 0 to (- (get-configuration experiment :population-size) 1)
+                for views = (nth i views-list)
                 for disabled-channels = (nth i disabled-channels-list)
-                collect (initialise-agent experiment disabled-channels)))))
+                collect (initialise-agent experiment views disabled-channels)))))
 
 (defun initialise-clusters (experiment)
   (loop for idx from 0
         for agent in (agents experiment)
         for agent-id = (format nil "agent-~a" idx)
-        for dataset-name = (get-configuration experiment :dataset)
+        for dataset-name = (first (get-configuration experiment :dataset))
         for dataset-split = (get-configuration experiment :dataset-split)
         for n-clusters = (get-configuration experiment :n-clusters)
-        for fpath = (merge-pathnames (make-pathname :directory `(:relative "concept-emergence2" 
+        for fpath = (merge-pathnames (make-pathname :directory `(:relative "concept-emergence2"
+                                                                           "split-by-scenes"
                                                                            ,dataset-name 
                                                                            "clusters" 
-                                                                           ,(format nil "~a" n-clusters)
+                                                                           ,(format nil "~a-~a"
+                                                                                    dataset-name
+                                                                                    n-clusters)
                                                                            ,dataset-split
                                                                            )
                                                      :name agent-id
@@ -119,8 +129,8 @@ Takes FILE-PATH as the path to the JSON file."
                                                                     (gethash "samples" cluster-data))
                           ;; create a prototype for each channel
                           for new-prototype = (make-instance 'prototype
-                                                             :channel (intern (upcase channel))
-                                                             :weight 100
+                                                             :channel (intern (upcase channel) :keyword)
+                                                             :weight 100 ;; TODO: IMPORTANT HYPERPARAMETER
                                                              :weight-mode (get-configuration (experiment agent) :weight-update-strategy)
                                                              :distribution distribution)
                           ;; only create prototypes for enabled sensors
