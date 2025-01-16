@@ -49,8 +49,12 @@
       (find-data agent 'hypothetical-cxn)
       ;; get the topic and and context from the speaker's perspective
       (let* ((speaker (speaker (experiment agent)))
-             (topic  (get-data speaker 'topic))
-             (context (remove topic (objects (get-data speaker 'context)))))
+             (topic (case (get-configuration experiment :coherence-perspective)
+                      (:speaker (get-data (speaker experiment) 'topic))
+                      (:hearer (get-data (hearer experiment) 'topic))))
+             (context (case (get-configuration experiment :coherence-perspective)
+                        (:speaker (remove topic (objects (get-data (speaker experiment) 'context))))
+                        (:hearer (remove topic (objects (get-data (hearer experiment) 'context)))))))
         (destructuring-bind (hypothetical-cxn . competitors) (find-best-concept agent topic context)
           ;; hypothetical-cxn corresponds to the concept that hearer would have produces as a speaker
           (let* ((applied-cxn (find-data agent 'applied-cxn))

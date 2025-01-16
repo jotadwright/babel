@@ -46,5 +46,6 @@ sbcl --dynamic-space-size $space --load $VSC_HOME/concept-emergence2/batch/run.l
     switch-condition $switch_condition \
     switch-conditions-after-n-interactions $switch_conditions_after_n_interactions \
     stage-parameters "$stage_parameters" \
+    coherence-perspective $coherence_perspective \
     seed $seed \
     exp-top-dir $exp_top_dir
