@@ -61,6 +61,7 @@
                 (:exp-name . "b")
                 (:log-dir-name . "c")
                 (:prototype-distance . :paper)
+                (:coherence-perspective . :hearer)
                 )))
   (setf *experiment* (make-instance 'cle-experiment :configuration *baseline-simulated*))
   (notify reset-monitors)
