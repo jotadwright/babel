@@ -1,16 +1,33 @@
 (in-package :geoquery-lsfb)
 
+(defun display-hamnosys (&key (absolute-P nil))
+  "Makes css and css links that add hamnosys-webfont to the web-interface"
+  (setf web-interface::*dispatch-table*
+      (append web-interface::*dispatch-table* (list (web-interface::create-static-file-dispatcher-and-handler 
+                                                     "/hamnosys.css" (babel-pathname 
+                                                                      :directory '("systems" "web-interface" "hamnosys")
+                                                                      :name "hamnosys" :type "css") "text/css"))))
+  (if absolute-P
+    (progn
+      (define-css-link 'hamnosys.css absolute-P)
+      (define-css 'main "ham {font-size: 10pt; font-family: hamnosysunicoderegular}"))
+    (progn 
+      (define-css-link 'hamnosys.css "/hamnosys.css")
+      (define-css 'main "ham {font-size: 10pt; font-family: hamnosysunicoderegular}")))
+  )
+
+(display-hamnosys)
+
 (defun make-fingerspelling (input &key (input-type 'gloss))
   "takes a gloss or geographical name as input (string) and returns its fingerspelled hamnosys form as a string"
   (loop with output = ""
         ;; read in the fingerspelling alphabet from the data folder
         with fingerspelling-alphabet =
           (jsonl->list-of-json-alists
-           (merge-pathnames
+           (concatenate
+            'string
             *data-folder*
-            (babel-pathname
-             :name "fingerspelling-alphabet"
-             :type "jsonl")))
+            "/fingerspelling-alphabet.jsonl"))
         ;; extract name to be fingerspelled from input
         with fingerspelling-name =
           (case input-type
@@ -59,4 +76,5 @@
                character-hamnosys)))
         finally (return output)))
 
-;(make-fingerspelling "nouveau-mexique" :input-type 'name)
+;(make-fingerspelling "niagara-falls" :input-type 'name)
+;(concatenate 'string *data-folder* "/fingerspelling-alphabet.jsonl")
