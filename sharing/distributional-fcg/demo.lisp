@@ -72,7 +72,7 @@ What do we need to configure in FCG?
 - Storing embedding vectors in cxns.
   => FCG solution: when creating a construction, we do not only store strings
      but also precomputed embeddings of the corresponding tokens. For visualisation
-     purposes, we store symbols in the cxn pointing to the embedding vectors in th the blackbboard of the cxn-inventory.
+     purposes, we store symbols in the cxn pointing to the embedding vectors in the blackbboard of the cxn-inventory.
      The field used is :cxn-token-embeddings.
 - Matching based on distributional similarity instead of symbol equivalence.
   => FCG solution: declaring form as a feature type with procedural attachment (:compare-embeddings),
@@ -135,7 +135,8 @@ Let us create a small grammar fragment.
                   (subunits set)
                   (args sequence)
                   (footprints set)
-                  (boundaries default))
+                  (boundaries default)
+                  (embedding default :compare-distributional-vectors))
   :fcg-configurations (;; --- (DE)RENDER ---
                        (:de-render-mode . :de-render-token-embeddings)
 
@@ -161,7 +162,8 @@ Let us create a small grammar fragment.
                 (?man-unit
                  (HASH meaning ((man ?m)))
                  --
-                 (embedding ->man))))
+                 (embedding ->man)))
+               :attributes (:token "man"))
 
   (def-fcg-cxn car-cxn
                ((?car-unit
@@ -171,7 +173,8 @@ Let us create a small grammar fragment.
                 (?car-unit
                  (HASH meaning ((car ?c)))
                  --
-                 (embedding ->car))))
+                 (embedding ->car)))
+               :attributes (:token "car"))
 
   (def-fcg-cxn vehicle-cxn
                ((?vehicle-unit
@@ -181,7 +184,8 @@ Let us create a small grammar fragment.
                 (?vehicle-unit
                  (HASH meaning ((vehicle ?v)))
                  --
-                 (embedding ->vehicle))))
+                 (embedding ->vehicle)))
+               :attributes (:token "vehicle"))
 
   (def-fcg-cxn the-cxn
                ((?the-unit
@@ -191,7 +195,8 @@ Let us create a small grammar fragment.
                 (?the-unit
                  (HASH meaning ((referent-status ?v accessible)))
                  --
-                 (embedding ->the))))
+                 (embedding ->the)))
+               :attributes (:token "the"))
 
   (def-fcg-cxn a-cxn
                ((?a-unit
@@ -201,7 +206,8 @@ Let us create a small grammar fragment.
                 (?a-unit
                  (HASH meaning ((referent-status ?v introducing)))
                  --
-                 (embedding ->a))))
+                 (embedding ->a)))
+               :attributes (:token "a"))
 
   (def-fcg-cxn drives-cxn
                ((?drives-unit
@@ -211,7 +217,8 @@ Let us create a small grammar fragment.
                 (?drives-unit
                  (HASH meaning ((drive.01 ?d)))
                  --
-                 (embedding ->drives))))
+                 (embedding ->drives)))
+               :attributes (:token "drives"))
 
   (def-fcg-cxn np-cxn
                ((?np-unit
@@ -270,10 +277,82 @@ Let us create a small grammar fragment.
 
   )
 
+
+(defun add-grammar-token-embeddings (cxn-inventory)
+  "Retrieve all token embeddings for constructions that carry a token
+attribute and store them in the cxn inventory's blackboard under the
+field :cxn-token-embeddings"
+  (remove-data (blackboard cxn-inventory) :cxn-token-embeddings)
+  (loop for cxn in (constructions cxn-inventory)
+        for cxn-token = (attr-val cxn :token)
+        when cxn-token
+          do (append-data (blackboard cxn-inventory) :cxn-token-embeddings (list (cons (intern (upcase (string-append "->" cxn-token)))
+                                                                                 (second (first (nlp-tools::get-word-embeddings cxn-token))))))))
+
+(add-grammar-token-embeddings *distributional-fcg-grammar-ex-1*)
+  
+;; (activate-monitor trace-fcg)
 ;; (comprehend "the man drives a car" :cxn-inventory *distributional-fcg-grammar-ex-1*)
 
-                                           
- 
+;;(cdr (assoc '->DRIVES (get-data (blackboard *distributional-fcg-grammar-ex-1*) :cxn-token-embeddings)))
+
+(defmethod fcg-expand ((type (eql :compare-distributional-vectors))
+                       &key value source bindings merge? cxn-inventory)
+  "Use cosine similarity metric to match via token embeddings."
+  (cond (merge?
+         (values value bindings))
+        (t
+         (cond ((eq value source) ;; unify
+                (values value bindings))
+               ((and value source)
+                (let ((token-embedding-cxn (cdr (assoc value (get-data (blackboard cxn-inventory) :cxn-token-embeddings))))
+                      (token-embedding-ts (cdr (assoc source (get-data (blackboard cxn-inventory) :ts-token-embeddings)))))
+                  (if (> (cosine-similarity token-embedding-cxn token-embedding-ts)
+                         0.78)
+                    (return (values value bindings))
+                    (return (values nil +fail+)))))))))
+
+
+
+;;(comprehend "the man drives an suv" :cxn-inventory *distributional-fcg-grammar-ex-1*)
+
+
+        #| (loop 
+          for bindings-list in bindings
+          for ontological-class-from-ts = source
+          for value-base-name = (get-base-name value)
+          for ontological-class-from-bindings
+              = (cond ((search "ONTOLOGICAL-CLASS-UTTERANCE" value-base-name)
+                       (let* ((suffix (when (> (length value-base-name) (length "ONTOLOGICAL-CLASS-UTTERANCE"))
+                                        (subseq value-base-name (1+ (length "ONTOLOGICAL-CLASS-UTTERANCE")))))
+                              (search-for (if suffix
+                                            (format nil "ONTOLOGICAL-CLASS-WORLD-~a" (upcase suffix))
+                                            "ONTOLOGICAL-CLASS-WORLD")))
+                         (cdr (assoc search-for bindings-list :key #'get-base-name :test #'string=))))
+                      ((search "ONTOLOGICAL-CLASS-WORLD" value-base-name)
+                       (let* ((suffix (when (> (length value-base-name) (length "ONTOLOGICAL-CLASS-WORLD"))
+                                        (subseq value-base-name (1+ (length "ONTOLOGICAL-CLASS-WORLD")))))
+                              (search-for (if suffix
+                                            (format nil "ONTOLOGICAL-CLASS-UTTERANCE-~a" (upcase suffix))
+                                            "ONTOLOGICAL-CLASS-UTTERANCE")))
+                         (cdr (assoc search-for bindings-list :key #'get-base-name :test #'string=)))))
+              
+          if (and ontological-class-from-ts
+                  ontological-class-from-bindings
+                  (> (cosine-similarity (ontological-vector ontological-class-from-ts cxn-inventory)
+                                        (ontological-vector ontological-class-from-bindings cxn-inventory))
+                     0.88))
+          collect bindings-list into new-bindings
+          else if (and ontological-class-from-ts
+                       ontological-class-from-bindings
+                       (<= (cosine-similarity (ontological-vector ontological-class-from-ts cxn-inventory)
+                                              (ontological-vector ontological-class-from-bindings cxn-inventory))
+                           0.88))
+          collect +fail+ into new-bindings
+          else
+          collect bindings-list into new-bindings
+          finally (return (values value new-bindings)|#
+         
 
 
 
