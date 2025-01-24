@@ -128,44 +128,151 @@ Let us now visualise the initial transient structure (in comprehension) for the 
 Let us create a small grammar fragment.
 |#
 
-(def-fcg-constructions distributional-fcg-grammar-ex-1 
-                       :feature-types ((form set-of-predicates)
-                                       (meaning set-of-predicates)
-                                       (subunits set)
-                                       (args sequence)
-                                       (footprints set)
-                                       (boundaries default))
-                       :fcg-configurations (;; --- (DE)RENDER ---
-                                            (:de-render-mode . :de-render-sequence-predicates)
-                                            (:render-mode . :render-sequences)
+(def-fcg-constructions distributional-fcg-grammar-ex-1
+  :cxn-inventory *distributional-fcg-grammar-ex-1*
+  :feature-types ((form set-of-predicates)
+                  (meaning set-of-predicates)
+                  (subunits set)
+                  (args sequence)
+                  (footprints set)
+                  (boundaries default))
+  :fcg-configurations (;; --- (DE)RENDER ---
+                       (:de-render-mode . :de-render-token-embeddings)
 
-                                            ;; --- HEURISTICS ---
-                                            ;; use dedicated cip
-                                            (:construction-inventory-processor-mode . :heuristic-search)
-                                            ;; always fully expands node immediately
-                                            (:node-expansion-mode . :full-expansion)
-                                            ;; returns all cxns at once
-                                            (:cxn-supplier-mode . :all-cxns)
-                                            ;; for using heuristics (alternatives: :depth-first, :breadth-first :random)
-                                            (:search-algorithm . :best-first)
-                                            ;; list of heuristic functions (modes of #'apply-heuristic) - only used with best-first search
-                                            (:heuristics :nr-of-applied-cxns :nr-of-units-matched)
-                                            ;; how to use results of heuristic functions for scoring a node
-                                            (:heuristic-value-mode . :sum-heuristics-and-parent) 
+                       ;; --- HEURISTICS ---
+                       ;; use dedicated cip
+                       (:construction-inventory-processor-mode . :heuristic-search)
+                       ;; always fully expands node immediately
+                       (:node-expansion-mode . :full-expansion)
+                       ;; returns all cxns at once
+                       (:cxn-supplier-mode . :all-cxns)
+                       ;; for using heuristics (alternatives: :depth-first, :breadth-first :random)
+                       (:search-algorithm . :best-first)
+                       ;; list of heuristic functions (modes of #'apply-heuristic) - only used with best-first search
+                       (:heuristics :nr-of-applied-cxns :nr-of-units-matched)
+                       ;; how to use results of heuristic functions for scoring a node
+                       (:heuristic-value-mode . :sum-heuristics-and-parent))
 
-                                            ;; --- GOAL TESTS ---
-                                            ;; goal tests for comprehension
-                                            (:parse-goal-tests
-                                             :no-applicable-cxns ;; succeeds if node is fully expanded and no cxns could apply to its children
-                                             :no-strings-in-root ;; succeeds if no string features remain in the root
-                                             :connected-semantic-network ;; succeeds if the semantic network is fully connected
-                                             :connected-structure ;; succeeds if all units are connected
-                                             )
-                                            ;; goal tests for formulation
-                                            (:production-goal-tests
-                                             :no-applicable-cxns ;; succeeds if node is fully expanded and no cxns could apply to its children
-                                             :no-meaning-in-root ;; succeeds if no meaning predicates remain in root
-                                             )))
+  (def-fcg-cxn man-cxn
+               ((?man-unit
+                 (category noun)
+                 (args (?m)))
+                <-
+                (?man-unit
+                 (HASH meaning ((man ?m)))
+                 --
+                 (embedding ->man))))
+
+  (def-fcg-cxn car-cxn
+               ((?car-unit
+                 (category noun)
+                 (args (?c)))
+                <-
+                (?car-unit
+                 (HASH meaning ((car ?c)))
+                 --
+                 (embedding ->car))))
+
+  (def-fcg-cxn vehicle-cxn
+               ((?vehicle-unit
+                 (category noun)
+                 (args (?v)))
+                <-
+                (?vehicle-unit
+                 (HASH meaning ((vehicle ?v)))
+                 --
+                 (embedding ->vehicle))))
+
+  (def-fcg-cxn the-cxn
+               ((?the-unit
+                 (category determiner)
+                 (args (?v)))
+                <-
+                (?the-unit
+                 (HASH meaning ((referent-status ?v accessible)))
+                 --
+                 (embedding ->the))))
+
+  (def-fcg-cxn a-cxn
+               ((?a-unit
+                 (category determiner)
+                 (args (?v)))
+                <-
+                (?a-unit
+                 (HASH meaning ((referent-status ?v introducing)))
+                 --
+                 (embedding ->a))))
+
+  (def-fcg-cxn drives-cxn
+               ((?drives-unit
+                 (category verb)
+                 (args (?d)))
+                <-
+                (?drives-unit
+                 (HASH meaning ((drive.01 ?d)))
+                 --
+                 (embedding ->drives))))
+
+  (def-fcg-cxn np-cxn
+               ((?np-unit
+                 (category noun-phrase)
+                 (args (?ref))
+                 (subunits (?determiner-unit ?noun-unit))
+                 (boundaries (left ?determiner-unit)
+                             (right ?noun-unit)))
+                <-
+                (?determiner-unit
+                 (category determiner)
+                 (args (?ref))
+                 --
+                 (category determiner))
+                (?noun-unit
+                 (category noun)
+                 (args (?ref))
+                 --
+                 (category noun))
+                (?np-unit
+                 --
+                 (HASH form ((adjacent ?determiner-unit ?noun-unit))))))
+
+  (def-fcg-cxn transitive-cxn
+               ((?transitive-clause-unit
+                 (category noun-phrase)
+                 (args (?ref))
+                 (subunits (?subject-unit ?verb-unit ?object-unit)))
+                <-
+                (?subject-unit
+                 (category noun-phrase)
+                 (args (?agent))
+                 --
+                 (category noun-phrase)
+                 (boundaries (left ?subject-left)
+                             (right ?subject-right)))
+                (?verb-unit
+                 (category verb)
+                 (args (?event))
+                 --
+                 (category verb))
+                (?object-unit
+                 (category noun-phrase)
+                 (args (?patient))
+                 --
+                 (category noun-phrase)
+                 (boundaries (left ?object-left)
+                             (right ?object-right)))
+                (?transitive-clause-unit
+                 (HASH meaning ((:arg0 ?event ?agent) (:arg1 ?event ?patient)))
+                 --
+                 (HASH form ((adjacent ?subject-right ?verb)
+                             (adjacent ?verb ?object-left))))))
+
+
+
+  )
+
+;; (comprehend "the man drives a car" :cxn-inventory *distributional-fcg-grammar-ex-1*)
+
+                                           
  
 
 
