@@ -57,7 +57,7 @@ For convenience, we can define a function that given a token computes the distri
           do (setf closest-token-so-far-with-score (cons other-token cosine-similarity))
         finally (return (values (car closest-token-so-far-with-score) (cdr closest-token-so-far-with-score)))))
 
-(closest-token "suv" '("girl" "cylinder" "vehicle" "car" "hardly"))
+(closest-token "suv" '("girl" "cylinder" "vehicle" "car" "hardly" "he" "drives" "an"))
 ;; => "vehicle", 0.8198127
 
 #|
@@ -84,71 +84,42 @@ each token that hold the string and a pointer to its (precomputed) embedding.
 
 (defmethod de-render ((utterance string) (mode (eql :de-render-token-embeddings)) &key &allow-other-keys)
   "Retrieves tokens and embeddings for string, creating one unit per token."
-  (let ((token-embeddings (nlp-tools::get-word-embeddings utterance)))
-    (
+  (let* ((embedding-data nil) (adjacency-constraints nil)
+         (token-embeddings (nlp-tools::get-word-embeddings utterance))
+         (token-units (loop for (token embedding) in token-embeddings
+                            for unit-name = (make-id token)
+                            for embedding-pointer = (make-id (string-append token "->"))
+                            do (push (cons embedding-pointer embedding) embedding-data)
+                            collect (list unit-name
+                                          `(token ,token)
+                                          `(form ((embedding ,unit-name ,embedding-pointer)))))))
 
-
-  
-  (de-render (split-sequence:split-sequence #\Space utterance :remove-empty-subseqs t)
-             :de-render-string-meets))
-
-(defmethod de-render ((utterance list) (mode (eql :de-render-string-meets)) &key &allow-other-keys)
-  "De-renders a list of strings into string and meets."
-  (let ((strings nil)
-	(constraints nil))
-    (dolist (string utterance)
-      (let ((new (make-const string nil)))
-	(push `(string ,new ,string) strings)))
-    (do ((left strings (rest left)))
+    
+    (do ((left (mapcar #'first token-units) (rest left)))
 	((null (cdr left)))
-      (push `(meets ,(second (second left)) ,(second (first left)))
-	    constraints))
-    (make-instance 'coupled-feature-structure 
+      (push `(adjacent ,(first left) ,(second left))
+	    adjacency-constraints))
+
+    (make-instance 'coupled-feature-structure
+                   :data `((:token-embeddings ,@embedding-data))
 		   :left-pole `((root (meaning ())
                                       (sem-cat ())
-                                      (form ,(append (reverse strings) constraints))
-                                      (syn-cat ())))
+                                      (form ,(reverse adjacency-constraints))
+                                      (syn-cat ()))
+                                ,@token-units)
 		   :right-pole '((root)))))
+    
+(setf *initial-cfs* (de-render "car suv vehicle" :de-render-token-embeddings))
+(inspect *initial-cfs*)
+
+(cdr (assoc (caar (get-data *initial-cfs* :token-embeddings)) (get-data *initial-cfs* :token-embeddings)))
+
+
+
 
 
 ;; Importantly: word embeddings are used as FORM representations, NOT meaning
 ;; constructions as mappings between distributional representations and meaning representations
 
 
-We could use the embeddings of
-
-, such as "sphere" or
-
-
-(nlp-tools::get-word-embeddings "ball")
-(nlp-tools:get-penelope-word-embeddings "sphere cylinder car")
-
-(cosine-similarity (second (nlp-tools::get-word-embeddings "ball")))
-
-
-(defun closest-token (target-token list-of-tokens)
-  "Returns the token in list-of-tokens that is distributionally most similar to target-token."
-  (loop with closest-token-so-far-with-score = (cons nil -inf)
-        with target-token-embedding =  (second (first (nlp-tools::get-word-embeddings target-token)))
-        for other-token in list-of-tokens
-        for other-token-embedding = (nlp-tools::get-word-embeddings other-token)
-        for cosine-similarity = (cosine-similarity target-token-embedding (second (first other-token-embedding)))
-        when (> cosine-similarity (cdr closest-token-so-far-with-score))
-          do (setf closest-token-so-far-with-score (cons other-token cosine-similarity))
-        finally (return (values (car closest-token-so-far-with-score) (cdr closest-token-so-far-with-score)))))
-
-
-(closest-token "suv" '("girl" "cylinder" "vehicle" "car"))
-
-(closest-token "almost" '("hardly"))
-(closest-token "liquorice" '("girl" "candy" "gear" "child" "bus" "boy"))
-          
-          other-token-embedding in (mapcar #'(lambda (token)
-                                                 (second (first (nlp-tools::get-word-embeddings token))))
-                                             list-of-tokens)
-
-  )                   
-
-
-  (first (nlp-tools::get-word-embeddings "sphere cylinder car"))
 
