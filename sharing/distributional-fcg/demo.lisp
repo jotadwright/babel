@@ -95,8 +95,8 @@ each token that hold the string and a pointer to its (precomputed) embedding.
             collect (cons embedding-pointer embedding)
               into embedding-data
             collect (make-unit :name unit-name
-                               :features `((token ,token)
-                                           (embedding ,embedding-pointer)))
+                               :features `((token ((string ,token)
+                                                   (embedding ,embedding-pointer)))))
               into units
             finally (return (values units embedding-data)))
     ;; adjecency-constraints
@@ -137,6 +137,7 @@ Let us create a small grammar fragment.
                   (footprints set)
                   (boundaries default)
                   (embedding default :compare-distributional-vectors))
+  :visualization-configurations ((:show-constructional-dependencies . nil))
   :fcg-configurations (;; --- (DE)RENDER ---
                        (:de-render-mode . :de-render-token-embeddings)
 
@@ -162,7 +163,7 @@ Let us create a small grammar fragment.
                 (?man-unit
                  (HASH meaning ((man ?m)))
                  --
-                 (embedding ->man)))
+                 (token (embedding ->man))))
                :attributes (:token "man"))
 
   (def-fcg-cxn car-cxn
@@ -173,7 +174,7 @@ Let us create a small grammar fragment.
                 (?car-unit
                  (HASH meaning ((car ?c)))
                  --
-                 (embedding ->car)))
+                 (token (embedding ->car))))
                :attributes (:token "car"))
 
   (def-fcg-cxn vehicle-cxn
@@ -184,7 +185,7 @@ Let us create a small grammar fragment.
                 (?vehicle-unit
                  (HASH meaning ((vehicle ?v)))
                  --
-                 (embedding ->vehicle)))
+                 (token (embedding ->vehicle))))
                :attributes (:token "vehicle"))
 
   (def-fcg-cxn the-cxn
@@ -195,7 +196,7 @@ Let us create a small grammar fragment.
                 (?the-unit
                  (HASH meaning ((referent-status ?v accessible)))
                  --
-                 (embedding ->the)))
+                 (token (embedding ->the))))
                :attributes (:token "the"))
 
   (def-fcg-cxn a-cxn
@@ -206,7 +207,7 @@ Let us create a small grammar fragment.
                 (?a-unit
                  (HASH meaning ((referent-status ?v introducing)))
                  --
-                 (embedding ->a)))
+                 (token (embedding ->a))))
                :attributes (:token "a"))
 
   (def-fcg-cxn drives-cxn
@@ -217,7 +218,7 @@ Let us create a small grammar fragment.
                 (?drives-unit
                  (HASH meaning ((drive.01 ?d)))
                  --
-                 (embedding ->drives)))
+                 (token (embedding ->drives))))
                :attributes (:token "drives"))
 
   (def-fcg-cxn np-cxn
@@ -273,8 +274,6 @@ Let us create a small grammar fragment.
                  (HASH form ((adjacent ?subject-right ?verb)
                              (adjacent ?verb ?object-left))))))
 
-
-
   )
 
 
@@ -299,23 +298,26 @@ field :cxn-token-embeddings"
 (defmethod fcg-expand ((type (eql :compare-distributional-vectors))
                        &key value source bindings merge? cxn-inventory)
   "Use cosine similarity metric to match via token embeddings."
-  (cond (merge?
-         (values value bindings))
-        (t
-         (cond ((eq value source) ;; unify
-                (values value bindings))
-               ((and value source)
-                (let ((token-embedding-cxn (cdr (assoc value (get-data (blackboard cxn-inventory) :cxn-token-embeddings))))
-                      (token-embedding-ts (cdr (assoc source (get-data (blackboard cxn-inventory) :ts-token-embeddings)))))
-                  (if (> (cosine-similarity token-embedding-cxn token-embedding-ts)
-                         0.7)
-                    (values source bindings)
-                    (values nil +fail+))))
-               (t
-                (values value bindings))))))
+  (if merge?
+    ;; in the merging phase, we keep the original embedding pointer
+    (values value bindings)
+    ;; in the matching phase...
+    (cond (;; if both embedding pointers are eq, we just continue like in unification 
+           (eq value source) 
+           (values value bindings))
+          (;; if they are not eq, but non-nil, we compute their cosine and return true above a given threshold
+           (and value source)
+           (let ((token-embedding-cxn (cdr (assoc value (get-data (blackboard cxn-inventory) :cxn-token-embeddings))))
+                 (token-embedding-ts (cdr (assoc source (get-data (blackboard cxn-inventory) :ts-token-embeddings)))))
+             (if (> (cosine-similarity token-embedding-cxn token-embedding-ts)
+                    0.5)
+               (values source bindings)
+               (values nil +fail+))))
+          (t
+           (values nil +fail+)))))
 
-
-;;(comprehend "the man drives an suv" :cxn-inventory *distributional-fcg-grammar-ex-1*)
+;;(comprehend "the man drives a vehicle" :cxn-inventory *distributional-fcg-grammar-ex-1*)
+;;(comprehend "the man drives a suv" :cxn-inventory *distributional-fcg-grammar-ex-1*)
 
 
         #| (loop 
