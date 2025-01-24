@@ -308,10 +308,11 @@ field :cxn-token-embeddings"
                 (let ((token-embedding-cxn (cdr (assoc value (get-data (blackboard cxn-inventory) :cxn-token-embeddings))))
                       (token-embedding-ts (cdr (assoc source (get-data (blackboard cxn-inventory) :ts-token-embeddings)))))
                   (if (> (cosine-similarity token-embedding-cxn token-embedding-ts)
-                         0.78)
-                    (return (values value bindings))
-                    (return (values nil +fail+)))))))))
-
+                         0.7)
+                    (values source bindings)
+                    (values nil +fail+))))
+               (t
+                (values value bindings))))))
 
 
 ;;(comprehend "the man drives an suv" :cxn-inventory *distributional-fcg-grammar-ex-1*)
