@@ -9,6 +9,11 @@
 ;; (ql:quickload :distributional-fcg)
 ;; (activate-monitor trace-fcg)
 
+;; As long as we have not put the embedding-api webservice online, you will have to run it locally (python run.py in embedding-api repository),
+;; and set your penelope-host
+
+; (setf nlp-tools::*penelope-host* "http://localhost:5000")
+
 #|
 1. Introduction
  
@@ -22,26 +27,37 @@ Imagine for example that we encounter the token "suv". We do not have any cxns t
 we do have constructions that match on "girl" "cylinder" "vehicle" and "car". We should be able to use the embeddings in these
 constructions to decide which construction to apply...
 
-Let us first see how we can get access to embeddings for given tokens.
+Let us first see how we can get access to static embeddings for given tokens.
 |#
 
-(nlp-tools::get-word-embeddings "suv")
+;; Embedding for a single token.
+(nlp-tools:get-word-embedding "suv")
 ;; => (("suv" ->suv))
 
-(nlp-tools::get-word-embeddings "girl cylinder vehicle car hardly")
+;; Embeddings for a list of tokens.
+(nlp-tools:get-word-embeddings '("girl" "cylinder" "vehicle" "car" "hardly"))
 ;; => (("girl" ->girl) ("cylinder" ->cylinder) ("vehicle" ->vehicle) ("car" ->car) ("hardly" ->hardly))
+
+;; Careful, we will not find embeddings for tokens that don't appear in glove, so tokenize and lowercase.
+(nlp-tools:get-word-embeddings (mapcar #'downcase (cl-ppcre:split "[ \.-]" "The man drives an suv.")))
+;; => (("the" ->the) ("man" ->man) ("drives" ->drives) ("an" ->an) ("suv" ->suv))
 
 #|
 Similarities between tokens can quantified as the cosine between their embedding vectors
 |#
 
-(cosine-similarity (second (first (nlp-tools::get-word-embeddings "suv")))
-                   (second (first (nlp-tools::get-word-embeddings "vehicle"))))
-;; => 0.8198127
+(cosine-similarity (second (fifth (nlp-tools:get-word-embeddings '("the" "man" "drives" "a" "car" "."))))
+                   (second (fifth (nlp-tools:get-word-embeddings '("he" "will" "by" "that" "car" ".")))))
+;; => 1
 
-(cosine-similarity (second (first (nlp-tools::get-word-embeddings "suv")))
-                   (second (first (nlp-tools::get-word-embeddings "hardly"))))
-;;=> 0.1414988
+;; The cosine between two words...
+(cosine-similarity (second (nlp-tools:get-word-embedding "man"))
+                   (second (nlp-tools:get-word-embedding "cat")))
+;;=> 0.5261842
+
+;; And there's a shortcut for that...
+(nlp-tools:get-word-similarity "man" "cat")
+;; => 0.5261842
 
 #|
 For convenience, we can define a function that given a token computes the distributionally closest token from a list of tokens.
@@ -50,16 +66,16 @@ For convenience, we can define a function that given a token computes the distri
 (defun closest-token (target-token list-of-tokens)
   "Returns the token in list-of-tokens that is distributionally most similar to target-token."
   (loop with closest-token-so-far-with-score = (cons nil -inf)
-        with target-token-embedding =  (second (first (nlp-tools::get-word-embeddings target-token)))
+        with target-token-embedding =  (second (nlp-tools::get-word-embedding target-token))
         for other-token in list-of-tokens
-        for other-token-embedding = (nlp-tools::get-word-embeddings other-token)
-        for cosine-similarity = (cosine-similarity target-token-embedding (second (first other-token-embedding)))
+        for other-token-embedding = (nlp-tools::get-word-embedding other-token)
+        for cosine-similarity = (cosine-similarity target-token-embedding (second other-token-embedding))
         when (> cosine-similarity (cdr closest-token-so-far-with-score))
           do (setf closest-token-so-far-with-score (cons other-token cosine-similarity))
         finally (return (values (car closest-token-so-far-with-score) (cdr closest-token-so-far-with-score)))))
 
-(closest-token "suv" '("girl" "cylinder" "vehicle" "car" "hardly" "he" "drives" "an" "."))
-;; => "vehicle", 0.8198127
+(closest-token "suv" '("girl" "cylinder" "vehicle" "car" "hardly" "he" "drives" "an" "." "man"))
+;; => "vehicle", 0.73386384
 
 #|
 2. Operationalisation in FCG
@@ -88,7 +104,7 @@ each token that hold the string and a pointer to its (precomputed) embedding.
 (defmethod de-render ((utterance string) (mode (eql :de-render-token-embeddings)) &key cxn-inventory &allow-other-keys)
   "Retrieves tokens and embeddings for string, creating one unit per token."
   (multiple-value-bind (units embedding-data)
-      (loop with token-embeddings = (nlp-tools::get-word-embeddings utterance)
+      (loop with token-embeddings = (nlp-tools:get-word-embeddings (mapcar #'downcase (cl-ppcre:split "[ .-]"  utterance)))
             for (token embedding) in token-embeddings
             for unit-name = (make-id token)
             for embedding-pointer = (intern (upcase (string-append "->" token)))
@@ -118,11 +134,15 @@ Let us now visualise the initial transient structure (in comprehension) for the 
 "the man drives an suv" using our fresh de-render method.
 |#
 
-(add-element (make-html-fcg-light (de-render "the man drives an suv."
-                                             :de-render-token-embeddings
-                                             :cxn-inventory *fcg-constructions*)
-                                  :feature-types (feature-types *fcg-constructions*)
-                                  :construction-inventory *fcg-constructions*))
+(progn
+  (add-element (make-html-fcg-light (de-render "the man drives an suv ."
+                                               :de-render-token-embeddings
+                                               :cxn-inventory *fcg-constructions*)
+                                    :feature-types (feature-types *fcg-constructions*)
+                                    :construction-inventory *fcg-constructions*))
+
+  (add-element (make-html (get-data (blackboard *fcg-constructions*) :ts-token-embeddings)))
+  )
 
 #|
 Let us create a small grammar fragment.
@@ -140,6 +160,7 @@ Let us create a small grammar fragment.
   :visualization-configurations ((:show-constructional-dependencies . nil))
   :fcg-configurations (;; --- (DE)RENDER ---
                        (:de-render-mode . :de-render-token-embeddings)
+                       (:max-nr-of-nodes . 5000)
 
                        ;; --- HEURISTICS ---
                        ;; use dedicated cip
@@ -151,73 +172,85 @@ Let us create a small grammar fragment.
                        ;; for using heuristics (alternatives: :depth-first, :breadth-first :random)
                        (:search-algorithm . :best-first)
                        ;; list of heuristic functions (modes of #'apply-heuristic) - only used with best-first search
-                       (:heuristics :nr-of-applied-cxns :nr-of-units-matched)
+                       (:heuristics :nr-of-applied-cxns :embedding-similarity)
                        ;; how to use results of heuristic functions for scoring a node
                        (:heuristic-value-mode . :sum-heuristics-and-parent))
 
   (def-fcg-cxn man-cxn
                ((?man-unit
                  (category noun)
-                 (args (?m)))
+                 (args (?m))
+                 (footprints (token-matched)))
                 <-
                 (?man-unit
                  (HASH meaning ((man ?m)))
                  --
+                 (footprints (NOT token-matched))
                  (token (embedding ->man))))
                :attributes (:token "man"))
 
   (def-fcg-cxn car-cxn
                ((?car-unit
                  (category noun)
-                 (args (?c)))
+                 (args (?c))
+                 (footprints (token-matched)))
                 <-
                 (?car-unit
                  (HASH meaning ((car ?c)))
                  --
+                 (footprints (NOT token-matched))
                  (token (embedding ->car))))
                :attributes (:token "car"))
 
   (def-fcg-cxn vehicle-cxn
                ((?vehicle-unit
                  (category noun)
-                 (args (?v)))
+                 (args (?v))
+                 (footprints (token-matched)))
                 <-
                 (?vehicle-unit
                  (HASH meaning ((vehicle ?v)))
                  --
+                 (footprints (NOT token-matched))
                  (token (embedding ->vehicle))))
                :attributes (:token "vehicle"))
 
   (def-fcg-cxn the-cxn
                ((?the-unit
                  (category determiner)
-                 (args (?v)))
+                 (args (?v))
+                 (footprints (token-matched)))
                 <-
                 (?the-unit
                  (HASH meaning ((referent-status ?v accessible)))
                  --
+                 (footprints (NOT token-matched))
                  (token (embedding ->the))))
                :attributes (:token "the"))
 
   (def-fcg-cxn a-cxn
                ((?a-unit
                  (category determiner)
-                 (args (?v)))
+                 (args (?v))
+                 (footprints (token-matched)))
                 <-
                 (?a-unit
                  (HASH meaning ((referent-status ?v introducing)))
                  --
+                 (footprints (NOT token-matched))
                  (token (embedding ->a))))
                :attributes (:token "a"))
 
   (def-fcg-cxn drives-cxn
                ((?drives-unit
                  (category verb)
-                 (args (?d)))
+                 (args (?d))
+                 (footprints (token-matched)))
                 <-
                 (?drives-unit
                  (HASH meaning ((drive.01 ?d)))
                  --
+                 (footprints (NOT token-matched))
                  (token (embedding ->drives))))
                :attributes (:token "drives"))
 
@@ -277,6 +310,10 @@ Let us create a small grammar fragment.
   )
 
 
+#|
+We retrieve the word embeddings of the tokens in de cxns and store them in the blackboard of the cxn-inventory (:cxn-token-embeddings)
+|#
+
 (defun add-grammar-token-embeddings (cxn-inventory)
   "Retrieve all token embeddings for constructions that carry a token
 attribute and store them in the cxn inventory's blackboard under the
@@ -286,78 +323,74 @@ field :cxn-token-embeddings"
         for cxn-token = (attr-val cxn :token)
         when cxn-token
           do (append-data (blackboard cxn-inventory) :cxn-token-embeddings (list (cons (intern (upcase (string-append "->" cxn-token)))
-                                                                                 (second (first (nlp-tools::get-word-embeddings cxn-token))))))))
+                                                                                       (second  (nlp-tools:get-word-embedding cxn-token)))))))
 
 (add-grammar-token-embeddings *distributional-fcg-grammar-ex-1*)
+(get-data (blackboard *distributional-fcg-grammar-ex-1*) :cxn-token-embeddings)
+(add-element (make-html (get-data (blackboard *distributional-fcg-grammar-ex-1*) :cxn-token-embeddings)))
   
-;; (activate-monitor trace-fcg)
-;; (comprehend "the man drives a car" :cxn-inventory *distributional-fcg-grammar-ex-1*)
 
-;;(cdr (assoc '->DRIVES (get-data (blackboard *distributional-fcg-grammar-ex-1*) :cxn-token-embeddings)))
+#|
+We hook into fcg-expand to change the unification function of symbols appearing as values of the 'embedding' feature.
+Above a given threshold, unification succeeds. The value from the transient structure is kept and the cosine similarity
+is stored in the bindings list so it can later be reused...
+|#
 
 (defmethod fcg-expand ((type (eql :compare-distributional-vectors))
                        &key value source bindings merge? cxn-inventory)
   "Use cosine similarity metric to match via token embeddings."
   (if merge?
     ;; in the merging phase, we keep the original embedding pointer
-    (values value bindings)
+    (values source bindings)
     ;; in the matching phase...
     (cond (;; if both embedding pointers are eq, we just continue like in unification 
            (eq value source) 
            (values value bindings))
           (;; if they are not eq, but non-nil, we compute their cosine and return true above a given threshold
+           ;; we also add a binding between both pointers (variablified versions to make merge succeed)
            (and value source)
-           (let ((token-embedding-cxn (cdr (assoc value (get-data (blackboard cxn-inventory) :cxn-token-embeddings))))
-                 (token-embedding-ts (cdr (assoc source (get-data (blackboard cxn-inventory) :ts-token-embeddings)))))
-             (if (> (cosine-similarity token-embedding-cxn token-embedding-ts)
-                    0.5)
-               (values source bindings)
+           (let* ((token-embedding-cxn (cdr (assoc value (get-data (blackboard cxn-inventory) :cxn-token-embeddings))))
+                  (token-embedding-ts (cdr (assoc source (get-data (blackboard cxn-inventory) :ts-token-embeddings))))
+                  (cosine-similarity (cosine-similarity token-embedding-cxn token-embedding-ts)))
+             (if (> cosine-similarity 0.7)
+               (values source (mapcar #'(lambda (bindings-list)
+                                          (extend-bindings (variablify value) cosine-similarity bindings-list))
+                                      bindings))
                (values nil +fail+))))
           (t
            (values nil +fail+)))))
 
-;;(comprehend "the man drives a vehicle" :cxn-inventory *distributional-fcg-grammar-ex-1*)
-;;(comprehend "the man drives a suv" :cxn-inventory *distributional-fcg-grammar-ex-1*)
+#|
+The cosine similarity is integrated in a new heuristic. With straight unification, it returns 0. If cosine-based
+unification was needed, it returns a negative value proportional to the dissimilarity. (e.g. cosine = 0.8 -> -0.2)
+|#
+
+(defmethod apply-heuristic ((node cip-node) (mode (eql :embedding-similarity)))
+  "Discounts embedding bindings based on cosine."
+  (let* ((cxn-inventory (construction-inventory node))
+         (embedding-bindings (loop for binding in (car-second-merge-bindings (cipn-car node))
+                                   for symbol-name = (symbol-name (car binding))
+                                   when (and (>= (length symbol-name) 3)
+                                             (equal "?->" (subseq symbol-name 0 3)))
+                                     collect binding)))
+    (if embedding-bindings
+      (loop for embedding-binding in embedding-bindings
+            for cosine-similarity = (cdr embedding-binding)
+            sum cosine-similarity into total-similarity
+            finally (return (- (- 1 (/ total-similarity (length embedding-bindings))))))
+      0)))
 
 
-        #| (loop 
-          for bindings-list in bindings
-          for ontological-class-from-ts = source
-          for value-base-name = (get-base-name value)
-          for ontological-class-from-bindings
-              = (cond ((search "ONTOLOGICAL-CLASS-UTTERANCE" value-base-name)
-                       (let* ((suffix (when (> (length value-base-name) (length "ONTOLOGICAL-CLASS-UTTERANCE"))
-                                        (subseq value-base-name (1+ (length "ONTOLOGICAL-CLASS-UTTERANCE")))))
-                              (search-for (if suffix
-                                            (format nil "ONTOLOGICAL-CLASS-WORLD-~a" (upcase suffix))
-                                            "ONTOLOGICAL-CLASS-WORLD")))
-                         (cdr (assoc search-for bindings-list :key #'get-base-name :test #'string=))))
-                      ((search "ONTOLOGICAL-CLASS-WORLD" value-base-name)
-                       (let* ((suffix (when (> (length value-base-name) (length "ONTOLOGICAL-CLASS-WORLD"))
-                                        (subseq value-base-name (1+ (length "ONTOLOGICAL-CLASS-WORLD")))))
-                              (search-for (if suffix
-                                            (format nil "ONTOLOGICAL-CLASS-UTTERANCE-~a" (upcase suffix))
-                                            "ONTOLOGICAL-CLASS-UTTERANCE")))
-                         (cdr (assoc search-for bindings-list :key #'get-base-name :test #'string=)))))
-              
-          if (and ontological-class-from-ts
-                  ontological-class-from-bindings
-                  (> (cosine-similarity (ontological-vector ontological-class-from-ts cxn-inventory)
-                                        (ontological-vector ontological-class-from-bindings cxn-inventory))
-                     0.88))
-          collect bindings-list into new-bindings
-          else if (and ontological-class-from-ts
-                       ontological-class-from-bindings
-                       (<= (cosine-similarity (ontological-vector ontological-class-from-ts cxn-inventory)
-                                              (ontological-vector ontological-class-from-bindings cxn-inventory))
-                           0.88))
-          collect +fail+ into new-bindings
-          else
-          collect bindings-list into new-bindings
-          finally (return (values value new-bindings)|#
-         
+#|
+3. Testing !
+|#
+
+;; sentence covered by the grammar
+(comprehend "the man drives a vehicle" :cxn-inventory *distributional-fcg-grammar-ex-1*)
 
 
+;; sentence not covered by the grammar (no cxns for 'an' and 'suv')
+(comprehend "the man drives an suv." :cxn-inventory *distributional-fcg-grammar-ex-1*)
 
 ;; Importantly: word embeddings are used as FORM representations, NOT meaning
 ;; constructions as mappings between distributional representations and meaning representations
