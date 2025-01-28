@@ -34,7 +34,9 @@
           get-penelope-syntactic-analysis
           curl-json
           guardian-data
-          glove))
+          get-word-similarity
+          get-word-embedding
+          get-word-embeddings))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Running spacy services locally              ;;
@@ -253,32 +255,28 @@ of strings, each list corresponding to a named entity."
 ;; Word embeddings ;;
 ;;;;;;;;;;;;;;;;;;;;;
 
-(defun run-penelope-sentence-word-embeddings (sentence &key (model "en"))
-  (warn "Deprecated function, call run-penelope-word-embeddings instead.")
-  (run-penelope-word-embeddings sentence :model model))
+(defun get-word-embedding (token)
+  "Retrieve GloVe static word embedding"
+  (unless (stringp token)
+    (error "The function <get-word-embedding> expects a string as input"))
+  (let ((response (send-request "/token_embedding" (encode-json-to-string `((:token . ,token))))))
+    (list (cdr (assoc :token response))
+          (cdr (assoc :embedding response)))))
 
-(defun run-penelope-word-embeddings (sentence &key (model "en"))
-  "Call the penelope server to get the word embeddings of a single sentence."
-  (unless (stringp sentence)
-    (error "The function <run-penelope-sentence-word-embeddings> expects a string as input"))
-  (send-request "/embeddings"
-                (encode-json-to-string `((:sentence . ,sentence)
-                                         (:model . ,model)))))
+;; (get-word-embedding "ball")
 
-;; (run-penelope-word-embeddings "ball boy ball")
+(defun get-word-embeddings (list-of-tokens)
+  "Retrieve GloVe static word embeddings for list of tokens."
+  (unless (listp list-of-tokens)
+    (error "The function <get-word-embeddings> expects a list of strings as input."))
+  (let ((response (send-request "/token_embeddings" (encode-json-alist-to-string `((:tokens . ,list-of-tokens))))))
+    (mapcar #'(lambda (token-embedding)
+                (list (cdr (assoc :token token-embedding))
+                      (cdr (assoc :embedding token-embedding))))
+            response)))
 
-(defun get-penelope-word-embeddings (sentence &key (lemmatize? nil))
-  "Get the word embeddings for a sentence in a '((word1 vector1) (word2 vector2)) format."
-  (when lemmatize?
-    (setf sentence (list-of-strings->string (get-penelope-lemmas sentence))))
-  (let ((penelope-embeddings (rest (assoc :vectors (run-penelope-word-embeddings sentence)))))
-    (loop for word-embedding in penelope-embeddings
-          for token = (rest (assoc :token word-embedding))
-          for vector = (rest (assoc :vector word-embedding))
-          collect (list token vector))))
-
-;; (get-penelope-word-embeddings "ball boy ball")
-
+;; (get-word-embeddings '("ball" "sphere" "drives"))
+;; (get-word-embeddings '("the" "man" "drives" "a" "man" "."))
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; Text as input     ;;
@@ -438,7 +436,7 @@ of strings, each list corresponding to a named entity."
     (error "The function <run-penelope-texts-word-embeddings> expects a list as input"))
          (send-request "/texts-embeddings"
                     (encode-json-to-string `((:texts . ,texts)
-                                                       (:model . ,model)))))
+                                             (:model . ,model)))))
 
 ;; (run-penelope-texts-word-embeddings '("fish. I like fish." "I like meat"))
 
@@ -468,47 +466,14 @@ of strings, each list corresponding to a named entity."
 ;; (get-penelope-texts-sentence-tokens '("This is one article. And it has two sentences" "Then there is a second article. It talks about Mr. Smith."))
 
 
-
-(defun get-word-embeddings (sentence &key (lemmatize? nil)) 
-  "Get the word embeddings for a sentence in a '((word1 vector1) (word2 vector2)) format."
-  (when lemmatize?
-    (setf sentence (list-of-strings->string (get-penelope-lemmas sentence))))
-  (let ((penelope-embeddings (run-penelope-word-embeddings sentence)))
-    (loop for word-embedding in (rest (assoc :vectors penelope-embeddings))
-          for token = (rest (assoc :token word-embedding))
-          for vector = (rest (assoc :vector word-embedding))
-          collect (list token vector))))
-
-; (get-word-embeddings "hello world")
-; (cosine-similarity (second (first (get-word-embeddings "girl"))) (second (first (get-word-embeddings "girls" :lemmatize? t))))
-
-
-(defun get-word-similarity (word1 word2 &key (lemmatize? nil)) 
+(defun get-word-similarity (word1 word2) 
   "Calculates the cosine similarity between two words based on the word embeddings from Glove."
-  (let ((vector1 (second (first (get-word-embeddings word1  :lemmatize? lemmatize?))))
-        (vector2 (second (first (get-word-embeddings word2  :lemmatize? lemmatize?)))))
+  (let ((vector1 (second (get-word-embedding word1)))
+        (vector2 (second (get-word-embedding word2))))
     (cosine-similarity vector1 vector2)))
 
 ;;(get-word-similarity "boy" "banana")
 ;;(get-word-similarity "banana" "banana")
-
-
-(defun get-phrase-similarity (phrase1 phrase2 &key (lemmatize? nil))
-  ;;multiply? pretty girl vs handsome boy
-  (let* ((vectors-for-phrase-1
-          (mapcar #'(lambda (word)
-                      (second (first (get-word-embeddings word :lemmatize? lemmatize?))))
-                  (split-sequence:split-sequence #\Space phrase1)))
-         (vector1 (utils::multiply-list-of-vectors vectors-for-phrase-1))
-         (vectors-for-phrase-2
-          (mapcar #'(lambda (word)
-                      (second (first (get-word-embeddings word :lemmatize? lemmatize?))))
-                  (split-sequence:split-sequence #\Space phrase2)))
-         (vector2 (utils::multiply-list-of-vectors vectors-for-phrase-2)))
-    (utils::cosine-similarity vector1 vector2)))
-
-;;(get-phrase-similarity "Mickey Mouse" "Trump"  :lemmatize? nil)
-;;(get-phrase-similarity "handsome boy" "pretty girl" )
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
