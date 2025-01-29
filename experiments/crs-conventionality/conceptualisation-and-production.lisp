@@ -6,7 +6,6 @@
 ;;                                                    ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
 (defgeneric conceptualise-and-produce (speaker scene topic)
   (:documentation "Based on the topic and scene, the speaker produces an utterance."))
 
@@ -14,23 +13,44 @@
   "Based on the topic and scene, the speaker produces an utterance."
   (formulate topic :cxn-inventory (grammar speaker) :agent speaker :scene scene))
 
-(defmethod formulate ((topic crs-conventionality-entity-set) &key (cxn-inventory fcg-construction-set)
-                      (agent crs-conventionality-agent) (scene crs-conventionality-scene) (silent nil) (n nil))
+(defmethod formulate ((topic crs-conventionality-entity-set) &key cxn-inventory
+                      agent scene (silent nil) (n 1))
   "Produce utterance based on agent, topic and scene."
   ;; Store topic, agent and scene in the blackboard of the cxn-inventory
   (set-data (blackboard cxn-inventory) :topic topic)
   (set-data (blackboard cxn-inventory) :agent agent)
   (set-data (blackboard cxn-inventory) :scene scene)
 
-  ;(unless silent (notify routine-formulation-started topic agent scene))
+  (setf (topic agent) topic)
 
-  (let* ((cip (second (multiple-value-list (fcg-apply-with-n-solutions (processing-cxn-inventory cxn-inventory)
-                                                                       (create-initial-structure topic
-                                                                                                 (get-configuration cxn-inventory :create-initial-structure-mode)
-                                                                                                 :scene scene)
-                                                                       '-> n
-                                                                       :notify (not silent)))))
-         (solution-node nil))))
+  (unless silent (notify experiment-framework::routine-conceptualisation-started topic agent scene))
+
+  (let* ((solution-and-cip (multiple-value-list (fcg-apply-with-n-solutions (processing-cxn-inventory cxn-inventory)
+                                                                            (create-initial-structure topic
+                                                                                                      (get-configuration cxn-inventory :create-initial-structure-mode-formulation)
+                                                                                                      :scene scene)
+                                                                            '-> n
+                                                                            :notify (not silent))))
+         (solution-node (first solution-and-cip))
+         (cip (second solution-and-cip)))
+    
+    (unless silent (notify experiment-framework::routine-conceptualisation-finished cip solution-node agent))
+
+    ;; If no solution is found, start invention and set utterance in speaker
+    (if (not (succeeded-nodes cip))
+      (progn
+        (unless silent (notify experiment-framework::meta-conceptualisation-started topic agent scene))
+        (multiple-value-bind (cxn fix)
+            (fcg::invent cip agent topic scene)
+          (unless silent (notify experiment-framework::meta-conceptualisation-finished fix agent))
+          (setf (utterance agent) (render (car-resulting-cfs (first (get-data (blackboard fix) 'fcg::fixed-cars)))
+                                            (get-configuration (grammar agent) :render-mode)))))
+      (progn 
+        (setf (utterance agent) (render (car-resulting-cfs (fcg:cipn-car (first solution-node)))
+                                        (get-configuration (grammar agent) :render-mode)))
+        (setf (applied-constructions agent) (applied-constructions (first solution-node)))))))
+
+
 
 
 (defmethod create-initial-structure ((topic crs-conventionality-entity-set)
@@ -40,11 +60,64 @@
   (make-instance 'coupled-feature-structure
                  :left-pole `((root
                                (topic ,topic)
-                               (scene ,scene)))
+                               (scene ?scene)
+                               (meaning (;(get-scene ?scene)
+                                         (bind crs-conventionality-entity-set ?scene ,scene)))))
 		 :right-pole '((root))
 		 :left-pole-domain 'sem
 		 :right-pole-domain 'syn))
+
+
+
+
+(in-package :fcg)
+
+(defmethod cip-goal-test ((node cip-node) (mode (eql :topic-retrieved)))
+  "Checks whether the extracted meaning leads to the topic by evaluating irl program."
+  (let* ((irl-program (extract-meanings (left-pole-structure (car-resulting-cfs (cipn-car node)))))
+         (topic (first (crs-conventionality::entities (find-data (blackboard (construction-inventory node)) :topic))))
+         (primitive-inventory (find-data (blackboard (construction-inventory node)) :primitive-inventory))
+         (ontology (find-data (blackboard (construction-inventory node)) :ontology))
+         (target-var (irl::get-target-var irl-program))
+         (irl-solution (first (irl::evaluate-irl-program irl-program ontology :primitive-inventory primitive-inventory :n 1)))
+         (computed-target (irl::value (find target-var irl-solution :key #'irl::var)))
+         (success (irl::equal-entity topic computed-target)))
+    success))
+
+
+
     
+       #| for fix-cxn-inventory = (fix-cxn-inventory solution-state)
+        do (set-configuration fix-cxn-inventory (if (eql (direction cip) '<-) :parse-goal-tests :production-goal-tests) (list :gold-standard))
+           (let* ((repair-solution-node (fcg-apply (processing-cxn-inventory fix-cxn-inventory) (initial-cfs cip) (direction cip)))
+                  (fixed-cars (mapcar #'cipn-car (reverse (upward-branch repair-solution-node :include-initial nil)))))
+             (when (find 'succeeded (statuses repair-solution-node))
+               (push (make-instance 'invention-fix
+                                    :anti-unification-state solution-state
+                                    :repair repair
+                                    :problem problem
+                                    :base-cxns (remove nil (mapcar #'base-cxn (upward-branch solution-state)))
+                                    :fix-constructions (constructions-list fix-cxn-inventory)
+                                    :fix-categories (categories fix-cxn-inventory)
+                                    :fix-categorial-links (links fix-cxn-inventory)
+                                    :fixed-cars fixed-cars
+                                    :speech-act speech-act
+                                    :cip cip)
+                     fixes)))
+        finally
+          ;; Set fix slot of the fix-constructions before returning the fixes
+          (mapcar #'(lambda (fix)
+                      (loop for fix-cxn in (fix-constructions fix)
+                              do (setf (attr-val fix-cxn :fix) fix))) fixes)
+          
+          (return (select-fixes fixes (get-configuration (construction-inventory cip) :fix-selection-mode)))|#
+
+    
+
+
+
+
+
 #|
     
     (setf solution-node (best-solution cip (get-configuration cxn-inventory :best-solution-mode))) ; can be nil
