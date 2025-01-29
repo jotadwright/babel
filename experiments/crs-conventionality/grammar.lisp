@@ -18,14 +18,14 @@
   (let* ((grammar-name (make-const "grammar")))
     (setf (grammar agent) (eval `(def-fcg-constructions ,grammar-name
                                    :hashed t
-                                   :cxn-inventory ,grammar-name
                                    :feature-types ((meaning set-of-predicates)
                                                    (form set)
                                                    (footprints set))
                                    :fcg-configurations (;; Rendering and de-rendering
                                                         (:de-render-mode . :de-render-raw)
                                                         (:render-mode . :render-raw)
-                                                        (:create-initial-structure-mode . :topic-and-scene)
+                                                        (:create-initial-structure-mode-formulation . :topic-and-scene)
+                                                        (:create-initial-structure-mode-comprehension . :utterance-and-scene)
                                                         ;; Construction supplier and search
                                                         (:construction-inventory-processor-mode . :heuristic-search)
                                                         (:node-expansion-mode . :full-expansion)
@@ -38,7 +38,7 @@
                                                         (:heuristics :cxn-score)
                                                         (:heuristic-value-mode . :sum-heuristics-and-parent) 
                                                         ;; goal tests
-                                                        (:parse-goal-tests :no-sequence-in-root)
+                                                        (:parse-goal-tests :interpretation-in-scene)
                                                         (:production-goal-tests :topic-retrieved)
                                                         (:max-nr-of-nodes . 3)
                                                         ;; meta-layer
