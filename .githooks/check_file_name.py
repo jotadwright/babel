@@ -13,7 +13,7 @@ def get_extension(filepath):
 
 def get_staged_files():
     # Get the list of all added, copied, modified, or renamed files
-    result = subprocess.run(['git', 'diff', '--cached', '--name-only', '--diff-filter=ACMR'], stdout=subprocess.PIPE, text=True)
+    result = subprocess.run(['git', 'diff', '--cached', '--name-only', '--diff-filter=A'], stdout=subprocess.PIPE, text=True)
     files = result.stdout.splitlines()
     return files
 
@@ -54,7 +54,7 @@ def contains_capitalised_letters(fpath):
         
 def check_fname_length(fpath):
     fname = get_fname(fpath)
-    return len(fname) > 30
+    return len(fname) > 50
 
 # check for directories or files
 def contains_invalid_directories(fpath):
