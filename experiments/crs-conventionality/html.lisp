@@ -35,7 +35,10 @@
 
 (defmethod make-html-for-entity-details ((agent crs-conventionality-agent) &key &allow-other-keys)
   `(((div :class "entity-detail") 
-     ,(format nil "discourse role: ~a"  (discourse-role agent)))))
+     ,(format nil "discourse role: ~a"  (discourse-role agent)))
+    ((div :class "entity-detail") 
+     ,(format nil "grammar: " )
+     ,(if (grammar agent) (make-html (grammar agent))))))
 
 (defmethod collapsed-entity-html ((agent crs-conventionality-agent) element-id)
   "html for the collapsed version of an agent"
