@@ -1,3 +1,4 @@
+(in-package :fcg)
 
 (defgeneric invent (cip agent topic scene)
   (:documentation "If the speaker could not formulate, new linguistic means need to be invented."))
