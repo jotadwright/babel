@@ -67,7 +67,8 @@
                                   )
                                  (,unit-name
                                   --
-                                  (HASH form (,form))))))
+                                  (HASH form (,form))))
+                                :cxn-inventory ,(original-cxn-set cxn-inventory)))
          
           (make-instance 'invention-fix :restart-data cxn))))))
 
