@@ -69,7 +69,19 @@
    (population
     :documentation "A backpointer to the population to which the agent belongs."
     :type crs-conventionality-population
-    :initform nil :initarg :population :accessor population))
+    :initform nil :initarg :population :accessor population)
+   (computed-topic
+    :documentation "The topic that the agent computed as hearer."
+    :type crs-conventionality-entity-set
+    :initform nil :initarg :computed-topic :accessor computed-topic)
+   (topic
+    :documentation "The topic that the agent wants to formulate as speaker."
+    :type crs-conventionality-entity-set
+    :initform nil :initarg :topic :accessor topic)
+   (applied-constructions
+    :documentation "The topic that the agent wants to formulate as speaker."
+    :type list
+    :initform nil :initarg :applied-constructions :accessor applied-constructions))
   (:documentation "An agent in the experiment"))
 
 (defmethod initialize-instance :after ((agent crs-conventionality-agent) &key &allow-other-keys)
