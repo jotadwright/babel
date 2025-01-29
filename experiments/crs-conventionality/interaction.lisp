@@ -89,27 +89,22 @@
         (scene (scene interaction))
         (topic (topic interaction)))
     
-    ;; The speaker conceptualizes the topic into a meaning representation
+    ;; The speaker conceptualizes the topic into a meaning representation and formulates it.
     (conceptualise-and-produce speaker scene topic)
+
+    ;; Speaker says utterance to hearer. 
+    (setf (utterance hearer) (utterance speaker))
+
+    ;; Hearer comprehends and interprets the meaning. 
+    (comprehend-and-interpret hearer scene)
+
+    ;; Determine success
+    (determine-success speaker hearer)
+
+    ;; Adoption and alignment
+    (align topic speaker hearer)
+    
     #|
-    ;; 3) The speaker formulates the meaning
-    (run-formulation speaker (get-data speaker :meaning))
-    ;; --- The speaker passes on the formulated utterance to the hearer
-    (set-data hearer :utterance (get-data speaker :utterance))
-    ;(notify utterance-passed (get-data speaker :utterance))
-    ;; 4) The hearer comprehends the utterance
-    (run-comprehension hearer (get-data hearer :utterance))
-    ;; 5) The hearer interprets the meaning in the scene
-    (interpret hearer (get-data hearer :meaning) (get-data hearer :scene))
-    ;; 6) Compare intended topic of speaker and interpreted topic of hearer
-    ;;    and set communicated-succesfully for speaker, hearer and interaction
-    (compare-topics speaker hearer interaction)
-    ;; 7) If not succesful, then learning phase for hearer
-    (unless (communicated-successfully hearer)
-      (run-learning hearer (get-data speaker :topic) (get-data hearer :cipn)))
-    ;; 8) Speaker and hearer update the scores of the constructions used and their competitors
-    (align-agent speaker (get-configuration experiment :alignment))
-    (align-agent hearer (get-configuration experiment :alignment))
     ;; Finishing interaction
     (finish-interaction experiment interaction)
     |#
