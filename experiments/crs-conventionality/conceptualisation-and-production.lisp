@@ -157,31 +157,3 @@
              (values nil nil cip)))))
 
 |#
-#|
-  
-  (let ((initial-cfs (create-initial-structure 
-		      meaning 
-		      (get-configuration construction-inventory :create-initial-structure-mode))))
-    (unless silent (notify produce-all-started n meaning construction-inventory))
-
-    (set-data (blackboard construction-inventory) :input meaning)
-    
-    (multiple-value-bind (solutions cip)
-        (if n
-          (fcg-apply-with-n-solutions construction-inventory initial-cfs '-> n
-                                      :notify (not silent))
-          (fcg-apply-exhaustively construction-inventory initial-cfs '->
-                                  :notify (not silent)))
-      (let ((utterances
-             (mapcar #'(lambda(solution)
-                         (or (find-data (goal-test-data solution) 'utterance)
-                             (render 
-                              (car-resulting-cfs (cipn-car solution)) 
-                              (get-configuration construction-inventory :render-mode)
-                              :node solution)))
-                     solutions)))
-        (unless silent (notify produce-all-finished utterances))
-        (values utterances solutions cip)))))
-
-(formulate
- |#
