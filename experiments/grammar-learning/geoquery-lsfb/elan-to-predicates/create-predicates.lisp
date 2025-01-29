@@ -12,27 +12,47 @@
         ;; return the reverse list of predicates
         finally (return (reverse predicates))))
 
+(defun find-position (interval list)
+  (loop with counter = 0
+     for item in list
+        when (eql item interval)
+          return counter
+        do (incf counter)))
+
+(defun sort-elan-intervals (elan-intervals)
+  (loop with output = '()
+        for interval in elan-intervals
+        when output
+          do (loop with item-added = nil
+                   for item in output
+                   when (< (cdr (begin interval))(cdr (begin item)))
+                     do (insert-after output (- (find-position item output) 1) interval)
+                        (setf item-added t)
+                   when item-added
+                     do (return t)
+                   finally (pushend interval output))
+        when (not output)
+          do (push interval output)
+        finally (return output)))
+
+
+
 (defun make-adjacent-predicates (elan-intervals)
   "makes adjacent predicates for intervals in elan-intervals"
     (loop with relations = '()
-          with previous-interval = (first elan-intervals)
-          for interval in (rest elan-intervals)
-          ;; check whether the start of the current interval is within
-          ;; a span of 100 ms of the end of the previous one
+          with sorted-intervals = (sort-elan-intervals elan-intervals)
+          with current-interval = (first sorted-intervals)
+          for interval in (rest sorted-intervals)
           when (equal-relaxed
                 (cdr (begin interval))
-                (cdr (end previous-interval))
+                (cdr (end current-interval))
                 100)
-            ;; collect the predicate that indicates previous interval and
-            ;; current interval are adjacent
             do (push
                 `(adjacent
-                  ,(fcg-id previous-interval)
+                  ,(fcg-id current-interval)
                   ,(fcg-id interval))
                 relations)
-                 ;; set the previous-interval to the current one before starting next iteration
-                 (setf previous-interval interval)
-          ;; return the reverse list of relations
+          do (setf current-interval interval)
           finally (return (reverse relations))))
 
 
