@@ -7,31 +7,40 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defmethod determine-success ((speaker naming-game-agent) (hearer naming-game-agent))
+(defmethod determine-success ((speaker naming-game-agent) (hearer naming-game-agent) (interaction crs-conventionality-interaction))
   "Determines and sets success. There is success if the computed-topic of the hearer is the same as the intended topic of the speaker."
-  (if (eq (computed-topic hearer) (first (entities (topic speaker))))
-    (setf (communicated-successfully speaker) t
-          (communicated-successfully hearer) t)
-    (setf (communicated-successfully speaker) nil
-          (communicated-successfully hearer) nil)))
+  (if (eq (computed-topic hearer) (first (entities (topic speaker)))) ;; pointing
+    (setf (communicated-successfully interaction) t)
+    (setf (communicated-successfully interaction) nil)))
 
-(defgeneric align (topic speaker hearer)
-  (:documentation "Align both agents"))
 
-(defmethod align ((topic crs-conventionality-entity-set) (speaker naming-game-agent) (hearer naming-game-agent))
-  "Align both agents."
-  (if (communicated-successfully speaker)
-    (progn
-      (incf (cdr (assoc :score (attributes (first (applied-constructions speaker))))) 0.1)
+
+;;lateral inhibition: reward and punish all competitors --> comprehend-all
+;; just reward, no punishment 
+
+(defmethod align ((speaker naming-game-agent) (hearer naming-game-agent) (interaction crs-conventionality-interaction) (mode (eql :lateral-inhibition)))
+  "Align grammar of speaker and hearer based on interaction."
+  (if (communicated-successfully interaction)
+    (let* ((speaker-score (cdr (assoc :score (attributes (first (applied-constructions speaker))))))
+           (hearer-score (cdr (assoc :score (attributes (first (applied-constructions hearer))))))
+           (meaning-competitors-speaker (find-competitors speaker)) ;; all words that refer to that object --> comprehend-all!!!!! 
+           (meaning-competitors-hearer (find-competitors hearer))) ;; all 
+      (setf speaker-score (increase-score (learning-rate speaker) speaker-score))
       ;; todo punish competing cxns, do we need to evaluate irl-program and see which have the same topic?
-      (incf (cdr (assoc :score (attributes (first (applied-constructions hearer))))) 0.1)
-      )
+      
+      (setf hearer-score (increase-score (learning-rate hearer) hearer-score)))
     (progn
       (when (applied-constructions speaker)
-        (decf (cdr (assoc :score (attributes (first (applied-constructions speaker))))) 0.1))
-      (adopt topic hearer)
-  )))
+        (let ((speaker-score (cdr (assoc :score (attributes (first (applied-constructions speaker)))))))
+          (setf speaker-score (decrease-score (learning-rate speaker) speaker-score))))
+      (adopt (topic interaction) hearer))))
 
+
+(defun increase-score (learning-rate score)
+  (+ learning-rate (* score (- 1 learning-rate))))
+
+(defun decrease-score (learning-rate score)
+  (* score (- 1 learning-rate)))
 
 (defmethod adopt ((topic crs-conventionality-entity-set) (hearer naming-game-agent))
   (let* ((cxn-inventory (grammar hearer))
