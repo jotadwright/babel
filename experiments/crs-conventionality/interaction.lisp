@@ -98,8 +98,9 @@
     ;; Hearer comprehends and interprets the meaning. 
     (comprehend-and-interpret hearer scene)
     
-    ;; Determine success
+    ;; Determine success and coherence
     (determine-success speaker hearer interaction)
+    (determine-coherence speaker hearer) ;; check coherence before alignment!
 
     ;; Feedback
     (provide-feedback speaker hearer)

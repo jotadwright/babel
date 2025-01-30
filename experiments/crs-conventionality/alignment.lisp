@@ -7,6 +7,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+;; even handlers
 (define-event alignment-finished (speaker crs-conventionality::crs-conventionality-agent) (hearer crs-conventionality::crs-conventionality-agent))
 
 (define-event adoption-finished (cxn fcg::fcg-construction))
@@ -29,6 +30,15 @@
     (setf (communicated-successfully interaction) nil)))
 
 
+(defmethod determine-coherence ((speaker naming-game-agent) (hearer naming-game-agent))
+  "Determines and sets the coherences. Tests whether the hearer would have used the same word as the speaker, should the hearer have been the speaker."
+  (let* ((interaction (current-interaction (experiment speaker)))
+         (scene (scene interaction))
+         (topic (topic interaction)))
+    (conceptualise-and-produce hearer scene topic)
+    (if (equalp (conceptualised-utterance speaker) (conceptualised-utterance hearer))
+      (setf (coherence interaction) t)
+      (setf (coherence interaction) nil))))
 
 ;;lateral inhibition: reward and punish all competitors --> comprehend-all
 ;; just reward, no punishment 

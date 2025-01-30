@@ -16,4 +16,6 @@
    (:file "invention")
    (:file "alignment")
    (:file "diagnostics-and-repairs")
-   (:file "html")))
+   (:file "html")
+   (:file "monitors")
+   (:file "utils")))

@@ -58,6 +58,7 @@
         (loop for i from 1 to (get-configuration (experiment population) :nr-of-agents-in-population)
               collect (make-instance 'naming-game-agent
                                      :id (intern (format nil "AGENT-~a" i))
+                                     :experiment (experiment population)
                                      :population population))))
 
 
@@ -200,6 +201,9 @@
     :initform nil :initarg :scene :accessor scene)
    (topic 
     :documentation "The topic of the interaction."
-    :initform nil :initarg :topic :accessor topic))
+    :initform nil :initarg :topic :accessor topic)
+   (coherence
+    :documentation "Whether both interacting agents would have said the same thing under the same circumstances."
+    :initform nil :accessor coherence))
   (:documentation "An interaction in the experiment"))
 
