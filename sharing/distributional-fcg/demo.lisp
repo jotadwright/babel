@@ -12,7 +12,7 @@
 ;; As long as we have not put the embedding-api webservice online, you will have to run it locally (python run.py in embedding-api repository),
 ;; and set your penelope-host
 
-; (setf nlp-tools::*penelope-host* "http://localhost:5000")
+; (setf nlp-tools::*penelope-host* "http://127.0.0.1:5000")
 
 #|
 1. Introduction
