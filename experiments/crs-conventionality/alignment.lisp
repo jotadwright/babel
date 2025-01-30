@@ -46,14 +46,22 @@
 (defmethod align ((speaker naming-game-agent) (hearer naming-game-agent) (interaction crs-conventionality-interaction) (mode (eql :lateral-inhibition)))
   "Align grammar of speaker and hearer based on interaction."
   (if (communicated-successfully interaction)
-    (let* ((speaker-score (cdr (assoc :score (attributes (first (applied-constructions speaker))))))
-           (hearer-score (cdr (assoc :score (attributes (first (applied-constructions hearer))))))
-           (meaning-competitors-speaker (find-competitors speaker)) ;; all words that refer to that object --> comprehend-all!!!!! 
-           (meaning-competitors-hearer (find-competitors hearer))) ;; all 
-      (setf speaker-score (increase-score (learning-rate speaker) speaker-score))
-      ;; todo punish competing cxns, do we need to evaluate irl-program and see which have the same topic?
+    ;; Communication succeeded
+    (let ((applied-cxn-speaker (first (applied-constructions speaker)))
+          (applied-cxn-hearer (first (applied-constructions hearer)))
+          (meaning-competitors-speaker (find-competitors speaker)))
+
+      ;; Speaker and hearer increase the score of the constructions they used:
+      (setf (attr-val applied-cxn-speaker :score)
+            (increase-score (learning-rate speaker) (attr-val applied-cxn-speaker :score)))
+      (setf (attr-val applied-cxn-hearer :score)
+            (increase-score (learning-rate hearer) (attr-val applied-cxn-hearer :score)))
       
-      (setf hearer-score (increase-score (learning-rate hearer) hearer-score)))
+      ;; Speaker punishes competing constructions:
+      (loop for cxn in meaning-competitors-speaker
+              do (setf (attr-val cxn :score) (decrease-score (learning-rate speaker) (attr-val cxn :score)))))
+    
+    ;; Communication failed 
     (progn
       (when (applied-constructions speaker)
         (let ((speaker-score (cdr (assoc :score (attributes (first (applied-constructions speaker)))))))
@@ -61,38 +69,51 @@
       (adopt (topic interaction) hearer)
       (notify alignment-finished speaker hearer))))
 
+(defun find-competitors (agent)
+  "Finds competitors in the cip"
+  (set-difference (remove-duplicates (mappend #'fcg::applied-constructions (succeeded-nodes (cip (solution-node agent)))))
+                  (applied-constructions agent)))
 
 (defun increase-score (learning-rate score)
+  "Increase the score using the interpolation rule and the learning rate."
   (+ learning-rate (* score (- 1 learning-rate))))
 
 (defun decrease-score (learning-rate score)
+  "Decrease the score using the interpolation rule and the learning rate."
   (* score (- 1 learning-rate)))
 
 (defmethod adopt ((topic crs-conventionality-entity-set) (hearer naming-game-agent))
+  "Adoption of the construction through composition."
   (let* ((cxn-inventory (grammar hearer))
          (scene (scene (first (interactions (experiment (population hearer))))))
          (primitive-inventory (get-data (blackboard cxn-inventory) :primitive-inventory))
          (topic-entity (first (crs-conventionality::entities topic)))
          (partial-program `((bind ,(type-of scene) ?scene ,scene)))
-         (composition-result (crs-conventionality::compose-program topic-entity partial-program primitive-inventory))
-         (irl-program (irl::irl-program (irl::chunk (first composition-result))))
-         (bind-statements (irl::bind-statements (first composition-result)))
-         (meaning (append irl-program bind-statements))
-         (form (first (utterance hearer)))
-         (unit-name (intern (upcase (format nil "?~a-unit" form))))
-         (cxn-name (intern (upcase (format nil "~a-cxn" form)))))
-    (multiple-value-bind (cxn-set cxn)
-        (eval `(def-fcg-cxn ,cxn-name
-                            ((,unit-name
-                              (meaning ,meaning))
-                             <-
-                             (root
-                              (topic ,topic)
-                              --
-                              )
-                             (,unit-name
-                              --
-                              (HASH form (,form))))
-                            :cxn-inventory ,cxn-inventory))
-      ;(add-cxn cxn cxn-inventory)
-      (notify adoption-finished cxn))))
+         (composition-result (crs-conventionality::compose-program topic-entity partial-program primitive-inventory)))
+
+    ;;remove later
+    (assert composition-result)
+    
+    (let* ((irl-program (irl::irl-program (irl::chunk (first composition-result))))
+           (bind-statements (irl::bind-statements (first composition-result)))
+           (meaning (append irl-program bind-statements))
+           (form (first (utterance hearer)))
+           (unit-name (intern (upcase (format nil "?~a-unit" form))))
+           (cxn-name (intern (upcase (format nil "~a-cxn" form)))))
+      (multiple-value-bind (cxn-set cxn)
+          (eval `(def-fcg-cxn ,cxn-name
+                              ((,unit-name
+                                (meaning ,meaning))
+                               <-
+                               (root
+                                (topic ,topic)
+                                --
+                                )
+                               (,unit-name
+                                --
+                                (HASH form (,form))))
+                              :cxn-inventory ,cxn-inventory
+                              :attributes (:score 0.5 :topic ,(id (first (crs-conventionality::entities topic))))))
+        ;(add-cxn cxn cxn-inventory)
+        (notify adoption-finished cxn)))))
+

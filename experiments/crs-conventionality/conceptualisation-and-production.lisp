@@ -6,6 +6,12 @@
 ;;                                                    ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
+;; Remi told us not to do this BUT we want to explore this anyway... To be continued :)
+;; We will prove Remi wrong! 
+;; We want to do conceptualisation and formulation at the same time since these are two processes that are integrated.
+;; If we conceptualise, we use information from the grammar (e.g. in concept learning we use entrenchment scores), also if we don't use constructional information in conceptualisation, it could be the case that you conceptualise something that you cannot formulate. 
+
 (defgeneric conceptualise-and-produce (speaker scene topic)
   (:documentation "Based on the topic and scene, the speaker produces an utterance."))
 
@@ -14,8 +20,8 @@
   (formulate topic :cxn-inventory (grammar speaker) :agent speaker :scene scene))
 
 (defmethod formulate ((topic crs-conventionality-entity-set) &key cxn-inventory
-                      agent scene (silent nil) (n 1))
-  "Produce utterance based on agent, topic and scene."
+                      agent scene (silent nil) (n 5))
+  "Produce utterance based on agent, topic and scene. First routine formulation, in case of failure, go to metalayer."
   ;; Store topic, agent and scene in the blackboard of the cxn-inventory
   (set-data (blackboard cxn-inventory) :topic topic)
   (set-data (blackboard cxn-inventory) :agent agent)
@@ -31,7 +37,7 @@
                                                                                                       :scene scene)
                                                                             '-> n
                                                                             :notify (not silent))))
-         (solution-node (first solution-and-cip))
+         (solution-node (first solution-and-cip)) ;;TO DO: select best solution
          (cip (second solution-and-cip)))
     
     (unless silent (notify experiment-framework::routine-conceptualisation-finished cip solution-node agent))
@@ -48,7 +54,8 @@
       (progn 
         (setf (utterance agent) (render (car-resulting-cfs (fcg:cipn-car (first solution-node)))
                                         (get-configuration (grammar agent) :render-mode)))
-        (setf (applied-constructions agent) (applied-constructions (first solution-node)))))))
+        (setf (applied-constructions agent) (applied-constructions (first solution-node)))
+        (setf (solution-node agent) (first solution-node))))))
 
 
 
@@ -72,88 +79,32 @@
 
 (in-package :fcg)
 
-(defmethod cip-goal-test ((node cip-node) (mode (eql :topic-retrieved)))
+(defmethod cip-goal-test ((node cip-node) (mode (eql :topic-retrieved))) 
   "Checks whether the extracted meaning leads to the topic by evaluating irl program."
   (let* ((irl-program (extract-meanings (left-pole-structure (car-resulting-cfs (cipn-car node)))))
          (topic (first (crs-conventionality::entities (find-data (blackboard (construction-inventory node)) :topic))))
          (primitive-inventory (find-data (blackboard (construction-inventory node)) :primitive-inventory))
          (ontology (find-data (blackboard (construction-inventory node)) :ontology))
          (target-var (irl::get-target-var irl-program))
-         (irl-solution (first (irl::evaluate-irl-program irl-program ontology :primitive-inventory primitive-inventory :n 1)))
-         (computed-target (irl::value (find target-var irl-solution :key #'irl::var)))
-         (success (irl::equal-entity topic computed-target)))
-    success))
+         (irl-solution (first (irl::evaluate-irl-program irl-program ontology :primitive-inventory primitive-inventory :n 1))))
+    (when target-var
+      (irl::equal-entity topic (irl::value (find target-var irl-solution :key #'irl::var))))))
 
 
-
-    
-       #| for fix-cxn-inventory = (fix-cxn-inventory solution-state)
-        do (set-configuration fix-cxn-inventory (if (eql (direction cip) '<-) :parse-goal-tests :production-goal-tests) (list :gold-standard))
-           (let* ((repair-solution-node (fcg-apply (processing-cxn-inventory fix-cxn-inventory) (initial-cfs cip) (direction cip)))
-                  (fixed-cars (mapcar #'cipn-car (reverse (upward-branch repair-solution-node :include-initial nil)))))
-             (when (find 'succeeded (statuses repair-solution-node))
-               (push (make-instance 'invention-fix
-                                    :anti-unification-state solution-state
-                                    :repair repair
-                                    :problem problem
-                                    :base-cxns (remove nil (mapcar #'base-cxn (upward-branch solution-state)))
-                                    :fix-constructions (constructions-list fix-cxn-inventory)
-                                    :fix-categories (categories fix-cxn-inventory)
-                                    :fix-categorial-links (links fix-cxn-inventory)
-                                    :fixed-cars fixed-cars
-                                    :speech-act speech-act
-                                    :cip cip)
-                     fixes)))
-        finally
-          ;; Set fix slot of the fix-constructions before returning the fixes
-          (mapcar #'(lambda (fix)
-                      (loop for fix-cxn in (fix-constructions fix)
-                              do (setf (attr-val fix-cxn :fix) fix))) fixes)
-          
-          (return (select-fixes fixes (get-configuration (construction-inventory cip) :fix-selection-mode)))|#
-
-    
+(defmethod cip-node-test ((node cip-node) (mode (eql :check-branch-for-solution)))
+  "Checks whether the node's parent is a solution."
+  (let ((solution-in-branch (find 'succeeded (mappend #'statuses (all-parents node)))))
+    (if solution-in-branch
+      (progn
+        (push 'solution-in-branch (statuses node))
+        nil)
+      t)))
 
 
 
 
 
-#|
-    
-    (setf solution-node (best-solution cip (get-configuration cxn-inventory :best-solution-mode))) ; can be nil
 
-    (if (and solution-node
-             (gold-standard-solution-p (car-resulting-cfs (cipn-car solution-node)) speech-act (direction cip) (configuration cxn-inventory)))
-      (set-data cip :best-solution-matches-gold-standard t)
-      (set-data cip :best-solution-matches-gold-standard nil))
-    
-    (unless silent (notify routine-comprehension-finished solution-node cip))
 
-    (let* ((node-and-fixes-from-learning (when learn
-                                           (multiple-value-list (learn solution-node
-                                                                       cip
-                                                                       consolidate
-                                                                       (get-configuration cxn-inventory :learning-mode) :silent silent))))
-           (solution-node-after-learning (first node-and-fixes-from-learning))
-           (applied-fixes (second node-and-fixes-from-learning)))
 
-    
-      (when (and solution-node align)
-        (align solution-node cip (get-configuration cxn-inventory :alignment-mode)))
 
-      ;; Return
-      (cond ((and solution-node (not applied-fixes))
-             (values (extract-meanings (left-pole-structure (car-resulting-cfs (cipn-car solution-node))))
-                     solution-node
-                     cip))
-            ((and (not solution-node) (not applied-fixes))
-             (values nil nil cip))
-            ((and solution-node-after-learning applied-fixes)
-             (values (extract-meanings (left-pole-structure (car-resulting-cfs (cipn-car solution-node-after-learning))))
-                     solution-node-after-learning
-                     cip))
-            (t
-             (warn "Fixes were applied, but did not yield a solution.")
-             (values nil nil cip)))))
-
-|#

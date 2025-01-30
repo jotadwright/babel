@@ -40,15 +40,14 @@
                                                         ;; goal tests
                                                         (:parse-goal-tests :interpretation-in-scene)
                                                         (:production-goal-tests :topic-retrieved)
-                                                        (:max-nr-of-nodes . 3)
+                                                        (:node-tests :check-branch-for-solution :check-duplicate :restrict-nr-of-nodes :restrict-search-depth)
                                                         ;; meta-layer
                                                         ;(:consolidate-repairs . t)
                                                         ;(:use-meta-layer . t)
                                                         ))))
     (set-data (blackboard (grammar agent)) :primitive-inventory *naming-game-primitives*)
     (set-data (blackboard (grammar agent)) :ontology (make-blackboard))
-    (set-data (get-data (blackboard (grammar agent)) :ontology) :entities (entities (world (experiment (population agent)))))
-    ))
+    (set-data (get-data (blackboard (grammar agent)) :ontology) :entities (entities (world (experiment (population agent)))))))
 
 
 (defmethod unify-objects ((x crs-conventionality-entity-set) (y crs-conventionality-entity-set) bindings-list &key cxn-inventory)
@@ -61,7 +60,7 @@
         finally (return bindings-list)))
 
 (defmethod unify-objects ((x naming-game-entity) (y naming-game-entity) bindings-list &key cxn-inventory)
-  "Standard method for unifying object: unify slot values."
+  "Standard method for unifying objects: unify slot values."
   (unify (id x) (id y) bindings-list :cxn-inventory cxn-inventory))
 
 
@@ -104,49 +103,4 @@
   word))
 
 
-
-
-#|(defmethod unify-objects ((concept cle::concept-distribution) (entity-set crs-conventionality-entity-set) bindings-list &key cxn-inventory)
-  "Method for unifying crs-conventionality-entity-sets."
-  (loop for entity in (entities entity-set)
-        for weighted-similarity = (weighted-similarity entity concept)
-        do (set-data (blackboard cxn-inventory) :similarities (cons (cons (id entity) (id concept)) weighted-similarity) )
-        do (return +fail+)
-        finally (return bindings-list)))
-
-(defmethod weighted-similarity ((object concept-emergence-entity) (concept cle::concept))
-  (loop with prototypes = (loop for prototype being the hash-values of (cle::prototypes concept) collect prototype)
-        with ledger = (loop for prototype in prototypes sum (weight prototype))
-        for prototype in prototypes
-        for observation = (gethash (cle::channel prototype) (features object))
-        for distance = (cle::observation-distance observation prototype)
-        if (and distance (not (zerop ledger)))
-          sum (* (expt (/ (weight prototype) ledger) 2)
-                 (expt distance 2))
-            into mahalanobis
-        finally (return (exp (* 1/2 (- mahalanobis))))))
-
-(formulate (topic (first (interactions *concept-emergence-canonical*)))
-           :cxn-inventory (grammar (speaker (first (interactions *concept-emergence-canonical*))))
-           :agent (speaker (first (interactions *concept-emergence-canonical*)))
-           :scene (scene (first (interactions *concept-emergence-canonical*))))
-(get-data (blackboard (grammar (speaker (first (interactions *concept-emergence-canonical*))))) 'similarities)
-
-(create-initial-structure
-
-
- (bind entity-set ?topic topic)
-(retrieve-named-entity ?entity)
-(bind entity-set ?topic bolima)
-
-(bind scene ?scene scene)
-
-bolima-in-taal en bolima-in-world
-
-
-
-(unify-objects (make-instance 'naming-game-entity :id 'object-5)
-               (make-instance 'naming-game-entity :id '?a)
-               (list +no-bindings+)
-               :cxn-inventory (processing-cxn-inventory *fcg-constructions*))|#
 

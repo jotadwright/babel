@@ -34,7 +34,7 @@
                                                      :configuration *configuration-canonical*))
 
 
-(run-interaction *naming-game-canonical*)
+(run-series  *naming-game-canonical* 100)
 
 
 
