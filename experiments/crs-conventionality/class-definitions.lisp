@@ -70,6 +70,10 @@
     :documentation "A backpointer to the population to which the agent belongs."
     :type crs-conventionality-population
     :initform nil :initarg :population :accessor population)
+   (conceptualised-utterance
+    :documentation "The utterance that the agent as a hearer conceptualises."
+    :type crs-conventionality-entity-set
+    :initform nil :initarg :conceptualised-utterance :accessor conceptualised-utterance)
    (computed-topic
     :documentation "The topic that the agent computed as hearer."
     :type crs-conventionality-entity-set
@@ -81,12 +85,20 @@
    (applied-constructions
     :documentation "The topic that the agent wants to formulate as speaker."
     :type list
-    :initform nil :initarg :applied-constructions :accessor applied-constructions))
+    :initform nil :initarg :applied-constructions :accessor applied-constructions)
+   (learning-rate
+    :documentation "The learning rate of an agent. "
+    :type list
+    :initform nil :initarg :learning-rate :accessor learning-rate))
   (:documentation "An agent in the experiment"))
 
 (defmethod initialize-instance :after ((agent crs-conventionality-agent) &key &allow-other-keys)
   "Creates an agent of the population."
-  (make-initial-grammar agent))
+  (make-initial-grammar agent)
+  (setf (learning-rate agent) (define-learning-rate agent (get-configuration (experiment (population agent)) :learning-strategy))))
+
+(defmethod define-learning-rate (agent (mode (eql :default)))
+  (get-configuration (experiment (population agent)) :learning-rate))
 
 (defmethod print-object ((agent crs-conventionality-agent) stream)
   "Prints agent."
