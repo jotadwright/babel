@@ -18,73 +18,89 @@
 
 (define-event routine-interpretation-finished (agent crs-conventionality::crs-conventionality-agent) (scene crs-conventionality::crs-conventionality-entity-set))
 
+
+
 (define-event-handler (trace-interaction interaction-started)
-  (add-element '((hr)))
-  (add-element '((hr)))
-  (add-element `((h2) ,(format nil "Interaction: ~a" interaction-number)))
-  (add-element '((hr)))
-  (add-element '((hr)))
-  (add-element `((h3) ,(format nil "Interacting agents: ~a (speaker) and ~a (hearer)"
-                               (utils:id (speaker interaction))
-                               (utils:id (hearer interaction)))))
+  (add-element `((h1 :style "background-color: black; color:white; padding: 5px; margin-top: 50px")
+                 ,(format nil "Interaction ~a"
+                               interaction-number)))
+  (add-element `((b) ,(format nil "Speaker: ")))
   (add-element (make-html (speaker interaction)))
+  (add-element `((br)))
+  (add-element `((b) ,(format nil "Hearer: ")))
   (add-element (make-html (hearer interaction)))
-  (add-element `((h3) ,(format nil "Scene: ~a"
-                               (utils:id (crs-conventionality::scene interaction)))))
+  (add-element `((br)))
+  (add-element `((b) ,(format nil "Scene: ")))
   (add-element (make-html (crs-conventionality::scene interaction)))
-  (add-element `((h3) ,(format nil "Topic: ~a"
-                               (utils:id (crs-conventionality::topic interaction)))))
+  (add-element `((br)))
+  (add-element `((b) ,(format nil "Topic: ")))
   (add-element (make-html (crs-conventionality::topic interaction))))
 
 
 (define-event-handler (trace-interaction routine-conceptualisation-started)
-  (add-element '((hr)))
-  (add-element `((h2) ,(format nil "Start conceptualisation" )))
-  (add-element `((p) ,(format nil "Agent ~a is conceptualising topic ~a"
-                               (utils:id agent)
-                               (utils:id topic))))
-  (add-element (make-html agent :expand-initially t))
-  (add-element (make-html topic))
+  (add-element `((h2 :style "background-color: LightGray; padding: 5px;") ,(format nil "Conceptualisation")))
+  (add-element `((p) ,(format nil "Speaker conceptualises the topic.")))
+  
+  (add-element `((h3) ,(format nil "Routine conceptualisation")))
   )
 
 (define-event-handler (trace-interaction routine-conceptualisation-finished)
-  (add-element `((h2) ,(format nil "Routine conceptualisation finished" )))
+
   (if (fcg:succeeded-nodes cip)
     (progn
-      (add-element `((h2) ,(format nil "Solution found:" )))
-      (add-element (make-html (fcg::render (fcg::car-resulting-cfs (fcg:cipn-car (first solution-nodes)))
-                                           (get-configuration (crs-conventionality::grammar agent) :render-mode))))
-      (add-element '((hr))))
-    (add-element `((h5) ,(format nil "--> No solution in routine conceptualisation" )))))
+      (add-element `((b :style "background-color: green; color: white; padding: 5px;")
+                     ,(format nil "Routine conceptualisation succeeded" )))
+      (add-element `((br :style "margin: 20px")))
+      (add-element `((a) ,(format nil "Speaker uttered: ")))
+      (add-element `((b) ,(format nil "\"~a\"" (first (fcg::render (fcg::car-resulting-cfs (fcg:cipn-car (first solution-nodes)))
+                                           (get-configuration (crs-conventionality::grammar agent) :render-mode))))))
+      (add-element '((hr :style "border-top: 1px dashed; background-color:transparent;"))))
+
+
+    (progn
+      (add-element `((b :style "background-color: red; color: white; padding: 5px;")
+                     ,(format nil "Routine conceptualisation failed" )))
+      (add-element `((br :style "margin: 20px"))))))
 
 (define-event-handler (trace-interaction meta-conceptualisation-started)
-  (add-element `((h2) ,(format nil "Start invention" ))))
+  (add-element `((h3) ,(format nil "Meta layer conceptualisation"))))
 
-(define-event-handler (trace-interaction meta-conceptualisation-finished)
-  (add-element `((p) ,(format nil "Invented the following form:" )))
-  (add-element (make-html (fcg:render (fcg::car-resulting-cfs (first (get-data (blackboard fix) 'fcg::fixed-cars)))
-                           (get-configuration (crs-conventionality::grammar agent) :render-mode))))
-  (add-element '((hr)))
+(Define-event-handler (trace-interaction meta-conceptualisation-finished)
+  (add-element `((b) ,(format nil "Diagnosed problem: ")))
+  (add-element (make-html (meta-layer-learning::problem fix)))
+  (add-element `((br)))
+  (add-element `((b) ,(format nil "Fix issued by following repair: ")))
+  (add-element (make-html (meta-layer-learning::issued-by fix)))
+  (add-element `((br)))
+  (add-element `((b) ,(format nil "Learned construction: ")))
+  (add-element (make-html (meta-layer-learning::restart-data fix)))
+  
+  (add-element `((a) ,(format nil "Speaker uttered:" )))
+  (add-element `((b) ,(format nil "\"~a\"" (first (fcg:render (fcg::car-resulting-cfs (first (get-data (blackboard fix) 'fcg::fixed-cars)))
+                           (get-configuration (crs-conventionality::grammar agent) :render-mode))))))
+  (add-element '((hr :style "border-top: 1px dashed; background-color:transparent;")))
   )
 
 
 (define-event-handler (trace-interaction routine-interpretation-started)
-  (add-element '((hr)))
-  (add-element `((h2) ,(format nil "Start interpretation" )))
-  (add-element `((p) ,(format nil "Agent ~a is interpreting form ~a"
-                               (utils:id agent)
+  (add-element `((h2 :style "background-color: LightGray; padding: 5px;") ,(format nil "Interpretation" )))
+  (add-element `((p) ,(format nil "Hearer tries to interpret \"~a\"."
                                (first (utterance agent)))))
-  (add-element (make-html agent :expand-initially t))
  )
 
 
 (define-event-handler (trace-interaction routine-interpretation-finished)
   (add-element `((h2) ,(format nil "Interpretation finished" )))
-  (add-element '((hr)))
-  )
+  (add-element '((hr :style "border-top: 1px dashed; background-color:transparent;")))
 
+  (if (fcg:succeeded-nodes cip)
+    (progn
+      (add-element `((b :style "background-color: green; color: white; padding: 5px;")
+                     ,(format nil "Routine interpretation succeeded" )))
+      (add-element `((br :style "margin: 20px"))))
+    (progn
+      (add-element `((b :style "background-color: red; color: white; padding: 5px;")
+                     ,(format nil "Routine conceptualisation failed" )))
+      (add-element `((br :style "margin: 20px"))))))
 
-;(run-interaction *naming-game-canonical*)
-
-;(activate-monitor trace-interaction)
 

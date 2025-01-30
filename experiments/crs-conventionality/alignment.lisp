@@ -7,6 +7,21 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+(define-event alignment-finished (speaker crs-conventionality::crs-conventionality-agent) (hearer crs-conventionality::crs-conventionality-agent))
+
+(define-event adoption-finished (cxn fcg::fcg-construction))
+
+(define-event-handler (trace-interaction alignment-finished)
+  (add-element `((h2 :style "background-color: LightGray; padding: 5px;") ,(format nil "Alignment")))
+  ; TODO: add punished and rewarded cxns to interface
+  )
+
+(define-event-handler (trace-interaction adoption-finished)
+  (add-element `((a) ,(format nil "Hearer adopted: ")))
+  (add-element (make-html cxn)))
+
+
+
 (defmethod determine-success ((speaker naming-game-agent) (hearer naming-game-agent) (interaction crs-conventionality-interaction))
   "Determines and sets success. There is success if the computed-topic of the hearer is the same as the intended topic of the speaker."
   (if (eq (computed-topic hearer) (first (entities (topic speaker)))) ;; pointing
@@ -33,7 +48,8 @@
       (when (applied-constructions speaker)
         (let ((speaker-score (cdr (assoc :score (attributes (first (applied-constructions speaker)))))))
           (setf speaker-score (decrease-score (learning-rate speaker) speaker-score))))
-      (adopt (topic interaction) hearer))))
+      (adopt (topic interaction) hearer)
+      (notify alignment-finished speaker hearer))))
 
 
 (defun increase-score (learning-rate score)
@@ -68,4 +84,5 @@
                               --
                               (HASH form (,form))))
                             :cxn-inventory ,cxn-inventory))
-      (add-cxn cxn cxn-inventory))))
+      ;(add-cxn cxn cxn-inventory)
+      (notify adoption-finished cxn))))

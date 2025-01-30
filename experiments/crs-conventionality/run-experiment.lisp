@@ -16,14 +16,19 @@
 ;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *configuration-canonical* (make-configuration
-                                         :entries '(;; Initialising the experiment
-                                                    (:nr-of-entities-in-world . 5)
-                                                    (:nr-of-agents-in-population . 10)
-                                                    (:nr-of-entities-in-scene . 3)
-                                                    ;; Initialising an interaction
-                                                    (:determine-interacting-agents-mode . :random-from-population)
-                                                    (:determine-scene-entities-mode . :random-subset-of-world)
-                                                    (:determine-topic-mode . :random-entity-from-scene))))
+                                         :entries '(;; Logging
+                                                      (:dot-interval . 100)
+                                                      ;; Initialising the experiment
+                                                      (:nr-of-entities-in-world . 5)
+                                                      (:nr-of-agents-in-population . 2)
+                                                      (:nr-of-entities-in-scene . 4)
+                                                      (:alignment-strategy . :lateral-inhibition)
+                                                      (:learning-strategy . :default)
+                                                      (:learning-rate . 0.5)
+                                                      ;; Initialising an interaction
+                                                      (:determine-interacting-agents-mode . :random-from-population)
+                                                      (:determine-scene-entities-mode . :random-subset-of-world)
+                                                      (:determine-topic-mode . :random-entity-from-scene))))
 
 (defparameter *naming-game-canonical* (make-instance 'naming-game-experiment
                                                      :configuration *configuration-canonical*))
