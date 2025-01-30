@@ -93,16 +93,19 @@
     (conceptualise-and-produce speaker scene topic)
 
     ;; Speaker says utterance to hearer. 
-    (setf (utterance hearer) (utterance speaker))
+    (utter speaker hearer)
 
     ;; Hearer comprehends and interprets the meaning. 
     (comprehend-and-interpret hearer scene)
-
+    
     ;; Determine success
     (determine-success speaker hearer)
 
+    ;; Feedback
+    (provide-feedback speaker hearer)
+
     ;; Adoption and alignment
-    (align topic speaker hearer)
+    (align speaker hearer (get-configuration experiment :alignment-strategy))
     
     #|
     ;; Finishing interaction
@@ -111,3 +114,10 @@
     ))
 
 
+(defmethod utter ((speaker crs-conventionality-agent) (hearer crs-conventionality-agent))
+  "The utterer utters the utterance to the utteree."
+  (setf (utterance hearer) (utterance speaker)))
+
+(defmethod provide-feedback ((speaker crs-conventionality-agent) (hearer crs-conventionality-agent))
+  "Speaker provides feedback by pointing to the topic."
+  (setf (topic hearer) (topic speaker)))
