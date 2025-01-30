@@ -99,13 +99,13 @@
     (comprehend-and-interpret hearer scene)
     
     ;; Determine success
-    (determine-success speaker hearer)
+    (determine-success speaker hearer interaction)
 
     ;; Feedback
     (provide-feedback speaker hearer)
 
     ;; Adoption and alignment
-    (align speaker hearer (get-configuration experiment :alignment-strategy))
+    (align speaker hearer interaction (get-configuration experiment :alignment-strategy))
     
     #|
     ;; Finishing interaction
