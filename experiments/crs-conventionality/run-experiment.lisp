@@ -8,6 +8,9 @@
 (ql:quickload :crs-conventionality)
 (in-package :crs-conventionality)
 
+(activate-monitor trace-fcg)
+(activate-monitor trace-interaction)
+
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; Canonical setting ;; 
 ;;;;;;;;;;;;;;;;;;;;;;;

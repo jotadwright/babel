@@ -7,6 +7,7 @@
   :components 
   ((:file "package")
    (:file "class-definitions")
+   (:file "web-monitors")
    (:file "irl")
    (:file "grammar")
    (:file "interaction")
@@ -15,5 +16,4 @@
    (:file "invention")
    (:file "alignment")
    (:file "diagnostics-and-repairs")
-   (:file "html")
-   (:file "web-monitors")))
+   (:file "html")))
