@@ -28,9 +28,8 @@
     (interact experiment interaction)
 
     ;; Round up the interaction
-    (setf (communicated-successfully interaction) (loop for agent in (interacting-agents interaction)
-                                                        always (communicated-successfully agent)))
     (notify interaction-finished experiment interaction (interaction-number interaction))
+    (clear-interaction interaction)
     (values interaction experiment)))
 
 
@@ -38,6 +37,17 @@
 ;; Determine interacting agents, scene and topic ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defmethod clear-interaction ((interaction crs-conventionality-interaction))
+  "Resets the necessary slots of the interaction and the interacting-agents."
+  (loop for agent in (interacting-agents interaction)
+        do (setf (topic agent) nil
+                 (computed-topic agent) nil
+                 (utterance agent) nil
+                 (conceptualised-utterance agent) nil
+                 (applied-constructions agent) nil
+                 (solution-node agent) nil))
+  (setf (communicated-successfully interaction) nil
+        (interacting-agents interaction) nil))
 
 (defmethod determine-interacting-agents (experiment (interaction interaction)
                                                     (mode (eql :random-from-population))

@@ -23,7 +23,7 @@
                                                       (:dot-interval . 100)
                                                       ;; Initialising the experiment
                                                       (:nr-of-entities-in-world . 5)
-                                                      (:nr-of-agents-in-population . 2)
+                                                      (:nr-of-agents-in-population . 10)
                                                       (:nr-of-entities-in-scene . 4)
                                                       (:alignment-strategy . :lateral-inhibition)
                                                       (:learning-strategy . :default)
@@ -42,13 +42,14 @@
 ;; Option 1: run experiment with real-time plotting (using gnuplot)
 
 (progn
+  ;(notify reset-monitors)
   ;; activate recorders
   (activate-monitor record-communicative-success)
   (activate-monitor record-conventionalisation)
   (activate-monitor record-construction-inventory-size)
   ;; activate tracers
-  
-  ;(activate-monitor trace-fcg))
+  ;(activate-monitor trace-interaction)
+  ;(activate-monitor trace-fcg)
   ;(activate-monitor trace-irl)
   ;; activate the gnuplot live display
   (activate-monitor display-metrics)
@@ -67,7 +68,6 @@
   (activate-monitor export-construction-inventory-size)
   ;(activate-monitor trace-irl)
   ;; activate the gnuplot live display
-  (activate-monitor display-metrics)
 
   ;; run the experiment
   (run-batch 'naming-game-experiment ;; experiment-class

@@ -12,26 +12,28 @@
 ;; We want to do conceptualisation and formulation at the same time since these are two processes that are integrated.
 ;; If we conceptualise, we use information from the grammar (e.g. in concept learning we use entrenchment scores), also if we don't use constructional information in conceptualisation, it could be the case that you conceptualise something that you cannot formulate. 
 
-(defgeneric conceptualise-and-produce (speaker scene topic)
+(defgeneric conceptualise-and-produce (speaker scene topic &key &allow-other-keys)
   (:documentation "Based on the topic and scene, the speaker produces an utterance."))
 
-(defmethod conceptualise-and-produce ((speaker crs-conventionality-agent) (scene crs-conventionality-scene) (topic crs-conventionality-entity-set))
-  "Based on the topic and scene, the speaker produces an utterance."
-  (formulate topic :cxn-inventory (grammar speaker) :agent speaker :scene scene))
-
-(defmethod formulate ((topic crs-conventionality-entity-set) &key cxn-inventory
-                      agent scene (silent nil) (n 5))
-  "Produce utterance based on agent, topic and scene. First routine formulation, in case of failure, go to metalayer."
+(defmethod conceptualise-and-produce ((agent crs-conventionality-agent)
+                                      (scene crs-conventionality-scene)
+                                      (topic crs-conventionality-entity-set)
+                                      &key (silent nil) (n 5) (use-meta-layer t)) ;; n default hardcoded?
+  "Based on the topic and scene, the speaker produces an utterance.
+   The agents attempts first routine formulation, in case of failure, it goes to metalayer."
   ;; Store topic, agent and scene in the blackboard of the cxn-inventory
-  (set-data (blackboard cxn-inventory) :topic topic)
-  (set-data (blackboard cxn-inventory) :agent agent)
-  (set-data (blackboard cxn-inventory) :scene scene)
-
-  (setf (topic agent) topic)
+  (add-element `((h3) ,(format nil "Conceptualising done by ~a" (discourse-role agent))))
+  
+  (set-data (blackboard (grammar agent)) :topic topic) ;; SHOULD THIS BE HERE?
+  (set-data (blackboard (grammar agent)) :agent agent) ;; SHOULD THIS BE HERE?
+  (set-data (blackboard (grammar agent)) :scene scene) ;; SHOULD THIS BE HERE?
+  (setf (topic agent) topic) ;; TODO to remove?
 
   (unless silent (notify experiment-framework::routine-conceptualisation-started topic agent scene))
 
-  (let* ((solution-and-cip (multiple-value-list (fcg-apply-with-n-solutions (processing-cxn-inventory cxn-inventory)
+  ;; routine formulation
+  (let* ((cxn-inventory (grammar agent))
+         (solution-and-cip (multiple-value-list (fcg-apply-with-n-solutions (processing-cxn-inventory cxn-inventory)
                                                                             (create-initial-structure topic
                                                                                                       (get-configuration cxn-inventory :create-initial-structure-mode-formulation)
                                                                                                       :scene scene)
@@ -39,26 +41,26 @@
                                                                             :notify (not silent))))
          (solution-node (first solution-and-cip)) ;;TO DO: select best solution
          (cip (second solution-and-cip)))
-    
+
     (unless silent (notify experiment-framework::routine-conceptualisation-finished cip solution-node agent))
 
-    ;; If no solution is found, start invention and set utterance in speaker
+    ;; check if a solution is found
     (if (not (succeeded-nodes cip))
-      (progn
+      (when use-meta-layer
+        ;; ! meta-layer !
+        ;;     if no solution is found, start invention and set utterance in agent
         (unless silent (notify experiment-framework::meta-conceptualisation-started topic agent scene))
         (multiple-value-bind (cxn fix)
             (fcg::invent cip agent topic scene)
           (unless silent (notify experiment-framework::meta-conceptualisation-finished fix agent))
           (setf (utterance agent) (render (car-resulting-cfs (first (get-data (blackboard fix) 'fcg::fixed-cars)))
-                                            (get-configuration (grammar agent) :render-mode)))))
+                                          (get-configuration (grammar agent) :render-mode)))))
+      ;; otherwise, render and set solution nodes
       (progn 
         (setf (utterance agent) (render (car-resulting-cfs (fcg:cipn-car (first solution-node)))
                                         (get-configuration (grammar agent) :render-mode)))
         (setf (applied-constructions agent) (applied-constructions (first solution-node)))
         (setf (solution-node agent) (first solution-node))))))
-
-
-
 
 (defmethod create-initial-structure ((topic crs-conventionality-entity-set)
                                      (mode (eql :topic-and-scene))
@@ -74,9 +76,7 @@
 		 :left-pole-domain 'sem
 		 :right-pole-domain 'syn))
 
-
-
-
+;; SPECIALISE METHODS IN :fcg
 (in-package :fcg)
 
 (defmethod cip-goal-test ((node cip-node) (mode (eql :topic-retrieved))) 

@@ -25,7 +25,7 @@
 
 (defmethod determine-success ((speaker naming-game-agent) (hearer naming-game-agent) (interaction crs-conventionality-interaction))
   "Determines and sets success. There is success if the computed-topic of the hearer is the same as the intended topic of the speaker."
-  (if (eq (computed-topic hearer) (first (entities (topic speaker)))) ;; pointing
+  (if (equalp (computed-topic hearer) (first (entities (topic speaker)))) ;; pointing
     (setf (communicated-successfully interaction) t)
     (setf (communicated-successfully interaction) nil)))
 
@@ -35,7 +35,7 @@
   (let* ((interaction (current-interaction (experiment speaker)))
          (scene (scene interaction))
          (topic (topic interaction)))
-    (conceptualise-and-produce hearer scene topic)
+    (conceptualise-and-produce hearer scene topic :use-meta-layer nil)
     (if (equalp (conceptualised-utterance speaker) (conceptualised-utterance hearer))
       (setf (coherence interaction) t)
       (setf (coherence interaction) nil))))
