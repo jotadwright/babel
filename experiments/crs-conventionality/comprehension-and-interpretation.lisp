@@ -1,10 +1,10 @@
 (in-package :crs-conventionality)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                                    ;;
-;; Code implementing comprehension and interpretation ;;
-;;                                                    ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                    ;;
+;;  Comprehension and interpretation  ;;
+;;                                    ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defgeneric comprehend-and-interpret (hearer scene)
   (:documentation "Based on the topic and scene, the hearer comprehends the utterance"))

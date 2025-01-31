@@ -1,14 +1,16 @@
 (in-package :crs-conventionality)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                                    ;;
-;; Code implementing conceptualisation and production ;;
-;;                                                    ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                    ;;
+;;  Conceptualisation and production  ;;
+;;                                    ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 ;; Remi told us not to do this BUT we want to explore this anyway... To be continued :)
 ;; We will prove Remi wrong! 
+;; Update: 31/01/2025, we did it.
+
 ;; We want to do conceptualisation and formulation at the same time since these are two processes that are integrated.
 ;; If we conceptualise, we use information from the grammar (e.g. in concept learning we use entrenchment scores), also if we don't use constructional information in conceptualisation, it could be the case that you conceptualise something that you cannot formulate. 
 
@@ -80,9 +82,9 @@
 		 :left-pole-domain 'sem
 		 :right-pole-domain 'syn))
 
-;; SPECIALISE METHODS IN :fcg
-(in-package :fcg)
 
+(in-package :fcg)
+;; ! SPECIALISES METHODS IN :fcg
 
 (defmethod cip-goal-test ((node cip-node) (mode (eql :topic-retrieved))) 
   "Checks whether the extracted meaning leads to the topic by evaluating irl program."

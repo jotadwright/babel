@@ -1,8 +1,10 @@
 (in-package :crs-conventionality)
 
-;;;;;;;;;;;;;;
-;; Monitors ;;
-;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                  ;;
+;;  Defines the different monitors  ;;
+;;                                  ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; --------------------------------------
 ;; + Logs information in output-browser +

@@ -13,6 +13,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (progn
+  (format t "~%Starting a new experiment")
   ;; reset the web interface
   (wi::reset)
   ;; deactivate all monitors (as a sanity check)

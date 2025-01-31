@@ -1,6 +1,10 @@
 (in-package :crs-conventionality)
 
-;; Helper functions for running and plotting experiments
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                         ;;
+;;  Helper functions for running and plotting experiments  ;;
+;;                                                         ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun run-experiments-sequentially (experiment-class
                         &key
@@ -8,8 +12,7 @@
                         number-of-interactions
                         monitors
                         (number-of-series 1))
-  
-  (format t "~%Starting experimental runs")
+  "Runs a set of experiments (sequentially)."
   (run-batch-for-different-configurations
    :experiment-class experiment-class
    :number-of-interactions number-of-interactions
@@ -22,7 +25,7 @@
 
 (defun create-graph-for-single-strategy (experiment-name measure-names
                                          &rest evo-plot-keyword-args)
-  ;; take some arguments, but pass along the rest to raw-files->evo-plot
+  "Creates a plot of the evolutionary dynamics from a given experiment (using exported data)."
   (format t "~%Creating graph for experiment ~a with measures ~a" experiment-name measure-names)
   (let* ((raw-file-paths
           (loop for measure-name in measure-names

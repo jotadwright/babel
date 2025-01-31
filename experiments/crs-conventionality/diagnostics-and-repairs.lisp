@@ -1,6 +1,11 @@
 (in-package :fcg)
+;; ! SPECIALISES METHODS IN :fcg
 
-;; ! SPECIALISE METHODS IN :fcg
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                           ;;
+;;  Diagnostics and repairs  ;;
+;;                           ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 ;; Diagnostics ;;
@@ -40,6 +45,7 @@
   ((trigger :initform 'routine-processing-finished))
   (:documentation "Repair that invents"))
 
+
 (defmethod repair ((repair repair-through-invention)
                    (problem no-production-problem)
                    (cipn cip-node)
@@ -75,10 +81,6 @@
                                 :attributes (:score 0.5 :topic ,(id (first (crs-conventionality::entities topic))) :form ,form)))
          
           (make-instance 'invention-fix :restart-data cxn))))))
-
-
-
-
 
 ;; Repairs ;;
 ;;;;;;;;;;;;;

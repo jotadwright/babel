@@ -1,10 +1,10 @@
 (in-package :crs-conventionality)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                        ;;
-;; Code implementing interact/interaction ;;
-;;                                        ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                          ;;
+;;  Code implementing interact/interaction  ;;
+;;                                          ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 (defmethod run-interaction ((experiment crs-conventionality-experiment)

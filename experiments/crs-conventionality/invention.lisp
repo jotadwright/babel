@@ -1,6 +1,11 @@
 (in-package :fcg)
+;; ! SPECIALISES METHODS IN :fcg
 
-;; ! SPECIALISE METHODS IN :fcg
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                               ;;
+;;  Code implementing invention  ;;
+;;                               ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defgeneric invent (cip agent topic scene)
   (:documentation "If the speaker could not formulate, new linguistic means need to be invented."))
@@ -8,7 +13,9 @@
 
 (defmethod invent ((cip construction-inventory-processor) (agent crs-conventionality::naming-game-agent)
                    (topic crs-conventionality::crs-conventionality-entity-set) (scene crs-conventionality::crs-conventionality-entity-set))
-  (let ((cxn-inventory (original-cxn-set (construction-inventory cip))) ;; original cxn set for inventing
+  (let (;; original cxn set for inventing
+        (cxn-inventory (original-cxn-set (construction-inventory cip)))
+        ;; retrieve ...
         (cipn (top-node cip)))
     
     ;; Add diagnostics, repairs and best-solution to cip

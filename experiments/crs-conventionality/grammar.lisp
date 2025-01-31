@@ -1,10 +1,10 @@
 (in-package :crs-conventionality)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                        ;;
-;; Code implementing grammars             ;;
-;;                                        ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                             ;;
+;; Code implementing grammars  ;;
+;;                             ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defgeneric make-initial-grammar (agent)
   (:documentation "Initialises the grammar of an agent."))
@@ -66,6 +66,7 @@
 
 
 (in-package :fcg)
+;; ! SPECIALISES METHODS IN :fcg
 
 (defun make-naming-game-cxn (topic meaning cxn-inventory)
   (let* ((form (make-word))

@@ -1,10 +1,10 @@
 (in-package :crs-conventionality)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                        ;;
-;;          Success and alignment         ;;
-;;                                        ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                       ;;
+;;  Alignment of agents  ;;
+;;                       ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 ;;lateral inhibition: reward and punish all competitors --> comprehend-all

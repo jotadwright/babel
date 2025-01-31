@@ -1,10 +1,10 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                                                          ;;
-;; This file declares all web monitors of the crs conventionality package   ;;
-;;                                                                          ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 (in-package :crs-conventionality)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                ;;
+;;  Declares all web monitors of the crs conventionality package  ;;
+;;                                                                ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; event handlers
 (define-event alignment-finished (speaker crs-conventionality::crs-conventionality-agent) (hearer crs-conventionality::crs-conventionality-agent))
@@ -19,7 +19,6 @@
 (define-event-handler (trace-interaction adoption-finished)
   (add-element `((a) ,(format nil "Hearer adopted: ")))
   (add-element (make-html cxn)))
-
 
 (in-package :experiment-framework)
 ;; TODO all events should be defined in :crs-conventionality

@@ -1,5 +1,11 @@
 (in-package :crs-conventionality)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                              ;;
+;;  Defining primitives and composing programs  ;;
+;;                                              ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (def-irl-primitives naming-game-primitives
   :primitive-inventory *naming-game-primitives*)
 
