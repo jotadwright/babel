@@ -7,20 +7,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-;; even handlers
-(define-event alignment-finished (speaker crs-conventionality::crs-conventionality-agent) (hearer crs-conventionality::crs-conventionality-agent))
-
-(define-event adoption-finished (cxn fcg::fcg-construction))
-
-(define-event-handler (trace-interaction alignment-finished)
-  (add-element `((h2 :style "background-color: LightGray; padding: 5px;") ,(format nil "Alignment")))
-  ; TODO: add punished and rewarded cxns to interface
-  )
-
-(define-event-handler (trace-interaction adoption-finished)
-  (add-element `((a) ,(format nil "Hearer adopted: ")))
-  (add-element (make-html cxn)))
-
 ;;lateral inhibition: reward and punish all competitors --> comprehend-all
 ;; just reward, no punishment 
 

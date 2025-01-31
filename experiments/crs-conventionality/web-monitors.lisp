@@ -1,15 +1,28 @@
-(in-package :experiment-framework)
-
-;;
-;; !!! WARNING : events are currently all defined in :experiment-framework (TODO)
-;;
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                          ;;
 ;; This file declares all web monitors of the crs conventionality package   ;;
 ;;                                                                          ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(in-package :crs-conventionality)
+
+;; event handlers
+(define-event alignment-finished (speaker crs-conventionality::crs-conventionality-agent) (hearer crs-conventionality::crs-conventionality-agent))
+
+(define-event adoption-finished (cxn fcg::fcg-construction))
+
+(define-event-handler (trace-interaction alignment-finished)
+  (add-element `((h2 :style "background-color: LightGray; padding: 5px;") ,(format nil "Alignment")))
+  ; TODO: add punished and rewarded cxns to interface
+  )
+
+(define-event-handler (trace-interaction adoption-finished)
+  (add-element `((a) ,(format nil "Hearer adopted: ")))
+  (add-element (make-html cxn)))
+
+
+(in-package :experiment-framework)
+;; TODO all events should be defined in :crs-conventionality
 
 (define-event routine-conceptualisation-started (topic crs-conventionality::crs-conventionality-entity-set) (agent crs-conventionality::crs-conventionality-agent) (scene crs-conventionality::crs-conventionality-entity-set))
 
