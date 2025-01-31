@@ -120,5 +120,3 @@
       (add-element `((b :style "background-color: red; color: white; padding: 5px;")
                      ,(format nil "Routine conceptualisation failed" )))
       (add-element `((br :style "margin: 20px"))))))
-
-

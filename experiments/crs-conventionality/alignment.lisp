@@ -37,8 +37,10 @@
       (adopt (topic interaction) hearer)
       (notify alignment-finished speaker hearer)))))
 
+
 (defmethod find-competitors ((agent naming-game-agent))
   "Finds competitors in the cip"
+  ;; TODO to keep?
   #|(set-difference (remove-duplicates (mappend #'fcg::applied-constructions (succeeded-nodes (cip (solution-node agent)))))
                   (applied-constructions agent))|#
   (loop for cxn in (constructions-list (grammar agent))
@@ -46,13 +48,16 @@
                   (not (string= (attr-val cxn :form) (first (utterance agent)))))
           collect cxn))
 
+
 (defun increase-score (learning-rate score)
   "Increase the score using the interpolation rule and the learning rate."
   (+ learning-rate (* score (- 1 learning-rate))))
 
+
 (defun decrease-score (learning-rate score)
   "Decrease the score using the interpolation rule and the learning rate."
   (* score (- 1 learning-rate)))
+
 
 (defmethod adopt ((topic crs-conventionality-entity-set) (hearer naming-game-agent))
   "Adoption of the construction through composition."
@@ -88,4 +93,3 @@
                               :attributes (:score 0.5 :topic ,(id (first (crs-conventionality::entities topic))) :form ,form)))
         (add-cxn cxn cxn-inventory)
         (notify adoption-finished cxn)))))
-

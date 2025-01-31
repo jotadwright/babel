@@ -15,6 +15,7 @@
 (defgeneric conceptualise-and-produce (speaker scene topic &key &allow-other-keys)
   (:documentation "Based on the topic and scene, the speaker produces an utterance."))
 
+
 (defmethod conceptualise-and-produce ((agent crs-conventionality-agent)
                                       (scene crs-conventionality-scene)
                                       (topic crs-conventionality-entity-set)
@@ -64,6 +65,7 @@
           (setf (applied-constructions agent) (applied-constructions (first solution-node))) 
           (setf (solution-node agent) (first solution-node)))))))
 
+
 (defmethod create-initial-structure ((topic crs-conventionality-entity-set)
                                      (mode (eql :topic-and-scene))
                                      &key scene)
@@ -80,6 +82,7 @@
 
 ;; SPECIALISE METHODS IN :fcg
 (in-package :fcg)
+
 
 (defmethod cip-goal-test ((node cip-node) (mode (eql :topic-retrieved))) 
   "Checks whether the extracted meaning leads to the topic by evaluating irl program."
@@ -101,12 +104,3 @@
         (push 'solution-in-branch (statuses node))
         nil)
       t)))
-
-
-
-
-
-
-
-
-

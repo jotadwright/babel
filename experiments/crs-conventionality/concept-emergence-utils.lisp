@@ -19,7 +19,6 @@
 ;; CLASSES ;;
 ;;;;;;;;;;;;;
 
-
 (defclass concept-emergence-experiment (crs-conventionality-experiment)
   ()
   (:documentation "Class for naming game experiment."))
@@ -50,9 +49,6 @@
   ()
   (:documentation "An agent in the experiment"))
 
-
-
- 
 (defclass concept-emergence-entity (crs-conventionality-entity)
   ((features
     :documentation "The features of the object (a-list)."
@@ -65,13 +61,11 @@
   ()
   (:documentation "The concept emergence world."))
 
-
 (defmethod initialize-instance :after ((world concept-emergence-world) &key &allow-other-keys)
   "Sets the entities of the world."
  (let ((entities (get-clevr-entities-from-files)))
    (setf (entities world)
          (random-elts entities (get-configuration (experiment world) :nr-of-entities-in-world)))))
-
 
 
 (defmethod interact ((experiment concept-emergence-experiment)
@@ -227,8 +221,3 @@
                                 (HASH topic ,meaning)
                                 --
                                 (HASH form (,form)))))))
-
-
-
-;(first (concepts-to-fcg-cxns (get-concepts *restored-experiment*)))
-

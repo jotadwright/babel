@@ -13,9 +13,11 @@
   ()
   (:documentation "Experiment class."))
 
+
 (defclass naming-game-experiment (crs-conventionality-experiment)
   ()
   (:documentation "Class for naming game experiment."))
+
 
 (defmethod initialize-instance :after ((experiment naming-game-experiment) &key &allow-other-keys)
   "Creates the population and world of the experiment."
@@ -27,7 +29,6 @@
         (make-instance 'naming-game-population :experiment experiment)))
 
 
-                     
 ;; Populations and Agents ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -42,6 +43,7 @@
     :initform nil :initarg :experiment :accessor experiment))
   (:documentation "A population in the experiment."))
 
+
 (defmethod print-object ((population crs-conventionality-population) stream)
   "Prints population."
   (format stream "<population: ~a agents>" (length (agents population))))
@@ -50,6 +52,7 @@
 (defclass naming-game-population (crs-conventionality-population)
   ()
   (:documentation "A population in the naming game."))
+
 
 (defmethod initialize-instance :after ((population naming-game-population) &key &allow-other-keys)
   "Creates the population of the experiment."
@@ -97,13 +100,16 @@
     :initform nil :initarg :learning-rate :accessor learning-rate))
   (:documentation "An agent in the experiment"))
 
+
 (defmethod initialize-instance :after ((agent crs-conventionality-agent) &key &allow-other-keys)
   "Creates an agent of the population."
   (make-initial-grammar agent)
   (setf (learning-rate agent) (define-learning-rate agent (get-configuration (experiment (population agent)) :learning-strategy))))
 
+
 (defmethod define-learning-rate (agent (mode (eql :default)))
   (get-configuration (experiment (population agent)) :learning-rate))
+
 
 (defmethod print-object ((agent crs-conventionality-agent) stream)
   "Prints agent."
@@ -113,7 +119,6 @@
 (defclass naming-game-agent (crs-conventionality-agent)
   ()
   (:documentation "An agent in the experiment"))
-
 
 
 ;; Worlds, scenes and Entities ;;
@@ -126,9 +131,11 @@
     :initform nil :initarg :entities :accessor entities))
   (:documentation "Class for holding entities."))
 
+
 (defmethod print-object ((entity-set crs-conventionality-entity-set) stream)
   "Prints entity-set."
   (format stream "<entity-set: ~{{~a~^, ~}}>" (mapcar #'id (entities entity-set))))
+
 
 (defclass naming-game-entity-set (crs-conventionality-entity-set)
   ()
@@ -141,6 +148,7 @@
     :type crs-conventionality-experiment
     :initform nil :initarg :experiment :accessor experiment))
   (:documentation "A world in the experiment"))
+
 
 (defmethod print-object ((world crs-conventionality-world) stream)
   "Prints world."
@@ -160,13 +168,14 @@
                                      :id (intern (format nil "OBJECT-~a" i))
                                      :world world))))
 
-             
+       
 (defclass crs-conventionality-scene (crs-conventionality-entity-set)
   ((interaction
     :documentation "A backpointer to the interaction to which the scene belongs."
     :type crs-conventionality-interaction
     :initform nil :initarg :interaction :accessor interaction))
   (:documentation "A scene in an interaction"))
+
 
 (defmethod print-object ((scene crs-conventionality-scene) stream)
   "Prints scene."
@@ -185,6 +194,7 @@
     :initform nil :initarg :world :accessor world))
   (:documentation "An entity in the experiment"))
 
+
 (defmethod print-object ((entity crs-conventionality-entity) stream)
   "Prints entity."
   (format stream "<entity: ~a>" (id entity)))
@@ -194,7 +204,6 @@
   ()
   (:documentation "An entity in the naming-game experiment"))
 
-               
 
 ;; Interaction ;;
 ;;;;;;;;;;;;;;;;;
@@ -210,4 +219,3 @@
     :documentation "Whether both interacting agents would have said the same thing under the same circumstances."
     :initform nil :accessor coherence))
   (:documentation "An interaction in the experiment"))
-

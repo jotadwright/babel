@@ -80,8 +80,3 @@
     ((table :class "agent")
      ((tr) ((td :class "entity-type") 
             ,(format nil "~(~a~)" (type-of agent)))))))
-
-
-
-;(add-element (make-html (world *naming-game-canonical*)))
-;(add-element (make-html (population *naming-game-canonical*)))

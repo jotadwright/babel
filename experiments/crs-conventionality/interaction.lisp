@@ -115,11 +115,9 @@
     ;; Adoption and alignment
     (align speaker hearer interaction (get-configuration experiment :alignment-strategy))
     
-  
     ;; Finishing interaction (TODO to remove?)
     ;; (finish-interaction experiment interaction)
     ))
-
 
 ;; helper functions (best placed somewhere else?)
 

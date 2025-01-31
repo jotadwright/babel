@@ -6,9 +6,9 @@
 ;;                                                    ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
 (defgeneric comprehend-and-interpret (hearer scene)
   (:documentation "Based on the topic and scene, the hearer comprehends the utterance"))
+
 
 (defmethod comprehend-and-interpret ((hearer crs-conventionality-agent) (scene crs-conventionality-scene))
   "Based on the topic and scene, the hearer comprehends the utterance"
@@ -63,10 +63,5 @@
     (if success
       (set-data node :computed-topic computed-topic)
       (set-data node :computed-topic nil))
-    
+
     success))
-
-
-
-
-

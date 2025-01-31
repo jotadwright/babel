@@ -3,6 +3,7 @@
 (def-irl-primitives naming-game-primitives
   :primitive-inventory *naming-game-primitives*)
 
+
 (defprimitive retrieve-from-scene ((entity-in-scene naming-game-entity)
                                    (entity-from-grammar naming-game-entity)
                                    (scene crs-conventionality-entity-set))
@@ -31,8 +32,6 @@
   
   :primitive-inventory *naming-game-primitives*)
 
-
-
 (defgeneric compose-program (topic partial-meaning primitive-inventory)
     (:documentation "compose a program given a topic and a partial meaning"))
 
@@ -42,20 +41,3 @@
                                         
                                         :chunks chunks :primitive-inventory primitive-inventory)))
     (get-all-solutions composer)))
-
-
-;; given a topic and the scene as partial meaning, compose a program
-#|
- (activate-monitor trace-irl)
- (compose-program (make-instance 'naming-game-entity :id 'object-1 :world (world *naming-game-canonical*))
-                 `((bind crs-conventionality-entity-set ?scene ,(scene (first (interactions *naming-game-canonical*)))))
-                  *naming-game-primitives*)
-
- (let* ((composition-result (compose-program (make-instance 'naming-game-entity :id 'object-1 :world (world *naming-game-canonical*))
-                                             `((bind crs-conventionality-entity-set ?scene ,(scene (first (interactions *naming-game-canonical*)))))
-                                             *naming-game-primitives*))
-        )
-   (when (find irl::succeeded (irl::statuses (irl::pip-node composition-result)))
-     (
-  |#
-
