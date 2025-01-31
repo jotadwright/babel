@@ -69,7 +69,7 @@
                                   --
                                   (HASH form (,form))))
                                 :cxn-inventory ,(original-cxn-set cxn-inventory)
-                                :attributes (:score 0.5 :topic ,(id (first (crs-conventionality::entities topic))))))
+                                :attributes (:score 0.5 :topic ,(id (first (crs-conventionality::entities topic))) :form ,form)))
          
           (make-instance 'invention-fix :restart-data cxn))))))
 

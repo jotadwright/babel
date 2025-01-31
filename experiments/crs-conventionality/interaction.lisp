@@ -127,6 +127,7 @@
 
 (defmethod utter ((speaker crs-conventionality-agent) (hearer crs-conventionality-agent))
   "The utterer utters the utterance to the utteree."
+  (setf (utterance speaker) (conceptualised-utterance speaker))
   (setf (utterance hearer) (utterance speaker)))
 
 (defmethod provide-feedback ((speaker crs-conventionality-agent) (hearer crs-conventionality-agent))

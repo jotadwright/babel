@@ -53,14 +53,16 @@
         (multiple-value-bind (cxn fix)
             (fcg::invent cip agent topic scene)
           (unless silent (notify experiment-framework::meta-conceptualisation-finished fix agent))
-          (setf (utterance agent) (render (car-resulting-cfs (first (get-data (blackboard fix) 'fcg::fixed-cars)))
+          (setf (conceptualised-utterance agent) (render (car-resulting-cfs (first (get-data (blackboard fix) 'fcg::fixed-cars)))
                                           (get-configuration (grammar agent) :render-mode)))))
       ;; otherwise, render and set solution nodes
-      (progn 
-        (setf (utterance agent) (render (car-resulting-cfs (fcg:cipn-car (first solution-node)))
-                                        (get-configuration (grammar agent) :render-mode)))
-        (setf (applied-constructions agent) (applied-constructions (first solution-node)))
-        (setf (solution-node agent) (first solution-node))))))
+      (progn
+        (setf (conceptualised-utterance agent) (render (car-resulting-cfs (fcg:cipn-car (first solution-node)))
+                                                       (get-configuration (grammar agent) :render-mode)))
+        (when (eq (discourse-role agent) 'speaker)
+          
+          (setf (applied-constructions agent) (applied-constructions (first solution-node))) 
+          (setf (solution-node agent) (first solution-node)))))))
 
 (defmethod create-initial-structure ((topic crs-conventionality-entity-set)
                                      (mode (eql :topic-and-scene))

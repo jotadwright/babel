@@ -12,7 +12,7 @@
 (define-monitor print-a-dot-for-each-interaction
                 :documentation "Prints a '.' for each interaction
                  and prints the number after :dot-interval")
-  
+
 (define-event-handler (print-a-dot-for-each-interaction interaction-finished)
   (ensure-directories-exist (babel-pathname :directory `("experiments"
                                                          "crs-conventionality"
@@ -42,7 +42,7 @@
 ;; -------------------------
 (define-monitor record-communicative-success
                 :class 'data-recorder
-                :average-window 1000 ;; ;; TODO adapt?
+                :average-window 100 ;; ;; TODO adapt?
                 :documentation "Records the game outcome of each game (1 or 0).")
 
 (define-monitor export-communicative-success
@@ -73,7 +73,7 @@
                 :add-time-and-experiment-to-file-name nil)
 
 (define-event-handler (record-conventionalisation interaction-finished)
-  (record-value monitor (if (find-data interaction 'coherence) 1 0)))
+  (record-value monitor (if (coherence interaction) 1 0)))
 
 ;; -------------------------------
 ;; + Construction inventory size +

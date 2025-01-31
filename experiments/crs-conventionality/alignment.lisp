@@ -36,7 +36,7 @@
          (scene (scene interaction))
          (topic (topic interaction)))
     (conceptualise-and-produce hearer scene topic :use-meta-layer nil)
-    (if (equalp (conceptualised-utterance speaker) (conceptualised-utterance hearer))
+    (if (equalp (utterance speaker) (conceptualised-utterance hearer))
       (setf (coherence interaction) t)
       (setf (coherence interaction) nil))))
 
@@ -45,34 +45,39 @@
 
 (defmethod align ((speaker naming-game-agent) (hearer naming-game-agent) (interaction crs-conventionality-interaction) (mode (eql :lateral-inhibition)))
   "Align grammar of speaker and hearer based on interaction."
-  (if (communicated-successfully interaction)
-    ;; Communication succeeded
-    (let ((applied-cxn-speaker (first (applied-constructions speaker)))
-          (applied-cxn-hearer (first (applied-constructions hearer)))
-          (meaning-competitors-speaker (find-competitors speaker)))
-
+  (let ((applied-cxn-speaker (first (applied-constructions speaker)))
+        (applied-cxn-hearer (first (applied-constructions hearer))))
+    (if (communicated-successfully interaction)
+      ;; Communication succeeded
       ;; Speaker and hearer increase the score of the constructions they used:
-      (setf (attr-val applied-cxn-speaker :score)
-            (increase-score (learning-rate speaker) (attr-val applied-cxn-speaker :score)))
-      (setf (attr-val applied-cxn-hearer :score)
-            (increase-score (learning-rate hearer) (attr-val applied-cxn-hearer :score)))
+      (progn 
+        (setf (attr-val applied-cxn-speaker :score)
+              (increase-score (learning-rate speaker) (attr-val applied-cxn-speaker :score)))
+        (setf (attr-val applied-cxn-hearer :score)
+              (increase-score (learning-rate hearer) (attr-val applied-cxn-hearer :score)))
       
-      ;; Speaker punishes competing constructions:
-      (loop for cxn in meaning-competitors-speaker
-              do (setf (attr-val cxn :score) (decrease-score (learning-rate speaker) (attr-val cxn :score)))))
-    
+        ;; Speaker punishes competing constructions:
+        (loop for cxn in (find-competitors speaker)
+              do (setf (attr-val cxn :score) (decrease-score (learning-rate speaker) (attr-val cxn :score))))
+        (loop for cxn in (find-competitors hearer)
+              do (setf (attr-val cxn :score) (decrease-score (learning-rate hearer) (attr-val cxn :score)))))
+      
     ;; Communication failed 
     (progn
       (when (applied-constructions speaker)
-        (let ((speaker-score (cdr (assoc :score (attributes (first (applied-constructions speaker)))))))
-          (setf speaker-score (decrease-score (learning-rate speaker) speaker-score))))
+        (setf (attr-val applied-cxn-speaker :score)
+              (decrease-score (learning-rate speaker) (attr-val applied-cxn-speaker :score))))
       (adopt (topic interaction) hearer)
-      (notify alignment-finished speaker hearer))))
+      (notify alignment-finished speaker hearer)))))
 
-(defun find-competitors (agent)
+(defmethod find-competitors ((agent naming-game-agent))
   "Finds competitors in the cip"
-  (set-difference (remove-duplicates (mappend #'fcg::applied-constructions (succeeded-nodes (cip (solution-node agent)))))
-                  (applied-constructions agent)))
+  #|(set-difference (remove-duplicates (mappend #'fcg::applied-constructions (succeeded-nodes (cip (solution-node agent)))))
+                  (applied-constructions agent))|#
+  (loop for cxn in (constructions-list (grammar agent))
+        when (and (eq (attr-val cxn :topic) (id (first (entities (topic agent)))))
+                  (not (string= (attr-val cxn :form) (first (utterance agent)))))
+          collect cxn))
 
 (defun increase-score (learning-rate score)
   "Increase the score using the interpolation rule and the learning rate."
@@ -113,7 +118,7 @@
                                 --
                                 (HASH form (,form))))
                               :cxn-inventory ,cxn-inventory
-                              :attributes (:score 0.5 :topic ,(id (first (crs-conventionality::entities topic))))))
-        ;(add-cxn cxn cxn-inventory)
+                              :attributes (:score 0.5 :topic ,(id (first (crs-conventionality::entities topic))) :form ,form)))
+        (add-cxn cxn cxn-inventory)
         (notify adoption-finished cxn)))))
 

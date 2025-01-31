@@ -23,11 +23,11 @@
                                                       (:dot-interval . 100)
                                                       ;; Initialising the experiment
                                                       (:nr-of-entities-in-world . 5)
-                                                      (:nr-of-agents-in-population . 10)
+                                                      (:nr-of-agents-in-population . 3)
                                                       (:nr-of-entities-in-scene . 4)
                                                       (:alignment-strategy . :lateral-inhibition)
                                                       (:learning-strategy . :default)
-                                                      (:learning-rate . 0.5)
+                                                      (:learning-rate . 0.1)
                                                       ;; Initialising an interaction
                                                       (:determine-interacting-agents-mode . :random-from-population)
                                                       (:determine-scene-entities-mode . :random-subset-of-world)
@@ -48,14 +48,14 @@
   (activate-monitor record-conventionalisation)
   (activate-monitor record-construction-inventory-size)
   ;; activate tracers
-  ;(activate-monitor trace-interaction)
-  ;(activate-monitor trace-fcg)
-  ;(activate-monitor trace-irl)
+  (activate-monitor trace-interaction)
+  (activate-monitor trace-fcg)
+  (activate-monitor trace-irl)
   ;; activate the gnuplot live display
   (activate-monitor display-metrics)
 
   ;; run the experiment
-  (loop for i from 1 to 5000
+  (loop for i from 1 to 100
         do (run-interaction *naming-game-canonical*)))
 
 ;; Option 2: run experiment locally and export results to disk
