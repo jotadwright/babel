@@ -1,5 +1,8 @@
 (in-package :fcg)
 
+;; ! SPECIALISE METHODS IN :fcg
+
+
 ;; Diagnostics ;;
 ;;;;;;;;;;;;;;;;;
 

@@ -35,6 +35,7 @@
                        (format nil "~,vf% Conven." 1 (* 100 (float coherence)))
                        "NIL")
                      h m s)))
+         ;; reset the timer
          (setf *start-time* (get-universal-time)))))
 
 ;; -------------------------
@@ -42,7 +43,7 @@
 ;; -------------------------
 (define-monitor record-communicative-success
                 :class 'data-recorder
-                :average-window 100 ;; ;; TODO adapt?
+                :average-window 100
                 :documentation "Records the game outcome of each game (1 or 0).")
 
 (define-monitor export-communicative-success
@@ -61,7 +62,7 @@
 ;; ---------------------
 (define-monitor record-conventionalisation
                 :class 'data-recorder
-                :average-window 1000 ;; TODO adapt?
+                :average-window 100
                 :documentation "Records the degree of conventionalisation.")
 
 (define-monitor export-conventionalisation
@@ -80,7 +81,7 @@
 ;; -------------------------------
 (define-monitor record-construction-inventory-size
                 :class 'data-recorder
-                :average-window 1 ;; TODO adapt?
+                :average-window 1
                 :documentation "Records the construction inventory size.")
 
 (define-monitor export-construction-inventory-size
@@ -91,7 +92,7 @@
                                            :directory '("experiments" "crs-conventionality" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
-(defun non-zero-cxn-p (cxn)
+(defun non-zero-cxn-p (cxn) ;; func should be moved to grammar
   "Checks if the entrenchment score of a cxn is positive."
   (> (attr-val cxn :score) 0))
 

@@ -12,7 +12,6 @@
 
 (defmethod comprehend-and-interpret ((hearer crs-conventionality-agent) (scene crs-conventionality-scene))
   "Based on the topic and scene, the hearer comprehends the utterance"
-
   (interpret (utterance hearer) :cxn-inventory (grammar hearer) :agent hearer :scene scene))
 
 

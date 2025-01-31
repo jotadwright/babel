@@ -1,7 +1,3 @@
-;(ql:quickload :cl-jonathan)
-;(ql:quickload :cle)
-;(ql:quickload :crs-conventionality)
-
 (in-package :crs-conventionality)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

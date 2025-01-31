@@ -1,5 +1,10 @@
 (in-package :experiment-framework)
 
+;;
+;; !!! WARNING : events are currently all defined in :experiment-framework (TODO)
+;;
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                          ;;
 ;; This file declares all web monitors of the crs conventionality package   ;;
