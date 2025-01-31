@@ -33,7 +33,6 @@
     (values interaction experiment)))
 
 
-
 ;; Determine interacting agents, scene and topic ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -86,10 +85,8 @@
                                            :entities (list (random-elt (entities (scene interaction)))))))
 
 
-
 ;; Interact ;;
 ;;;;;;;;;;;;;;
-
 
 (defmethod interact ((experiment naming-game-experiment)
                      (interaction interaction) &key)
@@ -118,12 +115,13 @@
     ;; Adoption and alignment
     (align speaker hearer interaction (get-configuration experiment :alignment-strategy))
     
-    #|
-    ;; Finishing interaction
-    (finish-interaction experiment interaction)
-    |#
+  
+    ;; Finishing interaction (TODO to remove?)
+    ;; (finish-interaction experiment interaction)
     ))
 
+
+;; helper functions (best placed somewhere else?)
 
 (defmethod utter ((speaker crs-conventionality-agent) (hearer crs-conventionality-agent))
   "The utterer utters the utterance to the utteree."
@@ -133,3 +131,20 @@
 (defmethod provide-feedback ((speaker crs-conventionality-agent) (hearer crs-conventionality-agent))
   "Speaker provides feedback by pointing to the topic."
   (setf (topic hearer) (topic speaker)))
+
+(defmethod determine-success ((speaker naming-game-agent) (hearer naming-game-agent) (interaction crs-conventionality-interaction))
+  "Determines and sets success. There is success if the computed-topic of the hearer is the same as the intended topic of the speaker."
+  (if (equalp (computed-topic hearer) (first (entities (topic speaker)))) ;; pointing
+    (setf (communicated-successfully interaction) t)
+    (setf (communicated-successfully interaction) nil)))
+
+
+(defmethod determine-coherence ((speaker naming-game-agent) (hearer naming-game-agent))
+  "Determines and sets the coherences. Tests whether the hearer would have used the same word as the speaker, should the hearer have been the speaker."
+  (let* ((interaction (current-interaction (experiment speaker)))
+         (scene (scene interaction))
+         (topic (topic interaction)))
+    (conceptualise-and-produce hearer scene topic :use-meta-layer nil)
+    (if (equalp (utterance speaker) (conceptualised-utterance hearer))
+      (setf (coherence interaction) t)
+      (setf (coherence interaction) nil))))
