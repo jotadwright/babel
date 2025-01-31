@@ -13,7 +13,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (progn
-  (format t "~%Starting a new experiment")
+  (format t "~%Starting a new experiment.~%")
   ;; reset the web interface
   (wi::reset)
   ;; deactivate all monitors (as a sanity check)
@@ -49,14 +49,14 @@
   (activate-monitor record-conventionalisation)
   (activate-monitor record-construction-inventory-size)
   ;; activate tracers
-  (activate-monitor trace-interaction)
-  (activate-monitor trace-fcg)
-  (activate-monitor trace-irl)
+  ;(activate-monitor trace-interaction)
+  ;(activate-monitor trace-fcg)
+  ;(activate-monitor trace-irl)
   ;; activate the gnuplot live display
   (activate-monitor display-metrics)
 
   ;; run the experiment
-  (loop for i from 1 to 100
+  (loop for i from 1 to 1000
         do (run-interaction *naming-game-canonical*)))
 
 ;; Option 2: run experiment locally and export results to disk
