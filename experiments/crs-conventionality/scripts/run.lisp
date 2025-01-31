@@ -11,7 +11,7 @@
 (run-experiments-sequentially 'naming-game-experiment
                     :strategies `(('run-1
                                     (;; Logging
-                                    (:dot-interval . 100)
+                                    (:log-every-x-interactions . 100)
                                     ;; Initialising the experiment
                                     (:nr-of-entities-in-world . 5)
                                     (:nr-of-agents-in-population . 2)

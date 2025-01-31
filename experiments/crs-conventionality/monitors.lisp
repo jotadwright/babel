@@ -4,23 +4,24 @@
 ;; Monitors ;;
 ;;;;;;;;;;;;;;
 
-;; ------------------------------
-;; + Printing dots at intervals +
-;; ------------------------------
+;; --------------------------------------
+;; + Logs information in output-browser +
+;; --------------------------------------
 (defvar *start-time* nil)
 
-(define-monitor print-a-dot-for-each-interaction
-                :documentation "Prints a '.' for each interaction
-                 and prints the number after :dot-interval")
-
-(define-event-handler (print-a-dot-for-each-interaction interaction-finished)
-  (ensure-directories-exist (babel-pathname :directory `("experiments"
+(define-monitor log-every-x-interactions-in-output-browser
+                :documentation "Logs measures every x interactions in the output-browser")
+  
+(define-event-handler (log-every-x-interactions-in-output-browser interaction-finished)
+  #|(ensure-directories-exist (babel-pathname :directory `("experiments"
                                                          "crs-conventionality"
-                                                         "raw-data")))
-  (cond ((or (= (interaction-number interaction) 1) (not *start-time*))
+                                                         "raw-data")))|#
+  (cond (;; initialise the start time
+         (or (= (interaction-number interaction) 1) (not *start-time*))
          (setf *start-time* (get-universal-time)))
+        ;; every x interactions -> log to output browser
         ((= (mod (interaction-number interaction)
-                 (get-configuration experiment :dot-interval))
+                 (get-configuration experiment :log-every-x-interactions))
             0)
          (let ((comm-success (caaar (monitors::get-average-values (monitors::get-monitor 'record-communicative-success))))
                (coherence (caaar (monitors::get-average-values (monitors::get-monitor 'record-conventionalisation)))))
