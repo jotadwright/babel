@@ -74,20 +74,22 @@
 ;; --------------------------------------------------
 ;; + Construction inventory usage (during training) +
 ;; --------------------------------------------------
-(define-monitor record-construction-inventory-size
+(define-monitor record-construction-inventory-usage-train
                 :class 'data-recorder
-                :average-window 1
-                :documentation "Records the (windowed) construction inventory size.")
+                ;; the window is kept track manually in the `usage-table-window` of an agent
+                ;; when average-window is set to 0, the data-recorders skips the averaging step
+                :average-window 0
+                :documentation "Records the amount of unique forms observed in the past x interactions.")
 
-(define-monitor export-construction-inventory-size
+(define-monitor export-construction-inventory-usage-train
                 :class 'csv-data-file-writer
-                :documentation "Exports the (windowed) construction inventory size."
-                :data-sources '(record-construction-inventory-size)
+                :documentation "Exports the amount of unique forms observed in the past x interactions."
+                :data-sources '(record-construction-inventory-usage-train)
                 :file-name (babel-pathname :name "unique-form-usage" :type "csv"
                                            :directory '("experiments" "concept-emergence2" "logging"))
                 :add-time-and-experiment-to-file-name nil)
 
-(define-event-handler (record-construction-inventory-size interaction-finished)
+(define-event-handler (record-construction-inventory-usage-train interaction-finished)
   (record-value monitor (loop for agent in (agents (experiment interaction))
                               sum (unique-forms-in-window agent) into total-sum
                               finally (return (round (/ total-sum (length (agents (experiment interaction)))))))))
@@ -95,10 +97,10 @@
 ;; -------------------------------------------------
 ;; + Construction inventory usage (during testing) +
 ;; -------------------------------------------------
-(define-monitor export-construction-inventory-usage
+(define-monitor export-construction-inventory-usage-test
                 :documentation "Exports the word usage across all interactions (i.e. the window size is set to infinite).")
 
-(define-event-handler (export-construction-inventory-usage run-series-finished)
+(define-event-handler (export-construction-inventory-usage-test run-series-finished)
   (let* ((exp-top-dir (get-configuration experiment :exp-top-dir))
          (dataset-split (get-configuration experiment :dataset-split))
          (exp-name (get-configuration experiment :exp-name))

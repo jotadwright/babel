@@ -69,7 +69,7 @@
     ;; set-up monitors
     (set-up-monitors (list "export-communicative-success"
                            "export-conventionalisation"
-                           "export-construction-inventory-usage"
+                           "export-construction-inventory-usage-test"
                            "export-experiment-configurations"
                            "log-every-x-interactions-in-output-browser")
                      (entries experiment))

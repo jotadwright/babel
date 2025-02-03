@@ -54,7 +54,7 @@
     ;; adapt file-writing monitors so they output in the correct log-dir
     (set-up-monitors (list "export-communicative-success"
                            "export-conventionalisation"
-                           "export-construction-inventory-size"
+                           "export-construction-inventory-usage-train"
                            "export-experiment-configurations"
                            "export-experiment-store"
                            "log-every-x-interactions-in-output-browser")
