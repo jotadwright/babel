@@ -71,7 +71,7 @@
                            "export-lexicon-coherence"
                            "export-lexicon-inventory-usage"
                            "export-experiment-configurations"
-                           "print-a-dot-for-each-interaction")
+                           "log-every-x-interactions-in-output-browser")
                      (entries experiment))
 
     ;; run experiment

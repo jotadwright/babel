@@ -216,6 +216,8 @@
 ;; ------------------
 ;; + Interpretation +
 ;; ------------------
+(define-event event-interpretation-end (agent cle-agent))
+
 (define-event-handler (trace-interaction-in-web-interface event-interpretation-end)
   (if (find-data agent 'interpreted-topic)
     (progn

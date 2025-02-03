@@ -19,7 +19,7 @@
   (setf (configuration lexicon) configuration))
 
 (defmethod update-lexicon-inventory ((lexicon lexicon) (cxn cxn))
-  (cond ((<= (score cxn) 0.0) ;; TODO 0.0 should be configurable in :trash-treshold
+  (cond ((<= (score cxn) 0.0)
          ;; assumes that score lower-bound is never negative (after update)
          (setf (gethash (form cxn) (trash-inventory lexicon)) cxn)
          (remhash (form cxn) (get-inventory lexicon :fast)))

@@ -13,5 +13,5 @@
   (let* ((world (world (experiment agent)))
          (view-name (current-view agent)))
     (if (channel-continuous-p world view-name channel)
-      (make-distribution agent observation (get-configuration (experiment agent) :distribution))
+      (make-distribution agent observation :gaussian-welford)
       (make-distribution agent observation :categorical))))

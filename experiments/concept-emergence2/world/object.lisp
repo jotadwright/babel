@@ -4,20 +4,20 @@
 ;; + CLE object set +
 ;; ------------------
 
-(defmethod s-expr->cle-scene (s-expr world view-name)
-  "Create an instance of cle-scene from an s-expression"
+(defmethod data->cle-scene (data world view-name)
+  "Create an instance of cle-scene from a hash-table data structure"
   (let* ((view (get-view world view-name))
          (categorical-features (get-categorical-features world view-name)))
     (make-instance 'cle-scene
-                   :index (gethash :image_index s-expr)
+                   :index (gethash :image_index data)
                    :dataset (view-name view)
                    :dataset-split (dataset-split view)
-                   :image-fname (gethash :image_filename s-expr)
-                   :objects (loop for obj being the elements of (gethash :objects s-expr) ;; objects is a vector
-                                  collect (s-expr->cle-object obj (feature-set view) categorical-features)))))
+                   :image-fname (gethash :image_filename data)
+                   :objects (loop for obj being the elements of (gethash :objects data) ;; objects is a vector
+                                  collect (data->cle-object obj (feature-set view) categorical-features)))))
 
 (defmethod objects->cle-scene (objects world view-name)
-  "Create an instance of cle-scene from an s-expression"
+  "Create an instance of cle-scene from a list of cle-objects"
   (let ((view (get-view world view-name)))
     (make-instance 'cle-scene
                    :index 0
@@ -48,17 +48,18 @@
 ;; --------------
 ;; + CLE-Object +
 ;; --------------
-(defmethod s-expr->cle-objects (s-expressions feature-set categorical-features)
-  (loop for s-expr in s-expressions
-        for cle-object = (s-expr->cle-object s-expr feature-set categorical-features)
+(defmethod data->cle-objects (data feature-set categorical-features)
+  "Given a list of hash-tables, create a list of cle-objects."
+  (loop for obj-data in data
+        for cle-object = (data->cle-object obj-data feature-set categorical-features)
         collect cle-object))
 
-(defmethod s-expr->cle-object (s-expr feature-set categorical-features)
-  "Create an instance of cle-scene from an s-expression"
-  (let* ((description (gethash :description s-expr))
+(defmethod data->cle-object (data feature-set categorical-features)
+  "Create an instance of cle-object from an hash-table."
+  (let* ((description (gethash :description data))
          ;; convert categorical data (strings) to symbols for efficient comparisons
-         (data (convert-object-strings-to-symbols (gethash :attributes s-expr) categorical-features))
-         ;; filter the raw s-expr on only the available feature-set
+         (data (convert-object-strings-to-symbols (gethash :attributes data) categorical-features))
+         ;; filter the data on only the available feature-set
          (attributes (filter-objects-on-features data feature-set)))
     (make-instance 'cle-object
                    :attributes attributes

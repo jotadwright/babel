@@ -15,7 +15,7 @@
     :initarg :prototypes :accessor prototypes :initform nil :type hash-table))
   (:documentation "Concept representation using prototypes."))
  
-(defmethod make-concept ((agent cle-agent) (object cle-object) (mode (eql :distribution)))
+(defmethod make-concept ((agent cle-agent) (object cle-object))
   "Creates a concept (based on combinations of distributions) for the given object."
   (let* ((prototypes (loop for channel being the hash-keys of (attributes object)
                              using (hash-value observation)

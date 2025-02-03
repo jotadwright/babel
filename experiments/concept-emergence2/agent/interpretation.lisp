@@ -4,9 +4,6 @@
 ;; + Interpretation +
 ;; ------------------
 
-;; events
-(define-event event-interpretation-end (agent cle-agent))
-
 (defmethod interpret ((agent cle-agent))
   "Computes the weighted similarity between
      1. the parsed-meaning

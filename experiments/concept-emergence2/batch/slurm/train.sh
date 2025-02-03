@@ -1,11 +1,13 @@
 #!/bin/bash
 
+# scripts not be run by user, but by slurm/run.sh
+
 # load atools
 module purge
 module load atools/1.5.1-GCCcore-12.3.0
 
 # read input data from csv
-source <(aenv --data $VSC_HOME/concept-emergence2/batch/data-train/$name.csv --sniff 32768)
+source <(aenv --data $VSC_HOME/concept-emergence2/batch/config/train/$name.csv --sniff 32768)
 
 # load sbcl
 module purge
@@ -32,12 +34,10 @@ sbcl --dynamic-space-size $space --load $VSC_HOME/concept-emergence2/batch/run.l
     observation-std $observation_std \
     scene-sampling $scene_sampling \
     topic-sampling $topic_sampling \
-    similarity-threshold $similarity_threshold \
     align $align \
     entrenchment-incf $entrenchment_incf \
     entrenchment-decf $entrenchment_decf \
     entrenchment-li $entrenchment_li \
-    trash-concepts $trash_concepts \
     weight-update-strategy $weight_update_strategy \
     initial-weight $initial_weight \
     weight-incf $weight_incf \
