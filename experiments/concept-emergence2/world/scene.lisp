@@ -6,55 +6,105 @@
 
 (defmethod set-scene (experiment scene-id)
   "Set a scene manually."
-  (loop with scene = (get-scene-by-index (world experiment) scene-id)
+  (loop with world = (world experiment)
+        with view-name = (first (view-names (world))) ;; use the first view by default
+        with scene = (load-precomputed-scene world view-name scene-id)
         for agent in (interacting-agents experiment)
+        do (setf (current-view agent) view-name)
         do (set-data agent 'context scene)))
 
-;; ------------------
-;; + Scene sampling +
-;; ------------------
+;; -------------------------
+;; + Random Scene sampling +
+;; -------------------------
+
 (defmethod sample-scene (experiment (mode (eql :random)))
   "Sample a random scene and assign to experiment."
-  (loop with scene = (random-scene (world experiment))
+  (assign-random-scene experiment (world experiment) (get-configuration experiment :dataset-view)))
+
+;; ----------------------
+;; + Precomputed scenes +
+;; ----------------------
+
+(defmethod assign-random-scene (experiment (world precomputed-world) (mode (eql :exclusive-views)))
+  "If the assignment of views is exclusive, then each agent is associated with a single view."
+  (loop with scene-id = nil
         for agent in (interacting-agents experiment)
-        do (set-data agent 'context scene)))
+        ;; views will have by definition only have 1 view-name 
+        for view-name = (first (views agent))
+        if (not scene-id)
+          do (destructuring-bind (id . scene) (random-scene (world experiment) view-name)
+               (setf scene-id id)
+               (setf (current-view agent) view-name)
+               (set-data agent 'context scene))
+        else
+          do (progn
+               (setf (current-view agent) view-name)
+               (let* ((scene (load-precomputed-scene world view-name scene-id)))
+                 (set-data agent 'context scene)))))
 
-(defmethod sample-scene (experiment (mode (eql :deterministic)))
-  "Cycles through a list of scenes."
-  (loop with scene = (get-next-scene experiment)
-        for agent in (interacting-agents experiment)
-        do (set-data agent 'context scene)))
+(defmethod assign-random-scene (experiment (world precomputed-world) (mode (eql :shared-views)))
+  "Experiments where agents can share the exact same view over a scene."
+  (if (equalp (length (views (first (interacting-agents experiment)))) 1)
+    ;; if agents have only one possible view, make it the same object
+    (loop with selected-scene = nil
+          for agent in (interacting-agents experiment)
+          ;; views will have by definition only have 1 view-name 
+          for view-name = (first (views agent))
+          if (not selected-scene)
+            do (destructuring-bind (id . scene) (random-scene (world experiment) view-name)
+                 (setf selected-scene scene)
+                 (setf (current-view agent) view-name)
+                 (set-data agent 'context selected-scene))
+          else
+            do (progn
+                 (setf (current-view agent) view-name)
+                 (set-data agent 'context selected-scene)))
+    ;; otherwise ensure to assign each agent with a mutually exclusive view
+    (loop with scene-id = nil
+          with assigned-view = nil
+          for agent in (interacting-agents experiment)
+          if (not assigned-view)
+            do (progn
+                 (setf assigned-view (random-elt (views agent)))
+                 (destructuring-bind (id . scene) (random-scene (world experiment) assigned-view)
+                   (setf scene-id id)
+                   (setf (current-view agent) assigned-view)
+                   (set-data agent 'context scene)))
+          else
+            do (progn
+                 (setf (current-view agent) (random-elt (remove assigned-view (views agent))))
+                 (let* ((scene (load-precomputed-scene world (current-view agent) scene-id)))
+                   (set-data agent 'context scene))))))
 
-;; ------------------
-;; + Loading scenes +
-;; ------------------
-(defmethod load-scene (fpath feature-set)
-  "Load a scene from filepath."
-  (let* ((dataset (sixth (pathname-directory fpath)))
-         (split (eighth (pathname-directory fpath)))
-         (s-expr (decode-json-as-alist-from-source fpath)))
-    (s-expr->cle-scene s-expr
-                       :dataset dataset
-                       :dataset-split split
-                       :feature-set feature-set)))
+;; -------------------------------
+;; + Scenes generated at runtime +
+;; -------------------------------
 
-(defmethod random-scene ((world world))
-  "Choose a random scene and load it into memory."
-  (setf (current-scene world) (load-scene (random-elt (scene-fpaths world))
-                                          (feature-set world)))
-  (current-scene world))
+(defmethod assign-random-scene (experiment (world runtime-world) (mode (eql :exclusive-views)))
+  (if (equalp (length (views (first (interacting-agents experiment)))) 1)
+    (loop with context-size = (sample-context-size world)
+          with idxs = (random-elts (loop for i from 0 to (- 100 1) collect i) context-size)
+          for agent in (interacting-agents experiment)
+          for view-name = (first (views agent))
+          for objects = (loop for idx in idxs collect (nth idx (data (get-view world view-name))))
+          for scene = (objects->cle-scene objects world view-name)
+          do (setf (current-view agent) view-name)
+          do (set-data agent 'context scene))
+    (error "Not implemented (yet): cannot assign runtime scenes if agents can have multiple views.")))
 
-(defun get-next-scene (experiment)
-  "Gets the next scene and updates the current index."
-  (let ((scene-ids (get-configuration experiment :scene-ids))
-        (current-idx (get-configuration experiment :current-scene-idx)))
-    (set-configuration experiment :current-scene-idx (mod (+ current-idx 1) (length scene-ids)))
-    (get-scene-by-index (world experiment) (nth current-idx scene-ids))))
-
-(defmethod get-scene-by-index ((world world) index)
-  "Get a particular scene by its index."
-  (assert (and (>= index 0) (< index (length (scene-fpaths world)))))
-  (setf (current-scene world)
-        (load-scene (nth index (scene-fpaths world))
-                    (feature-set world)))
-  (current-scene world))
+(defmethod assign-random-scene (experiment (world runtime-world) (mode (eql :shared-views)))
+  (if (equalp (length (views (first (interacting-agents experiment)))) 1)
+    ;; if agents have only one possible view, then just apply the (mutually) exclusive views algorithm
+    (loop with selected-scene = nil
+          for agent in (interacting-agents experiment)
+          for view-name = (first (views agent))
+          if (not selected-scene)
+            do (progn
+                 (setf selected-scene (random-scene (world experiment) view-name))
+                 (setf (current-view agent) view-name)
+                 (set-data agent 'context selected-scene))
+          else
+            do (progn
+                 (setf (current-view agent) view-name)
+                 (set-data agent 'context selected-scene)))
+    (error "Not implemented (yet): cannot assign runtime scenes if agents can have multiple views.")))

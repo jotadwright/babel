@@ -13,12 +13,16 @@
                 (:save-distribution-history . nil)
                 ;; setup interacting agents
                 (:interacting-agents-strategy . :standard)
-                (:population-size . 10)
+                (:population-size . 2)
                 ;; setup data scene
-                (:dataset . "clevr")
-                (:dataset-split . "train")
+                (:dataset-loader . :runtime)
+                (:dataset-view . :exclusive-views) ;; vs. :shared
+                (:dataset "mscoco-facebook@dinov2-small" "mscoco-google@vit-base-patch16-224-in21k")
+                (:min-context-size . 10)
+                (:max-context-size . 10)
+                (:dataset-split . "test")
                 ;(:data-fname . "all.lisp")
-                (:feature-set . "clevr")
+                (:feature-set "mscoco-facebook@dinov2-small" "mscoco-google@vit-base-patch16-224-in21k")
                 ;; disable channels
                 (:disable-channels . :none)
                 (:amount-disabled-channels . 0)
@@ -47,7 +51,7 @@
                 (:weight-update-strategy . :j-interpolation)
                 (:initial-weight . 0)
                 (:weight-incf . 1)
-                (:weight-decf . -5)
+                (:weight-decf . -5) ;; TODO TO ADAPT?
                 ;; staging
                 (:switch-condition . :none) ; :after-n-interactions)
                 (:switch-conditions-after-n-interactions . 2500) 
@@ -57,6 +61,7 @@
                 (:exp-name . "b")
                 (:log-dir-name . "c")
                 (:prototype-distance . :paper)
+                (:coherence-perspective . :hearer)
                 )))
   (setf *experiment* (make-instance 'cle-experiment :configuration *baseline-simulated*))
   (notify reset-monitors)
@@ -72,7 +77,7 @@
   (activate-monitor print-a-dot-for-each-interaction)
   (format t "~%---------- NEW GAME ----------~%")
   (time
-   (loop for i from 1 to 50000
+   (loop for i from 1 to 100000
          do (run-interaction *experiment*))))
 
 (progn
@@ -83,7 +88,17 @@
         do (run-interaction *experiment*)))
 
 ;; display lexicon
-(display-lexicon (find-agent 1 *experiment*) :sort t)
+(display-lexicon (first (agents *experiment*)) :sort t :weight-threshold 0.8)
+
+(progn
+  (format t "~% Lexicon overview")
+  (loop for agent in (agents *experiment*)
+        for fast-inventory = (fast-inventory (lexicon (first (agents *experiment*))))
+        for trash-inventory = (trash-inventory (lexicon (first (agents *experiment*))))
+        do (format t "~% ~a: ~a, ~a"
+                   (id agent)
+                   (hash-table-count fast-inventory)
+                   (hash-table-count trash-inventory))))
 
 ;; restore an experiment and initialise the world
 (progn

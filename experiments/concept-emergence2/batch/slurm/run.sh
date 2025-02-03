@@ -1,11 +1,11 @@
 #!/bin/bash
 
-mkdir -p "/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/${9}"
+mkdir -p "/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/${1}/${9}"
 
 for i in $(seq $4 $5);
 do
-    epath="/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/${9}/${2}_%a_seed${i}_%A_e.txt"
-    opath="/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/${9}/${2}_%a_seed${i}_%A_o.txt"
+    epath="/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/${1}/${9}/${2}_%a_seed${i}_%A_e.txt"
+    opath="/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/${1}/${9}/${2}_%a_seed${i}_%A_o.txt"
     sbatch --error $epath --output $opath --job-name "${9}-seed${i}-${1}" --array $3 --time $6 --mem $7  --ntasks 1 --cpus-per-task 1 --export=seed=$i,name=$2,space=$8,exp_top_dir=$9 slurm/$1.sh
 done
 
@@ -32,3 +32,40 @@ done
 
 # experiment equality checker
 # $ bash slurm/run.sh train exp-equality 1-11 1 3 00:08:00 8G 10000 exp-equality
+
+# $ bash slurm/run.sh train cle3-size 1-22 1 10 24:00:00 12G 12000 cle3-size
+# $ bash slurm/run.sh test test-cle3-size 1-8,11-18,21-22 1 1 06:00:00 10G 10000 cle3-size
+# $ bash slurm/run.sh test test-cle3-size-change 1-4 1 1 06:00:00 10G 10000 cle3-size-change
+
+
+# $ bash slurm/run.sh train cle3-neural 1-4 1 10 48:00:00 20G 20000 cle3-neural
+# $ bash slurm/run.sh train cle3-neural-search 1-18 1 3 04:00:00 20G 20000 cle3-neural-search
+# $ bash slurm/run.sh train cle3-smcl 1-45 1 10 120:00:00 12G 12000 cle3-smcl
+
+# bash slurm/run.sh train cle3-smcl 1,2,3,5,6,7,10,11,12,13,14,16,17,18,19,20,21,22,23,24,25,27,28,30,31,32,33,34,35,36,42,43,44,45 1 10 10:00:00 12G 12000 cle3-smcl
+
+# bash slurm/run.sh train cle3-smcl 4,8,9,15,26,29,37,38,39,40,41 1 10 120:00:00 12G 12000 cle3-smcl
+# bash slurm/run.sh train cle3-smcl 46,47 1 10 120:00:00 12G 12000 cle3-smcl
+
+# bash slurm/run.sh train cle3-smcl 15 2 2 120:00:00 12G 12000 cle3-smcl
+
+# bash slurm/run.sh train cle3-smcl 1 4 4 120:00:00 12G 12000 cle3-smcl
+# bash slurm/run.sh train cle3-smcl 6 3 3 120:00:00 12G 12000 cle3-smcl
+
+# bash slurm/run.sh test test-cle3-smcl 2,3,5,7,10 1 10 120:00:00 12G 12000 cle3-smcl
+# bash slurm/run.sh test test-cle3-smcl 12,13,14,17 1 10 120:00:00 12G 12000 cle3-smcl
+# bash slurm/run.sh test test-cle3-smcl 17,18,19,20,21 1 10 120:00:00 12G 12000 cle3-smcl
+# bash slurm/run.sh test test-cle3-smcl 22,23,24,25,27 1 10 120:00:00 12G 12000 cle3-smcl
+# bash slurm/run.sh test test-cle3-smcl 28,30,31,32,33 1 10 120:00:00 12G 12000 cle3-smcl`z`
+# bash slurm/run.sh test test-cle3-smcl 34,35,36,38,39 1 10 120:00:00 12G 12000 cle3-smcl
+# bash slurm/run.sh test test-cle3-smcl 40,41,42,43,44,45 1 10 120:00:00 12G 12000 cle3-smcl
+
+# bash slurm/run.sh test test-cle3-smcl 1,4,6 1 10 10:00:00 12G 12000 cle3-smcl
+
+# bash slurm/run.sh test test-cle3-smcl 8,9,11,15,16,26,29,37,46,47 1 10 10:00:00 12G 12000 cle3-smcl
+# bash slurm/run.sh train cle3-smcl2 1-20,23-37 1 10 120:00:00 12G 12000 cle3-smcl2
+
+# bash slurm/run.sh test test-cle3-smcl2 1-6,8-20,23-32,34-37 1 10 10:00:00 12G 12000 cle3-smcl2
+
+# $ bash slurm/run.sh train cle3-neural-simple 1-15 1 10 120:00:00 35G 35000 cle3-neural-simple
+# $ bash slurm/run.sh train cle3-neural-mixed  4,5,7,8 1 3 120:00:00 60G 60000 cle3-neural-mixed

@@ -8,9 +8,15 @@
   (let ((config (loop for (a b) on args by #'cddr
                       collect (cons (parse-keyword a) (read-from-string b)))))
     (loop for (key . val) in config
-          when (find key (list :exp-name :dataset :dataset-split :exp-top-dir :feature-set :log-dir-name))
+          when (find key (list :exp-name :dataset-split :exp-top-dir :log-dir-name))
             do (rplacd (assoc key config)
                        (string-downcase (string (assqv key config)))))
+    (loop for (key . val) in config
+          when (find key (list :dataset :feature-set))
+          ;; loop through strings in val and downcase theme
+          do (rplacd (assoc key config)
+                     (mapcar #'string-downcase val)))
+
     config))
 
 (defun fixed-config ()
@@ -46,6 +52,9 @@
     (set-configuration experiment :dataset (assqv :dataset config))
     (set-configuration experiment :dataset-split (assqv :dataset-split config))
     (set-configuration experiment :feature-set (assqv :feature-set config))
+    (set-configuration experiment :dataset-loader (assqv :dataset-loader config))
+    (set-configuration experiment :min-context-size (assqv :min-context-size config))
+    (set-configuration experiment :max-context-size (assqv :max-context-size config))
     ;; update experiment config for correct logging
     (set-configuration experiment :usage-table-window (assqv :usage-table-window config))
     (set-configuration experiment :align (assqv :align config))

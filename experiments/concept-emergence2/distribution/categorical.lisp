@@ -5,7 +5,7 @@
 ;; ----------------------------
 (defclass categorical (distribution)
   ((cat-table
-    :initarg :cat-table :accessor cat-table :initform (make-hash-table :test #'equal) :type hash-table)
+    :initarg :cat-table :accessor cat-table :initform (make-hash-table :test #'equalp) :type hash-table)
    (nr-of-samples
     :initarg :nr-of-samples :accessor nr-of-samples :initform nil :type number)
    (history
@@ -25,7 +25,7 @@
     distribution))
 
 ;; Update
-(defmethod update-distribution ((new-observation string)
+(defmethod update-distribution ((new-observation symbol)
                                 (distribution categorical))
   ;; Step 1: increment total count
   (incf (nr-of-samples distribution))
@@ -40,7 +40,7 @@
 ;; + Updating prototype history +
 ;; ------------------------------
 (defmethod update-distribution-history ((interaction-number number)
-                                        (new-observation string)
+                                        (new-observation symbol)
                                         (distribution categorical)
                                         &key &allow-other-keys)
   "Update the distribution history."
@@ -55,8 +55,8 @@
   "Synchronize two hash-tables by adding missing keys with a value of zero."
   (let* ((hash-table1 (cat-table distribution1))
          (hash-table2 (cat-table distribution2))
-         (keys1 (loop for key being the hash-keys of hash-table1 collect key))
-         (keys2 (loop for key being the hash-keys of hash-table2 collect key)))
+         (keys1 (hash-keys hash-table1))
+         (keys2 (hash-keys hash-table2)))
     ;; Add missing keys from hash-table1 to hash-table2 with a value of zero
     (dolist (key keys1)
       (unless (gethash key hash-table2)
@@ -85,5 +85,5 @@
 
 (defmethod print-object ((distribution categorical) stream)
   (pprint-logical-block (stream nil)
-    (format stream "<Categorical: ???")
+    (format stream "<Categorical (~a): ~a" (nr-of-samples distribution) (hash-keys (cat-table distribution)))
     (format stream ">")))
