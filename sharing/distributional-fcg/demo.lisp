@@ -9,11 +9,6 @@
 ;; (ql:quickload :distributional-fcg)
 ;; (activate-monitor trace-fcg)
 
-;; As long as we have not put the embedding-api webservice online, you will have to run it locally (python run.py in embedding-api repository),
-;; and set your penelope-host
-
-; (setf nlp-tools::*penelope-host* "http://127.0.0.1:5000")
-
 #|
 1. Introduction
  
@@ -60,19 +55,8 @@ Similarities between tokens can quantified as the cosine between their embedding
 ;; => 0.5261842
 
 #|
-For convenience, we can define a function that given a token computes the distributionally closest token from a list of tokens.
+For convenience, we define a function that given a token computes the distributionally closest token from a list of tokens.
 |#
-
-(defun closest-token (target-token list-of-tokens)
-  "Returns the token in list-of-tokens that is distributionally most similar to target-token."
-  (loop with closest-token-so-far-with-score = (cons nil -inf)
-        with target-token-embedding =  (second (nlp-tools::get-word-embedding target-token))
-        for other-token in list-of-tokens
-        for other-token-embedding = (nlp-tools::get-word-embedding other-token)
-        for cosine-similarity = (cosine-similarity target-token-embedding (second other-token-embedding))
-        when (> cosine-similarity (cdr closest-token-so-far-with-score))
-          do (setf closest-token-so-far-with-score (cons other-token cosine-similarity))
-        finally (return (values (car closest-token-so-far-with-score) (cdr closest-token-so-far-with-score)))))
 
 (closest-token "suv" '("girl" "cylinder" "vehicle" "car" "hardly" "he" "drives" "an" "." "man"))
 ;; => "vehicle", 0.73386384
@@ -98,40 +82,8 @@ What do we need to configure in FCG?
 
 #|
 Let us start by creating the initial transient structure. As we pretokenize, we can as well create units for
-each token that hold the string and a pointer to its (precomputed) embedding.
-|#
-
-(defmethod de-render ((utterance string) (mode (eql :de-render-token-embeddings)) &key cxn-inventory &allow-other-keys)
-  "Retrieves tokens and embeddings for string, creating one unit per token."
-  (multiple-value-bind (units embedding-data)
-      (loop with token-embeddings = (nlp-tools:get-word-embeddings (mapcar #'downcase (cl-ppcre:split "[ .-]"  utterance)))
-            for (token embedding) in token-embeddings
-            for unit-name = (make-id token)
-            for embedding-pointer = (intern (upcase (string-append "->" token)))
-            collect (cons embedding-pointer embedding)
-              into embedding-data
-            collect (make-unit :name unit-name
-                               :features `((token ((string ,token)
-                                                   (embedding ,embedding-pointer)))))
-              into units
-            finally (return (values units embedding-data)))
-    ;; adjecency-constraints
-    (let ((adjacency-constraints (loop for (unit-name . rest) on (mapcar #'first units)
-                                       when rest
-                                         collect `(adjacent ,unit-name ,(first rest)))))
-      (set-data (blackboard cxn-inventory) :ts-token-embeddings embedding-data)
-      (make-instance 'coupled-feature-structure
-                     :left-pole `((root (meaning ())
-                                        (sem-cat ())
-                                        (form ,adjacency-constraints)
-                                        (syn-cat ()))
-                                  ,@units)
-                     :right-pole '((root))))))
-
-
-#|
-Let us now visualise the initial transient structure (in comprehension) for the utterance
-"the man drives an suv" using our fresh de-render method.
+each token that hold the string and a pointer to its (precomputed) embedding. Let us visualise the initial
+transient structure (in comprehension) for the utterance "the man drives an suv" using our fresh de-render method.
 |#
 
 (progn
@@ -333,52 +285,12 @@ field :cxn-token-embeddings"
 #|
 We hook into fcg-expand to change the unification function of symbols appearing as values of the 'embedding' feature.
 Above a given threshold, unification succeeds. The value from the transient structure is kept and the cosine similarity
-is stored in the bindings list so it can later be reused...
-|#
+is stored in the bindings list so it can later be reused... See procedural-attachment.lisp
 
-(defmethod fcg-expand ((type (eql :compare-distributional-vectors))
-                       &key value source bindings merge? cxn-inventory)
-  "Use cosine similarity metric to match via token embeddings."
-  (if merge?
-    ;; in the merging phase, we keep the original embedding pointer
-    (values source bindings)
-    ;; in the matching phase...
-    (cond (;; if both embedding pointers are eq, we just continue like in unification 
-           (eq value source) 
-           (values value bindings))
-          (;; if they are not eq, but non-nil, we compute their cosine and return true above a given threshold
-           ;; we also add a binding between both pointers (variablified versions to make merge succeed)
-           (and value source)
-           (let* ((token-embedding-cxn (cdr (assoc value (get-data (blackboard cxn-inventory) :cxn-token-embeddings))))
-                  (token-embedding-ts (cdr (assoc source (get-data (blackboard cxn-inventory) :ts-token-embeddings))))
-                  (cosine-similarity (cosine-similarity token-embedding-cxn token-embedding-ts)))
-             (if (> cosine-similarity 0.7)
-               (values source (mapcar #'(lambda (bindings-list)
-                                          (extend-bindings (variablify value) cosine-similarity bindings-list))
-                                      bindings))
-               (values nil +fail+))))
-          (t
-           (values nil +fail+)))))
-
-#|
 The cosine similarity is integrated in a new heuristic. With straight unification, it returns 0. If cosine-based
 unification was needed, it returns a negative value proportional to the dissimilarity. (e.g. cosine = 0.8 -> -0.2)
+See heuristics.lisp
 |#
-
-(defmethod apply-heuristic ((node cip-node) (mode (eql :embedding-similarity)))
-  "Discounts embedding bindings based on cosine."
-  (let* ((cxn-inventory (construction-inventory node))
-         (embedding-bindings (loop for binding in (car-second-merge-bindings (cipn-car node))
-                                   for symbol-name = (symbol-name (car binding))
-                                   when (and (>= (length symbol-name) 3)
-                                             (equal "?->" (subseq symbol-name 0 3)))
-                                     collect binding)))
-    (if embedding-bindings
-      (loop for embedding-binding in embedding-bindings
-            for cosine-similarity = (cdr embedding-binding)
-            sum cosine-similarity into total-similarity
-            finally (return (- (- 1 (/ total-similarity (length embedding-bindings))))))
-      0)))
 
 
 #|

@@ -4,5 +4,7 @@
   :depends-on (:fcg :nlp-tools)
   :description "Integrating distributional information in FCG."
   :serial t
-  :components (;(:file "")
-               ))
+  :components ((:file "de-render")
+               (:file "procedural-attachment")
+               (:file "heuristics")
+               (:file "utils")))
