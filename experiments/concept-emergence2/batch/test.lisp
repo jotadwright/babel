@@ -68,8 +68,8 @@
 
     ;; set-up monitors
     (set-up-monitors (list "export-communicative-success"
-                           "export-lexicon-coherence"
-                           "export-lexicon-inventory-usage"
+                           "export-conventionalisation"
+                           "export-construction-inventory-usage"
                            "export-experiment-configurations"
                            "log-every-x-interactions-in-output-browser")
                      (entries experiment))
