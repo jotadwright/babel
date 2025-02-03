@@ -43,9 +43,11 @@
             when (>= (score cxn) entrenchment-threshold)
               do (add-cxn-to-interface cxn :weight-threshold weight-threshold :disabled-channels (disabled-channels agent))))))
 
+;; helper function to add some text to the web interface
 (defun show-in-wi (args)
   (add-element `((h4) ,(format nil "~{~a~^, ~}" args))))
 
+;; show a scene in the web interface
 (defun multi-view-p (experiment)
   "Returns true if an agent in an interaction of an experiment have multiple views."
   ;; only need to check one
@@ -142,7 +144,7 @@
 ;; ---------------------------
 
 (define-event-handler (trace-interaction-in-web-interface event-context-determined)
-  (show-scene *experiment*))
+  (show-scene experiment))
 
 ;; ---------------------
 ;; + Conceptualisation +
@@ -216,7 +218,6 @@
 ;; ------------------
 ;; + Interpretation +
 ;; ------------------
-(define-event event-interpretation-end (agent cle-agent))
 
 (define-event-handler (trace-interaction-in-web-interface event-interpretation-end)
   (if (find-data agent 'interpreted-topic)
