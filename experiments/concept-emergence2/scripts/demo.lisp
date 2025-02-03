@@ -118,6 +118,8 @@
                                           "..."           ;; to update
                                           "stores"))))
   (setf *experiment* (load-experiment fdir "seed-?"))     ;; to update
+
+  (test-stored-experiment *experiment*)
   ;; changes the dataset split
   ;(set-configuration *experiment* :dataset-split "test")
   

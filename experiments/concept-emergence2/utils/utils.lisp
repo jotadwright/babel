@@ -105,9 +105,20 @@
 
 (defun load-experiment (store-dir name)
   "Loads and returns the store object in the given directory." 
-  (let ((store-path (merge-pathnames (make-pathname :name name :type "store")
-                                     store-dir)))
-    (cl-store:restore store-path)))
+  (let* ((store-path (merge-pathnames (make-pathname :name name :type "store")
+                                      store-dir))
+         (experiment (cl-store:restore store-path)))
+    experiment))
+
+(defun test-stored-experiment (experiment)
+  "After loading a stored experiment, this function performs
+    a number of checks to warn the developer if something is awry."
+  (when (not (get-configuration experiment :coherence-perspective))
+    (error "The required config :coherence-perspective was not found in the stored experiment.
+              It is possible that you are loading an old .store file.
+              Either load another experiment or set the configuration manually.
+              Probably using `(set-configuration experiment :coherence-perspective :hearer)`")))
+    
 
 (defun set-up-monitors (monitors config)
   (monitors::deactivate-all-monitors)
