@@ -10,15 +10,8 @@
   (agent cle-agent)
   (discriminating-cxns list)
   (applied-cxn list))
-(define-event event-coherence-p
-  (experiment cle-experiment)
-  (coherence symbol)
-  (speaker-cxn t)
-  (hearer-cxn t))
 
 (defmethod conceptualise ((agent cle-agent))
-  ;; notify
-  (notify event-conceptualisation-start agent)
   ;; conceptualise ifo the role
   (case (discourse-role agent)
     (speaker (speaker-conceptualise agent))
@@ -29,6 +22,7 @@
 ;; -------------
 (defmethod speaker-conceptualise ((agent cle-agent))
   "Conceptualise the topic of the interaction."
+  (notify event-conceptualisation-start agent)
   (if (empty-lexicon-p agent)
     nil
     (let* ((topic  (get-data agent 'topic))
@@ -151,8 +145,6 @@
          (coherence (if (and speaker-cxn hearer-cxn)
                       (string= (form speaker-cxn) (form hearer-cxn))
                       nil)))
-    ;; notify
-    (notify event-coherence-p experiment coherence speaker-cxn hearer-cxn)
     ;; return
     coherence))
 
