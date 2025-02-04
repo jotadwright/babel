@@ -96,6 +96,12 @@
 	   :reader plot-stream :initform nil)
    (colors :documentation "A list of line colors to use for plotting." 
 	   :accessor colors :initform *great-gnuplot-colors*)
+   (caption-font-size :documentation "The font size of the caption"
+          :type integer :initarg :caption-font-size :initform nil :reader caption-font-size)
+   (axis-label-font-size :documentation "The font size of the x- and y-axis labels"
+          :type integer :initarg :axis-label-font-size :initform nil :reader axis-label-font-size)
+   (tics-font-size :documentation "The font size of the tics"
+          :type integer :initarg :tics-font-size :initform nil :reader tics-font-size)
    (divide-indices-by :documentation "A constant by which the indices (x-values) are divided by."
 		      :accessor divide-indices-by :initform 1 :initarg :divide-indices-by))
   (:documentation "Generic class for plotting with gnuplot"))
@@ -235,7 +241,10 @@
                       (draw-y1-grid nil) (draw-y2-grid nil)
                       (x-label nil)
                       (y1-label nil)
-		      (y2-label nil)
+		                  (y2-label nil)
+                      (tics-font-size 12)
+                      (axis-label-font-size 14)
+                      (caption-font-size 12)
                       (grid-color "#aaaaaa")
                       (grid-line-width 0.5))
   (assert stream)
@@ -244,15 +253,16 @@
           #\linefeed draw-y1-grid grid-color grid-line-width)
   (format stream "~cset grid back ~:[noy2tics~;y2tics lt 4 lc rgb \"~a\" lw ~a~]" 
           #\linefeed draw-y2-grid grid-color grid-line-width)
-  (format stream "~cset key ~a" #\linefeed key-location)
-  (format stream "~cset ytics nomirror~cset yrange [~:[*~;~:*~d~]:~:[*~;~:*~d~]]" 
-          #\linefeed #\linefeed y1-min y1-max)
-  (format stream "~cset xlabel ~:[~;~:*~s~]" #\linefeed x-label)
-  (format stream "~cset ylabel ~:[~;~:*~s~]" #\linefeed y1-label)
-  (format stream "~cset y2label ~:[~;~:*~s~]" #\linefeed y2-label)
+  (format stream "~cset key ~a font \",~a\"" #\linefeed key-location caption-font-size)
+  (format stream "~cset tics font \",~a\"" #\linefeed tics-font-size)
+  (format stream "~cset ytics nomirror font \",~a\"~cset yrange [~:[*~;~:*~d~]:~:[*~;~:*~d~]]" 
+          #\linefeed tics-font-size #\linefeed y1-min y1-max)
+  (format stream "~cset xlabel ~:[~;~:*~s~] font \",~a\"" #\linefeed x-label axis-label-font-size)
+  (format stream "~cset ylabel ~:[~;~:*~s~] font \",~a\"" #\linefeed y1-label axis-label-font-size)
+  (format stream "~cset y2label ~:[~;~:*~s~] font \",~a\"" #\linefeed y2-label axis-label-font-size)
   (if (member 2 use-y-axis)
-      (format stream "~cset y2tics nomirror~cset y2range [~:[*~;~:*~d~]:~:[*~;~:*~d~]]" 
-              #\linefeed #\linefeed y2-min y2-max)
+      (format stream "~cset y2tics nomirror font \",~a\"~cset y2range [~:[*~;~:*~d~]:~:[*~;~:*~d~]]" 
+              #\linefeed tics-font-size #\linefeed y2-min y2-max)
       (format stream "~cunset y2tics" #\linefeed))
   (format stream "~cplot " #\linefeed)
   (loop for source in data 
