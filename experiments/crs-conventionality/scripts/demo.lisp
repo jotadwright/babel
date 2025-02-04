@@ -51,7 +51,7 @@
   (activate-monitor record-construction-inventory-size)
 
   ;; activate tracers
-  (activate-monitor trace-interaction)
+  ;(activate-monitor trace-interaction)
 
   ;; activate the gnuplot live display
   (flush-gnuplot-display 'display-metrics)
