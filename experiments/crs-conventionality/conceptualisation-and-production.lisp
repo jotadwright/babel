@@ -25,8 +25,6 @@
   "Based on the topic and scene, the speaker produces an utterance.
    The agents attempts first routine formulation, in case of failure, it goes to metalayer."
   ;; Store topic, agent and scene in the blackboard of the cxn-inventory
-  (add-element `((h3) ,(format nil "Conceptualising done by ~a" (discourse-role agent))))
-  
   (set-data (blackboard (grammar agent)) :topic topic) ;; SHOULD THIS BE HERE?
   (set-data (blackboard (grammar agent)) :agent agent) ;; SHOULD THIS BE HERE?
   (set-data (blackboard (grammar agent)) :scene scene) ;; SHOULD THIS BE HERE?
