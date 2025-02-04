@@ -128,3 +128,13 @@
                 :y2-min 0
                 :draw-y1-grid t
                 :error-bars nil)
+
+(defun flush-gnuplot-display (monitor-name)
+  ;; TODO: This feature could be added to babel's `reset-monitors` function
+  ;;       Currently, when a new experiment it will create a new window for the display
+  ;;       and start generating new plots in that new window.
+  ;;       The previous window will still be open and will show the old data.
+  ;;       Question: do we want to quit this previous window?
+  (let* ((monitor (monitors::get-monitor monitor-name))
+         (stream (monitors::plot-stream monitor)))
+    (setq stream (monitors::pipe-to-gnuplot))))
