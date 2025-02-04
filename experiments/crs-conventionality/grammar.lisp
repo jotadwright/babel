@@ -41,7 +41,7 @@
                                                         (:parse-goal-tests :interpretation-in-scene)
                                                         (:production-goal-tests :topic-retrieved)
                                                         (:node-tests :check-branch-for-solution :check-duplicate :restrict-nr-of-nodes :restrict-search-depth)
-                                                        ;; meta-layer
+                                                        ;; meta-layer 
                                                         ;(:consolidate-repairs . t)
                                                         ;(:use-meta-layer . t)
                                                         ))))
@@ -67,29 +67,6 @@
 
 (in-package :fcg)
 ;; ! SPECIALISES METHODS IN :fcg
-
-(defun make-naming-game-cxn (topic meaning cxn-inventory)
-  (let* ((form (make-word))
-         (cxn-name (intern (upcase (format nil "~a-cxn" form))))
-         (unit-name (intern (upcase (format nil "?~a-unit" form))))
-         (topic-as-entity-set (make-instance 'crs-conventionality::crs-conventionality-entity-set
-                                             :entities (list topic))))
-    
-    (make-instance 'fcg-construction
-                   :name cxn-name
-                   :contributing-part (list (make-instance 'contributing-unit
-                                                           :name unit-name
-                                                           :unit-structure `((meaning ,meaning))))
-                   :conditional-part (list (make-instance 'conditional-unit
-                                                       :name unit-name
-                                                       :comprehension-lock `((HASH form ,(list form))))
-                                           (make-instance 'conditional-unit
-                                                          :name 'root
-                                                          :formulation-lock `((HASH topic ,topic-as-entity-set))))
-                   :feature-types (feature-types cxn-inventory)
-                   :cxn-inventory cxn-inventory)
-    
-    ))
 
 
 (defun make-word ()

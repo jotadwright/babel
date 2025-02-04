@@ -61,35 +61,32 @@
 
 (defmethod adopt ((topic crs-conventionality-entity-set) (hearer naming-game-agent))
   "Adoption of the construction through composition."
-  (let* ((cxn-inventory (grammar hearer))
-         (scene (scene (first (interactions (experiment (population hearer))))))
+  (let* (;; get cxn-inventory and primitive-inventory
+         (cxn-inventory (grammar hearer))
          (primitive-inventory (get-data (blackboard cxn-inventory) :primitive-inventory))
+
+         ;; get scene and topic
+         (scene (scene (first (interactions (experiment (population hearer))))))
          (topic-entity (first (crs-conventionality::entities topic)))
+
+         ;; start from a partial program that has the scene
          (partial-program `((bind ,(type-of scene) ?scene ,scene)))
+
+         ;; compose a program that leads to the topic, starting from the partial program with the scene
          (composition-result (crs-conventionality::compose-program topic-entity partial-program primitive-inventory)))
 
-    ;;remove later
-    (assert composition-result)
-    
-    (let* ((irl-program (irl::irl-program (irl::chunk (first composition-result))))
+    ;; make the construction 
+    (let* (;; get meaning based on the irl-program and the bind-statements that are in the composition result
+           (irl-program (irl::irl-program (irl::chunk (first composition-result))))
            (bind-statements (irl::bind-statements (first composition-result)))
            (meaning (append irl-program bind-statements))
+
+           ;; form is stored in the utterance slot
            (form (first (utterance hearer)))
-           (unit-name (intern (upcase (format nil "?~a-unit" form))))
-           (cxn-name (intern (upcase (format nil "~a-cxn" form)))))
-      (multiple-value-bind (cxn-set cxn)
-          (eval `(def-fcg-cxn ,cxn-name
-                              ((,unit-name
-                                (meaning ,meaning))
-                               <-
-                               (root
-                                (topic ,topic)
-                                --
-                                )
-                               (,unit-name
-                                --
-                                (HASH form (,form))))
-                              :cxn-inventory ,cxn-inventory
-                              :attributes (:score 0.5 :topic ,(id (first (crs-conventionality::entities topic))) :form ,form)))
-        (add-cxn cxn cxn-inventory)
-        (notify adoption-finished cxn)))))
+
+           ;; make the construction based on the form, meaning and topic
+           (cxn (make-naming-game-cxn topic meaning cxn-inventory form)))
+
+      ;; add cxn to the cxn-inventory
+      (add-cxn cxn cxn-inventory)
+      (notify adoption-finished cxn))))
