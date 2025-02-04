@@ -331,25 +331,32 @@
   (:documentation "Plots values in realtime on a display using gnuplot"))
 
 (defmethod initialize-instance :around ((monitor gnuplot-display)
-					&key id &allow-other-keys)
+                                        &key id &allow-other-keys)
   (let ((previous-monitor (get-monitor id)))
     (call-next-method)
     (when previous-monitor
       (setf (slot-value monitor 'stream) (plot-stream previous-monitor)))
-    (subscribe-to-event id 'interaction-finished)))
+    (subscribe-to-event id 'interaction-finished)
+    (subscribe-to-event id 'reset-monitors)))
 
 (defmethod handle-interaction-finished-event :after ((monitor gnuplot-display) 
-						     (monitor-id symbol) 
-						     (event (eql 'interaction-finished))
-						     (experiment t) (interaction t)(interaction-number number))
+                                                     (monitor-id symbol) 
+                                                     (event (eql 'interaction-finished))
+                                                     (experiment t) (interaction t)(interaction-number number))
   (when (= (mod interaction-number (update-interval monitor)) 0)
     (unless (plot-stream monitor)
       (setf (slot-value monitor 'stream) (pipe-to-gnuplot)))
     (format (plot-stream monitor) "~cset title \"~(~a~) (~d:~d)\""
-	    #\linefeed (title monitor) (length (car (first (sources monitor))))
-	    (length (caar (first (sources monitor)))))
+            #\linefeed (title monitor) (length (car (first (sources monitor))))
+            (length (caar (first (sources monitor)))))
     (plot-data monitor)
     (finish-output (plot-stream monitor))))
+
+(defmethod handle-reset-monitors-event :after ((monitor gnuplot-display) 
+                                               (monitor-id symbol)
+                                               (event (eql 'reset-monitors)))
+  "Reset the gnuplot stream (which flushes the data)"
+  (setf (plot-stream monitor) (pipe-to-gnuplot)))
 
 (defmethod activate-monitor-method :after ((monitor gnuplot-display) &optional active)
   "Opens or closes a pipe to gnuplot."
