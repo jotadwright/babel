@@ -120,7 +120,8 @@
 (defun make-naming-game-cxn (topic meaning cxn-inventory form)
   "Make a cxn based on the topic, meaning, form."
   (let ((unit-name (make-var (format nil "~a-unit" form)))
-        (cxn-name (make-symbol (upcase (format nil "~a-cxn" form)))))
+        (cxn-name (make-symbol (upcase (format nil "~a-cxn" form))))
+        (initial-score 0.5))
     ;; the fcg-construction has a meaning, form and topic
     ;; initial score is 0.5
     (make-instance 'fcg-construction
@@ -137,7 +138,7 @@
                    :cxn-inventory cxn-inventory
                    :cxn-set 'cxn
                    :feature-types (feature-types cxn-inventory)
-                   :attributes `((:score . 0.5)
+                   :attributes `((:score . ,initial-score)
                                  (:topic . ,(id (first (crs-conventionality::entities topic))))
                                  (:form . ,form)))))
 
