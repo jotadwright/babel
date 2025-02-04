@@ -30,7 +30,8 @@
   "Starts a gnuplot process and returns a stream for writing to that process"
   (let ((stream (pipe-output  "gnuplot"
                               :args (list "-persist" "-") :wait nil)))
-    #+(or :win32 :windows :macos) (format stream "set terminal qt~%")
+    #+(or :win32 :linux) (format stream "set terminal x11 1 noraise~%")
+    #+darwin (format stream "set terminal qt noraise~%")
     stream))
 
 
