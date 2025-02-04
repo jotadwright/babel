@@ -68,10 +68,10 @@
 
     ;; set-up monitors
     (set-up-monitors (list "export-communicative-success"
-                           "export-lexicon-coherence"
-                           "export-lexicon-inventory-usage"
+                           "export-conventionalisation"
+                           "export-construction-inventory-usage-test"
                            "export-experiment-configurations"
-                           "print-a-dot-for-each-interaction")
+                           "log-every-x-interactions-in-output-browser")
                      (entries experiment))
 
     ;; run experiment

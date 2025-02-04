@@ -6,12 +6,14 @@
 
 (defmethod set-scene (experiment scene-id)
   "Set a scene manually."
-  (loop with world = (world experiment)
-        with view-name = (first (view-names (world))) ;; use the first view by default
-        with scene = (load-precomputed-scene world view-name scene-id)
-        for agent in (interacting-agents experiment)
-        do (setf (current-view agent) view-name)
-        do (set-data agent 'context scene)))
+  (error "Code needs update.")
+  ;; (loop with world = (world experiment)
+  ;;       with view-name = (first (view-names (world))) ;; use the first view by default
+  ;;       with scene = (load-precomputed-scene world view-name scene-id)
+  ;;       for agent in (interacting-agents experiment)
+  ;;       do (setf (current-view agent) view-name)
+  ;;       do (set-data agent 'context scene))
+  )
 
 ;; -------------------------
 ;; + Random Scene sampling +
@@ -90,11 +92,10 @@
           for scene = (objects->cle-scene objects world view-name)
           do (setf (current-view agent) view-name)
           do (set-data agent 'context scene))
-    (error "Not implemented (yet): cannot assign runtime scenes if agents can have multiple views.")))
+    (error "Not supported, cannot assign runtime scenes if agents can have multiple views.")))
 
 (defmethod assign-random-scene (experiment (world runtime-world) (mode (eql :shared-views)))
   (if (equalp (length (views (first (interacting-agents experiment)))) 1)
-    ;; if agents have only one possible view, then just apply the (mutually) exclusive views algorithm
     (loop with selected-scene = nil
           for agent in (interacting-agents experiment)
           for view-name = (first (views agent))
@@ -107,4 +108,4 @@
             do (progn
                  (setf (current-view agent) view-name)
                  (set-data agent 'context selected-scene)))
-    (error "Not implemented (yet): cannot assign runtime scenes if agents can have multiple views.")))
+    (error "Not supported, cannot assign runtime scenes if agents can have multiple views.")))

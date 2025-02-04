@@ -10,15 +10,8 @@
   (agent cle-agent)
   (discriminating-cxns list)
   (applied-cxn list))
-(define-event event-coherence-p
-  (experiment cle-experiment)
-  (coherence symbol)
-  (speaker-cxn t)
-  (hearer-cxn t))
 
 (defmethod conceptualise ((agent cle-agent))
-  ;; notify
-  (notify event-conceptualisation-start agent)
   ;; conceptualise ifo the role
   (case (discourse-role agent)
     (speaker (speaker-conceptualise agent))
@@ -29,6 +22,7 @@
 ;; -------------
 (defmethod speaker-conceptualise ((agent cle-agent))
   "Conceptualise the topic of the interaction."
+  (notify event-conceptualisation-start agent)
   (if (empty-lexicon-p agent)
     nil
     (let* ((topic  (get-data agent 'topic))
@@ -109,8 +103,7 @@
 
   The best concept corresponds to the concept that maximises
   the multiplication of its entrenchment score and its discriminative power."
-  (loop with similarity-threshold = (get-configuration (experiment agent) :similarity-threshold)
-        with best-score = -1
+  (loop with best-score = -1
         with best-candidate = nil
         with competitors = '()
         ;; iterate
@@ -122,7 +115,7 @@
         ;; trash inventory -> the score is irrelevant (so set score to 1), otherwise use score
         for score = (if (eq inventory-name :trash) 1 (score cxn))
         ;; check if the concept is discriminative
-        if (> topic-sim (+ best-other-sim similarity-threshold))
+        if (> topic-sim best-other-sim)
           ;; the concept is discriminative, thus it is a candidate
           do (if (> (* discriminative-power score) best-score)
                ;; update the best candidate
@@ -152,8 +145,6 @@
          (coherence (if (and speaker-cxn hearer-cxn)
                       (string= (form speaker-cxn) (form hearer-cxn))
                       nil)))
-    ;; notify
-    (notify event-coherence-p experiment coherence speaker-cxn hearer-cxn)
     ;; return
     coherence))
 

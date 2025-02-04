@@ -103,71 +103,22 @@
   (loop for value being the hash-values of ht
         collect value))
 
-(defun create-configurations (parameters)
-  "Generate a set of experiments. Specify which parameters are variable
-   and what their possible values can be. Optionally specify an a-list
-   of shared configurations."
-  (let* ((pairs (loop for (key . values) in parameters
-                      collect (loop for value in values
-                                    collect (cons key value))))
-         (configurations (apply #'combinations pairs)))
-    configurations))
-
-(defun calculate-amount-of-variations (parameters)
-  (length (create-configurations parameters)))
-
-(defun generate-csv-for-tuning (filename exp-prefix default-config tuned-params)
-  (with-open-file (str (namestring (merge-pathnames (format nil "~a.csv" filename)
-                                                    (asdf:system-relative-pathname "cle" "batch/data-train/")
-                                                    ))
-                       :direction :output
-                       :if-exists :supersede
-                       :if-does-not-exist :create)
-
-    (loop for (key . def-val) in default-config and i from 1
-          if (< i (length default-config))
-            do (format str "~a" (replace-char (format nil "~(~a~)," key) #\- #\_))
-          else
-            do (format str "~a" (replace-char (format nil "~(~a~)" key) #\- #\_)))
-    (loop for config in (create-configurations tuned-params) and i from 1
-          do (loop for (key . def-val) in default-config and j from 1
-                   for found = (assoc key config)
-                   if (< j (length default-config))
-                     do (cond ((eq key :id)
-                               (format str "~%~a," i))
-                              ((eq key :exp-name)
-                               (format str "~a-~a," exp-prefix i))
-                              (found
-                               (cond ((keywordp (assqv key config))
-                                      (format str "~(~s~)," (assqv key config)))
-                                     (t
-                                      (format str "~a," (assqv key config)))))
-                              (t
-                               (cond ((keywordp def-val)
-                                      (format str "~(~s~)," def-val))
-                                     (t
-                                      (format str "~a," def-val)))))
-                   else
-                     do (cond ((eq key :id)
-                               (format str "~%~a" i))
-                              ((eq key :exp-name)
-                               (format str "~a-~a" exp-prefix i))
-                              (found
-                               (cond ((keywordp (assqv key config))
-                                      (format str "~(~s~)" (assqv key config)))
-                                     (t
-                                      (format str "~a" (assqv key config)))))
-                              (t
-                               (cond ((keywordp def-val)
-                                      (format str "~(~s~)" def-val))
-                                     (t
-                                      (format str "~a" def-val)))))))))
-
 (defun load-experiment (store-dir name)
   "Loads and returns the store object in the given directory." 
-  (let ((store-path (merge-pathnames (make-pathname :name name :type "store")
-                                     store-dir)))
-    (cl-store:restore store-path)))
+  (let* ((store-path (merge-pathnames (make-pathname :name name :type "store")
+                                      store-dir))
+         (experiment (cl-store:restore store-path)))
+    experiment))
+
+(defun test-stored-experiment (experiment)
+  "After loading a stored experiment, this function performs
+    a number of checks to warn the developer if something is awry."
+  (when (not (get-configuration experiment :coherence-perspective))
+    (error "The required config :coherence-perspective was not found in the stored experiment.
+              It is possible that you are loading an old .store file.
+              Either load another experiment or set the configuration manually.
+              Probably using `(set-configuration experiment :coherence-perspective :hearer)`")))
+    
 
 (defun set-up-monitors (monitors config)
   (monitors::deactivate-all-monitors)
@@ -186,40 +137,3 @@
                                                                   ,(assqv :exp-top-dir config)
                                                                   ,(assqv :dataset-split config)
                                                                   ,(assqv :exp-name config))))))))
-
-#|(generate-csv-for-tuning "tune-clevr"
-                         "tune-clevr"
-                         `((:id . "?")
-                           (:exp-name . "?")
-                           (:nr-of-series . 5)
-                           (:nr-of-interactions . 500000)
-                           (:population-size . 10)
-                           (:dataset . "clevr")
-                           (:dataset-split . "train")
-                           (:feature-set . "clevr")
-                           (:disable-channels . :none)
-                           (:amount-disabled-channels . 0)
-                           (:sensor-noise . :none)
-                           (:sensor-std . 0.0)
-                           (:observation-noise . :none)
-                           (:observation-std . 0.0)
-                           (:scene-sampling . :random)
-                           (:topic-sampling . :random)
-                           (:similarity-threshold . 0.0)
-                           (:align . t)
-                           (:entrenchment-incf . 0.1)
-                           (:entrenchment-decf . -0.1)
-                           (:entrenchment-li . -0.02)
-                           (:trash-concepts . t)
-                           (:weight-update-strategy . :j-interpolation)
-                           (:initial-weight . 0)
-                           (:weight-incf . 1)
-                           (:weight-decf . -5)
-                           (:switch-condition . :none)
-                           (:switch-conditions-after-n-interactions . 0)
-                           (:stage-parameters ,'((:do-nothing . t))))
-                         `((:similarity-threshold 0.0 0.001 0.005 0.01 0.05 0.1 0.2 0.3)
-                           (:initial-weight 0 35)
-                           (:weight-decf -1 -2 -3 -5)
-                           (:entrenchment-li -0.0001 -0.0005 -0.001 -0.005 -0.01 -0.02 -0.05)
-                           ))|#

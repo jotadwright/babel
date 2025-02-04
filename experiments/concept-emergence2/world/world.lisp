@@ -9,7 +9,7 @@
 ;; Scenes:
 ;;    ~/Corpora/concept-emergence2/<dataset_name>/scenes/<train/test>/<dataset_name>_<train/test>_<scene_index>.json
 ;; Feature set information (which feature set to use in an experiment)
-;;    ~/Corpora/concept-emergence2/-info/<feature-set-name>.csv
+;;    ~/Corpora/concept-emergence2/-feature-sets/<feature-set-name>.csv
 ;; A feature-set csv contains a header with columns: channel, type, symbolic-attribute
 ;;    - channel: name of the feature channel
 ;;    - type: continuous or categorical
@@ -93,7 +93,7 @@
   (loop for view-name in (view-names world)
         for feature-set in feature-sets
         for view = (gethash view-name (views world))
-        for info-path = (merge-pathnames (make-pathname :directory `(:relative "concept-emergence2" "-info")
+        for info-path = (merge-pathnames (make-pathname :directory `(:relative "concept-emergence2" "-feature-sets")
                                                         :name feature-set
                                                         :type "csv")
                                          cl-user:*babel-corpora*)
@@ -142,7 +142,7 @@
         for view = (gethash view-name (views world))
         for fpath = (merge-pathnames (make-pathname :directory `(:relative
                                                                  "concept-emergence2"
-                                                                 "split-by-objects"
+                                                                 "split-by-entities"
                                                                  ,(view-name view))
                                                     :name (format nil
                                                                   "~a-~a"
@@ -156,7 +156,7 @@
            (format t "~% Loading the objects... [~a]" fpath)
            (time
             (let* ((raw-data (read-jsonl fpath))
-                    (objects (s-expr->cle-objects raw-data (feature-set view) (get-categorical-features world view-name))))
+                    (objects (data->cle-objects raw-data (feature-set view) (get-categorical-features world view-name))))
               (setf (data view) objects)))
            (format t "~% Completed loading.~%~%")))
 
@@ -171,8 +171,8 @@
 
 (defun load-precomputed-scene (world view-name scene-id)
   (let* ((fpath (gethash scene-id (data (get-view world view-name))))
-         (s-expr (jzon::parse fpath :key-fn #'parse-keyword))
-         (scene (s-expr->cle-scene s-expr world view-name)))
+         (raw-data (jzon::parse fpath :key-fn #'parse-keyword))
+         (scene (data->cle-scene raw-data world view-name)))
     scene))
   
 (defmethod random-scene ((world runtime-world) view-name)

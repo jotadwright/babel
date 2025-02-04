@@ -4,32 +4,31 @@
 ;; + Monitors +
 ;; ------------
 
-;; -----------------
-;; + Printing dots +
-;; -----------------
+;; -------------------------------------------------------
+;; + Log information to output-browser (standard output) +
+;; -------------------------------------------------------
 (defvar *start-time* nil)
 
-(define-monitor print-a-dot-for-each-interaction
-                :documentation "Prints a '.' for each interaction
-                 and prints the number after :dot-interval")
+(define-monitor log-every-x-interactions-in-output-browser
+                :documentation "Logs measures every x interactions in the output-browser")
   
-(define-event-handler (print-a-dot-for-each-interaction interaction-finished)
+(define-event-handler (log-every-x-interactions-in-output-browser interaction-finished)
                       (cond ((or (= (interaction-number interaction) 1) (not *start-time*))
                              (setf *start-time* (get-universal-time)))
                             ((= (mod (interaction-number interaction)
-                                     (get-configuration experiment :dot-interval))
+                                     (get-configuration experiment :log-every-x-interactions))
                                 0)
-                             (let ((comm-success (caaar (monitors::get-average-values (monitors::get-monitor 'record-communicative-success))))
-                                   (coherence (caaar (monitors::get-average-values (monitors::get-monitor 'record-lexicon-coherence)))))
+                             (let ((communicative-success (caaar (monitors::get-average-values (monitors::get-monitor 'record-communicative-success))))
+                                   (conventionalisation (caaar (monitors::get-average-values (monitors::get-monitor 'record-conventionalisation)))))
                                (multiple-value-bind (h m s) (seconds-to-hours-minutes-seconds (- (get-universal-time) *start-time*))
                                  (format t
                                          ". (~a / ~a / ~a / ~ah ~am ~as)~%"
                                          (interaction-number interaction)
-                                         (if comm-success
-                                           (format nil "~,vf%" 1 (* 100 (float comm-success)))
+                                         (if communicative-success
+                                           (format nil "~,vf%" 1 (* 100 (float communicative-success)))
                                            "NIL")
-                                         (if coherence
-                                           (format nil "~,vf%" 1 (* 100 (float coherence)))
+                                         (if conventionalisation
+                                           (format nil "~,vf%" 1 (* 100 (float conventionalisation)))
                                            "NIL")
                                          h m s)))
                              (setf *start-time* (get-universal-time)))))
@@ -53,63 +52,68 @@
 (define-event-handler (record-communicative-success interaction-finished)
   (record-value monitor (if (communicated-successfully interaction) 1 0)))
 
-;; ---------------------
-;; + Lexicon Coherence +
-;; ---------------------
-(define-monitor record-lexicon-coherence
+;; ---------------------------------
+;; + Degree of conventionalisation +
+;; ---------------------------------
+(define-monitor record-conventionalisation
                 :class 'data-recorder
                 :average-window 1000
-                :documentation "Records the lexicon coherence.")
+                :documentation "Records the degree of conventionalisation.")
 
-(define-monitor export-lexicon-coherence
+(define-monitor export-conventionalisation
                 :class 'csv-data-file-writer
-                :documentation "Exports lexicon size."
-                :data-sources '(record-lexicon-coherence)
+                :documentation "Exports the degree of conventionalisation."
+                :data-sources '(record-conventionalisation)
                 :file-name (babel-pathname :name "lexicon-coherence" :type "csv"
                                            :directory '("experiments" "concept-emergence2" "logging"))
                 :add-time-and-experiment-to-file-name nil)
 
-(define-event-handler (record-lexicon-coherence interaction-finished)
+(define-event-handler (record-conventionalisation interaction-finished)
   (record-value monitor (if (find-data interaction 'lexicon-coherence) 1 0)))
 
-;; --------------------------------
-;; + Unique form usage (training) +
-;; --------------------------------
-(define-monitor record-unique-form-usage
+;; --------------------------------------------------
+;; + Construction inventory usage (during training) +
+;; --------------------------------------------------
+(define-monitor record-construction-inventory-usage-train
                 :class 'data-recorder
+                ;; the window is kept track manually in the `usage-table-window` of an agent
+                ;; when average-window is set to 0, the data-recorders skips the averaging step
                 :average-window 0
-                :documentation "Records the unique form usage.")
+                :documentation "Records the amount of unique forms observed in the past x interactions.")
 
-(define-monitor export-unique-form-usage
+(define-monitor export-construction-inventory-usage-train
                 :class 'csv-data-file-writer
-                :documentation "Exports the unique form usage"
-                :data-sources '(record-unique-form-usage)
+                :documentation "Exports the amount of unique forms observed in the past x interactions."
+                :data-sources '(record-construction-inventory-usage-train)
                 :file-name (babel-pathname :name "unique-form-usage" :type "csv"
                                            :directory '("experiments" "concept-emergence2" "logging"))
                 :add-time-and-experiment-to-file-name nil)
 
-(define-event-handler (record-unique-form-usage interaction-finished)
+(define-event-handler (record-construction-inventory-usage-train interaction-finished)
   (record-value monitor (loop for agent in (agents (experiment interaction))
                               sum (unique-forms-in-window agent) into total-sum
                               finally (return (round (/ total-sum (length (agents (experiment interaction)))))))))
 
-;; -------------------------------------
-;; + Lexicon inventory usage (testing) +
-;; -------------------------------------
-(define-monitor export-lexicon-inventory-usage)
-(define-event-handler (export-lexicon-inventory-usage run-series-finished)
+;; -------------------------------------------------
+;; + Construction inventory usage (during testing) +
+;; -------------------------------------------------
+(define-monitor export-construction-inventory-usage-test
+                :documentation "Exports the word usage across all interactions (i.e. the window size is set to infinite).")
+
+(define-event-handler (export-construction-inventory-usage-test run-series-finished)
   (let* ((exp-top-dir (get-configuration experiment :exp-top-dir))
-         (log-dir-name (get-configuration experiment :log-dir-name))
-         (exp-name (get-configuration experiment :exp-name))
          (dataset-split (get-configuration experiment :dataset-split))
+         (exp-name (get-configuration experiment :exp-name))
+         (log-dir-name (get-configuration experiment :log-dir-name))
          (path (babel-pathname
                 :directory `("experiments"
                              "concept-emergence2"
                              "logging"
-                             ,exp-top-dir
-                             ,dataset-split
-                             ,exp-name
-                             ,log-dir-name)
+                             ,exp-top-dir   ;; directory name that groups a set of related of experiments together
+                             ,dataset-split ;; store experiments by split (more convenient)
+                             ,exp-name      ;; directory name that groups different runs of an experiment
+                             ,log-dir-name  ;; directory name for a single run
+                             )
                 :name "lexicon-inventory-usage" 
                 :type "json"))
          (tables (loop with agents-ht = (make-hash-table :test #'equalp) 
@@ -130,21 +134,22 @@
 ;; -----------------
 ;; + Export CONFIG +
 ;; -----------------
-;;;; Export the configurations of the experiment at the end of the first series
-(define-monitor export-experiment-configurations)
+(define-monitor export-experiment-configurations
+                :documentation "Export the configurations of the experiment at the end of the series.")
+
 (define-event-handler (export-experiment-configurations run-series-finished)
                         (let* ((exp-top-dir (get-configuration experiment :exp-top-dir))
-                               (log-dir-name (get-configuration experiment :log-dir-name))
-                               (exp-name (get-configuration experiment :exp-name))
                                (dataset-split (get-configuration experiment :dataset-split))
+                               (exp-name (get-configuration experiment :exp-name))
+                               (log-dir-name (get-configuration experiment :log-dir-name))
                                (path (babel-pathname
                                       :directory `("experiments"
                                                    "concept-emergence2"
                                                    "logging"
-                                                   ,exp-top-dir
-                                                   ,dataset-split
-                                                   ,exp-name
-                                                   ,log-dir-name)
+                                                   ,exp-top-dir   ;; directory name that groups a set of related of experiments together
+                                                   ,dataset-split ;; store experiments by split (more convenient)
+                                                   ,exp-name      ;; directory name that groups different runs of an experiment
+                                                   ,log-dir-name) ;; directory name for a single run
                                       :name "experiment-configurations" 
                                       :type "json"))
                               (config (configuration experiment)))
@@ -156,6 +161,8 @@
                                                   :if-does-not-exist :create)
                             (write-string (jzon::stringify config) stream))))
 
-(define-monitor export-experiment-store)
+(define-monitor export-experiment-store
+                :documentation "Exports the entire experiment to a .store file")
+
 (define-event-handler (export-experiment-store run-series-finished)
   (store-experiment experiment))

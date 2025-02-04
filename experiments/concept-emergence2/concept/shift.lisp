@@ -102,14 +102,13 @@
 (defun find-discriminating-attributes (agent concept topic sim-table prototypes)
   "Find all attributes that are discriminating for the topic."
   (loop with context = (remove topic (objects (get-data agent 'context)))
-        with threshold = (get-configuration (experiment agent) :similarity-threshold)
         with discriminating-attributes = nil
         for prototype in prototypes
         for channel = (channel prototype)
         for topic-sim = (get-s topic channel sim-table)
         for best-other-sim = (loop for object in context
                                           maximize (get-s object channel sim-table))
-        when (> topic-sim (+ best-other-sim threshold))
+        when (> topic-sim best-other-sim)
           do (push channel discriminating-attributes)
         finally (return discriminating-attributes)))
 
