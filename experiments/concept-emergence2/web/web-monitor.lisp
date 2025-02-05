@@ -146,6 +146,27 @@
   (add-element '((hr)))
   (add-element '((hr))))
 
+;; ------------------------------------------------
+;; + Partner selection with Boltzmann exploration +
+;; ------------------------------------------------
+
+(define-event-handler (trace-interaction-in-web-interface event-partner-selection)
+  (add-element '((hr)))
+  (add-element `((h1) ,(format nil "Partner selection by ~a" (id agent))))
+
+  (add-element `((h3) ,(format nil "(tau = ~a, q-lr = ~a"
+                               (get-configuration (experiment agent) :boltzmann-tau)
+                               (get-configuration (experiment agent) :boltzmann-lr))))
+  (add-element
+   `((h2) ,(format nil "Possible neighbors: ~a" neighbors)))
+  (add-element
+   `((h2) ,(format nil "Preference for each: ~{~,3f~^, ~}" q-values)))
+  (add-element
+   `((h2) ,(format nil "Boltzmann probabilies: ~{~,3f~^, ~}" probabilities)))
+  (add-element
+   `((h2) ,(format nil "Chosen partner: ~a" partner-id))))
+  
+
 ;; ---------------------------
 ;; + Setup context and topic +
 ;; ---------------------------
@@ -230,3 +251,6 @@
   (add-element
    `((h4) ,(format nil "[~a] - aligned cxn with form \"~a\"" reason (form cxn))))
   (add-cxn-diff-to-interface cxn previous-copy))
+
+
+

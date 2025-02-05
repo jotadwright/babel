@@ -31,7 +31,10 @@
     :type usage-table :accessor usage-table :initarg :usage-table)
    (perceived-objects
     :documentation "Stores perceived objects"
-    :type perceived-objects :accessor perceived-objects :initform (make-hash-table))))
+    :type perceived-objects :accessor perceived-objects :initform (make-hash-table))
+   (partner-preferences
+    :documentation "Stores the preference ."
+    :type hash-table :accessor partner-preferences :initform (make-hash-table))))
 
 (defmethod clear-agent ((agent cle-agent))
   "Clear the slots of the agent for the next interaction."
@@ -47,6 +50,68 @@
 
 (defmethod empty-lexicon-p ((agent cle-agent))
   (eq (lexicon-size (lexicon agent)) 0))
+
+;; ---------------------
+;; + Partner selection +
+;; ---------------------
+(defun calculate-new-q-value (q-value reward lr)
+  (+ q-value (* lr (- reward q-value))))
+
+(defun boltzmann-exploration (q-values tau)
+  "Boltzmann exploration for partner selection.
+
+   tau corresponds to an inverse temperature:
+     if tau = 0: no preference, random sampling
+     if tau > 0: preference to select partners you understand well
+     if tau < 0: curiosity-driven partner selection
+
+    Inspired by Leung's et al. paper on curiosity-driven partner selection (2025)."
+  (let* ((exp-values (mapcar (lambda (q) (exp (* tau q))) q-values))
+         (total-sum (reduce #'+ exp-values)))
+    (mapcar (lambda (exp-value) (/ exp-value total-sum)) exp-values)))
+
+(defun sample-partner (neighbors probabilities)
+  "Randomly sample a partner from the neighbors using the given probabilities."
+  (loop with r = (random 1.0)
+        with cumulative = 0.0
+        for neighbor in neighbors
+        for probability in probabilities
+        do (setf cumulative (+ cumulative probability))
+        when (<= r cumulative)
+          return neighbor))
+
+(define-event event-partner-selection
+  (agent cle-agent)
+  (neighbors list)
+  (q-values list)
+  (probabilities list)
+  (partner-id symbol))
+
+(defmethod choose-partner ((agent cle-agent) (other-agents list) (tau number))
+  "Choose a partner for a given agent using Boltzmann exploration."
+
+  (let* ((neighbors (hash-keys (partner-preferences agent)))
+         (q-values (hash-values (partner-preferences agent)))
+         (probabilities (boltzmann-exploration q-values tau))
+         ;; sample a partner (by id)
+         (partner-id (sample-partner neighbors probabilities))
+         ;; match id to the other agent
+         (partner (find partner-id other-agents :test (lambda (x y) (eq x (id y))))))
+
+    (notify event-partner-selection agent neighbors q-values probabilities partner-id)
+    partner))
+
+(defmethod initialise-agent-preference ((agent cle-agent) (other cle-agent) &key (default-q 0.5))
+  (let ((preference (partner-preferences agent)))
+    (when (not (gethash (id other) preference))
+      (setf (gethash (id other) preference) default-q))))
+
+(defmethod update-agent-preference ((agent cle-agent) (other cle-agent) (reward number) (lr float))
+  "Update the partner selection preference."
+  (let* ((preference (partner-preferences agent))
+         (q-old (gethash (id other) preference))
+         (q-new (calculate-new-q-value q-old reward lr)))
+    (setf (gethash (id other) preference) q-new)))
 
 ;; ---------
 ;; + NOISE +

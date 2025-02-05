@@ -28,13 +28,15 @@
                 (:usage-table-window . 100) ;; integer, window size of the construction inventory usage table
                 (:save-distribution-history . nil) ;; t or nil, whether to save the history of updates to the distribution (very memory-intensive!)
                 ;; setup environment
-                (:dataset-loader . :precomputed) ;; :precomputed or :runtime, load data in by scene (:precomputed) or by objects (:runtime)
+                (:dataset-loader . :runtime) ;; :precomputed or :runtime, load data in by scene (:precomputed) or by objects (:runtime)
                 (:dataset-view . :shared-views) ;; :shared-views or :exclusive-views, all views are shared or is each agent assigned a view?
-                (:dataset "clevr") ;; list of strings, each string represents a view over a dataset
-                (:feature-set "clevr") ;; list of strings, each string represents a feature set (stored in Corpora/concept-emergence2/-feature-sets), every feature-set is associated to a coressponding element in :dataset
+                (:dataset "air") ;; list of strings, each string represents a view over a dataset
+                (:feature-set "air") ;; list of strings, each string represents a feature set (stored in Corpora/concept-emergence2/-feature-sets), every feature-set is associated to a coressponding element in :dataset
                 (:dataset-split . "train") ;; string, "train" or "test", which split of the data to use?
                 ;; setup game
-                (:interacting-agents-strategy . :standard) ;; :standard [AT THE MOMENT, ONLY OPTION AVAILABLE]
+                (:interacting-agents-strategy . :boltzmann-partner-selection) ;; :standard [AT THE MOMENT, ONLY OPTION AVAILABLE]
+                (:boltzmann-tau . -5)
+                (:boltzmann-lr . 0.05)
                 (:population-size . 10) ;; integer, size of the population
                 (:min-context-size . 10) ;; integer, minimum number of context elements
                 (:max-context-size . 10) ;; integer, maximum number of context elements
