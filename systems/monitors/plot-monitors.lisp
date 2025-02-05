@@ -356,7 +356,8 @@
                                                (monitor-id symbol)
                                                (event (eql 'reset-monitors)))
   "Reset the gnuplot stream (which flushes the data)"
-  (setf (slot-value monitor 'stream) (pipe-to-gnuplot)))
+  (let ((stream (plot-stream monitor)))
+    (setf stream (pipe-to-gnuplot))))
 
 (defmethod activate-monitor-method :after ((monitor gnuplot-display) &optional active)
   "Opens or closes a pipe to gnuplot."
