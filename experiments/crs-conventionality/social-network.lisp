@@ -1,5 +1,9 @@
 
 ;; 03/02/2025: File created (Remi van Trijp)
+;; 05/02/2025: Changes made by Lara to fit with crs-conventionality experiments: 
+;;             - Producer and comprehender changed to speaker and hearer.
+;;             - Speaker and hearer changed to get-speaker and get-hearer.
+;;             - Value of population is an object and not a list.
 
 ;; (ql:quickload :crs-conventionality)
 
@@ -28,66 +32,66 @@
   (get-data agent :social-network))
 
 ;;;;; ---------------------------------------------------------
-;;;;; 2. Helper Functions for producers and comprehenders
+;;;;; 2. Helper Functions for speakers and hearers
 ;;;;; ---------------------------------------------------------
 ;;;;;
-;;;;; Agents can play two basic roles: PRODUCER and COMPREHENDER.
+;;;;; Agents can play two basic roles: speaker and hearer.
 ;;;;; These terms are more general than "speaker" or "hearer", 
 ;;;;; which are specific to vocal languages only.
 
 ;; Helper functions.
-(defun producer-p (agent)
-  "Is the agent the producer?"
-  (eql 'producer (discourse-role agent)))
-;; (producer-p (make-instance 'agent))
+(defun speaker-p (agent)
+  "Is the agent the speaker?"
+  (eql 'speaker (discourse-role agent)))
+;; (speaker-p (make-instance 'agent))
 
-(defmethod comprehender-p (agent)
-  "Is the agent the comprehender?"
-  (eql 'comprehender (discourse-role agent)))
-;; (comprehender-p (make-instance 'agent))
+(defmethod hearer-p (agent)
+  "Is the agent the hearer"
+  (eql 'hearer (discourse-role agent)))
+;; (hearer-p (make-instance 'agent))
 
-(defun producer (agents)
-  "Return the producer among a list of agents."
-  (find-if #'producer-p agents))
+(defun get-speaker (agents)
+  "Return the speaker among a list of agents."
+  (find-if #'speaker-p agents))
 
-(defun comprehender (agents)
-  "Return the comprehender among a list of agents."
-  (find-if #'comprehender-p agents))
+(defun get-hearer (agents)
+  "Return the hearer among a list of agents."
+  (find-if #'hearer-p agents))
 
 ;;;;; ---------------------------------------------------------
 ;;;;; 3. Determine Interacting Agents Using a Social Network
 ;;;;; ---------------------------------------------------------
-;;;;; First a producer is selected, after which a comprehender
-;;;;; is selected from the social network of the producer.
+;;;;; First a speaker is selected, after which a hearer
+;;;;; is selected from the social network of the speaker.
 
-(defgeneric choose-producer (agents mode))
+(defgeneric choose-speaker (agents mode))
 
-(defmethod choose-producer ((agents list)
+(defmethod choose-speaker ((agents list)
                             (mode t))
   (declare (ignorable mode))
-  ;; By defult we pick a random producer.
-  (let ((producer (random-elt agents)))
-    (setf (discourse-role producer) 'producer)
-    producer))
+  ;; By defult we pick a random speaker.
+  (let ((speaker (random-elt agents)))
+    (setf (discourse-role speaker) 'speaker)
+    speaker))
 
-(defmethod choose-producer ((experiment experiment)
+(defmethod choose-speaker ((experiment experiment)
                             (mode t))
   ;; In traditional experiments, the agents are listed in the agents slot.
-  (choose-producer (agents experiment) mode))
+  (choose-speaker (agents experiment) mode))
 
-(defmethod choose-producer ((population crs-conventionality-population)
+(defmethod choose-speaker ((population crs-conventionality-population)
                             (mode t))
   ;; In the crs-conventionality code, the agents are located in the population class.
-  (choose-producer (agents population) mode))
+  (choose-speaker (agents population) mode))
 
-(defgeneric choose-comprehender (agent mode))
+(defgeneric choose-hearer (agent mode))
 
-(defmethod choose-comprehender ((agent agent)
+(defmethod choose-hearer ((agent agent)
                                 (mode t))
   (declare (ignore mode))
-  (let ((comprehender (random-elt (social-network agent))))
-    (setf (discourse-role comprehender) 'comprehender)
-    comprehender))
+  (let ((hearer (random-elt (social-network agent))))
+    (setf (discourse-role hearer) 'hearer)
+    hearer))
 
 (defgeneric clean-agent (agent))
 
@@ -106,9 +110,9 @@
   (let* ((agents (if (listp (agents experiment))
                    (agents experiment)
                    (agents (population experiment))))
-         (producer (choose-producer agents mode))
-         (comprehender (choose-comprehender producer mode))
-         (interacting-agents (list producer comprehender)))
+         (speaker (choose-speaker agents mode))
+         (hearer (choose-hearer speaker mode))
+         (interacting-agents (list speaker hearer)))
     ;; "clean" the agents:
     (mapcar #'clean-agent interacting-agents)
     (setf (interacting-agents interaction) interacting-agents)
@@ -234,8 +238,7 @@
 ;; distance links allow conventions to make bigger jumps in the network, which may speed up its 
 ;; diffusion among agents. 
 (defmethod initialize-social-network ((experiment crs-conventionality-experiment))
-  (let ((population (or (agents experiment)
-                        (agents (population experiment)))))
+  (let ((population (agents (population experiment))))
     ;; If no network topology is specified in the configuration, make a fully
     ;; connected network.
     (if (null (get-configuration experiment :network-topology))
@@ -324,32 +327,38 @@
 
 ;; Fully connected network:
 ; (reset-id-counters)
-;;; (let* ((experiment (make-instance 'crs-conventionality-experiment))
-;;;        (agents (loop for i from 1 to 10 collect (make-instance 'agent))))
-;;;   (setf (agents experiment) agents)
-;;;   (initialize-social-network experiment)
-;;;   (population-network->graphviz agents :make-image t :open-image t :use-labels? t))
+#|
+ (let* ((experiment (make-instance 'crs-conventionality-experiment))
+        (agents (loop for i from 1 to 10 collect (make-instance 'agent)))
+        (population (make-instance 'crs-conventionality-population :agents agents)))
+   (setf (population experiment) population)
+   (initialize-social-network experiment)
+   (population-network->graphviz agents :make-image t :open-image t :use-labels? t))
 
 ;; Regular network:
-;;; (let* ((experiment (make-instance 'crs-conventionality-experiment))
-;;;        (agents (loop for i from 1 to 10 collect (make-instance 'agent))))
-;;;   (setf (agents experiment) agents)
-;;;   (set-configuration experiment :network-topology :regular)
-;;;   (set-configuration experiment :local-connectivity 2)
-;;;   (initialize-social-network experiment)
-;;;   (population-network->graphviz agents :make-image t :open-image t :use-labels? t)
-;;;   agents)
+(let* ((experiment (make-instance 'crs-conventionality-experiment))
+       (agents (loop for i from 1 to 10 collect (make-instance 'agent)))
+       (population (make-instance 'crs-conventionality-population :agents agents)))
+  (setf (population experiment) population)
+  (set-configuration experiment :network-topology :regular)
+  (set-configuration experiment :local-connectivity 2)
+  (initialize-social-network experiment)
+  (population-network->graphviz agents :make-image t :open-image t :use-labels? t)
+  agents)
 
 ;; Small world network:
-;;; (let* ((experiment (make-instance 'crs-conventionality-experiment))
-;;;        (agents (loop for i from 1 to 10 collect (make-instance 'agent))))
-;;;   (setf (agents experiment) agents)
-;;;   (set-configuration experiment :network-topology :small-world)
-;;;   (set-configuration experiment :local-connectivity 2)
-;;;   (set-configuration experiment :rewiring-probability 0.3)
-;;;   (initialize-social-network experiment)
-;;;   (population-network->graphviz agents :make-image t :open-image t :use-labels? t)
-;;;   agents)
+(let* ((experiment (make-instance 'crs-conventionality-experiment))
+       (agents (loop for i from 1 to 10 collect (make-instance 'agent)))
+       (population (make-instance 'crs-conventionality-population :agents agents)))
+  (setf (population experiment) population)
+  (set-configuration experiment :network-topology :small-world)
+  (set-configuration experiment :local-connectivity 2)
+  (set-configuration experiment :rewiring-probability 0.3)
+  (initialize-social-network experiment)
+  (population-network->graphviz agents :make-image t :open-image t :use-labels? t)
+  agents)
+
+ |#
 
 ;;;;; ---------------------------------------------------------
 ;;;;; 8. Tests.
@@ -357,10 +366,10 @@
 
 (deftest test-discourse-role ()
   (let ((agents (loop repeat 2 collect (make-instance 'agent))))
-    (setf (discourse-role (first agents)) 'producer)
-    (setf (discourse-role (second agents)) 'comprehender)
-    (test-assert (equal (producer agents) (first agents)))
-    (test-assert (equal (comprehender agents) (second agents)))))
+    (setf (discourse-role (first agents)) 'speaker)
+    (setf (discourse-role (second agents)) 'hearer)
+    (test-assert (equal (get-speaker agents) (first agents)))
+    (test-assert (equal (get-hearer agents) (second agents)))))
 ;; (test-discourse-role)
 
 
@@ -372,10 +381,10 @@
       (initialize-social-network experiment)
       (test-assert (social-network agent))
       (test-assert (= 9 (length (social-network agent))))
-      (let* ((producer (choose-producer agents t))
-             (comprehender (choose-comprehender producer t)))
-        (test-assert (producer-p producer))
-        (test-assert (comprehender-p comprehender))))
+      (let* ((speaker (choose-speaker agents t))
+             (hearer (choose-hearer speaker t)))
+        (test-assert (speaker-p speaker))
+        (test-assert (hearer-p hearer))))
     (setf (agents experiment) nil
           (population experiment) (make-instance 'crs-conventionality-population
                                                  :agents (make-ten-agents)))
