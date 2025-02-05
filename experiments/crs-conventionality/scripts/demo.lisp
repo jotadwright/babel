@@ -37,7 +37,6 @@
   (defparameter *naming-game-canonical* (make-instance 'naming-game-experiment
                                                        :configuration *configuration-canonical*)))
 
-
 ;; Option 1: run experiment with real-time plotting (using gnuplot)
 
 (progn
@@ -54,7 +53,6 @@
   ;(activate-monitor trace-interaction)
 
   ;; activate the gnuplot live display
-  (flush-gnuplot-display 'display-metrics)
   (activate-monitor display-metrics)
 
   ;; run the experiment
