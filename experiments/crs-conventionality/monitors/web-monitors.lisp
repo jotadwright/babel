@@ -9,7 +9,7 @@
 
 ;; Interaction ;;
 ;;;;;;;;;;;;;;;;;
-(define-event interaction-started (experiment crs-conventionality::crs-conventionality-experiment)
+(define-event interaction-started (experiment crs-conventionality-experiment)
                                   (interaction crs-conventionality-interaction)
                                   (interaction-number number))
 
@@ -40,31 +40,33 @@
 
 ;; Routine Conceptualisation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define-event routine-conceptualisation-started (topic crs-conventionality::crs-conventionality-entity-set)
-                                                (agent crs-conventionality::crs-conventionality-agent)
-                                                (scene crs-conventionality::crs-conventionality-entity-set))
+(define-event routine-conceptualisation-started (topic crs-conventionality-entity-set)
+                                                (agent crs-conventionality-agent)
+                                                (scene crs-conventionality-entity-set))
 
 (define-event-handler (trace-interaction routine-conceptualisation-started)
-  (add-element `((h2 :style "background-color: LightGray; padding: 5px;") ,(format nil "Conceptualisation")))
-  (add-element `((p) ,(format nil "Speaker conceptualises the topic.")))
+  (add-element `((h2 :style "background-color: LightGray; padding: 5px 5px 0px 5px; margin-bottom: 0; border-bottom: solid 1px black;")
+                 ,(format nil "Conceptualisation")))
+  (add-element `((p  :style "background-color: white; padding: 0px 5px 5px 5px; margin-top: 0px;")
+                 ,(format nil "The speaker conceptualises the topic.")))
   
   (add-element `((h3) ,(format nil "Routine conceptualisation"))))
 
 
 (define-event routine-conceptualisation-finished (cip fcg:construction-inventory-processor)
                                                  (solution-nodes cons)
-                                                 (agent crs-conventionality::crs-conventionality-agent))
+                                                 (agent crs-conventionality-agent))
 
 (define-event-handler (trace-interaction routine-conceptualisation-finished)
 
   (if (fcg:succeeded-nodes cip)
     (progn
       (add-element `((b :style "background-color: green; color: white; padding: 5px;")
-                     ,(format nil "Routine conceptualisation succeeded" )))
+                     ,(format nil "Routine search completed - Conceptualisation succeeded: the speaker found a contruction in its inventory that matched the topic" )))
       (add-element `((br :style "margin: 20px")))
       (add-element `((a) ,(format nil "Speaker uttered: ")))
       (add-element `((b) ,(format nil "\"~a\"" (first (fcg::render (fcg::car-resulting-cfs (fcg:cipn-car (first solution-nodes)))
-                                           (get-configuration (crs-conventionality::grammar agent) :render-mode))))))
+                                           (get-configuration (grammar agent) :render-mode))))))
       (add-element '((hr :style "border-top: 1px dashed; background-color:transparent;"))))
 
 
@@ -77,37 +79,41 @@
 ;; Meta Conceptualisation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define-event meta-conceptualisation-started (topic crs-conventionality::crs-conventionality-entity-set)
-                                             (agent crs-conventionality::crs-conventionality-agent)
-                                             (scene crs-conventionality::crs-conventionality-entity-set))
+(define-event meta-conceptualisation-started (topic crs-conventionality-entity-set)
+                                             (agent crs-conventionality-agent)
+                                             (scene crs-conventionality-entity-set))
 
 (define-event-handler (trace-interaction meta-conceptualisation-started)
   (add-element `((h3) ,(format nil "Meta layer conceptualisation"))))
 
 
 (define-event meta-conceptualisation-finished (fix meta-layer-learning:fix)
-                                              (agent crs-conventionality::crs-conventionality-agent))
+                                              (agent crs-conventionality-agent))
 
 (define-event-handler (trace-interaction meta-conceptualisation-finished)
-  (add-element `((b) ,(format nil "Diagnosed problem: ")))
-  (add-element (make-html (meta-layer-learning::problem fix)))
-  (add-element `((br)))
-  (add-element `((b) ,(format nil "Fix issued by following repair: ")))
-  (add-element (make-html (meta-layer-learning::issued-by fix)))
-  (add-element `((br)))
-  (add-element `((b) ,(format nil "Learned construction: ")))
-  (add-element (make-html (meta-layer-learning::restart-data fix)))
-  
-  (add-element `((a) ,(format nil "Speaker uttered:" )))
+  (add-element `((div)
+                 ((table :class "two-col")
+                  ((tbody)
+                   ((tr)
+                    ((td) "Diagnosed problem:")
+                    ((td) ,(make-html(meta-layer-learning::problem fix))))
+                   ((tr)
+                    ((td) "Fix issued by following repair:")
+                    ((td) ,(make-html (meta-layer-learning::issued-by fix))))
+                   ((tr)
+                    ((td) "Learned construction:")
+                    ((td) ,(make-html (meta-layer-learning::restart-data fix))))))))
+
+  (add-element `((p :style "display:inline") ,(format nil "Speaker uttered: " )))
   (add-element `((b) ,(format nil "\"~a\"" (first (fcg:render (fcg::car-resulting-cfs (first (get-data (blackboard fix) 'fcg::fixed-cars)))
-                           (get-configuration (crs-conventionality::grammar agent) :render-mode))))))
+                           (get-configuration (grammar agent) :render-mode))))))
   (add-element '((hr :style "border-top: 1px dashed; background-color:transparent;"))))
 
 
 ;; Routine Interpretation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define-event routine-interpretation-started (agent crs-conventionality::crs-conventionality-agent)
-                                             (scene crs-conventionality::crs-conventionality-entity-set))
+(define-event routine-interpretation-started (agent crs-conventionality-agent)
+                                             (scene crs-conventionality-entity-set))
 
 
 (define-event-handler (trace-interaction routine-interpretation-started)
@@ -117,8 +123,8 @@
                                (first (utterance agent))))))
 
 
-(define-event routine-interpretation-finished (agent crs-conventionality::crs-conventionality-agent)
-                                              (scene crs-conventionality::crs-conventionality-entity-set))
+(define-event routine-interpretation-finished (agent crs-conventionality-agent)
+                                              (scene crs-conventionality-entity-set))
 
 (define-event-handler (trace-interaction routine-interpretation-finished)
   (add-element `((h2) ,(format nil "Interpretation finished" )))
@@ -137,7 +143,7 @@
 
 ;; Alignment ;;
 ;;;;;;;;;;;;;;;
-(define-event alignment-finished (speaker crs-conventionality::crs-conventionality-agent) (hearer crs-conventionality::crs-conventionality-agent))
+(define-event alignment-finished (speaker crs-conventionality-agent) (hearer crs-conventionality-agent))
 
 (define-event-handler (trace-interaction alignment-finished)
   (add-element `((h2 :style "background-color: LightGray; padding: 5px;") ,(format nil "Alignment")))
@@ -152,3 +158,42 @@
 (define-event-handler (trace-interaction adoption-finished)
   (add-element `((a) ,(format nil "Hearer adopted: ")))
   (add-element (make-html cxn)))
+
+
+;; Evaluate IRL program ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define-monitor trace-irl-crs)
+
+(define-event-handler (trace-irl-crs irl::evaluate-irl-program-started)
+  nil)
+
+
+(define-event-handler (trace-irl-crs irl::evaluate-irl-program-finished)
+  nil)
+
+
+;; FCG ;;
+;;;;;;;;;
+
+(define-monitor trace-fcg-crs)
+
+(define-event-handler (trace-fcg-crs cxn-deleted)
+  nil)
+
+
+(define-event-handler (trace-fcg-crs fcg::cip-node-expanded)
+  (add-element `((h4) "HALLO"))
+  (add-element `((table :class "two-col")
+                 ((tbody)
+                  ,(make-tr-for-cip-tree-fcg-light cipn "expansion" 
+                                     :hide-subtree-with-duplicates nil)
+                  ,(make-tr-for-cip-tree-fcg-light (top-node (cip cipn)) "new tree" )
+                  ,(make-tr-for-cip-queue-fcg-light (cip cipn) "new queue" )))))
+
+(define-event-handler (trace-fcg-crs fcg::fcg-apply-w-n-solutions-started)
+  (add-element (make-html (fcg::original-cxn-set construction-inventory))))
+
+
+(define-event-handler (trace-fcg-crs fcg::fcg-apply-w-n-solutions-finished)
+  (add-element `((h3) "Arno"))
+  (add-element (fcg::make-html-fcg-light fcg::cip :solutions fcg::solutions)))
