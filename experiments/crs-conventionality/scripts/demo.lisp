@@ -17,7 +17,7 @@
   ;; reset the web interface
   (wi::reset)
   ;; deactivate all monitors (as a sanity check)
-  (notify reset-monitors)
+  (monitors::notify reset-monitors)
   ;; configure a canonical naming game
   (defparameter *configuration-canonical* (make-configuration
                                            :entries '(;; Logging
