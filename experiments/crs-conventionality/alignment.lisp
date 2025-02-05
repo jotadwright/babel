@@ -7,10 +7,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-;;lateral inhibition: reward and punish all competitors --> comprehend-all
-;; just reward, no punishment 
+;; Alignment Strategies ;;
+;; Lateral inhibition: reward used utterance and punish all competitors in success, punish used utterance and adopt in failure. 
 
-(defmethod align ((speaker naming-game-agent) (hearer naming-game-agent) (interaction crs-conventionality-interaction) (mode (eql :lateral-inhibition)))
+(defmethod align ((speaker naming-game-agent) (hearer naming-game-agent) (interaction crs-conventionality-interaction)
+                  (mode (eql :lateral-inhibition)))
   "Align grammar of speaker and hearer based on interaction."
   (let ((applied-cxn-speaker (first (applied-constructions speaker)))
         (applied-cxn-hearer (first (applied-constructions hearer))))
@@ -29,13 +30,98 @@
         (loop for cxn in (find-competitors hearer)
               do (setf (attr-val cxn :score) (decrease-score (learning-rate hearer) (attr-val cxn :score)))))
       
-    ;; Communication failed 
+     ;; Communication failed 
     (progn
       (when (applied-constructions speaker)
         (setf (attr-val applied-cxn-speaker :score)
               (decrease-score (learning-rate speaker) (attr-val applied-cxn-speaker :score))))
       (adopt (topic interaction) hearer)
       (notify alignment-finished speaker hearer)))))
+
+;; Don't punish competitors in success. 
+
+(defmethod align ((speaker naming-game-agent) (hearer naming-game-agent) (interaction crs-conventionality-interaction)
+                  (mode (eql :dont-punish-competitors)))
+  "Align grammar of speaker and hearer based on interaction."
+  (let ((applied-cxn-speaker (first (applied-constructions speaker)))
+        (applied-cxn-hearer (first (applied-constructions hearer))))
+    (if (communicated-successfully interaction)
+      ;; Communication succeeded
+      ;; Speaker and hearer increase the score of the constructions they used:
+      (progn 
+        (setf (attr-val applied-cxn-speaker :score)
+              (increase-score (learning-rate speaker) (attr-val applied-cxn-speaker :score)))
+        (setf (attr-val applied-cxn-hearer :score)
+              (increase-score (learning-rate hearer) (attr-val applied-cxn-hearer :score))))
+            
+      ;; Communication failed 
+      (progn
+        (when (applied-constructions speaker)
+          (setf (attr-val applied-cxn-speaker :score)
+                (decrease-score (learning-rate speaker) (attr-val applied-cxn-speaker :score))))
+        (adopt (topic interaction) hearer)
+        (notify alignment-finished speaker hearer)))))
+
+;; Don't punish in failure, still punish competitors in success. 
+
+(defmethod align ((speaker naming-game-agent) (hearer naming-game-agent) (interaction crs-conventionality-interaction)
+                  (mode (eql :dont-punish-failure)))
+  "Align grammar of speaker and hearer based on interaction."
+  (let ((applied-cxn-speaker (first (applied-constructions speaker)))
+        (applied-cxn-hearer (first (applied-constructions hearer))))
+    (if (communicated-successfully interaction)
+      ;; Communication succeeded
+      ;; Speaker and hearer increase the score of the constructions they used:
+      (progn 
+        (setf (attr-val applied-cxn-speaker :score)
+              (increase-score (learning-rate speaker) (attr-val applied-cxn-speaker :score)))
+        (setf (attr-val applied-cxn-hearer :score)
+              (increase-score (learning-rate hearer) (attr-val applied-cxn-hearer :score)))
+      
+        ;; Speaker punishes competing constructions:
+        (loop for cxn in (find-competitors speaker)
+              do (setf (attr-val cxn :score) (decrease-score (learning-rate speaker) (attr-val cxn :score))))
+        (loop for cxn in (find-competitors hearer)
+              do (setf (attr-val cxn :score) (decrease-score (learning-rate hearer) (attr-val cxn :score)))))
+      
+      ;; Communication failed 
+      (progn
+        (adopt (topic interaction) hearer)
+        (notify alignment-finished speaker hearer)))))
+
+;; Don't punish in failure, don't punish competitors in success. 
+
+
+(defmethod align ((speaker naming-game-agent) (hearer naming-game-agent) (interaction crs-conventionality-interaction)
+                  (mode (eql :never-punish)))
+  "Align grammar of speaker and hearer based on interaction."
+  (let ((applied-cxn-speaker (first (applied-constructions speaker)))
+        (applied-cxn-hearer (first (applied-constructions hearer))))
+    (if (communicated-successfully interaction)
+      ;; Communication succeeded
+      ;; Speaker and hearer increase the score of the constructions they used:
+      (progn 
+        (setf (attr-val applied-cxn-speaker :score)
+              (increase-score (learning-rate speaker) (attr-val applied-cxn-speaker :score)))
+        (setf (attr-val applied-cxn-hearer :score)
+              (increase-score (learning-rate hearer) (attr-val applied-cxn-hearer :score))))
+      
+    ;; Communication failed 
+    (progn
+      (adopt (topic interaction) hearer)
+      (notify alignment-finished speaker hearer)))))
+
+;; Never change scores. 
+
+
+(defmethod align ((speaker naming-game-agent) (hearer naming-game-agent) (interaction crs-conventionality-interaction)
+                  (mode (eql :no-alignment)))
+  "No alignment setting - scores not adjusted."
+  (if (communicated-successfully interaction)
+    (notify alignment-finished speaker hearer)
+    (progn
+      (adopt (topic interaction) hearer)
+      (notify alignment-finished speaker hearer))))
 
 
 (defmethod find-competitors ((agent naming-game-agent))
