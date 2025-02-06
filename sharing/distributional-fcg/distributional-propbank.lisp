@@ -334,7 +334,3 @@ the node through the links in the categorial network."
     ;; return constructions
     constructions))
 
-
-(defun get-constructions (hash-table)
-  (loop for value being the hash-values of hash-table
-        append value))
