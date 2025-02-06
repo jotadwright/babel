@@ -62,10 +62,9 @@
       (add-element `((b :style "background-color: green; color: white; padding: 5px;")
                      ,(format nil "Routine conceptualisation completed" )))
       (add-element `((br :style "margin: 20px")))
-      (add-element `((a) ,(format nil "Speaker uttered: ")))
+      (add-element `((p :style "display: inline;") ,(format nil "Speaker uttered: ")))
       (add-element `((b) ,(format nil "\"~a\"" (first (fcg::render (fcg::car-resulting-cfs (fcg:cipn-car (first solution-nodes)))
-                                           (get-configuration (grammar agent) :render-mode))))))
-      (add-element '((hr :style "border-top: 1px dashed; background-color:transparent;"))))
+                                           (get-configuration (grammar agent) :render-mode)))))))
 
 
     (progn
@@ -82,6 +81,7 @@
                                              (scene crs-conventionality-entity-set))
 
 (define-event-handler (trace-interaction meta-conceptualisation-started)
+  (add-element '((hr :style "border-top: 1px dashed; background-color:transparent;")))
   (add-element `((h3) ,(format nil "Meta layer conceptualisation"))))
 
 
@@ -102,10 +102,11 @@
                     ((td) "Learned construction:")
                     ((td) ,(make-html (meta-layer-learning::restart-data fix))))))))
 
+  (add-element '((hr :style "border-top: 1px dashed; background-color:transparent;")))
+  
   (add-element `((p :style "display:inline") ,(format nil "Speaker uttered: " )))
   (add-element `((b) ,(format nil "\"~a\"" (first (fcg:render (fcg::car-resulting-cfs (first (get-data (blackboard fix) 'fcg::fixed-cars)))
-                           (get-configuration (grammar agent) :render-mode))))))
-  (add-element '((hr :style "border-top: 1px dashed; background-color:transparent;"))))
+                           (get-configuration (grammar agent) :render-mode)))))))
 
 
 ;; Routine Interpretation ;;
@@ -161,7 +162,7 @@
 (define-event adoption-finished (cxn fcg::fcg-construction))
 
 (define-event-handler (trace-interaction adoption-finished)
-  (add-element `((a) ,(format nil "Hearer adopted: ")))
+  (add-element `((p :style "display: inline;") ,(format nil "Hearer adopted: ")))
   (add-element (make-html cxn)))
 
 
