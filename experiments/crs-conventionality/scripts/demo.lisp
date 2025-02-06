@@ -28,14 +28,19 @@
                                                       (:nr-of-entities-in-scene . 5)
                                                       (:alignment-strategy . :lateral-inhibition)
                                                       (:learning-strategy . :default)
-                                                      (:learning-rate . 0.1)
+                                                      (:learning-rate . 0.5)
                                                       ;; Initialising an interaction
-                                                      (:determine-interacting-agents-mode . :random-from-population)
+                                                      (:determine-interacting-agents-mode . :random-from-social-network)
                                                       (:determine-scene-entities-mode . :random-subset-of-world)
                                                       (:determine-topic-mode . :random-entity-from-scene))))
   ;; instantiate a naming game experiment
   (defparameter *naming-game-canonical* (make-instance 'naming-game-experiment
-                                                       :configuration *configuration-canonical*)))
+                                                       :configuration *configuration-canonical*))
+  (set-configuration *naming-game-canonical* :network-topology :regular)
+  (set-configuration *naming-game-canonical* :local-connectivity 1)
+  (initialize-social-network *naming-game-canonical*)
+  (population-network->graphviz (agents (population *naming-game-canonical*)) :make-image t :open-image t :use-labels? t)
+  )
 
 ;; Option 1: run experiment with real-time plotting (using gnuplot)
 
@@ -56,7 +61,7 @@
   (activate-monitor display-metrics)
 
   ;; run the experiment
-  (loop for i from 1 to 1000
+  (loop for i from 1 to 5000
         do (run-interaction *naming-game-canonical*)))
 
 ;; Option 2: run experiment locally and export results to disk
