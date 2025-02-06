@@ -20,6 +20,9 @@
   (read-propbank-conll-file *annotations-file-path*))
 
 
+;; Add as a goal test whether meaning is extracted, since we want to comprehend until there is meaning,
+;; otherwise the lexical cxn can just apply.
+
 (defparameter *training-configuration*
   '((:de-render-mode .  :de-render-constituents-dependents)
     (:node-tests :check-double-role-assignment)
@@ -67,11 +70,12 @@
 ;; goal test!!!!!! 
 
 
- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
- ;; quickly overwrite to test. ;;
- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; quickly overwrite to test. ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
- ;; add the embedding to the attributes (token)
+;; add the embedding to the attributes (token)
+;; changes: add an embedding pointer to the lexical cxn
 (defun add-lexical-cxn (gold-frame v-unit cxn-inventory propbank-sentence)
    "Creates a new lexical construction if necessary, otherwise
  increments frequency of existing cxn. Also adds a new lexical category
@@ -148,7 +152,7 @@
              (add-category lex-category cxn-inventory :recompute-transitive-closure nil) 
              lex-category))))
 
-
+;; remove lemma feature from cxn. 
 (defun add-word-sense-cxn (gold-frame v-unit cxn-inventory propbank-sentence lex-category gram-category)
   "Creates a new word sense construction if necessary, otherwise
 increments frequency of existing cxn. Adds a new sense category to the
@@ -225,7 +229,7 @@ categorial network and returns it."
         sense-category))))
 
 
-;; Here we need to add the embeddings to the TS. 
+;; Changes: get embeddings of the lemmas and add them to the units of the TS and the blackboard of the TS.
 (defun create-initial-transient-structure-based-on-benepar-analysis (spacy-benepar-analysis)
   (let* (;; Make unit names for the different units, and store them with the unit id.
          (unit-name-ids (loop for node in spacy-benepar-analysis
@@ -308,35 +312,26 @@ categorial network and returns it."
     (set-data (blackboard transient-structure) :ts-embeddings (first embeddings-and-units)) 
     transient-structure))
 
+(defmethod comprehend ((utterance string) 
+                       &key (syntactic-analysis nil) 
+                       (cxn-inventory *fcg-constructions*)  (silent nil) (selected-rolesets nil) (timeout 60))
+  (let* ((syntactic-analysis (nlp-tools:get-penelope-syntactic-analysis utterance
+                                                                       :model (or (get-configuration cxn-inventory :model)
+                                                                                  "en_benepar")))
+         (initial-cfs (de-render utterance (get-configuration cxn-inventory :de-render-mode)
+                                 :model (or (get-configuration cxn-inventory :model) "en_benepar")
+                                 :cxn-inventory cxn-inventory :syntactic-analysis syntactic-analysis))
+         (ts-token-embeddings (get-data (blackboard (initial-transient-structure sentence)) :ts-embeddings)))
+    (set-data (blackboard cxn-inventory) :ts-token-embeddings ts-token-embeddings)
+    (unless silent (monitors:notify parse-started (listify utterance) initial-cfs))
+    (multiple-value-bind (meaning cip-node cip)
+        (handler-case (trivial-timeout:with-timeout (timeout)
+                                                    (comprehend-with-rolesets initial-cfs cxn-inventory selected-rolesets utterance silent))
+          (trivial-timeout:timeout-error (error)
+            (values 'time-out 'time-out 'time-out)))
+      (values meaning cip-node cip))))
 
-
-(defmethod de-render ((utterance string) (mode (eql :de-render-token-embeddings)) &key cxn-inventory &allow-other-keys)
-  "Retrieves tokens and embeddings for string, creating one unit per token."
-  (multiple-value-bind (units embedding-data)
-      (loop with token-embeddings = (nlp-tools:get-word-embeddings (mapcar #'downcase (cl-ppcre:split "[ .-]"  utterance)))
-            for (token embedding) in token-embeddings
-            for unit-name = (make-id token)
-            for embedding-pointer = (intern (upcase (string-append "->" token)))
-            collect (cons embedding-pointer embedding)
-              into embedding-data
-            collect (make-unit :name unit-name
-                               :features `((token ((string ,token)
-                                                   (embedding ,embedding-pointer)))))
-              into units
-            finally (return (values units embedding-data)))
-    ;; adjecency-constraints
-    (let ((adjacency-constraints (loop for (unit-name . rest) on (mapcar #'first units)
-                                       when rest
-                                         collect `(adjacent ,unit-name ,(first rest)))))
-      (set-data (blackboard cxn-inventory) :ts-token-embeddings embedding-data)
-      (make-instance 'coupled-feature-structure
-                     :left-pole `((root (meaning ())
-                                        (sem-cat ())
-                                        (form ,adjacency-constraints)
-                                        (syn-cat ()))
-                                  ,@units)
-                     :right-pole '((root))))))
-
+;; Added function to get the string of the lemma
 (defun node-lemma-string (spacy-benepar-analysis-leaf-node)
   "Returns the lemma of the leaf node"
   (cdr (assoc :lemma spacy-benepar-analysis-leaf-node)))
@@ -360,6 +355,7 @@ categorial network and returns it."
   
   :hashed t)
 
+;; Added function to add the embeddings from the learned cxns and the ones from the transient structures of the annotation files to the blackboard of the cxn-inventory.
 (defun add-embeddings-to-cxn-inventory (cxn-inventory conll-annotations)
   "Retrieve all token embeddings for constructions that carry a token
 attribute and store them in the cxn inventory's blackboard under the
@@ -377,7 +373,7 @@ field :cxn-token-embeddings"
         do (append-data (blackboard cxn-inventory) :ts-token-embeddings ts-token-embeddings)
   ))
 
-
+;; Changes: blackboard of the initial-cfs is already initialised so just do set-data on the blackboard instead of on the initial-cfs. 
 (defun comprehend-with-rolesets (initial-cfs cxn-inventory selected-rolesets utterance silent)
   (let ((processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
     (set-data (blackboard initial-cfs) :selected-rolesets selected-rolesets)
@@ -396,6 +392,7 @@ field :cxn-token-embeddings"
 
 (in-package :fcg)
 
+;; Changes: Don't get the hashed cxns, but get all constructions. 
 (defun constructions-for-application-hashed-categorial-network-neigbours (node)
   "Computes all constructions that could be applied for this node
    based on the hash table and the constructions that are linked to
@@ -423,7 +420,7 @@ the node through the links in the categorial network."
     ;; return constructions
     constructions))
 
-
+;; New goal test that checks whether there is meaning in the transient structure. 
 (defmethod cip-goal-test ((node cip-node) (mode (eql :meaning-extracted)))
   "Checks whether the resulting meaning network is fully integrated
 (consists of a single connected chunk)."
