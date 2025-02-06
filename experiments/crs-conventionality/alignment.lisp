@@ -28,15 +28,17 @@
         (loop for cxn in (find-competitors speaker)
               do (setf (attr-val cxn :score) (decrease-score (learning-rate speaker) (attr-val cxn :score))))
         (loop for cxn in (find-competitors hearer)
-              do (setf (attr-val cxn :score) (decrease-score (learning-rate hearer) (attr-val cxn :score)))))
+              do (setf (attr-val cxn :score) (decrease-score (learning-rate hearer) (attr-val cxn :score))))
+        (notify alignment-finished speaker hearer interaction))
+      
       
     ;; Communication failed 
     (progn
       (when (applied-constructions speaker)
         (setf (attr-val applied-cxn-speaker :score)
               (decrease-score (learning-rate speaker) (attr-val applied-cxn-speaker :score))))
-      (adopt (topic interaction) hearer)
-      (notify alignment-finished speaker hearer)))))
+      (notify alignment-finished speaker hearer interaction)
+      (adopt (topic interaction) hearer)))))
 
 
 (defmethod find-competitors ((agent naming-game-agent))

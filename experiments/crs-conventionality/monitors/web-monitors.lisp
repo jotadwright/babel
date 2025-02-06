@@ -147,16 +147,24 @@
 (define-event alignment-started (speaker crs-conventionality-agent) (hearer crs-conventionality-agent))
 
 (define-event-handler (trace-interaction alignment-started)
-  (add-element `((h2 :style "background-color: LightGray; padding: 5px;") ,(format nil "Alignment")))
-  ; TODO: add punished and rewarded cxns to interface
-  )
+  (add-element `((h2 :style "background-color: LightGray; padding: 5px;") ,(format nil "Alignment"))))
 
-(define-event alignment-finished (speaker crs-conventionality-agent) (hearer crs-conventionality-agent))
+(define-event alignment-finished (speaker crs-conventionality-agent)
+                                 (hearer crs-conventionality-agent)
+                                 (interaction crs-conventionality-interaction))
 
 (define-event-handler (trace-interaction alignment-finished)
-  nil
-  ; TODO: add punished and rewarded cxns to interface
-  )
+  (let ((applied-cxn-speaker (first (applied-constructions speaker)))
+        (applied-cxn-hearer (first (applied-constructions hearer))))
+    (if (communicated-successfully interaction)
+      (progn
+        (add-element `((p) ,(format nil "The speaker increased the score of the following construction by ~a:" (learning-rate speaker))))
+        (add-element (make-html (original-cxn applied-cxn-speaker) :expand-initially nil))
+        (add-element `((p) ,(format nil "The hearer increased the score of the following construction by ~a:" (learning-rate speaker))))
+        (add-element (make-html (original-cxn applied-cxn-hearer) :expand-initially nil)))
+      (progn
+        (add-element `((p) ,(format nil "The speaker decreased the score of the following construction by ~a:" (learning-rate speaker))))
+        (add-element (make-html (original-cxn applied-cxn-speaker) :expand-initially nil))))))
 
 
 ;; Adoption finished ;;
@@ -164,8 +172,8 @@
 (define-event adoption-finished (cxn fcg::fcg-construction))
 
 (define-event-handler (trace-interaction adoption-finished)
-  (add-element `((p :style "display: inline;") ,(format nil "Hearer adopted: ")))
-  (add-element (make-html cxn)))
+  (add-element `((p) ,(format nil "The hearer adopted the following construction: ")))
+  (add-element (make-html cxn :expand-initially nil)))
 
 
 ;; Determine Coherence-finished ;;

@@ -57,7 +57,8 @@
             (fcg::invent cip agent topic scene)
           (unless silent (notify meta-conceptualisation-finished fix agent))
           (setf (conceptualised-utterance agent) (render (car-resulting-cfs (first (get-data (blackboard fix) 'fcg::fixed-cars)))
-                                                         (get-configuration (grammar agent) :render-mode)))))
+                                                         (get-configuration (grammar agent) :render-mode)))
+          (setf (applied-constructions agent) (list (processing-cxn cxn)))))
       ;; otherwise, render and set solution nodes
       (progn
         (setf (conceptualised-utterance agent) (render (car-resulting-cfs (fcg:cipn-car (first solution-node)))
