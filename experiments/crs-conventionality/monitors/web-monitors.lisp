@@ -38,6 +38,18 @@
                              ,(make-html (topic interaction))))))))))
 
 
+(define-event interaction-finished (experiment t)
+                                   (interaction t)
+                                   (interaction-number number))
+
+(define-event-handler (trace-interaction interaction-finished)
+  (if (communicated-successfully interaction)
+    (add-element `((h2 :style "background-color: HoneyDew; opacity:0.6; color: green; padding: 5px;")
+                   "Interaction succeeded"))
+    (add-element `((h2 :style "background-color: LavenderBlush; color: red; padding: 5px;")
+                   "Interaction failed"))))
+
+
 ;; Routine Conceptualisation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define-event routine-conceptualisation-started (topic crs-conventionality-entity-set)
@@ -210,16 +222,6 @@
 
 (define-event-handler (trace-fcg-crs cxn-deleted)
   nil)
-
-
-(define-event-handler (trace-fcg-crs fcg::cip-node-expanded)
-  (add-element `((h4) "HALLO"))
-  (add-element `((table :class "two-col")
-                 ((tbody)
-                  ,(make-tr-for-cip-tree-fcg-light cipn "expansion" 
-                                     :hide-subtree-with-duplicates nil)
-                  ,(make-tr-for-cip-tree-fcg-light (top-node (cip cipn)) "new tree" )
-                  ,(make-tr-for-cip-queue-fcg-light (cip cipn) "new queue" )))))
 
 (define-event-handler (trace-fcg-crs fcg::fcg-apply-w-n-solutions-started)
   (add-element (make-html (fcg::original-cxn-set construction-inventory))))
