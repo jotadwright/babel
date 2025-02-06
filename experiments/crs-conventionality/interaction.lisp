@@ -144,5 +144,6 @@
          (topic (topic interaction)))
     (conceptualise-and-produce hearer scene topic :use-meta-layer nil)
     (if (equalp (utterance speaker) (conceptualised-utterance hearer))
-      (setf (coherence interaction) t)
-      (setf (coherence interaction) nil))))
+        (setf (coherence interaction) t)
+        (setf (coherence interaction) nil))
+    (notify determine-coherence-finished speaker hearer)))

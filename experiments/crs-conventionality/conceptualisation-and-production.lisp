@@ -43,8 +43,10 @@
          (solution-node (first solution-and-cip)) ;;TO DO: select best solution
          (cip (second solution-and-cip)))
 
-    (unless silent (notify routine-conceptualisation-finished cip solution-node agent))
-
+    (unless silent
+      (if (eq 'speaker (experiment-framework::discourse-role agent))
+        (notify routine-conceptualisation-finished cip solution-node agent)))
+    
     ;; check if a solution is found
     (if (not (succeeded-nodes cip))
       (when use-meta-layer
