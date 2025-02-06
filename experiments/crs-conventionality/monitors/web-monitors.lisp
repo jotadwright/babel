@@ -122,21 +122,19 @@
                                (first (utterance agent))))))
 
 
-(define-event routine-interpretation-finished (agent crs-conventionality-agent)
+(define-event routine-interpretation-finished (cip fcg:construction-inventory-processor)
+                                              (agent crs-conventionality-agent)
                                               (scene crs-conventionality-entity-set))
 
 (define-event-handler (trace-interaction routine-interpretation-finished)
-  (add-element `((h2) ,(format nil "Interpretation finished" )))
-  (add-element '((hr :style "border-top: 1px dashed; background-color:transparent;")))
-
   (if (fcg:succeeded-nodes cip)
     (progn
-      (add-element `((b :style "background-color: green; color: white; padding: 5px;")
+      (add-element `((b :style "color: green;")
                      ,(format nil "Routine interpretation succeeded" )))
       (add-element `((br :style "margin: 20px"))))
     (progn
-      (add-element `((b :style "background-color: red; color: white; padding: 5px;")
-                     ,(format nil "Routine conceptualisation failed" )))
+      (add-element `((b :style "color: red;")
+                     ,(format nil "Routine interpretation failed" )))
       (add-element `((br :style "margin: 20px"))))))
 
 

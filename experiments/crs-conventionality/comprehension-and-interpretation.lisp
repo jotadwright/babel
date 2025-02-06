@@ -33,7 +33,8 @@
          (cip (second solution-and-cip)))
        
     (setf (computed-topic agent) (get-data (first solution-node) :computed-topic))
-    (setf (applied-constructions agent) (applied-constructions (first solution-node)))))
+    (setf (applied-constructions agent) (applied-constructions (first solution-node)))
+    (unless silent (notify routine-interpretation-finished cip agent scene))))
 
 
 (defmethod create-initial-structure ((utterance list)
