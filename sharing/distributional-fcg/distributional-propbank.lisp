@@ -64,6 +64,7 @@
 
 ;(comprehend "the man drives" :timeout nil)
 
+;(comprehend "the man rides a bike" :timeout nil)
 
 
 
@@ -321,7 +322,7 @@ categorial network and returns it."
          (initial-cfs (de-render utterance (get-configuration cxn-inventory :de-render-mode)
                                  :model (or (get-configuration cxn-inventory :model) "en_benepar")
                                  :cxn-inventory cxn-inventory :syntactic-analysis syntactic-analysis))
-         (ts-token-embeddings (get-data (blackboard (initial-transient-structure sentence)) :ts-embeddings)))
+         (ts-token-embeddings (get-data (blackboard initial-cfs) :ts-embeddings)))
     (set-data (blackboard cxn-inventory) :ts-token-embeddings ts-token-embeddings)
     (unless silent (monitors:notify parse-started (listify utterance) initial-cfs))
     (multiple-value-bind (meaning cip-node cip)
