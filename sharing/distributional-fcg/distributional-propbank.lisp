@@ -11,6 +11,10 @@
    (make-pathname :directory '(:relative "distributional-fcg")
                   :name "small-corpus" :type "conll")
    cl-user:*babel-corpora*))
+
+#|
+
+(progn 
             
 (defparameter *annotations*
   (read-propbank-conll-file *annotations-file-path*))
@@ -19,7 +23,7 @@
 (defparameter *training-configuration*
   '((:de-render-mode .  :de-render-constituents-dependents)
     (:node-tests :check-double-role-assignment)
-    (:parse-goal-tests :no-valid-children)
+    (:parse-goal-tests :no-valid-children :meaning-extracted)
     (:construction-inventory-processor-mode . :heuristic-search)
     (:search-algorithm . :best-first)   
     (:heuristics
@@ -48,10 +52,17 @@
   :cxn-inventory '*train-grammar*
   :fcg-configuration *training-configuration*)
 
- 
-;(add-embeddings-to-cxn-inventory *train-grammar* *annotations*)
+(add-embeddings-to-cxn-inventory *train-grammar* *annotations*)
+
+
+
+)
+|# 
 
 ;(comprehend "the man drives" :timeout nil)
+
+
+
 
 ;; goal test!!!!!! 
 
@@ -136,6 +147,82 @@
                               :cxn-inventory ,cxn-inventory)))
              (add-category lex-category cxn-inventory :recompute-transitive-closure nil) 
              lex-category))))
+
+
+(defun add-word-sense-cxn (gold-frame v-unit cxn-inventory propbank-sentence lex-category gram-category)
+  "Creates a new word sense construction if necessary, otherwise
+increments frequency of existing cxn. Adds a new sense category to the
+categorial network and returns it."
+  (let* ((lemma (or (feature-value (find 'lemma (unit-body v-unit) :key #'feature-name))
+                    (feature-value (find 'string (unit-body v-unit) :key #'feature-name))))
+         (cxn-name (intern (upcase (format nil "~a(~a)-cxn" (frame-name gold-frame) lemma))))
+         
+         (equivalent-cxn (find-cxn cxn-name cxn-inventory :hash-key (if (stringp lemma) ;;WERKT NIET MEER!
+                                                                      (intern (upcase lemma))
+                                                                      lemma) :key #'name))
+         (sense-category (intern (symbol-name (make-id (frame-name gold-frame))))))
+    
+    (if equivalent-cxn
+      
+      ;; If word sense cxn already exists
+      ;;---------------------------------
+      (progn
+        (incf (attr-val equivalent-cxn :score))
+        
+        ;; edge between gram-category and sense-category
+        (if (link-exists-p gram-category (attr-val equivalent-cxn :sense-category) cxn-inventory)
+          ;;connection between gram and sense category exists: increase edge weight
+          (progn
+            (incf-link-weight gram-category (attr-val equivalent-cxn :sense-category) cxn-inventory :delta 1.0 :link-type nil)
+            (incf-link-weight gram-category (attr-val equivalent-cxn :sense-category) cxn-inventory :delta 1.0 :link-type 'gram-sense))
+          ;;add new link
+          (progn
+            (add-link gram-category
+                      (attr-val equivalent-cxn :sense-category) cxn-inventory :weight 1.0 :link-type nil :recompute-transitive-closure nil)
+            (add-link gram-category
+                      (attr-val equivalent-cxn :sense-category) cxn-inventory :weight 1.0 :link-type 'gram-sense :recompute-transitive-closure nil)))
+        
+        ;; edge between lex-category and sense-category
+        (if (link-exists-p lex-category (attr-val equivalent-cxn :sense-category) cxn-inventory)
+          (progn
+            (incf-link-weight lex-category (attr-val equivalent-cxn :sense-category) cxn-inventory :delta 1.0 :link-type nil)
+            (incf-link-weight lex-category (attr-val equivalent-cxn :sense-category) cxn-inventory :delta 1.0 :link-type 'lex-sense))
+          (progn
+            (add-link lex-category
+                      (attr-val equivalent-cxn :sense-category) cxn-inventory :weight 1.0 :link-type nil :recompute-transitive-closure nil)
+            (add-link lex-category
+                      (attr-val equivalent-cxn :sense-category) cxn-inventory :weight 1.0 :link-type 'lex-sense :recompute-transitive-closure nil)))
+
+        (attr-val equivalent-cxn :sense-category))
+      
+      ;; Else make new cxn
+      ;;-------------------
+      (progn (assert lemma)
+        (eval
+         `(def-fcg-cxn ,cxn-name
+                       ((?lex-unit
+                         (footprints (ws)))
+                        <-
+                        (?lex-unit
+                         --
+                         (gram-category ,sense-category)
+                         (lex-category ,sense-category)
+                         (frame ,(intern (upcase (frame-name gold-frame))))
+                         (footprints (NOT ws))))
+                       :disable-automatic-footprints t
+                       :attributes (:sense-category ,sense-category
+                                    :label word-sense-cxn
+                                    :score 1)
+                       :description ,(sentence-string propbank-sentence)
+                       :cxn-inventory ,cxn-inventory))
+        
+        (add-category sense-category cxn-inventory :recompute-transitive-closure nil)
+        (add-link gram-category sense-category cxn-inventory :weight 1.0 :link-type nil :recompute-transitive-closure nil)
+        (add-link gram-category sense-category cxn-inventory :weight 1.0 :link-type 'gram-sense :recompute-transitive-closure nil)
+        (add-link lex-category sense-category cxn-inventory :weight 1.0 :link-type nil :recompute-transitive-closure nil)
+        (add-link lex-category sense-category cxn-inventory :weight 1.0 :link-type 'lex-sense :recompute-transitive-closure nil)
+        
+        sense-category))))
 
 
 ;; Here we need to add the embeddings to the TS. 
@@ -269,8 +356,9 @@
                   (meaning set-of-predicates)
                   (footprints set)
                   (embedding default :compare-distributional-vectors))
-  :hashed t)
 
+  
+  :hashed t)
 
 (defun add-embeddings-to-cxn-inventory (cxn-inventory conll-annotations)
   "Retrieve all token embeddings for constructions that carry a token
@@ -307,6 +395,7 @@ field :cxn-token-embeddings"
 
 
 (in-package :fcg)
+
 (defun constructions-for-application-hashed-categorial-network-neigbours (node)
   "Computes all constructions that could be applied for this node
    based on the hash table and the constructions that are linked to
@@ -334,3 +423,11 @@ the node through the links in the categorial network."
     ;; return constructions
     constructions))
 
+
+(defmethod cip-goal-test ((node cip-node) (mode (eql :meaning-extracted)))
+  "Checks whether the resulting meaning network is fully integrated
+(consists of a single connected chunk)."
+  (let* ((meaning 
+          (extract-meanings (left-pole-structure 
+                             (car-resulting-cfs (cipn-car node))))))
+    meaning))
