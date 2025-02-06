@@ -41,7 +41,7 @@ div.fcg-light-unit { border:1px solid #888; margin-bottom:6px; margin-top:6px; b
 div.fcg-light-added-unit { border:1px solid #888; margin-bottom:6px; margin-top:6px;background-color:#C2E0D1; }
 div.fcg-light-modified-unit { border:1px solid #888; margin-bottom:6px; margin-top:6px;background-color:#FFFFCC; }
 div.fcg-light-unit-name { padding-top:2px; padding-bottom:2px; padding-left:5px; padding-right:5px;font-weight:bold; color:#009; }
-div.fcg-light-unit-feature { padding-left:5px; padding-right:2px;padding-top:0px;padding-bottom:1px; background-color:#fff;}
+div.fcg-light-unit-feature { padding-left:5px; padding-right:2px;padding-top:0px;padding-bottom:1px; background-color: transparent}
 div.fcg-light-unit-feature-matched { padding-left:5px; padding-right:2px;padding-top:0px;padding-bottom:1px; background-color:#CEE4FF;}
 div.fcg-light-unit-feature-name { float:left;color:#000;white-space:nowrap; }
 div.fcg-light-unit-feature-not {  float:left;color:#DF0101;white-space:nowrap; }

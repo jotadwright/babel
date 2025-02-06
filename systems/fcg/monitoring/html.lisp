@@ -594,8 +594,8 @@ div.pole-connector > span a:hover { border-bottom:1px solid #006; }
         `((a :href ,(format nil "javascript:collapseAll('~(~a~)');collapseAll('~(~a~)');collapse('~(~a~)');" expand/collapse-all-id-left expand/collapse-all-id-right element-id) :title "collapse all"))))))
 
 (define-css 'cxn_cfs "
-div.cxn_cfs > div.title { color:#fff;padding-left:2px;padding-right:2px;padding-top:0px;padding-bottom:1px; }
 div.cxn_cfs { padding:0px; display:inline-block; margin-right: 7px; margin-bottom:3px;margin-top:3px;position:relative; border-radius: 3px;}
+div.cxn_cfs > div.title { color:#fff;padding-left:2px;padding-right:2px;padding-top:0px;padding-bottom:1px; border-radius: 0px;}
 div.cxn_cfs > div.title > a { color:#fff; font-size:9pt; font-weight:normal;}
 div.cxn_cfs > table > tbody > tr > td.attributes { padding:4px; border-bottom:1px dashed #008;}
 div.cxn_cfs table.cxn_cfs { border-collapse:collapse;margin-top:4px;margin-bottom:-2px; }
@@ -1653,7 +1653,7 @@ div.construction-inventory > table > tbody > tr > td { padding-left:5px; padding
 div.cipn { margin-bottom:5px; margin-top:5px; }
 div.cipn-float { display:inline-block;margin-right:10px;
                  margin-top:-6px;margin-bottom:8px; }
-div.cipn-title { padding-top:2px; padding-left:5px;padding-right:5px;padding-bottom:2px;  }
+div.cipn-title { padding-top:2px; padding-left:5px;padding-right:5px;padding-bottom:2px; border-radius: 0px; }
 div.cipn-title { position:relative; color:#fff; }
 div.cipn-title > a { color:#fff; }
 div.cipn-linear-chain { padding-top:2px; padding-left:5px;padding-right:5px;padding-bottom:2px;background-color:#ddd;border-left:1px solid #888;border-right:1px solid #888; }

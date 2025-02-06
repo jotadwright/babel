@@ -50,7 +50,7 @@
   text-align: center;
   text-decoration: none;
   display: inline-block;
-  border-radius: 4px;
+  border-radius: 0px;
 }
 
 .reset {
