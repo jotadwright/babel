@@ -50,7 +50,9 @@
 
 (add-embeddings-to-cxn-inventory *train-grammar-2* *annotations*)
 
-(comprehend "A man reads")
+(loop for i from 0 to 100
+      do (comprehend "the man drives")
+      )
 
  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
  ;; quickly overwrite to test. ;;
@@ -85,7 +87,7 @@
                                 (footprints (lex))
                                 (lex-category ,lex-category))
                                (?lex-unit
-                                (footprints (lex)))
+                                (footprints (,lemma)))
                                <-
                                (?phrasal-unit
                                 --
@@ -94,7 +96,7 @@
                                 (syn-class ,syn-class))
                                (?lex-unit
                                 --
-                                (footprints (NOT lex))
+                                (footprints (NOT ,lemma))
                                 
                                 
                                 (token (embedding ,lemma-embedding-pointer))
@@ -112,12 +114,12 @@
                (eval
                 `(def-fcg-cxn ,cxn-name
                               ((?lex-unit
-                                (footprints (lex))
+                                (footprints (,lemma))
                              (lex-category ,lex-category))
                                <-
                                (?lex-unit
                                 --
-                                (footprints (NOT lex))
+                                (footprints (NOT ,lemma))
                                 
                                 
                                 (token (embedding ,lemma-embedding-pointer))
@@ -300,3 +302,37 @@ field :cxn-token-embeddings"
         (unless silent (monitors:notify parse-finished meaning processing-cxn-inventory))
         ;; Return value
         (values meaning solution cip)))))
+
+
+(in-package :fcg)
+(defun constructions-for-application-hashed-categorial-network-neigbours (node)
+  "Computes all constructions that could be applied for this node
+   based on the hash table and the constructions that are linked to
+the node through the links in the categorial network."
+  (let* ((lex-cat-neighbours (remove-duplicates (loop for lex-category in (lex-categories node)
+                                                      append (neighbouring-categories lex-category
+                                                                                      (original-cxn-set (construction-inventory node))))))
+         (gram-cat-neighbours (remove-duplicates (loop for gram-category in (gram-categories node)
+                                                       append (neighbouring-categories gram-category
+                                                                                       (original-cxn-set (construction-inventory node))))))
+         (constructions
+          (remove nil (loop for cxn in (get-constructions (constructions-hash-table (construction-inventory node)))
+                            collect (cond ((attr-val cxn :gram-category)
+                                           (when (member (attr-val cxn :gram-category) lex-cat-neighbours)
+                                             cxn))
+                                          ((attr-val cxn :sense-category)
+                                           (when (member (attr-val cxn :sense-category) gram-cat-neighbours)
+                                             cxn))
+                                          (t
+                                           cxn))))))
+    ;; shuffle if requested
+    (when (get-configuration node :shuffle-cxns-before-application)
+      (setq constructions 
+            (shuffle constructions)))
+    ;; return constructions
+    constructions))
+
+
+(defun get-constructions (hash-table)
+  (loop for value being the hash-values of hash-table
+        append value))
