@@ -712,7 +712,7 @@ function hideMenu(id) {
              (if (find :style div-attributes)
                  (loop for (attr val) on div-attributes by #'cddr
                     if (eq attr :style)
-                    append (list :style (mkstr val ";position:relative"))
+                    append (list :style (mkstr val ";position:relative; border-radius: 3px;"))
                     else append (list attr val))
                  (append '(:style "position:relative") div-attributes))))
         `((div ,@attributes :onmouseover ,(mkstr "showMenu('" menu-id "');")

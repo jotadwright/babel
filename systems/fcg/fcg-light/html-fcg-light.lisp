@@ -37,7 +37,7 @@ div.pole-connector > span a:hover { border-bottom:1px solid #006; }
 ")
 
 (define-css 'fcg-light-unit "
-div.fcg-light-unit { border:1px solid #888; margin-bottom:6px; margin-top:6px; }
+div.fcg-light-unit { border:1px solid #888; margin-bottom:6px; margin-top:6px; border-radius: 3px;}
 div.fcg-light-added-unit { border:1px solid #888; margin-bottom:6px; margin-top:6px;background-color:#C2E0D1; }
 div.fcg-light-modified-unit { border:1px solid #888; margin-bottom:6px; margin-top:6px;background-color:#FFFFCC; }
 div.fcg-light-unit-name { padding-top:2px; padding-bottom:2px; padding-left:5px; padding-right:5px;font-weight:bold; color:#009; }
