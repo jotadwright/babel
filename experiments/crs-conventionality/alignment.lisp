@@ -12,6 +12,7 @@
 
 (defmethod align ((speaker naming-game-agent) (hearer naming-game-agent) (interaction crs-conventionality-interaction) (mode (eql :lateral-inhibition)))
   "Align grammar of speaker and hearer based on interaction."
+  (notify alignment-started speaker hearer)
   (let ((applied-cxn-speaker (first (applied-constructions speaker)))
         (applied-cxn-hearer (first (applied-constructions hearer))))
     (if (communicated-successfully interaction)

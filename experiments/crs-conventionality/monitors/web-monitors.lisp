@@ -141,10 +141,17 @@
 
 ;; Alignment ;;
 ;;;;;;;;;;;;;;;
+(define-event alignment-started (speaker crs-conventionality-agent) (hearer crs-conventionality-agent))
+
+(define-event-handler (trace-interaction alignment-started)
+  (add-element `((h2 :style "background-color: LightGray; padding: 5px;") ,(format nil "Alignment")))
+  ; TODO: add punished and rewarded cxns to interface
+  )
+
 (define-event alignment-finished (speaker crs-conventionality-agent) (hearer crs-conventionality-agent))
 
 (define-event-handler (trace-interaction alignment-finished)
-  (add-element `((h2 :style "background-color: LightGray; padding: 5px;") ,(format nil "Alignment")))
+  nil
   ; TODO: add punished and rewarded cxns to interface
   )
 
