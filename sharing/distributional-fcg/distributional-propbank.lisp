@@ -3,6 +3,9 @@
 
 (in-package :propbank-grammar)
 
+
+(activate-monitor trace-fcg)
+
 (defparameter *annotations-file-path*
   (merge-pathnames 
    (make-pathname :directory '(:relative "distributional-fcg")
@@ -37,22 +40,21 @@
      :argm-phrase-with-string)
     (:cxn-supplier-mode . :hashed-categorial-network)))
 
+
 (learn-propbank-grammar
  (shuffle *annotations*)
  :selected-rolesets nil
  :excluded-rolesets nil
-  :cxn-inventory '*train-grammar-2*
+  :cxn-inventory '*train-grammar*
   :fcg-configuration *training-configuration*)
 
- (activate-monitor trace-fcg)
-
  
+;(add-embeddings-to-cxn-inventory *train-grammar* *annotations*)
 
-(add-embeddings-to-cxn-inventory *train-grammar-2* *annotations*)
+;(comprehend "the man drives" :timeout nil)
 
-(loop for i from 0 to 100
-      do (comprehend "the man drives")
-      )
+;; goal test!!!!!! 
+
 
  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
  ;; quickly overwrite to test. ;;
@@ -294,7 +296,7 @@ field :cxn-token-embeddings"
     (set-data (blackboard initial-cfs) :utterance utterance)
     ;; Construction application
     (multiple-value-bind (solution cip)
-        (fcg-apply processing-cxn-inventory initial-cfs '<- :notify (not silent))
+        (fcg-apply processing-cxn-inventory initial-cfs '<- :notify (not silent) :n 10)
       (let ((meaning (when solution
                        (extract-meanings (left-pole-structure (car-resulting-cfs (cipn-car solution)))))))
         
@@ -316,7 +318,7 @@ the node through the links in the categorial network."
                                                        append (neighbouring-categories gram-category
                                                                                        (original-cxn-set (construction-inventory node))))))
          (constructions
-          (remove nil (loop for cxn in (get-constructions (constructions-hash-table (construction-inventory node)))
+          (remove nil (loop for cxn in (constructions-list (construction-inventory node))
                             collect (cond ((attr-val cxn :gram-category)
                                            (when (member (attr-val cxn :gram-category) lex-cat-neighbours)
                                              cxn))
