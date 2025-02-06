@@ -45,10 +45,8 @@
                                                 (scene crs-conventionality-entity-set))
 
 (define-event-handler (trace-interaction routine-conceptualisation-started)
-  (add-element `((h2 :style "background-color: LightGray; padding: 5px 5px 0px 5px; margin-bottom: 0; border-bottom: solid 1px black;")
+  (add-element `((h2 :style "background-color: LightGray; padding: 5px;")
                  ,(format nil "Conceptualisation")))
-  (add-element `((p  :style "background-color: white; padding: 0px 5px 5px 5px; margin-top: 0px;")
-                 ,(format nil "The speaker conceptualises the topic.")))
   
   (add-element `((h3) ,(format nil "Routine conceptualisation"))))
 
@@ -62,7 +60,7 @@
   (if (fcg:succeeded-nodes cip)
     (progn
       (add-element `((b :style "background-color: green; color: white; padding: 5px;")
-                     ,(format nil "Routine search completed - Conceptualisation succeeded: the speaker found a contruction in its inventory that matched the topic" )))
+                     ,(format nil "Routine conceptualisation completed" )))
       (add-element `((br :style "margin: 20px")))
       (add-element `((a) ,(format nil "Speaker uttered: ")))
       (add-element `((b) ,(format nil "\"~a\"" (first (fcg::render (fcg::car-resulting-cfs (fcg:cipn-car (first solution-nodes)))
@@ -195,5 +193,7 @@
 
 
 (define-event-handler (trace-fcg-crs fcg::fcg-apply-w-n-solutions-finished)
-  (add-element `((h3) "Arno"))
-  (add-element (fcg::make-html-fcg-light fcg::cip :solutions fcg::solutions)))
+  (add-element `((div)
+                 ((table :class "two-col")
+                  ((tbody)
+                   ,(fcg::make-tr-for-cip-tree-fcg-light (fcg::top-node cip) "application process"))))))
