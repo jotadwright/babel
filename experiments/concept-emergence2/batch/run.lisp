@@ -56,6 +56,7 @@
                            "export-construction-inventory-usage-train"
                            "export-experiment-configurations"
                            "export-experiment-store"
+                           "export-partner-selection"
                            "log-every-x-interactions-in-output-browser")
                      config)
 

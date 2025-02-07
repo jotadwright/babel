@@ -131,6 +131,39 @@
       (write-string (jzon::stringify tables)
                     stream))))
 
+;; -------------------------------
+;; + Partner selection over time +
+;; -------------------------------
+(define-monitor record-partner-selection
+                :class 'data-recorder
+                :average-window 0
+                :documentation "Records the q-values for selecting partners.")
+
+(define-monitor export-partner-selection
+                :class 'csv-data-file-writer
+                :documentation "Exports the q-values for selecting partners."
+                :data-sources '(record-partner-selection)
+                :file-name (babel-pathname :name "partner-selection" :type "csv"
+                                           :directory '("experiments" "concept-emergence2" "logging"))
+                :add-time-and-experiment-to-file-name nil)
+
+
+(defun print-trimmed-float (float)
+  (let ((rounded (format nil "~,3F" float)))
+    (string-right-trim "0" (if (find #\. rounded) rounded (concatenate 'string rounded ".")))))
+
+(define-event-handler (record-partner-selection interaction-finished)
+  (record-value monitor (let* ((agent (first (agents (experiment interaction))))
+                               (id (second (cl-ppcre::split "-" (symbol-name (id agent)))))
+                               (preferences (mapcar #'print-trimmed-float (hash-values (partner-preferences agent)))))
+                          #|(loop for agent-id being the hash-keys of (partner-preferences agent)
+                                                    using (hash-value q-value)
+                                                    ;for id = (second (cl-ppcre::split "-" (symbol-name agent-id)))
+                                                  collect q-value)|#
+                          (list id preferences))))
+
+
+
 ;; -----------------
 ;; + Export CONFIG +
 ;; -----------------
