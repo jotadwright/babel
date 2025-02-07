@@ -230,6 +230,77 @@ categorial network and returns it."
         sense-category))))
 
 
+(defun add-grammatical-cxn (gold-frame core-units-with-role cxn-inventory propbank-sentence lex-category)
+  "Learns a grammatical construction capturing all core roles and adds
+a grammatical category to the categorial network. Returns the
+grammatical category."
+  
+  (let* ((ts-unit-structure (ts-unit-structure propbank-sentence cxn-inventory))
+         (gram-category (make-gram-category core-units-with-role))
+         (cxn-units-with-role (loop for unit in core-units-with-role
+                                    collect (make-propbank-conditional-unit-with-role unit gram-category 'fee)))
+         (cxn-units-without-role (make-propbank-conditional-units-without-role core-units-with-role
+                                                                               cxn-units-with-role ts-unit-structure))
+         (passive (loop for unit in cxn-units-without-role
+                        when (eql '+ (unit-feature-value (cdr unit) 'passive))
+                        return t))
+         (contributing-unit (make-propbank-contributing-unit core-units-with-role gold-frame gram-category 'fee))
+         (schema (make-cxn-schema core-units-with-role cxn-units-with-role :core-roles :passive? passive))
+         (cxn-name (intern (upcase (format nil "~a+~a-cxn" gram-category (length cxn-units-without-role)))))
+         (equivalent-cxn (find-equivalent-cxn schema
+                                              (syn-classes (append cxn-units-with-role
+                                                                   cxn-units-without-role))
+                                              cxn-inventory)))
+    
+    (if equivalent-cxn
+      
+      ;; Grammatical construction already exists
+      ;;----------------------------------------
+      (progn
+        ;;1) Increase its frequency
+        (incf (attr-val equivalent-cxn :score))
+        ;;2) Check if there was already a link in the categorial network between the lex-category and the gram-category:
+        (if (link-exists-p lex-category (attr-val equivalent-cxn :gram-category) cxn-inventory)
+          ;;a) If yes, increase edge weight
+          (progn
+            (incf-link-weight lex-category (attr-val equivalent-cxn :gram-category) cxn-inventory :delta 1.0 :link-type nil)
+            (incf-link-weight lex-category (attr-val equivalent-cxn :gram-category) cxn-inventory :delta 1.0 :link-type 'lex-gram))
+          ;;b) Otherwise, add new connection (weight 1.0)
+          (progn
+            (add-link lex-category (attr-val equivalent-cxn :gram-category) cxn-inventory :weight 1.0 :link-type nil
+                      :recompute-transitive-closure nil)
+            (add-link lex-category (attr-val equivalent-cxn :gram-category) cxn-inventory :weight 1.0 :link-type 'lex-gram
+                      :recompute-transitive-closure nil)))
+        ;;2.2) (Added for distributional-propbank:)
+        ;(append-data (blackboard equivalent-cxn) :strings 
+        ;;3) Return gram-category
+        (attr-val equivalent-cxn :gram-category))
+
+      ;; Else: Create a new grammatical category for the observed pattern + add category and link to the categorial network
+      ;;--------------------------------------------------------------------------------------------------------------------
+      (when (and cxn-units-with-role (v-lemma core-units-with-role))
+        
+        (add-category gram-category cxn-inventory :recompute-transitive-closure nil)
+        (add-link lex-category gram-category cxn-inventory :weight 1.0 :link-type nil :recompute-transitive-closure nil)
+        (add-link lex-category gram-category cxn-inventory :weight 1.0 :link-type 'lex-gram :recompute-transitive-closure nil)
+        
+        (eval `(def-fcg-cxn ,cxn-name
+                            (,contributing-unit
+                             <-
+                             ,@cxn-units-with-role
+                             ,@cxn-units-without-role
+                             )
+                            :disable-automatic-footprints t
+                            :attributes (:schema ,schema
+                                         :lemma nil
+                                         :label argument-structure-cxn
+                                         :score 1
+                                         :gram-category ,gram-category)
+                            :description ,(sentence-string propbank-sentence)
+                            :cxn-inventory ,cxn-inventory))
+        gram-category))))
+
+
 ;; Changes: get embeddings of the lemmas and add them to the units of the TS and the blackboard of the TS.
 (defun create-initial-transient-structure-based-on-benepar-analysis (spacy-benepar-analysis)
   (let* (;; Make unit names for the different units, and store them with the unit id.

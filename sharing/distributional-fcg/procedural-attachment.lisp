@@ -23,7 +23,7 @@
            (let* ((token-embedding-cxn (cdr (assoc value (get-data (blackboard cxn-inventory) :cxn-token-embeddings))))
                   (token-embedding-ts (cdr (assoc source (get-data (blackboard cxn-inventory) :ts-token-embeddings))))
                   (cosine-similarity (cosine-similarity token-embedding-cxn token-embedding-ts)))
-             (if (> cosine-similarity 0)
+             (if (> cosine-similarity 0.6)
                (values source (mapcar #'(lambda (bindings-list)
                                           (extend-bindings (variablify value) cosine-similarity bindings-list))
                                       bindings))
