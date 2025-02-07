@@ -9,13 +9,13 @@
 (in-package :crs-conventionality)
 
 (run-experiments-sequentially 'naming-game-experiment
-                    :strategies `(('run-1
+                    :strategies `((strategy-1
                                     (;; Logging
                                     (:log-every-x-interactions . 100)
                                     ;; Initialising the experiment
-                                    (:nr-of-entities-in-world . 5)
-                                    (:nr-of-agents-in-population . 2)
-                                    (:nr-of-entities-in-scene . 3)
+                                    (:nr-of-entities-in-world . 10)
+                                    (:nr-of-agents-in-population . 10)
+                                    (:nr-of-entities-in-scene . 5)
                                     (:alignment-strategy . :lateral-inhibition)
                                     (:learning-strategy . :default)
                                     (:learning-rate . 0.5)
@@ -24,10 +24,11 @@
                                     (:determine-scene-entities-mode . :random-subset-of-world)
                                     (:determine-topic-mode . :random-entity-from-scene))))
                     :number-of-interactions 5000
-                    :number-of-series 2
-                    :monitors (list "print-a-dot-for-each-interaction"
+                    :number-of-series 1
+                    :monitors (list "log-every-x-interactions-in-output-browser"
                                     "export-communicative-success"
-                                    "export-conventionalisation"))
+                                    "export-conventionalisation"
+                                    "record-construction-inventory-size"))
 
 ;; PARALLEL BATCHES TODO
 ;; (run-parallel-batch-for-different-configurations :asdf-system "crs-conventionality"

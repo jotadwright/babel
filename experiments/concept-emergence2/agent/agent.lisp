@@ -8,9 +8,12 @@
   ((lexicon
     :documentation "The agent's lexicon."
     :type lexicon :accessor lexicon :initarg :lexicon :initform nil)
-   (trash
-    :documentation "The lexicon trash, contains cxns with an entrenchment score of zero."
-    :type list :accessor trash :initform nil)
+   (views
+    :documentation "The views that the agent has over a world."
+    :type list :accessor views :initarg :views :initform nil)
+   (current-view
+    :documentation "The current view assigned to the agent."
+    :type string :accessor current-view :initform nil)
    (disabled-channels
     :documentation "Disabled/defected channels."
     :type hash-table :accessor disabled-channels :initarg :disabled-channels :initform nil)
@@ -49,48 +52,48 @@
 ;; + NOISE +
 ;; ---------
 
-(defmethod perceive-object-val2 ((agent cle-agent) (object cle-object) attr)
-  "Perceives the value in a given sensor 'attr' of a given object.
+;; (defmethod perceive-object-val2 ((agent cle-agent) (object cle-object) attr)
+;;   "Perceives the value in a given sensor 'attr' of a given object.
 
-   This reading can be affected by two types of noise.
-   The raw observation is the true value in that channel of the object.
-   The sensor-noise term is a fixed shift (in either direction).
-   The observation noise term is different for every observation."
-  (if (and (gethash (id object) (perceived-objects agent))
-           (gethash attr (gethash (id object) (perceived-objects agent))))
-    ;; CASE 1: object found + existing attr
-    (gethash attr (gethash (id object) (perceived-objects agent)))
-    ;; CASE 2: if could not find entry directly
-    (let* ((raw-observation-val (get-object-val object attr))
-           (sensor-noise (noise-in-sensor agent attr (get-configuration (experiment agent) :sensor-noise)))
-           (observation-noise (noise-in-observation agent attr (get-configuration (experiment agent) :observation-noise)))
-           (final-val
-            ;; process the observation in function of its nature (categorical vs continuous)
-            (if (not raw-observation-val)
-              ;; no observation, for example if a channel is disabled!
-              nil
-              ;; observation received
-              (if (channel-continuous-p (world (experiment agent)) attr)
-                ;; observation is continuous
-                (if (and (zerop sensor-noise) (zerop observation-noise))
-                  ;; no noise to add, return the raw (true) observation
-                  raw-observation-val
-                  ;; add the noise, but cap final result between 0 and 1
-                  (min (max 0 (+ raw-observation-val sensor-noise observation-noise)) 1))
-                ;; observation is categorical
-                raw-observation-val))))
+;;    This reading can be affected by two types of noise.
+;;    The raw observation is the true value in that channel of the object.
+;;    The sensor-noise term is a fixed shift (in either direction).
+;;    The observation noise term is different for every observation."
+;;   (if (and (gethash (id object) (perceived-objects agent))
+;;            (gethash attr (gethash (id object) (perceived-objects agent))))
+;;     ;; CASE 1: object found + existing attr
+;;     (gethash attr (gethash (id object) (perceived-objects agent)))
+;;     ;; CASE 2: if could not find entry directly
+;;     (let* ((raw-observation-val (get-object-val object attr))
+;;            (sensor-noise (noise-in-sensor agent attr (get-configuration (experiment agent) :sensor-noise)))
+;;            (observation-noise (noise-in-observation agent attr (get-configuration (experiment agent) :observation-noise)))
+;;            (final-val
+;;             ;; process the observation in function of its nature (categorical vs continuous)
+;;             (if (not raw-observation-val)
+;;               ;; no observation, for example if a channel is disabled!
+;;               nil
+;;               ;; observation received
+;;               (if (channel-continuous-p (world (experiment agent)) attr)
+;;                 ;; observation is continuous
+;;                 (if (and (zerop sensor-noise) (zerop observation-noise))
+;;                   ;; no noise to add, return the raw (true) observation
+;;                   raw-observation-val
+;;                   ;; add the noise, but cap final result between 0 and 1
+;;                   (min (max 0 (+ raw-observation-val sensor-noise observation-noise)) 1))
+;;                 ;; observation is categorical
+;;                 raw-observation-val))))
 
-      (if (gethash (id object) (perceived-objects agent))
-        ;; case 2A: object existed, but no entry
-        (setf (gethash attr (gethash (id object) (perceived-objects agent))) final-val)
-        ;; CASE 2B: object did not exist
-        (progn
-          ;; first create object
-          (setf (gethash (id object) (perceived-objects agent)) (make-hash-table))
-          ;; then set value
-          (setf (gethash attr (gethash (id object) (perceived-objects agent))) final-val)))
-      ;; in both cases return the final-value
-      (gethash attr (gethash (id object) (perceived-objects agent))))))
+;;       (if (gethash (id object) (perceived-objects agent))
+;;         ;; case 2A: object existed, but no entry
+;;         (setf (gethash attr (gethash (id object) (perceived-objects agent))) final-val)
+;;         ;; CASE 2B: object did not exist
+;;         (progn
+;;           ;; first create object
+;;           (setf (gethash (id object) (perceived-objects agent)) (make-hash-table))
+;;           ;; then set value
+;;           (setf (gethash attr (gethash (id object) (perceived-objects agent))) final-val)))
+;;       ;; in both cases return the final-value
+;;       (gethash attr (gethash (id object) (perceived-objects agent))))))
 
 (defmethod perceive-object-val ((agent cle-agent) (object cle-object) attr)
   (get-object-val object attr))

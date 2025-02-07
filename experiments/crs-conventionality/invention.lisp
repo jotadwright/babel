@@ -15,7 +15,7 @@
                    (topic crs-conventionality::crs-conventionality-entity-set) (scene crs-conventionality::crs-conventionality-entity-set))
   (let (;; original cxn set for inventing
         (cxn-inventory (original-cxn-set (construction-inventory cip)))
-        ;; retrieve ...
+        ;; retrieve the top node of the cip
         (cipn (top-node cip)))
     
     ;; Add diagnostics, repairs and best-solution to cip
@@ -38,7 +38,7 @@
       (setf (fully-expanded? child) t)
       (cip-run-goal-tests child cip) ;; to include succeeded status in node statuses
       (push 'added-by-repair (statuses child))
-                                                                   
+
       (add-cxn cxn cxn-inventory)
       (push cxn consolidated-cxns)
     

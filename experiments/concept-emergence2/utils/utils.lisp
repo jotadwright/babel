@@ -18,6 +18,14 @@
           else
             collect row)))
 
+(defun read-jsonl (path)
+  "Loads a .jsonl corpus."
+  (with-open-file (stream path)
+    (loop for line = (read-line stream nil)
+          for data = (when line (jzon::parse line :key-fn #'parse-keyword))
+          while data
+          collect data)))
+
 (defun get-current-date ()
   (multiple-value-bind
       (second minute hour day month year day-of-week dst-p tz)
@@ -37,24 +45,36 @@
 (defun parse-keyword (string)
   (intern (string-upcase (string-left-trim ":" string)) :keyword))
 
-(defun store-experiment (experiment)
+(defmethod jzon::coerce-key ((key symbol))
+  (let ((name (symbol-name key)))
+    (when (keywordp key)
+      (setf name (format nil ":~A" name)))
+    (string-downcase name)))
+
+(defmethod jzon::write-value ((writer jzon::writer) (value symbol))
+  (let ((name (string-downcase (symbol-name value))))
+    (when (keywordp value)
+      (setf name (format nil ":~A" name)))
+    (jzon::%write-json-atom writer name)))
+
+(defun store-experiment (experiment &optional (stage nil))
   (let* ((exp-top-dir (get-configuration experiment :exp-top-dir))
          (log-dir-name (get-configuration experiment :log-dir-name))
          (exp-name (get-configuration experiment :exp-name))
-         (current-stage (get-configuration experiment :current-stage))
+         (dataset-split (get-configuration experiment :dataset-split))
+         (stage (if stage (get-configuration experiment :current-stage) ""))
          (path (babel-pathname
-                :directory `("experiments"
-                             "concept-emergence2"
-                             "logging"
+                :directory `("experiments" 
+                             "concept-emergence2" 
+                             "logging" 
                              ,exp-top-dir
+                             ,dataset-split
                              ,exp-name
                              ,log-dir-name
                              "stores")
-                :name (format nil "seed-~a~a"
-                              (get-configuration experiment :seed)
-                              current-stage) 
+                :name (format nil "seed-~a~a" (get-configuration experiment :seed) stage)
                 :type "store"))
-         (tmp-world (copy-object (world experiment))))
+          (tmp-world (copy-object (world experiment))))
     (ensure-directories-exist path)
     (setf (world experiment) nil)
     (cl-store:store experiment path)
@@ -75,34 +95,6 @@
         do (setf (gethash (funcall key el) tbl) el)
         finally (return tbl)))
 
-(defun hash-table->alist (data)
-  (if (hash-table-p data)
-    (let ((alist (or (hash-table-alist data) 'empty-hash)))
-      (if (eql alist 'empty-hash)
-        'empty-hash
-        (loop for (key . value) in alist
-              if (hash-table-p value)
-              collect (cons key (hash-table->alist value))
-              else collect (cons key value))))
-    data))
-
-(defun alist->json-alist (alist)
-  (mapcar (lambda (entry)
-            (cons (if (keywordp (car entry))
-                      (string-downcase (format nil ":~a" (car entry)))
-                      (car entry))
-                  (cond ((keywordp (cdr entry))
-                         (string-downcase (format nil ":~a" (cdr entry))))
-                        ((numberp (cdr entry))
-                         (cdr entry))
-                        ((stringp (cdr entry))
-                         (cdr entry))
-                        ((equal (cdr entry) (list nil))
-                         "nil")
-                        (t
-                         (string-downcase (cdr entry))))))
-          alist))
-
 (defun hash-keys (ht)
   (loop for key being the hash-keys of ht
         collect key))
@@ -111,71 +103,22 @@
   (loop for value being the hash-values of ht
         collect value))
 
-(defun create-configurations (parameters)
-  "Generate a set of experiments. Specify which parameters are variable
-   and what their possible values can be. Optionally specify an a-list
-   of shared configurations."
-  (let* ((pairs (loop for (key . values) in parameters
-                      collect (loop for value in values
-                                    collect (cons key value))))
-         (configurations (apply #'combinations pairs)))
-    configurations))
-
-(defun calculate-amount-of-variations (parameters)
-  (length (create-configurations parameters)))
-
-(defun generate-csv-for-tuning (filename exp-prefix default-config tuned-params)
-  (with-open-file (str (namestring (merge-pathnames (format nil "~a.csv" filename)
-                                                    (asdf:system-relative-pathname "cle" "batch/data-train/")
-                                                    ))
-                       :direction :output
-                       :if-exists :supersede
-                       :if-does-not-exist :create)
-
-    (loop for (key . def-val) in default-config and i from 1
-          if (< i (length default-config))
-            do (format str "~a" (replace-char (format nil "~(~a~)," key) #\- #\_))
-          else
-            do (format str "~a" (replace-char (format nil "~(~a~)" key) #\- #\_)))
-    (loop for config in (create-configurations tuned-params) and i from 1
-          do (loop for (key . def-val) in default-config and j from 1
-                   for found = (assoc key config)
-                   if (< j (length default-config))
-                     do (cond ((eq key :id)
-                               (format str "~%~a," i))
-                              ((eq key :exp-name)
-                               (format str "~a-~a," exp-prefix i))
-                              (found
-                               (cond ((keywordp (assqv key config))
-                                      (format str "~(~s~)," (assqv key config)))
-                                     (t
-                                      (format str "~a," (assqv key config)))))
-                              (t
-                               (cond ((keywordp def-val)
-                                      (format str "~(~s~)," def-val))
-                                     (t
-                                      (format str "~a," def-val)))))
-                   else
-                     do (cond ((eq key :id)
-                               (format str "~%~a" i))
-                              ((eq key :exp-name)
-                               (format str "~a-~a" exp-prefix i))
-                              (found
-                               (cond ((keywordp (assqv key config))
-                                      (format str "~(~s~)" (assqv key config)))
-                                     (t
-                                      (format str "~a" (assqv key config)))))
-                              (t
-                               (cond ((keywordp def-val)
-                                      (format str "~(~s~)" def-val))
-                                     (t
-                                      (format str "~a" def-val)))))))))
-
 (defun load-experiment (store-dir name)
   "Loads and returns the store object in the given directory." 
-  (let ((store-path (merge-pathnames (make-pathname :name name :type "store")
-                                     store-dir)))
-    (cl-store:restore store-path)))
+  (let* ((store-path (merge-pathnames (make-pathname :name name :type "store")
+                                      store-dir))
+         (experiment (cl-store:restore store-path)))
+    experiment))
+
+(defun test-stored-experiment (experiment)
+  "After loading a stored experiment, this function performs
+    a number of checks to warn the developer if something is awry."
+  (when (not (get-configuration experiment :coherence-perspective))
+    (error "The required config :coherence-perspective was not found in the stored experiment.
+              It is possible that you are loading an old .store file.
+              Either load another experiment or set the configuration manually.
+              Probably using `(set-configuration experiment :coherence-perspective :hearer)`")))
+    
 
 (defun set-up-monitors (monitors config)
   (monitors::deactivate-all-monitors)
@@ -192,41 +135,5 @@
                                                                   "concept-emergence2"
                                                                   "logging"
                                                                   ,(assqv :exp-top-dir config)
+                                                                  ,(assqv :dataset-split config)
                                                                   ,(assqv :exp-name config))))))))
-
-#|(generate-csv-for-tuning "tune-clevr"
-                         "tune-clevr"
-                         `((:id . "?")
-                           (:exp-name . "?")
-                           (:nr-of-series . 5)
-                           (:nr-of-interactions . 500000)
-                           (:population-size . 10)
-                           (:dataset . "clevr")
-                           (:dataset-split . "train")
-                           (:feature-set . "clevr")
-                           (:disable-channels . :none)
-                           (:amount-disabled-channels . 0)
-                           (:sensor-noise . :none)
-                           (:sensor-std . 0.0)
-                           (:observation-noise . :none)
-                           (:observation-std . 0.0)
-                           (:scene-sampling . :random)
-                           (:topic-sampling . :random)
-                           (:similarity-threshold . 0.0)
-                           (:align . t)
-                           (:entrenchment-incf . 0.1)
-                           (:entrenchment-decf . -0.1)
-                           (:entrenchment-li . -0.02)
-                           (:trash-concepts . t)
-                           (:weight-update-strategy . :j-interpolation)
-                           (:initial-weight . 0)
-                           (:weight-incf . 1)
-                           (:weight-decf . -5)
-                           (:switch-condition . :none)
-                           (:switch-conditions-after-n-interactions . 0)
-                           (:stage-parameters ,'((:do-nothing . t))))
-                         `((:similarity-threshold 0.0 0.001 0.005 0.01 0.05 0.1 0.2 0.3)
-                           (:initial-weight 0 35)
-                           (:weight-decf -1 -2 -3 -5)
-                           (:entrenchment-li -0.0001 -0.0005 -0.001 -0.005 -0.01 -0.02 -0.05)
-                           ))|#

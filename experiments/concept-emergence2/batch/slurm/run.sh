@@ -1,34 +1,36 @@
 #!/bin/bash
 
-mkdir -p "/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/${9}"
+# see README.md for usage
 
-for i in $(seq $4 $5);
+expand_range() {
+    input="$1"
+    result=()
+
+    # Convert commas to newlines, then process each item
+    IFS=',' read -ra parts <<< "$input"
+    for part in "${parts[@]}"; do
+        if [[ "$part" =~ ^([0-9]+)-([0-9]+)$ ]]; then
+            # It's a range, expand it
+            start=${BASH_REMATCH[1]}
+            end=${BASH_REMATCH[2]}
+            for ((i = start; i <= end; i++)); do
+                result+=("$i")
+            done
+        else
+            # It's an individual number
+            result+=("$part")
+        fi
+    done
+
+    # Return the expanded numbers as a space-separated string
+    echo "${result[@]}"
+}
+
+mkdir -p "/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/${1}/${8}"
+
+for i in $(expand_range "$4");
 do
-    epath="/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/${9}/${2}_%a_seed${i}_%A_e.txt"
-    opath="/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/${9}/${2}_%a_seed${i}_%A_o.txt"
-    sbatch --error $epath --output $opath --job-name "${9}-seed${i}-${1}" --array $3 --time $6 --mem $7  --ntasks 1 --cpus-per-task 1 --export=seed=$i,name=$2,space=$8,exp_top_dir=$9 slurm/$1.sh
+    epath="/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/${1}/${8}/${2}_%a_seed${i}_%A_e.txt"
+    opath="/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/${1}/${8}/${2}_%a_seed${i}_%A_o.txt"
+    sbatch --error $epath --output $opath --job-name "${8}-seed${i}-${1}" --array $3 --time $5 --mem $6  --ntasks 1 --cpus-per-task 1 --export=seed=$i,name=$2,space=$7,exp_top_dir=$8 slurm/$1.sh
 done
-
-# example usage: 
-# arguments:
-#    - $1 = name of the experiment (corresponds to the csv)
-#    - $2 = in the csv; which sub-experiments to run
-#    - $3 = starting seed
-#    - $4 = last seed
-#    - $5 = wall-time
-#    - $6 = memory requirement
-#    
-# $ bash slurm/run.sh train paper-hydra 1,3,4 1 10 08:00:00 8G 10000 exp-name
-#  -> this script runs sub-experiment 1,3,4 in paper-hydra.csv
-#  -> it runs all those experiments with seeds 1 through 10 (inclusive)
-#  -> it allocates 16GB and a walltime of 10 hours for each individual sub-experiment
-#  -> it reserves a dynamic-space-size of 10000 MB (10GB) for sbcl
-
-# --array options
-#   1,3,4 -> run sub-experiments 1, 3, and 4
-#   3-5,9 -> run sub-experiments 3, 4, 5, and 9
-
-# $ bash slurm/run.sh test test-paper-hydra 1,4,5 1 10 02:00:00 8G 10000 exp-name
-
-# experiment equality checker
-# $ bash slurm/run.sh train exp-equality 1-11 1 3 00:08:00 8G 10000 exp-equality

@@ -28,4 +28,5 @@
                (:file "comprehension-and-interpretation")
                (:file "invention")
                (:file "alignment")
-               (:file "diagnostics-and-repairs")))
+               (:file "diagnostics-and-repairs")
+               (:file "social-network")))

@@ -9,10 +9,15 @@
                       collect (cons (parse-keyword a) (read-from-string b)))))
     ;; make sure that the keys required in paths are lowercase
     (loop for (key . val) in config
-          when (find key (list :exp-name :dataset :dataset-split :exp-top-dir :feature-set))
+          when (find key (list :exp-name :dataset-split :exp-top-dir))
             do (rplacd (assoc key config)
                        (string-downcase (string (assqv key config)))))
-    ;; make sure that the keys required in paths are lowercase
+    ;; lists of strings should also be downcase
+    (loop for (key . val) in config
+          when (find key (list :dataset :feature-set))
+          ;; loop through strings in val and downcase theme
+          do (rplacd (assoc key config)
+                     (mapcar #'string-downcase val)))
     (when (assoc :stage-parameters config)
       (let ((stage-params (assqv :stage-parameters config)))
         (loop for stage-param in stage-params
@@ -30,15 +35,13 @@
 (defun fixed-config ()
   `(;; fixed in stone
     ;; --------------
-    (:dot-interval . 5000)
+    (:log-every-x-interactions . 5000)
     ;(:record-every-x-interactions . 100)
     (:usage-table-window . 5000)
     (:save-distribution-history . nil)
     (:interacting-agents-strategy . :standard)
     (:initial-cxn-entrenchement . 0.5)
-    ;; concept representations
-    (:concept-representation . :distribution)
-    (:distribution . :gaussian-welford)
+    ;; parameter for updating continuous distributions (gaussian-welford)
     (:M2 . 0.0001)))
 
 (defun run-experiment (args)
@@ -50,11 +53,11 @@
     (setf config (append config (list (cons :log-dir-name log-dir-name))))
     ;; adapt file-writing monitors so they output in the correct log-dir
     (set-up-monitors (list "export-communicative-success"
-                           "export-lexicon-coherence"
-                           "export-unique-form-usage"
+                           "export-conventionalisation"
+                           "export-construction-inventory-usage-train"
                            "export-experiment-configurations"
                            "export-experiment-store"
-                           "print-a-dot-for-each-interaction")
+                           "log-every-x-interactions-in-output-browser")
                      config)
 
     ;; Run experiment
