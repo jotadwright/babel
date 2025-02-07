@@ -1,0 +1,5 @@
+id,exp_name,nr_of_interactions,dataset_loader,min_context_size,max_context_size,dataset,dataset_split,feature_set,scene_sampling,topic_sampling
+1,ps-9,100000,:runtime,10,10,winery,test,winery,:random,:random
+2,ps-11,100000,:runtime,10,10,winery,test,winery,:random,:random
+3,ps-12,100000,:runtime,10,10,winery,test,winery,:random,:random
+4,ps-13,100000,:runtime,10,10,winery,test,winery,:random,:random
