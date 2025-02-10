@@ -91,15 +91,15 @@
   ;; reset the web interface
   (wi::reset)
   ;; deactivate all monitors (as a sanity check)
-  (deactivate-all-monitors)
+  (monitors::notify reset-monitors)
   ;; configure a canonical naming game
   (defparameter *configuration-canonical* (make-configuration
                                            :entries '(;; Logging
                                                       (:log-every-x-interactions . 100)
                                                       ;; Initialising the experiment
-                                                      (:nr-of-entities-in-world . 5)
+                                                      (:nr-of-entities-in-world . 10)
                                                       (:nr-of-agents-in-population . 10)
-                                                      (:nr-of-entities-in-scene . 4)
+                                                      (:nr-of-entities-in-scene . 5)
                                                       (:alignment-strategy . :lateral-inhibition)
                                                       (:learning-strategy . :default)
                                                       (:learning-rate . 0.5)
@@ -108,7 +108,7 @@
                                                       (:determine-scene-entities-mode . :random-subset-of-world)
                                                       (:determine-topic-mode . :random-entity-from-scene))))
   ;; instantiate a naming game experiment
-  (defparameter *naming-game-canonical* (make-instance 'naming-game-experiment
+  (defparameter *naming-game-learnability* (make-instance 'naming-game-experiment
                                                        :configuration *configuration-canonical*))
   ;; activate monitors
   (activate-monitor log-every-x-interactions-in-output-browser))
@@ -128,20 +128,21 @@
   (activate-monitor display-metrics)
 
   ;; run the experiment
-  (loop for i from 1 to 1000
-        do (run-interaction *naming-game-canonical*)))
+  (loop for i from 1 to 3000
+        do (run-interaction *naming-game-learnability*)))
 
 
 (progn
-  ;; First throw in agents to the population. 
-  (throw-in-new-agents *naming-game-canonical* :number-of-agents 4)
+  (monitors::notify reset-monitors)
+  ;; First throw in agents to the *naming-game-learnability* 
+  (throw-in-new-agents *naming-game-learnability* :number-of-agents 4)
 
   ;; Change the configuration of the experiment to make sure that a 'new' agent is selected for the interaction as the listener. 
-  (set-configuration *naming-game-canonical* :determine-interacting-agents-mode :random-listener-from-younger-generation)
+  (set-configuration *naming-game-learnability* :determine-interacting-agents-mode :random-listener-from-younger-generation)
 
   ;; Run the experiment
   (loop for i from 1 to 1000
-        do (run-interaction *naming-game-canonical*))
+        do (run-interaction *naming-game-learnability*))
   )
 
 
