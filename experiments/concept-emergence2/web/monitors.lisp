@@ -153,15 +153,13 @@
     (string-right-trim "0" (if (find #\. rounded) rounded (concatenate 'string rounded ".")))))
 
 (define-event-handler (record-partner-selection interaction-finished)
-  (record-value monitor (let* ((agent (first (agents (experiment interaction))))
-                               (id (second (cl-ppcre::split "-" (symbol-name (id agent)))))
-                               (preferences (mapcar #'print-trimmed-float (hash-values (partner-preferences agent)))))
+  (record-value monitor (let* ((agent (first (agents (experiment interaction)))))
                           #|(loop for agent-id being the hash-keys of (partner-preferences agent)
                                                     using (hash-value q-value)
-                                                    ;for id = (second (cl-ppcre::split "-" (symbol-name agent-id)))
                                                   collect q-value)|#
-                          (list id preferences))))
-
+                          (format nil "{\"~a\": ~a}"
+                                  (string-downcase (symbol-name (id agent)))
+                                  (jzon::stringify (hash-values (partner-preferences agent)))))))
 
 
 ;; -----------------
