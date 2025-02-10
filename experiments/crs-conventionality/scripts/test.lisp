@@ -8,9 +8,16 @@
 (ql:quickload :crs-conventionality)
 (in-package :crs-conventionality)
 
-
-;; Canonical naming game setting ;; 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                               ;;
+;;      Naming game setting      ;;
+;;                               ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;       Canonical     ;; 
+;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (progn
   ;; reset the web interface
@@ -55,8 +62,9 @@
   (activate-monitor display-metrics)
 
   ;; run the experiment
-  (loop for i from 1 to 5000
+  (loop for i from 1 to 1000
         do (run-interaction *naming-game-canonical*)))
+
 
 ;; Option 2: run experiment locally and export results to disk
 
@@ -71,6 +79,82 @@
              :configuration *configuration-canonical*))
 
 
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;     Learnability    ;; 
+;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(progn
+  ;; reset the web interface
+  (wi::reset)
+  ;; deactivate all monitors (as a sanity check)
+  (monitors::notify reset-monitors)
+  ;; configure a canonical naming game
+  (defparameter *configuration-canonical* (make-configuration
+                                           :entries '(;; Logging
+                                                      (:log-every-x-interactions . 100)
+                                                      ;; Initialising the experiment
+                                                      (:nr-of-entities-in-world . 10)
+                                                      (:nr-of-agents-in-population . 10)
+                                                      (:nr-of-entities-in-scene . 5)
+                                                      (:alignment-strategy . :lateral-inhibition)
+                                                      (:learning-strategy . :default)
+                                                      (:learning-rate . 0.5)
+                                                      ;; Initialising an interaction
+                                                      (:determine-interacting-agents-mode . :random-from-population)
+                                                      (:determine-scene-entities-mode . :random-subset-of-world)
+                                                      (:determine-topic-mode . :random-entity-from-scene))))
+  ;; instantiate a naming game experiment
+  (defparameter *naming-game-learnability* (make-instance 'naming-game-experiment
+                                                       :configuration *configuration-canonical*))
+  ;; activate monitors
+  (activate-monitor log-every-x-interactions-in-output-browser))
+
+
+
+(progn
+  ;; Activate recorders
+  (activate-monitor record-communicative-success)
+  (activate-monitor record-conventionalisation)
+  (activate-monitor record-construction-inventory-size)
+  ;; Activate tracers
+  ;(activate-monitor trace-interaction)
+  ;(activate-monitor trace-fcg)
+  ;(activate-monitor trace-irl)
+  ;; Activate the gnuplot live display
+  (activate-monitor display-metrics)
+
+  ;; run the experiment
+  (loop for i from 1 to 3000
+        do (run-interaction *naming-game-learnability*)))
+
+
+(progn
+  (monitors::notify reset-monitors)
+  ;; First throw in agents to the *naming-game-learnability* 
+  (throw-in-new-agents *naming-game-learnability* :number-of-agents 4)
+
+  ;; Change the configuration of the experiment to make sure that a 'new' agent is selected for the interaction as the listener. 
+  (set-configuration *naming-game-learnability* :determine-interacting-agents-mode :random-listener-from-younger-generation)
+
+  ;; Run the experiment
+  (loop for i from 1 to 1000
+        do (run-interaction *naming-game-learnability*))
+  )
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                  ;;
+;;   Concept emergence setting      ;;
+;;                                  ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 ;; Concept emergence setting ;; 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -81,14 +165,9 @@
       do (run-interaction *concept-emergence-canonical*))
 
 
-;; Learnability setting ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; ...
-
-; (activate-monitor trace-fcg)
-; (activate-monitor trace-irl)
-
+;;    Old testing of FCG     ;; 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (progn
   (def-fcg-constructions test
