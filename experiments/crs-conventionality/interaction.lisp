@@ -64,6 +64,26 @@
              (setf (communicated-successfully a) nil))
     (notify interacting-agents-determined experiment interaction)))
 
+(defmethod determine-interacting-agents (experiment (interaction interaction)
+                                                    (mode (eql :random-listener-from-younger-generation))
+                                                    &key &allow-other-keys)
+  "Randomly chooses an agent from the older generation as the speaker and randomly chooses an agent from a new generation as listener."
+  (let* ((agents (agents (population experiment)))
+         (old-generations (loop for agent in agents
+                                if (= (introduced-in-game agent) 0)
+                                  collect agent))
+         (new-generations (loop for agent in agents
+                                if (> (introduced-in-game agent) 0)
+                                  collect agent))
+         (speaker (random-elt old-generations))
+         (hearer (random-elt new-generations)))
+    (setf (discourse-role speaker) 'speaker
+          (discourse-role hearer) 'hearer
+          (communicated-successfully speaker) nil
+          (communicated-successfully hearer) nil
+          (interacting-agents interaction) (list speaker hearer))
+    (notify interacting-agents-determined experiment interaction)))
+
 
 (defgeneric determine-scene-entities (experiment interaction mode)
   (:documentation "Creates a scene for an interaction."))
