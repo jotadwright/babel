@@ -78,7 +78,10 @@
         for probability in probabilities
         do (setf cumulative (+ cumulative probability))
         when (<= r cumulative)
-          return neighbor))
+          return neighbor
+        ;; if the sum of probabilities is not equal to 1 (due to some numerical stability)
+        ;; always make a decision and pick the last agent
+        finally (return (car (last neighbors)))))
 
 (define-event event-partner-selection
   (agent cle-agent)
