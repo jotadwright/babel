@@ -65,7 +65,7 @@
                                      :population population))))
 
 
-(defclass crs-conventionality-agent (agent)
+(defclass crs-conventionality-agent (agent meta-layer-learning:object-w-learning)
   ((grammar 
     :documentation "The linguistic inventory of the agent."
     :type (or nil construction-inventory)

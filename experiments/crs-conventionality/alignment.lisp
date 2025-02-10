@@ -150,32 +150,27 @@
 
 (defmethod adopt ((topic crs-conventionality-entity-set) (hearer naming-game-agent))
   "Adoption of the construction through composition."
-  (let* (;; get cxn-inventory and primitive-inventory
-         (cxn-inventory (grammar hearer))
-         (primitive-inventory (get-data (blackboard cxn-inventory) :primitive-inventory))
+    (fcg::add-repair (get-data (blackboard (grammar hearer)) :cipn) 'fcg::repair-through-adoption)
+    ;; Notify learning
+    
+    (set-data (blackboard (grammar hearer)) :agent hearer)
+    (let* ((fix (first (second (multiple-value-list (fcg::notify-learning (get-data (blackboard (grammar hearer)) :cipn) :trigger 'fcg::feedback-received)))))
+           (cxn (meta-layer-learning:restart-data fix))
+           (best-solution nil)
+           (consolidated-cxns nil)
+           (current-node (get-data (blackboard (grammar hearer)) :cipn))
+           (fixed-car (first (get-data fix 'fcg::fixed-cars))) 
+           (child (fcg::cip-add-child current-node fixed-car)))
+      
+      (setf current-node child)
+      (push (type-of (fcg::issued-by fix)) (fcg::statuses child))
+      (setf (fcg::fully-expanded? child) t)
+      (fcg::cip-run-goal-tests child (cip (get-data (blackboard (grammar hearer)) :cipn))) ;; to include succeeded status in node statuses
+      (push 'added-by-repair (fcg::statuses child))
 
-         ;; get scene and topic
-         (scene (scene (first (interactions (experiment (population hearer))))))
-         (topic-entity (first (crs-conventionality::entities topic)))
+      (fcg::add-cxn cxn (grammar hearer))
+      (push cxn consolidated-cxns)
+    
+      (values cxn fix))
+  )
 
-         ;; start from a partial program that has the scene
-         (partial-program `((bind ,(type-of scene) ?scene ,scene)))
-
-         ;; compose a program that leads to the topic, starting from the partial program with the scene
-         (composition-result (crs-conventionality::compose-program topic-entity partial-program primitive-inventory)))
-
-    ;; make the construction 
-    (let* (;; get meaning based on the irl-program and the bind-statements that are in the composition result
-           (irl-program (irl::irl-program (irl::chunk (first composition-result))))
-           (bind-statements (irl::bind-statements (first composition-result)))
-           (meaning (append irl-program bind-statements))
-
-           ;; form is stored in the utterance slot
-           (form (first (utterance hearer)))
-
-           ;; make the construction based on the form, meaning and topic
-           (cxn (make-naming-game-cxn topic meaning cxn-inventory form)))
-
-      ;; add cxn to the cxn-inventory
-      (add-cxn cxn cxn-inventory)
-      (notify adoption-finished cxn))))

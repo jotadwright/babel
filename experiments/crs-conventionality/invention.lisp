@@ -19,7 +19,7 @@
         (cipn (top-node cip)))
     
     ;; Add diagnostics, repairs and best-solution to cip
-    (loop for diagnostic in (reverse (get-configuration cxn-inventory :diagnostics))
+    (loop for diagnostic in (reverse (get-configuration cxn-inventory :conceptualisation-diagnostics))
           do (fcg::add-diagnostic cipn diagnostic))
     (loop for repair in (reverse (get-configuration cxn-inventory :repairs))
           do (fcg::add-repair cipn repair))
