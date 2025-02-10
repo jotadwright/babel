@@ -56,6 +56,8 @@
 
   ;; activate tracers
   ;(activate-monitor trace-interaction)
+  ;(activate-monitor trace-fcg-crs)
+  ;(activate-monitor trace-irl-crs)
 
   ;; activate the gnuplot live display
   (activate-monitor display-metrics)

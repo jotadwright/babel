@@ -21,7 +21,7 @@
   (set-data (blackboard (grammar agent)) :agent agent)
   (set-data (blackboard (grammar agent)) :scene scene)
 
-  (unless silent (notify experiment-framework::routine-interpretation-started agent scene))
+  (unless silent (notify routine-interpretation-started agent scene))
 
   (let* ((solution-and-cip (multiple-value-list (fcg-apply-with-n-solutions (processing-cxn-inventory cxn-inventory)
                                                                             (create-initial-structure utterance
@@ -33,7 +33,8 @@
          (cip (second solution-and-cip)))
        
     (setf (computed-topic agent) (get-data (first solution-node) :computed-topic))
-    (setf (applied-constructions agent) (applied-constructions (first solution-node)))))
+    (setf (applied-constructions agent) (applied-constructions (first solution-node)))
+    (unless silent (notify routine-interpretation-finished cip agent scene))))
 
 
 (defmethod create-initial-structure ((utterance list)

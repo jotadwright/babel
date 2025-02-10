@@ -25,13 +25,12 @@
   "Based on the topic and scene, the speaker produces an utterance.
    The agents attempts first routine formulation, in case of failure, it goes to metalayer."
   ;; Store topic, agent and scene in the blackboard of the cxn-inventory
-  
   (set-data (blackboard (grammar agent)) :topic topic) ;; SHOULD THIS BE HERE?
   (set-data (blackboard (grammar agent)) :agent agent) ;; SHOULD THIS BE HERE?
   (set-data (blackboard (grammar agent)) :scene scene) ;; SHOULD THIS BE HERE?
   (setf (topic agent) topic) ;; TODO to remove?
 
-  (unless silent (notify experiment-framework::routine-conceptualisation-started topic agent scene))
+  (unless silent (notify routine-conceptualisation-started topic agent scene))
 
   ;; routine formulation
   (let* ((cxn-inventory (grammar agent))
@@ -44,19 +43,22 @@
          (solution-node (first solution-and-cip)) ;;TO DO: select best solution
          (cip (second solution-and-cip)))
 
-    (unless silent (notify experiment-framework::routine-conceptualisation-finished cip solution-node agent))
-
+    (unless silent
+      (if (eq 'speaker (experiment-framework::discourse-role agent))
+        (notify routine-conceptualisation-finished cip solution-node agent)))
+    
     ;; check if a solution is found
     (if (not (succeeded-nodes cip))
       (when use-meta-layer
         ;; ! meta-layer !
         ;;     if no solution is found, start invention and set utterance in agent
-        (unless silent (notify experiment-framework::meta-conceptualisation-started topic agent scene))
+        (unless silent (notify meta-conceptualisation-started topic agent scene))
         (multiple-value-bind (cxn fix)
             (fcg::invent cip agent topic scene)
-          (unless silent (notify experiment-framework::meta-conceptualisation-finished fix agent))
+          (unless silent (notify meta-conceptualisation-finished fix agent))
           (setf (conceptualised-utterance agent) (render (car-resulting-cfs (first (get-data (blackboard fix) 'fcg::fixed-cars)))
-                                          (get-configuration (grammar agent) :render-mode)))))
+                                                         (get-configuration (grammar agent) :render-mode)))
+          (setf (applied-constructions agent) (list (processing-cxn cxn)))))
       ;; otherwise, render and set solution nodes
       (progn
         (setf (conceptualised-utterance agent) (render (car-resulting-cfs (fcg:cipn-car (first solution-node)))

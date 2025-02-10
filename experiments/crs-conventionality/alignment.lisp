@@ -13,6 +13,7 @@
 (defmethod align ((speaker naming-game-agent) (hearer naming-game-agent) (interaction crs-conventionality-interaction)
                   (mode (eql :lateral-inhibition)))
   "Align grammar of speaker and hearer based on interaction."
+  (notify alignment-started speaker hearer)
   (let ((applied-cxn-speaker (first (applied-constructions speaker)))
         (applied-cxn-hearer (first (applied-constructions hearer))))
     (if (communicated-successfully interaction)
@@ -28,15 +29,17 @@
         (loop for cxn in (find-competitors speaker)
               do (setf (attr-val cxn :score) (decrease-score (learning-rate speaker) (attr-val cxn :score))))
         (loop for cxn in (find-competitors hearer)
-              do (setf (attr-val cxn :score) (decrease-score (learning-rate hearer) (attr-val cxn :score)))))
+              do (setf (attr-val cxn :score) (decrease-score (learning-rate hearer) (attr-val cxn :score))))
+        (notify alignment-finished speaker hearer interaction))
+      
       
      ;; Communication failed 
     (progn
       (when (applied-constructions speaker)
         (setf (attr-val applied-cxn-speaker :score)
               (decrease-score (learning-rate speaker) (attr-val applied-cxn-speaker :score))))
-      (adopt (topic interaction) hearer)
-      (notify alignment-finished speaker hearer)))))
+      (notify alignment-finished speaker hearer interaction)
+      (adopt (topic interaction) hearer)))))
 
 ;; Don't punish competitors in success. 
 
@@ -60,7 +63,7 @@
           (setf (attr-val applied-cxn-speaker :score)
                 (decrease-score (learning-rate speaker) (attr-val applied-cxn-speaker :score))))
         (adopt (topic interaction) hearer)
-        (notify alignment-finished speaker hearer)))))
+        (notify alignment-finished speaker hearer interaction)))))
 
 ;; Don't punish in failure, still punish competitors in success. 
 
@@ -87,7 +90,7 @@
       ;; Communication failed 
       (progn
         (adopt (topic interaction) hearer)
-        (notify alignment-finished speaker hearer)))))
+        (notify alignment-finished speaker hearer interaction)))))
 
 ;; Don't punish in failure, don't punish competitors in success. 
 
@@ -109,7 +112,7 @@
     ;; Communication failed 
     (progn
       (adopt (topic interaction) hearer)
-      (notify alignment-finished speaker hearer)))))
+      (notify alignment-finished speaker hearer interaction)))))
 
 ;; Never change scores. 
 
@@ -118,10 +121,10 @@
                   (mode (eql :no-alignment)))
   "No alignment setting - scores not adjusted."
   (if (communicated-successfully interaction)
-    (notify alignment-finished speaker hearer)
+    (notify alignment-finished speaker hearer interaction)
     (progn
       (adopt (topic interaction) hearer)
-      (notify alignment-finished speaker hearer))))
+      (notify alignment-finished speaker hearer interaction))))
 
 
 (defmethod find-competitors ((agent naming-game-agent))
