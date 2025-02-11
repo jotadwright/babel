@@ -31,7 +31,8 @@
                                                         (:node-expansion-mode . :full-expansion)
                                                         (:cxn-supplier-mode . :hashed)
                                                         ;; Diagnostics and repairs
-                                                        (:diagnostics fcg::diagnose-cip-find-forms)
+                                                        (:conceptualisation-diagnostics fcg::diagnose-cip-conceptualisation-success)
+                                                        (:interpretation-diagnostics fcg::diagnose-cip-interpretation-success)
                                                         (:repairs fcg::repair-through-invention)
                                                         ;; for using heuristics
                                                         (:search-algorithm . :best-first)

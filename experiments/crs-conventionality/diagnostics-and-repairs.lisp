@@ -11,24 +11,37 @@
 ;; Diagnostics ;;
 ;;;;;;;;;;;;;;;;;
 
-(defclass diagnose-cip-find-forms (fcg::diagnostic)
+(defclass diagnose-cip-conceptualisation-success (fcg::diagnostic)
   ((trigger :initform 'routine-processing-finished))
-  (:documentation "Diagnostic called on cip after routine processing, checking if there is a form somewhere in the tree."))
+  (:documentation "Diagnostic called on cip after routine processing, checking if there is success somewhere in the tree."))
 
+(defclass diagnose-cip-interpretation-success (fcg::diagnostic)
+  ((trigger :initform 'routine-processing-finished))
+  (:documentation "Diagnostic called on cip after routine processing, checking if there is success somewhere in the tree."))
 
-(defmethod diagnose ((diagnostic diagnose-cip-find-forms) (cipn cip-node)
+(defmethod diagnose ((diagnostic diagnose-cip-conceptualisation-success) (cipn cip-node)
                      &key &allow-other-keys)
   "Check whether there are succeeded nodes in cip"
   (when (not (find 'succeeded (statuses cipn)))
-    (make-instance 'no-form-problem)))
+    (make-instance 'no-cxn-to-conceptualise-topic)))
+
+(defmethod diagnose ((diagnostic diagnose-cip-interpretation-success) (cipn cip-node)
+                     &key &allow-other-keys)
+  "Check whether there are succeeded nodes in cip"
+  (when (not (find 'succeeded (statuses cipn)))
+    (make-instance 'no-cxn-to-interpret-utterance)))
 
 
 ;; Problems ;;
 ;;;;;;;;;;;;;;
 
-(defclass no-form-problem (problem)
+(defclass no-cxn-to-conceptualise-topic (problem)
   ()
-  (:documentation "Problem class that specifies that agent has no cxn to formulate the conceptualised meaning."))
+  (:documentation "Problem class that specifies that agent has no cxn to conceptualise the topic."))
+
+(defclass no-cxn-to-interpret-utterance (problem)
+  ()
+  (:documentation "Problem class that specifies that agent has no cxn to interpret the utterance."))
 
 
 ;; Fixes ;;
@@ -38,6 +51,10 @@
   ()
   (:documentation "Class for fixes created by repair-through-invention"))
 
+(defclass adoption-fix (fix)
+  ()
+  (:documentation "Class for fixes created by repair-through-adoption"))
+
 ;; Repairs ;;
 ;;;;;;;;;;;;;
 
@@ -45,9 +62,12 @@
   ((trigger :initform 'routine-processing-finished))
   (:documentation "Repair that invents"))
 
+(defclass repair-through-adoption (repair)
+  ((trigger :initform 'feedback-received))
+  (:documentation "Repair that adopts"))
 
 (defmethod repair ((repair repair-through-invention)
-                   (problem no-form-problem)
+                   (problem no-cxn-to-conceptualise-topic)
                    (cipn cip-node)
                    &key &allow-other-keys)
   "Invent a construction through composition."
@@ -87,7 +107,47 @@
         ;; add the cxn to the fix
         (make-instance 'invention-fix :restart-data cxn)))))
 
+(defmethod repair ((repair repair-through-adoption)
+                   (problem no-cxn-to-interpret-utterance)
+                   (cipn cip-node)
+                   &key &allow-other-keys)
 
+  ;; BE CAREFUL!!!
+  ;; This relies on the topic and scene that were set in the blackboard of the cxn-inventory during coherence check (conceptualise)
+  
+  (let* (;; copy cxn-inventory
+         (cxn-inventory-copy (copy-fcg-construction-set-without-cxns (original-cxn-set (construction-inventory cipn))))
+
+         ;; get topic from blackboard, in canonical naming game, only one object as the topic
+         (topic (get-data (blackboard (construction-inventory cipn)) :topic)) 
+         (topic-entity (first (crs-conventionality::entities topic))) 
+         
+         ;; get primitive inventory and scene
+         (primitive-inventory (get-data (blackboard (construction-inventory cipn)) :primitive-inventory))
+         (scene (get-data (blackboard (construction-inventory cipn)) :scene))
+
+         ;; start from a partial program that has the scene
+         (partial-program `((bind ,(type-of scene) ?scene ,scene)))
+
+         ;; compose a program that leads to the topic, starting from the partial program with the scene
+         (composition-result (crs-conventionality::compose-program topic-entity partial-program primitive-inventory)))
+
+    ;; make the construction 
+    (let* (;; get meaning based on the irl-program and the bind-statements that are in the composition result
+           (irl-program (irl::irl-program (irl::chunk (first composition-result))))
+           (bind-statements (irl::bind-statements (first composition-result)))
+           (meaning (append irl-program bind-statements))
+
+           ;; form is stored in the utterance slot
+           (form (first (utterance (get-data (blackboard (construction-inventory cipn)) :agent))))
+
+           ;; make the construction based on the form, meaning and topic
+           (cxn (crs-conventionality::make-naming-game-cxn topic meaning cxn-inventory-copy form)))
+
+      ;; add cxn to the cxn-inventory
+      (add-cxn cxn cxn-inventory-copy)
+      (make-instance 'adoption-fix :restart-data cxn)
+      )))
 
 (defmethod copy-object ((entity irl:entity))
   "Needs to be implemented"
@@ -100,7 +160,21 @@
 ;; Repairs ;;
 ;;;;;;;;;;;;;
 
-(defmethod handle-fix ((fix invention-fix) (repair repair-through-invention) (problem no-form-problem) (node cip-node) &key &allow-other-keys)
+(defmethod handle-fix ((fix invention-fix) (repair repair-through-invention) (problem no-cxn-to-conceptualise-topic) (node cip-node) &key &allow-other-keys)
+  "Apply the construction provided by fix to the result of the node and return the construction-application-result"
+  "Should be removed"
+  (call-next-method)
+  (push fix (fixes (problem fix))) ;; we add the current fix to the fixes slot of the problem
+  (with-disabled-monitor-notifications
+    (set-data fix 'fixed-cars
+              (fcg-apply (get-processing-cxn (restart-data fix))
+                         (car-resulting-cfs (cipn-car node))
+                         (direction (cip node))
+                         :configuration (configuration (construction-inventory node))
+                         :cxn-inventory (construction-inventory node)))))
+
+
+(defmethod handle-fix ((fix adoption-fix) (repair repair-through-adoption) (problem no-cxn-to-interpret-utterance) (node cip-node) &key &allow-other-keys)
   "Apply the construction provided by fix to the result of the node and return the construction-application-result"
   "Should be removed"
   (call-next-method)

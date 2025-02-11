@@ -31,10 +31,20 @@
                                                                             :notify (not silent))))
          (solution-node (first solution-and-cip))
          (cip (second solution-and-cip)))
+    
+    (if (succeeded-nodes cip)
        
-    (setf (computed-topic agent) (get-data (first solution-node) :computed-topic))
-    (setf (applied-constructions agent) (applied-constructions (first solution-node)))
-    (unless silent (notify routine-interpretation-finished cip agent scene))))
+      (progn
+        (setf (computed-topic agent) (get-data (first solution-node) :computed-topic))
+        (setf (applied-constructions agent) (applied-constructions (first solution-node)))
+        (unless silent (notify routine-interpretation-finished cip agent scene)))
+
+      (progn
+        (loop for diagnostic in (reverse (get-configuration cxn-inventory :interpretation-diagnostics))
+              do (fcg::add-diagnostic (top-node cip) diagnostic))
+        (set-data (blackboard (grammar agent)) :cipn (top-node cip))
+        ;; Notify learning
+        (fcg::notify-learning (top-node cip) :trigger 'fcg::routine-processing-finished)))))
 
 
 (defmethod create-initial-structure ((utterance list)
