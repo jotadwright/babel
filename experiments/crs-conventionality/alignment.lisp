@@ -21,15 +21,15 @@
       ;; Speaker and hearer increase the score of the constructions they used:
       (progn 
         (setf (attr-val applied-cxn-speaker :score)
-              (increase-score (learning-rate speaker) (attr-val applied-cxn-speaker :score)))
+              (calculate-increased-score (learning-rate speaker) (attr-val applied-cxn-speaker :score)))
         (setf (attr-val applied-cxn-hearer :score)
-              (increase-score (learning-rate hearer) (attr-val applied-cxn-hearer :score)))
+              (calculate-increased-score (learning-rate hearer) (attr-val applied-cxn-hearer :score)))
       
         ;; Speaker punishes competing constructions:
         (loop for cxn in (find-competitors speaker)
-              do (setf (attr-val cxn :score) (decrease-score (learning-rate speaker) (attr-val cxn :score))))
+              do (setf (attr-val cxn :score) (calculate-decreased-score (learning-rate speaker) (attr-val cxn :score))))
         (loop for cxn in (find-competitors hearer)
-              do (setf (attr-val cxn :score) (decrease-score (learning-rate hearer) (attr-val cxn :score))))
+              do (setf (attr-val cxn :score) (calculate-decreased-score (learning-rate hearer) (attr-val cxn :score))))
         (notify alignment-finished speaker hearer interaction))
       
       
@@ -37,9 +37,10 @@
     (progn
       (when (applied-constructions speaker)
         (setf (attr-val applied-cxn-speaker :score)
-              (decrease-score (learning-rate speaker) (attr-val applied-cxn-speaker :score))))
+              (calculate-decreased-score (learning-rate speaker) (attr-val applied-cxn-speaker :score))))
       (notify alignment-finished speaker hearer interaction)
-      (adopt (topic interaction) hearer)))))
+      (adopt (topic interaction) hearer)
+      ))))
 
 ;; Don't punish competitors in success. 
 
@@ -53,15 +54,15 @@
       ;; Speaker and hearer increase the score of the constructions they used:
       (progn 
         (setf (attr-val applied-cxn-speaker :score)
-              (increase-score (learning-rate speaker) (attr-val applied-cxn-speaker :score)))
+              (calculate-increased-score (learning-rate speaker) (attr-val applied-cxn-speaker :score)))
         (setf (attr-val applied-cxn-hearer :score)
-              (increase-score (learning-rate hearer) (attr-val applied-cxn-hearer :score))))
+              (calculate-increased-score (learning-rate hearer) (attr-val applied-cxn-hearer :score))))
             
       ;; Communication failed 
       (progn
         (when (applied-constructions speaker)
           (setf (attr-val applied-cxn-speaker :score)
-                (decrease-score (learning-rate speaker) (attr-val applied-cxn-speaker :score))))
+                (calculate-decreased-score (learning-rate speaker) (attr-val applied-cxn-speaker :score))))
         (adopt (topic interaction) hearer)
         (notify alignment-finished speaker hearer interaction)))))
 
@@ -77,15 +78,15 @@
       ;; Speaker and hearer increase the score of the constructions they used:
       (progn 
         (setf (attr-val applied-cxn-speaker :score)
-              (increase-score (learning-rate speaker) (attr-val applied-cxn-speaker :score)))
+              (calculate-increased-score (learning-rate speaker) (attr-val applied-cxn-speaker :score)))
         (setf (attr-val applied-cxn-hearer :score)
-              (increase-score (learning-rate hearer) (attr-val applied-cxn-hearer :score)))
+              (calculate-increased-score (learning-rate hearer) (attr-val applied-cxn-hearer :score)))
       
         ;; Speaker punishes competing constructions:
         (loop for cxn in (find-competitors speaker)
-              do (setf (attr-val cxn :score) (decrease-score (learning-rate speaker) (attr-val cxn :score))))
+              do (setf (attr-val cxn :score) (calculate-decreased-score (learning-rate speaker) (attr-val cxn :score))))
         (loop for cxn in (find-competitors hearer)
-              do (setf (attr-val cxn :score) (decrease-score (learning-rate hearer) (attr-val cxn :score)))))
+              do (setf (attr-val cxn :score) (calculate-decreased-score (learning-rate hearer) (attr-val cxn :score)))))
       
       ;; Communication failed 
       (progn
@@ -105,9 +106,9 @@
       ;; Speaker and hearer increase the score of the constructions they used:
       (progn 
         (setf (attr-val applied-cxn-speaker :score)
-              (increase-score (learning-rate speaker) (attr-val applied-cxn-speaker :score)))
+              (calculate-increased-score (learning-rate speaker) (attr-val applied-cxn-speaker :score)))
         (setf (attr-val applied-cxn-hearer :score)
-              (increase-score (learning-rate hearer) (attr-val applied-cxn-hearer :score))))
+              (calculate-increased-score (learning-rate hearer) (attr-val applied-cxn-hearer :score))))
       
     ;; Communication failed 
     (progn
@@ -138,12 +139,12 @@
           collect cxn))
 
 
-(defun increase-score (learning-rate score)
+(defun calculate-increased-score (learning-rate score)
   "Increase the score using the interpolation rule and the learning rate."
   (+ learning-rate (* score (- 1 learning-rate))))
 
 
-(defun decrease-score (learning-rate score)
+(defun calculate-decreased-score (learning-rate score)
   "Decrease the score using the interpolation rule and the learning rate."
   (* score (- 1 learning-rate)))
 
