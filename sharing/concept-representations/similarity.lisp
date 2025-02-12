@@ -58,8 +58,8 @@
         with sum-of-weights2 = (calculate-sum-of-weights concept2)
         for wd1 in (get-weighted-distributions concept1)
         for wd2 = (get-weighted-distribution concept2 (feature-name wd1))
-        if (and (not (zerop sum-of-weights1)) (not (zerop sum-of-weights1)))
-          sum (weighted-distribution-similarity wd1 wd2 sum-of-weights1 sum-of-weights1)))
+        if (and (not (zerop sum-of-weights1)) (not (zerop sum-of-weights2)))
+          sum (weighted-distribution-similarity wd1 wd2 sum-of-weights1 sum-of-weights2)))
 
 (defmethod weighted-distribution-similarity ((wd1 weighted-distribution) (wd2 weighted-distribution) (sum-of-weights1 number) (sum-of-weights2 number))
   "Calculates the similarity between two weighted distributions.
