@@ -64,8 +64,7 @@
 (defmethod print-object ((concept weighted-multivariate-distribution-concept) stream)
   "Prints the concept."
   (pprint-logical-block (stream nil)
-    (format stream "<Concept: ~a,~:_" (hash-values (representation concept)))
-    (format stream ">")))
+    (format stream "<Concept: [~{~a~^, ~}]>" (hash-values (representation concept)))))
 
 ;; --------------------------
 ;; + Weighted Distributions +
@@ -75,11 +74,10 @@
   ((feature-name
     :initarg :feature-name :accessor feature-name :initform nil :type symbol)
    (weight-value
-    :initarg :weight-value :accessor weight-value :initform nil :type number)
+    :initarg :weight-value :accessor weight-value :initform 0 :type number) ;; w_init is 0 -> sigmoid(0) = 0.5
    (distribution
     :initarg :distribution :accessor distribution :initform nil :type distribution))
   (:documentation "A weighted distribution is a weighted mapping between a feature name and a distribution."))
-
 
 (defmethod weight ((weighted-distribution weighted-distribution))
   "Calculcates the true weight by mapping the weight-value through to the sigmoid function."
@@ -109,6 +107,5 @@
 (defmethod print-object ((weighted-distribution weighted-distribution) stream)
   (pprint-logical-block (stream nil)
     (format stream "<Weighted distribution:~
-                        ~:_ feature-name: ~a,~:_ weight ~a~:_" ;; TODO add type of distribution here
-            (feature-name weighted-distribution) (weight weighted-distribution))
-    (format stream ">")))
+                        ~:_ feature-name: ~a,~:_ weight ~a,~:_ type: ~a~:_>" ;; TODO add type of distribution here
+            (feature-name weighted-distribution) (weight weighted-distribution) (type-of (distribution weighted-distribution)))))
