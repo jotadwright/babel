@@ -9,7 +9,7 @@
   (:documentation "Abstract class for distributions"))
 
 ;; ----------------------------
-;; + Categorical distribution +
+;; + Bernoulli distribution +
 ;; ----------------------------
 (defclass bernoulli (distribution)
   ((frequencies
@@ -22,13 +22,13 @@
 ;; Constructor
 (defmethod make-distribution ((feature-value symbol))
   (let* ((nr-of-samples 0)
-         (distribution (make-instance 'categorical
+         (distribution (make-instance 'bernoulli
                                       :nr-of-samples nr-of-samples)))
     (update-distribution feature-value distribution)
     distribution))
 
 ;; Update
-(defmethod update-distribution ((distribution categorical)
+(defmethod update-distribution ((distribution bernoulli)
                                 (feature-value symbol))
   ;; Step 1: increment total count
   (incf (nr-of-samples distribution))
@@ -39,11 +39,33 @@
     ;; key does not exist -> create new key with value 1
     (setf (gethash feature-value (frequencies distribution)) 1)))
 
+;; Divergence
+(defmethod f-divergence ((distribution1 bernoulli)
+                         (distribution2 bernoulli)
+                         &key
+                         &allow-other-keys)
+  ;; step 1: synchronisation
+  ;;   due to disabling of channels, two distributions could have different observations over channels
+  ;;   therefore the first step is to synchronise the two
+  (synchronize-hash-tables distribution1 distribution2)
+  ;; step 2: normalisation to ensure its a valid probability distribution that sums to 1
+  (let ((p (normalise distribution1))
+        (q (normalise distribution2)))
+    (loop for (key1 . count1) in p
+          for count2 = (assqv key1 q :test #'equalp)
+          sum (expt (- (sqrt count1) (sqrt count2)) 2) into total
+          finally (return (* (/ 1 (sqrt 2)) (sqrt total))))))
+
 ;; --------------------
-;; + helper functions +
+;; + Helper functions +
 ;; --------------------
-(defmethod synchronize-hash-tables ((distribution1 categorical) (distribution2 categorical))
-  "Synchronize two categorical distributions by updating missing keys with a value of zero."
+(defmethod number-of-categories ((distribution bernoulli))
+  "Return the number of observed categories in the distribution."
+  (hash-table-count (frequencies distribution)))
+
+
+(defmethod synchronize-hash-tables ((distribution1 bernoulli) (distribution2 bernoulli))
+  "Synchronize two bernoulli distributions by updating missing keys with a value of zero."
   (let* ((hash-table1 (frequencies distribution1))
          (hash-table2 (frequencies distribution2))
          (keys1 (hash-keys hash-table1))
@@ -57,7 +79,7 @@
       (unless (gethash key hash-table1)
         (setf (gethash key hash-table1) 0)))))
 
-(defmethod normalise ((distribution categorical))
+(defmethod normalise ((distribution bernoulli))
   "Normalise the frequencies so that its a valid (discrete) probability distribution."
   (let* ((total (nr-of-samples distribution))
          (counts (loop for key being the hash-keys of (frequencies distribution)
@@ -65,18 +87,15 @@
                        collect (cons key (/ frequency total)))))
     counts))
 
-(defmethod number-of-categories ((distribution categorical))
-  "Return the number of observed categories in the distribution."
-  (hash-table-count (frequencies distribution)))
 
-(defmethod copy-object ((distribution categorical))
-  (make-instance 'categorical
+(defmethod copy-object ((distribution bernoulli))
+  (make-instance 'bernoulli
                  :frequencies (copy-object (frequencies distribution))
                  :nr-of-samples (copy-object (nr-of-samples distribution))))
 
-(defmethod print-object ((distribution categorical) stream)
+(defmethod print-object ((distribution bernoulli) stream)
   (pprint-logical-block (stream nil)
-    (format stream "<Categorical (~a): ~a" (nr-of-samples distribution) (hash-keys (frequencies distribution)))
+    (format stream "<Bernoulli (~a): ~a" (nr-of-samples distribution) (hash-keys (frequencies distribution)))
     (format stream ">")))
 
 ;; -------------------------
@@ -106,6 +125,7 @@
                    :nr-of-samples nr-of-samples
                    :M2 M2)))
 
+;; Update
 (defmethod update-distribution ((distribution gaussian)
                                 (feature-value number))
   "Update the gaussian distribution using Welford's online algorithm."
@@ -119,6 +139,34 @@
     (setf (mean distribution) new-mean
           (st-dev distribution) (sqrt (/ new-M2 (nr-of-samples distribution)))
           (M2 distribution) new-M2)))
+
+;; Divergence
+(defmethod f-divergence ((distribution1 gaussian)
+                         (distribution2 gaussian)
+                         &key
+                         &allow-other-keys)
+  "Quantifies the hellinger distance between two probability distributions.
+
+   It forms a bounded metric on the space of probability distributions
+     over a given probability space. Maximum distance 1 is achieved when
+     P assigns probability zero to every set to which Q assigns a positive probability,
+     and vice versa."
+  (let ((mu1 (mean distribution1))
+        (sigma1 (st-dev distribution1))
+        (mu2 (mean distribution2))
+        (sigma2 (st-dev distribution2)))
+    (if (and (zerop sigma1)
+             (zerop sigma2))
+      ;; if both distributions are Dirac distributions with zero sigma:
+      ;; return 0.0 if mu's are the same, otherwise maximal distance of 1.0
+      (if (= mu1 mu2) 0.0 1.0)
+      ;; otherwise perform distance calculation
+      (realpart (sqrt (- 1
+                         (*
+                          (sqrt (/ (* 2 sigma1 sigma2)
+                                   (+ (expt sigma1 2) (expt sigma2 2))))
+                          (exp (* -1/4 (/ (expt (- mu1 mu2) 2)
+                                          (+ (expt sigma1 2) (expt sigma2 2))))))))))))
 
 ;; --------------------
 ;; + Helper functions +
