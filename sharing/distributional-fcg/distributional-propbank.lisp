@@ -60,16 +60,66 @@
 
 
 )
+
+
 |# 
 
 ;(comprehend "the man drives" :timeout nil)
 
 ;(comprehend "the man rides a bike" :timeout nil)
 
+;(comprehend "the man gave his mother a book" :timeout nil)
+
+;(comprehend "the husband handed his wife a book" :timeout nil)
+
+;; goal test!!!!!! ??????
+
+;(set-proto-role-embeddings *train-grammar*)
 
 
-;; goal test!!!!!! 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; helper functions to make proto-embeddings  ;;
+;;     and add them to the cxn-inventory      ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun set-proto-role-embeddings (cxn-inventory)
+  "For each argument-structure-cxn, set the proto-embedding in the corresponding slot."
+  (let* ((arg-structure-cxns (get-argument-structure-cxns cxn-inventory)))
+    (loop for arg-structure-cxn in arg-structure-cxns
+          for strings-in-roles = (find-data (blackboard arg-structure-cxn) :strings-in-roles)
+          for number-of-roles = (length (first strings-in-roles))
+          for proto-role-embeddings = (loop for i from 0 to (- number-of-roles 1)
+                                       for strings-in-role = (loop for str in strings-in-roles
+                                                                   collect (cdr (nth i str)))
+                                       for proto-role-embedding = (make-proto-embedding strings-in-role)
+                                       collect proto-role-embedding)
+          do (append-data arg-structure-cxn :proto-role-embeddings proto-role-embeddings))))
+  
+(defmethod combine-word-embeddings ((embeddings-list list) &key (mode (eql 'addition)))
+  "Combine word embeddings by adding them."
+   (apply #'mapcar #'+ embeddings-list))
+
+(defun make-proto-embedding (strings-in-role)
+  "Expects a list of strings which can contain multiple words.
+   Loop over these strings, split them and get for each word the word-embedding,
+   then concatenate all these embeddings. "
+  (let ((embeddings-in-role (loop for string in strings-in-role
+                                  for splitted-strings = (split-sequence:split-sequence #\Space string :remove-empty-subseqs t)
+                                
+                                  append (loop for splitted-string in splitted-strings
+                                               collect (last-elt (nlp-tools:get-word-embedding (downcase splitted-string)))))))
+    (combine-word-embeddings embeddings-in-role :mode 'addition)))
+
+(defun get-argument-structure-cxns (cxn-inventory)
+  (let* ((cxns (constructions-list cxn-inventory)))
+    (loop for cxn in cxns
+          for cxn-type = (cdr (assoc :label (attributes cxn)))
+          when (equal cxn-type 'argument-structure-cxn)
+            collect cxn)))
+    
+;(cosine-similarity (get-proto-embedding (list "the man" "the woman")) (last-elt (nlp-tools:get-word-embedding "bottle")))
+
+;(cosine-similarity (get-proto-embedding (list "the man" "the woman")) (get-proto-embedding (list "the child" "the dog")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; quickly overwrite to test. ;;
@@ -243,7 +293,7 @@ grammatical category."
                                                                                cxn-units-with-role ts-unit-structure))
          (passive (loop for unit in cxn-units-without-role
                         when (eql '+ (unit-feature-value (cdr unit) 'passive))
-                        return t))
+                          return t))
          (contributing-unit (make-propbank-contributing-unit core-units-with-role gold-frame gram-category 'fee))
          (schema (make-cxn-schema core-units-with-role cxn-units-with-role :core-roles :passive? passive))
          (cxn-name (intern (upcase (format nil "~a+~a-cxn" gram-category (length cxn-units-without-role)))))
@@ -272,7 +322,12 @@ grammatical category."
             (add-link lex-category (attr-val equivalent-cxn :gram-category) cxn-inventory :weight 1.0 :link-type 'lex-gram
                       :recompute-transitive-closure nil)))
         ;;2.2) (Added for distributional-propbank:)
-        ;(append-data (blackboard equivalent-cxn) :strings 
+        (append-data equivalent-cxn :strings-in-roles (list (loop for core-unit in core-units-with-role
+                                                         for role = (role-type (first core-unit))
+                                                         for string = (last-elt (fourth core-unit))
+                                                         for class = (last-elt (last-elt (seventh core-unit)))
+                                                         when (not (string= role "V"))
+                                                           collect (cons class string))))
         ;;3) Return gram-category
         (attr-val equivalent-cxn :gram-category))
 
@@ -283,22 +338,30 @@ grammatical category."
         (add-category gram-category cxn-inventory :recompute-transitive-closure nil)
         (add-link lex-category gram-category cxn-inventory :weight 1.0 :link-type nil :recompute-transitive-closure nil)
         (add-link lex-category gram-category cxn-inventory :weight 1.0 :link-type 'lex-gram :recompute-transitive-closure nil)
+        (multiple-value-bind (cxn-inventory cxn)
         
-        (eval `(def-fcg-cxn ,cxn-name
-                            (,contributing-unit
-                             <-
-                             ,@cxn-units-with-role
-                             ,@cxn-units-without-role
-                             )
-                            :disable-automatic-footprints t
-                            :attributes (:schema ,schema
-                                         :lemma nil
-                                         :label argument-structure-cxn
-                                         :score 1
-                                         :gram-category ,gram-category)
-                            :description ,(sentence-string propbank-sentence)
-                            :cxn-inventory ,cxn-inventory))
-        gram-category))))
+            (eval `(def-fcg-cxn ,cxn-name
+                                (,contributing-unit
+                                 <-
+                                 ,@cxn-units-with-role
+                                 ,@cxn-units-without-role
+                                 )
+                                :disable-automatic-footprints t
+                                :attributes (:schema ,schema
+                                             :lemma nil
+                                             :label argument-structure-cxn
+                                             :score 1
+                                             :gram-category ,gram-category)
+                                :description ,(sentence-string propbank-sentence)
+                                :cxn-inventory ,cxn-inventory))
+          
+          (append-data cxn :strings-in-roles (list (loop for core-unit in core-units-with-role
+                                                for role = (role-type (first core-unit))
+                                                for string = (last-elt (fourth core-unit))
+                                                for class = (last-elt (last-elt (seventh core-unit)))
+                                                when (not (string= role "V"))
+                                                  collect (cons class string))))
+          gram-category)))))
 
 
 ;; Changes: get embeddings of the lemmas and add them to the units of the TS and the blackboard of the TS.
