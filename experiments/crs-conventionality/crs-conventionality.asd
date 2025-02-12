@@ -29,4 +29,5 @@
                (:file "invention")
                (:file "alignment")
                (:file "diagnostics-and-repairs")
-               (:file "social-network")))
+               (:file "social-network")
+               (:file "experiment-utils")))

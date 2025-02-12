@@ -65,7 +65,7 @@
                                      :population population))))
 
 
-(defclass crs-conventionality-agent (agent)
+(defclass crs-conventionality-agent (agent meta-layer-learning:object-w-learning)
   ((grammar 
     :documentation "The linguistic inventory of the agent."
     :type (or nil construction-inventory)
@@ -97,7 +97,11 @@
    (learning-rate
     :documentation "The learning rate of an agent. "
     :type list
-    :initform nil :initarg :learning-rate :accessor learning-rate))
+    :initform nil :initarg :learning-rate :accessor learning-rate)
+   (introduced-in-game
+    :documentation "The game number in which the agent was introduced."
+    :type number
+    :initform 0 :initarg :introduced-in-game :accessor introduced-in-game))
   (:documentation "An agent in the experiment"))
 
 
