@@ -42,11 +42,11 @@
   "Getter for a specific weighted distribution given a feature-name"
   (gethash feature-name (representation weighted-multivariate-distribution-concept)))
 
-(defmethod get-weighted-distributions (weighted-multivariate-distribution-concept weighted-multivariate-distribution-concept)
+(defmethod get-weighted-distributions ((weighted-multivariate-distribution-concept weighted-multivariate-distribution-concept))
   "Getter for all weighted distributions."
   (hash-values (representation weighted-multivariate-distribution-concept)))
 
-(defmethod calculate-sum-of-weights (weighted-multivariate-distribution-concept weighted-multivariate-distribution-concept)
+(defmethod calculate-sum-of-weights ((weighted-multivariate-distribution-concept weighted-multivariate-distribution-concept))
   "Calculates the sum of all weights of the concept."
   (loop for weighted-distribution in (get-weighted-distributions weighted-multivariate-distribution-concept)
         sum (weight weighted-distribution)))
