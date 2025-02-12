@@ -24,7 +24,7 @@
   (let* ((nr-of-samples 0)
          (distribution (make-instance 'bernoulli
                                       :nr-of-samples nr-of-samples)))
-    (update-distribution feature-value distribution)
+    (update-distribution distribution feature-value)
     distribution))
 
 ;; Update
