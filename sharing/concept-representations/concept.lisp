@@ -25,15 +25,15 @@
   "Create a concept with a multivariate distribution representation for the given entity."
   (let ((representation (loop with weighted-distributions = (make-hash-table :test #'eq)
                               for feature-name being the hash-keys of (features entity)
-                              using (hash-value feature-value)
+                                using (hash-value feature-value)
                               ;; create a distribution for each feature
                               for distribution = (make-distribution feature-value)
                               ;; create a weighted-distribution for each feature
                               for weighted-distribution = (make-instance 'weighted-distribution
-                                                                          :feature-name feature-name
-                                                                          :distribution distribution)
-                              do (setf (gethash feature-name hash-table) weighted-distribution)
-                              finally (return (make-instance 'weighted-multivariate-distribution-concept :weighted-distributions weighted-distributions)))))
+                                                                         :feature-name feature-name
+                                                                         :distribution distribution)
+                              do (setf (gethash feature-name weighted-distributions) weighted-distribution)
+                              finally (return weighted-distributions))))
     ;; create the concept
     (make-instance 'weighted-multivariate-distribution-concept :representation representation)))
 

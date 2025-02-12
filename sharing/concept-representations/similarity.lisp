@@ -57,7 +57,7 @@
   (loop with sum-of-weights1 = (calculate-sum-of-weights concept1)
         with sum-of-weights2 = (calculate-sum-of-weights concept2)
         for wd1 in (get-weighted-distributions concept1)
-        for wd2 = (gethash (feature-name wd1) (get-weighted-distributions concept2))
+        for wd2 = (get-weighted-distribution concept2 (feature-name wd1))
         if (and (not (zerop sum-of-weights1)) (not (zerop sum-of-weights1)))
           sum (weighted-distribution-similarity wd1 wd2 sum-of-weights1 sum-of-weights1)))
 
