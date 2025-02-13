@@ -4,12 +4,16 @@
 ;; + concept -> s-dot +
 ;; --------------------
 
+;; TODO remove global parameters
 (defparameter *white* "#FFFFFF")
 (defparameter *red* "#E32D2D")
 (defparameter *green* "#26AD26")
 (defparameter *black* "#000000")
 
 (defun add-concept-to-interface (concept &key (weight-threshold 0.0))
+  "Adds a concept to the web interface.
+
+   Weighted distributions with weights above the given weight treshold are visualised."
   (add-element
    `((div :style ,(format nil "margin-left: 50px;"))
      ,(s-dot->svg
@@ -73,11 +77,13 @@
   (:documentation "Creates an s-dot record given a weighted-distribution."))
 
 (defmethod weighted-distribution->s-dot ((weighted-distribution weighted-distribution) weight-idx &key)
+  "Dispatches the s-dot creation process based on the type of distribution."
   (if (eq 'categorical (type-of (distribution weighted-distribution)))
     (categorical->s-dot weighted-distribution weight-idx)
-    (continuous->s-dot weighted-distribution weight-idx)))
+    (gaussian->s-dot weighted-distribution weight-idx)))
 
-(defmethod continuous->s-dot ((weighted-distribution weighted-distribution) weight-idx &key)
+(defmethod gaussian->s-dot ((weighted-distribution weighted-distribution) weight-idx &key)
+  "Creates an s-dot object for gaussian (weighted) distributions."
   (let* ((st-dev (st-dev (distribution weighted-distribution))))
     `(s-dot::record
       ((s-dot::style "rounded")
@@ -95,6 +101,7 @@
                                            st-dev)))))))
 
 (defmethod categorical->s-dot ((weighted-distribution weighted-distribution) weight-idx &key)
+  "Creates an s-dot object for categorical (weighted) distributions."
   `(s-dot::record
     ((s-dot::style "rounded")
      (s-dot::fontsize "9.5")
