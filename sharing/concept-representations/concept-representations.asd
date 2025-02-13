@@ -1,7 +1,7 @@
 (in-package :asdf)
 
 (defsystem :concept-representations
-  :description "System for representing, updating and comparing concepts (with entities)."
+  :description "System for representing, updating and comparing concepts."
   :author "Hermes I Research Team"
   :maintainer "Jerome Botoko Ekila <jerome@ai.vub.ac.be>"
   :depends-on (:utils 
@@ -16,7 +16,4 @@
                (:file "distribution")
                (:file "similarity")
                (:file "update")
-               (:file "visualisation")
-               ))
-
-;; idea for modules: 1. representing, 2 visualising, 3 comparing, 4 updating
+               (:file "visualisation")))
