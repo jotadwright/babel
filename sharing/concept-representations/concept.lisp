@@ -101,7 +101,6 @@
   (make-instance 'weighted-distribution
                  :feature-name (feature-name weighted-distribution)
                  :weight-value (copy-object (weight-value weighted-distribution))
-                 :weight-update-strategy (copy-object (weight-update-strategy weighted-distribution))
                  :distribution (copy-object (distribution weighted-distribution))))
 
 (defmethod print-object ((weighted-distribution weighted-distribution) stream)
