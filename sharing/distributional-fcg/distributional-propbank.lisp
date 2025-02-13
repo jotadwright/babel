@@ -31,6 +31,7 @@
 ;; Add as a goal test whether meaning is extracted, since we want to comprehend until there is meaning,
 ;; otherwise the lexical cxn can just apply.
 
+
 (defparameter *training-configuration*
   '((:de-render-mode .  :de-render-constituents-dependents)
     (:node-tests :check-double-role-assignment)
@@ -76,6 +77,8 @@
 |#
 
 ;(comprehend "he teaches a language" :timeout nil)
+;(comprehend "he teaches the children" :timeout nil)
+;(comprehend "jesus teaches english" :timeout nil)
 
 
 ;(comprehend "the man drives" :timeout nil)
@@ -88,7 +91,7 @@
 
 ;; goal test!!!!!! ??????
 
-
+;(add-element (make-html (categorial-network *train-grammar*)))
 
 (defmethod apply-heuristic ((node cip-node) (mode (eql :embedding-similarity)))
   (let* ((applied-cxn (get-original-cxn (car-applied-cxn (cipn-car node))))
@@ -96,10 +99,10 @@
          (bindings (car-second-merge-bindings (cipn-car node))))
     (loop for proto-role-embedding in proto-role-embeddings
           for pointer = (variablify (car proto-role-embedding))
-            for similarity = (cdr (assoc pointer bindings))
-            when similarity
+          for similarity = (cdr (assoc pointer bindings))
+          when similarity
             summing similarity into similarity-total
-              finally (return similarity-total))))
+          finally (return similarity-total))))
     
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -238,10 +241,7 @@ categorial network and returns it."
   (let* ((lemma (or (feature-value (find 'lemma (unit-body v-unit) :key #'feature-name))
                     (feature-value (find 'string (unit-body v-unit) :key #'feature-name))))
          (cxn-name (intern (upcase (format nil "~a(~a)-cxn" (frame-name gold-frame) lemma))))
-         
-         (equivalent-cxn (find-cxn cxn-name cxn-inventory :hash-key (if (stringp lemma) ;;WERKT NIET MEER!
-                                                                      (intern (upcase lemma))
-                                                                      lemma) :key #'name))
+         (equivalent-cxn (find cxn-name (constructions-list cxn-inventory) :key #'name))
          (sense-category (intern (symbol-name (make-id (frame-name gold-frame))))))
     
     (if equivalent-cxn
