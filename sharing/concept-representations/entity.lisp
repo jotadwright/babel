@@ -17,7 +17,7 @@
   (:documentation "Class for entity."))
 
 (defmethod create-entity (features description)
-  "Instantiates an entity object given a set of features and descriptions."
+  "Instantiates an entity given a set of features and descriptions."
   (make-instance 'entity :features features :description description))
 
 (defmethod get-feature-value ((entity entity) (feature-name symbol))

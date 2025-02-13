@@ -20,7 +20,7 @@
 
 
 ;; Constructor
-(defmethod make-distribution ((feature-value symbol))
+(defmethod make-distribution ((feature-value string))
   (let* ((nr-of-samples 0)
          (distribution (make-instance 'categorical :nr-of-samples nr-of-samples)))
     (update-distribution distribution feature-value)
@@ -28,7 +28,7 @@
 
 ;; Update
 (defmethod update-distribution ((distribution categorical)
-                                (feature-value symbol))
+                                (feature-value string))
   ;; Step 1: increment total count
   (incf (nr-of-samples distribution))
   ;; Step 2: increase count of the observed category

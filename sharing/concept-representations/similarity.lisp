@@ -33,7 +33,7 @@
                     0)))
     (exp (- (abs z-score)))))
 
-(defmethod distribution-feature-similarity ((distribution categorical) (feature-value symbol) &key (laplace-smoother 1) &allow-other-keys)
+(defmethod distribution-feature-similarity ((distribution categorical) (feature-value string) &key (laplace-smoother 1) &allow-other-keys)
   "Measures the similarity between a feature value (a category) and a categorical distribution."
   (let* ((total (nr-of-samples distribution))
          (frequency (gethash feature-value (frequencies distribution)))

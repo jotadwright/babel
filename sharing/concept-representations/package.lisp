@@ -6,4 +6,5 @@
         :test-framework
         :utils
         :web-interface
-        :monitors))
+        :monitors)
+  (:local-nicknames (:jzon :com.inuoe.jzon)))

@@ -7,7 +7,8 @@
   :depends-on (:utils 
                :test-framework
                :monitors
-               #+:hunchentoot-available-on-this-platform :web-interface)
+               #+:hunchentoot-available-on-this-platform :web-interface
+               :com.inuoe.jzon)
   :serial t
   :components ((:file "package")
                (:file "utils")
@@ -16,4 +17,5 @@
                (:file "distribution")
                (:file "similarity")
                (:file "update")
+               (:file "dataloader")
                (:file "visualisation")))
