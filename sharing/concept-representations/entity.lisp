@@ -22,4 +22,4 @@
 
 (defmethod get-feature-value ((entity entity) (feature-name symbol))
   "Getter for value of a feature in an entity given the name."
-  (gethash feature-name entity))
+  (gethash feature-name (features entity)))

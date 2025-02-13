@@ -9,26 +9,25 @@
   (:documentation "Abstract class for distributions"))
 
 ;; ----------------------------
-;; + Bernoulli distribution +
+;; + Categorical distribution +
 ;; ----------------------------
-(defclass bernoulli (distribution)
+(defclass categorical (distribution)
   ((frequencies
     :initarg :frequencies :accessor frequencies :initform (make-hash-table :test #'eq) :type hash-table)
    (nr-of-samples
     :initarg :nr-of-samples :accessor nr-of-samples :initform nil :type number))
-  (:documentation "A categorical (i.e. a generalised Bernoulli) distribution."))
+  (:documentation "A categorical (i.e. a generalised bernoulli) distribution."))
 
 
 ;; Constructor
 (defmethod make-distribution ((feature-value symbol))
   (let* ((nr-of-samples 0)
-         (distribution (make-instance 'bernoulli
-                                      :nr-of-samples nr-of-samples)))
+         (distribution (make-instance 'categorical :nr-of-samples nr-of-samples)))
     (update-distribution distribution feature-value)
     distribution))
 
 ;; Update
-(defmethod update-distribution ((distribution bernoulli)
+(defmethod update-distribution ((distribution categorical)
                                 (feature-value symbol))
   ;; Step 1: increment total count
   (incf (nr-of-samples distribution))
@@ -40,12 +39,12 @@
     (setf (gethash feature-value (frequencies distribution)) 1)))
 
 ;; Divergence
-(defmethod f-divergence ((distribution1 bernoulli)
-                         (distribution2 bernoulli)
+(defmethod f-divergence ((distribution1 categorical)
+                         (distribution2 categorical)
                          &key
                          &allow-other-keys)
   ;; step 1: synchronisation
-  ;;   due to disabling of channels, two distributions could have different observations over channels
+  ;;   two distributions could have different observations over features
   ;;   therefore the first step is to synchronise the two
   (synchronize-hash-tables distribution1 distribution2)
   ;; step 2: normalisation to ensure its a valid probability distribution that sums to 1
@@ -59,13 +58,13 @@
 ;; --------------------
 ;; + Helper functions +
 ;; --------------------
-(defmethod number-of-categories ((distribution bernoulli))
+(defmethod number-of-categories ((distribution categorical))
   "Return the number of observed categories in the distribution."
   (hash-table-count (frequencies distribution)))
 
 
-(defmethod synchronize-hash-tables ((distribution1 bernoulli) (distribution2 bernoulli))
-  "Synchronize two bernoulli distributions by updating missing keys with a value of zero."
+(defmethod synchronize-hash-tables ((distribution1 categorical) (distribution2 categorical))
+  "Synchronize two categorical distributions by updating missing keys with a value of zero."
   (let* ((hash-table1 (frequencies distribution1))
          (hash-table2 (frequencies distribution2))
          (keys1 (hash-keys hash-table1))
@@ -79,7 +78,7 @@
       (unless (gethash key hash-table1)
         (setf (gethash key hash-table1) 0)))))
 
-(defmethod normalise ((distribution bernoulli))
+(defmethod normalise ((distribution categorical))
   "Normalise the frequencies so that its a valid (discrete) probability distribution."
   (let* ((total (nr-of-samples distribution))
          (counts (loop for key being the hash-keys of (frequencies distribution)
@@ -88,14 +87,14 @@
     counts))
 
 
-(defmethod copy-object ((distribution bernoulli))
-  (make-instance 'bernoulli
+(defmethod copy-object ((distribution categorical))
+  (make-instance 'categorical
                  :frequencies (copy-object (frequencies distribution))
                  :nr-of-samples (copy-object (nr-of-samples distribution))))
 
-(defmethod print-object ((distribution bernoulli) stream)
+(defmethod print-object ((distribution categorical) stream)
   (pprint-logical-block (stream nil)
-    (format stream "<Bernoulli (~a): ~a" (nr-of-samples distribution) (hash-keys (frequencies distribution)))
+    (format stream "<Categorical (~a): ~a" (nr-of-samples distribution) (hash-keys (frequencies distribution)))
     (format stream ">")))
 
 ;; -------------------------
