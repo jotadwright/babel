@@ -12,6 +12,12 @@
                   :name "small-corpus" :type "conll")
    cl-user:*babel-corpora*))
 
+(defparameter *annotations-file-path-teach*
+  (merge-pathnames 
+   (make-pathname :directory '(:relative "distributional-fcg")
+                  :name "small-corpus-teach" :type "conll")
+   cl-user:*babel-corpora*))
+
 #|
 
 (progn 
@@ -19,6 +25,8 @@
 (defparameter *annotations*
   (read-propbank-conll-file *annotations-file-path*))
 
+(defparameter *annotations*
+  (read-propbank-conll-file *annotations-file-path-teach*))
 
 ;; Add as a goal test whether meaning is extracted, since we want to comprehend until there is meaning,
 ;; otherwise the lexical cxn can just apply.
@@ -32,7 +40,9 @@
     (:heuristics
      :nr-of-applied-cxns
      :nr-of-units-matched-x2 ;;nr-of-units-matched
-     :edge-weight)
+     :edge-weight
+     :embedding-similarity
+     )
     ;;Additional heuristics: :prefer-local-bindings :frequency
     (:heuristic-value-mode . :sum-heuristics-and-parent)
     (:sort-cxns-before-application . nil)
@@ -55,14 +65,18 @@
   :cxn-inventory '*train-grammar*
   :fcg-configuration *training-configuration*)
 
+(set-proto-role-embeddings *train-grammar*)
+
+
 (add-embeddings-to-cxn-inventory *train-grammar* *annotations*)
-
-
 
 )
 
 
-|# 
+|#
+
+;(comprehend "he teaches a language" :timeout nil)
+
 
 ;(comprehend "the man drives" :timeout nil)
 
@@ -74,8 +88,19 @@
 
 ;; goal test!!!!!! ??????
 
-;(set-proto-role-embeddings *train-grammar*)
 
+
+(defmethod apply-heuristic ((node cip-node) (mode (eql :embedding-similarity)))
+  (let* ((applied-cxn (get-original-cxn (car-applied-cxn (cipn-car node))))
+         (proto-role-embeddings (find-data (blackboard applied-cxn) :proto-role-embeddings))
+         (bindings (car-second-merge-bindings (cipn-car node))))
+    (loop for proto-role-embedding in proto-role-embeddings
+          for pointer = (variablify (car proto-role-embedding))
+            for similarity = (cdr (assoc pointer bindings))
+            when similarity
+            summing similarity into similarity-total
+              finally (return similarity-total))))
+    
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; helper functions to make proto-embeddings  ;;
@@ -89,12 +114,14 @@
           for strings-in-roles = (find-data (blackboard arg-structure-cxn) :strings-in-roles)
           for number-of-roles = (length (first strings-in-roles))
           for proto-role-embeddings = (loop for i from 0 to (- number-of-roles 1)
-                                       for strings-in-role = (loop for str in strings-in-roles
-                                                                   collect (cdr (nth i str)))
-                                       for proto-role-embedding = (make-proto-embedding strings-in-role)
-                                       collect proto-role-embedding)
+                                            for strings-in-role = (loop for str in strings-in-roles
+                                                                        collect (cdr (nth i str)))
+                                              for proto-role-embedding-pointer = (car (nth i (first strings-in-roles)))
+                                            for proto-role-embedding = (make-proto-embedding strings-in-role)
+                                            collect (cons proto-role-embedding-pointer proto-role-embedding))
           do (append-data arg-structure-cxn :proto-role-embeddings proto-role-embeddings))))
-  
+
+;; use the sum-list-of-vectors of math in babel utils
 (defmethod combine-word-embeddings ((embeddings-list list) &key (mode (eql 'addition)))
   "Combine word embeddings by adding them."
    (apply #'mapcar #'+ embeddings-list))
@@ -203,7 +230,7 @@
              (add-category lex-category cxn-inventory :recompute-transitive-closure nil) 
              lex-category))))
 
-;; remove lemma feature from cxn. 
+;; remove lemma feature from cxn, otherwise cxns can never match if not exact lemma, what we want to avoid with the distributional experiment. 
 (defun add-word-sense-cxn (gold-frame v-unit cxn-inventory propbank-sentence lex-category gram-category)
   "Creates a new word sense construction if necessary, otherwise
 increments frequency of existing cxn. Adds a new sense category to the
@@ -323,11 +350,12 @@ grammatical category."
                       :recompute-transitive-closure nil)))
         ;;2.2) (Added for distributional-propbank:)
         (append-data equivalent-cxn :strings-in-roles (list (loop for core-unit in core-units-with-role
-                                                         for role = (role-type (first core-unit))
-                                                         for string = (last-elt (fourth core-unit))
-                                                         for class = (last-elt (last-elt (seventh core-unit)))
-                                                         when (not (string= role "V"))
-                                                           collect (cons class string))))
+                                                                  for role = (role-type (first core-unit))
+                                                                  for string = (last-elt (fourth core-unit))
+                                                                  for unit-name = (second core-unit)
+                                                                  for class = (last-elt (last-elt (seventh core-unit)))
+                                                                  when (not (string= role "V"))
+                                                                    collect (cons (intern (upcase (format nil "->~a--~a" role gram-category))) string))))
         ;;3) Return gram-category
         (attr-val equivalent-cxn :gram-category))
 
@@ -356,13 +384,49 @@ grammatical category."
                                 :cxn-inventory ,cxn-inventory))
           
           (append-data cxn :strings-in-roles (list (loop for core-unit in core-units-with-role
-                                                for role = (role-type (first core-unit))
-                                                for string = (last-elt (fourth core-unit))
-                                                for class = (last-elt (last-elt (seventh core-unit)))
-                                                when (not (string= role "V"))
-                                                  collect (cons class string))))
+                                                         for role = (role-type (first core-unit))
+                                                         for string = (last-elt (fourth core-unit))
+                                                         for unit-name = (second core-unit)
+                                                         for class = (last-elt (last-elt (seventh core-unit)))
+                                                         when (not (string= role "V"))
+                                                           collect (cons (intern (upcase (format nil "->~a--~a" role gram-category))) string))))
           gram-category)))))
 
+;; added embedding pointer for proto-roles, the embedding itself is added after learning.
+;; embedding only needed when not V, so only in the roles. 
+(defun make-propbank-conditional-unit-with-role (unit-with-role category footprint &key (lemma nil) (string nil) (frame-evoking nil))
+  "Makes a conditional unit for a propbank cxn based on a unit in the
+initial transient structure that plays a role in the frame."
+  (let* ((unit (cdr unit-with-role))
+         (unit-name (variablify (unit-name unit)))
+         (parent (when (cadr (find 'parent (unit-body unit) :key #'feature-name))
+                   (variablify (cadr (find 'parent (unit-body unit) :key #'feature-name)))))
+         (syn-class (find 'syn-class (unit-body unit) :key #'feature-name))
+         (dependency-label (when (find 'rb (feature-value syn-class))
+                             (find 'dependency-label (unit-body unit) :key #'feature-name)))
+         (phrase-embedding-pointer (intern (upcase (format nil "->~a--~a" (role-type (first unit-with-role)) category))))) ;;phrase-embedding-pointer is cxn-specific, so reuse cxn-name
+    ;;a FEE unit also has the features lemma and footprints
+    (if (equalp "V" (role-type (car unit-with-role)))
+      `(,unit-name
+        --
+        (parent ,parent)
+        ,syn-class
+        (footprints (NOT ,footprint))
+        ,@(when frame-evoking
+            '((frame-evoking +)))
+        ,@(when category
+            `((lex-category ,category))))
+      `(,unit-name
+        --
+        (parent ,parent)
+        ,syn-class
+        (token (embedding ,phrase-embedding-pointer))
+        ,@(when dependency-label `(,dependency-label))
+        ,@(when lemma
+            `((lemma ,lemma)))
+         ,@(when string
+            `((string ,string)))
+        ))))
 
 ;; Changes: get embeddings of the lemmas and add them to the units of the TS and the blackboard of the TS.
 (defun create-initial-transient-structure-based-on-benepar-analysis (spacy-benepar-analysis)
@@ -411,9 +475,15 @@ grammatical category."
                                                             (t
                                                              `(,(node-lex-class node))))
                                       for lemma-embedding = (when (equal node-type 'leaf) (nlp-tools:get-word-embedding (node-lemma-string node)))
+                                       
                                       for lemma-embedding-pointer = (when lemma-embedding (intern (upcase (string-append "->" (node-lemma-string node)))))
+                                      for phrase-embedding = (when (equal node-type 'phrase) (combine-word-embeddings (mapcar #'last-elt (nlp-tools:get-word-embeddings (mapcar #'downcase (split-sequence:split-sequence #\Space node-string :remove-empty-subseqs t))))))
+                                      for phrase-embedding-pointer = (when phrase-embedding (intern (upcase (string-append "->" node-string))))
                                       when lemma-embedding
-                                      collect  (cons lemma-embedding-pointer (first (cdr lemma-embedding))) into embeddings
+                                        collect  (cons lemma-embedding-pointer (first (cdr lemma-embedding))) into embeddings
+                                      when phrase-embedding 
+                                        collect  (cons phrase-embedding-pointer  phrase-embedding) into embeddings
+                                        
                                       collect `(,unit-name
                                                 (node-type ,node-type)
                                                 (string ,node-string)
@@ -422,7 +492,10 @@ grammatical category."
                                                 (syn-class ,syn-class)
                                                 ,@(when (equal node-type 'phrase)
                                                     `((constituents ,(find-constituents node-id spacy-benepar-analysis unit-name-ids))
-                                                      (word-order ,(find-adjacency-constraints node-id spacy-benepar-analysis unit-name-ids))))
+                                                      (word-order ,(find-adjacency-constraints node-id spacy-benepar-analysis unit-name-ids))
+                                                      (token ((string ,node-string)
+                                                              (embedding ,phrase-embedding-pointer)))
+                                                      ))
                                                 ,@(when (and (equal node-type 'phrase)
                                                              (find 'vp syn-class))
                                                     (loop for constituent in (find-constituent-units node-id spacy-benepar-analysis)
@@ -499,14 +572,21 @@ field :cxn-token-embeddings"
   (remove-data (blackboard cxn-inventory) :ts-token-embeddings)
   (loop for cxn in (constructions cxn-inventory)
         for cxn-token = (attr-val cxn :token)
+        for proto-embeddings = (find-data (blackboard cxn) :proto-role-embeddings)
         when cxn-token
           do (append-data (blackboard cxn-inventory) :cxn-token-embeddings (list (cons (intern (upcase (string-append "->" cxn-token)))
-                                                                                       (second (nlp-tools:get-word-embedding cxn-token))))))
+                                                                                       (second (nlp-tools:get-word-embedding cxn-token)))))
+        when proto-embeddings
+          do (append-data (blackboard cxn-inventory) :cxn-token-embeddings proto-embeddings))
+
+  
+  ;; this can be removed? 
   (loop for sentence in conll-annotations
         for ts-token-embeddings = (get-data (blackboard (initial-transient-structure sentence)) :ts-embeddings)
         when ts-token-embeddings
         do (append-data (blackboard cxn-inventory) :ts-token-embeddings ts-token-embeddings)
-  ))
+  )
+  )
 
 ;; Changes: blackboard of the initial-cfs is already initialised so just do set-data on the blackboard instead of on the initial-cfs. 
 (defun comprehend-with-rolesets (initial-cfs cxn-inventory selected-rolesets utterance silent)
