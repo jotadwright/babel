@@ -9,13 +9,12 @@
         with ledger = (loop for prototype in prototypes sum (weight prototype))
         for prototype in prototypes
         for observation = (perceive-object-val agent object (channel prototype))
-        for distance = (observation-distance observation prototype)
+        for similarity = (observation-distance observation prototype)
         if (and distance (not (zerop ledger)))
           ;; note: ledger could be factored out
-          sum (* (expt (/ (weight prototype) ledger) 2)
-                 (expt distance 2))
-            into mahalanobis
-        finally (return (exp (* 1/2 (- mahalanobis))))))
+          sum (* (/ (weight prototype) ledger) similarity)
+            total-similarity
+        finally (return total-similarity)))
 
 ;; ----------------------------------
 ;; + Comparing OBJECT <-> PROTOTYPE +
@@ -40,7 +39,7 @@
          (z-score (if (not (zerop st-dev))
                     (/ (- observation mean) st-dev)
                     0)))
-    z-score))
+    (expt (- (abs z-score)))))
 
 (defmethod observation-distance ((observation symbol) (prototype prototype) &key (laplace-smoother 1) &allow-other-keys)
   "Similarity [0,1] on the level of a single prototype for a categorical observation."
@@ -54,7 +53,7 @@
                (+ total (* laplace-smoother (number-of-categories distribution))))
             (/ laplace-smoother
                (+ total (* laplace-smoother (+ (number-of-categories distribution) 1)))))))
-    (- (log probability))))
+    probability))
 
 ;; -------------------------------
 ;; + Similarity between CONCEPTS +
