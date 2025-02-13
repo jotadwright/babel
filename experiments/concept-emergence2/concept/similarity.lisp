@@ -10,10 +10,10 @@
         for prototype in prototypes
         for observation = (perceive-object-val agent object (channel prototype))
         for similarity = (observation-distance observation prototype)
-        if (and distance (not (zerop ledger)))
+        if (and similarity (not (zerop ledger)))
           ;; note: ledger could be factored out
           sum (* (/ (weight prototype) ledger) similarity)
-            total-similarity
+            into total-similarity
         finally (return total-similarity)))
 
 ;; ----------------------------------
@@ -39,7 +39,7 @@
          (z-score (if (not (zerop st-dev))
                     (/ (- observation mean) st-dev)
                     0)))
-    (expt (- (abs z-score)))))
+    (exp (- (abs z-score)))))
 
 (defmethod observation-distance ((observation symbol) (prototype prototype) &key (laplace-smoother 1) &allow-other-keys)
   "Similarity [0,1] on the level of a single prototype for a categorical observation."
