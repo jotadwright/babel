@@ -16,7 +16,7 @@
                (:file "distribution")
                (:file "similarity")
                (:file "update")
-               ;(:file "visualisation")
+               (:file "visualisation")
                ))
 
 ;; idea for modules: 1. representing, 2 visualising, 3 comparing, 4 updating
