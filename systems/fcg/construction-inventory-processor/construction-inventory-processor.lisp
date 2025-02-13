@@ -234,20 +234,14 @@
 (defgeneric cip-node-test (node mode)
   (:documentation "Tests whether a node should be further explored"))
 
-
 (require-configuration :parse-goal-tests)
 (require-configuration :production-goal-tests)
 
 (defgeneric cip-goal-test (node mode)
   (:documentation "Tests whether a cip node is a solution"))
 
-
-(require-configuration :queue-mode)
-
 (defgeneric cip-enqueue (node cip mode)
   (:documentation "Puts a node into the queue"))
-
-(require-configuration :priority-mode)
 
 (defgeneric cip-priority (node mode)
   (:documentation "Computes a number for the priority of a node in the queue"))
