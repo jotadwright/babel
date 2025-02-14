@@ -154,10 +154,11 @@
              (error "Could not find a 'scenes' subdirectory in ~a~%" fpath))
            ;; load the dataset
            (format t "~% Loading the objects... [~a]" fpath)
-           (time
-            (let* ((raw-data (read-jsonl fpath))
-                    (objects (data->cle-objects raw-data (feature-set view) (get-categorical-features world view-name))))
-              (setf (data view) objects)))
+           ;(time
+           (let* ((raw-data (read-jsonl fpath))
+                  (objects (data->cle-objects raw-data (feature-set view) (get-categorical-features world view-name))))
+             (setf (data view) objects))
+           ;)
            (format t "~% Completed loading.~%~%")))
 
 ;; ------------------------

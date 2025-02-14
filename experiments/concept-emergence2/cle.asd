@@ -21,7 +21,8 @@
   :components ((:file "package")
                (:module "world"
                 :serial t
-                :components ((:file "world")
+                :components ((:file "monitors")
+                             (:file "world")
                              (:file "object")
                              (:file "scene")
                              (:file "topic")
@@ -79,4 +80,4 @@
                              (:file "s-dot")
                              (:file "s-dot-diff")
                              (:file "web-monitor")
-                             (:file "monitors")))))
+                             ))))

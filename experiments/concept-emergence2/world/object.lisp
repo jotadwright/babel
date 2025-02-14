@@ -58,7 +58,7 @@
   "Create an instance of cle-object from an hash-table."
   (let* ((description (gethash :description data))
          ;; convert categorical data (strings) to symbols for efficient comparisons
-         (data (convert-object-strings-to-symbols (gethash :attributes data) categorical-features))
+         (data (convert-object-strings-to-symbols (gethash :features data) categorical-features))
          ;; filter the data on only the available feature-set
          (attributes (filter-objects-on-features data feature-set)))
     (make-instance 'cle-object

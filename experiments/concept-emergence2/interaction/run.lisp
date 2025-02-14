@@ -5,8 +5,6 @@
 ;; --------------------
 
 (defmethod interact ((experiment cle-experiment) interaction &key scene topic agents)
-  (when (switch-condition-p experiment (get-configuration experiment :switch-condition))
-    (setup-next-condition experiment))
   (before-interaction experiment :scene scene :topic topic :agents agents)
   (do-interaction experiment)
   (after-interaction experiment))
@@ -21,13 +19,14 @@
                                                           (+ 1 (interaction-number
                                                                 (car (interactions experiment))))
                                                           1))))
-    ;; during training: store experiment every x interactions
-    (when (and (equalp (get-configuration experiment :dataset-split) "train")
-               (not (zerop (interaction-number interaction)))
-               (get-configuration experiment :nr-of-interactions) ;; if set, then continue
-               (zerop (mod (interaction-number interaction) (/ (get-configuration experiment :nr-of-interactions) 4))))
-      (store-experiment experiment))
 
+
+    ;; check if we need to switch the dataset split
+    (switch-split experiment interaction)
+    ;; TODO do not condition during validation
+    (when (switch-condition-p experiment (get-configuration experiment :switch-condition))
+      (setup-next-condition experiment))
+    
     ;; 1. set new interaction as interaction
     (setf (interactions experiment) (list interaction))
     ;; 2. run interaction script
@@ -48,7 +47,45 @@
            (= (mod (interaction-number interaction) (get-configuration experiment :record-every-x-interactions)) 0) 
            (= (interaction-number interaction) 1))
           
-        (notify interaction-finished experiment interaction (interaction-number interaction)))
+        (notify-interaction-by-split experiment interaction (interaction-number interaction)))
       ;;; if you do not set such a configuration, notify will always be notified
-      (notify interaction-finished experiment interaction (interaction-number interaction)))
+      (notify-interaction-by-split experiment interaction (interaction-number interaction)))
     (values interaction experiment)))
+
+(defun switch-split (experiment interaction &key (switch-to-val-x-times 8) (run-val-for-percent-of-total-interactions 1/64))
+  "Switches the dataset between the training and test split"
+  (let ((current-interaction-number (interaction-number interaction)))
+    ;; if training, switch to validation 8 times (every 1/8 of the interactions)
+    (when (and (not (eq current-interaction-number 1))
+               (string= (get-configuration experiment :dataset-split) "train")
+               (eq (mod current-interaction-number (/ (get-configuration experiment :nr-of-interactions) switch-to-val-x-times)) 0))
+      ;; LOG TO OUTPUT BROWSER
+      (format t "~% ~a -> Switching from ~a to val" current-interaction-number  (get-configuration experiment :dataset-split))
+
+      
+      (set-configuration experiment :saved-interaction-number current-interaction-number)
+      (setf (interaction-number interaction) 1)
+      (set-configuration experiment :dataset-split "val")
+      (set-configuration experiment :align nil)
+      (initialise-world experiment)
+      (return-from switch-split))
+    ;; run validation each time for 1/64th of the interactions, then switch back to training
+    (when (and (not (eq current-interaction-number 1))
+               (string= (get-configuration experiment :dataset-split) "val")
+               (eq (mod current-interaction-number (floor (* (get-configuration experiment :nr-of-interactions) run-val-for-percent-of-total-interactions))) 0))
+      (format t "~% ~a -> Switching from ~a to train" current-interaction-number (get-configuration experiment :dataset-split))
+      (set-configuration experiment :dataset-split "train")
+      (set-configuration experiment :align t)
+      ;; reset the interaction number to before the switch
+      (setf (interaction-number interaction) (get-configuration experiment :saved-interaction-number))
+      (initialise-world experiment))))
+
+(defun notify-interaction-by-split (experiment interaction interaction-number)
+  "Notify the correct interaction-finsihed"
+  (let ((dataset-split (get-configuration experiment :dataset-split)))
+    (cond ((string= dataset-split "train")
+           (notify interaction-finished-train experiment interaction interaction-number))
+          ((string= dataset-split "val")
+           (notify interaction-finished-val experiment interaction interaction-number))
+          ((string= dataset-split "test")
+           (notify interaction-finished-test experiment interaction interaction-number)))))
