@@ -119,21 +119,41 @@
               Either load another experiment or set the configuration manually.
               Probably using `(set-configuration experiment :coherence-perspective :hearer)`")))
     
+(defun ensure-monitor-directory-exists (monitor configuration)
+  (when (slot-exists-p monitor 'file-name)
+    do (setf (slot-value monitor 'file-name)
+             (ensure-directories-exist
+              (merge-pathnames (make-pathname :directory `(:relative ,(get-configuration configuration :log-dir-name))
+                                              :name (pathname-name (file-name monitor)) 
+                                              :type (pathname-type (file-name monitor)))
+                               (babel-pathname :directory `("experiments"
+                                                            "concept-emergence2"
+                                                            "logging"
+                                                            ,(get-configuration configuration :exp-top-dir)
+                                                            ,(get-configuration configuration :dataset-split)
+                                                            ,(get-configuration configuration :exp-name))))))))
 
-(defun set-up-monitors (monitors config)
+(defun set-up-monitors (monitors splits configuration)
   (monitors::deactivate-all-monitors)
-  (loop for monitor-string in monitors
-        for monitor = (monitors::get-monitor (read-from-string monitor-string))
-        do (monitors::activate-monitor-method (read-from-string monitor-string))
-        when (slot-exists-p monitor 'file-name)
-          do (setf (slot-value monitor 'file-name)
-                    (ensure-directories-exist
-                    (merge-pathnames (make-pathname :directory `(:relative ,(assqv :log-dir-name config))
-                                                    :name (pathname-name (file-name monitor)) 
-                                                    :type (pathname-type (file-name monitor)))
-                                      (babel-pathname :directory `("experiments"
-                                                                  "concept-emergence2"
-                                                                  "logging"
-                                                                  ,(assqv :exp-top-dir config)
-                                                                  ,(assqv :dataset-split config)
-                                                                  ,(assqv :exp-name config))))))))
+  (loop with split-independent = nil
+        with split-dependent = nil
+        for monitor-name in monitors
+        if (or (search "communicative-success" monitor-name)
+               (search "conventionalisation" monitor-name)
+               (search "construction-inventory-usage" monitor-name))
+          do (progn
+               (loop for split in splits
+                     for monitor-id = (read-from-string (format nil "~a-~a" monitor-name split))
+                     do (monitors::activate-monitor-method monitor-id))s
+               (setf split-dependent (cons monitor-name split-dependent)))
+        else
+          do (progn
+               (monitors::activate-monitor-method (read-from-string monitor-name))
+               (setf split-independent (cons monitor-name split-independent)))
+        finally
+          (progn
+            (loop for monitor being the hash-values of monitors::*monitors*
+                  when (monitors::active monitor)
+                    do (ensure-monitor-directory-exists monitor configuration))
+            (set-configuration configuration :split-independent-monitors split-independent)
+            (set-configuration configuration :split-dependent-monitors split-dependent))))

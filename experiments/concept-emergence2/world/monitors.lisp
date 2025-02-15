@@ -4,59 +4,57 @@
 ;; + Monitors +
 ;; ------------
 
-;; when a game finished
-(define-event interaction-finished-train (experiment t) (interaction t) (interaction-number number))
-(define-event interaction-finished-val (experiment t) (interaction t) (interaction-number number))
-(define-event interaction-finished-test (experiment t) (interaction t) (interaction-number number))
-
 ;; -------------------------------------------------------
 ;; + Log information to output-browser (standard output) +
 ;; -------------------------------------------------------
 (defvar *start-time* nil)
 
 (defun log-every-x-interactions-in-output-browser (experiment interaction split)
-  (cond ((or (= (interaction-number interaction) 1) (not *start-time*))
-                            (setf *start-time* (get-universal-time)))
-                          ((= (mod (interaction-number interaction)
-                                    (get-configuration experiment :log-every-x-interactions))
-                              0)
-                            (let ((communicative-success (caaar (monitors::get-average-values (monitors::get-monitor (intern (format nil "RECORD-COMMUNICATIVE-SUCCESS-~a" split))))))
-                                  (conventionalisation (caaar (monitors::get-average-values (monitors::get-monitor (intern (format nil "RECORD-CONVENTIONALISATION-~a" split)))))))
-                              (multiple-value-bind (h m s) (seconds-to-hours-minutes-seconds (- (get-universal-time) *start-time*))
-                                (format t
-                                        ". (~a / ~a / ~a / ~ah ~am ~as)~%"
-                                        (interaction-number interaction)
-                                        (if communicative-success
-                                          (format nil "~,vf%" 1 (* 100 (float communicative-success)))
-                                          "NIL")
-                                        (if conventionalisation
-                                          (format nil "~,vf%" 1 (* 100 (float conventionalisation)))
-                                          "NIL")
-                                        h m s)))
-                            (setf *start-time* (get-universal-time)))))
+  (let ((log-every-x-interactions (get-configuration experiment :log-every-x-interactions)))
+    (when (string= split "VAL")
+      (setf log-every-x-interactions (floor (/ log-every-x-interactions 5))))
+    (cond ((or (= (interaction-number interaction) 1) (not *start-time*))
+           (setf *start-time* (get-universal-time)))
+          ((= (mod (interaction-number interaction) log-every-x-interactions)
+              0)
+           (let ((communicative-success (caaar (monitors::get-average-values (monitors::get-monitor (intern (format nil "RECORD-COMMUNICATIVE-SUCCESS-~a" split))))))
+                 (conventionalisation (caaar (monitors::get-average-values (monitors::get-monitor (intern (format nil "RECORD-CONVENTIONALISATION-~a" split)))))))
+             (multiple-value-bind (h m s) (seconds-to-hours-minutes-seconds (- (get-universal-time) *start-time*))
+               (format t
+                       ". (~a / ~a / ~a / ~ah ~am ~as)~%"
+                       (interaction-number interaction)
+                       (if communicative-success
+                         (format nil "~,vf%" 1 (* 100 (float communicative-success)))
+                         "NIL")
+                       (if conventionalisation
+                         (format nil "~,vf%" 1 (* 100 (float conventionalisation)))
+                         "NIL")
+                       h m s)))
+           (setf *start-time* (get-universal-time))))))
 
-(define-monitor log-every-x-interactions-in-output-browser-train
+(define-monitor log-every-x-interactions-in-output-browser
                 :documentation "Logs measures every x interactions in the output-browser")
-  
-(define-event-handler (log-every-x-interactions-in-output-browser-train interaction-finished-train)
-                      (log-every-x-interactions-in-output-browser experiment interaction "TRAIN"))
 
-(define-monitor log-every-x-interactions-in-output-browser-val
-                :documentation "Logs measures every x interactions in the output-browser")
-  
-(define-event-handler (log-every-x-interactions-in-output-browser-val interaction-finished-val)
-                      (log-every-x-interactions-in-output-browser experiment interaction "VAL"))
+(define-event-handler (log-every-x-interactions-in-output-browser interaction-finished)
+  (let ((dataset-split (get-configuration experiment :dataset-split)))
+    (log-every-x-interactions-in-output-browser experiment interaction (string-upcase dataset-split))))
 
-(define-monitor log-every-x-interactions-in-output-browser-test
-                :documentation "Logs measures every x interactions in the output-browser")
-  
-(define-event-handler (log-every-x-interactions-in-output-browser-test interaction-finished-test)
-                      (log-every-x-interactions-in-output-browser experiment interaction "TEST"))
+;; -------------------
+;; + Helper function +
+;; -------------------
 
+(defun retrieve-monitor (experiment name)
+  (let* ((dataset-split (get-configuration experiment :dataset-split))
+         (monitor (monitors::get-monitor (intern (string-upcase (format nil "~a-~a" name dataset-split))))))
+    monitor))
 
 ;; -------------------------
 ;; + Communicative success +
 ;; -------------------------
+
+(defun record-communicative-success (experiment interaction)
+  (let ((monitor (retrieve-monitor experiment "record-communicative-success")))
+    (record-value monitor (if (communicated-successfully interaction) 1 0))))
 
 ;; train
 (define-monitor record-communicative-success-train
@@ -72,13 +70,10 @@
                                            :directory '("experiments" "concept-emergence2" "logging"))
                 :add-time-and-experiment-to-file-name nil)
 
-(defun test (monitor interaction)
-  (record-value monitor (if (communicated-successfully interaction) 1 0)))
+(define-event-handler (record-communicative-success-train interaction-finished)
+  (record-communicative-success experiment interaction))
 
-(define-event-handler (record-communicative-success-train interaction-finished-train)
-  (test monitor interaction))
-
-;; validation
+;; val
 (define-monitor record-communicative-success-val
                 :class 'data-recorder
                 :average-window 1000
@@ -92,8 +87,8 @@
                                            :directory '("experiments" "concept-emergence2" "logging"))
                 :add-time-and-experiment-to-file-name nil)
 
-(define-event-handler (record-communicative-success-val interaction-finished-val)
-  (record-value monitor (if (communicated-successfully interaction) 1 0)))
+(define-event-handler (record-communicative-success-val interaction-finished)
+  (record-communicative-success experiment interaction))
 
 ;; test
 (define-monitor record-communicative-success-test
@@ -109,12 +104,16 @@
                                            :directory '("experiments" "concept-emergence2" "logging"))
                 :add-time-and-experiment-to-file-name nil)
 
-(define-event-handler (record-communicative-success-test interaction-finished-test)
-  (record-value monitor (if (communicated-successfully interaction) 1 0)))
+(define-event-handler (record-communicative-success-test interaction-finished)
+  (record-communicative-success experiment interaction))
 
 ;; ---------------------------------
 ;; + Degree of conventionalisation +
 ;; ---------------------------------
+
+(defun record-conventionalisation (experiment interaction)
+  (let ((monitor (retrieve-monitor experiment "record-conventionalisation")))
+    (record-value monitor (if (find-data interaction 'lexicon-coherence) 1 0))))
 
 ;; train
 (define-monitor record-conventionalisation-train
@@ -130,8 +129,8 @@
                                            :directory '("experiments" "concept-emergence2" "logging"))
                 :add-time-and-experiment-to-file-name nil)
 
-(define-event-handler (record-conventionalisation-train interaction-finished-train)
-  (record-value monitor (if (find-data interaction 'lexicon-coherence) 1 0)))
+(define-event-handler (record-conventionalisation-train interaction-finished)
+  (record-conventionalisation experiment interaction))
 
 ;; val
 (define-monitor record-conventionalisation-val
@@ -147,8 +146,8 @@
                                            :directory '("experiments" "concept-emergence2" "logging"))
                 :add-time-and-experiment-to-file-name nil)
 
-(define-event-handler (record-conventionalisation-val interaction-finished-val)
-  (record-value monitor (if (find-data interaction 'lexicon-coherence) 1 0)))
+(define-event-handler (record-conventionalisation-val interaction-finished)
+  (record-conventionalisation experiment interaction))
 
 ;; test
 (define-monitor record-conventionalisation-test
@@ -164,13 +163,19 @@
                                            :directory '("experiments" "concept-emergence2" "logging"))
                 :add-time-and-experiment-to-file-name nil)
 
-(define-event-handler (record-conventionalisation-test interaction-finished-test)
-  (record-value monitor (if (find-data interaction 'lexicon-coherence) 1 0)))
+(define-event-handler (record-conventionalisation-test interaction-finished)
+  (record-conventionalisation experiment interaction))
 
 ;; -------------------------------------------------------------
 ;; + Construction inventory usage (during training/validation) +
 ;; -------------------------------------------------------------
 
+(defun record-construction-inventory-usage (experiment interaction)
+  (let ((monitor (retrieve-monitor experiment "record-construction-inventory-usage")))
+    (record-value monitor (loop for agent in (agents (experiment interaction))
+                                sum (unique-forms-in-window agent) into total-sum
+                                finally (return (round (/ total-sum (length (agents (experiment interaction))))))))))
+  
 ;; train
 (define-monitor record-construction-inventory-usage-train
                 :class 'data-recorder
@@ -186,11 +191,6 @@
                 :file-name (babel-pathname :name "unique-form-usage-train" :type "csv"
                                            :directory '("experiments" "concept-emergence2" "logging"))
                 :add-time-and-experiment-to-file-name nil)
-
-(define-event-handler (record-construction-inventory-usage-train interaction-finished-train)
-  (record-value monitor (loop for agent in (agents (experiment interaction))
-                              sum (unique-forms-in-window agent) into total-sum
-                              finally (return (round (/ total-sum (length (agents (experiment interaction)))))))))
 
 ;; val
 (define-monitor record-construction-inventory-usage-val
@@ -208,18 +208,19 @@
                                            :directory '("experiments" "concept-emergence2" "logging"))
                 :add-time-and-experiment-to-file-name nil)
 
-(define-event-handler (record-construction-inventory-usage-val interaction-finished-val)
-  (record-value monitor (loop for agent in (agents (experiment interaction))
-                              sum (unique-forms-in-window agent) into total-sum
-                              finally (return (round (/ total-sum (length (agents (experiment interaction)))))))))
+(define-event-handler (record-construction-inventory-usage-train interaction-finished)
+  (record-construction-inventory-usage experiment interaction))
+
+(define-event-handler (record-construction-inventory-usage-val interaction-finished)
+  (record-construction-inventory-usage experiment interaction))
 
 ;; -------------------------------------------------
 ;; + Construction inventory usage (during testing) +
 ;; -------------------------------------------------
-(define-monitor export-construction-inventory-usage-test
+(define-monitor export-construction-inventory-window
                 :documentation "Exports the word usage across all interactions (i.e. the window size is set to infinite).")
 
-(define-event-handler (export-construction-inventory-usage-test run-series-finished)
+(define-event-handler (export-construction-inventory-window run-series-finished)
   (let* ((exp-top-dir (get-configuration experiment :exp-top-dir))
          (dataset-split (get-configuration experiment :dataset-split))
          (exp-name (get-configuration experiment :exp-name))

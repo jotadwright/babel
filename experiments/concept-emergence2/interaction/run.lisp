@@ -52,7 +52,7 @@
       (notify-interaction-by-split experiment interaction (interaction-number interaction)))
     (values interaction experiment)))
 
-(defun switch-split (experiment interaction &key (switch-to-val-x-times 8) (run-val-for-percent-of-total-interactions 1/64))
+(defun switch-split (experiment interaction &key (switch-to-val-x-times 8) (run-val-for-percent-of-total-interactions 1/100))
   "Switches the dataset between the training and test split"
   (let ((current-interaction-number (interaction-number interaction)))
     ;; if training, switch to validation 8 times (every 1/8 of the interactions)
@@ -81,11 +81,19 @@
       (initialise-world experiment))))
 
 (defun notify-interaction-by-split (experiment interaction interaction-number)
-  "Notify the correct interaction-finsihed"
-  (let ((dataset-split (get-configuration experiment :dataset-split)))
-    (cond ((string= dataset-split "train")
-           (notify interaction-finished-train experiment interaction interaction-number))
-          ((string= dataset-split "val")
-           (notify interaction-finished-val experiment interaction interaction-number))
-          ((string= dataset-split "test")
-           (notify interaction-finished-test experiment interaction interaction-number)))))
+  "Notify the correct interaction-finished."
+  (let* ((dataset-split (get-configuration experiment :dataset-split))
+         (standard-measures (mapcar #'(lambda (monitor) (intern (string-upcase monitor)))
+                                    (get-configuration experiment :split-independent-monitors)))
+         (measures (mapcar #'(lambda (monitor) (intern (string-upcase (format nil "~a-~a" monitor dataset-split))))
+                           (get-configuration experiment :split-dependent-monitors))))
+    (and (not monitors::*monitor-notifications-disabled*)
+         (loop for monitor-id in (monitors::active-monitors (monitors::get-event 'interaction-finished))
+               for monitor = (monitors::get-monitor monitor-id)
+               if (or (find monitor-id measures) (find monitor-id standard-measures))
+                 do (monitors::handle-interaction-finished-event monitor
+                                                                 monitor-id
+                                                                 'interaction-finished
+                                                                 experiment
+                                                                 interaction
+                                                                 (interaction-number interaction))))))

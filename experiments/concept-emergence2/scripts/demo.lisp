@@ -16,7 +16,8 @@
   (format t "~%Starting a new experiment.~%")
   ;; reset the web interface
   (wi::reset)
-  
+  ;; reset monitors
+  (monitors::notify reset-monitors)
   ;; deactivate all monitors (as a sanity check)
   (deactivate-all-monitors)
   ;; configure the game
@@ -24,14 +25,14 @@
     (make-configuration
      :entries `(
                 ;; monitoring
-                (:log-every-x-interactions . 10) ;; integer, frequence of when to log measures to standard output
+                (:log-every-x-interactions . 1000) ;; integer, frequence of when to log measures to standard output
                 (:usage-table-window . 100) ;; integer, window size of the construction inventory usage table
                 (:save-distribution-history . nil) ;; t or nil, whether to save the history of updates to the distribution (very memory-intensive!)
                 ;; setup environment
-                (:dataset-loader . :precomputed) ;; :precomputed or :runtime, load data in by scene (:precomputed) or by objects (:runtime)
+                (:dataset-loader . :runtime) ;; :precomputed or :runtime, load data in by scene (:precomputed) or by objects (:runtime)
                 (:dataset-view . :shared-views) ;; :shared-views or :exclusive-views, all views are shared or is each agent assigned a view?
-                (:dataset "clevr") ;; list of strings, each string represents a view over a dataset
-                (:feature-set "clevr") ;; list of strings, each string represents a feature set (stored in Corpora/concept-emergence2/-feature-sets), every feature-set is associated to a coressponding element in :dataset
+                (:dataset "winery") ;; list of strings, each string represents a view over a dataset
+                (:feature-set "winery") ;; list of strings, each string represents a feature set (stored in Corpora/concept-emergence2/-feature-sets), every feature-set is associated to a coressponding element in :dataset
                 (:dataset-split . "train") ;; string, "train" or "test", which split of the data to use?
                 ;; setup game
                 (:interacting-agents-strategy . :standard) ;; :standard [AT THE MOMENT, ONLY OPTION AVAILABLE]
@@ -76,24 +77,38 @@
                 (:log-dir-name . "c") ;; directory name for a single run (i.e. logging/train/<exp-top-dir>/<exp-name>/<log-dir-name>)
                 )))
   ;; instantiate the concept learning experiment
-  (setf *experiment* (make-instance 'cle-experiment :configuration *concept-learning-game*))
-  ;; flush the monitor data
-  (notify reset-monitors))
+  (setf *experiment* (make-instance 'cle-experiment :configuration *concept-learning-game*)))
+
 
 ;; Option 1: run experiment for x interactions ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 (progn
   ;; reset the web interface
   (wi::reset)
   ;; deactivate `tracer` monitors
+  (monitors::notify reset-monitors)
   (deactivate-all-monitors)
   ;; activate monitors
-  (activate-monitor record-communicative-success)
-  (activate-monitor record-conventionalisation)
-  (activate-monitor log-every-x-interactions-in-output-browser)
+
+  (set-up-monitors (list "log-every-x-interactions-in-output-browser"
+                         "record-communicative-success"
+                         "record-conventionalisation"
+                         "record-construction-inventory-usage"
+                         "export-communicative-success"
+                         "export-conventionalisation"
+                         "export-construction-inventory-usage")
+                   (list "train" "val")
+                   *experiment*)
+
   (format t "~% --> Running a new serie of interactions.~%")
-  (time (run-series *experiment* 100000)))
+  (let ((nr-of-interactions 100000))
+    (set-configuration *experiment* :nr-of-interactions nr-of-interactions)
+    (run-interaction *experiment*)
+    (while (< (interaction-number (current-interaction *experiment*)) nr-of-interactions)
+           do (run-interaction *experiment*))
+    (notify run-series-finished *experiment*)))
 
 ;; Option 2: run experiment and trace interactons in the web interface ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
