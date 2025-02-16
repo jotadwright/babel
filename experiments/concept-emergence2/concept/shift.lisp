@@ -70,12 +70,9 @@
         for objects-hash = (loop with hash = (make-hash-table)
                                  for object in (objects (get-data agent 'context))
                                  for observation = (perceive-object-val agent object channel)
-                                 for distance = (observation-distance observation prototype)
-                                 for similarity = (calculate-similarity-s distance)
+                                 for similarity = (observation-distance observation prototype)
                                  for weighted-similarity = (if (not (zerop ledger))
-                                                             (calculate-similarity-ws
-                                                                distance
-                                                                (/ (weight prototype) ledger))
+                                                             (* (/ (weight prototype) ledger) similarity)
                                                              0)
                                  do (setf (gethash (id object) hash) (cons similarity weighted-similarity))
                                  finally (return hash))
@@ -90,12 +87,6 @@
   "Retrieve the weighted similarity for the given object-attribute combination."
   (rest (gethash (id object) (gethash channel table))))
 
-(defmethod calculate-similarity-s ((distance number))
-  (exp (- (* 1/2 (expt distance 2)))))
-
-(defmethod calculate-similarity-ws ((distance number) (weight number))
-  (* (expt weight 2) (expt distance 2)))
-
 ;; --------------------------------------------
 ;; + Step 2: find the discriminating channels +
 ;; --------------------------------------------
@@ -107,7 +98,7 @@
         for channel = (channel prototype)
         for topic-sim = (get-s topic channel sim-table)
         for best-other-sim = (loop for object in context
-                                          maximize (get-s object channel sim-table))
+                                   maximize (get-s object channel sim-table))
         when (> topic-sim best-other-sim)
           do (push channel discriminating-attributes)
         finally (return discriminating-attributes)))
@@ -144,8 +135,8 @@
    list of prototypes, using the given similarity table."
   (loop for prototype in prototypes
         for ws = (get-ws object (channel prototype) table)
-        collect ws into mahalanobis
-        finally (return (exp (* 1/2 (- (sum mahalanobis)))))))
+        sum ws into mahalanobis
+        finally (return mahalanobis)))
 
 ;; ----------------------------------
 ;; + Find discriminating attributes +

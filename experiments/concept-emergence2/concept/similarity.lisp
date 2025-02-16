@@ -5,6 +5,7 @@
 ;; --------------------------------
 
 (defmethod weighted-similarity ((agent cle-agent) (object cle-object) (concept concept))
+  ;; Warning if you update this, function make sure to update `concept/shift.lisp`.
   (loop with prototypes = (get-available-prototypes agent concept)
         with ledger = (loop for prototype in prototypes sum (weight prototype))
         for prototype in prototypes
@@ -33,6 +34,7 @@
   Prototypes are represented by gaussian distributions.
     Therefore, the distance is the z-score of the observation
     with respect to the prototype's distribution."
+  ;; Warning if you update this, function make sure to update `concept/shift.lisp`.
   (let* ((distribution (distribution prototype))
          (mean (mean distribution))
          (st-dev (st-dev distribution))
@@ -43,6 +45,7 @@
 
 (defmethod observation-distance ((observation symbol) (prototype prototype) &key (laplace-smoother 1) &allow-other-keys)
   "Similarity [0,1] on the level of a single prototype for a categorical observation."
+  ;; Warning if you update this, function make sure to update `concept/shift.lisp`.
   (let* ((distribution (distribution prototype))
          (total (nr-of-samples distribution))
          (frequency (gethash observation (cat-table distribution)))
