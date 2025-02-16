@@ -41,7 +41,7 @@
          (z-score (if (not (zerop st-dev))
                     (/ (- observation mean) st-dev)
                     0)))
-    (exp (- (abs z-score)))))
+    (exp (- (expt z-score 2)))))
 
 (defmethod observation-distance ((observation symbol) (prototype prototype) &key (laplace-smoother 1) &allow-other-keys)
   "Similarity [0,1] on the level of a single prototype for a categorical observation."
