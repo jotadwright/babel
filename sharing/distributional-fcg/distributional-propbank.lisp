@@ -4,7 +4,18 @@
 (in-package :propbank-grammar)
 
 
-(activate-monitor trace-fcg)
+;(activate-monitor trace-fcg)
+;(deactivate-all-monitors)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Set host for nlp-tools: embedding-api and spacy-api ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;(setf nlp-tools::*penelope-host* "http://127.0.0.1:5000")
+
+;;;;;;;;;;;;;;;;;;;;;;;;
+;; Setting file paths ;;
+;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *annotations-file-path*
   (merge-pathnames 
@@ -18,63 +29,101 @@
                   :name "small-corpus-teach" :type "conll")
    cl-user:*babel-corpora*))
 
-#|
+(defparameter *ontonotes-annotations-storage-file* (merge-pathnames (make-pathname :directory (cons :relative '("propbank-annotations"))
+                                                                                   :name "ontonotes-annotations"
+                                                                                   :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
+                                                                    *babel-corpora*))
 
-(progn 
-            
-(defparameter *annotations*
-  (read-propbank-conll-file *annotations-file-path*))
 
-(defparameter *annotations*
-  (read-propbank-conll-file *annotations-file-path-teach*))
+(defparameter *ewt-annotations-storage-file* (merge-pathnames (make-pathname :directory (cons :relative '("propbank-annotations"))
+                                                                                   :name "ewt-annotations"
+                                                                                   :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
+                                                                    *babel-corpora*))
 
-;; Add as a goal test whether meaning is extracted, since we want to comprehend until there is meaning,
-;; otherwise the lexical cxn can just apply.
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; For ewt and ontonotes: loading from store files ;;
+;;       Otherwise: read from conll file           ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;; Loading propbank annotations can take a while
+
+;(load-propbank-annotations 'ewt :ignore-stored-data nil) ; *ewt-annotations*
+;(load-propbank-annotations 'ontonotes :ignore-stored-data nil)
+
+;; small ewt-annotation corpus to test
+;(defparameter *ewt-annotations-small* (loop for i from 0 to 100 collect (nth i (train-split *ewt-annotations*))))
+
+
+
+;(defparameter *annotations* (read-propbank-conll-file *annotations-file-path*))
+;(defparameter *annotations* (read-propbank-conll-file *annotations-file-path-teach*))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Setting training configurations for grammar  ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *training-configuration*
-  '((:de-render-mode .  :de-render-constituents-dependents)
-    (:node-tests :check-double-role-assignment)
-    (:parse-goal-tests :no-valid-children :meaning-extracted)
-    (:construction-inventory-processor-mode . :heuristic-search)
-    (:search-algorithm . :best-first)   
-    (:heuristics
-     :nr-of-applied-cxns
-     :nr-of-units-matched-x2 ;;nr-of-units-matched
-     :edge-weight
-     :embedding-similarity
-     )
-    ;;Additional heuristics: :prefer-local-bindings :frequency
-    (:heuristic-value-mode . :sum-heuristics-and-parent)
-    (:sort-cxns-before-application . nil)
-    (:node-expansion-mode . :full-expansion)
-    (:hash-mode . :hash-lemma)
-    (:replace-when-equivalent . nil)
-    (:learning-modes
-     :core-roles
-     :argm-leaf
-     :argm-pp
-     :argm-sbar
-     :argm-phrase-with-string)
-    (:cxn-supplier-mode . :hashed-categorial-network)))
+    '((:de-render-mode .  :de-render-constituents-dependents)
+      (:node-tests :check-double-role-assignment)
+      (:parse-goal-tests :no-valid-children :meaning-extracted)
+      (:construction-inventory-processor-mode . :heuristic-search)
+      (:search-algorithm . :best-first)   
+      (:heuristics
+       :nr-of-applied-cxns
+       :nr-of-units-matched-x2 ;;nr-of-units-matched
+       :edge-weight
+       :embedding-similarity
+       )
+      ;;Additional heuristics: :prefer-local-bindings :frequency
+      (:heuristic-value-mode . :sum-heuristics-and-parent)
+      (:sort-cxns-before-application . nil)
+      (:node-expansion-mode . :full-expansion)
+      (:hash-mode . :hash-lemma)
+      (:replace-when-equivalent . nil)
+      (:learning-modes
+       :core-roles
+       :argm-leaf
+       :argm-pp
+       :argm-sbar
+       :argm-phrase-with-string)
+      (:cxn-supplier-mode . :hashed-categorial-network)))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Learning the grammar  ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+#|
+ 
 (learn-propbank-grammar
- (shuffle *annotations*)
+ (shuffle *ewt-annotations-small*)
  :selected-rolesets nil
  :excluded-rolesets nil
-  :cxn-inventory '*train-grammar*
-  :fcg-configuration *training-configuration*)
+ :cxn-inventory '*train-grammar*
+ :fcg-configuration *training-configuration*)
 
-(set-proto-role-embeddings *train-grammar*)
-
-
-(add-embeddings-to-cxn-inventory *train-grammar* *annotations*)
-
-)
+ |#
 
 
-|#
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Make the embeddings (for roles and lexical items) ;;
+;;   and add the embeddings to the cxn-inventory     ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;(set-proto-role-embeddings *train-grammar*)
+
+;(add-embeddings-to-cxn-inventory *train-grammar*)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Comprehending to test  ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 ;(comprehend "he teaches a language" :timeout nil)
 ;(comprehend "he teaches the children" :timeout nil)
@@ -89,9 +138,15 @@
 
 ;(comprehend "the husband handed his wife a book" :timeout nil)
 
-;; goal test!!!!!! ??????
 
-;(add-element (make-html (categorial-network *train-grammar*)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Heuristic that sums cosine similarity  ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod apply-heuristic ((node cip-node) (mode (eql :embedding-similarity)))
   (let* ((applied-cxn (get-original-cxn (car-applied-cxn (cipn-car node))))
@@ -119,9 +174,10 @@
           for proto-role-embeddings = (loop for i from 0 to (- number-of-roles 1)
                                             for strings-in-role = (loop for str in strings-in-roles
                                                                         collect (cdr (nth i str)))
-                                              for proto-role-embedding-pointer = (car (nth i (first strings-in-roles)))
+                                            for proto-role-embedding-pointer = (car (nth i (first strings-in-roles)))
                                             for proto-role-embedding = (make-proto-embedding strings-in-role)
-                                            collect (cons proto-role-embedding-pointer proto-role-embedding))
+                                            when proto-role-embedding
+                                              collect (cons proto-role-embedding-pointer proto-role-embedding))
           do (append-data arg-structure-cxn :proto-role-embeddings proto-role-embeddings))))
 
 ;; use the sum-list-of-vectors of math in babel utils
@@ -564,7 +620,7 @@ initial transient structure that plays a role in the frame."
   :hashed t)
 
 ;; Added function to add the embeddings from the learned cxns and the ones from the transient structures of the annotation files to the blackboard of the cxn-inventory.
-(defun add-embeddings-to-cxn-inventory (cxn-inventory conll-annotations)
+(defun add-embeddings-to-cxn-inventory (cxn-inventory)
   "Retrieve all token embeddings for constructions that carry a token
 attribute and store them in the cxn inventory's blackboard under the
 field :cxn-token-embeddings"
@@ -581,11 +637,11 @@ field :cxn-token-embeddings"
 
   
   ;; this can be removed? 
-  (loop for sentence in conll-annotations
+  #|(loop for sentence in conll-annotations
         for ts-token-embeddings = (get-data (blackboard (initial-transient-structure sentence)) :ts-embeddings)
         when ts-token-embeddings
         do (append-data (blackboard cxn-inventory) :ts-token-embeddings ts-token-embeddings)
-  )
+  )|#
   )
 
 ;; Changes: blackboard of the initial-cfs is already initialised so just do set-data on the blackboard instead of on the initial-cfs. 
