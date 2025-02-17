@@ -18,6 +18,10 @@
   ()
   (:documentation "Class for naming game experiment."))
 
+(defclass concept-emergence-game-experiment (crs-conventionality-experiment)
+  ()
+  (:documentation "Class for concept emergence game experiment."))
+
 
 (defmethod initialize-instance :after ((experiment naming-game-experiment) &key &allow-other-keys)
   "Creates the population and world of the experiment."
@@ -27,6 +31,15 @@
   ;; Set population
   (setf (population experiment)
         (make-instance 'naming-game-population :experiment experiment)))
+
+(defmethod initialize-instance :after ((experiment concept-emergence-game-experiment) &key &allow-other-keys)
+  "Creates the population and world of the experiment."
+  ;; Set world
+  (setf (world experiment)
+        (make-instance 'concept-emergence-game-world :experiment experiment))
+  ;; Set population
+  (setf (population experiment)
+        (make-instance 'concept-emergence-game-population :experiment experiment)))
 
 
 ;; Populations and Agents ;;
@@ -53,6 +66,10 @@
   ()
   (:documentation "A population in the naming game."))
 
+(defclass concept-emergence-game-population (crs-conventionality-population)
+  ()
+  (:documentation "A population in the concept emergence game."))
+
 
 (defmethod initialize-instance :after ((population naming-game-population) &key &allow-other-keys)
   "Creates the population of the experiment."
@@ -64,6 +81,15 @@
                                      :experiment (experiment population)
                                      :population population))))
 
+(defmethod initialize-instance :after ((population concept-emergence-game-population) &key &allow-other-keys)
+  "Creates the population of the experiment."
+  ;; Set population
+  (setf (agents population)
+        (loop for i from 1 to (get-configuration (experiment population) :nr-of-agents-in-population)
+              collect (make-instance 'concept-emergence-game-agent
+                                     :id (intern (format nil "AGENT-~a" i))
+                                     :experiment (experiment population)
+                                     :population population))))
 
 (defclass crs-conventionality-agent (agent meta-layer-learning:object-w-learning)
   ((grammar 
@@ -124,10 +150,15 @@
   ()
   (:documentation "An agent in the experiment"))
 
+(defclass concept-emergence-game-agent (crs-conventionality-agent)
+  ()
+  (:documentation "An agent in the experiment"))
+
 
 ;; Worlds, scenes and Entities ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; ENTITIES
 (defclass crs-conventionality-entity-set (entity)
   ((entities 
     :documentation "The entities themselves."
@@ -146,6 +177,11 @@
   (:documentation "Class for holding naming game entities."))
 
 
+(defclass concept-emergence-game-entity-set (crs-conventionality-entity-set)
+  ()
+  (:documentation "Class for holding concept emergence game entities."))
+
+;; WORLD
 (defclass crs-conventionality-world (crs-conventionality-entity-set)
   ((experiment
     :documentation "A backpointer to the experiment."
@@ -163,6 +199,9 @@
   ()
   (:documentation "The naming game world."))
 
+(defclass concept-emergence-game-world (crs-conventionality-world)
+  ()
+  (:documentation "The concept emergence game world."))
 
 (defmethod initialize-instance :after ((world naming-game-world) &key &allow-other-keys)
   "Sets the entities of the world."
@@ -172,7 +211,13 @@
                                      :id (intern (format nil "OBJECT-~a" i))
                                      :world world))))
 
-       
+(defmethod initialize-instance :after ((world concept-emergence-world) &key &allow-other-keys)
+  "Sets the entities of the world."
+ (let ((entities (get-clevr-entities-from-files)))
+   (setf (entities world)
+         (random-elts entities (get-configuration (experiment world) :nr-of-entities-in-world)))))
+
+;; SCENE       
 (defclass crs-conventionality-scene (crs-conventionality-entity-set)
   ((interaction
     :documentation "A backpointer to the interaction to which the scene belongs."
@@ -191,13 +236,17 @@
   (:documentation "A naming game scene."))
 
 
+(defclass concept-emergence-game-scene (crs-conventionality-scene)
+  ()
+  (:documentation "A concept-emergence game scene."))
+
+;; ENTITY
 (defclass crs-conventionality-entity (entity)
   ((world
     :documentation "A backpointer to the world to which the entity belongs."
     :type crs-conventionality-world
     :initform nil :initarg :world :accessor world))
   (:documentation "An entity in the experiment"))
-
 
 (defmethod print-object ((entity crs-conventionality-entity) stream)
   "Prints entity."
@@ -206,7 +255,12 @@
 
 (defclass naming-game-entity (crs-conventionality-entity)
   ()
-  (:documentation "An entity in the naming-game experiment"))
+  (:documentation "An entity in the naming game experiment"))
+
+
+(defclass concept-emergence-game-entity (crs-conventionality-entity)
+  ()
+  (:documentation "An entity in the concept emergence game experiment"))
 
 
 ;; Interaction ;;
