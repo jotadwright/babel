@@ -1,0 +1,31 @@
+(in-package :asdf)
+
+(defsystem :slp
+  :description "Package for representing and processing sign languages using fcg"
+  :maintainer "Liesbet De Vos"
+  :depends-on (:utils
+               :web-interface
+               :monitors
+               :irl
+               :fcg
+               :cl-json
+               :xmls)
+  :serial t
+  :components ((:file "package")
+               (:module utils
+                :serial t
+                :components ((:file "string-manipulation")
+                             (:file "xml-utils")
+                             (:file "elan-utils")
+                             (:file "make-fingerspelled-forms")
+                             (:file "predicate-utils")))
+               (:module elan-to-predicates
+                :serial t
+                :components ((:file "create-elan-intervals")
+                             (:file "create-predicates")
+                             (:file "elan-to-predicates")))
+               (:module visualization
+                :serial t
+                :components ((:file "css")
+                             (:file "make-html")
+                             (:file "make-sign-table")))))

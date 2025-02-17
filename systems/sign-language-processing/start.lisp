@@ -1,0 +1,91 @@
+;;***********************;;
+;;                       ;;
+;; Using the SLP-package ;;
+;;                       ;;
+;;***********************;;
+
+;; Loading the package using quickload:
+(ql:quickload :slp)
+
+;; Intern new symbols within the slp-package:
+(in-package :slp)
+
+
+;;;;;;;;;;;;;;;;;;
+;; loading data ;;
+;;;;;;;;;;;;;;;;;;
+
+;;!! Be sure to follow the steps indicated in the readme of this package to download the necessary data first!!;;
+
+;; set pointer to the GeoQuery-LSFB data folder:
+(defparameter *geoquery-lsfb-data*
+  (merge-pathnames
+   (make-pathname :directory '(:relative "GeoQuery-LSFB" "elan-files"))
+   *babel-corpora*))
+
+;; to load an example, point to its location and use read-xml function:
+;; loading example utterance 1:
+(defparameter *test-utterance-xml-1*
+  (read-xml
+  (merge-pathnames
+   (make-pathname :name "1_0_1" :type "eaf")
+   *geoquery-lsfb-data*)))
+
+;; loading example utterance 2:
+(defparameter *test-utterance-xml-2*
+  (read-xml
+  (merge-pathnames
+   (make-pathname :name "2_0_2" :type "eaf")
+   *geoquery-lsfb-data*)))
+
+;; loading example utterance 3:
+(defparameter *test-utterance-xml-3*
+  (read-xml
+  (merge-pathnames
+   (make-pathname :name "3_0_10" :type "eaf")
+   *geoquery-lsfb-data*)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;
+;; elan-to-predicates ;;
+;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; A module for transforming xml files created by the elan-software into the predicate notation used in FCG to represent signed forms. The elan-files should be created using the provided template. 
+
+;; xml-structures of utterances are transformed into predicates using elan->predicates (input should be xmls-node):
+(defparameter *test-utterance-1-predicates*
+ (elan->predicates *test-utterance-xml-1*))
+;(pprint  *test-utterance-1-predicates*)
+
+(defparameter *test-utterance-2-predicates*
+ (elan->predicates *test-utterance-xml-2*))
+;(pprint  *test-utterance-2-predicates*)
+
+(defparameter *test-utterance-3-predicates*
+ (elan->predicates *test-utterance-xml-3*))
+;(pprint  *test-utterance-3-predicates*)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; create fingerspelled forms (LSFB) ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; create a fingerspelled form in hamnosys (LSFB alphabet) for a string
+(make-fingerspelling "arizona")
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; representing time alignment of predicates ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(add-element (predicates->html *test-utterance-1-predicates*))
+
+
+
+
+
+
+
+
+
+
+
