@@ -60,9 +60,9 @@
 (define-event-handler (record-communicative-success interaction-finished)
   (record-value monitor (if (communicated-successfully interaction) 1 0)))
 
-;; ---------------------
-;; + Lexicon Coherence +
-;; ---------------------
+;; ---------------------------------
+;; + Degree of conventionalisation +
+;; ---------------------------------
 (define-monitor record-conventionalisation
                 :class 'data-recorder
                 :average-window 100
@@ -78,6 +78,29 @@
 
 (define-event-handler (record-conventionalisation interaction-finished)
   (record-value monitor (if (coherence interaction) 1 0)))
+
+
+
+;; ----------------------------------------
+;; + Degree of global conventionalisation +
+;; ----------------------------------------
+(define-monitor record-conventionalisation-global
+                :class 'data-recorder
+                :average-window 100
+                :documentation "Records the degree of global conventionalisation.")
+
+(define-monitor export-conventionalisation-global
+                :class 'lisp-data-file-writer
+                :documentation "Exports the degree of conventionalisation."
+                :data-sources '(record-conventionalisation-global)
+                :file-name (babel-pathname :name "conventionalisation-global" :type "lisp"
+                                           :directory '("experiments" "crs-conventionality" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-conventionalisation-global interaction-finished)
+  (record-value monitor (if (coherence interaction) 1 0)))
+
+
 
 ;; -------------------------------
 ;; + Construction inventory size +
