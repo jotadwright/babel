@@ -174,12 +174,12 @@
 
 
 (defmethod determine-coherence-global ((speaker naming-game-agent) (hearer naming-game-agent))
-  "TODO polish the explanation here XXXXXXXX ++++ Determines and sets the coherences. Tests whether the hearer would have used the same word as the speaker, should the hearer have been the speaker."
+  "Tests what utterance all agents would have used for the topic picked for the interaction, then extracts the most used. Finally, it calculates the ratio (how many agents use it over population)."
   (let* ((interaction (current-interaction (experiment speaker)))
          (scene (scene interaction))
          (topic (topic interaction)))
 
-    ; create the list of conceptualized utterances
+    ; create the hash table of conceptualised utterances
     (let ((conceptualised-utterances-frequency-table (make-hash-table :test 'equal))) 
       (loop for agent in (agents (population (experiment speaker)))
             do (progn
@@ -198,25 +198,18 @@
                   ;(format t "word: ~a - freq: ~a~%" word freq))
                   ;conceptualised-utterances-frequency-table)
 
-                ;; Now that we have a table with all utterances and relative frequences, find the most common word
+                ; Now we have a table with all utterances and relative frequences: find the most common
                 (setf most-common-utterance nil most-common-frequency 0)
                 (maphash (lambda (in-table-word in-table-frequency)
                           (if (> in-table-frequency most-common-frequency)
-                              (progn
-                                ; (format t "YES | most common so far: ~a - word: ~a - freq: ~a~%" most-common-utterance in-table-word in-table-frequency)
                                 (setf most-common-utterance in-table-word most-common-frequency in-table-frequency)))
-                                ;(format t "NO | most common so far: ~a - word: ~a - freq: ~a~%" most-common-utterance in-table-word in-table-frequency)
-                                )
-                        conceptualised-utterances-frequency-table)
-    ))) ; end let conceptualised-utterances-frequency-table
+                        conceptualised-utterances-frequency-table))))
 
-    ;uncomment this to see what is the most common utterance
-    ;(format t "Most common utterance: ~a | for topic: ~a | with frequency ~a~%" most-common-utterance topic most-common-frequency)
-    ;(format t "Percentage of the occurrences of utterance ~a over the total number of utterances for the topic ~a: ~a ~%" most-common-utterance topic (/ most-common-frequency (length (agents (population (experiment speaker))))))
-    
+                ;uncomment this to see what is the most common utterance and relative frequency after each interaction:
+                ;(format t "Most common utterance: ~a | for topic: ~a | with frequency ~a~%" most-common-utterance topic most-common-frequency)
+                ;(format t "Percentage of the occurrences of utterance ~a over the total number of utterances for the topic ~a: ~a ~%" most-common-utterance topic (/ most-common-frequency (length (agents (population (experiment speaker))))))
+
+    ; the result is returned to coherence-global slot within interaction
     (setf (coherence-global interaction) (/ most-common-frequency (length (agents (population (experiment speaker))))))
-
-    ;(setf coherence-global (/ most-common-frequency (length (agents (population (experiment speaker))))))
     
-    ; end let interaction
     (notify determine-coherence-finished speaker hearer)))

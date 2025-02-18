@@ -223,6 +223,6 @@
     :documentation "Whether both interacting agents would have said the same thing under the same circumstances."
     :initform nil :accessor coherence)
    (coherence-global
-    :documentation "Ratio of agents using the same utterance (only the most common) for a specific topic."
+    :documentation "How many agents over the population use the most common utterance for a topic."
     :initform nil :accessor coherence-global))
   (:documentation "An interaction in the experiment"))
