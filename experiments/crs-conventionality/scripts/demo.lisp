@@ -39,7 +39,8 @@
   (set-configuration *naming-game-canonical* :network-topology :regular)
   (set-configuration *naming-game-canonical* :local-connectivity 1)
   (initialize-social-network *naming-game-canonical*)
-  (population-network->graphviz (agents (population *naming-game-canonical*)) :make-image t :open-image t :use-labels? t)
+  
+  ;(population-network->graphviz (agents (population *naming-game-canonical*)) :make-image t :open-image t :use-labels? t)
   )
 
 ;; Option 1: run experiment with real-time plotting (using gnuplot)
@@ -52,6 +53,7 @@
   (activate-monitor log-every-x-interactions-in-output-browser)
   (activate-monitor record-communicative-success)
   (activate-monitor record-conventionalisation)
+  (activate-monitor record-conventionalisation-global)
   (activate-monitor record-construction-inventory-size)
 
   ;; activate tracers
@@ -76,6 +78,7 @@
   (activate-monitor log-every-x-interactions-in-output-browser)
   (activate-monitor export-communicative-success)
   (activate-monitor export-conventionalisation)
+  (activate-monitor export-conventionalisation-global)
   (activate-monitor export-construction-inventory-size)
   ;; run the experiment
   (run-batch 'naming-game-experiment ;; experiment-class

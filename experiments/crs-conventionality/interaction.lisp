@@ -213,6 +213,10 @@
     ;uncomment this to see what is the most common utterance
     ;(format t "Most common utterance: ~a | for topic: ~a | with frequency ~a~%" most-common-utterance topic most-common-frequency)
     ;(format t "Percentage of the occurrences of utterance ~a over the total number of utterances for the topic ~a: ~a ~%" most-common-utterance topic (/ most-common-frequency (length (agents (population (experiment speaker))))))
-    (setf coherence-global (/ most-common-frequency (length (agents (population (experiment speaker))))))
-    ) ; end let interaction
-    (notify determine-coherence-finished speaker hearer))
+    
+    (setf (coherence-global interaction) (/ most-common-frequency (length (agents (population (experiment speaker))))))
+
+    ;(setf coherence-global (/ most-common-frequency (length (agents (population (experiment speaker))))))
+    
+    ; end let interaction
+    (notify determine-coherence-finished speaker hearer)))

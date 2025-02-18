@@ -18,6 +18,9 @@
   #|(ensure-directories-exist (babel-pathname :directory `("experiments"
                                                          "crs-conventionality"
                                                          "raw-data")))|#
+  (test experiment interaction))
+
+(defun test (experiment interaction)
   (cond (;; initialise the start time
          (or (= (interaction-number interaction) 1) (not *start-time*))
          (setf *start-time* (get-universal-time)))
@@ -26,16 +29,21 @@
                  (get-configuration experiment :log-every-x-interactions))
             0)
          (let ((comm-success (caaar (monitors::get-average-values (monitors::get-monitor 'record-communicative-success))))
-               (coherence (caaar (monitors::get-average-values (monitors::get-monitor 'record-conventionalisation)))))
+               (coherence (caaar (monitors::get-average-values (monitors::get-monitor 'record-conventionalisation))))
+               (coherence-global (caaar (monitors::get-average-values (monitors::get-monitor 'record-conventionalisation-global))))
+               )
            (multiple-value-bind (h m s) (seconds-to-hours-minutes-seconds (- (get-universal-time) *start-time*))
              (format t
-                     ". (~a / ~a / ~a / ~ah ~am ~as)~%"
+                     ". (~a | ~a / ~a / ~a | ~ah ~am ~as)~%"
                      (interaction-number interaction)
                      (if comm-success
                        (format nil "~,vf% Comm. success" 1 (* 100 (float comm-success)))
                        "NIL")
                      (if coherence
                        (format nil "~,vf% Conven." 1 (* 100 (float coherence)))
+                       "NIL")
+                     (if coherence-global
+                       (format nil "~,vf% Global Conven." 1 (* 100 (float coherence-global)))
                        "NIL")
                      h m s)))
          ;; reset the timer
@@ -91,14 +99,14 @@
 
 (define-monitor export-conventionalisation-global
                 :class 'lisp-data-file-writer
-                :documentation "Exports the degree of conventionalisation."
+                :documentation "Exports the degree of global conventionalisation."
                 :data-sources '(record-conventionalisation-global)
                 :file-name (babel-pathname :name "conventionalisation-global" :type "lisp"
                                            :directory '("experiments" "crs-conventionality" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
 (define-event-handler (record-conventionalisation-global interaction-finished)
-  (record-value monitor (if (coherence interaction) 1 0)))
+  (record-value monitor (coherence-global interaction)))
 
 
 
@@ -137,17 +145,20 @@
                 :class 'gnuplot-display
                 :data-sources '((average record-communicative-success)
                                 (average record-conventionalisation)
+                                (average record-conventionalisation-global)
                                 (average record-construction-inventory-size))
                 :update-interval 100
                 :caption '("communicative success"
                            "degree of conventionalisation"
+                           "degree of global conventionalisation"
                            "construction inventory size")
                 :x-label "# Games"
-                :use-y-axis '(1 1 2)
-                :y1-label "Communicative Success/Conventionalisation" 
+                :use-y-axis '(1 1 1 2)
+                :y1-label "Communicative Success/Conventionalisation/Global Conv." 
                 :y1-max 1.0
                 :y1-min 0
                 :y2-label "Construction inventory size"
                 :y2-min 0
                 :draw-y1-grid t
                 :error-bars nil)
+
