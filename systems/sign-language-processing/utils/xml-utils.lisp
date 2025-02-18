@@ -87,6 +87,26 @@
              (first
               (xmls:node-children child)))))
 
+(defun find-mrl-in-xml-example (example &key (mrl "geo-prolog"))
+  (loop for child in (xmls:node-children example)
+        for node-name = (xmls:node-name child)
+        for attribute =
+          (second
+           (first
+            (xmls:node-attrs child)))
+        when
+          (and
+           (string=
+            node-name
+            "mrl")
+           (string=
+            attribute
+            mrl))
+          do
+            (return
+             (first
+              (xmls:node-children child)))))
+
 
 (defun string->xml-nodes (predicate-string)
   "transforms predicate-string into a list of

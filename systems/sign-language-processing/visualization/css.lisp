@@ -20,7 +20,7 @@
 
 ;; the whole table
 (define-css 'sign-table  "
-.sign-table {width: 50%%; border: 1px solid black; border-collapse: collapse;}")
+.sign-table {width: 80%; table-layout:fixed;}")
 
 ;; empty cells in table
 (define-css 'empty "
@@ -29,7 +29,7 @@
 
 ;; row header cells
 (define-css 'header "
-.header {border: 1px solid black;}
+.header {padding-left: 5px; padding-right:5px; font-weight:500; width:25px; text-align: center;}
 ")
 
 ;; row header text
@@ -39,15 +39,14 @@
 
 ; a cell with manual information
 (define-css 'id-gloss-cell "
-.id-gloss-cell {background-color: #ffcc00; border: 1px solid black;border-collapse: collapse; text-align: center;}
-")
+.id-gloss-cell {padding-left: 10px; padding-right: 10px; background: #e28744; border-radius: 5px; box-shadow: 1px 1px 1px #ddd; text-align: center; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word; width: fit-content;}")
 
 ; a cell with hamnosys
 (define-css 'hamnosys-cell "
-.hamnosys-cell {border: 1px solid black; border-collapse: collapse; padding-right: 10px; padding-left: 10px; text-align: center;}
+.hamnosys-cell {padding-left: 10px; padding-right: 10px; background #fff; text-align: center; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word; width: fit-content;}
 ")
 
 ;; text representing an articulation
 (define-css 'articulation-text "
-.articulation-tag {font-color: black;}
+.articulation-tag {color: white; display: inline-block; font-weight:400px;}
 ")

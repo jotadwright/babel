@@ -9,7 +9,8 @@
                :irl
                :fcg
                :cl-json
-               :xmls)
+               :xmls
+               :grammar-learning)
   :serial t
   :components ((:file "package")
                (:module utils
@@ -18,7 +19,11 @@
                              (:file "xml-utils")
                              (:file "elan-utils")
                              (:file "make-fingerspelled-forms")
-                             (:file "predicate-utils")))
+                             (:file "predicate-utils")
+                             (:file "json-utils")
+                             (:file "data-processor")
+                             (:file "prolog-to-predicates")
+                             (:file "classes")))
                (:module elan-to-predicates
                 :serial t
                 :components ((:file "create-elan-intervals")

@@ -9,7 +9,8 @@
    :monitors
    :irl
    :fcg
-   :xmls-system)
+   :xmls-system
+   :grammar-learning)
   (:import-from :cl-json
    :decode-json-from-string
    :encode-json-to-string

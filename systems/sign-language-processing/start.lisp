@@ -20,7 +20,7 @@
 ;; set pointer to the GeoQuery-LSFB data folder:
 (defparameter *geoquery-lsfb-data*
   (merge-pathnames
-   (make-pathname :directory '(:relative "GeoQuery-LSFB" "elan-files"))
+   (make-pathname :directory '(:relative "GeoQuery-LSFB"))
    *babel-corpora*))
 
 ;; to load an example, point to its location and use read-xml function:
@@ -28,21 +28,24 @@
 (defparameter *test-utterance-xml-1*
   (read-xml
   (merge-pathnames
-   (make-pathname :name "1_0_1" :type "eaf")
+   (make-pathname :directory '(:relative "elan-files")
+                  :name "1_0_1" :type "eaf")
    *geoquery-lsfb-data*)))
 
 ;; loading example utterance 2:
 (defparameter *test-utterance-xml-2*
   (read-xml
   (merge-pathnames
-   (make-pathname :name "2_0_2" :type "eaf")
+   (make-pathname :directory '(:relative "elan-files")
+                  :name "2_0_2" :type "eaf")
    *geoquery-lsfb-data*)))
 
 ;; loading example utterance 3:
 (defparameter *test-utterance-xml-3*
   (read-xml
   (merge-pathnames
-   (make-pathname :name "3_0_10" :type "eaf")
+   (make-pathname :directory '(:relative "elan-files")
+                  :name "3_0_10" :type "eaf")
    *geoquery-lsfb-data*)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
@@ -54,15 +57,15 @@
 ;; xml-structures of utterances are transformed into predicates using elan->predicates (input should be xmls-node):
 (defparameter *test-utterance-1-predicates*
  (elan->predicates *test-utterance-xml-1*))
-;(pprint  *test-utterance-1-predicates*)
+;(pprint  (predicates *test-utterance-1-predicates*))
 
 (defparameter *test-utterance-2-predicates*
  (elan->predicates *test-utterance-xml-2*))
-;(pprint  *test-utterance-2-predicates*)
+;(pprint  (predicates *test-utterance-2-predicates*))
 
 (defparameter *test-utterance-3-predicates*
  (elan->predicates *test-utterance-xml-3*))
-;(pprint  *test-utterance-3-predicates*)
+;(pprint  (predicates *test-utterance-3-predicates*))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -77,7 +80,46 @@
 ;; representing time alignment of predicates ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(add-element (predicates->html *test-utterance-1-predicates*))
+(add-element (make-html *test-utterance-1-predicates*))
+(add-element `((hr)))
+(add-element (make-html *test-utterance-2-predicates*))
+(add-element `((hr)))
+(add-element (make-html *test-utterance-3-predicates*))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Loading GeoQuery-LSFB corpus files ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; XML versions
+(defparameter *geoquery-lsfb-250-xml*
+  (load-geoquery-corpus-xml
+   (merge-pathnames
+    (make-pathname :directory '(:relative "xml-files")
+                   :name "geoquery-lsfb-250" :type "xml")
+    *geoquery-lsfb-data*)))
+
+(defparameter *geoquery-lsfb-4500-xml*
+  (load-geoquery-corpus-xml
+   (merge-pathnames
+    (make-pathname :directory '(:relative "xml-files")
+                   :name "geoquery-lsfb-4500" :type "xml")
+    *geoquery-lsfb-data*)))
+
+;; json  versions
+(defparameter *geoquery-lsfb-250-jsonl*
+  (load-geoquery-corpus-jsonl
+   (merge-pathnames
+    (make-pathname :directory '(:relative "json-files")
+                   :name "geoquery-lsfb-250" :type "jsonl")
+    *geoquery-lsfb-data*)))
+
+(defparameter *geoquery-lsfb-4500-jsonl*
+  (load-geoquery-corpus-jsonl
+   (merge-pathnames
+    (make-pathname :directory '(:relative "json-files")
+                   :name "geoquery-lsfb-4500" :type "jsonl")
+    *geoquery-lsfb-data*)))
 
 
 

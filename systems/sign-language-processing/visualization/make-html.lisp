@@ -25,7 +25,7 @@
          fcg-tag
          span-id
          (web-interface::get-color-for-symbol fcg-tag)))
-      ((a
+      ((p
         :class "articulation-tag"
         :name ,fcg-tag)
        ,fcg-tag)))))
@@ -46,11 +46,10 @@
   (loop with right-hand-id-gloss-row
           = `((TR :CLASS "header")
               ((TD :CLASS "header")
-               "RH ID-glosses"))
+               "RH"))
         with right-hand-hamnosys-row
           = `((TR :CLASS "header")
-              ((TD :CLASS "header")
-               "RH HamNoSys"))
+              ((TD :CLASS "header")))
         for x from 0 to number-of-columns
         for right-hand-cell
           = (find-rh-cell-by-column-nr
@@ -102,11 +101,10 @@
   (loop with left-hand-id-gloss-row
           = `((tr :class "header")
               ((td :class "header")
-               "LH ID-glosses"))
+               "LH"))
         with left-hand-hamnosys-row
           = `((tr :class "header")
-              ((td :class "header")
-               "LH HamNoSys"))
+              ((td :class "header")))
         with colwait = nil
         for x from 0 to number-of-columns
         for left-hand-cell
@@ -177,7 +175,7 @@
     ((td)
      ((span)
       ((span)
-       ((a :class "header-text")
+       ((p :class "header-text")
         "time&#x2192;"))))
     ,@(loop for x from 0 to number-of-columns
             collect 
@@ -185,11 +183,12 @@
                  :class "empty")))))
   
 
-(defun predicates->html (predicates)
+(defmethod make-html ((signed-form-predicates signed-form-predicates)
+                      &key &allow-other-keys)
   "transforms a list of sign-predicates into a html object that can be added to the
    webinterface"
   (let* ((sign-table
-          (make-sign-table predicates))
+          (make-sign-table (predicates signed-form-predicates)))
          (number-of-columns
           (determine-number-of-columns sign-table))
          (right-hand-rows
@@ -201,12 +200,11 @@
            (left-hand-cells sign-table)
            number-of-columns)))
     `((table :class "sign-table")
-      ((tbody)
-       ,(make-time-header number-of-columns)
-       ,(first right-hand-rows)
-       ,(second right-hand-rows)
-       ,(first left-hand-rows)
-       ,(second left-hand-rows)))))
+       ((tbody)
+        ,(first right-hand-rows)
+        ,(second right-hand-rows)
+        ,(first left-hand-rows)
+        ,(second left-hand-rows)))))
 
 
         
