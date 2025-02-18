@@ -157,7 +157,7 @@
     (setf (communicated-successfully interaction) nil)))
 
 
-(defmethod determine-coherence ((speaker naming-game-agent) (hearer naming-game-agent))
+(defmethod determine-coherence00 ((speaker naming-game-agent) (hearer naming-game-agent))
   "Determines and sets the coherences. Tests whether the hearer would have used the same word as the speaker, should the hearer have been the speaker."
   (let* ((interaction (current-interaction (experiment speaker)))
          (scene (scene interaction))
@@ -166,4 +166,73 @@
     (if (equalp (utterance speaker) (conceptualised-utterance hearer))
         (setf (coherence interaction) t)
         (setf (coherence interaction) nil))
+    (notify determine-coherence-finished speaker hearer)))
+
+
+(defmethod determine-coherence01 ((speaker naming-game-agent) (hearer naming-game-agent))
+  "Determines and sets the coherences. Tests whether the hearer would have used the same word as the speaker, should the hearer have been the speaker."
+  (let* ((interaction (current-interaction (experiment speaker)))
+         (scene (scene interaction))
+         (topic (topic interaction)))
+    (conceptualise-and-produce hearer scene topic :use-meta-layer nil)
+    (format t "|")
+    (if (equalp (utterance speaker) (conceptualised-utterance hearer))
+        (setf (coherence interaction) t)
+        (setf (coherence interaction) nil))
+
+    ; create the list of conceptualized utterances
+    (let ((conceptualized-utterances '())) 
+      (loop for agent in (agents (population (experiment speaker)))
+            do (progn
+                ; conceptualise the utterance for the given topic for each agent
+                (conceptualise-and-produce agent scene topic :use-meta-layer nil)
+                ; push the conceptualised utterance to a list
+                (push (conceptualised-utterance agent) conceptualized-utterances)))
+      ; print out the list
+      (format t "~a~%" conceptualized-utterances)) 
+
+    (notify determine-coherence-finished speaker hearer)))
+
+
+
+; not a list, a hash table
+(defmethod determine-coherence ((speaker naming-game-agent) (hearer naming-game-agent))
+  "Determines and sets the coherences. Tests whether the hearer would have used the same word as the speaker, should the hearer have been the speaker."
+  (let* ((interaction (current-interaction (experiment speaker)))
+         (scene (scene interaction))
+         (topic (topic interaction)))
+    (conceptualise-and-produce hearer scene topic :use-meta-layer nil)
+    (format t "|")
+    (if (equalp (utterance speaker) (conceptualised-utterance hearer))
+        (setf (coherence interaction) t)
+        (setf (coherence interaction) nil))
+
+    ; create the list of conceptualized utterances
+    (let ((conceptualised-utterances-frequency-table (make-hash-table :test 'equal))) 
+      (loop for agent in (agents (population (experiment speaker)))
+            do (progn
+                ; conceptualise the utterance for the given topic for each agent
+                (conceptualise-and-produce agent scene topic :use-meta-layer nil)
+
+                ; push the conceptualised utterance to a list                
+                ;(push (conceptualised-utterance agent) conceptualized-utterances)
+                
+                ; check if the word is already in the table
+                (if (gethash (conceptualised-utterance agent) conceptualised-utterances-frequency-table)
+                    ; if it is, increase the frequency
+                    (setf  (gethash (conceptualised-utterance agent) conceptualised-utterances-frequency-table) (+ (gethash (conceptualised-utterance agent) conceptualised-utterances-frequency-table) 1))
+                    ; it not, add the word
+                    (setf  (gethash (conceptualised-utterance agent) conceptualised-utterances-frequency-table) 1))                
+
+                (maphash (lambda (word freq)
+                (format t "word: ~a - freq: ~a~%" word freq))
+                conceptualised-utterances-frequency-table)
+
+
+                ))
+
+      ; print out the list
+      ;(format t "~a~%" conceptualized-utterances)
+      )
+
     (notify determine-coherence-finished speaker hearer)))
