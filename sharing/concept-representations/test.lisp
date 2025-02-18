@@ -19,7 +19,7 @@
                   :type "jsonl")
    cl-user:*babel-corpora*))
 
-(setf entities (load-dataset (create-path "fish" "train")))
+(setf entities (load-dataset (create-path "winery" "train")))
 
 (setf entity1 (first entities)
       entity2 (second entities)
@@ -67,3 +67,6 @@
 
 ;; VISUALISE => visualising a concept
 (add-concept-to-interface concept1 :weight-threshold 0.1)
+
+
+(copy-object concept1)

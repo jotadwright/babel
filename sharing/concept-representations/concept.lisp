@@ -4,7 +4,7 @@
 ;; + Concept +
 ;; -----------
 
-(defclass concept ()
+(defclass concept (irl:entity)
   ((id
     :initarg :id :accessor id :initform (make-id "CONCEPT") :type symbol
     :documentation "Id of the concept.")
@@ -57,7 +57,7 @@
 
 (defmethod copy-object ((concept weighted-multivariate-distribution-concept))
   "Returns a copy of the concept."
-  (make-instance 'concept
+  (make-instance 'weighted-multivariate-distribution-concept
                  :id (id concept)
                  :representation (copy-object (representation concept))))
 

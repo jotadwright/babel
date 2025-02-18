@@ -64,7 +64,7 @@
   "Checks whether the extracted meaning can be evaluated in the scene."
   (let* ((irl-program (extract-meanings (left-pole-structure (car-resulting-cfs (cipn-car node)))))
          (primitive-inventory (find-data (blackboard (construction-inventory node)) :primitive-inventory))
-         (ontology (find-data (blackboard (construction-inventory node)) :ontology))
+         (ontology (find-data (blackboard primitive-inventory) :ontology))
          (target-var (irl::get-target-var irl-program))
          (irl-solution (first (irl::evaluate-irl-program irl-program ontology :primitive-inventory primitive-inventory :n 1)))
          (computed-topic (when irl-solution (irl::value (find target-var irl-solution :key #'irl::var))))

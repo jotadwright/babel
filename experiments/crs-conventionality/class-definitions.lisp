@@ -211,11 +211,12 @@
                                      :id (intern (format nil "OBJECT-~a" i))
                                      :world world))))
 
-(defmethod initialize-instance :after ((world concept-emergence-world) &key &allow-other-keys)
+(defmethod initialize-instance :after ((world concept-emergence-game-world) &key &allow-other-keys)
   "Sets the entities of the world."
- (let ((entities (get-clevr-entities-from-files)))
-   (setf (entities world)
-         (random-elts entities (get-configuration (experiment world) :nr-of-entities-in-world)))))
+  (let ((entities (concept-representations::load-dataset (create-path (get-configuration (experiment world) :dataset)
+                                                                      (get-configuration (experiment world) :datasplit)))))
+    (setf (entities world)
+          (random-elts entities (get-configuration (experiment world) :nr-of-entities-in-world)))))
 
 ;; SCENE       
 (defclass crs-conventionality-scene (crs-conventionality-entity-set)

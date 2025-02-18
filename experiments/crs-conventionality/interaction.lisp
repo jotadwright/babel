@@ -25,7 +25,7 @@
     (notify interaction-started experiment interaction (interaction-number interaction))
     
     ;; Run the actual interaction
-    (interact experiment interaction)
+    (interact experiment interaction) ;
 
     ;; Round up the interaction
     (notify interaction-finished experiment interaction (interaction-number interaction))
@@ -108,7 +108,7 @@
 ;; Interact ;;
 ;;;;;;;;;;;;;;
 
-(defmethod interact ((experiment naming-game-experiment)
+(defmethod interact ((experiment crs-conventionality-experiment)
                      (interaction interaction) &key)
   "Defines a single interaction/game in the naming game experiment."
   (let ((speaker (speaker interaction))
@@ -150,14 +150,14 @@
   "Speaker provides feedback by pointing to the topic."
   (setf (topic hearer) (topic speaker)))
 
-(defmethod determine-success ((speaker naming-game-agent) (hearer naming-game-agent) (interaction crs-conventionality-interaction))
+(defmethod determine-success ((speaker crs-conventionality-agent) (hearer crs-conventionality-agent) (interaction crs-conventionality-interaction))
   "Determines and sets success. There is success if the computed-topic of the hearer is the same as the intended topic of the speaker."
   (if (equalp (computed-topic hearer) (first (entities (topic speaker)))) ;; pointing
     (setf (communicated-successfully interaction) t)
     (setf (communicated-successfully interaction) nil)))
 
 
-(defmethod determine-coherence ((speaker naming-game-agent) (hearer naming-game-agent))
+(defmethod determine-coherence ((speaker crs-conventionality-agent) (hearer crs-conventionality-agent))
   "Determines and sets the coherences. Tests whether the hearer would have used the same word as the speaker, should the hearer have been the speaker."
   (let* ((interaction (current-interaction (experiment speaker)))
          (scene (scene interaction))

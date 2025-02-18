@@ -10,7 +10,7 @@
 ;; Alignment Strategies ;;
 ;; Lateral inhibition: reward used utterance and punish all competitors in success, punish used utterance and adopt in failure. 
 
-(defmethod align ((speaker naming-game-agent) (hearer naming-game-agent) (interaction crs-conventionality-interaction)
+(defmethod align ((speaker crs-conventionality-agent) (hearer crs-conventionality-agent) (interaction crs-conventionality-interaction)
                   (mode (eql :lateral-inhibition)))
   "Align grammar of speaker and hearer based on interaction."
   (notify alignment-started speaker hearer)
@@ -26,10 +26,10 @@
               (calculate-increased-score (learning-rate hearer) (attr-val applied-cxn-hearer :score)))
       
         ;; Speaker punishes competing constructions:
-        (loop for cxn in (find-competitors speaker)
+        #|(loop for cxn in (find-competitors speaker)
               do (setf (attr-val cxn :score) (calculate-decreased-score (learning-rate speaker) (attr-val cxn :score))))
         (loop for cxn in (find-competitors hearer)
-              do (setf (attr-val cxn :score) (calculate-decreased-score (learning-rate hearer) (attr-val cxn :score))))
+              do (setf (attr-val cxn :score) (calculate-decreased-score (learning-rate hearer) (attr-val cxn :score))))|#
         (notify alignment-finished speaker hearer interaction))
       
       
@@ -118,7 +118,7 @@
 ;; Never change scores. 
 
 
-(defmethod align ((speaker naming-game-agent) (hearer naming-game-agent) (interaction crs-conventionality-interaction)
+(defmethod align ((speaker crs-conventionality-agent) (hearer crs-conventionality-agent) (interaction crs-conventionality-interaction)
                   (mode (eql :no-alignment)))
   "No alignment setting - scores not adjusted."
   (if (communicated-successfully interaction)
@@ -175,3 +175,29 @@
       (values cxn fix))
   )
 
+
+(defmethod adopt ((topic crs-conventionality-entity-set) (hearer concept-emergence-game-agent))
+  "Adoption of the construction through composition."
+    (fcg::add-repair (get-data (blackboard (grammar hearer)) :cipn) 'fcg::repair-through-concept-adoption)
+    ;; Notify learning
+    
+    (set-data (blackboard (grammar hearer)) :agent hearer)
+    (let* ((fix (first (second (multiple-value-list (fcg::notify-learning (get-data (blackboard (grammar hearer)) :cipn) :trigger 'fcg::feedback-received)))))
+           (cxn (meta-layer-learning:restart-data fix))
+           (best-solution nil)
+           (consolidated-cxns nil)
+           (current-node (get-data (blackboard (grammar hearer)) :cipn))
+           (fixed-car (first (get-data fix 'fcg::fixed-cars))) 
+           (child (fcg::cip-add-child current-node fixed-car)))
+      
+      (setf current-node child)
+      (push (type-of (fcg::issued-by fix)) (fcg::statuses child))
+      (setf (fcg::fully-expanded? child) t)
+      (fcg::cip-run-goal-tests child (cip (get-data (blackboard (grammar hearer)) :cipn))) ;; to include succeeded status in node statuses
+      (push 'added-by-repair (fcg::statuses child))
+
+      (fcg::add-cxn cxn (grammar hearer))
+      (push cxn consolidated-cxns)
+    
+      (values cxn fix))
+  )

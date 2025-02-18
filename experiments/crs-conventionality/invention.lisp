@@ -11,10 +11,12 @@
   (:documentation "If the speaker could not formulate, new linguistic means need to be invented."))
 
 
-(defmethod invent ((cip construction-inventory-processor) (agent crs-conventionality::naming-game-agent)
+;; General invention method for all experiments, specific diagnostics and repairs are stored in the configurations of the cxn-inventory. 
+(defmethod invent ((cip construction-inventory-processor) (agent crs-conventionality::crs-conventionality-agent)
                    (topic crs-conventionality::crs-conventionality-entity-set) (scene crs-conventionality::crs-conventionality-entity-set))
   (let (;; original cxn set for inventing
         (cxn-inventory (original-cxn-set (construction-inventory cip)))
+
         ;; retrieve the top node of the cip
         (cipn (top-node cip)))
     
@@ -43,3 +45,7 @@
       (push cxn consolidated-cxns)
     
       (values cxn fix))))
+
+
+
+;; set onotlogy to blackboard of primitive inventory

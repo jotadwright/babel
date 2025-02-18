@@ -11,4 +11,5 @@
    :experiment-framework
    :monitors
    :plot-raw-data
+   :concept-representations
    #+:hunchentoot-available-on-this-platform :web-interface))

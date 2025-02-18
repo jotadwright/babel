@@ -7,6 +7,7 @@
   :depends-on (:utils 
                :test-framework
                :monitors
+               :irl
                #+:hunchentoot-available-on-this-platform :web-interface
                :com.inuoe.jzon)
   :serial t
@@ -18,4 +19,4 @@
                (:file "similarity")
                (:file "update")
                (:file "dataloader")
-               (:file "visualisation")))
+               ))

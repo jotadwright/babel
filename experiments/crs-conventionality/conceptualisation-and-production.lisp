@@ -90,11 +90,21 @@
 (defmethod cip-goal-test ((node cip-node) (mode (eql :topic-retrieved))) 
   "Checks whether the extracted meaning leads to the topic by evaluating irl program."
   (let* ((irl-program (extract-meanings (left-pole-structure (car-resulting-cfs (cipn-car node)))))
+         (applied-cxn (car-applied-cxn (cipn-car node)))
+         ;(renamings (when applied-cxn (renamings applied-cxn)))
+         (renamed-irl-program (loop for predicate in irl-program
+                                    for last-var = (fourth predicate)
+                                    when last-var
+                                      do (when (equal (get-base-name last-var)  "SCENE")
+                                           (setf (fourth predicate) 'crs-conventionality::?scene))
+                                    collect predicate))
+                 
+         ;(renamed-irl-program (sublis renamings irl-program))
          (topic (first (crs-conventionality::entities (find-data (blackboard (construction-inventory node)) :topic))))
          (primitive-inventory (find-data (blackboard (construction-inventory node)) :primitive-inventory))
-         (ontology (find-data (blackboard (construction-inventory node)) :ontology))
-         (target-var (irl::get-target-var irl-program))
-         (irl-solution (first (irl::evaluate-irl-program irl-program ontology :primitive-inventory primitive-inventory :n 1))))
+         (ontology (find-data (blackboard primitive-inventory) :ontology))
+         (target-var (irl::get-target-var renamed-irl-program))
+         (irl-solution (first (irl::evaluate-irl-program renamed-irl-program ontology :primitive-inventory primitive-inventory :n 1))))
     (when target-var
       (irl::equal-entity topic (irl::value (find target-var irl-solution :key #'irl::var))))))
 

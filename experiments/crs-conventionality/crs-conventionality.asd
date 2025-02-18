@@ -10,7 +10,8 @@
                :monitors 
                :plot-raw-data 
                :fcg 
-               :irl 
+               :irl
+               :concept-representations
                #+:hunchentoot-available-on-this-platform :web-interface)
   :serial t
   :components ((:file "package")

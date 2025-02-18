@@ -30,7 +30,7 @@
                                                       (:log-every-x-interactions . 100)
                                                       ;; Initialising the experiment
                                                       (:nr-of-entities-in-world . 5)
-                                                      (:nr-of-agents-in-population . 10)
+                                                      (:nr-of-agents-in-population . 2)
                                                       (:nr-of-entities-in-scene . 4)
                                                       (:alignment-strategy . :lateral-inhibition)
                                                       (:learning-strategy . :default)
@@ -55,14 +55,14 @@
   (activate-monitor record-conventionalisation)
   (activate-monitor record-construction-inventory-size)
   ;; activate tracers
-  ;(activate-monitor trace-interaction)
-  ;(activate-monitor trace-fcg)
-  ;(activate-monitor trace-irl)
+  (activate-monitor trace-interaction)
+  (activate-monitor trace-fcg-crs)
+  (activate-monitor trace-irl-crs)
   ;; activate the gnuplot live display
   (activate-monitor display-metrics)
 
   ;; run the experiment
-  (loop for i from 1 to 1000
+  (loop for i from 1 to 10
         do (run-interaction *naming-game-canonical*)))
 
 
@@ -128,7 +128,7 @@
   (activate-monitor display-metrics)
 
   ;; run the experiment
-  (loop for i from 1 to 3000
+  (loop for i from 1 to 3
         do (run-interaction *naming-game-learnability*)))
 
 
@@ -153,18 +153,44 @@
 ;;   Concept emergence setting      ;;
 ;;                                  ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+(reset-id-counters)
 
 ;; Concept emergence setting ;; 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *concept-emergence-canonical* (make-instance 'concept-emergence-experiment
-                                                           :configuration *configuration-canonical*))
+;; set dataset as a configuration
+(defparameter *configuration-canonical-concept-emergence* (make-configuration
+                                                           :entries '(;; Logging
+                                                                      (:log-every-x-interactions . 100)
+                                                                      ;; Initialising the experiment
+                                                                      (:dataset . "winery")
+                                                                      (:datasplit . "train")
+                                                                      (:nr-of-entities-in-world . 2)
+                                                                      (:nr-of-agents-in-population . 2)
+                                                                      (:nr-of-entities-in-scene . 1)
+                                                                      (:alignment-strategy . :lateral-inhibition)
+                                                                      (:learning-strategy . :default)
+                                                                      (:learning-rate . 0.5)
+                                                                      ;; Initialising an interaction
+                                                                      (:determine-interacting-agents-mode . :random-from-population)
+                                                                      (:determine-scene-entities-mode . :random-subset-of-world)
+                                                                      (:determine-topic-mode . :random-entity-from-scene))))
 
-(loop for i from 1 to 100
-      do (run-interaction *concept-emergence-canonical*))
+(defparameter *concept-emergence-canonical* (make-instance 'concept-emergence-game-experiment
+                                                           :configuration *configuration-canonical-concept-emergence*))
 
 
+
+(progn
+  (activate-monitor trace-interaction)
+  (activate-monitor trace-fcg-crs)
+  (activate-monitor trace-irl-crs)
+  (loop for i from 1 to 1
+        do (run-interaction *concept-emergence-canonical*)))
+
+
+
+(copy-object *concept-emergence-game-primitives*)
 
 ;;    Old testing of FCG     ;; 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

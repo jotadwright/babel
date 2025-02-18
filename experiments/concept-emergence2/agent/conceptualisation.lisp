@@ -111,11 +111,11 @@
         for concept = (meaning cxn)
         for topic-sim = (weighted-similarity agent topic concept)
         for best-other-sim = (calculate-max-similarity-in-context agent concept context topic-sim)
-        for discriminative-power = (abs (- topic-sim best-other-sim))
+        for discriminative-power = (- topic-sim best-other-sim)
         ;; trash inventory -> the score is irrelevant (so set score to 1), otherwise use score
         for score = (if (eq inventory-name :trash) 1 (score cxn))
         ;; check if the concept is discriminative
-        if (> topic-sim best-other-sim)
+        if (> discriminative-power 0)
           ;; the concept is discriminative, thus it is a candidate
           do (if (> (* discriminative-power score) best-score)
                ;; update the best candidate

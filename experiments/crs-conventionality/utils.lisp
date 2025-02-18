@@ -62,3 +62,22 @@
                      :plot-file-name ,(if plot-file-name plot-file-name default-plot-file-name))
                    evo-plot-keyword-args)))
   (format t "~%Graphs have been created."))
+
+
+
+;;  Data loading utils  ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun create-path (dataset-name dataset-split)
+  "Creates path for concept emergence experiments."
+  (merge-pathnames
+   (make-pathname :directory `(:relative
+                               "concept-emergence2" ;; ADAPT
+                               "split-by-entities"  ;; ADAPT
+                               ,dataset-name)
+                  :name (format nil
+                                "~a-~a"
+                                dataset-name
+                                dataset-split)
+                  :type "jsonl")
+   cl-user:*babel-corpora*))
