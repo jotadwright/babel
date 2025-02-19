@@ -82,11 +82,31 @@
   (loop with source-node-id = (graph-utils:lookup-node graph source-node)
         with target-node-id = (graph-utils:lookup-node graph target-node)
         with target-node-type = (get-node-type target-node-id graph)
-        for neighbour-id in (remove-duplicates (mapcar #'cdr (graph-utils::neighbors graph source-node :return-ids? t :edge-type target-node-type)))
+        for neighbour-id in (remove-duplicates (neighbours-by-node-type graph source-node-id :node-type target-node-type))
         for weighted-node-similarity = (weighted-graph-cosine-similarity-from-node-ids neighbour-id target-node-id graph)
         collect (cons (graph-utils:lookup-node graph neighbour-id) weighted-node-similarity)
         into similar-nodes
         finally (return (sort similar-nodes #'> :key #'cdr))))
+
+
+
+(defmethod neighbours-by-node-type ((graph undirected-node-and-edge-typed-graph) (node integer)
+                               &key node-type &allow-other-keys)
+  "Returns neigbours by node type."
+  (let ((neighbours nil))
+    (flet ((find-neighbours (matrix etype)
+             (map-sarray-col (lambda (row-id value)
+                               (when (and
+                                      etype ;;edge type needs to be non-zero!!!!
+                                      (equal (get-node-type row-id graph) node-type)
+                                      (>= value 0)) ;; edge type value needs to be larger than 0
+                                 (push row-id neighbours)))
+                             matrix node)))
+      (maphash (lambda (etype matrix)
+                 (find-neighbours matrix etype))
+               (matrix graph))
+      neighbours)))
+
 
 (defun similar-nodes-weighted-cosine (node graph)
   "loop through all nodes in graph, sort by weighted cosine similarity"

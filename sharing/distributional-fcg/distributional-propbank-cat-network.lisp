@@ -97,12 +97,17 @@
 (comprehend "the man smurfs a book to his wife")
 
 (activate-monitor trace-fcg)
-(set-configuration *train-grammar* :category-linking-mode :graph-cosine-similarity )
+
+(set-configuration *train-grammar* :category-linking-mode :graph-cosine-similarity)
 
 (comprehend "the man sent a book to his wife" :timeout nil)
 
 
 (comprehend "he sold the car to his mother" :timeout nil)
+
+
+(comprehend "he sold his mother the car" :timeout nil)
+
 
 |#
 
@@ -111,15 +116,19 @@
 
 (defmethod categories-linked-p (category-1 category-2 (categorial-network categorial-network) (mode (eql :graph-cosine-similarity)))
   "Succeeds of nodes are similar based on weighted cosine similarity."
-  (let ((similarity (graph-utils::similar-neighbour-nodes-weighted-cosine category-1 category-2 (fcg::graph categorial-network))))
-    (if (>= similarity 0)
-      t
-      nil)))
+  "We take the first, which means the highest similarity, maybe you want to take the average of all the nodes or even the semantic fields, to be continued..."
+  (if (neighbouring-categories-p category-1 category-2 categorial-network)
+    t
+    (let ((similarity (cdr (first (graph-utils::similar-neighbour-nodes-weighted-cosine category-1 category-2 (fcg::graph categorial-network))))))
+      (if (>= similarity 0.1)
+        t
+        nil))))
 
 (defmethod apply-heuristic ((node cip-node) (mode (eql :edge-weight)))
   "Returns the weight of the categorial network edge that was used in
 matching."
   0)
+
 
 
 
@@ -370,3 +379,37 @@ categorial network and returns it."
           (extract-meanings (left-pole-structure 
                              (car-resulting-cfs (cipn-car node))))))
     meaning))
+
+(in-package :fcg)
+
+(defun constructions-for-application-hashed-categorial-network-neigbours (node)
+  "Computes all constructions that could be applied for this node
+   based on the hash table and the constructions that are linked to
+the node through the links in the categorial network."
+  (let* ((lex-cat-neighbours (remove-duplicates (loop for lex-category in (lex-categories node)
+                                                      append (neighbouring-categories lex-category
+                                                                                      (original-cxn-set (construction-inventory node))))))
+         (gram-cat-neighbours (remove-duplicates (loop for gram-category in (gram-categories node)
+                                                       append (neighbouring-categories gram-category
+                                                                                       (original-cxn-set (construction-inventory node))))))
+         (constructions
+          (remove nil (loop for cxn in (remove-duplicates (append
+                                                           (gethash nil (constructions-hash-table (construction-inventory node)))
+                                                           (loop for hash in (hash node (get-configuration node :hash-mode))
+                                                                 append (gethash hash (constructions-hash-table (construction-inventory node))))))
+                            collect (cond ((attr-val cxn :gram-category)
+                                           (when (member (attr-val cxn :gram-category) lex-cat-neighbours)
+                                             cxn))
+                                          ((attr-val cxn :sense-category)
+                                           (when (member (attr-val cxn :sense-category) gram-cat-neighbours)
+                                             cxn))
+                                          (t
+                                           cxn)))))
+         (constructions
+          (constructions-list (construction-inventory node))))
+    ;; shuffle if requested
+    (when (get-configuration node :shuffle-cxns-before-application)
+      (setq constructions 
+            (shuffle constructions)))
+    ;; return constructions
+    constructions))
