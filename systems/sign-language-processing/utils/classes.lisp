@@ -1,3 +1,5 @@
+(in-package :slp)
+
 (defclass signed-form-predicates ()
   ((predicates
     :type list

@@ -80,10 +80,11 @@
 ;; representing time alignment of predicates ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; make html for signed-form-predicates and print them on the webinterface
+;; this includes the multilinear representation of the predicates, as well as an avatar
+;; go to localhost:8000 to inspect the result
 (add-element (make-html *test-utterance-1-predicates*))
-(add-element `((hr)))
 (add-element (make-html *test-utterance-2-predicates*))
-(add-element `((hr)))
 (add-element (make-html *test-utterance-3-predicates*))
 
 
@@ -120,14 +121,5 @@
     (make-pathname :directory '(:relative "json-files")
                    :name "geoquery-lsfb-4500" :type "jsonl")
     *geoquery-lsfb-data*)))
-
-
-
-
-
-
-
-
-
 
 

@@ -23,7 +23,8 @@
                              (:file "json-utils")
                              (:file "data-processor")
                              (:file "prolog-to-predicates")
-                             (:file "classes")))
+                             (:file "classes")
+                             (:file "hamnosys-to-sigml")))
                (:module elan-to-predicates
                 :serial t
                 :components ((:file "create-elan-intervals")
@@ -33,4 +34,5 @@
                 :serial t
                 :components ((:file "css")
                              (:file "make-html")
-                             (:file "make-sign-table")))))
+                             (:file "make-sign-table")
+                             (:file "javascript")))))

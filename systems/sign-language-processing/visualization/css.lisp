@@ -14,17 +14,25 @@
       (web-interface::define-css-link 'hamnosys.css "/hamnosys.css")
       (web-interface::define-css 'main "ham {font-size: 10pt; font-family: hamnosysunicoderegular}")))
 
+
+(web-interface::define-css-link 'cwasa.css "https://vhg.cmp.uea.ac.uk/tech/jas/vhg2025/cwa/cwasa.css")
+
+(define-css 'page-background "
+html, body {background-color:#FFFFFF;}")
+
+(web-interface::clear-page) 
+
 ;;-----------------;;
 ;; CSS definitions ;;
 ;;-----------------;;
 
 ;; the whole table
 (define-css 'sign-table  "
-.sign-table {width: 80%; table-layout:fixed;}")
+.sign-table {width: 100%; fixed-layout:fixed;}")
 
 ;; empty cells in table
 (define-css 'empty "
-.empty {background-color: #FFFFFF; upper-border: 1px solid black;}
+.empty {background-color: transparent; upper-border: 1px solid black;}
 ")
 
 ;; row header cells
@@ -39,7 +47,7 @@
 
 ; a cell with manual information
 (define-css 'id-gloss-cell "
-.id-gloss-cell {padding-left: 10px; padding-right: 10px; background: #e28744; border-radius: 5px; box-shadow: 1px 1px 1px #ddd; text-align: center; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word; width: fit-content;}")
+.id-gloss-cell {width: 100% ;padding-left: 10px; padding-right: 10px; background: #e28744; border-radius: 5px; box-shadow: 1px 1px 1px #ddd; text-align: center; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word;}")
 
 ; a cell with hamnosys
 (define-css 'hamnosys-cell "
@@ -48,5 +56,9 @@
 
 ;; text representing an articulation
 (define-css 'articulation-text "
-.articulation-tag {color: white; display: inline-block; font-weight:400px;}
+.articulation-tag {color: white; display: inline-block; font-weight:400px; font-size: 10px;}
+")
+
+(define-css 'play-sigml-button "
+.playsigml {color: white; font-size: 10px;font-weight: 400px; margin-left: 2px; border: none; background-color: transparent; overflow: hidden;}
 ")

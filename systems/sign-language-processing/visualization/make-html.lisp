@@ -8,9 +8,33 @@
   "makes and returns the html for an empty cell in the table"
   `((td :class "empty" :style "width: 20px;")))
 
-(defun make-id-gloss-cell (span-id fcg-tag colspan)
+(defun make-id-gloss-cell (span-id fcg-tag colspan hamnosys)
   "makes and returns the html for an id-gloss-cell with the given span-id,
-   fcg-tag and colspan"
+   fcg-tag and colspan. The cell contains a play button, sending the sigml
+   of the provided hamnosys to the avatar"
+  (let ((sigml (hamnosys->sigml hamnosys))
+        (filename (babel-pathname :directory '(".tmp" "sigml-files")
+                                  :name (format nil "~a" fcg-tag)
+                                  :type "sigml"))
+        (url (format nil "http://localhost:8000/~a.sigml" fcg-tag))
+        (uri (format nil "/~a.sigml" fcg-tag)))
+    (ensure-directories-exist filename)
+    (with-open-file
+        (out-stream
+         filename
+         :direction :output
+         :if-exists :supersede
+         :if-does-not-exist :create
+         :external-format :utf-8
+         :element-type 'cl:character)
+      (xmls:write-xml
+       sigml
+       out-stream
+       :indent t))
+    (setf web-interface::*dispatch-table*
+          (append web-interface::*dispatch-table*
+                  (list (web-interface::create-static-file-dispatcher-and-handler   
+                         uri filename))))
   `((td
      :class "id-gloss-cell"
      :colspan
@@ -28,7 +52,13 @@
       ((p
         :class "articulation-tag"
         :name ,fcg-tag)
-       ,fcg-tag)))))
+       ,fcg-tag)))
+    ((button :type "button"
+             :class "playsigml"
+             :onclick
+             ,(format
+               nil
+               "CWASA.playSiGMLURL(`~a`)" url)) "&#9658;" ))))
 
 (defun make-hamnosys-cell (value colspan)
    "makes and returns the html for a hamnosys-cell
@@ -44,11 +74,11 @@
 (defun make-right-hand-rows (right-hand-cells number-of-columns)
   "makes and returns html for both the id-gloss and hamnosys-rowsof the right hand"
   (loop with right-hand-id-gloss-row
-          = `((TR :CLASS "header")
+          = `((TR :CLASS "header" :style "width:100%;")
               ((TD :CLASS "header")
                "RH"))
         with right-hand-hamnosys-row
-          = `((TR :CLASS "header")
+          = `((TR :CLASS "header" :style "width:100%;")
               ((TD :CLASS "header")))
         for x from 0 to number-of-columns
         for right-hand-cell
@@ -83,7 +113,8 @@
                (make-id-gloss-cell
                 span-id
                 fcg-tag
-                1)
+                1
+                value)
                right-hand-id-gloss-row)
               (pushend
                (make-hamnosys-cell
@@ -99,11 +130,11 @@
 (defun make-left-hand-rows (left-hand-cells number-of-columns)
   "makes and returns html for both the id-gloss and hamnosys-rows of the left hand"
   (loop with left-hand-id-gloss-row
-          = `((tr :class "header")
+          = `((tr :class "header" :style "width:100%;")
               ((td :class "header")
                "LH"))
         with left-hand-hamnosys-row
-          = `((tr :class "header")
+          = `((tr :class "header" :style "width:100%;")
               ((td :class "header")))
         with colwait = nil
         for x from 0 to number-of-columns
@@ -122,6 +153,14 @@
               (string
                (hamnosys
                 left-hand-cell)))
+        for sigml-source
+          = (when left-hand-cell
+              (if (or (eql (char value 0)
+                         #\)
+                        (eql (char value 0)
+                         #\))
+              value
+              (concatenate 'string "" value)))
         for span-id = (make-const "S")
         for start = x
         for end
@@ -141,8 +180,10 @@
               (progn
                 (pushend
                  (make-id-gloss-cell
-                  span-id fcg-tag
-                  colspan)
+                  span-id
+                  fcg-tag
+                  colspan
+                  sigml-source)
                  left-hand-id-gloss-row)
                 (pushend
                  (make-hamnosys-cell
@@ -168,10 +209,9 @@
                left-hand-id-gloss-row
                left-hand-hamnosys-row))))
 
-
 (defun make-time-header (number-of-columns)
   "makes and returns the html for the header row of the table (time)"
-  `((tr :class "header")
+  `((tr :class "header" :style "width:100%;")
     ((td)
      ((span)
       ((span)
@@ -199,14 +239,18 @@
           (make-left-hand-rows
            (left-hand-cells sign-table)
            number-of-columns)))
-    `((table :class "sign-table")
+    
+    `((div :style "margin: 20px; width: 95%;")
+      ((div :style "width:20%; height: 30%; margin-left: 43px; margin-bottom: 10px; margin-top: 20px;")
+       ((div :class "CWASAAvatar av0" :align "center" :onclick "CWASA.init({ambIdle:false,useClientConfig:false});")))
+      ((table :class "sign-table" :style "margin-bottom:20px;")
        ((tbody)
+        ((tr)
         ,(first right-hand-rows)
         ,(second right-hand-rows)
         ,(first left-hand-rows)
-        ,(second left-hand-rows)))))
-
-
+        ,(second left-hand-rows)))))))
+  
         
      
      
