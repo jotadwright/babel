@@ -185,6 +185,8 @@
             do (progn
                 ; conceptualise the utterance for the given topic for each agent
                 (conceptualise-and-produce agent scene topic :use-meta-layer nil)
+                ;uncomment to print out the utterance
+                ;(format t "utterance of agent: ~a for topic: ~a -> |~a|~%" agent topic (conceptualised-utterance agent))
 
                 ; check if the word is already in the table
                 (if (gethash (conceptualised-utterance agent) conceptualised-utterances-frequency-table)
@@ -201,7 +203,7 @@
                 ; Now we have a table with all utterances and relative frequences: find the most common
                 (setf most-common-utterance nil most-common-frequency 0)
                 (maphash (lambda (in-table-word in-table-frequency)
-                          (if (> in-table-frequency most-common-frequency)
+                          (if (and (> in-table-frequency most-common-frequency) (not (equalp (conceptualised-utterance agent) nil)))
                                 (setf most-common-utterance in-table-word most-common-frequency in-table-frequency)))
                         conceptualised-utterances-frequency-table))))
 

@@ -30,15 +30,16 @@
                                                       (:learning-strategy . :default)
                                                       (:learning-rate . 0.5)
                                                       ;; Initialising an interaction
-                                                      (:determine-interacting-agents-mode . :random-from-social-network)
+                                                      ;(:determine-interacting-agents-mode . :random-from-social-network)
+                                                      (:determine-interacting-agents-mode . :random-from-population)
                                                       (:determine-scene-entities-mode . :random-subset-of-world)
                                                       (:determine-topic-mode . :random-entity-from-scene))))
   ;; instantiate a naming game experiment
   (defparameter *naming-game-canonical* (make-instance 'naming-game-experiment
                                                        :configuration *configuration-canonical*))
-  (set-configuration *naming-game-canonical* :network-topology :regular)
-  (set-configuration *naming-game-canonical* :local-connectivity 1)
-  (initialize-social-network *naming-game-canonical*)
+  ;(set-configuration *naming-game-canonical* :network-topology :regular)
+  ;(set-configuration *naming-game-canonical* :local-connectivity 1)
+  ;(initialize-social-network *naming-game-canonical*)
   
   ;(population-network->graphviz (agents (population *naming-game-canonical*)) :make-image t :open-image t :use-labels? t)
   )
