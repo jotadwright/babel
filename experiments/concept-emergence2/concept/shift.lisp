@@ -70,7 +70,7 @@
         for objects-hash = (loop with hash = (make-hash-table)
                                  for object in (objects (get-data agent 'context))
                                  for observation = (perceive-object-val agent object channel)
-                                 for similarity = (observation-distance observation prototype)
+                                 for similarity = (distribution-feature-similarity observation prototype)
                                  for weighted-similarity = (if (not (zerop ledger))
                                                              (* (/ (weight prototype) ledger) similarity)
                                                              0)

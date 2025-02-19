@@ -4,13 +4,13 @@
 ;; + Comparing OBJECT <-> CONCEPT +
 ;; --------------------------------
 
-(defmethod weighted-similarity ((agent cle-agent) (object cle-object) (concept concept))
+(defmethod concept-entity-similarity ((agent cle-agent) (object cle-object) (concept concept))
   ;; Warning if you update this, function make sure to update `concept/shift.lisp`.
   (loop with prototypes = (get-available-prototypes agent concept)
         with ledger = (loop for prototype in prototypes sum (weight prototype))
         for prototype in prototypes
         for observation = (perceive-object-val agent object (channel prototype))
-        for similarity = (observation-distance observation prototype)
+        for similarity = (distribution-feature-similarity observation prototype)
         if (and similarity (not (zerop ledger)))
           ;; note: ledger could be factored out
           sum (* (/ (weight prototype) ledger) similarity)
@@ -21,14 +21,14 @@
 ;; + Comparing OBJECT <-> PROTOTYPE +
 ;; ----------------------------------
 
-(defgeneric observation-distance (observation prototype &key &allow-other-keys)
+(defgeneric distribution-feature-similarity (observation prototype &key &allow-other-keys)
   (:documentation "Returns the distance between an observation and a prototype."))
 
-(defmethod observation-distance ((observation null) (prototype prototype) &key &allow-other-keys)
+(defmethod distribution-feature-similarity ((observation null) (prototype prototype) &key &allow-other-keys)
   "Distance is nil if no observation is available."
   nil)
 
-(defmethod observation-distance ((observation number) (prototype prototype) &key &allow-other-keys)
+(defmethod distribution-feature-similarity ((observation number) (prototype prototype) &key &allow-other-keys)
   "Measures the distance between an observation and a prototype.
 
   Prototypes are represented by gaussian distributions.
@@ -43,7 +43,7 @@
                     0)))
     (exp (- (expt z-score 2)))))
 
-(defmethod observation-distance ((observation symbol) (prototype prototype) &key (laplace-smoother 1) &allow-other-keys)
+(defmethod distribution-feature-similarity ((observation symbol) (prototype prototype) &key (laplace-smoother 1) &allow-other-keys)
   "Similarity [0,1] on the level of a single prototype for a categorical observation."
   ;; Warning if you update this, function make sure to update `concept/shift.lisp`.
   (let* ((distribution (distribution prototype))
