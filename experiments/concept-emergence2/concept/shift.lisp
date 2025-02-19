@@ -22,16 +22,11 @@
     ;; 2. determine which attributes should get an increase
     ;;    in weight, and which should get a decrease.
     (let* ((similarity-table (make-similarity-table agent concept prototypes))
-           (discriminating-attributes (find-discriminating-attributes agent
-                                                                      concept
-                                                                      topic
-                                                                      similarity-table
-                                                                      prototypes))
-           (subsets-to-consider (get-all-subsets prototypes discriminating-attributes))
-           (best-subset (find-most-discriminating-subset agent
-                                                         subsets-to-consider
-                                                         topic
-                                                         similarity-table)))
+           (best-subset (find-discriminating-attributes agent
+                                                        concept
+                                                        topic
+                                                        similarity-table
+                                                        prototypes)))
       (when (null best-subset)
         ;; when best-subset returns NIL
         ;; reward all attributes...
@@ -40,18 +35,14 @@
       (loop for prototype in prototypes
             ;; if part of the contributing prototypes -> reward
             if (member (channel prototype) best-subset :key #'channel)
-              do (progn
-                   ;(update-history-weight agent prototype (get-configuration (experiment agent) :weight-incf))        
-                   (update-weight prototype
-                                  (get-configuration (experiment agent) :weight-incf)
-                                  (get-configuration (experiment agent) :weight-update-strategy)))
-            ;; otherwise -> punish
+              do (update-weight prototype
+                                (get-configuration (experiment agent) :weight-incf)
+                                (get-configuration (experiment agent) :weight-update-strategy))
+              ;; otherwise -> punish
             else
-              do (progn
-                   ;(update-history-weight agent prototype (get-configuration (experiment agent) :weight-decf))        
-                   (update-weight prototype
-                                  (get-configuration (experiment agent) :weight-decf)
-                                  (get-configuration (experiment agent) :weight-update-strategy)))))))
+              do (update-weight prototype
+                                (get-configuration (experiment agent) :weight-decf)
+                                (get-configuration (experiment agent) :weight-update-strategy))))))
 
 ;; -------------------------------------
 ;; + Step 1: make the similarity table +
@@ -102,67 +93,3 @@
         when (> topic-sim best-other-sim)
           do (push channel discriminating-attributes)
         finally (return discriminating-attributes)))
-
-;; ---------------------------------
-;; + Step 3: Generate the powerset +
-;; ---------------------------------
-(defun get-all-subsets (all-attr subset-attr)
-  "Given a set of attributes and a subset of that set, returns all
-   subsets of the complete set that contain the subset."
-  
-  (let* ((rest-attr (loop for el in all-attr
-                          if (not (find (channel el) subset-attr))
-                            collect el)))
-    (if (length> rest-attr 6) ;; HEURISTIC TO AVOID COMBINATORIAL EXPLOSION
-      ;; use all attributes
-      (list (loop for el in all-attr
-                  if (find (channel el) subset-attr)
-                    collect el))
-      ;; otherwise, generate the powerset
-      (let* ((all-subsets-of-rest (cons '() (all-subsets rest-attr)))
-             (subset-attr-values (loop for el in all-attr
-                                       if (find (channel el) subset-attr)
-                                         collect el))
-             (all-subsets (loop for el in all-subsets-of-rest
-                                collect (append subset-attr-values el))))
-        all-subsets))))
-
-;; ------------------------------------------
-;; + Step 4: Find discriminating attributes +
-;; ------------------------------------------
-(defun weighted-similarity-with-table (object prototypes table)
-  "Compute the weighted similarity between the object and the
-   list of prototypes, using the given similarity table."
-  (loop for prototype in prototypes
-        for ws = (get-ws object (channel prototype) table)
-        sum ws into mahalanobis
-        finally (return mahalanobis)))
-
-;; ----------------------------------
-;; + Find discriminating attributes +
-;; ----------------------------------
-(defun calculate-max-similarity-in-context-using-subsets (agent context topic-sim subset similarity-table)
-  """Calculates the maximim similarity between the given concept and all objects in the context."
-  (loop named lazy-loop
-        for object in context
-        for other-sim = (weighted-similarity-with-table object subset similarity-table)
-        when (<= topic-sim other-sim)
-          ;; lazy stopping
-          do (return-from lazy-loop other-sim)
-        maximize other-sim))
-
-(defun find-most-discriminating-subset (agent subsets topic similarity-table)
-  "Find the subset that maximizes the difference in similarity
-   between the topic and the best other object."
-  (loop with context = (remove topic (objects (get-data agent 'context)))
-        with best-subset = nil
-        with best-score = 0
-        for subset in subsets
-        for topic-sim = (weighted-similarity-with-table topic subset similarity-table)
-        for best-other-sim = (calculate-max-similarity-in-context-using-subsets agent context topic-sim subset similarity-table)
-        for discriminative-power = (abs (- topic-sim best-other-sim))
-        when (and (> topic-sim best-other-sim) 
-                  (> discriminative-power best-score))
-          do (setf best-subset subset
-                   best-score discriminative-power)
-        finally (return best-subset)))
