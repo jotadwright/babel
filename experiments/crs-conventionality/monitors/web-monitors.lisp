@@ -206,12 +206,15 @@
                                            (hearer crs-conventionality-agent))
 
 (define-event-handler (trace-interaction determine-coherence-finished)
-  (cond ((eq (utterance speaker) (utterance hearer))
+  (cond ((equal (utterance speaker) (conceptualised-utterance hearer))
          (add-element `((b :style "color: green;")
-                        ,(format nil "Listener would have uttered \"~a\" as well." (first (utterance hearer))))))
-        (else
-         (add-element `((b :style "color: green;")
-                        ,(format nil "Listener would have uttered \"~a\" instead of \"~a\"." (first (utterance hearer)) (first (utterance speaker))))))))
+                        ,(format nil "Hearer would have uttered \"~a\" as well." (first (conceptualised-utterance hearer))))))
+         ((not (conceptualised-utterance hearer))
+          (add-element `((b :style "color: red;")
+                         ,(format nil "Hearer would not have uttered \"~a\"." (first (utterance speaker))))))
+        (t
+         (add-element `((b :style "color: red;")
+                        ,(format nil "Hearer would have uttered \"~a\" instead of \"~a\"." (first (conceptualised-utterance hearer)) (first (utterance speaker))))))))
 
 
 ;; Evaluate IRL program ;;
