@@ -12,7 +12,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;(setf nlp-tools::*penelope-host* "http://127.0.0.1:5000")
-
+;(setf nlp-tools::*embedding-host* "http://127.0.0.1:5001")
+; 
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Setting file paths ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
@@ -27,6 +28,12 @@
   (merge-pathnames 
    (make-pathname :directory '(:relative "distributional-fcg")
                   :name "small-corpus-teach" :type "conll")
+   cl-user:*babel-corpora*))
+
+(defparameter *annotations-file-path*
+  (merge-pathnames 
+   (make-pathname :directory '(:relative "distributional-fcg")
+                  :name "small-corpus-ditransitive" :type "conll")
    cl-user:*babel-corpora*))
 
 (defparameter *ontonotes-annotations-storage-file* (merge-pathnames (make-pathname :directory (cons :relative '("propbank-annotations"))
@@ -53,13 +60,13 @@
 ;(load-propbank-annotations 'ontonotes :ignore-stored-data nil)
 
 ;; small ewt-annotation corpus to test
-;(defparameter *ewt-annotations-small* (loop for i from 0 to 100 collect (nth i (train-split *ewt-annotations*))))
+;(defparameter *ewt-annotations-small* (loop for i from 0 to 10 collect (nth i (train-split *ewt-annotations*))))
 
 
 
 ;(defparameter *annotations* (read-propbank-conll-file *annotations-file-path*))
 ;(defparameter *annotations* (read-propbank-conll-file *annotations-file-path-teach*))
-
+;(defparameter *annotations* (read-propbank-conll-file *annotations-file-path*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Setting training configurations for grammar  ;;
@@ -68,7 +75,7 @@
 (defparameter *training-configuration*
     '((:de-render-mode .  :de-render-constituents-dependents)
       (:node-tests :check-double-role-assignment)
-      (:parse-goal-tests :no-valid-children :meaning-extracted)
+      (:parse-goal-tests :no-valid-children :meaning-extracted) ;
       (:construction-inventory-processor-mode . :heuristic-search)
       (:search-algorithm . :best-first)   
       (:heuristics
@@ -99,15 +106,13 @@
 #|
  
 (learn-propbank-grammar
- (shuffle *ewt-annotations-small*)
+ (shuffle *annotations*)
  :selected-rolesets nil
  :excluded-rolesets nil
  :cxn-inventory '*train-grammar*
  :fcg-configuration *training-configuration*)
 
  |#
-
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Make the embeddings (for roles and lexical items) ;;
@@ -130,7 +135,7 @@
 ;(comprehend "jesus teaches english" :timeout nil)
 
 
-;(comprehend "the man drives" :timeout nil)
+;(comprehend "" :timeout nil)
 
 ;(comprehend "the man rides a bike" :timeout nil)
 
@@ -138,7 +143,63 @@
 
 ;(comprehend "the husband handed his wife a book" :timeout nil)
 
+;(comprehend "he abandoned his child" :timeout nil)
+;(comprehend "he committed a crime" :timeout nil)
+;(comprehend "the bank committed 1,2 million dollar" :timeout nil)
 
+#|
+(neighbouring-categories 'abandon-01 (categorial-network *train-grammar*))
+
+(add-element (make-html (categorial-network *train-grammar*) :weights t))
+
+(add-element (make-html *train-grammar*))
+
+(gethash 'propbank-grammar::ABANDON\(V\)-1 (graph-utils::nodes (fcg::graph (categorial-network *train-grammar*))))
+
+(graph-utils:neighbors (fcg::graph (categorial-network *train-grammar*)) 'propbank-grammar::ABANDON\(V\)-1)
+
+(gethash 13 (graph-utils::ids (fcg::graph (categorial-network *train-grammar*))))
+
+(set-configuration *train-grammar*  :category-linking-mode  :graph-cosine-similarity)
+
+(categorial-network *train-grammar*)
+
+
+(setf *similar-nodes* (graph-utils::similar-nodes-weighted-cosine 'propbank-grammar::send.01-20 (fcg::graph (categorial-network *train-grammar*))))
+; => ((PROPBANK-GRAMMAR::SEND.01-20 . 1.0) (PROPBANK-GRAMMAR::ARG0\(NP\)+V\(V\)+ARG2\(NP\)+ARG1\(NP\)-25 . 0.40824828) (PROPBANK-GRAMMAR::ARG0\(NP\)+V\(V\)+ARG1\(NP\)+ARG2\(PP\)-56 . 0.40824828) (PROPBANK-GRAMMAR::SEND\(V\)-19 . 0.33333334) (PROPBANK-GRAMMAR::GIVE\(V\)-30 . 0.32732683) (PROPBANK-GRAMMAR::GIVE.01-29 . 0.32732683) (PROPBANK-GRAMMAR::SELL\(V\)-5 . 0.28867513) (PROPBANK-GRAMMAR::SELL.01-8 . 0.28867513) (PROPBANK-GRAMMAR::TRANSFER\(V\)-2 . 0.28867513) (PROPBANK-GRAMMAR::TRANSFER.01-2 . 0.28867513) (PROPBANK-GRAMMAR::READ\(V\)-10 . 0.16666667) (PROPBANK-GRAMMAR::READ.01-12 . 0.16666667))
+
+(setf *similar-nodes* (graph-utils::similar-nodes-cosine 'propbank-grammar::send.01-20 (fcg::graph (categorial-network *train-grammar*))))
+; => ((PROPBANK-GRAMMAR::SEND.01-20 . 1.0) (PROPBANK-GRAMMAR::SEND\(V\)-19 . 0.6666667) (PROPBANK-GRAMMAR::GIVE\(V\)-30 . 0.6666667) (PROPBANK-GRAMMAR::GIVE.01-29 . 0.6666667) (PROPBANK-GRAMMAR::SELL\(V\)-5 . 0.40824828) (PROPBANK-GRAMMAR::SELL.01-8 . 0.40824828) (PROPBANK-GRAMMAR::TRANSFER\(V\)-2 . 0.40824828) (PROPBANK-GRAMMAR::TRANSFER.01-2 . 0.40824828) (PROPBANK-GRAMMAR::READ\(V\)-10 . 0.33333334) (PROPBANK-GRAMMAR::READ.01-12 . 0.33333334) (PROPBANK-GRAMMAR::ARG0\(NP\)+V\(V\)+ARG2\(NP\)+ARG1\(NP\)-25 . 0.28867513) (PROPBANK-GRAMMAR::ARG0\(NP\)+V\(V\)+ARG1\(NP\)+ARG2\(PP\)-56 . 0.18257419))
+
+
+
+(comprehend "the man smurfs a book to his wife")
+
+(activate-monitor trace-fcg)
+(set-configuration *train-grammar* :category-linking-mode :graph-cosine-similarity )
+
+(comprehend "the man sent a book to his wife" :timeout nil)
+
+(comprehend "he sold his mother the car" :timeout nil)
+
+(comprehend "he sold the car to his mother" :timeout nil)
+
+|#
+
+;; Aan te passen: 
+
+
+(defmethod categories-linked-p (category-1 category-2 (categorial-network categorial-network) (mode (eql :graph-cosine-similarity)))
+  "Succeeds of nodes are similar based on weighted cosine similarity."
+  (let ((similarity (graph-utils::weighted-graph-cosine-similarity category-1 category-2 (fcg::graph categorial-network))))
+    (if (= similarity 0)
+      t
+      nil)))
+
+(defmethod apply-heuristic ((node cip-node) (mode (eql :edge-weight)))
+  "Returns the weight of the categorial network edge that was used in
+matching."
+  0)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -651,7 +712,7 @@ field :cxn-token-embeddings"
     (set-data (blackboard initial-cfs) :utterance utterance)
     ;; Construction application
     (multiple-value-bind (solution cip)
-        (fcg-apply processing-cxn-inventory initial-cfs '<- :notify (not silent) :n 10)
+        (fcg-apply processing-cxn-inventory initial-cfs '<- :notify (not silent) :n 50)
       (let ((meaning (when solution
                        (extract-meanings (left-pole-structure (car-resulting-cfs (cipn-car solution)))))))
         
@@ -683,7 +744,8 @@ the node through the links in the categorial network."
                                            (when (member (attr-val cxn :sense-category) gram-cat-neighbours)
                                              cxn))
                                           (t
-                                           cxn))))))
+                                           cxn)))))
+         (constructions (constructions-list (construction-inventory node))))
     ;; shuffle if requested
     (when (get-configuration node :shuffle-cxns-before-application)
       (setq constructions 

@@ -102,6 +102,7 @@
                  (:file "graph-utils-additions")
                  (:file "categorial-network")
                  (:file "html")
+                 (:file "similarity")
                  (:file "web-monitor")
                  (:file "export-utils")))
    (:module meta-layer

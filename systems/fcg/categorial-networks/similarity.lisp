@@ -21,8 +21,8 @@
     (float (/ (length (set-difference neighbours-node-1 neighbours-node-2)) (+ degree-node-1 degree-node-2)))))
 
 (defun common-neighbours (node-1 node-2 graph)
-  (let ((neighbours-node-1 (graph-utils::neighbors graph node-1))
-        (neighbours-node-2 (graph-utils::neighbors graph node-2)))
+  (let ((neighbours-node-1 (mapcar #'cdr (graph-utils::neighbors graph node-1)))
+        (neighbours-node-2 (mapcar #'cdr (graph-utils::neighbors graph node-2))))
     (remove-duplicates (intersection neighbours-node-1 neighbours-node-2))))
 
 (defun graph-cosine-similarity (node-1 node-2 graph)
@@ -32,8 +32,8 @@
     (when (and node-id-1 node-id-2)
       (let*
           ((common-neighbours (common-neighbours node-id-1 node-id-2 graph))
-           (degree-node-1 (length (remove-duplicates (graph-utils::neighbors graph node-id-1)))) ;; degree is how many unique neighbours the node has in the graph, here we take the number of neighbours
-           (degree-node-2 (length (remove-duplicates (graph-utils::neighbors graph node-id-2))))
+           (degree-node-1 (length (remove-duplicates (mapcar #'cdr (graph-utils::neighbors graph node-id-1))))) ;; degree is how many unique neighbours the node has in the graph, here we take the number of neighbours
+           (degree-node-2 (length (remove-duplicates (mapcar #'cdr  (graph-utils::neighbors graph node-id-2)))))
            (denominator (sqrt (* degree-node-1 degree-node-2))))
         (if (> denominator 0)
           (/ (length common-neighbours) denominator) 0)))))
@@ -42,9 +42,9 @@
   (let* ((node-id-1 (graph-utils:lookup-node graph node-1))
          (node-id-2 (graph-utils:lookup-node graph node-2)))
     (when (and node-id-1 node-id-2)
-      (let ((denominator (sqrt (* (reduce '+ (loop for degree-1 in (remove-duplicates (graph-utils::neighbors graph node-id-1)) ;; take the edge weight of all neighbouring edges
+      (let ((denominator (sqrt (* (reduce '+ (loop for degree-1 in (remove-duplicates (mapcar #'cdr (graph-utils::neighbors graph node-id-1))) ;; take the edge weight of all neighbouring edges
                                                    collect (square (graph-utils:edge-weight graph  degree-1 node-id-1)))) ;; take the square of the weight, and sum it
-                                  (reduce '+ (loop for degree-2 in (remove-duplicates (graph-utils::neighbors graph node-id-2))
+                                  (reduce '+ (loop for degree-2 in (remove-duplicates (mapcar #'cdr (graph-utils::neighbors graph node-id-2)))
                                                    collect (square (graph-utils:edge-weight graph  degree-2 node-id-2))))))))
         (if (> denominator 0)
           (/ (reduce '+ (loop for common-neighbour in (common-neighbours node-id-1 node-id-2 graph)
@@ -53,8 +53,40 @@
              denominator)
           0)))))
 
+(defun weighted-graph-cosine-similarity-from-node-ids (node-id-1 node-id-2 graph)
+    (when (and node-id-1 node-id-2)
+      (let ((denominator (sqrt (* (reduce '+ (loop for degree-1 in (remove-duplicates (mapcar #'cdr (graph-utils::neighbors graph node-id-1))) ;; take the edge weight of all neighbouring edges
+                                                   collect (square (graph-utils:edge-weight graph  degree-1 node-id-1)))) ;; take the square of the weight, and sum it
+                                  (reduce '+ (loop for degree-2 in (remove-duplicates (mapcar #'cdr (graph-utils::neighbors graph node-id-2)))
+                                                   collect (square (graph-utils:edge-weight graph  degree-2 node-id-2))))))))
+        (if (> denominator 0)
+          (/ (reduce '+ (loop for common-neighbour in (common-neighbours node-id-1 node-id-2 graph)
+                              collect (* (graph-utils:edge-weight graph node-id-1 common-neighbour)
+                                         (graph-utils:edge-weight graph node-id-2 common-neighbour))))
+             denominator)
+          0))))
+
 (defun square (x)
   (* x x))
+
+(defun get-node-type (node-id graph)
+  "look up the type of the node in the matrix"
+  
+  (loop for node-type being the hash-keys of (node-types graph)
+          using (hash-value node-ids)
+        when (and node-type (find node-id node-ids))
+          return node-type))
+
+(defun similar-neighbour-nodes-weighted-cosine (source-node target-node graph)
+  "loop through neighbours of source-node, sort them similarity with target-node, filter on type of target node"
+  (loop with source-node-id = (graph-utils:lookup-node graph source-node)
+        with target-node-id = (graph-utils:lookup-node graph target-node)
+        with target-node-type = (get-node-type target-node-id graph)
+        for neighbour-id in (remove-duplicates (mapcar #'cdr (graph-utils::neighbors graph source-node :return-ids? t :edge-type target-node-type)))
+        for weighted-node-similarity = (weighted-graph-cosine-similarity-from-node-ids neighbour-id target-node-id graph)
+        collect (cons (graph-utils:lookup-node graph neighbour-id) weighted-node-similarity)
+        into similar-nodes
+        finally (return (sort similar-nodes #'> :key #'cdr))))
 
 (defun similar-nodes-weighted-cosine (node graph)
   "loop through all nodes in graph, sort by weighted cosine similarity"

@@ -37,6 +37,10 @@
    (indices :accessor indices :initarg :indices
             :initform (make-hash-table :test 'equalp))))
 
+(defclass undirected-node-and-edge-typed-graph (undirected-typed-graph)
+  ((node-types :accessor node-types :initarg :node-types
+           :initform (make-hash-table :test 'eql))))
+
 (defgeneric undirected-typed-graph? (thing)
   (:documentation "undirected typed graph predicate")
   (:method ((thing undirected-typed-graph)) t)
@@ -56,6 +60,16 @@
 (defmethod add-edge-type ((graph undirected-typed-graph) edge-type)
   (or (gethash edge-type (matrix graph))
       (setf (gethash edge-type (matrix graph))
+            (make-sparse-array (list (+ 1 (last-id graph)) (+ 1 (last-id graph)))
+                               ;; last-id instead of node-count: some nodes might already have been
+                               ;; deleted, but the remaining id's should not be out of bounds!!
+                               :adjustable t
+                               :element-type 'number
+                               :initial-element 0))))
+
+(defmethod add-node-type ((graph undirected-node-and-edge-typed-graph) node-type)
+  (or (gethash node-type (node-types graph))
+      (setf (gethash node-type (node-types graph))
             (make-sparse-array (list (+ 1 (last-id graph)) (+ 1 (last-id graph)))
                                ;; last-id instead of node-count: some nodes might already have been
                                ;; deleted, but the remaining id's should not be out of bounds!!
@@ -96,6 +110,23 @@
                           :comparator node-comparator
                           :edge-type-comparator edge-type-comparator
                           :s-point saturation-point
+                          :matrix (make-hash-table :test edge-type-comparator)
+                          :nodes (make-hash-table :test node-comparator))))
+    (dolist (e initial-edge-types)
+      (add-edge-type g e))
+    g))
+
+
+(defun make-undirected-node-and-edge-typed-graph (&key (node-comparator 'equal) (saturation-point 0)
+                                         (edge-type-comparator 'eql) initial-edge-types)
+  "Create a new undirected-typed-graph object.
+   You are responsible for making sure that
+   node-comparator is a valid hash table test."
+  (let ((g (make-instance 'undirected-node-and-edge-typed-graph
+                          :comparator node-comparator
+                          :edge-type-comparator edge-type-comparator
+                          :s-point saturation-point
+                          :node-types (make-hash-table :test node-comparator)
                           :matrix (make-hash-table :test edge-type-comparator)
                           :nodes (make-hash-table :test node-comparator))))
     (dolist (e initial-edge-types)

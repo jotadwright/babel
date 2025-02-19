@@ -199,7 +199,7 @@
 ;; Adding and removing categories and links ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defgeneric add-category (category thing &key recompute-transitive-closure)
+(defgeneric add-category (category thing &key recompute-transitive-closure &allow-other-keys)
   (:documentation "Adds a category to the categorial network."))
 
 (defmethod add-category ((category symbol) (categorial-network categorial-network) &key (recompute-transitive-closure t))
@@ -210,13 +210,30 @@
   (notify category-added category categorial-network)
   categorial-network)
 
+(defun add-node-type (node-id node-type graph)
+  "Add node type to graph per node-id"
+  (if (gethash node-type (graph-utils::node-types graph))
+    (push node-id (gethash node-type (graph-utils::node-types graph)))
+    (setf (gethash node-type (graph-utils::node-types graph)) (list node-id))) 
+  )
+
+(defmethod add-category ((category symbol) (categorial-network categorial-network) &key (recompute-transitive-closure t) (node-type nil))
+  "Adds a category to the categorial network."
+  (let* ((graph (graph categorial-network))
+         (node-id (graph-utils:add-node graph category)))
+    (add-node-type node-id node-type graph)
+  (when recompute-transitive-closure
+    (compute-transitive-closure categorial-network))
+  (notify category-added category categorial-network)
+  categorial-network))
+
 (defmethod add-category ((category symbol) (cxn-inventory fcg-construction-set) &key (recompute-transitive-closure t))
   "Adds a category to the categorial network of a grammar."
   (add-category category (categorial-network cxn-inventory) :recompute-transitive-closure recompute-transitive-closure))
 
-(defmethod add-category ((category symbol) (cxn-inventory hashed-fcg-construction-set) &key (recompute-transitive-closure t))
+(defmethod add-category ((category symbol) (cxn-inventory hashed-fcg-construction-set) &key (recompute-transitive-closure t) (node-type nil))
   "Adds a category to the categorial network of a grammar."
-  (add-category category (categorial-network cxn-inventory) :recompute-transitive-closure recompute-transitive-closure))
+  (add-category category (categorial-network cxn-inventory) :recompute-transitive-closure recompute-transitive-closure :node-type node-type))
 
 
 (defgeneric add-categories (categories thing &key recompute-transitive-closure))
@@ -355,8 +372,9 @@
                           (format nil "~a" category-1))
                          (t
                           (format nil "~a and ~a" category-1 category-2))))))
-  (when (link-exists-p category-1 category-2 categorial-network :link-type link-type)
-    (graph-utils:edge-weight (graph categorial-network) category-1 category-2 link-type)))
+  (if (link-exists-p category-1 category-2 categorial-network :link-type link-type)
+    (graph-utils:edge-weight (graph categorial-network) category-1 category-2 link-type)
+    0))
 
 (defmethod link-weight ((category-1 symbol) (category-2 symbol) (cxn-inventory fcg-construction-set) &key link-type)
   "Returns the weight of a link."

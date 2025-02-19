@@ -22,7 +22,8 @@
                   (word-order set-of-predicates)
                   (meaning set-of-predicates)
                   (footprints set))
-  :hashed t)
+  :hashed t
+  )
 ;; (make-propbank-learned-cxns)
 
 (defun learn-propbank-grammar (list-of-propbank-sentences &key
