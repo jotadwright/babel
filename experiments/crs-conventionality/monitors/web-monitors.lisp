@@ -170,13 +170,24 @@
         (applied-cxn-hearer (first (applied-constructions hearer))))
     (if (communicated-successfully interaction)
       (progn
-        (add-element `((p) ,(format nil "The speaker increased the score of the following construction by ~a:" (learning-rate speaker))))
+        (add-element `((p) ,(format nil "The speaker increased the score of the following construction by ~a:"
+                                    (compute-score-increase (attr-val applied-cxn-speaker :score) (learning-rate speaker)))))
         (add-element (make-html (original-cxn applied-cxn-speaker) :expand-initially nil))
-        (add-element `((p) ,(format nil "The hearer increased the score of the following construction by ~a:" (learning-rate speaker))))
+        (add-element `((p) ,(format nil "The hearer increased the score of the following construction by ~a:"
+                                    (compute-score-increase (attr-val applied-cxn-hearer :score) (learning-rate hearer)))))
         (add-element (make-html (original-cxn applied-cxn-hearer) :expand-initially nil)))
       (progn
-        (add-element `((p) ,(format nil "The speaker decreased the score of the following construction by ~a:" (learning-rate speaker))))
+        (add-element `((p) ,(format nil "The speaker decreased the score of the following construction by ~a:"
+                                    (compute-score-decrease (attr-val applied-cxn-speaker :score) (learning-rate speaker)))))
         (add-element (make-html (original-cxn applied-cxn-speaker) :expand-initially nil))))))
+
+(defun compute-score-increase (score learning-rate)
+  (- score (/ (- score learning-rate)
+              (- 1 learning-rate))))
+
+(defun compute-score-decrease (score learning-rate)
+  (- (/ score (- 1 learning-rate))
+     score))
 
 
 ;; Adoption finished ;;
