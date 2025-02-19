@@ -91,5 +91,5 @@
         for best-other-sim = (loop for object in context
                                    maximize (get-s object channel sim-table))
         when (> topic-sim best-other-sim)
-          do (push channel discriminating-attributes)
+          do (push prototype discriminating-attributes)
         finally (return discriminating-attributes)))
