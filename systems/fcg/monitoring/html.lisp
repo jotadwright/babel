@@ -1103,7 +1103,7 @@ div.construction > div.title { border:1px solid #008; background-color: #008;}
   '(((initial) . "#444;")
     ((cxn-matched) . "#480;")
     ((cxn-applied succeeded expanded-sequentially) . "#050;")
-    ((cxn-applied goal-test-failed) . "#339966;")
+    ((cxn-applied goal-test-failed) . "#444;")
     ((restart problem-found) .  "#8028E0;")
     ((first-merge-failed second-merge-failed merge-without-match-failed failed)
      . "#703;")
