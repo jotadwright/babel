@@ -422,7 +422,7 @@ div.pipn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; 
     (succeeded . "#050")
     (evaluated . "#480")
     (inconsistent . "#822")
-    (goal-test-failed . "#822")
+    (goal-test-failed . "#444")
     (evaluated-w/o-results . "#337")
     (duplicate . "#520")
     (max-search-depth-reached . "#888")
