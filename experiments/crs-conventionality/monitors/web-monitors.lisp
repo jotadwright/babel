@@ -229,6 +229,20 @@
   nil)
 
 
+(define-event-handler (trace-irl-crs irl::chunk-composer-finished)
+  (add-element `((div)
+                 ((table :class "two-col")
+                  ((tbody)
+                   ((tr)
+                    ((td) "Composition process: ")
+                    ((td) ,(irl::make-collapsed-html-for-composition-process irl::composer)))))))
+  
+  (when (and (irl::solutions irl::composer)
+              (not (length= (irl::solutions irl::composer) irl::solutions)))
+    (add-element '((h3) "All composer solutions so far"))
+    (irl::composer-solutions->html (irl::solutions irl::composer))))
+
+
 ;; FCG ;;
 ;;;;;;;;;
 
