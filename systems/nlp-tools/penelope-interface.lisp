@@ -48,8 +48,9 @@
 
 (defparameter *embedding-host* "https://penelope.vub.be") ;; todo: make a docker container that runs both on the same port with a /embedding-api and /spacy-api route from the proxy
 
-;;You can run the services also locally, if you clone the spacy-api repository (gitlab ehai) and follow the readme file there. Once your python server is running, please evaluate this line:
+;;You can run the services also locally, if you clone the spacy-api repository (gitlab ehai), the embedding-api and follow the readme file there. Once your python servers are running, please evaluate these lines:
 ;;(defparameter *penelope-host* "http://127.0.0.1:5000")
+;;(defparameter *embedding-host* "http://127.0.0.1:5001")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Interfacing with using http request and json ;;
