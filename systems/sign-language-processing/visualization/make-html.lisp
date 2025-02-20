@@ -4,20 +4,36 @@
 ;; Functions for making HTML ;;
 ;;---------------------------;;
 
+(defparameter *avatar-counter* -1)
+
 (defun make-empty-cell ()
   "makes and returns the html for an empty cell in the table"
   `((td :class "empty" :style "width: 20px;")))
+
+(defun clean-file-name (filename)
+  (let ((output filename))
+    (setf output (remove #\\ output))
+    (setf output (remove #\/ output))
+    (setf output (remove #\: output))
+    (setf output (remove #\* output))
+    (setf output (remove #\? output))
+    (setf output (remove #\" output))
+    (setf output (remove #\< output))
+    (setf output (remove #\> output))
+    (setf output (remove #\| output))
+    output))
 
 (defun make-id-gloss-cell (span-id fcg-tag colspan hamnosys)
   "makes and returns the html for an id-gloss-cell with the given span-id,
    fcg-tag and colspan. The cell contains a play button, sending the sigml
    of the provided hamnosys to the avatar"
-  (let ((sigml (hamnosys->sigml hamnosys))
-        (filename (babel-pathname :directory '(".tmp" "sigml-files")
-                                  :name (format nil "~a" fcg-tag)
-                                  :type "sigml"))
-        (url (format nil "http://localhost:8000/~a.sigml" fcg-tag))
-        (uri (format nil "/~a.sigml" fcg-tag)))
+  (let* ((clean-fcg-tag (clean-file-name fcg-tag))
+         (sigml (hamnosys->sigml hamnosys))
+         (filename (babel-pathname :directory '(".tmp" "sigml-files")
+                                   :name (format nil "~a" clean-fcg-tag)
+                                   :type "sigml"))
+         (url (format nil "http://localhost:8000/~a.sigml" clean-fcg-tag))
+         (uri (format nil "/~a.sigml" clean-fcg-tag)))
     (ensure-directories-exist filename)
     (with-open-file
         (out-stream
@@ -58,7 +74,7 @@
              :onclick
              ,(format
                nil
-               "CWASA.playSiGMLURL(`~a`)" url)) "&#9658;" ))))
+               "CWASA.playSiGMLURL(`~a`, ~a)" url *avatar-counter*)) "&#9658;" ))))
 
 (defun make-hamnosys-cell (value colspan)
    "makes and returns the html for a hamnosys-cell
@@ -227,6 +243,7 @@
                       &key &allow-other-keys)
   "transforms a list of sign-predicates into a html object that can be added to the
    webinterface"
+  (incf *avatar-counter*)
   (let* ((sign-table
           (make-sign-table (predicates signed-form-predicates)))
          (number-of-columns
@@ -239,10 +256,9 @@
           (make-left-hand-rows
            (left-hand-cells sign-table)
            number-of-columns)))
-    
-    `((div :style "margin: 20px; width: 95%;")
-      ((div :style "width:20%; height: 30%; margin-left: 43px; margin-bottom: 10px; margin-top: 20px;")
-       ((div :class "CWASAAvatar av0" :align "center" :onclick "CWASA.init({ambIdle:false,useClientConfig:false});")))
+    `((div :style "margin-top: 20px; margin-bottom: 20px; margin-left: 10px; width: 95%;")
+      ((div :style "width:20%; height: 30%; margin-bottom: 10px; margin-top: 20px;")
+       ((div :style "background: #DEEFE7;" :class ,(format nil "CWASAAvatar av~a" *avatar-counter*) :align "center" :onclick "CWASA.init({ambIdle:false,useClientConfig:false});")))
       ((table :class "sign-table" :style "margin-bottom:20px;")
        ((tbody)
         ((tr)
@@ -251,6 +267,5 @@
         ,(first left-hand-rows)
         ,(second left-hand-rows)))))))
   
-        
      
      

@@ -67,7 +67,6 @@
  (elan->predicates *test-utterance-xml-3*))
 ;(pprint  (predicates *test-utterance-3-predicates*))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; create fingerspelled forms (LSFB) ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -121,5 +120,19 @@
     (make-pathname :directory '(:relative "json-files")
                    :name "geoquery-lsfb-4500" :type "jsonl")
     *geoquery-lsfb-data*)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Processing signed forms ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;(monitors::deactivate-monitor trace-fcg)
+;(monitors::activate-monitor trace-slp)
+;(monitors::activate-monitor trace-irl)
+
+(defparameter *test-meaning-1*
+  (meaning (first (data *geoquery-lsfb-250-xml*))))
+
+(comprehend *test-utterance-1-predicates*)
+(formulate *test-meaning-1*)
 
 

@@ -13,6 +13,7 @@
                :grammar-learning)
   :serial t
   :components ((:file "package")
+               (:file "render-derender")
                (:module utils
                 :serial t
                 :components ((:file "string-manipulation")
@@ -35,4 +36,9 @@
                 :components ((:file "css")
                              (:file "make-html")
                              (:file "make-sign-table")
-                             (:file "javascript")))))
+                             (:file "javascript")
+                             (:file "monitors")))
+               (:module example-grammar
+                :serial t
+                :components ((:file "grammar-configurations")
+                             (:file "constructions")))))
