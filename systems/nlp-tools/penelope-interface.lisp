@@ -46,6 +46,8 @@
 ;;By default, the NLP tools use the Spacy API that is running on the VUB AI Lab server:
 (defparameter *penelope-host* "https://penelope.vub.be")
 
+(defparameter *embedding-host* "https://penelope.vub.be") ;; todo: make a docker container that runs both on the same port with a /embedding-api and /spacy-api route from the proxy
+
 ;;You can run the services also locally, if you clone the spacy-api repository (gitlab ehai) and follow the readme file there. Once your python server is running, please evaluate this line:
 ;;(defparameter *penelope-host* "http://127.0.0.1:5000")
 
@@ -247,7 +249,7 @@ of strings, each list corresponding to a named entity."
   "Retrieve GloVe static word embedding"
   (unless (stringp token)
     (error "The function <get-word-embedding> expects a string as input"))
-  (let ((response (send-request "/embedding-api/token_embedding" (encode-json-to-string `((:token . ,token))))))
+  (let ((response (send-request "/embedding-api/token_embedding" (encode-json-to-string `((:token . ,token))) :host *embedding-host*)))
     (when response (list (cdr (assoc :token response))
                          (cdr (assoc :embedding response))))))
 
@@ -257,7 +259,7 @@ of strings, each list corresponding to a named entity."
   "Retrieve GloVe static word embeddings for list of tokens."
   (unless (listp list-of-tokens)
     (error "The function <get-word-embeddings> expects a list of strings as input."))
-  (let ((response (send-request "/embedding-api/token_embeddings" (encode-json-alist-to-string `((:tokens . ,list-of-tokens))))))
+  (let ((response (send-request "/embedding-api/token_embeddings" (encode-json-alist-to-string `((:tokens . ,list-of-tokens))) :host *embedding-host*)))
     (when response (mapcar #'(lambda (token-embedding)
                                (list (cdr (assoc :token token-embedding))
                                      (cdr (assoc :embedding token-embedding))))
