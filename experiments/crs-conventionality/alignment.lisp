@@ -38,9 +38,7 @@
       (when (applied-constructions speaker)
         (setf (attr-val applied-cxn-speaker :score)
               (calculate-decreased-score (learning-rate speaker) (attr-val applied-cxn-speaker :score))))
-      (notify alignment-finished speaker hearer interaction)
-      (adopt (topic interaction) hearer)
-      ))))
+      (notify alignment-finished speaker hearer interaction)))))
 
 ;; Don't punish competitors in success. 
 
@@ -63,7 +61,6 @@
         (when (applied-constructions speaker)
           (setf (attr-val applied-cxn-speaker :score)
                 (calculate-decreased-score (learning-rate speaker) (attr-val applied-cxn-speaker :score))))
-        (adopt (topic interaction) hearer)
         (notify alignment-finished speaker hearer interaction)))))
 
 ;; Don't punish in failure, still punish competitors in success. 
@@ -89,9 +86,7 @@
               do (setf (attr-val cxn :score) (calculate-decreased-score (learning-rate hearer) (attr-val cxn :score)))))
       
       ;; Communication failed 
-      (progn
-        (adopt (topic interaction) hearer)
-        (notify alignment-finished speaker hearer interaction)))))
+      (notify alignment-finished speaker hearer interaction))))
 
 ;; Don't punish in failure, don't punish competitors in success. 
 
@@ -110,10 +105,8 @@
         (setf (attr-val applied-cxn-hearer :score)
               (calculate-increased-score (learning-rate hearer) (attr-val applied-cxn-hearer :score))))
       
-    ;; Communication failed 
-    (progn
-      (adopt (topic interaction) hearer)
-      (notify alignment-finished speaker hearer interaction)))))
+      ;; Communication failed 
+      (notify alignment-finished speaker hearer interaction))))
 
 ;; Never change scores. 
 
@@ -121,11 +114,7 @@
 (defmethod align ((speaker naming-game-agent) (hearer naming-game-agent) (interaction crs-conventionality-interaction)
                   (mode (eql :no-alignment)))
   "No alignment setting - scores not adjusted."
-  (if (communicated-successfully interaction)
-    (notify alignment-finished speaker hearer interaction)
-    (progn
-      (adopt (topic interaction) hearer)
-      (notify alignment-finished speaker hearer interaction))))
+  (notify alignment-finished speaker hearer interaction))
 
 
 (defmethod find-competitors ((agent naming-game-agent))
