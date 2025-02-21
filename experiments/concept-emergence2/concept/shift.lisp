@@ -134,9 +134,9 @@
   "Compute the weighted similarity between the object and the
    list of prototypes, using the given similarity table."
   (loop for prototype in prototypes
-        for ws = (get-ws object (channel prototype) table)
-        sum ws into mahalanobis
-        finally (return mahalanobis)))
+        for weighted-similarity = (get-ws object (channel prototype) table)
+        sum weighted-similarity into total
+        finally (return total)))
 
 ;; ----------------------------------
 ;; + Find discriminating attributes +
