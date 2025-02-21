@@ -221,5 +221,8 @@
     :initform nil :initarg :topic :accessor topic)
    (coherence
     :documentation "Whether both interacting agents would have said the same thing under the same circumstances."
-    :initform nil :accessor coherence))
+    :initform nil :accessor coherence)
+   (invention
+    :documentation "Whether invention occurred in the interaction."
+    :initform nil :accessor invention))
   (:documentation "An interaction in the experiment"))
