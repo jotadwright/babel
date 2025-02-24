@@ -132,7 +132,8 @@
 (defparameter *test-meaning-1*
   (meaning (first (data *geoquery-lsfb-250-xml*))))
 
-(comprehend *test-utterance-1-predicates*)
+(comprehend-and-formulate *test-utterance-1-predicates*)
 (formulate *test-meaning-1*)
+(geo-prolog-to-predicates "answer(A,(city(A),loc(A,B),const(B,stateid(Virginia))))")
 
 

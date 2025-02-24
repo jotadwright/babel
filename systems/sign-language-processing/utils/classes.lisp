@@ -6,3 +6,7 @@
     :accessor predicates
     :initform nil
     :initarg :predicates)))
+
+(defmethod copy-object-content ((source signed-form-predicates) (copy signed-form-predicates))
+  ;; shallow copy
+  (setf (predicates copy) (predicates source)))
