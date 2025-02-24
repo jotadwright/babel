@@ -155,6 +155,7 @@
                               (config (configuration experiment)))
                           ;; add the git hash to the configuration
                           (setf (gethash :HASH config) (first (exec-and-return "git" "rev-parse" "HEAD")))
+                          (setf (gethash :stage-parameters config) nil) ;; TODO: alist can't be stringified, so removed for now
                           (ensure-directories-exist path)
                           (with-open-file (stream path :direction :output
                                                   :if-exists :overwrite

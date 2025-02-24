@@ -52,19 +52,19 @@
 ;; -----------------
 ;; + The switchers +
 ;; -----------------
-;; (defmethod switch-disable-channels ((experiment cle-experiment)
-;;                                     (params list))
-;;   "Disables a specified list of sensors (or a random amount of sensors) for the entire population."
-;;   (when (assoc :switch-disable-channels params)
-;;     (let* ((change (assqv :switch-disable-channels params)) ;; change is either a list or a number
-;;            (channels (if (numberp change)
-;;                        ;; disable n sensors
-;;                        (random-elts (get-feature-set (world experiment)) change) ;; TODO needs view-name
-;;                        ;; disable the given list of features
-;;                        change)))
-;;       (loop for agent in (agents experiment)
-;;             do (loop for channel in channels
-;;                      do (switch-channel-availability agent channel))))))
+(defmethod switch-disable-channels ((experiment cle-experiment)
+                                    (params list))
+  "Disables a specified list of sensors (or a random amount of sensors) for the entire population."
+  (when (assoc :switch-disable-channels params)
+    (let* ((change (assqv :switch-disable-channels params)) ;; change is either a list or a number
+           (channels (if (numberp change)
+                       ;; disable n sensors
+                       (random-elts (get-feature-set (world experiment)) change) ;; TODO needs view-name
+                       ;; disable the given list of features
+                       change)))
+      (loop for agent in (agents experiment)
+            do (loop for channel in channels
+                     do (switch-channel-availability agent channel))))))
 
 (defmethod switch-disable-channels-half ((experiment cle-experiment)
                                          (params list))
@@ -83,35 +83,35 @@
             do (loop for channel in channels
                      do (switch-channel-availability agent channel))))))
 
-;; (defmethod switch-dataset ((experiment cle-experiment)
-;;                            (params list))
-;;   "Switches the dataset."
-;;   (when (assoc :switch-dataset params)
-;;     (set-configuration experiment :dataset (assqv :switch-dataset params))
-;;     (set-configuration experiment :dataset-split (assqv :switch-dataset-split params))
-;;     (set-configuration experiment :data-fname (assqv :switch-data-fname params))
-;;     (set-configuration experiment :scene-sampling (assqv :switch-scene-sampling params))
-;;     (set-configuration experiment :topic-sampling (assqv :switch-topic-sampling params))
-;;     (set-configuration experiment :feature-set (assqv :switch-feature-set params))
-;;     (initialise-world experiment)))
+(defmethod switch-dataset ((experiment cle-experiment)
+                           (params list))
+  "Switches the dataset."
+  (when (assoc :switch-dataset params)
+    (set-configuration experiment :dataset (assqv :switch-dataset params))
+    (set-configuration experiment :dataset-split (assqv :switch-dataset-split params))
+    (set-configuration experiment :data-fname (assqv :switch-data-fname params))
+    (set-configuration experiment :scene-sampling (assqv :switch-scene-sampling params))
+    (set-configuration experiment :topic-sampling (assqv :switch-topic-sampling params))
+    (set-configuration experiment :feature-set (assqv :switch-feature-set params))
+    (initialise-world experiment)))
 
-;; (defmethod switch-add-agents ((experiment cle-experiment)
-;;                               (params list))
-;;   "Adds brand new agents to the population."
-;;   (when (assoc :switch-add-agents params)
-;;     (let* ((amount-of-agents (assqv :switch-add-agents params))
-;;            (disabled-channels-list (determine-disable-channels experiment
-;;                                                                amount-of-agents
-;;                                                                (get-configuration experiment :disable-channels)))
-;;            (new-agents  (loop for i from 0 to (- amount-of-agents 1)
-;;                               for disabled-channels = (nth i disabled-channels-list)
-;;                               collect (initialise-agent experiment disabled-channels))))
-;;       (set-configuration experiment :population-size (+ (get-configuration experiment :population-size)
-;;                                                         amount-of-agents))
-;;       (setf (agents experiment) (append (agents experiment) new-agents)))))
+(defmethod switch-add-agents ((experiment cle-experiment)
+                              (params list))
+  "Adds brand new agents to the population."
+  (when (assoc :switch-add-agents params)
+    (let* ((amount-of-agents (assqv :switch-add-agents params))
+           (disabled-channels-list (determine-disable-channels experiment
+                                                               amount-of-agents
+                                                               (get-configuration experiment :disable-channels)))
+           (new-agents  (loop for i from 0 to (- amount-of-agents 1)
+                              for disabled-channels = (nth i disabled-channels-list)
+                              collect (initialise-agent experiment disabled-channels))))
+      (set-configuration experiment :population-size (+ (get-configuration experiment :population-size)
+                                                        amount-of-agents))
+      (setf (agents experiment) (append (agents experiment) new-agents)))))
             
-;; (defmethod switch-alignment ((experiment cle-experiment)
-;;                              (params list))
-;;   "Switches whether agents perform alignment or not."
-;;   (when (assoc :switch-alignment params)
-;;     (set-configuration experiment :align (not (get-configuration experiment :align)))))
+(defmethod switch-alignment ((experiment cle-experiment)
+                             (params list))
+  "Switches whether agents perform alignment or not."
+  (when (assoc :switch-alignment params)
+    (set-configuration experiment :align (not (get-configuration experiment :align)))))
