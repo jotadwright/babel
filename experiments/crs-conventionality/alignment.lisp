@@ -160,6 +160,7 @@
 
       (fcg::add-cxn cxn (grammar hearer))
       (push cxn consolidated-cxns)
+      (notify adoption-finished cxn)
     
       (values cxn fix))
   )

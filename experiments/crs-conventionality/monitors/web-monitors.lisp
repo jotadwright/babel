@@ -170,13 +170,24 @@
         (applied-cxn-hearer (first (applied-constructions hearer))))
     (if (communicated-successfully interaction)
       (progn
-        (add-element `((p) ,(format nil "The speaker increased the score of the following construction by ~a:" (learning-rate speaker))))
+        (add-element `((p) ,(format nil "The speaker increased the score of the following construction by ~a:"
+                                    (compute-score-increase (attr-val applied-cxn-speaker :score) (learning-rate speaker)))))
         (add-element (make-html (original-cxn applied-cxn-speaker) :expand-initially nil))
-        (add-element `((p) ,(format nil "The hearer increased the score of the following construction by ~a:" (learning-rate speaker))))
+        (add-element `((p) ,(format nil "The hearer increased the score of the following construction by ~a:"
+                                    (compute-score-increase (attr-val applied-cxn-hearer :score) (learning-rate hearer)))))
         (add-element (make-html (original-cxn applied-cxn-hearer) :expand-initially nil)))
       (progn
-        (add-element `((p) ,(format nil "The speaker decreased the score of the following construction by ~a:" (learning-rate speaker))))
+        (add-element `((p) ,(format nil "The speaker decreased the score of the following construction by ~a:"
+                                    (compute-score-decrease (attr-val applied-cxn-speaker :score) (learning-rate speaker)))))
         (add-element (make-html (original-cxn applied-cxn-speaker) :expand-initially nil))))))
+
+(defun compute-score-increase (score learning-rate)
+  (- score (/ (- score learning-rate)
+              (- 1 learning-rate))))
+
+(defun compute-score-decrease (score learning-rate)
+  (- (/ score (- 1 learning-rate))
+     score))
 
 
 ;; Adoption finished ;;
@@ -195,12 +206,15 @@
                                            (hearer crs-conventionality-agent))
 
 (define-event-handler (trace-interaction determine-coherence-finished)
-  (cond ((eq (utterance speaker) (utterance hearer))
+  (cond ((equal (utterance speaker) (conceptualised-utterance hearer))
          (add-element `((b :style "color: green;")
-                        ,(format nil "Listener would have uttered \"~a\" as well." (first (utterance hearer))))))
-        (else
-         (add-element `((b :style "color: green;")
-                        ,(format nil "Listener would have uttered \"~a\" instead of \"~a\"." (first (utterance hearer)) (first (utterance speaker))))))))
+                        ,(format nil "Hearer would have uttered \"~a\" as well." (first (conceptualised-utterance hearer))))))
+         ((not (conceptualised-utterance hearer))
+          (add-element `((b :style "color: red;")
+                         ,(format nil "Hearer would not have uttered \"~a\"." (first (utterance speaker))))))
+        (t
+         (add-element `((b :style "color: red;")
+                        ,(format nil "Hearer would have uttered \"~a\" instead of \"~a\"." (first (conceptualised-utterance hearer)) (first (utterance speaker))))))))
 
 
 ;; Evaluate IRL program ;;
@@ -213,6 +227,20 @@
 
 (define-event-handler (trace-irl-crs irl::evaluate-irl-program-finished)
   nil)
+
+
+(define-event-handler (trace-irl-crs irl::chunk-composer-finished)
+  (add-element `((div)
+                 ((table :class "two-col")
+                  ((tbody)
+                   ((tr)
+                    ((td) "Composition process: ")
+                    ((td) ,(irl::make-collapsed-html-for-composition-process irl::composer)))))))
+  
+  (when (and (irl::solutions irl::composer)
+              (not (length= (irl::solutions irl::composer) irl::solutions)))
+    (add-element '((h3) "All composer solutions so far"))
+    (irl::composer-solutions->html (irl::solutions irl::composer))))
 
 
 ;; FCG ;;
