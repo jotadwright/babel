@@ -12,6 +12,7 @@ source <(aenv --data $VSC_HOME/concept-emergence2/batch/config/test/$name.csv --
 # load sbcl
 module purge
 module load SBCL/2.4.1-GCCcore-12.3.0
+module load binutils/2.40-GCCcore-12.3.0 # required for distributions package
 
 # run script
 sbcl --dynamic-space-size $space --load $VSC_HOME/concept-emergence2/batch/test.lisp \
