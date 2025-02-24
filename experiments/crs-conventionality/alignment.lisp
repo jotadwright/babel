@@ -19,7 +19,8 @@
     (if (communicated-successfully interaction)
       ;; Communication succeeded
       ;; Speaker and hearer increase the score of the constructions they used:
-      (progn 
+      (progn
+        (shift applied-cxn-speaker (topic interaction) speaker)
         (setf (attr-val applied-cxn-speaker :score)
               (calculate-increased-score (learning-rate speaker) (attr-val applied-cxn-speaker :score)))
         (setf (attr-val applied-cxn-hearer :score)
@@ -34,13 +35,14 @@
       
       
      ;; Communication failed 
-    (progn
-      (when (applied-constructions speaker)
-        (setf (attr-val applied-cxn-speaker :score)
-              (calculate-decreased-score (learning-rate speaker) (attr-val applied-cxn-speaker :score))))
-      (notify alignment-finished speaker hearer interaction)
-      (adopt (topic interaction) hearer)
-      ))))
+     (progn
+       (when (applied-constructions speaker)
+         (setf (attr-val applied-cxn-speaker :score)
+               (calculate-decreased-score (learning-rate speaker) (attr-val applied-cxn-speaker :score))))
+       (notify alignment-finished speaker hearer interaction)
+       (if (computed-topic hearer)
+         (shift applied-cxn-hearer (topic interaction) hearer)
+         (adopt (topic interaction) hearer))))))
 
 ;; Don't punish competitors in success. 
 
@@ -94,7 +96,6 @@
         (notify alignment-finished speaker hearer interaction)))))
 
 ;; Don't punish in failure, don't punish competitors in success. 
-
 
 (defmethod align ((speaker naming-game-agent) (hearer naming-game-agent) (interaction crs-conventionality-interaction)
                   (mode (eql :never-punish)))
@@ -181,7 +182,7 @@
     (fcg::add-repair (get-data (blackboard (grammar hearer)) :cipn) 'fcg::repair-through-concept-adoption)
     ;; Notify learning
     
-    (set-data (blackboard (grammar hearer)) :agent hearer)
+    (set-data (blackboard (grammar hearer)) :agent hearer) ;; you need to have access to the agent once you are deeper into the metalayer and only have the construction-inventory
     (let* ((fix (first (second (multiple-value-list (fcg::notify-learning (get-data (blackboard (grammar hearer)) :cipn) :trigger 'fcg::feedback-received)))))
            (cxn (meta-layer-learning:restart-data fix))
            (best-solution nil)
@@ -201,3 +202,20 @@
     
       (values cxn fix))
   )
+
+
+(defmethod shift ((construction fcg::construction) (entity-set crs-conventionality-entity-set) (agent concept-emergence-game-agent))
+  "Shifting of the concept."
+  (let ((concept-representation (first (extract-concept construction))) ;; you only can have 1 concept in a cxn, so take the first
+        (context (entities (scene (current-interaction (experiment agent)))))
+        (topic (first (entities entity-set))))
+  (concept-representations::update-concept concept-representation topic context)
+  ))
+
+(defun extract-concept (cxn)
+  (let ((structure (pole-structure (left-pole cxn))))
+    (loop for unit in structure collect (extract-concept-from-unit unit 'topic))))
+
+(defun extract-concept-from-unit (unit value)
+  (unit-feature-value unit value))
+
