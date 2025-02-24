@@ -201,8 +201,16 @@
     ;; make the construction 
     (let* (;; get meaning based on the irl-program and the bind-statements that are in the composition result
            (irl-program (irl::irl-program (irl::chunk (first composition-result))))
+           (irl-program-without-initial-program (remove (first partial-program) irl-program :test #'predicates-with-equal-constants-p))
+          
+           (irl-program-without-initial-program-with-scene
+            (loop for predicate in irl-program-without-initial-program
+                  when (equal (first predicate) 'crs-conventionality::retrieve-from-scene)
+                    do (setf (fourth predicate) 'crs-conventionality::?scene)
+                  collect predicate))
            (bind-statements (irl::bind-statements (first composition-result)))
-           (meaning (append irl-program bind-statements))
+           (meaning (append irl-program-without-initial-program-with-scene bind-statements))
+
 
            ;; form is stored in the utterance slot
            (form (first (utterance (get-data (blackboard (construction-inventory cipn)) :agent))))
@@ -247,9 +255,17 @@
     (when (find 'irl::solution (irl::statuses (irl::node (first composition-result))))
       
       (let* (;; combine irl-program and bind-statements into the meaning
-             (irl-program (irl::irl-program (irl::chunk (first composition-result)))) 
+             (irl-program (irl::irl-program (irl::chunk (first composition-result))))
+             (irl-program-without-initial-program (remove (first partial-program) irl-program :test #'predicates-with-equal-constants-p))
+          
+             (irl-program-without-initial-program-with-scene
+              (loop for predicate in irl-program-without-initial-program
+                    when (equal (first predicate) 'crs-conventionality::retrieve-from-scene)
+                      do (setf (fourth predicate) 'crs-conventionality::?scene)
+                    collect predicate))
              (bind-statements (irl::bind-statements (first composition-result)))
-             (meaning (append irl-program bind-statements))
+             (meaning (append irl-program-without-initial-program-with-scene bind-statements))
+
              (ontology (find-data (blackboard primitive-inventory) :ontology))
              (concepts (find-data ontology :concepts))
              (concept (loop for concept in concepts
@@ -371,6 +387,7 @@
 
 (defun make-concept-emergence-game-cxn (concept meaning cxn-inventory form)
   "Make a cxn based on the topic, meaning, form."
+  "Leave a footprint in the root so the cxn cannot keep on applying!"
   (let ((unit-name (make-var (format nil "~a-unit" form)))
         (cxn-name (make-symbol (upcase (format nil "~a-cxn" form))))
         (initial-score 0.5))
@@ -378,13 +395,13 @@
     ;; initial score is 0.5
     (make-instance 'fcg-construction
                    :name cxn-name
-                   :contributing-part (list #|(make-instance 'contributing-unit
+                   :contributing-part (list (make-instance 'contributing-unit
                                                            :name unit-name
-                                                           :unit-structure `((meaning ,meaning)))|#
+                                                           :unit-structure `((meaning ,meaning)
+                                                                             (footprints (,cxn-name))))
                                             (make-instance 'contributing-unit
                                                            :name 'root
-                                                           :unit-structure `((meaning ,meaning)
-                                                                             (footprints (,cxn-name)))))
+                                                           :unit-structure `((footprints (,cxn-name)))))
                    :conditional-part (list (make-instance 'conditional-unit
                                                           :name unit-name
                                                           :comprehension-lock `((HASH form (,form))))
