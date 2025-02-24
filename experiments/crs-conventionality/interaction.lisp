@@ -39,12 +39,21 @@
 (defmethod clear-interaction ((interaction crs-conventionality-interaction))
   "Resets the necessary slots of the interaction and the interacting-agents."
   (loop for agent in (interacting-agents interaction)
-        do (setf (topic agent) nil
+        do (progn (setf (topic agent) nil
                  (computed-topic agent) nil
                  (utterance agent) nil
                  (conceptualised-utterance agent) nil
                  (applied-constructions agent) nil
-                 (solution-node agent) nil))
+                 (solution-node agent) nil)
+            (set-data (blackboard (grammar agent)) :topic nil)
+            (set-data (blackboard (grammar agent)) :cipn nil)
+            (set-data (blackboard (grammar agent)) :scene nil)
+            (set-data (blackboard (grammar agent)) :agent nil)
+            (when (find-data (blackboard (grammar agent)) :concept-similarity)
+              (set-data (blackboard (grammar agent)) :concept-similarity nil))
+            (when (find-data (blackboard (grammar agent)) :discriminative-power)
+              (set-data (blackboard (grammar agent)) :discriminative-power nil))
+            ))
   (setf (communicated-successfully interaction) nil
         (interacting-agents interaction) nil))
 
