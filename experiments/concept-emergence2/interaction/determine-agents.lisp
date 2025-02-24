@@ -64,7 +64,7 @@
 
 (defmethod determine-disable-channels (experiment views amount (mode (eql :fixed)))
   "For every agent, chooses randomly n channels to be disabled."
-  (loop with view-name = (first (nth i views)) ;; assumes that agent has one view
+  (loop with view-name = (first (nth 0 views)) ;; assumes that agent has one view
         with disabled = (random-elts (get-feature-set (world experiment) view-name)
                                      (get-configuration experiment :amount-disabled-channels))
         for i from 0 to (- amount 1)
