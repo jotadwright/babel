@@ -52,7 +52,7 @@
 ;; + NOISE +
 ;; ---------
 
-;; (defmethod perceive-object-val2 ((agent cle-agent) (object cle-object) attr)
+;; (defmethod perceive-object-val ((agent cle-agent) (object cle-object) attr)
 ;;   "Perceives the value in a given sensor 'attr' of a given object.
 
 ;;    This reading can be affected by two types of noise.
@@ -73,7 +73,7 @@
 ;;               ;; no observation, for example if a channel is disabled!
 ;;               nil
 ;;               ;; observation received
-;;               (if (channel-continuous-p (world (experiment agent)) attr)
+;;               (if (channel-continuous-p (world (experiment agent)) (current-view agent) attr)
 ;;                 ;; observation is continuous
 ;;                 (if (and (zerop sensor-noise) (zerop observation-noise))
 ;;                   ;; no noise to add, return the raw (true) observation
@@ -147,5 +147,5 @@
 ;; helper function
 (defun random-gaussian (mean st-dev)
   "Returns a random number from a gaussian distribution with the given mean and standard deviation."
-  ;(distributions:from-standard-normal (distributions:draw-standard-normal) mean st-dev)
-  0)
+  (distributions:from-standard-normal (distributions:draw-standard-normal) mean st-dev))
+  ;0)
