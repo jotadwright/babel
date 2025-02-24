@@ -20,7 +20,7 @@
       ;; Communication succeeded
       ;; Speaker and hearer increase the score of the constructions they used:
       (progn
-        (shift applied-cxn-speaker (topic interaction) speaker)
+        (shift applied-cxn-speaker (topic interaction) speaker) 
         (setf (attr-val applied-cxn-speaker :score)
               (calculate-increased-score (learning-rate speaker) (attr-val applied-cxn-speaker :score)))
         (setf (attr-val applied-cxn-hearer :score)
@@ -41,8 +41,8 @@
                (calculate-decreased-score (learning-rate speaker) (attr-val applied-cxn-speaker :score))))
        (notify alignment-finished speaker hearer interaction)
        (if (computed-topic hearer)
-         (shift applied-cxn-hearer (topic interaction) hearer)
-         (adopt (topic interaction) hearer))))))
+         (shift applied-cxn-hearer (topic interaction) hearer) ;; check if shift is on the right cxn
+         (adopt (topic interaction) hearer)))))) 
 
 ;; Don't punish competitors in success. 
 
