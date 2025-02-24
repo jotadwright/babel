@@ -29,9 +29,9 @@
                                            :entries '(;; Logging
                                                       (:log-every-x-interactions . 100)
                                                       ;; Initialising the experiment
-                                                      (:nr-of-entities-in-world . 5)
-                                                      (:nr-of-agents-in-population . 2)
-                                                      (:nr-of-entities-in-scene . 4)
+                                                      (:nr-of-entities-in-world . 10)
+                                                      (:nr-of-agents-in-population . 10)
+                                                      (:nr-of-entities-in-scene . 5)
                                                       (:alignment-strategy . :lateral-inhibition)
                                                       (:learning-strategy . :default)
                                                       (:learning-rate . 0.5)
@@ -44,6 +44,7 @@
                                                        :configuration *configuration-canonical*))
   ;; activate monitors
   (activate-monitor log-every-x-interactions-in-output-browser))
+
 
 
 ;; Option 1: run experiment with real-time plotting (using gnuplot)
@@ -62,7 +63,7 @@
   (activate-monitor display-metrics)
 
   ;; run the experiment
-  (loop for i from 1 to 10
+  (loop for i from 1 to 1000
         do (run-interaction *naming-game-canonical*)))
 
 
@@ -153,7 +154,7 @@
 ;;   Concept emergence setting      ;;
 ;;                                  ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(reset-id-counters)
+(wi::reset-id-counters)
 
 ;; Concept emergence setting ;; 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -165,9 +166,9 @@
                                                                       ;; Initialising the experiment
                                                                       (:dataset . "winery")
                                                                       (:datasplit . "train")
-                                                                      (:nr-of-entities-in-world . 2)
-                                                                      (:nr-of-agents-in-population . 2)
-                                                                      (:nr-of-entities-in-scene . 1)
+                                                                      (:nr-of-entities-in-world . 10)
+                                                                      (:nr-of-agents-in-population . 5)
+                                                                      (:nr-of-entities-in-scene . 3)
                                                                       (:alignment-strategy . :lateral-inhibition)
                                                                       (:learning-strategy . :default)
                                                                       (:learning-rate . 0.5)
@@ -179,18 +180,21 @@
 (defparameter *concept-emergence-canonical* (make-instance 'concept-emergence-game-experiment
                                                            :configuration *configuration-canonical-concept-emergence*))
 
+;(deactivate-all-monitors)
+;(monitors::notify reset-monitors)
 
-
+;(add-element (make-html (grammar (first (agents (population *concept-emergence-canonical*))))))
 (progn
   (activate-monitor trace-interaction)
   (activate-monitor trace-fcg-crs)
   (activate-monitor trace-irl-crs)
-  (loop for i from 1 to 1
+  (activate-monitor display-metrics)
+    (loop for i from 1 to 100
         do (run-interaction *concept-emergence-canonical*)))
 
+;(reset-id-counters)
+;(deactivate-all-monitors)
 
-
-(copy-object *concept-emergence-game-primitives*)
 
 ;;    Old testing of FCG     ;; 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
