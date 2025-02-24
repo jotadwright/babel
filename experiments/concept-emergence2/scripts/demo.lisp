@@ -28,10 +28,10 @@
                 (:usage-table-window . 100) ;; integer, window size of the construction inventory usage table
                 (:save-distribution-history . nil) ;; t or nil, whether to save the history of updates to the distribution (very memory-intensive!)
                 ;; setup environment
-                (:dataset-loader . :precomputed) ;; :precomputed or :runtime, load data in by scene (:precomputed) or by objects (:runtime)
+                (:dataset-loader . :runtime) ;; :precomputed or :runtime, load data in by scene (:precomputed) or by objects (:runtime)
                 (:dataset-view . :shared-views) ;; :shared-views or :exclusive-views, all views are shared or is each agent assigned a view?
-                (:dataset "clevr") ;; list of strings, each string represents a view over a dataset
-                (:feature-set "clevr") ;; list of strings, each string represents a feature set (stored in Corpora/concept-emergence2/-feature-sets), every feature-set is associated to a coressponding element in :dataset
+                (:dataset "air") ;; list of strings, each string represents a view over a dataset
+                (:feature-set "air") ;; list of strings, each string represents a feature set (stored in Corpora/concept-emergence2/-feature-sets), every feature-set is associated to a coressponding element in :dataset
                 (:dataset-split . "train") ;; string, "train" or "test", which split of the data to use?
                 ;; setup game
                 (:interacting-agents-strategy . :standard) ;; :standard [AT THE MOMENT, ONLY OPTION AVAILABLE]
@@ -39,7 +39,7 @@
                 (:min-context-size . 10) ;; integer, minimum number of context elements
                 (:max-context-size . 10) ;; integer, maximum number of context elements
                 ;; disable channels
-                (:disable-channels . :none) ;; :none [AT THE MOMENT, ONLY OPTION AVAILABLE]
+                (:disable-channels . :none) ;; :none, :random. :fixed
                 (:amount-disabled-channels . 0) ;; integer, amount of channels to disable
                 ;; noised channels
                 (:sensor-noise . :none) ;; :none or :shift
@@ -65,9 +65,9 @@
                 ;; experimental alternatives
                 (:prototype-distance . :paper) ;; :paper or :paper-wo-ledger
                 ;; staging
-                (:switch-condition . :none) ; :none [AT THE MOMENT, ONLY OPTION AVAILABLE]
-                (:switch-conditions-after-n-interactions . 0) ;; [AT THE MOMENT, ONLY OPTION AVAILABLE]
-                (:stage-parameters nil) ;; [AT THE MOMENT, ONLY OPTION AVAILABLE]
+                (:switch-condition . :after-n-interactions) ; :none, :after-n-interactions
+                (:switch-conditions-after-n-interactions . 50000) ;;
+                (:stage-parameters ((:switch-disable-channels-half . 10))) ;;
                 ;; measures
                 (:coherence-perspective . :hearer) ;; :hearer or :speaker, determines how conventionalisation is measured
                 ;; paths for exporting data to disk

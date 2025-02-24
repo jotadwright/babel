@@ -30,6 +30,7 @@
   "Creates and initialises a population of agents."
   (let* ((views-list (determine-views experiment (get-configuration experiment :dataset-view)))
          (disabled-channels-list (determine-disable-channels experiment
+                                                             views-list
                                                              (get-configuration experiment :population-size)
                                                              (get-configuration experiment :disable-channels))))
     (setf (agents experiment)

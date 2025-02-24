@@ -57,7 +57,7 @@
       (setf name (format nil ":~A" name)))
     (jzon::%write-json-atom writer name)))
 
-(defun store-experiment (experiment &optional (stage nil))
+(defun store-experiment (experiment &key (stage nil))
   (let* ((exp-top-dir (get-configuration experiment :exp-top-dir))
          (log-dir-name (get-configuration experiment :log-dir-name))
          (exp-name (get-configuration experiment :exp-name))

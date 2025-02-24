@@ -26,30 +26,28 @@
 ;; + General switcher +
 ;; --------------------
 (defmethod setup-next-condition ((experiment cle-experiment))
-  (error "Code needs update.")
-  ;; (let* ((current-stage (get-configuration experiment :current-stage))
-  ;;        (next-stage (1+ current-stage))
-  ;;        (params (nth current-stage (get-configuration experiment :stage-parameters))))
-  ;;   ;; PART 1: logging the previous stage
-  ;;   ;; message
-  ;;   (format t "~%~%SWITCHING FROM CONDITION ~a TO CONDITION ~a~%~%" current-stage next-stage)
-  ;;   ;; store history
-  ;;   (store-experiment experiment :stage t)
-  ;;   ;; set the new stage
-  ;;   (set-configuration experiment :current-stage next-stage)
+  (let* ((current-stage (get-configuration experiment :current-stage))
+         (next-stage (1+ current-stage))
+         (params (nth current-stage (get-configuration experiment :stage-parameters))))
+    ;; PART 1: logging the previous stage
+    ;; message
+    (format t "~%~%SWITCHING FROM CONDITION ~a TO CONDITION ~a~%~%" current-stage next-stage)
+    ;; store history
+    (store-experiment experiment :stage t)
+    ;; set the new stage
+    (set-configuration experiment :current-stage next-stage)
 
-  ;;   ;; PART 2: the possible switches
-  ;;   ;; check if dataset changes
-  ;;   (switch-dataset experiment params)
-  ;;   ;; check if channels need to be disabled
-  ;;   (switch-disable-channels experiment params)
-  ;;   ;; check if half of the population gets some channels disabled
-  ;;   (switch-disable-channels-half experiment params)
-  ;;   ;; check if need to add agents
-  ;;   (switch-add-agents experiment params)
-  ;;   ;; check if need to change alignment
-  ;;   (switch-alignment experiment params))
-    )
+    ;; PART 2: the possible switches
+    ;; check if dataset changes
+    (switch-dataset experiment params)
+    ;; check if channels need to be disabled
+    (switch-disable-channels experiment params)
+    ;; check if half of the population gets some channels disabled
+    (switch-disable-channels-half experiment params)
+    ;; check if need to add agents
+    (switch-add-agents experiment params)
+    ;; check if need to change alignment
+    (switch-alignment experiment params)))
 
 ;; -----------------
 ;; + The switchers +
@@ -61,28 +59,29 @@
 ;;     (let* ((change (assqv :switch-disable-channels params)) ;; change is either a list or a number
 ;;            (channels (if (numberp change)
 ;;                        ;; disable n sensors
-;;                        (random-elts (get-feature-set (world experiment)) change)
+;;                        (random-elts (get-feature-set (world experiment)) change) ;; TODO needs view-name
 ;;                        ;; disable the given list of features
 ;;                        change)))
 ;;       (loop for agent in (agents experiment)
 ;;             do (loop for channel in channels
 ;;                      do (switch-channel-availability agent channel))))))
 
-;; (defmethod switch-disable-channels-half ((experiment cle-experiment)
-;;                                          (params list))
-;;   "Disables a specified list of sensors (or a random amount of sensors) for the half of the population."
-;;   (when (assoc :switch-disable-channels-half params)
-;;     (let* ((change (assqv :switch-disable-channels-half params)) ;; change is either a list or a number
-;;            (population-size (length (agents experiment)))
-;;            (population-half (first-n (floor (/ population-size 2)) (agents experiment))))
-;;       (loop for agent in population-half
-;;             for channels = (if (numberp change)
-;;                              ;; disable n sensors
-;;                              (random-elts (get-feature-set (world experiment)) change)
-;;                              ;; disable the given list of features
-;;                              change)
-;;             do (loop for channel in channels
-;;                      do (switch-channel-availability agent channel))))))
+(defmethod switch-disable-channels-half ((experiment cle-experiment)
+                                         (params list))
+  "Disables a specified list of sensors (or a random amount of sensors) for the half of the population."
+  (when (assoc :switch-disable-channels-half params)
+    (let* ((change (assqv :switch-disable-channels-half params)) ;; change is either a list or a number
+           (population-size (length (agents experiment)))
+           (population-half (first-n (floor (/ population-size 2)) (agents experiment))))
+      (loop for agent in population-half
+            for view-name = (current-view agent)
+            for channels = (if (numberp change)
+                             ;; disable n sensors
+                             (random-elts (get-feature-set (world experiment) view-name) change)
+                             ;; disable the given list of features
+                             change)
+            do (loop for channel in channels
+                     do (switch-channel-availability agent channel))))))
 
 ;; (defmethod switch-dataset ((experiment cle-experiment)
 ;;                            (params list))
