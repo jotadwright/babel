@@ -43,24 +43,46 @@
 
 
 
+
 (defprimitive filter-by-concept ((filtered-entity concept-representations::entity)
-                                 (entity-set crs-conventionality-entity-set)
-                                 (concept concept-representations::concept))
-  
-  ((entity-set concept => filtered-entity)
-   (loop for entity in (entities entity-set)
-         for similarity-score = (concept-representations::concept-entity-similarity concept entity) 
-         collect (bind (filtered-entity similarity-score entity))))
+                                 (concept concept-representations::concept)
+                                 (scene crs-conventionality-entity-set))
+  ;; First case, you come here during comprehension, you apply the concept on all entities in the scene, you return the binding for the entity with the highest similarity score
+  ((scene concept => filtered-entity )
+   (let* ((similarities
+           (loop for entity in (entities scene)
+                 for similarity-score = (concept-representations::concept-entity-similarity concept entity)
+                 collect (cons entity similarity-score)))
+          (sorted-similarities (sort similarities #'> :key #'cdr))
+          (highest (first sorted-similarities)))
+     (bind (filtered-entity 1.0 (car highest)))))
 
-  ;; if you have no concept, meaning if the concept is not bound, you can just invent a new concept based on the entity
-  ((filtered-entity entity-set => concept)
-   (let ((invented-concept (create-concept-representation filtered-entity :weighted-multivariate-distribution)))
-     (bind (concept 1.0 invented-concept))))
-
-  ((entity-set => filtered-entity concept)
-   (loop for entity in (entities entity-set)
+  ;; This case is triggered in normal conceptualisation when a concept applied on a specific concept. It returns the discriminative power.
+  ;; Calculates the similarity of the concept and the filtered-entity 
+ ((filtered-entity concept scene =>)
+   (let* ((binding (find filtered-entity binding-objects :key #'value))
+          (similarities
+           (loop for entity in (entities scene)
+                 for similarity-score = (concept-representations::concept-entity-similarity concept entity)
+                 collect (cons entity similarity-score)))
+          (sorted-similarities (sort similarities #'> :key #'cdr))
+          (highest (first sorted-similarities)))
+     (if (equal (car highest) filtered-entity)
+       (let* ((best-other-sim (if (cdr (second sorted-similarities)) (cdr (second sorted-similarities)) 0))
+              (discrimation-score (- (cdr highest) best-other-sim)))
+         (when binding
+           (setf (score binding) discrimation-score)))
+       (let* ((entity-and-similarity (find filtered-entity sorted-similarities :key #'car))
+              (highest-similarity (cdr highest))
+              (entity-similarity (if (cdr entity-and-similarity) (cdr entity-and-similarity) 0))
+              (discrimation-score (- entity-similarity highest-similarity)))
+         (when binding
+           (setf (score binding) discrimation-score))))))
+       
+ ;; This case is triggered in the metalayer of conceptualisation. A new concept is invented and the score is set to 1.
+  ((scene => filtered-entity concept)
+   (loop for entity in (entities scene)
          for invented-concept = (concept-representations::create-concept-representation entity :weighted-multivariate-distribution)
-         ;for concept-object = (make-instance 'concept-representations::concept :id 'something)
          do (append-data ontology :concepts invented-concept)
          collect (bind (concept 1.0 invented-concept)
                        (filtered-entity 1.0 entity))))
