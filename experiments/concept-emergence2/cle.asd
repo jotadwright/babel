@@ -15,7 +15,7 @@
                :irl
                :cl-store
                :com.inuoe.jzon
-               ;:distributions
+               :distributions
                )
   :serial t
   :components ((:file "package")
