@@ -93,12 +93,12 @@
                                                         (:repairs fcg::repair-through-concept-invention)
                                                         ;; for using heuristics
                                                         (:search-algorithm . :best-first)
-                                                        (:heuristics :cxn-score)
+                                                        (:heuristics :concept-similarity-and-score)
                                                         (:heuristic-value-mode . :sum-heuristics-and-parent) 
                                                         ;; goal tests
-                                                        (:parse-goal-tests :interpretation-in-scene)
-                                                        (:production-goal-tests :topic-retrieved)
-                                                        (:node-tests :check-branch-for-solution :check-duplicate :restrict-nr-of-nodes :restrict-search-depth)
+                                                        (:parse-goal-tests :discriminative-in-scene)
+                                                        (:production-goal-tests :topic-discriminated)
+                                                        (:node-tests :check-branch-for-solution :check-duplicate :restrict-nr-of-nodes :restrict-search-depth :discriminative-power)
                                                         (:max-nr-of-nodes . 10)
                                                         ;; meta-layer 
                                                         ;(:consolidate-repairs . t)
@@ -117,9 +117,27 @@
 
 (defmethod unify-objects ((concept concept-representations::concept) (entity-set crs-conventionality-entity-set) bindings-list &key cxn-inventory)
   "Standard method for unifying objects: unify slot values."
-  (if (concept-representations::concept-entity-similarity concept (first (entities entity-set)))
-    bindings-list
-    +fail+))
+  (let* ((entity (first (entities entity-set)))
+         (similarity (concept-representations::concept-entity-similarity concept entity)))
+    (set-data (blackboard cxn-inventory) :concept-similarity (cons (cons (id concept) (id entity)) similarity))
+    (if similarity 
+      bindings-list
+      +fail+)))
+
+
+(defmethod unify-objects ((entity-set crs-conventionality-entity-set) (concept concept-representations::concept) bindings-list &key cxn-inventory)
+  "Standard method for unifying objects: unify slot values."
+  (let* ((entity (first (entities entity-set)))
+         (similarity (concept-representations::concept-entity-similarity concept entity)))
+    (set-data (blackboard cxn-inventory) :concept-similarity (cons (cons (id concept) (id entity)) similarity))
+    (if similarity
+      bindings-list
+      +fail+)))
+
+
+(defmethod unify-objects ((x entity) (y entity) bindings-list &key cxn-inventory)
+  "Standard method for unifying objects: unify slot values."
+  (unify (id x) (id y) bindings-list :cxn-inventory cxn-inventory))
 
 (in-package :fcg)
 ;; ! SPECIALISES METHODS IN :fcg
@@ -135,3 +153,22 @@
           do (setq word (concatenate 'string word (nth (random (length consonants)) consonants)))
              (setq word (concatenate 'string word (nth (random (length vowels)) vowels))))
   word))
+
+
+(defmethod apply-heuristic ((node cip-node) (mode (eql :concept-similarity-and-score)))
+  "Take as heuristic the discriminative power or the concept similarity."
+  "In comprehension: use the concept similarity that was set in unify-atom in the blackboard."
+  "In formulation: use the discriminative power that was calculated in IRL during the goal test :discriminative-in-scene."
+  "In formulation when no cxns could apply (only with initial node), just return 0. !! normally this can never happen???"
+
+  (let* ((applied-cxn (get-original-cxn (car-applied-cxn (cipn-car node))))
+         (direction (direction (cip node))))
+    (if (equal direction 'fcg::->)
+      (let ((concept-entity-similarity (find-data (blackboard (construction-inventory node)) :concept-similarity))
+            (entrenchement-score (attr-val applied-cxn :score))
+            (concept-entity-discriminative-power (find-data node :discriminative-power)))
+        (if concept-entity-discriminative-power
+          (* entrenchement-score (cdr concept-entity-discriminative-power))
+          0))
+      1)))
+   
