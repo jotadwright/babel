@@ -68,5 +68,5 @@
 ;; VISUALISE => visualising a concept
 (add-concept-to-interface concept1 :weight-threshold 0.1)
 
-
+;; COPY-OBJECT
 (copy-object concept1)

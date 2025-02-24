@@ -12,9 +12,7 @@
         for feature-value = (get-feature-value entity (feature-name weighted-distribution))
         for similarity = (distribution-feature-similarity distribution feature-value)
         if (and similarity (not (zerop sum-of-weights)))
-          ;; note: sum-of-weights could be factored out
-          sum (* (/ weight sum-of-weights) similarity)
-            into total-similarity
+          sum (* (/ weight sum-of-weights) similarity) into total-similarity
         finally (return total-similarity)))
 
 ;; --------------------------------------

@@ -19,4 +19,5 @@
                (:file "similarity")
                (:file "update")
                (:file "dataloader")
+               (:file "visualisation")
                ))
