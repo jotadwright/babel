@@ -132,8 +132,15 @@
     ;; Feedback
     (provide-feedback speaker hearer)
 
-    ;; Adoption and alignment
-    (align speaker hearer interaction (get-configuration experiment :alignment-strategy))
+    ;; Alignment
+    (unless (invention interaction)
+      (align speaker hearer interaction (get-configuration experiment :alignment-strategy)))
+
+    ;; Adoption
+    (unless (communicated-successfully interaction)
+      (adopt (topic interaction) hearer))
+
+    
     
     ;; Finishing interaction (TODO to remove?)
     ;; (finish-interaction experiment interaction)
