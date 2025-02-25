@@ -125,15 +125,27 @@
 ;; Processing signed forms ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;(monitors::deactivate-monitor trace-fcg)
 ;(monitors::activate-monitor trace-slp)
 ;(monitors::activate-monitor trace-irl)
 
 (defparameter *test-meaning-1*
   (meaning (first (data *geoquery-lsfb-250-xml*))))
 
+(defparameter *test-meaning-2*
+  (meaning (second (data *geoquery-lsfb-250-xml*))))
+
+(defparameter *test-meaning-3*
+  (meaning (third (data *geoquery-lsfb-250-xml*))))
+
+(formulate-all *test-meaning-3*)
+
 (comprehend-and-formulate *test-utterance-1-predicates*)
-(formulate *test-meaning-1*)
-(geo-prolog-to-predicates "answer(A,(city(A),loc(A,B),const(B,stateid(Virginia))))")
+
+(comprehend-and-formulate *test-utterance-2-predicates*)
+
+(comprehend-and-formulate *test-utterance-3-predicates*)
+
+(comprehend-all *test-utterance-1-predicates*)
+(formulate-all *test-meaning-1*)
 
 
