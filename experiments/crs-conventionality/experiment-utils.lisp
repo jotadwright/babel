@@ -27,7 +27,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defmethod add-noise ((utterance string) &optional (noise-level 0.2))
+(defun add-noise (utterance  &optional (noise-level 0.2))
   "Add noise to the utterance proportionate to the noise level."
   (let ((characters '("a" "e" "i" "o" "u" "b" "c" "d" "f" "g" "h" "j" "k" "l" "m" "n" "p" "q" "r" "s" "t" "v" "w" "x" "y" "z"))
         (characters-to-replace (floor (* noise-level (length utterance)))))
