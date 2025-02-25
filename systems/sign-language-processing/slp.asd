@@ -13,7 +13,6 @@
                :grammar-learning)
   :serial t
   :components ((:file "package")
-               (:file "render-derender")
                (:module utils
                 :serial t
                 :components ((:file "string-manipulation")
@@ -26,6 +25,7 @@
                              (:file "prolog-to-predicates")
                              (:file "classes")
                              (:file "hamnosys-to-sigml")))
+               (:file "render-derender")
                (:module elan-to-predicates
                 :serial t
                 :components ((:file "create-elan-intervals")
