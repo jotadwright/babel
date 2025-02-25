@@ -20,3 +20,18 @@
                                        :population (population experiment)
                                        :introduced-in-game (length (interactions experiment)))
         do (push new-agent (agents (population experiment)))))
+
+
+
+;;                Robustness                 ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defmethod add-noise ((utterance string) &optional (noise-level 0.2))
+  "Add noise to the utterance proportionate to the noise level."
+  (let ((characters '("a" "e" "i" "o" "u" "b" "c" "d" "f" "g" "h" "j" "k" "l" "m" "n" "p" "q" "r" "s" "t" "v" "w" "x" "y" "z"))
+        (characters-to-replace (floor (* noise-level (length utterance)))))
+    (loop for i from 1 to characters-to-replace
+          do (setf (elt utterance (random (length utterance))) (char (random-elt characters) 0)))
+    utterance))
+
