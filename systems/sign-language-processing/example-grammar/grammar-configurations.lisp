@@ -27,10 +27,10 @@
                        (:heuristic-value-mode . :sum-heuristics-and-parent)
                        (:cxn-supplier-mode . :all-cxns)
                        (:heuristics :nr-of-applied-cxns)
-                       (:category-linking-mode . :path-exists))
+                       (:category-linking-mode . :neighbours))
   
   :visualization-configurations ((:with-search-debug-data . t)
-                                 ;(:show-categorial-network . t)
+                                 (:show-categorial-network . t)
                                  (:remove-empty-units . nil)
                                  (:show-constructional-dependencies . nil)
                                  (:labeled-paths . nil)
