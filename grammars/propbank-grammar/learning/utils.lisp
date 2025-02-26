@@ -365,7 +365,7 @@ start to end(v-unit)"
 
 (defun find-equivalent-cxn (schema syn-classes cxn-inventory &key (hash-key nil))
   "Returns true if an equivalent-cxn is already present in the cxn-inventory."
-  (loop for cxn in (gethash hash-key (constructions-hash-table cxn-inventory))
+  (loop for cxn in (constructions-list cxn-inventory)
         when (and (equal (attr-val cxn :schema) schema)
                   (equalp syn-classes
                           (mapcar #'(lambda (unit)

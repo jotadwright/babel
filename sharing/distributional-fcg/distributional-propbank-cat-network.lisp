@@ -23,7 +23,7 @@
 (defparameter *annotations-file-path*
   (merge-pathnames 
    (make-pathname :directory '(:relative "distributional-fcg")
-                  :name "small-corpus-ditransitive" :type "conll")
+                  :name "slot-filler" :type "conll")
    cl-user:*babel-corpora*))
 
 
@@ -42,7 +42,7 @@
       (:heuristics
        :nr-of-applied-cxns
        :nr-of-units-matched-x2 ;;nr-of-units-matched
-       :edge-weight
+       :graph-cosine-similarity
        ;:embedding-similarity
        )
       ;;Additional heuristics: :prefer-local-bindings :frequency
@@ -79,6 +79,8 @@
 ;; Draw the cat net ;;
 ;;;;;;;;;;;;;;;;;;;;;;
 ;;(add-element (make-html (categorial-network *train-grammar*) :weights t))
+
+(add-link 'sell.01-1 'sell\(v\)-1 (categorial-network *train-grammar*) :link-type 'lex-gram)
 ;;(add-element (make-html *train-grammar*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -87,12 +89,17 @@
 
 #|
  
-(set-configuration *train-grammar*  :category-linking-mode  :graph-cosine-similarity)
+(set-configuration *train-grammar* :category-linking-mode :graph-cosine-similarity)
+
+(set-configuration *train-grammar*  :node-expansion-mode  :multiple-cxns)
+
+(set-configuration *train-grammar* :cxn-supplier-mode :cascading-cosine-similarity)
 
 (comprehend "he sold his mother the car" :timeout nil)
 
+(comprehend "he sold the car to his mother" :timeout nil)
 
-
+;;;; random voorbeelden
 
 (comprehend "the man smurfs a book to his wife")
 
@@ -106,7 +113,7 @@
 (comprehend "he sold the car to his mother" :timeout nil)
 
 
-(comprehend "he sold his mother the car" :timeout nil)
+(comprehend "he read his child a story" :timeout nil)
 
 
 |#
@@ -124,9 +131,10 @@
         t
         nil))))
 
-(defmethod apply-heuristic ((node cip-node) (mode (eql :edge-weight)))
+(defmethod apply-heuristic ((node cip-node) (mode (eql :graph-cosine-similarity)))
   "Returns the weight of the categorial network edge that was used in
 matching."
+  (print "test")
   0)
 
 
@@ -216,7 +224,7 @@ to the categorial network. Returns the lexical category."
                            :disable-automatic-footprints t
                            :cxn-inventory ,cxn-inventory)))
         (add-category lex-category cxn-inventory :recompute-transitive-closure nil :node-type 'lex-category)
-          lex-category))))
+        lex-category))))
 
 
 

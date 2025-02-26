@@ -221,7 +221,7 @@
   "Adds a category to the categorial network."
   (let* ((graph (graph categorial-network))
          (node-id (graph-utils:add-node graph category)))
-    (add-node-type node-id node-type graph)
+    (when node-type (add-node-type node-id node-type graph))
   (when recompute-transitive-closure
     (compute-transitive-closure categorial-network))
   (notify category-added category categorial-network)

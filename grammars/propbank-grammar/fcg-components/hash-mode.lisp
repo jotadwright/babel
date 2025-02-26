@@ -10,8 +10,12 @@
                  (mode (eql :hash-lemma))
                  &key &allow-other-keys)
   "Returns the lemma from the attributes of the construction"
-  (when (attr-val construction :lemma)
-     (remove nil (list (attr-val construction :lemma)))))
+  (cond ((attr-val construction :lemma)
+         (remove nil (list (attr-val construction :lemma))))
+        ((attr-val construction :gram-category)
+         (remove nil (list (attr-val construction :gram-category))))
+        (t
+         nil)))
 
 
 (defmethod hash ((node cip-node)

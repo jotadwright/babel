@@ -117,6 +117,17 @@
         into similar-nodes
         finally (return (sort similar-nodes #'> :key #'cdr))))
 
+(defun similar-nodes-weighted-cosine-same-node-type (node graph)
+  "loop through all nodes in graph, sort by weighted cosine similarity"
+  (loop with node-type = (get-node-type (lookup-node graph node) graph)
+        for other-node-id in (remove-duplicates (gethash node-type (node-types graph)))
+        for other-node = (lookup-node graph other-node-id)
+        for node-similarity = (weighted-graph-cosine-similarity other-node node graph)
+        when (> node-similarity 0)
+          collect (cons other-node node-similarity)
+            into similar-nodes
+        finally (return (sort similar-nodes #'> :key #'cdr))))
+
 (defun similar-nodes-cosine (node graph)
   "loop through all nodes in graph, sort by cosine similarity"
   (loop for other-node in (remove-duplicates (graph-utils::list-nodes graph))
