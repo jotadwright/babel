@@ -25,7 +25,6 @@
              (initialise-neighbor-q-values new-agent)
              (loop for neighbor in (social-network new-agent)
                    do (progn (setf (social-network neighbor) (push new-agent (social-network neighbor)))
-                             (insert-neighbor-q-value neighbor new-agent)))
+                        (insert-neighbor-q-value neighbor new-agent)))
              ; Add new-agent to the population
              (push new-agent (agents (population experiment))))))
- 

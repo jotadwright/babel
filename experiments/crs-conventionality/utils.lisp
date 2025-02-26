@@ -7,11 +7,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun run-experiments-sequentially (experiment-class
-                        &key
-                        strategies
-                        number-of-interactions
-                        monitors
-                        (number-of-series 1))
+                                     &key
+                                     strategies
+                                     number-of-interactions
+                                     monitors
+                                     (number-of-series 1))
   "Runs a set of experiments (sequentially)."
   (run-batch-for-different-configurations
    :experiment-class experiment-class
@@ -24,7 +24,7 @@
   (format t "~%Experimental runs finished and data has been generated. You can now plot graphs."))
 
 (defun create-graph-for-single-strategy (experiment-name measure-names
-                                         &rest evo-plot-keyword-args)
+                                                         &rest evo-plot-keyword-args)
   "Creates a plot of the evolutionary dynamics from a given experiment (using exported data)."
   (format t "~%Creating graph for experiment ~a with measures ~a" experiment-name measure-names)
   (let* ((raw-file-paths
@@ -44,7 +44,7 @@
   (format t "~%Graphs have been created."))
 
 (defun create-graph-for-single-measure (measure-name experiment-names
-                                         &rest evo-plot-keyword-args)
+                                                     &rest evo-plot-keyword-args)
   "Creates a plot for a single measure from several experiments (using exported data)."
   (format t "~%Creating graph for measure ~a from experiments ~a" measure-name experiment-names)
   (let* ((raw-file-paths

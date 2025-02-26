@@ -39,7 +39,7 @@
   :primitive-inventory *naming-game-primitives*)
 
 (defgeneric compose-program (topic partial-meaning primitive-inventory)
-    (:documentation "compose a program given a topic and a partial meaning"))
+  (:documentation "compose a program given a topic and a partial meaning"))
 
 (defmethod compose-program ((topic naming-game-entity) (partial-meaning list) (primitive-inventory irl::primitive-inventory))
   (let* ((chunks (create-chunks-from-primitives (irl::primitives primitive-inventory)))
