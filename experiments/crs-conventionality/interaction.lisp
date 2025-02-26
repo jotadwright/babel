@@ -80,8 +80,8 @@
   (let* ((agents (if (listp (agents experiment))
                    (agents experiment)
                    (agents (population experiment))))
-         (speaker (choose-speaker agents mode))
-         (hearer (choose-hearer speaker mode))
+         (speaker (random-elt agents))
+         (hearer (random-elt (social-network speaker)))
          (interacting-agents (list speaker hearer)))
 
     ;; set the discourse-role

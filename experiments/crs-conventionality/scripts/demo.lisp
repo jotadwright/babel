@@ -55,7 +55,7 @@
   (defparameter *naming-game* (make-instance 'naming-game-experiment
                                              :configuration *configuration*))
   ;; visualise the population network
-  (population-network->graphviz (agents (population *naming-game*)) :make-image t :open-image t :use-labels? t))
+  (population-network->graphviz (agents (population *naming-game*)) :make-image t :open-image nil :use-labels? t))
 
 
 
