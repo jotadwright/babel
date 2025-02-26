@@ -34,14 +34,13 @@
   "Helper function to access the social network of an agent."
   (get-data agent :social-network))
 
-
-
 ;;;;; ---------------------------------------------------------
 ;;;;; Fully Connected Social Network
 ;;;;; ---------------------------------------------------------
 ;;;;;
 ;;;;; By default, we use a fully connected social network in 
 ;;;;; which each agent can interact with each other agent.
+
 (defun create-fully-connected-network (population &optional reverse-population)
   (if (null population) 
     (reverse reverse-population)
@@ -181,6 +180,7 @@
 ;;; If you want to visualize the social network of the population, you can do so with
 ;;; the function #'population-network->graphviz below. This visualization can be 
 ;;; improved a lot but it helps to have an idea of the network structure.
+
 (defun make-time-stamp ()
   (multiple-value-bind (seconds minutes hour day month year)
       (get-decoded-time)
@@ -247,79 +247,3 @@
                            :args (list "/C"
                                        (string-replace
                                         (format nil "c:~a" png-filename-string "/" "\\")))))))))))
-
-;; Fully connected network:
-#|(reset-id-counters)
-
-(let* ((experiment (make-instance 'crs-conventionality-experiment))
-       (agents (loop for i from 1 to 10 collect (make-instance 'agent)))
-       (population (make-instance 'crs-conventionality-population :agents agents)))
-  (setf (population experiment) population)
-  (initialize-social-network experiment)
-  (population-network->graphviz agents :make-image t :open-image t :use-labels? t))
-
-;; Regular network:
-(let* ((experiment (make-instance 'crs-conventionality-experiment))
-       (agents (loop for i from 1 to 20 collect (make-instance 'agent)))
-       (population (make-instance 'crs-conventionality-population :agents agents)))
-  (setf (population experiment) population)
-  (set-configuration experiment :network-topology :regular)
-  (set-configuration experiment :local-connectivity 2)
-  (initialize-social-network experiment)
-  (population-network->graphviz agents :make-image t :open-image t :use-labels? t)
-  agents)
-
-;; Small world network:
-(let* ((experiment (make-instance 'crs-conventionality-experiment))
-       (agents (loop for i from 1 to 20 collect (make-instance 'agent)))
-       (population (make-instance 'crs-conventionality-population :agents agents)))
-  (setf (population experiment) population)
-  (set-configuration experiment :network-topology :small-world)
-  (set-configuration experiment :local-connectivity 2)
-  (set-configuration experiment :rewiring-probability 0.6)
-  (initialize-social-network experiment)
-  (population-network->graphviz agents :make-image t :open-image t :use-labels? t)
-  agents)|#
-
-
- 
-
-;;;;; ---------------------------------------------------------
-;;;;; 8. Tests.
-;;;;; ---------------------------------------------------------
-
-(deftest test-discourse-role ()
-  (let ((agents (loop repeat 2 collect (make-instance 'agent))))
-    (setf (discourse-role (first agents)) 'speaker)
-    (setf (discourse-role (second agents)) 'hearer)
-    (test-assert (equal (get-speaker agents) (first agents)))
-    (test-assert (equal (get-hearer agents) (second agents)))))
-;; (test-discourse-role)
-
-
-(deftest test-social-network ()
-  (labels ((make-ten-agents () (loop repeat 10 collect (make-instance 'agent))))
-    (let* ((experiment (make-instance 'crs-conventionality-experiment)))
-      (let* ((agents (setf (agents experiment) (make-ten-agents)))
-             (agent (first agents)))
-        (initialize-social-network experiment)
-        (test-assert (social-network agent))
-        (test-assert (= 9 (length (social-network agent))))
-        (let* ((speaker (choose-speaker agents t))
-               (hearer (choose-hearer speaker t)))
-          (test-assert (speaker-p speaker))
-          (test-assert (hearer-p hearer))))
-      (setf (agents experiment) nil
-            (population experiment) (make-instance 'crs-conventionality-population
-                                                   :agents (make-ten-agents)))
-      (set-configuration experiment :network-topology :normal)
-      (set-configuration experiment :local-connectivity 3)
-      (initialize-social-network experiment)
-      (test-assert (= 6 (length (social-network (first (agents (population experiment)))))))
-      (setf (population experiment) nil
-            (agents experiment) (make-ten-agents))
-      (set-configuration experiment :network-topology :small-world)
-      (set-configuration experiment :rewiring-probability 0.3)
-      (initialize-social-network experiment)
-      (test-assert (= 6 (length (social-network (first (agents experiment)))))))))
-(test-social-network)
