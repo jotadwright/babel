@@ -62,3 +62,18 @@
                      :plot-file-name ,(if plot-file-name plot-file-name default-plot-file-name))
                    evo-plot-keyword-args)))
   (format t "~%Graphs have been created."))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                     ;;
+;;  Helper functions for hash tables   ;;
+;;                                     ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun hash-keys (ht)
+  (loop for key being the hash-keys of ht
+        collect key))
+
+(defun hash-values (ht)
+  (loop for value being the hash-values of ht
+        collect value))
