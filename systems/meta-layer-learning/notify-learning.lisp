@@ -153,7 +153,7 @@
                            :problem problem
                            :notified-object notified-object
                            parameters)
-                (apply 'repair repair problem notified-object
+                    (apply 'repair repair problem notified-object
                        :trigger trigger parameters)))
            when fixes
            do (loop for fix in (listify fixes)
