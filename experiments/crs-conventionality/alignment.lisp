@@ -156,7 +156,6 @@
       (push (type-of (fcg::issued-by fix)) (fcg::statuses child))
       (setf (fcg::fully-expanded? child) t)
       (fcg::cip-run-goal-tests child (cip (get-data (blackboard (grammar hearer)) :cipn))) ;; to include succeeded status in node statuses
-      (push 'added-by-repair (fcg::statuses child))
 
       (fcg::add-cxn cxn (grammar hearer))
       (push cxn consolidated-cxns)
