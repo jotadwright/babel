@@ -44,7 +44,8 @@
                  (utterance agent) nil
                  (conceptualised-utterance agent) nil
                  (applied-constructions agent) nil
-                 (solution-node agent) nil))
+                 (solution-node agent) nil
+                 (communicated-successfully agent) nil))
   (setf (communicated-successfully interaction) nil
         (interacting-agents interaction) nil))
 
@@ -62,8 +63,28 @@
          (speaker (random-elt old-generations))
          (hearer (random-elt new-generations))
          (interacting-agents (list speaker hearer)))
-    ;; "clean" the agents:
-    (mapcar #'clean-agent interacting-agents)
+
+    ;; set the discourse-role
+    (setf (discourse-role speaker) 'speaker
+          (discourse-role hearer) 'hearer
+          (interacting-agents interaction) interacting-agents)
+    (notify interacting-agents-determined experiment interaction)))
+
+(defmethod determine-interacting-agents ((experiment crs-conventionality-experiment)
+                                         (interaction interaction) 
+                                         (mode (eql :random-from-social-network))
+                                         &key &allow-other-keys)
+  "This method randomly picks one agent, and then randomly picks an agent 
+   from its social network. In a fully connected network, this is the same 
+   as picking two random agents."
+  (let* ((agents (if (listp (agents experiment))
+                   (agents experiment)
+                   (agents (population experiment))))
+         (speaker (choose-speaker agents mode))
+         (hearer (choose-hearer speaker mode))
+         (interacting-agents (list speaker hearer)))
+
+    ;; set the discourse-role
     (setf (discourse-role speaker) 'speaker
           (discourse-role hearer) 'hearer
           (interacting-agents interaction) interacting-agents)
@@ -81,11 +102,10 @@
                                             (get-configuration experiment :boltzmann-tau)))
          ;; shuffle the two agents around so that speaker/hearer role assignment is random
          (interacting-agents (shuffle (list agent preferred-partner))))
-    ;; "clean" the agents:
-    (mapcar #'clean-agent interacting-agents)
+    ;; set interacting-agents
     (setf (interacting-agents interaction) interacting-agents))
   
-  ;; set discourse-role
+  ;; set the discourse-role
   (loop for a in (interacting-agents interaction)
         for d in '(speaker hearer)
         do (setf (discourse-role a) d))
@@ -179,8 +199,8 @@
          (topic (topic interaction)))
     (conceptualise-and-produce hearer scene topic :use-meta-layer nil)
     (if (equalp (utterance speaker) (conceptualised-utterance hearer))
-        (setf (coherence interaction) t)
-        (setf (coherence interaction) nil))
+      (setf (coherence interaction) t)
+      (setf (coherence interaction) nil))
     (notify determine-coherence-finished speaker hearer)))
 
 
@@ -220,8 +240,8 @@
         do (setf cumulative (+ cumulative probability))
         when (<= r cumulative)
           return neighbor
-        ;; if the sum of probabilities is not equal to 1 (due to some numerical stability)
-        ;; always make a decision and pick the last agent
+          ;; if the sum of probabilities is not equal to 1 (due to some numerical stability)
+          ;; always make a decision and pick the last agent
         finally (return (car (last neighbors)))))
 
 (define-event event-partner-selection
@@ -254,7 +274,7 @@
 (defmethod insert-neighbor-q-value ((agent crs-conventionality-agent) (neighbor crs-conventionality-agent) &key (initial-q 0.5))
   "Let agent store a Q-value for neighbor, initialised at initial-q."
   (setf (gethash (id neighbor) (neighbor-q-values agent))
-                 initial-q))
+        initial-q))
 
 (defmethod update-neighbor-q-value ((agent crs-conventionality-agent) (neighbor crs-conventionality-agent) (reward number) (lr float))
   "Update the q-value that agent stores for neighbor."

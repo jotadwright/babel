@@ -79,4 +79,4 @@
     (loop for i from 1 to 3
           do (setq word (concatenate 'string word (nth (random (length consonants)) consonants)))
              (setq word (concatenate 'string word (nth (random (length vowels)) vowels))))
-  word))
+    word))

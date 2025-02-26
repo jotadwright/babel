@@ -31,7 +31,7 @@
   (initialize-social-network experiment)
   ;; Set initial Q-values
   (loop for agent in (agents (population experiment))
-        do (initialise-neighbor-q-values agent))) 
+        do (initialise-neighbor-q-values agent)))
 
 
 ;; Populations and Agents ;;
