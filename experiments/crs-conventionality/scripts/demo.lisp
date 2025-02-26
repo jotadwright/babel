@@ -14,10 +14,10 @@
 
 (progn
   (format t "~%Starting a new experiment.~%")
-  ;; reset the web interface
-  (wi::reset)
   ;; deactivate all monitors (as a sanity check)
   (monitors::notify reset-monitors)
+  ;; reset the web interface
+  (wi::reset)
   ;; configure a canonical naming game
   (defparameter *configuration-canonical* (make-configuration
                                            :entries '(;; Logging
@@ -37,11 +37,11 @@
   ;; instantiate a naming game experiment
   (defparameter *naming-game-canonical* (make-instance 'naming-game-experiment
                                                        :configuration *configuration-canonical*))
-  ;(set-configuration *naming-game-canonical* :network-topology :regular)
-  ;(set-configuration *naming-game-canonical* :local-connectivity 1)
-  ;(initialize-social-network *naming-game-canonical*)
+  (set-configuration *naming-game-canonical* :network-topology :regular)
+  (set-configuration *naming-game-canonical* :local-connectivity 1)
+  (initialize-social-network *naming-game-canonical*)
   
-  ;(population-network->graphviz (agents (population *naming-game-canonical*)) :make-image t :open-image t :use-labels? t)
+  (population-network->graphviz (agents (population *naming-game-canonical*)) :make-image t :open-image t :use-labels? t)
   )
 
 ;; Option 1: run experiment with real-time plotting (using gnuplot)
@@ -53,8 +53,8 @@
   ;; activate monitors
   (activate-monitor log-every-x-interactions-in-output-browser)
   (activate-monitor record-communicative-success)
-  (activate-monitor record-conventionalisation)
-  (activate-monitor record-conventionalisation-global)
+  (activate-monitor record-coherence-interacting-agents)
+  (activate-monitor record-coherence-population)
   (activate-monitor record-construction-inventory-size)
 
   ;; activate tracers
@@ -78,8 +78,8 @@
   ;; activate monitors
   (activate-monitor log-every-x-interactions-in-output-browser)
   (activate-monitor export-communicative-success)
-  (activate-monitor export-conventionalisation)
-  (activate-monitor export-conventionalisation-global)
+  (activate-monitor export-coherence-interacting-agents)
+  (activate-monitor export-coherence-population)
   (activate-monitor export-construction-inventory-size)
   ;; run the experiment
   (run-batch 'naming-game-experiment ;; experiment-class

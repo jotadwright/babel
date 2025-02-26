@@ -15,7 +15,7 @@
 
 (setf naming-game-measures
       (list "communicative-success"
-            "conventionalisation"
+            "coherence-interacting-agents"
             "construction-inventory-size"))
 
 (loop for strategy in naming-game-alignment-strategies
@@ -26,10 +26,10 @@
                                            :y1-min 0 :y1-max 1
                                            :y2-min 0 :y2-max nil
                                            :x-label "Number of Games"
-                                           :y1-label "Communicative Success / Conventionalisation"
+                                           :y1-label "Communicative Success / Coherence"
                                            :y2-label "Construction Inventory Size"
                                            :captions '("communicative success"
-                                                       "degree of conventionalisation"
+                                                       "degree of coherence between interacting agents"
                                                        "construction inventory size")
                                            :plot-file-name strategy
                                            :open t))
@@ -37,7 +37,7 @@
 (loop for measure in naming-game-measures 
       for window-size in '(100 100 1) 
       for y1-max in '(1 1 nil) 
-      for label in '("communicative success" "degree of conventionalisation" "construction inventory size") 
+      for label in '("communicative success" "degree of coherence between interacting agents" "construction inventory size") 
       do (create-graph-for-single-measure measure
                                           naming-game-alignment-strategies
                                           :average-windows window-size ;; TODO adapt?

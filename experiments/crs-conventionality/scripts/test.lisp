@@ -52,7 +52,7 @@
   ;(notify reset-monitors)
   ;; activate recorders
   (activate-monitor record-communicative-success)
-  (activate-monitor record-conventionalisation)
+  (activate-monitor record-coherence-interacting-agents)
   (activate-monitor record-construction-inventory-size)
   ;; activate tracers
   ;(activate-monitor trace-interaction)
@@ -70,7 +70,7 @@
 
 (progn
   (activate-monitor export-communicative-success)
-  (activate-monitor export-conventionalisation)
+  (activate-monitor export-coherence)
   (activate-monitor export-construction-inventory-size)
   ;; run the experiment
   (run-batch 'naming-game-experiment ;; experiment-class
@@ -118,7 +118,7 @@
 (progn
   ;; Activate recorders
   (activate-monitor record-communicative-success)
-  (activate-monitor record-conventionalisation)
+  (activate-monitor record-coherence-interacting-agents)
   (activate-monitor record-construction-inventory-size)
   ;; Activate tracers
   ;(activate-monitor trace-interaction)

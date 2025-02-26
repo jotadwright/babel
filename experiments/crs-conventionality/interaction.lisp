@@ -125,12 +125,12 @@
     ;; Hearer comprehends and interprets the meaning. 
     (comprehend-and-interpret hearer scene)
     
-    ;; Determine success and coherence
+    ;; Determine success and coherence for the interacting agents
     (determine-success speaker hearer interaction)
-    (determine-coherence speaker hearer) ;; check coherence before alignment!
+    (determine-coherence-interacting-agents speaker hearer) ;; check coherence before alignment!
     
-    ;; Determine the ratio XXXXX
-    (determine-coherence-global speaker hearer) ;; check global coherence
+    ;; Determine coherence for the whole population
+    (determine-coherence-population speaker hearer) ;; check global coherence
 
     ;; Feedback
     (provide-feedback speaker hearer)
@@ -160,20 +160,20 @@
     (setf (communicated-successfully interaction) nil)))
 
 
-(defmethod determine-coherence ((speaker naming-game-agent) (hearer naming-game-agent))
+(defmethod determine-coherence-interacting-agents ((speaker naming-game-agent) (hearer naming-game-agent))
   "Determines and sets the coherences. Tests whether the hearer would have used the same word as the speaker, should the hearer have been the speaker."
   (let* ((interaction (current-interaction (experiment speaker)))
          (scene (scene interaction))
          (topic (topic interaction)))
     (conceptualise-and-produce hearer scene topic :use-meta-layer nil)
     (if (equalp (utterance speaker) (conceptualised-utterance hearer))
-        (setf (coherence interaction) t)
-        (setf (coherence interaction) nil))
+        (setf (coherence-interacting-agents interaction) t)
+        (setf (coherence-interacting-agents interaction) nil))
     (notify determine-coherence-finished speaker hearer)))
 
 
 
-(defmethod determine-coherence-global ((speaker naming-game-agent) (hearer naming-game-agent))
+(defmethod determine-coherence-population ((speaker naming-game-agent) (hearer naming-game-agent))
   "Tests what utterance all agents would have used for the topic picked for the interaction, then extracts the most used. Finally, it calculates the ratio (how many agents use it over population)."
   (let* ((interaction (current-interaction (experiment speaker)))
          (scene (scene interaction))
@@ -211,7 +211,7 @@
                 ;(format t "Most common utterance: ~a | for topic: ~a | with frequency ~a~%" most-common-utterance topic most-common-frequency)
                 ;(format t "Percentage of the occurrences of utterance ~a over the total number of utterances for the topic ~a: ~a ~%" most-common-utterance topic (/ most-common-frequency (length (agents (population (experiment speaker))))))
 
-    ; the result is returned to coherence-global slot within interaction
-    (setf (coherence-global interaction) (/ most-common-frequency (length (agents (population (experiment speaker))))))
+    ; the result is returned to coherence-population slot within interaction
+    (setf (coherence-population interaction) (/ most-common-frequency (length (agents (population (experiment speaker))))))
     
     (notify determine-coherence-finished speaker hearer)))
