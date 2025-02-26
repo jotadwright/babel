@@ -189,12 +189,12 @@
                 ;(format t "utterance of agent: ~a for topic: ~a -> |~a|~%" agent topic (conceptualised-utterance agent))
 
                 ; check if the word is already in the table
-                (if (gethash (conceptualised-utterance agent) conceptualised-utterances-frequency-table)
-                    ; if it is, increase the frequency
-                    (setf  (gethash (conceptualised-utterance agent) conceptualised-utterances-frequency-table) (+ (gethash (conceptualised-utterance agent) conceptualised-utterances-frequency-table) 1))
-                    ; it not, add the word
-                    (setf  (gethash (conceptualised-utterance agent) conceptualised-utterances-frequency-table) 1))
-
+                (if (conceptualised-utterance agent)
+                  (if (gethash (conceptualised-utterance agent) conceptualised-utterances-frequency-table)
+                      ; if it is, increase the frequency
+                      (setf  (gethash (conceptualised-utterance agent) conceptualised-utterances-frequency-table) (+ (gethash (conceptualised-utterance agent) conceptualised-utterances-frequency-table) 1))
+                      ; it not, add the word
+                      (setf  (gethash (conceptualised-utterance agent) conceptualised-utterances-frequency-table) 1)))
                 ; uncomment this to print out the contents of the whole hashtable
                   ;(maphash (lambda (word freq)
                   ;(format t "word: ~a - freq: ~a~%" word freq))
@@ -203,7 +203,7 @@
                 ; Now we have a table with all utterances and relative frequences: find the most common
                 (setf most-common-utterance nil most-common-frequency 0)
                 (maphash (lambda (in-table-word in-table-frequency)
-                          (if (and (> in-table-frequency most-common-frequency) (not (equalp (conceptualised-utterance agent) nil)))
+                          (if (and (> in-table-frequency most-common-frequency) (not (equalp in-table-word nil)))
                                 (setf most-common-utterance in-table-word most-common-frequency in-table-frequency)))
                         conceptualised-utterances-frequency-table))))
 
