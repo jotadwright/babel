@@ -144,23 +144,24 @@
     ;; Notify learning
     
     (set-data (blackboard (grammar hearer)) :agent hearer)
-    (let* ((fix (first (second (multiple-value-list (fcg::notify-learning (get-data (blackboard (grammar hearer)) :cipn) :trigger 'fcg::feedback-received)))))
-           (cxn (meta-layer-learning:restart-data fix))
-           (best-solution nil)
-           (consolidated-cxns nil)
-           (current-node (get-data (blackboard (grammar hearer)) :cipn))
-           (fixed-car (first (get-data fix 'fcg::fixed-cars))) 
-           (child (fcg::cip-add-child current-node fixed-car)))
-      
-      (setf current-node child)
-      (push (type-of (fcg::issued-by fix)) (fcg::statuses child))
-      (setf (fcg::fully-expanded? child) t)
-      (fcg::cip-run-goal-tests child (cip (get-data (blackboard (grammar hearer)) :cipn))) ;; to include succeeded status in node statuses
+    (let* ((fix (first (second (multiple-value-list (fcg::notify-learning (get-data (blackboard (grammar hearer)) :cipn) :trigger 'fcg::feedback-received))))))
+      (when fix
+        (let* ((cxn (meta-layer-learning:restart-data fix))
+               (best-solution nil)
+               (consolidated-cxns nil)
+               (current-node (get-data (blackboard (grammar hearer)) :cipn))
+               (fixed-car (first (get-data fix 'fcg::fixed-cars))) 
+               (child (fcg::cip-add-child current-node fixed-car)))
+          
+          (setf current-node child)
+          (push (type-of (fcg::issued-by fix)) (fcg::statuses child))
+          (setf (fcg::fully-expanded? child) t)
+          (fcg::cip-run-goal-tests child (cip (get-data (blackboard (grammar hearer)) :cipn))) ;; to include succeeded status in node statuses
+          (push 'added-by-repair (fcg::statuses child))
+          
+          (fcg::add-cxn cxn (grammar hearer))
+          (push cxn consolidated-cxns)
 
-      (fcg::add-cxn cxn (grammar hearer))
-      (push cxn consolidated-cxns)
-      (notify adoption-finished cxn)
-    
-      (values cxn fix))
-  )
-
+          (notify adoption-finished cxn (invention (current-interaction (experiment hearer))))
+          
+          (values cxn fix)))))
