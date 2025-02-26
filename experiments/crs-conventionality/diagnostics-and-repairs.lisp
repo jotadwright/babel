@@ -58,9 +58,14 @@
 ;; Repairs ;;
 ;;;;;;;;;;;;;
 
+
 (defclass repair-through-invention (repair)
   ((trigger :initform 'routine-processing-finished))
   (:documentation "Repair that invents"))
+
+(defclass repair-through-form-similarity (repair)
+  ((trigger :initform 'feedback-received))
+  (:documentation "Repair that finds most similar form"))
 
 (defclass repair-through-adoption (repair)
   ((trigger :initform 'feedback-received))
