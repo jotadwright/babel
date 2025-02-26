@@ -88,6 +88,53 @@
                                     "export-coherence-interacting-agents"
                                     "export-construction-inventory-size"))
 
+
+(run-experiments-sequentially 'naming-game-experiment
+                    :strategies `((naming-game-boltzmann-regular
+                                    (;; Logging
+                                     (:log-every-x-interactions . 100)
+                                     ;; Initialising the experiment
+                                     (:nr-of-entities-in-world . 100)
+                                     (:nr-of-agents-in-population . 100)
+                                     (:nr-of-entities-in-scene . 5)
+                                     (:alignment-strategy . :lateral-inhibition)
+                                     (:learning-strategy . :default)
+                                     (:learning-rate . 0.5)
+                                     (:network-topology . :regular)
+                                     (:local-connectivity . 2)                                     
+                                     ;; Initialising an interaction
+                                     (:determine-interacting-agents-mode . :boltzmann-partner-selection)
+                                     (:boltzmann-tau . -20)
+                                     (:boltzmann-lr . 0.01)
+                                     (:determine-scene-entities-mode . :random-subset-of-world)
+                                     (:determine-topic-mode . :random-entity-from-scene)))
+                                  (naming-game-boltzmann-small-world
+                                    (;; Logging
+                                     (:log-every-x-interactions . 100)
+                                     ;; Initialising the experiment
+                                     (:nr-of-entities-in-world . 100)
+                                     (:nr-of-agents-in-population . 100)
+                                     (:nr-of-entities-in-scene . 5)
+                                     (:alignment-strategy . :lateral-inhibition)
+                                     (:learning-strategy . :default)
+                                     (:learning-rate . 0.5)
+                                     (:network-topology . :small-world)
+                                     (:local-connectivity . 2)
+                                     (:rewiring-probability . 0.3)
+                                     ;; Initialising an interaction
+                                     (:determine-interacting-agents-mode . :boltzmann-partner-selection)
+                                     (:boltzmann-tau . -20)
+                                     (:boltzmann-lr . 0.01)
+                                     (:determine-scene-entities-mode . :random-subset-of-world)
+                                     (:determine-topic-mode . :random-entity-from-scene))))
+                    
+                    :number-of-interactions 50000
+                    :number-of-series 10
+                    :monitors (list "log-every-x-interactions-in-output-browser"
+                                    "export-communicative-success"
+                                    "export-conventionalisation"
+                                    "export-construction-inventory-size"))
+
 ;; PARALLEL BATCHES TODO
 ;; (run-parallel-batch-for-different-configurations :asdf-system "crs-conventionality"
 ;;                                                  :package "crs-conventionality"

@@ -26,7 +26,12 @@
         (make-instance 'naming-game-world :experiment experiment))
   ;; Set population
   (setf (population experiment)
-        (make-instance 'naming-game-population :experiment experiment)))
+        (make-instance 'naming-game-population :experiment experiment))
+  ;; Set social network
+  (initialize-social-network experiment)
+  ;; Set initial Q-values
+  (loop for agent in (agents (population experiment))
+        do (initialise-neighbor-q-values agent)))
 
 
 ;; Populations and Agents ;;
@@ -101,7 +106,10 @@
    (introduced-in-game
     :documentation "The game number in which the agent was introduced."
     :type number
-    :initform 0 :initarg :introduced-in-game :accessor introduced-in-game))
+    :initform 0 :initarg :introduced-in-game :accessor introduced-in-game)
+   (neighbor-q-values
+    :documentation "Stores Q values for the agent's neigbors based on success with partners."
+    :type hash-table :accessor neighbor-q-values :initform (make-hash-table)))
   (:documentation "An agent in the experiment"))
 
 
@@ -219,6 +227,9 @@
    (topic 
     :documentation "The topic of the interaction."
     :initform nil :initarg :topic :accessor topic)
+   (invention
+    :documentation "Whether invention occurred in the interaction."
+    :initform nil :accessor invention)
    (coherence-interacting-agents
     :documentation "Whether both interacting agents would have said the same thing under the same circumstances."
     :initform nil :accessor coherence-interacting-agents)
