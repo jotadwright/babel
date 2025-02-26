@@ -39,6 +39,8 @@
 
 (defclass undirected-node-and-edge-typed-graph (undirected-typed-graph)
   ((node-types :accessor node-types :initarg :node-types
+           :initform (make-hash-table :test 'eql))
+   (node-similarities :accessor node-similarities :initarg :node-similarities
            :initform (make-hash-table :test 'eql))))
 
 (defgeneric undirected-typed-graph? (thing)

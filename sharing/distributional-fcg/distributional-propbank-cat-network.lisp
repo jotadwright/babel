@@ -80,20 +80,20 @@
 ;;;;;;;;;;;;;;;;;;;;;;
 ;;(add-element (make-html (categorial-network *train-grammar*) :weights t))
 
-(add-link 'sell.01-1 'sell\(v\)-1 (categorial-network *train-grammar*) :link-type 'lex-gram)
 ;;(add-element (make-html *train-grammar*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Comprehending to test  ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(progn
+  (graph-utils::pre-compute-cosine-similarities (fcg::graph (categorial-network *train-grammar*)))
+  (set-configuration *train-grammar* :category-linking-mode :always-succeed)
+  (set-configuration *train-grammar*  :node-expansion-mode  :multiple-cxns)
+  (set-configuration *train-grammar* :cxn-supplier-mode :cascading-cosine-similarity))
+
+
 #|
- 
-(set-configuration *train-grammar* :category-linking-mode :graph-cosine-similarity)
-
-(set-configuration *train-grammar*  :node-expansion-mode  :multiple-cxns)
-
-(set-configuration *train-grammar* :cxn-supplier-mode :cascading-cosine-similarity)
 
 (comprehend "he sold his mother the car" :timeout nil)
 
@@ -132,10 +132,10 @@
         nil))))
 
 (defmethod apply-heuristic ((node cip-node) (mode (eql :graph-cosine-similarity)))
-  "Returns the weight of the categorial network edge that was used in
-matching."
-  (print "test")
-  0)
+  "Returns the graph-cosine-similarity of the categories that were matched."
+  (let* ((applied-cxn (car-applied-cxn (cipn-car node))))
+    (cdr (assoc (name applied-cxn) (fcg::cxns-all-levels (cxn-supplier (first (all-parents node)))) :key #'name :test #'eql))))
+         
 
 
 

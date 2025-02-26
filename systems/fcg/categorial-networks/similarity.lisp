@@ -53,6 +53,21 @@
              denominator)
           0)))))
 
+(defun weighted-graph-cosine-similarity (node-1 node-2 graph)
+  (let* ((node-id-1 (graph-utils:lookup-node graph node-1))
+         (node-id-2 (graph-utils:lookup-node graph node-2)))
+    (when (and node-id-1 node-id-2)
+      (let ((denominator (sqrt (* (reduce '+ (loop for degree-1 in (remove-duplicates (mapcar #'cdr (graph-utils::neighbors graph node-id-1))) ;; take the edge weight of all neighbouring edges
+                                                   collect (square (graph-utils:edge-weight graph  degree-1 node-id-1)))) ;; take the square of the weight, and sum it
+                                  (reduce '+ (loop for degree-2 in (remove-duplicates (mapcar #'cdr (graph-utils::neighbors graph node-id-2)))
+                                                   collect (square (graph-utils:edge-weight graph  degree-2 node-id-2))))))))
+        (if (> denominator 0)
+          (/ (reduce '+ (loop for common-neighbour in (common-neighbours node-id-1 node-id-2 graph)
+                              collect (* (graph-utils:edge-weight graph node-id-1 common-neighbour)
+                                         (graph-utils:edge-weight graph node-id-2 common-neighbour))))
+             denominator)
+          0)))))
+
 (defun weighted-graph-cosine-similarity-from-node-ids (node-id-1 node-id-2 graph)
     (when (and node-id-1 node-id-2)
       (let ((denominator (sqrt (* (reduce '+ (loop for degree-1 in (remove-duplicates (mapcar #'cdr (graph-utils::neighbors graph node-id-1))) ;; take the edge weight of all neighbouring edges
@@ -154,3 +169,8 @@
         collect (cons (graph-utils:lookup-node graph neighbour-id) edge-weight)
         into neighbour-categories
         finally (return (sort neighbour-categories #'> :key #'cdr))))
+
+(defun pre-compute-cosine-similarities (graph)
+  (maphash #'(lambda (category v) (setf (gethash category (graph-utils::node-similarities graph))
+                                          (graph-utils::similar-nodes-weighted-cosine-same-node-type category graph)))
+             (graph-utils::nodes graph)))
