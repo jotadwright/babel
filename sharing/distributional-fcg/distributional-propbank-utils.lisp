@@ -20,7 +20,10 @@
         (cdr (assoc (variablify lemma-embedding-pointer) bindings))
         0))))
     
-
+(defmethod apply-heuristic ((node cip-node) (mode (eql :graph-cosine-similarity)))
+  "Returns the graph-cosine-similarity of the categories that were matched."
+  (let* ((applied-cxn (car-applied-cxn (cipn-car node))))
+    (cdr (assoc (name applied-cxn) (fcg::cxns-all-levels (cxn-supplier (first (all-parents node)))) :key #'name :test #'eql))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; helper functions to make proto-embeddings  ;;

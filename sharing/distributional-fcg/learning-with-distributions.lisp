@@ -82,7 +82,7 @@
                               :description ,(sentence-string propbank-sentence)
                               :disable-automatic-footprints t
                               :cxn-inventory ,cxn-inventory)))
-             (add-category lex-category cxn-inventory :recompute-transitive-closure nil) 
+             (add-category lex-category cxn-inventory :recompute-transitive-closure nil :node-type 'lex-category)
              lex-category))))
 
 ;; remove lemma feature from cxn, otherwise cxns can never match if not exact lemma, what we want to avoid with the distributional experiment. 
@@ -150,7 +150,7 @@ categorial network and returns it."
                        :description ,(sentence-string propbank-sentence)
                        :cxn-inventory ,cxn-inventory))
         
-        (add-category sense-category cxn-inventory :recompute-transitive-closure nil)
+        (add-category sense-category cxn-inventory :recompute-transitive-closure nil :node-type 'sense-category)
         (add-link gram-category sense-category cxn-inventory :weight 1.0 :link-type nil :recompute-transitive-closure nil)
         (add-link gram-category sense-category cxn-inventory :weight 1.0 :link-type 'gram-sense :recompute-transitive-closure nil)
         (add-link lex-category sense-category cxn-inventory :weight 1.0 :link-type nil :recompute-transitive-closure nil)
@@ -215,7 +215,7 @@ grammatical category."
       ;;--------------------------------------------------------------------------------------------------------------------
       (when (and cxn-units-with-role (v-lemma core-units-with-role))
         
-        (add-category gram-category cxn-inventory :recompute-transitive-closure nil)
+        (add-category gram-category cxn-inventory :recompute-transitive-closure nil :node-type 'gram-category)
         (add-link lex-category gram-category cxn-inventory :weight 1.0 :link-type nil :recompute-transitive-closure nil)
         (add-link lex-category gram-category cxn-inventory :weight 1.0 :link-type 'lex-gram :recompute-transitive-closure nil)
         (multiple-value-bind (cxn-inventory cxn)
@@ -411,7 +411,9 @@ initial transient structure that plays a role in the frame."
                   (meaning set-of-predicates)
                   (footprints set)
                   (embedding default :compare-distributional-vectors))
-  :hashed t)
+  :hashed t
+  :categorial-network `,(make-instance 'categorial-network :graph (graph-utils::make-undirected-node-and-edge-typed-graph)))
+
 
 
 ;; Changes: blackboard of the initial-cfs is already initialised so just do set-data on the blackboard instead of on the initial-cfs. 

@@ -94,13 +94,19 @@
 (make-proto-role-embeddings *distributional-representations-of-tokens-and-types-grammar*)
 (add-embeddings-to-cxn-inventory *distributional-representations-of-tokens-and-types-grammar*)
 
+(progn
+  (graph-utils::pre-compute-cosine-similarities (fcg::graph (categorial-network *distributional-representations-of-tokens-and-types-grammar*)))
+  (set-configuration *distributional-representations-of-tokens-and-types-grammar* :category-linking-mode :always-succeed)
+  (set-configuration *distributional-representations-of-tokens-and-types-grammar* :node-expansion-mode  :multiple-cxns)
+  (set-configuration *distributional-representations-of-tokens-and-types-grammar* :cxn-supplier-mode :cascading-cosine-similarity))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;     Comprehend!!!     ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;corpus:
-(comprehend "I will send you the money tomorrow" :cxn-inventory *distributional-representations-of-tokens-and-types-grammar*)
-(comprehend "I have sent him a postcard" :cxn-inventory *distributional-representations-of-tokens-and-types-grammar*)
+; (comprehend "I will send you the money tomorrow" :cxn-inventory *distributional-representations-of-tokens-and-types-grammar*)
+(comprehend "I have sent him a postcard" :cxn-inventory *distributional-representations-of-tokens-and-types-grammar* :timeout nil)
 
 ;; example! 
 (comprehend "I will wire you the money" :cxn-inventory *distributional-representations-of-tokens-and-types-grammar*)
@@ -172,6 +178,7 @@
 ;; Needs to be set otherwise you will not be able to match since we learn cxns with embeddings.
 (make-proto-role-embeddings *distributional-representations-of-constructional-slots-grammar*)
 (add-embeddings-to-cxn-inventory *distributional-representations-of-constructional-slots-grammar*)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;     Comprehend!!!     ;;

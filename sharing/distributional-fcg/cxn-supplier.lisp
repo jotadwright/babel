@@ -50,7 +50,7 @@ direct neighbours of the categories present in the node."
 
 (defun word-sense-cxns-for-lemma (lemma cxn-inventory)
   (loop for cxn in (gethash lemma (constructions-hash-table cxn-inventory))
-        when  (attr-val cxn :sense-category)
+        when (attr-val cxn :sense-category)
           collect (cons cxn 1)))
 
 (defun constructions-per-level (node)
@@ -72,8 +72,16 @@ direct neighbours of the categories present in the node."
                                                                                                  similarity)) gram-neighbours))))
          (word-sense-cxns (loop for lemma in (hash node (get-configuration node :hash-mode))
                                 append (word-sense-cxns-for-lemma lemma cxn-inventory))))
-    (cons-if  (append lexical-cxns word-sense-cxns (first argument-structure-constructions-per-level))
-              (rest argument-structure-constructions-per-level))))
+    (unless lexical-cxns
+      (setf lexical-cxns (loop for cxn in (constructions-list cxn-inventory)
+                               when (attr-val cxn :lex-category)
+                                 collect (cons cxn 0)))) ;; the cosine is calculated in the expansion.
+    (unless word-sense-cxns
+      (setf word-sense-cxns (loop for cxn in (constructions-list cxn-inventory)
+                               when (attr-val cxn :sense-category)
+                                 collect (cons cxn 0))))
+    (cons-if (append lexical-cxns word-sense-cxns (first argument-structure-constructions-per-level))
+             (rest argument-structure-constructions-per-level))))
          
 
 
