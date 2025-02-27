@@ -52,6 +52,7 @@
   ;; deactivate all monitors (as a sanity check)
   (monitors::notify reset-monitors)
   ;; instantiate a naming game experiment
+  (reset-id-counters)
   (defparameter *naming-game* (make-instance 'naming-game-experiment
                                              :configuration *configuration*))
   ;; visualise the population network
