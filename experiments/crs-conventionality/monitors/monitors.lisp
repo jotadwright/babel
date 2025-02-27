@@ -26,21 +26,16 @@
                  (get-configuration experiment :log-every-x-interactions))
             0)
          (let ((comm-success (caaar (monitors::get-average-values (monitors::get-monitor 'record-communicative-success))))
-               (coherence-interacting-agents (caaar (monitors::get-average-values (monitors::get-monitor 'record-coherence-interacting-agents))))
-               (coherence-population (caaar (monitors::get-average-values (monitors::get-monitor 'record-coherence-population))))
-               )
+               (coherence-interacting-agents (caaar (monitors::get-average-values (monitors::get-monitor 'record-coherence-interacting-agents)))))
            (multiple-value-bind (h m s) (seconds-to-hours-minutes-seconds (- (get-universal-time) *start-time*))
              (format t
-                     ". (~a | ~a / ~a / ~a | ~ah ~am ~as)~%"
+                     ". (~a | ~a / ~a | ~ah ~am ~as)~%"
                      (interaction-number interaction)
                      (if comm-success
                        (format nil "~,vf% Comm. success" 1 (* 100 (float comm-success)))
                        "NIL")
                      (if coherence-interacting-agents
                        (format nil "~,vf% Conven." 1 (* 100 (float coherence-interacting-agents)))
-                       "NIL")
-                     (if coherence-population
-                       (format nil "~,vf% Population-wide Conven." 1 (* 100 (float coherence-population)))
                        "NIL")
                      h m s)))
          ;; reset the timer
@@ -102,7 +97,14 @@
                                            :directory '("experiments" "crs-conventionality" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
-(define-event-handler (record-coherence-population interaction-finished)
+;; Form uttered ;;
+;;;;;;;;;;;;;;;;;;
+(define-event form-uttered (interaction crs-conventionality-interaction)
+                           (speaker crs-conventionality-agent)
+                           (hearer crs-conventionality-agent))
+
+(define-event-handler (record-coherence-population form-uttered)
+  (determine-coherence-population speaker hearer)
   (record-value monitor (coherence-population interaction)))
 
 
@@ -142,15 +144,13 @@
                 :class 'gnuplot-display
                 :data-sources '((average record-communicative-success)
                                 (average record-coherence-interacting-agents)
-                                (average record-coherence-population)
                                 (average record-construction-inventory-size))
                 :update-interval 100
                 :caption '("communicative success"
                            "degree of coherence between interacting agents"
-                           "degree of population-wide coherence"
                            "construction inventory size")
                 :x-label "# Games"
-                :use-y-axis '(1 1 1 2)
+                :use-y-axis '(1 1 2)
                 :y1-label "Communicative Success/Coherence" 
                 :y1-max 1.0
                 :y1-min 0
