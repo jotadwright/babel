@@ -11,10 +11,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (setf *restored-experiment*
-        (cl-store:restore (babel-pathname :directory '("experiments"
-                                                       "crs-conventionality")
-                                          :name "demo-experiment"
-                                          :type "store")))
+      (cl-store:restore (babel-pathname :directory '("experiments"
+                                                     "crs-conventionality")
+                                        :name "demo-experiment"
+                                        :type "store")))
 
 ;; CLASSES ;;
 ;;;;;;;;;;;;;
@@ -63,9 +63,9 @@
 
 (defmethod initialize-instance :after ((world concept-emergence-world) &key &allow-other-keys)
   "Sets the entities of the world."
- (let ((entities (get-clevr-entities-from-files)))
-   (setf (entities world)
-         (random-elts entities (get-configuration (experiment world) :nr-of-entities-in-world)))))
+  (let ((entities (get-clevr-entities-from-files)))
+    (setf (entities world)
+          (random-elts entities (get-configuration (experiment world) :nr-of-entities-in-world)))))
 
 
 (defmethod interact ((experiment concept-emergence-experiment)
@@ -113,26 +113,26 @@
     (setf (grammar agent)
           (eval
            `(def-fcg-constructions ,grammar-name
-                                   :hashed t
-                                   :cxn-inventory ,grammar-name
-                                   :feature-types ((meaning set)
-                                                   (form set))
-                                   :fcg-configurations (;; Rendering and de-rendering
-                                                        (:de-render-mode . :de-render-raw)
-                                                        (:render-mode . :render-raw)
-                                                        (:create-initial-structure-mode . :topic-and-scene)
-                                                        ;; Construction supplier and search
-                                                        (:construction-inventory-processor-mode . :heuristic-search)
-                                                        (:node-expansion-mode . :full-expansion)
-                                                        (:cxn-supplier-mode . :hashed)
-                                                        ;; for using heuristics
-                                                        (:search-algorithm . :best-first)
-                                                        (:heuristics :cxn-score)
-                                                        (:heuristic-value-mode . :sum-heuristics-and-parent) 
-                                                        ;; goal tests
-                                                        (:parse-goal-tests :no-sequence-in-root)
-                                                        (:production-goal-tests :no-meaning-in-root))
-                                   ,@cxns)))))
+              :hashed t
+              :cxn-inventory ,grammar-name
+              :feature-types ((meaning set)
+                              (form set))
+              :fcg-configurations (;; Rendering and de-rendering
+                                   (:de-render-mode . :de-render-raw)
+                                   (:render-mode . :render-raw)
+                                   (:create-initial-structure-mode . :topic-and-scene)
+                                   ;; Construction supplier and search
+                                   (:construction-inventory-processor-mode . :heuristic-search)
+                                   (:node-expansion-mode . :full-expansion)
+                                   (:cxn-supplier-mode . :hashed)
+                                   ;; for using heuristics
+                                   (:search-algorithm . :best-first)
+                                   (:heuristics :cxn-score)
+                                   (:heuristic-value-mode . :sum-heuristics-and-parent) 
+                                   ;; goal tests
+                                   (:parse-goal-tests :no-sequence-in-root)
+                                   (:production-goal-tests :no-meaning-in-root))
+              ,@cxns)))))
 
 ;; ENTITIES AND FEATURE VECTORS ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -147,9 +147,9 @@
                          for json-as-alist = (cl-jonathan:decode-json-as-alist-from-source file)
                          for objects = (rest (assoc :objects json-as-alist))
                          append (loop for obj in objects
-                                       collect (make-instance 'concept-emergence-entity
-                                                              :features (filter-object (intern-alist (rest (assoc :attributes obj))) features)
-                                                              :description (rest (assoc :description obj)))))))
+                                      collect (make-instance 'concept-emergence-entity
+                                                             :features (filter-object (intern-alist (rest (assoc :attributes obj))) features)
+                                                             :description (rest (assoc :description obj)))))))
 
     entities))
 

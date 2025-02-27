@@ -4,6 +4,9 @@
 ;;             - Producer and comprehender changed to speaker and hearer.
 ;;             - Speaker and hearer changed to get-speaker and get-hearer.
 ;;             - Value of population is an object and not a list.
+;; 24/02/2025: Changes made by Jamie:
+;;             - Made small word network rewiring undirected (remove/add old/new links from other agent).
+;;             - Removed some functions defined elsewhere.
 
 ;; (ql:quickload :crs-conventionality)
 
@@ -15,7 +18,7 @@
 ;;;;; in the code itself. 
 
 ;;;;; ---------------------------------------------------------
-;;;;; 1.Social Network
+;;;;; Social Network
 ;;;;; ---------------------------------------------------------
 ;;;;;
 ;;;;; A social network consists of the connections that an agent
@@ -32,98 +35,12 @@
   (get-data agent :social-network))
 
 ;;;;; ---------------------------------------------------------
-;;;;; 2. Helper Functions for speakers and hearers
-;;;;; ---------------------------------------------------------
-;;;;;
-;;;;; Agents can play two basic roles: speaker and hearer.
-;;;;; These terms are more general than "speaker" or "hearer", 
-;;;;; which are specific to vocal languages only.
-
-;; Helper functions.
-(defun speaker-p (agent)
-  "Is the agent the speaker?"
-  (eql 'speaker (discourse-role agent)))
-;; (speaker-p (make-instance 'agent))
-
-(defmethod hearer-p (agent)
-  "Is the agent the hearer"
-  (eql 'hearer (discourse-role agent)))
-;; (hearer-p (make-instance 'agent))
-
-(defun get-speaker (agents)
-  "Return the speaker among a list of agents."
-  (find-if #'speaker-p agents))
-
-(defun get-hearer (agents)
-  "Return the hearer among a list of agents."
-  (find-if #'hearer-p agents))
-
-;;;;; ---------------------------------------------------------
-;;;;; 3. Determine Interacting Agents Using a Social Network
-;;;;; ---------------------------------------------------------
-;;;;; First a speaker is selected, after which a hearer
-;;;;; is selected from the social network of the speaker.
-
-(defgeneric choose-speaker (agents mode))
-
-(defmethod choose-speaker ((agents list)
-                            (mode t))
-  (declare (ignorable mode))
-  ;; By defult we pick a random speaker.
-  (let ((speaker (random-elt agents)))
-    (setf (discourse-role speaker) 'speaker)
-    speaker))
-
-(defmethod choose-speaker ((experiment experiment)
-                            (mode t))
-  ;; In traditional experiments, the agents are listed in the agents slot.
-  (choose-speaker (agents experiment) mode))
-
-(defmethod choose-speaker ((population crs-conventionality-population)
-                            (mode t))
-  ;; In the crs-conventionality code, the agents are located in the population class.
-  (choose-speaker (agents population) mode))
-
-(defgeneric choose-hearer (agent mode))
-
-(defmethod choose-hearer ((agent agent)
-                                (mode t))
-  (declare (ignore mode))
-  (let ((hearer (random-elt (social-network agent))))
-    (setf (discourse-role hearer) 'hearer)
-    hearer))
-
-(defgeneric clean-agent (agent))
-
-(defmethod clean-agent ((agent agent))
-  (setf (communicated-successfully agent) nil
-        (utterance agent) nil)
-  agent)
-
-(defmethod determine-interacting-agents ((experiment crs-conventionality-experiment)
-                                         (interaction interaction) 
-                                         (mode (eql :random-from-social-network))
-                                         &key &allow-other-keys)
-  "This method randomly picks one agent, and then randomly picks an agent 
-   from its social network. In a fully connected network, this is the same 
-   as picking two random agents."
-  (let* ((agents (if (listp (agents experiment))
-                   (agents experiment)
-                   (agents (population experiment))))
-         (speaker (choose-speaker agents mode))
-         (hearer (choose-hearer speaker mode))
-         (interacting-agents (list speaker hearer)))
-    ;; "clean" the agents:
-    (mapcar #'clean-agent interacting-agents)
-    (setf (interacting-agents interaction) interacting-agents)
-    (notify interacting-agents-determined experiment interaction)))
-
-;;;;; ---------------------------------------------------------
-;;;;; 4. A Fully Connected Social Network
+;;;;; Fully Connected Social Network
 ;;;;; ---------------------------------------------------------
 ;;;;;
 ;;;;; By default, we use a fully connected social network in 
 ;;;;; which each agent can interact with each other agent.
+
 (defun create-fully-connected-network (population &optional reverse-population)
   (if (null population) 
     (reverse reverse-population)
@@ -134,13 +51,13 @@
                                       (cons (first population) reverse-population)))))
 
 ;;;;; ---------------------------------------------------------
-;;;;; 5. Regular Social Network
+;;;;; Regular Social Network
 ;;;;; ---------------------------------------------------------
 ;;;;;
 ;;;;; A "regular network" is a network where the node degree 
 ;;;;; distribution is a constant value for all nodes.
 
-(defun create-regular-population-network (population &optional l)
+(defun create-regular-population-network (population &optional l) ;; l is a bad parameter name
   "Turn an unstructured population into a regular lattice 
    in which each agent has connections to its l nearest neighbors. 
    If l is not specified, create a fully connected network."
@@ -172,7 +89,7 @@
           agents)))))
 
 ;;;;; ---------------------------------------------------------
-;;;;; 6. Small World Network
+;;;;; Small World Network
 ;;;;; ---------------------------------------------------------
 ;;;;; The Small World network model (~ Watts and Strogatz) is 
 ;;;;; a simple but popular social network structure because it 
@@ -186,9 +103,13 @@
                                          (if rewiring-pair
                                            (second rewiring-pair)
                                            social-link)))))
-    (setf (social-network agent) rewired-network)))
+    (setf (social-network agent) rewired-network))
+  ;; Remove current agent from social network of agent connected before rewiring, add to the social network of the newly connected agent.
+  (loop for pair in rewiring-pairs
+        do (setf (social-network (first pair)) (remove agent (social-network (first pair))))
+        do (setf (social-network (second pair)) (push agent (social-network (second pair))))))
 
-(defun rewire-regular-network (population p)
+(defun rewire-regular-network(population p)
   "Rewire local links with long-distance links with probability p."
   (let ((agents (if (listp population) population (agents population))))
     (dolist (agent agents)
@@ -236,7 +157,8 @@
 ;;
 ;; This is the probability that a local link will be replaced by a long-distance link. These long-
 ;; distance links allow conventions to make bigger jumps in the network, which may speed up its 
-;; diffusion among agents. 
+;; diffusion among agents.
+
 (defmethod initialize-social-network ((experiment crs-conventionality-experiment))
   (let ((population (agents (population experiment))))
     ;; If no network topology is specified in the configuration, make a fully
@@ -258,9 +180,10 @@
 ;;; If you want to visualize the social network of the population, you can do so with
 ;;; the function #'population-network->graphviz below. This visualization can be 
 ;;; improved a lot but it helps to have an idea of the network structure.
+
 (defun make-time-stamp ()
   (multiple-value-bind (seconds minutes hour day month year)
-                       (get-decoded-time)
+      (get-decoded-time)
     (format nil "~a-~a-~a-~a-~a-~a" year month day hour minutes seconds)))
 
 (defun make-id-for-gv (agent)
@@ -297,7 +220,7 @@
                 ;; If it is a new edge, we keep it:
                 (unless (loop for edge in edges
                               when (member edge (list link alternative-link) :test #'string=)
-                              return t)
+                                return t)
                   (push link edges))))))
         ;; Now add the edges to the graph. Note that graphviz automatically chooses the layout that it estimates
         ;; as the best one. So if you label the nodes, you might not get the order you imagine.
@@ -324,78 +247,3 @@
                            :args (list "/C"
                                        (string-replace
                                         (format nil "c:~a" png-filename-string "/" "\\")))))))))))
-
-;; Fully connected network:
-; (reset-id-counters)
-#|
- (let* ((experiment (make-instance 'crs-conventionality-experiment))
-        (agents (loop for i from 1 to 10 collect (make-instance 'agent)))
-        (population (make-instance 'crs-conventionality-population :agents agents)))
-   (setf (population experiment) population)
-   (initialize-social-network experiment)
-   (population-network->graphviz agents :make-image t :open-image t :use-labels? t))
-
-;; Regular network:
-(let* ((experiment (make-instance 'crs-conventionality-experiment))
-       (agents (loop for i from 1 to 10 collect (make-instance 'agent)))
-       (population (make-instance 'crs-conventionality-population :agents agents)))
-  (setf (population experiment) population)
-  (set-configuration experiment :network-topology :regular)
-  (set-configuration experiment :local-connectivity 2)
-  (initialize-social-network experiment)
-  (population-network->graphviz agents :make-image t :open-image t :use-labels? t)
-  agents)
-
-;; Small world network:
-(let* ((experiment (make-instance 'crs-conventionality-experiment))
-       (agents (loop for i from 1 to 10 collect (make-instance 'agent)))
-       (population (make-instance 'crs-conventionality-population :agents agents)))
-  (setf (population experiment) population)
-  (set-configuration experiment :network-topology :small-world)
-  (set-configuration experiment :local-connectivity 2)
-  (set-configuration experiment :rewiring-probability 0.3)
-  (initialize-social-network experiment)
-  (population-network->graphviz agents :make-image t :open-image t :use-labels? t)
-  agents)
-
- |#
-
-;;;;; ---------------------------------------------------------
-;;;;; 8. Tests.
-;;;;; ---------------------------------------------------------
-
-(deftest test-discourse-role ()
-  (let ((agents (loop repeat 2 collect (make-instance 'agent))))
-    (setf (discourse-role (first agents)) 'speaker)
-    (setf (discourse-role (second agents)) 'hearer)
-    (test-assert (equal (get-speaker agents) (first agents)))
-    (test-assert (equal (get-hearer agents) (second agents)))))
-;; (test-discourse-role)
-
-
-(deftest test-social-network ()
-  (labels ((make-ten-agents () (loop repeat 10 collect (make-instance 'agent))))
-  (let* ((experiment (make-instance 'crs-conventionality-experiment)))
-    (let* ((agents (setf (agents experiment) (make-ten-agents)))
-           (agent (first agents)))
-      (initialize-social-network experiment)
-      (test-assert (social-network agent))
-      (test-assert (= 9 (length (social-network agent))))
-      (let* ((speaker (choose-speaker agents t))
-             (hearer (choose-hearer speaker t)))
-        (test-assert (speaker-p speaker))
-        (test-assert (hearer-p hearer))))
-    (setf (agents experiment) nil
-          (population experiment) (make-instance 'crs-conventionality-population
-                                                 :agents (make-ten-agents)))
-    (set-configuration experiment :network-topology :normal)
-    (set-configuration experiment :local-connectivity 3)
-    (initialize-social-network experiment)
-    (test-assert (= 6 (length (social-network (first (agents (population experiment)))))))
-    (setf (population experiment) nil
-          (agents experiment) (make-ten-agents))
-    (set-configuration experiment :network-topology :small-world)
-    (set-configuration experiment :rewiring-probability 0.3)
-    (initialize-social-network experiment)
-    (test-assert (= 6 (length (social-network (first (agents experiment)))))))))
-;; (test-social-network)

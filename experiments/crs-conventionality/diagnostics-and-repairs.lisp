@@ -151,8 +151,7 @@
 
       ;; add cxn to the cxn-inventory
       (add-cxn cxn cxn-inventory-copy)
-      (make-instance 'adoption-fix :restart-data cxn)
-      )))
+      (make-instance 'adoption-fix :restart-data cxn))))
 
 (defmethod copy-object ((entity irl:entity))
   "Needs to be implemented"

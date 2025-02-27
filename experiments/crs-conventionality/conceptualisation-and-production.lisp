@@ -61,7 +61,7 @@
                                                            (get-configuration (grammar agent) :render-mode)))
             (setf (applied-constructions agent) (list (processing-cxn cxn))))
           (setf (invention (interaction scene)) t)))
-        ;; otherwise, render and set solution nodes
+      ;; otherwise, render and set solution nodes
       (progn
         (setf (conceptualised-utterance agent) (render (car-resulting-cfs (fcg:cipn-car (first solution-node)))
                                                        (get-configuration (grammar agent) :render-mode)))

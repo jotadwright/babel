@@ -44,25 +44,10 @@
                  (utterance agent) nil
                  (conceptualised-utterance agent) nil
                  (applied-constructions agent) nil
-                 (solution-node agent) nil))
+                 (solution-node agent) nil
+                 (communicated-successfully agent) nil))
   (setf (communicated-successfully interaction) nil
         (interacting-agents interaction) nil))
-
-(defmethod determine-interacting-agents (experiment (interaction interaction)
-                                                    (mode (eql :random-from-population))
-                                                    &key &allow-other-keys)
-  "Randomly chooses two interacting agents and adds the discourse roles speaker and hearer to them."
-  (let ((agents (agents (population experiment))))
-    (setf (interacting-agents interaction)
-          (if (> (length agents) 1)
-            (random-elts agents 2)
-            agents))
-    (loop for a in (interacting-agents interaction)
-          for d in '(speaker hearer)
-          do (setf (discourse-role a) d)
-             (setf (utterance a) nil)
-             (setf (communicated-successfully a) nil))
-    (notify interacting-agents-determined experiment interaction)))
 
 (defmethod determine-interacting-agents (experiment (interaction interaction)
                                                     (mode (eql :random-listener-from-younger-generation))
@@ -76,13 +61,56 @@
                                 if (> (introduced-in-game agent) 0)
                                   collect agent))
          (speaker (random-elt old-generations))
-         (hearer (random-elt new-generations)))
+         (hearer (random-elt new-generations))
+         (interacting-agents (list speaker hearer)))
+
+    ;; set the discourse-role
     (setf (discourse-role speaker) 'speaker
           (discourse-role hearer) 'hearer
-          (communicated-successfully speaker) nil
-          (communicated-successfully hearer) nil
-          (interacting-agents interaction) (list speaker hearer))
+          (interacting-agents interaction) interacting-agents)
     (notify interacting-agents-determined experiment interaction)))
+
+(defmethod determine-interacting-agents ((experiment crs-conventionality-experiment)
+                                         (interaction interaction) 
+                                         (mode (eql :random-from-social-network))
+                                         &key &allow-other-keys)
+  "This method randomly picks one agent, and then randomly picks an agent 
+   from its social network. In a fully connected network, this is the same 
+   as picking two random agents."
+  (let* ((agents (if (listp (agents experiment))
+                   (agents experiment)
+                   (agents (population experiment))))
+         (speaker (random-elt agents))
+         (hearer (random-elt (social-network speaker)))
+         (interacting-agents (list speaker hearer)))
+
+    ;; set the discourse-role
+    (setf (discourse-role speaker) 'speaker
+          (discourse-role hearer) 'hearer
+          (interacting-agents interaction) interacting-agents)
+    (notify interacting-agents-determined experiment interaction)))
+
+(defmethod determine-interacting-agents (experiment (interaction interaction) (mode (eql :boltzmann-partner-selection))
+                                                    &key &allow-other-keys)
+  "This default implementation randomly chooses two interacting agents
+   and adds the discourse roles speaker and hearer to them"
+  (let* (;; select a random agent
+         (agent (random-elt (agents (population experiment))))
+         ;; select its partner based on its preferences
+         (preferred-partner (choose-partner agent
+                                            (agents (population experiment))
+                                            (get-configuration experiment :boltzmann-tau)))
+         ;; shuffle the two agents around so that speaker/hearer role assignment is random
+         (interacting-agents (shuffle (list agent preferred-partner))))
+    ;; set interacting-agents
+    (setf (interacting-agents interaction) interacting-agents))
+  
+  ;; set the discourse-role
+  (loop for a in (interacting-agents interaction)
+        for d in '(speaker hearer)
+        do (setf (discourse-role a) d))
+  (notify interacting-agents-determined experiment interaction))
+
 
 
 (defgeneric determine-scene-entities (experiment interaction mode)
@@ -143,8 +171,8 @@
     
     
     ;; Finishing interaction (TODO to remove?)
-    ;; (finish-interaction experiment interaction)
-    ))
+    (unless (eq (get-configuration experiment :determine-interacting-agents-mode) :random-from-population)
+      (finish-interaction experiment interaction))))
 
 ;; helper functions (best placed somewhere else?)
 
@@ -174,8 +202,87 @@
          (topic (topic interaction)))
     (conceptualise-and-produce hearer scene topic :use-meta-layer nil)
     (if (equalp (utterance speaker) (conceptualised-utterance hearer))
-        (setf (coherence interaction) t)
-        (setf (coherence interaction) nil))
+      (setf (coherence interaction) t)
+      (setf (coherence interaction) nil))
     (notify determine-coherence-finished speaker hearer)))
 
+
+(defmethod finish-interaction ((experiment crs-conventionality-experiment) (interaction crs-conventionality-interaction))
+  ;; update neighbor-q-values
+  (let ((reward (if (communicated-successfully interaction) 1 0)))
+    (update-neighbor-q-value (speaker experiment) (hearer experiment) reward (get-configuration experiment :neighbor-q-value-lr))
+    (update-neighbor-q-value (hearer experiment) (speaker experiment) reward (get-configuration experiment :neighbor-q-value-lr))))
+
+
+;; ---------------------
+;; + Partner selection +
+;; ---------------------
+
+(defun calculate-new-q-value (q-value reward lr)
+  (+ q-value (* lr (- reward q-value))))
+
+(defun boltzmann-exploration (q-values tau)
+  "Boltzmann exploration for partner selection.
+
+   tau corresponds to an inverse temperature:
+     if tau = 0: no preference, random sampling
+     if tau > 0: preference to select partners you understand well
+     if tau < 0: curiosity-driven partner selection
+
+    Inspired by Leung's et al. paper on curiosity-driven partner selection (2025)."
+  (let* ((exp-values (mapcar (lambda (q) (exp (* tau q))) q-values))
+         (total-sum (reduce #'+ exp-values)))
+    (mapcar (lambda (exp-value) (/ exp-value total-sum)) exp-values)))
+
+(defun sample-partner (neighbors probabilities)
+  "Randomly sample a partner from the neighbors using the given probabilities."
+  (loop with r = (random 1.0)
+        with cumulative = 0.0
+        for neighbor in neighbors
+        for probability in probabilities
+        do (setf cumulative (+ cumulative probability))
+        when (<= r cumulative)
+          return neighbor
+          ;; if the sum of probabilities is not equal to 1 (due to some numerical stability)
+          ;; always make a decision and pick the last agent
+        finally (return (car (last neighbors)))))
+
+(define-event event-partner-selection
+  (agent crs-conventionality-agent)
+  (neighbors list)
+  (q-values list)
+  (probabilities list)
+  (partner-id symbol))
+
+(defmethod choose-partner ((agent crs-conventionality-agent) (other-agents list) (tau number))
+  "Choose a partner for a given agent using Boltzmann exploration."
+
+  (let* ((neighbors (hash-keys (neighbor-q-values agent)))
+         (q-values (hash-values (neighbor-q-values agent)))
+         (probabilities (boltzmann-exploration q-values tau))
+         ;; sample a partner (by id)
+         (partner-id (sample-partner neighbors probabilities))
+         ;; match id to the other-agents
+         (partner (find partner-id other-agents :test (lambda (x y) (eq x (id y))))))
+
+    (notify event-partner-selection agent neighbors q-values probabilities partner-id)
+    partner))
+
+
+(defmethod initialise-neighbor-q-values ((agent crs-conventionality-agent) &key (initial-q 0.5))
+  "Let agent store a Q-value for all of its neighbors, initialised at initial-q."
+  (loop for neighbor in (social-network agent)
+        do (insert-neighbor-q-value agent neighbor :initial-q initial-q)))
+
+(defmethod insert-neighbor-q-value ((agent crs-conventionality-agent) (neighbor crs-conventionality-agent) &key (initial-q 0.5))
+  "Let agent store a Q-value for neighbor, initialised at initial-q."
+  (setf (gethash (id neighbor) (neighbor-q-values agent))
+        initial-q))
+
+(defmethod update-neighbor-q-value ((agent crs-conventionality-agent) (neighbor crs-conventionality-agent) (reward number) (lr float))
+  "Update the q-value that agent stores for neighbor."
+  (let* ((q-values (neighbor-q-values agent))
+         (q-old (gethash (id neighbor) q-values))
+         (q-new (calculate-new-q-value q-old reward lr)))
+    (setf (gethash (id neighbor) q-values) q-new)))
 

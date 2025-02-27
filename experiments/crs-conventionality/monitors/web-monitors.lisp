@@ -192,9 +192,11 @@
 
 ;; Adoption finished ;;
 ;;;;;;;;;;;;;;;;;;;;;;;
-(define-event adoption-finished (cxn fcg::fcg-construction))
+(define-event adoption-finished (cxn fcg::fcg-construction) (invention t))
 
 (define-event-handler (trace-interaction adoption-finished)
+  (when invention
+    (add-element `((h2 :style "background-color: LightGray; padding: 5px;") ,(format nil "Adoption"))))
   (add-element `((p) ,(format nil "The hearer adopted the following construction: ")))
   (add-element (make-html cxn :expand-initially nil)))
 
