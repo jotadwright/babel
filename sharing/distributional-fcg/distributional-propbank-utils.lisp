@@ -1,8 +1,8 @@
 (in-package :propbank-grammar)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Heuristic that sums cosine similarity  ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;
+;; Heuristics  ;;
+;;;;;;;;;;;;;;;;;
 
 (defmethod apply-heuristic ((node cip-node) (mode (eql :embedding-similarity)))
   (let* ((applied-cxn (get-original-cxn (car-applied-cxn (cipn-car node))))
@@ -91,3 +91,20 @@ field :cxn-token-embeddings"
 (defun node-lemma-string (spacy-benepar-analysis-leaf-node)
   "Returns the lemma of the leaf node"
   (cdr (assoc :lemma spacy-benepar-analysis-leaf-node)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; helper functions to check links  ;;
+;;            in cat net            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;method is not used for the moment. Maybe we want to recover this later. 
+(defmethod categories-linked-p (category-1 category-2 (categorial-network categorial-network) (mode (eql :graph-cosine-similarity)))
+  "Succeeds of nodes are similar based on weighted cosine similarity."
+  "We take the first, which means the highest similarity, maybe you want to take the average of all the nodes or even the semantic fields, to be continued..."
+  (if (neighbouring-categories-p category-1 category-2 categorial-network)
+    t
+    (let ((similarity (cdr (first (graph-utils::similar-neighbour-nodes-weighted-cosine category-1 category-2 (fcg::graph categorial-network))))))
+      (if (>= similarity 0.1)
+        t
+        nil))))
