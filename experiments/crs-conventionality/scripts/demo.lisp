@@ -125,3 +125,11 @@
   (introduce-new-agents *naming-game* :number-of-agents 1)
   (set-configuration *naming-game* :determine-interacting-agents-mode :random-listener-from-younger-generation)
   (population-network->graphviz (agents (population *naming-game*)) :make-image t :open-image t :use-labels? t))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Population Turnover/Replacement ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(progn
+  (replace-agents *naming-game* 0.5)
+  (population-network->graphviz (agents (population *naming-game*)) :make-image t :open-image t :use-labels? t))

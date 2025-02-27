@@ -276,6 +276,9 @@
   (setf (gethash (id neighbor) (neighbor-q-values agent))
         initial-q))
 
+(defmethod remove-neighbor-q-value ((agent crs-conventionality-agent) (neighbor crs-conventionality-agent))
+  (remhash (id neighbor) (neighbor-q-values agent)))
+
 (defmethod update-neighbor-q-value ((agent crs-conventionality-agent) (neighbor crs-conventionality-agent) (reward number) (lr float))
   "Update the q-value that agent stores for neighbor."
   (let* ((q-values (neighbor-q-values agent))
