@@ -180,7 +180,7 @@
   "The utterance is copied from the speaker to the hearer, noise may be added."
   (setf (utterance speaker) (conceptualised-utterance speaker))
   (if (get-configuration (experiment speaker) :noise-level)
-    (setf (utterance hearer) (add-noise (copy-object (utterance speaker)) (get-configuration (experiment speaker) :noise-level))) 
+    (setf (utterance hearer) (list (add-noise (copy-object (first (utterance speaker))) (get-configuration (experiment speaker) :noise-level)))) 
     (setf (utterance hearer) (utterance speaker))))
 
 
