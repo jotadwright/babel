@@ -49,3 +49,28 @@
           do (setf (elt utterance index-to-replace) (random-elt character-list)))
     utterance))
 
+
+(defun levenshtein-distance-strings (s1 s2)
+  "Levenshtein distance function between two strings."
+  (let* ((width (1+ (length s1)))
+	 (height (1+ (length s2)))
+	 (d (make-array (list height width))))
+    (dotimes (x width)
+      (setf (aref d 0 x) x))
+    (dotimes (y height)
+      (setf (aref d y 0) y))
+    (dotimes (x (length s1))
+      (dotimes (y (length s2))
+	(setf (aref d (1+ y) (1+ x))
+	      (min (1+ (aref d y (1+ x)))
+		   (1+ (aref d (1+ y) x))
+		   (+ (aref d y x)
+		      (if (char= (aref s1 x) (aref s2 y))
+			  0
+			  1))))))
+    (aref d (1- height) (1- width))))
+
+
+
+       
+
