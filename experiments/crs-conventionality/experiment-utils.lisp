@@ -29,7 +29,6 @@
              ; Add new-agent to the population
              (push new-agent (agents (population experiment))))))
 
-        do (push new-agent (agents (population experiment)))))
 
 
 
@@ -40,8 +39,8 @@
 (defun add-noise (utterance  &optional (noise-level 0.2))
   "Add noise to the utterance proportionate to the noise level."
   (let* ((strings '("a" "e" "i" "o" "u" "b" "c" "d" "f" "g" "h" "j" "k" "l" "m" "n" "p" "q" "r" "s" "t" "v" "w" "x" "y" "z"))
-(characters (loop for string in strings collect (coerce string 'character)))
-        (characters-to-replace (floor (* noise-level (length utterance)))))
+         (characters (loop for string in strings collect (coerce string 'character)))
+         (characters-to-replace (floor (* noise-level (length utterance)))))
     (loop for i from 1 to characters-to-replace
           for index-to-replace = (random (length utterance))
           for char-to-replace = (elt utterance index-to-replace)
@@ -73,4 +72,4 @@
 
 
        
-
+      
