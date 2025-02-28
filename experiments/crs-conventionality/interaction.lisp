@@ -49,19 +49,21 @@
   (setf (communicated-successfully interaction) nil
         (interacting-agents interaction) nil))
 
+(defun has-old-neighbor (agent)
+  (some (lambda (neighbor)
+          (= (introduced-in-game neighbor) 0))
+        (social-network agent)))
+
 (defmethod determine-interacting-agents (experiment (interaction interaction)
                                                     (mode (eql :random-listener-from-younger-generation))
                                                     &key &allow-other-keys)
-  "Randomly chooses an agent from the older generation as the speaker and randomly chooses an agent from a new generation as listener."
+  "Randomly chooses an agent from the older generation as the speaker and randomly chooses an agent from a new generation as listener."  
   (let* ((agents (agents (population experiment)))
-         (old-generations (loop for agent in agents
-                                if (= (introduced-in-game agent) 0)
-                                  collect agent))
          (new-generations (loop for agent in agents
                                 if (> (introduced-in-game agent) 0)
-                                  collect agent))
-         (speaker (random-elt old-generations))
-         (hearer (random-elt new-generations))
+                                collect agent))
+         (hearer (random-elt-if #'has-old-neighbor new-generations))
+         (speaker (random-elt (social-network hearer)))
          (interacting-agents (list speaker hearer)))
 
     ;; set the discourse-role
