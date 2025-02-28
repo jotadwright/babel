@@ -64,7 +64,7 @@
   (:documentation "Repair that invents"))
 
 (defclass repair-through-form-similarity (repair)
-  ((trigger :initform 'feedback-received))
+  ((trigger :initform 'routine-processing-finished))
   (:documentation "Repair that finds most similar form"))
 
 (defclass repair-through-adoption (repair)
@@ -111,6 +111,26 @@
         (add-cxn cxn cxn-inventory-copy)
         ;; add the cxn to the fix
         (make-instance 'invention-fix :restart-data cxn)))))
+
+(defmethod repair ((repair repair-through-form-similarity)
+                   (problem no-cxn-to-interpret-utterance)
+                   (cipn cip-node)
+                   &key &allow-other-keys)
+  
+  (let* ((cxn-inventory (original-cxn-set (construction-inventory cipn)))
+         (form-to-interpret (first (utterance (get-data (blackboard (construction-inventory cipn)) :agent))))
+         (best-candidate nil)
+   
+    (loop for cxn in (shuffle (constructions-list cxn-inventory)) ;; shuffle for randomness in case of equal distances
+          for candidate = (attr-val cxn :form)
+          for distance = (levenshtein-distance-strings form-to-interpret candidate)
+            do (if best-candidate
+                 (when (< (second best-candidate) distance) (setf best-candidate (cons candidate distance)))
+                 (setf best-candidate (cons candidate distance))))
+       
+
+            (make-instance 'form-similarity-fix :restart-data (car best-candidate))))) ;; get cxn?
+
 
 (defmethod repair ((repair repair-through-adoption)
                    (problem no-cxn-to-interpret-utterance)
