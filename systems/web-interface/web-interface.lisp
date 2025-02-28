@@ -122,7 +122,7 @@
                                     :port port :address address
                                     #+(and ccl :windows) :read-timeout #+(and ccl :windows) nil ;; this only applies to windows
                                     #+(and ccl :windows) :write-timeout #+(and ccl :windows) nil
-                                    :document-root (babel-pathname :directory '("systems" "web-interface"))
+                                    :document-root (babel-pathname :directory '(".tmp"))
                                     :message-log-destination nil
                                     :access-log-destination nil)))
 	(format stream "~% ***** started web interface at http://~a:~d *****~%"

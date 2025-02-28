@@ -233,9 +233,9 @@
     ;; in your terminal app if you want to customize the output.
     (when make-image
       (let ((filename-string (format nil "~a~a.gv" (directory-namestring filename) name))
-            (png-filename-string (format nil "~a~a.png" (directory-namestring filename) name)))
-        (run-prog (format nil "circo -Tpng ~a > ~a" filename-string png-filename-string))
-
+            (svg-filename-string (format nil "~a~a.svg" (directory-namestring filename) name)))
+        (run-prog (format nil "circo -Tsvg ~a > ~a" filename-string svg-filename-string))
+        
         (when open-image
           (cond ((equal (software-type) "Darwin")
                  (run-prog "open" :args (list png-filename-string)))
