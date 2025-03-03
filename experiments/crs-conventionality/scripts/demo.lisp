@@ -24,7 +24,6 @@
                                           (:alignment-strategy . :lateral-inhibition)
                                           (:learning-strategy . :default)
                                           (:learning-rate . 0.5)
-                                          (:neighbor-q-value-lr . 0.01)
                                           ;; Initialising an interaction
                                           (:determine-interacting-agents-mode . :random-from-social-network)
                                           (:determine-scene-entities-mode . :random-subset-of-world)
@@ -39,7 +38,8 @@
 
 ;; Boltzmann partner selection
 (set-configurations *configuration* '((:determine-interacting-agents-mode . :boltzmann-partner-selection)
-                                      (:boltzmann-tau . -20)))
+                                      (:boltzmann-tau . -20)
+                                      (:neighbor-q-value-lr . 0.02)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

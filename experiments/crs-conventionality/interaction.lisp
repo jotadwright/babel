@@ -170,11 +170,8 @@
     (unless (communicated-successfully interaction)
       (adopt (topic interaction) hearer))
 
-    
-    
-    ;; Finishing interaction (TODO to remove?)
-    (unless (eq (get-configuration experiment :determine-interacting-agents-mode) :random-from-population)
-      (finish-interaction experiment interaction))))
+    ;; Finishing interaction
+    (finish-interaction experiment interaction)))
 
 ;; helper functions (best placed somewhere else?)
 
@@ -208,9 +205,10 @@
 
 (defmethod finish-interaction ((experiment crs-conventionality-experiment) (interaction crs-conventionality-interaction))
   ;; update neighbor-q-values
-  (let ((reward (if (communicated-successfully interaction) 1 0)))
-    (update-neighbor-q-value (speaker experiment) (hearer experiment) reward (get-configuration experiment :neighbor-q-value-lr))
-    (update-neighbor-q-value (hearer experiment) (speaker experiment) reward (get-configuration experiment :neighbor-q-value-lr))))
+  (let ((reward (if (communicated-successfully interaction) 1 0))
+        (lr (get-configuration experiment :neighbor-q-value-lr)))
+    (update-neighbor-q-value (speaker experiment) (hearer experiment) reward (if lr lr 0.01))
+    (update-neighbor-q-value (hearer experiment) (speaker experiment) reward (if lr lr 0.01))))
 
 
 ;; ---------------------
@@ -281,7 +279,7 @@
 (defmethod remove-neighbor-q-value ((agent crs-conventionality-agent) (neighbor crs-conventionality-agent))
   (remhash (id neighbor) (neighbor-q-values agent)))
 
-(defmethod update-neighbor-q-value ((agent crs-conventionality-agent) (neighbor crs-conventionality-agent) (reward number) (lr float))
+(defmethod update-neighbor-q-value ((agent crs-conventionality-agent) (neighbor crs-conventionality-agent) (reward number)  (lr float))
   "Update the q-value that agent stores for neighbor."
   (let* ((q-values (neighbor-q-values agent))
          (q-old (gethash (id neighbor) q-values))

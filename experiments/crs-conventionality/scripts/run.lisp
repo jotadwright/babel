@@ -20,7 +20,7 @@
                                     (:learning-strategy . :default)
                                     (:learning-rate . 0.5)
                                     ;; Initialising an interaction
-                                    (:determine-interacting-agents-mode . :random-from-population)
+                                    (:determine-interacting-agents-mode . :random-from-social-network)
                                     (:determine-scene-entities-mode . :random-subset-of-world)
                                     (:determine-topic-mode . :random-entity-from-scene)))
                                   (naming-game-dont-punish-competitors
@@ -34,7 +34,7 @@
                                     (:learning-strategy . :default)
                                     (:learning-rate . 0.5)
                                     ;; Initialising an interaction
-                                    (:determine-interacting-agents-mode . :random-from-population)
+                                    (:determine-interacting-agents-mode . :random-from-social-network)
                                     (:determine-scene-entities-mode . :random-subset-of-world)
                                     (:determine-topic-mode . :random-entity-from-scene)))
                                   (naming-game-dont-punish-failure
@@ -48,7 +48,7 @@
                                     (:learning-strategy . :default)
                                     (:learning-rate . 0.5)
                                     ;; Initialising an interaction
-                                    (:determine-interacting-agents-mode . :random-from-population)
+                                    (:determine-interacting-agents-mode . :random-from-social-network)
                                     (:determine-scene-entities-mode . :random-subset-of-world)
                                     (:determine-topic-mode . :random-entity-from-scene)))
                                   (naming-game-never-punish
@@ -62,7 +62,7 @@
                                     (:learning-strategy . :default)
                                     (:learning-rate . 0.5)
                                     ;; Initialising an interaction
-                                    (:determine-interacting-agents-mode . :random-from-population)
+                                    (:determine-interacting-agents-mode . :random-from-social-network)
                                     (:determine-scene-entities-mode . :random-subset-of-world)
                                     (:determine-topic-mode . :random-entity-from-scene)))
                                   (naming-game-no-alignment
@@ -76,7 +76,7 @@
                                     (:learning-strategy . :default)
                                     (:learning-rate . 0.5)
                                     ;; Initialising an interaction
-                                    (:determine-interacting-agents-mode . :random-from-population)
+                                    (:determine-interacting-agents-mode . :random-from-social-network)
                                     (:determine-scene-entities-mode . :random-subset-of-world)
                                     (:determine-topic-mode . :random-entity-from-scene)))
                                   )
@@ -105,7 +105,7 @@
                                      ;; Initialising an interaction
                                      (:determine-interacting-agents-mode . :boltzmann-partner-selection)
                                      (:boltzmann-tau . -20)
-                                     (:boltzmann-lr . 0.01)
+                                     (:neighbor-q-value-lr . 0.01)
                                      (:determine-scene-entities-mode . :random-subset-of-world)
                                      (:determine-topic-mode . :random-entity-from-scene)))
                                   (naming-game-boltzmann-small-world
@@ -124,7 +124,7 @@
                                      ;; Initialising an interaction
                                      (:determine-interacting-agents-mode . :boltzmann-partner-selection)
                                      (:boltzmann-tau . -20)
-                                     (:boltzmann-lr . 0.01)
+                                     (:neighbor-q-value-lr . 0.01)
                                      (:determine-scene-entities-mode . :random-subset-of-world)
                                      (:determine-topic-mode . :random-entity-from-scene))))
                     
@@ -162,7 +162,7 @@
 ;;                                                                          (:learning-strategy . :default)
 ;;                                                                          (:learning-rate . 0.5)
 ;;                                                                          ;; Initialising an interaction
-;;                                                                          (:determine-interacting-agents-mode . :random-from-population)
+;;                                                                          (:determine-interacting-agents-mode . :random-from-social-network)
 ;;                                                                          (:determine-scene-entities-mode . :random-subset-of-world)
 ;;                                                                          (:determine-topic-mode . :random-entity-from-scene))
 ;;                                                  :output-dir (babel-pathname :directory '("experiments" "crs-conventionality" "raw-data"))
