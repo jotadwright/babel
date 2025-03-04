@@ -46,7 +46,33 @@
               do (fcg::add-repair (top-node cip) repair))
         (set-data (blackboard (grammar agent)) :cipn (top-node cip))
         ;; Notify learning
-        (fcg::notify-learning (top-node cip) :trigger 'fcg::routine-processing-finished)))))
+
+        (let* ((fix (first (second (multiple-value-list (fcg::notify-learning (top-node cip) :trigger 'fcg::routine-processing-finished))))))
+          (when fix
+            (let* ((cxn (first (fcg::restart-data fix)))
+                   (best-solution nil)
+                   (consolidated-cxns nil)
+                   (current-node (fcg::top-node cip))
+                   (fixed-car (first (get-data fix 'fcg::fixed-cars))) 
+                   (child (fcg::cip-add-child current-node fixed-car)))
+              
+              (setf current-node child)
+              (push (type-of (fcg::issued-by fix)) (statuses child))
+              (setf (fcg::fully-expanded? child) t)
+              (fcg::cip-run-goal-tests child cip) ;; to include succeeded status in node statuses
+              (push 'added-by-repair (statuses child))
+              
+; (add-cxn cxn cxn-inventory)
+;(push cxn consolidated-cxns)
+              
+              
+              (setf (computed-topic agent) (get-data child :computed-topic))
+              (setf (applied-constructions agent) (list (processing-cxn cxn) ))
+              )))
+
+
+
+      ))))
 
 
 (defmethod create-initial-structure ((utterance list)
