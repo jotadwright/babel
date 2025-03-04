@@ -17,7 +17,8 @@
                                                           (+ 1 (interaction-number (current-interaction experiment)))
                                                           1))))
     (push interaction (interactions experiment))
-
+    (switch-conditions experiment)
+    
     ;; Determine the speaker and hearer agents as well as the scene and topic, notify that interaction can start.
     (determine-interacting-agents experiment interaction (get-configuration experiment :determine-interacting-agents-mode))
     (determine-scene-entities experiment interaction (get-configuration experiment :determine-scene-entities-mode))
@@ -31,6 +32,16 @@
     (notify interaction-finished experiment interaction (interaction-number interaction))
     (clear-interaction interaction)
     (values interaction experiment)))
+
+(defun switch-conditions (experiment)
+  (when (eq (get-configuration experiment :introduce-new-agents-after-interaction)
+            (- (interaction-number (current-interaction experiment)) 1))
+    (introduce-new-agents experiment :number-of-agents (get-configuration experiment :nr-of-agents-to-introduce))
+    (set-configuration experiment :determine-interacting-agents-mode :random-listener-from-younger-generation))
+  
+  (when (eq (get-configuration experiment :replace-agents-after-interaction)
+            (- (interaction-number (current-interaction experiment)) 1))
+    (replace-agents experiment (get-configuration experiment :proportion-of-agents-to-replace))))
 
 
 ;; Determine interacting agents, scene and topic ;;
