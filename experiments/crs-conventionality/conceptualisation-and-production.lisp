@@ -21,7 +21,7 @@
 (defmethod conceptualise-and-produce ((agent crs-conventionality-agent)
                                       (scene crs-conventionality-scene)
                                       (topic crs-conventionality-entity-set)
-                                      &key (silent nil) (n 5) (use-meta-layer t)) ;; n default hardcoded?
+                                      &key (silent nil) (n 50) (use-meta-layer t)) ;; n default hardcoded?
   "Based on the topic and scene, the speaker produces an utterance.
    The agents attempts first routine formulation, in case of failure, it goes to metalayer."
   ;; Store topic, agent and scene in the blackboard of the cxn-inventory
@@ -49,25 +49,28 @@
         (notify routine-conceptualisation-finished cip solution-nodes agent)))
     
     ;; check if a solution is found
-            (if (not (succeeded-nodes cip))
-              (when use-meta-layer
-                ;; ! meta-layer !
-                ;;     if no solution is found, start invention and set utterance in agent
-                (unless silent (notify meta-conceptualisation-started topic agent scene))
-                (multiple-value-bind (cxn fix)
-                    (fcg::invent cip agent topic scene)
-                  (unless silent (notify meta-conceptualisation-finished fix agent))
-                  (setf (conceptualised-utterance agent) (render (car-resulting-cfs (first (get-data (blackboard fix) 'fcg::fixed-cars)))
-                                                                 (get-configuration (grammar agent) :render-mode)))
-                  (setf (applied-constructions agent) (list (processing-cxn cxn)))))
-              ;; otherwise, render and set solution nodes
-              (progn
-                (setf (conceptualised-utterance agent) (render (car-resulting-cfs (fcg:cipn-car best-solution))
-                                                               (get-configuration (grammar agent) :render-mode)))
-                (when (eq (discourse-role agent) 'speaker)
-          
-                  (setf (applied-constructions agent) (applied-constructions best-solution)) 
-                  (setf (solution-node agent) best-solution)))))) ;; maybe we need all solution-nodes in the agent, for now, only pass the best solution
+    (if (not (succeeded-nodes cip))
+      (when use-meta-layer
+        ;; ! meta-layer !
+        ;;     if no solution is found, start invention and set utterance in agent
+        (unless silent (notify meta-conceptualisation-started topic agent scene))
+        (multiple-value-bind (cxn fix)
+            (fcg::invent cip agent topic scene)
+          (unless silent (notify meta-conceptualisation-finished fix agent))
+          (setf (conceptualised-utterance agent) (render (car-resulting-cfs (first (get-data (blackboard fix) 'fcg::fixed-cars)))
+                                                         (get-configuration (grammar agent) :render-mode)))
+          (setf (applied-constructions agent) (list (processing-cxn cxn)))))
+      ;; otherwise, render and set solution nodes
+      (progn
+        (setf (conceptualised-utterance agent) (render (car-resulting-cfs (fcg:cipn-car best-solution))
+                                                       (get-configuration (grammar agent) :render-mode)))
+        (if (eq (discourse-role agent) 'speaker)
+          (progn
+            (setf (applied-constructions agent) (applied-constructions best-solution)) 
+            (setf (solution-nodes agent) solution-nodes))
+          (setf (solution-nodes-conceptualisation agent) solution-nodes)
+
+          ))))) ;; maybe we need all solution-nodes in the agent, for now, only pass the best solution
 
 
 (defmethod create-initial-structure ((topic crs-conventionality-entity-set)
