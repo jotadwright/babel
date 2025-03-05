@@ -51,6 +51,7 @@
                                                         (:parse-goal-tests :interpretation-in-scene)
                                                         (:production-goal-tests :topic-retrieved)
                                                         (:node-tests :check-branch-for-solution :check-duplicate :restrict-nr-of-nodes :restrict-search-depth)
+                                                        
                                                         ;; meta-layer 
                                                         ;(:consolidate-repairs . t)
                                                         ;(:use-meta-layer . t)
@@ -59,6 +60,7 @@
     (set-data (blackboard *naming-game-primitives*) :ontology ontology)
     (set-data (blackboard (grammar agent)) :ontology ontology)
     (set-data (get-data (blackboard (grammar agent)) :ontology) :entities (entities (world (experiment (population agent)))))))
+
 
 
 (defmethod unify-objects ((x naming-game-entity) (y naming-game-entity) bindings-list &key cxn-inventory)
@@ -85,8 +87,8 @@
                                                         (:create-initial-structure-mode-comprehension . :utterance-and-scene)
                                                         ;; Construction supplier and search
                                                         (:construction-inventory-processor-mode . :heuristic-search)
-                                                        (:node-expansion-mode . :full-expansion)
-                                                        (:cxn-supplier-mode . :hashed)
+                                                        (:node-expansion-mode . :multiple-cxns)
+                                                        (:cxn-supplier-mode . :cascading-entrenchment)
                                                         ;; Diagnostics and repairs
                                                         (:conceptualisation-diagnostics fcg::diagnose-cip-conceptualisation-success)
                                                         (:interpretation-diagnostics fcg::diagnose-cip-interpretation-success)
@@ -99,7 +101,8 @@
                                                         (:parse-goal-tests :discriminative-in-scene)
                                                         (:production-goal-tests :topic-discriminated)
                                                         (:node-tests :check-branch-for-solution :check-duplicate :restrict-nr-of-nodes :restrict-search-depth :discriminative-power)
-                                                        (:max-nr-of-nodes . 10)
+                                                        (:max-nr-of-nodes . 500)
+                                                        (:max-search-depth . 2)
                                                         ;; meta-layer 
                                                         ;(:consolidate-repairs . t)
                                                         ;(:use-meta-layer . t)
@@ -113,7 +116,6 @@
     (set-data (blackboard *concept-emergence-game-primitives*) :ontology ontology)
     (set-data (blackboard (grammar agent)) :ontology ontology)
     (set-data (get-data (blackboard (grammar agent)) :ontology) :entities (entities (world (experiment (population agent)))))))
-
 
 (defmethod unify-objects ((concept concept-representations::concept) (entity-set crs-conventionality-entity-set) bindings-list &key cxn-inventory)
   "Standard method for unifying objects: unify slot values."
