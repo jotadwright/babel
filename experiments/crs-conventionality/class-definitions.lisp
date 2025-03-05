@@ -116,10 +116,14 @@
     :documentation "The topic that the agent wants to formulate as speaker."
     :type list
     :initform nil :initarg :applied-constructions :accessor applied-constructions)
-   (solution-node
+   (solution-nodes
     :documentation ""
     :type list
-    :initform nil :initarg :solution-node :accessor solution-node)
+    :initform nil :initarg :solution-nodes :accessor solution-nodes)
+   (solution-nodes-conceptualisation
+    :documentation ""
+    :type list
+    :initform nil :initarg :solution-nodes-conceptualisation :accessor solution-nodes-conceptualisation)
    (learning-rate
     :documentation "The learning rate of an agent. "
     :type list
