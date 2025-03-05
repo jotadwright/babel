@@ -53,6 +53,23 @@
             (values 'time-out 'time-out 'time-out)))
       (values meaning cip-node cip))))
 
+(defmethod comprehend-all ((utterance string) 
+                       &key (syntactic-analysis nil) 
+                       (cxn-inventory *fcg-constructions*)  (silent nil) (selected-rolesets nil) (timeout 60) (n nil))
+  (let* ((syntactic-analysis (nlp-tools:get-penelope-syntactic-analysis utterance
+                                                                       :model (or (get-configuration cxn-inventory :model)
+                                                                                  "en_benepar")))
+         (initial-cfs (de-render utterance (get-configuration cxn-inventory :de-render-mode)
+                                 :model (or (get-configuration cxn-inventory :model) "en_benepar")
+                                 :cxn-inventory cxn-inventory :syntactic-analysis syntactic-analysis)))
+    (unless silent (monitors:notify parse-started (listify utterance) initial-cfs))
+    (multiple-value-bind (meaning cip-node cip)
+        (handler-case (trivial-timeout:with-timeout (timeout)
+                                                    (comprehend-all-with-rolesets initial-cfs cxn-inventory selected-rolesets utterance silent n))
+          (trivial-timeout:timeout-error (error)
+            (values 'time-out 'time-out 'time-out)))
+      (values meaning cip-node cip))))
+
 (defun comprehend-with-rolesets (initial-cfs cxn-inventory selected-rolesets utterance silent)
   (let ((processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
     (set-data initial-cfs :selected-rolesets selected-rolesets)
@@ -67,3 +84,11 @@
         (unless silent (monitors:notify parse-finished meaning processing-cxn-inventory))
         ;; Return value
         (values meaning solution cip)))))
+
+
+(defun comprehend-all-with-rolesets (initial-cfs cxn-inventory selected-rolesets utterance silent n)
+  (let ((processing-cxn-inventory (processing-cxn-inventory cxn-inventory)))
+    (set-data initial-cfs :selected-rolesets selected-rolesets)
+    (set-data initial-cfs :utterance utterance)
+   (fcg-apply-with-n-solutions  processing-cxn-inventory initial-cfs '<- n :notify (not silent))
+      ))

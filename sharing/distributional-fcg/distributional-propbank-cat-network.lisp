@@ -36,7 +36,7 @@
 (defparameter *training-configuration*
     '((:de-render-mode .  :de-render-constituents-dependents)
       (:node-tests :check-double-role-assignment)
-      (:parse-goal-tests :no-valid-children :meaning-extracted) ;
+      (:parse-goal-tests :no-valid-children) ;
       (:construction-inventory-processor-mode . :heuristic-search)
       (:search-algorithm . :best-first)   
       (:heuristics
@@ -86,16 +86,17 @@
 ;; Comprehending to test  ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(progn
+
+
+
+#|
+ (progn
   (graph-utils::pre-compute-cosine-similarities (fcg::graph (categorial-network *train-grammar*)))
   (set-configuration *train-grammar* :category-linking-mode :always-succeed)
   (set-configuration *train-grammar*  :node-expansion-mode  :multiple-cxns)
   (set-configuration *train-grammar* :cxn-supplier-mode :cascading-cosine-similarity))
 
-
-#|
-
-(comprehend "he sold his mother the car" :timeout nil)
+(comprehend-all "he sold his mother the car" :n 3 :timeout nil)
 
 (comprehend "he sold the car to his mother" :timeout nil)
 

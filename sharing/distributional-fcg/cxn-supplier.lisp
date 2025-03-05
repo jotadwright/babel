@@ -54,7 +54,7 @@ direct neighbours of the categories present in the node."
           collect (cons cxn 1)))
 
 (defun constructions-per-level (node)
-  (let* ((cxn-inventory  (construction-inventory node))
+  (let* ((cxn-inventory (construction-inventory node))
          (lexical-cxns (loop for lemma in (hash node (get-configuration node :hash-mode))
                              append (lexical-cxns-for-lemma lemma cxn-inventory)))
          (lex-categories-per-level (lex-categories-per-level (lex-categories node) cxn-inventory))
@@ -72,10 +72,26 @@ direct neighbours of the categories present in the node."
                                                                                                  similarity)) gram-neighbours))))
          (word-sense-cxns (loop for lemma in (hash node (get-configuration node :hash-mode))
                                 append (word-sense-cxns-for-lemma lemma cxn-inventory))))
+    ;; fallback: if there was a match through vector similarity, then there was no hash match through the lemma, so just take all
+    ;; todo: give the n closest in similarity, see expansion operator for threshold
     (unless lexical-cxns
-      (setf lexical-cxns (loop for cxn in (constructions-list cxn-inventory)
-                               when (attr-val cxn :lex-category)
-                                 collect (cons cxn 0)))) ;; the cosine is calculated in the expansion.
+      (setf lexical-cxns
+            #|(loop for lemma in (hash node (get-configuration node :hash-mode))
+                  for threshold = (get-configuration cxn-inventory :cosine-similarity-threshold)
+                  for lemmas-and-lexical-cxns = (multiple-value-list (loop for cxn in (constructions-list cxn-inventory)
+                                                                when (attr-val cxn :lex-category)
+                                                                  collect (attr-val cxn :token) into lemmas
+                                                                  and collect cxn into cxns
+                                                                  finally (return (values lemmas cxns))))
+                  for lemmas-above-threshold = (remove-if #'(lambda (x) (> x threshold)) (tokens-sorted-by-similarity lemma (first lemmas-and-lexical-cxns)) :key #'cdr)
+                  collect (loop with lexical-cxns = (second lemmas-and-lexical-cxns)
+                                for lemma-and-cosine in lemmas-above-threshold
+                                for cxn = (find (first lemma-and-cosine) lexical-cxns :key #'(lambda (x) (attr-val x :token)))
+                                collect (cons cxn (second lemma-and-cosine)))
+                  )|#
+            (loop for cxn in (constructions-list cxn-inventory)
+                  when (attr-val cxn :lex-category)
+                    collect (cons cxn 0))))
     (unless word-sense-cxns
       (setf word-sense-cxns (loop for cxn in (constructions-list cxn-inventory)
                                when (attr-val cxn :sense-category)
@@ -84,6 +100,7 @@ direct neighbours of the categories present in the node."
              (rest argument-structure-constructions-per-level))))
          
 
+                    
 
 (defun lex-categories-per-level (lex-categories cxn-inventory)
   (loop for top-level-lex-category in lex-categories

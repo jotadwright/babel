@@ -96,9 +96,16 @@
 
 (progn
   (graph-utils::pre-compute-cosine-similarities (fcg::graph (categorial-network *distributional-representations-of-tokens-and-types-grammar*)))
+  (set-configuration *distributional-representations-of-tokens-and-types-grammar* :cosine-similarity-threshold 0.3)
   (set-configuration *distributional-representations-of-tokens-and-types-grammar* :category-linking-mode :always-succeed)
   (set-configuration *distributional-representations-of-tokens-and-types-grammar* :node-expansion-mode  :multiple-cxns)
   (set-configuration *distributional-representations-of-tokens-and-types-grammar* :cxn-supplier-mode :cascading-cosine-similarity))
+
+;;;;;;;;;;;;;;;;;;;;;;
+;; Draw the cat net ;;
+;;;;;;;;;;;;;;;;;;;;;;
+;;(add-element (make-html (categorial-network *distributional-representations-of-tokens-and-types-grammar*) :weights t))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;     Comprehend!!!     ;;
@@ -112,7 +119,11 @@
 (comprehend "I will wire you the money" :cxn-inventory *distributional-representations-of-tokens-and-types-grammar*)
 
 
-
+(loop for cxn in (constructions-list *distributional-representations-of-tokens-and-types-grammar*)
+      when (attr-val cxn :lex-category)
+        collect (attr-val cxn :lemma) into lemmas
+       and  collect cxn into cxns
+      finally (return (values lemmas cxns)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -137,7 +148,7 @@
       (:node-tests :check-double-role-assignment)
       (:parse-goal-tests :no-valid-children :meaning-extracted) ;
       (:construction-inventory-processor-mode . :heuristic-search)
-      (:search-algorithm . :best-first)   
+      (:search-algorithm . :best-first)
       (:heuristics
        :nr-of-applied-cxns
        :nr-of-units-matched-x2 ;;nr-of-units-matched
@@ -232,3 +243,4 @@
 
 ;; We can also use this to desambiguate word senses!
 ;; open.01 en open.02 
+
