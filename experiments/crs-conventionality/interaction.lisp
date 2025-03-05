@@ -44,7 +44,7 @@
                  (utterance agent) nil
                  (conceptualised-utterance agent) nil
                  (applied-constructions agent) nil
-                 (solution-node agent) nil)
+                 (solution-nodes agent) nil)
             (set-data (blackboard (grammar agent)) :topic nil)
             (set-data (blackboard (grammar agent)) :cipn nil)
             (set-data (blackboard (grammar agent)) :scene nil)
