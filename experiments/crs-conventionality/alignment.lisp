@@ -20,17 +20,16 @@
       ;; Communication succeeded
       ;; Speaker and hearer increase the score of the constructions they used:
       (progn
-        (shift applied-cxn-speaker (topic interaction) speaker) 
         (setf (attr-val applied-cxn-speaker :score)
               (calculate-increased-score (learning-rate speaker) (attr-val applied-cxn-speaker :score)))
         (setf (attr-val applied-cxn-hearer :score)
               (calculate-increased-score (learning-rate hearer) (attr-val applied-cxn-hearer :score)))
       
         ;; Speaker punishes competing constructions:
-        #|(loop for cxn in (find-competitors speaker)
+        (loop for cxn in (find-competitors speaker)
               do (setf (attr-val cxn :score) (calculate-decreased-score (learning-rate speaker) (attr-val cxn :score))))
         (loop for cxn in (find-competitors hearer)
-              do (setf (attr-val cxn :score) (calculate-decreased-score (learning-rate hearer) (attr-val cxn :score))))|#
+              do (setf (attr-val cxn :score) (calculate-decreased-score (learning-rate hearer) (attr-val cxn :score))))
         (notify alignment-finished speaker hearer interaction))
       
       
@@ -40,9 +39,51 @@
          (setf (attr-val applied-cxn-speaker :score)
                (calculate-decreased-score (learning-rate speaker) (attr-val applied-cxn-speaker :score))))
        (notify alignment-finished speaker hearer interaction)
+         (adopt (topic interaction) hearer)))))
+
+(defmethod align ((speaker crs-conventionality-agent) (hearer crs-conventionality-agent) (interaction crs-conventionality-interaction)
+                  (mode (eql :concept-alignment)))
+  "Align grammar of speaker and hearer based on interaction."
+  (notify alignment-started speaker hearer)
+  (let ((applied-cxn-speaker (first (applied-constructions speaker)))
+        (applied-cxn-hearer (first (applied-constructions hearer))))
+    (if (communicated-successfully interaction)
+      ;; Communication succeeded
+      ;; Speaker and hearer increase the score of the constructions they used:
+      (progn
+        (shift applied-cxn-speaker (topic interaction) speaker) 
+        (setf (attr-val applied-cxn-speaker :score)
+              (if (>= (+ 0.1 (attr-val applied-cxn-speaker :score)) 1)
+                1.0
+                (+ 0.1 (attr-val applied-cxn-speaker :score))))
+        (setf (attr-val applied-cxn-hearer :score)
+              (if (>= (+ 0.1 (attr-val applied-cxn-hearer :score)) 1)
+                1.0
+                (+ 0.1 (attr-val applied-cxn-hearer :score))))
+      
+        ;; Speaker punishes competing constructions:
+        (punish-competitors speaker)
+        (punish-competitors hearer)
+
+        (notify alignment-finished speaker hearer interaction))
+      
+      
+     ;; Communication failed 
+     (progn
+       (when (applied-constructions speaker)
+         (setf (attr-val applied-cxn-speaker :score)
+               (if (<= (- (attr-val applied-cxn-speaker :score) 0.1) 0)
+                 0
+                 (- (attr-val applied-cxn-speaker :score) 0.1))))
+       (notify alignment-finished speaker hearer interaction)
        (if (computed-topic hearer)
-         (shift applied-cxn-hearer (topic interaction) hearer) ;; check if shift is on the right cxn
-         (adopt (topic interaction) hearer)))))) 
+         (progn 
+           (shift applied-cxn-hearer (topic interaction) hearer) ;; check if shift is on the right cxn
+           (setf (attr-val applied-cxn-hearer :score)
+                 (if (<= (- (attr-val applied-cxn-hearer :score) 0.1) 0)
+                   0
+                   (- (attr-val applied-cxn-hearer :score) 0.1))))
+         (adopt (topic interaction) hearer))))))
 
 ;; Don't punish competitors in success. 
 
@@ -131,13 +172,41 @@
 
 (defmethod find-competitors ((agent naming-game-agent))
   "Finds competitors in the cip"
-  ;; TODO to keep?
-  #|(set-difference (remove-duplicates (mappend #'fcg::applied-constructions (succeeded-nodes (cip (solution-node agent)))))
-                  (applied-constructions agent))|#
   (loop for cxn in (constructions-list (grammar agent))
         when (and (eq (attr-val cxn :topic) (id (first (entities (topic agent)))))
                   (not (string= (attr-val cxn :form) (first (utterance agent)))))
           collect cxn))
+
+
+(defmethod punish-competitors ((agent concept-emergence-game-agent))
+  "Finds competitors in the cip in conceptualisation. Competitors are nodes that have a positive discriminative power (just the similarity - best-other-similarity, no entrenchment score). So get all solution-nodes (these are the ones that had a positive discriminative power > checked in goal-test). From these solution-nodes, get rest of solution-nodes (the first is the concept that was uttered, this list is sorted on discriminative-power * entrenchment. Then, from these solution-nodes, get discriminative power that is stored in the node: (cdr (find-data node :discriminative-power)) and check that is it positive (only sanity check because goal test should have done this). These are all the candidates. Then punish based on the concept-similarity and inhibition score. "
+  (let* ((solution-nodes (if (speakerp agent) (solution-nodes agent) (solution-nodes-conceptualisation agent))))
+    (when (> (length solution-nodes) 1) ; only do this when there are multiple solutions
+      (let* ((cxn-of-uttered-word (if (speakerp agent)
+                                    (car-applied-cxn (cipn-car (first solution-nodes)))
+                                    (first (loop for node in solution-nodes
+                                                 for form = (render (car-resulting-cfs (cipn-car node))
+                                                                    (get-configuration (grammar agent) :render-mode))
+                                                   
+                                                 if (equal form (utterance agent))
+                                                   collect (car-applied-cxn (cipn-car node))))))
+             (concept-of-uttered-word (first (extract-concept cxn-of-uttered-word)))
+             (candidate-cxns (if (speakerp agent)
+                               (loop for node in (rest solution-nodes)
+                                     when (> (cdr (find-data node :discriminative-power)) 0) ;; sanity check
+                                       collect (car-applied-cxn (cipn-car node)))
+                               (loop for node in solution-nodes
+                                     when (not (equal (name (car-applied-cxn (cipn-car node)))
+                                                      (name cxn-of-uttered-word)))
+                                       collect (car-applied-cxn (cipn-car node))))))
+        (loop for cxn in candidate-cxns
+              for concept-of-candidate-cxn = (first (extract-concept cxn))
+              for original-score = (attr-val cxn :score)
+              for concept-concept-similarity = (concept-representations::concept-similarity concept-of-uttered-word concept-of-candidate-cxn)
+              for new-score = (if (<= (- original-score (* -0.02 concept-concept-similarity)) 0)
+                                0
+                                (- original-score (* -0.02 concept-concept-similarity)))
+              do (setf (attr-val cxn :score) new-score))))))
 
 
 (defun calculate-increased-score (learning-rate score)
@@ -173,8 +242,7 @@
       (fcg::add-cxn cxn (grammar hearer))
       (push cxn consolidated-cxns)
     
-      (values cxn fix))
-  )
+      (values cxn fix)))
 
 
 (defmethod adopt ((topic crs-conventionality-entity-set) (hearer concept-emergence-game-agent))
@@ -202,7 +270,6 @@
     
       (values cxn fix))
   )
-
 
 (defmethod shift ((construction fcg::construction) (entity-set crs-conventionality-entity-set) (agent concept-emergence-game-agent))
   "Shifting of the concept."
