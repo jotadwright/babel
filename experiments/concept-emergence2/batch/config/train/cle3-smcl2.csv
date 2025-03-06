@@ -34,3 +34,4 @@ id,exp_name,nr_of_series,nr_of_interactions,population_size,dataset_loader,datas
 35,smcl2-35,1,1000000,10,:runtime,:shared-views,10,10,student,train,student,:none,0,:none,0.0,:none,0.0,:random,:random,t,0.1,-0.1,-0.02,:j-interpolation,0,1,-5,:paper,:none,0,nil,:hearer
 36,smcl2-36,1,1000000,10,:runtime,:shared-views,10,10,water,train,water,:none,0,:none,0.0,:none,0.0,:random,:random,t,0.1,-0.1,-0.02,:j-interpolation,0,1,-5,:paper,:none,0,nil,:hearer
 37,smcl2-37,1,1000000,10,:runtime,:shared-views,10,10,winery,train,winery,:none,0,:none,0.0,:none,0.0,:random,:random,t,0.1,-0.1,-0.02,:j-interpolation,0,1,-5,:paper,:none,0,nil,:hearer
+38,smcl2-38,1,1000000,10,:runtime,:shared-views,10,10,exoplanets2,train,exoplanets2,:none,0,:none,0.0,:none,0.0,:random,:random,t,0.1,-0.1,-0.02,:j-interpolation,0,1,-5,:paper,:none,0,nil,:hearer
