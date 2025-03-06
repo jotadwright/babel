@@ -17,6 +17,7 @@
                                                           (+ 1 (interaction-number (current-interaction experiment)))
                                                           1))))
     (push interaction (interactions experiment))
+    (switch-conditions experiment)
 
     ;; Determine the speaker and hearer agents as well as the scene and topic, notify that interaction can start.
     (determine-interacting-agents experiment interaction (get-configuration experiment :determine-interacting-agents-mode))
@@ -31,6 +32,12 @@
     (notify interaction-finished experiment interaction (interaction-number interaction))
     (clear-interaction interaction)
     (values interaction experiment)))
+
+
+(defun switch-conditions (experiment)
+  (when (eq (get-configuration experiment :introduce-noise-after-interaction)
+            (- (interaction-number (current-interaction experiment)) 1))
+    (set-configuration experiment :noise-level 0.6)))
 
 
 ;; Determine interacting agents, scene and topic ;;
