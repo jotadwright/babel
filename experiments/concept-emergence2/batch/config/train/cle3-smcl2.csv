@@ -35,3 +35,5 @@ id,exp_name,nr_of_series,nr_of_interactions,population_size,dataset_loader,datas
 36,smcl2-36,1,1000000,10,:runtime,:shared-views,10,10,water,train,water,:none,0,:none,0.0,:none,0.0,:random,:random,t,0.1,-0.1,-0.02,:j-interpolation,0,1,-5,:paper,:none,0,nil,:hearer
 37,smcl2-37,1,1000000,10,:runtime,:shared-views,10,10,winery,train,winery,:none,0,:none,0.0,:none,0.0,:random,:random,t,0.1,-0.1,-0.02,:j-interpolation,0,1,-5,:paper,:none,0,nil,:hearer
 38,smcl2-38,1,1000000,10,:runtime,:shared-views,10,10,exoplanets2,train,exoplanets2,:none,0,:none,0.0,:none,0.0,:random,:random,t,0.1,-0.1,-0.02,:j-interpolation,0,1,-5,:paper,:none,0,nil,:hearer
+39,smcl2-39,1,1000000,10,:runtime,:shared-views,10,10,exoplanets3,train,exoplanets3,:none,0,:none,0.0,:none,0.0,:random,:random,t,0.1,-0.1,-0.02,:j-interpolation,0,1,-5,:paper,:none,0,nil,:hearer
+40,smcl2-40,1,1000000,10,:runtime,:shared-views,10,10,exoplanets3,train,exoplanets3,:none,0,:none,0.0,:none,0.0,:random,:random,t,0.1,-0.1,-0.02,:j-interpolation,0,1,-1,:paper,:none,0,nil,:hearer

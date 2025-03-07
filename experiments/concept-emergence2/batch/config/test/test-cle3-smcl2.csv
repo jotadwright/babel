@@ -37,3 +37,5 @@ id,exp_name,nr_of_interactions,dataset_loader,min_context_size,max_context_size,
 36,smcl2-36,100000,:runtime,10,10,water,test,water,:random,:random
 37,smcl2-37,100000,:runtime,10,10,winery,test,winery,:random,:random
 38,smcl2-38,100000,:runtime,10,10,exoplanets2,test,exoplanets2,:random,:random
+39,smcl2-39,100000,:runtime,10,10,exoplanets3,test,exoplanets3,:random,:random
+40,smcl2-40,100000,:runtime,10,10,exoplanets3,test,exoplanets3,:random,:random
