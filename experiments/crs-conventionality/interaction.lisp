@@ -17,7 +17,6 @@
                                                           (+ 1 (interaction-number (current-interaction experiment)))
                                                           1))))
     (push interaction (interactions experiment))
-    (switch-conditions experiment)
 
     ;; Determine the speaker and hearer agents as well as the scene and topic, notify that interaction can start.
     (determine-interacting-agents experiment interaction (get-configuration experiment :determine-interacting-agents-mode))
@@ -32,12 +31,6 @@
     (notify interaction-finished experiment interaction (interaction-number interaction))
     (clear-interaction interaction)
     (values interaction experiment)))
-
-
-(defun switch-conditions (experiment)
-  (when (eq (get-configuration experiment :introduce-noise-after-interaction)
-            (- (interaction-number (current-interaction experiment)) 1))
-    (set-configuration experiment :noise-level 0.6)))
 
 
 ;; Determine interacting agents, scene and topic ;;
@@ -186,7 +179,8 @@
 (defmethod utter ((speaker crs-conventionality-agent) (hearer crs-conventionality-agent))
   "The utterance is copied from the speaker to the hearer, noise may be added."
   (setf (utterance speaker) (conceptualised-utterance speaker))
-  (if (get-configuration (experiment speaker) :noise-level)
+  (if (< (get-configuration (experiment speaker) :introduce-noise-after-interaction)
+         (interaction-number (current-interaction (experiment speaker))))
     (setf (utterance hearer) (list (add-noise (copy-object (first (utterance speaker))) (get-configuration (experiment speaker) :noise-level)))) 
     (setf (utterance hearer) (utterance speaker))))
 
