@@ -17,7 +17,7 @@
          (cxns-entrenched-not-entrenched (multiple-value-list 
                                           (loop for cxn in cxns
                                                 for score = (attr-val cxn :score)
-                                                if (< score 0.7)
+                                                if (= score 0)
                                                   collect cxn into not-entrenched-cxns
                                                 else
                                                   collect cxn into entrenched-cxns
