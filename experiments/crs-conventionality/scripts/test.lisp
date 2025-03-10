@@ -160,37 +160,55 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; set dataset as a configuration
-(defparameter *configuration-canonical-concept-emergence* (make-configuration
-                                                           :entries '(;; Logging
-                                                                      (:log-every-x-interactions . 100)
-                                                                      ;; Initialising the experiment
-                                                                      (:dataset . "winery")
-                                                                      (:datasplit . "train")
-                                                                      (:nr-of-entities-in-world . 10)
-                                                                      (:nr-of-agents-in-population . 5)
-                                                                      (:nr-of-entities-in-scene . 3)
-                                                                      (:alignment-strategy . :lateral-inhibition)
-                                                                      (:learning-strategy . :default)
-                                                                      (:learning-rate . 0.5)
-                                                                      ;; Initialising an interaction
-                                                                      (:determine-interacting-agents-mode . :random-from-population)
-                                                                      (:determine-scene-entities-mode . :random-subset-of-world)
-                                                                      (:determine-topic-mode . :random-entity-from-scene))))
+(progn
+  (monitors::notify reset-monitors)
+  
+  (defparameter *configuration-canonical-concept-emergence* (make-configuration
+                                                             :entries '(;; Logging
+                                                                        (:log-every-x-interactions . 100)
+                                                                        ;; Initialising the experiment
+                                                                        (:dataset . "winery")
+                                                                        (:datasplit . "train")
+                                                                        (:nr-of-entities-in-world . 2)
+                                                                        (:nr-of-agents-in-population . 5)
+                                                                        (:nr-of-entities-in-scene . 2)
+                                                                        (:alignment-strategy . :concept-alignment)
+                                                                        (:learning-strategy . :default)
+                                                                        (:learning-rate . 0.5)
+                                                                        ;; Initialising an interaction
+                                                                        (:determine-interacting-agents-mode . :random-from-population)
+                                                                        (:determine-scene-entities-mode . :random-subset-of-world)
+                                                                        (:determine-topic-mode . :random-entity-from-scene)))))
 
 (defparameter *concept-emergence-canonical* (make-instance 'concept-emergence-game-experiment
                                                            :configuration *configuration-canonical-concept-emergence*))
 
-;(deactivate-all-monitors)
-;(monitors::notify reset-monitors)
 
-;(add-element (make-html (grammar (first (agents (population *concept-emergence-canonical*))))))
+
 (progn
+  ;(activate-monitor display-metrics)
+  (activate-monitor log-every-x-interactions-in-output-browser)
+  (activate-monitor display-metrics)
+  
+  (deactivate-monitor trace-interaction)
+  (deactivate-monitor trace-fcg-crs)
+  (deactivate-monitor trace-irl-crs)
+  
+    (loop for i from 1 to 100
+        do (run-interaction *concept-emergence-canonical*)))
+
+
+(progn
+  (deactivate-monitor display-metrics)
   (activate-monitor trace-interaction)
   (activate-monitor trace-fcg-crs)
   (activate-monitor trace-irl-crs)
-  (activate-monitor display-metrics)
-    (loop for i from 1 to 100
+  
+    (loop for i from 1 to 10
         do (run-interaction *concept-emergence-canonical*)))
+
+
+
 
 ;(reset-id-counters)
 ;(deactivate-all-monitors)
