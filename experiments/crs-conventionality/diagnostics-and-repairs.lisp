@@ -100,7 +100,7 @@
              (form (make-word))
 
              ;; make a cxn based on the topic, meaning and form
-             (cxn (crs-conventionality::make-naming-game-cxn topic meaning cxn-inventory-copy form)))
+             (cxn (crs-conventionality::make-naming-game-cxn topic meaning cxn-inventory-copy form 0.5)))
 
         ;; add the cxn to the cxn-inventory
         (add-cxn cxn cxn-inventory-copy)
@@ -142,7 +142,7 @@
            (form (first (utterance (get-data (blackboard (construction-inventory cipn)) :agent))))
 
            ;; make the construction based on the form, meaning and topic
-           (cxn (crs-conventionality::make-naming-game-cxn topic meaning cxn-inventory-copy form)))
+           (cxn (crs-conventionality::make-naming-game-cxn topic meaning cxn-inventory-copy form 0.5)))
 
       ;; add cxn to the cxn-inventory
       (add-cxn cxn cxn-inventory-copy)
@@ -190,11 +190,10 @@
 
 (in-package :crs-conventionality)
 
-(defun make-naming-game-cxn (topic meaning cxn-inventory form)
+(defun make-naming-game-cxn (topic meaning cxn-inventory form initial-score)
   "Make a cxn based on the topic, meaning, form."
   (let ((unit-name (make-var (format nil "~a-unit" form)))
-        (cxn-name (make-symbol (upcase (format nil "~a-cxn" form))))
-        (initial-score 0.5))
+        (cxn-name (make-symbol (upcase (format nil "~a-cxn" form)))))
     ;; the fcg-construction has a meaning, form and topic
     ;; initial score is 0.5
     (make-instance 'fcg-construction
