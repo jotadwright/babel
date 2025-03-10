@@ -51,16 +51,10 @@
       ;; Communication succeeded
       ;; Speaker and hearer increase the score of the constructions they used:
       (progn
-        (shift applied-cxn-speaker (topic interaction) speaker) 
-        (setf (attr-val applied-cxn-speaker :score)
-              (if (>= (+ 0.1 (attr-val applied-cxn-speaker :score)) 1)
-                1.0
-                (+ 0.1 (attr-val applied-cxn-speaker :score))))
-        (setf (attr-val applied-cxn-hearer :score)
-              (if (>= (+ 0.1 (attr-val applied-cxn-hearer :score)) 1)
-                1.0
-                (+ 0.1 (attr-val applied-cxn-hearer :score))))
-      
+        (shift applied-cxn-speaker (topic interaction) speaker)
+        (update-score-cxn applied-cxn-speaker 0.1)
+        (update-score-cxn applied-cxn-hearer 0.1)
+
         ;; Speaker punishes competing constructions:
         (punish-competitors speaker)
         (punish-competitors hearer)
@@ -71,18 +65,12 @@
      ;; Communication failed 
      (progn
        (when (applied-constructions speaker)
-         (setf (attr-val applied-cxn-speaker :score)
-               (if (<= (- (attr-val applied-cxn-speaker :score) 0.1) 0)
-                 0
-                 (- (attr-val applied-cxn-speaker :score) 0.1))))
+         (update-score-cxn applied-cxn-speaker -0.1))
        (notify alignment-finished speaker hearer interaction)
        (if (computed-topic hearer)
          (progn 
            (shift applied-cxn-hearer (topic interaction) hearer) ;; check if shift is on the right cxn
-           (setf (attr-val applied-cxn-hearer :score)
-                 (if (<= (- (attr-val applied-cxn-hearer :score) 0.1) 0)
-                   0
-                   (- (attr-val applied-cxn-hearer :score) 0.1))))
+           (update-score-cxn applied-cxn-hearer -0.1))
          (adopt (topic interaction) hearer))))))
 
 ;; Don't punish competitors in success. 
@@ -203,10 +191,8 @@
               for concept-of-candidate-cxn = (first (extract-concept cxn))
               for original-score = (attr-val cxn :score)
               for concept-concept-similarity = (concept-representations::concept-similarity concept-of-uttered-word concept-of-candidate-cxn)
-              for new-score = (if (<= (- original-score (* -0.02 concept-concept-similarity)) 0)
-                                0
-                                (- original-score (* -0.02 concept-concept-similarity)))
-              do (setf (attr-val cxn :score) new-score))))))
+              do (update-score-cxn cxn (- original-score (* -0.02 concept-concept-similarity))))))))
+
 
 
 (defun calculate-increased-score (learning-rate score)
@@ -286,3 +272,15 @@
 (defun extract-concept-from-unit (unit value)
   (unit-feature-value unit value))
 
+
+(defmethod update-score-cxn (cxn delta &key (upper-bound 1.0) (lower-bound 0.0))
+  "Updates the entrenchment score of a cxn."
+  ;; update the score
+  (setf (attr-val cxn :score) (+ (attr-val cxn :score) delta))
+  ;; check the upper boundary
+  (when (> (attr-val cxn :score) upper-bound)
+    (setf (attr-val cxn :score) upper-bound))
+  (when (< (attr-val cxn :score) lower-bound)
+    (setf (attr-val cxn :score) lower-bound))
+  ;(update-lexicon-inventory (lexicon agent) cxn)
+  )
