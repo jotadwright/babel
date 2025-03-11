@@ -58,7 +58,8 @@
      (bind (filtered-entity 1.0 (car highest)))))
 
   ;; This case is triggered in normal conceptualisation when a concept applied on a specific concept. It returns the discriminative power.
-  ;; Calculates the similarity of the concept and the filtered-entity 
+  ;; Calculates the similarity of the concept and the filtered-entity
+  ;; maybe we can optimise this in the same way as the concept emergence by using a lazy loop
  ((filtered-entity concept scene =>)
    (let* ((binding (find filtered-entity binding-objects :key #'value))
           (similarities
@@ -79,7 +80,8 @@
          (when binding
            (setf (score binding) discrimation-score))))))
        
- ;; This case is triggered in the metalayer of conceptualisation. A new concept is invented and the score is set to 1.
+ ;; This case is triggered in the metalayer of conceptualisation. A new concept is invented/adopted and the score is set to 1.
+ ;; Invention done for every entity in the scene because we are in composer and the topic-entity is the target value.
   ((scene => filtered-entity concept)
    (loop for entity in (entities scene)
          for invented-concept = (concept-representations::create-concept-representation entity :weighted-multivariate-distribution)
