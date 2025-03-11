@@ -113,7 +113,7 @@
   "Discriminative power needs to be positive."
   (let ((discriminative-power (cdr (find-data node :discriminative-power))))
     (if discriminative-power
-      (>= discriminative-power 0)
+      (> discriminative-power 0) ;; strictly higher than 0
       nil)))
 
 
