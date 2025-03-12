@@ -50,16 +50,18 @@
     
     ;; check if a solution is found
     (if (not (succeeded-nodes cip))
-      (when use-meta-layer
-        ;; ! meta-layer !
-        ;;     if no solution is found, start invention and set utterance in agent
-        (unless silent (notify meta-conceptualisation-started topic agent scene))
-        (multiple-value-bind (cxn fix)
-            (fcg::invent cip agent topic scene)
-          (unless silent (notify meta-conceptualisation-finished fix agent))
-          (setf (conceptualised-utterance agent) (render (car-resulting-cfs (first (get-data (blackboard fix) 'fcg::fixed-cars)))
-                                                         (get-configuration (grammar agent) :render-mode)))
-          (setf (applied-constructions agent) (list (processing-cxn cxn)))))
+      (progn
+        (when use-meta-layer
+          ;; ! meta-layer !
+          ;;     if no solution is found, start invention and set utterance in agent
+          (unless silent (notify meta-conceptualisation-started topic agent scene))
+          (multiple-value-bind (cxn fix)
+              (fcg::invent cip agent topic scene)
+            (unless silent (notify meta-conceptualisation-finished fix agent))
+            (setf (conceptualised-utterance agent) (render (car-resulting-cfs (first (get-data (blackboard fix) 'fcg::fixed-cars)))
+                                                           (get-configuration (grammar agent) :render-mode)))
+            (setf (applied-constructions agent) (list (processing-cxn cxn))))
+          (setf (invention (interaction scene)) t)))
       ;; otherwise, render and set solution nodes
       (progn
         (setf (conceptualised-utterance agent) (render (car-resulting-cfs (fcg:cipn-car best-solution))
@@ -68,10 +70,8 @@
           (progn
             (setf (applied-constructions agent) (applied-constructions best-solution)) 
             (setf (solution-nodes agent) solution-nodes))
-          (setf (solution-nodes-conceptualisation agent) solution-nodes)
-
-          ))))) ;; maybe we need all solution-nodes in the agent, for now, only pass the best solution
-
+          ;; maybe we need all solution-nodes in the agent, for now, only pass the best solution
+          (setf (solution-nodes-conceptualisation agent) solution-nodes))))))
 
 (defmethod create-initial-structure ((topic crs-conventionality-entity-set)
                                      (mode (eql :topic-and-scene))

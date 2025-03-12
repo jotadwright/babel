@@ -97,7 +97,7 @@
 
 (defun non-zero-cxn-p (cxn) ;; func should be moved to grammar
   "Checks if the entrenchment score of a cxn is positive."
-  (> (attr-val cxn :score) 0.0001))
+  (> (attr-val cxn :score) 0.01))
 
 (define-event-handler (record-construction-inventory-size interaction-finished)
   (record-value monitor (loop for agent in (agents (population (experiment interaction)))

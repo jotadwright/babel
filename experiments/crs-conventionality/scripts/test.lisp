@@ -1,8 +1,8 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                                                        ;;
-;; Script for running a quick demo of the crs-conventionality experiments ;;
-;;                                                                        ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                      ;;
+;;  Script for testing  ;;
+;;                      ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Load the system and set *package*
 (ql:quickload :crs-conventionality)

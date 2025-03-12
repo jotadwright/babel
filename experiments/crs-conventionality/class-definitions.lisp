@@ -30,7 +30,12 @@
         (make-instance 'naming-game-world :experiment experiment))
   ;; Set population
   (setf (population experiment)
-        (make-instance 'naming-game-population :experiment experiment)))
+        (make-instance 'naming-game-population :experiment experiment))
+  ;; Set social network
+  (initialize-social-network experiment)
+  ;; Set initial Q-values
+  (loop for agent in (agents (population experiment))
+        do (initialise-neighbor-q-values agent)))
 
 (defmethod initialize-instance :after ((experiment concept-emergence-game-experiment) &key &allow-other-keys)
   "Creates the population and world of the experiment."
@@ -39,7 +44,11 @@
         (make-instance 'concept-emergence-game-world :experiment experiment))
   ;; Set population
   (setf (population experiment)
-        (make-instance 'concept-emergence-game-population :experiment experiment)))
+        (make-instance 'concept-emergence-game-population :experiment experiment))
+  (initialize-social-network experiment)
+  ;; Set initial Q-values
+  (loop for agent in (agents (population experiment))
+        do (initialise-neighbor-q-values agent)))
 
 
 ;; Populations and Agents ;;
@@ -131,7 +140,10 @@
    (introduced-in-game
     :documentation "The game number in which the agent was introduced."
     :type number
-    :initform 0 :initarg :introduced-in-game :accessor introduced-in-game))
+    :initform 0 :initarg :introduced-in-game :accessor introduced-in-game)
+   (neighbor-q-values
+    :documentation "Stores Q values for the agent's neigbors based on success with partners."
+    :type hash-table :accessor neighbor-q-values :initform (make-hash-table)))
   (:documentation "An agent in the experiment"))
 
 
@@ -280,5 +292,8 @@
     :initform nil :initarg :topic :accessor topic)
    (coherence
     :documentation "Whether both interacting agents would have said the same thing under the same circumstances."
-    :initform nil :accessor coherence))
+    :initform nil :accessor coherence)
+   (invention
+    :documentation "Whether invention occurred in the interaction."
+    :initform nil :accessor invention))
   (:documentation "An interaction in the experiment"))
