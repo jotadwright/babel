@@ -42,8 +42,10 @@
       (progn
         (loop for diagnostic in (reverse (get-configuration cxn-inventory :interpretation-diagnostics))
               do (fcg::add-diagnostic (top-node cip) diagnostic))
-        (loop for repair in (reverse (get-configuration cxn-inventory :repairs))
-              do (fcg::add-repair (top-node cip) repair))
+        (when (< (get-configuration (experiment agent) :introduce-noise-after-interaction) ;; add form-similarity repair only when there is noise
+                 (interaction-number (current-interaction (experiment agent))))          
+          (loop for repair in (reverse (get-configuration cxn-inventory :repairs))
+                do (fcg::add-repair (top-node cip) repair)))
         (set-data (blackboard (grammar agent)) :cipn (top-node cip))
         ;; Notify learning
 
