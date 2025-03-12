@@ -119,7 +119,6 @@
                     ((td) ,(make-html (meta-layer-learning::restart-data fix))))))))
 
   (add-element '((hr :style "border-top: 1px dashed; background-color:transparent;")))
-  (add-element '((hr :style "LARA WAS HIER")) )
   
   (add-element `((p :style "display:inline") ,(format nil "Speaker uttered: " )))
   (add-element `((b) ,(format nil "\"~a\"" (first (fcg:render (fcg::car-resulting-cfs (first (get-data (blackboard fix) 'fcg::fixed-cars)))
