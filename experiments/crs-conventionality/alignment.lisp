@@ -38,8 +38,7 @@
        (when (applied-constructions speaker)
          (setf (attr-val applied-cxn-speaker :score)
                (calculate-decreased-score (learning-rate speaker) (attr-val applied-cxn-speaker :score))))
-       (notify alignment-finished speaker hearer interaction)
-         (adopt (topic interaction) hearer)))))
+       (notify alignment-finished speaker hearer interaction)))))
 
 (defmethod align ((speaker crs-conventionality-agent) (hearer crs-conventionality-agent) (interaction crs-conventionality-interaction)
                   (mode (eql :concept-alignment)))
@@ -70,8 +69,7 @@
        (if (computed-topic hearer)
          (progn 
            (shift applied-cxn-hearer (topic interaction) hearer) ;; check if shift is on the right cxn
-           (update-score-cxn applied-cxn-hearer -0.1))
-         (adopt (topic interaction) hearer))))))
+           (update-score-cxn applied-cxn-hearer -0.1)))))))
 
 ;; Don't punish competitors in success. 
 
@@ -202,6 +200,34 @@
   ;; Notify learning
   (set-data (blackboard (grammar hearer)) :agent hearer)
   (let* ((fix (first (second (multiple-value-list (fcg::notify-learning (get-data (blackboard (grammar hearer)) :cipn) :trigger 'fcg::feedback-received))))))
+    (let* ((cxn (meta-layer-learning:restart-data fix))
+           (best-solution nil)
+           (consolidated-cxns nil)
+           (current-node (get-data (blackboard (grammar hearer)) :cipn))
+           (fixed-car (first (get-data fix 'fcg::fixed-cars))) 
+           (child (fcg::cip-add-child current-node fixed-car)))
+      
+      (setf current-node child)
+      (push (type-of (fcg::issued-by fix)) (fcg::statuses child))
+      (setf (fcg::fully-expanded? child) t)
+      (fcg::cip-run-goal-tests child (cip (get-data (blackboard (grammar hearer)) :cipn))) ;; to include succeeded status in node statuses
+      (push 'added-by-repair (fcg::statuses child))
+
+      (fcg::add-cxn cxn (grammar hearer))
+      (push cxn consolidated-cxns)
+
+      (notify adoption-finished cxn (invention (current-interaction (experiment hearer))))
+    
+      (values cxn fix))))
+
+
+(defmethod adopt ((topic crs-conventionality-entity-set) (hearer concept-emergence-game-agent))
+  "Adoption of the construction through composition."
+  (fcg::add-repair (get-data (blackboard (grammar hearer)) :cipn) 'fcg::repair-through-concept-adoption)
+  ;; Notify learning
+    
+  (set-data (blackboard (grammar hearer)) :agent hearer) ;; you need to have access to the agent once you are deeper into the metalayer and only have the construction-inventory
+  (let* ((fix (first (second (multiple-value-list (fcg::notify-learning (get-data (blackboard (grammar hearer)) :cipn) :trigger 'fcg::feedback-received))))))
     (when fix
       (let* ((cxn (meta-layer-learning:restart-data fix))
              (best-solution nil)
@@ -218,35 +244,10 @@
 
         (fcg::add-cxn cxn (grammar hearer))
         (push cxn consolidated-cxns)
-    
+
+        (notify adoption-finished cxn (invention (current-interaction (experiment hearer))))
+        
         (values cxn fix)))))
-
-
-(defmethod adopt ((topic crs-conventionality-entity-set) (hearer concept-emergence-game-agent))
-  "Adoption of the construction through composition."
-    (fcg::add-repair (get-data (blackboard (grammar hearer)) :cipn) 'fcg::repair-through-concept-adoption)
-    ;; Notify learning
-    
-    (set-data (blackboard (grammar hearer)) :agent hearer) ;; you need to have access to the agent once you are deeper into the metalayer and only have the construction-inventory
-    (let* ((fix (first (second (multiple-value-list (fcg::notify-learning (get-data (blackboard (grammar hearer)) :cipn) :trigger 'fcg::feedback-received)))))
-           (cxn (meta-layer-learning:restart-data fix))
-           (best-solution nil)
-           (consolidated-cxns nil)
-           (current-node (get-data (blackboard (grammar hearer)) :cipn))
-           (fixed-car (first (get-data fix 'fcg::fixed-cars))) 
-           (child (fcg::cip-add-child current-node fixed-car)))
-      
-      (setf current-node child)
-      (push (type-of (fcg::issued-by fix)) (fcg::statuses child))
-      (setf (fcg::fully-expanded? child) t)
-      (fcg::cip-run-goal-tests child (cip (get-data (blackboard (grammar hearer)) :cipn))) ;; to include succeeded status in node statuses
-      (push 'added-by-repair (fcg::statuses child))
-
-      (fcg::add-cxn cxn (grammar hearer))
-      (push cxn consolidated-cxns)
-    
-      (values cxn fix))
-  )
 
 (defmethod shift ((construction fcg::construction) (entity-set crs-conventionality-entity-set) (agent concept-emergence-game-agent))
   "Shifting of the concept."
