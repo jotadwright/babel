@@ -19,8 +19,9 @@
                                     (:alignment-strategy . :lateral-inhibition)
                                     (:learning-strategy . :default)
                                     (:learning-rate . 0.5)
+                                    (:neighbor-q-value-lr . 0.01)
                                     ;; Initialising an interaction
-                                    (:determine-interacting-agents-mode . :random-from-population)
+                                    (:determine-interacting-agents-mode . :random-from-social-network)
                                     (:determine-scene-entities-mode . :random-subset-of-world)
                                     (:determine-topic-mode . :random-entity-from-scene)))
                                   (naming-game-dont-punish-competitors
@@ -33,8 +34,9 @@
                                     (:alignment-strategy . :dont-punish-competitors)
                                     (:learning-strategy . :default)
                                     (:learning-rate . 0.5)
+                                    (:neighbor-q-value-lr . 0.01)
                                     ;; Initialising an interaction
-                                    (:determine-interacting-agents-mode . :random-from-population)
+                                    (:determine-interacting-agents-mode . :random-from-social-network)
                                     (:determine-scene-entities-mode . :random-subset-of-world)
                                     (:determine-topic-mode . :random-entity-from-scene)))
                                   (naming-game-dont-punish-failure
@@ -47,8 +49,9 @@
                                     (:alignment-strategy . :dont-punish-failure)
                                     (:learning-strategy . :default)
                                     (:learning-rate . 0.5)
+                                    (:neighbor-q-value-lr . 0.01)
                                     ;; Initialising an interaction
-                                    (:determine-interacting-agents-mode . :random-from-population)
+                                    (:determine-interacting-agents-mode . :random-from-social-network)
                                     (:determine-scene-entities-mode . :random-subset-of-world)
                                     (:determine-topic-mode . :random-entity-from-scene)))
                                   (naming-game-never-punish
@@ -61,8 +64,9 @@
                                     (:alignment-strategy . :never-punish)
                                     (:learning-strategy . :default)
                                     (:learning-rate . 0.5)
+                                    (:neighbor-q-value-lr . 0.01)
                                     ;; Initialising an interaction
-                                    (:determine-interacting-agents-mode . :random-from-population)
+                                    (:determine-interacting-agents-mode . :random-from-social-network)
                                     (:determine-scene-entities-mode . :random-subset-of-world)
                                     (:determine-topic-mode . :random-entity-from-scene)))
                                   (naming-game-no-alignment
@@ -75,8 +79,9 @@
                                     (:alignment-strategy . :no-alignment)
                                     (:learning-strategy . :default)
                                     (:learning-rate . 0.5)
+                                    (:neighbor-q-value-lr . 0.01)
                                     ;; Initialising an interaction
-                                    (:determine-interacting-agents-mode . :random-from-population)
+                                    (:determine-interacting-agents-mode . :random-from-social-network)
                                     (:determine-scene-entities-mode . :random-subset-of-world)
                                     (:determine-topic-mode . :random-entity-from-scene)))
                                   )
@@ -100,6 +105,7 @@
                                      (:alignment-strategy . :lateral-inhibition)
                                      (:learning-strategy . :default)
                                      (:learning-rate . 0.5)
+                                     (:neighbor-q-value-lr . 0.01)
                                      (:network-topology . :regular)
                                      (:local-connectivity . 2)                                     
                                      ;; Initialising an interaction
@@ -118,6 +124,7 @@
                                      (:alignment-strategy . :lateral-inhibition)
                                      (:learning-strategy . :default)
                                      (:learning-rate . 0.5)
+                                     (:neighbor-q-value-lr . 0.01)
                                      (:network-topology . :small-world)
                                      (:local-connectivity . 2)
                                      (:rewiring-probability . 0.3)
