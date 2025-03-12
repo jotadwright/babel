@@ -22,6 +22,7 @@
 (progn
   ;; reset the web interface
   (wi::reset)
+  (notify reset-monitors)
   ;; deactivate all monitors (as a sanity check)
   (deactivate-all-monitors)
   ;; configure a canonical naming game
@@ -35,8 +36,9 @@
                                                       (:alignment-strategy . :lateral-inhibition)
                                                       (:learning-strategy . :default)
                                                       (:learning-rate . 0.5)
+                                                      (:neighbor-q-value-lr . 0.01)
                                                       ;; Initialising an interaction
-                                                      (:determine-interacting-agents-mode . :random-from-population)
+                                                      (:determine-interacting-agents-mode . :random-from-social-network)
                                                       (:determine-scene-entities-mode . :random-subset-of-world)
                                                       (:determine-topic-mode . :random-entity-from-scene))))
   ;; instantiate a naming game experiment
@@ -50,15 +52,15 @@
 ;; Option 1: run experiment with real-time plotting (using gnuplot)
 
 (progn
-  ;(notify reset-monitors)
+  
   ;; activate recorders
   (activate-monitor record-communicative-success)
   (activate-monitor record-conventionalisation)
   (activate-monitor record-construction-inventory-size)
   ;; activate tracers
-  (activate-monitor trace-interaction)
-  (activate-monitor trace-fcg-crs)
-  (activate-monitor trace-irl-crs)
+  ;(activate-monitor trace-interaction)
+  ;(activate-monitor trace-fcg-crs)
+  ;(activate-monitor trace-irl-crs)
   ;; activate the gnuplot live display
   (activate-monitor display-metrics)
 
@@ -175,8 +177,9 @@
                                                                         (:alignment-strategy . :concept-alignment)
                                                                         (:learning-strategy . :default)
                                                                         (:learning-rate . 0.5)
+                                                                        (:neighbor-q-value-lr . 0.01)
                                                                         ;; Initialising an interaction
-                                                                        (:determine-interacting-agents-mode . :random-from-population)
+                                                                        (:determine-interacting-agents-mode . :random-from-social-network)
                                                                         (:determine-scene-entities-mode . :random-subset-of-world)
                                                                         (:determine-topic-mode . :random-entity-from-scene)))))
 
