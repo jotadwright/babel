@@ -171,9 +171,9 @@
                                                                         ;; Initialising the experiment
                                                                         (:dataset . "winery")
                                                                         (:datasplit . "train")
-                                                                        (:nr-of-entities-in-world . 2)
+                                                                        (:nr-of-entities-in-world . 10)
                                                                         (:nr-of-agents-in-population . 5)
-                                                                        (:nr-of-entities-in-scene . 2)
+                                                                        (:nr-of-entities-in-scene . 5)
                                                                         (:alignment-strategy . :concept-alignment)
                                                                         (:learning-strategy . :default)
                                                                         (:learning-rate . 0.5)
@@ -197,7 +197,7 @@
   (deactivate-monitor trace-fcg-crs)
   (deactivate-monitor trace-irl-crs)
   
-    (loop for i from 1 to 100
+    (loop for i from 1 to 1000
         do (run-interaction *concept-emergence-canonical*)))
 
 
