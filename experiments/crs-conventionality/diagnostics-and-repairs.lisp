@@ -120,14 +120,21 @@
                    (problem no-cxn-to-interpret-utterance)
                    (cipn cip-node)
                    &key &allow-other-keys)
+  
   (when (constructions-list (original-cxn-set (construction-inventory cipn)))
     (let* ((cxn-inventory (original-cxn-set (construction-inventory cipn)))
            (form-to-interpret (first (utterance (get-data (blackboard (construction-inventory cipn)) :agent))))
+           
+           ;; Get the Levenshtein distance between the utterance and each form in the hearer's inventory.
            (candidates (loop for cxn in (constructions-list cxn-inventory)
                              for candidate = (attr-val cxn :form)
                              for distance = (crs-conventionality::levenshtein-distance-strings form-to-interpret candidate)
                              collect (cons cxn distance)))
+           
+           ;; Get all candidates with lowest distance.
            (closest-candidates (all-smallest #'cdr candidates))
+           
+           ;; If there are multiple with same distance, get most entrenched word. In the case that there are multiple with the same distance and entrenchment score, choose between them at random.
            (best-candidate (random-elt (all-biggest #'(lambda (cxn-and-distance) (attr-val (first cxn-and-distance) :score)) closest-candidates))))
       (when best-candidate 
            
