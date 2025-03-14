@@ -71,7 +71,8 @@
   ;; activate monitors
   (activate-monitor log-every-x-interactions-in-output-browser)
   (activate-monitor record-communicative-success)
-  (activate-monitor record-conventionalisation)
+  (activate-monitor record-coherence-interacting-agents)
+  ;(activate-monitor record-coherence-population)
   (activate-monitor record-construction-inventory-size)
 
   ;; activate the gnuplot live display
@@ -105,7 +106,8 @@
   ;; activate monitors
   (activate-monitor log-every-x-interactions-in-output-browser)
   (activate-monitor export-communicative-success)
-  (activate-monitor export-conventionalisation)
+  (activate-monitor export-coherence-interacting-agents)
+  (activate-monitor export-coherence-population)
   (activate-monitor export-construction-inventory-size)
   
   ;; run the experiment

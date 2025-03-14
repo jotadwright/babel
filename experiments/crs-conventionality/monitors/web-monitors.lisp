@@ -125,6 +125,8 @@
                            (get-configuration (grammar agent) :render-mode)))))))
 
 
+
+
 ;; Routine Interpretation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define-event routine-interpretation-started (agent crs-conventionality-agent)
@@ -204,10 +206,10 @@
 ;; Determine Coherence-finished ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define-event determine-coherence-finished (speaker crs-conventionality-agent)
+(define-event determine-coherence-interacting-agents-finished (speaker crs-conventionality-agent)
                                            (hearer crs-conventionality-agent))
 
-(define-event-handler (trace-interaction determine-coherence-finished)
+(define-event-handler (trace-interaction determine-coherence-interacting-agents-finished)
   (cond ((equal (utterance speaker) (conceptualised-utterance hearer))
          (add-element `((b :style "color: green;")
                         ,(format nil "Hearer would have uttered \"~a\" as well." (first (conceptualised-utterance hearer))))))

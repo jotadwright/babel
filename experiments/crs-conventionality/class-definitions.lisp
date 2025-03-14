@@ -227,10 +227,13 @@
    (topic 
     :documentation "The topic of the interaction."
     :initform nil :initarg :topic :accessor topic)
-   (coherence
-    :documentation "Whether both interacting agents would have said the same thing under the same circumstances."
-    :initform nil :accessor coherence)
    (invention
     :documentation "Whether invention occurred in the interaction."
-    :initform nil :accessor invention))
+    :initform nil :accessor invention)
+   (coherence-interacting-agents
+    :documentation "Whether both interacting agents would have said the same thing under the same circumstances."
+    :initform nil :accessor coherence-interacting-agents)
+   (coherence-population
+    :documentation "Percentage of the population that would have uttered the most common form associated with the topic."
+    :initform nil :accessor coherence-population))
   (:documentation "An interaction in the experiment"))

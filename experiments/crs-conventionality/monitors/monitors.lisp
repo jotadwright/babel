@@ -26,16 +26,16 @@
                  (get-configuration experiment :log-every-x-interactions))
             0)
          (let ((comm-success (caaar (monitors::get-average-values (monitors::get-monitor 'record-communicative-success))))
-               (coherence (caaar (monitors::get-average-values (monitors::get-monitor 'record-conventionalisation)))))
+               (coherence-interacting-agents (caaar (monitors::get-average-values (monitors::get-monitor 'record-coherence-interacting-agents)))))
            (multiple-value-bind (h m s) (seconds-to-hours-minutes-seconds (- (get-universal-time) *start-time*))
              (format t
-                     ". (~a / ~a / ~a / ~ah ~am ~as)~%"
+                     ". (~a | ~a / ~a | ~ah ~am ~as)~%"
                      (interaction-number interaction)
                      (if comm-success
                        (format nil "~,vf% Comm. success" 1 (* 100 (float comm-success)))
                        "NIL")
-                     (if coherence
-                       (format nil "~,vf% Conven." 1 (* 100 (float coherence)))
+                     (if coherence-interacting-agents
+                       (format nil "~,vf% Conven." 1 (* 100 (float coherence-interacting-agents)))
                        "NIL")
                      h m s)))
          ;; reset the timer
@@ -60,24 +60,54 @@
 (define-event-handler (record-communicative-success interaction-finished)
   (record-value monitor (if (communicated-successfully interaction) 1 0)))
 
-;; ---------------------
-;; + Lexicon Coherence +
-;; ---------------------
-(define-monitor record-conventionalisation
+;; --------------------------------------------------
+;; + Degree of coherence between interacting agents +
+;; --------------------------------------------------
+(define-monitor record-coherence-interacting-agents
                 :class 'data-recorder
                 :average-window 100
-                :documentation "Records the degree of conventionalisation.")
+                :documentation "Records the coherence between interacting agents, which serves as a proxy for conventionalisation.")
 
-(define-monitor export-conventionalisation
+(define-monitor export-coherence-interacting-agents
                 :class 'lisp-data-file-writer
-                :documentation "Exports the degree of conventionalisation."
-                :data-sources '(record-conventionalisation)
-                :file-name (babel-pathname :name "conventionalisation" :type "lisp"
+                :documentation "Exports the degree of coherence between interacting agents."
+                :data-sources '(record-coherence-interacting-agents)
+                :file-name (babel-pathname :name "coherence-interacting-agents" :type "lisp"
                                            :directory '("experiments" "crs-conventionality" "raw-data"))
                 :add-time-and-experiment-to-file-name nil)
 
-(define-event-handler (record-conventionalisation interaction-finished)
-  (record-value monitor (if (coherence interaction) 1 0)))
+(define-event-handler (record-coherence-interacting-agents interaction-finished)
+  (record-value monitor (if (coherence-interacting-agents interaction) 1 0)))
+
+
+
+;; ---------------------------------------
+;; + Degree of population-wide coherence +
+;; ---------------------------------------
+(define-monitor record-coherence-population
+                :class 'data-recorder
+                :average-window 100
+                :documentation "Records the population-wide coherence, which serves as a proxy for conventionalisation.")
+
+(define-monitor export-coherence-population
+                :class 'lisp-data-file-writer
+                :documentation "Exports the degree of population-wide coherence."
+                :data-sources '(record-coherence-population)
+                :file-name (babel-pathname :name "coherence-population" :type "lisp"
+                                           :directory '("experiments" "crs-conventionality" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+;; Form uttered ;;
+;;;;;;;;;;;;;;;;;;
+(define-event form-uttered (interaction crs-conventionality-interaction)
+                           (speaker crs-conventionality-agent)
+                           (hearer crs-conventionality-agent))
+
+(define-event-handler (record-coherence-population form-uttered)
+  (determine-coherence-population speaker hearer)
+  (record-value monitor (coherence-population interaction)))
+
+
 
 ;; -------------------------------
 ;; + Construction inventory size +
@@ -113,18 +143,19 @@
 (define-monitor display-metrics
                 :class 'gnuplot-display
                 :data-sources '((average record-communicative-success)
-                                (average record-conventionalisation)
+                                (average record-coherence-interacting-agents)
                                 (average record-construction-inventory-size))
                 :update-interval 100
                 :caption '("communicative success"
-                           "degree of conventionalisation"
+                           "degree of coherence between interacting agents"
                            "construction inventory size")
                 :x-label "# Games"
                 :use-y-axis '(1 1 2)
-                :y1-label "Communicative Success/Conventionalisation" 
+                :y1-label "Communicative Success/Coherence" 
                 :y1-max 1.0
                 :y1-min 0
                 :y2-label "Construction inventory size"
                 :y2-min 0
                 :draw-y1-grid t
                 :error-bars nil)
+

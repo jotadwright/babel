@@ -111,8 +111,6 @@
         do (setf (discourse-role a) d))
   (notify interacting-agents-determined experiment interaction))
 
-
-
 (defgeneric determine-scene-entities (experiment interaction mode)
   (:documentation "Creates a scene for an interaction."))
 
@@ -123,7 +121,6 @@
                                            :entities (random-elts (entities (world experiment))
                                                                   (get-configuration experiment :nr-of-entities-in-scene)))))
 
-
 (defgeneric determine-topic (experiment interaction mode)
   (:documentation "Sets the topic for an interaction."))
 
@@ -131,7 +128,6 @@
   "Sets the topic for an interaction."
   (setf (topic interaction) (make-instance 'crs-conventionality-entity-set
                                            :entities (list (random-elt (entities (scene interaction)))))))
-
 
 ;; Interact ;;
 ;;;;;;;;;;;;;;
@@ -153,10 +149,10 @@
     ;; Hearer comprehends and interprets the meaning. 
     (comprehend-and-interpret hearer scene)
     
-    ;; Determine success and coherence
+    ;; Determine success and coherence for the interacting agents
     (determine-success speaker hearer interaction)
-    (determine-coherence speaker hearer) ;; check coherence before alignment!
-
+    (determine-coherence-interacting-agents speaker hearer) ;; check coherence before alignment!
+    
     ;; Feedback
     (provide-feedback speaker hearer)
 
@@ -179,11 +175,15 @@
 (defmethod utter ((speaker crs-conventionality-agent) (hearer crs-conventionality-agent))
   "The utterer utters the utterance to the utteree."
   (setf (utterance speaker) (conceptualised-utterance speaker))
-  (setf (utterance hearer) (utterance speaker)))
+  (setf (utterance hearer) (utterance speaker))
+  (notify form-uttered (current-interaction (experiment speaker)) speaker hearer))
 
 (defmethod provide-feedback ((speaker crs-conventionality-agent) (hearer crs-conventionality-agent))
   "Speaker provides feedback by pointing to the topic."
   (setf (topic hearer) (topic speaker)))
+
+;; Determine success ;;
+;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod determine-success ((speaker naming-game-agent) (hearer naming-game-agent) (interaction crs-conventionality-interaction))
   "Determines and sets success. There is success if the computed-topic of the hearer is the same as the intended topic of the speaker."
@@ -191,24 +191,57 @@
     (setf (communicated-successfully interaction) t)
     (setf (communicated-successfully interaction) nil)))
 
+;; Determine coherence ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod determine-coherence ((speaker naming-game-agent) (hearer naming-game-agent))
+(defmethod determine-coherence-interacting-agents ((speaker naming-game-agent) (hearer naming-game-agent))
   "Determines and sets the coherences. Tests whether the hearer would have used the same word as the speaker, should the hearer have been the speaker."
   (let* ((interaction (current-interaction (experiment speaker)))
          (scene (scene interaction))
          (topic (topic interaction)))
     (conceptualise-and-produce hearer scene topic :use-meta-layer nil)
     (if (equalp (utterance speaker) (conceptualised-utterance hearer))
-      (setf (coherence interaction) t)
-      (setf (coherence interaction) nil))
-    (notify determine-coherence-finished speaker hearer)))
+        (setf (coherence-interacting-agents interaction) t)
+        (setf (coherence-interacting-agents interaction) nil))
+    (notify determine-coherence-interacting-agents-finished speaker hearer)))
 
+(defmethod determine-coherence-population ((speaker naming-game-agent) (hearer naming-game-agent))
+  "Tests what utterance all agents would have used for the topic picked for the interaction, then extracts the most used. Finally, it calculates the ratio (how many agents use it over population)."
+  (let* ((interaction (current-interaction (experiment speaker)))
+         (scene (scene interaction))
+         (topic (topic interaction)))
 
-(defmethod finish-interaction ((experiment crs-conventionality-experiment) (interaction crs-conventionality-interaction))
-  ;; update neighbor-q-values
-  (let ((reward (if (communicated-successfully interaction) 1 0)))
-    (update-neighbor-q-value (speaker experiment) (hearer experiment) reward (get-configuration experiment :neighbor-q-value-lr))
-    (update-neighbor-q-value (hearer experiment) (speaker experiment) reward (get-configuration experiment :neighbor-q-value-lr))))
+    ; create the hash table of conceptualised utterances
+    (let ((conceptualised-utterances-frequency-table (make-hash-table :test 'equal))) 
+      (loop for agent in (agents (population (experiment speaker)))
+            do (progn
+                ; conceptualise the utterance for the given topic for each agent
+                (conceptualise-and-produce agent scene topic :use-meta-layer nil)
+
+                ; fill the hash-table with frequencies of conceptualised-utterances
+                (if (first (conceptualised-utterance agent))
+                  (let ((count (gethash (first (conceptualised-utterance agent)) conceptualised-utterances-frequency-table)))
+                    (if count 
+                      (setf (gethash (first (conceptualised-utterance agent)) conceptualised-utterances-frequency-table) (+ count 1))
+                      (setf (gethash (first (conceptualised-utterance agent)) conceptualised-utterances-frequency-table) 1))))))
+
+      ; Now we have a table with all utterances and relative frequences: find the most common
+      (let ((most-common-utterance nil)
+            (most-common-frequency 0))
+        (maphash (lambda (utterance frequency)
+                   (if (and utterance
+                            (> frequency most-common-frequency))
+                     (setf most-common-utterance utterance
+                           most-common-frequency frequency)))
+                 conceptualised-utterances-frequency-table)
+        
+        ; uncomment this to see what is the most common utterance and relative frequency after each interaction:
+        (format t "Most common utterance: ~a | for topic: ~a | with relative frequency ~a/~a.~%"
+                most-common-utterance  topic most-common-frequency (length (agents (population (experiment speaker)))))
+    
+        ; the result is returned to coherence-population slot within interaction
+        (setf (coherence-population interaction) (/ most-common-frequency
+                                                    (length (agents (population (experiment speaker))))))))))
 
 
 ;; ---------------------
@@ -265,7 +298,6 @@
     (notify event-partner-selection agent neighbors q-values probabilities partner-id)
     partner))
 
-
 (defmethod initialise-neighbor-q-values ((agent crs-conventionality-agent) &key (initial-q 0.5))
   "Let agent store a Q-value for all of its neighbors, initialised at initial-q."
   (loop for neighbor in (social-network agent)
@@ -283,3 +315,8 @@
          (q-new (calculate-new-q-value q-old reward lr)))
     (setf (gethash (id neighbor) q-values) q-new)))
 
+(defmethod finish-interaction ((experiment crs-conventionality-experiment) (interaction crs-conventionality-interaction))
+  ;; update neighbor-q-values
+  (let ((reward (if (communicated-successfully interaction) 1 0)))
+    (update-neighbor-q-value (speaker experiment) (hearer experiment) reward (get-configuration experiment :neighbor-q-value-lr))
+    (update-neighbor-q-value (hearer experiment) (speaker experiment) reward (get-configuration experiment :neighbor-q-value-lr))))

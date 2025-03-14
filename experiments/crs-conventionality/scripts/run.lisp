@@ -85,7 +85,7 @@
                     :number-of-series 10
                     :monitors (list "log-every-x-interactions-in-output-browser"
                                     "export-communicative-success"
-                                    "export-conventionalisation"
+                                    "export-coherence-interacting-agents"
                                     "export-construction-inventory-size"))
 
 
@@ -143,7 +143,7 @@
 ;;                                                  :number-of-series 1
 ;;                                                  :monitors (list "print-a-dot-for-each-interaction"
 ;;                                                                  "export-communicative-success"
-;;                                                                  "export-conventionalisation")
+;;                                                                  "export-coherence-interacting-agents")
 ;;                                                  :configurations '(
 ;;                                                                    (ng-pop2
 ;;                                                                     ((:nr-of-agents-in-population . 2)))
