@@ -47,7 +47,7 @@
 ;; -------------------------------
 
 (defmethod determine-disable-channels (experiment views amount (mode (eql :none)))
-  "For every agent, chooses randomly n channels to be disabled."
+  "Does not disable any channels."
   (loop for i from 0 to (- amount 1)
         collect nil))
 
@@ -63,7 +63,9 @@
 
 
 (defmethod determine-disable-channels (experiment views amount (mode (eql :fixed)))
-  "For every agent, chooses randomly n channels to be disabled."
+  "Chooses, for the entire population, randomly n channels to be disabled.
+
+   Used in experiment: 'Applicability to homomorphic agents'"
   (loop with view-name = (first (nth 0 views)) ;; assumes that agent has one view
         with disabled = (random-elts (get-feature-set (world experiment) view-name)
                                      (get-configuration experiment :amount-disabled-channels))
