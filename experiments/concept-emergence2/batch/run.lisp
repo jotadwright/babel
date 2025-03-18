@@ -11,7 +11,6 @@
     ;(:record-every-x-interactions . 100)
     (:usage-table-window . 5000)
     (:save-distribution-history . nil)
-    (:interacting-agents-strategy . :standard)
     (:initial-cxn-entrenchement . 0.5)
     ;; parameter for updating continuous distributions (gaussian-welford)
     (:M2 . 0.0001)))
@@ -54,14 +53,20 @@
   ;; parse command line arguments, 
   (let* ((configuration (parse-config args)))
     ;; adapt file-writing monitors so they output in the correct log-dir
-    (set-up-monitors (list "record-communicative-success"
+    (set-up-monitors (list ;; record
+                           "record-communicative-success"
                            "record-conventionalisation"
                            "record-construction-inventory-usage"
+                           "record-partner-selection"
+                           ;; export
                            "export-communicative-success"
                            "export-conventionalisation"
                            "export-construction-inventory-usage"
+                           "export-partner-selection"
+                           ;; export configs, experiments
                            "export-experiment-configurations"
                            "export-experiment-store"
+                           ;; logger
                            "log-every-x-interactions-in-output-browser")
                      (list "train" "val")
                      configuration)

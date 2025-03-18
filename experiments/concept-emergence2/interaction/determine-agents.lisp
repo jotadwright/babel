@@ -4,18 +4,45 @@
 ;; + Determine interacting agents +
 ;; --------------------------------
 
+(defmethod set-agents ((experiment cle-experiment) agents)
+  "Set the agents of the experiment."
+  (setf (interacting-agents interaction) agents)
+
+  (loop for a in (interacting-agents interaction)
+        for d in '(speaker hearer)
+        do (setf (discourse-role a) d))
+
+  (notify interacting-agents-determined experiment interaction))
+
+
 (defmethod determine-interacting-agents (experiment (interaction interaction) (mode (eql :standard))
-                                                    &key (agents nil)
-                                                    &allow-other-keys)
+                                                    &key &allow-other-keys)
   "This default implementation randomly chooses two interacting agents
    and adds the discourse roles speaker and hearer to them"
-  (declare (ignore mode))
-  ;; random or not?
-  (if (not agents)
-    ;; set two random interacting agents
-    (setf (interacting-agents interaction) (random-elts (agents experiment) 2))
-    ;; set the specified agents
-    (setf (interacting-agents interaction) agents))
+  ;; set two random interacting agents
+  (setf (interacting-agents interaction) (random-elts (agents experiment) 2))
+  
+  ;; set discourse-role
+  (loop for a in (interacting-agents interaction)
+        for d in '(speaker hearer)
+        do (setf (discourse-role a) d))
+  (notify interacting-agents-determined experiment interaction))
+
+(defmethod determine-interacting-agents (experiment (interaction interaction) (mode (eql :boltzmann-partner-selection))
+                                                    &key &allow-other-keys)
+  "This default implementation randomly chooses two interacting agents
+   and adds the discourse roles speaker and hearer to them"
+  
+  (let* (;; select a random agent
+         (agent (random-elt (agents experiment)))
+         ;; select its partner based on its preferences
+         (preferred-partner (choose-partner agent
+                                            (agents experiment)
+                                            (get-configuration experiment :boltzmann-tau)))
+         ;; shuffle the two agents around so that speaker/hearer role assignment is random
+         (interacting-agents (shuffle (list agent preferred-partner))))
+
+    (setf (interacting-agents interaction) interacting-agents))
   
   ;; set discourse-role
   (loop for a in (interacting-agents interaction)

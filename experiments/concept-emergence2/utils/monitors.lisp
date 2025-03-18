@@ -251,6 +251,31 @@
       (write-string (jzon::stringify tables)
                     stream))))
 
+;; -------------------------------
+;; + Partner selection over time +
+;; -------------------------------
+(define-monitor record-partner-selection
+                :class 'data-recorder
+                :average-window 0
+                :documentation "Records the q-values for selecting partners.")
+
+(define-monitor export-partner-selection
+                :class 'csv-data-file-writer
+                :documentation "Exports the q-values for selecting partners."
+                :data-sources '(record-partner-selection)
+                :file-name (babel-pathname :name "partner-selection" :type "csv"
+                                           :directory '("experiments" "concept-emergence2" "logging"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-partner-selection interaction-finished)
+  (record-value monitor (let* ((agent (first (agents (experiment interaction)))))
+                          #|(loop for agent-id being the hash-keys of (partner-preferences agent)
+                                                    using (hash-value q-value)
+                                                  collect q-value)|#
+                          (format nil "{\"~a\": ~a}"
+                                  (string-downcase (symbol-name (id agent)))
+                                  (jzon::stringify (hash-values (partner-preferences agent)))))))
+
 ;; -----------------
 ;; + Export CONFIG +
 ;; -----------------

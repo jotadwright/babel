@@ -37,7 +37,13 @@
           (loop for i from 0 to (- (get-configuration experiment :population-size) 1)
                 for views = (nth i views-list)
                 for disabled-channels = (nth i disabled-channels-list)
-                collect (initialise-agent experiment views disabled-channels)))))
+                collect (initialise-agent experiment views disabled-channels)))
+
+    ;; initialise agent preferences
+    (loop for agent in (agents experiment)
+          for other-agents = (remove agent (agents experiment))
+          do (loop for other in other-agents
+                   do (initialise-neighbor-q-values agent other)))))
 
 (defun initialise-agent (experiment views disabled-channels)
   "Creates and initialises an agent with sensors and calibrations for these sensors."
