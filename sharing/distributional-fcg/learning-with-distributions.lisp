@@ -434,7 +434,33 @@ initial transient structure that plays a role in the frame."
 
 
 
+(defun learn-distributional-propbank-grammar (list-of-propbank-sentences &key
+                                                                         (selected-rolesets nil)
+                                                                         (excluded-rolesets nil)
+                                                                         (cxn-inventory '*propbank-learned-cxn-inventory*)
+                                                                         (model "en_benepar")
+                                                                         (fcg-configuration nil)
+                                                                         (cosine-similarity-threshold 0.3))
 
+  (let ((grammar  (learn-propbank-grammar
+                   list-of-propbank-sentences
+                   :selected-rolesets nil
+                   :excluded-rolesets nil
+                   :cxn-inventory cxn-inventory
+                   :fcg-configuration fcg-configuration)))
+
+  (graph-utils::pre-compute-cosine-similarities (fcg::graph (fcg::categorial-network grammar)))
+  (set-configuration grammar :cosine-similarity-threshold cosine-similarity-threshold)
+  (set-configuration grammar :category-linking-mode :always-succeed)
+  (set-configuration grammar :node-expansion-mode :multiple-cxns)
+  (set-configuration grammar :cxn-supplier-mode :cascading-cosine-similarity)
+
+  (make-proto-role-embeddings grammar)
+  (add-embeddings-to-cxn-inventory grammar)
+
+  grammar))
+
+  
 
 
 (in-package :fcg)
@@ -476,4 +502,6 @@ the node through the links in the categorial network."
           (extract-meanings (left-pole-structure 
                              (car-resulting-cfs (cipn-car node))))))
     meaning))
+
+
 
