@@ -20,7 +20,11 @@
   "This default implementation randomly chooses two interacting agents
    and adds the discourse roles speaker and hearer to them"
   ;; set two random interacting agents
-  (setf (interacting-agents interaction) (random-elts (agents experiment) 2))
+  (let* ((agents (agents experiment))
+         (agent-1 (random-elt agents))
+         (agent-2 (random-elt (social-network agent-1)))
+         (interacting-agents (list agent-1 agent-2)))
+    (setf (interacting-agents interaction) interacting-agents))
   
   ;; set discourse-role
   (loop for a in (interacting-agents interaction)
@@ -34,14 +38,13 @@
    and adds the discourse roles speaker and hearer to them"
   
   (let* (;; select a random agent
-         (agent (random-elt (agents experiment)))
+         (agent-1 (random-elt (agents experiment)))
          ;; select its partner based on its preferences
-         (preferred-partner (choose-partner agent
-                                            (agents experiment)
-                                            (get-configuration experiment :boltzmann-tau)))
+         (agent-2 (choose-partner agent-1
+                                  (social-network agent-1)
+                                  (get-configuration experiment :boltzmann-tau)))
          ;; shuffle the two agents around so that speaker/hearer role assignment is random
-         (interacting-agents (shuffle (list agent preferred-partner))))
-
+         (interacting-agents (shuffle (list agent-1 agent-2))))
     (setf (interacting-agents interaction) interacting-agents))
   
   ;; set discourse-role

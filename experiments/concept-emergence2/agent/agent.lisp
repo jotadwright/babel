@@ -32,6 +32,9 @@
    (perceived-objects
     :documentation "Stores perceived objects"
     :type perceived-objects :accessor perceived-objects :initform (make-hash-table))
+   (social-network
+    :documentation "Neighbors of an agent"
+    :type list :accessor social-network :initform nil)
    (neighbor-q-values
     :documentation "Stores the q-values associated to its neighbors."
     :type hash-table :accessor neighbor-q-values :initform (make-hash-table))))
@@ -90,11 +93,18 @@
   (probabilities list)
   (partner-id symbol))
 
+
+;; functie om de hash-keys gegeven lijst van agent
+
+
 (defmethod choose-partner ((agent cle-agent) (neighbors list) (tau number))
   "Choose a partner for a given agent using Boltzmann exploration."
 
-  (let* ((neighbor-ids (hash-keys (neighbor-q-values agent)))
-         (q-values (hash-values (neighbor-q-values agent)))
+  (let* ((tuples (loop for neighbor in neighbors
+                       collect (cons (id neighbor)
+                                     (gethash (id neighbor) (neighbor-q-values agent)))))
+         (neighbor-ids (mapcar #'car tuples))
+         (q-values (mapcar #'cdr tuples))
          (probabilities (boltzmann-exploration q-values tau))
          ;; sample a partner (by id)
          (partner-id (sample-partner neighbor-ids probabilities))

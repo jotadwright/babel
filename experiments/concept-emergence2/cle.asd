@@ -63,6 +63,7 @@
                (:module "interaction"
                 :serial t
                 :components ((:file "experiment")
+                             (:file "social-network")
                              (:file "determine-agents")
                              (:file "before")
                              (:file "during")
@@ -79,4 +80,5 @@
                 :components ((:file "html")
                              (:file "s-dot")
                              (:file "s-dot-diff")
+                             (:file "social-network")
                              (:file "web-monitor")))))

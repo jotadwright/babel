@@ -33,15 +33,19 @@
                                                              views-list
                                                              (get-configuration experiment :population-size)
                                                              (get-configuration experiment :disable-channels))))
+    ;; create initial agents (with possibly disabled sensors)
     (setf (agents experiment)
           (loop for i from 0 to (- (get-configuration experiment :population-size) 1)
                 for views = (nth i views-list)
                 for disabled-channels = (nth i disabled-channels-list)
                 collect (initialise-agent experiment views disabled-channels)))
 
-    ;; initialise agent preferences
+    ;; initialise the social network
+    (initialise-social-network experiment)
+    
+    ;; initialise neighbor q-values
     (loop for agent in (agents experiment)
-          for other-agents = (remove agent (agents experiment))
+          for other-agents = (social-network agent)
           do (loop for other in other-agents
                    do (initialise-neighbor-q-values agent other)))))
 

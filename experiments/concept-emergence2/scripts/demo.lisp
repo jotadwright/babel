@@ -35,10 +35,14 @@
                 (:feature-set "air") ;; list of strings, each string represents a feature set (stored in Corpora/concept-emergence2/-feature-sets), every feature-set is associated to a coressponding element in :dataset
                 (:dataset-split . "train") ;; string, "train" or "test", which split of the data to use?
                 ;; setup game
-                (:interacting-agents-strategy . :boltzmann-partner-selection) ;; :standard [AT THE MOMENT, ONLY OPTION AVAILABLE]
+                (:interacting-agents-strategy . :standard) ;; :standard, :boltzmann-partner-selection
+                ;; population
+                (:population-size . 10) ;; integer, size of the population
+                (:network-topology . :small-world) ;; :fully-connected, :regular, :small-world
+                (:local-connectivity . 2) ;; for :regular and :small-world
+                (:rewiring-probability . 0.3) ;; for :small-world
                 (:boltzmann-tau . -35)
                 (:boltzmann-lr . 0.05)
-                (:population-size . 10) ;; integer, size of the population
                 (:min-context-size . 10) ;; integer, minimum number of context elements
                 (:max-context-size . 10) ;; integer, maximum number of context elements
                 ;; disable channels
@@ -82,11 +86,13 @@
   (setf *experiment* (make-instance 'cle-experiment :configuration *concept-learning-game*)))
 
 
+;; create visualisation of population
+(setf output-fname (population-network->graphviz (agents *experiment*) :layout "sfdp" :use-labels? t))
+(draw-graphviz-image output-fname :layout "sfdp" :make-image t :open-image t)
+
+
 ;; Option 1: run experiment for x interactions ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-
 
 (progn
   ;; reset the web interface
@@ -113,6 +119,9 @@
     (while (< (interaction-number (current-interaction *experiment*)) nr-of-interactions)
            do (run-interaction *experiment*))
     (notify run-series-finished *experiment*)))
+
+
+
 
 ;; Option 2: run experiment and trace interactons in the web interface ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
