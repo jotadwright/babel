@@ -25,7 +25,6 @@
 
 ;; This demo shows the integration of distributions in FCG using the PropBank grammar.
 
-
 ;; First, we add glove embeddings to the lexical constructions.
 
 
@@ -78,28 +77,13 @@
 ;; Learning the grammar  ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(learn-propbank-grammar
+(learn-distributional-propbank-grammar
  (shuffle *distributional-representations-of-tokens-and-types-annotations*)
  :selected-rolesets nil
  :excluded-rolesets nil
  :cxn-inventory '*distributional-representations-of-tokens-and-types-grammar*
- :fcg-configuration *training-configuration*)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Make the embeddings (for roles and lexical items) ;;
-;;   and add the embeddings to the cxn-inventory     ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Needs to be set otherwise you will not be able to match since we learn cxns with embeddings.
-(make-proto-role-embeddings *distributional-representations-of-tokens-and-types-grammar*)
-(add-embeddings-to-cxn-inventory *distributional-representations-of-tokens-and-types-grammar*)
-
-(progn
-  (graph-utils::pre-compute-cosine-similarities (fcg::graph (categorial-network *distributional-representations-of-tokens-and-types-grammar*)))
-  (set-configuration *distributional-representations-of-tokens-and-types-grammar* :cosine-similarity-threshold 0.3)
-  (set-configuration *distributional-representations-of-tokens-and-types-grammar* :category-linking-mode :always-succeed)
-  (set-configuration *distributional-representations-of-tokens-and-types-grammar* :node-expansion-mode  :multiple-cxns)
-  (set-configuration *distributional-representations-of-tokens-and-types-grammar* :cxn-supplier-mode :cascading-cosine-similarity))
+ :fcg-configuration *training-configuration*
+ :cosine-similarity-threshold 0.3)
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; Draw the cat net ;;
@@ -118,12 +102,11 @@
 ;; example! 
 (comprehend "I will wire you the money" :cxn-inventory *distributional-representations-of-tokens-and-types-grammar*)
 
+;; distractors in cxn inventory?
 
-(loop for cxn in (constructions-list *distributional-representations-of-tokens-and-types-grammar*)
-      when (attr-val cxn :lex-category)
-        collect (attr-val cxn :lemma) into lemmas
-       and  collect cxn into cxns
-      finally (return (values lemmas cxns)))
+
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -174,21 +157,13 @@
 ;; Learning the grammar  ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(learn-propbank-grammar
+(learn-distributional-propbank-grammar
  (shuffle *distributional-representations-of-constructional-slots-annotations*)
  :selected-rolesets nil
  :excluded-rolesets nil
  :cxn-inventory '*distributional-representations-of-constructional-slots-grammar*
- :fcg-configuration *training-configuration*)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Make the embeddings (for roles and lexical items) ;;
-;;   and add the embeddings to the cxn-inventory     ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Needs to be set otherwise you will not be able to match since we learn cxns with embeddings.
-(make-proto-role-embeddings *distributional-representations-of-constructional-slots-grammar*)
-(add-embeddings-to-cxn-inventory *distributional-representations-of-constructional-slots-grammar*)
+ :fcg-configuration *training-configuration*
+ :cosine-similarity-threshold 0.3)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -243,4 +218,152 @@
 
 ;; We can also use this to desambiguate word senses!
 ;; open.01 en open.02 
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+(defparameter *annotations-file-path*
+  (merge-pathnames 
+   (make-pathname :directory '(:relative "distributional-fcg")
+                  :name "slot-filler" :type "conll")
+   cl-user:*babel-corpora*))
+
+
+(defparameter *annotations* (read-propbank-conll-file *annotations-file-path*))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Setting training configurations for grammar  ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *training-configuration*
+    '((:de-render-mode .  :de-render-constituents-dependents)
+      (:node-tests :check-double-role-assignment)
+      (:parse-goal-tests :no-valid-children) ;
+      (:construction-inventory-processor-mode . :heuristic-search)
+      (:search-algorithm . :best-first)   
+      (:heuristics
+       :nr-of-applied-cxns
+       :nr-of-units-matched-x2 ;;nr-of-units-matched
+       :graph-cosine-similarity
+       ;:embedding-similarity
+       )
+      ;;Additional heuristics: :prefer-local-bindings :frequency
+      (:heuristic-value-mode . :sum-heuristics-and-parent)
+      (:sort-cxns-before-application . nil)
+      (:node-expansion-mode . :full-expansion)
+      (:hash-mode . :hash-lemma)
+      (:replace-when-equivalent . nil)
+      (:learning-modes
+       :core-roles
+       :argm-leaf
+       :argm-pp
+       :argm-sbar
+       :argm-phrase-with-string)
+      (:cxn-supplier-mode . :hashed-categorial-network)))
+
+
+(learn-distributional-propbank-grammar
+ (shuffle *annotations*)
+ :selected-rolesets nil
+ :excluded-rolesets nil
+ :cxn-inventory '*train-grammar*
+ :fcg-configuration *training-configuration*
+ :cosine-similarity-threshold 0.3)
+
+
+;;(add-element (make-html (categorial-network *train-grammar*) :weights t))
+
+(comprehend "he sold his mother the car" :timeout nil :cxn-inventory *train-grammar*)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Experiments on learned grammar ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(deactivate-all-monitors)
+
+(defparameter *ontonotes-annotations-storage-file* (merge-pathnames (make-pathname :directory (cons :relative '("propbank-annotations"))
+                                                                                   :name "ontonotes-annotations"
+                                                                                   :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
+                                                                    *babel-corpora*))
+
+(defparameter *ewt-annotations-storage-file* (merge-pathnames (make-pathname :directory (cons :relative '("propbank-annotations"))
+                                                                                   :name "ewt-annotations"
+                                                                                   :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
+                                                                    *babel-corpora*))
+
+
+
+
+(load-propbank-annotations 'ewt :ignore-stored-data nil)
+(load-propbank-annotations 'ontonotes :ignore-stored-data nil)
+; *ewt-annotations*
+; *ontonotes-annotations*
+
+
+(defparameter *training-configuration*
+  `((:de-render-mode .  :de-render-constituents-dependents)
+    (:node-tests :check-double-role-assignment)
+    (:parse-goal-tests :no-valid-children)
+    (:max-nr-of-nodes . 100)
+
+    (:construction-inventory-processor-mode . :heuristic-search)
+    (:search-algorithm . :best-first)   
+    (:cxn-supplier-mode . :hashed-categorial-network)
+    
+    (:heuristics
+     :nr-of-applied-cxns
+     :nr-of-units-matched-x2 ;;nr-of-units-matched
+     :argm-prediction ;; Don't forget to activate the text-to-role-classification server!!!!!
+     :edge-weight) 
+    ;;Additional heuristics: :prefer-local-bindings :frequency
+    
+    (:heuristic-value-mode . :sum-heuristics-and-parent)
+    (:sort-cxns-before-application . nil)
+
+    (:node-expansion-mode . :full-expansion)
+    (:hash-mode . :hash-lemma)
+    
+    (:replace-when-equivalent . nil)
+    (:learning-modes
+     :core-roles)))
+
+(defparameter *propbank-ewt-learned-cxn-inventory* nil)
+
+(learn-propbank-grammar
+ (train-split *ewt-annotations*)
+; (append
+;  (train-split *ewt-annotations* )
+;  (train-split *ontonotes-annotations*))
+  :excluded-rolesets '("be.01" "be.02" "be.03"
+                                             "do.01" "do.02" "do.04" "do.11" "do.12"
+                                             "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
+                                             "get.03" "get.06" "get.24")
+ :selected-rolesets nil
+ :cxn-inventory '*propbank-ewt-learned-cxn-inventory*
+ :fcg-configuration *training-configuration*)
+
+
+;; downcase needed
+(make-proto-role-embeddings *propbank-ewt-learned-cxn-inventory*)
+(add-embeddings-to-cxn-inventory *propbank-ewt-learned-cxn-inventory*) 
+
+(progn
+  (graph-utils::pre-compute-cosine-similarities (fcg::graph (categorial-network *distributional-representations-of-tokens-and-types-grammar*)))
+  (set-configuration *distributional-representations-of-tokens-and-types-grammar* :cosine-similarity-threshold 0.3)
+  (set-configuration *distributional-representations-of-tokens-and-types-grammar* :category-linking-mode :always-succeed)
+  (set-configuration *distributional-representations-of-tokens-and-types-grammar* :node-expansion-mode  :multiple-cxns)
+  (set-configuration *distributional-representations-of-tokens-and-types-grammar* :cxn-supplier-mode :cascading-cosine-similarity))
+
+
+ (comprehend "the professor teaches english"
+            :cxn-inventory *distributional-representations-of-constructional-slots-grammar*
+            :timeout nil)
+
 
