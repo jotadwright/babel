@@ -51,5 +51,8 @@ sbcl --dynamic-space-size $space --load $VSC_HOME/concept-emergence2/batch/run.l
     interacting-agents-strategy $interacting_agents_strategy \
     boltzmann-tau $boltzmann_tau \
     boltzmann-lr $boltzmann_lr \
+    network-topology $network_topology \
+    local-connectivity $local_connectivity \
+    rewiring-probability $rewiring_probability \
     seed $seed \
     exp-top-dir $exp_top_dir

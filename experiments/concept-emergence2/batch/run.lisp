@@ -57,12 +57,12 @@
                            "record-communicative-success"
                            "record-conventionalisation"
                            "record-construction-inventory-usage"
-                           "record-partner-selection"
+                           ;"record-partner-selection"
                            ;; export
                            "export-communicative-success"
                            "export-conventionalisation"
                            "export-construction-inventory-usage"
-                           "export-partner-selection"
+                           ;"export-partner-selection"
                            ;; export configs, experiments
                            "export-experiment-configurations"
                            "export-experiment-store"

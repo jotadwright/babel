@@ -1,0 +1,12 @@
+id,exp_name,nr_of_interactions,dataset_loader,min_context_size,max_context_size,dataset,dataset_split,feature_set,scene_sampling,topic_sampling
+1,ps-1,2000000,:runtime,10,10,winery,test,winery,:random,:random
+2,ps-2,2000000,:runtime,10,10,winery,test,winery,:random,:random
+3,ps-3,2000000,:runtime,10,10,winery,test,winery,:random,:random
+4,ps-4,2000000,:runtime,10,10,winery,test,winery,:random,:random
+5,ps-5,2000000,:runtime,10,10,winery,test,winery,:random,:random
+6,ps-6,2000000,:runtime,10,10,winery,test,winery,:random,:random
+7,ps-7,2000000,:runtime,10,10,winery,test,winery,:random,:random
+8,ps-8,2000000,:runtime,10,10,winery,test,winery,:random,:random
+9,ps-9,2000000,:runtime,10,10,winery,test,winery,:random,:random
+10,ps-10,2000000,:runtime,10,10,winery,test,winery,:random,:random
+11,ps-11,2000000,:runtime,10,10,winery,test,winery,:random,:random
