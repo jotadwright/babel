@@ -72,11 +72,11 @@
                (:module "utils"
                 :serial t
                 :components ((:file "seed")
+                             (:file "monitors")
                              (:file "utils")))
                (:module "web"
                 :serial t
                 :components ((:file "html")
                              (:file "s-dot")
                              (:file "s-dot-diff")
-                             (:file "web-monitor")
-                             (:file "monitors")))))
+                             (:file "web-monitor")))))
