@@ -48,7 +48,7 @@
 ;; use the sum-list-of-vectors of math in babel utils
 (defmethod combine-word-embeddings ((embeddings-list list) &key (mode (eql 'addition)))
   "Combine word embeddings by adding them."
-   (apply #'mapcar #'+ embeddings-list))
+  (sum-list-of-vectors embeddings-list))
 
 (defun make-proto-embedding (strings-in-role)
   "Expects a list of strings which can contain multiple words.
@@ -56,10 +56,11 @@
    then concatenate all these embeddings. "
   (let ((embeddings-in-role (loop for string in strings-in-role
                                   for splitted-strings = (split-sequence:split-sequence #\Space string :remove-empty-subseqs t)
-                                
-                                  append (loop for splitted-string in splitted-strings
-                                               collect (last-elt (nlp-tools:get-word-embedding (downcase splitted-string)))))))
+                                  for embeddings = (nlp-tools:get-word-embeddings (mapcar #'downcase splitted-strings))
+                                  append (loop for embedding in embeddings
+                                               collect (last-elt embedding)))))
     (combine-word-embeddings embeddings-in-role :mode 'addition)))
+
 
 (defun get-argument-structure-cxns (cxn-inventory)
   (let* ((cxns (constructions-list cxn-inventory)))
@@ -77,13 +78,13 @@ attribute and store them in the cxn inventory's blackboard under the
 field :cxn-token-embeddings"
   (remove-data (blackboard cxn-inventory) :cxn-token-embeddings)
   ;(remove-data (blackboard cxn-inventory) :ts-token-embeddings)
-  (loop for cxn in (constructions cxn-inventory)
-        for cxn-token = (attr-val cxn :token)
+  (loop for cxn in (constructions-list cxn-inventory)
+        for cxn-token = (attr-val cxn :lemma)
         for lemma-embedding-pointer = (attr-val cxn :lemma-embedding-pointer)
         for proto-embeddings = (find-data (blackboard cxn) :proto-role-embeddings)
         when cxn-token
           do (append-data (blackboard cxn-inventory) :cxn-token-embeddings (list (cons lemma-embedding-pointer
-                                                                                       (second (nlp-tools:get-word-embedding cxn-token)))))
+                                                                                       (second (nlp-tools:get-word-embedding (downcase (symbol-name cxn-token)))))))
         when proto-embeddings
           do (append-data (blackboard cxn-inventory) :cxn-token-embeddings proto-embeddings)))
 
