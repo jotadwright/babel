@@ -311,7 +311,7 @@
   `((:de-render-mode .  :de-render-constituents-dependents)
     (:node-tests :check-double-role-assignment)
     (:parse-goal-tests :no-valid-children)
-    (:max-nr-of-nodes . 100)
+    (:max-nr-of-nodes . 10)
 
     (:construction-inventory-processor-mode . :heuristic-search)
     (:search-algorithm . :best-first)   
@@ -320,8 +320,7 @@
     (:heuristics
      :nr-of-applied-cxns
      :nr-of-units-matched-x2 ;;nr-of-units-matched
-     :argm-prediction ;; Don't forget to activate the text-to-role-classification server!!!!!
-     :edge-weight) 
+     ) ;; edge-weight cannot be used, sometimes there are no neighbours
     ;;Additional heuristics: :prefer-local-bindings :frequency
     
     (:heuristic-value-mode . :sum-heuristics-and-parent)
@@ -336,34 +335,22 @@
 
 (defparameter *propbank-ewt-learned-cxn-inventory* nil)
 
-(learn-propbank-grammar
- (train-split *ewt-annotations*)
+(length (train-split *ewt-annotations*))
+
+(learn-distributional-propbank-grammar
+ (first-n 10 (train-split *ewt-annotations*))
 ; (append
-;  (train-split *ewt-annotations* )
+;  (train-split *ewt-annotations*)
 ;  (train-split *ontonotes-annotations*))
-  :excluded-rolesets '("be.01" "be.02" "be.03"
-                                             "do.01" "do.02" "do.04" "do.11" "do.12"
-                                             "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
-                                             "get.03" "get.06" "get.24")
+ :excluded-rolesets '("be.01" "be.02" "be.03"
+                      "do.01" "do.02" "do.04" "do.11" "do.12"
+                      "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
+                      "get.03" "get.06" "get.24")
  :selected-rolesets nil
  :cxn-inventory '*propbank-ewt-learned-cxn-inventory*
  :fcg-configuration *training-configuration*)
 
-
-;; downcase needed
-(make-proto-role-embeddings *propbank-ewt-learned-cxn-inventory*)
-(add-embeddings-to-cxn-inventory *propbank-ewt-learned-cxn-inventory*) 
-
-(progn
-  (graph-utils::pre-compute-cosine-similarities (fcg::graph (categorial-network *distributional-representations-of-tokens-and-types-grammar*)))
-  (set-configuration *distributional-representations-of-tokens-and-types-grammar* :cosine-similarity-threshold 0.3)
-  (set-configuration *distributional-representations-of-tokens-and-types-grammar* :category-linking-mode :always-succeed)
-  (set-configuration *distributional-representations-of-tokens-and-types-grammar* :node-expansion-mode  :multiple-cxns)
-  (set-configuration *distributional-representations-of-tokens-and-types-grammar* :cxn-supplier-mode :cascading-cosine-similarity))
-
-
- (comprehend "the professor teaches english"
-            :cxn-inventory *distributional-representations-of-constructional-slots-grammar*
-            :timeout nil)
-
+(comprehend "he walks"
+            :cxn-inventory *propbank-ewt-learned-cxn-inventory*
+            :timeout 100)
 
