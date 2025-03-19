@@ -63,12 +63,12 @@
                (eval
                 `(def-fcg-cxn ,cxn-name
                               ((?lex-unit
-                                (footprints (,lemma))
+                                (footprints (lex))
                              (lex-category ,lex-category))
                                <-
                                (?lex-unit
                                 --
-                                (footprints (NOT ,lemma))
+                                (footprints (NOT lex))
                                 
                                 
                                 (token (embedding ,lemma-embedding-pointer))
@@ -203,7 +203,10 @@ grammatical category."
         ;;2.2) (Added for distributional-propbank:)
         (append-data equivalent-cxn :strings-in-roles (list (loop for core-unit in core-units-with-role
                                                                   for role = (role-type (first core-unit))
-                                                                  for string = (last-elt (fourth core-unit))
+                                                                  for string = (second (find 'string (unit-body core-unit) :key #'feature-name))
+                                                                  for lemmas = (if (find 'constituents (unit-body core-unit) :key #'feature-name)
+                                                                                 (find-constituents-lemmas (second (find 'constituents (unit-body core-unit) :key #'feature-name)) core-units-with-role)
+                                                                                 (second (find 'lemma (unit-body core-unit) :key #'feature-name)))
                                                                   for unit-name = (second core-unit)
                                                                   for class = (last-elt (last-elt (seventh core-unit)))
                                                                   when (not (string= role "V"))
@@ -237,13 +240,16 @@ grammatical category."
           
           (append-data cxn :strings-in-roles (list (loop for core-unit in core-units-with-role
                                                          for role = (role-type (first core-unit))
-                                                         for string = (last-elt (fourth core-unit))
+                                                         for string = (second (find 'string (unit-body core-unit) :key #'feature-name))
+                                                         for lemmas = (if (find 'constituents (unit-body core-unit) :key #'feature-name)
+                                                                        (find-constituents-lemmas (second (find 'constituents (unit-body core-unit) :key #'feature-name)) core-units-with-role)
+                                                                        (second (find 'lemma (unit-body core-unit) :key #'feature-name)))
                                                          for unit-name = (second core-unit)
                                                          for class = (last-elt (last-elt (seventh core-unit)))
                                                          when (not (string= role "V"))
                                                            collect (cons (intern (upcase (format nil "->~a--~a" role gram-category))) string))))
           gram-category)))))
-
+ 
 
 
 ;; added embedding pointer for proto-roles, the embedding itself is added after learning.
@@ -299,7 +305,7 @@ initial transient structure that plays a role in the frame."
                                       ;; attributes
                                       for node-type = (node-type node)
                                       for node-string = (node-string node)
-                                      for parent-id = (if (and (or (equal (node-lex-class node) 'rp);;node itself is a particle
+                                      for parent-id = (if (and (or (equal (node-lex-class node) 'rp) ;;node itself is a particle
                                                                    (equal (node-dependency-label node) 'prt))
                                                                (equalp "V" (subseq (format nil "~a"
                                                                                            (node-lex-class (get-node (node-dependency-head node)
@@ -333,7 +339,12 @@ initial transient structure that plays a role in the frame."
                                       for lemma-embedding = (when (equal node-type 'leaf) (nlp-tools:get-word-embedding (node-lemma-string node)))
                                        
                                       for lemma-embedding-pointer = (when lemma-embedding (intern (upcase (string-append "->" (node-lemma-string node)))))
-                                      for phrase-embedding = (when (equal node-type 'phrase) (combine-word-embeddings (mapcar #'last-elt (nlp-tools:get-word-embeddings (mapcar #'downcase (split-sequence:split-sequence #\Space node-string :remove-empty-subseqs t))))))
+                                      for phrase-embedding = (when (equal node-type 'phrase)
+                                                               (combine-word-embeddings
+                                                                (mapcar #'last-elt
+                                                                        (nlp-tools:get-word-embeddings
+                                                                         (mapcar #'downcase
+                                                                                 (split-sequence:split-sequence #\Space node-string :remove-empty-subseqs t)))) :mode 'addition ))
                                       for phrase-embedding-pointer = (when phrase-embedding (intern (upcase (string-append "->" node-string))))
                                       when lemma-embedding
                                         collect  (cons lemma-embedding-pointer (first (cdr lemma-embedding))) into embeddings
@@ -350,8 +361,7 @@ initial transient structure that plays a role in the frame."
                                                     `((constituents ,(find-constituents node-id spacy-benepar-analysis unit-name-ids))
                                                       (word-order ,(find-adjacency-constraints node-id spacy-benepar-analysis unit-name-ids))
                                                       (token ((string ,node-string)
-                                                              (embedding ,phrase-embedding-pointer)))
-                                                      ))
+                                                              (embedding ,phrase-embedding-pointer)))))
                                                 ,@(when (and (equal node-type 'phrase)
                                                              (find 'vp syn-class))
                                                     (loop for constituent in (find-constituent-units node-id spacy-benepar-analysis)
@@ -442,25 +452,24 @@ initial transient structure that plays a role in the frame."
                                                                          (fcg-configuration nil)
                                                                          (cosine-similarity-threshold 0.3))
 
-  (let ((grammar  (learn-propbank-grammar
-                   list-of-propbank-sentences
-                   :selected-rolesets nil
-                   :excluded-rolesets nil
-                   :cxn-inventory cxn-inventory
-                   :fcg-configuration fcg-configuration)))
+  (let ((grammar (learn-propbank-grammar
+                  list-of-propbank-sentences
+                  :selected-rolesets nil
+                  :excluded-rolesets nil
+                  :cxn-inventory cxn-inventory
+                  :fcg-configuration fcg-configuration)))
 
-  (graph-utils::pre-compute-cosine-similarities (fcg::graph (fcg::categorial-network grammar)))
-  (set-configuration grammar :cosine-similarity-threshold cosine-similarity-threshold)
-  (set-configuration grammar :category-linking-mode :always-succeed)
-  (set-configuration grammar :node-expansion-mode :multiple-cxns)
-  (set-configuration grammar :cxn-supplier-mode :cascading-cosine-similarity)
+    (graph-utils::pre-compute-cosine-similarities (fcg::graph (fcg::categorial-network grammar)))
+    (set-configuration grammar :cosine-similarity-threshold cosine-similarity-threshold)
+    (set-configuration grammar :category-linking-mode :always-succeed)
+    (set-configuration grammar :node-expansion-mode :multiple-cxns)
+    (set-configuration grammar :cxn-supplier-mode :cascading-cosine-similarity)
 
-  (make-proto-role-embeddings grammar)
-  (add-embeddings-to-cxn-inventory grammar)
+    (make-proto-role-embeddings grammar)
+    (add-embeddings-to-cxn-inventory grammar)
 
-  grammar))
+    grammar))
 
-  
 
 
 (in-package :fcg)
