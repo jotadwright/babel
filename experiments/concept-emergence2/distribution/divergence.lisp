@@ -23,8 +23,9 @@
         (sigma2 (st-dev distribution2)))
     (if (and (zerop sigma1)
              (zerop sigma2))
-      ;; if both distributions are Dirac distributions with zero sigma, return maximal distance of 1
-      1.0
+      ;; if both distributions are Dirac distributions with zero sigma:
+      ;; return 0.0 if mu's are the same, otherwise maximal distance of 1.0
+      (if (= mu1 mu2) 0.0 1.0)
       ;; otherwise perform distance calculation
       (realpart (sqrt (- 1
                          (*
@@ -45,6 +46,6 @@
   (let ((p (normalise distribution1))
         (q (normalise distribution2)))
     (loop for (key1 . count1) in p
-          for count2 = (assqv key1 q :test #'equal)
+          for count2 = (assqv key1 q :test #'equalp)
           sum (expt (- (sqrt count1) (sqrt count2)) 2) into total
           finally (return (* (/ 1 (sqrt 2)) (sqrt total))))))

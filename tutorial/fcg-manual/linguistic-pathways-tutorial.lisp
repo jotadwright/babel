@@ -86,17 +86,23 @@
 ;; -------------------------------------------------------
 
 ;; For comprehension:
-(get-constructional-dependencies "the mouse"
-                                 :cxn-inventory *fcg-constructions*
-                                 :format "svg" )
+(multiple-value-bind (meaning cipn)
+    (comprehend "the mouse" :cxn-inventory *fcg-constructions*)
+  (get-constructional-dependencies cipn
+                                   :cxn-inventory *fcg-constructions*
+                                   :format "svg" ))
 
 ;; For formulation:
-(get-constructional-dependencies '((FCG::MOUSE #:X-4) (FCG::UNIQUE #:X-4))
-                                 :cxn-inventory *fcg-constructions*)
+(multiple-value-bind (utterance cipn)
+    (formulate '((FCG::MOUSE #:X-4) (FCG::UNIQUE #:X-4)) :cxn-inventory *fcg-constructions*)
+  (get-constructional-dependencies cipn
+                                   :cxn-inventory *fcg-constructions*))
 
 ;; You can also specify two keyword arguments to
 ;; configure the visualization
-(get-constructional-dependencies "the mouse"
-                                 :cxn-inventory *fcg-constructions*
-                                 :labeled-paths 'full
-                                 :colored-paths t)
+(multiple-value-bind (meaning cipn)
+    (comprehend "the mouse" :cxn-inventory *fcg-constructions*)
+  (get-constructional-dependencies cipn
+                                   :cxn-inventory *fcg-constructions*
+                                   :labeled-paths 'full
+                                   :colored-paths t))

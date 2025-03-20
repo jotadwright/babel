@@ -22,9 +22,13 @@ sbcl --dynamic-space-size 16000 --non-interactive --load run.lisp \\
     nr-of-series {nr_of_series} \\
     nr-of-interactions {nr_of_interactions} \\
     population-size {population_size} \\
-    dataset {dataset} \\
+    dataset-loader {dataset_loader} \\
+    min-context-size {min_context_size} \\
+    max-context-size {max_context_size} \\
+    dataset "({dataset})" \\
+    dataset-view {dataset_view} \\
     dataset-split {dataset_split} \\
-    feature-set {feature_set} \\
+    feature-set "({feature_set})" \\
     disable-channels {disable_channels} \\
     amount-disabled-channels {amount_disabled_channels} \\
     sensor-noise {sensor_noise} \\
@@ -33,12 +37,10 @@ sbcl --dynamic-space-size 16000 --non-interactive --load run.lisp \\
     observation-std {observation_std} \\
     scene-sampling {scene_sampling} \\
     topic-sampling {topic_sampling} \\
-    similarity-threshold {similarity_threshold} \\
     align {align} \\
     entrenchment-incf {entrenchment_incf} \\
     entrenchment-decf {entrenchment_decf} \\
     entrenchment-li {entrenchment_li} \\
-    trash-concepts {trash_concepts} \\
     weight-update-strategy {weight_update_strategy} \\
     initial-weight {initial_weight} \\
     weight-incf {weight_incf} \\
@@ -47,6 +49,7 @@ sbcl --dynamic-space-size 16000 --non-interactive --load run.lisp \\
     switch-condition {switch_condition} \\
     switch-conditions-after-n-interactions {switch_conditions_after_n_interactions} \\
     stage-parameters "{stage_parameters}" \\
+    coherence-perspective {coherence_perspective} \\
     seed ${{1}} \\
     exp-top-dir ${{2}}
 """
@@ -70,9 +73,7 @@ def main(input_file, output_dir, exp_fname):
 if __name__ == "__main__":
     args = parser.parse_args()
     exp_fname = args.csv
-    input_csv_file = (
-        f"data-train/{exp_fname}.csv"  # Replace with your input CSV file name
-    )
-    output_directory = "bash/scripts"  # Replace with your desired output directory
+    input_csv_file = f"config/train/{exp_fname}.csv"
+    output_directory = "bash/scripts"
 
     main(input_csv_file, output_directory, exp_fname)
