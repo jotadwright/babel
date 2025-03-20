@@ -44,52 +44,27 @@
   "Adds cxn to the web interface."
   (add-element (make-html (find-cxn cxn cxn-inventory :key 'name :test 'string=))))
 
-(defun get-constructional-dependencies (utterance-or-meaning &key (cxn-inventory *fcg-constructions*)
-                                                             (labeled-paths 'no-bindings)
-                                                             (colored-paths nil)
-                                                             (trace-units nil))
+(defun get-constructional-dependencies (cip-node &key (cxn-inventory *fcg-constructions*)
+                                                 (labeled-paths 'no-bindings)
+                                                 (colored-paths nil)
+                                                 (trace-units nil)
+                                                 (format "pdf")
+                                                 (open t))
   "Comprehends utterance using cxn-inventory, writes the meaning network to a pdf file, and opens it."
   (set-configuration (visualization-configuration cxn-inventory)
                    :labeled-paths labeled-paths)
   (set-configuration (visualization-configuration cxn-inventory)
                    :colored-paths colored-paths)
   (set-configuration (visualization-configuration cxn-inventory)
-                   :trace-units trace-units)
-  (let ((direction (cond ((stringp utterance-or-meaning)
-                          '<-)
-                         ((not (listp utterance-or-meaning))
-                          (error "The input to get-constructional-dependencies should be an utterance or a meaning"))
-                         ((stringp (first utterance-or-meaning))
-                          '<-)
-                         ((listp (first utterance-or-meaning))
-                          '->))))
-    (if (eq direction '<-)
-      (multiple-value-bind (meaning cip-node cip)
-          (comprehend utterance-or-meaning :cxn-inventory cxn-inventory :silent t)
-        (declare (ignore meaning cip))
-        (let* ((gp-data (analyse-solution cip-node '<-))
-               (s-dot (unit-bindings->graph :data gp-data
-                                            :prefered-font "Arial"
-                                            :visualization-configuration (visualization-configuration cxn-inventory)))
-               (path (make-file-name-with-time-and-experiment-class
-                      (merge-pathnames (babel-pathname :directory '(".tmp"))
-                                       (make-pathname :name (string-append "comprehend-"
-                                                                           (substitute #\- #\SPACE utterance-or-meaning))
-                                                      :type "pdf"))
-                      (mkstr (make-id 'graph)))))            
-          (s-dot->image s-dot :path path
-                        :format "pdf" :open t)))
-      (multiple-value-bind (utterance cip-node cip)
-          (formulate utterance-or-meaning :cxn-inventory cxn-inventory :silent t)
-        (declare (ignore utterance cip))
-        (let* ((gp-data (analyse-solution cip-node '->))
-               (s-dot (unit-bindings->graph :data gp-data
-                                             :prefered-font "Arial"
-                                             :construction-inventory cxn-inventory))
-               (path (make-file-name-with-time-and-experiment-class
-                      (merge-pathnames (babel-pathname :directory '(".tmp"))
-                                       (make-pathname :name "production"
-                                                      :type "pdf"))
-                      (mkstr (make-id 'graph)))))
-               
-          (s-dot->image s-dot :path path :format "pdf" :open t))))))
+                     :trace-units trace-units)
+  
+  (let* ((gp-data (analyse-solution cip-node '<-))
+         (s-dot (unit-bindings->graph :data gp-data
+                                      :preferred-font "Arial"
+                                      :visualization-configuration (visualization-configuration cxn-inventory)))
+         (path (make-file-name-with-time-and-experiment-class
+                (merge-pathnames (babel-pathname :directory '(".tmp"))
+                                 (make-pathname :name "constructional-dependencies"
+                                                :type format))
+                (mkstr (make-id 'graph)))))            
+    (s-dot->image s-dot :path path :format format :open open)))
