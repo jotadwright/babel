@@ -19,13 +19,10 @@
 (defun load-demo-grammar ()
   "This function loads the demo grammar (the linguist likes the mouse)
 from the tutorial directory and returns the fcg construction set."
-  (load (babel-pathname :directory '("systems" "fcg")
-                        :name "demo-grammar"
-                        :type "lisp"))
-  (make-demo-grammar-cxns))
+  (eval (load-demo-grammar-code)))
 
 
 (defun show-grammar (grammar)
   "Show the grammar in the web interface"
   (add-element (make-html grammar)))
-  
+
