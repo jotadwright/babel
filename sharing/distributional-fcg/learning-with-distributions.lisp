@@ -534,20 +534,20 @@ initial transient structure that plays a role in the frame."
   )
 
 
-(defmethod preprocessing-and-configs (grammar  (mode (eql 'step-3)))
+(defmethod preprocessing-and-configs (grammar (mode (eql 'step-3)) &key (make-role-embeddings t))
   ;(graph-utils::pre-compute-cosine-similarities (fcg::graph (fcg::categorial-network grammar)))
   (set-configuration grammar :cosine-similarity-threshold 1)
-  (set-configuration grammar :graph-cosine-similarity-threshold 0.3) ;; decide threshold???
+  (set-configuration grammar :graph-cosine-similarity-threshold 0) ;; decide threshold???
   (set-configuration grammar :category-linking-mode :always-succeed)
   (set-configuration grammar :node-expansion-mode :multiple-cxns)
   (set-configuration grammar :cxn-supplier-mode :cascading-cosine-similarity)
   (set-configuration grammar :heuristics (list :nr-of-applied-cxns :nr-of-units-matched-x2 :graph-cosine-similarity))
 
-  (format t "~%---- Start protorole embeddings ----")
-  (make-proto-role-embeddings grammar)
+  (when make-role-embeddings 
+    (format t "~%---- Start protorole embeddings ----")
+    (make-proto-role-embeddings grammar))
   (format t "~%---- Add embeddings to cxn inventory ----")
-  (add-embeddings-to-cxn-inventory grammar :role-embeddings? t)
-  )
+  (add-embeddings-to-cxn-inventory grammar :role-embeddings? t))
 
 
 
