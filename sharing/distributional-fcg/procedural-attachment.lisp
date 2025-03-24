@@ -23,10 +23,43 @@
            (let* ((token-embedding-cxn (cdr (assoc value (get-data (blackboard cxn-inventory) :cxn-token-embeddings))))
                   (token-embedding-ts (cdr (assoc source (get-data (blackboard cxn-inventory) :ts-token-embeddings))))
                   (cosine-similarity (cosine-similarity token-embedding-cxn token-embedding-ts)))
-             (if (> cosine-similarity (or (get-configuration cxn-inventory :cosine-similarity-threshold) 0.7))
+             (if *compare-distributional-vectors*
+               (if (>= cosine-similarity (or (get-configuration cxn-inventory :cosine-similarity-threshold) 0.7))
+                 (values source (mapcar #'(lambda (bindings-list)
+                                            (extend-bindings (variablify value) cosine-similarity bindings-list))
+                                        bindings))
+                 (values nil +fail+))
+               (values source bindings))))
+           
+          (t
+           (values nil +fail+)))))
+
+
+(defmethod fcg-expand ((type (eql :compare-distributional-role-vectors))
+                       &key value source bindings merge? cxn-inventory)
+  "Use cosine similarity metric to match via token embeddings."
+  (if merge?
+    ;; in the merging phase, we keep the original embedding pointer
+    (values source bindings)
+    ;; in the matching phase...
+    (cond (;; if both embedding pointers are eq, we just continue like in unification 
+           (eq value source) 
+           (values value bindings))
+          (;; if they are not eq, but non-nil, we compute their cosine and return true above a given threshold
+           ;; we also add a binding between both pointers (variablified versions to make merge succeed)
+           (and value source)
+           (let* ((token-embedding-cxn (cdr (assoc value (get-data (blackboard cxn-inventory) :cxn-token-embeddings))))
+                  (token-embedding-ts (cdr (assoc source (get-data (blackboard cxn-inventory) :ts-token-embeddings))))
+                  (cosine-similarity (cosine-similarity token-embedding-cxn token-embedding-ts)))
+             (if *compare-distributional-role-vectors*
+               (if (>= cosine-similarity (or (get-configuration cxn-inventory :role-cosine-similarity-threshold) 0.7))
+                 (values source (mapcar #'(lambda (bindings-list)
+                                            (extend-bindings (variablify value) cosine-similarity bindings-list))
+                                        bindings))
+                 (values nil +fail+))
                (values source (mapcar #'(lambda (bindings-list)
-                                          (extend-bindings (variablify value) cosine-similarity bindings-list))
-                                      bindings))
-               (values nil +fail+))))
+                                            (extend-bindings (variablify value) 1.0 bindings-list))
+                                        bindings)))))
+           
           (t
            (values nil +fail+)))))
