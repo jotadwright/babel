@@ -1,3 +1,4 @@
+
 (ql:quickload :propbank-grammar)
 (ql:quickload :distributional-fcg)
 
@@ -72,7 +73,6 @@
        :argm-phrase-with-string)
       (:cxn-supplier-mode . :hashed-categorial-network)))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Learning the grammar  ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -83,7 +83,12 @@
  :excluded-rolesets nil
  :cxn-inventory '*distributional-representations-of-tokens-and-types-grammar*
  :fcg-configuration *training-configuration*
- :cosine-similarity-threshold 0.3)
+ )
+
+
+(preprocessing-and-configs *distributional-representations-of-tokens-and-types-grammar* 'step-1)
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; Draw the cat net ;;
@@ -99,11 +104,12 @@
 ; (comprehend "I will send you the money tomorrow" :cxn-inventory *distributional-representations-of-tokens-and-types-grammar*)
 (comprehend "I have sent him a postcard" :cxn-inventory *distributional-representations-of-tokens-and-types-grammar* :timeout nil)
 
-;; example! 
-(comprehend "I will wire you the money" :cxn-inventory *distributional-representations-of-tokens-and-types-grammar*)
+;; example!
+;; lower your cosine similarity expectations: 
+(set-configuration *distributional-representations-of-tokens-and-types-grammar* :cosine-similarity-threshold 0.1)
+(comprehend "i will wire you the money" :cxn-inventory *distributional-representations-of-tokens-and-types-grammar*)
 
 ;; distractors in cxn inventory?
-
 
 
 
@@ -162,9 +168,9 @@
  :selected-rolesets nil
  :excluded-rolesets nil
  :cxn-inventory '*distributional-representations-of-constructional-slots-grammar*
- :fcg-configuration *training-configuration*
- :cosine-similarity-threshold 0.3)
+ :fcg-configuration *training-configuration*)
 
+(preprocessing-and-configs *distributional-representations-of-constructional-slots-grammar* 'step-2)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;     Comprehend!!!     ;;
@@ -176,9 +182,10 @@
 ;; Now comprehend a new sentence and predict whether the second np is an arg0 or an arg1.
 
 ;; here the children is an arg2
-(comprehend "he teaches children"
+(comprehend-all "he teaches children"
             :cxn-inventory *distributional-representations-of-constructional-slots-grammar*
-            :timeout nil)
+            :timeout nil
+            :n 10)
 
 ;;english is the arg1
 (comprehend "he teaches english"
@@ -222,8 +229,6 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
 
 (defparameter *annotations-file-path*
   (merge-pathnames 
@@ -270,8 +275,7 @@
  :selected-rolesets nil
  :excluded-rolesets nil
  :cxn-inventory '*train-grammar*
- :fcg-configuration *training-configuration*
- :cosine-similarity-threshold 0.3)
+ :fcg-configuration *training-configuration*)
 
 
 ;;(add-element (make-html (categorial-network *train-grammar*) :weights t))
@@ -300,7 +304,6 @@
 
 
 
-
 (load-propbank-annotations 'ewt :ignore-stored-data nil)
 (load-propbank-annotations 'ontonotes :ignore-stored-data nil)
 ; *ewt-annotations*
@@ -310,7 +313,7 @@
 (defparameter *training-configuration*
   `((:de-render-mode .  :de-render-constituents-dependents)
     (:node-tests :check-double-role-assignment)
-    (:parse-goal-tests :no-valid-children)
+    (:parse-goal-tests :no-valid-children :no-applicable-cxns)
     (:max-nr-of-nodes . 10)
 
     (:construction-inventory-processor-mode . :heuristic-search)
@@ -335,22 +338,136 @@
 
 (defparameter *propbank-ewt-learned-cxn-inventory* nil)
 
-(length (train-split *ewt-annotations*))
+(time 
+ (learn-distributional-propbank-grammar
+  (train-split *ewt-annotations*)
 
-(learn-distributional-propbank-grammar
- (first-n 10 (train-split *ewt-annotations*))
-; (append
-;  (train-split *ewt-annotations*)
-;  (train-split *ontonotes-annotations*))
- :excluded-rolesets '("be.01" "be.02" "be.03"
-                      "do.01" "do.02" "do.04" "do.11" "do.12"
-                      "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
-                      "get.03" "get.06" "get.24")
- :selected-rolesets nil
- :cxn-inventory '*propbank-ewt-learned-cxn-inventory*
- :fcg-configuration *training-configuration*)
+  :excluded-rolesets '("be.01" "be.02" "be.03"
+                       "do.01" "do.02" "do.04" "do.11" "do.12"
+                       "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
+                       "get.03" "get.06" "get.24")
+  :selected-rolesets nil
+  :cxn-inventory '*propbank-ewt-learned-cxn-inventory*
+  :fcg-configuration *training-configuration*))
 
-(comprehend "he walks"
+
+;(activate-monitor trace-fcg)
+
+;; experiment with send/wire etc
+(preprocessing-and-configs *propbank-ewt-learned-cxn-inventory* 'step-1)
+(set-configuration *propbank-ewt-learned-cxn-inventory* :cosine-similarity-threshold 1)
+(comprehend-all "I sent you the money" :cxn-inventory *propbank-ewt-learned-cxn-inventory* :timeout nil :n 10)
+
+(preprocessing-and-configs *propbank-ewt-learned-cxn-inventory* 'step-2 :make-role-embeddings nil)
+(comprehend-all "I sent you the money" :cxn-inventory *propbank-ewt-learned-cxn-inventory* :timeout nil :n 10)
+
+;; no wire in the corpus!! (set-configuration *propbank-ewt-learned-cxn-inventory* :cosine-similarity-threshold 1)
+(comprehend-all "I wired you the money" :cxn-inventory *propbank-ewt-learned-cxn-inventory* :timeout nil :n 10)
+
+
+;;deze arg structuur cxns zijn er niet
+(comprehend "Jesus taught the people in the Temple area"
             :cxn-inventory *propbank-ewt-learned-cxn-inventory*
-            :timeout 100)
+            :timeout nil)
 
+(comprehend "Mr. Locke teaches English and comparative literature at Columbia University"
+            :cxn-inventory *propbank-ewt-learned-cxn-inventory*
+            :timeout nil)
+
+
+
+
+
+;;;;;;;;;;;
+
+
+;; store
+;(cl-store:store *propbank-ewt-learned-cxn-inventory* (make-pathname  :name "grammar" :type "store"))
+
+;(defparameter *propbank-ewt-learned-cxn-inventory* (cl-store:restore (make-pathname  :name "grammar" :type "store")))
+(graph-utils::node-similarities (fcg::graph (categorial-network *propbank-ewt-learned-cxn-inventory*)))
+(setf (graph-utils::node-similarities (fcg::graph (categorial-network *propbank-ewt-learned-cxn-inventory*))) (make-hash-table :test 'eql))
+
+(activate-monitor trace-fcg)
+
+(comprehend-all "he walks the world"
+            :cxn-inventory *propbank-ewt-learned-cxn-inventory*
+            :timeout 100
+            :n 10)
+
+(set-configuration *propbank-ewt-learned-cxn-inventory* :graph-cosine-similarity-threshold 0)
+(set-configuration *propbank-ewt-learned-cxn-inventory* :cosine-similarity-threshold 0.3)
+
+(comprehend-all "he reads a book"
+            :cxn-inventory *propbank-ewt-learned-cxn-inventory*
+            :timeout nil
+            :n 20)
+
+
+(comprehend-all "I will wire you the money"
+            :cxn-inventory *propbank-ewt-learned-cxn-inventory*
+            :timeout 100
+            :n 100)
+
+
+
+#|
+
+(progn
+    (set-configuration *propbank-ewt-learned-cxn-inventory* :cosine-similarity-threshold 0.9)
+    (set-configuration *propbank-ewt-learned-cxn-inventory* :category-linking-mode :always-succeed)
+    (set-configuration *propbank-ewt-learned-cxn-inventory* :node-expansion-mode :multiple-cxns)
+    (set-configuration *propbank-ewt-learned-cxn-inventory* :cxn-supplier-mode :cascading-cosine-similarity)
+    (set-configuration *propbank-ewt-learned-cxn-inventory* :heuristics (list :nr-of-applied-cxns :nr-of-units-matched-x2 :embedding-similarity :graph-cosine-similarity))
+
+    (make-proto-role-embeddings *propbank-ewt-learned-cxn-inventory*)
+    (add-embeddings-to-cxn-inventory *propbank-ewt-learned-cxn-inventory*))
+
+(add-element (make-html (categorial-network *propbank-ewt-learned-cxn-inventory*)))
+
+(graph-utils::node-similarities (fcg::graph (categorial-network *propbank-ewt-learned-cxn-inventory*)))
+
+(length (gethash 'lex-category (graph-utils::node-types (fcg::graph (categorial-network *propbank-ewt-learned-cxn-inventory*)))))
+
+(length (gethash 'gram-category (graph-utils::node-types (fcg::graph (categorial-network *propbank-ewt-learned-cxn-inventory*)))))
+
+(length (gethash 'sense-category (graph-utils::node-types (fcg::graph (categorial-network *propbank-ewt-learned-cxn-inventory*)))))
+
+
+(loop for i from 1000 to 1100
+      if (not (equal 
+                 (let* ((graph (fcg::graph (categorial-network *propbank-ewt-learned-cxn-inventory*)))
+                        (node-id
+                         (nth i 
+                              (gethash 'lex-category (graph-utils::node-types (fcg::graph (categorial-network *propbank-ewt-learned-cxn-inventory*))))))
+                        (node (graph-utils::lookup-node graph node-id)))
+                   (graph-utils::similar-nodes-weighted-cosine-same-node-type node graph))
+
+
+                 (let* ((graph (fcg::graph (categorial-network *propbank-ewt-learned-cxn-inventory*)))
+                        (node-id
+                         (nth i
+                              (gethash 'lex-category (graph-utils::node-types (fcg::graph (categorial-network *propbank-ewt-learned-cxn-inventory*))))))
+                        (node (graph-utils::lookup-node graph node-id)))
+                   (graph-utils::my-similar-nodes-weighted-cosine-same-node-type node graph))))
+        do (format t "not equal ~a~%" i)
+        else do (format t "equal ~%"))
+
+
+
+(time (let* ((graph (fcg::graph (categorial-network *propbank-ewt-learned-cxn-inventory*)))
+                        (node-id
+                         (first
+                              (gethash 'lex-category (graph-utils::node-types (fcg::graph (categorial-network *propbank-ewt-learned-cxn-inventory*))))))
+                        (node (graph-utils::lookup-node graph node-id)))
+                   (graph-utils::similar-nodes-weighted-cosine-same-node-type node graph)))
+
+
+(time (let* ((graph (fcg::graph (categorial-network *propbank-ewt-learned-cxn-inventory*)))
+                        (node-id
+                         (first 
+                              (gethash 'lex-category (graph-utils::node-types (fcg::graph (categorial-network *propbank-ewt-learned-cxn-inventory*))))))
+                        (node (graph-utils::lookup-node graph node-id)))
+                   (graph-utils::my-similar-nodes-weighted-cosine-same-node-type node graph)))
+
+|#
