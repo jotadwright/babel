@@ -246,7 +246,7 @@
 (defparameter *training-configuration*
     '((:de-render-mode .  :de-render-constituents-dependents)
       (:node-tests :check-double-role-assignment)
-      (:parse-goal-tests :no-valid-children) ;
+      (:parse-goal-tests :no-valid-children :no-applicable-cxns) ;
       (:construction-inventory-processor-mode . :heuristic-search)
       (:search-algorithm . :best-first)   
       (:heuristics
@@ -280,7 +280,8 @@
 
 ;;(add-element (make-html (categorial-network *train-grammar*) :weights t))
 
-(comprehend "he sold his mother the car" :timeout nil :cxn-inventory *train-grammar*)
+(preprocessing-and-configs *train-grammar* 'step-3)
+(comprehend-all "he sold his mother the car" :timeout nil :cxn-inventory *train-grammar* :n 10)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -305,7 +306,8 @@
 
 
 (load-propbank-annotations 'ewt :ignore-stored-data nil)
-(load-propbank-annotations 'ontonotes :ignore-stored-data nil)
+;(load-propbank-annotations 'ontonotes :ignore-stored-data nil)
+
 ; *ewt-annotations*
 ; *ontonotes-annotations*
 
@@ -338,8 +340,7 @@
 
 (defparameter *propbank-ewt-learned-cxn-inventory* nil)
 
-(time 
- (learn-distributional-propbank-grammar
+(learn-distributional-propbank-grammar
   (train-split *ewt-annotations*)
 
   :excluded-rolesets '("be.01" "be.02" "be.03"
@@ -348,10 +349,11 @@
                        "get.03" "get.06" "get.24")
   :selected-rolesets nil
   :cxn-inventory '*propbank-ewt-learned-cxn-inventory*
-  :fcg-configuration *training-configuration*))
+  :fcg-configuration *training-configuration*)
 
 
-;(activate-monitor trace-fcg)
+
+;; testing out different examples for the paper.
 
 ;; experiment with send/wire etc
 (preprocessing-and-configs *propbank-ewt-learned-cxn-inventory* 'step-1)
@@ -376,17 +378,26 @@
 
 
 
-
+;;example is that we haven't seen a lexical with this arg-struct, we can do the same for a sense that is not seen in the arg-struct!
+;; very weird example, just to test whether we get a sense
+(preprocessing-and-configs *propbank-ewt-learned-cxn-inventory* 'step-3 :make-role-embeddings nil)
+(comprehend-all "he walks the world"
+            :cxn-inventory *propbank-ewt-learned-cxn-inventory*
+            :timeout 100
+            :n 1)
 
 ;;;;;;;;;;;
 
+#|
 
 ;; store
 ;(cl-store:store *propbank-ewt-learned-cxn-inventory* (make-pathname  :name "grammar" :type "store"))
 
 ;(defparameter *propbank-ewt-learned-cxn-inventory* (cl-store:restore (make-pathname  :name "grammar" :type "store")))
-(graph-utils::node-similarities (fcg::graph (categorial-network *propbank-ewt-learned-cxn-inventory*)))
-(setf (graph-utils::node-similarities (fcg::graph (categorial-network *propbank-ewt-learned-cxn-inventory*))) (make-hash-table :test 'eql))
+
+
+;(graph-utils::node-similarities (fcg::graph (categorial-network *propbank-ewt-learned-cxn-inventory*)))
+;(setf (graph-utils::node-similarities (fcg::graph (categorial-network *propbank-ewt-learned-cxn-inventory*))) (make-hash-table :test 'eql))
 
 (activate-monitor trace-fcg)
 
@@ -408,10 +419,6 @@
             :cxn-inventory *propbank-ewt-learned-cxn-inventory*
             :timeout 100
             :n 100)
-
-
-
-#|
 
 (progn
     (set-configuration *propbank-ewt-learned-cxn-inventory* :cosine-similarity-threshold 0.9)
