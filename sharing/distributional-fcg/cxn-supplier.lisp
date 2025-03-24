@@ -60,6 +60,12 @@ direct neighbours of the categories present in the node."
          (lexical-cxns (loop for lemma in (hash node (get-configuration node :hash-mode))
                              append (lexical-cxns-for-lemma lemma cxn-inventory)))
          (lex-categories-per-level (lex-categories-per-level (lex-categories node) cxn-inventory))
+         (lex-cat-neighbours (remove-duplicates (loop for lex-category in (lex-categories node)
+                                                      append (neighbouring-categories lex-category
+                                                                                      (original-cxn-set (construction-inventory node))))))
+         (gram-cat-neighbours (remove-duplicates (loop for gram-category in (gram-categories node)
+                                                       append (neighbouring-categories gram-category
+                                                                                       (original-cxn-set (construction-inventory node))))))
          (argument-structure-constructions-per-level (loop for level in lex-categories-per-level
                                                            collect (loop for (lex-cat . similarity) in level
                                                                          when (> similarity (get-configuration (construction-inventory node) :graph-cosine-similarity-threshold))
@@ -98,12 +104,15 @@ direct neighbours of the categories present in the node."
                     collect (cons cxn 0))))
     (unless word-sense-cxns
       (setf word-sense-cxns (loop for cxn in (constructions-list cxn-inventory)
-                                  when (attr-val cxn :sense-category)
+                                  when
+                                    (and 
+                                     (attr-val cxn :sense-category)
+                                     (member (attr-val cxn :sense-category) lex-cat-neighbours))
                                     collect (cons cxn 0))))
     ;(cons-if (append lexical-cxns word-sense-cxns (first argument-structure-constructions-per-level))
     ;         (rest argument-structure-constructions-per-level))
     (cons-if (append lexical-cxns word-sense-cxns (first argument-structure-constructions-per-level))
-             nil)
+             (rest argument-structure-constructions-per-level))
     ))
          
 
@@ -134,6 +143,7 @@ direct neighbours of the categories present in the node."
 
 (in-package :graph-utils)
 
+;; todo: edgetype fixen!
 (defmethod my-neighbors ((graph undirected-typed-graph) (node integer)
                       &key edge-type (return-ids? t))
   "Return a list of cons-cells of the neighbors of the node.
@@ -210,7 +220,11 @@ direct neighbours of the categories present in the node."
       (remove-duplicates neighbours)))
 
 
-
+(defun hash-values (matrix node)
+  (let ((ht (gethash node (matrix matrix))))
+    (when ht
+      (loop for node-id being the hash-keys of ht
+        collect node-id))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -246,16 +260,7 @@ the node through the links in the categorial network."
          (gram-cat-neighbours (remove-duplicates (loop for gram-category in (gram-categories node)
                                                        append (neighbouring-categories gram-category
                                                                                        (original-cxn-set (construction-inventory node))))))
-         #|(constructions
-          (remove nil (loop for cxn in (remove-duplicates (constructions-list cxn-inventory))
-                            collect (cond ((attr-val cxn :gram-category)
-                                           (when (member (attr-val cxn :gram-category) lex-cat-neighbours)
-                                             cxn))
-                                          ((attr-val cxn :sense-category)
-                                           (when (member (attr-val cxn :sense-category) gram-cat-neighbours)
-                                             cxn))
-                                          ((attr-val cxn :lex-category)
-                                           cxn)))))|#
+        
 
          (constructions
           (remove nil (loop for cxn in (remove-duplicates (constructions-list cxn-inventory))
@@ -267,8 +272,7 @@ the node through the links in the categorial network."
                                                       (member (attr-val cxn :sense-category) lex-cat-neighbours))
                                              cxn))
                                           ((attr-val cxn :lex-category)
-                                           cxn)))))
-         )
+                                           cxn))))))
     
     ;; return constructions
     constructions))
