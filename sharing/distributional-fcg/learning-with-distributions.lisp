@@ -280,7 +280,7 @@ initial transient structure that plays a role in the frame."
         --
         (parent ,parent)
         ,syn-class
-        (token (embedding ,phrase-embedding-pointer))
+        (token (role-embedding ,phrase-embedding-pointer))
         ,@(when dependency-label `(,dependency-label))
         ,@(when lemma
             `((lemma ,lemma)))
@@ -336,7 +336,7 @@ initial transient structure that plays a role in the frame."
                                                              '(NP))
                                                             (t
                                                              `(,(node-lex-class node))))
-                                      for lemma-embedding = (when (equal node-type 'leaf) (nlp-tools:get-word-embedding (node-lemma-string node)))
+                                      for lemma-embedding = (when (equal node-type 'leaf) (nlp-tools:get-word-embedding (downcase (node-lemma-string node))))
                                        
                                       for lemma-embedding-pointer = (when lemma-embedding (intern (upcase (string-append "->" (node-lemma-string node)))))
                                       for phrase-embedding = (when (equal node-type 'phrase)
@@ -361,6 +361,7 @@ initial transient structure that plays a role in the frame."
                                                     `((constituents ,(find-constituents node-id spacy-benepar-analysis unit-name-ids))
                                                       (word-order ,(find-adjacency-constraints node-id spacy-benepar-analysis unit-name-ids))
                                                       (token ((string ,node-string)
+                                                              (role-embedding ,phrase-embedding-pointer)
                                                               (embedding ,phrase-embedding-pointer)))))
                                                 ,@(when (and (equal node-type 'phrase)
                                                              (find 'vp syn-class))
@@ -373,7 +374,8 @@ initial transient structure that plays a role in the frame."
                                                 ,@(when (equal node-type 'leaf)
                                                     `((lemma ,(node-lemma node))
                                                       (token ((string ,(node-lemma-string node))
-                                                              (embedding ,lemma-embedding-pointer)))
+                                                              (embedding ,lemma-embedding-pointer)
+                                                              (role-embedding ,lemma-embedding-pointer)))
                                                       (dependency-label ,(node-dependency-label node))))) into units
                                       finally (return (values embeddings units)))))
          
@@ -405,6 +407,25 @@ initial transient structure that plays a role in the frame."
       (values meaning cip-node cip))))
 
 
+(defmethod comprehend-all ((utterance string) 
+                           &key (syntactic-analysis nil) 
+                           (cxn-inventory *fcg-constructions*) (silent nil) (selected-rolesets nil) (timeout 60) (n nil))
+  (let* ((syntactic-analysis (nlp-tools:get-penelope-syntactic-analysis utterance
+                                                                        :model (or (get-configuration cxn-inventory :model)
+                                                                                   "en_benepar")))
+         (initial-cfs (de-render utterance (get-configuration cxn-inventory :de-render-mode)
+                                 :model (or (get-configuration cxn-inventory :model) "en_benepar")
+                                 :cxn-inventory cxn-inventory :syntactic-analysis syntactic-analysis))
+         (ts-token-embeddings (get-data (blackboard initial-cfs) :ts-embeddings)))
+    (set-data (blackboard cxn-inventory) :ts-token-embeddings ts-token-embeddings)
+    (unless silent (monitors:notify parse-started (listify utterance) initial-cfs))
+    (multiple-value-bind (meaning cip-node cip)
+        (handler-case (trivial-timeout:with-timeout (timeout)
+                        (comprehend-all-with-rolesets initial-cfs cxn-inventory selected-rolesets utterance silent n))
+          (trivial-timeout:timeout-error (error)
+            (values 'time-out 'time-out 'time-out)))
+      (values meaning cip-node cip))))
+
 
 (def-fcg-constructions propbank-learned ;; formerly called "propbank-learned-english"
   :visualization-configurations ((:show-constructional-dependencies . nil)
@@ -420,7 +441,8 @@ initial transient structure that plays a role in the frame."
                   (word-order set-of-predicates)
                   (meaning set-of-predicates)
                   (footprints set)
-                  (embedding default :compare-distributional-vectors))
+                  (embedding default :compare-distributional-vectors)
+                  (role-embedding default :compare-distributional-role-vectors))
   :hashed t
   :categorial-network `,(make-instance 'categorial-network :graph (graph-utils::make-undirected-node-and-edge-typed-graph)))
 
@@ -449,8 +471,7 @@ initial transient structure that plays a role in the frame."
                                                                          (excluded-rolesets nil)
                                                                          (cxn-inventory '*propbank-learned-cxn-inventory*)
                                                                          (model "en_benepar")
-                                                                         (fcg-configuration nil)
-                                                                         (cosine-similarity-threshold 0.3))
+                                                                         (fcg-configuration nil))
 
   (let ((grammar (learn-propbank-grammar
                   list-of-propbank-sentences
@@ -459,16 +480,75 @@ initial transient structure that plays a role in the frame."
                   :cxn-inventory cxn-inventory
                   :fcg-configuration fcg-configuration)))
 
-    (graph-utils::pre-compute-cosine-similarities (fcg::graph (fcg::categorial-network grammar)))
-    (set-configuration grammar :cosine-similarity-threshold cosine-similarity-threshold)
-    (set-configuration grammar :category-linking-mode :always-succeed)
-    (set-configuration grammar :node-expansion-mode :multiple-cxns)
-    (set-configuration grammar :cxn-supplier-mode :cascading-cosine-similarity)
 
-    (make-proto-role-embeddings grammar)
-    (add-embeddings-to-cxn-inventory grammar)
 
     grammar))
+
+(defmethod preprocessing-and-configs (grammar  (mode (eql 'step-1)))
+  ;; set the comparison mode (used in the procedural attachment), don't compare the role vectors 
+  (setf fcg::*compare-distributional-role-vectors* nil)
+
+  ;;no need to set this?
+  (set-configuration grammar :role-cosine-similarity-threshold 1)
+
+  ;; do compare the lexical vectors, threshold here 0.3
+  (setf fcg::*compare-distributional-vectors* t)
+  (set-configuration grammar :cosine-similarity-threshold 0.9)
+
+  ;; add the embeddings to the cxn inventory
+  (format t "---- Add embeddings to cxn inventory ----")
+  (add-embeddings-to-cxn-inventory grammar :role-embeddings? nil)
+
+  ;; no need to set this? 
+  (set-configuration grammar :category-linking-mode :always-succeed)
+
+  ;; supply all lexical and the arg-structure and sense based on a link in the cat net
+  (set-configuration grammar :cxn-supplier-mode :all-lex-and-categorial-network)
+  
+  ;; use the embedding similarity as a heuristic: only lexical embedding since only those will be in the bindings
+  (set-configuration grammar :heuristics (list :nr-of-applied-cxns :nr-of-units-matched-x2 :embedding-similarity))
+  )
+
+
+(defmethod preprocessing-and-configs (grammar (mode (eql 'step-2)) &key (make-role-embeddings t))
+  ;; compare the embeddings of the lexical cxns via expansion operator, but threshold is set to 1
+  (setf fcg::*compare-distributional-vectors* t)
+  (set-configuration grammar :cosine-similarity-threshold 1)
+  
+  ;; make the role embeddings and add all embeddings to grammar (both the lexical and the role embeddings)
+  (when make-role-embeddings 
+    (format t "~%---- Start protorole embeddings ----")
+    (make-proto-role-embeddings grammar))
+  (format t "~%---- Add embeddings to cxn inventory ----")
+  (add-embeddings-to-cxn-inventory grammar :role-embeddings? t)
+ 
+  ;; setting to compare the distributional role vectors, similarity now 0.1 
+  (setf fcg::*compare-distributional-role-vectors* t)
+  (set-configuration grammar :role-cosine-similarity-threshold 0.1)
+
+  ;; supply all lexical and the arg-structure and sense based on a link in the cat net
+  (set-configuration grammar :cxn-supplier-mode :all-lex-and-categorial-network)
+
+  ;; use the embedding similarity as a heuristic: both the role embedding and the lexical embedding are used (found in the bindings)
+  (set-configuration grammar :heuristics (list :nr-of-applied-cxns :nr-of-units-matched-x2 :embedding-similarity))  
+  )
+
+
+(defmethod preprocessing-and-configs (grammar  (mode (eql 'step-3)))
+  ;(graph-utils::pre-compute-cosine-similarities (fcg::graph (fcg::categorial-network grammar)))
+  (set-configuration grammar :cosine-similarity-threshold 1)
+  (set-configuration grammar :graph-cosine-similarity-threshold 0.3) ;; decide threshold???
+  (set-configuration grammar :category-linking-mode :always-succeed)
+  (set-configuration grammar :node-expansion-mode :multiple-cxns)
+  (set-configuration grammar :cxn-supplier-mode :cascading-cosine-similarity)
+  (set-configuration grammar :heuristics (list :nr-of-applied-cxns :nr-of-units-matched-x2 :graph-cosine-similarity))
+
+  (format t "~%---- Start protorole embeddings ----")
+  (make-proto-role-embeddings grammar)
+  (format t "~%---- Add embeddings to cxn inventory ----")
+  (add-embeddings-to-cxn-inventory grammar :role-embeddings? t)
+  )
+
 
 
 
