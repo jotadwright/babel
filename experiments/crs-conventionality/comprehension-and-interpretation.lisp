@@ -72,7 +72,7 @@
                       (length (extract-meanings (left-pole-structure (car-source-cfs (cipn-car node)))))))
       (let* ((renamed-irl-program (loop for predicate in irl-program
                                         for last-var = (fourth predicate)
-                                        when last-var
+                                        when (and last-var (not (eq (first predicate) 'bind))) ;; We don't want to check bind statements, get-base-name will also give a type error in SBCL.
                                           do (when (equal (get-base-name last-var)  "SCENE")
                                                (setf (fourth predicate) 'crs-conventionality::?scene))
                                         collect predicate))
@@ -102,7 +102,7 @@
                       (length (extract-meanings (left-pole-structure (car-source-cfs (cipn-car node)))))))
       (let* ((renamed-irl-program (loop for predicate in irl-program
                                         for last-var = (fourth predicate)
-                                        when last-var
+                                        when (and last-var (not (eq (first predicate) 'bind))) ;; We don't want to check bind statements, get-base-name will also give a type error in SBCL.
                                           do (when (equal (get-base-name last-var)  "SCENE")
                                                (setf (fourth predicate) 'crs-conventionality::?scene))
                                         collect predicate))

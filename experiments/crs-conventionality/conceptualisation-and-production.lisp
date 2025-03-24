@@ -96,7 +96,7 @@
   (let* ((irl-program (extract-meanings (left-pole-structure (car-resulting-cfs (cipn-car node)))))
          (renamed-irl-program (loop for predicate in irl-program
                                     for last-var = (fourth predicate)
-                                    when last-var
+                                    when (and last-var (not (eq (first predicate) 'bind))) ;; We don't want to check bind statements, get-base-name will also give a type error in SBCL.
                                       do (when (equal (get-base-name last-var)  "SCENE")
                                            (setf (fourth predicate) 'crs-conventionality::?scene))
                                     collect predicate))
@@ -137,7 +137,7 @@
           (when (equal (length irl-program) 3) ;; FOR NOW ONLY GO TO IRL WHEN ONLY 1 CXN APPLIED
             (let* ((renamed-irl-program (loop for predicate in irl-program
                                               for last-var = (fourth predicate)
-                                              when last-var
+                                              when (and last-var (not (eq (first predicate) 'bind))) ;; We don't want to check bind statements, get-base-name will also give a type error in SBCL.
                                                 do (when (equal (get-base-name last-var)  "SCENE")
                                                      (setf (fourth predicate) 'crs-conventionality::?scene))
                                               collect predicate))
