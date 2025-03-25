@@ -68,6 +68,7 @@
              denominator)
           0)))))
 
+
 (defun weighted-graph-cosine-similarity-from-node-ids (node-id-1 node-id-2 graph)
     (when (and node-id-1 node-id-2)
       (let ((denominator (sqrt (* (reduce '+ (loop for degree-1 in (remove-duplicates (mapcar #'cdr (graph-utils::neighbors graph node-id-1))) ;; take the edge weight of all neighbouring edges
@@ -170,7 +171,8 @@
         into neighbour-categories
         finally (return (sort neighbour-categories #'> :key #'cdr))))
 
-(defun pre-compute-cosine-similarities (graph)
-  (maphash #'(lambda (category v) (setf (gethash category (graph-utils::node-similarities graph))
-                                          (graph-utils::similar-nodes-weighted-cosine-same-node-type category graph)))
-             (graph-utils::nodes graph)))
+(defun pre-compute-cosine-similarities (graph node-type)
+  (loop for node-id in (remove-duplicates (gethash node-type (node-types graph)))
+        for node = (lookup-node graph node-id)
+        for similarities = (graph-utils::similar-nodes-weighted-cosine-same-node-type node graph) ;; todo: skip permutations?
+        do (setf (gethash node (graph-utils::node-similarities graph)) similarities)))
