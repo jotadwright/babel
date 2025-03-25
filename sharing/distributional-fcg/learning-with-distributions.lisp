@@ -484,7 +484,7 @@ initial transient structure that plays a role in the frame."
 
     grammar))
 
-(defmethod preprocessing-and-configs (grammar  (mode (eql 'step-1)))
+(defmethod preprocessing-and-configs (grammar  (mode (eql 'step-1)) &key (make-role-embeddings t))
   ;; set the comparison mode (used in the procedural attachment), don't compare the role vectors 
   (setf fcg::*compare-distributional-role-vectors* nil)
 
