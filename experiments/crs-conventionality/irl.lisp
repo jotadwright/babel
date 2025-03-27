@@ -109,3 +109,8 @@
          (composer (make-chunk-composer :topic topic :meaning partial-meaning
                                         :chunks chunks :ontology ontology :primitive-inventory primitive-inventory)))
     (get-all-solutions composer)))
+
+(in-package :irl)
+
+(defun irl-equal (a b)
+  (eq a b))
