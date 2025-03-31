@@ -69,7 +69,8 @@
     :components ((:file "heuristic-search")))
    (:module monitoring
     :serial t
-    :components ((:file "monitors")
+    :components ((:file "make-json")
+                 (:file "monitors")
                  #+:hunchentoot-available-on-this-platform 
                  (:file "html")
                  #+:hunchentoot-available-on-this-platform
