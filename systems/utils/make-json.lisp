@@ -61,7 +61,7 @@
             objects-processed-extended)))
 
 (defmethod make-json ((thing standard-object) &optional objects-processed)
-  ""
+  "Create a serialised json object for standard object based on class-slots. "
   (if (find thing objects-processed)
     (values "***" objects-processed)
     (loop with slot-objects-processed = objects-processed
@@ -74,15 +74,14 @@
           finally (return (values (append (list (cons :class (type-of thing))) jsonified-slots)
                                   slot-objects-processed)))))
 
-
 ;;(pprint (make-json (make-instance 'fcg::fcg-construction :cxn-inventory fcg::*fcg-constructions* )))
                                 
 
 ;; Render-json
 ;;;;;;;;;;;;;;;;;
 
-(defun render-json (serialised-lisp-expression)
+(defun render-json (serialised-lisp-expression &key alist)
   "Render a json string based on serialised-lisp-expression."
-  (if (consp serialised-lisp-expression)
+  (if alist
     (encode-json-alist-to-string serialised-lisp-expression)
     (cl-json:encode-json-to-string serialised-lisp-expression)))
