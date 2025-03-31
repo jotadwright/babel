@@ -28,5 +28,5 @@ expand_range() {
 
 for i in $(expand_range "$2");
 do
-    screen -S $1_$i -dm bash bash/scripts/$1_$i.sh 
+    screen -S $1_$i -dm bash bash/scripts/$1.sh $i $3
 done
