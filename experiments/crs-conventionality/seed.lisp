@@ -24,6 +24,7 @@
 
 (defun generate-seeds (amount)
   "Generate a list of random integer seeds and store them."
+  (ensure-directories-exist (uiop:pathname-directory-pathname *seed-path*))
   (let ((seeds (make-array amount :element-type 'integer)))
     (loop for i from 0 below amount
           for seed = #+sbcl (random (expt 2 31)) #+lispworks (make-random-state t)
