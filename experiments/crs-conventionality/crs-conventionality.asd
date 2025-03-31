@@ -15,6 +15,7 @@
                #+:hunchentoot-available-on-this-platform :web-interface)
   :serial t
   :components ((:file "package")
+               (:file "seed")
                (:file "class-definitions")
                (:file "utils")
                (:module "monitors"
