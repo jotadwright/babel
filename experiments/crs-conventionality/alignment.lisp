@@ -57,6 +57,7 @@
         (update-score-cxn applied-cxn-hearer 0.1)
 
         ;; Speaker punishes competing constructions:
+        
         (punish-competitors speaker)
         (punish-competitors hearer)
 
@@ -262,8 +263,9 @@
   ))
 
 (defun extract-concept (cxn)
-  (let ((structure (pole-structure (left-pole cxn))))
-    (loop for unit in structure collect (extract-concept-from-unit unit 'topic))))
+  (when cxn
+    (let ((structure (pole-structure (left-pole cxn))))
+      (loop for unit in structure collect (extract-concept-from-unit unit 'topic)))))
 
 (defun extract-concept-from-unit (unit value)
   (unit-feature-value unit value))
