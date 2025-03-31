@@ -119,7 +119,8 @@
                                        &key &allow-other-keys)
   "after method for when an fcg-construction is created"
   ;; set default feature-types if they were not provided
-  (unless (feature-types fcg-construction)
+  (when (and (not (feature-types fcg-construction))
+             (cxn-inventory fcg-construction))
     (setf (feature-types fcg-construction)
           (feature-types (cxn-inventory fcg-construction)))))
 
