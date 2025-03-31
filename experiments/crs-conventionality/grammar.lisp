@@ -100,7 +100,7 @@
                                                         ;; goal tests
                                                         (:parse-goal-tests :discriminative-in-scene)
                                                         (:production-goal-tests :topic-discriminated)
-                                                        (:node-tests :check-branch-for-solution :check-duplicate :restrict-nr-of-nodes :restrict-search-depth :discriminative-power)
+                                                        (:node-tests :check-branch-for-solution :restrict-search-depth  :restrict-nr-of-nodes  :discriminative-power)
                                                         (:max-nr-of-nodes . 500)
                                                         (:max-search-depth . 2)
                                                         ;; meta-layer 
