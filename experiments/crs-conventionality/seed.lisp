@@ -12,15 +12,25 @@
   "Set the seed to the idx-th seed in the seed file."
   (cond ;; use a random seed (if idx is negative or nil)
         ((or (null idx) (< idx 0)) (setf *random-state* (make-random-state t)))
+    
         ;; seed not possible
         ((>= idx 100) (error "Invalid seed provided (outside possible values)."))
+    
         ;; get seed in seed-store
         (t
-         (let* ((seeds (cl-store:restore *seed-path*))
-                (seed (aref seeds idx)))
-           #+sbcl (setf *random-state* (sb-ext:seed-random-state seed)) ;; sbcl can store seeds as integers
-           #+lispworks (setf *random-state* seed) ;; lispworks needs to store the random-state objects
-           ))))
+         (if (probe-file *seed-path*)
+           (let* ((seeds (cl-store:restore *seed-path*))
+                  (seed (aref seeds idx)))
+             ;; sbcl can store seeds as integers
+             ;; the integer is then used to create deterministically a 'random-state'
+             #+sbcl (setf *random-state* (sb-ext:seed-random-state seed))
+             ;; lispworks must store the random-state objects directly
+             #+lispworks (setf *random-state* seed)) 
+           (error "Seed file not found at ~S. To fix this:
+                 1. Call (set-seed nil) with a new random state
+                 2. Create a seed bank (see crs-conventionality/seed.lisp)
+                 3. Specify the correct path to an existing seed bank"
+                  *seed-path*)))))
 
 (defun generate-seeds (amount)
   "Generate a list of random integer seeds and store them."
