@@ -38,28 +38,14 @@
                              (:file "parsing")
                              (:file "production")
                              ))
-               (:module "prototype"
-                :serial t
-                :components ((:file "prototype")
-                             (:file "update")))
                (:module "concept"
                 :serial t
-                :components ((:file "concept")
-                             (:file "shift")
-                             (:file "similarity")))
+                :components ((:file "concept")))
                (:module "construction"
                 :serial t
                 :components ((:file "construction")
                              (:file "lexicon")
                              (:file "update")))
-               (:module "distribution"
-                :serial t
-                :components ((:file "distribution")
-                             (:file "gaussian")
-                             (:file "categorical")
-                             (:file "welford")
-                             (:file "divergence")
-                             ))
                (:module "interaction"
                 :serial t
                 :components ((:file "experiment")
@@ -68,8 +54,7 @@
                              (:file "before")
                              (:file "during")
                              (:file "after")
-                             (:file "run")
-                             (:file "switch")))
+                             (:file "run")))
                (:module "utils"
                 :serial t
                 :components ((:file "seed")

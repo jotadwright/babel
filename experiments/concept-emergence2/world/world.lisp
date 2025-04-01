@@ -55,11 +55,8 @@
                                   :dataset-split (get-configuration experiment :dataset-split))
         do (setf (gethash view-name (views world)) view))
 
-  ;; load the features
-  (load-features world (get-configuration experiment :feature-set))
-  
   ;; load the dataset
-  (load-data world))
+  (load-data world experiment))
 
 ;; ---------------------
 ;; + Scenes at runtime +
@@ -84,6 +81,21 @@
   (;;params
    )
    (:documentation "An environment where the scenes are created beforehand."))
+
+;; -----------------------
+;; + A naming game world +
+;; -----------------------
+
+(defclass naming-game-world (world)
+  (;; params
+   (min-context-size :type int :initform nil :accessor min-context-size)
+   (max-context-size :type int :initform nil :accessor max-context-size)
+   )
+  (:documentation "An naming game environment."))
+
+(defmethod initialize-instance :after ((world naming-game-world) &key experiment)
+  (setf (min-context-size world) (get-configuration experiment :min-context-size))
+  (setf (max-context-size world) (get-configuration experiment :max-context-size)))
 
 ;; -----------------
 ;; + Load features +
@@ -113,8 +125,10 @@
 ;; + Dataloading +
 ;; ---------------
 
-(defmethod load-data ((world precomputed-world))
+(defmethod load-data ((world precomputed-world) experiment)
   "Load the world which consists of of a set of precomputed scenes."
+  (load-features world (get-configuration experiment :feature-set))
+  
   (loop for view-name in (view-names world)
         for view = (gethash view-name (views world))
         for fpath = (merge-pathnames (make-pathname :directory `(:relative
@@ -136,8 +150,10 @@
                  finally (setf (data view) ht))
            (format t "~% Completed loading.~%~%")))
 
-(defmethod load-data ((world runtime-world))
+(defmethod load-data ((world runtime-world) experiment)
   "Load the dataset which consists of a set of objects."
+
+  (load-features world (get-configuration experiment :feature-set))
   (loop for view-name in (view-names world)
         for view = (gethash view-name (views world))
         for fpath = (merge-pathnames (make-pathname :directory `(:relative
@@ -161,6 +177,18 @@
            ;)
            (format t "~% Completed loading.~%~%")))
 
+(defmethod load-data ((world naming-game-world) experiment)
+  (loop for view-name in (view-names world)
+        for view = (gethash view-name (views world))
+        do (setf (data view) (loop for i from 1 to (get-configuration experiment :world-size)
+                                   for attributes = (make-hash-table :test 'equal)
+                                   for description = (make-hash-table :test 'equal)
+                                   do (setf (gethash :id description) i)
+                                   collect (make-instance 'cle-object
+                                                          :attributes attributes
+                                                          :description description)))))
+
+
 ;; ------------------------
 ;; + Sample random scenes +
 ;; ------------------------
@@ -175,7 +203,7 @@
          (raw-data (jzon::parse fpath :key-fn #'parse-keyword))
          (scene (data->cle-scene raw-data world view-name)))
     scene))
-  
+
 (defmethod random-scene ((world runtime-world) view-name)
   "Create a scene by randomly sampling objects"
   (let* ((context-size (sample-context-size world))
@@ -188,6 +216,13 @@
          (max-context-size (max-context-size world))
          (context-size (random-from-range min-context-size max-context-size)))
     context-size))
+
+(defmethod random-scene ((world naming-game-world) view-name)
+  "Create a scene by randomly sampling objects"
+  (let* ((context-size (sample-context-size world))
+         (objects (random-elts (data (get-view world view-name)) context-size))
+         (scene (objects->cle-scene objects world view-name)))
+    scene))
 
 ;; --------------------
 ;; + Helper functions +

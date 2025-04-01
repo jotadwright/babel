@@ -21,38 +21,28 @@
   ;; deactivate all monitors (as a sanity check)
   (deactivate-all-monitors)
   ;; configure the game
-  (defparameter *concept-learning-game*
+  (defparameter *naming-game*
     (make-configuration
      :entries `(
                 ;; monitoring
                 (:log-every-x-interactions . 1000) ;; integer, frequence of when to log measures to standard output
                 (:usage-table-window . 100) ;; integer, window size of the construction inventory usage table
-                (:save-distribution-history . nil) ;; t or nil, whether to save the history of updates to the distribution (very memory-intensive!)
-                ;; setup environment
-                (:dataset-loader . :runtime) ;; :precomputed or :runtime, load data in by scene (:precomputed) or by objects (:runtime)
-                (:dataset-view . :shared-views) ;; :shared-views or :exclusive-views, all views are shared or is each agent assigned a view?
-                (:dataset "air") ;; list of strings, each string represents a view over a dataset
-                (:feature-set "air") ;; list of strings, each string represents a feature set (stored in Corpora/concept-emergence2/-feature-sets), every feature-set is associated to a coressponding element in :dataset
-                (:dataset-split . "train") ;; string, "train" or "test", which split of the data to use?
+                (:dataset-loader . :naming-game)
+                (:dataset "naming-game")
+                (:dataset-split . "train")
+                (:dataset-view . :shared-views)
                 ;; setup game
-                (:interacting-agents-strategy . :standard) ;; :standard, :boltzmann-partner-selection
+                (:interacting-agents-strategy . :boltzmann-partner-selection) ;; :standard, :boltzmann-partner-selection
                 ;; population
-                (:population-size . 10) ;; integer, size of the population
+                (:population-size . 100) ;; integer, size of the population
+                (:world-size . 100)
                 (:network-topology . :small-world) ;; :fully-connected, :regular, :small-world
-                (:local-connectivity . 2) ;; for :regular and :small-world
+                (:local-connectivity . 20) ;; for :regular and :small-world
                 (:rewiring-probability . 0.3) ;; for :small-world
-                (:boltzmann-tau . -35)
+                (:boltzmann-tau . -15)
                 (:boltzmann-lr . 0.05)
                 (:min-context-size . 10) ;; integer, minimum number of context elements
                 (:max-context-size . 10) ;; integer, maximum number of context elements
-                ;; disable channels
-                (:disable-channels . :none) ;; :none, :random. :fixed
-                (:amount-disabled-channels . 0) ;; integer, amount of channels to disable
-                ;; noised channels
-                (:sensor-noise . :none) ;; :none or :shift
-                (:sensor-std . 0.0) ;; float, corresponds to calibration noise
-                (:observation-noise . :none) ;; :none or :shift
-                (:observation-std . 0.0) ;; float, noise during perception
                 ;; scene sampling
                 (:scene-sampling . :random) ;; :random [AT THE MOMENT, ONLY OPTION AVAILABLE]
                 (:topic-sampling . :random) ;; :random [AT THE MOMENT, ONLY OPTION AVAILABLE]
@@ -61,20 +51,7 @@
                 (:align . t) ;; t or nil, activates alignment or not
                 (:entrenchment-incf . 0.1) ;; hyperparameter for alignment (:align)
                 (:entrenchment-decf . -0.1) ;; hyperparameter for alignment (:align)
-                (:entrenchment-li . -0.02) ;; lateral inhibition, hyperparameter for alignment (:align)
-                ;; concept representation parameters
-                (:M2 . 0.0001) ;; float, default initialisation for gaussian distributions
-                ;; prototype weight inits
-                (:weight-update-strategy . :j-interpolation) ;; :standard or :j-interpolation
-                (:initial-weight . 0) ;; default weight
-                (:weight-incf . 1)    ;; :standard uses floats, j-interpolation uses int
-                (:weight-decf . -5)   ;; :standard uses floats, j-interpolation uses int
-                ;; experimental alternatives
-                (:prototype-distance . :paper) ;; :paper or :paper-wo-ledger
-                ;; staging
-                (:switch-condition . :after-n-interactions) ; :none, :after-n-interactions
-                (:switch-conditions-after-n-interactions . 50000) ;;
-                (:stage-parameters ((:switch-disable-channels-half . 10))) ;;
+                (:entrenchment-li . -0.1) ;; lateral inhibition, hyperparameter for alignment (:align)
                 ;; measures
                 (:coherence-perspective . :hearer) ;; :hearer or :speaker, determines how conventionalisation is measured
                 ;; paths for exporting data to disk
@@ -83,12 +60,12 @@
                 (:log-dir-name . "c") ;; directory name for a single run (i.e. logging/train/<exp-top-dir>/<exp-name>/<log-dir-name>)
                 )))
   ;; instantiate the concept learning experiment
-  (setf *experiment* (make-instance 'cle-experiment :configuration *concept-learning-game*)))
+  (setf *experiment* (make-instance 'cle-experiment :configuration *naming-game*)))
 
 
 ;; create visualisation of population
-(setf output-fname (population-network->graphviz (agents *experiment*) :layout "sfdp" :use-labels? t))
-(draw-graphviz-image output-fname :layout "sfdp" :make-image t :open-image t)
+;(setf output-fname (population-network->graphviz (agents *experiment*) :layout "sfdp" :use-labels? t))
+;(draw-graphviz-image output-fname :layout "sfdp" :make-image t :open-image t)
 
 
 ;; Option 1: run experiment for x interactions ;;

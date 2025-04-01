@@ -17,48 +17,6 @@
   "Makes an ID for the graphviz output."
   (replace-char (symbol-name (id agent)) #\- #\_))
 
-#|(defun population-network->graphviz (population &key
-                                                (layout "circo")
-                                                (directory '(".tmp"))
-                                                (name (format nil "population-graph-~a" (make-time-stamp)))
-                                                (use-labels? nil))
-  (let ((filename (babel-pathname :directory directory
-                                  :name name
-                                  :type "gv")))
-    
-    ;; First we create the graphviz file, which you can open in software packages like OmniGraffle.
-    (with-open-file (out filename
-                         :direction :output
-                         :if-exists :supersede
-                         :if-does-not-exist :create)
-      ;; Graph preambles:
-      (format out "~%strict graph g1 {")
-      (format out "~%     layout=\"~a\";" layout)
-      (format out "~%     node [shape=~a];" (if use-labels? "circle" "point"))
-      ;; Adding the nodes:
-      (let (edges)
-        (dolist (agent population)
-          (let ((agent-id (make-id-for-gv agent))
-                (linked-agents (social-network agent)))
-            ;; We add the node:
-            (format nil "~%      ~a;" agent-id)
-            ;; At the same time we store information about the edges for later.
-            (dolist (linked-agent linked-agents)
-              (let ((link (format nil "~a -- ~a" agent-id (make-id-for-gv linked-agent)))
-                    (alternative-link (format nil "~a -- ~a" (make-id-for-gv linked-agent) agent-id)))
-                ;; If it is a new edge, we keep it:
-                (unless (loop for edge in edges
-                              when (member edge (list link alternative-link) :test #'string=)
-                                return t)
-                  (push link edges))))))
-        ;; Now add the edges to the graph. Note that graphviz automatically chooses the layout that it estimates
-        ;; as the best one. So if you label the nodes, you might not get the order you imagine.
-        (dolist (edge (reverse edges)) ; Reverse leads to slightly nicer graph
-          (format out "~%     ~a" edge))
-        ;; End of the graphviz file:
-        (format out "~%}")))
-    filename))|#
-
 (defun population-network->graphviz (population &key
                                                 (layout "circo")
                                                 (directory '(".tmp"))

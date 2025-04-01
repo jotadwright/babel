@@ -109,3 +109,23 @@
                  (setf (current-view agent) view-name)
                  (set-data agent 'context selected-scene)))
     (error "Not supported, cannot assign runtime scenes if agents can have multiple views.")))
+
+;; --------------------------
+;; + Scenes for naming game +
+;; --------------------------
+
+(defmethod assign-random-scene (experiment (world naming-game-world) (mode (eql :shared-views)))
+  (if (equalp (length (views (first (interacting-agents experiment)))) 1)
+    (loop with selected-scene = nil
+          for agent in (interacting-agents experiment)
+          for view-name = (first (views agent))
+          if (not selected-scene)
+            do (progn
+                 (setf selected-scene (random-scene (world experiment) view-name))
+                 (setf (current-view agent) view-name)
+                 (set-data agent 'context selected-scene))
+          else
+            do (progn
+                 (setf (current-view agent) view-name)
+                 (set-data agent 'context selected-scene)))
+    (error "Not supported, cannot assign runtime scenes if agents can have multiple views.")))

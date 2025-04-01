@@ -15,22 +15,22 @@
     (append
      ;; symbolic attributes
      (loop for attr being the hash-keys of (description object) 
-           using (hash-value val)
-           if (is-channel-available world (current-view agent) attr (attributes object))
-             append `(((div :class "entity-detail" :style ,(format nil "~a" title-font))
-                       ,(format nil "~a = ~,2f" attr val))))
-     ;; continuous features
-     `(((hr :style ,(format nil "margin: 0px;"))))
-     `(((hr :style ,(format nil "margin: 0px;"))))
-     ;; add border to the first key, val pair
-     (let* ((attr (caar attributes))
-            (val (cdar attributes)))
-       `(((div :class "entity-detail" :style ,(format nil "border-top: 0px dashed #563; ~a" title-font))
-          ,(format nil "~a = ~,2f" attr val))))
-     ;; then draw the rest
-     (loop for (attr . val) in (rest attributes)
+             using (hash-value val)
            append `(((div :class "entity-detail" :style ,(format nil "~a" title-font))
-                     ,(format nil "~a = ~,2f" attr val)))))))
+                     ,(format nil "~a = ~a" attr val))))
+     (when (caar attributes)
+       ;; continuous features
+       `(((hr :style ,(format nil "margin: 0px;"))))
+       `(((hr :style ,(format nil "margin: 0px;"))))
+       ;; add border to the first key, val pair
+       (let* ((attr (caar attributes))
+              (val (cdar attributes)))
+         `(((div :class "entity-detail" :style ,(format nil "border-top: 0px dashed #563; ~a" title-font))
+            ,(format nil "~a = ~,2f" attr val))))
+       ;; then draw the rest
+       (loop for (attr . val) in (rest attributes)
+             append `(((div :class "entity-detail" :style ,(format nil "~a" title-font))
+                       ,(format nil "~a = ~,2f" attr val))))))))
 
 
 ;; make html of object set
@@ -44,15 +44,6 @@
   `((div)
     ,(s-dot->svg
       (cxn->s-dot cxn))))
-
-;; make html of cle-category
-(defmethod make-html-for-entity-details ((prototype prototype) &key)
-  `(((div :class "entity-detail")
-     ,(format nil "attribute: ~a" (channel prototype)))
-    ((div :class "entity-detail")
-     ,(format nil "prototype: ~,2f" (mean (distribution prototype))))
-    ((div :class "entity-detail")
-     ,(format nil "variance: ~,2f" (st-dev (distribution prototype))))))
 
 
 ;; -------------------------------------

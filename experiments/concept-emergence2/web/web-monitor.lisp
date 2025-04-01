@@ -34,18 +34,12 @@
       
       (add-element `((h3) ,(format nil "Lexicon:")))
       (loop for cxn in new-lexicon
-            when (and
-                  ;; check entrenchment above threshold
-                  (>= (score cxn) entrenchment-threshold)
-                  ;; check that the cxn has at least one prototype above threshold
-                  (loop for prototype in (get-prototypes (meaning cxn))
-                        thereis (>= (weight prototype) weight-threshold)))
-              do (progn
-                   (add-element
-                    `((h4) ,(format nil "Construction with entrenchment score ~,2f (appeared during interaction ~a)"
-                                    (score cxn)
-                                    (first (first (history cxn))))))
-                   (add-cxn-to-interface cxn :weight-threshold weight-threshold :disabled-channels (disabled-channels agent)))))))
+            do (progn
+                 (add-element
+                  `((h4) ,(format nil "Construction with entrenchment score ~,2f (appeared during interaction ~a)"
+                                  (score cxn)
+                                  (first (first (history cxn))))))
+                 (add-cxn-to-interface cxn :weight-threshold weight-threshold))))))
 
 ;; helper function to add some text to the web interface
 (defun show-in-wi (args)
@@ -85,21 +79,12 @@
                                               (loop for agent in (interacting-agents experiment)
                                                     collect (mkstr (id agent)))
                                               (downcase (mkstr (current-view agent)))))))
-                                        ;(file-namestring (get-image-fpath context)))))
-               #|(add-element `((div :class "image"
-                               :style ,(format nil "margin-left: 50px; margin-bottom: 20px; width: fit-content; border-radius: 8px; overflow: hidden; border: 1px; border-color: #000000; box-shadow: 8px 8px 12px 1px rgb(0 0 0 / 10%);"))
-                          ((img :src ,(string-append
-                                       cl-user::*localhost-user-dir*
-                                       (concatenate 'string
-                                                    split
-                                                    "/"
-                                                    (file-namestring (get-image-fpath context))))))))|#
                (add-element `((table :style ,(format nil "margin-left: 50px;"))
                               ((tr) ((td) ,(make-html context
                                                       :agent agent
                                                       :topic (id topic)
                                                       :world world
-                                                      :expand-initially nil)))))
+                                                      :expand-initially t)))))
                (setf shown-p t)))
 
   (add-element `((h2) ,(format nil "The speaker chooses object as the topic of the conversation:")))
@@ -107,7 +92,7 @@
                  ,(make-html (find-data (speaker (current-interaction experiment)) 'topic)
                              :agent (speaker (current-interaction experiment))
                              :world (world experiment)
-                             :expand-initially nil))))
+                             :expand-initially t))))
 
 ;; ---------
 ;; + TIIWI +
@@ -201,7 +186,7 @@
   (if (utterance agent)
     (progn
       (add-element `((h2) ,(format nil "Step 2: SPEAKER produced an utterance: \"~a\" " (utterance agent))))
-      (add-cxn-to-interface (find-data agent 'applied-cxn) :disabled-channels (disabled-channels agent))
+      (add-cxn-to-interface (find-data agent 'applied-cxn) :disabled-channels nil)
       )
     (add-element `((h2) ,(format nil "Step 2: SPEAKER could not produce an utterance")))))
 
@@ -213,7 +198,7 @@
     (if (find-data agent 'applied-cxn)
       (progn
         (add-element '((h2) "Step 3: HEARER knows the utterance"))
-        (add-cxn-to-interface (find-data agent 'applied-cxn) :disabled-channels (disabled-channels agent)))
+        (add-cxn-to-interface (find-data agent 'applied-cxn) :disabled-channels nil))
       (progn
         (add-element
          `((h2) ,(format nil "Step 3: HEARER does not know the utterance  \"~a\"" (utterance agent))))

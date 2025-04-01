@@ -22,33 +22,19 @@ sbcl --dynamic-space-size 16000 --non-interactive --load run.lisp \\
     nr-of-series {nr_of_series} \\
     nr-of-interactions {nr_of_interactions} \\
     population-size {population_size} \\
+    world-size {world_size} \\
     dataset-loader {dataset_loader} \\
     min-context-size {min_context_size} \\
     max-context-size {max_context_size} \\
     dataset "({dataset})" \\
     dataset-view {dataset_view} \\
     dataset-split {dataset_split} \\
-    feature-set "({feature_set})" \\
-    disable-channels {disable_channels} \\
-    amount-disabled-channels {amount_disabled_channels} \\
-    sensor-noise {sensor_noise} \\
-    sensor-std {sensor_std} \\
-    observation-noise {observation_noise} \\
-    observation-std {observation_std} \\
     scene-sampling {scene_sampling} \\
     topic-sampling {topic_sampling} \\
     align {align} \\
     entrenchment-incf {entrenchment_incf} \\
     entrenchment-decf {entrenchment_decf} \\
     entrenchment-li {entrenchment_li} \\
-    weight-update-strategy {weight_update_strategy} \\
-    initial-weight {initial_weight} \\
-    weight-incf {weight_incf} \\
-    weight-decf {weight_decf} \\
-    prototype-distance {prototype_distance} \\
-    switch-condition {switch_condition} \\
-    switch-conditions-after-n-interactions {switch_conditions_after_n_interactions} \\
-    stage-parameters "{stage_parameters}" \\
     coherence-perspective {coherence_perspective} \\
     interacting-agents-strategy {interacting_agents_strategy} \\
     boltzmann-tau {boltzmann_tau} \\

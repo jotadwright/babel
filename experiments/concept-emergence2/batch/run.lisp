@@ -25,22 +25,10 @@
                        (string-downcase (string (assqv key config)))))
     ;; lists of strings should also be downcase
     (loop for (key . val) in config
-          when (find key (list :dataset :feature-set))
+          when (find key (list :dataset))
             ;; loop through strings in val and downcase theme
             do (rplacd (assoc key config)
                        (mapcar #'string-downcase val)))
-    (when (assoc :stage-parameters config)
-      (let ((stage-params (assqv :stage-parameters config)))
-        (loop for stage-param in stage-params
-              do (when (assoc :switch-dataset stage-param)
-                   (rplacd (assoc :switch-dataset stage-param)
-                           (string-downcase (string (assqv :switch-dataset stage-param)))))
-              do (when (assoc :switch-dataset-split stage-param)
-                   (rplacd (assoc :switch-dataset-split stage-param)
-                           (string-downcase (string (assqv :switch-dataset-split stage-param)))))
-              do (when (assoc :switch-feature-set stage-param)
-                   (rplacd (assoc :switch-feature-set stage-param)
-                           (string-downcase (string (assqv :switch-feature-set stage-param))))))))
 
     ;; generate a unique log dir name
     (setf config (append config (list (cons :log-dir-name (generate-log-dir-name (assqv :seed config))))))
