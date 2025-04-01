@@ -94,3 +94,40 @@
                                 dataset-split)
                   :type "jsonl")
    cl-user:*babel-corpora*))
+
+(defun get-current-date ()
+  (multiple-value-bind
+      (second minute hour day month year day-of-week dst-p tz)
+      (get-decoded-time)
+    (format nil "~d-~2,'0d-~d_~dh~dm~ds" year month day hour minute second)))
+
+(defun generate-log-dir-name (seed)
+  ;; set a random seed to generate the 5-character random number (to avoid collisions) 
+  (set-seed -1)
+  ;; create a log-dir-name based on the current-data, the seed, and the random number
+  (mkstr (internal-symb (list-of-strings->string
+                         (list (get-current-date)
+                               (mkstr (format nil "seed~a" seed))
+                               (mkstr (random 10) (random 10) (random 10) (random 10) (random 10)))
+                         :separator "-"))))
+
+(defun parse-keyword (string)
+  (intern (string-upcase (string-left-trim ":" string)) :keyword))
+
+(defun set-up-monitors (monitors config)
+  (monitors::deactivate-all-monitors)
+  (loop for monitor-string in monitors
+        for monitor = (monitors::get-monitor (read-from-string monitor-string))
+        do (monitors::activate-monitor-method (read-from-string monitor-string))
+        when (slot-exists-p monitor 'file-name)
+          do (setf (slot-value monitor 'file-name)
+                    (ensure-directories-exist
+                    (merge-pathnames (make-pathname :directory `(:relative ,(assqv :log-dir-name config))
+                                                    :name (pathname-name (file-name monitor)) 
+                                                    :type (pathname-type (file-name monitor)))
+                                      (babel-pathname :directory `("experiments"
+                                                                  "crs-conventionality"
+                                                                  "logging"
+                                                                  ,(assqv :exp-top-dir config)
+                                                                  ,(assqv :datasplit config)
+                                                                  ,(assqv :exp-name config))))))))
