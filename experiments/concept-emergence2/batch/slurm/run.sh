@@ -26,7 +26,7 @@ expand_range() {
     echo "${result[@]}"
 }
 
-USER_PATH = "${VSC_HOME}/concept-emergence2/batch/slurm/logs"
+USER_PATH="${VSC_HOME}/concept-emergence2/batch/slurm/logs"
 mkdir -p "${USER_PATH}/${1}/${8}"
 
 for i in $(expand_range "$4");
