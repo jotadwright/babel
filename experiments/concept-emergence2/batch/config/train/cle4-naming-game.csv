@@ -1,0 +1,7 @@
+id,exp_name,nr_of_series,nr_of_interactions,population_size,world_size,dataset_loader,dataset_view,min_context_size,max_context_size,dataset,dataset_split,scene_sampling,topic_sampling,align,entrenchment_incf,entrenchment_decf,entrenchment_li,coherence_perspective,interacting_agents_strategy,boltzmann_tau,boltzmann_lr,network_topology,local_connectivity,rewiring_probability
+1,ng-1,1,2000000,100,100,:naming-game,:shared-views,10,10,naming-game,train,:random,:random,t,0.1,-0.1,-0.1,:hearer,:standard,0.0,0.0,:fully-connected,0,0.0
+2,ng-2,1,2000000,100,100,:naming-game,:shared-views,10,10,naming-game,train,:random,:random,t,0.1,-0.1,-0.1,:hearer,:standard,0.0,0.0,:small-world,20,0.3
+3,ng-3,1,2000000,100,100,:naming-game,:shared-views,10,10,naming-game,train,:random,:random,t,0.1,-0.1,-0.1,:hearer,:boltzmann-partner-selection,-15,0.05,:fully-connected,0,0.0
+4,ng-4,1,2000000,100,100,:naming-game,:shared-views,10,10,naming-game,train,:random,:random,t,0.1,-0.1,-0.1,:hearer,:boltzmann-partner-selection,-15,0.05,:small-world,20,0.3
+5,ng-11,1,2000000,100,100,:naming-game,:shared-views,10,10,naming-game,train,:random,:random,t,0.1,-0.1,-0.1,:hearer,:boltzmann-partner-selection,-35,0.05,:fully-connected,0,0.0
+6,ng-12,1,2000000,100,100,:naming-game,:shared-views,10,10,naming-game,train,:random,:random,t,0.1,-0.1,-0.1,:hearer,:boltzmann-partner-selection,-35,0.05,:small-world,20,0.3
