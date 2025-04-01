@@ -1,27 +1,22 @@
 (setf cl-user::*automatically-start-web-interface* nil)
 (setf test-framework::*dont-run-tests-when-loading-asdf-systems* t)
 
-(ql:quickload :cle)
-(in-package :cle)
+(ql:quickload :crs-conventionality)
+(in-package :crs-conventionality)
 
 (defun parse-config (args)
   (let ((config (loop for (a b) on args by #'cddr
                       collect (cons (parse-keyword a) (read-from-string b)))))
     ;; make sure that the keys required in paths are lowercase
     (loop for (key . val) in config
-          when (find key (list :exp-name :datasplit :exp-top-dir))
+          when (find key (list :exp-name :dataset :datasplit :exp-top-dir))
             do (rplacd (assoc key config)
                        (string-downcase (string (assqv key config)))))
-    ;; lists of strings should also be downcase
-    (loop for (key . val) in config
-          when (find key (list :dataset :feature-set))
-          ;; loop through strings in val and downcase theme
-          do (rplacd (assoc key config)
-                     (mapcar #'string-downcase val)))
+
      config))
 
 (defun fixed-config ()
-  `(;; fixed in stone
+  `(;; fixed in stone§
     ;; --------------
     (:log-every-x-interactions . 100)
     ))
@@ -34,12 +29,10 @@
     ;; add log-dir-name to configuration
     (setf config (append config (list (cons :log-dir-name log-dir-name))))
     ;; adapt file-writing monitors so they output in the correct log-dir
-    (set-up-monitors (list "export-communicative-success"
-                           "export-conventionalisation"
-                           "export-construction-inventory-usage-train"
-                           "export-experiment-configurations"
-                           "export-experiment-store"
-                           "log-every-x-interactions-in-output-browser")
+    (set-up-monitors (list "log-every-x-interactions-in-output-browser"
+                                    "export-communicative-success"
+                                    "export-conventionalisation"
+                                    "export-construction-inventory-size")
                      config)
 
     ;; Run experiment
@@ -48,7 +41,7 @@
             (assqv :exp-name config)
             (assqv :log-dir-name config))
     (time
-     (run-batch 'cle-experiment (assqv :nr-of-interactions config) 1
+     (run-batch 'concept-emergence-game-experiment (assqv :nr-of-interactions config) 1
                 :configuration (make-configuration :entries config))
      )
     (format t "~%~% == Completed experiment.~%~%")
