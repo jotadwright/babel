@@ -269,12 +269,12 @@
 
 (define-event-handler (record-partner-selection interaction-finished)
   (record-value monitor (let* ((agent (first (agents (experiment interaction)))))
-                          #|(loop for agent-id being the hash-keys of (partner-preferences agent)
+                          #|(loop for agent-id being the hash-keys of (neighbor-q-values agent)
                                                     using (hash-value q-value)
                                                   collect q-value)|#
                           (format nil "{\"~a\": ~a}"
                                   (string-downcase (symbol-name (id agent)))
-                                  (jzon::stringify (hash-values (partner-preferences agent)))))))
+                                  (jzon::stringify (hash-values (neighbor-q-values agent)))))))
 
 ;; -----------------
 ;; + Export CONFIG +
