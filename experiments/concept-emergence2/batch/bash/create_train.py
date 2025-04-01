@@ -53,6 +53,9 @@ sbcl --dynamic-space-size 16000 --non-interactive --load run.lisp \\
     interacting-agents-strategy {interacting_agents_strategy} \\
     boltzmann-tau {boltzmann_tau} \\
     boltzmann-lr {boltzmann_lr} \\
+    network-topology {network_topology} \\
+    local-connectivity {local_connectivity} \\
+    rewiring-probability {rewiring_probability} \\
     seed ${{1}} \\
     exp-top-dir ${{2}}
 """
