@@ -85,6 +85,7 @@
        (while (< (interaction-number (current-interaction experiment)) nr-of-interactions)
               do (run-interaction experiment))
        (notify run-series-finished experiment)
+       (notify series-finished 1)
        (notify batch-finished (class-string experiment))))
     (format t "~%~% == Completed experiment.~%~%")))
 
