@@ -2,6 +2,10 @@
 
 # see README.md for usage
 
+# we recommende to first compile the code (once in the login node)
+#   $ bash slurm/compile.sh
+# this avoids that different jobs in the job array try to compile the code at the same time
+
 expand_range() {
     input="$1"
     result=()
