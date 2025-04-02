@@ -47,5 +47,6 @@
     (format t "~%~% == Completed experiment.~%~%")
     ))
 
+(sb-int:set-floating-point-modes :traps '(:INVALID :DIVIDE-BY-ZERO)) ;; Avoid floating-point-overflow error
 (run-experiment #+sbcl (rest sb-ext:*posix-argv*))
 (sb-ext:quit)
