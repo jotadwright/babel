@@ -20,5 +20,6 @@
                    (uiop:ensure-absolute-pathname path))))
     (when (and (uiop:directory-exists-p pathname)
                (or force
-                   (y-or-n-p "Delete directory ~a?" path)))
+                   (y-or-n-p "Delete directory ~a?" pathname)))
       (uiop:delete-directory-tree pathname :validate t))))
+
