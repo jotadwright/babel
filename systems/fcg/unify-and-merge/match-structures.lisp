@@ -328,7 +328,8 @@
                                                (feature-value (remove-special-operators (get-tag tag-variable pattern-unit) bindings)) ;;pattern 
                                                (feature-value original-feature) ;;source
                                                bindings)))
-                    (when new-form-value
+                    (when (and new-form-value
+                               (eq (get-current-direction) '<-)) ;;only create new form feature in root in comprehension
                       (setf new-feature (make-feature 'form new-form-value))))
                   (setf new-feature (make-feature (feature-name original-feature) feature-value)))
                 ;; we add newly constructed feature to new-unit

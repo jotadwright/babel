@@ -19,13 +19,15 @@
 (defparameter *ewt-annotations* "Ewt annotations will be stored here.")
 
 ;; File where propbank annotations will be stored in binary format
-(defparameter *ontonotes-annotations-storage-file* (babel-pathname :directory '("grammars" "propbank-grammar" "propbank-annotations")
-                                                                   :name "ontonotes-annotations"
-                                                                   :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store"))
+(defparameter *ontonotes-annotations-storage-file* (merge-pathnames (make-pathname :directory (cons :relative '("propbank-annotations"))
+                                                                                   :name "ontonotes-annotations"
+                                                                                   :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
+                                                                    *babel-corpora*))
 
-(defparameter *ewt-annotations-storage-file* (babel-pathname :directory '("grammars" "propbank-grammar" "propbank-annotations")
-                                                             :name "ewt-annotations"
-                                                             :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store"))
+(defparameter *ewt-annotations-storage-file* (merge-pathnames (make-pathname :directory (cons :relative '("propbank-annotations"))
+                                                                                   :name "ewt-annotations"
+                                                                                   :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
+                                                                    *babel-corpora*))
 
 ;; French data
 (defparameter *french-training-set* nil "Will contain the processed conll-sentences.")

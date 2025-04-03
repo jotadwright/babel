@@ -3,20 +3,11 @@
 (defpackage :cle
   (:documentation "Emergent concept learning")
   (:use :common-lisp
+        :test-framework
         :utils
         :web-interface
         :monitors
-        :plot-raw-data
         :experiment-framework
-        :test-framework
         :irl
-        :fcg
-        :cl-jonathan)
-  (:import-from :cl-mop
-                :slot-names
-                :map-slots)
-  (:import-from :cl-json
-   :decode-json-from-string
-   :encode-json-to-string
-   :encode-json-alist-to-string)
-  (:shadowing-import-from :fcg :size :attributes))
+        :cl-store)
+  (:local-nicknames (:jzon :com.inuoe.jzon)))

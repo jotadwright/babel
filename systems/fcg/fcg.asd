@@ -27,6 +27,7 @@
   :serial t
   :components 
   ((:file "package")
+   (:file "demo-grammar")
    (:module unify-and-merge
     :serial t
     :components ((:file "matcher")

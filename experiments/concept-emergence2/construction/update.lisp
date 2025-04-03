@@ -19,6 +19,6 @@
 
 (defmethod update-history (agent cxn)
   "Keeps track how many times and when the cxn is used."
-  (let ((scene-idx (index (current-scene (world (experiment agent)))))
+  (let ((scene-idx (index (find-data agent 'context)))
         (interaction-number (interaction-number (current-interaction (experiment agent)))))
     (setf (history cxn) (cons (cons interaction-number scene-idx) (history cxn)))))

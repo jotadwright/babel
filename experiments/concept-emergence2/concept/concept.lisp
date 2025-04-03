@@ -15,14 +15,14 @@
     :initarg :prototypes :accessor prototypes :initform nil :type hash-table))
   (:documentation "Concept representation using prototypes."))
  
-(defmethod make-concept ((agent cle-agent) (object cle-object) (mode (eql :distribution)))
+(defmethod make-concept ((agent cle-agent) (object cle-object))
   "Creates a concept (based on combinations of distributions) for the given object."
   (let* ((prototypes (loop for channel being the hash-keys of (attributes object)
                              using (hash-value observation)
                           ;; create a distribution for each channel
-                           for distribution = (make-distribution agent
-                                                                 observation
-                                                                 (get-configuration (experiment agent) :distribution))
+                           for distribution = (make-new-distribution agent
+                                                                     channel
+                                                                     observation)
                            ;; create a prototype for each channel
                            for new-prototype = (make-instance 'prototype
                                                               :channel channel
@@ -34,7 +34,7 @@
                                    observation)
                              collect new-prototype)))
     ;; create the concept
-    (make-instance 'concept-distribution :prototypes (list-to-hash-table prototypes :key #'channel))))
+    (make-instance 'concept-distribution :prototypes (list->hash-table prototypes :key #'channel))))
 
 ;; -----------------------------------
 ;; + get/switch channel availability +

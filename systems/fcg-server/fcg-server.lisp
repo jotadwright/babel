@@ -55,7 +55,7 @@
   (if *fcg-server*
     (warn (format nil "Server already running at ~a:~a" (hunchentoot:acceptor-address *fcg-server*) (hunchentoot:acceptor-port *fcg-server*)))
     (progn
-      (push (snooze:make-hunchentoot-app) hunchentoot:*dispatch-table*)
+      (utils:pushend (snooze:make-hunchentoot-app) hunchentoot:*dispatch-table*) ;; pushend instead of push to keep babel web-interface running
       (setf *fcg-server* (hunchentoot:start (make-instance 'hunchentoot::fcg-acceptor :address address :port port)))
       (format t "***** started FCG server at ~a:~a *****" (hunchentoot:acceptor-address *fcg-server*) (hunchentoot:acceptor-port *fcg-server*))
       *fcg-server*)))

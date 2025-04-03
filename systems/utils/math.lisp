@@ -19,7 +19,10 @@
           log-transform-vector
           sum-list-of-vectors
           random-from-range
-          normalize))
+          normalize
+          +inf -inf
+          +inf.f -inf.f
+          +inf.d -inf.d))
 
 (declaim (inline sum))
 (defun sum (values)
@@ -289,3 +292,10 @@ coefficient equal to r**2."
          
 ;(mapcar #'round (linspace 0 250000 :num-points 1000))
 ;(remove-duplicates (mapcar #'round (logspace 0 (log 250000 10) :num-points 1000)))
+
+(defconstant +inf most-positive-fixnum "positive infinity, integer")
+(defconstant -inf most-negative-fixnum "negative infinity, integer")
+(defconstant +inf.f most-positive-single-float "positive infinity, single precision floating-point")
+(defconstant -inf.f most-negative-single-float "negative infinity, single precision floating-point")
+(defconstant +inf.d most-positive-double-float "positive infinity, double precision floating-point")
+(defconstant -inf.d most-negative-double-float "negative infinity, double precision floating-point")

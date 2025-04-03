@@ -22,8 +22,7 @@
                      (downcase (mkstr (id speaker))))))
     (add-element
      `((h2) ,(format nil "~a is the hearer"
-                     (downcase (mkstr (id hearer))))))
-    ))
+                     (downcase (mkstr (id hearer))))))))
 
 (define-event-handler (trace-interaction-wi interaction-finished)
   (add-element
@@ -42,8 +41,7 @@
               (topic speaker))))
   (add-element
    `((h2)
-     ,(format nil "The speaker produces utterance '~a' to refer to the topic." (utterance speaker)))
-  ))
+     ,(format nil "The speaker produces utterance '~a' to refer to the topic." (utterance speaker)))))
 
 (define-event parsing-finished (hearer naming-game-agent))
 
@@ -67,7 +65,9 @@
 
 (define-event-handler (trace-interaction-wi adoptation-finished)
   (add-element
-   `((h2) ,(format nil "The hearer adopted the word ~a for ~a" (cdr (assoc :form (attributes (applied-cxn hearer)))) (cdr (assoc :meaning (attributes (applied-cxn hearer))))))))
+   `((h2) ,(format nil "The hearer adopted the word ~a for ~a"
+                   (cdr (assoc :form (attributes (applied-cxn hearer))))
+                   (cdr (assoc :meaning (attributes (applied-cxn hearer))))))))
 
 (define-event align-finished)
 

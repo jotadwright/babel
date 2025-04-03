@@ -60,6 +60,8 @@
           cxn-set
           hash
           args
+          meaning-args
+          form-args
           comprehend
           comprehend-all
           formulate

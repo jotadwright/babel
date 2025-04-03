@@ -60,6 +60,10 @@
 ;; when t, the web interface will always scroll to the bottom when adding new elements
 (defvar *automatically-scroll-to-bottom* t)
 
+;; when t, gnuplot windows will persist after the process has quit
+;; in other words, to close a gnuplot window, you have to do it manually!
+(defvar *persist-gnuplot-windows* t)
+
 ;; in some lisps *print-pretty* is t by default, that means everything
 ;; passed to format, print, mkstr, etc or everything returned from an
 ;; evaluation is pprinted. The monitors and other printing mechanisms

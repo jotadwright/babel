@@ -13,9 +13,28 @@
                :irl
                :fcg
                :cl-json
-               :slp
+               :xmls
                :au-benchmark)
   :serial t
   :components ((:file "package")
-               (:file "create-dataset")
-               (:file "learn")))
+               (:module utils
+                :serial t
+                :components ((:file "string-manipulation")
+                             (:file "xml-utils")
+                             (:file "json-utils")
+                             (:file "hamnosys")
+                             (:file "elan-utils")
+                             (:file "dataset-generation-utils")
+                             (:file "predicate-utils")))
+               (:module elan-to-predicates
+                :serial t
+                :components ((:file "create-elan-intervals")
+                             (:file "create-predicates")
+                             (:file "elan-to-predicates")))
+               (:module visualization
+                :serial t
+                :components ((:file "css")
+                             (:file "make-sign-table")
+                             (:file "make-html")))
+               (:file "derender") 
+               ))

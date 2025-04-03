@@ -21,6 +21,13 @@
                                                           (+ 1 (interaction-number
                                                                 (car (interactions experiment))))
                                                           1))))
+    ;; during training: store experiment every x interactions
+    (when (and (equalp (get-configuration experiment :dataset-split) "train")
+               (not (zerop (interaction-number interaction)))
+               (get-configuration experiment :nr-of-interactions) ;; if set, then continue
+               (zerop (mod (interaction-number interaction) (/ (get-configuration experiment :nr-of-interactions) 4))))
+      (store-experiment experiment))
+
     ;; 1. set new interaction as interaction
     (setf (interactions experiment) (list interaction))
     ;; 2. run interaction script
@@ -31,6 +38,9 @@
                 always (communicated-successfully agent)))
     ;; 4. notify
     (if (get-configuration experiment :record-every-x-interactions)
+      ;; different from :log-every-x-interactions!
+      ;; log -> log information to standard output (for development)
+      ;; output -> output results to disk
       (when 
           (or
            ;; If we set a configuration called record-every-x-interactions,
