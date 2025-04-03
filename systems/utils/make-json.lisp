@@ -23,13 +23,15 @@
   (values (string thing) objects-processed))
 
 (defmethod make-json ((thing cons) &optional objects-processed)
-  "Return cons." 
+  "Return JSON-object"
+        
   (multiple-value-bind (car-json car-objects-processed)
+      ;; process car
       (make-json (car thing) objects-processed)
-    
     (multiple-value-bind (cdr-json cdr-objects-processed)
+        ;; process cdr
         (make-json (cdr thing) car-objects-processed)
-
+      ;; return (:object (car . cdr))))
       (values (cons car-json cdr-json) cdr-objects-processed))))
 
 (defmethod make-json ((thing string) &optional objects-processed)
@@ -42,7 +44,16 @@
 
 (defmethod make-json ((thing array) &optional objects-processed)
   "Return array."
-  (make-array (length thing) :initial-contents (map 'list #'make-json thing)))
+  (loop with objects-processed-loop = objects-processed
+        for el across thing
+        for (json-el new-objects-processed) = (multiple-value-list (make-json el objects-processed-loop))
+        do (setf objects-processed-loop new-objects-processed)
+        collect json-el into json-elements
+        finally (return (values
+                         json-elements
+                         new-objects-processed))))
+
+(encode-json-to-string (make-json '#(a b c)))
 
 (defmethod make-json ((thing function) &optional objects-processed)
   "Return function as a string."
@@ -76,12 +87,3 @@
 
 ;;(pprint (make-json (make-instance 'fcg::fcg-construction :cxn-inventory fcg::*fcg-constructions* )))
                                 
-
-;; Render-json
-;;;;;;;;;;;;;;;;;
-
-(defun render-json (serialised-lisp-expression &key alist)
-  "Render a json string based on serialised-lisp-expression."
-  (if alist
-    (encode-json-alist-to-string serialised-lisp-expression)
-    (cl-json:encode-json-to-string serialised-lisp-expression)))

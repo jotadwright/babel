@@ -5,7 +5,8 @@
   "Creates a serialised lisp object for a given cip-node."
   (multiple-value-bind (json-cxns objects-processed-extended)
       (make-json (original-applied-constructions thing))
-    (values `((:applied-cxns ,json-cxns)) objects-processed-extended)))
+    `((:applied-cxns . ,json-cxns)
+      (:statuses . ,(make-json (statuses thing))))))
 
 (defmethod make-json ((thing fcg-construction) &optional objects-processed)
   "Create a serialised lisp object for an fcg-construction"
