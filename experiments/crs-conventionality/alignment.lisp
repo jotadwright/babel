@@ -184,7 +184,7 @@
               for concept-of-candidate-cxn = (first (extract-concept cxn))
               for original-score = (attr-val cxn :score)
               for concept-concept-similarity = (concept-representations::concept-similarity concept-of-uttered-word concept-of-candidate-cxn)
-              do (update-score-cxn cxn (- original-score (* -0.02 concept-concept-similarity))))))))
+              do (update-score-cxn cxn (* -0.02 concept-concept-similarity)))))))
 
 
 
