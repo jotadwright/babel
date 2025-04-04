@@ -475,8 +475,8 @@ initial transient structure that plays a role in the frame."
 
   (let ((grammar (learn-propbank-grammar
                   list-of-propbank-sentences
-                  :selected-rolesets nil
-                  :excluded-rolesets nil
+                  :selected-rolesets selected-rolesets
+                  :excluded-rolesets excluded-rolesets
                   :cxn-inventory cxn-inventory
                   :fcg-configuration fcg-configuration)))
 
@@ -484,7 +484,7 @@ initial transient structure that plays a role in the frame."
 
     grammar))
 
-(defmethod preprocessing-and-configs (grammar  (mode (eql 'step-1)) &key (make-role-embeddings t))
+(defmethod preprocessing-and-configs (grammar  (mode (eql :step-1)) &key (make-role-embeddings t))
   ;; set the comparison mode (used in the procedural attachment), don't compare the role vectors 
   (setf fcg::*compare-distributional-role-vectors* nil)
 
@@ -499,9 +499,6 @@ initial transient structure that plays a role in the frame."
   (format t "---- Add embeddings to cxn inventory ----")
   (add-embeddings-to-cxn-inventory grammar :role-embeddings? nil)
 
-  ;; no need to set this? 
-  (set-configuration grammar :category-linking-mode :always-succeed)
-
   ;; supply all lexical and the arg-structure and sense based on a link in the cat net
   (set-configuration grammar :cxn-supplier-mode :all-lex-and-categorial-network)
   
@@ -510,7 +507,7 @@ initial transient structure that plays a role in the frame."
   )
 
 
-(defmethod preprocessing-and-configs (grammar (mode (eql 'step-2)) &key (make-role-embeddings t))
+(defmethod preprocessing-and-configs (grammar (mode (eql :step-2)) &key (make-role-embeddings t))
   ;; compare the embeddings of the lexical cxns via expansion operator, but threshold is set to 1
   (setf fcg::*compare-distributional-vectors* t)
   (set-configuration grammar :cosine-similarity-threshold 1)
@@ -530,19 +527,20 @@ initial transient structure that plays a role in the frame."
   (set-configuration grammar :cxn-supplier-mode :all-lex-and-categorial-network)
 
   ;; use the embedding similarity as a heuristic: both the role embedding and the lexical embedding are used (found in the bindings)
-  (set-configuration grammar :heuristics (list :nr-of-applied-cxns :nr-of-units-matched-x2 :embedding-similarity))  
+  (set-configuration grammar :heuristics (list   :embedding-similarity))  
   )
 
 
-(defmethod preprocessing-and-configs (grammar (mode (eql 'step-3)) &key (make-role-embeddings t))
+(defmethod preprocessing-and-configs (grammar (mode (eql :step-3)) &key (make-role-embeddings t))
   ;(graph-utils::pre-compute-cosine-similarities (fcg::graph (fcg::categorial-network grammar)))
+  (setf fcg::*compare-distributional-role-vectors* nil)
   (set-configuration grammar :cosine-similarity-threshold 1)
   (set-configuration grammar :graph-cosine-similarity-threshold 0) ;; decide threshold???
   (set-configuration grammar :category-linking-mode :always-succeed)
   (set-configuration grammar :node-expansion-mode :multiple-cxns)
   (set-configuration grammar :cxn-supplier-mode :cascading-cosine-similarity)
+  ;(set-configuration grammar :heuristics (list :nr-of-applied-cxns :nr-of-units-matched-x2 :graph-cosine-similarity))
   (set-configuration grammar :heuristics (list :nr-of-applied-cxns :nr-of-units-matched-x2 :graph-cosine-similarity))
-
   (when make-role-embeddings 
     (format t "~%---- Start protorole embeddings ----")
     (make-proto-role-embeddings grammar))
