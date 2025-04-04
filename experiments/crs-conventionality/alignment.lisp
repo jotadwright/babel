@@ -165,12 +165,11 @@
     (when (> (length solution-nodes) 1) ; only do this when there are multiple solutions
       (let* ((cxn-of-uttered-word (if (speakerp agent)
                                     (car-applied-cxn (cipn-car (first solution-nodes)))
-                                    (first (loop for node in solution-nodes
-                                                 for form = (render (car-resulting-cfs (cipn-car node))
-                                                                    (get-configuration (grammar agent) :render-mode))
+                                    (first (loop for cxn in (constructions-list (grammar agent))
+                                                 for form = (attr-val cxn :form)
                                                    
-                                                 if (equal form (utterance agent))
-                                                   collect (car-applied-cxn (cipn-car node))))))
+                                                 if (equal form (first (utterance agent)))
+                                                   collect (processing-cxn cxn)))))
              (concept-of-uttered-word (first (extract-concept cxn-of-uttered-word)))
              (candidate-cxns (if (speakerp agent)
                                (loop for node in (rest solution-nodes)
