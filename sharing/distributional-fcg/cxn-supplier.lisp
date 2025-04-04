@@ -109,6 +109,8 @@ direct neighbours of the categories present in the node."
                                      (attr-val cxn :sense-category)
                                      (member (attr-val cxn :sense-category) lex-cat-neighbours))
                                     collect (cons cxn 0))))
+    (when word-sense-cxns
+         (setf word-sense-cxns (sort word-sense-cxns #'> :key #'(lambda (x) (attr-val (first x) :score)))))
     ;(cons-if (append lexical-cxns word-sense-cxns (first argument-structure-constructions-per-level))
     ;         (rest argument-structure-constructions-per-level))
     (cons-if (append lexical-cxns word-sense-cxns (first argument-structure-constructions-per-level))
