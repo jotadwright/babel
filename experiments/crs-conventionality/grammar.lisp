@@ -170,7 +170,9 @@
             (entrenchement-score (attr-val applied-cxn :score))
             (concept-entity-discriminative-power (find-data node :discriminative-power)))
         (if concept-entity-discriminative-power
-          (* entrenchement-score (cdr concept-entity-discriminative-power)) ;; check what to do if entrenchment-score is 0.
+          (if (= entrenchement-score 0) ;; if entrenchment score is 0, then only look at DP
+            (cdr concept-entity-discriminative-power) 
+            (* entrenchement-score (cdr concept-entity-discriminative-power))) 
           0))
       1)))
    
