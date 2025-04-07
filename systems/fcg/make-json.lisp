@@ -12,5 +12,5 @@
   "Create a serialised lisp object for an fcg-construction"
   `((:name . ,(name thing))
     (:class . , (type-of thing))
-    (:grammar-id . ,(make-json (fcg::name (cxn-inventory thing)) objects-processed))
+    (:grammar-id . ,(fcg::name (cxn-inventory thing)))
     (:attributes . ,(make-json (attributes thing) objects-processed))))
