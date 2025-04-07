@@ -55,6 +55,7 @@
 (pushnew :hunchentoot-no-ssl *features*)
 
 ;; when t, then the web-interface is automatically started upon compiling
+#-delivery
 (defvar *automatically-start-web-interface* t)
 
 ;; when t, the web interface will always scroll to the bottom when adding new elements
