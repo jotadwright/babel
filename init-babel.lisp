@@ -104,6 +104,7 @@
                         (funcall fun)
                         (setf (car gsc) *gensym-counter*))))))))
 
+#-delivery
 (let ((init-babel-user (babel-pathname :name "init-babel-user" :type "lisp")))
   (when (probe-file init-babel-user)
     (load init-babel-user)))
