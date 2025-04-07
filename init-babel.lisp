@@ -55,7 +55,10 @@
 (pushnew :hunchentoot-no-ssl *features*)
 
 ;; when t, then the web-interface is automatically started upon compiling
-(defvar *automatically-start-web-interface* t)
+
+(defvar *automatically-start-web-interface*
+  #-delivery t
+  #+delivery nil)
 
 ;; when t, the web interface will always scroll to the bottom when adding new elements
 (defvar *automatically-scroll-to-bottom* t)
@@ -101,6 +104,7 @@
                         (funcall fun)
                         (setf (car gsc) *gensym-counter*))))))))
 
+#-delivery
 (let ((init-babel-user (babel-pathname :name "init-babel-user" :type "lisp")))
   (when (probe-file init-babel-user)
     (load init-babel-user)))
