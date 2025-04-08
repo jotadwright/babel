@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# see README.md for usage
+# bash slurm/run.sh train crs-conventionality-cle-base 1,2 1-10 12:00:00 10G 10000 experiment-3
 
 expand_range() {
     input="$1"
@@ -33,5 +33,5 @@ for i in $(expand_range "$4");
 do
     epath="$VSC_SCRATCH/babel/experiments/crs-conventionality/batch/slurm/logs/${1}/${8}/${2}_%a_seed${i}_%A_e.txt"
     opath="$VSC_SCRATCH/babel/experiments/crs-conventionality/batch/slurm/logs/${1}/${8}/${2}_%a_seed${i}_%A_o.txt"
-    sbatch --error $epath --output $opath --job-name "${8}-seed${i}-${1}" --array $3 --time $5 --mem $6  --ntasks 1 --cpus-per-task 1 --export=seed=$i,name=$2,space=$7,exp_top_dir=$8 slurm/$1.sh
+    sbatch --error $epath --output $opath --job-name "${8}-seed${i}-${1}" --array $3 --time $5 --mem $6  --ntasks 1 --cpus-per-task 1 --partition=zen4 --export=seed=$i,name=$2,space=$7,exp_top_dir=$8 slurm/$1.sh
 done
