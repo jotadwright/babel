@@ -30,8 +30,7 @@
               do (setf (attr-val cxn :score) (calculate-decreased-score (learning-rate speaker) (attr-val cxn :score))))
         (loop for cxn in (find-competitors hearer)
               do (setf (attr-val cxn :score) (calculate-decreased-score (learning-rate hearer) (attr-val cxn :score))))
-        (notify alignment-finished speaker hearer interaction))
-      
+        (notify alignment-finished speaker hearer interaction))     
       
      ;; Communication failed 
      (progn
@@ -47,6 +46,7 @@
   (let ((applied-cxn-speaker (first (applied-constructions speaker)))
         (applied-cxn-hearer (first (applied-constructions hearer))))
     (if (communicated-successfully interaction)
+      
       ;; Communication succeeded
       ;; Speaker and hearer increase the score of the constructions they used:
       (progn
@@ -61,19 +61,37 @@
         (punish-competitors speaker)
         (punish-competitors hearer)
 
-        (notify alignment-finished speaker hearer interaction))
+        (notify alignment-finished speaker hearer interaction))     
       
+      ;; Communication failed 
+      (progn
+        (when (applied-constructions speaker)
+          (update-score-cxn applied-cxn-speaker -0.1))
+        (if (computed-topic hearer)
+          (progn 
+            (shift applied-cxn-hearer (topic interaction) hearer) ;; check if shift is on the right cxn
+            (update-score-cxn applied-cxn-hearer -0.1)))
+        (notify alignment-finished speaker hearer interaction)))))
+
+(defmethod align ((speaker crs-conventionality-agent) (hearer crs-conventionality-agent) (interaction crs-conventionality-interaction)
+                  (mode (eql :shift-no-update)))
+  "Align grammar of speaker and hearer based on interaction."
+  (notify alignment-started speaker hearer)
+  (let ((applied-cxn-speaker (first (applied-constructions speaker)))
+        (applied-cxn-hearer (first (applied-constructions hearer))))
+    (if (communicated-successfully interaction)
+      ;; Communication succeeded
+      (progn
+        (shift applied-cxn-speaker (topic interaction) speaker)
+        (shift applied-cxn-hearer (topic interaction) hearer) 
+
+        (notify alignment-finished speaker hearer interaction))      
       
-     ;; Communication failed 
-     (progn
-       (when (applied-constructions speaker)
-         (update-score-cxn applied-cxn-speaker -0.1))
-       (notify alignment-finished speaker hearer interaction)
-       (if (computed-topic hearer)
-         (progn 
-           (shift applied-cxn-hearer (topic interaction) hearer) ;; check if shift is on the right cxn
-           (update-score-cxn applied-cxn-hearer -0.1)))
-       (notify alignment-finished speaker hearer interaction)))))
+      ;; Communication failed 
+      (progn 
+        (when (computed-topic hearer)         
+          (shift applied-cxn-hearer (topic interaction) hearer)) ;; check if shift is on the right cxn 
+        (notify alignment-finished speaker hearer interaction)))))
 
 ;; Don't punish competitors in success. 
 
