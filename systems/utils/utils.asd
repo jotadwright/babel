@@ -31,6 +31,7 @@
    (:file "clos" :depends-on ("package"))
    (:file "event-dispatcher")
    (:file "ssh-scp")
+   (:file "file-system")
    (:file "streams")
    (:file "make-file-name-with")
    (:file "progress-bar")
