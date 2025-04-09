@@ -131,3 +131,29 @@
                                                                   ,(assqv :exp-top-dir config)
                                                                   ,(assqv :datasplit config)
                                                                   ,(assqv :exp-name config))))))))
+
+(defun run-batch-and-save (experiment-class 
+                           number-of-interactions
+                           number-of-series
+                           &rest experiment-parameters)
+  "Runs a series of experiments. Each time a new instance of experiment
+   is created, saved once finished."
+  (notify reset-monitors)
+  (set-seed (assqv :seed experiment-paramenters))
+  (loop for series from 1 to number-of-series
+        for experiment = (apply 'make-instance
+                                experiment-class
+                                :series-number series                                
+                                experiment-parameters)
+        do (run-series experiment (+ 1 number-of-interactions))
+           (cl-store:store 
+                (merge-pathnames
+                 (make-pathname :name (format nil "~a-~a" (assqv :exp-name experiment-parameters) series) :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
+                 (babel-pathname :directory `("experiments"
+                                              "crs-conventionality"
+                                              "logging"
+                                              ,(assqv :exp-top-dir experiment-parameters)
+                                              ,(assqv :datasplit experiment-parameters)
+                                              ,(assqv :exp-name experiment-parameters)))))
+           (notify series-finished series))
+  (notify batch-finished (symbol-name experiment-class)))
