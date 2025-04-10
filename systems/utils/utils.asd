@@ -4,7 +4,7 @@
 
 (defsystem :utils
   :description "Basic utilities"
-  :depends-on (:split-sequence :cl-ppcre :closer-mop :s-dot :cl-who :test-framework)
+  :depends-on (:split-sequence :cl-ppcre :closer-mop :s-dot :cl-who :test-framework :cl-json)
   :components 
   ((:file "package")
    (:file "pop" :depends-on ("package"))
@@ -18,6 +18,7 @@
    (:file "configuration" :depends-on ("package"))
    (:file "symbols-and-strings" :depends-on ("package"))
    (:file "make-new-word" :depends-on ("package"))
+   (:file "make-json" :depends-on ("package"))
    (:file "tree" :depends-on ("package"))
    (:file "queue" :depends-on ("package"))
    (:file "misc-utils" :depends-on ("lists-and-sets" "symbols-and-strings"))
