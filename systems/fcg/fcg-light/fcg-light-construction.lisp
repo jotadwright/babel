@@ -115,16 +115,6 @@
                 :accessor description)))
 
 
-(defmethod initialize-instance :after ((fcg-construction fcg-construction)
-                                       &key &allow-other-keys)
-  "after method for when an fcg-construction is created"
-  ;; set default feature-types if they were not provided
-  (when (and (not (feature-types fcg-construction))
-             (cxn-inventory fcg-construction))
-    (setf (feature-types fcg-construction)
-          (feature-types (cxn-inventory fcg-construction)))))
-
-
 (defclass contributing-unit ()
   ((name 
     :type symbol :initarg :name :initform (make-id 'UNIT) :accessor name )
