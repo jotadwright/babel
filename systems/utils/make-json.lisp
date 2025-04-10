@@ -6,7 +6,7 @@
 ;;                                       ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(export '(make-json render-json))
+(export '(make-json))
 
 ;; Make-json
 ;;;;;;;;;;;;;;;;;
@@ -24,7 +24,6 @@
 
 (defmethod make-json ((thing cons) &optional objects-processed)
   "Return JSON-object"
-        
   (multiple-value-bind (car-json car-objects-processed)
       ;; process car
       (make-json (car thing) objects-processed)
@@ -53,8 +52,6 @@
                          json-elements
                          new-objects-processed))))
 
-(encode-json-to-string (make-json '#(a b c)))
-
 (defmethod make-json ((thing function) &optional objects-processed)
   "Return function as a string."
   (values (format nil "~a" thing) objects-processed))
@@ -62,14 +59,6 @@
 (defmethod make-json ((thing t) &optional objects-processed)
   "Stringify thing."
   (values (format nil "~a" thing) objects-processed))
-
-;;(defparameter *test* (closer-mop:class-slots (find-class 'fcg::construction-inventory-processor)))
-
-(defun make-json-clos-slot (slot thing objects-processed)
-  (let ((objects-processed-extended (cons thing objects-processed)))
-    (values (cons (make-json (make-kw (clos:slot-definition-name slot)) objects-processed-extended)
-                  (make-json (slot-value thing (clos:slot-definition-name slot)) objects-processed-extended))
-            objects-processed-extended)))
 
 (defmethod make-json ((thing standard-object) &optional objects-processed)
   "Create a serialised json object for standard object based on class-slots. "
@@ -83,7 +72,10 @@
                     jsonified-slot)
             into jsonified-slots
           finally (return (values (append (list (cons :class (type-of thing))) jsonified-slots)
-                                  slot-objects-processed)))))
+                                  slot-objects-processed)))))                                
 
-;;(pprint (make-json (make-instance 'fcg::fcg-construction :cxn-inventory fcg::*fcg-constructions* )))
-                                
+(defun make-json-clos-slot (slot thing objects-processed)
+  (let ((objects-processed-extended (cons thing objects-processed)))
+    (values (cons (make-json (make-kw (clos:slot-definition-name slot)) objects-processed-extended)
+                  (make-json (slot-value thing (clos:slot-definition-name slot)) objects-processed-extended))
+            objects-processed-extended)))

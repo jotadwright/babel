@@ -10,7 +10,6 @@
 
 (defmethod make-json ((thing fcg-construction) &optional objects-processed)
   "Create a serialised lisp object for an fcg-construction"
+  (declare (ignore objects-processed))
   `((:name . ,(name thing))
-    (:class . , (type-of thing))
-    (:grammar-id . ,(fcg::name (cxn-inventory thing)))
-    (:attributes . ,(make-json (attributes thing) objects-processed))))
+    (:grammar-id . ,(name (cxn-inventory thing)))))
