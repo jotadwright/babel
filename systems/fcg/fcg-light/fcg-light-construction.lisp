@@ -114,6 +114,7 @@
                 :initarg :description
                 :accessor description)))
 
+
 (defclass contributing-unit ()
   ((name 
     :type symbol :initarg :name :initform (make-id 'UNIT) :accessor name )
