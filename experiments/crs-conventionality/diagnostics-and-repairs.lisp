@@ -55,12 +55,21 @@
   ()
   (:documentation "Class for fixes created by repair-through-adoption"))
 
+(defclass form-similarity-fix (fix)
+  ()
+  (:documentation "Class for fixes created by repair-through-form-similarity"))
+
 ;; Repairs ;;
 ;;;;;;;;;;;;;
+
 
 (defclass repair-through-invention (repair)
   ((trigger :initform 'routine-processing-finished))
   (:documentation "Repair that invents"))
+
+(defclass repair-through-form-similarity (repair)
+  ((trigger :initform 'routine-processing-finished))
+  (:documentation "Repair that finds most similar form"))
 
 (defclass repair-through-adoption (repair)
   ((trigger :initform 'feedback-received))
@@ -106,6 +115,39 @@
         (add-cxn cxn cxn-inventory-copy)
         ;; add the cxn to the fix
         (make-instance 'invention-fix :restart-data cxn)))))
+
+(defmethod repair ((repair repair-through-form-similarity)
+                   (problem no-cxn-to-interpret-utterance)
+                   (cipn cip-node)
+                   &key &allow-other-keys)
+  
+  (when (constructions-list (original-cxn-set (construction-inventory cipn)))
+    (let* ((cxn-inventory (original-cxn-set (construction-inventory cipn)))
+           (form-to-interpret (first (utterance (get-data (blackboard (construction-inventory cipn)) :agent))))
+           
+           ;; Get the Levenshtein distance between the utterance and each form in the hearer's inventory.
+           (candidates (loop for cxn in (constructions-list cxn-inventory)
+                             for candidate = (attr-val cxn :form)
+                             for distance = (crs-conventionality::levenshtein-distance-strings form-to-interpret candidate)
+                             collect (cons cxn distance)))
+           
+           ;; Get all candidates with lowest distance.
+           (closest-candidates (all-smallest #'cdr candidates))
+           
+           ;; If there are multiple with same distance, get most entrenched word. In the case that there are multiple with the same distance and entrenchment score, choose between them at random.
+           (best-candidate (random-elt (all-biggest #'(lambda (cxn-and-distance) (attr-val (first cxn-and-distance) :score)) closest-candidates))))
+      (when best-candidate 
+           
+        (let* ((new-form (attr-val (car best-candidate) :form)) 
+               (initial-cfs-copy (copy-object (car-source-cfs (cipn-car cipn))))
+               (root-copy (pole-structure (left-pole initial-cfs-copy))))
+          (loop for unit in root-copy
+                for form-unit = (unit-feature unit 'form nil)
+                do (setf (feature-value form-unit) (list new-form)) ;;
+                   (setf new-initial-cfs initial-cfs-copy))
+
+          (make-instance 'form-similarity-fix :restart-data (cons (first best-candidate) new-initial-cfs)))))))
+
 
 (defmethod repair ((repair repair-through-adoption)
                    (problem no-cxn-to-interpret-utterance)
@@ -185,6 +227,20 @@
                          (direction (cip node))
                          :configuration (configuration (construction-inventory node))
                          :cxn-inventory (construction-inventory node)))))
+
+(defmethod handle-fix ((fix form-similarity-fix) (repair repair-through-form-similarity) (problem no-cxn-to-interpret-utterance) (node cip-node) &key &allow-other-keys)
+  "Apply the construction provided by fix to the result of the node and return the construction-application-result"
+  "Should be removed"
+  (call-next-method)
+  (push fix (fixes (problem fix))) ;; we add the current fix to the fixes slot of the problem
+  (with-disabled-monitor-notifications
+    (set-data fix 'fixed-cars
+              (fcg-apply (get-processing-cxn (car (restart-data fix)))
+                         (cdr (restart-data fix))
+                         (direction (cip node))
+                         :configuration (configuration (construction-inventory node))
+                         :cxn-inventory (construction-inventory node)))))
+
 
 
 

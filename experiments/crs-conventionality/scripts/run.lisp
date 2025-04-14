@@ -19,8 +19,9 @@
                                     (:alignment-strategy . :lateral-inhibition)
                                     (:learning-strategy . :default)
                                     (:learning-rate . 0.5)
+                                    (:neighbor-q-value-lr . 0.01)
                                     ;; Initialising an interaction
-                                    (:determine-interacting-agents-mode . :random-from-population)
+                                    (:determine-interacting-agents-mode . :random-from-social-network)
                                     (:determine-scene-entities-mode . :random-subset-of-world)
                                     (:determine-topic-mode . :random-entity-from-scene)))
                                   (naming-game-dont-punish-competitors
@@ -33,8 +34,9 @@
                                     (:alignment-strategy . :dont-punish-competitors)
                                     (:learning-strategy . :default)
                                     (:learning-rate . 0.5)
+                                    (:neighbor-q-value-lr . 0.01)
                                     ;; Initialising an interaction
-                                    (:determine-interacting-agents-mode . :random-from-population)
+                                    (:determine-interacting-agents-mode . :random-from-social-network)
                                     (:determine-scene-entities-mode . :random-subset-of-world)
                                     (:determine-topic-mode . :random-entity-from-scene)))
                                   (naming-game-dont-punish-failure
@@ -47,8 +49,9 @@
                                     (:alignment-strategy . :dont-punish-failure)
                                     (:learning-strategy . :default)
                                     (:learning-rate . 0.5)
+                                    (:neighbor-q-value-lr . 0.01)
                                     ;; Initialising an interaction
-                                    (:determine-interacting-agents-mode . :random-from-population)
+                                    (:determine-interacting-agents-mode . :random-from-social-network)
                                     (:determine-scene-entities-mode . :random-subset-of-world)
                                     (:determine-topic-mode . :random-entity-from-scene)))
                                   (naming-game-never-punish
@@ -61,8 +64,9 @@
                                     (:alignment-strategy . :never-punish)
                                     (:learning-strategy . :default)
                                     (:learning-rate . 0.5)
+                                    (:neighbor-q-value-lr . 0.01)
                                     ;; Initialising an interaction
-                                    (:determine-interacting-agents-mode . :random-from-population)
+                                    (:determine-interacting-agents-mode . :random-from-social-network)
                                     (:determine-scene-entities-mode . :random-subset-of-world)
                                     (:determine-topic-mode . :random-entity-from-scene)))
                                   (naming-game-no-alignment
@@ -75,8 +79,9 @@
                                     (:alignment-strategy . :no-alignment)
                                     (:learning-strategy . :default)
                                     (:learning-rate . 0.5)
+                                    (:neighbor-q-value-lr . 0.01)
                                     ;; Initialising an interaction
-                                    (:determine-interacting-agents-mode . :random-from-population)
+                                    (:determine-interacting-agents-mode . :random-from-social-network)
                                     (:determine-scene-entities-mode . :random-subset-of-world)
                                     (:determine-topic-mode . :random-entity-from-scene)))
                                   )
@@ -100,6 +105,7 @@
                                      (:alignment-strategy . :lateral-inhibition)
                                      (:learning-strategy . :default)
                                      (:learning-rate . 0.5)
+                                     (:neighbor-q-value-lr . 0.01)
                                      (:network-topology . :regular)
                                      (:local-connectivity . 2)                                     
                                      ;; Initialising an interaction
@@ -118,6 +124,7 @@
                                      (:alignment-strategy . :lateral-inhibition)
                                      (:learning-strategy . :default)
                                      (:learning-rate . 0.5)
+                                     (:neighbor-q-value-lr . 0.01)
                                      (:network-topology . :small-world)
                                      (:local-connectivity . 2)
                                      (:rewiring-probability . 0.3)
@@ -129,6 +136,52 @@
                                      (:determine-topic-mode . :random-entity-from-scene))))
                     
                     :number-of-interactions 50000
+                    :number-of-series 10
+                    :monitors (list "log-every-x-interactions-in-output-browser"
+                                    "export-communicative-success"
+                                    "export-conventionalisation"
+                                    "export-construction-inventory-size"))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;; Robustness experiment ;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(run-experiments-sequentially 'naming-game-experiment
+                    :strategies `((robustness-conventional
+                                    (;; Logging
+                                     (:log-every-x-interactions . 100)
+                                     ;; Initialising the experiment
+                                     (:nr-of-entities-in-world . 10)
+                                     (:nr-of-agents-in-population . 10)
+                                     (:nr-of-entities-in-scene . 5)
+                                     (:alignment-strategy . :lateral-inhibition)
+                                     (:learning-strategy . :default)
+                                     (:learning-rate . 0.5)
+                                     (:neighbor-q-value-lr . 0.01)
+                                     (:introduce-noise-after-interaction . 3000)
+                                     (:noise-level . 0.6)
+                                     ;; Initialising an interaction
+                                     (:determine-interacting-agents-mode . :random-from-social-network)
+                                     (:determine-scene-entities-mode . :random-subset-of-world)
+                                     (:determine-topic-mode . :random-entity-from-scene)))
+                                  (robustness-unconventional
+                                    (;; Logging
+                                     (:log-every-x-interactions . 100)
+                                     ;; Initialising the experiment
+                                     (:nr-of-entities-in-world . 10)
+                                     (:nr-of-agents-in-population . 10)
+                                     (:nr-of-entities-in-scene . 5)
+                                     (:alignment-strategy . :no-alignment)
+                                     (:learning-strategy . :default)
+                                     (:learning-rate . 0.5)
+                                     (:neighbor-q-value-lr . 0.01)
+                                     (:introduce-noise-after-interaction . 3000)
+                                     (:noise-level . 0.6)
+                                     ;; Initialising an interaction
+                                     (:determine-interacting-agents-mode . :random-from-social-network)
+                                     (:determine-scene-entities-mode . :random-subset-of-world)
+                                     (:determine-topic-mode . :random-entity-from-scene))))
+                    
+                    :number-of-interactions 6000
                     :number-of-series 10
                     :monitors (list "log-every-x-interactions-in-output-browser"
                                     "export-communicative-success"
