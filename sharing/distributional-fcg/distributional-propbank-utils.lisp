@@ -23,7 +23,8 @@
 (defmethod apply-heuristic ((node cip-node) (mode (eql :graph-cosine-similarity)))
   "Returns the graph-cosine-similarity of the categories that were matched."
   (let* ((applied-cxn (car-applied-cxn (cipn-car node))))
-    (cdr (assoc (name applied-cxn) (fcg::cxns-all-levels (cxn-supplier (first (all-parents node)))) :key #'name :test #'eql))))
+    (cdr (assoc (name applied-cxn) (fcg::cxns-all-levels (cxn-supplier (first (all-parents node)))) :key #'name :test #'eql))
+    ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; helper functions to make proto-embeddings  ;;
@@ -113,3 +114,41 @@ field :cxn-token-embeddings"
       (if (>= similarity 0.1)
         t
         nil))))
+
+(in-package :fcg)
+
+(defmethod categorial-network-based-on-neighbours-of-node ((categorial-network categorial-network)
+                                                           &key node)
+  (let* ((new-categorial-network (make-instance 'categorial-network
+                                                :graph (graph-utils::make-undirected-node-and-edge-typed-graph)))
+         (new-graph (graph new-categorial-network))
+         (graph (graph categorial-network))
+         (nodes (graph-utils::nodes graph))
+         (neighbours (graph-utils::neighbors graph node :return-ids? nil))
+         (neighbour-ids (loop for neighbour in neighbours
+                              for id = (gethash neighbour (graph-utils::nodes graph))
+                              collect id))
+         (all-edges (graph-utils::list-edges graph :nodes-as-ids t))
+        
+         ;(edges (loop for neigbour in neighbours collect ()))
+         )
+    (graph-utils:add-node new-graph node)
+    (loop for neighbour in neighbours
+          for neighbour-id = (gethash neighbour (graph-utils::nodes graph)) 
+          for edges-of-neighbour = (loop for edge in all-edges
+                                         when (= (first edge) neighbour-id)
+                                           collect (second edge))
+          do (graph-utils:add-node new-graph neighbour)
+          do (graph-utils:add-edge new-graph node neighbour)
+          do (loop for edge-for-neighbour in edges-of-neighbour
+                   for edge-name = (graph-utils:lookup-node graph edge-for-neighbour)
+                     when (find edge-name neighbours)
+                   do (graph-utils:add-edge new-graph edge-name neighbour)
+                      ))
+   ; (setf (graph-utils::nodes new-graph) nodes)
+    new-categorial-network))
+
+(defun draw-categorial-network-node-and-neighbours (cxn-inventory node)
+  (let* ((categorial-network (categorial-network cxn-inventory))
+         (small-categorial-network (categorial-network-based-on-neighbours-of-node categorial-network :node node)))
+    (add-element (make-html small-categorial-network))))
