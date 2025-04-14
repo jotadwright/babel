@@ -17,7 +17,8 @@
                                                           (+ 1 (interaction-number (current-interaction experiment)))
                                                           1))))
     (push interaction (interactions experiment))
-
+    (switch-conditions experiment)
+    
     ;; Determine the speaker and hearer agents as well as the scene and topic, notify that interaction can start.
     (determine-interacting-agents experiment interaction (get-configuration experiment :determine-interacting-agents-mode))
     (determine-scene-entities experiment interaction (get-configuration experiment :determine-scene-entities-mode))
@@ -31,6 +32,16 @@
     (notify interaction-finished experiment interaction (interaction-number interaction))
     (clear-interaction interaction)
     (values interaction experiment)))
+
+(defun switch-conditions (experiment)
+  (when (eq (get-configuration experiment :introduce-new-agents-after-interaction)
+            (- (interaction-number (current-interaction experiment)) 1))
+    (introduce-new-agents experiment :number-of-agents (get-configuration experiment :nr-of-agents-to-introduce))
+    (set-configuration experiment :determine-interacting-agents-mode :random-listener-from-younger-generation))
+  
+  (when (eq (get-configuration experiment :replace-agents-after-interaction)
+            (- (interaction-number (current-interaction experiment)) 1))
+    (replace-agents experiment (get-configuration experiment :proportion-of-agents-to-replace))))
 
 
 ;; Determine interacting agents, scene and topic ;;
@@ -57,19 +68,21 @@
   (setf (communicated-successfully interaction) nil
         (interacting-agents interaction) nil))
 
+(defun has-old-neighbor (agent)
+  (some (lambda (neighbor)
+          (= (introduced-in-game neighbor) 0))
+        (social-network agent)))
+
 (defmethod determine-interacting-agents (experiment (interaction interaction)
                                                     (mode (eql :random-listener-from-younger-generation))
                                                     &key &allow-other-keys)
-  "Randomly chooses an agent from the older generation as the speaker and randomly chooses an agent from a new generation as listener."
+  "Randomly chooses an agent from the older generation as the speaker and randomly chooses an agent from a new generation as listener."  
   (let* ((agents (agents (population experiment)))
-         (old-generations (loop for agent in agents
-                                if (= (introduced-in-game agent) 0)
-                                  collect agent))
          (new-generations (loop for agent in agents
                                 if (> (introduced-in-game agent) 0)
-                                  collect agent))
-         (speaker (random-elt old-generations))
-         (hearer (random-elt new-generations))
+                                collect agent))
+         (hearer (random-elt-if #'has-old-neighbor new-generations))
+         (speaker (random-elt (social-network hearer)))
          (interacting-agents (list speaker hearer)))
 
     ;; set the discourse-role
@@ -176,18 +189,21 @@
     (unless (communicated-successfully interaction)
       (adopt (topic interaction) hearer))
 
-    
-    
-    ;; Finishing interaction (TODO to remove?)
-    (unless (eq (get-configuration experiment :determine-interacting-agents-mode) :random-from-population)
-      (finish-interaction experiment interaction))))
+    ;; Finishing interaction
+    (finish-interaction experiment interaction)))
 
 ;; helper functions (best placed somewhere else?)
 
 (defmethod utter ((speaker crs-conventionality-agent) (hearer crs-conventionality-agent))
-  "The utterer utters the utterance to the utteree."
+  "The utterance is copied from the speaker to the hearer, noise may be added."
   (setf (utterance speaker) (conceptualised-utterance speaker))
-  (setf (utterance hearer) (utterance speaker)))
+  (if (get-configuration (experiment speaker) :introduce-noise-after-interaction)
+    (if (< (get-configuration (experiment speaker) :introduce-noise-after-interaction)
+           (interaction-number (current-interaction (experiment speaker))))
+      (setf (utterance hearer) (list (add-noise (copy-object (first (utterance speaker))) (get-configuration (experiment speaker) :noise-level)))) 
+      (setf (utterance hearer) (utterance speaker)))
+    (setf (utterance hearer) (utterance speaker))))
+
 
 (defmethod provide-feedback ((speaker crs-conventionality-agent) (hearer crs-conventionality-agent))
   "Speaker provides feedback by pointing to the topic."
@@ -214,9 +230,10 @@
 
 (defmethod finish-interaction ((experiment crs-conventionality-experiment) (interaction crs-conventionality-interaction))
   ;; update neighbor-q-values
-  (let ((reward (if (communicated-successfully interaction) 1 0)))
-    (update-neighbor-q-value (speaker experiment) (hearer experiment) reward (get-configuration experiment :neighbor-q-value-lr))
-    (update-neighbor-q-value (hearer experiment) (speaker experiment) reward (get-configuration experiment :neighbor-q-value-lr))))
+  (let ((reward (if (communicated-successfully interaction) 1 0))
+        (lr (get-configuration experiment :neighbor-q-value-lr)))
+    (update-neighbor-q-value (speaker experiment) (hearer experiment) reward (if lr lr 0.01))
+    (update-neighbor-q-value (hearer experiment) (speaker experiment) reward (if lr lr 0.01))))
 
 
 ;; ---------------------
@@ -284,7 +301,10 @@
   (setf (gethash (id neighbor) (neighbor-q-values agent))
         initial-q))
 
-(defmethod update-neighbor-q-value ((agent crs-conventionality-agent) (neighbor crs-conventionality-agent) (reward number) (lr float))
+(defmethod remove-neighbor-q-value ((agent crs-conventionality-agent) (neighbor crs-conventionality-agent))
+  (remhash (id neighbor) (neighbor-q-values agent)))
+
+(defmethod update-neighbor-q-value ((agent crs-conventionality-agent) (neighbor crs-conventionality-agent) (reward number)  (lr float))
   "Update the q-value that agent stores for neighbor."
   (let* ((q-values (neighbor-q-values agent))
          (q-old (gethash (id neighbor) q-values))

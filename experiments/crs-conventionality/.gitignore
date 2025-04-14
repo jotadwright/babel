@@ -1,1 +1,4 @@
 raw-data/
+plots/
+scripts/test.lisp
+logging/

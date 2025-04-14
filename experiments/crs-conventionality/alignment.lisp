@@ -217,7 +217,13 @@
 
 (defmethod adopt ((topic crs-conventionality-entity-set) (hearer naming-game-agent))
   "Adoption of the construction through composition."
+  ;; Remove fixes to 'no-cxn-to-interpret-utterance' because communication has failed.
+  (loop for problem in (fcg::problems (get-data (blackboard (grammar hearer)) :cipn))
+         when (equal (type-of problem) 'fcg::no-cxn-to-interpret-utterance)
+          do (setf (meta-layer-learning::fixes problem) nil))
+          
   (fcg::add-repair (get-data (blackboard (grammar hearer)) :cipn) 'fcg::repair-through-adoption)
+  
   ;; Notify learning
   (set-data (blackboard (grammar hearer)) :agent hearer)
   (let* ((fix (first (second (multiple-value-list (fcg::notify-learning (get-data (blackboard (grammar hearer)) :cipn) :trigger 'fcg::feedback-received))))))
