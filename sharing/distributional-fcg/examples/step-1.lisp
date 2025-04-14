@@ -3,47 +3,53 @@
 
 (in-package :propbank-grammar)
 
+;;; set host for embeddings and syntactic analysis (needed for the examples)
 
-;(setf nlp-tools::*penelope-host* "http://127.0.0.1:5000")
-;(setf nlp-tools::*embedding-host* "http://127.0.0.1:5001")
+(setf nlp-tools::*penelope-host* "http://127.0.0.1:5000")
+(setf nlp-tools::*embedding-host* "http://127.0.0.1:5001")
 
-(defun find-closest-match (lemma cxn-inventory)
-  (let ((vector (second (nlp-tools:get-word-embedding (downcase lemma))))
-        (lex-cxns (loop for cxn in (constructions-list cxn-inventory)
-                        when (attr-val cxn :lex-category)
-                          collect cxn)))
-       (loop for cxn in lex-cxns
-             for lemma = (downcase (attr-val cxn :lemma))
-             for pointer =  (attr-val cxn :lemma-embedding-pointer)
-             for cxn-vector = (cdr (assoc pointer (get-data (blackboard cxn-inventory) :cxn-token-embeddings)))
-             for similarity = (cosine-similarity vector cxn-vector)
-             collect (cons lemma similarity) into similarities
-             finally (return (sort similarities #'> :key #'cdr)))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;               Load in ontonotes and ewt                  ;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(deactivate-all-monitors)
 
-(progn 
-
-  (setf *ontonotes-annotations-storage-file*
-        (merge-pathnames (make-pathname :directory (cons :relative '("propbank-annotations"))
+(setf *ontonotes-annotations-storage-file*
+        (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-annotations"))
                                         :name "ontonotes-annotations"
                                         :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
                          *babel-corpora*))
 
-  (setf *ewt-annotations-storage-file* (merge-pathnames (make-pathname :directory (cons :relative '("propbank-annotations"))
+(setf *ewt-annotations-storage-file* (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-annotations"))
                                                                        :name "ewt-annotations"
                                                                        :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
                                                         *babel-corpora*))
 
 
-
-  (load-propbank-annotations 'ewt :ignore-stored-data nil)
-  (load-propbank-annotations 'ontonotes :ignore-stored-data nil)
+;;; takes a few minutes 
+(load-propbank-annotations 'ewt :ignore-stored-data nil)
+(load-propbank-annotations 'ontonotes :ignore-stored-data nil)
 
 ; *ewt-annotations*
 ; *ontonotes-annotations*
 
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;         Restore the grammar or learn from scratch           ;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;; restore 
+(defparameter *propbank-ewt-ontonotes-learned-cxn-inventory* (cl-store:restore
+                                                              (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "distributional-fcg"))
+                                                                                              :name "ewt-ontonotes-distributional-grammar-3-april"
+                                                                                              :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
+                                                                    *babel-corpora*)))
+
+;;; learn
+
+ (progn
+   (deactivate-all-monitors)
+   
   (defparameter *training-configuration*
     `((:de-render-mode .  :de-render-constituents-dependents)
       (:node-tests :check-double-role-assignment)
@@ -87,24 +93,147 @@
 
 
   (cl-store:store *propbank-ewt-ontonotes-learned-cxn-inventory*
-                  (merge-pathnames (make-pathname   :name "ewt-ontonotes-distributional-grammar-3-april"
-                                                    :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
+                  (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "distributional-fcg"))
+                                                  :name "ewt-ontonotes-distributional-grammar-3-april"
+                                                  :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
                                    *babel-corpora*))
   )
 
 
+(defparameter *cxn-inventory-step-1*
+               (cl-store:restore 
+                  (merge-pathnames (make-pathname  :directory (cons :relative '("Frames\ and\ Propbank" "distributional-fcg"))
+                                                   :name "ewt-ontonotes-distributional-grammar-3-april"
+                                                   :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
+                                   *babel-corpora*)))
 
-(defparameter *propbank-ewt-ontonotes-learned-cxn-inventory* (cl-store:restore
-                                                              (merge-pathnames (make-pathname   :name "ewt-ontonotes-distributional-grammar-3-april"
-                                                                                   :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
-                                                                    *babel-corpora*)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;           the chosen ones               ;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; 0.9 & 0.8 geeft niets voor enchanting
-
+;; set all configs for comprehension + get embeddings
 (preprocessing-and-configs *propbank-ewt-ontonotes-learned-cxn-inventory* :step-1)
 
+;; activate the monitor
 (activate-monitor trace-fcg)
+
+;; infuriate in die zin, arg-struct in die zin en sense 
+
+;; enkele cxns passen toe die het onduidelijker maken:
+;; we(np), no(rb), way(np), as(in) --> all lexical, so remove these? 
+(defparameter *enrage-solutions* nil)
+(set-configuration *propbank-ewt-ontonotes-learned-cxn-inventory* :cosine-similarity-threshold 0.8)
+(loop for i in (list 621)
+      for string = (sentence-string (nth i (dev-split *ontonotes-annotations*)))
+      for solutions = (multiple-value-list (comprehend-all string :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory* :timeout 1000 :n 1))
+      do (push solutions *enrage-solutions*))
+
+;; enkele cxns passen toe die het onduidelijker maken
+(defparameter *disrespect-solutions* nil)
+(set-configuration *propbank-ewt-ontonotes-learned-cxn-inventory* :cosine-similarity-threshold 0.65)
+(loop for i in (list 9829)
+      for string = (sentence-string (nth i (dev-split *ontonotes-annotations*)))
+      for solutions = (multiple-value-list (comprehend-all string :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory* :timeout 1000 :n 1))
+      do (push solutions *disrespect-solutions*))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;         Cxn inventory cleaning for enrage example           ;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(preprocessing-and-configs *cxn-inventory-step-1* :step-1)
+
+
+;; infuriate in die zin, arg-struct in die zin en sense 
+
+;; enkele cxns passen toe die het onduidelijker maken:
+;; we(np), no(rb), way(np), as(in) --> all lexical, so remove these? 
+
+(set-configuration *cxn-inventory-step-1* :cosine-similarity-threshold 0.8)
+
+(find-cxn 'right\(rb\)-cxn *cxn-inventory-step-1*)
+(find-cxn 'we\(np\)-cxn *cxn-inventory-step-1*)
+(find-cxn 'no\(rb\)-cxn *cxn-inventory-step-1*)
+(find-cxn 'as\(in\)-cxn *cxn-inventory-step-1*)
+(find-cxn 'way\(np\)-cxn *cxn-inventory-step-1*)
+(find-cxn 'make\(np\)-cxn *cxn-inventory-step-1*)
+(find-cxn 'think\(np\)-cxn *cxn-inventory-step-1*)
+(find-cxn 'so\(rb\)-cxn *cxn-inventory-step-1*)
+(find-cxn 'like\(in\)-cxn *cxn-inventory-step-1*)
+
+(delete-cxn 'right\(rb\)-cxn *cxn-inventory-step-1*)
+(delete-cxn 'we\(np\)-cxn *cxn-inventory-step-1*)
+(delete-cxn 'no\(rb\)-cxn *cxn-inventory-step-1*)
+(delete-cxn 'as\(in\)-cxn *cxn-inventory-step-1*)
+(delete-cxn 'way\(np\)-cxn *cxn-inventory-step-1*)
+(delete-cxn 'make\(np\)-cxn *cxn-inventory-step-1*)
+(delete-cxn 'think\(np\)-cxn *cxn-inventory-step-1*)
+(delete-cxn 'so\(rb\)-cxn *cxn-inventory-step-1*)
+(delete-cxn 'like\(in\)-cxn *cxn-inventory-step-1*)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;   Learn grammar for enrage example          ;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(progn
+   (deactivate-all-monitors)
+   
+  (defparameter *training-configuration*
+    `((:de-render-mode .  :de-render-constituents-dependents)
+      (:node-tests :check-double-role-assignment)
+      (:parse-goal-tests :no-valid-children :no-applicable-cxns)
+      (:max-nr-of-nodes . 10)
+
+      (:construction-inventory-processor-mode . :heuristic-search)
+      (:search-algorithm . :best-first)   
+      (:cxn-supplier-mode . :hashed-categorial-network)
+    
+      (:heuristics
+       :nr-of-applied-cxns
+       :nr-of-units-matched-x2 ;;nr-of-units-matched
+       ) ;; edge-weight cannot be used, sometimes there are no neighbours
+      ;;Additional heuristics: :prefer-local-bindings :frequency
+    
+      (:heuristic-value-mode . :sum-heuristics-and-parent)
+      (:sort-cxns-before-application . nil)
+
+      (:node-expansion-mode . :full-expansion)
+      (:hash-mode . :hash-lemma)
+    
+      (:replace-when-equivalent . nil)
+      (:learning-modes
+       :core-roles)))
+
+  (defparameter *cxn-inventory-infuriate-example* nil)
+
+
+  (learn-distributional-propbank-grammar 
+   (append (train-split *ewt-annotations*)
+           (train-split *ontonotes-annotations*))
+
+   :excluded-rolesets nil
+   
+   :selected-rolesets '("infuriate.01" "mean.01")
+   :cxn-inventory '*cxn-inventory-infuriate-example*
+   :fcg-configuration *training-configuration*)
+
+  (preprocessing-and-configs *cxn-inventory-infuriate-example* :step-1)
+
+  (cl-store:store *cxn-inventory-infuriate-example*
+                  (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "distributional-fcg"))
+                                                  :name "cxn-inventory-infuriate-example"
+                                                  :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
+                                   *babel-corpora*))
+  )
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;         All possible examples           ;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 ;;; ENCHANTING  39 3306 6569 in dev-split ontonotes
@@ -124,7 +253,7 @@
 
 (defparameter *enchanting-solutions* nil)
 
-;; enige hoop voor enchanting (maar duurt lang)
+;; enige hoop voor enchanting (maar duurt lang) -> geen frame toegepast
 (loop for i in (list 0.6)
         do (set-configuration *propbank-ewt-ontonotes-learned-cxn-inventory* :cosine-similarity-threshold i)
            (loop for i in (list 39)
@@ -172,13 +301,15 @@
       do (push solutions *solutions*))
 
 
+
+
+(progn
+  
 (defparameter *scorch-solutions* nil)
 (defparameter *misread-solutions* nil)
 (defparameter *interject-solutions* nil)
 (defparameter *enrage-solutions* nil)
-
-(progn
-
+  
 "enrage" ;; ("infuriate" . 0.8419155) ("unnerve" . 0.77183545)
 (set-configuration *propbank-ewt-ontonotes-learned-cxn-inventory* :cosine-similarity-threshold 0.8)
 (loop for i in (list 514 597 621 4901)
@@ -212,9 +343,6 @@
       do (push solutions *interject-solutions*))
 
 
-
-
-
 ;; slechte zin met typfouten
 "sanctify" ;; ("glorify" . 0.63841355) ("exalt" . 0.6237715)  ("venerate" . 0.60114015)
 (set-configuration *propbank-ewt-ontonotes-learned-cxn-inventory* :cosine-similarity-threshold 0.6)
@@ -233,7 +361,7 @@
       for solutions = (multiple-value-list (comprehend-all string :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory* :timeout 1000 :n 1))
       do (push solutions *disrespect-solutions*))
 
-;; start hier nu terug:
+
 
 (progn 
 
@@ -288,6 +416,92 @@
 
 )
 
+(progn
+
+ 
+(defparameter *repudiate-solutions* nil)  ;; no sense cxn 
+(set-configuration *propbank-ewt-ontonotes-learned-cxn-inventory* :cosine-similarity-threshold 0.81)
+(loop for i in (list 5128 5234)
+      for string = (sentence-string (nth i (test-split *ontonotes-annotations*)))
+      for solutions = (multiple-value-list (comprehend-all string :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory* :timeout 2000 :n 1))
+      do (push solutions *repudiate-solutions*))
+
+(defparameter *exciting-solutions* nil)
+;; timeout: "The Second U.S. Circuit Court of Appeals opinion in the Arcadian Phosphate case did not repudiate the position Pennzoil Co. took in its dispute with Texaco , contrary to your Sept. 8 article `` Court Backs Texaco 's View in Pennzoil Case -- Too Late . ''"
+;; no sense cxn for: "We have a vibrant and exciting relationship from which we both derive mass benefit ."
+;; no sense cxn for: "Amid the cross-strait political standoff , one can expect that Taiwan firms in Dongguan will continue to live out this exciting tale of gain and loss ."
+(set-configuration *propbank-ewt-ontonotes-learned-cxn-inventory* :cosine-similarity-threshold 0.82)
+(loop for i in (list  2921 3772 10799 11841 12456)
+      for string = (sentence-string (nth i (test-split *ontonotes-annotations*)))
+      for solutions = (multiple-value-list (comprehend-all string :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory* :timeout 2000 :n 1))
+      do (push solutions *exciting-solutions*))
+
+
+(defparameter *arrogant-solutions* nil)  ;; geen sense
+(set-configuration *propbank-ewt-ontonotes-learned-cxn-inventory* :cosine-similarity-threshold 0.8)
+(loop for i in (list 9974 13338 )
+      for string = (sentence-string (nth i (test-split *ontonotes-annotations*)))
+      for solutions = (multiple-value-list (comprehend-all string :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory* :timeout 500 :n 1))
+      do (push solutions *arrogant-solutions*))
+
+(progn
+(defparameter *disgrace-solutions* nil) ;; geen oplossing
+(set-configuration *propbank-ewt-ontonotes-learned-cxn-inventory* :cosine-similarity-threshold 0.74)
+(loop for i in (list 11043)
+      for string = (sentence-string (nth i (test-split *ontonotes-annotations*)))
+      for solutions = (multiple-value-list (comprehend-all string :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory* :timeout 500 :n 1))
+      do (push solutions *disgrace-solutions*))
+
+(defparameter *softening-solutions* nil)   ;; geen oplossing
+(set-configuration *propbank-ewt-ontonotes-learned-cxn-inventory* :cosine-similarity-threshold 0.71)
+(loop for i in (list 4780 5069)
+      for string = (sentence-string (nth i (test-split *ontonotes-annotations*)))
+      for solutions = (multiple-value-list (comprehend-all string :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory* :timeout 500 :n 1))
+      do (push solutions *softening-solutions*))
+
+(defparameter *counterproductive-solutions* nil)  ;; foute nr
+(set-configuration *propbank-ewt-ontonotes-learned-cxn-inventory* :cosine-similarity-threshold 0.7)
+(loop for i in (list 11738)
+      for string = (sentence-string (nth i (test-split *ontonotes-annotations*)))
+      for solutions = (multiple-value-list (comprehend-all string :cxn-inventory *propbank-ewt-ontonotes-learned-cxn-inventory* :timeout 500 :n 1))
+      do (push solutions *counterproductive-solutions*))
+
+
+
+)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;; test ;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;; 5128 5234
+("repudiate" ("disavow" . 0.81983704) ("deplore" . 0.6660574) ("condone" . 0.6587236) ("disparage" . 0.6508061) ("condemn" . 0.64931137) ("denounce" . 0.64028544) ("sugarcoat" . 0.6097585) ("abhor" . 0.60529185) ("trivialize" . 0.5986427) ("retract" . 0.59166235))
+
+;; 2921 3772 10799 11841 12456
+("exciting" ("interesting" . 0.82424587) ("fantastic" . 0.7448023) ("enjoyable" . 0.72719074) ("fun" . 0.7223806) ("fun" . 0.7223806) ("fun" . 0.7223806) ("amazing" . 0.7194731) ("wonderful" . 0.71897257) ("excited" . 0.67683286) ("funny" . 0.6768042))
+
+;; 9974 13338 
+("arrogant" ("cynical" . 0.8082847) ("overbearing" . 0.7238595) ("ignorant" . 0.7138293) ("greedy" . 0.70123625) ("stupid" . 0.6797491) ("incompetent" . 0.6647228) ("ruthless" . 0.6596354) ("rude" . 0.6520939) ("dishonest" . 0.62661374) ("cruel" . 0.6261624))
+
+;; 11043
+("disgrace" ("shame" . 0.7434696) ("shame" . 0.7434696) ("shame" . 0.7434696) ("humiliation" . 0.6541086) ("humiliation" . 0.6541086) ("betrayal" . 0.6124427) ("utter" . 0.59863574) ("disgust" . 0.59832597) ("disgust" . 0.59832597) ("disgust" . 0.59832597))
+
+;; 4780 5069 
+("softening" ("weakening" . 0.71414495) ("easing" . 0.6805393) ("easing" . 0.6805393) ("soften" . 0.6458729) ("slowing" . 0.63867867) ("loosening" . 0.57842404) ("tightening" . 0.5745744) ("stance" . 0.57105667) ("stance" . 0.57105667) ("deterioration" . 0.56291974))
+
+;; 11738
+("counterproductive" ("unacceptable" . 0.7044698) ("backfire" . 0.6838168) ("pointless" . 0.6306595) ("unnecessary" . 0.6257722) ("absurd" . 0.62366164) ("irrelevant" . 0.6138313) ("detrimental" . 0.60591716) ("destabilizing" . 0.5905474) ("unfortunate" . 0.58446807) ("provocation" . 0.5840741))
+
+;; ?? 
+("snow" ("rain" . 0.7520058) ("weather" . 0.6833979) ("winter" . 0.6813019) ("fog" . 0.66362626) ("dust" . 0.6532293) ("dust" . 0.6532293) ("cold" . 0.6249481) ("cold" . 0.6249481) ("wind" . 0.6193043) ("wet" . 0.6108422))
+
+("key" ("important" . 0.7670343) ("leading" . 0.74730915) ("major" . 0.7430088) ("close" . 0.6922758) ("close" . 0.6922758) ("close" . 0.6922758) ("close" . 0.6922758) ("close" . 0.6922758) ("essential" . 0.6806268) ("possible" . 0.67457104))
+
+;; ??
+("therapy" ("treatment" . 0.7641633) ("treatment" . 0.7641633) ("treatment" . 0.7641633) ("counseling" . 0.7050411) ("counseling" . 0.7050411) ("medication" . 0.67093426) ("medication" . 0.67093426) ("diagnosis" . 0.6399352) ("massage" . 0.6299052) ("patient" . 0.62338984))
+
 
 
 
@@ -296,14 +510,15 @@
 ;(dev-split *ontonotes-annotations*)
 ;(train-split *ontonotes-annotations*)
 
+(append (test-split *ontonotes-annotations*)
+        (test-split *ewt-annotations*))
 
 (append (dev-split *ontonotes-annotations*)
         (dev-split *ewt-annotations*)
         (test-split *ontonotes-annotations*)
         (test-split *ewt-annotations*))
 
-(append 
-        (train-split *ontonotes-annotations*)
+(append (train-split *ontonotes-annotations*)
         (train-split *ewt-annotations*))
 
         
@@ -396,7 +611,7 @@
 ;(pprint (find-closest-match "brutalize" *propbank-ewt-ontonotes-learned-cxn-inventory*))
 
 (loop for verb in #|(list  "mummified" "enraged" "imbed" "joining" "wanted" "re-fix" "hunted" "thrilled" "becoming" "promising" "swinging" "dispatching" "communicating"  "hardening" "contested" "booming" "dedicated"  "noted" "pressing" "miscalculation" "welcoming" "snuck" "versed" "shaking" "fallen" "pre-set" "changed" "frustrating" "romanticized"  "persuasion" "polarized"  "recycled" "fragmentation" "rewarding"  "descending" "snaking" "ringing" "valuation" "mating" "propagandize" "filling"  "reclaimed" "beleaguered" "clouding" "manufactured" "hamstrung"  "fluctuating"  "batting"  "coordinated" "synchronized" "polished" "marching" "bashing" "leveraged" "selected" "geared"   "damaging" "authorized" "sighing" "brandish" "comforting" "politicized" "compelled" "suspending" "overarching" "alarming"  "preoccupied" "oversubscribed" "faltering" "unifying"  "chasten" "overstrain"   "pressed" "fed" "repositioning" "reconditioning"  "normalizing"  "gymnastic" "boasting" "been" "traipse" "tranquilizing" "tailgating"  "tilting" "laying"  "straining" "moaning"    "razed"  "beset" "panhandle"    "sunken"   "festering" "kidnapping" "unchanged"  "referenced" "re-wording" "referencing" "baiting"  "mated" "cooked" "plumbing"  "lurking"  "botched")|#
-        (list 
+        #|(list 
          "exhume"
          "regurgitate"
          "hypercontrol" ;; kent het niet
@@ -479,9 +694,11 @@
          "authorise" ;; ("defame" . 0.60829705) ("legitimize" . 0.57780046) ("belittle" . 0.5727067)
          "bulk" 
          "tan"
-         )
+         
+         )|#
+       (third *non-covered-test*)
       for matches = (find-closest-match verb *propbank-ewt-ontonotes-learned-cxn-inventory*)
-      if (and (> (cdr (first matches)) 0.8)
+      if (and (> (cdr (first matches)) 0.7)
               (not (= (cdr (first matches)) 1)))
         do (print (cons verb (first-n 10 matches)))
       else
