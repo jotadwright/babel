@@ -187,9 +187,15 @@
 ;; helper functions (best placed somewhere else?)
 
 (defmethod utter ((speaker crs-conventionality-agent) (hearer crs-conventionality-agent))
-  "The utterer utters the utterance to the utteree."
+  "The utterance is copied from the speaker to the hearer, noise may be added."
   (setf (utterance speaker) (conceptualised-utterance speaker))
-  (setf (utterance hearer) (utterance speaker)))
+  (if (get-configuration (experiment speaker) :introduce-noise-after-interaction)
+    (if (< (get-configuration (experiment speaker) :introduce-noise-after-interaction)
+           (interaction-number (current-interaction (experiment speaker))))
+      (setf (utterance hearer) (list (add-noise (copy-object (first (utterance speaker))) (get-configuration (experiment speaker) :noise-level)))) 
+      (setf (utterance hearer) (utterance speaker)))
+    (setf (utterance hearer) (utterance speaker))))
+
 
 (defmethod provide-feedback ((speaker crs-conventionality-agent) (hearer crs-conventionality-agent))
   "Speaker provides feedback by pointing to the topic."
