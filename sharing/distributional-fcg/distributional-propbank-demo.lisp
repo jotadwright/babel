@@ -420,17 +420,6 @@
 
 
 
-                
-;;example is that we haven't seen a lexical with this arg-struct, we can do the same for a sense that is not seen in the arg-struct!
-;; very weird example, just to test whether we get a sense
-(preprocessing-and-configs *propbank-ewt-learned-cxn-inventory* 'step-3 :make-role-embeddings nil)
-(comprehend-all "he walks the world"
-            :cxn-inventory *propbank-ewt-learned-cxn-inventory*
-            :timeout 100
-            :n 1)
-
-
-
 ;;;;;;;;;;;
 
 #|

@@ -2,9 +2,22 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                              ;;
-;; Evaluating propbank-english grammars.                        ;;
+;;              Code for finding the examples                   ;;
 ;;                                                              ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun find-closest-match (lemma cxn-inventory)
+  (let ((vector (second (nlp-tools:get-word-embedding (downcase lemma))))
+        (lex-cxns (loop for cxn in (constructions-list cxn-inventory)
+                        when (attr-val cxn :lex-category)
+                          collect cxn)))
+       (loop for cxn in lex-cxns
+             for lemma = (downcase (attr-val cxn :lemma))
+             for pointer =  (attr-val cxn :lemma-embedding-pointer)
+             for cxn-vector = (cdr (assoc pointer (get-data (blackboard cxn-inventory) :cxn-token-embeddings)))
+             for similarity = (cosine-similarity vector cxn-vector)
+             collect (cons lemma similarity) into similarities
+             finally (return (sort similarities #'> :key #'cdr)))))
 
 
 (defun add-grammatical-cxn (gold-frame core-units-with-role cxn-inventory propbank-sentence lex-category)
@@ -44,28 +57,43 @@ grammatical category."
             (incf-link-weight lex-category (attr-val equivalent-cxn :gram-category) cxn-inventory :delta 1.0 :link-type 'lex-gram))
           ;;b) Otherwise, add new connection (weight 1.0)
           (progn
-            (if (not *check-links*)
+            (if (not *check-links*) ;; proceed as normal
               (progn
                 (add-link lex-category (attr-val equivalent-cxn :gram-category) cxn-inventory :weight 1.0 :link-type nil
                           :recompute-transitive-closure nil)
                 (add-link lex-category (attr-val equivalent-cxn :gram-category) cxn-inventory :weight 1.0 :link-type 'lex-gram
                           :recompute-transitive-closure nil))
-              (progn
-                
+              (progn ;; here we are finding the ones in the test/dev set
+                ;; get the similarities, only consider the ones with a similarity above a certain threshold (maybe not necessary?)
                 (let* ((node-similarities (fcg::get-similar-lex-categories lex-category (fcg::graph (categorial-network cxn-inventory))))
                        (node-similarities-high (loop for sim in node-similarities
-                                                     when (> (cdr sim) 0.4)
+                                                     when (> (cdr sim) 0.2)
                                                        collect sim)))
-                  (when (> (cdr (second node-similarities)) 0.4)
+
+                  ;; when the highest similarity is between 0.2 and 0.4 (second because first one is the node itself)
+                  (when (and (> (cdr (second node-similarities)) 0.2)
+                             (< (cdr (second node-similarities)) 0.4))
+                    ;; loop for all similar nodes in the nodes above a certain threshold. 
                     (loop for s in node-similarities-high
-                          when (find (graph-utils::lookup-node (fcg::graph (categorial-network cxn-inventory)) (attr-val equivalent-cxn :gram-category))
-                                     (graph-utils::my-neighbors (fcg::graph (categorial-network cxn-inventory))
-                                                                (graph-utils::lookup-node (fcg::graph (categorial-network cxn-inventory)) (first s))))
+                          ;; when length of sentence is above a certain threshold and you find the gram-cat for the cxn that needs to apply in the neighbors of the node with a certain similarity, THEN do comprehend
+                          when (and (find (graph-utils::lookup-node (fcg::graph (categorial-network cxn-inventory))
+                                                                    (attr-val equivalent-cxn :gram-category))
+                                          (graph-utils::my-neighbors (fcg::graph (categorial-network cxn-inventory))
+                                                                     (graph-utils::lookup-node (fcg::graph (categorial-network cxn-inventory)) (first s))))
+                                    (< (length (split-sequence::split-sequence #\Space (sentence-string propbank-sentence))) 20))
+                            ;; comprehend and get the cats of the applied grammatical cxns and the neighbors of the lexical cxn for which link needs to be created
                             do (let* ((cipn (second (multiple-value-list (comprehend-and-extract-frames propbank-sentence :cxn-inventory cxn-inventory :silent t :timeout nil))))
-                                      (applied-gram-cxns (loop for cxn in (applied-constructions cipn)
+                                      (applied-gram-cats (loop for cxn in (applied-constructions cipn)
                                                                when (eq (cdr (attr-val :label cxn)) 'argument-structure-cxn )
-                                                                 collect cxn)))
-                                 (when (not applied-gram-cxns)
+                                                                 collect (attr-val cxn :gram-category)))
+                                      (neighbors-of-lex (graph-utils:neighbors (fcg::graph (categorial-network cxn-inventory)) lex-category)))
+                                 ;; check the neighbors of the lexical for which link needs to be created and check whether one of its neighbors is in the applied grammatical cxns
+                                 ;; if not, then collect
+                                 (when (not (loop for n in neighbors-of-lex
+                                                  for node = (graph-utils:lookup-node
+                                                              (fcg::graph (categorial-network cxn-inventory)) (cdr n))
+                                                  when (find node applied-gram-cats)
+                                                    collect node))
                                    (push (cons propbank-sentence cipn) *candidate-sentences*)
                                    (format t "---------------------------------- ~%" propbank-sentence)
                                    (format t "New link needed between: ~a and ~a~%" lex-category (attr-val equivalent-cxn :gram-category))
@@ -181,11 +209,15 @@ grammatical category."
   ;(defparameter *nr-check-links* (length (append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*))))
   (defparameter *nr-check-links* (length (append (train-split *ontonotes-annotations*) (train-split *ewt-annotations*))))
   
+  (defparameter *propbank-test* nil)
+  
   (learn-propbank-grammar
    (append (train-split *ewt-annotations*)
            (train-split *ontonotes-annotations*)
            (dev-split *ewt-annotations*)
            (dev-split *ontonotes-annotations*)
+           (test-split *ewt-annotations*)
+           (test-split *ontonotes-annotations*)
            )
    :excluded-rolesets '("be.01" "be.02" "be.03"
                         "do.01" "do.02" "do.04" "do.11" "do.12"
@@ -196,6 +228,11 @@ grammatical category."
    :fcg-configuration *training-configuration*)
   )
 
+(activate-monitor trace-fcg)
+(preprocessing-and-configs *propbank-test* :step-3 :make-role-embeddings nil)
+(comprehend-all "Try googling it for more info :-RRB-" :cxn-inventory *propbank-test* :n 1)
+(deactivate-monitor trace-fcg)
+
 ;(pprint (graph-utils::neighbors (fcg::graph (categorial-network *propbank-test*)) 'propbank-grammar::SERVE\(NN\)-1283 :return-ids? nil :edge-type 'lex-gram))
 
 
@@ -205,6 +242,21 @@ grammatical category."
                    :type "store"))
 
 
+
+New link needed between: COEXIST(V)-46 and ARG1(NP)+V(V)-79453
+Sentence: <Sentence: "Here , eastern and western cultures have gathered , and the new and the old coexist .">
+
+New link needed between: GOOGLE(V)-30 and V(V)+ARG1(NP)-42155
+Sentence: <Sentence: "Try googling it for more info :-RRB-">
+
+New link needed between: GOOGLE(V)-30 and V(V)+ARG1(NP)-42155
+Sentence: <Sentence: "Try googling it or type it into youtube you might get lucky .">
+
+New link needed between: UNLOCK(V)-15 and ARG0(NP)+V(V)+ARG1(NP)-194630
+Sentence: <Sentence: "So how much easier will that make it for you to unlock this case , do you think ?"> 
+
+New link needed between: NAIL(V)-79 and ARG0(NP)+V(V)+ARG1(NP)-194676
+Sentence: <Sentence: "You have to trust people and nail those attempts to control and hypercontrol this case .">
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -252,7 +304,9 @@ grammatical category."
                            for annotation = (propbank-frames sentence)
                            for frames-strings-train = (loop for frame in annotation
                                                             for frame-roles = (frame-roles frame)
-                                                            for v = (loop for role in frame-roles when (string= (role-type role) "V") return role)
+                                                            for v = (loop for role in frame-roles
+                                                                          when (string= (role-type role) "V")
+                                                                            return role)
                                                             when v
                                                               collect (role-string v))
                            for lemmas = (loop for frame-string in frames-strings-train
@@ -262,15 +316,23 @@ grammatical category."
                                                                   collect (cdr (assoc :lemma node)))
                                               append lemma)
                            append lemmas))
-        ;(clean-lemmas-train  (flatten lemmas-train))
-        ;(clean-lemmas-dev  (flatten lemmas-dev))
+        (clean-lemmas-train  (remove-duplicates lemmas-train :test #'string=))
+        (clean-lemmas-dev  (remove-duplicates lemmas-dev :test #'string=))
+        (diff-lemmas (set-difference   clean-lemmas-dev clean-lemmas-train :test #'string=))
          )
 
     
     ;(set-difference (remove-duplicates (flatten lemmas-train)) (remove-duplicates (flatten lemmas-dev)) :test #'string=)
     
-    (list lemmas-train lemmas-dev)))
+    
+    (list clean-lemmas-train clean-lemmas-dev diff-lemmas)))
 
+(time
+ (defparameter *non-covered-test* (find-non-covered-lemmas
+                                   (append (train-split *ontonotes-annotations*)
+                                           (train-split *ewt-annotations*))
+                                   (append (test-split *ontonotes-annotations*)
+                                           (test-split *ewt-annotations*)))))
 
 #|
   
