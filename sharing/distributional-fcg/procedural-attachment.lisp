@@ -23,7 +23,7 @@
            (let* ((token-embedding-cxn (cdr (assoc value (get-data (blackboard cxn-inventory) :cxn-token-embeddings))))
                   (token-embedding-ts (cdr (assoc source (get-data (blackboard cxn-inventory) :ts-token-embeddings))))
                   (cosine-similarity (cosine-similarity token-embedding-cxn token-embedding-ts)))
-             (if *compare-distributional-vectors*
+             (if (get-configuration cxn-inventory :compare-distributional-vectors) ;; case via configuration in cxn-inventory 
                (if (>= cosine-similarity (or (get-configuration cxn-inventory :cosine-similarity-threshold) 0.7))
                  (values source (mapcar #'(lambda (bindings-list)
                                             (extend-bindings (variablify value) cosine-similarity bindings-list))
@@ -51,7 +51,7 @@
            (let* ((token-embedding-cxn (cdr (assoc value (get-data (blackboard cxn-inventory) :cxn-token-embeddings))))
                   (token-embedding-ts (cdr (assoc source (get-data (blackboard cxn-inventory) :ts-token-embeddings))))
                   (cosine-similarity (cosine-similarity token-embedding-cxn token-embedding-ts)))
-             (if *compare-distributional-role-vectors*
+             (if (get-configuration cxn-inventory :compare-distributional-role-vectors)
                (if (>= cosine-similarity (or (get-configuration cxn-inventory :role-cosine-similarity-threshold) 0.7))
                  (values source (mapcar #'(lambda (bindings-list)
                                             (extend-bindings (variablify value) cosine-similarity bindings-list))

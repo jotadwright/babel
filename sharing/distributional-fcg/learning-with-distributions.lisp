@@ -486,10 +486,8 @@ initial transient structure that plays a role in the frame."
 
 (defmethod preprocessing-and-configs (grammar  (mode (eql :step-1)) &key (make-role-embeddings t))
   ;; set the comparison mode (used in the procedural attachment), don't compare the role vectors 
-  (setf fcg::*compare-distributional-role-vectors* nil)
-
-  ;;no need to set this?
-  (set-configuration grammar :role-cosine-similarity-threshold 1)
+  (set-configuration grammar :compare-distributional-role-vectors nil)
+  (set-configuration grammar :compare-distributional-vectors t)
 
   ;; do compare the lexical vectors, threshold here 0.3
   (setf fcg::*compare-distributional-vectors* t)
@@ -509,7 +507,9 @@ initial transient structure that plays a role in the frame."
 
 (defmethod preprocessing-and-configs (grammar (mode (eql :step-2)) &key (make-role-embeddings t))
   ;; compare the embeddings of the lexical cxns via expansion operator, but threshold is set to 1
-  (setf fcg::*compare-distributional-vectors* t)
+  (set-configuration grammar :compare-distributional-role-vectors t)
+  (set-configuration grammar :compare-distributional-vectors t)
+  
   (set-configuration grammar :cosine-similarity-threshold 1)
   
   ;; make the role embeddings and add all embeddings to grammar (both the lexical and the role embeddings)
@@ -533,7 +533,9 @@ initial transient structure that plays a role in the frame."
 
 (defmethod preprocessing-and-configs (grammar (mode (eql :step-3)) &key (make-role-embeddings t))
   ;(graph-utils::pre-compute-cosine-similarities (fcg::graph (fcg::categorial-network grammar)))
-  (setf fcg::*compare-distributional-role-vectors* nil)
+  (set-configuration grammar :compare-distributional-role-vectors nil)
+  (set-configuration grammar :compare-distributional-vectors t)
+  
   (set-configuration grammar :cosine-similarity-threshold 1)
   (set-configuration grammar :graph-cosine-similarity-threshold 0) ;; decide threshold???
   (set-configuration grammar :category-linking-mode :always-succeed)
