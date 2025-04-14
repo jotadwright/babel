@@ -60,6 +60,30 @@
 (define-event-handler (record-communicative-success interaction-finished)
   (record-value monitor (if (communicated-successfully interaction) 1 0)))
 
+;; ---------------------------------------
+;; + Communicative success of New Agents +
+;; ---------------------------------------
+(define-monitor record-communicative-success-of-new-agents
+                :class 'data-recorder
+                :average-window 100
+                :documentation "Records the game outcome of each game (1 or 0) in which an agent introduced at a later stage of the experiment participated.")
+
+(define-monitor export-communicative-success-of-new-agents
+                :class 'lisp-data-file-writer
+                :documentation "Records the game outcome of each game (1 or 0) in which an agent introduced at a later stage of the experiment participated."
+                :data-sources '(record-communicative-success-of-new-agents)
+                :file-name (babel-pathname :name "communicative-success-of-new-agents" :type "lisp"
+                                           :directory '("experiments" "crs-conventionality" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-communicative-success-of-new-agents interaction-finished)
+  (let ((new-agents (remove-if (lambda (agent) (= 0 (introduced-in-game agent)))
+                               (agents (population (experiment interaction))))))
+    (if (or (member (speaker interaction) new-agents)
+            (member (hearer interaction) new-agents))
+      (record-value monitor (if (communicated-successfully interaction) 1 0))
+      (record-value monitor NIL))))
+
 ;; ---------------------
 ;; + Lexicon Coherence +
 ;; ---------------------
@@ -78,6 +102,31 @@
 
 (define-event-handler (record-conventionalisation interaction-finished)
   (record-value monitor (if (coherence interaction) 1 0)))
+
+
+;; -----------------------------------
+;; + Lexicon Coherence of New Agents +
+;; -----------------------------------
+(define-monitor record-conventionalisation-of-new-agents
+                :class 'data-recorder
+                :average-window 100
+                :documentation "Records the degree of conventionalisation at interactions in which an  agents introduced at a later stage of the experiment participated.")
+
+(define-monitor export-conventionalisation-of-new-agents
+                :class 'lisp-data-file-writer
+                :documentation "Exports the degree of conventionalisation."
+                :data-sources '(record-conventionalisation-of-new-agents)
+                :file-name (babel-pathname :name "conventionalisation-of-new-agents" :type "lisp"
+                                           :directory '("experiments" "crs-conventionality" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-conventionalisation-of-new-agents interaction-finished)
+  (let ((new-agents (remove-if (lambda (agent) (= 0 (introduced-in-game agent)))
+                               (agents (population (experiment interaction))))))
+    (if (or (member (speaker interaction) new-agents)
+            (member (hearer interaction) new-agents))
+      (record-value monitor (if (coherence interaction) 1 0))
+      (record-value monitor NIL))))
 
 ;; -------------------------------
 ;; + Construction inventory size +
@@ -105,6 +154,33 @@
                               sum grammar-size into total-sum
                               finally (return (round (/ total-sum (length (agents (population (experiment interaction))))))))))
 
+;; ---------------------------------------------
+;; + Construction Inventory Size of New Agents +
+;; ---------------------------------------------
+(define-monitor record-construction-inventory-size-of-new-agents
+                :class 'data-recorder
+                :average-window 1
+                :documentation "Records the construction inventory size of agents that were introduced at a later stage of the experiment.")
+
+(define-monitor export-construction-inventory-size-of-new-agents
+                :class 'lisp-data-file-writer
+                :documentation "Exports the construction inventory size of agents that were introced at a later stage of the experiment."
+                :data-sources '(record-construction-inventory-size-of-new-agents)
+                :file-name (babel-pathname :name "construction-inventory-size-of-new-agents" :type "lisp"
+                                           :directory '("experiments" "crs-conventionality" "raw-data"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-construction-inventory-size-of-new-agents interaction-finished)
+  (let ((new-agents (remove-if (lambda (agent) (= 0 (introduced-in-game agent)))
+                              (agents (population (experiment interaction))))))
+    (if (or (member (speaker interaction) new-agents)
+              (member (hearer interaction) new-agents))
+      (record-value monitor (loop for agent in new-agents
+                                  for grammar-size = (count-if #'non-zero-cxn-p (constructions (grammar agent)))
+                                  sum grammar-size into total-sum
+                                  finally (return (round (/ total-sum (length new-agents))))))
+      (record-value monitor NIL))))
+    
 ;; ---------------------
 ;; + Real-time display +
 ;; ---------------------

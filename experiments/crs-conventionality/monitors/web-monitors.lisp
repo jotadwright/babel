@@ -218,6 +218,42 @@
          (add-element `((b :style "color: red;")
                         ,(format nil "Hearer would have uttered \"~a\" instead of \"~a\"." (first (conceptualised-utterance hearer)) (first (utterance speaker))))))))
 
+;; Introduce New Agents ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define-event introduce-new-agents-finished (population crs-conventionality-population)
+                                            (new-agents list))
+
+(define-event-handler (trace-interaction introduce-new-agents-finished)
+  (add-element `((h1 :style "background-color: DarkBlue; color:white; padding: 5px; margin-top: 50px")
+                 ,(format nil "Population changed")))
+  (add-element `((p) ,(format nil "Introduced ~{~#[~;~a~;~a and ~a~:;~@{~a~#[~;, and ~:;, ~]~}~]~}." (mapcar #'id  new-agents))))
+  (add-social-network (agents population)))
+
+
+;; Replace Agents ;;
+;;;;;;;;;;;;;;;;;;;;
+
+(define-event replace-agents-finished (population crs-conventionality-population)
+                                      (replaced-agents list)
+                                      (new-agents list))
+
+(define-event-handler (trace-interaction replace-agents-finished)
+  (add-element `((h1 :style "background-color: DarkBlue; color:white; padding: 5px; margin-top: 50px")
+                 ,(format nil "Population changed")))
+  (let ((pairs (loop for replaced-agent in (mapcar #'id  replaced-agents)
+                     for new-agent in (mapcar #'id  new-agents)
+                     collect (format nil "~a by ~a" replaced-agent new-agent))))
+    (add-element `((p) ,(format nil "Replaced ~{~#[~;~a~;~a and ~a~:;~@{~a~#[~;, and ~:;, ~]~}~]~}." pairs))))
+  (add-social-network (agents population)))
+
+
+(defun add-social-network (agents)
+  (let* ((filename (format nil "population-graph-~a" (make-time-stamp)))
+         (filepath (format nil "~a.svg" filename)))
+    (population-network->graphviz agents :name filename :make-image t :open-image nil :use-labels? t)
+    (add-element `((img :src ,filepath :height "500")))))
+
 
 ;; Evaluate IRL program ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -262,3 +298,5 @@
                  ((table :class "two-col")
                   ((tbody)
                    ,(fcg::make-tr-for-cip-tree-fcg-light (fcg::top-node cip) "application process"))))))
+
+

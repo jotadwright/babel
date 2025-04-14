@@ -24,7 +24,6 @@
                                           (:alignment-strategy . :lateral-inhibition)
                                           (:learning-strategy . :default)
                                           (:learning-rate . 0.5)
-                                          (:neighbor-q-value-lr . 0.01)
                                           ;; Initialising an interaction
                                           (:determine-interacting-agents-mode . :random-from-social-network)
                                           (:determine-scene-entities-mode . :random-subset-of-world)
@@ -39,7 +38,8 @@
 
 ;; Boltzmann partner selection
 (set-configurations *configuration* '((:determine-interacting-agents-mode . :boltzmann-partner-selection)
-                                      (:boltzmann-tau . -20)))
+                                      (:boltzmann-tau . -20)
+                                      (:neighbor-q-value-lr . 0.02)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -52,6 +52,7 @@
   ;; deactivate all monitors (as a sanity check)
   (monitors::notify reset-monitors)
   ;; instantiate a naming game experiment
+  (reset-id-counters)
   (defparameter *naming-game* (make-instance 'naming-game-experiment
                                              :configuration *configuration*))
   ;; visualise the population network
@@ -122,5 +123,10 @@
 ;; Introduce new agent that will always be selected as the listener 
 (progn
   (introduce-new-agents *naming-game* :number-of-agents 1)
-  (set-configuration *naming-game* :determine-interacting-agents-mode :random-listener-from-younger-generation)
-  (population-network->graphviz (agents (population *naming-game*)) :make-image t :open-image t :use-labels? t))
+  (set-configuration *naming-game* :determine-interacting-agents-mode :random-listener-from-younger-generation))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Population Turnover/Replacement ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(replace-agents *naming-game* 0.5)

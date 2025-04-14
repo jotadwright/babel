@@ -65,7 +65,7 @@
   (setf (agents population)
         (loop for i from 1 to (get-configuration (experiment population) :nr-of-agents-in-population)
               collect (make-instance 'naming-game-agent
-                                     :id (intern (format nil "AGENT-~a" i))
+                                     :id (make-id "AGENT")
                                      :experiment (experiment population)
                                      :population population))))
 
